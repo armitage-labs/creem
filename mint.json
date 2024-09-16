@@ -46,7 +46,7 @@
   "navigation": [
     {
       "group": "Get Started",
-      "pages": ["introduction", "quickstart", "api-keys", "return-urls"]
+      "pages": ["introduction", "quickstart", "api-keys", "return-urls", "test-mode"]
     },
     {
       "group": "Learn",

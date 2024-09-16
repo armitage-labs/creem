@@ -53,14 +53,14 @@ Now grab your api-key and create a checkout session by sending a POST request to
 ```bash getCheckout.sh
 curl -X POST https://api.creem.io/checkout-session \
   -H "x-api-key: creem_123456789"
-  -D '{"product_id": "product_123456789"}'
+  -D '{"product_id": "prod_6tW66i0oZM7w1qXReHJrwg"}'
 ```
 
 ```javascript getCheckout.js
     const redirectUrl = await axios.post(
       `https://api.creem.io/checkout-session`,
         {
-          product_id: 'product_123456789',
+          product_id: 'prod_6tW66i0oZM7w1qXReHJrwg',
         },
         {
           headers: { "x-api-key": `creem_123456789` },
