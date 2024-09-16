@@ -242,29 +242,6 @@
   "servers": [],
   "components": {
     "schemas": {
-      "AttributeEntity": {
-        "type": "object",
-        "properties": {
-          "name": {
-            "type": "string",
-            "description": "The key of the attribute."
-          },
-          "value": {
-            "type": "string",
-            "description": "The value of the attribute."
-          },
-          "cascade": {
-            "type": "boolean",
-            "description": "If you would like the attribute to be created in subresources created. Example checkout session -\u003E customer",
-            "default": false
-          }
-        },
-        "required": [
-          "name",
-          "value",
-          "cascade"
-        ]
-      },
       "FeatureEntity": {
         "type": "object",
         "properties": {
@@ -295,25 +272,6 @@
             "type": "string",
             "description": "Unique identifier for the object."
           },
-          "object": {
-            "type": "string",
-            "enum": [
-              "product",
-              "payment",
-              "pricing-table",
-              "customer",
-              "webhook",
-              "subscription",
-              "transaction",
-              "refund",
-              "payout",
-              "transfer",
-              "top-up",
-              "balance",
-              "feature"
-            ],
-            "description": "String representing the object’s type. Objects of the same type share the same value."
-          },
           "mode": {
             "type": "string",
             "enum": [
@@ -323,12 +281,9 @@
             ],
             "description": "String representing the environment."
           },
-          "attributes": {
-            "description": "A list of key-value pairs representing the attributes.",
-            "type": "array",
-            "items": {
-              "$ref": "#/components/schemas/AttributeEntity"
-            }
+          "object": {
+            "type": "string",
+            "description": "String representing the object’s type. Objects of the same type share the same value."
           },
           "name": {
             "type": "string",
@@ -410,9 +365,8 @@
         },
         "required": [
           "id",
-          "object",
           "mode",
-          "attributes",
+          "object",
           "name",
           "description",
           "price",
@@ -502,25 +456,6 @@
             "type": "string",
             "description": "Unique identifier for the object."
           },
-          "object": {
-            "type": "string",
-            "enum": [
-              "product",
-              "payment",
-              "pricing-table",
-              "customer",
-              "webhook",
-              "subscription",
-              "transaction",
-              "refund",
-              "payout",
-              "transfer",
-              "top-up",
-              "balance",
-              "feature"
-            ],
-            "description": "String representing the object’s type. Objects of the same type share the same value."
-          },
           "mode": {
             "type": "string",
             "enum": [
@@ -530,12 +465,9 @@
             ],
             "description": "String representing the environment."
           },
-          "attributes": {
-            "description": "A list of key-value pairs representing the attributes.",
-            "type": "array",
-            "items": {
-              "$ref": "#/components/schemas/AttributeEntity"
-            }
+          "object": {
+            "type": "string",
+            "description": "String representing the object’s type. Objects of the same type share the same value."
           },
           "email": {
             "type": "string",
@@ -568,9 +500,8 @@
         },
         "required": [
           "id",
-          "object",
           "mode",
-          "attributes",
+          "object",
           "email",
           "country",
           "created_at",
@@ -584,25 +515,6 @@
             "type": "string",
             "description": "Unique identifier for the object."
           },
-          "object": {
-            "type": "string",
-            "enum": [
-              "product",
-              "payment",
-              "pricing-table",
-              "customer",
-              "webhook",
-              "subscription",
-              "transaction",
-              "refund",
-              "payout",
-              "transfer",
-              "top-up",
-              "balance",
-              "feature"
-            ],
-            "description": "String representing the object’s type. Objects of the same type share the same value."
-          },
           "mode": {
             "type": "string",
             "enum": [
@@ -612,12 +524,9 @@
             ],
             "description": "String representing the environment."
           },
-          "attributes": {
-            "description": "A list of key-value pairs representing the attributes.",
-            "type": "array",
-            "items": {
-              "$ref": "#/components/schemas/AttributeEntity"
-            }
+          "object": {
+            "type": "string",
+            "description": "String representing the object’s type. Objects of the same type share the same value."
           },
           "product": {
             "type": "object",
@@ -665,9 +574,8 @@
         },
         "required": [
           "id",
-          "object",
           "mode",
-          "attributes",
+          "object",
           "product",
           "customer",
           "collection_method",
@@ -683,25 +591,6 @@
             "type": "string",
             "description": "Unique identifier for the object."
           },
-          "object": {
-            "type": "string",
-            "enum": [
-              "product",
-              "payment",
-              "pricing-table",
-              "customer",
-              "webhook",
-              "subscription",
-              "transaction",
-              "refund",
-              "payout",
-              "transfer",
-              "top-up",
-              "balance",
-              "feature"
-            ],
-            "description": "String representing the object’s type. Objects of the same type share the same value."
-          },
           "mode": {
             "type": "string",
             "enum": [
@@ -711,12 +600,9 @@
             ],
             "description": "String representing the environment."
           },
-          "attributes": {
-            "description": "A list of key-value pairs representing the attributes.",
-            "type": "array",
-            "items": {
-              "$ref": "#/components/schemas/AttributeEntity"
-            }
+          "object": {
+            "type": "string",
+            "description": "String representing the object’s type. Objects of the same type share the same value."
           },
           "customer": {
             "type": "object",
@@ -788,9 +674,8 @@
         },
         "required": [
           "id",
-          "object",
           "mode",
-          "attributes",
+          "object",
           "product",
           "amount",
           "currency",
@@ -807,25 +692,6 @@
             "type": "string",
             "description": "Unique identifier for the object."
           },
-          "object": {
-            "type": "string",
-            "enum": [
-              "product",
-              "payment",
-              "pricing-table",
-              "customer",
-              "webhook",
-              "subscription",
-              "transaction",
-              "refund",
-              "payout",
-              "transfer",
-              "top-up",
-              "balance",
-              "feature"
-            ],
-            "description": "String representing the object’s type. Objects of the same type share the same value."
-          },
           "mode": {
             "type": "string",
             "enum": [
@@ -835,12 +701,9 @@
             ],
             "description": "String representing the environment."
           },
-          "attributes": {
-            "description": "A list of key-value pairs representing the attributes.",
-            "type": "array",
-            "items": {
-              "$ref": "#/components/schemas/AttributeEntity"
-            }
+          "object": {
+            "type": "string",
+            "description": "String representing the object’s type. Objects of the same type share the same value."
           },
           "status": {
             "type": "string",
@@ -882,9 +745,8 @@
         },
         "required": [
           "id",
-          "object",
           "mode",
-          "attributes",
+          "object",
           "status",
           "product",
           "checkout_url",
