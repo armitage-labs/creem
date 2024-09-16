@@ -49,8 +49,8 @@
       "pages": [
         "introduction",
         "quickstart",
+        "checkout-flow",
         "api-keys",
-        "return-urls",
         "test-mode"
       ]
     },
