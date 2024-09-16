@@ -1,27 +1,59 @@
 ---
 title: 'Event Types'
-description: 'List of supported event types and their payload.'
+description: 'List of supported event types and their payloads.'
 ---
 
-{/* <img
-  className="block dark:hidden"
-  src="/images/hero-light.svg"
-  alt="Hero Light"
-/> */}
+## subscription.active
 
-## subscription.paid
+Received when a new subscription is created, the payment was successful and Creem collected the payment creating a new subscription object in your account.
 
-The payment was successful, Creem collected the payment and started a subscription with this specific customer.
+No new events will be sent for this subscription until it is canceled or it's status changes.
 
 <AccordionGroup>
   <Accordion title="Sample Request Body">
   ```json
-    {
-        "type": "subscription.paid",
-        "subscription_id": "sub_123456789",
-        "customer_id": "cus_123456789",
-        "product_id": "prod_123456789",
+{
+    "id": "evt_6EptlmjazyGhEPiNQ5f4lz",
+    "eventType": "subscription.active",
+    "created_at": "2024-09-16T19:40:42.141Z",
+    "object": {
+        "id": "sub_21lfZb67szyvMiXnm6SVi0",
+        "object": "subscription",
+        "product": {
+            "id": "prod_AnVJ11ujp7x953ARpJvAF",
+            "name": "My Product - Product 01",
+            "description": "Test my product",
+            "image_url": null,
+            "price": 10000,
+            "currency": "EUR",
+            "billing_type": "recurring",
+            "billing_period": "every-month",
+            "status": "active",
+            "tax_mode": "inclusive",
+            "tax_category": "saas",
+            "default_success_url": "",
+            "created_at": "2024-09-16T16:12:09.813Z",
+            "updated_at": "2024-09-16T16:12:09.813Z",
+            "mode": "local"
+        },
+        "customer": {
+            "id": "cust_3biFPNt4Cz5YRDSdIqs7kc",
+            "object": "customer",
+            "email": "alecerasmus2@gmail.com",
+            "name": "Alec Erasmus",
+            "country": "SE",
+            "created_at": "2024-09-16T16:13:39.265Z",
+            "updated_at": "2024-09-16T16:13:39.265Z",
+            "mode": "local"
+        },
+        "collection_method": "charge_automatically",
+        "status": "active",
+        "canceled_at": "2024-09-16T19:40:41.984Z",
+        "created_at": "2024-09-16T19:40:41.984Z",
+        "updated_at": "2024-09-16T19:40:42.121Z",
+        "mode": "local"
     }
+}
   ```
     
   </Accordion>
@@ -30,17 +62,130 @@ The payment was successful, Creem collected the payment and started a subscripti
 
 ## subscription.canceled
 
-The subscription was canceled by the merchant or by the customer
+The subscription was canceled by the merchant or by the customer.
 
 <AccordionGroup>
   <Accordion title="Sample Request Body">
   ```json
-    {
-        "type": "subscription.paid",
-        "subscription_id": "sub_123456789",
-        "customer_id": "cus_123456789",
-        "product_id": "prod_123456789",
+{
+    "id": "evt_3WywEzTUf7BS8rno3lUCfs",
+    "eventType": "subscription.canceled",
+    "created_at": "2024-09-16T19:42:00.335Z",
+    "object": {
+        "id": "sub_21lfZb67szyvMiXnm6SVi0",
+        "object": "subscription",
+        "product": {
+            "id": "prod_AnVJ11ujp7x953ARpJvAF",
+            "name": "My Product - Product 01",
+            "description": "Test my product",
+            "image_url": null,
+            "price": 10000,
+            "currency": "EUR",
+            "billing_type": "recurring",
+            "billing_period": "every-month",
+            "status": "active",
+            "tax_mode": "inclusive",
+            "tax_category": "saas",
+            "default_success_url": "",
+            "created_at": "2024-09-16T16:12:09.813Z",
+            "updated_at": "2024-09-16T16:12:09.813Z",
+            "mode": "local"
+        },
+        "customer": {
+            "id": "cust_3biFPNt4Cz5YRDSdIqs7kc",
+            "object": "customer",
+            "email": "alecerasmus2@gmail.com",
+            "name": "Alec Erasmus",
+            "country": "SE",
+            "created_at": "2024-09-16T16:13:39.265Z",
+            "updated_at": "2024-09-16T16:13:39.265Z",
+            "mode": "local"
+        },
+        "collection_method": "charge_automatically",
+        "status": "canceled",
+        "canceled_at": "2024-09-16T19:42:00.249Z",
+        "created_at": "2024-09-16T19:40:41.984Z",
+        "updated_at": "2024-09-16T19:42:00.311Z",
+        "mode": "local"
     }
+}
+  ```
+    
+  </Accordion>
+</AccordionGroup>
+
+
+## checkout.completed
+
+A checkout session was completed, returning all the information about the payment and the order created.
+
+<AccordionGroup>
+  <Accordion title="Sample Request Body">
+  ```json
+{
+    "id": "evt_309YdCnvgdhqpqtMzFZooD",
+    "eventType": "checkout.completed",
+    "created_at": "2024-09-16T22:17:10.193Z",
+    "object": {
+        "id": "ch_4YXkY1fL4fkKcZc3oVNRvR",
+        "object": "checkout",
+        "request_id": "custome_request",
+        "order": {
+            "id": "ord_181tJjnWxCDBUAmbVO5PE1",
+            "customer": "cust_3biFPNt4Cz5YRDSdIqs7kc",
+            "product": "prod_AnVJ11ujp7x953ARpJvAF",
+            "amount": 10000,
+            "currency": "EUR",
+            "status": "paid",
+            "type": "subscription",
+            "affiliate": null,
+            "created_at": "2024-09-16T22:16:52.158Z",
+            "updated_at": "2024-09-16T22:16:52.158Z",
+            "mode": "local"
+        },
+        "product": {
+            "id": "prod_AnVJ11ujp7x953ARpJvAF",
+            "name": "My Product - Product 01",
+            "description": "Test my product",
+            "image_url": null,
+            "price": 10000,
+            "currency": "EUR",
+            "billing_type": "recurring",
+            "billing_period": "every-month",
+            "status": "active",
+            "tax_mode": "inclusive",
+            "tax_category": "saas",
+            "default_success_url": "",
+            "created_at": "2024-09-16T16:12:09.813Z",
+            "updated_at": "2024-09-16T16:12:09.813Z",
+            "mode": "local"
+        },
+        "customer": {
+            "id": "cust_3biFPNt4Cz5YRDSdIqs7kc",
+            "object": "customer",
+            "email": "alecerasmus2@gmail.com",
+            "name": "Alec Erasmus",
+            "country": "SE",
+            "created_at": "2024-09-16T16:13:39.265Z",
+            "updated_at": "2024-09-16T16:13:39.265Z",
+            "mode": "local"
+        },
+        "subscription": {
+            "id": "sub_1DSkCnKLPC3dvkKMQxG3LT",
+            "object": "subscription",
+            "product": "prod_AnVJ11ujp7x953ARpJvAF",
+            "customer": "cust_3biFPNt4Cz5YRDSdIqs7kc",
+            "collection_method": "charge_automatically",
+            "status": "active",
+            "canceled_at": "2024-09-16T22:17:09.569Z",
+            "created_at": "2024-09-16T22:17:09.569Z",
+            "updated_at": "2024-09-16T22:17:09.702Z",
+            "mode": "local"
+        },
+        "status": "pending",
+        "mode": "local"
+    }
+}
   ```
     
   </Accordion>

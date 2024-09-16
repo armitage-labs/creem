@@ -1,68 +1,56 @@
 ---
 title: 'Customer Portal'
-description: 'Creem is the payment partner you always deserved, we strive for simplicity and straightforwardness on our APIs.'
+description: 'Customers can cancel and refund subscriptions by themselves.'
 ---
 
-{/* <img
-  className="block dark:hidden"
-  src="/images/hero-light.svg"
-  alt="Hero Light"
-/> */}
 
-## Quickstart
+## What is a Customer Portal?
 
-The first step to start using Creem is to create an account and get your API key.
+After every successful payment, your customers will receive an email with a link to their Customer Portal. This portal allows them to manage their subscriptions, payment methods, and personal information.
 
-After that, feel free to explore our API reference for more details. Or to jump start into our straightforward tutorial.
+This email contains a magic link, to a completely different authentication mechanism, in which they are able to access their account which allows them to execute the aforementioned actions.
 
-<CardGroup cols={2}>
-  <Card
-    title="From 0 to Hero"
-    icon="money-bill-trend-up"
-    href="/quickstart"
-  >
-    We'll guide you through the process of receiving your first payment in 10 minutes.
-  </Card>
-  <Card
-    title="Webhooks"
-    icon="webhook"
-    href="/webhooks/introduction"
-  >
-    Understand how to receive updates on your application automatically.
-  </Card>
-</CardGroup>
 
-## Advanced guides
 
-Create customers and subscriptions, manage your products, and much more. Check out our advanced guides to get the most out of Creem.
+<AccordionGroup>
+  <Accordion icon="receipt" title="Receipt Example">
+    <img
+      style={{ borderRadius: '0.5rem' }}
+      src="https://nucn5fajkcc6sgrd.public.blob.vercel-storage.com/customer-receipt-vkulxKgFJOJKi2TLCojb60UjQaOsn3.png"
+    />
+  </Accordion>
+  <Accordion icon="right-to-bracket" title="Magic Link Login Example">
+    <img
+      style={{ borderRadius: '0.5rem' }}
+      src="https://nucn5fajkcc6sgrd.public.blob.vercel-storage.com/magic-link-nq675ngtIqI95c6EeGiHPa8id6D1x1.png"
+    />
+  </Accordion>
+</AccordionGroup>
 
-<CardGroup cols={2}>
-  <Card
-    title="Customers"
-    icon="user"
-    href="https://mintlify.com/docs/settings/global"
-  >
-    Create customers dynamically and manage their subscriptions.
-  </Card>
-  <Card
-    title="Checkout Sessions"
-    icon="cart-shopping"
-    href="https://mintlify.com/docs/api-playground/openapi"
-  >
-    Create checkout sessions with dynamic products and prices.
-  </Card>
-  <Card
-    title="Products"
-    icon="screwdriver-wrench"
-    href="https://mintlify.com/docs/components/accordion"
-  >
-    Build interactive features and designs to guide your users.
-  </Card>
-  <Card
-    title="Subscriptions"
-    icon="stars"
-    href="https://mintlify.com/customers"
-  >
-    Understand how our subscription object works and how to manage them.
-  </Card>
-</CardGroup>
+
+## What can customers do in the Customer Portal?
+
+
+### 1. Cancel a subscription
+
+Upon entering the Customer Portal, customers can cancel their subscriptions by selecting an active subscription, and clicking on the **Manage Subscription** button.
+This will open a details sheet on the right side of the screen, where a **Cancel Subscription** button is available.
+
+
+ This will immediately cancel their subscription and they will no longer be charged for it.
+
+
+    <img
+      style={{ borderRadius: '0.5rem' }}
+      src="https://nucn5fajkcc6sgrd.public.blob.vercel-storage.com/cancel-subscription-e7svTi3ym0foZze7gG8SOa6arqIj78.png"
+    />
+
+
+### 2. Request Invoice or Support
+
+Customers using the customer portal, can copy all details of a specific payment, including order_ID and request support from Creem team directly without contacting the merchant.
+
+    <img
+      style={{ borderRadius: '0.5rem' }}
+      src="https://nucn5fajkcc6sgrd.public.blob.vercel-storage.com/customer-portal-Klxod6wVtoF6JFJdeEDPOPPxDMJ31q.png"
+    />
