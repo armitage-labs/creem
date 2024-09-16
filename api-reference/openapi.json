@@ -1,194 +1,72 @@
 {
-    "openapi": "3.0.0",
-    "paths": {
-      "/v1/products": {
-        "get": {
-          "operationId": "ProductsControllerV1_retrieve",
-          "summary": "Retrieve a product",
-          "parameters": [
-            {
-              "name": "product_id",
-              "required": true,
-              "in": "query",
-              "description": "The unique identifier of the product",
-              "schema": {
-                "type": "string"
-              }
-            },
-            {
-              "name": "x-api-key",
-              "in": "header",
-              "required": true,
-              "schema": {
-                "type": "string"
+  "openapi": "3.0.0",
+  "paths": {
+    "/v1/products": {
+      "get": {
+        "operationId": "ProductsControllerV1_retrieve",
+        "summary": "Retrieve a product",
+        "parameters": [
+          {
+            "name": "product_id",
+            "required": true,
+            "in": "query",
+            "description": "The unique identifier of the product",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "x-api-key",
+            "in": "header",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successfully retrieved the product",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProductEntity"
+                }
               }
             }
-          ],
-          "responses": {
-            "200": {
-              "description": "Successfully retrieved the product",
-              "content": {
-                "application/json": {
-                  "schema": {
-                    "$ref": "#/components/schemas/ProductEntity"
-                  }
-                }
+          }
+        }
+      },
+      "post": {
+        "operationId": "ProductsControllerV1_create",
+        "summary": "Creates a new product.",
+        "parameters": [
+          {
+            "name": "x-api-key",
+            "in": "header",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CreateProductRequestEntity"
               }
             }
           }
         },
-        "post": {
-          "operationId": "ProductsControllerV1_create",
-          "summary": "Creates a new product.",
-          "parameters": [
-            {
-              "name": "x-api-key",
-              "in": "header",
-              "required": true,
-              "schema": {
-                "type": "string"
-              }
-            }
-          ],
-          "requestBody": {
-            "required": true,
+        "responses": {
+          "200": {
+            "description": "Successfully created a product",
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/CreateProductRequestEntity"
-                }
-              }
-            }
-          },
-          "responses": {
-            "200": {
-              "description": "Successfully created a product",
-              "content": {
-                "application/json": {
-                  "schema": {
-                    "$ref": "#/components/schemas/ProductEntity"
-                  }
-                }
-              }
-            }
-          }
-        }
-      },
-      "/v1/customers": {
-        "get": {
-          "operationId": "CustomersControllerV1_retrieve",
-          "summary": "Retrieve a customer",
-          "parameters": [
-            {
-              "name": "customer_id",
-              "required": false,
-              "in": "query",
-              "description": "The unique identifier of the customer",
-              "schema": {
-                "type": "string"
-              }
-            },
-            {
-              "name": "email",
-              "required": false,
-              "in": "query",
-              "description": "The unique email of the customer",
-              "schema": {
-                "type": "string"
-              }
-            },
-            {
-              "name": "x-api-key",
-              "in": "header",
-              "required": true,
-              "schema": {
-                "type": "string"
-              }
-            }
-          ],
-          "responses": {
-            "200": {
-              "description": "Successfully retrieved the customer",
-              "content": {
-                "application/json": {
-                  "schema": {
-                    "$ref": "#/components/schemas/ProductEntity"
-                  }
-                }
-              }
-            }
-          }
-        }
-      },
-      "/v1/subscriptions": {
-        "get": {
-          "operationId": "SubscriptionsControllerV1_retrieve",
-          "summary": "Retrieve a subscription",
-          "parameters": [
-            {
-              "name": "subscription_id",
-              "required": true,
-              "in": "query",
-              "description": "The unique identifier of the subscription",
-              "schema": {
-                "type": "string"
-              }
-            },
-            {
-              "name": "x-api-key",
-              "in": "header",
-              "required": true,
-              "schema": {
-                "type": "string"
-              }
-            }
-          ],
-          "responses": {
-            "200": {
-              "description": "Successfully retrieved the subscription",
-              "content": {
-                "application/json": {
-                  "schema": {
-                    "$ref": "#/components/schemas/SubscriptionEntity"
-                  }
-                }
-              }
-            }
-          }
-        }
-      },
-      "/v1/checkouts": {
-        "post": {
-          "operationId": "CheckoutsControllerV1_createCheckout",
-          "summary": "Creates a new checkout session.",
-          "parameters": [
-            {
-              "name": "x-api-key",
-              "in": "header",
-              "required": true,
-              "schema": {
-                "type": "string"
-              }
-            }
-          ],
-          "requestBody": {
-            "required": true,
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/CreateCheckoutRequestEntity"
-                }
-              }
-            }
-          },
-          "responses": {
-            "200": {
-              "description": "Successfully created a checkout session",
-              "content": {
-                "application/json": {
-                  "schema": {
-                    "$ref": "#/components/schemas/CheckoutEntity"
-                  }
+                  "$ref": "#/components/schemas/ProductEntity"
                 }
               }
             }
@@ -196,562 +74,868 @@
         }
       }
     },
-    "info": {
-      "title": "Creem API",
-      "description": "Creem is an all-in-one platform for managing subscriptions and recurring revenue, tailored specifically for today’s SaaS companies. It enables you to boost revenue, enhance customer retention, and scale your operations seamlessly.",
-      "version": "v1",
-      "contact": {
-  
+    "/v1/customers": {
+      "get": {
+        "operationId": "CustomersControllerV1_retrieve",
+        "summary": "Retrieve a customer",
+        "parameters": [
+          {
+            "name": "customer_id",
+            "required": false,
+            "in": "query",
+            "description": "The unique identifier of the customer",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "email",
+            "required": false,
+            "in": "query",
+            "description": "The unique email of the customer",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "x-api-key",
+            "in": "header",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successfully retrieved the customer",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CustomerEntity"
+                }
+              }
+            }
+          }
+        }
       }
     },
-    "tags": [],
-    "servers": [],
-    "components": {
-      "schemas": {
-        "AttributeEntity": {
-          "type": "object",
-          "properties": {
-            "name": {
-              "type": "string",
-              "description": "The key of the attribute."
-            },
-            "value": {
-              "type": "string",
-              "description": "The value of the attribute."
-            },
-            "cascade": {
-              "type": "boolean",
-              "description": "If you would like the attribute to be created in subresources created. Example checkout session -\u003E customer",
-              "default": false
+    "/v1/subscriptions": {
+      "get": {
+        "operationId": "SubscriptionsControllerV1_retrieve",
+        "summary": "Retrieve a subscription",
+        "parameters": [
+          {
+            "name": "subscription_id",
+            "required": true,
+            "in": "query",
+            "description": "The unique identifier of the subscription",
+            "schema": {
+              "type": "string"
             }
           },
-          "required": [
-            "name",
-            "value",
-            "cascade"
-          ]
-        },
-        "FeatureEntity": {
-          "type": "object",
-          "properties": {
-            "id": {
-              "type": "string",
-              "description": "Unique identifier for the feature."
-            },
-            "type": {
-              "type": "string",
-              "description": "The feature type."
-            },
-            "description": {
-              "type": "string",
-              "description": "A brief description of the feature",
-              "example": "Get access to discord server."
+          {
+            "name": "x-api-key",
+            "in": "header",
+            "required": true,
+            "schema": {
+              "type": "string"
             }
-          },
-          "required": [
-            "id",
-            "type",
-            "description"
-          ]
-        },
-        "ProductEntity": {
-          "type": "object",
-          "properties": {
-            "id": {
-              "type": "string",
-              "description": "Unique identifier for the object."
-            },
-            "object": {
-              "type": "string",
-              "enum": [
-                "product",
-                "payment",
-                "pricing-table",
-                "customer",
-                "webhook",
-                "subscription",
-                "transaction",
-                "refund",
-                "payout",
-                "transfer",
-                "top-up",
-                "balance",
-                "feature"
-              ],
-              "description": "String representing the object’s type. Objects of the same type share the same value."
-            },
-            "mode": {
-              "type": "string",
-              "enum": [
-                "test",
-                "live",
-                "sandbox"
-              ],
-              "description": "String representing the environment."
-            },
-            "attributes": {
-              "description": "A list of key-value pairs representing the attributes.",
-              "type": "array",
-              "items": {
-                "$ref": "#/components/schemas/AttributeEntity"
-              }
-            },
-            "name": {
-              "type": "string",
-              "description": "The name of the product"
-            },
-            "description": {
-              "type": "string",
-              "description": "A brief description of the product",
-              "example": "This is a sample product description."
-            },
-            "image_url": {
-              "type": "string",
-              "description": "URL of the product image. Only png as jpg are supported",
-              "example": "https://example.com/image.jpg"
-            },
-            "features": {
-              "description": "Features of the product.",
-              "type": "array",
-              "items": {
-                "$ref": "#/components/schemas/FeatureEntity"
-              }
-            },
-            "price": {
-              "type": "number",
-              "description": "The price of the product in cents. 1000 = $10.00",
-              "example": 400
-            },
-            "currency": {
-              "type": "string",
-              "description": "Three-letter ISO currency code, in uppercase. Must be a supported currency.",
-              "example": "EUR"
-            },
-            "billing_type": {
-              "type": "string",
-              "description": "Indicates the billing method for the customer. It can either be a recurring billing cycle or a one-time payment.",
-              "example": "recurring"
-            },
-            "billing_period": {
-              "type": "string",
-              "description": "Billing period",
-              "example": "every-month"
-            },
-            "status": {
-              "type": "string",
-              "description": "Status of the product"
-            },
-            "tax_mode": {
-              "type": "string",
-              "description": "Specifies the tax calculation mode for the transaction. If set to \"inclusive,\" the tax is included in the price. If set to \"exclusive,\" the tax is added on top of the price.",
-              "example": "inclusive"
-            },
-            "tax_category": {
-              "type": "string",
-              "description": "Categorizes the type of product or service for tax purposes. This helps determine the applicable tax rules based on the nature of the item or service.",
-              "example": "saas"
-            },
-            "product_url": {
-              "type": "string",
-              "description": "The product page you can redirect your customers to for express checkout.",
-              "example": "https://example.com/?status=successful"
-            },
-            "default_success_url": {
-              "type": "string",
-              "description": "The URL to which the user will be redirected after successfull payment.",
-              "example": "https://example.com/?status=successful"
-            },
-            "created_at": {
-              "format": "date-time",
-              "type": "string",
-              "description": "Creation date of the product",
-              "example": "2023-01-01T00:00:00Z"
-            },
-            "updated_at": {
-              "format": "date-time",
-              "type": "string",
-              "description": "Last updated date of the product",
-              "example": "2023-01-01T00:00:00Z"
-            }
-          },
-          "required": [
-            "id",
-            "object",
-            "mode",
-            "attributes",
-            "name",
-            "description",
-            "image_url",
-            "features",
-            "price",
-            "currency",
-            "billing_type",
-            "billing_period",
-            "status",
-            "tax_mode",
-            "tax_category",
-            "product_url",
-            "default_success_url",
-            "created_at",
-            "updated_at"
-          ]
-        },
-        "CreateProductRequestEntity": {
-          "type": "object",
-          "properties": {
-            "mode": {
-              "type": "string",
-              "enum": [
-                "test",
-                "live",
-                "sandbox"
-              ],
-              "description": "String representing the environment."
-            },
-            "attributes": {
-              "description": "A list of key-value pairs representing the attributes.",
-              "type": "array",
-              "items": {
-                "$ref": "#/components/schemas/AttributeEntity"
-              }
-            },
-            "name": {
-              "type": "string",
-              "description": "Name of the product"
-            },
-            "description": {
-              "type": "string",
-              "description": "Description of the product"
-            },
-            "image_url": {
-              "type": "string",
-              "description": "URL of the product image",
-              "example": "https://picsum.photos/200/300"
-            },
-            "price": {
-              "type": "integer",
-              "description": "The price of the product in cents ",
-              "example": 400,
-              "minimum": 100
-            },
-            "currency": {
-              "type": "string",
-              "description": "Three-letter ISO currency code, in uppercase. Must be a supported currency.",
-              "example": "EUR"
-            },
-            "billing_type": {
-              "type": "string",
-              "description": "Indicates the billing method for the customer. It can either be a recurring billing cycle or a one-time payment.",
-              "example": "recurring"
-            },
-            "billing_period": {
-              "type": "string",
-              "description": "Billing period",
-              "example": "every-month"
-            },
-            "features": {
-              "description": "A list of features fpr the product.",
-              "type": "array",
-              "items": {
-                "$ref": "#/components/schemas/FeatureEntity"
-              }
-            },
-            "tax_mode": {
-              "type": "string",
-              "description": "Specifies the tax calculation mode for the transaction. If set to \"inclusive,\" the tax is included in the price. If set to \"exclusive,\" the tax is added on top of the price.",
-              "example": "inclusive"
-            },
-            "tax_category": {
-              "type": "string",
-              "description": "Categorizes the type of product or service for tax purposes. This helps determine the applicable tax rules based on the nature of the item or service.",
-              "example": "saas"
-            },
-            "default_success_url": {
-              "type": "string",
-              "description": "The URL to which the user will be redirected after successfull payment.",
-              "example": "https://example.com/?status=successful"
-            }
-          },
-          "required": [
-            "mode",
-            "attributes",
-            "name",
-            "image_url",
-            "price",
-            "currency",
-            "billing_type",
-            "billing_period",
-            "features",
-            "tax_mode",
-            "tax_category",
-            "default_success_url"
-          ]
-        },
-        "SubscriptionEntity": {
-          "type": "object",
-          "properties": {
-            "id": {
-              "type": "string",
-              "description": "Unique identifier for the object."
-            },
-            "object": {
-              "type": "string",
-              "enum": [
-                "product",
-                "payment",
-                "pricing-table",
-                "customer",
-                "webhook",
-                "subscription",
-                "transaction",
-                "refund",
-                "payout",
-                "transfer",
-                "top-up",
-                "balance",
-                "feature"
-              ],
-              "description": "String representing the object’s type. Objects of the same type share the same value."
-            },
-            "mode": {
-              "type": "string",
-              "enum": [
-                "test",
-                "live",
-                "sandbox"
-              ],
-              "description": "String representing the environment."
-            },
-            "attributes": {
-              "description": "A list of key-value pairs representing the attributes.",
-              "type": "array",
-              "items": {
-                "$ref": "#/components/schemas/AttributeEntity"
-              }
-            },
-            "product": {
-              "type": "object",
-              "description": "The product associated with the subscription."
-            },
-            "customer": {
-              "type": "object",
-              "description": "The customer who owns the subscription."
-            },
-            "collection_method": {
-              "type": "string",
-              "description": "The method used for collecting payments for the subscription.",
-              "example": "charge_automatically"
-            },
-            "status": {
-              "type": "string",
-              "description": "The current status of the subscription.",
-              "enum": [
-                "active",
-                "canceled",
-                "unpaid",
-                "paused",
-                "trialing"
-              ],
-              "example": "active"
-            },
-            "canceled_at": {
-              "format": "date-time",
-              "type": "string",
-              "description": "The date and time when the subscription was canceled, if applicable.",
-              "example": "2024-09-12T12:34:56Z"
-            },
-            "created_at": {
-              "format": "date-time",
-              "type": "string",
-              "description": "The date and time when the subscription was created.",
-              "example": "2024-01-01T00:00:00Z"
-            },
-            "updated_at": {
-              "format": "date-time",
-              "type": "string",
-              "description": "The date and time when the subscription was last updated.",
-              "example": "2024-09-12T12:34:56Z"
-            }
-          },
-          "required": [
-            "id",
-            "object",
-            "mode",
-            "attributes",
-            "product",
-            "customer",
-            "collection_method",
-            "status",
-            "created_at",
-            "updated_at"
-          ]
-        },
-        "CustomerRequestEntity": {
-          "type": "object",
-          "properties": {
-            "id": {
-              "type": "string",
-              "description": "Unique identifierof the customer."
-            },
-            "email": {
-              "type": "string",
-              "description": "Customer email address.",
-              "example": "user@example.com"
-            },
-            "name": {
-              "type": "string",
-              "description": "Customer name.",
-              "example": "John Doe"
-            },
-            "country": {
-              "type": "string",
-              "description": "The ISO alpha-2 country code for the customer.",
-              "example": "US",
-              "pattern": "^[A-Z]{2}$"
-            }
-          },
-          "required": [
-            "id",
-            "email",
-            "name",
-            "country"
-          ]
-        },
-        "CreateCheckoutRequestEntity": {
-          "type": "object",
-          "properties": {
-            "mode": {
-              "type": "string",
-              "enum": [
-                "test",
-                "live",
-                "sandbox"
-              ],
-              "description": "String representing the environment."
-            },
-            "attributes": {
-              "description": "A list of key-value pairs representing the attributes.",
-              "type": "array",
-              "items": {
-                "$ref": "#/components/schemas/AttributeEntity"
-              }
-            },
-            "request_id": {
-              "type": "string",
-              "description": "Identify and track each checkout request."
-            },
-            "product_id": {
-              "type": "string",
-              "description": "The ID of the product associated with the checkout session."
-            },
-            "customer": {
-              "description": "Customer data for checkout session. This will prefill the customer info on the checkout page",
-              "allOf": [
-                {
-                  "$ref": "#/components/schemas/CustomerRequestEntity"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successfully retrieved the subscription",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SubscriptionEntity"
                 }
-              ]
-            },
-            "success_url": {
-              "type": "string",
-              "description": "The URL to which the user will be redirected after the checkout process is completed."
-            }
-          },
-          "required": [
-            "mode",
-            "attributes",
-            "request_id",
-            "product_id",
-            "customer",
-            "success_url"
-          ]
-        },
-        "CheckoutEntity": {
-          "type": "object",
-          "properties": {
-            "id": {
-              "type": "string",
-              "description": "Unique identifier for the object."
-            },
-            "object": {
-              "type": "string",
-              "enum": [
-                "product",
-                "payment",
-                "pricing-table",
-                "customer",
-                "webhook",
-                "subscription",
-                "transaction",
-                "refund",
-                "payout",
-                "transfer",
-                "top-up",
-                "balance",
-                "feature"
-              ],
-              "description": "String representing the object’s type. Objects of the same type share the same value."
-            },
-            "mode": {
-              "type": "string",
-              "enum": [
-                "test",
-                "live",
-                "sandbox"
-              ],
-              "description": "String representing the environment."
-            },
-            "attributes": {
-              "description": "A list of key-value pairs representing the attributes.",
-              "type": "array",
-              "items": {
-                "$ref": "#/components/schemas/AttributeEntity"
               }
-            },
-            "status": {
-              "type": "string",
-              "description": "Status of the checkout."
-            },
-            "product": {
-              "type": "object",
-              "description": "The product associated with the checkout session."
-            },
-            "order": {
-              "type": "string",
-              "description": "The order associated with the checkout session."
-            },
-            "subscription": {
-              "type": "object",
-              "description": "The subscription associated with the checkout session."
-            },
-            "customer": {
-              "type": "object",
-              "description": "The customer associated with the checkout session."
-            },
-            "checkout_url": {
-              "type": "string",
-              "description": "The URL to which the customer will be redirected to complete the payment."
-            },
-            "success_url": {
-              "type": "string",
-              "description": "The URL to which the user will be redirected after the checkout process is completed.",
-              "example": "https://example.com/return"
+            }
+          }
+        }
+      }
+    },
+    "/v1/checkouts": {
+      "get": {
+        "operationId": "CheckoutsControllerV1_retrieve",
+        "summary": "Retrieve a new checkout session.",
+        "parameters": [
+          {
+            "name": "checkout_id",
+            "required": true,
+            "in": "query",
+            "schema": {
+              "type": "string"
             }
           },
-          "required": [
-            "id",
-            "object",
-            "mode",
-            "attributes",
-            "status",
-            "product",
-            "order",
-            "subscription",
-            "customer",
-            "checkout_url",
-            "success_url"
-          ]
+          {
+            "name": "x-api-key",
+            "in": "header",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successfully retrieved the subscription",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CheckoutEntity"
+                }
+              }
+            }
+          }
+        }
+      },
+      "post": {
+        "operationId": "CheckoutsControllerV1_createCheckout",
+        "summary": "Creates a new checkout session.",
+        "parameters": [
+          {
+            "name": "x-api-key",
+            "in": "header",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CreateCheckoutRequestEntity"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Successfully created a checkout session",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CheckoutEntity"
+                }
+              }
+            }
+          }
         }
       }
     }
+  },
+  "info": {
+    "title": "Creem API",
+    "description": "Creem is an all-in-one platform for managing subscriptions and recurring revenue, tailored specifically for today’s SaaS companies. It enables you to boost revenue, enhance customer retention, and scale your operations seamlessly.",
+    "version": "v1",
+    "contact": {
+
+    }
+  },
+  "tags": [],
+  "servers": [],
+  "components": {
+    "schemas": {
+      "AttributeEntity": {
+        "type": "object",
+        "properties": {
+          "name": {
+            "type": "string",
+            "description": "The key of the attribute."
+          },
+          "value": {
+            "type": "string",
+            "description": "The value of the attribute."
+          },
+          "cascade": {
+            "type": "boolean",
+            "description": "If you would like the attribute to be created in subresources created. Example checkout session -\u003E customer",
+            "default": false
+          }
+        },
+        "required": [
+          "name",
+          "value",
+          "cascade"
+        ]
+      },
+      "FeatureEntity": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "description": "Unique identifier for the feature."
+          },
+          "type": {
+            "type": "string",
+            "description": "The feature type."
+          },
+          "description": {
+            "type": "string",
+            "description": "A brief description of the feature",
+            "example": "Get access to discord server."
+          }
+        },
+        "required": [
+          "id",
+          "type",
+          "description"
+        ]
+      },
+      "ProductEntity": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "description": "Unique identifier for the object."
+          },
+          "object": {
+            "type": "string",
+            "enum": [
+              "product",
+              "payment",
+              "pricing-table",
+              "customer",
+              "webhook",
+              "subscription",
+              "transaction",
+              "refund",
+              "payout",
+              "transfer",
+              "top-up",
+              "balance",
+              "feature"
+            ],
+            "description": "String representing the object’s type. Objects of the same type share the same value."
+          },
+          "mode": {
+            "type": "string",
+            "enum": [
+              "test",
+              "live",
+              "sandbox"
+            ],
+            "description": "String representing the environment."
+          },
+          "attributes": {
+            "description": "A list of key-value pairs representing the attributes.",
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/AttributeEntity"
+            }
+          },
+          "name": {
+            "type": "string",
+            "description": "The name of the product"
+          },
+          "description": {
+            "type": "string",
+            "description": "A brief description of the product",
+            "example": "This is a sample product description."
+          },
+          "image_url": {
+            "type": "string",
+            "description": "URL of the product image. Only png as jpg are supported",
+            "example": "https://example.com/image.jpg"
+          },
+          "features": {
+            "description": "Features of the product.",
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/FeatureEntity"
+            }
+          },
+          "price": {
+            "type": "number",
+            "description": "The price of the product in cents. 1000 = $10.00",
+            "example": 400
+          },
+          "currency": {
+            "type": "string",
+            "description": "Three-letter ISO currency code, in uppercase. Must be a supported currency.",
+            "example": "EUR"
+          },
+          "billing_type": {
+            "type": "string",
+            "description": "Indicates the billing method for the customer. It can either be a recurring billing cycle or a one-time payment.",
+            "example": "recurring"
+          },
+          "billing_period": {
+            "type": "string",
+            "description": "Billing period",
+            "example": "every-month"
+          },
+          "status": {
+            "type": "string",
+            "description": "Status of the product"
+          },
+          "tax_mode": {
+            "type": "string",
+            "description": "Specifies the tax calculation mode for the transaction. If set to \"inclusive,\" the tax is included in the price. If set to \"exclusive,\" the tax is added on top of the price.",
+            "example": "inclusive"
+          },
+          "tax_category": {
+            "type": "string",
+            "description": "Categorizes the type of product or service for tax purposes. This helps determine the applicable tax rules based on the nature of the item or service.",
+            "example": "saas"
+          },
+          "product_url": {
+            "type": "string",
+            "description": "The product page you can redirect your customers to for express checkout.",
+            "example": "https://creem.io/product/prod_123123123123"
+          },
+          "default_success_url": {
+            "type": "string",
+            "description": "The URL to which the user will be redirected after successfull payment.",
+            "example": "https://example.com/?status=successful"
+          },
+          "created_at": {
+            "format": "date-time",
+            "type": "string",
+            "description": "Creation date of the product",
+            "example": "2023-01-01T00:00:00Z"
+          },
+          "updated_at": {
+            "format": "date-time",
+            "type": "string",
+            "description": "Last updated date of the product",
+            "example": "2023-01-01T00:00:00Z"
+          }
+        },
+        "required": [
+          "id",
+          "object",
+          "mode",
+          "attributes",
+          "name",
+          "description",
+          "price",
+          "currency",
+          "billing_type",
+          "billing_period",
+          "status",
+          "tax_mode",
+          "tax_category",
+          "product_url",
+          "created_at",
+          "updated_at"
+        ]
+      },
+      "CreateProductRequestEntity": {
+        "type": "object",
+        "properties": {
+          "name": {
+            "type": "string",
+            "description": "Name of the product"
+          },
+          "description": {
+            "type": "string",
+            "description": "Description of the product"
+          },
+          "image_url": {
+            "type": "string",
+            "description": "URL of the product image",
+            "example": "https://picsum.photos/200/300"
+          },
+          "price": {
+            "type": "integer",
+            "description": "The price of the product in cents ",
+            "example": 400,
+            "minimum": 100
+          },
+          "currency": {
+            "type": "string",
+            "description": "Three-letter ISO currency code, in uppercase. Must be a supported currency.",
+            "example": "EUR"
+          },
+          "billing_type": {
+            "type": "string",
+            "description": "Indicates the billing method for the customer. It can either be a recurring billing cycle or a one-time payment.",
+            "example": "recurring"
+          },
+          "billing_period": {
+            "type": "string",
+            "description": "Billing period",
+            "example": "every-month"
+          },
+          "features": {
+            "description": "A list of features fpr the product.",
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/FeatureEntity"
+            }
+          },
+          "tax_mode": {
+            "type": "string",
+            "description": "Specifies the tax calculation mode for the transaction. If set to \"inclusive,\" the tax is included in the price. If set to \"exclusive,\" the tax is added on top of the price.",
+            "example": "inclusive"
+          },
+          "tax_category": {
+            "type": "string",
+            "description": "Categorizes the type of product or service for tax purposes. This helps determine the applicable tax rules based on the nature of the item or service.",
+            "example": "saas"
+          },
+          "default_success_url": {
+            "type": "string",
+            "description": "The URL to which the user will be redirected after successfull payment.",
+            "example": "https://example.com/?status=successful"
+          }
+        },
+        "required": [
+          "name",
+          "price",
+          "currency",
+          "billing_type",
+          "billing_period"
+        ]
+      },
+      "CustomerEntity": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "description": "Unique identifier for the object."
+          },
+          "object": {
+            "type": "string",
+            "enum": [
+              "product",
+              "payment",
+              "pricing-table",
+              "customer",
+              "webhook",
+              "subscription",
+              "transaction",
+              "refund",
+              "payout",
+              "transfer",
+              "top-up",
+              "balance",
+              "feature"
+            ],
+            "description": "String representing the object’s type. Objects of the same type share the same value."
+          },
+          "mode": {
+            "type": "string",
+            "enum": [
+              "test",
+              "live",
+              "sandbox"
+            ],
+            "description": "String representing the environment."
+          },
+          "attributes": {
+            "description": "A list of key-value pairs representing the attributes.",
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/AttributeEntity"
+            }
+          },
+          "email": {
+            "type": "string",
+            "description": "Customer email address.",
+            "example": "user@example.com"
+          },
+          "name": {
+            "type": "string",
+            "description": "Customer name.",
+            "example": "John Doe"
+          },
+          "country": {
+            "type": "string",
+            "description": "The ISO alpha-2 country code for the customer.",
+            "example": "US",
+            "pattern": "^[A-Z]{2}$"
+          },
+          "created_at": {
+            "format": "date-time",
+            "type": "string",
+            "description": "Creation date of the product",
+            "example": "2023-01-01T00:00:00Z"
+          },
+          "updated_at": {
+            "format": "date-time",
+            "type": "string",
+            "description": "Last updated date of the product",
+            "example": "2023-01-01T00:00:00Z"
+          }
+        },
+        "required": [
+          "id",
+          "object",
+          "mode",
+          "attributes",
+          "email",
+          "country",
+          "created_at",
+          "updated_at"
+        ]
+      },
+      "SubscriptionEntity": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "description": "Unique identifier for the object."
+          },
+          "object": {
+            "type": "string",
+            "enum": [
+              "product",
+              "payment",
+              "pricing-table",
+              "customer",
+              "webhook",
+              "subscription",
+              "transaction",
+              "refund",
+              "payout",
+              "transfer",
+              "top-up",
+              "balance",
+              "feature"
+            ],
+            "description": "String representing the object’s type. Objects of the same type share the same value."
+          },
+          "mode": {
+            "type": "string",
+            "enum": [
+              "test",
+              "live",
+              "sandbox"
+            ],
+            "description": "String representing the environment."
+          },
+          "attributes": {
+            "description": "A list of key-value pairs representing the attributes.",
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/AttributeEntity"
+            }
+          },
+          "product": {
+            "type": "object",
+            "description": "The product associated with the subscription."
+          },
+          "customer": {
+            "type": "object",
+            "description": "The customer who owns the subscription."
+          },
+          "collection_method": {
+            "type": "string",
+            "description": "The method used for collecting payments for the subscription.",
+            "example": "charge_automatically"
+          },
+          "status": {
+            "type": "string",
+            "description": "The current status of the subscription.",
+            "enum": [
+              "active",
+              "canceled",
+              "unpaid",
+              "paused",
+              "trialing"
+            ],
+            "example": "active"
+          },
+          "canceled_at": {
+            "format": "date-time",
+            "type": "string",
+            "description": "The date and time when the subscription was canceled, if applicable.",
+            "example": "2024-09-12T12:34:56Z"
+          },
+          "created_at": {
+            "format": "date-time",
+            "type": "string",
+            "description": "The date and time when the subscription was created.",
+            "example": "2024-01-01T00:00:00Z"
+          },
+          "updated_at": {
+            "format": "date-time",
+            "type": "string",
+            "description": "The date and time when the subscription was last updated.",
+            "example": "2024-09-12T12:34:56Z"
+          }
+        },
+        "required": [
+          "id",
+          "object",
+          "mode",
+          "attributes",
+          "product",
+          "customer",
+          "collection_method",
+          "status",
+          "created_at",
+          "updated_at"
+        ]
+      },
+      "OrderEntity": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "description": "Unique identifier for the object."
+          },
+          "object": {
+            "type": "string",
+            "enum": [
+              "product",
+              "payment",
+              "pricing-table",
+              "customer",
+              "webhook",
+              "subscription",
+              "transaction",
+              "refund",
+              "payout",
+              "transfer",
+              "top-up",
+              "balance",
+              "feature"
+            ],
+            "description": "String representing the object’s type. Objects of the same type share the same value."
+          },
+          "mode": {
+            "type": "string",
+            "enum": [
+              "test",
+              "live",
+              "sandbox"
+            ],
+            "description": "String representing the environment."
+          },
+          "attributes": {
+            "description": "A list of key-value pairs representing the attributes.",
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/AttributeEntity"
+            }
+          },
+          "customer": {
+            "type": "object",
+            "description": "The the customer who placed the order."
+          },
+          "product": {
+            "type": "object",
+            "description": "The the product associated with the order."
+          },
+          "amount": {
+            "type": "number",
+            "description": "The total amount of the order in cents. 1000 = $10.00",
+            "example": 2000
+          },
+          "currency": {
+            "type": "string",
+            "description": "Three-letter ISO currency code, in uppercase. Must be a supported currency.",
+            "example": "EUR"
+          },
+          "fx_amount": {
+            "type": "number",
+            "description": "The amount in the foreign currency, if applicable.",
+            "example": 15
+          },
+          "fx_currency": {
+            "type": "string",
+            "description": "Three-letter ISO code of the foreign currency, if applicable.",
+            "example": "EUR"
+          },
+          "fx_rate": {
+            "type": "number",
+            "description": "The exchange rate used for converting between currencies, if applicable.",
+            "example": 1.2
+          },
+          "status": {
+            "type": "string",
+            "description": "Current status of the order.",
+            "enum": [
+              "pending",
+              "paid"
+            ],
+            "example": "pending"
+          },
+          "type": {
+            "type": "string",
+            "description": "The type of order. This can specify whether it’s a regular purchase, subscription, etc.",
+            "example": "subscription",
+            "enum": [
+              "subscription",
+              "purchase"
+            ]
+          },
+          "affiliate": {
+            "type": "string",
+            "description": "T affiliate associated with the order, if applicable."
+          },
+          "created_at": {
+            "format": "date-time",
+            "type": "string",
+            "description": "Creation date of the order",
+            "example": "2023-09-13T00:00:00Z"
+          },
+          "updated_at": {
+            "format": "date-time",
+            "type": "string",
+            "description": "Last updated date of the order",
+            "example": "2023-09-13T00:00:00Z"
+          }
+        },
+        "required": [
+          "id",
+          "object",
+          "mode",
+          "attributes",
+          "product",
+          "amount",
+          "currency",
+          "status",
+          "type",
+          "created_at",
+          "updated_at"
+        ]
+      },
+      "CheckoutEntity": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "description": "Unique identifier for the object."
+          },
+          "object": {
+            "type": "string",
+            "enum": [
+              "product",
+              "payment",
+              "pricing-table",
+              "customer",
+              "webhook",
+              "subscription",
+              "transaction",
+              "refund",
+              "payout",
+              "transfer",
+              "top-up",
+              "balance",
+              "feature"
+            ],
+            "description": "String representing the object’s type. Objects of the same type share the same value."
+          },
+          "mode": {
+            "type": "string",
+            "enum": [
+              "test",
+              "live",
+              "sandbox"
+            ],
+            "description": "String representing the environment."
+          },
+          "attributes": {
+            "description": "A list of key-value pairs representing the attributes.",
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/AttributeEntity"
+            }
+          },
+          "status": {
+            "type": "string",
+            "description": "Status of the checkout."
+          },
+          "request_id": {
+            "type": "string",
+            "description": "Identify and track each checkout request."
+          },
+          "product": {
+            "type": "object",
+            "description": "The product associated with the checkout session."
+          },
+          "order": {
+            "description": "The order associated with the checkout session.",
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/OrderEntity"
+              }
+            ]
+          },
+          "subscription": {
+            "type": "object",
+            "description": "The subscription associated with the checkout session."
+          },
+          "customer": {
+            "type": "object",
+            "description": "The customer associated with the checkout session."
+          },
+          "checkout_url": {
+            "type": "string",
+            "description": "The URL to which the customer will be redirected to complete the payment."
+          },
+          "success_url": {
+            "type": "string",
+            "description": "The URL to which the user will be redirected after the checkout process is completed.",
+            "example": "https://example.com/return"
+          }
+        },
+        "required": [
+          "id",
+          "object",
+          "mode",
+          "attributes",
+          "status",
+          "product",
+          "checkout_url",
+          "success_url"
+        ]
+      },
+      "CustomerRequestEntity": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "description": "Unique identifier of the customer. You may specify only one of these parameters: id or email."
+          },
+          "email": {
+            "type": "string",
+            "description": "Customer email address. You may only specify one of these parameters: id, email.",
+            "example": "user@example.com"
+          }
+        },
+        "required": [
+          "id"
+        ]
+      },
+      "CreateCheckoutRequestEntity": {
+        "type": "object",
+        "properties": {
+          "request_id": {
+            "type": "string",
+            "description": "Identify and track each checkout request."
+          },
+          "product_id": {
+            "type": "string",
+            "description": "The ID of the product associated with the checkout session."
+          },
+          "customer": {
+            "description": "Customer data for checkout session. This will prefill the customer info on the checkout page",
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/CustomerRequestEntity"
+              }
+            ]
+          },
+          "success_url": {
+            "type": "string",
+            "description": "The URL to which the user will be redirected after the checkout process is completed."
+          }
+        },
+        "required": [
+          "product_id"
+        ]
+      }
+    }
   }
+}
