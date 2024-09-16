@@ -46,7 +46,13 @@
   "navigation": [
     {
       "group": "Get Started",
-      "pages": ["introduction", "quickstart", "api-keys", "return-urls", "test-mode"]
+      "pages": [
+        "introduction",
+        "quickstart",
+        "api-keys",
+        "return-urls",
+        "test-mode"
+      ]
     },
     {
       "group": "Learn",
@@ -56,15 +62,11 @@
           "pages": [
             "learn/checkout-session/introduction",
             "learn/checkout-session/return-url"
-            ]
+          ]
         },
         {
           "group": "Webhooks",
-          "pages": [
-            "learn/webhooks/introduction",
-            "learn/webhooks/event-types",
-            "learn/webhooks/verify-webhook-requests"
-          ]
+          "pages": ["learn/webhooks/introduction", "learn/webhooks/event-types"]
         },
         {
           "group": "Customers",
