@@ -46,57 +46,49 @@
   "navigation": [
     {
       "group": "Get Started",
-      "pages": ["introduction", "quickstart", "api-keys"]
+      "pages": ["introduction", "quickstart", "api-keys", "return-urls"]
     },
     {
       "group": "Learn",
       "pages": [
+        {
+          "group": "Checkout Session",
+          "pages": [
+            "learn/checkout-session/introduction",
+            "learn/checkout-session/return-url"
+            ]
+        },
         {
           "group": "Webhooks",
           "pages": [
             "learn/webhooks/introduction",
             "learn/webhooks/event-types",
             "learn/webhooks/verify-webhook-requests"
-            ]
+          ]
         },
         {
           "group": "Customers",
           "pages": [
             "learn/customers/introduction",
             "learn/customers/customer-portal"
-            ]
+          ]
         },
         {
           "group": "Subscriptions",
           "pages": [
-            "learn/webhooks/introduction",
-            "learn/webhooks/managing",
+            "learn/subscriptions/introduction",
+            "learn/subscriptions/managing",
             "learn/subscriptions/refunds-and-cancellations"
-            ]
+          ]
         },
         {
           "group": "Products",
           "pages": [
-            "learn/webhooks/introduction",
-            "learn/webhooks/prices",
-            "learn/subscriptions/pricing-table"
-            ]
+            "learn/products/introduction",
+            "learn/products/prices",
+            "learn/products/pricing-table"
+          ]
         }
-      ]
-    },
-    {
-      "group": "Essentials",
-      "pages": [
-        "essentials/markdown",
-        {
-          "group": "Code",
-          "pages": ["essentials/code/variables", "essentials/code/loops"]
-        },
-        "essentials/code",
-        "essentials/images",
-        "essentials/settings",
-        "essentials/navigation",
-        "essentials/reusable-snippets"
       ]
     },
     {

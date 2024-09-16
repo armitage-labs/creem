@@ -32,8 +32,17 @@ You can add a name, description, and price to your product. Optionally you can a
 </AccordionGroup>
 
 
+## 2. Copy the payment link from the product
 
-## 2. Create a checkout session
+After successfully creating your product, you can copy the payment link by clicking on the product **Share** button.
+Simply send this link to your users and they will be able to pay you instantly.
+
+<img
+      style={{ borderRadius: '0.5rem' }}
+      src="https://nucn5fajkcc6sgrd.public.blob.vercel-storage.com/product-share-vrV42jh8mnhvpUs1AeSyLtuJLZmBJo.png"
+    />
+
+## 2.1 Create a checkout session (Optional)
 
 Once your product is created, you can copy the product ID by clicking on the product options and selecting "Copy ID".
 
@@ -62,7 +71,7 @@ curl -X POST https://api.creem.io/checkout-session \
 </CodeGroup>
 
 
-## 3. Redirect user to checkout url
+## 3. Redirect user to checkout url (Optional)
 
 Once you have created a checkout session, you will receive a checkout URL in the response. 
 
