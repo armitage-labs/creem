@@ -234,9 +234,7 @@
     "title": "Creem API",
     "description": "Creem is an all-in-one platform for managing subscriptions and recurring revenue, tailored specifically for today’s SaaS companies. It enables you to boost revenue, enhance customer retention, and scale your operations seamlessly.",
     "version": "v1",
-    "contact": {
-
-    }
+    "contact": {}
   },
   "tags": [],
   "servers": [],
@@ -259,11 +257,7 @@
             "example": "Get access to discord server."
           }
         },
-        "required": [
-          "id",
-          "type",
-          "description"
-        ]
+        "required": ["id", "type", "description"]
       },
       "ProductEntity": {
         "type": "object",
@@ -274,11 +268,7 @@
           },
           "mode": {
             "type": "string",
-            "enum": [
-              "test",
-              "live",
-              "sandbox"
-            ],
+            "enum": ["test", "live", "sandbox"],
             "description": "String representing the environment."
           },
           "object": {
@@ -381,6 +371,53 @@
           "updated_at"
         ]
       },
+      "Text": {
+        "type": "object",
+        "properties": {
+          "max_length": {
+            "type": "number",
+            "description": "Maximum character length constraint for the input."
+          },
+          "min_length": {
+            "type": "number",
+            "description": "Minimum character length requirement for the input."
+          }
+        }
+      },
+      "CustomFieldRequestEntity": {
+        "type": "object",
+        "properties": {
+          "type": {
+            "type": "string",
+            "description": "The type of the field.",
+            "enum": ["text"],
+            "example": "text"
+          },
+          "key": {
+            "type": "string",
+            "description": "Unique key for custom field. Must be unique to this field, alphanumeric, and up to 200 characters.",
+            "maxLength": 200
+          },
+          "label": {
+            "type": "string",
+            "description": "The label for the field, displayed to the customer, up to 50 characters",
+            "maxLength": 200
+          },
+          "optional": {
+            "type": "boolean",
+            "description": "Whether the customer is required to complete the field. Defaults to `false`"
+          },
+          "text": {
+            "description": "Configuration for type of text field.",
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/Text"
+              }
+            ]
+          }
+        },
+        "required": ["type", "key", "label"]
+      },
       "CreateProductRequestEntity": {
         "type": "object",
         "properties": {
@@ -415,7 +452,7 @@
           },
           "billing_period": {
             "type": "string",
-            "description": "Billing period",
+            "description": "Billing period, required if billing_type is recurring",
             "example": "every-month"
           },
           "features": {
@@ -439,15 +476,16 @@
             "type": "string",
             "description": "The URL to which the user will be redirected after successfull payment.",
             "example": "https://example.com/?status=successful"
+          },
+          "custom_field": {
+            "description": "Collect additional information from your customer using custom fields during checkout. Up to 3 fields are supported.",
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/CustomFieldRequestEntity"
+            }
           }
         },
-        "required": [
-          "name",
-          "price",
-          "currency",
-          "billing_type",
-          "billing_period"
-        ]
+        "required": ["name", "price", "currency", "billing_type"]
       },
       "CustomerEntity": {
         "type": "object",
@@ -458,11 +496,7 @@
           },
           "mode": {
             "type": "string",
-            "enum": [
-              "test",
-              "live",
-              "sandbox"
-            ],
+            "enum": ["test", "live", "sandbox"],
             "description": "String representing the environment."
           },
           "object": {
@@ -517,11 +551,7 @@
           },
           "mode": {
             "type": "string",
-            "enum": [
-              "test",
-              "live",
-              "sandbox"
-            ],
+            "enum": ["test", "live", "sandbox"],
             "description": "String representing the environment."
           },
           "object": {
@@ -544,14 +574,37 @@
           "status": {
             "type": "string",
             "description": "The current status of the subscription.",
-            "enum": [
-              "active",
-              "canceled",
-              "unpaid",
-              "paused",
-              "trialing"
-            ],
+            "enum": ["active", "canceled", "unpaid", "paused", "trialing"],
             "example": "active"
+          },
+          "last_transaction_id": {
+            "type": "string",
+            "description": "The ID of the last paid transaction.",
+            "example": "tran_3e6Z6TzvHKdsjEgXnGDEp0"
+          },
+          "last_transaction_date": {
+            "format": "date-time",
+            "type": "string",
+            "description": "The date of the last paid transaction.",
+            "example": "2024-09-12T12:34:56Z"
+          },
+          "next_transaction_date": {
+            "format": "date-time",
+            "type": "string",
+            "description": "The date when the next subscription transaction will be charged.",
+            "example": "2024-09-12T12:34:56Z"
+          },
+          "current_period_start_date": {
+            "format": "date-time",
+            "type": "string",
+            "description": "The start date of the current subscription period.",
+            "example": "2024-09-12T12:34:56Z"
+          },
+          "current_period_end_date": {
+            "format": "date-time",
+            "type": "string",
+            "description": "The end date of the current subscription period.",
+            "example": "2024-09-12T12:34:56Z"
           },
           "canceled_at": {
             "format": "date-time",
@@ -593,11 +646,7 @@
           },
           "mode": {
             "type": "string",
-            "enum": [
-              "test",
-              "live",
-              "sandbox"
-            ],
+            "enum": ["test", "live", "sandbox"],
             "description": "String representing the environment."
           },
           "object": {
@@ -640,20 +689,14 @@
           "status": {
             "type": "string",
             "description": "Current status of the order.",
-            "enum": [
-              "pending",
-              "paid"
-            ],
+            "enum": ["pending", "paid"],
             "example": "pending"
           },
           "type": {
             "type": "string",
             "description": "The type of order. This can specify whether it’s a regular purchase, subscription, etc.",
             "example": "subscription",
-            "enum": [
-              "subscription",
-              "purchase"
-            ]
+            "enum": ["subscription", "purchase"]
           },
           "affiliate": {
             "type": "string",
@@ -685,6 +728,38 @@
           "updated_at"
         ]
       },
+      "CustomField": {
+        "type": "object",
+        "properties": {
+          "type": {
+            "type": "string",
+            "description": "The type of the field."
+          },
+          "key": {
+            "type": "string",
+            "description": "Unique key for custom field. Must be unique to this field, alphanumeric, and up to 200 characters.",
+            "maxLength": 200
+          },
+          "label": {
+            "type": "string",
+            "description": "The label for the field, displayed to the customer, up to 50 characters",
+            "maxLength": 200
+          },
+          "optional": {
+            "type": "boolean",
+            "description": "Whether the customer is required to complete the field. Defaults to `false`."
+          },
+          "text": {
+            "description": "Whether the customer is required to complete the field. Defaults to `false`.",
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/Text"
+              }
+            ]
+          }
+        },
+        "required": ["type", "key", "label"]
+      },
       "CheckoutEntity": {
         "type": "object",
         "properties": {
@@ -694,11 +769,7 @@
           },
           "mode": {
             "type": "string",
-            "enum": [
-              "test",
-              "live",
-              "sandbox"
-            ],
+            "enum": ["test", "live", "sandbox"],
             "description": "String representing the environment."
           },
           "object": {
@@ -733,6 +804,13 @@
             "type": "object",
             "description": "The customer associated with the checkout session."
           },
+          "custom_fields": {
+            "description": "Additional information collected from your customer during the checkout process.",
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/CustomField"
+            }
+          },
           "checkout_url": {
             "type": "string",
             "description": "The URL to which the customer will be redirected to complete the payment."
@@ -766,9 +844,7 @@
             "example": "user@example.com"
           }
         },
-        "required": [
-          "id"
-        ]
+        "required": ["id"]
       },
       "CreateCheckoutRequestEntity": {
         "type": "object",
@@ -789,14 +865,19 @@
               }
             ]
           },
+          "custom_field": {
+            "description": "Collect additional information from your customer using custom fields. Up to 3 fields are supported.",
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/CustomFieldRequestEntity"
+            }
+          },
           "success_url": {
             "type": "string",
             "description": "The URL to which the user will be redirected after the checkout process is completed."
           }
         },
-        "required": [
-          "product_id"
-        ]
+        "required": ["product_id"]
       }
     }
   }
