@@ -157,6 +157,42 @@
         }
       }
     },
+    "/v1/subscriptions/{id}/cancel": {
+      "post": {
+        "operationId": "SubscriptionsControllerV1_cancel",
+        "summary": "Cancel a subscription.",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "x-api-key",
+            "in": "header",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successfully canceled a subscription",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SubscriptionEntity"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/v1/checkouts": {
       "get": {
         "operationId": "CheckoutsControllerV1_retrieve",
@@ -760,6 +796,10 @@
         },
         "required": ["type", "key", "label"]
       },
+      "MetadataEntity": {
+        "type": "object",
+        "properties": {}
+      },
       "CheckoutEntity": {
         "type": "object",
         "properties": {
@@ -819,6 +859,13 @@
             "type": "string",
             "description": "The URL to which the user will be redirected after the checkout process is completed.",
             "example": "https://example.com/return"
+          },
+          "metadata": {
+            "description": "A key-value pair where the key is a string, and the value can be a string, number, or null.",
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/MetadataEntity"
+            }
           }
         },
         "required": [
@@ -875,6 +922,13 @@
           "success_url": {
             "type": "string",
             "description": "The URL to which the user will be redirected after the checkout process is completed."
+          },
+          "metadata": {
+            "description": "A key-value pair where the key is a string, and the value can be a string, number, or null. This metadata will be propagated across all related objects, such as subscriptions and customers.",
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/MetadataEntity"
+            }
           }
         },
         "required": ["product_id"]
