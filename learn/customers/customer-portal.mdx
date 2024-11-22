@@ -54,3 +54,37 @@ Customers using the customer portal, can copy all details of a specific payment,
       style={{ borderRadius: '0.5rem' }}
       src="https://nucn5fajkcc6sgrd.public.blob.vercel-storage.com/customer-portal-Klxod6wVtoF6JFJdeEDPOPPxDMJ31q.png"
     />
+
+
+### 3. Request Customer Portal Login through the API
+
+Merchants can generate a customer portal login for their users, using the API, providing the `customer_id`.
+
+<CodeGroup>
+
+
+```javascript getCheckout.js
+    const redirectUrl = await axios.post(
+      `https://api.creem.io/v1/customers/billing`,
+        {
+          "customer_id": "cust_xxxxxxx"
+        },
+        {
+          headers: { "x-api-key": `creem_123456789` },
+        },
+    );
+```
+
+```bash getCheckout.sh
+curl -X 'POST' \
+  'https://api.creem.io/v1/customers/billing' \
+  -H 'accept: application/json' \
+  -H 'x-api-key: creem_123456789' \
+  -H 'Content-Type: application/json' \
+  -d '{
+  "customer_id": "cust_xxxxxxx"
+}'
+
+```
+
+</CodeGroup>
