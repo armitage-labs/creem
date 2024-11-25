@@ -120,6 +120,44 @@
         }
       }
     },
+    "/v1/customers/billing": {
+      "post": {
+        "operationId": "CustomersBillingControllerV1_generate",
+        "summary": "Generate Customer Links",
+        "parameters": [
+          {
+            "name": "x-api-key",
+            "in": "header",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CreateCustomerPortalLinkRequestEntity"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Successfully generate customer links",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CustomerLinksEntity"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/v1/subscriptions": {
       "get": {
         "operationId": "SubscriptionsControllerV1_retrieve",
@@ -578,6 +616,26 @@
           "updated_at"
         ]
       },
+      "CreateCustomerPortalLinkRequestEntity": {
+        "type": "object",
+        "properties": {
+          "customer_id": {
+            "type": "string",
+            "description": "Unique identifier of the customer."
+          }
+        },
+        "required": ["customer_id"]
+      },
+      "CustomerLinksEntity": {
+        "type": "object",
+        "properties": {
+          "customer_portal_link": {
+            "type": "string",
+            "description": "Customer portal link."
+          }
+        },
+        "required": ["customer_portal_link"]
+      },
       "SubscriptionEntity": {
         "type": "object",
         "properties": {
@@ -903,6 +961,10 @@
           "product_id": {
             "type": "string",
             "description": "The ID of the product associated with the checkout session."
+          },
+          "discount_code": {
+            "type": "string",
+            "description": "Prefill the checkout session with a discount code."
           },
           "customer": {
             "description": "Customer data for checkout session. This will prefill the customer info on the checkout page",
