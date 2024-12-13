@@ -74,6 +74,52 @@
         }
       }
     },
+    "/v1/products/search": {
+      "get": {
+        "operationId": "ProductsControllerV1_search",
+        "summary": "List all products",
+        "parameters": [
+          {
+            "name": "page_number",
+            "required": false,
+            "in": "query",
+            "description": "The page number",
+            "schema": {
+              "type": "number"
+            }
+          },
+          {
+            "name": "page_size",
+            "required": false,
+            "in": "query",
+            "description": "The the page size",
+            "schema": {
+              "type": "number"
+            }
+          },
+          {
+            "name": "x-api-key",
+            "in": "header",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successfully retrieved products",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProductEntity"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/v1/customers": {
       "get": {
         "operationId": "CustomersControllerV1_retrieve",
@@ -296,6 +342,120 @@
               "application/json": {
                 "schema": {
                   "$ref": "#/components/schemas/CheckoutEntity"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/v1/licenses/activate": {
+      "post": {
+        "operationId": "LicensesControllerV1_activate",
+        "summary": "Activates a license key.",
+        "parameters": [
+          {
+            "name": "x-api-key",
+            "in": "header",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ActivateLicenseRequestEntity"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Successfully activated a license key",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/LicenseEntity"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/v1/licenses/deactivate": {
+      "post": {
+        "operationId": "LicensesControllerV1_deactivate",
+        "summary": "Deactivate a license key instance.",
+        "parameters": [
+          {
+            "name": "x-api-key",
+            "in": "header",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/DeactivateLicenseRequestEntity"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Successfully deactivated a license key instance",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/LicenseEntity"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/v1/licenses/validate": {
+      "post": {
+        "operationId": "LicensesControllerV1_validate",
+        "summary": "Validates a license key or instance.",
+        "parameters": [
+          {
+            "name": "x-api-key",
+            "in": "header",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ValidateLicenseRequestEntity"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Successfully validated a license key instance",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/LicenseEntity"
                 }
               }
             }
@@ -1032,6 +1192,154 @@
           }
         },
         "required": ["product_id"]
+      },
+      "ActivateLicenseRequestEntity": {
+        "type": "object",
+        "properties": {
+          "key": {
+            "type": "string",
+            "description": "The license key to activate."
+          },
+          "instance_name": {
+            "type": "string",
+            "description": "A label for the new instance to identify it in Creem."
+          }
+        },
+        "required": ["key", "instance_name"]
+      },
+      "LicenseInstanceEntity": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "description": "Unique identifier for the object."
+          },
+          "mode": {
+            "type": "string",
+            "enum": ["test", "live", "sandbox"],
+            "description": "String representing the environment."
+          },
+          "object": {
+            "type": "string",
+            "description": "A string representing the object’s type. Objects of the same type share the same value.",
+            "example": "license-instance"
+          },
+          "name": {
+            "type": "string",
+            "description": "The name of the license instance.",
+            "example": "My Customer License Instance"
+          },
+          "status": {
+            "type": "string",
+            "description": "The status of the license instance.",
+            "enum": ["active", "deactivated"],
+            "example": "active"
+          },
+          "created_at": {
+            "format": "date-time",
+            "type": "string",
+            "description": "The creation date of the license instance.",
+            "example": "2023-09-13T00:00:00Z"
+          }
+        },
+        "required": ["id", "mode", "object", "name", "status", "created_at"]
+      },
+      "LicenseEntity": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "description": "Unique identifier for the object."
+          },
+          "mode": {
+            "type": "string",
+            "enum": ["test", "live", "sandbox"],
+            "description": "String representing the environment."
+          },
+          "object": {
+            "type": "string",
+            "description": "A string representing the object’s type. Objects of the same type share the same value."
+          },
+          "status": {
+            "type": "string",
+            "description": "The current status of the license key.",
+            "enum": ["inactive", "active", "expired", "disabled"],
+            "example": "active"
+          },
+          "key": {
+            "type": "string",
+            "description": "The license key.",
+            "example": "ABC123-XYZ456-XYZ456-XYZ456"
+          },
+          "activation": {
+            "type": "number",
+            "description": "The number of instances that this license key was activated.",
+            "example": 5
+          },
+          "activation_limit": {
+            "type": "object",
+            "description": "The activation limit. Null if activations are unlimited.",
+            "example": 1,
+            "nullable": true
+          },
+          "expires_at": {
+            "type": "object",
+            "description": "The date the license key expires. Null if it does not have an expiration date.",
+            "example": "2023-09-13T00:00:00Z",
+            "nullable": true
+          },
+          "created_at": {
+            "format": "date-time",
+            "type": "string",
+            "description": "The creation date of the license key.",
+            "example": "2023-09-13T00:00:00Z"
+          },
+          "instance": {
+            "description": "Associated license instances.",
+            "nullable": true,
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/LicenseInstanceEntity"
+            }
+          }
+        },
+        "required": [
+          "id",
+          "mode",
+          "object",
+          "status",
+          "key",
+          "activation",
+          "created_at"
+        ]
+      },
+      "DeactivateLicenseRequestEntity": {
+        "type": "object",
+        "properties": {
+          "key": {
+            "type": "string",
+            "description": "The license key to deactivate."
+          },
+          "instance_id": {
+            "type": "string",
+            "description": "Id of the instance to deactivate."
+          }
+        },
+        "required": ["key", "instance_id"]
+      },
+      "ValidateLicenseRequestEntity": {
+        "type": "object",
+        "properties": {
+          "key": {
+            "type": "string",
+            "description": "The license key to validate."
+          },
+          "instance_id": {
+            "type": "string",
+            "description": "Id of the instance to validate."
+          }
+        },
+        "required": ["key", "instance_id"]
       },
       "CreateDiscountRequestEntity": {
         "type": "object",

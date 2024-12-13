@@ -55,10 +55,6 @@
       ]
     },
     {
-      "group": "Get Paid",
-      "pages": ["get-paid/payouts"]
-    },
-    {
       "group": "Learn",
       "pages": [
         {
@@ -86,6 +82,15 @@
       ]
     },
     {
+      "group": "Finance",
+      "pages": [
+        "payments/payments",
+        "payments/payouts",
+        "payments/merchant-of-record",
+        "payments/refunds"
+      ]
+    },
+    {
       "group": "API Documentation",
       "pages": ["api-reference/introduction"]
     },
@@ -97,12 +102,21 @@
       "group": "Product",
       "pages": [
         "api-reference/endpoint/create-product",
-        "api-reference/endpoint/get-product"
+        "api-reference/endpoint/get-product",
+        "api-reference/endpoint/search-products"
       ]
     },
     {
       "group": "Customer",
       "pages": ["api-reference/endpoint/get-customer"]
+    },
+    {
+      "group": "License",
+      "pages": [
+        "api-reference/endpoint/validate-license",
+        "api-reference/endpoint/activate-license",
+        "api-reference/endpoint/deactivate-license"
+      ]
     },
     {
       "group": "Discount Code",
