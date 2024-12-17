@@ -96,6 +96,10 @@
             "features/licenses/validate",
             "features/licenses/deactivate"
           ]
+        },
+        {
+          "group": "Private Notes",
+          "pages": ["features/private-notes/overview"]
         }
       ]
     },
