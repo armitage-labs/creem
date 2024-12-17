@@ -115,6 +115,10 @@
       "pages": ["api-reference/endpoint/get-customer"]
     },
     {
+      "group": "Transactions",
+      "pages": ["api-reference/endpoint/get-transactions"]
+    },
+    {
       "group": "License",
       "pages": [
         "api-reference/endpoint/validate-license",

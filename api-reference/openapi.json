@@ -500,6 +500,61 @@
           }
         }
       }
+    },
+    "/v1/transactions/search": {
+      "get": {
+        "operationId": "TransactionsControllerV1_search",
+        "summary": "List all transactions",
+        "parameters": [
+          {
+            "name": "customer_id",
+            "required": false,
+            "in": "query",
+            "description": "The customer id",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "page_number",
+            "required": false,
+            "in": "query",
+            "description": "The page number",
+            "schema": {
+              "type": "number"
+            }
+          },
+          {
+            "name": "page_size",
+            "required": false,
+            "in": "query",
+            "description": "The the page size",
+            "schema": {
+              "type": "number"
+            }
+          },
+          {
+            "name": "x-api-key",
+            "in": "header",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successfully retrieved products",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProductEntity"
+                }
+              }
+            }
+          }
+        }
+      }
     }
   },
   "info": {
