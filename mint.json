@@ -82,8 +82,8 @@
       ]
     },
     {
-      "group": "Partners",
-      "pages": ["partners/ai-negotiation"]
+      "group": "Integrations",
+      "pages": ["integrations/ai-negotiation"]
     },
     {
       "group": "Finance",
