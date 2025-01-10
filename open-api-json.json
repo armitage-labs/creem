@@ -277,6 +277,52 @@
         }
       }
     },
+    "/v1/subscriptions/{id}": {
+      "post": {
+        "operationId": "SubscriptionsControllerV1_update",
+        "summary": "Update a subscription.",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "x-api-key",
+            "in": "header",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/UpdateSubscriptionRequestEntity"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Successfully update a subscription",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SubscriptionEntity"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/v1/checkouts": {
       "get": {
         "operationId": "CheckoutsControllerV1_retrieve",
@@ -941,6 +987,37 @@
         },
         "required": ["customer_portal_link"]
       },
+      "SubscriptionItemEntity": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "description": "Unique identifier for the object."
+          },
+          "mode": {
+            "type": "string",
+            "enum": ["test", "live", "sandbox"],
+            "description": "String representing the environment."
+          },
+          "object": {
+            "type": "string",
+            "description": "String representing the object’s type. Objects of the same type share the same value."
+          },
+          "product_id": {
+            "type": "string",
+            "description": "The ID of the product associated with the subscription item."
+          },
+          "price_id": {
+            "type": "string",
+            "description": "The ID of the price associated with the subscription item."
+          },
+          "units": {
+            "type": "number",
+            "description": "The number of units for the subscription item."
+          }
+        },
+        "required": ["id", "mode", "object"]
+      },
       "SubscriptionEntity": {
         "type": "object",
         "properties": {
@@ -964,6 +1041,13 @@
           "customer": {
             "type": "object",
             "description": "The customer who owns the subscription."
+          },
+          "items": {
+            "description": "Subscription items.",
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/SubscriptionItemEntity"
+            }
           },
           "collection_method": {
             "type": "string",
@@ -1035,6 +1119,39 @@
           "created_at",
           "updated_at"
         ]
+      },
+      "UpsertSubscriptionItemEntity": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "description": "The id of the item to update."
+          },
+          "product_id": {
+            "type": "string",
+            "description": "The ID of the product associated with the subscription item."
+          },
+          "price_id": {
+            "type": "string",
+            "description": "The ID of the price associated with the subscription item."
+          },
+          "units": {
+            "type": "number",
+            "description": "The number of units for the subscription item."
+          }
+        }
+      },
+      "UpdateSubscriptionRequestEntity": {
+        "type": "object",
+        "properties": {
+          "items": {
+            "description": "List of subscription items to update/create. If no item ID is provided, the item will be created.",
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/UpsertSubscriptionItemEntity"
+            }
+          }
+        }
       },
       "OrderEntity": {
         "type": "object",
@@ -1191,6 +1308,10 @@
             "type": "object",
             "description": "The product associated with the checkout session."
           },
+          "units": {
+            "type": "number",
+            "description": "The number of units for the of the product."
+          },
           "order": {
             "description": "The order associated with the checkout session.",
             "allOf": [
@@ -1266,6 +1387,10 @@
           "product_id": {
             "type": "string",
             "description": "The ID of the product associated with the checkout session."
+          },
+          "units": {
+            "type": "number",
+            "description": "The number of units for the order."
           },
           "discount_code": {
             "type": "string",

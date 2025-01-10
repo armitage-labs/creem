@@ -213,5 +213,41 @@ curl -X 'POST' \
     }'
 ```
 
+</CodeGroup>
+
+## Seat Based Billing
+
+You can pass a `units` amount directly in the checkout session. 
+The product price will be used as the base price for one seat/unit of the product and the checkout session will reflect the (base price x units) to be charged.
+
+
+<CodeGroup>
+
+
+```javascript getCheckout.js
+    const redirectUrl = await axios.post(
+      `https://api.creem.io/v1/checkouts`,
+        {
+          "product_id": "prod_your-product-id",
+          "units": 2,
+        },
+        {
+          headers: { "x-api-key": `creem_123456789` },
+        },
+    );
+```
+
+```bash getCheckout.sh
+curl -X 'POST' \
+  'https://test-api.creem.io/v1/checkouts' \
+    -H 'accept: application/json' \
+    -H 'x-api-key: creem_123456789' \
+    -H 'Content-Type: application/json' \
+    -d '{
+      "product_id": "prod_your-product-id",
+      "discount_code": "BF200XX",
+    }'
+```
+
 
 </CodeGroup>
