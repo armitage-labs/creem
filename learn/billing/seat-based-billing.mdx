@@ -1,0 +1,161 @@
+---
+title: 'Seat Based Billing'
+description: 'Seat Based Billing in Creem enables you to charge customers based on the number of seats or users they need, supporting both one-time payments and subscription models. This documentation explains how to implement and manage seat-based billing for your products.'
+---
+
+
+
+## Understanding Seat Based Billing
+
+Seat Based Billing allows you to set a per-seat price for your product and let customers purchase multiple seats. This is particularly useful for team-based products, enterprise software, or any service where pricing scales with the number of users.
+
+Seat Based Billing in Creem works for both One Time Payments and Subscriptions seamlessly without any special setup.
+
+## Key Concepts
+
+### Per-Seat Pricing
+
+In Seat Based Billing:
+
+- **Base Price:** Set in the Creem dashboard as the price per individual seat
+- **Units:** Represents the number of seats being purchased
+- **Total Price:** Automatically calculated as (Base Price × Units)
+
+## Implementation
+
+To implement Seat Based Billing, you'll need to:
+
+1. Create a product in your Creem dashboard where the price is the base seat price
+2. Generate a checkout session with the desired number of seats
+3. Direct your customer to the checkout URL
+
+### Code Example
+
+```javascript
+const seatBasedCheckout = await axios.post(
+  `https://api.creem.io/v1/checkouts`,
+  {
+    product_id: 'prod_your-product-id',
+    units: 5, // Number of seats to purchase
+  },
+  {
+    headers: { "x-api-key": `creem_123456789` },
+  }
+);
+```
+
+## Managing Seat Changes
+
+You can manage seat quantities for your customers in subscriptions by:
+
+- **Adding seats:** Modify the subscription through the dashboard or update subscription API
+- **Reducing seats:** Modify the subscription through the dashboard or update subscription API
+
+### Update Subscription API
+
+If you wish to add or reduce the amount of seats in a given subscription, you can use the subscription API to make changes.
+Usually, it is great practice for your system to store the subscription ID of a given customer. With the subscription ID, we can then query Creem API to get all information needed to update a subscription.
+
+
+1. Querying subscription details
+    - With the subscription ID, call the [GET Subscription Creem API](https://docs.creem.io/api-reference/endpoint/get-subscription).
+    - Retrieve the Product ID and Item ID from the subscription item.
+
+
+<AccordionGroup>
+
+<Accordion icon="table-tree" title="Retrieve subscription details">
+  Query the GET Subscription Creem API with the subscription ID
+```javascript
+const subscriptionDetails = await axios.get(
+  `https://api.creem.io/v1/subscriptions/sub_123123`,
+  {
+    headers: { "x-api-key": `creem_123456789` },
+  }
+);
+
+```
+</Accordion>
+<Accordion icon="location-crosshairs" title="Parse the response">
+ Parse, locate and store the Product Id and Item ID of the subscription item, located under the items array. 
+
+```json
+{
+  "id": "<string>",
+  "mode": "test",
+  "object": "<string>",
+  "product": {},
+  "customer": {},
+  "items": [
+    {
+      "id": "<string>",
+      "mode": "test",
+      "object": "<string>",
+      "product_id": "<string>",
+      "price_id": "<string>",
+      "units": 123
+    }
+  ],
+  "collection_method": "charge_automatically",
+  "status": "active",
+  "last_transaction_id": "tran_3e6Z6TzvHKdsjEgXnGDEp0",
+  "last_transaction_date": "2024-09-12T12:34:56Z",
+  "next_transaction_date": "2024-09-12T12:34:56Z",
+  "current_period_start_date": "2024-09-12T12:34:56Z",
+  "current_period_end_date": "2024-09-12T12:34:56Z",
+  "canceled_at": "2024-09-12T12:34:56Z",
+  "created_at": "2024-01-01T00:00:00Z",
+  "updated_at": "2024-09-12T12:34:56Z"
+}
+```
+</Accordion>
+
+</AccordionGroup>
+
+
+2. Make the subscription change
+    - With the Product ID, Item Id and subscription ID, call the [UPDATE subscription API](https://docs.creem.io/api-reference/endpoint/get-subscription).
+    - Use the `units` field to the desired amount of seats changed.
+
+<Accordion icon="table-tree" title="Update Subscription">
+  Update the Subscription with the desired units amount
+```javascript
+const subscriptionDetails = await axios.post(
+  `https://api.creem.io/v1/subscriptions/sub_123123`,
+  {
+    "items": [
+      {
+        "id": "sitem_123213123",
+        "product_id": "prod_12312312",
+        "units": 2
+      }
+    ]
+  },
+  {
+    headers: { "x-api-key": `creem_123456789` },
+  }
+);
+
+```
+</Accordion>
+
+
+### Manual subscription changes through the Creem Dashboard
+
+You can also modify subscription seats through your Creem Dashboard as a merchant.
+Simply click on a subscription, and upon the details sheet opening, click on the "Modify Subscription" button
+
+<Frame>
+    <img
+      style={{ borderRadius: '0.5rem' }}
+      src="https://nucn5fajkcc6sgrd.public.blob.vercel-storage.com/Screenshot%202025-01-10%20at%2015.56.28-aOLgNWFNoWZLLpytZ5Y5H94HMl8rxb.png"
+    />
+    </Frame>
+
+### Billing after subscription updates
+
+The new amount will be charged upon subscription renewal. If you need pro-rata charges or different use cases, contact the Creem team.
+
+<Warning>
+Remember to validate and track seat usage in your application to ensure customers don't exceed their purchased seat limit.
+</Warning>
