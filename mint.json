@@ -137,6 +137,10 @@
       ]
     },
     {
+      "group": "FAQ",
+      "pages": ["faq/supported-countries"]
+    },
+    {
       "group": "API Documentation",
       "pages": ["api-reference/introduction"]
     },
