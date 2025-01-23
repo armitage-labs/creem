@@ -138,7 +138,7 @@
     },
     {
       "group": "FAQ",
-      "pages": ["faq/supported-countries"]
+      "pages": ["faq/supported-countries", "faq/prohibited-products"]
     },
     {
       "group": "API Documentation",
