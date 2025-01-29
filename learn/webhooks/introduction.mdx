@@ -13,6 +13,8 @@ Creem uses webhooks to push real-time notifications to you about your payments a
 - Automatically remove access to a user after a canceled subscription
 - Confirm that a payment has been received by the same customer that initiated it.
 
+In case webhooks are not successfully received by your endpoint, creem automatically retries to send the request with a progressive backoff period of 30 seconds, 1 minute, 5 minutes and 1 hour.
+
 ## Steps to receive a webhook
 
 You can start receiving real-time events in your app using the steps:
