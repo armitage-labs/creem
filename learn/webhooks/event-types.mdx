@@ -501,3 +501,73 @@ A subscription object was updated
     
   </Accordion>
 </AccordionGroup>
+
+
+## subscription.trialing
+
+A subscription started a trial period
+
+<AccordionGroup>
+  <Accordion title="Sample Request Body">
+  ```json
+
+{
+  "id": "evt_2ciAM8ABYtj0pVueeJPxUZ",
+  "eventType": "subscription.trialing",
+  "created_at": 1739963911073,
+  "object": {
+    "id": "sub_dxiauR8zZOwULx5QM70wJ",
+    "object": "subscription",
+    "product": {
+      "id": "prod_3kpf0ZdpcfsSCQ3kDiwg9m",
+      "name": "trail",
+      "description": "asdfasf",
+      "image_url": null,
+      "price": 1100,
+      "currency": "EUR",
+      "billing_type": "recurring",
+      "billing_period": "every-month",
+      "status": "active",
+      "tax_mode": "exclusive",
+      "tax_category": "saas",
+      "default_success_url": "",
+      "created_at": "2025-02-19T11:18:07.570Z",
+      "updated_at": "2025-02-19T11:18:07.570Z",
+      "mode": "test"
+    },
+    "customer": {
+      "id": "cust_4fpU8kYkQmI1XKBwU2qeME",
+      "object": "customer",
+      "email": "alecerasmus2@gmail.com",
+      "name": "Alec Erasmus",
+      "country": "NL",
+      "created_at": "2024-11-07T23:21:11.763Z",
+      "updated_at": "2024-11-07T23:21:11.763Z",
+      "mode": "test"
+    },
+    "items": [
+      {
+        "object": "subscription_item",
+        "id": "sitem_1xbHCmIM61DHGRBCFn0W1L",
+        "product_id": "prod_3kpf0ZdpcfsSCQ3kDiwg9m",
+        "price_id": "pprice_517h9CebmM3P079bGAXHnE",
+        "units": 1,
+        "created_at": "2025-02-19T11:18:30.690Z",
+        "updated_at": "2025-02-19T11:18:30.690Z",
+        "mode": "test"
+      }
+    ],
+    "collection_method": "charge_automatically",
+    "status": "trialing",
+    "current_period_start_date": "2025-02-19T11:18:25.000Z",
+    "current_period_end_date": "2025-02-26T11:18:25.000Z",
+    "canceled_at": null,
+    "created_at": "2025-02-19T11:18:30.674Z",
+    "updated_at": "2025-02-19T11:18:30.674Z",
+    "mode": "test"
+    }
+}
+  ```
+
+  </Accordion>
+</AccordionGroup>
