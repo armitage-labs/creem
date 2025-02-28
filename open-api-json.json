@@ -547,6 +547,42 @@
         }
       }
     },
+    "/v1/discounts/{id}/delete": {
+      "delete": {
+        "operationId": "DiscountsControllerV1_delete",
+        "summary": "Delete a discount.",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "x-api-key",
+            "in": "header",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successfully deleted a discount",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/DiscountEntity"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/v1/transactions/search": {
       "get": {
         "operationId": "TransactionsControllerV1_search",
@@ -630,7 +666,11 @@
             "example": "Get access to discord server."
           }
         },
-        "required": ["id", "type", "description"]
+        "required": [
+          "id",
+          "type",
+          "description"
+        ]
       },
       "ProductEntity": {
         "type": "object",
@@ -641,7 +681,11 @@
           },
           "mode": {
             "type": "string",
-            "enum": ["test", "live", "sandbox"],
+            "enum": [
+              "test",
+              "live",
+              "sandbox"
+            ],
             "description": "String representing the environment."
           },
           "object": {
@@ -773,7 +817,11 @@
             "example": null
           }
         },
-        "required": ["total_records", "total_pages", "current_page"]
+        "required": [
+          "total_records",
+          "total_pages",
+          "current_page"
+        ]
       },
       "ProductListEntity": {
         "type": "object",
@@ -794,7 +842,10 @@
             ]
           }
         },
-        "required": ["items", "pagination"]
+        "required": [
+          "items",
+          "pagination"
+        ]
       },
       "Text": {
         "type": "object",
@@ -815,7 +866,9 @@
           "type": {
             "type": "string",
             "description": "The type of the field.",
-            "enum": ["text"],
+            "enum": [
+              "text"
+            ],
             "example": "text"
           },
           "key": {
@@ -841,7 +894,11 @@
             ]
           }
         },
-        "required": ["type", "key", "label"]
+        "required": [
+          "type",
+          "key",
+          "label"
+        ]
       },
       "CreateProductRequestEntity": {
         "type": "object",
@@ -910,7 +967,12 @@
             }
           }
         },
-        "required": ["name", "price", "currency", "billing_type"]
+        "required": [
+          "name",
+          "price",
+          "currency",
+          "billing_type"
+        ]
       },
       "CustomerEntity": {
         "type": "object",
@@ -921,7 +983,11 @@
           },
           "mode": {
             "type": "string",
-            "enum": ["test", "live", "sandbox"],
+            "enum": [
+              "test",
+              "live",
+              "sandbox"
+            ],
             "description": "String representing the environment."
           },
           "object": {
@@ -975,7 +1041,9 @@
             "description": "Unique identifier of the customer."
           }
         },
-        "required": ["customer_id"]
+        "required": [
+          "customer_id"
+        ]
       },
       "CustomerLinksEntity": {
         "type": "object",
@@ -985,7 +1053,9 @@
             "description": "Customer portal link."
           }
         },
-        "required": ["customer_portal_link"]
+        "required": [
+          "customer_portal_link"
+        ]
       },
       "SubscriptionItemEntity": {
         "type": "object",
@@ -996,7 +1066,11 @@
           },
           "mode": {
             "type": "string",
-            "enum": ["test", "live", "sandbox"],
+            "enum": [
+              "test",
+              "live",
+              "sandbox"
+            ],
             "description": "String representing the environment."
           },
           "object": {
@@ -1016,7 +1090,11 @@
             "description": "The number of units for the subscription item."
           }
         },
-        "required": ["id", "mode", "object"]
+        "required": [
+          "id",
+          "mode",
+          "object"
+        ]
       },
       "SubscriptionEntity": {
         "type": "object",
@@ -1027,7 +1105,11 @@
           },
           "mode": {
             "type": "string",
-            "enum": ["test", "live", "sandbox"],
+            "enum": [
+              "test",
+              "live",
+              "sandbox"
+            ],
             "description": "String representing the environment."
           },
           "object": {
@@ -1057,7 +1139,13 @@
           "status": {
             "type": "string",
             "description": "The current status of the subscription.",
-            "enum": ["active", "canceled", "unpaid", "paused", "trialing"],
+            "enum": [
+              "active",
+              "canceled",
+              "unpaid",
+              "paused",
+              "trialing"
+            ],
             "example": "active"
           },
           "last_transaction_id": {
@@ -1162,7 +1250,11 @@
           },
           "mode": {
             "type": "string",
-            "enum": ["test", "live", "sandbox"],
+            "enum": [
+              "test",
+              "live",
+              "sandbox"
+            ],
             "description": "String representing the environment."
           },
           "object": {
@@ -1205,14 +1297,20 @@
           "status": {
             "type": "string",
             "description": "Current status of the order.",
-            "enum": ["pending", "paid"],
+            "enum": [
+              "pending",
+              "paid"
+            ],
             "example": "pending"
           },
           "type": {
             "type": "string",
             "description": "The type of order. This can specify whether it’s a regular purchase, subscription, etc.",
             "example": "subscription",
-            "enum": ["subscription", "purchase"]
+            "enum": [
+              "subscription",
+              "purchase"
+            ]
           },
           "affiliate": {
             "type": "string",
@@ -1274,11 +1372,162 @@
             ]
           }
         },
-        "required": ["type", "key", "label"]
+        "required": [
+          "type",
+          "key",
+          "label"
+        ]
+      },
+      "LicenseInstanceEntity": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "description": "Unique identifier for the object."
+          },
+          "mode": {
+            "type": "string",
+            "enum": [
+              "test",
+              "live",
+              "sandbox"
+            ],
+            "description": "String representing the environment."
+          },
+          "object": {
+            "type": "string",
+            "description": "A string representing the object’s type. Objects of the same type share the same value.",
+            "example": "license-instance"
+          },
+          "name": {
+            "type": "string",
+            "description": "The name of the license instance.",
+            "example": "My Customer License Instance"
+          },
+          "status": {
+            "type": "string",
+            "description": "The status of the license instance.",
+            "enum": [
+              "active",
+              "deactivated"
+            ],
+            "example": "active"
+          },
+          "created_at": {
+            "format": "date-time",
+            "type": "string",
+            "description": "The creation date of the license instance.",
+            "example": "2023-09-13T00:00:00Z"
+          }
+        },
+        "required": [
+          "id",
+          "mode",
+          "object",
+          "name",
+          "status",
+          "created_at"
+        ]
+      },
+      "LicenseEntity": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "description": "Unique identifier for the object."
+          },
+          "mode": {
+            "type": "string",
+            "enum": [
+              "test",
+              "live",
+              "sandbox"
+            ],
+            "description": "String representing the environment."
+          },
+          "object": {
+            "type": "string",
+            "description": "A string representing the object’s type. Objects of the same type share the same value."
+          },
+          "status": {
+            "type": "string",
+            "description": "The current status of the license key.",
+            "enum": [
+              "inactive",
+              "active",
+              "expired",
+              "disabled"
+            ],
+            "example": "active"
+          },
+          "key": {
+            "type": "string",
+            "description": "The license key.",
+            "example": "ABC123-XYZ456-XYZ456-XYZ456"
+          },
+          "activation": {
+            "type": "number",
+            "description": "The number of instances that this license key was activated.",
+            "example": 5
+          },
+          "activation_limit": {
+            "type": "object",
+            "description": "The activation limit. Null if activations are unlimited.",
+            "example": 1,
+            "nullable": true
+          },
+          "expires_at": {
+            "type": "object",
+            "description": "The date the license key expires. Null if it does not have an expiration date.",
+            "example": "2023-09-13T00:00:00Z",
+            "nullable": true
+          },
+          "created_at": {
+            "format": "date-time",
+            "type": "string",
+            "description": "The creation date of the license key.",
+            "example": "2023-09-13T00:00:00Z"
+          },
+          "instance": {
+            "description": "Associated license instances.",
+            "nullable": true,
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/LicenseInstanceEntity"
+            }
+          }
+        },
+        "required": [
+          "id",
+          "mode",
+          "object",
+          "status",
+          "key",
+          "activation",
+          "created_at"
+        ]
+      },
+      "ProductFeatureEntity": {
+        "type": "object",
+        "properties": {
+          "license": {
+            "description": "License key issued for the order.",
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/LicenseEntity"
+              }
+            ]
+          }
+        },
+        "required": [
+          "license"
+        ]
       },
       "MetadataEntity": {
         "type": "object",
-        "properties": {}
+        "properties": {
+
+        }
       },
       "CheckoutEntity": {
         "type": "object",
@@ -1289,7 +1538,11 @@
           },
           "mode": {
             "type": "string",
-            "enum": ["test", "live", "sandbox"],
+            "enum": [
+              "test",
+              "live",
+              "sandbox"
+            ],
             "description": "String representing the environment."
           },
           "object": {
@@ -1344,6 +1597,13 @@
             "description": "The URL to which the user will be redirected after the checkout process is completed.",
             "example": "https://example.com/return"
           },
+          "feature": {
+            "description": "Features issued for the order.",
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/ProductFeatureEntity"
+            }
+          },
           "metadata": {
             "description": "A key-value pair where the key is a string, and the value can be a string, number, or null.",
             "type": "array",
@@ -1375,7 +1635,9 @@
             "example": "user@example.com"
           }
         },
-        "required": ["id"]
+        "required": [
+          "id"
+        ]
       },
       "CreateCheckoutRequestEntity": {
         "type": "object",
@@ -1423,7 +1685,9 @@
             }
           }
         },
-        "required": ["product_id"]
+        "required": [
+          "product_id"
+        ]
       },
       "ActivateLicenseRequestEntity": {
         "type": "object",
@@ -1437,112 +1701,9 @@
             "description": "A label for the new instance to identify it in Creem."
           }
         },
-        "required": ["key", "instance_name"]
-      },
-      "LicenseInstanceEntity": {
-        "type": "object",
-        "properties": {
-          "id": {
-            "type": "string",
-            "description": "Unique identifier for the object."
-          },
-          "mode": {
-            "type": "string",
-            "enum": ["test", "live", "sandbox"],
-            "description": "String representing the environment."
-          },
-          "object": {
-            "type": "string",
-            "description": "A string representing the object’s type. Objects of the same type share the same value.",
-            "example": "license-instance"
-          },
-          "name": {
-            "type": "string",
-            "description": "The name of the license instance.",
-            "example": "My Customer License Instance"
-          },
-          "status": {
-            "type": "string",
-            "description": "The status of the license instance.",
-            "enum": ["active", "deactivated"],
-            "example": "active"
-          },
-          "created_at": {
-            "format": "date-time",
-            "type": "string",
-            "description": "The creation date of the license instance.",
-            "example": "2023-09-13T00:00:00Z"
-          }
-        },
-        "required": ["id", "mode", "object", "name", "status", "created_at"]
-      },
-      "LicenseEntity": {
-        "type": "object",
-        "properties": {
-          "id": {
-            "type": "string",
-            "description": "Unique identifier for the object."
-          },
-          "mode": {
-            "type": "string",
-            "enum": ["test", "live", "sandbox"],
-            "description": "String representing the environment."
-          },
-          "object": {
-            "type": "string",
-            "description": "A string representing the object’s type. Objects of the same type share the same value."
-          },
-          "status": {
-            "type": "string",
-            "description": "The current status of the license key.",
-            "enum": ["inactive", "active", "expired", "disabled"],
-            "example": "active"
-          },
-          "key": {
-            "type": "string",
-            "description": "The license key.",
-            "example": "ABC123-XYZ456-XYZ456-XYZ456"
-          },
-          "activation": {
-            "type": "number",
-            "description": "The number of instances that this license key was activated.",
-            "example": 5
-          },
-          "activation_limit": {
-            "type": "object",
-            "description": "The activation limit. Null if activations are unlimited.",
-            "example": 1,
-            "nullable": true
-          },
-          "expires_at": {
-            "type": "object",
-            "description": "The date the license key expires. Null if it does not have an expiration date.",
-            "example": "2023-09-13T00:00:00Z",
-            "nullable": true
-          },
-          "created_at": {
-            "format": "date-time",
-            "type": "string",
-            "description": "The creation date of the license key.",
-            "example": "2023-09-13T00:00:00Z"
-          },
-          "instance": {
-            "description": "Associated license instances.",
-            "nullable": true,
-            "type": "array",
-            "items": {
-              "$ref": "#/components/schemas/LicenseInstanceEntity"
-            }
-          }
-        },
         "required": [
-          "id",
-          "mode",
-          "object",
-          "status",
           "key",
-          "activation",
-          "created_at"
+          "instance_name"
         ]
       },
       "DeactivateLicenseRequestEntity": {
@@ -1557,7 +1718,10 @@
             "description": "Id of the instance to deactivate."
           }
         },
-        "required": ["key", "instance_id"]
+        "required": [
+          "key",
+          "instance_id"
+        ]
       },
       "ValidateLicenseRequestEntity": {
         "type": "object",
@@ -1571,7 +1735,10 @@
             "description": "Id of the instance to validate."
           }
         },
-        "required": ["key", "instance_id"]
+        "required": [
+          "key",
+          "instance_id"
+        ]
       },
       "CreateDiscountRequestEntity": {
         "type": "object",
@@ -1589,7 +1756,10 @@
           "type": {
             "type": "string",
             "description": "The type of the discount, either \"percentage\" or \"fixed\".",
-            "enum": ["percentage", "fixed"]
+            "enum": [
+              "percentage",
+              "fixed"
+            ]
           },
           "amount": {
             "type": "number",
@@ -1620,7 +1790,11 @@
           "duration": {
             "type": "string",
             "description": "The duration type for the discount.",
-            "enum": ["forever", "once", "repeating"],
+            "enum": [
+              "forever",
+              "once",
+              "repeating"
+            ],
             "example": "repeating"
           },
           "duration_in_months": {
@@ -1630,14 +1804,22 @@
           },
           "applies_to_products": {
             "description": "The list of product IDs to which this discount applies.",
-            "example": ["prod_123", "prod_456"],
+            "example": [
+              "prod_123",
+              "prod_456"
+            ],
             "type": "array",
             "items": {
               "type": "string"
             }
           }
         },
-        "required": ["name", "type", "amount", "duration"]
+        "required": [
+          "name",
+          "type",
+          "amount",
+          "duration"
+        ]
       },
       "DiscountEntity": {
         "type": "object",
@@ -1648,7 +1830,11 @@
           },
           "mode": {
             "type": "string",
-            "enum": ["test", "live", "sandbox"],
+            "enum": [
+              "test",
+              "live",
+              "sandbox"
+            ],
             "description": "String representing the environment."
           },
           "object": {
@@ -1659,7 +1845,12 @@
           "status": {
             "type": "string",
             "description": "The status of the discount (e.g., active, inactive).",
-            "enum": ["active", "draft", "expired", "scheduled"],
+            "enum": [
+              "active",
+              "draft",
+              "expired",
+              "scheduled"
+            ],
             "example": "active"
           },
           "name": {
@@ -1675,7 +1866,10 @@
           "type": {
             "type": "string",
             "description": "The type of the discount, either \"percentage\" or \"fixed\".",
-            "enum": ["percentage", "fixed"],
+            "enum": [
+              "percentage",
+              "fixed"
+            ],
             "example": "percentage"
           },
           "amount": {
@@ -1702,7 +1896,11 @@
           "duration": {
             "type": "string",
             "description": "The duration type for the discount.",
-            "enum": ["forever", "once", "repeating"],
+            "enum": [
+              "forever",
+              "once",
+              "repeating"
+            ],
             "example": "repeating"
           },
           "duration_in_months": {
@@ -1712,7 +1910,10 @@
           },
           "applies_to_products": {
             "description": "The list of product IDs to which this discount applies.",
-            "example": ["prod_123", "prod_456"],
+            "example": [
+              "prod_123",
+              "prod_456"
+            ],
             "type": "array",
             "items": {
               "type": "string"
@@ -1739,7 +1940,11 @@
           },
           "mode": {
             "type": "string",
-            "enum": ["test", "live", "sandbox"],
+            "enum": [
+              "test",
+              "live",
+              "sandbox"
+            ],
             "description": "String representing the environment."
           },
           "object": {
@@ -1848,7 +2053,10 @@
             ]
           }
         },
-        "required": ["items", "pagination"]
+        "required": [
+          "items",
+          "pagination"
+        ]
       }
     }
   }
