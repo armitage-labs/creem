@@ -175,7 +175,7 @@
     },
     {
       "group": "Discount Code",
-      "pages": ["api-reference/endpoint/create-discount-code", "api-reference/endpoint/delete-discount-code"]
+      "pages": ["api-reference/endpoint/create-discount-code"]
     },
     {
       "group": "Subscription",
