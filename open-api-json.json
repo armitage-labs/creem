@@ -510,8 +510,52 @@
       }
     },
     "/v1/discounts": {
+      "get": {
+        "operationId": "DiscountsControllerV1_retrieve",
+        "summary": "Retrieve discount",
+        "parameters": [
+          {
+            "name": "discount_id",
+            "required": false,
+            "in": "query",
+            "description": "The unique identifier of the discount (provide either discount_id OR discount_code)",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "discount_code",
+            "required": false,
+            "in": "query",
+            "description": "The unique discount code (provide either discount_id OR discount_code)",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "x-api-key",
+            "in": "header",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successfully retrieved the discount",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/DiscountEntity"
+                }
+              }
+            }
+          }
+        }
+      },
       "post": {
-        "operationId": "DiscountsControllerV1_activate",
+        "operationId": "DiscountsControllerV1_create",
         "summary": "Create a discount.",
         "parameters": [
           {
@@ -643,7 +687,9 @@
     "title": "Creem API",
     "description": "Creem is an all-in-one platform for managing subscriptions and recurring revenue, tailored specifically for today’s SaaS companies. It enables you to boost revenue, enhance customer retention, and scale your operations seamlessly.",
     "version": "v1",
-    "contact": {}
+    "contact": {
+
+    }
   },
   "tags": [],
   "servers": [],
@@ -1740,87 +1786,6 @@
           "instance_id"
         ]
       },
-      "CreateDiscountRequestEntity": {
-        "type": "object",
-        "properties": {
-          "name": {
-            "type": "string",
-            "description": "The name of the discount.",
-            "example": "Holiday Sale"
-          },
-          "code": {
-            "type": "string",
-            "description": "Optional discount code. If left empty, a code will be generated.",
-            "example": "HOLIDAY2024"
-          },
-          "type": {
-            "type": "string",
-            "description": "The type of the discount, either \"percentage\" or \"fixed\".",
-            "enum": [
-              "percentage",
-              "fixed"
-            ]
-          },
-          "amount": {
-            "type": "number",
-            "description": "The fixed value for the discount. Only applicable if the type is \"fixed\".",
-            "example": 20
-          },
-          "currency": {
-            "type": "string",
-            "description": "The currency of the discount. Only required if type is \"fixed\".",
-            "example": "USD"
-          },
-          "percentage": {
-            "type": "number",
-            "description": "The percentage value for the discount. Only applicable if the type is \"percentage\".",
-            "example": 15
-          },
-          "expiry_date": {
-            "format": "date-time",
-            "type": "string",
-            "description": "The expiry date of the discount.",
-            "example": "2024-12-31T23:59:59Z"
-          },
-          "max_redemptions": {
-            "type": "number",
-            "description": "The maximum number of redemptions for the discount.",
-            "example": 100
-          },
-          "duration": {
-            "type": "string",
-            "description": "The duration type for the discount.",
-            "enum": [
-              "forever",
-              "once",
-              "repeating"
-            ],
-            "example": "repeating"
-          },
-          "duration_in_months": {
-            "type": "number",
-            "description": "The number of months the discount is valid for. Only applicable if the duration is \"repeating\" and the product is a subscription.",
-            "example": 6
-          },
-          "applies_to_products": {
-            "description": "The list of product IDs to which this discount applies.",
-            "example": [
-              "prod_123",
-              "prod_456"
-            ],
-            "type": "array",
-            "items": {
-              "type": "string"
-            }
-          }
-        },
-        "required": [
-          "name",
-          "type",
-          "amount",
-          "duration"
-        ]
-      },
       "DiscountEntity": {
         "type": "object",
         "properties": {
@@ -1929,6 +1894,87 @@
           "code",
           "type",
           "amount"
+        ]
+      },
+      "CreateDiscountRequestEntity": {
+        "type": "object",
+        "properties": {
+          "name": {
+            "type": "string",
+            "description": "The name of the discount.",
+            "example": "Holiday Sale"
+          },
+          "code": {
+            "type": "string",
+            "description": "Optional discount code. If left empty, a code will be generated.",
+            "example": "HOLIDAY2024"
+          },
+          "type": {
+            "type": "string",
+            "description": "The type of the discount, either \"percentage\" or \"fixed\".",
+            "enum": [
+              "percentage",
+              "fixed"
+            ]
+          },
+          "amount": {
+            "type": "number",
+            "description": "The fixed value for the discount. Only applicable if the type is \"fixed\".",
+            "example": 20
+          },
+          "currency": {
+            "type": "string",
+            "description": "The currency of the discount. Only required if type is \"fixed\".",
+            "example": "USD"
+          },
+          "percentage": {
+            "type": "number",
+            "description": "The percentage value for the discount. Only applicable if the type is \"percentage\".",
+            "example": 15
+          },
+          "expiry_date": {
+            "format": "date-time",
+            "type": "string",
+            "description": "The expiry date of the discount.",
+            "example": "2024-12-31T23:59:59Z"
+          },
+          "max_redemptions": {
+            "type": "number",
+            "description": "The maximum number of redemptions for the discount.",
+            "example": 100
+          },
+          "duration": {
+            "type": "string",
+            "description": "The duration type for the discount.",
+            "enum": [
+              "forever",
+              "once",
+              "repeating"
+            ],
+            "example": "repeating"
+          },
+          "duration_in_months": {
+            "type": "number",
+            "description": "The number of months the discount is valid for. Only applicable if the duration is \"repeating\" and the product is a subscription.",
+            "example": 6
+          },
+          "applies_to_products": {
+            "description": "The list of product IDs to which this discount applies.",
+            "example": [
+              "prod_123",
+              "prod_456"
+            ],
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          }
+        },
+        "required": [
+          "name",
+          "type",
+          "amount",
+          "duration"
         ]
       },
       "TransactionEntity": {
