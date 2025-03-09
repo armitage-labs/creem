@@ -139,7 +139,11 @@
     },
     {
       "group": "FAQ",
-      "pages": ["faq/supported-countries", "faq/prohibited-products"]
+      "pages": [
+        "faq/supported-countries",
+        "faq/prohibited-products",
+        "faq/account-reviews"
+      ]
     },
     {
       "group": "API Documentation",
@@ -175,7 +179,11 @@
     },
     {
       "group": "Discount Code",
-      "pages": ["api-reference/endpoint/create-discount-code", "api-reference/endpoint/delete-discount-code", "api-reference/endpoint/get-discount-code"]
+      "pages": [
+        "api-reference/endpoint/create-discount-code",
+        "api-reference/endpoint/delete-discount-code",
+        "api-reference/endpoint/get-discount-code"
+      ]
     },
     {
       "group": "Subscription",
