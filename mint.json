@@ -151,7 +151,10 @@
     },
     {
       "group": "Checkout",
-      "pages": ["api-reference/endpoint/create-checkout"]
+      "pages": [
+        "api-reference/endpoint/create-checkout",
+        "api-reference/endpoint/get-checkout"
+      ]
     },
     {
       "group": "Product",
