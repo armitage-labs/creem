@@ -76,7 +76,14 @@
           "group": "Billing",
           "pages": [
             "learn/billing/seat-based-billing",
-            "learn/billing/subscription",
+            {
+              "group": "Subscriptions",
+              "pages": [
+                "learn/billing/subscriptions/introduction",
+                "learn/billing/subscriptions/upgrades",
+                "learn/billing/subscriptions/bundles"
+              ]
+            },
             "learn/billing/one-time-payment"
           ]
         },
@@ -193,6 +200,7 @@
       "pages": [
         "api-reference/endpoint/get-subscription",
         "api-reference/endpoint/update-subscription",
+        "api-reference/endpoint/upgrade-subscription",
         "api-reference/endpoint/cancel-subscription"
       ]
     }
