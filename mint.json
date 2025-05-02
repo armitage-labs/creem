@@ -53,8 +53,8 @@
         "api-keys",
         "test-mode",
         {
-          "group": "SDK And Guides",
-          "pages": ["/sdk/typescript"]
+          "group": "SDK And Templates",
+          "pages": ["/sdk/typescript-sdk", "/sdk/nextjs-template"]
         }
       ]
     },
