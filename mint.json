@@ -80,6 +80,7 @@
           "group": "Billing",
           "pages": [
             "learn/billing/seat-based-billing",
+            "learn/billing/upsells",
             {
               "group": "Subscriptions",
               "pages": [
@@ -96,6 +97,13 @@
           "pages": [
             "learn/customers/introduction",
             "learn/customers/customer-portal"
+          ]
+        },
+        {
+          "group": "Customization",
+          "pages": [
+            "learn/customization/branding",
+            "learn/customization/payment-links"
           ]
         }
       ]
