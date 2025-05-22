@@ -84,8 +84,8 @@
             {
               "group": "Subscriptions",
               "pages": [
-                "learn/billing/subscriptions/introduction",
                 "learn/billing/subscriptions/upgrades",
+                "learn/billing/subscriptions/introduction",
                 "learn/billing/subscriptions/bundles"
               ]
             },
