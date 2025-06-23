@@ -161,7 +161,14 @@
       "pages": [
         "faq/supported-countries",
         "faq/prohibited-products",
-        "faq/account-reviews"
+
+        {
+          "group": "Account Reviews",
+          "pages": [
+            "faq/account-reviews/account-reviews",
+            "faq/account-reviews/ai-wrapper-compliance"
+          ]
+        }
       ]
     },
     {
