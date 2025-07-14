@@ -1,0 +1,245 @@
+{
+  "$schema": "https://mintlify.com/docs.json",
+
+  "contextual": {
+    "options": ["copy", "view", "chatgpt", "claude", "perplexity"]
+  },
+  "theme": "mint",
+  "name": "Creem",
+  "colors": {
+    "primary": "#FFBE98",
+    "light": "#FFBE98",
+    "dark": "#FFBE98"
+  },
+  "favicon": "/favicon.svg",
+  "navigation": {
+    "tabs": [
+      {
+        "tab": "Documentation",
+        "groups": [
+          {
+            "group": "Get Started",
+            "pages": [
+              "introduction",
+              "quickstart",
+              "checkout-flow",
+              "api-keys",
+              "test-mode",
+              {
+                "group": "SDK And Templates",
+                "pages": ["sdk/typescript-sdk", "sdk/nextjs-template"]
+              }
+            ]
+          },
+          {
+            "group": "Learn",
+            "pages": [
+              {
+                "group": "Checkout Session",
+                "pages": [
+                  "learn/checkout-session/introduction",
+                  "learn/checkout-session/return-url"
+                ]
+              },
+              {
+                "group": "Webhooks",
+                "pages": [
+                  "learn/webhooks/introduction",
+                  "learn/webhooks/event-types",
+                  "learn/webhooks/verify-webhook-requests"
+                ]
+              },
+              {
+                "group": "Billing",
+                "pages": [
+                  "learn/billing/seat-based-billing",
+                  "learn/billing/upsells",
+                  {
+                    "group": "Subscriptions",
+                    "pages": [
+                      "learn/billing/subscriptions/introduction",
+                      "learn/billing/subscriptions/upgrades",
+                      "learn/billing/subscriptions/bundles"
+                    ]
+                  },
+                  "learn/billing/one-time-payment"
+                ]
+              },
+              {
+                "group": "Customers",
+                "pages": [
+                  "learn/customers/introduction",
+                  "learn/customers/customer-portal"
+                ]
+              },
+              {
+                "group": "Customization",
+                "pages": [
+                  "learn/customization/branding",
+                  "learn/customization/payment-links"
+                ]
+              }
+            ]
+          },
+          {
+            "group": "Integrations",
+            "pages": ["integrations/ai-negotiation", "integrations/affiliates"]
+          },
+          {
+            "group": "Product Features",
+            "pages": [
+              "features/introduction",
+              {
+                "group": "Licenses",
+                "pages": [
+                  "features/licenses/introduction",
+                  "features/licenses/activate",
+                  "features/licenses/validate",
+                  "features/licenses/deactivate"
+                ]
+              },
+              {
+                "group": "Private Notes",
+                "pages": ["features/private-notes/overview"]
+              },
+              {
+                "group": "File Downloads",
+                "pages": ["features/downloads/overview"]
+              },
+              {
+                "group": "Custom Fields",
+                "pages": ["features/custom-fields/overview"]
+              }
+            ]
+          },
+          {
+            "group": "Finance",
+            "pages": [
+              "finance/payments",
+              "finance/payouts",
+              "finance/merchant-of-record",
+              "finance/refunds"
+            ]
+          },
+          {
+            "group": "For Customers and Buyers",
+            "pages": [
+              "for-customers/why-creem-charged-me",
+              "for-customers/how-to-cancel-subscription",
+              "for-customers/how-to-update-payment-method"
+            ]
+          },
+          {
+            "group": "FAQ",
+            "pages": [
+              "faq/supported-countries",
+              "faq/prohibited-products",
+              {
+                "group": "Account Reviews",
+                "pages": [
+                  "faq/account-reviews/account-reviews",
+                  "faq/account-reviews/ai-wrapper-compliance"
+                ]
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "tab": "API Reference",
+        "groups": [
+          {
+            "group": "API Documentation",
+            "pages": ["api-reference/introduction"]
+          },
+          {
+            "group": "Checkout",
+            "pages": [
+              "api-reference/endpoint/create-checkout",
+              "api-reference/endpoint/get-checkout"
+            ]
+          },
+          {
+            "group": "Product",
+            "pages": [
+              "api-reference/endpoint/create-product",
+              "api-reference/endpoint/get-product",
+              "api-reference/endpoint/search-products"
+            ]
+          },
+          {
+            "group": "Customer",
+            "pages": ["api-reference/endpoint/get-customer"]
+          },
+          {
+            "group": "Transactions",
+            "pages": ["api-reference/endpoint/get-transactions"]
+          },
+          {
+            "group": "License",
+            "pages": [
+              "api-reference/endpoint/validate-license",
+              "api-reference/endpoint/activate-license",
+              "api-reference/endpoint/deactivate-license"
+            ]
+          },
+          {
+            "group": "Discount Code",
+            "pages": [
+              "api-reference/endpoint/create-discount-code",
+              "api-reference/endpoint/delete-discount-code",
+              "api-reference/endpoint/get-discount-code"
+            ]
+          },
+          {
+            "group": "Subscription",
+            "pages": [
+              "api-reference/endpoint/get-subscription",
+              "api-reference/endpoint/update-subscription",
+              "api-reference/endpoint/upgrade-subscription",
+              "api-reference/endpoint/cancel-subscription"
+            ]
+          }
+        ]
+      }
+    ],
+    "global": {
+      "anchors": [
+        {
+          "anchor": "Community",
+          "href": "https://discord.gg/q3GKZs92Av",
+          "icon": "discord"
+        },
+        {
+          "anchor": "Blog",
+          "href": "https://creem.io/blog",
+          "icon": "newspaper"
+        }
+      ]
+    }
+  },
+  "logo": {
+    "light": "/logo/light.svg",
+    "dark": "/logo/dark.svg"
+  },
+  "navbar": {
+    "links": [
+      {
+        "label": "Support",
+        "href": "mailto:support@creem.io"
+      }
+    ],
+    "primary": {
+      "type": "button",
+      "label": "Creem",
+      "href": "https://creem.io"
+    }
+  },
+  "footer": {
+    "socials": {
+      "x": "https://x.com/creem_io",
+      "linkedin": "https://www.linkedin.com/company/creemio"
+    }
+  }
+}
+
