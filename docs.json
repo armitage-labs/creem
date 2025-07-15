@@ -227,6 +227,14 @@
       {
         "label": "Support",
         "href": "mailto:support@creem.io"
+      },
+      {
+        "label": "llms.txt",
+        "href": "https://docs.creem.io/llms.txt"
+      },
+      {
+        "label": "llms-full.txt",
+        "href": "https://docs.creem.io/llms-full.txt"
       }
     ],
     "primary": {
@@ -242,4 +250,3 @@
     }
   }
 }
-
