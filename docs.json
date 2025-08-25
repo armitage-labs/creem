@@ -78,6 +78,10 @@
                   "learn/customization/branding",
                   "learn/customization/payment-links"
                 ]
+              },
+              {
+                "group": "Splits",
+                "pages": ["learn/splits/introduction"]
               }
             ]
           },
