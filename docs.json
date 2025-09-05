@@ -173,7 +173,7 @@
           },
           {
             "group": "Customer",
-            "pages": ["api-reference/endpoint/get-customer"]
+            "pages": ["api-reference/endpoint/get-customer", "api-reference/endpoint/list-customers"]
           },
           {
             "group": "Transactions",
