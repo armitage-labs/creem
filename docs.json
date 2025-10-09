@@ -113,6 +113,10 @@
               {
                 "group": "Custom Fields",
                 "pages": ["features/custom-fields/overview"]
+              },
+              {
+                "group": "Abandoned Cart Recovery",
+                "pages": ["features/abandoned-carts/overview"]
               }
             ]
           },
