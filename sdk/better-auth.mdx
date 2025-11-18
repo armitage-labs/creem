@@ -1,6 +1,6 @@
 ---
-title: 'Better Auth'
-description: 'Integrate authentication and payment processing seamlessly with Better Auth and Creem.'
+title: "Better Auth"
+description: "Integrate authentication and payment processing seamlessly with Better Auth and Creem."
 ---
 
 ## Overview
@@ -49,6 +49,7 @@ How to integrate Better Auth with Creem to build a complete authentication and p
     <Note>
       If you're using a separate client and server setup, make sure to install the plugin in both parts of your project.
     </Note>
+
   </Step>
 
   <Step>
@@ -67,6 +68,7 @@ How to integrate Better Auth with Creem to build a complete authentication and p
     <Warning>
       Test Mode and Production have different API keys. Make sure you're using the correct one for your environment.
     </Warning>
+
   </Step>
 </Steps>
 
@@ -138,6 +140,7 @@ npx @better-auth/cli migrate
     <Info>
       The `/api/auth` prefix is the default Better Auth server path. Adjust if you've customized your Better Auth configuration.
     </Info>
+
   </Step>
 
   <Step>
@@ -151,6 +154,7 @@ npx @better-auth/cli migrate
     ```
 
     3. Update your server configuration to include the webhook secret (shown in Configuration section above)
+
   </Step>
 
   <Step>
@@ -163,6 +167,7 @@ npx @better-auth/cli migrate
     ```
 
     Then add the ngrok URL to your Creem webhook settings.
+
   </Step>
 </Steps>
 
@@ -260,7 +265,7 @@ export const auth = betterAuth({
         // Grant access in your database
         await db.user.update({
           where: { id: userId },
-          data: { 
+          data: {
             hasAccess: true,
             subscriptionTier: product.name,
           },
@@ -275,7 +280,7 @@ export const auth = betterAuth({
         // Revoke access in your database
         await db.user.update({
           where: { id: userId },
-          data: { 
+          data: {
             hasAccess: false,
           },
         });
@@ -378,6 +383,3 @@ Need help with the integration?
 - Chat with us directly using the in-app live chat on the [Creem dashboard](https://creem.io/dashboard)
 - Email us at [support@creem.io](mailto:support@creem.io)
 - Open an issue on [GitHub](https://github.com/armitage-labs/creem-betterauth/issues)
-
-
-
