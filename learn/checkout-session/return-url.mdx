@@ -14,6 +14,9 @@ Using these URLs, you can create a seamless experience for your users, by redire
   You have the optionality to use the information in the URL query parameters, or to use webhooks to receive updates on your application automatically, or both.
 </Tip>
 
+<Info>
+  When using the <a href="/sdk/nextjs-adapter">@creem_io/nextjs adaptor</a>, set a `successUrl` on `<CreemCheckout />` (or `defaultSuccessUrl` on your `Checkout` route) to control where Creem redirects users—no manual query string handling required.
+</Info>
 
 ## How to set a Return/Redirect URL
 
@@ -51,6 +54,64 @@ A return URL will always contain the following query parameters, and will look l
 | product_id | The product ID that the payment is related to. |
 | request_id | **Optional** The request ID you provided when creating this checkout session. |
 | signature | All previous parameters signed by creem using your API-key, verifiable by you.|
+
+### Handle return URLs in Next.js
+
+Use a server component or Route Handler to read search params, verify the signature, and then show the success UI:
+
+```tsx
+// app/thank-you/page.tsx
+import crypto from "crypto";
+import { redirect } from "next/navigation";
+
+type RedirectParams = {
+  checkout_id?: string | null;
+  order_id?: string | null;
+  customer_id?: string | null;
+  subscription_id?: string | null;
+  product_id?: string | null;
+  request_id?: string | null;
+  signature?: string | null;
+};
+
+const verifySignature = (params: RedirectParams, apiKey: string) => {
+  const { signature, ...rest } = params;
+  const data = Object.entries(rest)
+    .map(([key, value]) => `${key}=${value ?? ""}`)
+    .concat(`salt=${apiKey}`)
+    .join("|");
+  const expected = crypto.createHash("sha256").update(data).digest("hex");
+  return expected === signature;
+};
+
+export default function ThankYouPage({
+  searchParams,
+}: {
+  searchParams: Record<string, string | string[] | undefined>;
+}) {
+  const params = {
+    checkout_id: searchParams.checkout_id as string | undefined,
+    order_id: searchParams.order_id as string | undefined,
+    customer_id: searchParams.customer_id as string | undefined,
+    subscription_id: searchParams.subscription_id as string | undefined,
+    product_id: searchParams.product_id as string | undefined,
+    request_id: searchParams.request_id as string | undefined,
+    signature: searchParams.signature as string | undefined,
+  };
+
+  const isValid = verifySignature(params, process.env.CREEM_API_KEY!);
+  if (!isValid) {
+    redirect("/error");
+  }
+
+  return (
+    <div>
+      <h1>Payment received ✅</h1>
+      <p>Checkout ID: {params.checkout_id}</p>
+    </div>
+  );
+}
+```
 
 ## How to verify Creem signature?
 

@@ -27,7 +27,11 @@
               "test-mode",
               {
                 "group": "SDK And Templates",
-                "pages": ["sdk/typescript-sdk", "sdk/nextjs-template"]
+                "pages": [
+                  "sdk/nextjs-adapter",
+                  "sdk/typescript-sdk",
+                  "sdk/nextjs-template"
+                ]
               }
             ]
           },

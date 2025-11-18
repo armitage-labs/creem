@@ -260,7 +260,7 @@ export const auth = betterAuth({
         // Grant access in your database
         await db.user.update({
           where: { id: userId },
-          data: { 
+          data: {
             hasAccess: true,
             subscriptionTier: product.name,
           },
@@ -275,7 +275,7 @@ export const auth = betterAuth({
         // Revoke access in your database
         await db.user.update({
           where: { id: userId },
-          data: { 
+          data: {
             hasAccess: false,
           },
         });
