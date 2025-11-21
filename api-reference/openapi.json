@@ -120,52 +120,6 @@
         }
       }
     },
-    "/v1/customers/check-customer": {
-      "get": {
-        "operationId": "checkCustomer",
-        "summary": "Check if a user is a customer",
-        "parameters": [
-          {
-            "name": "email",
-            "required": true,
-            "in": "query",
-            "description": "The email address to check",
-            "schema": {
-              "type": "string"
-            }
-          },
-          {
-            "name": "Authorization",
-            "in": "header",
-            "required": true,
-            "schema": {
-              "type": "string"
-            }
-          }
-        ],
-        "responses": {
-          "200": {
-            "description": "Successfully checked customer status",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "type": "object",
-                  "properties": {
-                    "isCustomer": {
-                      "type": "boolean"
-                    },
-                    "customerData": {
-                      "type": "object",
-                      "nullable": true
-                    }
-                  }
-                }
-              }
-            }
-          }
-        }
-      }
-    },
     "/v1/customers/list": {
       "get": {
         "operationId": "listCustomers",
@@ -355,6 +309,16 @@
             }
           }
         ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CancelSubscriptionRequestEntity"
+              }
+            }
+          }
+        },
         "responses": {
           "200": {
             "description": "Successfully canceled a subscription",
@@ -971,7 +935,7 @@
           "currency": {
             "type": "string",
             "description": "Three-letter ISO currency code, in uppercase. Must be a supported currency.",
-            "example": "EUR"
+            "example": "USD"
           },
           "billing_type": {
             "type": "string",
@@ -995,7 +959,11 @@
           "tax_category": {
             "type": "string",
             "description": "Categorizes the type of product or service for tax purposes. This helps determine the applicable tax rules based on the nature of the item or service.",
-            "example": "saas"
+            "example": [
+              "saas",
+              "digital-goods-service",
+              "ebooks"
+            ]
           },
           "product_url": {
             "type": "string",
@@ -1114,6 +1082,15 @@
           }
         }
       },
+      "Checkbox": {
+        "type": "object",
+        "properties": {
+          "label": {
+            "type": "string",
+            "description": "The markdown text to display for the checkbox."
+          }
+        }
+      },
       "CustomFieldRequestEntity": {
         "type": "object",
         "properties": {
@@ -1121,7 +1098,8 @@
             "type": "string",
             "description": "The type of the field.",
             "enum": [
-              "text"
+              "text",
+              "checkbox"
             ],
             "example": "text"
           },
@@ -1144,6 +1122,14 @@
             "allOf": [
               {
                 "$ref": "#/components/schemas/Text"
+              }
+            ]
+          },
+          "checkbox": {
+            "description": "Configuration for checkbox field type.",
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/Checkbox"
               }
             ]
           }
@@ -1179,7 +1165,7 @@
           "currency": {
             "type": "string",
             "description": "Three-letter ISO currency code, in uppercase. Must be a supported currency.",
-            "example": "EUR"
+            "example": "USD"
           },
           "billing_type": {
             "type": "string",
@@ -1199,7 +1185,11 @@
           "tax_category": {
             "type": "string",
             "description": "Categorizes the type of product or service for tax purposes. This helps determine the applicable tax rules based on the nature of the item or service.",
-            "example": "saas"
+            "example": [
+              "saas",
+              "digital-goods-service",
+              "ebooks"
+            ]
           },
           "default_success_url": {
             "type": "string",
@@ -1212,6 +1202,11 @@
             "items": {
               "$ref": "#/components/schemas/CustomFieldRequestEntity"
             }
+          },
+          "abandoned_cart_recovery_enabled": {
+            "type": "boolean",
+            "description": "Enable abandoned cart recovery for this product",
+            "default": false
           }
         },
         "required": [
@@ -1406,7 +1401,7 @@
           "currency": {
             "type": "string",
             "description": "Three-letter ISO currency code, in uppercase. Must be a supported currency.",
-            "example": "EUR"
+            "example": "USD"
           },
           "type": {
             "type": "string",
@@ -1539,7 +1534,8 @@
               "canceled",
               "unpaid",
               "paused",
-              "trialing"
+              "trialing",
+              "scheduled_cancel"
             ],
             "example": "active"
           },
@@ -1598,6 +1594,10 @@
             "description": "The date and time when the subscription was last updated.",
             "example": "2024-09-12T12:34:56Z",
             "format": "date-time"
+          },
+          "discount": {
+            "type": "object",
+            "description": "The discount code applied to the subscription, if any."
           }
         },
         "required": [
@@ -1611,6 +1611,29 @@
           "created_at",
           "updated_at"
         ]
+      },
+      "CancelSubscriptionRequestEntity": {
+        "type": "object",
+        "properties": {
+          "mode": {
+            "type": "string",
+            "description": "The mode of cancellation (immediate or scheduled), default is immediate",
+            "enum": [
+              "immediate",
+              "scheduled"
+            ],
+            "example": "immediate"
+          },
+          "onExecute": {
+            "type": "string",
+            "description": "The action to execute when canceling (cancel or pause) when mode is scheduled, ignored when mode is immediate or not provided",
+            "enum": [
+              "cancel",
+              "pause"
+            ],
+            "example": "cancel"
+          }
+        }
       },
       "UpsertSubscriptionItemEntity": {
         "type": "object",
@@ -1749,7 +1772,7 @@
           "currency": {
             "type": "string",
             "description": "Three-letter ISO currency code, in uppercase. Must be a supported currency.",
-            "example": "EUR"
+            "example": "USD"
           },
           "fx_amount": {
             "type": "number",
@@ -1819,7 +1842,11 @@
         "properties": {
           "type": {
             "type": "string",
-            "description": "The type of the field."
+            "description": "The type of the field.",
+            "enum": [
+              "text",
+              "checkbox"
+            ]
           },
           "key": {
             "type": "string",
@@ -1836,10 +1863,18 @@
             "description": "Whether the customer is required to complete the field. Defaults to `false`."
           },
           "text": {
-            "description": "Whether the customer is required to complete the field. Defaults to `false`.",
+            "description": "Configuration for text field type.",
             "allOf": [
               {
                 "$ref": "#/components/schemas/Text"
+              }
+            ]
+          },
+          "checkbox": {
+            "description": "Configuration for checkbox field type.",
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/Checkbox"
               }
             ]
           }
@@ -2022,7 +2057,8 @@
             "enum": [
               "pending",
               "processing",
-              "completed"
+              "completed",
+              "expired"
             ],
             "example": "completed"
           },
@@ -2343,6 +2379,11 @@
             "items": {
               "type": "string"
             }
+          },
+          "redeem_count": {
+            "type": "number",
+            "description": "The number of times this discount has been redeemed.",
+            "example": 15
           }
         },
         "required": [
