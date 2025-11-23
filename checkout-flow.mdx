@@ -40,76 +40,82 @@ You can add a name, description, and price to your product. Optionally you can a
 
 Once your product is created, you can copy the product ID by clicking on the product options and selecting "Copy ID".
 
-<Tabs>
-  <Tab title="Next.js">
-    ```bash
-    npm install @creem_io/nextjs
-    # or
-    yarn add @creem_io/nextjs
-    # or
-    pnpm install @creem_io/nextjs
-    ```
+Install the package:
 
-    ```ts
-    // app/checkout/route.ts
-    import { Checkout } from "@creem_io/nextjs";
+<CodeGroup>
 
-    export const GET = Checkout({
-      apiKey: process.env.CREEM_API_KEY!,
-      testMode: process.env.NODE_ENV !== "production",
-      defaultSuccessUrl: "/success",
-    });
-    ```
+```bash npm
+npm install @creem_io/nextjs
+```
 
-    ```tsx
-    // app/page.tsx
-    "use client"; // Optional: CreemCheckout also works in Server Components
+```bash yarn
+yarn add @creem_io/nextjs
+```
 
-    import { CreemCheckout } from "@creem_io/nextjs";
+```bash pnpm
+pnpm install @creem_io/nextjs
+```
 
-    export function SubscribeButton() {
-      return (
-        <CreemCheckout productId="prod_6tW66i0oZM7w1qXReHJrwg">
-          <button className="btn-primary">Subscribe Now</button>
-        </CreemCheckout>
-      );
-    }
-    ```
+```bash bun
+bun install @creem_io/nextjs
+```
 
-  </Tab>
-  <Tab title="Node.js">
-    <Warning>
-      If you are using test mode, make sure to call the test-mode API endpoint.
-      See the [Test Mode](/test-mode) page for more details.
-    </Warning>
+</CodeGroup>
 
-    ```javascript
-    import axios from "axios";
+Then create a checkout session:
 
-    const response = await axios.post(
-      "https://api.creem.io/v1/checkouts",
-      { product_id: "prod_6tW66i0oZM7w1qXReHJrwg" },
-      { headers: { "x-api-key": "creem_123456789" } }
-    );
+<CodeGroup>
 
-    const checkoutUrl = response.data.checkout_url;
-    ```
+```ts Next.js
+// app/checkout/route.ts
+import { Checkout } from "@creem_io/nextjs";
 
-  </Tab>
-  <Tab title="API">
-    <Warning>
-      If you are using test mode, make sure to call the test-mode API endpoint.
-      See the [Test Mode](/test-mode) page for more details.
-    </Warning>
+export const GET = Checkout({
+  apiKey: process.env.CREEM_API_KEY!,
+  testMode: process.env.NODE_ENV !== "production",
+  defaultSuccessUrl: "/success",
+});
+```
 
-    ```bash
-    curl -X POST https://api.creem.io/v1/checkouts \
-      -H "x-api-key: creem_123456789" \
-      -d '{"product_id": "prod_6tW66i0oZM7w1qXReHJrwg"}'
-    ```
+```tsx Next.js
+// app/page.tsx
+"use client"; // Optional: CreemCheckout also works in Server Components
 
-  </Tab>
-</Tabs>
+import { CreemCheckout } from "@creem_io/nextjs";
+
+export function SubscribeButton() {
+  return (
+    <CreemCheckout productId="prod_6tW66i0oZM7w1qXReHJrwg">
+      <button className="btn-primary">Subscribe Now</button>
+    </CreemCheckout>
+  );
+}
+```
+
+```javascript Node.js
+import axios from "axios";
+
+const response = await axios.post(
+  "https://api.creem.io/v1/checkouts",
+  { product_id: "prod_6tW66i0oZM7w1qXReHJrwg" },
+  { headers: { "x-api-key": "creem_123456789" } }
+);
+
+const checkoutUrl = response.data.checkout_url;
+```
+
+```bash API
+curl -X POST https://api.creem.io/v1/checkouts \
+  -H "x-api-key: creem_123456789" \
+  -d '{"product_id": "prod_6tW66i0oZM7w1qXReHJrwg"}'
+```
+
+</CodeGroup>
+
+<Warning>
+  If you are using test mode, make sure to call the test-mode API endpoint.
+  See the [Test Mode](/test-mode) page for more details.
+</Warning>
 
 <Tip>
   Read more about all attributes you can pass to a checkout sesssion
@@ -118,59 +124,59 @@ Once your product is created, you can copy the product ID by clicking on the pro
 
 ## 3. Redirect user to checkout url
 
-<Tabs>
-  <Tab title="Next.js">
-    `<CreemCheckout />` renders an anchor element that automatically navigates to your
-    checkout route—no manual redirect required. Continue to the webhook or return URL
-    sections to finish the flow.
-  </Tab>
-  <Tab title="Node.js / API">
-    Once you have created a checkout session, you will receive a `checkout_url` in the
-    response. Redirect the user to this URL and that is it! You have successfully
-    created a checkout session and received your first payment.
+<CodeGroup>
 
-    <AccordionGroup>
+```mdx Next.js
+`<CreemCheckout />` renders an anchor element that automatically navigates to your
+checkout route—no manual redirect required. Continue to the webhook or return URL
+sections to finish the flow.
+```
 
-    <Accordion icon="lightbulb" title="Best practice: Redirect in the same window">
-      For the best user experience, redirect to the checkout URL in the same window instead of opening a new tab. Some browsers like Safari may block popups opened with `target="_blank"` or `window.open()`.
+</CodeGroup>
 
-    ```javascript
-    // Redirect in the same window
-    const response = await axios.post(
-      `https://api.creem.io/v1/checkouts`,
-      { product_id: "prod_6tW66i0oZM7w1qXReHJrwg" },
-      { headers: { "x-api-key": `creem_123456789` } }
-    );
-    window.location.href = response.data.checkout_url;
-    ```
+Once you have created a checkout session, you will receive a `checkout_url` in the
+response. Redirect the user to this URL and that is it! You have successfully
+created a checkout session and received your first payment.
 
-    Avoid opening in new windows, as this may be blocked:
+<AccordionGroup>
 
-    ```javascript
-    // This may be blocked by browsers
-    window.open(response.data.checkout_url, "_blank");
-    ```
+<Accordion icon="lightbulb" title="Best practice: Redirect in the same window">
+  For the best user experience, redirect to the checkout URL in the same window instead of opening a new tab. Some browsers like Safari may block popups opened with `target="_blank"` or `window.open()`.
 
-    </Accordion>
-    <Accordion icon="table-tree" title="Track payments with a request ID">
-      When creating a checkout-session, you can optionally add a `request_id` parameter to track the payment.
-      This parameter will be sent back to you in the response and in the webhook events.
-      Use this parameter to track the payment or user in your system.
-    </Accordion>
-    <Accordion icon="location-crosshairs" title="Set a success URL on the checkout session">
-      After successfully completing the payment, the user will be automatically redirected to the URL you have set on the product creation.
-      You can bypass this setting by setting a success URL on the checkout session request by adding the `success_url` parameter.
-      The user will always be redirected with the following query parameters:
-      - `session_id`: The ID of the checkout session
-      - `product_id`: The ID of the product
-      - `status`: The status of the payment
-      - `request_id`: The request ID of the payment that you optionally have sent
-    </Accordion>
+```javascript
+// Redirect in the same window
+const response = await axios.post(
+  `https://api.creem.io/v1/checkouts`,
+  { product_id: "prod_6tW66i0oZM7w1qXReHJrwg" },
+  { headers: { "x-api-key": `creem_123456789` } }
+);
+window.location.href = response.data.checkout_url;
+```
 
-    </AccordionGroup>
+Avoid opening in new windows, as this may be blocked:
 
-  </Tab>
-</Tabs>
+```javascript
+// This may be blocked by browsers
+window.open(response.data.checkout_url, "_blank");
+```
+
+</Accordion>
+<Accordion icon="table-tree" title="Track payments with a request ID">
+  When creating a checkout-session, you can optionally add a `request_id` parameter to track the payment.
+  This parameter will be sent back to you in the response and in the webhook events.
+  Use this parameter to track the payment or user in your system.
+</Accordion>
+<Accordion icon="location-crosshairs" title="Set a success URL on the checkout session">
+  After successfully completing the payment, the user will be automatically redirected to the URL you have set on the product creation.
+  You can bypass this setting by setting a success URL on the checkout session request by adding the `success_url` parameter.
+  The user will always be redirected with the following query parameters:
+  - `session_id`: The ID of the checkout session
+  - `product_id`: The ID of the product
+  - `status`: The status of the payment
+  - `request_id`: The request ID of the payment that you optionally have sent
+</Accordion>
+
+</AccordionGroup>
 
 ## 4. Receive payment data on your Return URL
 

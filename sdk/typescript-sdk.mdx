@@ -13,15 +13,25 @@ description: Type-safe SDK for the Creem API – manage SaaS subscriptions, prod
 
 Install with your preferred package manager:
 
-```bash
+<CodeGroup>
+
+```bash npm
 npm install creem
-# or
+```
+
+```bash yarn
 yarn add creem zod
-# or
+```
+
+```bash pnpm
 pnpm add creem
-# or
+```
+
+```bash bun
 bun add creem
 ```
+
+</CodeGroup>
 
 > **Note:** If using Yarn, install `zod` as a peer dependency.
 
@@ -77,55 +87,54 @@ const creem = new Creem({ serverURL: "https://test-api.creem.io" });
 
 ## Example: Deleting a Discount
 
-<Tabs>
-  <Tab title="Instance Method">
-    ```ts
-    import { Creem } from "creem";
-    
-    const creem = new Creem();
-    
-    async function run() {
-      const result = await creem.deleteDiscount({
-        id: "<discount-id>",
-        xApiKey: "<api-key>",
-      });
+<CodeGroup>
 
-      // Handle the result
-      console.log(result);
-    }
+```ts Instance Method
+import { Creem } from "creem";
+
+const creem = new Creem();
+
+async function run() {
+  const result = await creem.deleteDiscount({
+    id: "<discount-id>",
+    xApiKey: "<api-key>",
+  });
+
+  // Handle the result
+  console.log(result);
+}
 
 run();
-    ```
-  </Tab>
-  <Tab title="Standalone Function">
-    ```ts
-    import { CreemCore } from "creem/core.js";
-    import { deleteDiscount } from "creem/funcs/deleteDiscount.js";
+```
 
-    // Use `CreemCore` for best tree-shaking performance.
-    // You can create one instance of it to use across an application.
-    const creem = new CreemCore();
+```ts Standalone Function
+import { CreemCore } from "creem/core.js";
+import { deleteDiscount } from "creem/funcs/deleteDiscount.js";
 
-    async function run() {
-      const res = await deleteDiscount(creem, {
-        id: "<discount-id>",
-        xApiKey: "<api-key>",
-      });
+// Use `CreemCore` for best tree-shaking performance.
+// You can create one instance of it to use across an application.
+const creem = new CreemCore();
 
-      if (!res.ok) {
-        throw res.error;
-      }
+async function run() {
+  const res = await deleteDiscount(creem, {
+    id: "<discount-id>",
+    xApiKey: "<api-key>",
+  });
 
-      const { value: result } = res;
+  if (!res.ok) {
+    throw res.error;
+  }
 
-      // Handle the result
-      console.log(result);
-    }
+  const { value: result } = res;
 
-    run();
-    ```
-  </Tab>
-</Tabs>
+  // Handle the result
+  console.log(result);
+}
+
+run();
+```
+
+</CodeGroup>
 
 ---
 

@@ -40,74 +40,86 @@ You will also need the API key to authenticate the request.
   you call the REST API directly when needed.
 </Info>
 
-<Tabs>
-  <Tab title="Next.js">
-    ```bash
-    npm install @creem_io/nextjs
-    # or
-    yarn add @creem_io/nextjs
-    # or
-    pnpm install @creem_io/nextjs
-    ```
+Install the package:
 
-    ```ts
-    // app/checkout/route.ts
-    import { Checkout } from "@creem_io/nextjs";
+<CodeGroup>
 
-    export const GET = Checkout({
-      apiKey: process.env.CREEM_API_KEY!,
-      testMode: process.env.NODE_ENV !== "production",
-      defaultSuccessUrl: "/success",
-    });
-    ```
+```bash npm
+npm install @creem_io/nextjs
+```
 
-    ```tsx
-    // app/page.tsx
-    "use client"; // Optional: CreemCheckout also works in Server Components
+```bash yarn
+yarn add @creem_io/nextjs
+```
 
-    import { CreemCheckout } from "@creem_io/nextjs";
+```bash pnpm
+pnpm install @creem_io/nextjs
+```
 
-    export function SubscribeButton() {
-      return (
-        <CreemCheckout
-          productId="prod_6tW66i0oZM7w1qXReHJrwg"
-          referenceId="user_123"
-        >
-          <button className="btn-primary">Subscribe Now</button>
-        </CreemCheckout>
-      );
-    }
-    ```
+```bash bun
+bun install @creem_io/nextjs
+```
 
-  </Tab>
-  <Tab title="Node.js">
-    ```javascript
-    import axios from "axios";
+</CodeGroup>
 
-    const redirectUrl = await axios.post(
-      "https://api.creem.io/v1/checkouts",
-      {
-        product_id: "prod_6tW66i0oZM7w1qXReHJrwg",
-        request_id: "your-request-id",
-      },
-      {
-        headers: { "x-api-key": "creem_123456789" },
-      }
-    );
-    ```
+Then create a checkout session:
 
-  </Tab>
-  <Tab title="CLI">
-    ```bash
-    curl -X POST https://api.creem.io/v1/checkouts \
-      -H "x-api-key: creem_123456789" \
-      -d '{
-        "product_id": "prod_6tW66i0oZM7w1qXReHJrwg",
-        "request_id": "your-request-id"
-      }'
-    ```
-  </Tab>
-</Tabs>
+<CodeGroup>
+
+```ts Next.js
+// app/checkout/route.ts
+import { Checkout } from "@creem_io/nextjs";
+
+export const GET = Checkout({
+  apiKey: process.env.CREEM_API_KEY!,
+  testMode: process.env.NODE_ENV !== "production",
+  defaultSuccessUrl: "/success",
+});
+```
+
+```tsx Next.js
+// app/page.tsx
+"use client"; // Optional: CreemCheckout also works in Server Components
+
+import { CreemCheckout } from "@creem_io/nextjs";
+
+export function SubscribeButton() {
+  return (
+    <CreemCheckout
+      productId="prod_6tW66i0oZM7w1qXReHJrwg"
+      referenceId="user_123"
+    >
+      <button className="btn-primary">Subscribe Now</button>
+    </CreemCheckout>
+  );
+}
+```
+
+```javascript Node.js
+import axios from "axios";
+
+const redirectUrl = await axios.post(
+  "https://api.creem.io/v1/checkouts",
+  {
+    product_id: "prod_6tW66i0oZM7w1qXReHJrwg",
+    request_id: "your-request-id",
+  },
+  {
+    headers: { "x-api-key": "creem_123456789" },
+  }
+);
+```
+
+```bash CLI
+curl -X POST https://api.creem.io/v1/checkouts \
+  -H "x-api-key: creem_123456789" \
+  -d '{
+    "product_id": "prod_6tW66i0oZM7w1qXReHJrwg",
+    "request_id": "your-request-id"
+  }'
+```
+
+</CodeGroup>
 
 The above request will return a checkout session object with a `checkout_url` that you can use to redirect the user to the payment page.
 
@@ -119,63 +131,59 @@ The `request_id` is only returned in the `checkout.completed` webhook (which is 
 
 To make things easier, we also allow you to pass `metadata` in a checkoutSession with or without the `request_id`. This metadata will be saved in the Subscription object and returned with every subsequent webhook.
 
-<Tabs>
-  <Tab title="Next.js">
-    ```tsx
-    import { CreemCheckout } from "@creem_io/nextjs";
+<CodeGroup>
 
-    <CreemCheckout
-      productId="prod_your-product-id"
-      referenceId="user_123"
-      metadata={{
-        userId: "my_internal_customer_id",
-        any_key: "any_value",
-      }}
-    >
-      <button>Buy Now</button>
-    </CreemCheckout>;
-    ```
+```tsx Next.js
+import { CreemCheckout } from "@creem_io/nextjs";
 
-  </Tab>
-  <Tab title="Node.js">
-    ```javascript
-    import axios from "axios";
+<CreemCheckout
+  productId="prod_your-product-id"
+  referenceId="user_123"
+  metadata={{
+    userId: "my_internal_customer_id",
+    any_key: "any_value",
+  }}
+>
+  <button>Buy Now</button>
+</CreemCheckout>;
+```
 
-    const redirectUrl = await axios.post(
-      "https://api.creem.io/v1/checkouts",
-      {
-        request_id: "your-request-id",
-        product_id: "prod_your-product-id",
-        metadata: {
-          userId: "my_internal_customer_id",
-          any_key: "any_value",
-        },
-      },
-      {
-        headers: { "x-api-key": "creem_123456789" },
-      }
-    );
-    ```
+```javascript Node.js
+import axios from "axios";
 
-  </Tab>
-  <Tab title="CLI">
-    ```bash
-    curl -X 'POST' \
-      'https://test-api.creem.io/v1/checkouts' \
-      -H 'accept: application/json' \
-      -H 'x-api-key: creem_123456789' \
-      -H 'Content-Type: application/json' \
-      -d '{
-        "request_id": "your-request-id",
-        "product_id": "prod_your-product-id",
-        "metadata": {
-          "userId": "my_internal_customer_id",
-          "any_key": "any_value"
-        }
-      }'
-    ```
-  </Tab>
-</Tabs>
+const redirectUrl = await axios.post(
+  "https://api.creem.io/v1/checkouts",
+  {
+    request_id: "your-request-id",
+    product_id: "prod_your-product-id",
+    metadata: {
+      userId: "my_internal_customer_id",
+      any_key: "any_value",
+    },
+  },
+  {
+    headers: { "x-api-key": "creem_123456789" },
+  }
+);
+```
+
+```bash CLI
+curl -X 'POST' \
+  'https://test-api.creem.io/v1/checkouts' \
+  -H 'accept: application/json' \
+  -H 'x-api-key: creem_123456789' \
+  -H 'Content-Type: application/json' \
+  -d '{
+    "request_id": "your-request-id",
+    "product_id": "prod_your-product-id",
+    "metadata": {
+      "userId": "my_internal_customer_id",
+      "any_key": "any_value"
+    }
+  }'
+```
+
+</CodeGroup>
 
 ## Success URL
 
@@ -183,57 +191,53 @@ You can pass a custom `success_url` for each checkout_session, which will overri
 
 This allows you to dynamically redirect users to custom pages after each payment (useful for directing users to their specific account resources after payment).
 
-<Tabs>
-  <Tab title="Next.js">
-    ```ts
-    // app/checkout/route.ts
-    export const GET = Checkout({
-      apiKey: process.env.CREEM_API_KEY!,
-      defaultSuccessUrl: "/dashboard",
-    });
-    ```
+<CodeGroup>
 
-    ```tsx
-    <CreemCheckout
-      productId="prod_your-product-id"
-      successUrl="/account/thanks" // overrides the defaultSuccessUrl
-    >
-      <button>Continue</button>
-    </CreemCheckout>
-    ```
+```ts Next.js
+// app/checkout/route.ts
+export const GET = Checkout({
+  apiKey: process.env.CREEM_API_KEY!,
+  defaultSuccessUrl: "/dashboard",
+});
+```
 
-  </Tab>
-  <Tab title="Node.js">
-    ```javascript
-    import axios from "axios";
+```tsx Next.js
+<CreemCheckout
+  productId="prod_your-product-id"
+  successUrl="/account/thanks" // overrides the defaultSuccessUrl
+>
+  <button>Continue</button>
+</CreemCheckout>
+```
 
-    const redirectUrl = await axios.post(
-      "https://api.creem.io/v1/checkouts",
-      {
-        success_url: "https://example.com",
-        product_id: "prod_your-product-id",
-      },
-      {
-        headers: { "x-api-key": "creem_123456789" },
-      }
-    );
-    ```
+```javascript Node.js
+import axios from "axios";
 
-  </Tab>
-  <Tab title="CLI">
-    ```bash
-    curl -X 'POST' \
-      'https://test-api.creem.io/v1/checkouts' \
-      -H 'accept: application/json' \
-      -H 'x-api-key: creem_123456789' \
-      -H 'Content-Type: application/json' \
-      -d '{
-        "product_id": "prod_your-product-id",
-        "success_url": "https://example.com"
-      }'
-    ```
-  </Tab>
-</Tabs>
+const redirectUrl = await axios.post(
+  "https://api.creem.io/v1/checkouts",
+  {
+    success_url: "https://example.com",
+    product_id: "prod_your-product-id",
+  },
+  {
+    headers: { "x-api-key": "creem_123456789" },
+  }
+);
+```
+
+```bash CLI
+curl -X 'POST' \
+  'https://test-api.creem.io/v1/checkouts' \
+  -H 'accept: application/json' \
+  -H 'x-api-key: creem_123456789' \
+  -H 'Content-Type: application/json' \
+  -d '{
+    "product_id": "prod_your-product-id",
+    "success_url": "https://example.com"
+  }'
+```
+
+</CodeGroup>
 
 ## Customer Email
 
@@ -242,140 +246,131 @@ This email will be pre-filled for the user on the checkout session page and cann
 
 This is useful if you want to ensure that the user completes the payment using the email they registered on your platform.
 
-<Tabs>
-  <Tab title="Next.js">
-    ```tsx
-    <CreemCheckout
-      productId="prod_your-product-id"
-      customer={{ email: user.email }}
-    >
-      <button>Check out</button>
-    </CreemCheckout>
-    ```
-  </Tab>
-  <Tab title="Node.js">
-    ```javascript
-    import axios from "axios";
+<CodeGroup>
 
-    const redirectUrl = await axios.post(
-      "https://api.creem.io/v1/checkouts",
-      {
-        customer: { email: "yourUserEmail@gmail.com" },
-        product_id: "prod_your-product-id",
-      },
-      {
-        headers: { "x-api-key": "creem_123456789" },
-      }
-    );
-    ```
+```tsx Next.js
+<CreemCheckout
+  productId="prod_your-product-id"
+  customer={{ email: user.email }}
+>
+  <button>Check out</button>
+</CreemCheckout>
+```
 
-  </Tab>
-  <Tab title="CLI">
-    ```bash
-    curl -X 'POST' \
-      'https://test-api.creem.io/v1/checkouts' \
-      -H 'accept: application/json' \
-      -H 'x-api-key: creem_123456789' \
-      -H 'Content-Type: application/json' \
-      -d '{
-        "product_id": "prod_your-product-id",
-        "customer": {
-          "email": "yourUserEmail@gmail.com"
-        }
-      }'
-    ```
-  </Tab>
-</Tabs>
+```javascript Node.js
+import axios from "axios";
+
+const redirectUrl = await axios.post(
+  "https://api.creem.io/v1/checkouts",
+  {
+    customer: { email: "yourUserEmail@gmail.com" },
+    product_id: "prod_your-product-id",
+  },
+  {
+    headers: { "x-api-key": "creem_123456789" },
+  }
+);
+```
+
+```bash CLI
+curl -X 'POST' \
+  'https://test-api.creem.io/v1/checkouts' \
+  -H 'accept: application/json' \
+  -H 'x-api-key: creem_123456789' \
+  -H 'Content-Type: application/json' \
+  -d '{
+    "product_id": "prod_your-product-id",
+    "customer": {
+      "email": "yourUserEmail@gmail.com"
+    }
+  }'
+```
+
+</CodeGroup>
 
 ## Discount Codes
 
 You can pass a `discount_code` directly in the checkout session.
 This discount code will be pre-filled for the user on the checkout session page.
 
-<Tabs>
-  <Tab title="Next.js">
-    ```tsx
-    <CreemCheckout
-      productId="prod_your-product-id"
-      discountCode="BF200XX"
-    >
-      <button>Redeem offer</button>
-    </CreemCheckout>
-    ```
-  </Tab>
-  <Tab title="Node.js">
-    ```javascript
-    import axios from "axios";
+<CodeGroup>
 
-    const redirectUrl = await axios.post(
-      "https://api.creem.io/v1/checkouts",
-      {
-        product_id: "prod_your-product-id",
-        discount_code: "BF200XX",
-      },
-      {
-        headers: { "x-api-key": "creem_123456789" },
-      }
-    );
-    ```
+```tsx Next.js
+<CreemCheckout
+  productId="prod_your-product-id"
+  discountCode="BF200XX"
+>
+  <button>Redeem offer</button>
+</CreemCheckout>
+```
 
-  </Tab>
-  <Tab title="CLI">
-    ```bash
-    curl -X 'POST' \
-      'https://test-api.creem.io/v1/checkouts' \
-      -H 'accept: application/json' \
-      -H 'x-api-key: creem_123456789' \
-      -H 'Content-Type: application/json' \
-      -d '{
-        "product_id": "prod_your-product-id",
-        "discount_code": "BF200XX"
-      }'
-    ```
-  </Tab>
-</Tabs>
+```javascript Node.js
+import axios from "axios";
+
+const redirectUrl = await axios.post(
+  "https://api.creem.io/v1/checkouts",
+  {
+    product_id: "prod_your-product-id",
+    discount_code: "BF200XX",
+  },
+  {
+    headers: { "x-api-key": "creem_123456789" },
+  }
+);
+```
+
+```bash CLI
+curl -X 'POST' \
+  'https://test-api.creem.io/v1/checkouts' \
+  -H 'accept: application/json' \
+  -H 'x-api-key: creem_123456789' \
+  -H 'Content-Type: application/json' \
+  -d '{
+    "product_id": "prod_your-product-id",
+    "discount_code": "BF200XX"
+  }'
+```
+
+</CodeGroup>
 
 ## Seat Based Billing
 
 You can pass a `units` amount directly in the checkout session.
 The product price will be used as the base price for one seat/unit of the product and the checkout session will reflect the (base price x units) to be charged.
 
-<Tabs>
-  <Tab title="Next.js">
-    ```tsx
-    <CreemCheckout productId="prod_your-product-id" units={seatCount}>
-      <button>Add {seatCount} seats</button>
-    </CreemCheckout>
-    ```
-  </Tab>
-  <Tab title="Node.js">
-    ```javascript
-    import axios from "axios";
+<CodeGroup>
 
-    const redirectUrl = await axios.post(
-      "https://api.creem.io/v1/checkouts",
-      {
-        product_id: "prod_your-product-id",
-        units: 2,
-      },
-      {
-        headers: { "x-api-key": "creem_123456789" },
-      }
-    );
-    ```
+```tsx Next.js
+<CreemCheckout productId="prod_your-product-id" units={seatCount}>
+  <button>Add {seatCount} seats</button>
+</CreemCheckout>
+```
 
-  </Tab>
-  <Tab title="CLI">
-    ```bash
-    curl -X 'POST' \
-      'https://test-api.creem.io/v1/checkouts' \
-      -H 'accept: application/json' \
-      -H 'x-api-key: creem_123456789' \
-      -H 'Content-Type: application/json' \
-      -d '{
-        "product_id": "prod_your-product-id",
-        "units": 2
-      }'
-    ```
-  </Tab>
-</Tabs>
+```javascript Node.js
+import axios from "axios";
+
+const redirectUrl = await axios.post(
+  "https://api.creem.io/v1/checkouts",
+  {
+    product_id: "prod_your-product-id",
+    units: 2,
+  },
+  {
+    headers: { "x-api-key": "creem_123456789" },
+  }
+);
+```
+
+```bash CLI
+curl -X 'POST' \
+  'https://test-api.creem.io/v1/checkouts' \
+  -H 'accept: application/json' \
+  -H 'x-api-key: creem_123456789' \
+  -H 'Content-Type: application/json' \
+  -d '{
+    "product_id": "prod_your-product-id",
+    "units": 2
+  }'
+```
+
+</CodeGroup>

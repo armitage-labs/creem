@@ -70,60 +70,57 @@ The API responds a URL, that the merchant can then use to redirect their custome
   </Accordion>
 </AccordionGroup>
 
-<Tabs>
-  <Tab title="Next.js">
-    ```ts
-    // app/portal/route.ts
-    import { Portal } from "@creem_io/nextjs";
+<CodeGroup>
 
-    export const GET = Portal({
-      apiKey: process.env.CREEM_API_KEY!,
-      testMode: process.env.NODE_ENV !== "production",
-    });
-    ```
+```ts Next.js
+// app/portal/route.ts
+import { Portal } from "@creem_io/nextjs";
 
-    ```tsx
-    import { CreemPortal } from "@creem_io/nextjs";
+export const GET = Portal({
+  apiKey: process.env.CREEM_API_KEY!,
+  testMode: process.env.NODE_ENV !== "production",
+});
+```
 
-    export function ManageSubscriptionButton({
-      customerId,
-    }: {
-      customerId: string;
-    }) {
-      return (
-        <CreemPortal customerId={customerId}>
-          Manage Subscription
-        </CreemPortal>
-      );
-    }
-    ```
+```tsx Next.js
+import { CreemPortal } from "@creem_io/nextjs";
 
-  </Tab>
-  <Tab title="REST API / CLI">
-    ```javascript
-    import axios from "axios";
+export function ManageSubscriptionButton({
+  customerId,
+}: {
+  customerId: string;
+}) {
+  return (
+    <CreemPortal customerId={customerId}>
+      Manage Subscription
+    </CreemPortal>
+  );
+}
+```
 
-    const response = await axios.post(
-      "https://api.creem.io/v1/customers/billing",
-      {
-        customer_id: "cust_xxxxxxx",
-      },
-      {
-        headers: { "x-api-key": "creem_123456789" },
-      }
-    );
-    ```
+```javascript REST API / CLI
+import axios from "axios";
 
-    ```bash
-    curl -X 'POST' \
-      'https://api.creem.io/v1/customers/billing' \
-      -H 'accept: application/json' \
-      -H 'x-api-key: creem_123456789' \
-      -H 'Content-Type: application/json' \
-      -d '{
-        "customer_id": "cust_xxxxxxx"
-      }'
-    ```
+const response = await axios.post(
+  "https://api.creem.io/v1/customers/billing",
+  {
+    customer_id: "cust_xxxxxxx",
+  },
+  {
+    headers: { "x-api-key": "creem_123456789" },
+  }
+);
+```
 
-  </Tab>
-</Tabs>
+```bash REST API / CLI
+curl -X 'POST' \
+  'https://api.creem.io/v1/customers/billing' \
+  -H 'accept: application/json' \
+  -H 'x-api-key: creem_123456789' \
+  -H 'Content-Type: application/json' \
+  -d '{
+    "customer_id": "cust_xxxxxxx"
+  }'
+```
+
+</CodeGroup>

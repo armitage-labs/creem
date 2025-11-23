@@ -36,49 +36,46 @@ You can start receiving real-time events in your app using the steps:
 
 In your local application, create a new route that can accept POST requests.
 
-<Tabs>
-  <Tab title="Next.js">
-    ```ts
-    // app/api/webhook/creem/route.ts
-    import { Webhook } from "@creem_io/nextjs";
+<CodeGroup>
 
-    export const POST = Webhook({
-      webhookSecret: process.env.CREEM_WEBHOOK_SECRET!,
-      onCheckoutCompleted: async ({ customer, product }) => {
-        console.log(`${customer.email} purchased ${product.name}`);
-      },
-      onGrantAccess: async ({ customer, metadata }) => {
-        const userId = metadata?.referenceId as string;
-        await grantAccess(userId, customer.email);
-      },
-      onRevokeAccess: async ({ customer, metadata }) => {
-        const userId = metadata?.referenceId as string;
-        await revokeAccess(userId, customer.email);
-      },
-    });
-    ```
+```ts Next.js
+// app/api/webhook/creem/route.ts
+import { Webhook } from "@creem_io/nextjs";
 
-  </Tab>
-  <Tab title="Node.js">
-    ```ts
-    import type { NextApiRequest, NextApiResponse } from "next";
+export const POST = Webhook({
+  webhookSecret: process.env.CREEM_WEBHOOK_SECRET!,
+  onCheckoutCompleted: async ({ customer, product }) => {
+    console.log(`${customer.email} purchased ${product.name}`);
+  },
+  onGrantAccess: async ({ customer, metadata }) => {
+    const userId = metadata?.referenceId as string;
+    await grantAccess(userId, customer.email);
+  },
+  onRevokeAccess: async ({ customer, metadata }) => {
+    const userId = metadata?.referenceId as string;
+    await revokeAccess(userId, customer.email);
+  },
+});
+```
 
-    export default async function handler(
-      req: NextApiRequest,
-      res: NextApiResponse
-    ) {
-      if (req.method !== "POST") {
-        return res.status(405).end();
-      }
+```ts Node.js
+import type { NextApiRequest, NextApiResponse } from "next";
 
-      const payload = req.body;
-      console.log(payload);
-      res.status(200).end();
-    }
-    ```
+export default async function handler(
+  req: NextApiRequest,
+  res: NextApiResponse
+) {
+  if (req.method !== "POST") {
+    return res.status(405).end();
+  }
 
-  </Tab>
-</Tabs>
+  const payload = req.body;
+  console.log(payload);
+  res.status(200).end();
+}
+```
+
+</CodeGroup>
 
 On receiving an event, you should respond with an HTTP 200 OK to signal to Creem that the event was successfully delivered.
 
