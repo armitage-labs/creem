@@ -11,17 +11,13 @@
             "required": true,
             "in": "query",
             "description": "The unique identifier of the product",
-            "schema": {
-              "type": "string"
-            }
+            "schema": { "type": "string" }
           },
           {
             "name": "x-api-key",
             "in": "header",
             "required": true,
-            "schema": {
-              "type": "string"
-            }
+            "schema": { "type": "string" }
           }
         ],
         "responses": {
@@ -29,9 +25,7 @@
             "description": "Successfully retrieved the product",
             "content": {
               "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/ProductEntity"
-                }
+                "schema": { "$ref": "#/components/schemas/ProductEntity" }
               }
             }
           }
@@ -45,9 +39,7 @@
             "name": "x-api-key",
             "in": "header",
             "required": true,
-            "schema": {
-              "type": "string"
-            }
+            "schema": { "type": "string" }
           }
         ],
         "requestBody": {
@@ -65,9 +57,7 @@
             "description": "Successfully created a product",
             "content": {
               "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/ProductEntity"
-                }
+                "schema": { "$ref": "#/components/schemas/ProductEntity" }
               }
             }
           }
@@ -84,26 +74,20 @@
             "required": false,
             "in": "query",
             "description": "The page number",
-            "schema": {
-              "type": "number"
-            }
+            "schema": { "type": "number" }
           },
           {
             "name": "page_size",
             "required": false,
             "in": "query",
             "description": "The the page size",
-            "schema": {
-              "type": "number"
-            }
+            "schema": { "type": "number" }
           },
           {
             "name": "x-api-key",
             "in": "header",
             "required": true,
-            "schema": {
-              "type": "string"
-            }
+            "schema": { "type": "string" }
           }
         ],
         "responses": {
@@ -111,9 +95,7 @@
             "description": "Successfully retrieved products",
             "content": {
               "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/ProductListEntity"
-                }
+                "schema": { "$ref": "#/components/schemas/ProductListEntity" }
               }
             }
           }
@@ -130,26 +112,20 @@
             "required": false,
             "in": "query",
             "description": "The page number",
-            "schema": {
-              "type": "number"
-            }
+            "schema": { "type": "number" }
           },
           {
             "name": "page_size",
             "required": false,
             "in": "query",
             "description": "The page size",
-            "schema": {
-              "type": "number"
-            }
+            "schema": { "type": "number" }
           },
           {
             "name": "x-api-key",
             "in": "header",
             "required": true,
-            "schema": {
-              "type": "string"
-            }
+            "schema": { "type": "string" }
           }
         ],
         "responses": {
@@ -157,9 +133,7 @@
             "description": "Successfully retrieved customers",
             "content": {
               "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/CustomerListEntity"
-                }
+                "schema": { "$ref": "#/components/schemas/CustomerListEntity" }
               }
             }
           }
@@ -176,26 +150,20 @@
             "required": false,
             "in": "query",
             "description": "The unique identifier of the customer",
-            "schema": {
-              "type": "string"
-            }
+            "schema": { "type": "string" }
           },
           {
             "name": "email",
             "required": false,
             "in": "query",
             "description": "The unique email of the customer",
-            "schema": {
-              "type": "string"
-            }
+            "schema": { "type": "string" }
           },
           {
             "name": "x-api-key",
             "in": "header",
             "required": true,
-            "schema": {
-              "type": "string"
-            }
+            "schema": { "type": "string" }
           }
         ],
         "responses": {
@@ -203,9 +171,7 @@
             "description": "Successfully retrieved the customer",
             "content": {
               "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/CustomerEntity"
-                }
+                "schema": { "$ref": "#/components/schemas/CustomerEntity" }
               }
             }
           }
@@ -221,9 +187,7 @@
             "name": "x-api-key",
             "in": "header",
             "required": true,
-            "schema": {
-              "type": "string"
-            }
+            "schema": { "type": "string" }
           }
         ],
         "requestBody": {
@@ -241,9 +205,7 @@
             "description": "Successfully generate customer links",
             "content": {
               "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/CustomerLinksEntity"
-                }
+                "schema": { "$ref": "#/components/schemas/CustomerLinksEntity" }
               }
             }
           }
@@ -260,17 +222,13 @@
             "required": true,
             "in": "query",
             "description": "The unique identifier of the subscription",
-            "schema": {
-              "type": "string"
-            }
+            "schema": { "type": "string" }
           },
           {
             "name": "x-api-key",
             "in": "header",
             "required": true,
-            "schema": {
-              "type": "string"
-            }
+            "schema": { "type": "string" }
           }
         ],
         "responses": {
@@ -278,9 +236,7 @@
             "description": "Successfully retrieved the subscription",
             "content": {
               "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/SubscriptionEntity"
-                }
+                "schema": { "$ref": "#/components/schemas/SubscriptionEntity" }
               }
             }
           }
@@ -296,17 +252,13 @@
             "name": "id",
             "required": true,
             "in": "path",
-            "schema": {
-              "type": "string"
-            }
+            "schema": { "type": "string" }
           },
           {
             "name": "x-api-key",
             "in": "header",
             "required": true,
-            "schema": {
-              "type": "string"
-            }
+            "schema": { "type": "string" }
           }
         ],
         "requestBody": {
@@ -324,9 +276,7 @@
             "description": "Successfully canceled a subscription",
             "content": {
               "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/SubscriptionEntity"
-                }
+                "schema": { "$ref": "#/components/schemas/SubscriptionEntity" }
               }
             }
           }
@@ -342,17 +292,13 @@
             "name": "id",
             "required": true,
             "in": "path",
-            "schema": {
-              "type": "string"
-            }
+            "schema": { "type": "string" }
           },
           {
             "name": "x-api-key",
             "in": "header",
             "required": true,
-            "schema": {
-              "type": "string"
-            }
+            "schema": { "type": "string" }
           }
         ],
         "requestBody": {
@@ -370,9 +316,7 @@
             "description": "Successfully update a subscription",
             "content": {
               "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/SubscriptionEntity"
-                }
+                "schema": { "$ref": "#/components/schemas/SubscriptionEntity" }
               }
             }
           }
@@ -388,17 +332,13 @@
             "name": "id",
             "required": true,
             "in": "path",
-            "schema": {
-              "type": "string"
-            }
+            "schema": { "type": "string" }
           },
           {
             "name": "x-api-key",
             "in": "header",
             "required": true,
-            "schema": {
-              "type": "string"
-            }
+            "schema": { "type": "string" }
           }
         ],
         "requestBody": {
@@ -416,9 +356,67 @@
             "description": "Successfully upgraded the subscription",
             "content": {
               "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/SubscriptionEntity"
-                }
+                "schema": { "$ref": "#/components/schemas/SubscriptionEntity" }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/v1/subscriptions/{id}/pause": {
+      "post": {
+        "operationId": "pauseSubscription",
+        "summary": "Pause a subscription.",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": { "type": "string" }
+          },
+          {
+            "name": "x-api-key",
+            "in": "header",
+            "required": true,
+            "schema": { "type": "string" }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successfully paused a subscription",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/SubscriptionEntity" }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/v1/subscriptions/{id}/resume": {
+      "post": {
+        "operationId": "resumeSubscription",
+        "summary": "Resume a paused subscription.",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": { "type": "string" }
+          },
+          {
+            "name": "x-api-key",
+            "in": "header",
+            "required": true,
+            "schema": { "type": "string" }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successfully resumed a subscription",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/SubscriptionEntity" }
               }
             }
           }
@@ -434,17 +432,14 @@
             "name": "checkout_id",
             "required": true,
             "in": "query",
-            "schema": {
-              "type": "string"
-            }
+            "description": "The ID of the checkout session to retrieve.",
+            "schema": { "example": "chk_1234567890", "type": "string" }
           },
           {
             "name": "x-api-key",
             "in": "header",
             "required": true,
-            "schema": {
-              "type": "string"
-            }
+            "schema": { "type": "string" }
           }
         ],
         "responses": {
@@ -452,9 +447,7 @@
             "description": "Successfully retrieved the subscription",
             "content": {
               "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/CheckoutEntity"
-                }
+                "schema": { "$ref": "#/components/schemas/CheckoutEntity" }
               }
             }
           }
@@ -468,9 +461,7 @@
             "name": "x-api-key",
             "in": "header",
             "required": true,
-            "schema": {
-              "type": "string"
-            }
+            "schema": { "type": "string" }
           }
         ],
         "requestBody": {
@@ -478,9 +469,7 @@
           "description": "Create checkout request payload",
           "content": {
             "application/json": {
-              "schema": {
-                "$ref": "#/components/schemas/CreateCheckoutRequest"
-              }
+              "schema": { "$ref": "#/components/schemas/CreateCheckoutRequest" }
             }
           }
         },
@@ -489,9 +478,7 @@
             "description": "Successfully created a checkout session",
             "content": {
               "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/CheckoutEntity"
-                }
+                "schema": { "$ref": "#/components/schemas/CheckoutEntity" }
               }
             }
           }
@@ -507,9 +494,7 @@
             "name": "x-api-key",
             "in": "header",
             "required": true,
-            "schema": {
-              "type": "string"
-            }
+            "schema": { "type": "string" }
           }
         ],
         "requestBody": {
@@ -527,9 +512,7 @@
             "description": "Successfully activated a license key",
             "content": {
               "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/LicenseEntity"
-                }
+                "schema": { "$ref": "#/components/schemas/LicenseEntity" }
               }
             }
           }
@@ -545,9 +528,7 @@
             "name": "x-api-key",
             "in": "header",
             "required": true,
-            "schema": {
-              "type": "string"
-            }
+            "schema": { "type": "string" }
           }
         ],
         "requestBody": {
@@ -565,9 +546,7 @@
             "description": "Successfully deactivated a license key instance",
             "content": {
               "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/LicenseEntity"
-                }
+                "schema": { "$ref": "#/components/schemas/LicenseEntity" }
               }
             }
           }
@@ -583,9 +562,7 @@
             "name": "x-api-key",
             "in": "header",
             "required": true,
-            "schema": {
-              "type": "string"
-            }
+            "schema": { "type": "string" }
           }
         ],
         "requestBody": {
@@ -603,9 +580,7 @@
             "description": "Successfully validated a license key instance",
             "content": {
               "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/LicenseEntity"
-                }
+                "schema": { "$ref": "#/components/schemas/LicenseEntity" }
               }
             }
           }
@@ -622,26 +597,20 @@
             "required": false,
             "in": "query",
             "description": "The unique identifier of the discount (provide either discount_id OR discount_code)",
-            "schema": {
-              "type": "string"
-            }
+            "schema": { "type": "string" }
           },
           {
             "name": "discount_code",
             "required": false,
             "in": "query",
             "description": "The unique discount code (provide either discount_id OR discount_code)",
-            "schema": {
-              "type": "string"
-            }
+            "schema": { "type": "string" }
           },
           {
             "name": "x-api-key",
             "in": "header",
             "required": true,
-            "schema": {
-              "type": "string"
-            }
+            "schema": { "type": "string" }
           }
         ],
         "responses": {
@@ -649,9 +618,7 @@
             "description": "Successfully retrieved the discount",
             "content": {
               "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/DiscountEntity"
-                }
+                "schema": { "$ref": "#/components/schemas/DiscountEntity" }
               }
             }
           }
@@ -665,9 +632,7 @@
             "name": "x-api-key",
             "in": "header",
             "required": true,
-            "schema": {
-              "type": "string"
-            }
+            "schema": { "type": "string" }
           }
         ],
         "requestBody": {
@@ -685,9 +650,7 @@
             "description": "Successfully created a discount",
             "content": {
               "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/DiscountEntity"
-                }
+                "schema": { "$ref": "#/components/schemas/DiscountEntity" }
               }
             }
           }
@@ -703,17 +666,13 @@
             "name": "id",
             "required": true,
             "in": "path",
-            "schema": {
-              "type": "string"
-            }
+            "schema": { "type": "string" }
           },
           {
             "name": "x-api-key",
             "in": "header",
             "required": true,
-            "schema": {
-              "type": "string"
-            }
+            "schema": { "type": "string" }
           }
         ],
         "responses": {
@@ -721,9 +680,7 @@
             "description": "Successfully deleted a discount",
             "content": {
               "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/DiscountEntity"
-                }
+                "schema": { "$ref": "#/components/schemas/DiscountEntity" }
               }
             }
           }
@@ -740,17 +697,13 @@
             "required": true,
             "in": "query",
             "description": "The unique identifier of the transaction",
-            "schema": {
-              "type": "string"
-            }
+            "schema": { "type": "string" }
           },
           {
             "name": "x-api-key",
             "in": "header",
             "required": true,
-            "schema": {
-              "type": "string"
-            }
+            "schema": { "type": "string" }
           }
         ],
         "responses": {
@@ -758,15 +711,11 @@
             "description": "Successfully retrieved transaction",
             "content": {
               "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/TransactionEntity"
-                }
+                "schema": { "$ref": "#/components/schemas/TransactionEntity" }
               }
             }
           },
-          "404": {
-            "description": "Transaction not found"
-          }
+          "404": { "description": "Transaction not found" }
         }
       }
     },
@@ -780,53 +729,41 @@
             "required": false,
             "in": "query",
             "description": "The customer id",
-            "schema": {
-              "type": "string"
-            }
+            "schema": { "type": "string" }
           },
           {
             "name": "order_id",
             "required": false,
             "in": "query",
             "description": "The order id",
-            "schema": {
-              "type": "string"
-            }
+            "schema": { "type": "string" }
           },
           {
             "name": "product_id",
             "required": false,
             "in": "query",
             "description": "The product id",
-            "schema": {
-              "type": "string"
-            }
+            "schema": { "type": "string" }
           },
           {
             "name": "page_number",
             "required": false,
             "in": "query",
             "description": "The page number",
-            "schema": {
-              "type": "number"
-            }
+            "schema": { "type": "number" }
           },
           {
             "name": "page_size",
             "required": false,
             "in": "query",
             "description": "The the page size",
-            "schema": {
-              "type": "number"
-            }
+            "schema": { "type": "number" }
           },
           {
             "name": "x-api-key",
             "in": "header",
             "required": true,
-            "schema": {
-              "type": "string"
-            }
+            "schema": { "type": "string" }
           }
         ],
         "responses": {
@@ -848,18 +785,13 @@
     "title": "Creem API",
     "description": "Creem is an all-in-one platform for managing subscriptions and recurring revenue, tailored specifically for today's SaaS companies. It enables you to boost revenue, enhance customer retention, and scale your operations seamlessly.'",
     "version": "v1",
-    "contact": {
-
-    }
+    "contact": {}
   },
   "tags": [],
   "servers": [
-    {
-      "url": "https://api.creem.io"
-    },
-    {
-      "url": "https://test-api.creem.io"
-    }
+    { "url": "https://api.creem.io" },
+    { "url": "https://test-api.creem.io" },
+    { "url": "http://localhost:8000" }
   ],
   "components": {
     "schemas": {
@@ -870,21 +802,14 @@
             "type": "string",
             "description": "Unique identifier for the feature."
           },
-          "type": {
-            "type": "string",
-            "description": "The feature type."
-          },
+          "type": { "type": "string", "description": "The feature type." },
           "description": {
             "type": "string",
             "description": "A brief description of the feature",
             "example": "Get access to discord server."
           }
         },
-        "required": [
-          "id",
-          "type",
-          "description"
-        ]
+        "required": ["id", "type", "description"]
       },
       "ProductEntity": {
         "type": "object",
@@ -895,11 +820,7 @@
           },
           "mode": {
             "type": "string",
-            "enum": [
-              "test",
-              "prod",
-              "sandbox"
-            ],
+            "enum": ["test", "prod", "sandbox"],
             "description": "String representing the environment."
           },
           "object": {
@@ -923,9 +844,7 @@
           "features": {
             "description": "Features of the product.",
             "type": "array",
-            "items": {
-              "$ref": "#/components/schemas/FeatureEntity"
-            }
+            "items": { "$ref": "#/components/schemas/FeatureEntity" }
           },
           "price": {
             "type": "number",
@@ -959,11 +878,7 @@
           "tax_category": {
             "type": "string",
             "description": "Categorizes the type of product or service for tax purposes. This helps determine the applicable tax rules based on the nature of the item or service.",
-            "example": [
-              "saas",
-              "digital-goods-service",
-              "ebooks"
-            ]
+            "example": ["saas", "digital-goods-service", "ebooks"]
           },
           "product_url": {
             "type": "string",
@@ -1050,24 +965,15 @@
         "properties": {
           "items": {
             "description": "List of product items",
-            "items": {
-              "$ref": "#/components/schemas/ProductEntity"
-            },
+            "items": { "$ref": "#/components/schemas/ProductEntity" },
             "type": "array"
           },
           "pagination": {
             "description": "Pagination details for the list",
-            "allOf": [
-              {
-                "$ref": "#/components/schemas/PaginationEntity"
-              }
-            ]
+            "allOf": [{ "$ref": "#/components/schemas/PaginationEntity" }]
           }
         },
-        "required": [
-          "items",
-          "pagination"
-        ]
+        "required": ["items", "pagination"]
       },
       "Text": {
         "type": "object",
@@ -1097,10 +1003,7 @@
           "type": {
             "type": "string",
             "description": "The type of the field.",
-            "enum": [
-              "text",
-              "checkbox"
-            ],
+            "enum": ["text", "checkbox"],
             "example": "text"
           },
           "key": {
@@ -1119,34 +1022,19 @@
           },
           "text": {
             "description": "Configuration for type of text field.",
-            "allOf": [
-              {
-                "$ref": "#/components/schemas/Text"
-              }
-            ]
+            "allOf": [{ "$ref": "#/components/schemas/Text" }]
           },
           "checkbox": {
             "description": "Configuration for checkbox field type.",
-            "allOf": [
-              {
-                "$ref": "#/components/schemas/Checkbox"
-              }
-            ]
+            "allOf": [{ "$ref": "#/components/schemas/Checkbox" }]
           }
         },
-        "required": [
-          "type",
-          "key",
-          "label"
-        ]
+        "required": ["type", "key", "label"]
       },
       "CreateProductRequestEntity": {
         "type": "object",
         "properties": {
-          "name": {
-            "type": "string",
-            "description": "Name of the product"
-          },
+          "name": { "type": "string", "description": "Name of the product" },
           "description": {
             "type": "string",
             "description": "Description of the product"
@@ -1185,11 +1073,7 @@
           "tax_category": {
             "type": "string",
             "description": "Categorizes the type of product or service for tax purposes. This helps determine the applicable tax rules based on the nature of the item or service.",
-            "example": [
-              "saas",
-              "digital-goods-service",
-              "ebooks"
-            ]
+            "example": ["saas", "digital-goods-service", "ebooks"]
           },
           "default_success_url": {
             "type": "string",
@@ -1199,9 +1083,7 @@
           "custom_field": {
             "description": "Collect additional information from your customer using custom fields during checkout. Up to 3 fields are supported.",
             "type": "array",
-            "items": {
-              "$ref": "#/components/schemas/CustomFieldRequestEntity"
-            }
+            "items": { "$ref": "#/components/schemas/CustomFieldRequestEntity" }
           },
           "abandoned_cart_recovery_enabled": {
             "type": "boolean",
@@ -1209,12 +1091,7 @@
             "default": false
           }
         },
-        "required": [
-          "name",
-          "price",
-          "currency",
-          "billing_type"
-        ]
+        "required": ["name", "price", "currency", "billing_type"]
       },
       "CustomerEntity": {
         "type": "object",
@@ -1225,11 +1102,7 @@
           },
           "mode": {
             "type": "string",
-            "enum": [
-              "test",
-              "prod",
-              "sandbox"
-            ],
+            "enum": ["test", "prod", "sandbox"],
             "description": "String representing the environment."
           },
           "object": {
@@ -1280,24 +1153,15 @@
         "properties": {
           "items": {
             "description": "List of customer items",
-            "items": {
-              "$ref": "#/components/schemas/CustomerEntity"
-            },
+            "items": { "$ref": "#/components/schemas/CustomerEntity" },
             "type": "array"
           },
           "pagination": {
             "description": "Pagination details for the list",
-            "allOf": [
-              {
-                "$ref": "#/components/schemas/PaginationEntity"
-              }
-            ]
+            "allOf": [{ "$ref": "#/components/schemas/PaginationEntity" }]
           }
         },
-        "required": [
-          "items",
-          "pagination"
-        ]
+        "required": ["items", "pagination"]
       },
       "CreateCustomerPortalLinkRequestEntity": {
         "type": "object",
@@ -1307,9 +1171,7 @@
             "description": "Unique identifier of the customer."
           }
         },
-        "required": [
-          "customer_id"
-        ]
+        "required": ["customer_id"]
       },
       "CustomerLinksEntity": {
         "type": "object",
@@ -1319,9 +1181,7 @@
             "description": "Customer portal link."
           }
         },
-        "required": [
-          "customer_portal_link"
-        ]
+        "required": ["customer_portal_link"]
       },
       "SubscriptionItemEntity": {
         "type": "object",
@@ -1332,11 +1192,7 @@
           },
           "mode": {
             "type": "string",
-            "enum": [
-              "test",
-              "prod",
-              "sandbox"
-            ],
+            "enum": ["test", "prod", "sandbox"],
             "description": "String representing the environment."
           },
           "object": {
@@ -1356,11 +1212,7 @@
             "description": "The number of units for the subscription item."
           }
         },
-        "required": [
-          "id",
-          "mode",
-          "object"
-        ]
+        "required": ["id", "mode", "object"]
       },
       "TransactionEntity": {
         "type": "object",
@@ -1371,11 +1223,7 @@
           },
           "mode": {
             "type": "string",
-            "enum": [
-              "test",
-              "prod",
-              "sandbox"
-            ],
+            "enum": ["test", "prod", "sandbox"],
             "description": "String representing the environment."
           },
           "object": {
@@ -1480,11 +1328,7 @@
           },
           "mode": {
             "type": "string",
-            "enum": [
-              "test",
-              "prod",
-              "sandbox"
-            ],
+            "enum": ["test", "prod", "sandbox"],
             "description": "String representing the environment."
           },
           "object": {
@@ -1495,31 +1339,21 @@
           "product": {
             "description": "The product associated with the subscription.",
             "oneOf": [
-              {
-                "$ref": "#/components/schemas/ProductEntity"
-              },
-              {
-                "type": "string"
-              }
+              { "$ref": "#/components/schemas/ProductEntity" },
+              { "type": "string" }
             ]
           },
           "customer": {
             "description": "The customer who owns the subscription.",
             "oneOf": [
-              {
-                "$ref": "#/components/schemas/CustomerEntity"
-              },
-              {
-                "type": "string"
-              }
+              { "$ref": "#/components/schemas/CustomerEntity" },
+              { "type": "string" }
             ]
           },
           "items": {
             "description": "Subscription items.",
             "type": "array",
-            "items": {
-              "$ref": "#/components/schemas/SubscriptionItemEntity"
-            }
+            "items": { "$ref": "#/components/schemas/SubscriptionItemEntity" }
           },
           "collection_method": {
             "type": "string",
@@ -1546,11 +1380,7 @@
           },
           "last_transaction": {
             "description": "The last paid transaction.",
-            "allOf": [
-              {
-                "$ref": "#/components/schemas/TransactionEntity"
-              }
-            ]
+            "allOf": [{ "$ref": "#/components/schemas/TransactionEntity" }]
           },
           "last_transaction_date": {
             "format": "date-time",
@@ -1618,19 +1448,13 @@
           "mode": {
             "type": "string",
             "description": "The mode of cancellation (immediate or scheduled), default is immediate",
-            "enum": [
-              "immediate",
-              "scheduled"
-            ],
+            "enum": ["immediate", "scheduled"],
             "example": "immediate"
           },
           "onExecute": {
             "type": "string",
             "description": "The action to execute when canceling (cancel or pause) when mode is scheduled, ignored when mode is immediate or not provided",
-            "enum": [
-              "cancel",
-              "pause"
-            ],
+            "enum": ["cancel", "pause"],
             "example": "cancel"
           }
         }
@@ -1697,9 +1521,7 @@
             "default": "proration-charge-immediately"
           }
         },
-        "required": [
-          "product_id"
-        ]
+        "required": ["product_id"]
       },
       "OrderEntity": {
         "type": "object",
@@ -1710,11 +1532,7 @@
           },
           "mode": {
             "type": "string",
-            "enum": [
-              "test",
-              "prod",
-              "sandbox"
-            ],
+            "enum": ["test", "prod", "sandbox"],
             "description": "String representing the environment."
           },
           "object": {
@@ -1792,20 +1610,14 @@
           "status": {
             "type": "string",
             "description": "Current status of the order.",
-            "enum": [
-              "pending",
-              "paid"
-            ],
+            "enum": ["pending", "paid"],
             "example": "pending"
           },
           "type": {
             "type": "string",
             "description": "The type of order. This can specify whether it's a regular purchase, subscription, etc.",
             "example": "recurring",
-            "enum": [
-              "recurring",
-              "onetime"
-            ]
+            "enum": ["recurring", "onetime"]
           },
           "affiliate": {
             "type": "string",
@@ -1843,10 +1655,7 @@
           "type": {
             "type": "string",
             "description": "The type of the field.",
-            "enum": [
-              "text",
-              "checkbox"
-            ]
+            "enum": ["text", "checkbox"]
           },
           "key": {
             "type": "string",
@@ -1864,26 +1673,14 @@
           },
           "text": {
             "description": "Configuration for text field type.",
-            "allOf": [
-              {
-                "$ref": "#/components/schemas/Text"
-              }
-            ]
+            "allOf": [{ "$ref": "#/components/schemas/Text" }]
           },
           "checkbox": {
             "description": "Configuration for checkbox field type.",
-            "allOf": [
-              {
-                "$ref": "#/components/schemas/Checkbox"
-              }
-            ]
+            "allOf": [{ "$ref": "#/components/schemas/Checkbox" }]
           }
         },
-        "required": [
-          "type",
-          "key",
-          "label"
-        ]
+        "required": ["type", "key", "label"]
       },
       "LicenseInstanceEntity": {
         "type": "object",
@@ -1894,11 +1691,7 @@
           },
           "mode": {
             "type": "string",
-            "enum": [
-              "test",
-              "prod",
-              "sandbox"
-            ],
+            "enum": ["test", "prod", "sandbox"],
             "description": "String representing the environment."
           },
           "object": {
@@ -1914,10 +1707,7 @@
           "status": {
             "type": "string",
             "description": "The status of the license instance.",
-            "enum": [
-              "active",
-              "deactivated"
-            ],
+            "enum": ["active", "deactivated"],
             "example": "active"
           },
           "created_at": {
@@ -1927,14 +1717,7 @@
             "example": "2023-09-13T00:00:00Z"
           }
         },
-        "required": [
-          "id",
-          "mode",
-          "object",
-          "name",
-          "status",
-          "created_at"
-        ]
+        "required": ["id", "mode", "object", "name", "status", "created_at"]
       },
       "LicenseEntity": {
         "type": "object",
@@ -1945,11 +1728,7 @@
           },
           "mode": {
             "type": "string",
-            "enum": [
-              "test",
-              "prod",
-              "sandbox"
-            ],
+            "enum": ["test", "prod", "sandbox"],
             "description": "String representing the environment."
           },
           "object": {
@@ -1959,12 +1738,7 @@
           "status": {
             "type": "string",
             "description": "The current status of the license key.",
-            "enum": [
-              "inactive",
-              "active",
-              "expired",
-              "disabled"
-            ],
+            "enum": ["inactive", "active", "expired", "disabled"],
             "example": "active"
           },
           "key": {
@@ -1998,11 +1772,7 @@
           "instance": {
             "description": "Associated license instances.",
             "nullable": true,
-            "allOf": [
-              {
-                "$ref": "#/components/schemas/LicenseInstanceEntity"
-              }
-            ]
+            "allOf": [{ "$ref": "#/components/schemas/LicenseInstanceEntity" }]
           }
         },
         "required": [
@@ -2020,16 +1790,10 @@
         "properties": {
           "license": {
             "description": "License key issued for the order.",
-            "allOf": [
-              {
-                "$ref": "#/components/schemas/LicenseEntity"
-              }
-            ]
+            "allOf": [{ "$ref": "#/components/schemas/LicenseEntity" }]
           }
         },
-        "required": [
-          "license"
-        ]
+        "required": ["license"]
       },
       "CheckoutEntity": {
         "type": "object",
@@ -2040,11 +1804,7 @@
           },
           "mode": {
             "type": "string",
-            "enum": [
-              "test",
-              "prod",
-              "sandbox"
-            ],
+            "enum": ["test", "prod", "sandbox"],
             "description": "String representing the environment."
           },
           "object": {
@@ -2054,12 +1814,7 @@
           "status": {
             "type": "string",
             "description": "Status of the checkout.",
-            "enum": [
-              "pending",
-              "processing",
-              "completed",
-              "expired"
-            ],
+            "enum": ["pending", "processing", "completed", "expired"],
             "example": "completed"
           },
           "request_id": {
@@ -2069,12 +1824,8 @@
           "product": {
             "description": "The product associated with the checkout session.",
             "oneOf": [
-              {
-                "type": "string"
-              },
-              {
-                "$ref": "#/components/schemas/ProductEntity"
-              }
+              { "type": "string" },
+              { "$ref": "#/components/schemas/ProductEntity" }
             ]
           },
           "units": {
@@ -2084,40 +1835,26 @@
           },
           "order": {
             "description": "The order associated with the checkout session.",
-            "allOf": [
-              {
-                "$ref": "#/components/schemas/OrderEntity"
-              }
-            ]
+            "allOf": [{ "$ref": "#/components/schemas/OrderEntity" }]
           },
           "subscription": {
             "description": "The subscription associated with the checkout session.",
             "oneOf": [
-              {
-                "type": "string"
-              },
-              {
-                "$ref": "#/components/schemas/SubscriptionEntity"
-              }
+              { "type": "string" },
+              { "$ref": "#/components/schemas/SubscriptionEntity" }
             ]
           },
           "customer": {
             "description": "The customer associated with the checkout session.",
             "oneOf": [
-              {
-                "type": "string"
-              },
-              {
-                "$ref": "#/components/schemas/CustomerEntity"
-              }
+              { "type": "string" },
+              { "$ref": "#/components/schemas/CustomerEntity" }
             ]
           },
           "custom_fields": {
             "description": "Additional information collected from your customer during the checkout process.",
             "type": "array",
-            "items": {
-              "$ref": "#/components/schemas/CustomField"
-            }
+            "items": { "$ref": "#/components/schemas/CustomField" }
           },
           "checkout_url": {
             "type": "string",
@@ -2132,9 +1869,7 @@
           "feature": {
             "description": "Features issued for the order.",
             "type": "array",
-            "items": {
-              "$ref": "#/components/schemas/ProductFeatureEntity"
-            }
+            "items": { "$ref": "#/components/schemas/ProductFeatureEntity" }
           },
           "metadata": {
             "type": "object",
@@ -2147,13 +1882,7 @@
             "additionalProperties": true
           }
         },
-        "required": [
-          "id",
-          "mode",
-          "object",
-          "status",
-          "product"
-        ]
+        "required": ["id", "mode", "object", "status", "product"]
       },
       "CustomerRequestEntity": {
         "type": "object",
@@ -2194,18 +1923,12 @@
           },
           "customer": {
             "description": "Customer data for checkout session. This will prefill the customer info on the checkout page",
-            "allOf": [
-              {
-                "$ref": "#/components/schemas/CustomerRequestEntity"
-              }
-            ]
+            "allOf": [{ "$ref": "#/components/schemas/CustomerRequestEntity" }]
           },
           "custom_field": {
             "description": "Collect additional information from your customer using custom fields. Up to 3 fields are supported.",
             "type": "array",
-            "items": {
-              "$ref": "#/components/schemas/CustomFieldRequestEntity"
-            }
+            "items": { "$ref": "#/components/schemas/CustomFieldRequestEntity" }
           },
           "success_url": {
             "type": "string",
@@ -2222,9 +1945,7 @@
             "additionalProperties": true
           }
         },
-        "required": [
-          "product_id"
-        ]
+        "required": ["product_id"]
       },
       "ActivateLicenseRequestEntity": {
         "type": "object",
@@ -2238,10 +1959,7 @@
             "description": "A label for the new instance to identify it in Creem."
           }
         },
-        "required": [
-          "key",
-          "instance_name"
-        ]
+        "required": ["key", "instance_name"]
       },
       "DeactivateLicenseRequestEntity": {
         "type": "object",
@@ -2255,10 +1973,7 @@
             "description": "Id of the instance to deactivate."
           }
         },
-        "required": [
-          "key",
-          "instance_id"
-        ]
+        "required": ["key", "instance_id"]
       },
       "ValidateLicenseRequestEntity": {
         "type": "object",
@@ -2272,10 +1987,7 @@
             "description": "Id of the instance to validate."
           }
         },
-        "required": [
-          "key",
-          "instance_id"
-        ]
+        "required": ["key", "instance_id"]
       },
       "DiscountEntity": {
         "type": "object",
@@ -2286,11 +1998,7 @@
           },
           "mode": {
             "type": "string",
-            "enum": [
-              "test",
-              "prod",
-              "sandbox"
-            ],
+            "enum": ["test", "prod", "sandbox"],
             "description": "String representing the environment."
           },
           "object": {
@@ -2301,12 +2009,7 @@
           "status": {
             "type": "string",
             "description": "The status of the discount (e.g., active, inactive).",
-            "enum": [
-              "active",
-              "draft",
-              "expired",
-              "scheduled"
-            ],
+            "enum": ["active", "draft", "expired", "scheduled"],
             "example": "active"
           },
           "name": {
@@ -2322,10 +2025,7 @@
           "type": {
             "type": "string",
             "description": "The type of the discount, either \"percentage\" or \"fixed\".",
-            "enum": [
-              "percentage",
-              "fixed"
-            ],
+            "enum": ["percentage", "fixed"],
             "example": "percentage"
           },
           "amount": {
@@ -2357,11 +2057,7 @@
           "duration": {
             "type": "string",
             "description": "The duration type for the discount.",
-            "enum": [
-              "forever",
-              "once",
-              "repeating"
-            ],
+            "enum": ["forever", "once", "repeating"],
             "example": "repeating"
           },
           "duration_in_months": {
@@ -2371,14 +2067,9 @@
           },
           "applies_to_products": {
             "description": "The list of product IDs to which this discount applies.",
-            "example": [
-              "prod_123",
-              "prod_456"
-            ],
+            "example": ["prod_123", "prod_456"],
             "type": "array",
-            "items": {
-              "type": "string"
-            }
+            "items": { "type": "string" }
           },
           "redeem_count": {
             "type": "number",
@@ -2386,15 +2077,7 @@
             "example": 15
           }
         },
-        "required": [
-          "id",
-          "mode",
-          "object",
-          "status",
-          "name",
-          "code",
-          "type"
-        ]
+        "required": ["id", "mode", "object", "status", "name", "code", "type"]
       },
       "CreateDiscountRequestEntity": {
         "type": "object",
@@ -2412,10 +2095,7 @@
           "type": {
             "type": "string",
             "description": "The type of the discount, either \"percentage\" or \"fixed\".",
-            "enum": [
-              "percentage",
-              "fixed"
-            ]
+            "enum": ["percentage", "fixed"]
           },
           "amount": {
             "type": "number",
@@ -2446,11 +2126,7 @@
           "duration": {
             "type": "string",
             "description": "The duration type for the discount.",
-            "enum": [
-              "forever",
-              "once",
-              "repeating"
-            ],
+            "enum": ["forever", "once", "repeating"],
             "example": "repeating"
           },
           "duration_in_months": {
@@ -2460,46 +2136,27 @@
           },
           "applies_to_products": {
             "description": "The list of product IDs to which this discount applies.",
-            "example": [
-              "prod_123",
-              "prod_456"
-            ],
+            "example": ["prod_123", "prod_456"],
             "type": "array",
-            "items": {
-              "type": "string"
-            }
+            "items": { "type": "string" }
           }
         },
-        "required": [
-          "name",
-          "type",
-          "duration",
-          "applies_to_products"
-        ]
+        "required": ["name", "type", "duration", "applies_to_products"]
       },
       "TransactionListEntity": {
         "type": "object",
         "properties": {
           "items": {
             "description": "List of transactions items",
-            "items": {
-              "$ref": "#/components/schemas/TransactionEntity"
-            },
+            "items": { "$ref": "#/components/schemas/TransactionEntity" },
             "type": "array"
           },
           "pagination": {
             "description": "Pagination details for the list",
-            "allOf": [
-              {
-                "$ref": "#/components/schemas/PaginationEntity"
-              }
-            ]
+            "allOf": [{ "$ref": "#/components/schemas/PaginationEntity" }]
           }
         },
-        "required": [
-          "items",
-          "pagination"
-        ]
+        "required": ["items", "pagination"]
       }
     }
   }
