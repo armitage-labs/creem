@@ -1,0 +1,366 @@
+---
+title: "Discount Codes"
+description: "Create and manage discount codes to drive sales, reward customers, and run promotional campaigns for your products."
+---
+
+Discount codes give you powerful tools to incentivize purchases and run promotional campaigns. You can create percentage-based or fixed-amount discounts that apply to specific products, with full control over duration, expiration, and redemption limits.
+
+## Creating Discount Codes
+
+### Via Dashboard
+
+1. Navigate to **Discounts** in your [Creem Dashboard](https://creem.io/dashboard/discounts)
+2. Click **Create Discount Code**
+3. Configure your discount settings:
+   - **Name**: Internal name for your reference (e.g., "Holiday Sale 2024")
+   - **Code**: Customer-facing code (e.g., "HOLIDAY50")
+   - **Type**: Percentage or fixed amount
+   - **Amount/Percentage**: The discount value
+   - **Duration**: How long the discount applies
+   - **Products**: Which products this code applies to
+   - **Expiration Date**: When the code expires (optional)
+   - **Max Redemptions**: Limit total uses (optional)
+4. Click **Create** to activate the discount
+
+### Via API
+
+You can also create discounts programmatically using the API.
+
+<Tabs>
+  <Tab title="TypeScript SDK">
+
+```typescript
+import { createCreem } from "creem_io";
+
+const creem = createCreem({
+  apiKey: process.env.CREEM_API_KEY!,
+  testMode: process.env.NODE_ENV !== "production",
+});
+
+// Create a percentage discount
+const percentageDiscount = await creem.discounts.create({
+  name: "Percentage Discount",
+  code: "PERC10",
+  currency: "USD",
+  type: "percentage",
+  percentage: 10,
+  duration: "forever",
+});
+
+// Create a fixed amount discount
+const fixedDiscount = await creem.discounts.create({
+  name: "Fixed Discount",
+  code: "FIXED10",
+  amount: 1000, // In cents
+  currency: "USD",
+  type: "fixed",
+  duration: "forever",
+});
+```
+
+  </Tab>
+
+  <Tab title="REST API">
+
+```bash
+# Create a percentage discount
+curl -X POST https://api.creem.io/v1/discounts \
+  -H "x-api-key: YOUR_API_KEY" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "name": "Launch Week Special",
+    "code": "LAUNCH50",
+    "type": "percentage",
+    "percentage": 50,
+    "duration": "once",
+    "applies_to_products": ["prod_YOUR_PRODUCT_ID"],
+    "expiry_date": "2024-12-31T23:59:59Z",
+    "max_redemptions": 100
+  }'
+```
+
+```bash
+# Create a fixed amount discount
+curl -X POST https://api.creem.io/v1/discounts \
+  -H "x-api-key: YOUR_API_KEY" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "name": "Welcome Bonus",
+    "code": "WELCOME20",
+    "type": "fixed",
+    "amount": 20,
+    "currency": "USD",
+    "duration": "once",
+    "applies_to_products": ["prod_YOUR_PRODUCT_ID"]
+  }'
+```
+
+  </Tab>
+</Tabs>
+
+---
+
+## Discount Types
+
+### Percentage Discounts
+
+Reduce the price by a percentage (e.g., 25% off).
+
+```json
+{
+  "type": "percentage",
+  "percentage": 25,
+  "duration": "once"
+}
+```
+
+<Example>
+A \$100 product with a 25% discount becomes \$75.
+</Example>
+
+### Fixed Amount Discounts
+
+Reduce the price by a fixed amount in a specific currency (e.g., $20 off).
+
+```json
+{
+  "type": "fixed",
+  "amount": 20,
+  "currency": "USD",
+  "duration": "once"
+}
+```
+
+<Example>
+A \$100 product with a \$20 discount becomes \$80.
+</Example>
+
+---
+
+## Duration Options
+
+Control how long a discount applies for subscriptions.
+
+### Once
+
+Applies only to the first payment. Perfect for acquisition discounts.
+
+```json
+{
+  "duration": "once"
+}
+```
+
+**Use case**: "Get 50% off your first month" for a monthly subscription.
+
+### Forever
+
+Applies to all payments for the lifetime of the subscription.
+
+```json
+{
+  "duration": "forever"
+}
+```
+
+**Use case**: "Lifetime 20% discount for early supporters" on a subscription.
+
+### Repeating
+
+Applies for a specific number of months, then reverts to full price.
+
+```json
+{
+  "duration": "repeating",
+  "durationInMonths": 3
+}
+```
+
+**Use case**: "50% off for your first 3 months" on a subscription.
+
+<Note>
+  Duration only affects subscription products. For one-time payments, the discount is always applied once.
+</Note>
+
+---
+
+## Applying Discount Codes
+
+### Customer-Entered Codes
+
+Customers can enter discount codes directly at checkout. If the code is valid for the product and hasn't expired, it will automatically apply.
+
+No implementation required - this works out of the box!
+
+### Pre-Applied Codes
+
+Pre-apply a discount code programmatically when creating a checkout session. This is useful for landing pages, email campaigns, or special offers.
+
+<Tabs>
+  <Tab title="Next.js">
+
+```tsx
+import { CreemCheckout } from "@creem_io/nextjs";
+
+export function PromoButton() {
+  return (
+    <CreemCheckout
+      productId="prod_YOUR_PRODUCT_ID"
+      discountCode="LAUNCH50"
+    >
+      <button>Claim 50% Off</button>
+    </CreemCheckout>
+  );
+}
+```
+
+  </Tab>
+
+  <Tab title="TypeScript SDK">
+
+```typescript
+const checkout = await creem.checkouts.create({
+  productId: "prod_YOUR_PRODUCT_ID",
+  discountCode: "LAUNCH50",
+  successUrl: "https://yoursite.com/success",
+});
+
+// Redirect to checkout with discount pre-applied
+window.location.href = checkout.checkout_url;
+```
+
+  </Tab>
+
+  <Tab title="Better Auth">
+
+```typescript
+const { data } = await authClient.creem.createCheckout({
+  productId: "prod_YOUR_PRODUCT_ID",
+  discountCode: "LAUNCH50",
+  successUrl: "/dashboard",
+});
+
+if (data?.url) {
+  window.location.href = data.url;
+}
+```
+
+  </Tab>
+
+  <Tab title="REST API">
+
+```bash
+curl -X POST https://api.creem.io/v1/checkouts \
+  -H "x-api-key: YOUR_API_KEY" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "product_id": "prod_YOUR_PRODUCT_ID",
+    "discount_code": "LAUNCH50",
+    "success_url": "https://yoursite.com/success"
+  }'
+```
+
+  </Tab>
+</Tabs>
+
+---
+
+## Managing Discount Codes
+
+### Retrieve a Discount
+
+Get details about a specific discount code.
+
+<Tabs>
+  <Tab title="TypeScript SDK">
+
+```typescript
+// By discount ID
+const discount = await creem.discounts.get({
+  discountId: "disc_1234567890",
+});
+
+// By discount code
+const discount = await creem.discounts.get({
+  discountCode: "LAUNCH50",
+});
+
+console.log(discount.redeem_count); // See how many times it's been used
+```
+
+  </Tab>
+
+  <Tab title="REST API">
+
+```bash
+# By discount ID
+curl -X GET "https://api.creem.io/v1/discounts?discount_id=disc_1234567890" \
+  -H "x-api-key: YOUR_API_KEY"
+
+# By discount code
+curl -X GET "https://api.creem.io/v1/discounts?discount_code=LAUNCH50" \
+  -H "x-api-key: YOUR_API_KEY"
+```
+
+  </Tab>
+</Tabs>
+
+### Delete a Discount
+
+Permanently delete a discount code. This action cannot be undone.
+
+<Tabs>
+  <Tab title="TypeScript SDK">
+
+```typescript
+await creem.discounts.delete({
+    discountId: "disc_1234567890",
+});
+```
+
+  </Tab>
+
+  <Tab title="REST API">
+
+```bash
+curl -X DELETE https://api.creem.io/v1/discounts/disc_1234567890/delete \
+  -H "x-api-key: YOUR_API_KEY"
+```
+
+  </Tab>
+</Tabs>
+
+---
+
+## Next Steps
+
+<CardGroup cols={2}>
+  <Card
+    title="Revenue Splits"
+    icon="split"
+    href="/features/split-payments"
+  >
+    Automatically split revenue between multiple parties
+  </Card>
+  <Card
+    title="Trials"
+    icon="clock"
+    href="/features/trials"
+  >
+    Offer free or paid trials for your products
+  </Card>
+  <Card
+    title="Customer Portal"
+    icon="user"
+    href="/features/customer-portal"
+  >
+    Let customers manage their subscriptions and billing
+  </Card>
+  <Card
+    title="Addons"
+    icon="puzzle"
+    href="/features/addons/licenses"
+  >
+    Add licenses, file downloads, and more to your products
+  </Card>
+</CardGroup>

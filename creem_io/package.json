@@ -1,0 +1,61 @@
+{
+  "name": "creem_io",
+  "version": "0.4.0",
+  "description": "Official Creem SDK for JavaScript & TypeScript - Universal payment integration for any framework",
+  "publishConfig": {
+    "access": "public"
+  },
+  "main": "./dist/index.js",
+  "module": "./dist/index.mjs",
+  "types": "./dist/index.d.ts",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.mjs",
+      "require": "./dist/index.js"
+    }
+  },
+  "files": [
+    "dist",
+    "README.md",
+    "LICENSE"
+  ],
+  "scripts": {
+    "build": "tsup",
+    "dev": "tsup --watch",
+    "prepublishOnly": "npm run build",
+    "typecheck": "tsc --noEmit"
+  },
+  "keywords": [
+    "creem",
+    "payments",
+    "subscriptions",
+    "sdk",
+    "api",
+    "typescript",
+    "javascript",
+    "checkout",
+    "webhooks",
+    "licenses",
+    "billing",
+    "saas"
+  ],
+  "author": "Creem",
+  "license": "MIT",
+  "devDependencies": {
+    "@types/node": "^20.0.0",
+    "tsup": "^8.5.1",
+    "typescript": "^5.0.0"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/creem-io/creem-sdk"
+  },
+  "homepage": "https://creem.io",
+  "bugs": {
+    "url": "https://github.com/creem-io/creem-sdk/issues"
+  },
+  "engines": {
+    "node": ">=16.0.0"
+  }
+}

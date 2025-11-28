@@ -1,0 +1,261 @@
+---
+title: "Subscriptions"
+description: "Create recurring payment plans for your products and services with flexible billing cycles and subscription management."
+---
+
+Subscriptions in Creem allow you to create recurring payment agreements with your customers. When a customer subscribes to your product, they agree to be billed periodically (monthly, yearly, etc.) until they cancel their subscription.
+
+## Understanding Subscriptions
+
+A subscription represents a recurring payment agreement between you and your customer. Subscriptions automatically handle billing cycles, payment retries, and customer management.
+
+### Subscription Status
+
+A subscription can be in different states throughout its lifecycle:
+
+- **Active:** The subscription is current and payments are being processed normally.
+- **Canceled:** The subscription has been terminated and will not renew or bill again.
+- **Unpaid:** Payment for the subscription has failed or is overdue; access may be restricted until payment is made.
+- **Paused:** The subscription is temporarily paused (no charges are processed and billing is on hold).
+- **Trialing:** The subscription is in a trial period before the first payment is collected.
+- **Scheduled Cancel:** The subscription is scheduled to cancel at the end of the current billing period but is still active until then.
+
+### Billing Cycles
+
+Subscriptions operate on billing cycles that determine when payments are collected:
+
+- **Monthly billing** - Charged every month
+- **3 month billing** - Charged every 3 months
+- **6 month billing** - Charged every 6 months
+- **Yearly billing** - Charged annually
+
+## Creating a Subscription
+
+To create a subscription:
+
+1. Create a subscription product in your Creem dashboard (set billing type to "recurring")
+2. Generate a checkout session for the subscription
+3. Direct your customer to the checkout URL
+
+<Tabs>
+  <Tab title="Next.js">
+
+```tsx
+"use client"; // Optional: Works with server components
+
+import { CreemCheckout } from "@creem_io/nextjs";
+
+export function SubscribeButton() {
+  return (
+    <CreemCheckout
+      productId="prod_YOUR_SUBSCRIPTION_ID"
+      metadata={{
+        userId: "user_123",
+        source: "web"
+      }}
+    >
+      <button>Subscribe Now</button>
+    </CreemCheckout>
+  );
+}
+```
+
+<Card
+  title="Next.js SDK Documentation"
+  icon="react"
+  href="/code/sdks/nextjs"
+>
+  Learn more about the Next.js adapter and advanced features.
+</Card>
+
+  </Tab>
+
+  <Tab title="TypeScript SDK">
+
+```typescript
+import { createCreem } from "creem_io";
+
+const creem = createCreem({
+  apiKey: process.env.CREEM_API_KEY!,
+  testMode: process.env.NODE_ENV !== "production",
+});
+
+// Create a subscription checkout session
+const checkout = await creem.checkouts.create({
+  productId: "prod_YOUR_SUBSCRIPTION_ID",
+  successUrl: "https://yoursite.com/success",
+  customer: {
+    email: "customer@example.com", // Optional: Pre-fill email
+  },
+  metadata: {
+    userId: "user_123",
+    source: "web"
+  },
+});
+
+// Redirect to the checkout URL
+console.log(checkout.checkout_url);
+```
+
+<Card
+  title="TypeScript SDK Documentation"
+  icon="code"
+  href="/code/sdks/typescript"
+>
+  View the full SDK API reference and advanced usage examples.
+</Card>
+
+  </Tab>
+
+  <Tab title="Better Auth">
+
+```typescript
+"use client";
+
+import { authClient } from "@/lib/auth-client";
+
+export function SubscribeButton({ productId }: { productId: string }) {
+  const handleCheckout = async () => {
+    const { data, error } = await authClient.creem.createCheckout({
+      productId,
+      successUrl: "/dashboard",
+    });
+
+    if (data?.url) {
+      window.location.href = data.url;
+    }
+  };
+
+  return (
+    <button onClick={handleCheckout}>
+      Subscribe Now
+    </button>
+  );
+}
+```
+
+<Note>
+  The Better Auth integration automatically syncs the authenticated user's email and tracks subscription status in your database.
+</Note>
+
+<Card
+  title="Better Auth Integration"
+  icon="lock"
+  href="/code/sdks/better-auth"
+>
+  Learn about database persistence and automatic user synchronization.
+</Card>
+
+  </Tab>
+
+  <Tab title="REST API">
+
+<Warning>
+  If you're in test mode, use `https://test-api.creem.io` instead of `https://api.creem.io`. Learn more about [Test Mode](/getting-started/test-mode).
+</Warning>
+
+```bash
+curl -X POST https://api.creem.io/v1/checkouts \
+  -H "x-api-key: YOUR_API_KEY" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "product_id": "prod_YOUR_SUBSCRIPTION_ID",
+    "success_url": "https://yoursite.com/success",
+    "customer": {
+      "email": "customer@example.com"
+    }
+  }'
+```
+
+### Response
+
+```json
+{
+  "id": "ch_1QyIQDw9cbFWdA1ry5Qc6I",
+  "checkout_url": "https://checkout.creem.io/ch_1QyIQDw9cbFWdA1ry5Qc6I",
+  "product_id": "prod_YOUR_SUBSCRIPTION_ID",
+  "status": "pending"
+}
+```
+
+<Card
+  title="API Reference"
+  icon="book"
+  href="/api-reference/endpoint/create-checkout"
+>
+  View the complete endpoint documentation with all available parameters.
+</Card>
+
+  </Tab>
+</Tabs>
+
+## Handling Successful Subscriptions
+
+After a successful subscription creation, users are redirected to your `success_url` with subscription details as query parameters:
+
+```
+https://yoursite.com/success?checkout_id=ch_xxx&subscription_id=sub_xxx&customer_id=cust_xxx&product_id=prod_xxx
+```
+
+| Query parameter   | Description                                                                                     |
+| ----------------- | ---------------------------------------------------------------------------------------------- |
+| `checkout_id`     | The ID of the checkout session created for this subscription.                                  |
+| `subscription_id` | The ID of the subscription created.                                                            |
+| `customer_id`     | The customer ID associated with this subscription.                                             |
+| `product_id`      | The product ID that the subscription is for.                                                   |
+| `request_id`      | Optional. The request/reference ID you provided when creating this checkout.                   |
+| `signature`       | All previous parameters signed by Creem using your API-key, verifiable by you.                 |
+
+<Warning>
+  For production applications, we recommend using [Webhooks](/code/webhooks) to handle subscription events like renewals, cancellations, and payment failures.
+</Warning>
+
+## Key Features
+
+<CardGroup cols={2}>
+  <Card
+    title="Trials"
+    icon="clock"
+    href="/features/trials"
+  >
+    Learn how to set up trial periods for your subscriptions.
+  </Card>
+
+  <Card
+  title="Seat-Based Billing"
+  icon="users"
+  href="/features/seat-based-billing"
+  >
+    Implement per-seat pricing for team-based products.
+  </Card>
+
+  <Card
+    title="Customer Portal"
+    icon="user-circle"
+    href="/features/customer-portal"
+  >
+    Enable self-service subscription management.
+  </Card>
+    <Card
+    title="Discount Codes"
+    icon="tag"
+    href="/features/discounts"
+  >
+    Create discount codes for subscriptions
+  </Card>
+  <Card
+    title="Managing Subscriptions"
+    icon="gear"
+    href="/features/subscriptions/managing"
+  >
+    Learn how to update, upgrade, and manage active subscriptions
+  </Card>
+  <Card
+    title="Cancellations & Refunds"
+    icon="ban"
+    href="/features/subscriptions/refunds-and-cancellations"
+  >
+    Handle subscription cancellations and process refunds
+  </Card>
+
+</CardGroup>

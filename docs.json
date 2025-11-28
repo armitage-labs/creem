@@ -19,140 +19,115 @@
         "groups": [
           {
             "group": "Get Started",
+            "icon": "rocket",
             "pages": [
-              "introduction",
-              "quickstart",
-              "checkout-flow",
-              "api-keys",
-              "test-mode",
+              "getting-started/introduction",
+              "getting-started/quickstart",
+              "getting-started/test-mode"
+            ]
+          },
+          {
+            "group": "Features",
+            "icon": "sparkles",
+            "pages": [
               {
-                "group": "SDK And Templates",
+                "group": "Checkout",
                 "pages": [
-                  "sdk/nextjs-adapter",
-                  "sdk/better-auth",
-                  "sdk/typescript-sdk",
-                  "sdk/nextjs-template"
+                  "features/checkout/checkout-api",
+                  "features/checkout/checkout-link",
+                  "features/checkout/checkout-customization",
+                  "features/checkout/checkout-custom-fields"
+                ]
+              },
+              "features/one-time-payment",
+              {
+                "group": "Subscriptions",
+                "pages": [
+                  "features/subscriptions/introduction",
+                  "features/subscriptions/managing",
+                  "features/subscriptions/refunds-and-cancellations"
+                ]
+              },
+              "features/seat-based-billing",
+              "features/split-payments",
+              "features/discounts",
+              "features/trials",
+              "features/customer-portal",
+              "features/product-bundles",
+              {
+                "group": "Addons",
+                "pages": [
+                  "features/addons/licenses",
+                  "features/addons/private-notes",
+                  "features/addons/file-downloads",
+                  "features/addons/abandoned-cart-recovery"
                 ]
               }
             ]
           },
           {
-            "group": "Learn",
+            "group": "Code",
+            "icon": "code",
             "pages": [
               {
-                "group": "Checkout Session",
+                "group": "SDKs",
                 "pages": [
-                  "learn/checkout-session/introduction",
-                  "learn/checkout-session/return-url"
+                  "code/sdks/typescript",
+                  "code/sdks/nextjs",
+                  "code/sdks/better-auth",
+                  "code/sdks/templates"
                 ]
               },
-              {
-                "group": "Webhooks",
-                "pages": [
-                  "learn/webhooks/introduction",
-                  "learn/webhooks/event-types",
-                  "learn/webhooks/verify-webhook-requests"
-                ]
-              },
-              {
-                "group": "Billing",
-                "pages": [
-                  "learn/billing/seat-based-billing",
-                  {
-                    "group": "Subscriptions",
-                    "pages": [
-                      "learn/billing/subscriptions/introduction",
-                      "learn/billing/subscriptions/upgrades",
-                      "learn/billing/subscriptions/bundles"
-                    ]
-                  },
-                  "learn/billing/one-time-payment"
-                ]
-              },
-              {
-                "group": "Customers",
-                "pages": [
-                  "learn/customers/introduction",
-                  "learn/customers/customer-portal"
-                ]
-              },
-              {
-                "group": "Customization",
-                "pages": [
-                  "learn/customization/branding",
-                  "learn/customization/payment-links"
-                ]
-              },
-              {
-                "group": "Splits",
-                "pages": ["learn/splits/introduction"]
-              }
+              "code/webhooks",
+              "code/mcp"
             ]
           },
           {
             "group": "Integrations",
-            "pages": ["integrations/ai-negotiation", "integrations/affiliates"]
+            "icon": "link",
+            "pages": [
+              "integrations/affiliates",
+              "integrations/ai-negotiation-bot"
+            ]
           },
           {
-            "group": "Product Features",
+            "group": "Merchant of Record",
+            "icon": "building",
             "pages": [
-              "features/introduction",
+              "merchant-of-record/what-is",
+              "merchant-of-record/supported-countries",
               {
-                "group": "Licenses",
+                "group": "Finance",
                 "pages": [
-                  "features/licenses/introduction",
-                  "features/licenses/activate",
-                  "features/licenses/validate",
-                  "features/licenses/deactivate"
+                  "merchant-of-record/finance/payouts",
+                  "merchant-of-record/finance/refunds-and-chargebacks",
+                  "merchant-of-record/finance/payment-methods"
                 ]
               },
-              {
-                "group": "Private Notes",
-                "pages": ["features/private-notes/overview"]
-              },
-              {
-                "group": "File Downloads",
-                "pages": ["features/downloads/overview"]
-              },
-              {
-                "group": "Custom Fields",
-                "pages": ["features/custom-fields/overview"]
-              },
-              {
-                "group": "Abandoned Cart Recovery",
-                "pages": ["features/abandoned-carts/overview"]
-              }
+              "merchant-of-record/account-reviews/account-reviews"
             ]
           },
           {
-            "group": "Finance",
-            "pages": [
-              "finance/payments",
-              "finance/payouts",
-              "finance/merchant-of-record",
-              "finance/refunds"
-            ]
-          },
-          {
-            "group": "For Customers and Buyers",
+            "group": "For Customers",
+            "icon": "circle-question",
             "pages": [
               "for-customers/why-creem-charged-me",
               "for-customers/how-to-cancel-subscription",
               "for-customers/how-to-update-payment-method"
             ]
-          },
+          }
+        ]
+      },
+      {
+        "tab": "Guides",
+        "groups": [
           {
-            "group": "FAQ",
+            "group": "Guides",
+            "icon": "book-open",
             "pages": [
-              "faq/supported-countries",
-              "faq/prohibited-products",
-              {
-                "group": "Account Reviews",
-                "pages": [
-                  "faq/account-reviews/account-reviews",
-                  "faq/account-reviews/ai-wrapper-compliance"
-                ]
-              }
+              "guides/introduction",
+              "guides/create-your-first-product",
+              "guides/create-checkout-session"
             ]
           }
         ]
@@ -162,10 +137,12 @@
         "groups": [
           {
             "group": "API Documentation",
+            "icon": "book",
             "pages": ["api-reference/introduction"]
           },
           {
             "group": "Checkout",
+            "icon": "shopping-cart",
             "pages": [
               "api-reference/endpoint/create-checkout",
               "api-reference/endpoint/get-checkout"
@@ -173,6 +150,7 @@
           },
           {
             "group": "Product",
+            "icon": "box",
             "pages": [
               "api-reference/endpoint/create-product",
               "api-reference/endpoint/get-product",
@@ -181,6 +159,7 @@
           },
           {
             "group": "Customer",
+            "icon": "users",
             "pages": [
               "api-reference/endpoint/get-customer",
               "api-reference/endpoint/list-customers",
@@ -189,10 +168,12 @@
           },
           {
             "group": "Transactions",
+            "icon": "receipt",
             "pages": ["api-reference/endpoint/get-transactions"]
           },
           {
             "group": "License",
+            "icon": "key",
             "pages": [
               "api-reference/endpoint/validate-license",
               "api-reference/endpoint/activate-license",
@@ -201,6 +182,7 @@
           },
           {
             "group": "Discount Code",
+            "icon": "tag",
             "pages": [
               "api-reference/endpoint/create-discount-code",
               "api-reference/endpoint/delete-discount-code",
@@ -209,6 +191,7 @@
           },
           {
             "group": "Subscription",
+            "icon": "repeat",
             "pages": [
               "api-reference/endpoint/get-subscription",
               "api-reference/endpoint/update-subscription",
