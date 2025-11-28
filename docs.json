@@ -78,8 +78,7 @@
                   "code/sdks/templates"
                 ]
               },
-              "code/webhooks",
-              "code/mcp"
+              "code/webhooks"
             ]
           },
           {

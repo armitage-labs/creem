@@ -476,7 +476,7 @@ app.post("/webhook", async (req, res) => {
 </Tabs>
 
 <Tip>
-  Always pass a `referenceId` or include user identification in the `metadata` when creating checkouts. This allows you to map Creem customers to your internal user IDs.
+  If you want to remove access when your customer cancels the subscription (even though the billing period might still be active), you should listen to the `subscription.canceled` event.
 </Tip>
 
 ## Key Features
