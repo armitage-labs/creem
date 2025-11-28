@@ -210,11 +210,272 @@ https://yoursite.com/success?checkout_id=ch_xxx&subscription_id=sub_xxx&customer
   For production applications, we recommend using [Webhooks](/code/webhooks) to handle subscription events like renewals, cancellations, and payment failures.
 </Warning>
 
+## Managing Subscription Access
+
+Creem makes it incredibly simple to grant and revoke access based on subscription status. Instead of manually handling multiple webhook events, you can use the high-level `onGrantAccess` and `onRevokeAccess` callbacks that automatically fire at the right times in your subscription lifecycle.
+
+### How It Works
+
+- **`onGrantAccess`** - Automatically called when a customer should have access (when subscription is `active`, `trialing`, or `paid`)
+- **`onRevokeAccess`** - Automatically called when a customer should lose access (when subscription is `paused` or `expired`)
+
+This abstraction means you don't need to track individual subscription events. Just implement these two callbacks to handle your entire access management flow.
+
+<Tabs>
+  <Tab title="Next.js">
+
+```typescript
+// app/api/webhook/creem/route.ts
+import { Webhook } from "@creem_io/nextjs";
+
+export const POST = Webhook({
+  webhookSecret: process.env.CREEM_WEBHOOK_SECRET!,
+  
+  onGrantAccess: async ({ customer, metadata, reason, product }) => {
+    // Grant access when subscription becomes active/trialing/paid
+    const userId = metadata?.referenceId as string;
+    
+    await db.user.update({
+      where: { id: userId },
+      data: { 
+        subscriptionActive: true,
+        subscriptionTier: product.name,
+      },
+    });
+    
+    console.log(`Granted access to ${customer.email} - Reason: ${reason}`);
+  },
+  
+  onRevokeAccess: async ({ customer, metadata, reason }) => {
+    // Revoke access when subscription is paused/expired
+    const userId = metadata?.referenceId as string;
+    
+    await db.user.update({
+      where: { id: userId },
+      data: { subscriptionActive: false },
+    });
+    
+    console.log(`Revoked access from ${customer.email} - Reason: ${reason}`);
+  },
+});
+```
+
+<Card
+  title="Next.js Adapter Documentation"
+  icon="react"
+  href="/code/sdks/nextjs"
+>
+  Learn more about webhook handling and server functions.
+</Card>
+
+  </Tab>
+
+  <Tab title="TypeScript SDK">
+
+```typescript
+// app/api/webhook/route.ts
+import { createCreem } from "creem_io";
+
+const creem = createCreem({
+  apiKey: process.env.CREEM_API_KEY!,
+  webhookSecret: process.env.CREEM_WEBHOOK_SECRET!,
+});
+
+app.post("/webhook", async (req, res) => {
+  try {
+    await creem.webhooks.handleEvents(
+      req.body,
+      req.headers["creem-signature"],
+      {
+        onGrantAccess: async ({ reason, customer, product, metadata }) => {
+          // Called for: subscription.active, subscription.trialing, subscription.paid
+          const userId = metadata?.userId as string;
+          
+          await db.user.update({
+            where: { id: userId },
+            data: { 
+              subscriptionActive: true,
+              subscriptionTier: product.name,
+            },
+          });
+          
+          console.log(`Granted ${reason} to ${customer.email}`);
+        },
+        
+        onRevokeAccess: async ({ reason, customer, metadata }) => {
+          // Called for: subscription.paused, subscription.expired
+          const userId = metadata?.userId as string;
+          
+          await db.user.update({
+            where: { id: userId },
+            data: { subscriptionActive: false },
+          });
+          
+          console.log(`Revoked access (${reason}) from ${customer.email}`);
+        },
+      }
+    );
+    
+    res.status(200).send("OK");
+  } catch (error) {
+    res.status(400).send("Invalid signature");
+  }
+});
+```
+
+<Card
+  title="TypeScript SDK Documentation"
+  icon="code"
+  href="/code/sdks/typescript"
+>
+  View the complete webhook API and all available events.
+</Card>
+
+  </Tab>
+
+  <Tab title="Better Auth">
+
+```typescript
+// lib/auth.ts
+import { betterAuth } from "better-auth";
+import { creem } from "@creem_io/better-auth";
+
+export const auth = betterAuth({
+  database: {
+    // your database config
+  },
+  plugins: [
+    creem({
+      apiKey: process.env.CREEM_API_KEY!,
+      webhookSecret: process.env.CREEM_WEBHOOK_SECRET!,
+      
+      onGrantAccess: async ({ reason, product, customer, metadata }) => {
+        const userId = metadata?.referenceId as string;
+        
+        // Grant access in your database
+        await db.user.update({
+          where: { id: userId },
+          data: {
+            hasAccess: true,
+            subscriptionTier: product.name,
+          },
+        });
+        
+        console.log(`Granted access to ${customer.email}`);
+      },
+      
+      onRevokeAccess: async ({ reason, product, customer, metadata }) => {
+        const userId = metadata?.referenceId as string;
+        
+        // Revoke access in your database
+        await db.user.update({
+          where: { id: userId },
+          data: {
+            hasAccess: false,
+          },
+        });
+        
+        console.log(`Revoked access from ${customer.email}`);
+      },
+    }),
+  ],
+});
+```
+
+<Note>
+  With Better Auth, subscription data is automatically persisted to your database and synced via webhooks.
+</Note>
+
+<Card
+  title="Better Auth Integration"
+  icon="lock"
+  href="/code/sdks/better-auth"
+>
+  Learn about automatic trial abuse prevention and database persistence.
+</Card>
+
+  </Tab>
+
+  <Tab title="Manual Webhook">
+
+If you're not using any of our SDKs, you can still implement the same logic by listening to specific webhook events:
+
+```typescript
+// app/api/webhook/route.ts
+import crypto from "crypto";
+
+async function verifySignature(payload: string, signature: string) {
+  const computed = crypto
+    .createHmac("sha256", process.env.CREEM_WEBHOOK_SECRET!)
+    .update(payload)
+    .digest("hex");
+  return computed === signature;
+}
+
+app.post("/webhook", async (req, res) => {
+  const signature = req.headers["creem-signature"];
+  const payload = JSON.stringify(req.body);
+  
+  if (!verifySignature(payload, signature)) {
+    return res.status(401).send("Invalid signature");
+  }
+  
+  const { eventType, object } = req.body;
+  
+  // Grant access events
+  if (["subscription.active", "subscription.trialing", "subscription.paid"].includes(eventType)) {
+    const userId = object.metadata?.referenceId;
+    const customer = object.customer;
+    const product = object.product;
+    
+    await db.user.update({
+      where: { id: userId },
+      data: { 
+        subscriptionActive: true,
+        subscriptionTier: product.name,
+      },
+    });
+    
+    console.log(`Granted access to ${customer.email}`);
+  }
+  
+  // Revoke access events
+  if (["subscription.paused", "subscription.expired"].includes(eventType)) {
+    const userId = object.metadata?.referenceId;
+    const customer = object.customer;
+    
+    await db.user.update({
+      where: { id: userId },
+      data: { subscriptionActive: false },
+    });
+    
+    console.log(`Revoked access from ${customer.email}`);
+  }
+  
+  res.status(200).send("OK");
+});
+```
+
+<Card
+  title="Webhook Documentation"
+  icon="webhook"
+  href="/code/webhooks"
+>
+  View all webhook events and learn about signature verification.
+</Card>
+
+  </Tab>
+</Tabs>
+
+<Tip>
+  Always pass a `referenceId` or include user identification in the `metadata` when creating checkouts. This allows you to map Creem customers to your internal user IDs.
+</Tip>
+
 ## Key Features
 
 <CardGroup cols={2}>
   <Card
-    title="Trials"
+    title="Free Trials"
     icon="clock"
     href="/features/trials"
   >
