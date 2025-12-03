@@ -50,6 +50,7 @@
               },
               "features/seat-based-billing",
               "features/split-payments",
+              "features/storefronts",
               "features/discounts",
               "features/trials",
               "features/customer-portal",
