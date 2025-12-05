@@ -91,6 +91,13 @@
             ]
           },
           {
+            "group": "Community",
+            "icon": "users",
+            "pages": [
+              "code/community/community-resources"
+            ]
+          },
+          {
             "group": "Merchant of Record",
             "icon": "building",
             "pages": [
@@ -225,7 +232,7 @@
     "links": [
       {
         "label": "Support",
-        "href": "https://www.creem.io/contact"
+        "href": "mailto:support@creem.io"
       },
       {
         "label": "llms.txt",
