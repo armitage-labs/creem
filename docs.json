@@ -36,7 +36,8 @@
                   "features/checkout/checkout-api",
                   "features/checkout/checkout-link",
                   "features/checkout/checkout-customization",
-                  "features/checkout/checkout-custom-fields"
+                  "features/checkout/checkout-custom-fields",
+                  "features/checkout/checkout-localization"
                 ]
               },
               "features/one-time-payment",
