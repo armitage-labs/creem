@@ -1478,7 +1478,8 @@
             "type": "number",
             "description": "The number of units for the subscription item."
           }
-        }
+        },
+        "required": ["price_id"]
       },
       "UpdateSubscriptionRequestEntity": {
         "type": "object",

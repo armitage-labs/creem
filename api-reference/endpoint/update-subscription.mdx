@@ -3,3 +3,9 @@ title: 'Update Subscription'
 openapi: post /v1/subscriptions/{id}
 ---
 
+## Error Responses
+
+### 404 Bad Request
+
+A 404 error with the message "Could not find product or price" typically indicates that the `price_id` or `product_id` was missing from the request body. When updating subscription items, the `price_id` field is required for validation.
+
