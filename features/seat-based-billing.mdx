@@ -217,8 +217,12 @@ console.log("Item ID:", itemId);
 
   <Tab title="REST API">
 
+<Warning>
+  If you're in test mode, use `https://test-api.creem.io` instead of `https://api.creem.io`. Learn more about [Test Mode](/getting-started/test-mode).
+</Warning>
+
 ```bash
-curl -X GET https://api.creem.io/v1/subscriptions/sub_YOUR_SUBSCRIPTION_ID \
+curl -X GET "https://api.creem.io/v1/subscriptions?subscription_id=sub_YOUR_SUBSCRIPTION_ID" \
   -H "x-api-key: YOUR_API_KEY"
 ```
 
@@ -259,6 +263,7 @@ const updated = await creem.subscriptions.update({
   items: [
     {
       id: "sitem_3l8jhRR2jWWhIBbJrKLwPT", // Item ID from step 1
+      price_id: "pprice_YOUR_PRICE_ID", // Price ID for validation
       units: 5, // New seat count
     },
   ],
@@ -272,6 +277,10 @@ console.log("Subscription updated:", updated);
 
   <Tab title="REST API">
 
+<Warning>
+  If you're in test mode, use `https://test-api.creem.io` instead of `https://api.creem.io`. Learn more about [Test Mode](/getting-started/test-mode).
+</Warning>
+
 ```bash
 curl -X POST https://api.creem.io/v1/subscriptions/sub_YOUR_SUBSCRIPTION_ID \
   -H "x-api-key: YOUR_API_KEY" \
@@ -280,6 +289,7 @@ curl -X POST https://api.creem.io/v1/subscriptions/sub_YOUR_SUBSCRIPTION_ID \
     "items": [
       {
         "id": "sitem_3l8jhRR2jWWhIBbJrKLwPT",
+        "price_id": "pprice_YOUR_PRICE_ID",
         "units": 15
       }
     ]
@@ -319,3 +329,7 @@ The new amount will be charged upon subscription renewal. If you need pro-rata c
 <Warning>
 Remember to validate and track seat usage in your application to ensure customers don't exceed their purchased seat limit.
 </Warning>
+
+<Note>
+**Troubleshooting Update Errors:** If you receive a 404 error with the message "Could not find product or price" when updating subscription seats, ensure you're providing either a valid `price_id` or `product_id` in your request. The `price_id` is recommended as it provides the most specific reference for validation.
+</Note>

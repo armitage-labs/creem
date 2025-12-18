@@ -1468,17 +1468,18 @@
           },
           "product_id": {
             "type": "string",
-            "description": "The ID of the product associated with the subscription item."
+            "description": "The ID of the product associated with the subscription item. Can be used as an alternative to price_id for item validation."
           },
           "price_id": {
             "type": "string",
-            "description": "The ID of the price associated with the subscription item."
+            "description": "The ID of the price associated with the subscription item. Preferred for update operations as it provides the most specific reference."
           },
           "units": {
             "type": "number",
             "description": "The number of units for the subscription item."
           }
-        }
+        },
+        "required": ["price_id"]
       },
       "UpdateSubscriptionRequestEntity": {
         "type": "object",
