@@ -1,6 +1,6 @@
 ---
-title: "Refunds and Cancellations"
-description: "Handle subscription cancellations and process refunds with flexible options for immediate or end-of-period cancellation."
+title: 'Refunds and Cancellations'
+description: 'Handle subscription cancellations and process refunds with flexible options for immediate or end-of-period cancellation.'
 ---
 
 Creem provides flexible options for managing subscription cancellations and processing refunds. You can cancel subscriptions immediately or at the end of the billing period, and process full or partial refunds through the dashboard or API.
@@ -22,19 +22,19 @@ Cancel subscriptions programmatically using the API:
   <Tab title="TypeScript SDK">
 
 ```typescript
-import { createCreem } from "creem_io";
+import { createCreem } from 'creem_io';
 
 const creem = createCreem({
   apiKey: process.env.CREEM_API_KEY!,
-  testMode: process.env.NODE_ENV !== "production",
+  testMode: process.env.NODE_ENV !== 'production',
 });
 
 // Cancel subscription
 const canceled = await creem.subscriptions.cancel({
-  subscriptionId: "sub_YOUR_SUBSCRIPTION_ID",
+  subscriptionId: 'sub_YOUR_SUBSCRIPTION_ID',
 });
 
-console.log("Subscription canceled:", canceled);
+console.log('Subscription canceled:', canceled);
 ```
 
   </Tab>
@@ -51,7 +51,7 @@ export function CancelSubscriptionButton() {
     const confirmed = confirm(
       "Are you sure you want to cancel your subscription?"
     );
-    
+
     if (!confirmed) return;
 
     const { data, error } = await authClient.creem.cancelSubscription();
@@ -75,7 +75,9 @@ export function CancelSubscriptionButton() {
   <Tab title="REST API">
 
 <Warning>
-  If you're in test mode, use `https://test-api.creem.io` instead of `https://api.creem.io`. Learn more about [Test Mode](/getting-started/test-mode).
+  If you're in test mode, use `https://test-api.creem.io` instead of
+  `https://api.creem.io`. Learn more about [Test
+  Mode](/getting-started/test-mode).
 </Warning>
 
 ```bash
@@ -114,9 +116,13 @@ Customers can cancel their own subscriptions through the Customer Portal:
   <Tab title="Next.js">
 
 ```tsx
-import { CreemPortal } from "@creem_io/nextjs";
+import { CreemPortal } from '@creem_io/nextjs';
 
-export function ManageSubscriptionButton({ customerId }: { customerId: string }) {
+export function ManageSubscriptionButton({
+  customerId,
+}: {
+  customerId: string;
+}) {
   return (
     <CreemPortal customerId={customerId}>
       <button>Manage Subscription</button>
@@ -132,7 +138,7 @@ export function ManageSubscriptionButton({ customerId }: { customerId: string })
 ```typescript
 // Create customer portal link
 const portal = await creem.customers.createPortal({
-  customerId: "cust_YOUR_CUSTOMER_ID",
+  customerId: 'cust_YOUR_CUSTOMER_ID',
 });
 
 // Redirect customer to portal
@@ -213,7 +219,8 @@ When you process a refund:
 - **5-10 business days** - Funds typically appear in customer's account within 5-10 business days
 
 <Note>
-Refund availability depends on the payment method and may vary by region. Credit card refunds are generally processed within 5-10 business days.
+  Refund availability depends on the payment method and may vary by region.
+  Credit card refunds are generally processed within 5-10 business days.
 </Note>
 
 ---
@@ -240,7 +247,7 @@ Refund availability depends on the payment method and may vary by region. Credit
 ### Cancellation Flow Example
 
 ```typescript
-import { createCreem } from "creem_io";
+import { createCreem } from 'creem_io';
 
 const creem = createCreem({
   apiKey: process.env.CREEM_API_KEY!,
@@ -262,12 +269,12 @@ async function handleCancellation(subscriptionId: string, reason?: string) {
     // Update internal database
     await db.subscription.update({
       where: { id: subscriptionId },
-      data: { status: "canceled", canceledAt: new Date() },
+      data: { status: 'canceled', canceledAt: new Date() },
     });
 
     return { success: true, subscription: canceled };
   } catch (error) {
-    console.error("Cancellation failed:", error);
+    console.error('Cancellation failed:', error);
     throw error;
   }
 }
@@ -284,21 +291,21 @@ Use webhooks to automatically respond to cancellation events:
 
 ```typescript
 // app/api/webhook/creem/route.ts
-import { Webhook } from "@creem_io/nextjs";
+import { Webhook } from '@creem_io/nextjs';
 
 export const POST = Webhook({
   webhookSecret: process.env.CREEM_WEBHOOK_SECRET!,
   onSubscriptionCanceled: async ({ subscription, customer }) => {
     console.log(`Subscription ${subscription.id} canceled`);
-    
+
     // Revoke access in your database
     await revokeAccess(customer.email);
-    
+
     // Send cancellation confirmation email
     await sendEmail({
       to: customer.email,
-      subject: "Subscription Canceled",
-      body: "Your subscription has been canceled...",
+      subject: 'Subscription Canceled',
+      body: 'Your subscription has been canceled...',
     });
   },
 });
@@ -309,7 +316,7 @@ export const POST = Webhook({
   <Tab title="TypeScript SDK">
 
 ```typescript
-import { createCreem } from "creem_io";
+import { createCreem } from 'creem_io';
 
 const creem = createCreem({
   apiKey: process.env.CREEM_API_KEY!,
@@ -319,17 +326,17 @@ const creem = createCreem({
 // In your webhook endpoint
 await creem.webhooks.handleEvents(
   request.body,
-  request.headers["creem-signature"],
+  request.headers['creem-signature'],
   {
     onSubscriptionCanceled: async (data) => {
       const { subscription, customer } = data;
-      
+
       console.log(`Subscription ${subscription.id} canceled`);
-      
+
       // Revoke access
       await revokeAccess(customer.email);
     },
-    
+
     onRevokeAccess: async (context) => {
       // Simplified access management
       const userId = context.metadata?.userId;
@@ -345,11 +352,7 @@ await creem.webhooks.handleEvents(
   </Tab>
 </Tabs>
 
-<Card
-  title="Webhooks"
-  icon="webhook"
-  href="/code/webhooks"
->
+<Card title="Webhooks" icon="webhook" href="/code/webhooks">
   Learn more about handling subscription events with webhooks.
 </Card>
 
@@ -373,20 +376,20 @@ When a subscription payment fails:
 // Handle failed payment webhook
 await creem.webhooks.handleEvents(
   request.body,
-  request.headers["creem-signature"],
+  request.headers['creem-signature'],
   {
     onSubscriptionPastDue: async (data) => {
       const { subscription, customer } = data;
-      
+
       // Notify customer to update payment method
       await sendPaymentFailedEmail(customer.email, {
         portalLink: `https://yoursite.com/portal?customer=${customer.id}`,
       });
-      
+
       // Optionally restrict access or show warning
       await showPaymentWarning(customer.email);
     },
-    
+
     onSubscriptionCanceled: async (data) => {
       // After all retries failed
       await revokeAccess(data.customer.email);
@@ -408,11 +411,7 @@ await creem.webhooks.handleEvents(
   >
     Enable self-service subscription management
   </Card>
-  <Card
-    title="Webhooks"
-    icon="webhook"
-    href="/code/webhooks"
-  >
+  <Card title="Webhooks" icon="webhook" href="/code/webhooks">
     Handle subscription events automatically
   </Card>
   <Card

@@ -3,8 +3,6 @@ title: 'Seat Based Billing'
 description: 'Seat Based Billing in Creem enables you to charge customers based on the number of seats or users they need, supporting both one-time payments and subscription models. This documentation explains how to implement and manage seat-based billing for your products.'
 ---
 
-
-
 ## Understanding Seat Based Billing
 
 Seat Based Billing allows you to set a per-seat price for your product and let customers purchase multiple seats. This is particularly useful for team-based products, enterprise software, or any service where pricing scales with the number of users.
@@ -33,9 +31,9 @@ To implement Seat Based Billing:
   <Tab title="Next.js">
 
 ```tsx
-"use client"; // Optional: Works with server components
+'use client'; // Optional: Works with server components
 
-import { CreemCheckout } from "@creem_io/nextjs";
+import { CreemCheckout } from '@creem_io/nextjs';
 
 export function SeatBasedCheckout({ seatCount }: { seatCount: number }) {
   return (
@@ -50,11 +48,7 @@ export function SeatBasedCheckout({ seatCount }: { seatCount: number }) {
 }
 ```
 
-<Card
-  title="Next.js SDK Documentation"
-  icon="react"
-  href="/code/sdks/nextjs"
->
+<Card title="Next.js SDK Documentation" icon="react" href="/code/sdks/nextjs">
   Learn more about the Next.js adapter and advanced features.
 </Card>
 
@@ -63,18 +57,18 @@ export function SeatBasedCheckout({ seatCount }: { seatCount: number }) {
   <Tab title="TypeScript SDK">
 
 ```typescript
-import { createCreem } from "creem_io";
+import { createCreem } from 'creem_io';
 
 const creem = createCreem({
   apiKey: process.env.CREEM_API_KEY!,
-  testMode: process.env.NODE_ENV !== "production",
+  testMode: process.env.NODE_ENV !== 'production',
 });
 
 // Create a checkout session with multiple seats
 const checkout = await creem.checkouts.create({
-  productId: "prod_YOUR_PRODUCT_ID",
+  productId: 'prod_YOUR_PRODUCT_ID',
   units: 5, // Number of seats to purchase
-  successUrl: "https://yoursite.com/success",
+  successUrl: 'https://yoursite.com/success',
 });
 
 // Redirect to the checkout URL
@@ -98,10 +92,10 @@ console.log(checkout.checkout_url);
 
 import { authClient } from "@/lib/auth-client";
 
-export function SeatBasedCheckout({ 
-  productId, 
-  seatCount 
-}: { 
+export function SeatBasedCheckout({
+  productId,
+  seatCount
+}: {
   productId: string;
   seatCount: number;
 }) {
@@ -125,11 +119,7 @@ export function SeatBasedCheckout({
 }
 ```
 
-<Card
-  title="Better Auth Integration"
-  icon="lock"
-  href="/code/sdks/better-auth"
->
+<Card title="Better Auth Integration" icon="lock" href="/code/sdks/better-auth">
   Learn about database persistence and automatic user synchronization.
 </Card>
 
@@ -138,7 +128,9 @@ export function SeatBasedCheckout({
   <Tab title="REST API">
 
 <Warning>
-  If you're in test mode, use `https://test-api.creem.io` instead of `https://api.creem.io`. Learn more about [Test Mode](/getting-started/test-mode).
+  If you're in test mode, use `https://test-api.creem.io` instead of
+  `https://api.creem.io`. Learn more about [Test
+  Mode](/getting-started/test-mode).
 </Warning>
 
 ```bash
@@ -196,21 +188,21 @@ First, retrieve the subscription to get the subscription item ID:
   <Tab title="TypeScript SDK">
 
 ```typescript
-import { createCreem } from "creem_io";
+import { createCreem } from 'creem_io';
 
 const creem = createCreem({
   apiKey: process.env.CREEM_API_KEY!,
-  testMode: process.env.NODE_ENV !== "production",
+  testMode: process.env.NODE_ENV !== 'production',
 });
 
 // Get subscription details
 const subscription = await creem.subscriptions.get({
-  subscriptionId: "sub_YOUR_SUBSCRIPTION_ID",
+  subscriptionId: 'sub_YOUR_SUBSCRIPTION_ID',
 });
 
 // Extract the subscription item ID
 const itemId = subscription.items[0].id;
-console.log("Item ID:", itemId);
+console.log('Item ID:', itemId);
 ```
 
   </Tab>
@@ -218,7 +210,9 @@ console.log("Item ID:", itemId);
   <Tab title="REST API">
 
 <Warning>
-  If you're in test mode, use `https://test-api.creem.io` instead of `https://api.creem.io`. Learn more about [Test Mode](/getting-started/test-mode).
+  If you're in test mode, use `https://test-api.creem.io` instead of
+  `https://api.creem.io`. Learn more about [Test
+  Mode](/getting-started/test-mode).
 </Warning>
 
 ```bash
@@ -259,18 +253,18 @@ Use the subscription item ID to update the number of seats:
 ```typescript
 // Update the subscription to 15 seats
 const updated = await creem.subscriptions.update({
-  subscriptionId: "sub_YOUR_SUBSCRIPTION_ID",
+  subscriptionId: 'sub_YOUR_SUBSCRIPTION_ID',
   items: [
     {
-      id: "sitem_3l8jhRR2jWWhIBbJrKLwPT", // Item ID from step 1
-      price_id: "pprice_YOUR_PRICE_ID", // Price ID for validation
+      id: 'sitem_3l8jhRR2jWWhIBbJrKLwPT', // Item ID from step 1
+      price_id: 'pprice_YOUR_PRICE_ID', // Price ID for validation
       units: 5, // New seat count
     },
   ],
-  updateBehavior: "proration-charge-immediately", // Optional
+  updateBehavior: 'proration-charge-immediately', // Optional
 });
 
-console.log("Subscription updated:", updated);
+console.log('Subscription updated:', updated);
 ```
 
   </Tab>
@@ -278,7 +272,9 @@ console.log("Subscription updated:", updated);
   <Tab title="REST API">
 
 <Warning>
-  If you're in test mode, use `https://test-api.creem.io` instead of `https://api.creem.io`. Learn more about [Test Mode](/getting-started/test-mode).
+  If you're in test mode, use `https://test-api.creem.io` instead of
+  `https://api.creem.io`. Learn more about [Test
+  Mode](/getting-started/test-mode).
 </Warning>
 
 ```bash
@@ -303,12 +299,11 @@ curl -X POST https://api.creem.io/v1/subscriptions/sub_YOUR_SUBSCRIPTION_ID \
 </Steps>
 
 <Note>
-**Update Behavior Options:**
-- `proration-charge-immediately`: Calculate proration and charge immediately
-- `proration-charge`: Calculate proration and charge at next billing cycle  
-- `proration-none`: No proration, just update the seat count
+  **Update Behavior Options:** - `proration-charge-immediately`: Calculate
+  proration and charge immediately - `proration-charge`: Calculate proration and
+  charge at next billing cycle - `proration-none`: No proration, just update the
+  seat count
 </Note>
-
 
 ### Manual subscription changes through the Creem Dashboard
 
@@ -316,20 +311,25 @@ You can also modify subscription seats through your Creem Dashboard as a merchan
 Simply click on a subscription, and upon the details sheet opening, click on the "Modify Subscription" button
 
 <Frame>
-    <img
-      style={{ borderRadius: '0.5rem' }}
-      src="https://nucn5fajkcc6sgrd.public.blob.vercel-storage.com/Screenshot%202025-01-10%20at%2015.56.28-aOLgNWFNoWZLLpytZ5Y5H94HMl8rxb.png"
-    />
-    </Frame>
+  <img
+    style={{ borderRadius: '0.5rem' }}
+    src="https://nucn5fajkcc6sgrd.public.blob.vercel-storage.com/Screenshot%202025-01-10%20at%2015.56.28-aOLgNWFNoWZLLpytZ5Y5H94HMl8rxb.png"
+  />
+</Frame>
 
 ### Billing after subscription updates
 
 The new amount will be charged upon subscription renewal. If you need pro-rata charges or different use cases, contact the Creem team.
 
 <Warning>
-Remember to validate and track seat usage in your application to ensure customers don't exceed their purchased seat limit.
+  Remember to validate and track seat usage in your application to ensure
+  customers don't exceed their purchased seat limit.
 </Warning>
 
 <Note>
-**Troubleshooting Update Errors:** If you receive a 404 error with the message "Could not find product or price" when updating subscription seats, ensure you're providing either a valid `price_id` or `product_id` in your request. The `price_id` is recommended as it provides the most specific reference for validation.
+  **Troubleshooting Update Errors:** If you receive a 404 error with the message
+  "Could not find product or price" when updating subscription seats, ensure
+  you're providing either a valid `price_id` or `product_id` in your request.
+  The `price_id` is recommended as it provides the most specific reference for
+  validation.
 </Note>

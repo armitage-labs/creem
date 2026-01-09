@@ -2,6 +2,7 @@
 title: Typescript SDK
 description: Type-safe SDK for the Creem API – manage SaaS subscriptions, products, and revenue in TypeScript/Node.js environments.
 ---
+
 ## Installation
 
 Install with your preferred package manager:
@@ -31,7 +32,7 @@ bun add creem_io
 ## Quick Start
 
 ```ts
-import { createCreem } from "creem_io";
+import { createCreem } from 'creem_io';
 
 const creem = createCreem({
   apiKey: process.env.CREEM_API_KEY!,
@@ -41,20 +42,19 @@ const creem = createCreem({
 
 // Retrieve a product
 const product = await creem.products.get({
-  productId: "prod_7CIbZEZnRC5DWibmoOboOu",
+  productId: 'prod_7CIbZEZnRC5DWibmoOboOu',
 });
 console.log(product);
 
 // Create a checkout session
 const checkout = await creem.checkouts.create({
-  productId: "prod_xxxxx",
-  successUrl: "https://yourapp.com/success",
+  productId: 'prod_xxxxx',
+  successUrl: 'https://yourapp.com/success',
   metadata: {
-    userId: "user_123",
+    userId: 'user_123',
   },
 });
 console.log(checkout.checkoutUrl); // Redirect user to this URL
-
 ```
 
 ---
@@ -85,24 +85,24 @@ const products = await creem.products.list({
 
 // Get a product
 const product = await creem.products.get({
-  productId: "prod_7CIbb...",
+  productId: 'prod_7CIbb...',
 });
 
 // Create a product
 creem.products.create({
-  name: "Test Product",
-  description: "Test Product Description",
+  name: 'Test Product',
+  description: 'Test Product Description',
   price: 1000, // In cents
-  currency: "USD",
-  billingType: "recurring",
-  billingPeriod: "every-month",
-})
+  currency: 'USD',
+  billingType: 'recurring',
+  billingPeriod: 'every-month',
+});
 
 // Search products
 const products = await creem.products.list({
   page: 1,
   limit: 10,
-})
+});
 ```
 
 ### Checkouts
@@ -110,25 +110,25 @@ const products = await creem.products.list({
 ```ts
 // Create a checkout session
 const checkout = await creem.checkouts.create({
-  productId: "prod_xxxxx",
+  productId: 'prod_xxxxx',
   units: 2, // Optional: Number of units (default: 1)
-  discountCode: "SUMMER2024", // Optional: Apply discount
+  discountCode: 'SUMMER2024', // Optional: Apply discount
   customer: {
-    email: "customer@example.com", // Optional: Pre-fill customer info
+    email: 'customer@example.com', // Optional: Pre-fill customer info
   },
   customField: [
     // Optional: Max 3 custom fields
     {
-      key: "company",
-      label: "Company Name",
-      type: "text",
+      key: 'company',
+      label: 'Company Name',
+      type: 'text',
       optional: false,
     },
   ],
-  successUrl: "https://yourapp.com/success",
+  successUrl: 'https://yourapp.com/success',
   metadata: {
-    userId: "user_123",
-    source: "web",
+    userId: 'user_123',
+    source: 'web',
   },
 });
 
@@ -136,7 +136,7 @@ console.log(checkout.checkoutUrl); // Redirect user to this URL
 
 // Get a checkout session
 const retrievedCheckout = await creem.checkouts.get({
-  checkoutId: "chck_1234567890",
+  checkoutId: 'chck_1234567890',
 });
 ```
 
@@ -151,17 +151,17 @@ const customers = await creem.customers.list({
 
 // Get a customer by ID
 const customer = await creem.customers.get({
-  customerId: "cust_abc123",
+  customerId: 'cust_abc123',
 });
 
 // Get a customer by email
 const customerByEmail = await creem.customers.get({
-  email: "customer@example.com",
+  email: 'customer@example.com',
 });
 
 // Create customer portal link
 const portal = await creem.customers.createPortal({
-  customerId: "cust_abc123",
+  customerId: 'cust_abc123',
 });
 
 console.log(portal.customerPortalLink); // Redirect user to portal
@@ -172,39 +172,39 @@ console.log(portal.customerPortalLink); // Redirect user to portal
 ```ts
 // Get a subscription
 const subscription = await creem.subscriptions.get({
-  subscriptionId: "sub_abc123",
+  subscriptionId: 'sub_abc123',
 });
 
 // Cancel a subscription
 const canceledSubscription = await creem.subscriptions.cancel({
-  subscriptionId: "sub_abc123",
+  subscriptionId: 'sub_abc123',
 });
 
 // Update a subscription (change units/seats)
 const updated = await creem.subscriptions.update({
-  subscriptionId: "sub_abc123",
+  subscriptionId: 'sub_abc123',
   items: [
     {
-      id: "item_abc123", // Subscription item ID
+      id: 'item_abc123', // Subscription item ID
       units: 5, // Update to 5 seats
     },
   ],
-  updateBehavior: "proration-charge-immediately",
+  updateBehavior: 'proration-charge-immediately',
 });
 
 // Upgrade a subscription to a different product
 const upgraded = await creem.subscriptions.upgrade({
-  subscriptionId: "sub_abc123",
-  productId: "prod_premium", // New product ID
-  updateBehavior: "proration-charge-immediately",
+  subscriptionId: 'sub_abc123',
+  productId: 'prod_premium', // New product ID
+  updateBehavior: 'proration-charge-immediately',
 });
 ```
 
 <Note>
-**Update Behavior Options:**
-- `proration-charge-immediately`: Calculate proration and charge immediately
-- `proration-charge`: Calculate proration and charge at next billing cycle
-- `proration-none`: No proration, just switch the plan
+  **Update Behavior Options:** - `proration-charge-immediately`: Calculate
+  proration and charge immediately - `proration-charge`: Calculate proration and
+  charge at next billing cycle - `proration-none`: No proration, just switch the
+  plan
 </Note>
 
 ### Licenses
@@ -212,24 +212,24 @@ const upgraded = await creem.subscriptions.upgrade({
 ```ts
 // Activate a license
 const license = await creem.licenses.activate({
-  key: "license_key_here",
-  instanceName: "Production Server",
+  key: 'license_key_here',
+  instanceName: 'Production Server',
 });
 
 console.log(license.instance?.id); // Use this instance ID for validation
 
 // Validate a license
 const validatedLicense = await creem.licenses.validate({
-  key: "license_key_here",
-  instanceId: "inst_abc123",
+  key: 'license_key_here',
+  instanceId: 'inst_abc123',
 });
 
 console.log(validatedLicense.status); // "active" | "inactive" | "expired" | "disabled"
 
 // Deactivate a license
 const deactivatedLicense = await creem.licenses.deactivate({
-  key: "license_key_here",
-  instanceId: "inst_abc123",
+  key: 'license_key_here',
+  instanceId: 'inst_abc123',
 });
 ```
 
@@ -238,27 +238,27 @@ const deactivatedLicense = await creem.licenses.deactivate({
 ```ts
 // Create a discount code
 const discount = await creem.discounts.create({
-  name: "Summer Sale 2024",
-  code: "SUMMER2024", // Optional: Auto-generated if not provided
-  type: "percentage",
+  name: 'Summer Sale 2024',
+  code: 'SUMMER2024', // Optional: Auto-generated if not provided
+  type: 'percentage',
   percentage: 20, // 20% off
-  duration: "forever", // "forever" | "once" | "repeating"
+  duration: 'forever', // "forever" | "once" | "repeating"
   maxRedemptions: 100,
 });
 
 // Retrieve a discount by ID
 const discount = await creem.discounts.get({
-  discountId: "disc_xxxxx",
+  discountId: 'disc_xxxxx',
 });
 
 // Retrieve a discount by code
 const discountByCode = await creem.discounts.get({
-  discountCode: "SUMMER2024",
+  discountCode: 'SUMMER2024',
 });
 
 // Delete a discount
 await creem.discounts.delete({
-  discountId: "disc_xxxxx",
+  discountId: 'disc_xxxxx',
 });
 ```
 
@@ -267,12 +267,12 @@ await creem.discounts.delete({
 ```ts
 // Get a transaction
 const transaction = await creem.transactions.get({
-  transactionId: "txn_xxxxx",
+  transactionId: 'txn_xxxxx',
 });
 
 // List transactions
 const transactions = await creem.transactions.list({
-  customerId: "cust_xxxxx", // Optional: filter by customer
+  customerId: 'cust_xxxxx', // Optional: filter by customer
   page: 1,
   limit: 50,
 });
@@ -287,7 +287,7 @@ Handle Creem webhook events in your application. The SDK provides automatic sign
 ### Basic Webhook Setup
 
 ```ts
-import { createCreem } from "creem_io";
+import { createCreem } from 'creem_io';
 
 const creem = createCreem({
   apiKey: process.env.CREEM_API_KEY!,
@@ -295,22 +295,22 @@ const creem = createCreem({
 });
 
 // In your webhook endpoint
-app.post("/webhook", async (req, res) => {
+app.post('/webhook', async (req, res) => {
   try {
     await creem.webhooks.handleEvents(
       req.body, // raw body as string
-      req.headers["creem-signature"],
+      req.headers['creem-signature'],
       {
         onCheckoutCompleted: async (data) => {
-          console.log("Checkout completed:", data.customer?.email);
+          console.log('Checkout completed:', data.customer?.email);
         },
-        
+
         onGrantAccess: async (context) => {
           // Grant user access when subscription is active/trialing/paid
           const userId = context.metadata?.userId;
           await grantUserAccess(userId);
         },
-        
+
         onRevokeAccess: async (context) => {
           // Revoke access when subscription is paused/expired
           const userId = context.metadata?.userId;
@@ -318,11 +318,11 @@ app.post("/webhook", async (req, res) => {
         },
       }
     );
-    
-    res.status(200).send("OK");
+
+    res.status(200).send('OK');
   } catch (error) {
-    console.error("Webhook error:", error);
-    res.status(400).send("Invalid signature");
+    console.error('Webhook error:', error);
+    res.status(400).send('Invalid signature');
   }
 });
 ```
@@ -335,24 +335,24 @@ The `onGrantAccess` and `onRevokeAccess` callbacks simplify subscription access 
 onGrantAccess: async ({ reason, customer, product, metadata }) => {
   // Called for: subscription.active, subscription.trialing, subscription.paid
   const userId = metadata?.userId as string;
-  
+
   await db.user.update({
     where: { id: userId },
     data: { subscriptionActive: true },
   });
-  
+
   console.log(`Granted ${reason} to ${customer.email}`);
 },
 
 onRevokeAccess: async ({ reason, customer, product, metadata }) => {
   // Called for: subscription.paused, subscription.expired
   const userId = metadata?.userId as string;
-  
+
   await db.user.update({
     where: { id: userId },
     data: { subscriptionActive: false },
   });
-  
+
   console.log(`Revoked access (${reason}) from ${customer.email}`);
 },
 ```
@@ -363,11 +363,11 @@ onRevokeAccess: async ({ reason, customer, product, metadata }) => {
 await creem.webhooks.handleEvents(body, signature, {
   // Checkout events
   onCheckoutCompleted: async (data) => {},
-  
+
   // Access management (simplified)
   onGrantAccess: async (context) => {},
   onRevokeAccess: async (context) => {},
-  
+
   // Individual subscription events
   onSubscriptionActive: async (data) => {},
   onSubscriptionTrialing: async (data) => {},
@@ -378,7 +378,7 @@ await creem.webhooks.handleEvents(body, signature, {
   onSubscriptionPastDue: async (data) => {},
   onSubscriptionPaused: async (data) => {},
   onSubscriptionUpdate: async (data) => {},
-  
+
   // Other events
   onRefundCreated: async (data) => {},
   onDisputeCreated: async (data) => {},
@@ -394,8 +394,8 @@ import { NextRequest } from "next/server";
 import { createCreem } from "creem_io";
 
 const creem = createCreem({
-  apiKey: process.env.CREEM_API_KEY!,
-  webhookSecret: process.env.CREEM_WEBHOOK_SECRET!,
+apiKey: process.env.CREEM_API_KEY!,
+webhookSecret: process.env.CREEM_WEBHOOK_SECRET!,
 });
 
 export async function POST(req: NextRequest) {
@@ -413,13 +413,15 @@ export async function POST(req: NextRequest) {
     });
 
     return new Response("OK", { status: 200 });
-  } catch (error) {
-    return new Response("Invalid signature", { status: 400 });
-  }
+
+} catch (error) {
+return new Response("Invalid signature", { status: 400 });
 }
-```
+}
+
+````
   </Tab>
-  
+
   <Tab title="Express">
 ```ts
 import express from "express";
@@ -444,7 +446,8 @@ app.post(
     }
   }
 );
-```
+````
+
   </Tab>
   
   <Tab title="Fastify">
@@ -482,11 +485,13 @@ app.post("/webhook", async (c) => {
     });
 
     return c.text("OK");
-  } catch (error) {
-    return c.text("Invalid signature", 400);
-  }
+
+} catch (error) {
+return c.text("Invalid signature", 400);
+}
 });
-```
+
+````
   </Tab>
 </Tabs>
 
@@ -511,7 +516,7 @@ import type {
   GrantAccessContext,
   RevokeAccessContext,
 } from "creem_io";
-```
+````
 
 All API responses are fully typed, and the SDK automatically converts snake_case to camelCase for better TypeScript/JavaScript experience.
 
@@ -524,10 +529,10 @@ The SDK throws errors when API calls fail. Always wrap SDK calls in try-catch bl
 ```ts
 try {
   const product = await creem.products.get({
-    productId: "prod_xxxxx",
+    productId: 'prod_xxxxx',
   });
 } catch (error) {
-  console.error("Failed to retrieve product:", error);
+  console.error('Failed to retrieve product:', error);
   // Handle error appropriately
 }
 ```
@@ -543,4 +548,4 @@ try {
 
 ---
 
-> For feedback or issues, open a PR or issue on the [Creem SDK GitHub](https://github.com/armitage-labs/creem_io). 
+> For feedback or issues, open a PR or issue on the [Creem SDK GitHub](https://github.com/armitage-labs/creem_io).

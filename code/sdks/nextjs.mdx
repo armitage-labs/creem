@@ -1,23 +1,23 @@
 ---
-title: "Next.js Adapter"
-description: "Use our Next.js adapter to smoothly build end-to-end Creem billing flows."
+title: 'Next.js Adapter'
+description: 'Use our Next.js adapter to smoothly build end-to-end Creem billing flows.'
 ---
 
 <Frame>
-  <div style={{ textAlign: "center", padding: "1rem 1rem 2.5rem 1rem" }}>
-    <div style={{ display: "flex", justifyContent: "center" }}>
+  <div style={{ textAlign: 'center', padding: '1rem 1rem 2.5rem 1rem' }}>
+    <div style={{ display: 'flex', justifyContent: 'center' }}>
       <h1
         style={{
-          fontSize: "2rem",
-          marginBottom: "0.5rem",
-          textAlign: "center",
-          display: "inline-block",
+          fontSize: '2rem',
+          marginBottom: '0.5rem',
+          textAlign: 'center',
+          display: 'inline-block',
         }}
       >
         @creem_io/nextjs
       </h1>
     </div>
-    <p style={{ fontSize: "1.1rem", color: "var(--mint-color-muted)" }}>
+    <p style={{ fontSize: '1.1rem', color: 'var(--mint-color-muted)' }}>
       The simplest way to integrate Creem payments into your Next.js
       application.
     </p>
@@ -25,10 +25,10 @@ description: "Use our Next.js adapter to smoothly build end-to-end Creem billing
       Build beautiful checkout experiences with React components, handle
       webhooks with ease, and manage subscriptions without the headache.
     </p>
-    <div style={{ marginTop: "1rem" }}>
-      <a href="#installation">Installation</a> ·{" "}
-      <a href="#quick-start">Quick Start</a> ·{" "}
-      <a href="#components">Components</a> ·{" "}
+    <div style={{ marginTop: '1rem' }}>
+      <a href="#installation">Installation</a> ·{' '}
+      <a href="#quick-start">Quick Start</a> ·{' '}
+      <a href="#components">Components</a> ·{' '}
       <a href="#server-functions">Server Functions</a>
     </div>
   </div>
@@ -98,12 +98,12 @@ CREEM_WEBHOOK_SECRET=your_webhook_secret_here
 
 ```ts
 // app/checkout/route.ts
-import { Checkout } from "@creem_io/nextjs";
+import { Checkout } from '@creem_io/nextjs';
 
 export const GET = Checkout({
   apiKey: process.env.CREEM_API_KEY!,
   testMode: true, // flip to false in production
-  defaultSuccessUrl: "/thank-you",
+  defaultSuccessUrl: '/thank-you',
 });
 ```
 
@@ -111,9 +111,9 @@ export const GET = Checkout({
 
 ```tsx
 // page.tsx
-"use client"; // Optional: Works with server side components
+'use client'; // Optional: Works with server side components
 
-import { CreemCheckout } from "@creem_io/nextjs";
+import { CreemCheckout } from '@creem_io/nextjs';
 
 export default function SubscribeButton() {
   return (
@@ -128,7 +128,7 @@ export default function SubscribeButton() {
 
 ```ts
 // app/api/webhook/creem/route.ts
-import { Webhook } from "@creem_io/nextjs";
+import { Webhook } from '@creem_io/nextjs';
 
 export const POST = Webhook({
   webhookSecret: process.env.CREEM_WEBHOOK_SECRET!,
@@ -157,15 +157,15 @@ Creates a checkout link and delegates session creation to your `/checkout` route
 
 ```tsx
 // page.tsx
-import { CreemCheckout } from "@creem_io/nextjs";
+import { CreemCheckout } from '@creem_io/nextjs';
 
 <CreemCheckout
   productId="prod_abc123"
   units={2}
   discountCode="SUMMER2024"
-  customer={{ email: "user@example.com", name: "John Doe" }}
+  customer={{ email: 'user@example.com', name: 'John Doe' }}
   successUrl="/thank-you"
-  metadata={{ orderId: "12345", source: "web" }}
+  metadata={{ orderId: '12345', source: 'web' }}
   referenceId="user_123"
 >
   <button>Buy Now</button>
@@ -178,7 +178,7 @@ Generate a customer portal link for managing billing:
 
 ```tsx
 // page.tsx
-import { CreemPortal } from "@creem_io/nextjs";
+import { CreemPortal } from '@creem_io/nextjs';
 
 <CreemPortal customerId="cust_abc123">Manage Subscription</CreemPortal>;
 ```
@@ -195,8 +195,8 @@ Creates a GET route handler that issues checkout sessions.
 // app/checkout/route.ts
 export const GET = Checkout({
   apiKey: process.env.CREEM_API_KEY!,
-  defaultSuccessUrl: "/success",
-  testMode: process.env.NODE_ENV !== "production",
+  defaultSuccessUrl: '/success',
+  testMode: process.env.NODE_ENV !== 'production',
 });
 ```
 

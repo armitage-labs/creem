@@ -1,6 +1,6 @@
 ---
-title: "Checkout API"
-description: "Create dynamic checkout sessions programmatically with full control over payment flow and tracking."
+title: 'Checkout API'
+description: 'Create dynamic checkout sessions programmatically with full control over payment flow and tracking.'
 ---
 
 Checkout sessions give you programmatic control over the payment flow. Unlike static payment links, checkout sessions are generated dynamically, allowing you to:
@@ -19,7 +19,9 @@ Before creating checkout sessions, you'll need:
 - **At least one product** created in your dashboard
 
 <Tip>
-  Find your product ID by going to the [Products tab](https://creem.io/dashboard/products), clicking on a product, and selecting "Copy ID" from the options menu.
+  Find your product ID by going to the [Products
+  tab](https://creem.io/dashboard/products), clicking on a product, and
+  selecting "Copy ID" from the options menu.
 </Tip>
 
 ## Creating a Checkout Session
@@ -56,12 +58,12 @@ bun install @creem_io/nextjs
 
 ```ts
 // app/api/checkout/route.ts
-import { Checkout } from "@creem_io/nextjs";
+import { Checkout } from '@creem_io/nextjs';
 
 export const GET = Checkout({
   apiKey: process.env.CREEM_API_KEY!,
-  testMode: process.env.NODE_ENV !== "production",
-  defaultSuccessUrl: "/success",
+  testMode: process.env.NODE_ENV !== 'production',
+  defaultSuccessUrl: '/success',
 });
 ```
 
@@ -69,9 +71,9 @@ export const GET = Checkout({
 
 ```tsx
 // app/page.tsx
-"use client"; // Optional: CreemCheckout also works in Server Components
+'use client'; // Optional: CreemCheckout also works in Server Components
 
-import { CreemCheckout } from "@creem_io/nextjs";
+import { CreemCheckout } from '@creem_io/nextjs';
 
 export function CheckoutButton() {
   return (
@@ -87,11 +89,7 @@ export function CheckoutButton() {
 
 The `CreemCheckout` component automatically handles the checkout session creation and redirects the user to the payment page.
 
-<Card
-  title="Next.js SDK Documentation"
-  icon="react"
-  href="/code/sdks/nextjs"
->
+<Card title="Next.js SDK Documentation" icon="react" href="/code/sdks/nextjs">
   Explore advanced features, server components, and webhook handling.
 </Card>
 
@@ -125,20 +123,20 @@ bun install creem_io
 ### Create a checkout session
 
 ```typescript
-import { createCreem } from "creem_io";
+import { createCreem } from 'creem_io';
 
 const creem = createCreem({
   apiKey: process.env.CREEM_API_KEY!,
-  testMode: process.env.NODE_ENV !== "production",
+  testMode: process.env.NODE_ENV !== 'production',
 });
 
 // Create a checkout session
 const checkout = await creem.checkouts.create({
-  productId: "prod_YOUR_PRODUCT_ID",
-  requestId: "order_123", // Optional: Track this payment
-  successUrl: "https://yoursite.com/success",
+  productId: 'prod_YOUR_PRODUCT_ID',
+  requestId: 'order_123', // Optional: Track this payment
+  successUrl: 'https://yoursite.com/success',
   customer: {
-    email: "customer@example.com", // Optional: Pre-fill email
+    email: 'customer@example.com', // Optional: Pre-fill email
   },
 });
 
@@ -170,8 +168,8 @@ npm install @creem_io/better-auth better-auth
 
 ```typescript
 // auth.ts
-import { betterAuth } from "better-auth";
-import { creem } from "@creem_io/better-auth";
+import { betterAuth } from 'better-auth';
+import { creem } from '@creem_io/better-auth';
 
 export const auth = betterAuth({
   database: {
@@ -180,8 +178,8 @@ export const auth = betterAuth({
   plugins: [
     creem({
       apiKey: process.env.CREEM_API_KEY!,
-      testMode: process.env.NODE_ENV !== "production",
-      defaultSuccessUrl: "/dashboard",
+      testMode: process.env.NODE_ENV !== 'production',
+      defaultSuccessUrl: '/dashboard',
     }),
   ],
 });
@@ -191,8 +189,8 @@ export const auth = betterAuth({
 
 ```typescript
 // lib/auth-client.ts
-import { createAuthClient } from "better-auth/react";
-import { creemClient } from "@creem_io/better-auth/client";
+import { createAuthClient } from 'better-auth/react';
+import { creemClient } from '@creem_io/better-auth/client';
 
 export const authClient = createAuthClient({
   baseURL: process.env.NEXT_PUBLIC_APP_URL,
@@ -225,11 +223,7 @@ export function CheckoutButton({ productId }: { productId: string }) {
 
 The Better Auth integration automatically tracks the authenticated user and syncs subscription status with your database.
 
-<Card
-  title="Better Auth Integration"
-  icon="lock"
-  href="/code/sdks/better-auth"
->
+<Card title="Better Auth Integration" icon="lock" href="/code/sdks/better-auth">
   Learn about database persistence, access management, and webhook handling.
 </Card>
 
@@ -241,7 +235,9 @@ The Better Auth integration automatically tracks the authenticated user and sync
 ### Create a checkout session
 
 <Warning>
-  If you're in test mode, use `https://test-api.creem.io` instead of `https://api.creem.io`. Learn more about [Test Mode](/getting-started/test-mode).
+  If you're in test mode, use `https://test-api.creem.io` instead of
+  `https://api.creem.io`. Learn more about [Test
+  Mode](/getting-started/test-mode).
 </Warning>
 
 ```bash
@@ -287,18 +283,19 @@ After a successful payment, users are redirected to your `success_url` with paym
 https://yoursite.com/success?checkout_id=ch_xxx&order_id=ord_xxx&customer_id=cust_xxx&product_id=prod_xxx
 ```
 
-| Query parameter   | Description                                                                                     |
-| ----------------- | ---------------------------------------------------------------------------------------------- |
-| `checkout_id`     | The ID of the checkout session created for this payment.                                       |
-| `order_id`        | The ID of the order created after successful payment.                                          |
-| `customer_id`     | The customer ID, based on the email that executed the successful payment.                      |
-| `subscription_id` | The subscription ID of the product.                                                            |
-| `product_id`      | The product ID that the payment is related to.                                                 |
-| `request_id`      | Optional. The request/reference ID you provided when creating this checkout.                     |
-| `signature`       | All previous parameters signed by creem using your API-key, verifiable by you.                 |
+| Query parameter   | Description                                                                    |
+| ----------------- | ------------------------------------------------------------------------------ |
+| `checkout_id`     | The ID of the checkout session created for this payment.                       |
+| `order_id`        | The ID of the order created after successful payment.                          |
+| `customer_id`     | The customer ID, based on the email that executed the successful payment.      |
+| `subscription_id` | The subscription ID of the product.                                            |
+| `product_id`      | The product ID that the payment is related to.                                 |
+| `request_id`      | Optional. The request/reference ID you provided when creating this checkout.   |
+| `signature`       | All previous parameters signed by creem using your API-key, verifiable by you. |
 
 <Warning>
-  For production applications, we recommend using [Webhooks](/code/webhooks) to handle payment events.
+  For production applications, we recommend using [Webhooks](/code/webhooks) to
+  handle payment events.
 </Warning>
 
 ---
@@ -317,9 +314,9 @@ Add custom metadata to track additional information with each payment. Metadata 
   productId="prod_YOUR_PRODUCT_ID"
   referenceId="user_123"
   metadata={{
-    userId: "internal_user_id",
-    planType: "premium",
-    source: "marketing_campaign",
+    userId: 'internal_user_id',
+    planType: 'premium',
+    source: 'marketing_campaign',
   }}
 >
   <button>Subscribe</button>
@@ -332,12 +329,12 @@ Add custom metadata to track additional information with each payment. Metadata 
 
 ```typescript
 const checkout = await creem.checkouts.create({
-  productId: "prod_YOUR_PRODUCT_ID",
-  requestId: "order_123",
+  productId: 'prod_YOUR_PRODUCT_ID',
+  requestId: 'order_123',
   metadata: {
-    userId: "internal_user_id",
-    planType: "premium",
-    source: "marketing_campaign",
+    userId: 'internal_user_id',
+    planType: 'premium',
+    source: 'marketing_campaign',
   },
 });
 ```
@@ -348,10 +345,10 @@ const checkout = await creem.checkouts.create({
 
 ```typescript
 const { data } = await authClient.creem.createCheckout({
-  productId: "prod_YOUR_PRODUCT_ID",
+  productId: 'prod_YOUR_PRODUCT_ID',
   metadata: {
-    planType: "premium",
-    source: "marketing_campaign",
+    planType: 'premium',
+    source: 'marketing_campaign',
   },
 });
 ```
@@ -378,7 +375,8 @@ curl -X POST https://api.creem.io/v1/checkouts \
 </Tabs>
 
 <Tip>
-  Metadata is especially useful for tracking internal IDs, campaign sources, or any custom information you need to associate with a payment.
+  Metadata is especially useful for tracking internal IDs, campaign sources, or
+  any custom information you need to associate with a payment.
 </Tip>
 
 ### Custom Success URL
@@ -403,8 +401,8 @@ Override the default success URL on a per-checkout basis. This is useful for dir
 
 ```typescript
 const checkout = await creem.checkouts.create({
-  productId: "prod_YOUR_PRODUCT_ID",
-  successUrl: "https://yoursite.com/account/welcome",
+  productId: 'prod_YOUR_PRODUCT_ID',
+  successUrl: 'https://yoursite.com/account/welcome',
 });
 ```
 
@@ -414,8 +412,8 @@ const checkout = await creem.checkouts.create({
 
 ```typescript
 const { data } = await authClient.creem.createCheckout({
-  productId: "prod_YOUR_PRODUCT_ID",
-  successUrl: "/account/welcome",
+  productId: 'prod_YOUR_PRODUCT_ID',
+  successUrl: '/account/welcome',
 });
 ```
 
@@ -446,7 +444,7 @@ Lock the customer email at checkout to ensure users complete payment with the em
 ```tsx
 <CreemCheckout
   productId="prod_YOUR_PRODUCT_ID"
-  customer={{ email: "user@example.com" }}
+  customer={{ email: 'user@example.com' }}
 >
   <button>Complete Purchase</button>
 </CreemCheckout>
@@ -458,9 +456,9 @@ Lock the customer email at checkout to ensure users complete payment with the em
 
 ```typescript
 const checkout = await creem.checkouts.create({
-  productId: "prod_YOUR_PRODUCT_ID",
+  productId: 'prod_YOUR_PRODUCT_ID',
   customer: {
-    email: "user@example.com",
+    email: 'user@example.com',
   },
 });
 ```
@@ -472,9 +470,9 @@ const checkout = await creem.checkouts.create({
 ```typescript
 // Email is automatically set from the authenticated user
 const { data } = await authClient.creem.createCheckout({
-  productId: "prod_YOUR_PRODUCT_ID",
+  productId: 'prod_YOUR_PRODUCT_ID',
   customer: {
-    email: "user@example.com", // Optional: if you want to overwrite the session
+    email: 'user@example.com', // Optional: if you want to overwrite the session
   },
 });
 ```
@@ -510,10 +508,7 @@ Apply discount codes programmatically to pre-fill them at checkout.
   <Tab title="Next.js">
 
 ```tsx
-<CreemCheckout
-  productId="prod_YOUR_PRODUCT_ID"
-  discountCode="LAUNCH50"
->
+<CreemCheckout productId="prod_YOUR_PRODUCT_ID" discountCode="LAUNCH50">
   <button>Claim Offer</button>
 </CreemCheckout>
 ```
@@ -524,8 +519,8 @@ Apply discount codes programmatically to pre-fill them at checkout.
 
 ```typescript
 const checkout = await creem.checkouts.create({
-  productId: "prod_YOUR_PRODUCT_ID",
-  discountCode: "LAUNCH50",
+  productId: 'prod_YOUR_PRODUCT_ID',
+  discountCode: 'LAUNCH50',
 });
 ```
 
@@ -535,8 +530,8 @@ const checkout = await creem.checkouts.create({
 
 ```typescript
 const { data } = await authClient.creem.createCheckout({
-  productId: "prod_YOUR_PRODUCT_ID",
-  discountCode: "LAUNCH50",
+  productId: 'prod_YOUR_PRODUCT_ID',
+  discountCode: 'LAUNCH50',
 });
 ```
 
@@ -557,11 +552,7 @@ curl -X POST https://api.creem.io/v1/checkouts \
   </Tab>
 </Tabs>
 
-<Card
-  title="Discount Codes"
-  icon="tag"
-  href="/features/discounts"
->
+<Card title="Discount Codes" icon="tag" href="/features/discounts">
   Learn how to create and manage discount codes in your dashboard.
 </Card>
 
@@ -587,7 +578,7 @@ Charge for multiple units or seats by specifying the `units` parameter. The tota
 
 ```typescript
 const checkout = await creem.checkouts.create({
-  productId: "prod_YOUR_PRODUCT_ID",
+  productId: 'prod_YOUR_PRODUCT_ID',
   units: 5, // Charge for 5 seats
 });
 ```
@@ -598,7 +589,7 @@ const checkout = await creem.checkouts.create({
 
 ```typescript
 const { data } = await authClient.creem.createCheckout({
-  productId: "prod_YOUR_PRODUCT_ID",
+  productId: 'prod_YOUR_PRODUCT_ID',
   units: 5, // Charge for 5 seats
 });
 ```
@@ -654,12 +645,7 @@ curl -X POST https://api.creem.io/v1/checkouts \
   >
     Learn how to manage recurring billing and subscriptions
   </Card>
-  <Card
-    title="Revenue Splits"
-    icon="split"
-    href="/features/split-payments"
-  >
+  <Card title="Revenue Splits" icon="split" href="/features/split-payments">
     Split revenue between multiple parties automatically
   </Card>
 </CardGroup>
-

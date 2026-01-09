@@ -94,9 +94,7 @@
           {
             "group": "Community",
             "icon": "users",
-            "pages": [
-              "code/community/community-resources"
-            ]
+            "pages": ["code/community/community-resources"]
           },
           {
             "group": "Merchant of Record",

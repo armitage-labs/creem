@@ -1,6 +1,6 @@
 ---
-title: "Creating a Checkout Session"
-description: "Learn how to create dynamic checkout sessions programmatically with Creem"
+title: 'Creating a Checkout Session'
+description: 'Learn how to create dynamic checkout sessions programmatically with Creem'
 ---
 
 # Creating a Checkout Session
@@ -40,7 +40,9 @@ Before you begin, make sure you have:
 - Your development environment set up
 
 <Tip>
-  Find your product ID by going to the [Products tab](https://creem.io/dashboard/products), clicking on a product, and selecting "Copy ID" from the options menu.
+  Find your product ID by going to the [Products
+  tab](https://creem.io/dashboard/products), clicking on a product, and
+  selecting "Copy ID" from the options menu.
 </Tip>
 
 ## Quick Start
@@ -57,7 +59,11 @@ Choose your preferred integration method:
   <Card title="Better Auth" icon="lock" href="/code/sdks/better-auth">
     Integrate with authentication and user management
   </Card>
-  <Card title="REST API" icon="globe" href="/api-reference/endpoint/create-checkout">
+  <Card
+    title="REST API"
+    icon="globe"
+    href="/api-reference/endpoint/create-checkout"
+  >
     Use the REST API from any language
   </Card>
 </CardGroup>
@@ -70,9 +76,9 @@ Ensure users complete payment with their registered email:
 
 ```typescript
 const checkout = await creem.checkouts.create({
-  productId: "prod_YOUR_PRODUCT_ID",
+  productId: 'prod_YOUR_PRODUCT_ID',
   customer: {
-    email: "user@example.com",
+    email: 'user@example.com',
   },
 });
 ```
@@ -83,11 +89,11 @@ Associate payments with your internal system:
 
 ```typescript
 const checkout = await creem.checkouts.create({
-  productId: "prod_YOUR_PRODUCT_ID",
-  requestId: "order_12345",
+  productId: 'prod_YOUR_PRODUCT_ID',
+  requestId: 'order_12345',
   metadata: {
-    userId: "internal_user_id",
-    source: "marketing_campaign",
+    userId: 'internal_user_id',
+    source: 'marketing_campaign',
   },
 });
 ```
@@ -98,8 +104,8 @@ Pre-fill discount codes for special offers:
 
 ```typescript
 const checkout = await creem.checkouts.create({
-  productId: "prod_YOUR_PRODUCT_ID",
-  discountCode: "LAUNCH50",
+  productId: 'prod_YOUR_PRODUCT_ID',
+  discountCode: 'LAUNCH50',
 });
 ```
 
@@ -109,7 +115,7 @@ Charge for multiple units or seats:
 
 ```typescript
 const checkout = await creem.checkouts.create({
-  productId: "prod_YOUR_PRODUCT_ID",
+  productId: 'prod_YOUR_PRODUCT_ID',
   units: 5, // Charge for 5 seats
 });
 ```
@@ -124,11 +130,7 @@ const checkout = await creem.checkouts.create({
   >
     View the complete Checkout API reference
   </Card>
-  <Card
-    title="Webhooks"
-    icon="webhook"
-    href="/code/webhooks"
-  >
+  <Card title="Webhooks" icon="webhook" href="/code/webhooks">
     Set up webhooks to receive real-time payment notifications
   </Card>
   <Card
@@ -150,6 +152,7 @@ const checkout = await creem.checkouts.create({
 ## Need Help?
 
 <Note>
-  Having trouble? Check out our [complete Checkout API documentation](/features/checkout/checkout-api) or [contact us](https://www.creem.io/contact)
+  Having trouble? Check out our [complete Checkout API
+  documentation](/features/checkout/checkout-api) or [contact
+  us](https://www.creem.io/contact)
 </Note>
-

@@ -5,15 +5,23 @@ description: 'A modern Next.js App Router template for integrating Creem subscri
 
 <Frame>
   <img
-    style={{ borderRadius: '0.75rem', width: '100%', maxHeight: '320px', objectFit: 'cover' }}
+    style={{
+      borderRadius: '0.75rem',
+      width: '100%',
+      maxHeight: '320px',
+      objectFit: 'cover',
+    }}
     src="https://nucn5fajkcc6sgrd.public.blob.vercel-storage.com/Screenshot%202025-05-02%20at%2018.43.31-Hli0OxqgtUupGAtzV8juwNU8qKfauI.png"
     alt="Creem Next.js Template Hero"
   />
 </Frame>
 
 <Tip>
-  The Creem Next.js Template is open source and available on <a href="https://github.com/armitage-labs/creem-template" target="_blank">GitHub</a>.
-  Use it for examples on how to integrate Creem with your Next.js App Router.
+  The Creem Next.js Template is open source and available on{' '}
+  <a href="https://github.com/armitage-labs/creem-template" target="_blank">
+    GitHub
+  </a>
+  . Use it for examples on how to integrate Creem with your Next.js App Router.
 </Tip>
 
 ## Overview
@@ -28,11 +36,9 @@ description: 'A modern Next.js App Router template for integrating Creem subscri
 </CardGroup>
 
 <Accordion title="What you can do with it">
-How to use the Creem Next.js Template to:
-- Fetch and display products from your Creem account
-- Create checkout sessions for products
-- Fulfill orders and manage subscriptions
-- Handle webhooks and customer portal links
+  How to use the Creem Next.js Template to: - Fetch and display products from
+  your Creem account - Create checkout sessions for products - Fulfill orders
+  and manage subscriptions - Handle webhooks and customer portal links
 </Accordion>
 
 ---
@@ -45,6 +51,7 @@ How to use the Creem Next.js Template to:
 git clone https://github.com/armitage-labs/creem-template.git
 cd creem-template
 ```
+
 </Card>
 
 <Card title="2. Install dependencies" icon="box-archive">
@@ -76,6 +83,7 @@ bun install
 cp .env.example .env
 # Edit .env and fill in the required variables
 ```
+
 </Card>
 
 <Card title="4. Run database migrations" icon="database">
@@ -83,6 +91,7 @@ cp .env.example .env
 ```bash
 yarn prisma migrate dev
 ```
+
 </Card>
 
 <Card title="5. Start the development server" icon="bolt">
@@ -90,10 +99,15 @@ yarn prisma migrate dev
 ```bash
 yarn dev
 ```
+
 </Card>
 
 <Card title="6. Expose your app for webhooks (optional)" icon="globe">
-To receive webhooks from Creem, use a reverse proxy like <a href="https://ngrok.com/" target="_blank">NGROK</a>.
+  To receive webhooks from Creem, use a reverse proxy like{' '}
+  <a href="https://ngrok.com/" target="_blank">
+    NGROK
+  </a>
+  .
 </Card>
 
 ---
@@ -112,7 +126,10 @@ To receive webhooks from Creem, use a reverse proxy like <a href="https://ngrok.
     />
     <div className="md:w-1/2">
       <h4 className="text-xl font-semibold mb-3">Interactive onboarding</h4>
-      <p className="text-gray-600 dark:text-gray-300 text-lg">The template includes a step-by-step tutorial to help you get started and your account ready.</p>
+      <p className="text-gray-600 dark:text-gray-300 text-lg">
+        The template includes a step-by-step tutorial to help you get started
+        and your account ready.
+      </p>
     </div>
   </div>
   <div className="flex flex-col md:flex-row items-center gap-8 md:gap-16">
@@ -126,7 +143,10 @@ To receive webhooks from Creem, use a reverse proxy like <a href="https://ngrok.
     />
     <div className="md:w-1/2">
       <h4 className="text-xl font-semibold mb-3">Product Catalog</h4>
-      <p className="text-gray-600 dark:text-gray-300 text-lg">Allows you to test your products in a easy way, without having to manually set product IDs</p>
+      <p className="text-gray-600 dark:text-gray-300 text-lg">
+        Allows you to test your products in a easy way, without having to
+        manually set product IDs
+      </p>
     </div>
   </div>
   <div className="flex flex-col md:flex-row items-center gap-8 md:gap-16">
@@ -140,7 +160,10 @@ To receive webhooks from Creem, use a reverse proxy like <a href="https://ngrok.
     />
     <div className="md:w-1/2">
       <h4 className="text-xl font-semibold mb-3">Account Management</h4>
-      <p className="text-gray-600 dark:text-gray-300 text-lg">Includes an account management page, to manage subscriptions, billing and customer portal links.</p>
+      <p className="text-gray-600 dark:text-gray-300 text-lg">
+        Includes an account management page, to manage subscriptions, billing
+        and customer portal links.
+      </p>
     </div>
   </div>
 </div>
@@ -200,16 +223,28 @@ To receive webhooks from Creem, use a reverse proxy like <a href="https://ngrok.
 ## Resources
 
 <CardGroup>
-  <Card title="GitHub Repository" icon="github" href="https://github.com/armitage-labs/creem-template">
+  <Card
+    title="GitHub Repository"
+    icon="github"
+    href="https://github.com/armitage-labs/creem-template"
+  >
     View the source code, open issues, or contribute.
   </Card>
   <Card title="Creem SDK Docs" icon="book" href="/code/sdks/typescript">
     Learn more about the Creem TypeScript SDK.
   </Card>
-  <Card title="Next.js Documentation" icon="code" href="https://nextjs.org/docs">
+  <Card
+    title="Next.js Documentation"
+    icon="code"
+    href="https://nextjs.org/docs"
+  >
     Official Next.js docs for routing, SSR, and more.
   </Card>
-  <Card title="Prisma Documentation" icon="database" href="https://www.prisma.io/docs">
+  <Card
+    title="Prisma Documentation"
+    icon="database"
+    href="https://www.prisma.io/docs"
+  >
     ORM docs and guides.
   </Card>
 </CardGroup>
@@ -217,5 +252,10 @@ To receive webhooks from Creem, use a reverse proxy like <a href="https://ngrok.
 ---
 
 <Tip>
-  For feedback, feature requests, or to contribute, open an issue or pull request on the <a href="https://github.com/armitage-labs/creem-template" target="_blank">GitHub repository</a>.
+  For feedback, feature requests, or to contribute, open an issue or pull
+  request on the{' '}
+  <a href="https://github.com/armitage-labs/creem-template" target="_blank">
+    GitHub repository
+  </a>
+  .
 </Tip>

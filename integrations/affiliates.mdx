@@ -3,28 +3,25 @@ title: 'Affilliates'
 description: 'Create affiliate programs while processing transactions through Creem.'
 ---
 
-
 <Frame>
-    <img
-      style={{ borderRadius: '0.5rem' }}
-      src="https://nucn5fajkcc6sgrd.public.blob.vercel-storage.com/affonso-creem-header-w8VVkJeYvH6pqIU4vAKZfUNeFbAGOP.png"
-    />
-    </Frame>
+  <img
+    style={{ borderRadius: '0.5rem' }}
+    src="https://nucn5fajkcc6sgrd.public.blob.vercel-storage.com/affonso-creem-header-w8VVkJeYvH6pqIU4vAKZfUNeFbAGOP.png"
+  />
+</Frame>
 
 ## Overview
+
 Welcome to the integration guide for Creem and Affonso! This partnership enables automated affiliate program management with seamless payment processing.
 
-
-
 <Frame>
-    <img
-      style={{ borderRadius: '0.5rem' }}
-      src="https://nucn5fajkcc6sgrd.public.blob.vercel-storage.com/affonso_affiliate_marketing_software-ezgif.com-video-to-gif-converter-BdEJUnHONBC320i0DV6sJttZLVU5vK.gif"
-    />
-    </Frame>
+  <img
+    style={{ borderRadius: '0.5rem' }}
+    src="https://nucn5fajkcc6sgrd.public.blob.vercel-storage.com/affonso_affiliate_marketing_software-ezgif.com-video-to-gif-converter-BdEJUnHONBC320i0DV6sJttZLVU5vK.gif"
+  />
+</Frame>
 
 This integration allows you to leverage Affonso's affiliate tracking and management alongside Creem's robust payment processing. Your affiliates can be automatically tracked, and their commissions paid separately from your business financials.
-
 
 <Accordion title="What you'll learn.">
 
@@ -38,23 +35,19 @@ How to integrate Affonso's affiliate management capabilities with Creem's paymen
 - An Affonso account
 - Your Creem API keys
 
-
 </Card>
-
-
-
 
 ## Integration Steps
 
 The below animation shows all the necessary steps to integrate your Creem account with Affonso in less than 2 minutes.
+
 <Frame>
-    <img
-      style={{ borderRadius: '0.5rem' }}
-      src="https://nucn5fajkcc6sgrd.public.blob.vercel-storage.com/affonso-demo-lOWhhy7QthodLdVQrikxlKIe17CFTF.gif"
-    />
+  <img
+    style={{ borderRadius: '0.5rem' }}
+    src="https://nucn5fajkcc6sgrd.public.blob.vercel-storage.com/affonso-demo-lOWhhy7QthodLdVQrikxlKIe17CFTF.gif"
+  />
 </Frame>
 ### 1. Installing the Creem plugin
-
 
 <Accordion title="1.1 Access Plugin Installation.">
 Navigate to your Affonso dashboard and create a new Affiliate Program.
@@ -75,7 +68,6 @@ You'll need to add your Creem API keys to establish the connection:
 - Copy the Webhook URL displayed
 
 </Accordion>
-
 
 ### 2. Creating a Webhook to track affiliates
 
@@ -106,8 +98,8 @@ Within Creem dashboard, click on the "Developers" tab
 This script is essential for Affonso to function. When a user visits your website through an affiliate link, it automatically creates a referral with the status "Visited link" and stores a referral cookie on their device.
 
 The script creates a global window.Affonso object that you'll use in the next step to track successful signups.
-</Accordion>
 
+</Accordion>
 
 <Accordion title="3.2 Track User Signups.">
 ```html
@@ -122,23 +114,23 @@ Make the referral visible in both your and your affiliate's statistics
 <Note>
 
 Note: If your platform allows payments without user registration (e.g., direct checkout), you can skip this step and proceed to the next one for payment tracking.
-</Note>
 
+</Note>
 
 <Info>
 Best Practice: Call this function for all signups, regardless of the traffic source. The system will only create referrals when a valid referral ID cookie is present. Place the code:
 
 After successful registration for immediate tracking
 After email verification if you use double opt-in (DOI)
-</Info>
 
+</Info>
 
 </Accordion>
 
 <Tip>
-For more advanced tracking documentation, or further examples in several languages, visit [Affonso](https://affonso.io) documentation.
+  For more advanced tracking documentation, or further examples in several
+  languages, visit [Affonso](https://affonso.io) documentation.
 </Tip>
-
 
 ## Best Practices
 
@@ -146,5 +138,3 @@ For more advanced tracking documentation, or further examples in several languag
 - Implement proper error handling for affiliate tracking
 - Monitor webhook deliveries and set up retry mechanisms
 - Regularly verify commission calculations
-
-

@@ -24,7 +24,7 @@ You can start receiving real-time events in your app using the steps:
 - Register your production webhook endpoint on Creem live dashboard
 
 <Info>
-  On Next.js projects, the{" "}
+  On Next.js projects, the{' '}
   <a href="/code/sdks/nextjs">@creem_io/nextjs adapter</a> exports a `Webhook`
   helper that verifies signatures and surfaces typed lifecycle callbacks. Use it
   as your default implementation before falling back to manual parsing.
@@ -38,7 +38,7 @@ In your local application, create a new route that can accept POST requests.
 
 ```ts Next.js
 // app/api/webhook/creem/route.ts
-import { Webhook } from "@creem_io/nextjs";
+import { Webhook } from '@creem_io/nextjs';
 
 export const POST = Webhook({
   webhookSecret: process.env.CREEM_WEBHOOK_SECRET!,
@@ -57,13 +57,13 @@ export const POST = Webhook({
 ```
 
 ```ts Node.js
-import type { NextApiRequest, NextApiResponse } from "next";
+import type { NextApiRequest, NextApiResponse } from 'next';
 
 export default async function handler(
   req: NextApiRequest,
   res: NextApiResponse
 ) {
-  if (req.method !== "POST") {
+  if (req.method !== 'POST') {
     return res.status(405).end();
   }
 
@@ -87,7 +87,7 @@ Register your publicly accessible HTTPS URL in the Creem dashboard.
 </Tip>
 
 <img
-  style={{ borderRadius: "0.5rem" }}
+  style={{ borderRadius: '0.5rem' }}
   src="https://nucn5fajkcc6sgrd.public.blob.vercel-storage.com/test-webhook-yBodvIWasxCmgr4bYqZJBlWg8qbUD2.png"
 />
 
@@ -109,7 +109,6 @@ Once your webhook endpoint is deployed to production, you can register it in the
 
 Creem signature is sent in the `creem-signature` header of the webhook request. The signature is generated using the HMAC-SHA256 algorithm with the webhook secret as the key, and the request payload as the message.
 
-
 <AccordionGroup>
   <Accordion title="Sample Webhook Header">
   ```json
@@ -123,16 +122,14 @@ Creem signature is sent in the `creem-signature` header of the webhook request. 
 
 To verify the signature, you need to generate the signature using the same algorithm and compare it with the signature sent in the header. If the two signatures match, the request is authentic.
 
-
-
 <Tip>
 You can find your webhook secret on the Developers>Webhook page.
 </Tip>
 
 <img
-      style={{ borderRadius: '0.5rem' }}
-      src="https://nucn5fajkcc6sgrd.public.blob.vercel-storage.com/Screenshot%202024-10-03%20at%2014.26.39-MtSMvooQi4OrZoh9eMyFZngfc0CrQn.png"
-    />
+  style={{ borderRadius: '0.5rem' }}
+  src="https://nucn5fajkcc6sgrd.public.blob.vercel-storage.com/Screenshot%202024-10-03%20at%2014.26.39-MtSMvooQi4OrZoh9eMyFZngfc0CrQn.png"
+/>
 
 To generate the signature, you can use the following code snippet:
 
@@ -820,7 +817,6 @@ A subscription started a trial period
   ```
   </Accordion>
 </AccordionGroup>
-
 
 ### subscription.paused
 

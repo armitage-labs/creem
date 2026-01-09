@@ -1,6 +1,6 @@
 ---
-title: "Customer Portal"
-description: "Customers can cancel and refund subscriptions by themselves."
+title: 'Customer Portal'
+description: 'Customers can cancel and refund subscriptions by themselves.'
 ---
 
 ## What is a Customer Portal?
@@ -10,22 +10,22 @@ After every successful payment, your customers will receive an email with a link
 This email contains a magic link, to a completely different authentication mechanism, in which they are able to access their account which allows them to execute the aforementioned actions.
 
 <Info>
-  If you're building with Next.js, the{" "}
+  If you're building with Next.js, the{' '}
   <a href="/code/sdks/nextjs">@creem_io/nextjs adapter</a> ships a `
-  <CreemPortal />` component and `Portal` route helper so users can open the portal
-  directly from your dashboard without touching the REST API.
+  <CreemPortal />` component and `Portal` route helper so users can open the
+  portal directly from your dashboard without touching the REST API.
 </Info>
 
 <AccordionGroup>
   <Accordion icon="receipt" title="Receipt Example">
     <img
-      style={{ borderRadius: "0.5rem" }}
+      style={{ borderRadius: '0.5rem' }}
       src="https://nucn5fajkcc6sgrd.public.blob.vercel-storage.com/Screenshot%202024-12-17%20at%2023.26.24-zus6vfFFS6vdT5GSwjjXSbinB5KWZp.png"
     />
   </Accordion>
   <Accordion icon="right-to-bracket" title="Magic Link Login Example">
     <img
-      style={{ borderRadius: "0.5rem" }}
+      style={{ borderRadius: '0.5rem' }}
       src="https://nucn5fajkcc6sgrd.public.blob.vercel-storage.com/magic-link-nq675ngtIqI95c6EeGiHPa8id6D1x1.png"
     />
   </Accordion>
@@ -65,11 +65,11 @@ You can generate a customer portal link for your users programmatically, allowin
 
 ```typescript
 // app/portal/route.ts
-import { Portal } from "@creem_io/nextjs";
+import { Portal } from '@creem_io/nextjs';
 
 export const GET = Portal({
   apiKey: process.env.CREEM_API_KEY!,
-  testMode: process.env.NODE_ENV !== "production",
+  testMode: process.env.NODE_ENV !== 'production',
 });
 ```
 
@@ -77,9 +77,9 @@ export const GET = Portal({
 
 ```tsx
 // components/ManageSubscriptionButton.tsx
-"use client";
+'use client';
 
-import { CreemPortal } from "@creem_io/nextjs";
+import { CreemPortal } from '@creem_io/nextjs';
 
 export function ManageSubscriptionButton({
   customerId,
@@ -88,9 +88,7 @@ export function ManageSubscriptionButton({
 }) {
   return (
     <CreemPortal customerId={customerId}>
-      <button className="btn-primary">
-        Manage Subscription
-      </button>
+      <button className="btn-primary">Manage Subscription</button>
     </CreemPortal>
   );
 }
@@ -109,16 +107,16 @@ export function ManageSubscriptionButton({
   <Tab title="TypeScript SDK">
 
 ```typescript
-import { createCreem } from "creem_io";
+import { createCreem } from 'creem_io';
 
 const creem = createCreem({
   apiKey: process.env.CREEM_API_KEY!,
-  testMode: process.env.NODE_ENV !== "production",
+  testMode: process.env.NODE_ENV !== 'production',
 });
 
 // Create customer portal link
 const portal = await creem.customers.createPortal({
-  customerId: "cust_abc123",
+  customerId: 'cust_abc123',
 });
 
 // Redirect user to portal
@@ -131,7 +129,7 @@ You can also retrieve the customer ID by email:
 ```typescript
 // Get customer by email first
 const customer = await creem.customers.get({
-  email: "customer@example.com",
+  email: 'customer@example.com',
 });
 
 // Then create portal link
@@ -184,14 +182,11 @@ export function ManageSubscriptionButton() {
 ```
 
 <Note>
-  With Better Auth, the customer is automatically identified from the authenticated session—no need to pass a customer ID.
+  With Better Auth, the customer is automatically identified from the
+  authenticated session—no need to pass a customer ID.
 </Note>
 
-<Card
-  title="Better Auth Integration"
-  icon="lock"
-  href="/code/sdks/better-auth"
->
+<Card title="Better Auth Integration" icon="lock" href="/code/sdks/better-auth">
   Learn about automatic customer identification and session handling.
 </Card>
 
@@ -200,7 +195,9 @@ export function ManageSubscriptionButton() {
   <Tab title="REST API">
 
 <Warning>
-  If you're in test mode, use `https://test-api.creem.io` instead of `https://api.creem.io`. Learn more about [Test Mode](/getting-started/test-mode).
+  If you're in test mode, use `https://test-api.creem.io` instead of
+  `https://api.creem.io`. Learn more about [Test
+  Mode](/getting-started/test-mode).
 </Warning>
 
 ```bash
@@ -223,14 +220,14 @@ curl -X POST https://api.creem.io/v1/customers/billing \
 ### JavaScript Example
 
 ```javascript
-const response = await fetch("https://api.creem.io/v1/customers/billing", {
-  method: "POST",
+const response = await fetch('https://api.creem.io/v1/customers/billing', {
+  method: 'POST',
   headers: {
-    "x-api-key": "YOUR_API_KEY",
-    "Content-Type": "application/json",
+    'x-api-key': 'YOUR_API_KEY',
+    'Content-Type': 'application/json',
   },
   body: JSON.stringify({
-    customer_id: "cust_abc123",
+    customer_id: 'cust_abc123',
   }),
 });
 

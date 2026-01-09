@@ -30,17 +30,17 @@ To create a one time payment:
   <Tab title="Next.js">
 
 ```tsx
-"use client"; // Optional: Works with server components
+'use client'; // Optional: Works with server components
 
-import { CreemCheckout } from "@creem_io/nextjs";
+import { CreemCheckout } from '@creem_io/nextjs';
 
 export function BuyButton() {
   return (
     <CreemCheckout
       productId="prod_YOUR_PRODUCT_ID"
       metadata={{
-        customerId: "cust_123",
-        source: "web"
+        customerId: 'cust_123',
+        source: 'web',
       }}
     >
       <button>Buy Now</button>
@@ -49,11 +49,7 @@ export function BuyButton() {
 }
 ```
 
-<Card
-  title="Next.js SDK Documentation"
-  icon="react"
-  href="/code/sdks/nextjs"
->
+<Card title="Next.js SDK Documentation" icon="react" href="/code/sdks/nextjs">
   Learn more about the Next.js adapter and advanced features.
 </Card>
 
@@ -62,20 +58,20 @@ export function BuyButton() {
   <Tab title="TypeScript SDK">
 
 ```typescript
-import { createCreem } from "creem_io";
+import { createCreem } from 'creem_io';
 
 const creem = createCreem({
   apiKey: process.env.CREEM_API_KEY!,
-  testMode: process.env.NODE_ENV !== "production",
+  testMode: process.env.NODE_ENV !== 'production',
 });
 
 // Create a one-time payment checkout session
 const checkout = await creem.checkouts.create({
-  productId: "prod_YOUR_PRODUCT_ID",
-  successUrl: "https://yoursite.com/success",
+  productId: 'prod_YOUR_PRODUCT_ID',
+  successUrl: 'https://yoursite.com/success',
   metadata: {
-    customerId: "cust_123",
-    source: "web"
+    customerId: 'cust_123',
+    source: 'web',
   },
 });
 
@@ -123,11 +119,7 @@ export function BuyButton({ productId }: { productId: string }) {
 }
 ```
 
-<Card
-  title="Better Auth Integration"
-  icon="lock"
-  href="/code/sdks/better-auth"
->
+<Card title="Better Auth Integration" icon="lock" href="/code/sdks/better-auth">
   Learn about database persistence and automatic user synchronization.
 </Card>
 
@@ -136,7 +128,9 @@ export function BuyButton({ productId }: { productId: string }) {
   <Tab title="REST API">
 
 <Warning>
-  If you're in test mode, use `https://test-api.creem.io` instead of `https://api.creem.io`. Learn more about [Test Mode](/getting-started/test-mode).
+  If you're in test mode, use `https://test-api.creem.io` instead of
+  `https://api.creem.io`. Learn more about [Test
+  Mode](/getting-started/test-mode).
 </Warning>
 
 ```bash
@@ -184,17 +178,18 @@ After a successful payment, users are redirected to your `success_url` with paym
 https://yoursite.com/success?checkout_id=ch_xxx&order_id=ord_xxx&customer_id=cust_xxx&product_id=prod_xxx
 ```
 
-| Query parameter   | Description                                                                                     |
-| ----------------- | ---------------------------------------------------------------------------------------------- |
-| `checkout_id`     | The ID of the checkout session created for this payment.                                       |
-| `order_id`        | The ID of the order created after successful payment.                                          |
-| `customer_id`     | The customer ID, based on the email that executed the successful payment.                      |
-| `product_id`      | The product ID that the payment is related to.                                                 |
-| `request_id`      | Optional. The request/reference ID you provided when creating this checkout.                   |
-| `signature`       | All previous parameters signed by Creem using your API-key, verifiable by you.                 |
+| Query parameter | Description                                                                    |
+| --------------- | ------------------------------------------------------------------------------ |
+| `checkout_id`   | The ID of the checkout session created for this payment.                       |
+| `order_id`      | The ID of the order created after successful payment.                          |
+| `customer_id`   | The customer ID, based on the email that executed the successful payment.      |
+| `product_id`    | The product ID that the payment is related to.                                 |
+| `request_id`    | Optional. The request/reference ID you provided when creating this checkout.   |
+| `signature`     | All previous parameters signed by Creem using your API-key, verifiable by you. |
 
 <Warning>
-  For production applications, we recommend using [Webhooks](/code/webhooks) to handle payment events.
+  For production applications, we recommend using [Webhooks](/code/webhooks) to
+  handle payment events.
 </Warning>
 
 ## Managing Payments
@@ -221,18 +216,10 @@ Creem provides several payment management features:
   >
     Collect additional information from customers during checkout
   </Card>
-  <Card
-    title="Discount Codes"
-    icon="tag"
-    href="/features/discounts"
-  >
+  <Card title="Discount Codes" icon="tag" href="/features/discounts">
     Create and apply discount codes to your one-time payments
   </Card>
-  <Card
-    title="Webhooks"
-    icon="webhook"
-    href="/code/webhooks"
-  >
+  <Card title="Webhooks" icon="webhook" href="/code/webhooks">
     Handle payment events and automate your workflow
   </Card>
 </CardGroup>

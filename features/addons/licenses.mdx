@@ -106,7 +106,9 @@ Here's how a typical activation flow works:
 - **instance_name** (required): A unique identifier for the device/installation
 
 <Tip>
-The InstanceName field is an arbitrary name of your choice. Merchants usually use the internal customer ID, or customer email for quality of life maintainability.
+  The InstanceName field is an arbitrary name of your choice. Merchants usually
+  use the internal customer ID, or customer email for quality of life
+  maintainability.
 </Tip>
 
 ### Response Format
@@ -140,7 +142,7 @@ The InstanceName field is an arbitrary name of your choice. Merchants usually us
 <CodeGroup>
 
 ```ts TypeScript SDK
-import { createCreem } from "creem_io";
+import { createCreem } from 'creem_io';
 
 const creem = createCreem({
   apiKey: process.env.CREEM_API_KEY!,
@@ -148,8 +150,8 @@ const creem = createCreem({
 });
 
 const license = await creem.licenses.activate({
-  key: "ABC123-XYZ456-XYZ456-XYZ456",
-  instanceName: "johns-macbook-pro",
+  key: 'ABC123-XYZ456-XYZ456-XYZ456',
+  instanceName: 'johns-macbook-pro',
 });
 ```
 
@@ -166,20 +168,23 @@ curl -X POST https://test-api.creem.io/v1/licenses/activate \
 
 ```jsx JavaScript
 const activateLicense = async (licenseKey, instanceName) => {
-  const response = await fetch('https://test-api.creem.io/v1/licenses/activate', {
-    method: 'POST',
-    headers: {
-      'accept': 'application/json',
-      'x-api-key': 'YOUR_API_KEY',
-      'Content-Type': 'application/json'
-    },
-    body: JSON.stringify({
-      key: licenseKey,
-      instance_name: instanceName
-    })
-  });
+  const response = await fetch(
+    'https://test-api.creem.io/v1/licenses/activate',
+    {
+      method: 'POST',
+      headers: {
+        accept: 'application/json',
+        'x-api-key': 'YOUR_API_KEY',
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({
+        key: licenseKey,
+        instance_name: instanceName,
+      }),
+    }
+  );
   return await response.json();
-}
+};
 ```
 
 ```python Python
@@ -196,7 +201,7 @@ def activate_license(license_key, instance_name):
         "key": license_key,
         "instance_name": instance_name
     }
-    
+
     response = requests.post(url, json=data, headers=headers)
     return response.json()
 ```
@@ -204,12 +209,12 @@ def activate_license(license_key, instance_name):
 </CodeGroup>
 
 <Note>
-**Pro Implementation Tips**
-- Use the TypeScript SDK for automatic type safety and better error handling
-- Generate meaningful instance names that help users identify their devices
-- Store activation tokens securely using system keychains or encrypted storage
-- Implement automatic retry logic for failed activation attempts
-- Add clear user feedback for activation status and remaining device quota
+  **Pro Implementation Tips** - Use the TypeScript SDK for automatic type safety
+  and better error handling - Generate meaningful instance names that help users
+  identify their devices - Store activation tokens securely using system
+  keychains or encrypted storage - Implement automatic retry logic for failed
+  activation attempts - Add clear user feedback for activation status and
+  remaining device quota
 </Note>
 
 ## Validating Licenses
@@ -284,7 +289,7 @@ Here's how the validation process typically works:
 <CodeGroup>
 
 ```ts TypeScript SDK
-import { createCreem } from "creem_io";
+import { createCreem } from 'creem_io';
 
 const creem = createCreem({
   apiKey: process.env.CREEM_API_KEY!,
@@ -292,18 +297,18 @@ const creem = createCreem({
 });
 
 const validatedLicense = await creem.licenses.validate({
-  key: "ABC123-XYZ456-XYZ456-XYZ456",
-  instanceId: "inst_xyz123",
+  key: 'ABC123-XYZ456-XYZ456-XYZ456',
+  instanceId: 'inst_xyz123',
 });
 
 console.log(validatedLicense.status); // "active" | "inactive" | "expired" | "disabled"
 
-if (validatedLicense.status === "active") {
+if (validatedLicense.status === 'active') {
   // Grant access to premium features
   console.log(`License expires at: ${validatedLicense.expiresAt}`);
 } else {
   // Deny access or show upgrade prompt
-  console.log("License is not active");
+  console.log('License is not active');
 }
 ```
 
@@ -320,20 +325,23 @@ curl -X POST https://test-api.creem.io/v1/licenses/validate \
 
 ```jsx JavaScript
 const validateLicense = async (licenseKey, instanceId) => {
-  const response = await fetch('https://test-api.creem.io/v1/licenses/validate', {
-    method: 'POST',
-    headers: {
-      'accept': 'application/json',
-      'x-api-key': 'YOUR_API_KEY',
-      'Content-Type': 'application/json'
-    },
-    body: JSON.stringify({
-      key: licenseKey,
-      instance_id: instanceId
-    })
-  });
+  const response = await fetch(
+    'https://test-api.creem.io/v1/licenses/validate',
+    {
+      method: 'POST',
+      headers: {
+        accept: 'application/json',
+        'x-api-key': 'YOUR_API_KEY',
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({
+        key: licenseKey,
+        instance_id: instanceId,
+      }),
+    }
+  );
   return await response.json();
-}
+};
 ```
 
 ```python Python
@@ -350,7 +358,7 @@ def validate_license(license_key, instance_id):
         "key": license_key,
         "instance_id": instance_id
     }
-    
+
     response = requests.post(url, json=data, headers=headers)
     return response.json()
 ```
@@ -358,11 +366,10 @@ def validate_license(license_key, instance_id):
 </CodeGroup>
 
 <Note>
-**Implementation Best Practices**
-- Cache validation results locally to reduce API calls
-- Implement graceful degradation for offline scenarios
-- Add clear user feedback for validation status
-- Keep logs of validation attempts for troubleshooting
+  **Implementation Best Practices** - Cache validation results locally to reduce
+  API calls - Implement graceful degradation for offline scenarios - Add clear
+  user feedback for validation status - Keep logs of validation attempts for
+  troubleshooting
 </Note>
 
 ## Deactivating Licenses
@@ -437,7 +444,7 @@ Here's how the deactivation process typically works:
 <CodeGroup>
 
 ```ts TypeScript SDK
-import { createCreem } from "creem_io";
+import { createCreem } from 'creem_io';
 
 const creem = createCreem({
   apiKey: process.env.CREEM_API_KEY!,
@@ -445,8 +452,8 @@ const creem = createCreem({
 });
 
 const deactivatedLicense = await creem.licenses.deactivate({
-  key: "ABC123-XYZ456-XYZ456-XYZ456",
-  instanceId: "inst_xyz123",
+  key: 'ABC123-XYZ456-XYZ456-XYZ456',
+  instanceId: 'inst_xyz123',
 });
 ```
 
@@ -463,20 +470,23 @@ curl -X POST https://test-api.creem.io/v1/licenses/deactivate \
 
 ```jsx JavaScript
 const deactivateLicense = async (licenseKey, instanceId) => {
-  const response = await fetch('https://test-api.creem.io/v1/licenses/deactivate', {
-    method: 'POST',
-    headers: {
-      'accept': 'application/json',
-      'x-api-key': 'YOUR_API_KEY',
-      'Content-Type': 'application/json'
-    },
-    body: JSON.stringify({
-      key: licenseKey,
-      instance_id: instanceId
-    })
-  });
+  const response = await fetch(
+    'https://test-api.creem.io/v1/licenses/deactivate',
+    {
+      method: 'POST',
+      headers: {
+        accept: 'application/json',
+        'x-api-key': 'YOUR_API_KEY',
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({
+        key: licenseKey,
+        instance_id: instanceId,
+      }),
+    }
+  );
   return await response.json();
-}
+};
 ```
 
 ```python Python
@@ -493,7 +503,7 @@ def deactivate_license(license_key, instance_id):
         "key": license_key,
         "instance_id": instance_id
     }
-    
+
     response = requests.post(url, json=data, headers=headers)
     return response.json()
 ```
@@ -501,11 +511,10 @@ def deactivate_license(license_key, instance_id):
 </CodeGroup>
 
 <Note>
-**Deactivation Best Practices**
-- Always confirm deactivation with users before proceeding
-- Clear all local license data after successful deactivation
-- Implement proper error handling for failed deactivations
-- Maintain deactivation logs for customer support
+  **Deactivation Best Practices** - Always confirm deactivation with users
+  before proceeding - Clear all local license data after successful deactivation
+  - Implement proper error handling for failed deactivations - Maintain
+  deactivation logs for customer support
 </Note>
 
 ## Error Handling
@@ -554,12 +563,13 @@ For detailed API documentation, visit:
   icon="code"
   href="/code/sdks/typescript"
 >
-  View the complete TypeScript SDK documentation with examples for licenses, subscriptions, and more.
+  View the complete TypeScript SDK documentation with examples for licenses,
+  subscriptions, and more.
 </Card>
 
 <Note>
 **Need Help?**
 
 Our support team is ready to assist you with license key implementation. [Contact us](https://www.creem.io/contact)
-</Note>
 
+</Note>

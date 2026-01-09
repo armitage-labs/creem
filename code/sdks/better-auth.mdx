@@ -1,6 +1,6 @@
 ---
-title: "Better Auth"
-description: "Integrate authentication and payment processing seamlessly with Better Auth and Creem."
+title: 'Better Auth'
+description: 'Integrate authentication and payment processing seamlessly with Better Auth and Creem.'
 ---
 
 ## Overview
@@ -92,8 +92,8 @@ Configure Better Auth with the Creem plugin:
 
 ```typescript
 // lib/auth.ts
-import { betterAuth } from "better-auth";
-import { creem } from "@creem_io/better-auth";
+import { betterAuth } from 'better-auth';
+import { creem } from '@creem_io/better-auth';
 
 export const auth = betterAuth({
   database: {
@@ -104,7 +104,7 @@ export const auth = betterAuth({
       apiKey: process.env.CREEM_API_KEY!,
       webhookSecret: process.env.CREEM_WEBHOOK_SECRET, // Optional
       testMode: true, // Use test mode for development
-      defaultSuccessUrl: "/success", // Redirect URL after payments
+      defaultSuccessUrl: '/success', // Redirect URL after payments
       persistSubscriptions: true, // Enable database persistence (recommended)
     }),
   ],
@@ -115,8 +115,8 @@ export const auth = betterAuth({
 
 ```typescript
 // lib/auth-client.ts
-import { createAuthClient } from "better-auth/react";
-import { creemClient } from "@creem_io/better-auth/client";
+import { createAuthClient } from 'better-auth/react';
+import { creemClient } from '@creem_io/better-auth/client';
 
 export const authClient = createAuthClient({
   baseURL: process.env.NEXT_PUBLIC_APP_URL,
@@ -248,7 +248,7 @@ const handleCancel = async () => {
   const { data, error } = await authClient.creem.cancelSubscription();
 
   if (data?.success) {
-    console.log("Subscription canceled successfully");
+    console.log('Subscription canceled successfully');
   }
 };
 ```
@@ -259,8 +259,8 @@ The plugin provides high-level handlers to manage user access automatically:
 
 ```typescript
 // lib/auth.ts
-import { betterAuth } from "better-auth";
-import { creem } from "@creem_io/better-auth";
+import { betterAuth } from 'better-auth';
+import { creem } from '@creem_io/better-auth';
 
 export const auth = betterAuth({
   database: {
@@ -365,7 +365,7 @@ Search and filter transaction records for authenticated users:
 
 ```typescript
 const { data } = await authClient.creem.searchTransactions({
-  productId: "prod_xyz789", // Optional filter
+  productId: 'prod_xyz789', // Optional filter
   pageNumber: 1,
   pageSize: 50,
 });
