@@ -11,7 +11,7 @@ Creem uses webhooks to push real-time notifications to you about your payments a
 - Automatically remove access to a user after a canceled subscription
 - Confirm that a payment has been received by the same customer that initiated it.
 
-In case webhooks are not successfully received by your endpoint, you can retry them from your Merchant dashboard under [Developers section](https://creem.io/dashboard/developers).
+In case webhooks are not successfully received by your endpoint, Creem automatically retries to send the request with a progressive backoff period of 30 seconds, 1 minute, 5 minutes and 1 hour. You can also resend webhook events manually from your Merchant dashboard under [Developers section](https://creem.io/dashboard/developers).
 
 ## Steps to receive a webhook
 
