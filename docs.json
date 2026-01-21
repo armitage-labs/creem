@@ -175,7 +175,10 @@
           {
             "group": "Transactions",
             "icon": "receipt",
-            "pages": ["api-reference/endpoint/get-transactions"]
+            "pages": [
+              "api-reference/endpoint/get-transaction",
+              "api-reference/endpoint/get-transactions"
+            ]
           },
           {
             "group": "License",
@@ -202,6 +205,8 @@
               "api-reference/endpoint/get-subscription",
               "api-reference/endpoint/update-subscription",
               "api-reference/endpoint/upgrade-subscription",
+              "api-reference/endpoint/pause-subscription",
+              "api-reference/endpoint/resume-subscription",
               "api-reference/endpoint/cancel-subscription"
             ]
           }
