@@ -6,7 +6,8 @@ description: The official Creem TypeScript SDK with full API access, all endpoin
 <Info>
   This is the **creem** core package with full API access and advanced configuration options.
 
-  For a simpler integration with webhook helpers, see the [SDK Wrapper (creem_io)](/code/sdks/typescript-wrapper).
+For a simpler integration with webhook helpers, see the [SDK Wrapper (creem_io)](/code/sdks/typescript-wrapper).
+
 </Info>
 
 ## Overview
@@ -31,7 +32,7 @@ Install with your preferred package manager:
 <CodeGroup>
 
 ```bash npm
-npm add creem
+npm install creem
 ```
 
 ```bash yarn
@@ -48,60 +49,73 @@ bun add creem
 
 </CodeGroup>
 
-The package ships with CommonJS and ES Modules (ESM) support.
-
 ---
 
 ## Quick Start
 
 ```ts
-import { Creem } from "creem";
+import { Creem } from 'creem';
 
 const creem = new Creem({
-  apiKey: process.env["CREEM_API_KEY"] ?? "",
+  apiKey: process.env.CREEM_API_KEY!,
+  // 0 = production, 1 = test
+  serverIdx: 0,
 });
 
 // Retrieve a product
-const product = await creem.products.get("prod_1234567890");
+const product = await creem.products.get('prod_7CIbZEZnRC5DWibmoOboOu');
 console.log(product);
+
+// Create a checkout session
+const checkout = await creem.checkouts.create({
+  productId: 'prod_xxxxx',
+  successUrl: 'https://yourapp.com/success',
+  metadata: {
+    userId: 'user_123',
+  },
+});
+console.log(checkout.checkoutUrl); // Redirect user to this URL
 ```
+
+---
 
 ### Environment Variables
 
-Store your API key in environment variables:
+We recommend storing your credentials in environment variables:
 
 ```bash
 CREEM_API_KEY=your_api_key
+# Optional: enable debug logs from the SDK
+CREEM_DEBUG=true
 ```
 
 ---
 
 ## API Resources
 
-The SDK provides access to all Creem API resources:
+The SDK organizes all operations into logical resources:
 
 ### Products
 
 ```ts
+// List products
+const products = await creem.products.search(1, 10);
+
 // Get a product
-const product = await creem.products.get("prod_1234567890");
+const product = await creem.products.get('prod_7CIbb...');
 
 // Create a product
-const newProduct = await creem.products.create({
-  name: "Pro Plan",
-  description: "Full access to all features",
-  price: 2900, // In cents
-  currency: "USD",
-  billingType: "recurring",
-  billingPeriod: "every-month",
+const createdProduct = await creem.products.create({
+  name: 'Test Product',
+  description: 'Test Product Description',
+  price: 1000, // In cents
+  currency: 'USD',
+  billingType: 'recurring',
+  billingPeriod: 'every-month',
 });
 
 // Search products
-const products = await creem.products.search({
-  query: "pro",
-  page: 1,
-  limit: 10,
-});
+const products = await creem.products.search(1, 10);
 ```
 
 ### Checkouts
@@ -109,81 +123,116 @@ const products = await creem.products.search({
 ```ts
 // Create a checkout session
 const checkout = await creem.checkouts.create({
-  productId: "prod_xxxxx",
-  successUrl: "https://yourapp.com/success",
-  requestId: "unique-request-id", // Optional: idempotency key
+  productId: 'prod_xxxxx',
+  units: 2, // Optional: Number of units (default: 1)
+  discountCode: 'SUMMER2024', // Optional: Apply discount
+  customer: {
+    email: 'customer@example.com', // Optional: Pre-fill customer info
+  },
+  customFields: [
+    // Optional: Max 3 custom fields
+    {
+      key: 'company',
+      label: 'Company Name',
+      type: 'text',
+      optional: false,
+    },
+  ],
+  successUrl: 'https://yourapp.com/success',
+  metadata: {
+    userId: 'user_123',
+    source: 'web',
+  },
 });
 
 console.log(checkout.checkoutUrl); // Redirect user to this URL
 
-// Retrieve a checkout session
-const session = await creem.checkouts.get("chck_1234567890");
+// Get a checkout session
+const retrievedCheckout = await creem.checkouts.retrieve('chck_1234567890');
 ```
 
 ### Customers
 
 ```ts
 // List customers
-const customers = await creem.customers.list({
-  page: 1,
-  limit: 10,
-});
+const customers = await creem.customers.list(1, 10);
 
 // Get a customer by ID
-const customer = await creem.customers.retrieve("cust_abc123");
+const customer = await creem.customers.retrieve('cust_abc123');
 
-// Generate billing portal link
-const billingLink = await creem.customers.createBillingLink("cust_abc123");
-console.log(billingLink.url);
+// Get a customer by email
+const customerByEmail = await creem.customers.retrieve(
+  undefined,
+  'customer@example.com'
+);
+
+// Create customer portal link
+const portal = await creem.customers.generateBillingLinks({
+  customerId: 'cust_abc123',
+});
+
+console.log(portal.customerPortalLink); // Redirect user to portal
 ```
 
 ### Subscriptions
 
 ```ts
 // Get a subscription
-const subscription = await creem.subscriptions.get("sub_abc123");
+const subscription = await creem.subscriptions.get('sub_abc123');
 
 // Cancel a subscription
-await creem.subscriptions.cancel("sub_abc123");
-
-// Update a subscription
-const updated = await creem.subscriptions.update("sub_abc123", {
-  units: 5,
+const canceledSubscription = await creem.subscriptions.cancel('sub_abc123', {
+  mode: 'immediate',
 });
 
-// Upgrade to a different product
-const upgraded = await creem.subscriptions.upgrade("sub_abc123", {
-  productId: "prod_premium",
+// Update a subscription (change units/seats)
+const updated = await creem.subscriptions.update('sub_abc123', {
+  items: [
+    {
+      id: 'item_abc123', // Subscription item ID
+      units: 5, // Update to 5 seats
+    },
+  ],
+  updateBehavior: 'proration-charge-immediately',
 });
 
-// Pause a subscription
-await creem.subscriptions.pause("sub_abc123");
-
-// Resume a paused subscription
-await creem.subscriptions.resume("sub_abc123");
+// Upgrade a subscription to a different product
+const upgraded = await creem.subscriptions.upgrade('sub_abc123', {
+  productId: 'prod_premium', // New product ID
+  updateBehavior: 'proration-charge-immediately',
+});
 ```
+
+<Note>
+  **Update Behavior Options:** - `proration-charge-immediately`: Calculate
+  proration and charge immediately - `proration-charge`: Calculate proration and
+  charge at next billing cycle - `proration-none`: No proration, just switch the
+  plan
+</Note>
 
 ### Licenses
 
 ```ts
 // Activate a license
 const license = await creem.licenses.activate({
-  key: "license_key_here",
-  instanceName: "Production Server",
+  key: 'license_key_here',
+  instanceName: 'Production Server',
 });
+
+console.log(license.instance?.id); // Use this instance ID for validation
 
 // Validate a license
-const validation = await creem.licenses.validate({
-  key: "license_key_here",
-  instanceId: "inst_abc123",
+const validatedLicense = await creem.licenses.validate({
+  key: 'license_key_here',
+  instanceId: 'inst_abc123',
 });
 
-console.log(validation.status); // "active" | "inactive" | "expired" | "disabled"
+console.log(validatedLicense.status); // "active" | "inactive" | "expired" | "disabled"
 
 // Deactivate a license
-await creem.licenses.deactivate({
-  key: "license_key_here",
-  instanceId: "inst_abc123",
+const deactivatedLicense = await creem.licenses.deactivate({
+  key: 'license_key_here',
+  instanceId: 'inst_abc123',
 });
 ```
 
@@ -192,264 +241,114 @@ await creem.licenses.deactivate({
 ```ts
 // Create a discount code
 const discount = await creem.discounts.create({
-  name: "Summer Sale",
-  code: "SUMMER2024",
-  type: "percentage",
-  percentage: 20,
-  duration: "forever",
+  name: 'Summer Sale 2024',
+  code: 'SUMMER2024', // Optional: Auto-generated if not provided
+  type: 'percentage',
+  percentage: 20, // 20% off
+  duration: 'forever', // "forever" | "once" | "repeating"
   maxRedemptions: 100,
+  appliesToProducts: ['prod_xxxxx'],
 });
 
-// Get a discount
-const retrieved = await creem.discounts.get("disc_xxxxx");
+// Retrieve a discount by ID
+const discountById = await creem.discounts.get('disc_xxxxx');
+
+// Retrieve a discount by code
+const discountByCode = await creem.discounts.get(undefined, 'SUMMER2024');
 
 // Delete a discount
-await creem.discounts.delete("disc_xxxxx");
+await creem.discounts.delete('disc_xxxxx');
 ```
 
 ### Transactions
 
 ```ts
 // Get a transaction
-const transaction = await creem.transactions.get("txn_xxxxx");
+const transaction = await creem.transactions.getById('txn_xxxxx');
 
-// Search transactions
-const transactions = await creem.transactions.search({
-  customerId: "cust_xxxxx",
-  page: 1,
-  limit: 50,
-});
+// List transactions
+const transactions = await creem.transactions.search(
+  'cust_xxxxx', // customerId (optional)
+  undefined, // orderId
+  undefined, // productId
+  1, // page
+  50 // pageSize
+);
 ```
 
 ---
 
-## Standalone Functions
+## Standalone functions (tree-shakable)
 
-All SDK methods are also available as standalone functions, optimized for tree-shaking in browser and serverless environments:
-
-```ts
-import { checkoutsCreate, productsGet } from "creem/funcs";
-
-// Use standalone functions
-const checkout = await checkoutsCreate(creem, {
-  productId: "prod_xxxxx",
-  successUrl: "https://yourapp.com/success",
-});
-
-const product = await productsGet(creem, "prod_1234567890");
-```
-
-Function naming follows the pattern: `resourceMethodName` (e.g., `checkoutsCreate`, `customersRetrieve`, `subscriptionsCancel`).
-
----
-
-## Configuration
-
-### Retry Configuration
-
-Configure retry behavior per operation:
+Every SDK method is also available as a standalone function. This is useful for browser / serverless environments where **bundle size** matters.
 
 ```ts
-const result = await creem.products.get("prod_1234567890", {
-  retries: {
-    strategy: "backoff",
-    backoff: {
-      initialInterval: 1,
-      maxInterval: 50,
-      exponent: 1.1,
-      maxElapsedTime: 100,
-    },
-    retryConnectionErrors: false,
-  },
-});
-```
+import { CreemCore } from 'creem/core.js';
+import { productsGet } from 'creem/funcs/productsGet.js';
 
-Or configure globally at SDK initialization:
-
-```ts
-const creem = new Creem({
-  apiKey: process.env["CREEM_API_KEY"] ?? "",
-  retryConfig: {
-    strategy: "backoff",
-    backoff: {
-      initialInterval: 1,
-      maxInterval: 50,
-      exponent: 1.1,
-      maxElapsedTime: 100,
-    },
-    retryConnectionErrors: false,
-  },
-});
-```
-
-### Server Selection
-
-Select between production and test environments:
-
-```ts
-// Using server index (0 = production, 1 = test)
-const creem = new Creem({
-  serverIdx: 0,
-  apiKey: process.env["CREEM_API_KEY"] ?? "",
+// Use `CreemCore` for best tree-shaking performance.
+const creem = new CreemCore({
+  apiKey: process.env['CREEM_API_KEY'] ?? '',
 });
 
-// Or using explicit URL
-const creem = new Creem({
-  serverURL: "https://test-api.creem.io",
-  apiKey: process.env["CREEM_API_KEY"] ?? "",
-});
-```
+const res = await productsGet(creem, 'prod_1234567890');
+if (!res.ok) throw res.error;
 
-### Custom HTTP Client
-
-Integrate your own HTTP client with hooks:
-
-```ts
-import { Creem } from "creem";
-import { HTTPClient } from "creem/lib/http";
-
-const httpClient = new HTTPClient({
-  fetcher: (request) => {
-    return fetch(request);
-  },
-});
-
-// Add request hooks
-httpClient.addHook("beforeRequest", (request) => {
-  const nextRequest = new Request(request, {
-    signal: request.signal || AbortSignal.timeout(5000),
-  });
-  nextRequest.headers.set("x-custom-header", "custom value");
-  return nextRequest;
-});
-
-// Add error logging
-httpClient.addHook("requestError", (error, request) => {
-  console.group("Request Error");
-  console.log("Reason:", `${error}`);
-  console.log("Endpoint:", `${request.method} ${request.url}`);
-  console.groupEnd();
-});
-
-const creem = new Creem({ httpClient: httpClient });
-```
-
-### Debug Logging
-
-Enable debug logging for development:
-
-```ts
-const creem = new Creem({
-  apiKey: process.env["CREEM_API_KEY"] ?? "",
-  debugLogger: console,
-});
+console.log(res.value);
 ```
 
 ---
 
-## Error Handling
+## Webhooks
 
-HTTP errors throw `CreemError` exceptions with detailed information:
+The `creem` TypeScript SDK focuses on making API calls (products, checkouts, subscriptions, etc.) and **does not** include webhook routing helpers.
 
-```ts
-import { Creem } from "creem";
-import * as errors from "creem/models/errors";
-
-const creem = new Creem({
-  apiKey: process.env["CREEM_API_KEY"] ?? "",
-});
-
-try {
-  const result = await creem.products.get("prod_1234567890");
-  console.log(result);
-} catch (error) {
-  if (error instanceof errors.CreemError) {
-    console.log(error.message);     // Error message
-    console.log(error.statusCode);  // HTTP status code
-    console.log(error.body);        // Response body
-    console.log(error.headers);     // Response headers
-  }
-}
-```
-
----
-
-## MCP Server (AI Integration)
-
-The SDK can function as a Model Context Protocol (MCP) server for AI applications like Claude and Cursor.
-
-### Claude Desktop
-
-Add to your `claude_desktop_config.json`:
-
-```json
-{
-  "mcpServers": {
-    "Creem": {
-      "command": "npx",
-      "args": [
-        "-y", "--package", "creem",
-        "--",
-        "mcp", "start",
-        "--api-key", "YOUR_API_KEY"
-      ]
-    }
-  }
-}
-```
-
-### Cursor
-
-Create `.cursor/mcp.json` in your project:
-
-```json
-{
-  "mcpServers": {
-    "Creem": {
-      "command": "npx",
-      "args": [
-        "-y", "--package", "creem",
-        "--",
-        "mcp", "start",
-        "--api-key", "YOUR_API_KEY"
-      ]
-    }
-  }
-}
-```
-
-### MCP Server Help
-
-```bash
-npx -y --package creem -- mcp start --help
-```
+- If you're on Next.js, prefer the [`@creem_io/nextjs`](/code/sdks/nextjs) `Webhook` helper.
+- Otherwise, implement an HTTP endpoint and verify the `creem-signature` header yourself (see the [Webhook Setup Guide](/code/webhooks)).
 
 ---
 
 ## TypeScript Support
 
-The SDK is fully typed with comprehensive TypeScript definitions. Import types as needed:
+The SDK is written in TypeScript and provides comprehensive type definitions:
 
 ```ts
 import type {
-  Product,
-  Checkout,
-  Customer,
-  Subscription,
-  Transaction,
-  License,
-  Discount,
-} from "creem/models/components";
+  CheckoutEntity,
+  CustomerEntity,
+  ProductEntity,
+  SubscriptionEntity,
+  TransactionEntity,
+  LicenseEntity,
+  DiscountEntity,
+} from 'creem/models/components';
+```
+
+All API responses are fully typed, and the SDK automatically converts snake_case to camelCase for better TypeScript/JavaScript experience.
+
+---
+
+## Error Handling
+
+The SDK throws errors when API calls fail. Always wrap SDK calls in try-catch blocks:
+
+```ts
+try {
+  const product = await creem.products.get('prod_xxxxx');
+} catch (error) {
+  console.error('Failed to retrieve product:', error);
+  // Handle error appropriately
+}
 ```
 
 ---
 
 ## References
 
-- [Creem Core SDK on GitHub](https://github.com/armitage-labs/creem-sdk)
-- [Creem API Documentation](/api-reference/introduction)
+- [Creem SDK on GitHub](https://github.com/armitage-labs/creem-sdk)
+- [Creem API Documentation](https://docs.creem.io/api-reference/introduction)
 - [Creem Dashboard](https://creem.io/dashboard)
-- [Webhook Setup Guide](/code/webhooks)
+- [Webhook Setup Guide](https://docs.creem.io/code/webhooks)
 
 ---
 
