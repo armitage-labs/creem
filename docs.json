@@ -9,7 +9,7 @@
   "colors": {
     "primary": "#FFBE98",
     "light": "#FFBE98",
-    "dark": "#FFBE98"
+    "dark": "#B09CFB"
   },
   "favicon": "/favicon.svg",
   "navigation": {
@@ -77,7 +77,8 @@
                   "code/sdks/typescript",
                   "code/sdks/nextjs",
                   "code/sdks/better-auth",
-                  "code/sdks/templates"
+                  "code/sdks/templates",
+                  "code/sdks/ai-agents"
                 ]
               },
               "code/webhooks"
