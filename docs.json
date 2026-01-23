@@ -74,7 +74,13 @@
               {
                 "group": "SDKs",
                 "pages": [
-                  "code/sdks/typescript",
+                  {
+                    "group": "TypeScript",
+                    "pages": [
+                      "code/sdks/typescript-core",
+                      "code/sdks/typescript-wrapper"
+                    ]
+                  },
                   "code/sdks/nextjs",
                   "code/sdks/better-auth",
                   "code/sdks/templates",

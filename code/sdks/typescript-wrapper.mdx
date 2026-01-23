@@ -1,6 +1,25 @@
 ---
-title: Typescript SDK
-description: Type-safe SDK for the Creem API – manage SaaS subscriptions, products, and revenue in TypeScript/Node.js environments.
+title: SDK Wrapper (creem_io)
+description: A convenience wrapper SDK with helper functions for webhooks, access management, and simplified API interactions. Ideal for quick integrations with less boilerplate.
+---
+
+<Info>
+  This is the **creem_io** wrapper package, which provides convenience methods and webhook helpers for common use cases.
+
+  For full API access with all endpoints and maximum flexibility, see the [Core SDK (creem)](/code/sdks/typescript-core).
+</Info>
+
+## Overview
+
+The `creem_io` package is a convenience wrapper around the Creem API that provides:
+
+- **Simplified webhook handling** with `onGrantAccess` and `onRevokeAccess` callbacks
+- **Automatic signature verification** for webhook events
+- **Type-safe event handlers** for all webhook events
+- **Framework-agnostic** webhook processing
+
+This wrapper is ideal if you want to get started quickly with minimal configuration, especially for handling subscription access management.
+
 ---
 
 ## Installation
