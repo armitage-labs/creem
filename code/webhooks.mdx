@@ -481,6 +481,130 @@ The subscription can be resumed before the period ends using the [Resume Subscri
   </Accordion>
 </AccordionGroup>
 
+### subscription.past_due
+
+The subscription payment has failed and the subscription is now past due. This occurs when a payment attempt fails (e.g., card declined, insufficient funds). Creem will automatically retry the payment according to the retry schedule. If a retry succeeds, the subscription transitions back to `active`. If all retries are exhausted, the subscription may move to `unpaid`.
+
+<AccordionGroup>
+  <Accordion title="Sample Request Body">
+  ```json
+{
+    "id": "evt_7HkTd800rHX7GCampi4Nt9",
+    "eventType": "subscription.past_due",
+    "created_at": 1728734337932,
+    "object": {
+      "id": "sub_6pC2lNB6joCRQIZ1aMrTpi",
+      "object": "subscription",
+      "product": {
+        "id": "prod_d1AY2Sadk9YAvLI0pj97f",
+        "name": "Monthly",
+        "description": "Monthly",
+        "image_url": null,
+        "price": 1000,
+        "currency": "EUR",
+        "billing_type": "recurring",
+        "billing_period": "every-month",
+        "status": "active",
+        "tax_mode": "exclusive",
+        "tax_category": "saas",
+        "default_success_url": "",
+        "created_at": "2024-10-11T11:50:00.182Z",
+        "updated_at": "2024-10-11T11:50:00.182Z",
+        "mode": "local"
+      },
+      "customer": {
+        "id": "cust_1OcIK1GEuVvXZwD19tjq2z",
+        "object": "customer",
+        "email": "customer@emaildomain",
+        "name": "Tester Test",
+        "country": "NL",
+        "created_at": "2024-10-11T09:16:48.557Z",
+        "updated_at": "2024-10-11T09:16:48.557Z",
+        "mode": "local"
+      },
+      "collection_method": "charge_automatically",
+      "status": "past_due",
+      "last_transaction_id": "tran_5yMaWzAl3jxuGJMCOrYWwk",
+      "last_transaction_date": "2024-10-12T11:58:47.109Z",
+      "current_period_start_date": "2024-10-12T11:58:38.000Z",
+      "current_period_end_date": "2024-11-12T11:58:38.000Z",
+      "canceled_at": null,
+      "created_at": "2024-10-12T11:58:45.425Z",
+      "updated_at": "2024-11-12T12:05:30.827Z",
+      "metadata": {
+        "custom_data": "mycustom data",
+        "internal_customer_id": "internal_customer_id"
+      },
+      "mode": "local"
+    }
+}
+  ```
+    
+  </Accordion>
+</AccordionGroup>
+
+### subscription.unpaid
+
+The subscription has exhausted all automatic payment retry attempts and remains unpaid. This is a more severe state than `past_due`, indicating that all configured retries have failed. You should consider restricting access to the customer's resources and prompting them to update their payment method. The subscription can still recover if the customer resolves the payment issue.
+
+<AccordionGroup>
+  <Accordion title="Sample Request Body">
+  ```json
+{
+    "id": "evt_8JlUe901sIY8HDbnqj5Ou0",
+    "eventType": "subscription.unpaid",
+    "created_at": 1728734337932,
+    "object": {
+      "id": "sub_6pC2lNB6joCRQIZ1aMrTpi",
+      "object": "subscription",
+      "product": {
+        "id": "prod_d1AY2Sadk9YAvLI0pj97f",
+        "name": "Monthly",
+        "description": "Monthly",
+        "image_url": null,
+        "price": 1000,
+        "currency": "EUR",
+        "billing_type": "recurring",
+        "billing_period": "every-month",
+        "status": "active",
+        "tax_mode": "exclusive",
+        "tax_category": "saas",
+        "default_success_url": "",
+        "created_at": "2024-10-11T11:50:00.182Z",
+        "updated_at": "2024-10-11T11:50:00.182Z",
+        "mode": "local"
+      },
+      "customer": {
+        "id": "cust_1OcIK1GEuVvXZwD19tjq2z",
+        "object": "customer",
+        "email": "customer@emaildomain",
+        "name": "Tester Test",
+        "country": "NL",
+        "created_at": "2024-10-11T09:16:48.557Z",
+        "updated_at": "2024-10-11T09:16:48.557Z",
+        "mode": "local"
+      },
+      "collection_method": "charge_automatically",
+      "status": "unpaid",
+      "last_transaction_id": "tran_5yMaWzAl3jxuGJMCOrYWwk",
+      "last_transaction_date": "2024-10-12T11:58:47.109Z",
+      "current_period_start_date": "2024-10-12T11:58:38.000Z",
+      "current_period_end_date": "2024-11-12T11:58:38.000Z",
+      "canceled_at": null,
+      "created_at": "2024-10-12T11:58:45.425Z",
+      "updated_at": "2024-11-15T08:30:15.827Z",
+      "metadata": {
+        "custom_data": "mycustom data",
+        "internal_customer_id": "internal_customer_id"
+      },
+      "mode": "local"
+    }
+}
+  ```
+    
+  </Accordion>
+</AccordionGroup>
+
 ### subscription.expired
 
 The subscription was expired, given that the `current_end_period` has been reached without a new payment.
