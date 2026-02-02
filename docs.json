@@ -167,7 +167,6 @@
             "icon": "book",
             "pages": [
               "api-reference/introduction",
-              "api-reference/rate-limits",
               "api-reference/error-codes"
             ]
           },

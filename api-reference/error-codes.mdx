@@ -1,297 +1,158 @@
 ---
-title: 'Error Codes'
-description: 'Complete reference for API error codes and how to resolve them.'
+title: 'Error Handling'
+description: 'Understanding API error responses and how to handle them.'
 ---
 
 ## Error Response Format
 
-When an API request fails, Creem returns a JSON error response with a consistent structure:
+When an API request fails, Creem returns a JSON error response:
 
 ```json
 {
-  "error": {
-    "code": "invalid_parameter",
-    "message": "The 'amount' field must be a positive integer.",
-    "field": "amount",
-    "doc_url": "https://docs.creem.io/api-reference/error-codes#invalid_parameter"
-  }
+  "trace_id": "550e8400-e29b-41d4-a716-446655440000",
+  "status": 400,
+  "error": "Bad Request",
+  "message": ["The 'product_id' field is required."],
+  "timestamp": 1706889600000
 }
 ```
 
 | Field | Type | Description |
 |-------|------|-------------|
-| `code` | string | Machine-readable error identifier |
-| `message` | string | Human-readable error description |
-| `field` | string | (Optional) The specific field that caused the error |
-| `doc_url` | string | (Optional) Link to relevant documentation |
+| `trace_id` | string | Unique identifier for the request (useful for debugging) |
+| `status` | number | HTTP status code |
+| `error` | string | Error category |
+| `message` | string[] | Array of human-readable error messages |
+| `timestamp` | number | Unix timestamp in milliseconds |
+
+<Note>
+  The `trace_id` is included in every error response. Include it when contacting support for faster debugging.
+</Note>
 
 ## HTTP Status Codes
 
-| Status | Meaning | When It Occurs |
-|--------|---------|----------------|
-| `400` | Bad Request | Invalid request parameters or malformed JSON |
-| `401` | Unauthorized | Missing API key |
+| Status | Error | When It Occurs |
+|--------|-------|----------------|
+| `400` | Bad Request | Invalid request parameters, malformed JSON, or validation errors |
 | `403` | Forbidden | Invalid API key or insufficient permissions |
 | `404` | Not Found | Requested resource doesn't exist |
-| `409` | Conflict | Resource already exists or state conflict |
-| `422` | Unprocessable Entity | Valid JSON but semantically incorrect |
-| `429` | Too Many Requests | Rate limit exceeded |
-| `500` | Internal Server Error | Something went wrong on our end |
 
-## Error Codes Reference
+## Common Error Scenarios
 
-### Authentication Errors
+### Authentication Errors (403 Forbidden)
 
-<AccordionGroup>
-  <Accordion title="invalid_api_key" icon="key">
-    **HTTP Status:** 401 / 403
-    
-    **Description:** The API key provided is invalid or has been revoked.
-    
-    **How to fix:**
-    - Verify your API key in the [dashboard](https://creem.io/dashboard/developers)
-    - Ensure you're using the correct key for the environment (test vs. production)
-    - Check that the key hasn't been revoked or regenerated
-    
-    ```json
-    {
-      "error": {
-        "code": "invalid_api_key",
-        "message": "The API key provided is invalid or has been revoked."
-      }
-    }
-    ```
-  </Accordion>
+Returned when the API key is missing, invalid, or doesn't have permission for the requested resource.
 
-  <Accordion title="missing_api_key" icon="lock">
-    **HTTP Status:** 401
-    
-    **Description:** No API key was provided in the request headers.
-    
-    **How to fix:**
-    - Add the `x-api-key` header to your request
-    - Ensure the header name is exactly `x-api-key` (lowercase)
-    
-    ```bash
-    curl -X GET https://api.creem.io/v1/products \
-      -H "x-api-key: creem_YOUR_API_KEY"
-    ```
-  </Accordion>
-</AccordionGroup>
+```json
+{
+  "trace_id": "550e8400-e29b-41d4-a716-446655440000",
+  "status": 403,
+  "error": "Forbidden",
+  "timestamp": 1706889600000
+}
+```
 
-### Validation Errors
+**How to fix:**
+- Verify your API key in the [dashboard](https://creem.io/dashboard/developers)
+- Ensure the `x-api-key` header is included in your request
+- Check you're using the correct key for the environment (test vs. production)
 
-<AccordionGroup>
-  <Accordion title="missing_required_field" icon="asterisk">
-    **HTTP Status:** 400
-    
-    **Description:** A required field was not provided in the request.
-    
-    **How to fix:**
-    - Check the API documentation for required fields
-    - Ensure all required fields are included in your request body
-    
-    ```json
-    {
-      "error": {
-        "code": "missing_required_field",
-        "message": "The 'product_id' field is required.",
-        "field": "product_id"
-      }
-    }
-    ```
-  </Accordion>
+```bash
+curl -X GET https://api.creem.io/v1/products \
+  -H "x-api-key: creem_YOUR_API_KEY"
+```
 
-  <Accordion title="invalid_parameter" icon="circle-exclamation">
-    **HTTP Status:** 400 / 422
-    
-    **Description:** A parameter value is invalid or in the wrong format.
-    
-    **How to fix:**
-    - Verify the data type matches the expected type
-    - Check for valid enum values
-    - Ensure URLs are properly formatted
-    
-    ```json
-    {
-      "error": {
-        "code": "invalid_parameter",
-        "message": "The 'success_url' must be a valid HTTPS URL.",
-        "field": "success_url"
-      }
-    }
-    ```
-  </Accordion>
-</AccordionGroup>
+### Validation Errors (400 Bad Request)
 
-### Resource Errors
+Returned when request parameters are missing or invalid.
 
-<AccordionGroup>
-  <Accordion title="resource_not_found" icon="magnifying-glass">
-    **HTTP Status:** 404
-    
-    **Description:** The requested resource does not exist.
-    
-    **How to fix:**
-    - Verify the resource ID is correct
-    - Ensure you're using the right environment (test vs. production)
-    - Check if the resource was deleted
-    
-    ```json
-    {
-      "error": {
-        "code": "resource_not_found",
-        "message": "Product with ID 'prod_invalid123' not found."
-      }
-    }
-    ```
-  </Accordion>
+```json
+{
+  "trace_id": "550e8400-e29b-41d4-a716-446655440000",
+  "status": 400,
+  "error": "Bad Request",
+  "message": ["product_id must be a string", "success_url must be a valid URL"],
+  "timestamp": 1706889600000
+}
+```
 
-  <Accordion title="duplicate_request" icon="clone">
-    **HTTP Status:** 409
-    
-    **Description:** A resource with the same unique identifier already exists.
-    
-    **How to fix:**
-    - Use a unique `request_id` for idempotent requests
-    - Check if the resource already exists before creating
-    
-    ```json
-    {
-      "error": {
-        "code": "duplicate_request",
-        "message": "A checkout with this request_id already exists.",
-        "field": "request_id"
-      }
-    }
-    ```
-  </Accordion>
-</AccordionGroup>
+**How to fix:**
+- Check the `message` array for specific validation errors
+- Verify all required fields are included
+- Ensure data types match the expected format
 
-### Rate Limiting
+### Resource Not Found (404)
 
-<AccordionGroup>
-  <Accordion title="rate_limit_exceeded" icon="gauge-high">
-    **HTTP Status:** 429
-    
-    **Description:** You've exceeded the allowed number of requests.
-    
-    **How to fix:**
-    - Implement exponential backoff
-    - Check the `Retry-After` header for wait time
-    - Consider caching responses
-    - [Contact us](https://creem.io/contact) for higher limits
-    
-    ```json
-    {
-      "error": {
-        "code": "rate_limit_exceeded",
-        "message": "Rate limit exceeded. Please retry after 45 seconds.",
-        "retry_after": 45
-      }
-    }
-    ```
-    
-    See [Rate Limits](/api-reference/rate-limits) for best practices.
-  </Accordion>
-</AccordionGroup>
+Returned when the requested resource doesn't exist.
 
-### Payment Errors
+```json
+{
+  "trace_id": "550e8400-e29b-41d4-a716-446655440000",
+  "status": 404,
+  "error": "Bad Request",
+  "message": ["Product not found"],
+  "timestamp": 1706889600000
+}
+```
 
-<AccordionGroup>
-  <Accordion title="payment_failed" icon="credit-card">
-    **HTTP Status:** 422
-    
-    **Description:** The payment could not be processed.
-    
-    **How to fix:**
-    - This typically occurs on the customer side
-    - Provide clear messaging to the customer to try a different payment method
-    - Check webhook events for detailed failure reasons
-    
-    ```json
-    {
-      "error": {
-        "code": "payment_failed",
-        "message": "The payment was declined by the card issuer."
-      }
-    }
-    ```
-  </Accordion>
+**How to fix:**
+- Verify the resource ID is correct
+- Ensure you're using the right environment (test vs. production resources are separate)
+- Check if the resource was deleted
 
-  <Accordion title="subscription_not_active" icon="repeat">
-    **HTTP Status:** 422
-    
-    **Description:** The subscription is not in an active state.
-    
-    **How to fix:**
-    - Check the subscription status via the API
-    - Subscription may be paused, canceled, or past due
-    - Direct the customer to update their payment method
-    
-    ```json
-    {
-      "error": {
-        "code": "subscription_not_active",
-        "message": "Cannot modify subscription 'sub_xxx' because it is canceled."
-      }
-    }
-    ```
-  </Accordion>
-</AccordionGroup>
+### Duplicate Resource (400 Bad Request)
 
-### Webhook Errors
+Returned when trying to create a resource that already exists.
 
-<AccordionGroup>
-  <Accordion title="webhook_signature_invalid" icon="signature">
-    **HTTP Status:** 401
-    
-    **Description:** The webhook signature verification failed.
-    
-    **How to fix:**
-    - Ensure you're using the correct webhook secret
-    - Verify you're using the raw request body for signature verification
-    - Check that your server isn't modifying the request body
-    
-    ```typescript
-    // Correct: Use raw body
-    app.post('/webhooks', express.raw({ type: 'application/json' }), (req, res) => {
-      const signature = req.headers['creem-signature'];
-      const isValid = creem.webhooks.verify(req.body, signature);
-    });
-    ```
-    
-    See [Webhooks](/code/webhooks) for implementation details.
-  </Accordion>
-</AccordionGroup>
+```json
+{
+  "trace_id": "550e8400-e29b-41d4-a716-446655440000",
+  "status": 400,
+  "error": "Bad Request",
+  "message": ["A resource with this identifier already exists"],
+  "timestamp": 1706889600000
+}
+```
 
-### Server Errors
+**How to fix:**
+- Use a unique identifier for idempotent requests
+- Check if the resource already exists before creating
 
-<AccordionGroup>
-  <Accordion title="internal_error" icon="server">
-    **HTTP Status:** 500
-    
-    **Description:** An unexpected error occurred on our servers.
-    
-    **How to fix:**
-    - Retry the request with exponential backoff
-    - If the issue persists, [contact support](https://creem.io/contact)
-    - Check our [status page](https://status.creem.io) for ongoing incidents
-    
-    ```json
-    {
-      "error": {
-        "code": "internal_error",
-        "message": "An unexpected error occurred. Please try again later."
-      }
-    }
-    ```
-  </Accordion>
-</AccordionGroup>
+## Handling Errors in Code
 
-## Troubleshooting Tips
+### TypeScript SDK
 
-### 1. Check the Environment
+```typescript
+import { createCreem } from 'creem_io';
+
+const creem = createCreem({ apiKey: process.env.CREEM_API_KEY! });
+
+try {
+  const checkout = await creem.checkouts.create({
+    productId: 'prod_123',
+    successUrl: 'https://example.com/success',
+  });
+} catch (error) {
+  if (error.response) {
+    const { trace_id, status, message } = error.response.data;
+    console.error(`Error ${status}: ${message.join(', ')}`);
+    console.error(`Trace ID: ${trace_id}`);
+  }
+}
+```
+
+### cURL
+
+```bash
+# The response includes the trace_id for debugging
+curl -X POST https://api.creem.io/v1/checkouts \
+  -H "x-api-key: creem_YOUR_API_KEY" \
+  -H "Content-Type: application/json" \
+  -d '{"product_id": "invalid"}' \
+  -w "\nHTTP Status: %{http_code}\n"
+```
+
+## Environments
 
 Make sure you're using the correct base URL:
 
@@ -304,58 +165,10 @@ Make sure you're using the correct base URL:
   Test mode API keys only work with `test-api.creem.io`, and production keys only work with `api.creem.io`.
 </Warning>
 
-### 2. Validate Request Format
-
-```bash
-# Check your JSON is valid
-echo '{"product_id": "prod_123"}' | jq .
-
-# Common issues:
-# - Trailing commas
-# - Single quotes instead of double quotes
-# - Missing quotes around keys
-```
-
-### 3. Use the SDK
-
-Our SDKs provide typed errors and better error messages:
-
-```typescript
-import { createCreem, CreemError } from 'creem_io';
-
-const creem = createCreem({ apiKey: process.env.CREEM_API_KEY! });
-
-try {
-  const checkout = await creem.checkouts.create({
-    productId: 'prod_invalid',
-    successUrl: 'https://example.com/success',
-  });
-} catch (error) {
-  if (error instanceof CreemError) {
-    console.error(`Error ${error.code}: ${error.message}`);
-    // Handle specific error codes
-    if (error.code === 'resource_not_found') {
-      // Product doesn't exist
-    }
-  }
-}
-```
-
-### 4. Enable Logging
-
-When debugging, log the full request and response:
-
-```typescript
-const creem = createCreem({
-  apiKey: process.env.CREEM_API_KEY!,
-  debug: true, // Logs all requests and responses
-});
-```
-
 ## Need Help?
 
-If you're still experiencing issues:
+If you're experiencing issues:
 
-1. Check our [Discord community](https://discord.gg/q3GKZs92Av) for quick help
-2. Review the [API Reference](/api-reference/introduction) for endpoint details
-3. [Contact support](https://creem.io/contact) with your error details and request ID
+1. Check the `trace_id` in your error response
+2. Join our [Discord community](https://discord.gg/q3GKZs92Av) for quick help
+3. [Contact support](https://creem.io/contact) with your trace ID for faster debugging
