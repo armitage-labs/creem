@@ -1,0 +1,174 @@
+---
+title: 'Error Handling'
+description: 'Understanding API error responses and how to handle them.'
+---
+
+## Error Response Format
+
+When an API request fails, Creem returns a JSON error response:
+
+```json
+{
+  "trace_id": "550e8400-e29b-41d4-a716-446655440000",
+  "status": 400,
+  "error": "Bad Request",
+  "message": ["The 'product_id' field is required."],
+  "timestamp": 1706889600000
+}
+```
+
+| Field | Type | Description |
+|-------|------|-------------|
+| `trace_id` | string | Unique identifier for the request (useful for debugging) |
+| `status` | number | HTTP status code |
+| `error` | string | Error category |
+| `message` | string[] | Array of human-readable error messages |
+| `timestamp` | number | Unix timestamp in milliseconds |
+
+<Note>
+  The `trace_id` is included in every error response. Include it when contacting support for faster debugging.
+</Note>
+
+## HTTP Status Codes
+
+| Status | Error | When It Occurs |
+|--------|-------|----------------|
+| `400` | Bad Request | Invalid request parameters, malformed JSON, or validation errors |
+| `403` | Forbidden | Invalid API key or insufficient permissions |
+| `404` | Not Found | Requested resource doesn't exist |
+
+## Common Error Scenarios
+
+### Authentication Errors (403 Forbidden)
+
+Returned when the API key is missing, invalid, or doesn't have permission for the requested resource.
+
+```json
+{
+  "trace_id": "550e8400-e29b-41d4-a716-446655440000",
+  "status": 403,
+  "error": "Forbidden",
+  "timestamp": 1706889600000
+}
+```
+
+**How to fix:**
+- Verify your API key in the [dashboard](https://creem.io/dashboard/developers)
+- Ensure the `x-api-key` header is included in your request
+- Check you're using the correct key for the environment (test vs. production)
+
+```bash
+curl -X GET https://api.creem.io/v1/products \
+  -H "x-api-key: creem_YOUR_API_KEY"
+```
+
+### Validation Errors (400 Bad Request)
+
+Returned when request parameters are missing or invalid.
+
+```json
+{
+  "trace_id": "550e8400-e29b-41d4-a716-446655440000",
+  "status": 400,
+  "error": "Bad Request",
+  "message": ["product_id must be a string", "success_url must be a valid URL"],
+  "timestamp": 1706889600000
+}
+```
+
+**How to fix:**
+- Check the `message` array for specific validation errors
+- Verify all required fields are included
+- Ensure data types match the expected format
+
+### Resource Not Found (404)
+
+Returned when the requested resource doesn't exist.
+
+```json
+{
+  "trace_id": "550e8400-e29b-41d4-a716-446655440000",
+  "status": 404,
+  "error": "Bad Request",
+  "message": ["Product not found"],
+  "timestamp": 1706889600000
+}
+```
+
+**How to fix:**
+- Verify the resource ID is correct
+- Ensure you're using the right environment (test vs. production resources are separate)
+- Check if the resource was deleted
+
+### Duplicate Resource (400 Bad Request)
+
+Returned when trying to create a resource that already exists.
+
+```json
+{
+  "trace_id": "550e8400-e29b-41d4-a716-446655440000",
+  "status": 400,
+  "error": "Bad Request",
+  "message": ["A resource with this identifier already exists"],
+  "timestamp": 1706889600000
+}
+```
+
+**How to fix:**
+- Use a unique identifier for idempotent requests
+- Check if the resource already exists before creating
+
+## Handling Errors in Code
+
+### TypeScript SDK
+
+```typescript
+import { createCreem } from 'creem_io';
+
+const creem = createCreem({ apiKey: process.env.CREEM_API_KEY! });
+
+try {
+  const checkout = await creem.checkouts.create({
+    productId: 'prod_123',
+    successUrl: 'https://example.com/success',
+  });
+} catch (error) {
+  if (error.response) {
+    const { trace_id, status, message } = error.response.data;
+    console.error(`Error ${status}: ${message.join(', ')}`);
+    console.error(`Trace ID: ${trace_id}`);
+  }
+}
+```
+
+### cURL
+
+```bash
+# The response includes the trace_id for debugging
+curl -X POST https://api.creem.io/v1/checkouts \
+  -H "x-api-key: creem_YOUR_API_KEY" \
+  -H "Content-Type: application/json" \
+  -d '{"product_id": "invalid"}' \
+  -w "\nHTTP Status: %{http_code}\n"
+```
+
+## Environments
+
+Make sure you're using the correct base URL:
+
+| Environment | Base URL |
+|-------------|----------|
+| Production | `https://api.creem.io` |
+| Test Mode | `https://test-api.creem.io` |
+
+<Warning>
+  Test mode API keys only work with `test-api.creem.io`, and production keys only work with `api.creem.io`.
+</Warning>
+
+## Need Help?
+
+If you're experiencing issues:
+
+1. Check the `trace_id` in your error response
+2. Join our [Discord community](https://discord.gg/q3GKZs92Av) for quick help
+3. [Contact support](https://creem.io/contact) with your trace ID for faster debugging

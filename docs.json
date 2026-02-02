@@ -1,6 +1,20 @@
 {
   "$schema": "https://mintlify.com/docs.json",
 
+  "seo": {
+    "indexing": "all",
+    "metatags": {
+      "twitter:site": "@creem_io",
+      "og:site_name": "Creem Documentation",
+      "keywords": "merchant of record, payment api, saas billing, subscription management, global payments, MoR"
+    }
+  },
+  "integrations": {
+    "posthog": {
+      "apiKey": "phc_placeholder_gabriel_will_provide",
+      "apiHost": "https://us.posthog.com"
+    }
+  },
   "contextual": {
     "options": ["copy", "view", "chatgpt", "claude", "perplexity"]
   },
@@ -151,7 +165,10 @@
           {
             "group": "API Documentation",
             "icon": "book",
-            "pages": ["api-reference/introduction"]
+            "pages": [
+              "api-reference/introduction",
+              "api-reference/error-codes"
+            ]
           },
           {
             "group": "Checkout",
