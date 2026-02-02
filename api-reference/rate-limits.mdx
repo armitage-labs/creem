@@ -1,0 +1,162 @@
+---
+title: 'Rate Limits'
+description: 'Understand API rate limits and how to handle them effectively.'
+---
+
+## Overview
+
+The Creem API implements rate limiting to ensure fair usage and maintain service reliability for all users. Rate limits are applied on a per-API-key basis.
+
+## Default Limits
+
+| Limit Type | Threshold | Window |
+|------------|-----------|--------|
+| Standard | 100 requests | Per minute |
+| Burst | 1,000 requests | Per hour |
+
+<Tip>
+  Need higher limits? [Contact us](https://creem.io/contact) to discuss your requirements.
+</Tip>
+
+## Rate Limit Headers
+
+Every API response includes headers to help you track your rate limit status:
+
+| Header | Description |
+|--------|-------------|
+| `X-RateLimit-Limit` | Maximum requests allowed in the current window |
+| `X-RateLimit-Remaining` | Number of requests remaining in the current window |
+| `X-RateLimit-Reset` | Unix timestamp when the rate limit window resets |
+
+Example response headers:
+
+```http
+X-RateLimit-Limit: 100
+X-RateLimit-Remaining: 87
+X-RateLimit-Reset: 1704067200
+```
+
+## Handling 429 Responses
+
+When you exceed the rate limit, the API returns a `429 Too Many Requests` status code:
+
+```json
+{
+  "error": {
+    "code": "rate_limit_exceeded",
+    "message": "Rate limit exceeded. Please retry after 45 seconds.",
+    "retry_after": 45
+  }
+}
+```
+
+The `Retry-After` header indicates how many seconds to wait before retrying:
+
+```http
+HTTP/1.1 429 Too Many Requests
+Retry-After: 45
+```
+
+## Best Practices
+
+### 1. Implement Exponential Backoff
+
+When receiving a 429 response, use exponential backoff to retry requests:
+
+```typescript
+async function requestWithRetry(fn: () => Promise<any>, maxRetries = 3) {
+  for (let attempt = 0; attempt < maxRetries; attempt++) {
+    try {
+      return await fn();
+    } catch (error) {
+      if (error.status === 429 && attempt < maxRetries - 1) {
+        const delay = Math.pow(2, attempt) * 1000; // 1s, 2s, 4s
+        await new Promise(resolve => setTimeout(resolve, delay));
+        continue;
+      }
+      throw error;
+    }
+  }
+}
+```
+
+### 2. Cache Responses
+
+Reduce API calls by caching responses that don't change frequently:
+
+```typescript
+// Cache product data for 5 minutes
+const productCache = new Map();
+
+async function getProduct(productId: string) {
+  const cached = productCache.get(productId);
+  if (cached && Date.now() - cached.timestamp < 300000) {
+    return cached.data;
+  }
+  
+  const product = await creem.products.get({ id: productId });
+  productCache.set(productId, { data: product, timestamp: Date.now() });
+  return product;
+}
+```
+
+### 3. Monitor Rate Limit Headers
+
+Proactively monitor your rate limit usage to avoid hitting limits:
+
+```typescript
+async function makeRequest(fn: () => Promise<Response>) {
+  const response = await fn();
+  
+  const remaining = parseInt(response.headers.get('X-RateLimit-Remaining') || '100');
+  const limit = parseInt(response.headers.get('X-RateLimit-Limit') || '100');
+  
+  // Warn when approaching limit
+  if (remaining < limit * 0.1) {
+    console.warn(`Rate limit warning: ${remaining}/${limit} requests remaining`);
+  }
+  
+  return response;
+}
+```
+
+### 4. Batch Operations When Possible
+
+Instead of making individual requests, batch operations where the API supports it:
+
+```typescript
+// Instead of multiple individual requests
+// Use search/list endpoints with filters
+const customers = await creem.customers.list({
+  limit: 100,
+  // Apply filters to get exactly what you need
+});
+```
+
+### 5. Use Webhooks for Real-Time Updates
+
+Instead of polling the API for updates, use [webhooks](/code/webhooks) to receive real-time notifications:
+
+```typescript
+// Don't poll for subscription status changes
+// Instead, listen for webhook events
+app.post('/webhooks/creem', (req, res) => {
+  const event = req.body;
+  
+  if (event.type === 'subscription.updated') {
+    // Handle subscription update
+  }
+  
+  res.status(200).send('OK');
+});
+```
+
+## Higher Limits
+
+If your application requires higher rate limits, we're happy to accommodate legitimate use cases. Please [contact our team](https://creem.io/contact) with:
+
+- Your current API key or account email
+- Your expected request volume
+- A brief description of your use case
+
+We typically respond within 24 hours.

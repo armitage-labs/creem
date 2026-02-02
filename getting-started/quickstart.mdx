@@ -279,6 +279,251 @@ https://yoursite.com/success?checkout_id=ch_xxx&order_id=ord_xxx&customer_id=cus
 
 ---
 
+## Complete Working Example
+
+Here's a full Next.js App Router example you can copy and run. This includes everything: checkout creation, success page, and webhook handling.
+
+### Project Structure
+
+```
+your-app/
+├── app/
+│   ├── api/
+│   │   ├── checkout/
+│   │   │   └── route.ts      # Creates checkout sessions
+│   │   └── webhooks/
+│   │       └── creem/
+│   │           └── route.ts  # Handles payment webhooks
+│   ├── success/
+│   │   └── page.tsx          # Success page after payment
+│   └── page.tsx              # Main page with buy button
+├── lib/
+│   └── creem.ts              # Creem client setup
+└── .env.local
+```
+
+### 1. Environment Variables
+
+```bash
+# .env.local
+CREEM_API_KEY=creem_test_your_api_key
+CREEM_WEBHOOK_SECRET=whsec_your_webhook_secret
+NEXT_PUBLIC_APP_URL=http://localhost:3000
+```
+
+### 2. Creem Client Setup
+
+```typescript
+// lib/creem.ts
+import { createCreem } from 'creem_io';
+
+export const creem = createCreem({
+  apiKey: process.env.CREEM_API_KEY!,
+  testMode: true, // Set to false for production
+});
+```
+
+### 3. Checkout API Route
+
+```typescript
+// app/api/checkout/route.ts
+import { NextRequest, NextResponse } from 'next/server';
+import { creem } from '@/lib/creem';
+
+export async function POST(request: NextRequest) {
+  try {
+    const { productId } = await request.json();
+    
+    const checkout = await creem.checkouts.create({
+      productId,
+      successUrl: `${process.env.NEXT_PUBLIC_APP_URL}/success`,
+    });
+    
+    return NextResponse.json({ 
+      checkoutUrl: checkout.checkout_url 
+    });
+  } catch (error) {
+    console.error('Checkout error:', error);
+    return NextResponse.json(
+      { error: 'Failed to create checkout' },
+      { status: 500 }
+    );
+  }
+}
+```
+
+### 4. Webhook Handler
+
+```typescript
+// app/api/webhooks/creem/route.ts
+import { NextRequest, NextResponse } from 'next/server';
+import crypto from 'crypto';
+
+export async function POST(request: NextRequest) {
+  const body = await request.text();
+  const signature = request.headers.get('creem-signature');
+  
+  // Verify webhook signature
+  const expectedSignature = crypto
+    .createHmac('sha256', process.env.CREEM_WEBHOOK_SECRET!)
+    .update(body)
+    .digest('hex');
+  
+  if (signature !== expectedSignature) {
+    return NextResponse.json(
+      { error: 'Invalid signature' },
+      { status: 401 }
+    );
+  }
+  
+  const event = JSON.parse(body);
+  
+  // Handle different event types
+  switch (event.type) {
+    case 'checkout.completed':
+      console.log('Payment successful!', {
+        checkoutId: event.data.id,
+        customerId: event.data.customer_id,
+        productId: event.data.product_id,
+      });
+      // Grant access, send email, update database, etc.
+      break;
+      
+    case 'subscription.created':
+      console.log('New subscription:', event.data);
+      break;
+      
+    case 'subscription.canceled':
+      console.log('Subscription canceled:', event.data);
+      // Revoke access
+      break;
+  }
+  
+  return NextResponse.json({ received: true });
+}
+```
+
+### 5. Buy Button Component
+
+```tsx
+// app/page.tsx
+'use client';
+
+import { useState } from 'react';
+
+export default function Home() {
+  const [loading, setLoading] = useState(false);
+  
+  const handleCheckout = async () => {
+    setLoading(true);
+    
+    try {
+      const response = await fetch('/api/checkout', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          productId: 'prod_YOUR_PRODUCT_ID', // Replace with your product ID
+        }),
+      });
+      
+      const { checkoutUrl } = await response.json();
+      
+      // Redirect to Creem checkout
+      window.location.href = checkoutUrl;
+    } catch (error) {
+      console.error('Checkout failed:', error);
+      alert('Something went wrong. Please try again.');
+    } finally {
+      setLoading(false);
+    }
+  };
+  
+  return (
+    <main className="flex min-h-screen flex-col items-center justify-center p-24">
+      <h1 className="text-4xl font-bold mb-8">My Awesome Product</h1>
+      <button
+        onClick={handleCheckout}
+        disabled={loading}
+        className="bg-blue-600 hover:bg-blue-700 text-white font-bold py-3 px-6 rounded-lg disabled:opacity-50"
+      >
+        {loading ? 'Loading...' : 'Buy Now - $29'}
+      </button>
+    </main>
+  );
+}
+```
+
+### 6. Success Page
+
+```tsx
+// app/success/page.tsx
+import { Suspense } from 'react';
+
+function SuccessContent({ searchParams }: { searchParams: { checkout_id?: string } }) {
+  return (
+    <main className="flex min-h-screen flex-col items-center justify-center p-24">
+      <div className="text-center">
+        <h1 className="text-4xl font-bold text-green-600 mb-4">
+          🎉 Payment Successful!
+        </h1>
+        <p className="text-lg text-gray-600 mb-8">
+          Thank you for your purchase. You should receive a confirmation email shortly.
+        </p>
+        {searchParams.checkout_id && (
+          <p className="text-sm text-gray-400">
+            Order ID: {searchParams.checkout_id}
+          </p>
+        )}
+        <a
+          href="/"
+          className="inline-block mt-8 bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded"
+        >
+          Back to Home
+        </a>
+      </div>
+    </main>
+  );
+}
+
+export default function SuccessPage({ 
+  searchParams 
+}: { 
+  searchParams: { checkout_id?: string } 
+}) {
+  return (
+    <Suspense fallback={<div>Loading...</div>}>
+      <SuccessContent searchParams={searchParams} />
+    </Suspense>
+  );
+}
+```
+
+### Running the Example
+
+1. Install dependencies:
+```bash
+npm install creem_io
+```
+
+2. Create a product in the [Creem dashboard](https://creem.io/dashboard/products)
+
+3. Copy the product ID (starts with `prod_`) and update `app/page.tsx`
+
+4. Get your webhook secret from the dashboard and add to `.env.local`
+
+5. Run the development server:
+```bash
+npm run dev
+```
+
+6. Visit `http://localhost:3000` and click "Buy Now"
+
+<Note>
+  In test mode, use test card number `4242 4242 4242 4242` with any future expiry date and any CVC.
+</Note>
+
+---
+
 ## No-Code Solution
 
 Perfect for creators, vibe coders, and anyone who wants to start selling quickly without code.
