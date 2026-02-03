@@ -41,15 +41,15 @@ The affiliate platform consists of two parts:
 | **Affiliate Portal** | `affiliates.creem.io` | Dedicated portal for affiliate partners |
 
 ```mermaid
-flowchart LR
-    A[Merchant creates program] --> B[Invites affiliates]
-    B --> C[Affiliate accepts invite]
-    C --> D[Shares referral link]
-    D --> E[Customer clicks link]
-    E --> F[Cookie tracks referral]
-    F --> G[Customer purchases]
-    G --> H[Commission credited]
-    H --> I[Affiliate requests payout]
+%%{init: {'theme':'base', 'themeVariables': {'primaryColor':'#FFBE98','primaryTextColor':'#000','primaryBorderColor':'#FFBE98','lineColor':'#B09CFB','fontSize':'12px'}}}%%
+flowchart TD
+    A([Create a program]) --> B([Invite affiliates])
+    B --> C([Affiliate shares their referral link])
+    C --> D([Customer clicks link & purchases])
+    D --> E([Commission is applied for this purchase])
+    
+    classDef default fill:#FFBE98,stroke:none,color:#000
+    linkStyle default stroke:#B09CFB,stroke-width:2px
 ```
 
 ---
@@ -63,7 +63,7 @@ Navigate to your Creem dashboard and access the Affiliate Hub under the **Growth
 <Frame>
   <img
     style={{ borderRadius: '0.5rem' }}
-    src="/images/affiliate/05-growth-menu-expanded.png"
+    src="/images/affiliate/02-affiliate-hub-overview.png"
     alt="Creem dashboard sidebar showing Growth menu with Affiliate Hub option"
   />
 </Frame>
@@ -180,13 +180,13 @@ When a merchant invites you to their affiliate program, you'll receive an email 
 
 After joining a program, your dashboard shows:
 
-<Frame>
+{/* <Frame>
   <img
     style={{ borderRadius: '0.5rem' }}
     src="/images/affiliate/08-affiliates-dashboard-no-membership.png"
     alt="Affiliate dashboard showing stats cards and pending invites notification"
   />
-</Frame>
+</Frame> */}
 
 - **Your Referral Link**: Copy and share this unique URL to earn commissions
 - **Revenue**: Total commissions earned
@@ -206,13 +206,13 @@ Your unique referral link is displayed on your dashboard. When someone clicks yo
 
 View your earnings breakdown on the **Balance** page:
 
-<Frame>
+{/* <Frame>
   <img
     style={{ borderRadius: '0.5rem' }}
     src="/images/affiliate/10-affiliates-balance.png"
     alt="Affiliate balance page showing available balance, on-hold amount, and pending payouts"
   />
-</Frame>
+</Frame> */}
 
 | Balance Type | Description |
 |-------------|-------------|
@@ -224,13 +224,13 @@ View your earnings breakdown on the **Balance** page:
 
 Navigate to the **Payouts** page to withdraw your earnings.
 
-<Frame>
+{/* <Frame>
   <img
     style={{ borderRadius: '0.5rem' }}
     src="/images/affiliate/09-affiliates-payouts.png"
     alt="Affiliate payouts page showing verification requirements and payout request form"
   />
-</Frame>
+</Frame> */}
 
 Before requesting payouts, you must complete verification:
 
@@ -251,13 +251,13 @@ Once verified, you can request payouts from the Payouts page. Funds are distribu
 
 Update your profile information on the **Profile** page:
 
-<Frame>
+{/* <Frame>
   <img
     style={{ borderRadius: '0.5rem' }}
     src="/images/affiliate/11-affiliates-profile.png"
     alt="Affiliate profile page showing editable display name, bio, website, and social links"
   />
-</Frame>
+</Frame> */}
 
 - **Email**: Your account email (read-only)
 - **Display Name**: How you appear to merchants
