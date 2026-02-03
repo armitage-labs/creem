@@ -1,6 +1,6 @@
 # Creem API Documentation
 
-Documentation for the Creem API, built with [Mintlify](https://mintlify.com).
+Documentation for the Creem API, built with [Mintlify](https://mintlify.com)..
 
 ## Development
 
