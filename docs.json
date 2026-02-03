@@ -6,7 +6,7 @@
     "metatags": {
       "twitter:site": "@creem_io",
       "og:site_name": "Creem Documentation",
-      "keywords": "merchant of record, payment api, saas billing, subscription management, global payments, MoR"
+      "keywords": "merchant of record, payment api, saas billing, subscription management, global payments, MoR, affiliate program, affiliate marketing, referral program"
     }
   },
   "integrations": {
@@ -65,6 +65,7 @@
               },
               "features/seat-based-billing",
               "features/split-payments",
+              "features/affiliate-program",
               "features/storefronts",
               "features/discounts",
               "features/trials",

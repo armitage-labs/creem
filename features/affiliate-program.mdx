@@ -1,0 +1,360 @@
+---
+title: 'Affiliate Program'
+sidebarTitle: 'Affiliate Program'
+description: 'Launch your own affiliate marketing program to grow revenue through partner referrals. Invite affiliates, set custom commission rates, and track performance from your dashboard.'
+---
+
+The Creem Affiliate Platform is a complete affiliate marketing solution that enables merchants to create referral programs and affiliates to earn commissions by promoting products. The platform handles tracking, attribution, payouts, and compliance automatically.
+
+<Frame>
+  <img
+    style={{ borderRadius: '0.5rem' }}
+    src="/images/affiliate/02-affiliate-hub-overview.png"
+    alt="Creem Affiliate Hub dashboard showing performance metrics, revenue chart, and partner management"
+  />
+</Frame>
+
+## Key Features
+
+<CardGroup cols={2}>
+  <Card title="For Merchants" icon="store">
+    Create affiliate programs, invite partners, set commission rates, and track revenue from affiliate referrals
+  </Card>
+  <Card title="For Affiliates" icon="users">
+    Join programs, get unique referral links, track earnings in real-time, and request payouts
+  </Card>
+  <Card title="Automated Tracking" icon="chart-line">
+    Cookie-based attribution automatically credits affiliates for referred sales
+  </Card>
+  <Card title="Compliant Payouts" icon="building-columns">
+    Built-in KYC verification and multiple payout methods (bank transfer, crypto)
+  </Card>
+</CardGroup>
+
+## How It Works
+
+The affiliate platform consists of two parts:
+
+| Component | URL | Purpose |
+|-----------|-----|---------|
+| **Affiliate Hub** | `creem.io/dashboard/affiliate-hub` | Merchant dashboard for managing programs |
+| **Affiliate Portal** | `affiliates.creem.io` | Dedicated portal for affiliate partners |
+
+```mermaid
+flowchart LR
+    A[Merchant creates program] --> B[Invites affiliates]
+    B --> C[Affiliate accepts invite]
+    C --> D[Shares referral link]
+    D --> E[Customer clicks link]
+    E --> F[Cookie tracks referral]
+    F --> G[Customer purchases]
+    G --> H[Commission credited]
+    H --> I[Affiliate requests payout]
+```
+
+---
+
+## For Merchants
+
+### Creating an Affiliate Program
+
+Navigate to your Creem dashboard and access the Affiliate Hub under the **Growth** section.
+
+<Frame>
+  <img
+    style={{ borderRadius: '0.5rem' }}
+    src="/images/affiliate/05-growth-menu-expanded.png"
+    alt="Creem dashboard sidebar showing Growth menu with Affiliate Hub option"
+  />
+</Frame>
+
+<Steps>
+  <Step title="Open Affiliate Hub">
+    Go to **Growth** → **Affiliate Hub** in your dashboard sidebar. If this is your first time, you'll see the program creation wizard.
+  </Step>
+  <Step title="Enter Program Details">
+    Fill in your program information:
+    - **Program Name**: A descriptive name for your affiliate program
+    - **Website URL**: Where affiliate links should redirect (your landing page)
+    - **Description**: What affiliates should know about your program
+    
+    <Frame>
+      <img
+        style={{ borderRadius: '0.5rem' }}
+        src="/images/affiliate/03-create-affiliate-program.png"
+        alt="Affiliate program creation form showing program name, website URL, and description fields"
+      />
+    </Frame>
+  </Step>
+  <Step title="Configure Commission Settings">
+    Set up your program's commission structure:
+    - **Program Slug**: A unique URL identifier (e.g., `my-program` creates links like `?ref=my-program`)
+    - **Commission Rate**: Percentage of each sale paid to affiliates (0-100%)
+    
+    <Frame>
+      <img
+        style={{ borderRadius: '0.5rem' }}
+        src="/images/affiliate/04-program-settings-commission.png"
+        alt="Program settings showing slug configuration and commission rate percentage field"
+      />
+    </Frame>
+  </Step>
+  <Step title="Start Inviting Affiliates">
+    Once your program is created, you can start inviting partners from the Affiliate Hub dashboard.
+  </Step>
+</Steps>
+
+### Inviting Affiliates
+
+Click **Invite Partner** from the Affiliate Hub to send invitations to potential affiliates.
+
+<Frame>
+  <img
+    style={{ borderRadius: '0.5rem' }}
+    src="/images/affiliate/06-invite-affiliate-modal.png"
+    alt="Invite affiliate modal with email and name input fields"
+  />
+</Frame>
+
+To invite an affiliate:
+1. Enter their **email address**
+2. Enter their **name**
+3. Click **Send Invite**
+
+The affiliate will receive an email invitation with a link to join your program. Pending invites appear in your Partners list with "Invited" status.
+
+### Tracking Performance
+
+The Affiliate Hub provides comprehensive analytics for your program:
+
+| Metric | Description |
+|--------|-------------|
+| **Revenue** | Total revenue generated from affiliate referrals |
+| **Unique Leads** | Number of unique visitors from affiliate links |
+| **Total Clicks** | Total clicks on all affiliate links |
+| **Checkouts Created** | Checkout sessions started by referred visitors |
+| **Conversions** | Conversion rate (sales / unique leads) |
+| **Affiliates** | Number of active affiliate partners |
+
+### Managing Individual Affiliates
+
+Click on any affiliate in your Partners list to open their details panel. From here you can:
+
+- **Set Custom Commission Rate**: Override the program default (0-95%)
+- **Select Allowed Products**: Restrict which products this affiliate can promote
+- **View Performance**: See clicks, conversions, and earnings for this affiliate
+
+---
+
+## For Affiliates
+
+### Joining a Program
+
+When a merchant invites you to their affiliate program, you'll receive an email with an invitation link.
+
+<Steps>
+  <Step title="Sign In">
+    Visit `affiliates.creem.io` and sign in using the email address the invitation was sent to. You can use Google sign-in or a magic link.
+    
+    <Frame>
+      <img
+        style={{ borderRadius: '0.5rem' }}
+        src="/images/affiliate/07-affiliates-sign-in.png"
+        alt="Affiliate portal sign-in page with Google and email options"
+      />
+    </Frame>
+  </Step>
+  <Step title="Accept the Invite">
+    Click the invitation link from your email. Review the program details and click **Join Program** to accept.
+  </Step>
+  <Step title="Complete Your Profile">
+    First-time affiliates will be prompted to complete their profile:
+    - **Display Name**: How merchants will see you
+    - **Bio**: A brief description of yourself/your platform
+    - **Website**: Your website or landing page (optional)
+    - **Social Links**: Your social media profiles (optional)
+  </Step>
+</Steps>
+
+### Your Affiliate Dashboard
+
+After joining a program, your dashboard shows:
+
+<Frame>
+  <img
+    style={{ borderRadius: '0.5rem' }}
+    src="/images/affiliate/08-affiliates-dashboard-no-membership.png"
+    alt="Affiliate dashboard showing stats cards and pending invites notification"
+  />
+</Frame>
+
+- **Your Referral Link**: Copy and share this unique URL to earn commissions
+- **Revenue**: Total commissions earned
+- **Customers**: Number of customers referred
+- **Clicks**: Total clicks on your affiliate links
+- **Conversion Rate**: Percentage of clicks that result in sales
+- **Commission Chart**: 30-day visual breakdown of your earnings
+
+### Sharing Your Referral Link
+
+Your unique referral link is displayed on your dashboard. When someone clicks your link:
+1. A tracking cookie is set on their browser
+2. If they make a purchase within the cookie duration, you earn commission
+3. The sale appears in your dashboard automatically
+
+### Tracking Earnings
+
+View your earnings breakdown on the **Balance** page:
+
+<Frame>
+  <img
+    style={{ borderRadius: '0.5rem' }}
+    src="/images/affiliate/10-affiliates-balance.png"
+    alt="Affiliate balance page showing available balance, on-hold amount, and pending payouts"
+  />
+</Frame>
+
+| Balance Type | Description |
+|-------------|-------------|
+| **Available Balance** | Funds ready to withdraw |
+| **On Hold** | Pending verification or review period |
+| **Pending Payouts** | Payout requests being processed |
+
+### Requesting Payouts
+
+Navigate to the **Payouts** page to withdraw your earnings.
+
+<Frame>
+  <img
+    style={{ borderRadius: '0.5rem' }}
+    src="/images/affiliate/09-affiliates-payouts.png"
+    alt="Affiliate payouts page showing verification requirements and payout request form"
+  />
+</Frame>
+
+Before requesting payouts, you must complete verification:
+
+<AccordionGroup>
+  <Accordion title="Identity Verification (KYC)">
+    Complete identity verification through Sumsub. This requires a government-issued ID and a selfie. Verification typically completes within 24 hours.
+  </Accordion>
+  <Accordion title="Payout Method Setup">
+    Choose your preferred payout method:
+    - **Bank Transfer**: Add your bank account details via Paysway
+    - **Cryptocurrency**: Set up USDC payouts via Mural
+  </Accordion>
+</AccordionGroup>
+
+Once verified, you can request payouts from the Payouts page. Funds are distributed according to the merchant's payout schedule.
+
+### Managing Your Profile
+
+Update your profile information on the **Profile** page:
+
+<Frame>
+  <img
+    style={{ borderRadius: '0.5rem' }}
+    src="/images/affiliate/11-affiliates-profile.png"
+    alt="Affiliate profile page showing editable display name, bio, website, and social links"
+  />
+</Frame>
+
+- **Email**: Your account email (read-only)
+- **Display Name**: How you appear to merchants
+- **Bio**: Describe yourself and your promotional methods (max 1,000 characters)
+- **Website**: Your primary website or landing page
+- **Social Links**: Add links to your social media profiles
+
+### Multiple Program Memberships
+
+If you're an affiliate for multiple merchants, you can switch between programs using the membership switcher in the sidebar footer. Each program has its own stats, balance, and payout settings.
+
+---
+
+## Configuration Options
+
+### Program Settings
+
+| Setting | Description | Default |
+|---------|-------------|---------|
+| **Commission Rate** | Percentage paid to affiliates per sale | Required |
+| **Cookie Duration** | How long referral tracking lasts (days) | Varies |
+| **Payout Threshold** | Minimum balance required for withdrawal | None |
+| **Requires Approval** | Whether new affiliates need manual approval | Yes |
+| **Public Program** | Whether anyone can join without invitation | No |
+
+### Per-Affiliate Overrides
+
+Merchants can customize settings for individual affiliates:
+- Custom commission rates (override program default)
+- Product restrictions (limit which products an affiliate can promote)
+
+---
+
+## Frequently Asked Questions
+
+<AccordionGroup>
+  <Accordion title="How long do affiliate cookies last?">
+    Cookie duration is set by the merchant when creating the program. Typical durations range from 30 to 90 days. If a customer returns and purchases within the cookie window, you earn commission.
+  </Accordion>
+  <Accordion title="When do I get paid?">
+    Payouts are processed according to the merchant's schedule after you request a withdrawal. You must complete identity verification and set up a payout method first. Processing typically takes 3-5 business days.
+  </Accordion>
+  <Accordion title="Can I promote multiple merchants?">
+    Yes! You can join multiple affiliate programs and manage them all from your affiliate portal. Use the membership switcher to view stats and earnings for each program.
+  </Accordion>
+  <Accordion title="What commission rates are typical?">
+    Commission rates vary by merchant and product type. Software and digital products often offer 20-50% commissions, while physical products typically range from 5-20%.
+  </Accordion>
+  <Accordion title="How is my referral tracked?">
+    When someone clicks your affiliate link, a cookie is stored in their browser. This cookie attributes any purchases to you within the cookie duration period.
+  </Accordion>
+  <Accordion title="Can I see which products are selling?">
+    Yes, your dashboard shows conversion data. Merchants may also provide additional reporting on which products drive the most affiliate sales.
+  </Accordion>
+  <Accordion title="What payout methods are available?">
+    Affiliates can receive payouts via bank transfer (processed through Paysway) or cryptocurrency (USDC via Mural). Set up your preferred method in the Payouts section.
+  </Accordion>
+  <Accordion title="Is there a minimum payout amount?">
+    This depends on the merchant's program settings. Some programs have minimum payout thresholds, while others allow withdrawals of any amount.
+  </Accordion>
+</AccordionGroup>
+
+---
+
+## Related Features
+
+<CardGroup cols={2}>
+  <Card
+    title="Revenue Splits"
+    icon="money-bill-transfer"
+    href="/features/split-payments"
+  >
+    Automatically distribute revenue between co-founders and partners
+  </Card>
+  <Card
+    title="Discount Codes"
+    icon="tag"
+    href="/features/discounts"
+  >
+    Create promotional codes for affiliates to share with their audience
+  </Card>
+  <Card
+    title="Webhooks"
+    icon="webhook"
+    href="/code/webhooks"
+  >
+    Get notified of affiliate sales in real-time via webhooks
+  </Card>
+  <Card
+    title="Affonso Integration"
+    icon="plug"
+    href="/integrations/affiliates"
+  >
+    Alternative: Use Affonso for external affiliate tracking
+  </Card>
+</CardGroup>
+
+---
+
+Need help with your affiliate program? [Contact us](https://www.creem.io/contact) or join our [Discord community](https://discord.gg/q3GKZs92Av).
