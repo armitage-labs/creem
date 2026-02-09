@@ -108,10 +108,7 @@
           {
             "group": "Integrations",
             "icon": "link",
-            "pages": [
-              "integrations/affiliates",
-              "integrations/ai-negotiation-bot"
-            ]
+            "pages": ["integrations/ai-negotiation-bot"]
           },
           {
             "group": "Community",
@@ -166,10 +163,7 @@
           {
             "group": "API Documentation",
             "icon": "book",
-            "pages": [
-              "api-reference/introduction",
-              "api-reference/error-codes"
-            ]
+            "pages": ["api-reference/introduction", "api-reference/error-codes"]
           },
           {
             "group": "Checkout",
