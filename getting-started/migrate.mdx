@@ -1,0 +1,65 @@
+---
+title: 'Migrate to Creem'
+description: 'Migrate your LemonSqueezy store to Creem in minutes using the Creem CLI.'
+keywords: 'lemonsqueezy migration, lemonsqueezy alternative, switch from lemonsqueezy, creem migration'
+---
+
+> Get set up on Creem in minutes from an existing store
+
+## LemonSqueezy
+
+The Creem CLI includes a built-in migration tool to move your LemonSqueezy products to Creem.
+
+### Getting Started
+
+<Steps>
+  <Step title="Install the Creem CLI">
+    ```bash
+    brew tap armitage-labs/creem
+    brew install creem
+    ```
+  </Step>
+  <Step title="Authenticate">
+    ```bash
+    creem login --api-key creem_test_YOUR_KEY
+    creem whoami
+    ```
+  </Step>
+  <Step title="Run the Migration">
+    ```bash
+    creem migrate lemon-squeezy
+    ```
+
+    The CLI will walk you through connecting your LemonSqueezy account and importing your product catalog.
+  </Step>
+  <Step title="Verify Your Products">
+    Browse your imported products in the interactive TUI:
+
+    ```bash
+    creem products
+    ```
+
+    Or list them in JSON for scripting:
+
+    ```bash
+    creem products list --json
+    ```
+  </Step>
+</Steps>
+
+<Note>
+  This tool migrates your product catalog. Active subscriptions cannot be moved automatically. Let existing subscribers naturally renew through Creem as their current billing cycles end.
+</Note>
+
+### Need Help?
+
+Join our [Discord community](https://discord.gg/q3GKZs92Av) or reach out at support@creem.io.
+
+<CardGroup cols={2}>
+  <Card title="Quickstart" icon="rocket" href="/getting-started/quickstart">
+    Full integration guide with code examples for every framework.
+  </Card>
+  <Card title="CLI Reference" icon="terminal" href="/code/cli">
+    Complete CLI command reference and automation examples.
+  </Card>
+</CardGroup>

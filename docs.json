@@ -39,7 +39,8 @@
               "getting-started/quickstart",
               "getting-started/test-mode",
               "merchant-of-record/account-reviews/account-reviews",
-              "getting-started/dashboard-overview"
+              "getting-started/dashboard-overview",
+              "getting-started/migrate"
             ]
           },
           {
