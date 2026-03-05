@@ -165,73 +165,55 @@ export interface CreemOptions {
    *   console.log(`${customer.email} subscribed to ${product.name}`);
    * }
    */
-  onSubscriptionActive?: (
-    data: FlatSubscriptionEvent<"subscription.active">
-  ) => void;
+  onSubscriptionActive?: (data: FlatSubscriptionEvent<"subscription.active">) => void;
 
   /**
    * Called when a subscription is in trialing state.
    * All properties are flattened for easy destructuring.
    */
-  onSubscriptionTrialing?: (
-    data: FlatSubscriptionEvent<"subscription.trialing">
-  ) => void;
+  onSubscriptionTrialing?: (data: FlatSubscriptionEvent<"subscription.trialing">) => void;
 
   /**
    * Called when a subscription is canceled.
    * All properties are flattened for easy destructuring.
    */
-  onSubscriptionCanceled?: (
-    data: FlatSubscriptionEvent<"subscription.canceled">
-  ) => void;
+  onSubscriptionCanceled?: (data: FlatSubscriptionEvent<"subscription.canceled">) => void;
 
   /**
    * Called when a subscription is paid.
    * All properties are flattened for easy destructuring.
    */
-  onSubscriptionPaid?: (
-    data: FlatSubscriptionEvent<"subscription.paid">
-  ) => void;
+  onSubscriptionPaid?: (data: FlatSubscriptionEvent<"subscription.paid">) => void;
 
   /**
    * Called when a subscription has expired.
    * All properties are flattened for easy destructuring.
    */
-  onSubscriptionExpired?: (
-    data: FlatSubscriptionEvent<"subscription.expired">
-  ) => void;
+  onSubscriptionExpired?: (data: FlatSubscriptionEvent<"subscription.expired">) => void;
 
   /**
    * Called when a subscription is unpaid.
    * All properties are flattened for easy destructuring.
    */
-  onSubscriptionUnpaid?: (
-    data: FlatSubscriptionEvent<"subscription.unpaid">
-  ) => void;
+  onSubscriptionUnpaid?: (data: FlatSubscriptionEvent<"subscription.unpaid">) => void;
 
   /**
    * Called when a subscription is updated.
    * All properties are flattened for easy destructuring.
    */
-  onSubscriptionUpdate?: (
-    data: FlatSubscriptionEvent<"subscription.update">
-  ) => void;
+  onSubscriptionUpdate?: (data: FlatSubscriptionEvent<"subscription.update">) => void;
 
   /**
    * Called when a subscription is past due.
    * All properties are flattened for easy destructuring.
    */
-  onSubscriptionPastDue?: (
-    data: FlatSubscriptionEvent<"subscription.past_due">
-  ) => void;
+  onSubscriptionPastDue?: (data: FlatSubscriptionEvent<"subscription.past_due">) => void;
 
   /**
    * Called when a subscription is paused.
    * All properties are flattened for easy destructuring.
    */
-  onSubscriptionPaused?: (
-    data: FlatSubscriptionEvent<"subscription.paused">
-  ) => void;
+  onSubscriptionPaused?: (data: FlatSubscriptionEvent<"subscription.paused">) => void;
 
   /**
    * Called when a user should be granted access to the platform.

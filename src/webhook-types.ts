@@ -111,12 +111,7 @@ export interface ProductEntity extends BaseEntity {
   /** Billing method: recurring or one-time */
   billing_type: "recurring" | "one-time";
   /** Billing period */
-  billing_period:
-    | "every-month"
-    | "every-three-months"
-    | "every-six-months"
-    | "every-year"
-    | "once";
+  billing_period: "every-month" | "every-three-months" | "every-six-months" | "every-year" | "once";
   /** Status of the product */
   status: "active" | "archived";
   /** Tax calculation mode */
@@ -287,12 +282,7 @@ export interface SubscriptionItemEntity extends BaseEntity {
   updated_at: Date;
 }
 
-export type SubscriptionStatus =
-  | "active"
-  | "canceled"
-  | "unpaid"
-  | "paused"
-  | "trialing";
+export type SubscriptionStatus = "active" | "canceled" | "unpaid" | "paused" | "trialing";
 
 export interface SubscriptionEntity extends BaseEntity {
   /** String representing the object's type */
@@ -620,8 +610,10 @@ export type WebhookEvent =
  * Subscription entity as returned in subscription webhook events.
  * The product and customer are always expanded (full objects, never just IDs).
  */
-export interface NormalizedSubscriptionEntity
-  extends Omit<SubscriptionEntity, "product" | "customer"> {
+export interface NormalizedSubscriptionEntity extends Omit<
+  SubscriptionEntity,
+  "product" | "customer"
+> {
   /** The product associated with the subscription (always expanded in webhooks) */
   product: ProductEntity;
   /** The customer who owns the subscription (always expanded in webhooks) */
@@ -632,8 +624,10 @@ export interface NormalizedSubscriptionEntity
  * Subscription entity as nested in checkout.completed events.
  * Note: In checkout events, the nested subscription has product/customer as ID strings.
  */
-export interface NestedSubscriptionInCheckout
-  extends Omit<SubscriptionEntity, "product" | "customer"> {
+export interface NestedSubscriptionInCheckout extends Omit<
+  SubscriptionEntity,
+  "product" | "customer"
+> {
   /** The product ID (string, not expanded in nested subscription) */
   product: string;
   /** The customer ID (string, not expanded in nested subscription) */
@@ -645,8 +639,10 @@ export interface NestedSubscriptionInCheckout
  * Product and customer are always expanded.
  * Subscription is also expanded but has product/customer as strings inside it.
  */
-export interface NormalizedCheckoutEntity
-  extends Omit<CheckoutEntity, "product" | "customer" | "subscription"> {
+export interface NormalizedCheckoutEntity extends Omit<
+  CheckoutEntity,
+  "product" | "customer" | "subscription"
+> {
   /** The product associated with the checkout (always expanded in webhooks) */
   product: ProductEntity;
   /** The customer associated with the checkout (always expanded in webhooks) */
@@ -882,73 +878,35 @@ export function isWebhookEventEntity(obj: unknown): obj is WebhookEventEntity {
 }
 
 export function isCheckoutEntity(obj: unknown): obj is CheckoutEntity {
-  return (
-    obj !== null &&
-    typeof obj === "object" &&
-    "object" in obj &&
-    obj.object === "checkout"
-  );
+  return obj !== null && typeof obj === "object" && "object" in obj && obj.object === "checkout";
 }
 
 export function isCustomerEntity(obj: unknown): obj is CustomerEntity {
-  return (
-    obj !== null &&
-    typeof obj === "object" &&
-    "object" in obj &&
-    obj.object === "customer"
-  );
+  return obj !== null && typeof obj === "object" && "object" in obj && obj.object === "customer";
 }
 
 export function isOrderEntity(obj: unknown): obj is OrderEntity {
-  return (
-    obj !== null &&
-    typeof obj === "object" &&
-    "object" in obj &&
-    obj.object === "order"
-  );
+  return obj !== null && typeof obj === "object" && "object" in obj && obj.object === "order";
 }
 
 export function isProductEntity(obj: unknown): obj is ProductEntity {
-  return (
-    obj !== null &&
-    typeof obj === "object" &&
-    "object" in obj &&
-    obj.object === "product"
-  );
+  return obj !== null && typeof obj === "object" && "object" in obj && obj.object === "product";
 }
 
 export function isSubscriptionEntity(obj: unknown): obj is SubscriptionEntity {
   return (
-    obj !== null &&
-    typeof obj === "object" &&
-    "object" in obj &&
-    obj.object === "subscription"
+    obj !== null && typeof obj === "object" && "object" in obj && obj.object === "subscription"
   );
 }
 
 export function isRefundEntity(obj: unknown): obj is RefundEntity {
-  return (
-    obj !== null &&
-    typeof obj === "object" &&
-    "object" in obj &&
-    obj.object === "refund"
-  );
+  return obj !== null && typeof obj === "object" && "object" in obj && obj.object === "refund";
 }
 
 export function isDisputeEntity(obj: unknown): obj is DisputeEntity {
-  return (
-    obj !== null &&
-    typeof obj === "object" &&
-    "object" in obj &&
-    obj.object === "dispute"
-  );
+  return obj !== null && typeof obj === "object" && "object" in obj && obj.object === "dispute";
 }
 
 export function isTransactionEntity(obj: unknown): obj is TransactionEntity {
-  return (
-    obj !== null &&
-    typeof obj === "object" &&
-    "object" in obj &&
-    obj.object === "transaction"
-  );
+  return obj !== null && typeof obj === "object" && "object" in obj && obj.object === "transaction";
 }

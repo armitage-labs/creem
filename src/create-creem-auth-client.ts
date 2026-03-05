@@ -1,9 +1,15 @@
 import { createAuthClient } from "better-auth/react";
 import type { CreateCheckoutInput, CreateCheckoutResponse } from "./checkout-types.js";
 import type { CreatePortalInput, CreatePortalResponse } from "./portal-types.js";
-import type { CancelSubscriptionInput, CancelSubscriptionResponse } from "./cancel-subscription-types.js";
+import type {
+  CancelSubscriptionInput,
+  CancelSubscriptionResponse,
+} from "./cancel-subscription-types.js";
 import type { RetrieveSubscriptionInput, SubscriptionData } from "./retrieve-subscription-types.js";
-import type { SearchTransactionsInput, SearchTransactionsResponse } from "./search-transactions-types.js";
+import type {
+  SearchTransactionsInput,
+  SearchTransactionsResponse,
+} from "./search-transactions-types.js";
 import type { HasAccessGrantedResponse } from "./has-active-subscription-types.js";
 
 /**
@@ -184,35 +190,32 @@ export interface CreemClient {
 
 /**
  * Helper function to create an auth client with proper Creem types.
- * 
+ *
  * This function wraps Better-Auth's `createAuthClient` and provides proper
  * TypeScript types for the Creem plugin methods, giving you clean IntelliSense
  * with full documentation.
- * 
+ *
  * @param config - Better-Auth client configuration with Creem plugin
  * @returns Auth client with properly typed Creem methods
- * 
+ *
  * @example
  * ```typescript
  * import { createCreemAuthClient, creemClient } from "./lib/creem-betterauth";
- * 
+ *
  * export const authClient = createCreemAuthClient({
  *   plugins: [creemClient()]
  * });
- * 
+ *
  * // Now you get clean type hints!
  * const { data } = await authClient.creem.createCheckout({
  *   productId: "prod_abc123"
  * });
  * ```
  */
-export function createCreemAuthClient(
-  config: Parameters<typeof createAuthClient>[0]
-) {
+export function createCreemAuthClient(config: Parameters<typeof createAuthClient>[0]) {
   const baseClient = createAuthClient(config);
-  
+
   return baseClient as typeof baseClient & {
     creem: CreemClient;
   };
 }
-

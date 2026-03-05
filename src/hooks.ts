@@ -42,9 +42,7 @@ export async function onCheckoutCompleted(
   const shouldPersist = options.persistSubscriptions !== false;
 
   if (!shouldPersist) {
-    logger.info(
-      "Database persistence disabled, skipping checkout.completed database operations",
-    );
+    logger.info("Database persistence disabled, skipping checkout.completed database operations");
     return;
   }
 
@@ -55,9 +53,7 @@ export async function onCheckoutCompleted(
     const customerId = checkout.customer?.id;
 
     if (!customerId) {
-      logger.warn(
-        "Creem webhook: No customer ID found in checkout.completed event",
-      );
+      logger.warn("Creem webhook: No customer ID found in checkout.completed event");
       return;
     }
 
@@ -65,9 +61,7 @@ export async function onCheckoutCompleted(
     const referenceId = checkout.metadata?.referenceId as string;
 
     if (!referenceId) {
-      logger.warn(
-        "Creem webhook: No referenceId found in checkout.completed event",
-      );
+      logger.warn("Creem webhook: No referenceId found in checkout.completed event");
       return;
     }
 
@@ -89,9 +83,7 @@ export async function onCheckoutCompleted(
             creemCustomerId: customerId,
           },
         });
-        logger.info(
-          `Updated user ${referenceId} with creemCustomerId: ${customerId}`,
-        );
+        logger.info(`Updated user ${referenceId} with creemCustomerId: ${customerId}`);
       }
     } catch (error) {
       logger.error(`Failed to update user with creemCustomerId: ${error}`);
@@ -100,8 +92,7 @@ export async function onCheckoutCompleted(
     // Handle subscription if this is a recurring product
     if (checkout.subscription && checkout.order) {
       const subscriptionData = checkout.subscription;
-      const orderId =
-        typeof checkout.order === "object" ? checkout.order.id : checkout.order;
+      const orderId = typeof checkout.order === "object" ? checkout.order.id : checkout.order;
       const productId = checkout.product.id;
 
       if (subscriptionData.id) {
@@ -121,13 +112,10 @@ export async function onCheckoutCompleted(
         };
 
         // Try to find existing subscription by creemSubscriptionId or referenceId + productId
-        const existingSubscription =
-          await ctx.context.adapter.findOne<Subscription>({
-            model: "creem_subscription",
-            where: [
-              { field: "creemSubscriptionId", value: subscriptionData.id },
-            ],
-          });
+        const existingSubscription = await ctx.context.adapter.findOne<Subscription>({
+          model: "creem_subscription",
+          where: [{ field: "creemSubscriptionId", value: subscriptionData.id }],
+        });
 
         if (existingSubscription) {
           // Update existing subscription
@@ -136,19 +124,14 @@ export async function onCheckoutCompleted(
             where: [{ field: "id", value: existingSubscription.id }],
             update: subscriptionUpdate,
           });
-          logger.info(
-            `Updated subscription ${existingSubscription.id} with Creem data`,
-          );
+          logger.info(`Updated subscription ${existingSubscription.id} with Creem data`);
         } else {
           // Create new subscription
-          const newSubscription =
-            await ctx.context.adapter.create<Subscription>({
-              model: "creem_subscription",
-              data: subscriptionUpdate,
-            });
-          logger.info(
-            `Created new subscription ${newSubscription.id} from checkout`,
-          );
+          const newSubscription = await ctx.context.adapter.create<Subscription>({
+            model: "creem_subscription",
+            data: subscriptionUpdate,
+          });
+          logger.info(`Created new subscription ${newSubscription.id} from checkout`);
         }
       }
     }
@@ -239,9 +222,7 @@ async function markUserAsHadTrial(
           hadTrial: true,
         },
       });
-      logger.info(
-        `Marked user ${referenceId} as hadTrial=true (trial abuse prevention)`,
-      );
+      logger.info(`Marked user ${referenceId} as hadTrial=true (trial abuse prevention)`);
     }
   } catch (error) {
     const message = error instanceof Error ? error.message : String(error);
@@ -270,12 +251,7 @@ export async function onSubscriptionPaid(
   event: NormalizedSubscriptionPaidEvent,
   options: CreemOptions,
 ) {
-  await updateSubscriptionFromEvent(
-    ctx,
-    event.object,
-    event.object.status,
-    options,
-  );
+  await updateSubscriptionFromEvent(ctx, event.object, event.object.status, options);
 }
 
 /**
@@ -311,12 +287,7 @@ export async function onSubscriptionUpdate(
   event: NormalizedSubscriptionUpdateEvent,
   options: CreemOptions,
 ) {
-  await updateSubscriptionFromEvent(
-    ctx,
-    event.object,
-    event.object.status,
-    options,
-  );
+  await updateSubscriptionFromEvent(ctx, event.object, event.object.status, options);
 }
 
 /**
@@ -356,9 +327,7 @@ async function updateSubscriptionFromEvent(
   const shouldPersist = options.persistSubscriptions !== false;
 
   if (!shouldPersist) {
-    logger.info(
-      "Database persistence disabled, skipping subscription database operations",
-    );
+    logger.info("Database persistence disabled, skipping subscription database operations");
     return;
   }
 
@@ -391,9 +360,7 @@ async function updateSubscriptionFromEvent(
 
       // Find the subscription for this specific product
       subscription =
-        subscriptions.find(
-          (sub: Subscription) => sub.productId === productId,
-        ) || subscriptions[0];
+        subscriptions.find((sub: Subscription) => sub.productId === productId) || subscriptions[0];
     }
 
     if (!subscription) {

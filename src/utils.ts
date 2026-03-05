@@ -1,17 +1,11 @@
 import type { GenericEndpointContext } from "better-auth";
-import {
-  isWebhookEventEntity,
-  NormalizedWebhookEvent,
-} from "./webhook-types.js";
+import { isWebhookEventEntity, NormalizedWebhookEvent } from "./webhook-types.js";
 
 /**
  * Generates an HMAC-SHA256 signature for webhook verification.
  * Uses the Web Crypto API for cross-platform compatibility (Node.js, browsers, V8 isolates).
  */
-export async function generateSignature(
-  payload: string,
-  secret: string,
-): Promise<string> {
+export async function generateSignature(payload: string, secret: string): Promise<string> {
   const encoder = new TextEncoder();
   const keyData = encoder.encode(secret);
   const data = encoder.encode(payload);
@@ -67,8 +61,7 @@ export function resolveSuccessUrl(
     // URL is relative, convert to absolute
     const headers = ctx.request?.headers;
     const host = headers?.get("host") || headers?.get("x-forwarded-host");
-    const protocol =
-      headers?.get("x-forwarded-proto") || headers?.get("x-forwarded-protocol");
+    const protocol = headers?.get("x-forwarded-proto") || headers?.get("x-forwarded-protocol");
 
     if (!host) {
       return url; // Return as-is if we can't resolve

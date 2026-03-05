@@ -3,10 +3,7 @@ import type { GenericEndpointContext } from "better-auth";
 import { Creem } from "creem";
 import { z } from "zod";
 import type { CreemOptions } from "./types.js";
-import type {
-  CreatePortalInput,
-  CreatePortalResponse,
-} from "./portal-types.js";
+import type { CreatePortalInput, CreatePortalResponse } from "./portal-types.js";
 
 export const PortalParams = z.object({
   customerId: z.string().optional(),
@@ -23,7 +20,10 @@ const createPortalHandler = (creem: Creem, options: CreemOptions) => {
 
     if (!options.apiKey) {
       return ctx.json(
-        { error: "Creem API key is not configured. Please set the apiKey option when initializing the Creem plugin." },
+        {
+          error:
+            "Creem API key is not configured. Please set the apiKey option when initializing the Creem plugin.",
+        },
         { status: 500 },
       );
     }
@@ -36,10 +36,7 @@ const createPortalHandler = (creem: Creem, options: CreemOptions) => {
       }
 
       if (!session?.user.creemCustomerId) {
-        return ctx.json(
-          { error: "User must have a Creem customer ID" },
-          { status: 400 },
-        );
+        return ctx.json({ error: "User must have a Creem customer ID" }, { status: 400 });
       }
 
       const portal = await creem.customers.generateBillingLinks({
@@ -84,10 +81,7 @@ const createPortalHandler = (creem: Creem, options: CreemOptions) => {
  * }
  * ```
  */
-export const createPortalEndpoint = (
-  creem: Creem,
-  options: CreemOptions,
-) => {
+export const createPortalEndpoint = (creem: Creem, options: CreemOptions) => {
   return createAuthEndpoint(
     "/creem/create-portal",
     {

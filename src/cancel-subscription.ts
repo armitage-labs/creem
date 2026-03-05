@@ -30,16 +30,16 @@ interface Subscription {
 // Re-export types for convenience
 export type { CancelSubscriptionInput, CancelSubscriptionResponse };
 
-const createCancelSubscriptionHandler = (
-  creem: Creem,
-  options: CreemOptions,
-) => {
+const createCancelSubscriptionHandler = (creem: Creem, options: CreemOptions) => {
   return async (ctx: GenericEndpointContext) => {
     const body = ctx.body as CancelSubscriptionParams;
 
     if (!options.apiKey) {
       return ctx.json(
-        { error: "Creem API key is not configured. Please set the apiKey option when initializing the Creem plugin." },
+        {
+          error:
+            "Creem API key is not configured. Please set the apiKey option when initializing the Creem plugin.",
+        },
         { status: 500 },
       );
     }
@@ -88,17 +88,13 @@ const createCancelSubscriptionHandler = (
           }
         } else if (!subscriptionId) {
           // No subscriptions in database and no ID provided
-          return ctx.json(
-            { error: "No subscription found for this user" },
-            { status: 404 },
-          );
+          return ctx.json({ error: "No subscription found for this user" }, { status: 404 });
         }
       } else if (!subscriptionId) {
         // If persistence is disabled and no ID provided, return error
         return ctx.json(
           {
-            error:
-              "Subscription ID is required when database persistence is disabled",
+            error: "Subscription ID is required when database persistence is disabled",
           },
           { status: 400 },
         );
@@ -111,10 +107,7 @@ const createCancelSubscriptionHandler = (
         message: "Subscription cancelled successfully",
       });
     } catch (error) {
-      return ctx.json(
-        { error: "Failed to cancel subscription" },
-        { status: 500 },
-      );
+      return ctx.json({ error: "Failed to cancel subscription" }, { status: 500 });
     }
   };
 };
@@ -161,10 +154,7 @@ const createCancelSubscriptionHandler = (
  * }
  * ```
  */
-export const createCancelSubscriptionEndpoint = (
-  creem: Creem,
-  options: CreemOptions,
-) => {
+export const createCancelSubscriptionEndpoint = (creem: Creem, options: CreemOptions) => {
   return createAuthEndpoint(
     "/creem/cancel-subscription",
     {

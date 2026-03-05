@@ -78,4 +78,3 @@ export interface SubscriptionData {
    */
   [key: string]: unknown;
 }
-

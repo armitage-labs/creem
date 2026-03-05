@@ -4,10 +4,7 @@ import { Creem } from "creem";
 import { z } from "zod";
 import type { CreemOptions } from "./types.js";
 import { resolveSuccessUrl } from "./utils.js";
-import type {
-  CreateCheckoutInput,
-  CreateCheckoutResponse,
-} from "./checkout-types.js";
+import type { CreateCheckoutInput, CreateCheckoutResponse } from "./checkout-types.js";
 
 export const CheckoutParams = z.object({
   productId: z.string(),
@@ -70,7 +67,10 @@ const createCheckoutHandler = (creem: Creem, options: CreemOptions) => {
 
     if (!options.apiKey) {
       return ctx.json(
-        { error: "Creem API key is not configured. Please set the apiKey option when initializing the Creem plugin." },
+        {
+          error:
+            "Creem API key is not configured. Please set the apiKey option when initializing the Creem plugin.",
+        },
         { status: 500 },
       );
     }
@@ -104,10 +104,7 @@ const createCheckoutHandler = (creem: Creem, options: CreemOptions) => {
               }
             : undefined,
         //   customField: body.customField, TODO: Implement proper customField handling
-        successUrl: resolveSuccessUrl(
-          body.successUrl || options.defaultSuccessUrl,
-          ctx,
-        ),
+        successUrl: resolveSuccessUrl(body.successUrl || options.defaultSuccessUrl, ctx),
         metadata: {
           ...(body.metadata || {}),
           ...(session?.user?.id && {

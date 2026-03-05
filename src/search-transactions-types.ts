@@ -150,4 +150,3 @@ export interface SearchTransactionsResponse {
    */
   [key: string]: unknown;
 }
-

@@ -53,10 +53,7 @@ export type {
   CancelSubscriptionResponse,
 } from "./cancel-subscription-types.js";
 
-export type {
-  RetrieveSubscriptionInput,
-  SubscriptionData,
-} from "./retrieve-subscription-types.js";
+export type { RetrieveSubscriptionInput, SubscriptionData } from "./retrieve-subscription-types.js";
 
 export type {
   SearchTransactionsInput,

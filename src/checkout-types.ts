@@ -111,4 +111,3 @@ export interface CreateCheckoutResponse {
    */
   redirect: boolean;
 }
-

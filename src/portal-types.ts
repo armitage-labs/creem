@@ -35,4 +35,3 @@ export interface CreatePortalResponse {
    */
   redirect: boolean;
 }
-

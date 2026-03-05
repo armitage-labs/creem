@@ -20,22 +20,18 @@ export const SearchTransactionsParams = z.object({
 export type SearchTransactionsParams = z.infer<typeof SearchTransactionsParams>;
 
 // Re-export types for convenience
-export type {
-  SearchTransactionsInput,
-  SearchTransactionsResponse,
-  TransactionData,
-};
+export type { SearchTransactionsInput, SearchTransactionsResponse, TransactionData };
 
-const createSearchTransactionsHandler = (
-  creem: Creem,
-  options: CreemOptions,
-) => {
+const createSearchTransactionsHandler = (creem: Creem, options: CreemOptions) => {
   return async (ctx: GenericEndpointContext) => {
     const body = ctx.body as SearchTransactionsParams;
 
     if (!options.apiKey) {
       return ctx.json(
-        { error: "Creem API key is not configured. Please set the apiKey option when initializing the Creem plugin." },
+        {
+          error:
+            "Creem API key is not configured. Please set the apiKey option when initializing the Creem plugin.",
+        },
         { status: 500 },
       );
     }
@@ -51,10 +47,7 @@ const createSearchTransactionsHandler = (
       const customerId = body.customerId || session.user.creemCustomerId;
 
       if (!customerId) {
-        return ctx.json(
-          { error: "User must have a Creem customer ID" },
-          { status: 400 },
-        );
+        return ctx.json({ error: "User must have a Creem customer ID" }, { status: 400 });
       }
 
       const transactions = await creem.transactions.search(
@@ -67,10 +60,7 @@ const createSearchTransactionsHandler = (
 
       return ctx.json(transactions);
     } catch (error) {
-      return ctx.json(
-        { error: "Failed to search transactions" },
-        { status: 500 },
-      );
+      return ctx.json({ error: "Failed to search transactions" }, { status: 500 });
     }
   };
 };
@@ -108,10 +98,7 @@ const createSearchTransactionsHandler = (
  * }
  * ```
  */
-export const createSearchTransactionsEndpoint = (
-  creem: Creem,
-  options: CreemOptions,
-) => {
+export const createSearchTransactionsEndpoint = (creem: Creem, options: CreemOptions) => {
   return createAuthEndpoint(
     "/creem/search-transactions",
     {
