@@ -1,0 +1,27 @@
+{
+  "name": "examples-nextjs",
+  "version": "0.0.0",
+  "private": true,
+  "scripts": {
+    "dev": "next dev",
+    "build": "next build",
+    "start": "next start",
+    "migrate": "npx @better-auth/cli migrate"
+  },
+  "dependencies": {
+    "@creem_io/better-auth": "workspace:*",
+    "better-auth": "^1.3.34",
+    "better-sqlite3": "^12.4.1",
+    "creem": "^1.3.6",
+    "next": "^15.3.3",
+    "react": "^19.1.0",
+    "react-dom": "^19.1.0",
+    "zod": "^3.23.8"
+  },
+  "devDependencies": {
+    "@types/better-sqlite3": "^7.6.13",
+    "@types/node": "^20",
+    "@types/react": "^19",
+    "typescript": "^5"
+  }
+}
