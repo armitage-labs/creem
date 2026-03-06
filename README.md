@@ -50,6 +50,7 @@ export const auth = betterAuth({
     creem({
       apiKey: process.env.CREEM_API_KEY,
       testMode: true, // Use test mode for development
+    }),
   ],
 });
 ```
@@ -73,6 +74,7 @@ export const auth = betterAuth({
       apiKey: process.env.CREEM_API_KEY,
       webhookSecret: process.env.CREEM_WEBHOOK_SECRET,
       testMode: true, // Use test mode for development
+    }),
   ],
 });
 ```
@@ -282,7 +284,7 @@ export function SubscribeButton({ productId }: { productId: string }) {
       units: 1, // Optional, defaults to 1
       successUrl: "/pro-plan/thank-you", // Optional
       discountCode: "SUMMER2024", // Optional
-      metadata: { foo: "bar", icecream, "smooth" } // Optional: Arbitrary key-value pair you can set from your application
+      metadata: { foo: "bar", icecream: "smooth" } // Optional: Arbitrary key-value pair you can set from your application
     });
 
     if (data?.url) {
@@ -379,7 +381,7 @@ For example, if a user purchases a yearly plan and cancels after one month, this
 ```typescript
 const { data } = await authClient.creem.hasAccessGranted();
 
-if (data?.hasAccess) {
+if (data?.hasAccessGranted) {
   // User has active subscription
 }
 ```
@@ -608,6 +610,7 @@ export const auth = betterAuth({
       apiKey: process.env.CREEM_API_KEY!,
       testMode: true, // Use test mode for development
       persistSubscriptions: true, // Enable database persistence (default: true)
+    }),
   ],
 });
 ```
@@ -633,9 +636,10 @@ When `persistSubscriptions: true`, the plugin creates these database tables:
 
 ### `user` Table Extension
 
-| Field             | Type   | Description                  |
-| ----------------- | ------ | ---------------------------- |
-| `creemCustomerId` | string | Links user to Creem customer |
+| Field             | Type    | Description                           |
+| ----------------- | ------- | ------------------------------------- |
+| `creemCustomerId` | string  | Links user to Creem customer          |
+| `hadTrial`        | boolean | Whether user has used a trial period  |
 
 
 ### API Mode
@@ -668,7 +672,8 @@ export const auth = betterAuth({
     creem({
       apiKey: process.env.CREEM_API_KEY!,
       testMode: true, // Use test mode for development
-      persistSubscriptions: false, // Enable database persistence (default: true)
+      persistSubscriptions: false, // Disable database persistence
+    }),
   ],
 });
 ```
@@ -872,6 +877,44 @@ CREEM_API_KEY=your_api_key_here
 
 # Optional
 CREEM_WEBHOOK_SECRET=your_webhook_secret_here
+```
+
+## 🐛 Debug Logging
+
+The plugin uses Better Auth's built-in logger with the `[creem]` prefix for all log messages. To enable debug-level logging, set the `logger.level` option in your Better Auth configuration:
+
+```typescript
+export const auth = betterAuth({
+  database: {
+    // your database config
+  },
+  logger: {
+    level: "debug", // Enable debug logging
+  },
+  plugins: [
+    creem({
+      apiKey: process.env.CREEM_API_KEY!,
+      webhookSecret: process.env.CREEM_WEBHOOK_SECRET,
+      persistSubscriptions: true,
+    }),
+  ],
+});
+```
+
+**Log levels:**
+
+| Level   | What it shows                                                              |
+| ------- | -------------------------------------------------------------------------- |
+| `error` | Failures in webhook processing, subscription updates, and API calls        |
+| `warn`  | Missing configuration (API key, referenceId), user not found               |
+| `info`  | Successful operations (subscription created/updated, user linked, access changes) |
+| `debug` | Detailed flow tracing (subscription lookups, access check decisions)        |
+
+All log messages are prefixed with `[creem]` so you can easily filter them:
+
+```bash
+# Filter creem logs in your application output
+your-app 2>&1 | grep "\[creem\]"
 ```
 
 ## 🔧 Troubleshooting
