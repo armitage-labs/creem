@@ -97,8 +97,12 @@
   },
   "pnpm": {
     "onlyBuiltDependencies": [
+      "@prisma/engines",
       "better-sqlite3",
-      "esbuild"
+      "esbuild",
+      "prisma",
+      "sharp",
+      "unrs-resolver"
     ]
   }
 }
