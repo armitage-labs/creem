@@ -1,0 +1,99 @@
+configVersion: 2.0.0
+generation:
+  devContainers:
+    enabled: true
+    schemaPath: openapi.json
+  sdkClassName: Creem
+  maintainOpenAPIOrder: true
+  usageSnippets:
+    optionalPropertyRendering: withExample
+    sdkInitStyle: constructor
+  useClassNamesForArrayFields: true
+  fixes:
+    nameResolutionDec2023: true
+    nameResolutionFeb2025: false
+    parameterOrderingFeb2024: true
+    requestResponseComponentNamesFeb2024: true
+    securityFeb2025: true
+    sharedErrorComponentsApr2025: false
+    sharedNestedComponentsJan2026: false
+    nameOverrideFeb2026: false
+  auth:
+    oAuth2ClientCredentialsEnabled: false
+    oAuth2PasswordEnabled: false
+    hoistGlobalSecurity: true
+  schemas:
+    allOfMergeStrategy: shallowMerge
+  requestBodyFieldName: ""
+  versioningStrategy: automatic
+  persistentEdits:
+    enabled: never
+  tests:
+    generateTests: true
+    generateNewTests: false
+    skipResponseBodyAssertions: false
+typescript:
+  version: 1.4.0
+  acceptHeaderEnum: true
+  additionalDependencies:
+    dependencies: {}
+    devDependencies:
+      dotenv: ^16.5.0
+      vitest: ^3.0.0
+    peerDependencies: {}
+  additionalPackageJSON:
+    repository:
+      url: https://github.com/armitage-labs/creem-sdk
+  additionalScripts:
+    test: vitest run
+    test:watch: vitest
+  alwaysIncludeInboundAndOutbound: false
+  author: Speakeasy
+  baseErrorName: CreemError
+  clientServerStatusCodesAsErrors: true
+  constFieldsAlwaysOptional: false
+  defaultErrorName: APIError
+  enableCustomCodeRegions: false
+  enableMCPServer: true
+  enableReactQuery: false
+  enumFormat: union
+  envVarPrefix: CREEM
+  exportZodModelNamespace: false
+  flatAdditionalProperties: false
+  flattenGlobalSecurity: true
+  flatteningOrder: parameters-first
+  formStringArrayEncodeMode: encoded-string
+  forwardCompatibleEnumsByDefault: false
+  forwardCompatibleUnionsByDefault: "false"
+  generateExamples: true
+  imports:
+    option: openapi
+    paths:
+      callbacks: models/callbacks
+      errors: models/errors
+      operations: models/operations
+      shared: models/components
+      webhooks: models/webhooks
+  inferUnionDiscriminators: true
+  inputModelSuffix: input
+  jsonpath: rfc9535
+  laxMode: strict
+  legacyFileNaming: true
+  maxMethodParams: 99
+  methodArguments: require-security-and-request
+  modelPropertyCasing: camel
+  moduleFormat: dual
+  multipartArrayFormat: legacy
+  outputModelSuffix: output
+  packageName: creem
+  preApplyUnionDiscriminators: true
+  preserveModelFieldNames: false
+  responseFormat: flat
+  sseFlatResponse: false
+  templateVersion: v2
+  unionStrategy: left-to-right
+  usageSDKInitImports: []
+  useIndexModules: true
+  useOxlint: false
+  useTsgo: false
+  zodVersion: v3

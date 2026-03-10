@@ -1,0 +1,48 @@
+# ProductFeatureEntity
+
+## Example Usage
+
+```typescript
+import { ProductFeatureEntity } from "creem/models/components";
+
+let value: ProductFeatureEntity = {
+  id: "feat_abc123",
+  description: "Get access to the full course materials.",
+  privateNote: "Thank you for your purchase! Here is your access code: XYZ123",
+  file: {
+    files: [
+      {
+        id: "file_abc123",
+        fileName: "ebook.pdf",
+        url: "https://storage.creem.io/files/ebook.pdf",
+        type: "application/pdf",
+        size: 1024000,
+      },
+    ],
+  },
+  licenseKey: {
+    id: "<id>",
+    mode: "test",
+    object: "<value>",
+    status: "active",
+    key: "ABC123-XYZ456-XYZ456-XYZ456",
+    activation: 5,
+    activationLimit: 1,
+    expiresAt: new Date("2023-09-13T00:00:00Z"),
+    createdAt: new Date("2023-09-13T00:00:00Z"),
+    instance: null,
+  },
+};
+```
+
+## Fields
+
+| Field                                                                                                                                                                                             | Type                                                                                                                                                                                              | Required                                                                                                                                                                                          | Description                                                                                                                                                                                       | Example                                                                                                                                                                                           |
+| ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `id`                                                                                                                                                                                              | *string*                                                                                                                                                                                          | :heavy_minus_sign:                                                                                                                                                                                | Unique identifier for the feature.                                                                                                                                                                | feat_abc123                                                                                                                                                                                       |
+| `description`                                                                                                                                                                                     | *string*                                                                                                                                                                                          | :heavy_minus_sign:                                                                                                                                                                                | A brief description of the feature.                                                                                                                                                               | Get access to the full course materials.                                                                                                                                                          |
+| `type`                                                                                                                                                                                            | [components.ProductFeatureType](../../models/components/productfeaturetype.md)                                                                                                                    | :heavy_minus_sign:                                                                                                                                                                                | The type of the feature: privateNote (custom note), file (downloadable files), or licenseKey (license key).                                                                                       |                                                                                                                                                                                                   |
+| `privateNote`                                                                                                                                                                                     | *string*                                                                                                                                                                                          | :heavy_minus_sign:                                                                                                                                                                                | Private note from the seller. This is only visible to the customer after purchase.                                                                                                                | Thank you for your purchase! Here is your access code: XYZ123                                                                                                                                     |
+| `file`                                                                                                                                                                                            | [components.FileT](../../models/components/filet.md)                                                                                                                                              | :heavy_minus_sign:                                                                                                                                                                                | File feature data containing downloadable files.                                                                                                                                                  |                                                                                                                                                                                                   |
+| `licenseKey`                                                                                                                                                                                      | [components.LicenseKey](../../models/components/licensekey.md)                                                                                                                                    | :heavy_minus_sign:                                                                                                                                                                                | License key issued for the order.                                                                                                                                                                 |                                                                                                                                                                                                   |
+| ~~`license`~~                                                                                                                                                                                     | [components.License](../../models/components/license.md)                                                                                                                                          | :heavy_minus_sign:                                                                                                                                                                                | : warning: ** DEPRECATED **: This will be removed in a future release, please migrate away from it as soon as possible.<br/><br/>DEPRECATED: Use `license_key` instead. License key issued for the order. |                                                                                                                                                                                                   |

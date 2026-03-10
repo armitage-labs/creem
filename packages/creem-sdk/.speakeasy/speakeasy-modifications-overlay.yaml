@@ -1,0 +1,98 @@
+overlay: 1.0.0
+x-speakeasy-jsonpath: rfc9535
+info:
+  title: Speakeasy Modifications
+  version: 0.0.5
+  x-speakeasy-metadata:
+    after: ""
+    before: ""
+    type: speakeasy-modifications
+actions:
+  - target: $["paths"]["/v1/discounts"]["get"]
+    update:
+      x-speakeasy-group: discounts
+      x-speakeasy-name-override: get
+  - target: $["paths"]["/v1/discounts/{id}/delete"]["delete"]
+    update:
+      x-speakeasy-group: discounts
+      x-speakeasy-name-override: delete
+  - target: $["paths"]["/v1/customers/billing"]["post"]
+    update:
+      x-speakeasy-group: customers
+      x-speakeasy-name-override: generateBillingLinks
+  - target: $["paths"]["/v1/subscriptions"]["get"]
+    update:
+      x-speakeasy-group: subscriptions
+      x-speakeasy-name-override: get
+  - target: $["paths"]["/v1/subscriptions/{id}/upgrade"]["post"]
+    update:
+      x-speakeasy-group: subscriptions
+      x-speakeasy-name-override: upgrade
+  - target: $["paths"]["/v1/customers"]["get"]
+    update:
+      x-speakeasy-group: customers
+      x-speakeasy-name-override: retrieve
+  - target: $["paths"]["/v1/products"]["post"]
+    update:
+      x-speakeasy-group: products
+      x-speakeasy-name-override: create
+  - target: $["paths"]["/v1/products/search"]["get"]
+    update:
+      x-speakeasy-group: products
+      x-speakeasy-name-override: search
+  - target: $["paths"]["/v1/checkouts"]["post"]
+    update:
+      x-speakeasy-group: checkouts
+      x-speakeasy-name-override: create
+  - target: $["paths"]["/v1/licenses/activate"]["post"]
+    update:
+      x-speakeasy-group: licenses
+      x-speakeasy-name-override: activate
+  - target: $["paths"]["/v1/checkouts"]["get"]
+    update:
+      x-speakeasy-group: checkouts
+      x-speakeasy-name-override: retrieve
+  - target: $["paths"]["/v1/products"]["get"]
+    update:
+      x-speakeasy-group: products
+      x-speakeasy-name-override: get
+  - target: $["paths"]["/v1/licenses/deactivate"]["post"]
+    update:
+      x-speakeasy-group: licenses
+      x-speakeasy-name-override: deactivate
+  - target: $["paths"]["/v1/transactions/search"]["get"]
+    update:
+      x-speakeasy-group: transactions
+      x-speakeasy-name-override: search
+  - target: $["paths"]["/v1/subscriptions/{id}/cancel"]["post"]
+    update:
+      x-speakeasy-group: subscriptions
+      x-speakeasy-name-override: cancel
+  - target: $["paths"]["/v1/subscriptions/{id}"]["post"]
+    update:
+      x-speakeasy-group: subscriptions
+      x-speakeasy-name-override: update
+  - target: $["paths"]["/v1/transactions"]["get"]
+    update:
+      x-speakeasy-group: transactions
+      x-speakeasy-name-override: getById
+  - target: $["paths"]["/v1/discounts"]["post"]
+    update:
+      x-speakeasy-group: discounts
+      x-speakeasy-name-override: create
+  - target: $["paths"]["/v1/customers/list"]["get"]
+    update:
+      x-speakeasy-group: customers
+      x-speakeasy-name-override: list
+  - target: $["paths"]["/v1/licenses/validate"]["post"]
+    update:
+      x-speakeasy-group: licenses
+      x-speakeasy-name-override: validate
+  - target: $["paths"]["/v1/subscriptions/{id}/pause"]["post"]
+    update:
+      x-speakeasy-group: subscriptions
+      x-speakeasy-name-override: pause
+  - target: $["paths"]["/v1/subscriptions/{id}/resume"]["post"]
+    update:
+      x-speakeasy-group: subscriptions
+      x-speakeasy-name-override: resume
