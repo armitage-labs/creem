@@ -11,7 +11,13 @@ export interface Text {
   /** Maximum character length constraint for the input */
   maxLength?: number;
   /** Minimum character length requirement for the input */
+  minimumLength?: number;
+  /**
+   * @deprecated Use `minimumLength` instead
+   */
   minLength?: number;
+  /** The value of the input */
+  value?: string;
 }
 
 /**
@@ -20,6 +26,8 @@ export interface Text {
 export interface Checkbox {
   /** The markdown text to display for the checkbox */
   label?: string;
+  /** The value of the checkbox (checked or not) */
+  value?: boolean;
 }
 
 /**
@@ -130,6 +138,10 @@ export interface CreateCheckoutRequest {
   /** Customer information for the checkout */
   customer?: CheckoutCustomer;
   /** Custom fields to include with the checkout (max 3) */
+  customFields?: CustomField[];
+  /**
+   * @deprecated Use `customFields` instead
+   */
   customField?: CustomField[];
   /** URL to redirect to after successful checkout */
   successUrl?: string;

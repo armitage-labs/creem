@@ -22,9 +22,9 @@ export const checkoutsResource = (request: RequestFn) => ({
     isNumber(params.units, "units");
     isString(params.discountCode, "discountCode");
     // Complex object validation for customer skipped for brevity, but good to add
+    isArray(params.customFields, "customFields");
     isArray(params.customField, "customField");
     isString(params.successUrl, "successUrl");
-    // Metadata is Record<string, unknown>, basic check could be typeof object
 
     return request<Checkout>("POST", "/v1/checkouts", {
       request_id: params.requestId,
@@ -32,8 +32,9 @@ export const checkoutsResource = (request: RequestFn) => ({
       units: params.units,
       discount_code: params.discountCode,
       customer: params.customer,
+      custom_fields: params.customFields,
       custom_field: params.customField,
-      success_url: params.successUrl, // TODO: Check if is possible to create a URL here with /success
+      success_url: params.successUrl,
       metadata: params.metadata,
     });
   },

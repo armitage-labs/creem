@@ -1,16 +1,14 @@
 # 1.0.0 (2026-03-09)
 
-
 ### Bug Fixes
 
-* **sdk:** bump User-Agent to 0.5.0 ([2b86358](https://github.com/armitage-labs/creem_io/commit/2b86358926abf378a309614f3b32086d7aa37464))
-* semantic release version ([#6](https://github.com/armitage-labs/creem_io/issues/6)) ([65d4201](https://github.com/armitage-labs/creem_io/commit/65d42016e858a2098a4b5b5fbf0afc3904484cc5))
-
+- **sdk:** bump User-Agent to 0.5.0 ([2b86358](https://github.com/armitage-labs/creem_io/commit/2b86358926abf378a309614f3b32086d7aa37464))
+- semantic release version ([#6](https://github.com/armitage-labs/creem_io/issues/6)) ([65d4201](https://github.com/armitage-labs/creem_io/commit/65d42016e858a2098a4b5b5fbf0afc3904484cc5))
 
 ### Features
 
-* Moved to pnpm and added linter ([#4](https://github.com/armitage-labs/creem_io/issues/4)) ([23fcb83](https://github.com/armitage-labs/creem_io/commit/23fcb83de0fc264468ba236818aa6bab6184ba01))
-* **sdk:** add type exports, pause/resume methods, and scheduled_cancel webhook ([2aabe8d](https://github.com/armitage-labs/creem_io/commit/2aabe8d71fce126ef5483b3aaaaadd7ab3d9d9e1)), closes [#2](https://github.com/armitage-labs/creem_io/issues/2)
+- Moved to pnpm and added linter ([#4](https://github.com/armitage-labs/creem_io/issues/4)) ([23fcb83](https://github.com/armitage-labs/creem_io/commit/23fcb83de0fc264468ba236818aa6bab6184ba01))
+- **sdk:** add type exports, pause/resume methods, and scheduled_cancel webhook ([2aabe8d](https://github.com/armitage-labs/creem_io/commit/2aabe8d71fce126ef5483b3aaaaadd7ab3d9d9e1)), closes [#2](https://github.com/armitage-labs/creem_io/issues/2)
 
 # Changelog
 

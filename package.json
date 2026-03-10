@@ -29,7 +29,10 @@
     "typecheck": "tsc --noEmit",
     "lint": "prettier --check .",
     "format": "prettier --write .",
-    "format:check": "prettier --check ."
+    "format:check": "prettier --check .",
+    "test": "vitest run",
+    "test:integration": "vitest run --config vitest.integration.config.ts",
+    "test:all": "vitest run && vitest run --config vitest.integration.config.ts"
   },
   "keywords": [
     "creem",
@@ -54,7 +57,8 @@
     "prettier": "^3.5.3",
     "semantic-release": "^25.0.3",
     "tsup": "^8.5.1",
-    "typescript": "^5.0.0"
+    "typescript": "^5.0.0",
+    "vitest": "^3.1.1"
   },
   "repository": {
     "type": "git",
@@ -64,6 +68,7 @@
   "bugs": {
     "url": "https://github.com/armitage-labs/creem_io/issues"
   },
+  "deprecated": "This package is deprecated. Please use the 'creem' package instead: npm install creem",
   "engines": {
     "node": ">=16.0.0"
   },

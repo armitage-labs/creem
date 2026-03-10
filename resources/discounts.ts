@@ -33,7 +33,7 @@ export const discountsResource = (request: RequestFn) => ({
     isNumber(params.amount, "amount");
     isString(params.currency, "currency");
     isNumber(params.percentage, "percentage");
-    isString(params.expiryDate, "expiryDate");
+    // expiryDate is Date type - skip isString validation
     isNumber(params.maxRedemptions, "maxRedemptions");
 
     required(params.duration, "duration");
