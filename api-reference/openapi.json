@@ -1881,48 +1881,6 @@
           "updated_at"
         ]
       },
-      "FeatureFileEntity": {
-        "type": "object",
-        "properties": {
-          "id": {
-            "type": "string",
-            "description": "Unique identifier for the file.",
-            "example": "file_abc123"
-          },
-          "file_name": {
-            "type": "string",
-            "description": "The name of the file.",
-            "example": "ebook.pdf"
-          },
-          "url": {
-            "type": "string",
-            "description": "The URL to download the file.",
-            "example": "https://storage.creem.io/files/ebook.pdf"
-          },
-          "type": {
-            "type": "string",
-            "description": "The MIME type of the file.",
-            "example": "application/pdf"
-          },
-          "size": {
-            "type": "number",
-            "description": "The size of the file in bytes.",
-            "example": 1024000
-          }
-        },
-        "required": ["id", "file_name", "url", "type", "size"]
-      },
-      "FileFeatureEntity": {
-        "type": "object",
-        "properties": {
-          "files": {
-            "description": "List of downloadable files.",
-            "type": "array",
-            "items": { "$ref": "#/components/schemas/FeatureFileEntity" }
-          }
-        },
-        "required": ["files"]
-      },
       "LicenseStatus": {
         "type": "string",
         "description": "The current status of the license key.",
@@ -2021,6 +1979,48 @@
           "activation",
           "created_at"
         ]
+      },
+      "FeatureFileEntity": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "description": "Unique identifier for the file.",
+            "example": "file_abc123"
+          },
+          "file_name": {
+            "type": "string",
+            "description": "The name of the file.",
+            "example": "ebook.pdf"
+          },
+          "url": {
+            "type": "string",
+            "description": "The URL to download the file.",
+            "example": "https://storage.creem.io/files/ebook.pdf"
+          },
+          "type": {
+            "type": "string",
+            "description": "The MIME type of the file.",
+            "example": "application/pdf"
+          },
+          "size": {
+            "type": "number",
+            "description": "The size of the file in bytes.",
+            "example": 1024000
+          }
+        },
+        "required": ["id", "file_name", "url", "type", "size"]
+      },
+      "FileFeatureEntity": {
+        "type": "object",
+        "properties": {
+          "files": {
+            "description": "List of downloadable files.",
+            "type": "array",
+            "items": { "$ref": "#/components/schemas/FeatureFileEntity" }
+          }
+        },
+        "required": ["files"]
       },
       "ProductFeatureEntity": {
         "type": "object",
@@ -2133,8 +2133,14 @@
             "example": "https://example.com/return",
             "nullable": true
           },
+          "license_keys": {
+            "description": "License keys issued for the order.",
+            "type": "array",
+            "items": { "$ref": "#/components/schemas/LicenseEntity" }
+          },
           "feature": {
-            "description": "Features issued for the order.",
+            "description": "DEPRECATED: Use `license_keys` instead. Features issued for the order.",
+            "deprecated": true,
             "type": "array",
             "items": { "$ref": "#/components/schemas/ProductFeatureEntity" }
           },
