@@ -243,6 +243,46 @@
         "security": [{ "ApiKey": [] }]
       }
     },
+    "/v1/subscriptions/search": {
+      "get": {
+        "operationId": "searchSubscriptions",
+        "summary": "List all subscriptions",
+        "description": "Search and retrieve a paginated list of subscriptions. View status, billing cycle, and customer info.",
+        "parameters": [
+          {
+            "name": "page_number",
+            "required": false,
+            "in": "query",
+            "description": "The page number for pagination.",
+            "schema": { "default": 1, "example": 1, "type": "number" }
+          },
+          {
+            "name": "page_size",
+            "required": false,
+            "in": "query",
+            "description": "The number of items per page.",
+            "schema": { "default": 10, "example": 10, "type": "number" }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successfully retrieved subscriptions",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SubscriptionListEntity"
+                }
+              }
+            }
+          },
+          "400": { "description": "Bad Request - Invalid input parameters" },
+          "401": { "description": "Unauthorized - Invalid or missing API key" },
+          "404": { "description": "Not Found - Resource does not exist" }
+        },
+        "tags": ["Subscriptions"],
+        "security": [{ "ApiKey": [] }]
+      }
+    },
     "/v1/subscriptions/{id}/cancel": {
       "post": {
         "operationId": "cancelSubscription",
@@ -1664,6 +1704,21 @@
           "created_at",
           "updated_at"
         ]
+      },
+      "SubscriptionListEntity": {
+        "type": "object",
+        "properties": {
+          "items": {
+            "description": "List of subscription items",
+            "items": { "$ref": "#/components/schemas/SubscriptionEntity" },
+            "type": "array"
+          },
+          "pagination": {
+            "description": "Pagination details for the list",
+            "allOf": [{ "$ref": "#/components/schemas/PaginationEntity" }]
+          }
+        },
+        "required": ["items", "pagination"]
       },
       "CancelSubscriptionRequestEntity": {
         "type": "object",
