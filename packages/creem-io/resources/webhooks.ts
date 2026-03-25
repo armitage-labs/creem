@@ -355,8 +355,7 @@ export const webhooksResource = (secret?: string) => {
         }
 
         default:
-          // Unknown event type - silently ignore or log
-          console.warn(`Unknown webhook event type: ${event.eventType}`);
+          // Unknown event type - silently ignore
           break;
       }
     },

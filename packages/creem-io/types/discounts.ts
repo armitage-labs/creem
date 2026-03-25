@@ -38,7 +38,7 @@ export interface Discount {
   /** The percentage of the discount. Only applicable if type is "percentage". 25 = 25% off */
   percentage?: number;
   /** The date when the discount expires */
-  expiryDate?: Date;
+  expiryDate?: string;
   /** Maximum number of times this discount can be redeemed */
   maxRedemptions?: number;
   /** How long the discount applies to subscriptions */
@@ -68,7 +68,7 @@ export interface CreateDiscountRequest {
   /** The percentage of the discount. Only applicable if type is "percentage". 25 = 25% off */
   percentage?: number;
   /** The date when the discount expires */
-  expiryDate?: Date;
+  expiryDate?: string;
   /** Maximum number of times this discount can be redeemed */
   maxRedemptions?: number;
   /** How long the discount applies to subscriptions */
@@ -76,7 +76,7 @@ export interface CreateDiscountRequest {
   /** Number of months the discount applies (for repeating duration) */
   durationInMonths?: number;
   /** List of product IDs this discount applies to */
-  appliesToProducts?: string[];
+  appliesToProducts: string[];
 }
 
 /**

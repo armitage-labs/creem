@@ -113,6 +113,24 @@ export interface GetTransactionRequest {
 }
 
 /**
+ * Request payload for searching transactions
+ */
+export interface SearchTransactionsRequest {
+  /** Search query string */
+  query?: string;
+  /** Filter by customer ID */
+  customerId?: string;
+  /** Filter by order ID */
+  orderId?: string;
+  /** Filter by product ID */
+  productId?: string;
+  /** Page number for pagination */
+  page?: number;
+  /** Number of items per page */
+  limit?: number;
+}
+
+/**
  * Request payload for listing transactions
  */
 export interface ListTransactionsRequest {

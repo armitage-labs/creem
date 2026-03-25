@@ -3,6 +3,7 @@ import {
   CreateProductRequest,
   GetProductRequest,
   ListProductsRequest,
+  SearchProductsRequest,
   Product,
   ProductList,
 } from "../types";
@@ -14,6 +15,17 @@ export const productsResource = (request: RequestFn) => ({
     isNumber(params.limit, "limit");
 
     return request<ProductList>("GET", "/v1/products/search", undefined, {
+      page_number: params.page,
+      page_size: params.limit,
+    });
+  },
+  search: (params: SearchProductsRequest = {}) => {
+    isString(params.query, "query");
+    isNumber(params.page, "page");
+    isNumber(params.limit, "limit");
+
+    return request<ProductList>("GET", "/v1/products/search", undefined, {
+      query: params.query,
       page_number: params.page,
       page_size: params.limit,
     });

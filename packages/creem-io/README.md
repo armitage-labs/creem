@@ -1,3 +1,12 @@
+> **Warning**
+> This package (`creem_io`) is deprecated. Please use the official [`creem`](https://www.npmjs.com/package/creem) package instead:
+>
+> ```bash
+> npm install creem
+> ```
+
+---
+
 <div align="center">
   <h1>Creem SDK</h1>
   <p>The official Creem SDK for JavaScript & TypeScript</p>

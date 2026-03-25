@@ -8,7 +8,7 @@ export interface Feature {
   /** Unique identifier for the feature */
   id: string;
   /** The feature type */
-  type: "custom" | "github-repo" | "discord" | "file" | "link" | "licence-key";
+  type: "custom" | "file" | "licenseKey";
   /** A brief description of the feature */
   description: string;
 }
@@ -52,11 +52,49 @@ export interface Product extends BaseEntity {
 }
 
 /**
+ * File entity within a file feature
+ */
+export interface FeatureFile {
+  /** Unique identifier for the file */
+  id: string;
+  /** The name of the file */
+  fileName: string;
+  /** The URL to download the file */
+  url: string;
+  /** The MIME type of the file */
+  type: string;
+  /** The size of the file in bytes */
+  size: number;
+}
+
+/**
+ * File feature entity containing downloadable files
+ */
+export interface FileFeature {
+  /** List of downloadable files */
+  files: FeatureFile[];
+}
+
+/**
  * Product feature entity (issued for orders)
  */
 export interface ProductFeature {
+  /** Unique identifier for the feature */
+  id?: string | null;
+  /** A brief description of the feature */
+  description?: string | null;
+  /** The feature type */
+  type?: "custom" | "file" | "licenseKey" | null;
+  /** Private note from the seller, visible to customer after purchase */
+  privateNote?: string | null;
+  /** File feature data containing downloadable files */
+  file?: FileFeature | null;
   /** License key issued for the order */
-  license?: License;
+  licenseKey?: License | null;
+  /**
+   * @deprecated Use `licenseKey` instead
+   */
+  license?: License | null;
 }
 
 /**
@@ -73,6 +111,18 @@ export interface ProductList {
  * Request payload for listing products
  */
 export interface ListProductsRequest {
+  /** Page number for pagination */
+  page?: number;
+  /** Number of items per page */
+  limit?: number;
+}
+
+/**
+ * Request payload for searching products
+ */
+export interface SearchProductsRequest {
+  /** Search query string */
+  query?: string;
   /** Page number for pagination */
   page?: number;
   /** Number of items per page */
@@ -117,7 +167,7 @@ export interface CreateProductRequest {
   /** The name of the product */
   name: string;
   /** A brief description of the product */
-  description: string;
+  description?: string;
   /** URL of the product image */
   imageUrl?: string;
   /** The price of the product in cents. 1000 = $10.00 */
