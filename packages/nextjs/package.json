@@ -47,6 +47,10 @@
     "tsup": "^8.0.0",
     "typescript": "^5.0.0"
   },
+  "publishConfig": {
+    "access": "public",
+    "provenance": true
+  },
   "repository": {
     "type": "git",
     "url": "https://github.com/armitage-labs/creem-nextjs-adaptor"
