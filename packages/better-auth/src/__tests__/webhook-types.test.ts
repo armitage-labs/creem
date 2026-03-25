@@ -11,8 +11,8 @@ import {
   isDisputeEntity,
   isTransactionEntity,
   isDiscountEntity,
-} from "../webhook-types.js";
-import type { ProductEntity, DiscountEntity, DiscountStatus } from "../webhook-types.js";
+} from "@creem_io/webhook-types";
+import type { ProductEntity, DiscountEntity, DiscountStatus } from "@creem_io/webhook-types";
 import {
   mockCustomer,
   mockProduct,

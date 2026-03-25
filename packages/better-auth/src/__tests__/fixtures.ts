@@ -20,7 +20,7 @@ import type {
   DisputeEntity,
   TransactionEntity,
   DiscountEntity,
-} from "../webhook-types.js";
+} from "@creem_io/webhook-types";
 
 // ============================================================================
 // Mock Customer

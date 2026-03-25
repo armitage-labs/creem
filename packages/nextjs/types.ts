@@ -1,9 +1,9 @@
-import {
+import type {
   NormalizedCheckoutEntity,
   NormalizedRefundEntity,
   NormalizedDisputeEntity,
   NormalizedSubscriptionEntity,
-} from "./server/webhook-types";
+} from "@creem_io/webhook-types";
 
 export interface CheckoutCustomer {
   /** Customer email address */

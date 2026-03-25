@@ -36,9 +36,10 @@ export const Webhook = (options: WebhookOptions) => {
       const signature = request.headers.get("creem-signature");
 
       // Verify the webhook signature
+      const computedSignature = await generateSignature(body, options.webhookSecret);
       if (
         !signature ||
-        generateSignature(body, options.webhookSecret) !== signature
+        computedSignature !== signature
       ) {
         console.error("Creem webhook: Invalid signature");
         return NextResponse.json(

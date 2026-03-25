@@ -12,7 +12,7 @@ import type {
   NormalizedSubscriptionPausedEvent,
   NormalizedSubscriptionEntity,
   SubscriptionStatus,
-} from "./webhook-types.js";
+} from "@creem_io/webhook-types";
 import type { CreemOptions, SubscriptionRecord } from "./types.js";
 
 /**

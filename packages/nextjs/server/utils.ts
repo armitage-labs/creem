@@ -1,34 +1,7 @@
-import crypto from "crypto";
 import { type NextRequest } from "next/server";
-import { isWebhookEventEntity, NormalizedWebhookEvent } from "./webhook-types";
+import { generateSignature, parseWebhookEvent } from "@creem_io/webhook-types";
 
-/**
- * Generates an HMAC SHA256 signature for webhook verification
- */
-export function generateSignature(payload: string, secret: string): string {
-  const computedSignature = crypto
-    .createHmac("sha256", secret)
-    .update(payload)
-    .digest("hex");
-  return computedSignature;
-}
-
-/**
- * Parses and validates a webhook event payload from Creem.
- * Returns a normalized event where nested objects (customer, product, etc.) are guaranteed to be expanded.
- */
-export function parseWebhookEvent(payload: string): NormalizedWebhookEvent {
-  const event = JSON.parse(payload);
-
-  const isValid = isWebhookEventEntity(event);
-
-  if (!isValid) {
-    throw new Error("Invalid webhook event");
-  }
-
-  // Creem webhooks always return expanded objects, so we can safely cast to NormalizedWebhookEvent
-  return event as NormalizedWebhookEvent;
-}
+export { generateSignature, parseWebhookEvent };
 
 /**
  * Converts a relative URL to an absolute URL using the request context

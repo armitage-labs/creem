@@ -1,0 +1,36 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+jobs:
+  build-and-test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - uses: pnpm/action-setup@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: "pnpm"
+
+      - run: pnpm install --frozen-lockfile
+
+      - name: Build changed packages
+        run: pnpm turbo build --filter='...[origin/main]' --filter='!./packages/creem-io'
+
+      - name: Typecheck
+        run: pnpm turbo typecheck --filter='...[origin/main]' --filter='!./packages/creem-io' --filter='!./packages/creem-sdk'
+
+      - name: Test
+        run: pnpm turbo test --filter='...[origin/main]' --filter='!./packages/creem-io'
+
+      - name: Lint
+        run: pnpm turbo lint --filter='...[origin/main]' --filter='!./packages/creem-io' --filter='!./packages/creem-sdk'

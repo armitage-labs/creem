@@ -29,12 +29,11 @@
   "scripts": {
     "lint": "eslint --cache --max-warnings=0 src",
     "build:mcp": "bun src/mcp-server/build.mts",
-    "build": "npm run build:mcp && tshy",
+    "build": "(command -v bun >/dev/null 2>&1 && npm run build:mcp || true) && tshy",
     "prepublishOnly": "npm run build",
     "test": "vitest run",
     "test:watch": "vitest"
   },
-  "peerDependencies": {},
   "devDependencies": {
     "@eslint/js": "^9.26.0",
     "@stricli/core": "^1.1.1",
@@ -47,11 +46,11 @@
     "globals": "^15.14.0",
     "tshy": "^3.3.2",
     "typescript": "~5.8.3",
-    "typescript-eslint": "^8.26.0",
+    "typescript-eslint": "^8.57.2",
     "vitest": "^3.0.0"
   },
   "dependencies": {
-    "@modelcontextprotocol/sdk": "^1.26.0",
+    "@modelcontextprotocol/sdk": "^1.28.0",
     "zod": "^3.25.0 || ^4.0.0"
   },
   "exports": {

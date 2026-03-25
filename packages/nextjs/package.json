@@ -36,7 +36,8 @@
     "react": ">=18.0.0"
   },
   "dependencies": {
-    "creem": "^1.3.6"
+    "@creem_io/webhook-types": "workspace:^",
+    "creem": "^1.4.4"
   },
   "devDependencies": {
     "@types/node": "^20.0.0",

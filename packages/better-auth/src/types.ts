@@ -1,11 +1,10 @@
 import type { BetterAuthPluginDBSchema } from "@better-auth/core/db";
-import {
-  // Import normalized entity types for flattening
+import type {
   NormalizedCheckoutEntity,
   NormalizedRefundEntity,
   NormalizedDisputeEntity,
   NormalizedSubscriptionEntity,
-} from "./webhook-types";
+} from "@creem_io/webhook-types";
 
 // ============================================================================
 // Flattened Callback Types (for better developer experience)

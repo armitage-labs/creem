@@ -57,7 +57,7 @@ export type {
   DiscountStatus,
   DiscountType,
   DiscountDuration,
-} from "./webhook-types.js";
+} from "@creem_io/webhook-types";
 
 // Export access check types
 export type { HasAccessGrantedResponse } from "./has-active-subscription-types.js";
