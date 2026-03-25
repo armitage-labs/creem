@@ -250,6 +250,7 @@
             "icon": "repeat",
             "pages": [
               "api-reference/endpoint/get-subscription",
+              "api-reference/endpoint/search-subscriptions",
               "api-reference/endpoint/update-subscription",
               "api-reference/endpoint/upgrade-subscription",
               "api-reference/endpoint/pause-subscription",
