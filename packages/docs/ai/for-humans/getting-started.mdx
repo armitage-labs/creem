@@ -1,0 +1,175 @@
+---
+title: Getting Started
+description: Integrate Creem payments with a single prompt to your AI assistant.
+---
+
+The fastest way to integrate Creem? Tell your AI assistant to do it. AI agents are first-class citizens at Creem, so they already know how to work with the platform out of the box.
+
+## The One-Prompt Integration
+
+Copy this and give it to your AI coding assistant (Claude, Cursor, Windsurf, Copilot, etc.):
+
+```text
+Read https://creem.io/SKILL.md and follow the instructions to integrate Creem
+```
+
+That's it. The skill file contains everything your AI needs to integrate Creem into your app, including API endpoints, SDK patterns, webhook handling, and best practices.
+
+### More Specific Examples
+
+You can also be more specific about what you need:
+
+```text
+Read https://creem.io/SKILL.md and help me integrate Creem payments into my app.
+
+I need:
+- A checkout flow for my subscription product
+- Webhook handling for payment events
+- Basic subscription management
+
+My stack: [describe your stack - e.g., "Next.js with TypeScript"]
+```
+
+### Adding Creem Context to Your Agent
+
+If your agent doesn't support reading URLs, or you want it to have Creem knowledge permanently, you can:
+
+1. **Copy the skill file directly** — open [creem.io/SKILL.md](https://creem.io/SKILL.md) in your browser and paste its contents into your agent's context or system prompt
+2. **Download it locally** — run `curl -s https://creem.io/SKILL.md > creem-skill.md` and add the file to your project
+3. **Use your platform's built-in tools** — most AI coding tools have their own way to add persistent context. See [Setup by Tool](#setup-by-tool) below for platform-specific instructions
+
+## Why This Works
+
+The skill file is a **31KB markdown document** optimized for AI consumption. It's a complete knowledge base your AI can reference instantly, covering all 24 API endpoints, 4 SDKs, 10 webhook events, CLI commands, and common integration patterns.
+
+Your AI will:
+1. Read and understand the entire Creem platform
+2. Ask clarifying questions about your specific needs
+3. Generate production-ready code tailored to your stack
+4. Include security patterns and error handling automatically
+
+## Level Up: Store Monitoring
+
+If you use [OpenClaw](https://openclaw.com) or any persistent AI assistant, you can have your AI **monitor your store** and notify you about:
+
+- New sales and transactions
+- Subscription cancellations
+- Payment failures
+- New customers
+
+Tell your AI:
+
+```text
+Read https://creem.io/HEARTBEAT.md and set up store monitoring for my Creem account.
+Notify me when there are new sales or any issues.
+```
+
+Your AI will periodically check your store and proactively ping you when something happens. No more checking dashboards.
+
+<Tip>
+**OpenClaw users:** OpenClaw is perfect for this because it maintains persistent context and can schedule recurring checks. Your AI becomes your business co-pilot.
+</Tip>
+
+## Alternative: Skills Marketplace
+
+For Claude Code users, you can install the skill permanently:
+
+```bash
+/plugin marketplace add armitage-labs/creem-skills
+/plugin install creem-api@creem-skills
+```
+
+Now Claude Code has Creem knowledge in every conversation, no need to reference the URL.
+
+## Setup by Tool
+
+<AccordionGroup>
+  <Accordion title="Claude Code">
+    **Option 1: One-time prompt (easiest)**
+    ```
+    Read https://creem.io/SKILL.md and help me integrate Creem.
+    ```
+
+    **Option 2: Install the skill permanently**
+    ```bash
+    /plugin marketplace add armitage-labs/creem-skills
+    /plugin install creem-api@creem-skills
+    ```
+  </Accordion>
+
+  <Accordion title="Cursor">
+    **Option 1: Reference in chat**
+    ```
+    @https://creem.io/SKILL.md Help me integrate Creem payments.
+    ```
+
+    **Option 2: Add to project**
+    ```bash
+    mkdir -p .cursor/skills
+    curl -s https://creem.io/SKILL.md > .cursor/skills/creem.md
+    ```
+    Then reference with `@.cursor/skills/creem.md`
+
+    **Option 3: Add to Cursor Docs**
+    Settings → Features → Docs → Add `https://docs.creem.io`
+  </Accordion>
+
+  <Accordion title="Windsurf">
+    Clone the skill to your project:
+    ```bash
+    mkdir -p .windsurf/creem
+    curl -s https://creem.io/SKILL.md > .windsurf/creem/SKILL.md
+    ```
+    Add to your Cascade knowledge base in settings.
+  </Accordion>
+
+  <Accordion title="GitHub Copilot">
+    Reference the skill URL in your chat:
+    ```
+    Using the guide at https://creem.io/SKILL.md, help me add Creem payments.
+    ```
+  </Accordion>
+
+  <Accordion title="Other AI Tools">
+    Most AI coding tools support referencing URLs or adding context files:
+    1. Download: `curl -s https://creem.io/SKILL.md > creem-skill.md`
+    2. Add to your project or AI tool's context
+    3. Reference when working on payments
+  </Accordion>
+</AccordionGroup>
+
+## What Your AI Will Generate
+
+When you ask your AI to integrate Creem, expect:
+
+<CardGroup cols={2}>
+  <Card title="Checkout Flow" icon="shopping-cart">
+    API route to create checkout sessions, redirect to hosted payment page, handle success
+  </Card>
+  <Card title="Webhook Handler" icon="webhook">
+    Signature verification, event routing, access grant/revoke callbacks
+  </Card>
+  <Card title="Subscription Management" icon="repeat">
+    Cancel, pause, resume, upgrade flows with proper error handling
+  </Card>
+  <Card title="Customer Portal" icon="user">
+    Self-service billing portal links for payment method updates
+  </Card>
+</CardGroup>
+
+All with proper TypeScript types, error handling, and security patterns built in.
+
+## When to Go Deeper
+
+The one-prompt approach works for most integrations. For the full technical reference, check the [For Agents](/ai/for-agents/skill-files) section. You can also manage your store directly from the terminal with the [Creem CLI](/ai/for-humans/cli).
+
+## Next Steps
+
+<CardGroup cols={2}>
+  <Card title="Get Your API Key" icon="key" href="https://creem.io/dashboard/api-keys">
+    You'll need a Creem API key for your AI to use
+  </Card>
+  <Card title="Creem CLI" icon="terminal" href="/ai/for-humans/cli">
+    Browse your store interactively from the terminal
+  </Card>
+</CardGroup>

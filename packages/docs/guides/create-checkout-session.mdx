@@ -1,0 +1,158 @@
+---
+title: 'Creating a Checkout Session'
+description: 'Learn how to create dynamic checkout sessions programmatically with Creem'
+---
+
+# Creating a Checkout Session
+
+Learn how to programmatically create checkout sessions for your products using Creem's APIs and SDKs.
+
+## Video Tutorial
+
+<Frame>
+  <iframe
+    width="560"
+    height="315"
+    src="https://www.youtube.com/embed/3eTSRXz9OdA"
+    title="YouTube video player"
+    frameborder="0"
+    allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+    allowfullscreen
+  ></iframe>
+</Frame>
+
+## What is a Checkout Session?
+
+A checkout session is a dynamically generated payment page that gives you programmatic control over the payment flow. Unlike static payment links, checkout sessions allow you to:
+
+- Pass custom tracking IDs for each payment
+- Pre-fill customer information
+- Set dynamic success URLs based on your app's context
+- Apply discount codes programmatically
+- Add metadata for internal tracking
+
+## Prerequisites
+
+Before you begin, make sure you have:
+
+- A Creem account with an API key
+- At least one product created in your dashboard
+- Your development environment set up
+
+<Tip>
+  Find your product ID by going to the [Products
+  tab](https://creem.io/dashboard/products), clicking on a product, and
+  selecting "Copy ID" from the options menu.
+</Tip>
+
+## Quick Start
+
+Choose your preferred integration method:
+
+<CardGroup cols={2}>
+  <Card title="Next.js" icon="react" href="/code/sdks/nextjs">
+    Use the Next.js adapter for seamless integration
+  </Card>
+  <Card title="TypeScript SDK" icon="code" href="/code/sdks/typescript">
+    Full type-safety for any JavaScript framework
+  </Card>
+  <Card title="Better Auth" icon="lock" href="/code/sdks/better-auth">
+    Integrate with authentication and user management
+  </Card>
+  <Card
+    title="REST API"
+    icon="globe"
+    href="/api-reference/endpoint/create-checkout"
+  >
+    Use the REST API from any language
+  </Card>
+</CardGroup>
+
+## Common Use Cases
+
+### 1. Pre-fill Customer Email
+
+Ensure users complete payment with their registered email:
+
+```typescript
+const checkout = await creem.checkouts.create({
+  productId: 'prod_YOUR_PRODUCT_ID',
+  customer: {
+    email: 'user@example.com',
+  },
+});
+```
+
+### 2. Track Payments with Custom IDs
+
+Associate payments with your internal system:
+
+```typescript
+const checkout = await creem.checkouts.create({
+  productId: 'prod_YOUR_PRODUCT_ID',
+  requestId: 'order_12345',
+  metadata: {
+    userId: 'internal_user_id',
+    source: 'marketing_campaign',
+  },
+});
+```
+
+### 3. Apply Discount Codes
+
+Pre-fill discount codes for special offers:
+
+```typescript
+const checkout = await creem.checkouts.create({
+  productId: 'prod_YOUR_PRODUCT_ID',
+  discountCode: 'LAUNCH50',
+});
+```
+
+### 4. Seat-Based Billing
+
+Charge for multiple units or seats:
+
+```typescript
+const checkout = await creem.checkouts.create({
+  productId: 'prod_YOUR_PRODUCT_ID',
+  units: 5, // Charge for 5 seats
+});
+```
+
+## Next Steps
+
+<CardGroup cols={2}>
+  <Card
+    title="Checkout API Documentation"
+    icon="book"
+    href="/features/checkout/checkout-api"
+  >
+    View the complete Checkout API reference
+  </Card>
+  <Card title="Webhooks" icon="webhook" href="/code/webhooks">
+    Set up webhooks to receive real-time payment notifications
+  </Card>
+  <Card
+    title="Test Your Integration"
+    icon="flask"
+    href="/getting-started/test-mode"
+  >
+    Learn how to test without processing real payments
+  </Card>
+  <Card
+    title="Checkout Customization"
+    icon="palette"
+    href="/features/checkout/checkout-customization"
+  >
+    Brand your checkout with custom colors and logos
+  </Card>
+</CardGroup>
+
+## Need Help?
+
+<Note>
+  Having trouble? Check out our [complete Checkout API
+  documentation](/features/checkout/checkout-api) or [contact
+  us](https://www.creem.io/contact)
+</Note>

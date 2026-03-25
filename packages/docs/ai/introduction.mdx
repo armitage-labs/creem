@@ -1,0 +1,45 @@
+---
+title: AI Integration
+description: AI agents and the CLI are first-class citizens at Creem. Integrate with a single prompt or manage your store from the terminal.
+---
+
+At Creem, AI agents are first-class citizens, together with the CLI. Whether you're a founder using AI to ship faster or an AI agent helping integrate payments, everything is built to work for both.
+
+<CardGroup cols={3}>
+  <Card title="Getting Started" icon="play" href="/ai/for-humans/getting-started">
+    One prompt to your AI assistant and you're integrated. No docs required.
+  </Card>
+  <Card title="Creem CLI" icon="terminal" href="/ai/for-humans/cli">
+    Browse and manage your store from the terminal with an interactive TUI.
+  </Card>
+  <Card title="For Agents" icon="robot" href="/ai/for-agents/skill-files">
+    Technical reference for AI agents. Skill files, CLI commands, store monitoring.
+  </Card>
+</CardGroup>
+
+## The Simple Version
+
+Tell your AI assistant:
+
+```
+Read https://creem.io/SKILL.md and follow the instructions to integrate Creem
+```
+
+That's it. The skill file contains everything your AI needs: API endpoints, SDK patterns, webhook handling, and best practices. No documentation rabbit holes.
+
+Or if you prefer the terminal:
+
+```bash
+brew tap armitage-labs/creem && brew install creem
+creem login --api-key creem_test_YOUR_KEY_HERE
+creem products    # launches interactive browser
+```
+
+## Why AI and CLI?
+
+Traditional payment integrations require reading docs, understanding patterns, and writing boilerplate. With Creem:
+
+- A single prompt gives your AI complete platform context through [skill files](https://creem.io/SKILL.md)
+- The CLI lets you browse and manage your store without leaving the terminal
+- Store monitoring lets your AI notify you about sales and issues automatically
+- Skill files work with any AI tool (Claude, Cursor, Windsurf, Copilot)

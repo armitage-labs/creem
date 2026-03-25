@@ -1,0 +1,575 @@
+---
+title: 'License Keys'
+description: 'Use the license key feature to enable access to your products.'
+---
+
+<Frame>
+  <img
+    style={{ borderRadius: '0.5rem' }}
+    src="https://nucn5fajkcc6sgrd.public.blob.vercel-storage.com/license%20keys-XBUgDtopz2145wlmInbpZsUlJHCZdd.png"
+  />
+</Frame>
+
+# License Key Management with Creem
+
+Welcome to Creem's License Key documentation! As a Merchant of Record specializing in Micro-SaaS and AI Businesses, we've built a powerful license key system that's both flexible and secure.
+
+## Getting Started
+
+Setting up license keys for your product is straightforward:
+
+1. **Configuring**
+   - Create a new product with a License key feature enabled
+   - Configure settings related to the licenses
+   - Set up your product integration or payment links for customer purchases
+
+2. **Dealing with a license after purchases**
+   - Enable the user to enter a license key in your application
+   - Activate a license key instance
+   - Validate a license key instance on subsequent usages
+
+## Step-by-Step Tutorial: Implementing License Keys
+
+Let's walk through the complete process of implementing license keys in your application. We'll cover everything from initial setup to handling customer interactions.
+
+### Step 1: Creating Your Product
+
+First, let's set up your product in the Creem dashboard:
+
+1. **Navigate to Products:** Log into your Creem dashboard and click "Create New Product"
+2. **Enable License Keys:** In the product settings, enable the "License Key Management" feature
+3. **Configure License Settings:**
+   - Set activation limits (e.g., 3 devices per license)
+   - Define expiration periods (e.g., 1 year from purchase)
+
+<Frame>
+  <img
+    style={{ borderRadius: '0.5rem' }}
+    src="https://nucn5fajkcc6sgrd.public.blob.vercel-storage.com/license-key-AdvcFBwr9QNaTibjYiyqAvVjcaFqEj.gif"
+  />
+</Frame>
+
+### Step 2: Customer Purchase Flow
+
+When a customer purchases your product, here's what happens automatically:
+
+- A unique license key is generated and associated with their purchase
+- The key appears in their order confirmation page
+- It's included in their email receipt
+- The key is accessible in their customer portal
+
+<Frame>
+  <img
+    style={{ borderRadius: '0.5rem' }}
+    src="https://nucn5fajkcc6sgrd.public.blob.vercel-storage.com/license-key-email-receipt-3ZvZMimmpwgfxWV2ToQV5bTFvRP5oK.png"
+  />
+</Frame>
+
+## Activating Licenses
+
+The activation endpoint is used to register a new device or instance with a valid license key. This is typically done when a user first sets up your application.
+
+### Common Use Cases
+
+- **Initial Software Setup:** When users first install your application and enter their license key
+- **Device Migration:** When users need to activate your software on a new device
+- **Multi-device Scenarios:** For users who need to use your software across multiple machines
+- **Cloud Instance Deployment:** When spinning up new cloud instances that require license validation
+
+### Benefits of the Activation System
+
+- **Prevents Unauthorized Usage:** Each activation is tracked and counted against the license limit
+- **User Flexibility:** Allows users to manage their own device activations within their quota
+- **Usage Analytics:** Provides insights into how and where your software is being used
+- **Fraud Prevention:** Helps identify and prevent license key sharing or abuse
+
+### Activation Flow
+
+Here's how a typical activation flow works:
+
+1. User purchases your software and receives a license key
+2. User installs your application on their device
+3. Application prompts for license key during first launch
+4. Application generates a unique instance name (usually based on device characteristics)
+5. Activation request is sent to the API
+6. Upon successful activation, the instance ID is stored locally for future validation
+
+### Endpoint Details
+
+- **URL:** `https://test-api.creem.io/v1/licenses/activate`
+- **Method:** POST
+- **Authentication:** Requires API key in headers
+
+### Request Parameters
+
+- **key** (required): The license key to activate
+- **instance_name** (required): A unique identifier for the device/installation
+
+<Tip>
+  The InstanceName field is an arbitrary name of your choice. Merchants usually
+  use the internal customer ID, or customer email for quality of life
+  maintainability.
+</Tip>
+
+### Response Format
+
+```json
+{
+  "id": "<string>",
+  "mode": "test",
+  "object": "<string>",
+  "status": "active",
+  "key": "ABC123-XYZ456-XYZ456-XYZ456",
+  "activation": 5,
+  "activation_limit": 1,
+  "expires_at": "2023-09-13T00:00:00Z",
+  "created_at": "2023-09-13T00:00:00Z",
+  "instance": [
+    {
+      "id": "<string>",
+      "mode": "test",
+      "object": "license-instance",
+      "name": "My Customer License Instance",
+      "status": "active",
+      "created_at": "2023-09-13T00:00:00Z"
+    }
+  ]
+}
+```
+
+### Implementation Examples
+
+<CodeGroup>
+
+```ts TypeScript SDK
+import { createCreem } from 'creem_io';
+
+const creem = createCreem({
+  apiKey: process.env.CREEM_API_KEY!,
+  testMode: true,
+});
+
+const license = await creem.licenses.activate({
+  key: 'ABC123-XYZ456-XYZ456-XYZ456',
+  instanceName: 'johns-macbook-pro',
+});
+```
+
+```bash cURL
+curl -X POST https://test-api.creem.io/v1/licenses/activate \
+  -H "accept: application/json" \
+  -H "x-api-key: YOUR_API_KEY" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "key": "ABC123-XYZ456-XYZ456-XYZ456",
+    "instance_name": "johns-macbook-pro"
+  }'
+```
+
+```jsx JavaScript
+const activateLicense = async (licenseKey, instanceName) => {
+  const response = await fetch(
+    'https://test-api.creem.io/v1/licenses/activate',
+    {
+      method: 'POST',
+      headers: {
+        accept: 'application/json',
+        'x-api-key': 'YOUR_API_KEY',
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({
+        key: licenseKey,
+        instance_name: instanceName,
+      }),
+    }
+  );
+  return await response.json();
+};
+```
+
+```python Python
+import requests
+
+def activate_license(license_key, instance_name):
+    url = "https://test-api.creem.io/v1/licenses/activate"
+    headers = {
+        "accept": "application/json",
+        "x-api-key": "YOUR_API_KEY",
+        "Content-Type": "application/json"
+    }
+    data = {
+        "key": license_key,
+        "instance_name": instance_name
+    }
+
+    response = requests.post(url, json=data, headers=headers)
+    return response.json()
+```
+
+</CodeGroup>
+
+<Note>
+  **Pro Implementation Tips** - Use the TypeScript SDK for automatic type safety
+  and better error handling - Generate meaningful instance names that help users
+  identify their devices - Store activation tokens securely using system
+  keychains or encrypted storage - Implement automatic retry logic for failed
+  activation attempts - Add clear user feedback for activation status and
+  remaining device quota
+</Note>
+
+## Validating Licenses
+
+The validation endpoint allows you to verify if a license key is still valid and active. This is crucial for maintaining software security and ensuring proper usage of your product.
+
+### Key Validation Features
+
+- **Real-time Status:** Get immediate feedback on license validity
+- **Feature Access:** Check which features are enabled for the license
+- **Quota Management:** Track remaining usage quotas
+- **Expiration Checking:** Verify if the license is still within its valid period
+
+### When to Validate
+
+To ensure continued valid usage, implement regular license checks:
+
+- Validate on application startup
+- Check before accessing premium features
+- Periodically verify license status (e.g., daily)
+- Handle network errors and retry scenarios appropriately
+
+### Validation Flow
+
+Here's how the validation process typically works:
+
+1. Application starts up or performs periodic check
+2. Retrieves stored license key and instance ID
+3. Sends validation request to Creem API
+4. Processes response and updates application state
+5. Handles any validation errors or expired licenses
+
+### Endpoint Details
+
+- **URL:** `https://test-api.creem.io/v1/licenses/validate`
+- **Method:** POST
+- **Authentication:** Requires API key in headers
+
+### Request Parameters
+
+- **key** (required): The license key to validate
+- **instance_id** (required): The instance ID received during activation
+
+### Response Format
+
+```json
+{
+  "id": "<string>",
+  "mode": "test",
+  "object": "<string>",
+  "status": "active",
+  "key": "ABC123-XYZ456-XYZ456-XYZ456",
+  "activation": 5,
+  "activation_limit": 1,
+  "expires_at": "2023-09-13T00:00:00Z",
+  "created_at": "2023-09-13T00:00:00Z",
+  "instance": [
+    {
+      "id": "<string>",
+      "mode": "test",
+      "object": "license-instance",
+      "name": "My Customer License Instance",
+      "status": "active",
+      "created_at": "2023-09-13T00:00:00Z"
+    }
+  ]
+}
+```
+
+### Implementation Examples
+
+<CodeGroup>
+
+```ts TypeScript SDK
+import { createCreem } from 'creem_io';
+
+const creem = createCreem({
+  apiKey: process.env.CREEM_API_KEY!,
+  testMode: true,
+});
+
+const validatedLicense = await creem.licenses.validate({
+  key: 'ABC123-XYZ456-XYZ456-XYZ456',
+  instanceId: 'inst_xyz123',
+});
+
+console.log(validatedLicense.status); // "active" | "inactive" | "expired" | "disabled"
+
+if (validatedLicense.status === 'active') {
+  // Grant access to premium features
+  console.log(`License expires at: ${validatedLicense.expiresAt}`);
+} else {
+  // Deny access or show upgrade prompt
+  console.log('License is not active');
+}
+```
+
+```bash cURL
+curl -X POST https://test-api.creem.io/v1/licenses/validate \
+  -H "accept: application/json" \
+  -H "x-api-key: YOUR_API_KEY" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "key": "ABC123-XYZ456-XYZ456-XYZ456",
+    "instance_id": "inst_xyz123"
+  }'
+```
+
+```jsx JavaScript
+const validateLicense = async (licenseKey, instanceId) => {
+  const response = await fetch(
+    'https://test-api.creem.io/v1/licenses/validate',
+    {
+      method: 'POST',
+      headers: {
+        accept: 'application/json',
+        'x-api-key': 'YOUR_API_KEY',
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({
+        key: licenseKey,
+        instance_id: instanceId,
+      }),
+    }
+  );
+  return await response.json();
+};
+```
+
+```python Python
+import requests
+
+def validate_license(license_key, instance_id):
+    url = "https://test-api.creem.io/v1/licenses/validate"
+    headers = {
+        "accept": "application/json",
+        "x-api-key": "YOUR_API_KEY",
+        "Content-Type": "application/json"
+    }
+    data = {
+        "key": license_key,
+        "instance_id": instance_id
+    }
+
+    response = requests.post(url, json=data, headers=headers)
+    return response.json()
+```
+
+</CodeGroup>
+
+<Note>
+  **Implementation Best Practices** - Cache validation results locally to reduce
+  API calls - Implement graceful degradation for offline scenarios - Add clear
+  user feedback for validation status - Keep logs of validation attempts for
+  troubleshooting
+</Note>
+
+## Deactivating Licenses
+
+The deactivation endpoint allows you to remove a device's access to a license key. This is essential for managing device transfers, subscription cancellations, and maintaining security of your software.
+
+### Key Deactivation Features
+
+- **Instance Management:** Remove specific device instances from active licenses
+- **Activation Slot Recovery:** Free up slots for new device activations
+- **Usage Tracking:** Monitor deactivation history and remaining slots
+- **Automatic Cleanup:** Clear associated device data upon deactivation
+
+### Common Deactivation Scenarios
+
+There are several scenarios where you might need to deactivate a license:
+
+- User requests to transfer their license to a new device
+- Subscription cancellation
+- Suspicious activity detection
+- User switching between devices
+
+### Deactivation Flow
+
+Here's how the deactivation process typically works:
+
+1. User initiates deactivation (e.g., switching devices)
+2. Application retrieves stored license key and instance ID
+3. Sends deactivation request to Creem API
+4. Cleans up local license data
+5. Provides feedback to user about deactivation status
+
+### Endpoint Details
+
+- **URL:** `https://test-api.creem.io/v1/licenses/deactivate`
+- **Method:** POST
+- **Authentication:** Requires API key in headers
+
+### Request Parameters
+
+- **key** (required): The license key to deactivate
+- **instance_id** (required): The instance ID to deactivate
+
+### Response Format
+
+```json
+{
+  "id": "<string>",
+  "mode": "test",
+  "object": "<string>",
+  "status": "active",
+  "key": "ABC123-XYZ456-XYZ456-XYZ456",
+  "activation": 5,
+  "activation_limit": 1,
+  "expires_at": "2023-09-13T00:00:00Z",
+  "created_at": "2023-09-13T00:00:00Z",
+  "instance": [
+    {
+      "id": "<string>",
+      "mode": "test",
+      "object": "license-instance",
+      "name": "My Customer License Instance",
+      "status": "active",
+      "created_at": "2023-09-13T00:00:00Z"
+    }
+  ]
+}
+```
+
+### Implementation Examples
+
+<CodeGroup>
+
+```ts TypeScript SDK
+import { createCreem } from 'creem_io';
+
+const creem = createCreem({
+  apiKey: process.env.CREEM_API_KEY!,
+  testMode: true,
+});
+
+const deactivatedLicense = await creem.licenses.deactivate({
+  key: 'ABC123-XYZ456-XYZ456-XYZ456',
+  instanceId: 'inst_xyz123',
+});
+```
+
+```bash cURL
+curl -X POST https://test-api.creem.io/v1/licenses/deactivate \
+  -H "accept: application/json" \
+  -H "x-api-key: YOUR_API_KEY" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "key": "ABC123-XYZ456-XYZ456-XYZ456",
+    "instance_id": "inst_xyz123"
+  }'
+```
+
+```jsx JavaScript
+const deactivateLicense = async (licenseKey, instanceId) => {
+  const response = await fetch(
+    'https://test-api.creem.io/v1/licenses/deactivate',
+    {
+      method: 'POST',
+      headers: {
+        accept: 'application/json',
+        'x-api-key': 'YOUR_API_KEY',
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({
+        key: licenseKey,
+        instance_id: instanceId,
+      }),
+    }
+  );
+  return await response.json();
+};
+```
+
+```python Python
+import requests
+
+def deactivate_license(license_key, instance_id):
+    url = "https://test-api.creem.io/v1/licenses/deactivate"
+    headers = {
+        "accept": "application/json",
+        "x-api-key": "YOUR_API_KEY",
+        "Content-Type": "application/json"
+    }
+    data = {
+        "key": license_key,
+        "instance_id": instance_id
+    }
+
+    response = requests.post(url, json=data, headers=headers)
+    return response.json()
+```
+
+</CodeGroup>
+
+<Note>
+  **Deactivation Best Practices** - Always confirm deactivation with users
+  before proceeding - Clear all local license data after successful deactivation
+  - Implement proper error handling for failed deactivations - Maintain
+  deactivation logs for customer support
+</Note>
+
+## Error Handling
+
+Common error responses across all license endpoints include:
+
+- **400 Bad Request:** Invalid or missing parameters
+- **401 Unauthorized:** Invalid API key
+- **403 Forbidden:** License key has reached activation limit (activation only)
+- **404 Not Found:** Invalid license key or instance ID
+- **409 Conflict:** Instance already deactivated (deactivation only)
+- **410 Gone:** License has been revoked or expired (validation only)
+
+## Best Practices
+
+- **Security:** Store the instance_id securely after successful activation
+- **Error Handling:** Implement graceful error handling for network issues
+- **User Experience:** Add clear user feedback for all license-related actions
+- **Offline Support:** Consider implementing an offline grace period
+- **Validation:** Always validate license keys on startup and critical operations
+- **Caching:** Cache validation results to prevent excessive API calls
+- **API Keys:** Securely store API keys and never expose them client-side
+
+## Common Pitfalls to Avoid
+
+- Don't store API keys in client-side code
+- Never expose the full license validation logic to end users
+- Don't forget to handle edge cases (expired licenses, network errors)
+
+## Security Considerations
+
+Creem's license key system implements several security measures:
+
+- Encrypted communication channels
+- Automatic suspicious activity detection
+- Regular security audits and updates
+
+## API Reference
+
+For detailed API documentation, visit:
+
+- [License Key API Reference](http://docs.creem.io/api-reference/endpoint/validate-license)
+
+<Card
+  title="TypeScript SDK Documentation"
+  icon="code"
+  href="/code/sdks/typescript"
+>
+  View the complete TypeScript SDK documentation with examples for licenses,
+  subscriptions, and more.
+</Card>
+
+<Note>
+**Need Help?**
+
+Our support team is ready to assist you with license key implementation. [Contact us](https://www.creem.io/contact)
+
+</Note>

@@ -1,0 +1,104 @@
+---
+title: 'FAQ'
+description: 'Answers to the most common questions about using Creem.'
+---
+
+## Account & Onboarding
+
+<AccordionGroup>
+  <Accordion title="How long does the account review take?">
+    Account reviews are typically completed within **24-48 hours**. During peak periods, it may take up to 72 hours. You'll receive an email once the review is complete. If changes are requested, address them and reply — your account will be re-reviewed promptly.
+  </Accordion>
+  <Accordion title="Where do I find my Store ID?">
+    Go to **Settings** in your dashboard. Your Store ID (e.g., `sto_abc123`) is displayed at the top of the page. See [Dashboard Overview](/getting-started/dashboard-overview) for more details.
+  </Accordion>
+  <Accordion title="How do I fix a support email mismatch?">
+    Go to **Settings** → **Business Details** and update your contact email. Make sure the same email is visible on your website (footer, contact page, or legal pages). This is one of the most common reasons for requests for changes during account review.
+  </Accordion>
+  <Accordion title="How do I start KYC/KYB verification?">
+    Go to **Balance** → **Payout Account** in your dashboard. The verification process starts automatically when you begin setting up your payout account. You'll need a government-issued ID (for KYC) and business documents (for KYB, if applicable).
+  </Accordion>
+  <Accordion title="My KYC verification was rejected — what do I do?">
+    Common reasons for rejection include blurry photos, expired documents, or name mismatches. Contact [Creem support](https://creem.io/contact) with your Store ID, and we can help reset your verification or clarify the rejection reason.
+  </Accordion>
+  <Accordion title="Can I delete my store or account?">
+    You can request store deletion from **Settings** in your dashboard. If your store has no live products or active transactions, deletion is processed automatically. If your store has live data, the deletion request will be reviewed by our team — no need to contact anyone separately. If you change your mind after requesting deletion, contact support immediately to cancel it.
+  </Accordion>
+  <Accordion title="Do I need a separate store for each website?">
+    **Yes.** Each website must have its own Creem store. During account review, we verify your website, support email, and product details — these are tied to a specific store. Using one store for multiple websites will cause review issues and is not supported.
+  </Accordion>
+</AccordionGroup>
+
+## Products & Pricing
+
+<AccordionGroup>
+  <Accordion title="How do I offer monthly and yearly pricing for the same product?">
+    Create **two separate products** — one with monthly billing and one with yearly billing. You can then present both options on your pricing page and link to the appropriate checkout for each. Use the same `metadata` to identify them as variants of the same offering.
+  </Accordion>
+  <Accordion title="How do I set up multiple subscription tiers (e.g., Basic, Pro, Enterprise)?">
+    Create a separate product for each tier. Each product can have its own price, billing cycle, and features. Present them on your pricing page and link each to its own checkout.
+  </Accordion>
+  <Accordion title="Can I copy products from test mode to production?">
+    No, test and production environments are completely separate. You'll need to recreate your products in live mode. This ensures your production catalog is intentional and reviewed.
+  </Accordion>
+  <Accordion title="Does Creem support weekly billing?">
+    Currently, Creem supports **monthly**, **3-month**, **6-month**, and **yearly** billing cycles for subscriptions. Weekly billing is not available at this time.
+  </Accordion>
+</AccordionGroup>
+
+## Payouts & Finance
+
+<AccordionGroup>
+  <Accordion title="When are payouts processed?">
+    Payouts are executed on the **1st** and **15th** of each month. You need a minimum balance of $50 USD (or €50 EUR) to request a withdrawal. Click the **Withdraw** button on your Balance page to join the next payout window. See [Payouts](/merchant-of-record/finance/payouts) for full details.
+  </Accordion>
+  <Accordion title="Why didn't I receive my payout?">
+    Common reasons:
+    - **Hold period**: Payments need 7-12 days to clear before they're available for payout. Only funds processed before the 8th (for a 15th payout) or before the 23rd (for a 1st payout) are eligible.
+    - **Identity mismatch**: The identity used during onboarding (KYC/KYB) must match the bank account holder. Creem verifies this before each payout and will not process payouts where there's a mismatch.
+    - **Payout fell on a weekend/holiday**: The payout will process on the next business day.
+    - **Payout account not set as default**: Make sure your preferred account is marked as default.
+
+    If a payout fails, the funds will be returned to your Creem balance at least 3 days before the next payout window, so they're available for the next cycle.
+  </Accordion>
+  <Accordion title="How do I change my payout bank account?">
+    Go to **Balance** → **Payout Account**, add the new bank account, and set it as default. You cannot delete old payout accounts yourself — contact support if you need one removed. See [Payout Accounts](/merchant-of-record/finance/payout-accounts).
+  </Accordion>
+  <Accordion title="Does Creem support PayPal payouts?">
+    Creem does not currently support PayPal for merchant payouts. Available payout methods are bank transfer (SEPA/international), Alipay (China), and USDC stablecoins via Polygon.
+  </Accordion>
+</AccordionGroup>
+
+## Tax & Compliance
+
+<AccordionGroup>
+  <Accordion title="How does Creem handle taxes?">
+    As your [Merchant of Record](/merchant-of-record/what-is), Creem handles all tax collection, remittance, and compliance automatically. The correct tax rate (VAT, GST, sales tax) is applied at checkout based on the customer's location. You don't need to register for tax in any country.
+  </Accordion>
+  <Accordion title="Can B2B customers get a tax exemption?">
+    Creem automatically applies the correct tax treatment based on the customer's location. For EU B2B transactions, if the customer provides a valid **VAT ID** during checkout, reverse charge rules may apply. Full self-service tax-exempt checkout (where B2B customers can input their VAT ID to skip tax) is on our roadmap — contact [support](https://creem.io/contact) if this is critical for your use case.
+  </Accordion>
+  <Accordion title="Why are some transactions taxed differently?">
+    Tax rates vary by the customer's country, state, and sometimes city. A customer in France pays 20% VAT, while a customer in the US might pay 0-10% sales tax depending on their state. Creem calculates the correct rate automatically.
+  </Accordion>
+  <Accordion title="My country isn't in the supported countries list — can I still use Creem?">
+    Unfortunately, Creem can only support merchants in our [supported countries](/merchant-of-record/supported-countries). If your country is not listed, we're unable to onboard you at this time. We're continuously expanding our coverage — check back for updates.
+  </Accordion>
+</AccordionGroup>
+
+## Technical
+
+<AccordionGroup>
+  <Accordion title="Where do I find my API key?">
+    Go to the **Developers** section in the left sidebar of your dashboard. Make sure you're in the correct mode (test/live) using the toggle in the sidebar. See [Dashboard Overview](/getting-started/dashboard-overview) for a visual guide.
+  </Accordion>
+  <Accordion title="How do I test webhooks locally?">
+    Use a tunneling tool like [ngrok](https://ngrok.com) to expose your local server, then set the ngrok URL as your webhook endpoint in the dashboard. See [Webhooks](/code/webhooks) for full setup instructions.
+  </Accordion>
+  <Accordion title="Does the webhook fire when a customer cancels?">
+    Yes. The `subscription.canceled` event is fired when a subscription is canceled. If you want to revoke access immediately on cancellation (rather than at the end of the billing period), listen for this event. See [Subscriptions](/features/subscriptions/introduction).
+  </Accordion>
+  <Accordion title="How do I generate an invoice for a customer via API?">
+    Invoices are automatically generated for each transaction. Customers can access their invoices through the [Customer Portal](/features/customer-portal). Merchants can also view and download invoices from the transaction details in the dashboard.
+  </Accordion>
+</AccordionGroup>

@@ -1,0 +1,316 @@
+{
+  "$schema": "https://mintlify.com/docs.json",
+
+  "seo": {
+    "indexing": "all",
+    "metatags": {
+      "twitter:site": "@creem_io",
+      "og:site_name": "Creem Documentation",
+      "keywords": "merchant of record, payment api, saas billing, subscription management, global payments, MoR, affiliate program, affiliate marketing, referral program"
+    }
+  },
+  "integrations": {
+    "posthog": {
+      "apiKey": "phc_placeholder_gabriel_will_provide",
+      "apiHost": "https://us.posthog.com"
+    }
+  },
+  "contextual": {
+    "options": ["copy", "view", "chatgpt", "claude", "perplexity"]
+  },
+  "theme": "mint",
+  "name": "Creem",
+  "colors": {
+    "primary": "#FFBE98",
+    "light": "#FFBE98",
+    "dark": "#B09CFB"
+  },
+  "favicon": "/favicon.svg",
+  "navigation": {
+    "tabs": [
+      {
+        "tab": "Documentation",
+        "groups": [
+          {
+            "group": "Get Started",
+            "icon": "rocket",
+            "pages": [
+              "getting-started/introduction",
+              "getting-started/quickstart",
+              "getting-started/test-mode",
+              "merchant-of-record/account-reviews/account-reviews",
+              "getting-started/dashboard-overview",
+              "getting-started/migrate"
+            ]
+          },
+          {
+            "group": "AI",
+            "icon": "robot",
+            "pages": [
+              "ai/introduction",
+              {
+                "group": "For Humans",
+                "pages": [
+                  "ai/for-humans/getting-started",
+                  "ai/for-humans/cli"
+                ]
+              },
+              {
+                "group": "For Agents",
+                "pages": [
+                  "ai/for-agents/skill-files",
+                  "ai/for-agents/cli",
+                  "ai/for-agents/store-monitoring"
+                ]
+              }
+            ]
+          },
+          {
+            "group": "Features",
+            "icon": "sparkles",
+            "pages": [
+              {
+                "group": "Checkout",
+                "pages": [
+                  "features/checkout/checkout-api",
+                  "features/checkout/checkout-link",
+                  "features/checkout/checkout-customization",
+                  "features/checkout/checkout-custom-fields",
+                  "features/checkout/checkout-localization"
+                ]
+              },
+              "features/one-time-payment",
+              {
+                "group": "Subscriptions",
+                "pages": [
+                  "features/subscriptions/introduction",
+                  "features/subscriptions/managing",
+                  "features/subscriptions/refunds-and-cancellations"
+                ]
+              },
+              "features/seat-based-billing",
+              "features/split-payments",
+              "features/affiliate-program",
+              "features/storefronts",
+              "features/discounts",
+              "features/trials",
+              "features/customer-portal",
+              "features/product-bundles",
+              {
+                "group": "Addons",
+                "pages": [
+                  "features/addons/licenses",
+                  "features/addons/private-notes",
+                  "features/addons/file-downloads",
+                  "features/addons/abandoned-cart-recovery"
+                ]
+              }
+            ]
+          },
+          {
+            "group": "Code",
+            "icon": "code",
+            "pages": [
+              {
+                "group": "SDKs",
+                "pages": [
+                  {
+                    "group": "TypeScript",
+                    "pages": [
+                      "code/sdks/typescript-core",
+                      "code/sdks/typescript-wrapper"
+                    ]
+                  },
+                  "code/sdks/nextjs",
+                  "code/sdks/better-auth",
+                  "code/sdks/templates",
+                  "code/sdks/ai-agents"
+                ]
+              },
+              "code/cli",
+              "code/webhooks"
+            ]
+          },
+          {
+            "group": "Integrations",
+            "icon": "link",
+            "pages": ["integrations/ai-negotiation-bot"]
+          },
+          {
+            "group": "Community",
+            "icon": "users",
+            "pages": ["code/community/community-resources"]
+          },
+          {
+            "group": "Merchant of Record",
+            "icon": "building",
+            "pages": [
+              "merchant-of-record/what-is",
+              "merchant-of-record/supported-countries",
+              {
+                "group": "Finance",
+                "pages": [
+                  "merchant-of-record/finance/payouts",
+                  "merchant-of-record/finance/payout-accounts",
+                  "merchant-of-record/finance/refunds-and-chargebacks",
+                  "merchant-of-record/finance/payment-methods"
+                ]
+              }
+            ]
+          },
+          {
+            "group": "For Customers",
+            "icon": "circle-question",
+            "pages": [
+              "for-customers/why-creem-charged-me",
+              "for-customers/how-to-cancel-subscription",
+              "for-customers/how-to-update-payment-method",
+              "for-customers/cant-log-in-to-customer-portal"
+            ]
+          }
+        ]
+      },
+      {
+        "tab": "Guides",
+        "groups": [
+          {
+            "group": "Guides",
+            "icon": "book-open",
+            "pages": [
+              "guides/introduction",
+              "guides/create-your-first-product",
+              "guides/create-checkout-session",
+              "guides/faq"
+            ]
+          }
+        ]
+      },
+      {
+        "tab": "API Reference",
+        "groups": [
+          {
+            "group": "API Documentation",
+            "icon": "book",
+            "pages": ["api-reference/introduction", "api-reference/error-codes"]
+          },
+          {
+            "group": "Checkout",
+            "icon": "shopping-cart",
+            "pages": [
+              "api-reference/endpoint/create-checkout",
+              "api-reference/endpoint/get-checkout"
+            ]
+          },
+          {
+            "group": "Product",
+            "icon": "box",
+            "pages": [
+              "api-reference/endpoint/create-product",
+              "api-reference/endpoint/get-product",
+              "api-reference/endpoint/search-products"
+            ]
+          },
+          {
+            "group": "Customer",
+            "icon": "users",
+            "pages": [
+              "api-reference/endpoint/get-customer",
+              "api-reference/endpoint/list-customers",
+              "api-reference/endpoint/create-customer-billing"
+            ]
+          },
+          {
+            "group": "Transactions",
+            "icon": "receipt",
+            "pages": [
+              "api-reference/endpoint/get-transaction",
+              "api-reference/endpoint/get-transactions"
+            ]
+          },
+          {
+            "group": "License",
+            "icon": "key",
+            "pages": [
+              "api-reference/endpoint/validate-license",
+              "api-reference/endpoint/activate-license",
+              "api-reference/endpoint/deactivate-license"
+            ]
+          },
+          {
+            "group": "Discount Code",
+            "icon": "tag",
+            "pages": [
+              "api-reference/endpoint/create-discount-code",
+              "api-reference/endpoint/delete-discount-code",
+              "api-reference/endpoint/get-discount-code"
+            ]
+          },
+          {
+            "group": "Subscription",
+            "icon": "repeat",
+            "pages": [
+              "api-reference/endpoint/get-subscription",
+              "api-reference/endpoint/update-subscription",
+              "api-reference/endpoint/upgrade-subscription",
+              "api-reference/endpoint/pause-subscription",
+              "api-reference/endpoint/resume-subscription",
+              "api-reference/endpoint/cancel-subscription"
+            ]
+          },
+          {
+            "group": "Stats",
+            "icon": "chart-line",
+            "pages": [
+              "api-reference/endpoint/get-stats-summary"
+            ]
+          }
+        ]
+      }
+    ],
+    "global": {
+      "anchors": [
+        {
+          "anchor": "Community",
+          "href": "https://discord.gg/q3GKZs92Av",
+          "icon": "discord"
+        },
+        {
+          "anchor": "Blog",
+          "href": "https://creem.io/blog",
+          "icon": "newspaper"
+        }
+      ]
+    }
+  },
+  "logo": {
+    "light": "/logo/light.svg",
+    "dark": "/logo/dark.svg"
+  },
+  "navbar": {
+    "links": [
+      {
+        "label": "Support",
+        "href": "https://creem.io/contact"
+      },
+      {
+        "label": "llms.txt",
+        "href": "https://docs.creem.io/llms.txt"
+      },
+      {
+        "label": "llms-full.txt",
+        "href": "https://docs.creem.io/llms-full.txt"
+      }
+    ],
+    "primary": {
+      "type": "button",
+      "label": "Creem",
+      "href": "https://creem.io"
+    }
+  },
+  "footer": {
+    "socials": {
+      "x": "https://x.com/creem_io",
+      "linkedin": "https://www.linkedin.com/company/creemio"
+    }
+  }
+}

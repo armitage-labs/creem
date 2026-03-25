@@ -1,0 +1,40 @@
+{
+  "name": "creem-skills",
+  "owner": {
+    "name": "Creem",
+    "email": "support@creem.io"
+  },
+  "metadata": {
+    "description": "Official Creem payment integration skills for AI coding assistants",
+    "version": "1.0.0",
+    "pluginRoot": ".."
+  },
+  "plugins": [
+    {
+      "name": "creem-api",
+      "source": "./creem-api",
+      "description": "Integrate Creem payment infrastructure for checkouts, subscriptions, licenses, and webhooks. Complete API reference with implementation patterns.",
+      "version": "1.0.0",
+      "author": {
+        "name": "Creem",
+        "email": "support@creem.io"
+      },
+      "homepage": "https://docs.creem.io/code/sdks/ai-agents",
+      "repository": "https://github.com/armitage-labs/creem-skills",
+      "license": "MIT",
+      "keywords": [
+        "payments",
+        "subscriptions",
+        "checkout",
+        "webhooks",
+        "licenses",
+        "saas",
+        "billing",
+        "merchant-of-record",
+        "creem"
+      ],
+      "category": "integrations",
+      "strict": false
+    }
+  ]
+}

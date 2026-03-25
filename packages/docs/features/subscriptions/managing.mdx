@@ -1,0 +1,288 @@
+---
+title: 'Managing Subscriptions'
+description: 'Update, upgrade, and manage active subscriptions with flexible billing options and self-service customer management.'
+---
+
+Creem provides comprehensive tools for managing active subscriptions, including updating seat counts, changing billing information, upgrading/downgrading plans, and enabling self-service management for your customers.
+
+## Managing Subscription Changes
+
+### Update Billing Information
+
+Customers can update their payment method through the Customer Portal:
+
+<Tabs>
+  <Tab title="Next.js">
+
+```tsx
+import { CreemPortal } from '@creem_io/nextjs';
+
+export function ManageBillingButton({ customerId }: { customerId: string }) {
+  return (
+    <CreemPortal customerId={customerId}>
+      <button>Manage Billing</button>
+    </CreemPortal>
+  );
+}
+```
+
+  </Tab>
+
+  <Tab title="TypeScript SDK">
+
+```typescript
+import { createCreem } from 'creem_io';
+
+const creem = createCreem({
+  apiKey: process.env.CREEM_API_KEY!,
+  testMode: process.env.NODE_ENV !== 'production',
+});
+
+// Create customer portal link
+const portal = await creem.customers.createPortal({
+  customerId: 'cust_YOUR_CUSTOMER_ID',
+});
+
+// Redirect to portal
+console.log(portal.customerPortalLink);
+```
+
+  </Tab>
+
+  <Tab title="Better Auth">
+
+```typescript
+"use client";
+
+import { authClient } from "@/lib/auth-client";
+
+export function ManageBillingButton() {
+  const handlePortal = async () => {
+    const { data } = await authClient.creem.createPortal();
+
+    if (data?.url) {
+      window.location.href = data.url;
+    }
+  };
+
+  return (
+    <button onClick={handlePortal}>
+      Manage Billing
+    </button>
+  );
+}
+```
+
+  </Tab>
+
+  <Tab title="REST API">
+
+```bash
+curl -X POST https://api.creem.io/v1/customer-portal \
+  -H "x-api-key: YOUR_API_KEY" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "customer_id": "cust_YOUR_CUSTOMER_ID"
+  }'
+```
+
+  </Tab>
+</Tabs>
+
+<Card
+  title="Customer Portal"
+  icon="user-circle"
+  href="/features/customer-portal"
+>
+  Learn more about the Customer Portal and its features.
+</Card>
+
+---
+
+## Subscription Upgrades & Downgrades
+
+### Programmatic Upgrades
+
+Upgrade or downgrade a subscription to a different product using the subscription upgrade endpoint:
+
+<Tabs>
+  <Tab title="TypeScript SDK">
+
+```typescript
+import { createCreem } from 'creem_io';
+
+const creem = createCreem({
+  apiKey: process.env.CREEM_API_KEY!,
+  testMode: process.env.NODE_ENV !== 'production',
+});
+
+// Upgrade subscription to a different product
+const upgraded = await creem.subscriptions.upgrade({
+  subscriptionId: 'sub_YOUR_SUBSCRIPTION_ID',
+  productId: 'prod_PREMIUM_PLAN', // New product ID
+  updateBehavior: 'proration-charge-immediately',
+});
+
+console.log('Subscription upgraded:', upgraded);
+```
+
+  </Tab>
+
+  <Tab title="REST API">
+
+```bash
+curl -X POST https://api.creem.io/v1/subscriptions/sub_YOUR_SUBSCRIPTION_ID/upgrade \
+  -H "x-api-key: YOUR_API_KEY" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "product_id": "prod_PREMIUM_PLAN",
+    "update_behavior": "proration-charge-immediately"
+  }'
+```
+
+  </Tab>
+</Tabs>
+
+### Update Behavior Options
+
+When upgrading or downgrading subscriptions, you can control how the change is processed:
+
+| Behavior                       | Description                                                                                    |
+| ------------------------------ | ---------------------------------------------------------------------------------------------- |
+| `proration-charge-immediately` | Calculate prorated amount and charge immediately. Starts a new billing cycle from today.       |
+| `proration-charge`             | Calculate prorated amount as credit and add to next invoice. Maintains original billing cycle. |
+| `proration-none`               | No proration. Change takes effect on next billing cycle with no immediate charges.             |
+
+<Note>
+**Proration Example:**
+
+If a customer upgrades from a \$10/month plan to a \$30/month plan halfway through their billing cycle:
+
+- **proration-charge-immediately**: Customer is charged ~\$10 now (the difference for the remaining half of the month) and \$30 on the next billing date.
+- **proration-charge**: Customer receives ~\$5 credit (unused half of old plan) and pays ~\$25 on next billing date (\$30 - \$5).
+- **proration-none**: Customer continues paying \$10 until the next billing cycle, then pays \$30.
+
+</Note>
+
+<Card
+  title="API Reference - Upgrade Subscription"
+  icon="book"
+  href="/api-reference/endpoint/upgrade-subscription"
+>
+  View the complete upgrade subscription endpoint documentation.
+</Card>
+
+---
+
+## Updating Seat Count
+
+For seat-based subscriptions, you can update the number of seats:
+
+<Tabs>
+  <Tab title="TypeScript SDK">
+
+```typescript
+import { createCreem } from 'creem_io';
+
+const creem = createCreem({
+  apiKey: process.env.CREEM_API_KEY!,
+  testMode: process.env.NODE_ENV !== 'production',
+});
+
+// First, get the subscription to retrieve the item ID
+const subscription = await creem.subscriptions.get({
+  subscriptionId: 'sub_YOUR_SUBSCRIPTION_ID',
+});
+
+const itemId = subscription.items[0].id;
+
+// Update the seat count
+const updated = await creem.subscriptions.update({
+  subscriptionId: 'sub_YOUR_SUBSCRIPTION_ID',
+  items: [
+    {
+      id: itemId,
+      units: 10, // New seat count
+    },
+  ],
+  updateBehavior: 'proration-charge-immediately',
+});
+```
+
+  </Tab>
+
+  <Tab title="REST API">
+
+```bash
+# First, get the subscription
+curl -X GET https://api.creem.io/v1/subscriptions/sub_YOUR_SUBSCRIPTION_ID \
+  -H "x-api-key: YOUR_API_KEY"
+
+# Then update with the item ID
+curl -X POST https://api.creem.io/v1/subscriptions/sub_YOUR_SUBSCRIPTION_ID \
+  -H "x-api-key: YOUR_API_KEY" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "items": [
+      {
+        "id": "sitem_ITEM_ID",
+        "units": 10
+      }
+    ]
+  }'
+```
+
+  </Tab>
+</Tabs>
+
+<Card
+  title="Seat-Based Billing"
+  icon="users"
+  href="/features/seat-based-billing"
+>
+  Learn more about implementing seat-based pricing models.
+</Card>
+
+---
+
+## Dashboard Management
+
+You can also manage subscriptions directly through the Creem Dashboard:
+
+- **View subscription details** - See customer info, billing history, and status
+- **Modify subscriptions** - Change seat counts, update pricing
+- **Pause subscriptions** - Temporarily pause without canceling
+- **Cancel subscriptions** - End recurring billing
+
+Simply navigate to a subscription and click "Modify Subscription" to make changes.
+
+---
+
+## Next Steps
+
+<CardGroup cols={2}>
+  <Card
+    title="Cancellations & Refunds"
+    icon="ban"
+    href="/features/subscriptions/refunds-and-cancellations"
+  >
+    Handle subscription cancellations and process refunds
+  </Card>
+  <Card title="Webhooks" icon="webhook" href="/code/webhooks">
+    Handle subscription events like renewals and cancellations
+  </Card>
+  <Card
+    title="Customer Portal"
+    icon="user-circle"
+    href="/features/customer-portal"
+  >
+    Enable self-service subscription management
+  </Card>
+  <Card
+    title="API Reference"
+    icon="book"
+    href="/api-reference/endpoint/update-subscription"
+  >
+    View the complete API documentation
+  </Card>
+</CardGroup>

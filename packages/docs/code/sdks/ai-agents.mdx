@@ -1,0 +1,530 @@
+---
+title: AI Agents
+description: Integrate Creem faster with AI coding assistants like Claude Code, Cursor, Windsurf, and other AI-powered development tools using our official skill.
+---
+
+AI coding assistants like Claude Code, Cursor, and Windsurf are transforming how developers build software. To help you integrate Creem faster and with best practices built-in, we've created an official **Creem API Skill** that gives AI assistants deep knowledge about our payment infrastructure.
+
+## Quick Install for Claude Code
+
+Install the Creem skill with a single command:
+
+```bash
+/plugin marketplace add armitage-labs/creem-skills
+```
+
+Then install the skill using either method:
+
+**Option A: Use the interactive UI (easiest)**
+
+1. Type `/plugin` and press Enter
+2. Go to the **Discover** tab
+3. Search for `creem-api`
+4. Press Enter to install
+
+**Option B: Use the command directly**
+
+```bash
+/plugin install creem-api@creem-skills
+```
+
+<Tip>
+  That's it! Claude Code now has complete knowledge of the Creem API and will
+  generate production-ready integration code when you ask about payments,
+  subscriptions, webhooks, or licenses.
+</Tip>
+
+---
+
+## What is a Skill?
+
+A skill is a structured set of instructions and reference materials that AI assistants use to provide more accurate, contextual help for specific tasks. When you load the Creem skill, your AI assistant gains comprehensive knowledge about:
+
+- All 24 API endpoints with request/response schemas
+- Webhook events and signature verification
+- Common integration patterns and workflows
+- Best practices for security and error handling
+- Test mode configuration
+
+---
+
+## Get the Skill
+
+<CardGroup cols={3}>
+  <Card title="Claude Code (Recommended)" icon="terminal">
+    ```bash
+    /plugin marketplace add armitage-labs/creem-skills
+    /plugin install creem-api@creem-skills
+    ```
+  </Card>
+  <Card
+    title="GitHub Repository"
+    icon="github"
+    href="https://github.com/armitage-labs/creem-skills"
+  >
+    Clone, fork, or download the skill files directly
+  </Card>
+  <Card
+    title="Download ZIP"
+    icon="download"
+    href="https://github.com/armitage-labs/creem-skills/archive/refs/heads/main.zip"
+  >
+    Download as a ZIP file for manual setup
+  </Card>
+</CardGroup>
+
+---
+
+## Skill Contents
+
+The skill includes four comprehensive reference files:
+
+| File           | Description                                                 |
+| -------------- | ----------------------------------------------------------- |
+| `Skill.md`     | Core skill with quick reference and implementation patterns |
+| `REFERENCE.md` | Complete API reference with all endpoints and schemas       |
+| `WEBHOOKS.md`  | Webhook events documentation with payload examples          |
+| `WORKFLOWS.md` | Step-by-step integration guides for common use cases        |
+
+### What's Covered
+
+<AccordionGroup>
+  <Accordion title="API Endpoints (24 total)">
+    - **Checkouts**: Create and retrieve checkout sessions
+    - **Products**: Create, retrieve, and list products
+    - **Customers**: Manage customers and portal links
+    - **Subscriptions**: Full lifecycle management (get, update, upgrade, cancel, pause, resume)
+    - **Licenses**: Activation, validation, and deactivation
+    - **Discounts**: Create, retrieve, and delete promotional codes
+    - **Transactions**: Query payment history
+  </Accordion>
+
+  <Accordion title="Webhook Events (10 types)">
+    - `checkout.completed` - Payment successful
+    - `subscription.active` - New subscription created
+    - `subscription.paid` - Recurring payment processed
+    - `subscription.canceled` - Subscription ended
+    - `subscription.expired` - Period ended without payment
+    - `subscription.trialing` - Trial started
+    - `subscription.paused` - Subscription paused
+    - `subscription.update` - Subscription modified
+    - `refund.created` - Refund processed
+    - `dispute.created` - Chargeback opened
+  </Accordion>
+
+  <Accordion title="Integration Workflows">
+    - Basic SaaS subscription flows
+    - One-time purchases with digital delivery
+    - License key systems for desktop/mobile apps
+    - Seat-based team billing
+    - Freemium with upgrade flows
+    - Affiliate and referral tracking
+  </Accordion>
+
+  <Accordion title="Best Practices">
+    - Webhook signature verification (HMAC-SHA256)
+    - Error handling patterns
+    - Test mode development
+    - Security considerations
+    - Idempotency and retry handling
+  </Accordion>
+</AccordionGroup>
+
+---
+
+## Setup by AI Tool
+
+### Claude Code
+
+<Note>
+  **Recommended Method**: Use the plugin marketplace for the easiest setup experience.
+</Note>
+
+**One-Line Install (Plugin Marketplace)**
+
+Claude Code's plugin marketplace makes installation effortless:
+
+<Steps>
+  <Step title="Add the Marketplace">
+    Open Claude Code and run:
+    ```bash
+    /plugin marketplace add armitage-labs/creem-skills
+    ```
+  </Step>
+  <Step title="Install the Skill">
+    **Option A: Interactive UI (easiest)**
+
+    Type `/plugin`, go to the **Discover** tab, search for `creem-api`, and press Enter to install.
+
+    **Option B: Command**
+    ```bash
+    /plugin install creem-api@creem-skills
+    ```
+  </Step>
+  <Step title="Start Building">
+    Ask Claude to help with Creem integration:
+    ```
+    Help me create a checkout flow for my SaaS product
+    ```
+  </Step>
+</Steps>
+
+**Managing the Plugin**
+
+```bash
+# View installed plugins
+/plugin
+
+# Disable the skill temporarily
+/plugin disable creem-api@creem-skills
+
+# Enable again
+/plugin enable creem-api@creem-skills
+
+# Uninstall
+/plugin uninstall creem-api@creem-skills
+
+# Update marketplace to get latest version
+/plugin marketplace update creem-skills
+```
+
+**Alternative: Direct Reference**
+
+If you prefer not to use the marketplace, you can reference the skill directly in any conversation:
+
+```
+Help me integrate Creem payments. Use the skill at https://github.com/armitage-labs/creem-skills
+```
+
+---
+
+### Cursor
+
+Cursor supports adding context through multiple methods:
+
+**Option 1: Add to Project**
+
+1. Clone the skill repository into your project:
+
+   ```bash
+   git clone https://github.com/armitage-labs/creem-skills.git .cursor/skills
+   ```
+
+2. Reference the skill files in your conversations using `@` mentions:
+
+   ```
+   @.cursor/skills/creem-api/Skill.md Help me create a checkout flow
+   ```
+
+**Option 2: Custom Instructions**
+
+Add the skill content to your project's `.cursorrules` file:
+
+```
+When working with Creem payment integration:
+- Use the Creem API at https://api.creem.io (or test-api.creem.io for test mode)
+- Authenticate with x-api-key header
+- Always verify webhook signatures using HMAC-SHA256
+- Prices are in cents (1000 = $10.00)
+- Reference: .cursor/skills/creem-api/
+```
+
+**Option 3: Docs Integration**
+
+Add the Creem documentation to Cursor's docs:
+
+1. Open Cursor Settings → Features → Docs
+2. Add: `https://docs.creem.io`
+3. Cursor will index our documentation for context
+
+---
+
+### Windsurf
+
+Windsurf supports custom knowledge through its Cascade feature:
+
+1. Clone the skill repository:
+
+   ```bash
+   git clone https://github.com/armitage-labs/creem-skills.git .windsurf/creem
+   ```
+
+2. Add to your project's knowledge base in Windsurf settings
+
+3. Reference in conversations:
+
+   ```
+   Using the Creem skill, help me implement subscription billing
+   ```
+
+---
+
+### Other AI Tools
+
+For other AI coding assistants (GitHub Copilot Chat, Cody, Continue, etc.):
+
+1. **Download the skill files** from the GitHub repository
+2. **Add to your project** in a dedicated folder (e.g., `.ai/creem/`)
+3. **Reference in context** when asking questions about Creem integration
+4. **Copy relevant sections** into your conversation when needed
+
+Most AI tools support adding files to conversation context - simply include the relevant skill file when working on payment integration.
+
+---
+
+## Example Usage
+
+Once the skill is loaded, you can ask natural language questions and get production-ready code:
+
+### Creating a Checkout
+
+<CodeGroup>
+
+```text Prompt
+Create a checkout API route for my Next.js app that handles subscription purchases
+with metadata tracking
+```
+
+```typescript Generated Code
+// app/api/checkout/route.ts
+import { NextRequest, NextResponse } from 'next/server';
+
+const CREEM_API_KEY = process.env.CREEM_API_KEY!;
+const BASE_URL =
+  process.env.NODE_ENV === 'production'
+    ? 'https://api.creem.io'
+    : 'https://test-api.creem.io';
+
+export async function POST(req: NextRequest) {
+  const { productId, userId, email } = await req.json();
+
+  const response = await fetch(`${BASE_URL}/v1/checkouts`, {
+    method: 'POST',
+    headers: {
+      'x-api-key': CREEM_API_KEY,
+      'Content-Type': 'application/json',
+    },
+    body: JSON.stringify({
+      product_id: productId,
+      request_id: `checkout_${userId}_${Date.now()}`,
+      success_url: `${process.env.NEXT_PUBLIC_APP_URL}/success`,
+      customer: { email },
+      metadata: { userId, source: 'webapp' },
+    }),
+  });
+
+  const checkout = await response.json();
+  return NextResponse.json({ checkoutUrl: checkout.checkout_url });
+}
+```
+
+</CodeGroup>
+
+### Handling Webhooks
+
+<CodeGroup>
+
+```text Prompt
+Create a webhook handler that verifies signatures and handles subscription events
+```
+
+```typescript Generated Code
+// app/api/webhooks/creem/route.ts
+import { NextRequest, NextResponse } from 'next/server';
+import crypto from 'crypto';
+
+export async function POST(req: NextRequest) {
+  const signature = req.headers.get('creem-signature');
+  const rawBody = await req.text();
+
+  // Verify signature
+  const computed = crypto
+    .createHmac('sha256', process.env.CREEM_WEBHOOK_SECRET!)
+    .update(rawBody)
+    .digest('hex');
+
+  if (computed !== signature) {
+    return NextResponse.json({ error: 'Invalid signature' }, { status: 401 });
+  }
+
+  const event = JSON.parse(rawBody);
+
+  switch (event.eventType) {
+    case 'checkout.completed':
+      await handleCheckoutCompleted(event.object);
+      break;
+    case 'subscription.paid':
+      await handleSubscriptionPaid(event.object);
+      break;
+    case 'subscription.canceled':
+      await handleSubscriptionCanceled(event.object);
+      break;
+  }
+
+  return NextResponse.json({ received: true });
+}
+```
+
+</CodeGroup>
+
+### License Key Integration
+
+<CodeGroup>
+
+```text Prompt
+Implement license key activation and validation for my Electron desktop app
+```
+
+```typescript Generated Code
+// license.ts
+import Store from 'electron-store';
+import { machineIdSync } from 'node-machine-id';
+
+const store = new Store<{ license: LicenseState }>();
+const API_URL = 'https://api.creem.io';
+
+export async function activateLicense(licenseKey: string) {
+  const instanceName = machineIdSync();
+
+  const response = await fetch(`${API_URL}/v1/licenses/activate`, {
+    method: 'POST',
+    headers: {
+      'x-api-key': process.env.CREEM_API_KEY!,
+      'Content-Type': 'application/json',
+    },
+    body: JSON.stringify({
+      key: licenseKey,
+      instance_name: instanceName,
+    }),
+  });
+
+  if (!response.ok) {
+    const error = await response.json();
+    throw new Error(error.message || 'Activation failed');
+  }
+
+  const license = await response.json();
+  store.set('license', {
+    key: licenseKey,
+    instanceId: license.instance.id,
+    expiresAt: license.expires_at,
+  });
+
+  return license;
+}
+
+export async function validateLicense() {
+  const stored = store.get('license');
+  if (!stored) return { valid: false, status: 'not_activated' };
+
+  const response = await fetch(`${API_URL}/v1/licenses/validate`, {
+    method: 'POST',
+    headers: {
+      'x-api-key': process.env.CREEM_API_KEY!,
+      'Content-Type': 'application/json',
+    },
+    body: JSON.stringify({
+      key: stored.key,
+      instance_id: stored.instanceId,
+    }),
+  });
+
+  const license = await response.json();
+  return { valid: license.status === 'active', status: license.status };
+}
+```
+
+</CodeGroup>
+
+---
+
+## Why Use the Skill?
+
+<CardGroup cols={3}>
+  <Card title="Faster Development" icon="bolt">
+    Skip reading documentation - describe what you want and get working code
+    instantly
+  </Card>
+  <Card title="Best Practices Built-in" icon="shield-check">
+    Generated code includes security patterns, error handling, and production
+    considerations
+  </Card>
+  <Card title="Always Up-to-Date" icon="rotate">
+    We maintain the skill alongside our API - you always get current patterns
+  </Card>
+</CardGroup>
+
+### Comparison
+
+| Without Skill                       | With Skill                           |
+| ----------------------------------- | ------------------------------------ |
+| Read API docs, find endpoints       | Describe your goal in plain English  |
+| Copy-paste examples, adapt manually | Get tailored, working code           |
+| Miss edge cases and best practices  | Security and error handling included |
+| Search for webhook payload formats  | Full payload examples in context     |
+| Trial and error with parameters     | Correct parameters from the start    |
+
+---
+
+## Skill vs SDK
+
+The Creem skill is designed for **direct API integration** and complements our SDKs:
+
+| Use the Skill When              | Use an SDK When                           |
+| ------------------------------- | ----------------------------------------- |
+| Building custom integrations    | Using Next.js, TypeScript, or Better Auth |
+| Learning the API                | Want type-safety and abstractions         |
+| Working with any language       | Prefer pre-built components               |
+| Need full control over requests | Want faster development with helpers      |
+
+<Note>
+  The skill focuses on the REST API. For SDK-specific help, see our [TypeScript
+  SDK](/code/sdks/typescript), [Next.js SDK](/code/sdks/nextjs), or [Better
+  Auth](/code/sdks/better-auth) documentation.
+</Note>
+
+---
+
+## Contributing
+
+Found an issue or want to improve the skill? We welcome contributions:
+
+<CardGroup cols={2}>
+  <Card
+    title="Report Issues"
+    icon="bug"
+    href="https://github.com/armitage-labs/creem-skills/issues"
+  >
+    Found a bug or incorrect information? Let us know
+  </Card>
+  <Card
+    title="Contribute"
+    icon="code-pull-request"
+    href="https://github.com/armitage-labs/creem-skills/pulls"
+  >
+    Submit improvements or new workflow examples
+  </Card>
+</CardGroup>
+
+---
+
+## Next Steps
+
+<CardGroup cols={2}>
+  <Card
+    title="Install the Skill"
+    icon="terminal"
+    href="https://github.com/armitage-labs/creem-skills"
+  >
+    Run `/plugin marketplace add armitage-labs/creem-skills` in Claude Code
+  </Card>
+  <Card title="API Reference" icon="book" href="/api-reference/introduction">
+    Explore the full API documentation
+  </Card>
+  <Card title="Webhooks Guide" icon="webhook" href="/code/webhooks">
+    Learn about real-time event handling
+  </Card>
+  <Card title="Test Mode" icon="flask" href="/getting-started/test-mode">
+    Set up your development environment
+  </Card>
+</CardGroup>

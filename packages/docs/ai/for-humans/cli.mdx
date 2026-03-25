@@ -1,0 +1,150 @@
+---
+title: Creem CLI
+description: Browse and manage your Creem store directly from the terminal with an interactive TUI.
+---
+
+The Creem CLI gives you full control of your store without leaving the terminal. Browse products, customers, subscriptions, and transactions through an interactive interface, or run quick commands for day-to-day operations.
+
+## Installation
+
+```bash
+brew tap armitage-labs/creem
+brew install creem
+```
+
+Once installed, run `creem` to see the full command reference:
+
+<Frame caption="The Creem CLI with all available commands.">
+  <img src="/images/cli/creem-cli.png" />
+</Frame>
+
+## Login
+
+```bash
+creem login --api-key creem_test_YOUR_KEY_HERE
+```
+
+The CLI auto-detects test vs live mode from your key prefix. You can verify your session at any time:
+
+```
+$ creem whoami
+
+✓ Logged in to Creem
+
+Environment  test
+API Key      creem_te...5mBJ
+API URL      https://test-api.creem.io
+```
+
+<Warning>
+**Start in test mode.** Use a `creem_test_` key while getting familiar with the CLI. Switch to live only when you're ready for real transactions.
+</Warning>
+
+## Interactive Mode
+
+This is where the CLI really shines. Run any resource command without a subcommand to launch an interactive browser:
+
+```bash
+creem products
+creem customers
+creem subscriptions
+creem transactions
+```
+
+You get a full TUI (terminal user interface) where you can browse, search, and drill into records without writing any commands.
+
+### Browsing Transactions
+
+<Frame caption="Interactive transaction browser with amounts, types, and timestamps.">
+  <img src="/images/cli/transactions.png" />
+</Frame>
+
+Press Enter on any row to drill into the full detail view:
+
+<Frame caption="Transaction detail view showing amount, tax, currency, linked order, subscription, and customer.">
+  <img src="/images/cli/transaction_details.png" />
+</Frame>
+
+### Managing Subscriptions
+
+Navigate into any subscription to see its full details and take actions directly from the status bar:
+
+<Frame caption="Subscription detail view with cancel, pause, and resume actions available from the command bar.">
+  <img src="/images/cli/subscriptions.png" />
+</Frame>
+
+**Navigation keys:**
+- `j`/`k` or arrow keys to move through the list
+- Enter to view details
+- `/` to search
+- `:` to open the command bar (cancel, pause, resume)
+- `q` to go back or exit
+
+## Quick Commands
+
+For when you need something specific without browsing:
+
+```bash
+# Products
+creem products list
+creem products get prod_XXXXX
+creem products create --name "Pro Plan" --price 1999 --currency USD --billing-type recurring --billing-period every-month
+
+# Customers
+creem customers list
+creem customers get cust_XXXXX
+creem customers billing cust_XXXXX   # generates a billing portal link
+
+# Subscriptions
+creem subscriptions list --status active
+creem subscriptions cancel sub_XXXXX --mode scheduled
+creem subscriptions pause sub_XXXXX
+creem subscriptions resume sub_XXXXX
+
+# Transactions
+creem transactions list --limit 50
+creem transactions get txn_XXXXX
+
+# Checkouts
+creem checkouts create --product prod_XXXXX --success-url https://app.com/welcome
+```
+
+<Tip>
+Use `--mode scheduled` when cancelling subscriptions. This lets the customer keep access until their billing period ends instead of cutting them off immediately.
+</Tip>
+
+## Configuration
+
+```bash
+creem config show                        # view all settings
+creem config set environment live        # switch to live mode
+creem config set output_format json      # default to JSON output
+```
+
+Every command also supports `--json` for one-off JSON output, useful for piping into other tools:
+
+```bash
+creem products list --json | jq '.[].name'
+```
+
+## Going Live
+
+Before accepting real payments:
+
+1. Complete account verification in the [Dashboard](https://creem.io/dashboard) under Balances → Payout Account
+2. Switch to your live API key:
+
+```bash
+creem login --api-key creem_LIVE_KEY_HERE
+```
+
+## Next Steps
+
+<CardGroup cols={2}>
+  <Card title="Store Monitoring" icon="bell" href="/ai/for-agents/store-monitoring">
+    Set up automated monitoring so your AI agent notifies you about sales and issues
+  </Card>
+  <Card title="Webhooks" icon="webhook" href="/code/webhooks">
+    Handle real-time payment events in your application
+  </Card>
+</CardGroup>

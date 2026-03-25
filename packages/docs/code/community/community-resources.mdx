@@ -1,0 +1,162 @@
+---
+title: Community Resources
+description: Discover SDKs, templates, boilerplates, and other resources built by our community to help you integrate Creem faster.
+---
+
+<Frame>
+  <div style={{ textAlign: 'center', padding: '1rem 1rem 2.5rem 1rem' }}>
+    <div style={{ display: 'flex', justifyContent: 'center' }}>
+      <h1
+        style={{
+          fontSize: '2rem',
+          marginBottom: '0.5rem',
+          textAlign: 'center',
+          display: 'inline-block',
+        }}
+      >
+        Community Resources
+      </h1>
+    </div>
+    <p style={{ fontSize: '1.1rem', color: 'var(--mint-color-muted)' }}>
+      SDKs, templates, boilerplates, and tools built by our community
+    </p>
+    <p>
+      Explore resources created by developers in our community to accelerate
+      your Creem integration and build better payment experiences.
+    </p>
+    <div style={{ marginTop: '1rem' }}>
+      <a href="#sdks">SDKs</a> · <a href="#plugins">Plugins</a> ·{' '}
+      <a href="#templates">Templates</a> · <a href="#boilerplates">Boilerplates</a> ·{' '}
+      <a href="#tools">Tools</a> · <a href="#other-resources">Other</a>
+    </div>
+  </div>
+</Frame>
+
+---
+
+## Introduction
+
+Our community has built an incredible collection of resources to help you integrate Creem into your applications faster. From official SDKs to community-maintained templates and boilerplates, you'll find everything you need to get started.
+
+<Warning>
+  Resources highlighted here are maintained by third-party developers. We do our
+  best to showcase helpful projects, but Creem is{' '}
+  <strong>
+    not liable for any code or dependencies you install from third-party sources
+  </strong>
+  . Always review the code before integrating.
+</Warning>
+
+---
+
+## Boilerplates
+
+Minimal boilerplates and code snippets to help you get started quickly. These are lightweight starting points that you can customize for your specific needs.
+
+| Name                                       | Description                                         | Repository                             | Use Case                          |
+| ------------------------------------------ | --------------------------------------------------- | -------------------------------------- | --------------------------------- |
+| [SaaSKit](/code/community/saaskit)         | TanStack Start boilerplate with Creem integration   | [Website](https://saaskit.paceui.com/) | Full-stack SaaS starter           |
+| [Supastarter](/code/community/supastarter) | Next.js SaaS starter kit with Creem payment support | [Website](https://supastarter.dev/)    | Production-ready SaaS boilerplate |
+
+---
+
+## SDKs
+
+Community-maintained SDKs and adapters for various frameworks and languages. These SDKs provide type-safe wrappers around the Creem API, making integration seamless.
+
+| Name                                     | Language/Framework | Description                                                   | Repository                                         | Maintainer |
+| ---------------------------------------- | ------------------ | ------------------------------------------------------------- | -------------------------------------------------- | ---------- |
+| [Nuxt Creem](/code/community/nuxt-creem) | Nuxt               | Nuxt module for Creem integration with typed API and webhooks | [GitHub](https://github.com/justserdar/nuxt-creem) | Community  |
+| [Krema](/code/community/krema)           | TypeScript         | TypeScript SDK for Creem API with type generation             | [GitHub](https://github.com/emirsassan/krema)      | Community  |
+
+<Note>
+  Looking for official SDKs? Check out our{' '}
+  <a href="/code/sdks/typescript">TypeScript SDK</a> and{' '}
+  <a href="/code/sdks/nextjs">Next.js adapter</a>.
+</Note>
+
+---
+
+## Plugins
+
+Plugins and integrations for popular platforms like WordPress, enabling seamless Creem integration without custom code.
+
+| Name                     | Platform  | Description                                                                                        | Repository                                              | Maintainer |
+| ------------------------ | --------- | -------------------------------------------------------------------------------------------------- | ------------------------------------------------------- | ---------- |
+| Creem WordPress Plugin   | WordPress | Connect WordPress with Creem to automatically create user accounts when customers make a purchase. | [GitHub](https://github.com/sinanisler/creem-io-api)    | Sinan      |
+| Creem Raycast Extension  | Raycast   | Manage Creem products, customers, and checkouts directly from the Raycast launcher.                | [Raycast](https://www.raycast.com/xmok/creem)           | xmok       |
+
+<Tip>
+  Building a plugin for another platform? Share it in our Discord and we'll feature it here!
+</Tip>
+
+---
+
+## Templates
+
+Ready-to-use templates and starter projects that demonstrate best practices for integrating Creem. These templates include authentication, database setup, and complete payment flows.
+
+| Name                                                                      | Stack              | Description                                        | Repository                                                      | Features                          |
+| ------------------------------------------------------------------------- | ------------------ | -------------------------------------------------- | --------------------------------------------------------------- | --------------------------------- |
+| [Creem Checkout Next.js Demo](/code/community/creem-checkout-nextjs-demo) | Next.js + Supabase | Next.js demo showcasing Creem checkout integration | [GitHub](https://github.com/ja3nyc/creem-checkout-next-js-demo) | Checkout, Subscriptions, Webhooks |
+
+<Tip>
+  Our official <a href="/code/sdks/templates">Next.js template</a> includes
+  Prisma, Better Auth, and Shadcn UI out of the box.
+</Tip>
+
+---
+
+## Other Resources
+
+Additional resources including tutorials, blog posts, video guides, entertaining content, and other helpful content.
+
+| Name                  | Type  | Description                                                            | Link                                         | Author |
+| --------------------- | ----- | ---------------------------------------------------------------------- | -------------------------------------------- | ------ |
+| Creem YouTube Channel | Video | Official Creem YouTube channel with entertaining content and fun stuff | [YouTube](https://www.youtube.com/@creem_io) | Creem  |
+
+---
+
+## Contributing
+
+We love seeing what our community builds! If you've created an SDK, template, boilerplate, or tool that uses Creem, we'd love to feature it here.
+
+### How to Submit
+
+1. **Join our Discord** - Connect with the community at [discord.gg/q3GKZs92Av](https://discord.gg/q3GKZs92Av)
+2. **Share your resource** - Post in the #showcase channel with:
+   - A brief description
+   - Repository link
+   - Screenshots or demo (if applicable)
+3. **Get featured** - Our team reviews submissions and adds the best ones to this page
+
+### Guidelines
+
+- Resources should be actively maintained
+- Include clear documentation and examples
+- Follow best practices for security and performance
+- Be respectful and inclusive in your code and documentation
+
+---
+
+## Resources
+
+<CardGroup>
+  <Card
+    title="Join Discord"
+    icon="discord"
+    href="https://discord.gg/q3GKZs92Av"
+  >
+    Connect with other developers and get help from the community.
+  </Card>
+  <Card title="Official SDKs" icon="code" href="/code/sdks/typescript">
+    Check out our official TypeScript SDK and framework adapters.
+  </Card>
+  <Card title="API Reference" icon="book" href="/api-reference/introduction">
+    Explore the complete Creem API documentation.
+  </Card>
+</CardGroup>
+
+---
+
+Need help? Reach us at [support@creem.io](https://creem.io/contact) or join the [Discord community](https://discord.gg/q3GKZs92Av).

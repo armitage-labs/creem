@@ -1,0 +1,225 @@
+---
+title: 'One Time Payments'
+description: 'One Time Payments in Creem allow you to accept single, non-recurring payments for your products and services. This documentation will guide you through the key concepts and implementation details of the one-time payment system.'
+---
+
+## Understanding One Time Payments
+
+A one time payment represents a single transaction between you and your customer. When a customer makes a one time payment, they are charged once for the full amount of the purchase.
+
+## Key Concepts
+
+### Payment Status
+
+A payment can be in different states throughout its lifecycle:
+
+- **Pending:** The payment has been initiated but not yet completed
+- **Paid:** The payment has been successfully processed
+- **Refunded:** The payment has been refunded to the customer
+- **Partially Refunded:** The payment has been partially refunded to the customer
+
+## Creating a One Time Payment
+
+To create a one time payment:
+
+1. Create a one-time product in your Creem dashboard (set billing type to "one-time")
+2. Generate a checkout session for the payment
+3. Direct your customer to the checkout URL
+
+<Tabs>
+  <Tab title="Next.js">
+
+```tsx
+'use client'; // Optional: Works with server components
+
+import { CreemCheckout } from '@creem_io/nextjs';
+
+export function BuyButton() {
+  return (
+    <CreemCheckout
+      productId="prod_YOUR_PRODUCT_ID"
+      metadata={{
+        customerId: 'cust_123',
+        source: 'web',
+      }}
+    >
+      <button>Buy Now</button>
+    </CreemCheckout>
+  );
+}
+```
+
+<Card title="Next.js SDK Documentation" icon="react" href="/code/sdks/nextjs">
+  Learn more about the Next.js adapter and advanced features.
+</Card>
+
+  </Tab>
+
+  <Tab title="TypeScript SDK">
+
+```typescript
+import { createCreem } from 'creem_io';
+
+const creem = createCreem({
+  apiKey: process.env.CREEM_API_KEY!,
+  testMode: process.env.NODE_ENV !== 'production',
+});
+
+// Create a one-time payment checkout session
+const checkout = await creem.checkouts.create({
+  productId: 'prod_YOUR_PRODUCT_ID',
+  successUrl: 'https://yoursite.com/success',
+  metadata: {
+    customerId: 'cust_123',
+    source: 'web',
+  },
+});
+
+// Redirect to the checkout URL
+console.log(checkout.checkout_url);
+```
+
+<Card
+  title="TypeScript SDK Documentation"
+  icon="code"
+  href="/code/sdks/typescript"
+>
+  View the full SDK API reference and advanced usage examples.
+</Card>
+
+  </Tab>
+
+  <Tab title="Better Auth">
+
+```typescript
+"use client";
+
+import { authClient } from "@/lib/auth-client";
+
+export function BuyButton({ productId }: { productId: string }) {
+  const handleCheckout = async () => {
+    const { data, error } = await authClient.creem.createCheckout({
+      productId,
+      successUrl: "/thank-you",
+      metadata: {
+        source: "web"
+      },
+    });
+
+    if (data?.url) {
+      window.location.href = data.url;
+    }
+  };
+
+  return (
+    <button onClick={handleCheckout}>
+      Buy Now
+    </button>
+  );
+}
+```
+
+<Card title="Better Auth Integration" icon="lock" href="/code/sdks/better-auth">
+  Learn about database persistence and automatic user synchronization.
+</Card>
+
+  </Tab>
+
+  <Tab title="REST API">
+
+<Warning>
+  If you're in test mode, use `https://test-api.creem.io` instead of
+  `https://api.creem.io`. Learn more about [Test
+  Mode](/getting-started/test-mode).
+</Warning>
+
+```bash
+curl -X POST https://api.creem.io/v1/checkouts \
+  -H "x-api-key: YOUR_API_KEY" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "product_id": "prod_YOUR_PRODUCT_ID",
+    "request_id": "order_123",
+    "success_url": "https://yoursite.com/success",
+    "metadata": {
+      "customerId": "cust_123",
+      "source": "web"
+    }
+  }'
+```
+
+### Response
+
+```json
+{
+  "id": "ch_1QyIQDw9cbFWdA1ry5Qc6I",
+  "checkout_url": "https://checkout.creem.io/ch_1QyIQDw9cbFWdA1ry5Qc6I",
+  "product_id": "prod_YOUR_PRODUCT_ID",
+  "status": "pending"
+}
+```
+
+<Card
+  title="API Reference"
+  icon="book"
+  href="/api-reference/endpoint/create-checkout"
+>
+  View the complete endpoint documentation with all available parameters.
+</Card>
+
+  </Tab>
+</Tabs>
+
+## Handling Successful Payments
+
+After a successful payment, users are redirected to your `success_url` with payment details as query parameters:
+
+```
+https://yoursite.com/success?checkout_id=ch_xxx&order_id=ord_xxx&customer_id=cust_xxx&product_id=prod_xxx
+```
+
+| Query parameter | Description                                                                    |
+| --------------- | ------------------------------------------------------------------------------ |
+| `checkout_id`   | The ID of the checkout session created for this payment.                       |
+| `order_id`      | The ID of the order created after successful payment.                          |
+| `customer_id`   | The customer ID, based on the email that executed the successful payment.      |
+| `product_id`    | The product ID that the payment is related to.                                 |
+| `request_id`    | Optional. The request/reference ID you provided when creating this checkout.   |
+| `signature`     | All previous parameters signed by Creem using your API-key, verifiable by you. |
+
+<Warning>
+  For production applications, we recommend using [Webhooks](/code/webhooks) to
+  handle payment events.
+</Warning>
+
+## Managing Payments
+
+Creem provides several payment management features:
+
+- **Refund payments:** Process full or partial refunds directly through the Creem Dashboard
+- **Payment history:** View detailed transaction history
+- **Payment metadata:** Add custom data to payments for tracking
+- **Custom fields:** Collect additional information during checkout
+
+<CardGroup cols={2}>
+  <Card
+    title="Checkout Customization"
+    icon="palette"
+    href="/features/checkout/checkout-customization"
+  >
+    Brand your checkout with custom colors, logos, and themes
+  </Card>
+  <Card
+    title="Checkout Custom Fields"
+    icon="input-text"
+    href="/features/checkout/checkout-custom-fields"
+  >
+    Collect additional information from customers during checkout
+  </Card>
+  <Card title="Discount Codes" icon="tag" href="/features/discounts">
+    Create and apply discount codes to your one-time payments
+  </Card>
+  <Card title="Webhooks" icon="webhook" href="/code/webhooks">
+    Handle payment events and automate your workflow
+  </Card>
+</CardGroup>

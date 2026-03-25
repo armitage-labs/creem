@@ -1,0 +1,80 @@
+---
+title: 'Checkout Link'
+description: 'Learn how to receive payments without any code'
+---
+
+## Prerequisites
+
+To get the most out of this guide, you'll need to:
+
+- **Create an account on Creem.io**
+- **Have your API key ready**
+
+## 1. Create a product
+
+Go over to the [products tab](https://creem.io/dashboard/products) and create a product.
+You can add a name, description, and price to your product. Optionally you can also add a picture to your product that will be shown to users.
+
+<AccordionGroup>
+  <Accordion icon="browser" title="Product page">
+    <img
+      style={{ borderRadius: '0.5rem' }}
+      src="https://nucn5fajkcc6sgrd.public.blob.vercel-storage.com/add-product-B0Khh16pSFp3DpwsuBrrExvlwovhMq.png"
+    />
+  </Accordion>
+  <Accordion icon="file-spreadsheet" title="Adding product details">
+    <img
+      style={{ borderRadius: '0.5rem' }}
+      src="https://nucn5fajkcc6sgrd.public.blob.vercel-storage.com/Screenshot%202024-10-03%20at%2015.51.45-arQ1KogX03W1cGCmTgMBSJFd8d8QYR.png"
+    />
+  </Accordion>
+</AccordionGroup>
+
+## 2. Copy the payment link from the product
+
+After successfully creating your product, you can copy the payment link by clicking on the product Share button. Simply send this link to your users and they will be able to pay you instantly.
+
+## 3. Customize with URL parameters
+
+Payment links support query parameters that let you customize the checkout experience without any code. Append them to your payment link URL:
+
+```
+https://creem.io/payment/prod_xxxxx?discount_code=LAUNCH50&theme=dark
+```
+
+### Available parameters
+
+| Parameter | Example | Description |
+| --------- | ------- | ----------- |
+| `discount_code` | `?discount_code=LAUNCH50` | Pre-applies a discount code to the checkout. The discount is validated and applied server-side when the checkout session is created. |
+| `theme` | `?theme=dark` | Sets the checkout theme to `light` or `dark`, overriding your store's default branding theme. |
+| `metadata[key]` | `?metadata[source]=twitter&metadata[campaign]=launch` | Passes custom metadata key-value pairs to the checkout session. Metadata is included in webhook events and can be retrieved via the API. Use bracket notation for each key. |
+
+<Tip>
+  You can combine multiple parameters: `?discount_code=SAVE20&theme=dark&metadata[source]=email`
+</Tip>
+
+<Note>
+  Parameters like `discount_code` and `metadata` are processed server-side and won't appear in the final checkout URL. The `theme` parameter and any other unrecognized parameters are forwarded to the checkout page as query strings.
+</Note>
+
+### More use cases
+
+If you are not planning to do a no-code integration, we strongly encourage you to check out our other guides.
+Create checkout-sessions and prices dynamically, use webhooks to receive updates on your application automatically, and much more. Check out our guides to get the most out of Creem.
+
+<CardGroup>
+
+<Card title="Checkout API" icon="code" href="/features/checkout/checkout-api">
+  Learn how to create and manage checkout sessions programmatically using the
+  Creem API.
+</Card>
+
+<Card
+  title="Webhooks and Events"
+  icon="square-code"
+  href="/code/webhooks"
+>
+  Set up webhooks to receive updates on your application automatically.
+</Card>
+</CardGroup>

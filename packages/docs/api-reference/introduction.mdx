@@ -1,0 +1,179 @@
+---
+title: 'Introduction'
+description: 'Everything you need to start integrating with the Creem API: endpoints, authentication, test mode, webhooks, and SDKs.'
+---
+
+The Creem API is built on REST principles and uses HTTPS for all requests. It returns JSON-encoded responses and uses standard HTTP status codes.
+
+## Base URL
+
+All API requests are made to the following base URLs:
+
+<Tabs>
+  <Tab title="Production">
+    ```http
+    https://api.creem.io/v1
+    ```
+  </Tab>
+  <Tab title="Test Mode">
+    ```http
+    https://test-api.creem.io/v1
+    ```
+  </Tab>
+</Tabs>
+
+<Warning>
+  The test and production environments are completely isolated. Data created in test mode does not affect your production environment, and API keys are not interchangeable between environments.
+</Warning>
+
+## Authentication
+
+All API requests must include your API key in the `x-api-key` header.
+
+```bash
+curl -X GET https://api.creem.io/v1/products \
+  -H "x-api-key: creem_YOUR_API_KEY"
+```
+
+You can find your API keys in the [Developers section](https://creem.io/dashboard/developers) of your dashboard.
+
+<Warning>
+  Never expose your API keys in client-side code, public repositories, or logs. Keep them server-side only.
+</Warning>
+
+## Test Mode
+
+Test mode gives you a full sandbox environment to build and test your integration without processing real payments.
+
+| | Production | Test Mode |
+|---|---|---|
+| **Base URL** | `https://api.creem.io/v1` | `https://test-api.creem.io/v1` |
+| **API Keys** | Found in dashboard (production mode) | Found in dashboard (test mode toggle) |
+| **Payments** | Real charges | Simulated with test cards |
+| **Data** | Live data | Isolated sandbox data |
+
+To activate test mode, toggle **Test Mode** in the top navbar of your [dashboard](https://creem.io/dashboard).
+
+### Test Cards
+
+Use these card numbers to simulate different payment scenarios. All cards work with any future expiration date, any CVV, and any billing information.
+
+| Card Number | Behavior |
+|---|---|
+| `4242 4242 4242 4242` | Successful payment |
+| `4000 0000 0000 0002` | Card declined |
+| `4000 0000 0000 9995` | Insufficient funds |
+| `4000 0000 0000 0127` | Incorrect CVC |
+| `4000 0000 0000 0069` | Expired card |
+
+### Using Test Mode in Code
+
+<CodeGroup>
+
+```bash cURL
+curl -X POST https://test-api.creem.io/v1/checkouts \
+  -H "x-api-key: YOUR_TEST_API_KEY" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "product_id": "prod_YOUR_PRODUCT_ID",
+    "success_url": "https://yoursite.com/success"
+  }'
+```
+
+```typescript TypeScript SDK
+import { createCreem } from 'creem_io';
+
+const creem = createCreem({
+  apiKey: process.env.CREEM_API_KEY!,
+  testMode: process.env.NODE_ENV !== 'production',
+});
+
+const checkout = await creem.checkouts.create({
+  productId: 'prod_abc123',
+  successUrl: 'https://yoursite.com/success',
+});
+```
+
+```typescript Next.js
+import { Checkout } from '@creem_io/nextjs';
+
+export const GET = Checkout({
+  apiKey: process.env.CREEM_API_KEY!,
+  testMode: process.env.NODE_ENV !== 'production',
+  defaultSuccessUrl: '/success',
+});
+```
+
+</CodeGroup>
+
+## Webhooks
+
+Creem sends real-time event notifications to your server via webhooks. Webhook payloads are signed using HMAC-SHA256 so you can verify their authenticity.
+
+**Signature verification:** Every webhook request includes a `creem-signature` header. Verify it using your webhook secret (found in [Developers > Webhook](https://creem.io/dashboard/developers)) and the HMAC-SHA256 algorithm:
+
+```typescript
+import * as crypto from 'crypto';
+
+function verifySignature(payload: string, secret: string, signature: string): boolean {
+  const computed = crypto
+    .createHmac('sha256', secret)
+    .update(payload)
+    .digest('hex');
+  return computed === signature;
+}
+```
+
+**Supported events:**
+
+| Event | Description |
+|---|---|
+| `checkout.completed` | A checkout session was completed |
+| `subscription.active` | A new subscription was created |
+| `subscription.paid` | A subscription payment was collected |
+| `subscription.canceled` | A subscription was canceled |
+| `subscription.scheduled_cancel` | A subscription is scheduled for cancellation at period end |
+| `subscription.past_due` | A subscription payment failed |
+| `subscription.expired` | A subscription period ended without payment |
+| `subscription.trialing` | A subscription started a trial |
+| `subscription.paused` | A subscription was paused |
+| `subscription.update` | A subscription was updated |
+| `refund.created` | A refund was issued |
+| `dispute.created` | A dispute was opened by a customer |
+
+**Retry policy:** If your endpoint doesn't respond with HTTP 200, Creem retries at 30 seconds, 1 minute, 5 minutes, and 1 hour. You can also resend events manually from the dashboard.
+
+<Card title="Full Webhooks Guide" icon="webhook" href="/code/webhooks">
+  Detailed setup instructions, signature verification, and event payload examples.
+</Card>
+
+## Response Codes
+
+| Status | Description |
+|---|---|
+| `200` | Successful request |
+| `400` | Invalid parameters or validation error |
+| `401` | Missing API key |
+| `403` | Invalid API key or insufficient permissions |
+| `404` | Resource not found |
+| `429` | Rate limit exceeded |
+| `500` | Internal server error |
+
+Every error response includes a `trace_id` you can share with support for faster debugging. See [Error Handling](/api-reference/error-codes) for details.
+
+## SDKs & Libraries
+
+<CardGroup cols={2}>
+  <Card title="TypeScript SDK" icon="js" href="/code/sdks/typescript-core">
+    Core SDK for Node.js and TypeScript projects
+  </Card>
+  <Card title="Next.js Adapter" icon="react" href="/code/sdks/nextjs">
+    Drop-in checkout and webhook helpers for Next.js
+  </Card>
+  <Card title="Better Auth Plugin" icon="lock" href="/code/sdks/better-auth">
+    Integrate Creem billing with Better Auth
+  </Card>
+  <Card title="CLI" icon="terminal" href="/code/cli">
+    Manage products and checkouts from the terminal
+  </Card>
+</CardGroup>

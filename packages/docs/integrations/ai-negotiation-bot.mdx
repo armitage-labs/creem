@@ -1,0 +1,156 @@
+---
+title: 'AI Negotiation bot'
+description: 'Let your customers negotiate with an AI bot and increase your conversions.'
+---
+
+<Frame>
+  <img
+    style={{ borderRadius: '0.5rem' }}
+    src="https://nucn5fajkcc6sgrd.public.blob.vercel-storage.com/salesnip%20demo-3Qa40JZDWF5t7uKpphUb1oOpTVKNui.gif"
+  />
+</Frame>
+
+## Overview
+
+We are proud to partner with SaleSnip on the cutting edge of AI and payments.
+
+<Frame>
+  <img
+    style={{ borderRadius: '0.5rem' }}
+    src="https://nucn5fajkcc6sgrd.public.blob.vercel-storage.com/creem-salesnip-zy2s61vBKxBKz2azI348ZVZWmmPJPV.png"
+  />
+</Frame>
+
+This integration allows you to leverage Salesnip's advanced AI negotiation bot alongside Creem's robust payment processing. Your customers can negotiate prices automatically, and upon agreement, seamlessly complete their purchase through Creem's secure checkout.
+
+<Accordion title="What you'll learn.">
+
+How to integrate Salesnip's AI negotiation capabilities with Creem's payment processing to automate your sales process and boost conversions.
+
+</Accordion>
+
+<Card title="Requirements" icon="gears" >
+
+- A Creem account
+- A Salesnip account
+- Your Creem API keys
+- A product created in Creem
+
+</Card>
+
+## Integration Steps
+
+### 1. Installing the Creem plugin
+
+<Accordion title="1.1 Access Plugin Installation.">
+Navigate to your Salesnip dashboard and locate the "Plugins" tab within your project settings.
+
+- Open your Salesnip dashboard
+- Go to your project settings
+- Click on the "Plugins" tab
+- Find and select the Creem plugin
+
+</Accordion>
+
+<Accordion title="1.2 Configure API Keys.">
+You'll need to add your Creem API keys to establish the connection:
+
+- Get your API keys from Creem's Developer Settings
+- Copy both Test and Live environment API keys
+- Paste them into the respective fields in Salesnip
+
+</Accordion>
+
+### 2. Creating Negotiation Sessions
+
+<Accordion title="2.1 Session Creation API.">
+
+```javascript
+import axios from 'axios';
+
+const config = {
+  enviroment: 'test',
+  projectId: '[SALESNIP_PROJECT_ID]',
+  productId: '[CREEM_PRODUCT_ID]',
+  minimumPrice: 100,
+  callbacks: {
+    success: 'https://example.com/callback/creem',
+  },
+};
+
+const session = await axios.post(
+  'https://api.salesnip.com/v1/sessions/creem',
+  config,
+  {
+    headers: {
+      'Content-Type': 'application/json',
+      'X-Api-Key': process.env.SALESNIP_API_KEY,
+    },
+  }
+);
+```
+
+</Accordion>
+
+### 3. Implementation Options
+
+<CardGroup cols={2}>
+  <Card title="Hosted Negotiation Page" icon="square-1">
+Redirect customers to a ready-made negotiation page hosted by Salesnip. Upon successful negotiation, they'll automatically move to Creem's checkout.
+
+<Frame>
+    <img
+      style={{ borderRadius: '0.5rem' }}
+      src="https://nucn5fajkcc6sgrd.public.blob.vercel-storage.com/salesnip-hosted-UdnIuOn2SdgCGucfPBXsQLeKw39LnA.png"
+    />
+    </Frame>
+  </Card>
+  <Card title="Embedded Widget" icon="square-2">
+Integrate the negotiation interface directly into your application for a seamless experience. Users can negotiate and checkout without leaving your site.
+
+<Frame>
+    <img
+      style={{ borderRadius: '0.5rem' }}
+      src="https://nucn5fajkcc6sgrd.public.blob.vercel-storage.com/salesnip-embedded-PlDoCgrqeE0itJXlnZpkXwmdy21LWL.png"
+    />
+    </Frame>
+  </Card>
+</CardGroup>
+
+<Accordion title="Using Hosted Negotiation Page">
+To use the hosted negotiation page, simply use the URL that is returned on the session, from section 2.1, and redirect your user to it. Upon completing the negotiation, the user will be redirected to a Creem checkout session to complete the payment.
+
+</Accordion>
+
+<Accordion title="Using Embedded Negotiation Widget">
+To use the embedded Widget, add SalesSnip javascript script into your application, and simply open it using the session ID, that is also returned from the session of section 2.1.
+
+```javascript
+
+// Add the script to your HTML
+<script>
+!function(e,n){if(!n.loaded){var t,a,r=n||{};for(r.__queue=[],(n=e.createElement("script")).type="text/javascript",n.async=!0,n.src="https://cdn.salesnip.com/v1/script.min.js",(o=e.getElementsByTagName("script")[0])?o.parentNode.insertBefore(n,o):e.head.appendChild(n),r.__handler=function(e){return function(){r.__queue.push([e].concat(Array.prototype.slice.call(arguments,0)))}},t="open on off".split(" "),a=0;a<t.length;a++){var i=t[a];r[i]=r.__handler(i)}var o=new Proxy(r,{get:function(e,n){return n in e||(e[n]=r.__handler(n)),e[n]}});window.salesnip=o,window.salesnip.loaded=1}}(document,window.salesnip||{});
+</script>
+
+// Initialize and open the widget after retrieving the session from step 2.1
+window.salesnip.open(session.id, {
+  theme: {
+    mode: "dark",
+  })
+```
+
+</Accordion>
+
+## Best Practices
+
+- Always implement both test and live environment configurations
+- Store API keys securely and never expose them in client-side code
+- Set appropriate minimum prices to ensure profitable negotiations
+- Test the complete flow in the test environment before going live
+
+### Further Reading
+
+For more advanced use cases and detailed documentation, check out SaleSnip resources:
+
+- [Creem Plugin](https://docs.salesnip.com/docs/creem-plugin).
+- [Creem x SaleSnip API Reference](https://docs.salesnip.com/api-reference/plugins/create-a-creem-session).

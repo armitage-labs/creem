@@ -1,0 +1,106 @@
+---
+title: 'Product Bundles'
+description: 'Group related subscription tiers together for seamless self-service upgrades and strategic upsells at checkout.'
+---
+
+Product Bundles allow you to organize related subscription tiers into cohesive groups, enabling customers to easily upgrade or downgrade between tiers and presenting strategic upsell opportunities during checkout.
+
+<Frame>
+  <img
+    style={{ borderRadius: '0.5rem' }}
+    src="https://nucn5fajkcc6sgrd.public.blob.vercel-storage.com/productbundles-6Pd04bHFE5xhpim3BE6Oef8Sa8E2wY.png"
+    alt="Product Bundles interface"
+  />
+</Frame>
+
+## What are Product Bundles?
+
+Product Bundles are collections of related products that:
+
+- Share similar characteristics or serve the same use case
+- Represent different tiers or levels of the same service
+- Enable streamlined product management in your dashboard
+- Allow customers to self-service upgrade or downgrade between tiers
+
+## Key Benefits
+
+<CardGroup cols={3}>
+  <Card title="Organized Structure" icon="layer-group">
+    Logical grouping of related products with clear hierarchy
+  </Card>
+  <Card title="Enhanced Experience" icon="user-check">
+    Easy product comparison and simplified decision-making
+  </Card>
+  <Card title="Self-Service" icon="arrows-up-down">
+    Customers can upgrade or downgrade independently
+  </Card>
+</CardGroup>
+
+## Creating Product Bundles
+
+Create and manage product bundles through the [Creem dashboard](https://www.creem.io/dashboard/products/bundles):
+
+1. Navigate to **Products > Bundles**
+2. Click **Create Bundle**
+3. Select the products to include in the bundle
+4. Configure bundle options:
+   - **Self-Service Upgrades/Downgrades**: Let customers manage their subscription tier independently
+   - **Checkout Upsells**: Show upgrade options during the checkout flow
+
+<Frame caption="Product Bundle settings showing upgrade options">
+  <img
+    style={{ borderRadius: '0.5rem' }}
+    src="https://nucn5fajkcc6sgrd.public.blob.vercel-storage.com/productbundlesettings-SDz7O9b9FH9Gyr8t4QioCPSXaJUhSv.png"
+    alt="Product Bundle creation interface"
+  />
+</Frame>
+
+## Self-Service Upgrades
+
+When enabled, customers can independently upgrade or downgrade between products in the bundle through the Customer Portal, without requiring support intervention:
+
+<Frame caption="Customer Portal showing available upgrade options">
+  <img
+    style={{ borderRadius: '0.5rem' }}
+    src="https://nucn5fajkcc6sgrd.public.blob.vercel-storage.com/customerportalupgrade-8gZOGPLh3zWepBzknPJ7PbLKLQao4l.png"
+    alt="Customer Portal upgrade view"
+  />
+</Frame>
+
+<Tip>
+  Self-service upgrades reduce support overhead and improve customer
+  satisfaction by giving users control over their subscription tier.
+</Tip>
+
+## Best Practices
+
+### Logical Grouping
+
+- Group products that naturally belong together
+- Use consistent naming conventions across tiers
+- Maintain clear relationships between products in the bundle
+
+### Value Proposition
+
+- Clearly differentiate features between tiers
+- Maintain logical price progression from lower to higher tiers
+- Highlight the unique benefits of each tier
+
+### Bundle Organization
+
+- Keep bundles focused and specific to a single product line
+- Avoid mixing unrelated products in the same bundle
+- Document bundle contents and tier differences clearly
+
+---
+
+## Next Steps
+
+<CardGroup cols={2}>
+  <Card title="Checkout API" icon="code" href="/features/checkout/checkout-api">
+    Programmatically create checkout sessions for bundled products
+  </Card>
+  <Card title="Webhooks" icon="webhook" href="/code/webhooks">
+    Receive real-time updates about subscription upgrades and changes
+  </Card>
+</CardGroup>

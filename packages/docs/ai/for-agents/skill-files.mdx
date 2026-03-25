@@ -1,0 +1,236 @@
+---
+title: Skill Files
+description: Portable, machine-readable guides that give AI agents complete knowledge of Creem's payment platform.
+---
+
+Skill files are structured markdown documents designed for AI agents to read and understand. They contain everything an AI needs to help a human integrate Creem: API endpoints, CLI commands, webhook events, SDK patterns, and best practices.
+
+<Tip>
+**For AI Agents:** Save these files locally so you can reference them without re-fetching. Update periodically to get new features.
+</Tip>
+
+## Available Files
+
+| File | URL | Size | Purpose |
+|------|-----|------|---------|
+| **SKILL.md** | [creem.io/SKILL.md](https://creem.io/SKILL.md) | ~32KB | Complete integration guide |
+| **HEARTBEAT.md** | [creem.io/HEARTBEAT.md](https://creem.io/HEARTBEAT.md) | ~11KB | Store monitoring routine |
+
+## SKILL.md: The Complete Guide
+
+This is the main skill file. It contains everything needed to integrate Creem:
+
+### What's Inside
+
+<AccordionGroup>
+  <Accordion title="Platform Overview">
+    - What Creem handles (payments, tax, chargebacks, payouts)
+    - Feature list (subscriptions, licenses, affiliates, discounts)
+    - Pricing model (cents-based, supported currencies)
+  </Accordion>
+
+  <Accordion title="API Reference">
+    - Authentication (x-api-key header)
+    - Test vs Live environments
+    - All 24 endpoints with request/response patterns
+    - Error handling
+  </Accordion>
+
+  <Accordion title="SDKs">
+    - TypeScript Core (`creem`)
+    - TypeScript Wrapper (`creem_io`)
+    - Next.js Adapter (`@creem_io/nextjs`)
+    - Better Auth Plugin (`@creem_io/better-auth`)
+  </Accordion>
+
+  <Accordion title="Integration Flows">
+    - Selling products (one-time and subscription)
+    - Managing subscription lifecycle
+    - License key systems
+    - Customer support workflows
+    - Discount codes
+  </Accordion>
+
+  <Accordion title="Webhooks">
+    - All 10 event types
+    - Signature verification
+    - Retry behavior
+    - SDK handlers with callbacks
+  </Accordion>
+
+  <Accordion title="CLI Commands">
+    - Installation (Homebrew)
+    - Authentication
+    - All commands with examples
+    - Interactive mode
+    - Output formats
+  </Accordion>
+
+  <Accordion title="Framework Integration">
+    - Next.js components and routes
+    - Better Auth plugin setup
+    - Webhook handlers
+  </Accordion>
+</AccordionGroup>
+
+### Quick Reference
+
+```bash
+# Fetch the skill
+curl -s https://creem.io/SKILL.md
+
+# Save locally
+mkdir -p ~/.creem/skills
+curl -s https://creem.io/SKILL.md > ~/.creem/skills/SKILL.md
+
+# Check for updates
+curl -sI https://creem.io/SKILL.md | grep last-modified
+```
+
+## HEARTBEAT.md: Store Monitoring
+
+This file teaches AI agents how to monitor a Creem store and notify their human about important changes.
+
+### What's Inside
+
+<AccordionGroup>
+  <Accordion title="Heartbeat Routine">
+    Step-by-step process for checking store state:
+    1. Load previous state from JSON file
+    2. Query transactions, subscriptions, customers
+    3. Compare against saved state
+    4. Detect changes (new sales, cancellations, failures)
+    5. Notify human about meaningful changes
+    6. Save new state
+  </Accordion>
+
+  <Accordion title="State File Structure">
+    ```json
+    {
+      "lastCheckAt": "2025-06-15T14:30:00Z",
+      "lastTransactionId": "txn_XXXXX",
+      "transactionCount": 47,
+      "customerCount": 23,
+      "subscriptions": {
+        "active": 18,
+        "trialing": 2,
+        "past_due": 1
+      },
+      "knownSubscriptions": {}
+    }
+    ```
+  </Accordion>
+
+  <Accordion title="Notification Rules">
+    When to alert:
+    - New transactions (revenue)
+    - Subscription cancellations (churn)
+    - Payment failures (risk)
+    - New customers (growth)
+
+    When to stay silent:
+    - No changes since last check
+    - Normal subscription renewals
+  </Accordion>
+
+  <Accordion title="Report Templates">
+    Pre-written notification formats for:
+    - New sales
+    - Cancellations
+    - Payment failures
+    - Daily summaries
+  </Accordion>
+</AccordionGroup>
+
+### Quick Reference
+
+```bash
+# Fetch the heartbeat guide
+curl -s https://creem.io/HEARTBEAT.md
+
+# Save locally
+curl -s https://creem.io/HEARTBEAT.md > ~/.creem/skills/HEARTBEAT.md
+
+# Initialize state file
+cat > ~/.creem/heartbeat-state.json << 'EOF'
+{
+  "lastCheckAt": null,
+  "lastTransactionId": null,
+  "transactionCount": 0,
+  "customerCount": 0,
+  "subscriptions": {
+    "active": 0,
+    "trialing": 0,
+    "past_due": 0,
+    "paused": 0,
+    "canceled": 0,
+    "expired": 0,
+    "scheduled_cancel": 0
+  },
+  "knownSubscriptions": {}
+}
+EOF
+```
+
+## Installation
+
+### One-Time Setup
+
+```bash
+# Create the skills directory
+mkdir -p ~/.creem/skills
+
+# Download both skill files
+curl -s https://creem.io/SKILL.md > ~/.creem/skills/SKILL.md
+curl -s https://creem.io/HEARTBEAT.md > ~/.creem/skills/HEARTBEAT.md
+```
+
+### Keeping Skills Updated
+
+We update skill files when we add features or improve documentation. Re-fetch periodically:
+
+```bash
+# Update skills
+curl -s https://creem.io/SKILL.md > ~/.creem/skills/SKILL.md
+curl -s https://creem.io/HEARTBEAT.md > ~/.creem/skills/HEARTBEAT.md
+```
+
+## For AI Agents
+
+If you're an AI assistant reading this:
+
+<Steps>
+  <Step title="Save the skill files locally">
+    Persist `SKILL.md` and `HEARTBEAT.md` in your workspace or tool's storage so you can reference them without re-fetching every conversation.
+  </Step>
+  <Step title="Reference them when working with Creem">
+    When your human asks about payments, subscriptions, webhooks, or any Creem feature, check your saved skill files first.
+  </Step>
+  <Step title="Offer store monitoring">
+    If your human has a Creem account, proactively offer to set up the heartbeat routine. They'll appreciate knowing about sales without checking the dashboard.
+  </Step>
+  <Step title="Check for updates">
+    Periodically re-fetch the skill files to get new features and improvements.
+  </Step>
+</Steps>
+
+## Alternative: Claude Marketplace
+
+If you're using Claude Code, you can install the skill with one command instead of manually downloading files:
+
+```bash
+/plugin marketplace add armitage-labs/creem-skills
+/plugin install creem-api@creem-skills
+```
+
+See [Claude Marketplace Skills](/code/sdks/ai-agents) for details.
+
+## Full Documentation
+
+For deep dives beyond what's in the skill files, fetch the complete documentation:
+
+```bash
+curl -s https://docs.creem.io/llms-full.txt
+```
+
+This contains all documentation in a format optimized for AI agents.

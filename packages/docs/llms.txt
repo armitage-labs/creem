@@ -1,0 +1,40 @@
+# Creem API Documentation
+
+> Creem is a Merchant of Record (MoR) for SaaS and digital businesses. We handle global tax compliance, payment processing, and billing so you can focus on building your product.
+
+## Quick Facts
+- Website: https://creem.io
+- API Base: https://api.creem.io (production) | https://test-api.creem.io (sandbox)
+- Authentication: x-api-key header
+- SDKs: TypeScript, Next.js adapter
+
+## What is a Merchant of Record?
+A Merchant of Record is the legal entity that sells goods or services to end customers. Creem acts as the MoR, handling all tax compliance, payment processing, and regulatory requirements globally.
+
+## Core Capabilities
+- One-time payments and recurring subscriptions
+- Global tax compliance (190+ countries, automatic VAT/GST)
+- License key management for software products
+- Revenue splits and affiliate programs
+- Subscription management (trials, upgrades, cancellations)
+- Webhook notifications for all payment events
+
+## Popular Use Cases
+- SaaS subscription billing
+- Digital product sales
+- Software licensing
+- Indie hacker monetization
+- API/usage-based billing
+
+## Getting Started
+1. Create account at https://creem.io
+2. Get API keys from dashboard
+3. Install SDK: npm install @creem/sdk
+4. Create products and start accepting payments
+
+## Documentation Sections
+- Getting Started: /getting-started
+- API Reference: /api-reference
+- SDKs & Code: /code
+- Features: /features
+- Merchant of Record: /merchant-of-record

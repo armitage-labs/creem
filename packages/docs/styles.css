@@ -1,0 +1,7 @@
+/* Custom styles for Creem documentation */
+
+/* Override primary CTA button text color to black */
+#topbar-cta-button {
+  color: #000000;
+}
+

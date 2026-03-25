@@ -1,0 +1,397 @@
+---
+title: 'Better Auth'
+description: 'Integrate authentication and payment processing seamlessly with Better Auth and Creem.'
+---
+
+## Overview
+
+Welcome to the integration guide for Creem and Better Auth! This integration enables you to combine powerful authentication capabilities with seamless payment processing and subscription management.
+
+[Better Auth](https://better-auth.com) is a modern authentication framework for TypeScript that provides comprehensive user management, session handling, and authentication flows. By integrating Better Auth with Creem, you can:
+
+- Automatically synchronize customer and subscription data with your users
+- Grant or revoke access based on subscription status
+- Manage subscriptions directly through your authentication layer
+- Handle payments and billing for authenticated users
+- Prevent trial abuse across multiple subscriptions
+
+<Accordion title="What you'll learn">
+
+How to integrate Better Auth with Creem to build a complete authentication and payment solution for your SaaS application.
+
+</Accordion>
+
+<Card title="Requirements" icon="gears">
+
+- A Creem account
+- Your Creem API keys
+- A TypeScript/JavaScript application
+- A database (PostgreSQL, MySQL, or SQLite)
+
+</Card>
+
+## Installation
+
+<Steps>
+  <Step>
+    ### Install the plugin
+
+    Install the Better Auth Creem plugin in your project:
+
+    <CodeGroup>
+
+    ```bash npm
+    npm install @creem_io/better-auth
+    ```
+
+    ```bash pnpm
+    pnpm add @creem_io/better-auth
+    ```
+
+    ```bash yarn
+    yarn add @creem_io/better-auth
+    ```
+
+    ```bash bun
+    bun install @creem_io/better-auth
+    ```
+
+    </CodeGroup>
+
+    <Note>
+      If you're using a separate client and server setup, make sure to install the plugin in both parts of your project.
+    </Note>
+
+  </Step>
+
+  <Step>
+    ### Get your Creem API Key
+
+    1. Navigate to the [Creem dashboard](https://creem.io/dashboard/developers)
+    2. Click on the "Developers" menu
+    3. Copy your API key
+    4. Add it to your environment variables:
+
+    ```bash
+    # .env
+    CREEM_API_KEY=your_api_key_here
+    ```
+
+    <Warning>
+      Test Mode and Production have different API keys. Make sure you're using the correct one for your environment.
+    </Warning>
+
+  </Step>
+</Steps>
+
+## Configuration
+
+### Server Configuration
+
+Configure Better Auth with the Creem plugin:
+
+```typescript
+// lib/auth.ts
+import { betterAuth } from 'better-auth';
+import { creem } from '@creem_io/better-auth';
+
+export const auth = betterAuth({
+  database: {
+    // your database config
+  },
+  plugins: [
+    creem({
+      apiKey: process.env.CREEM_API_KEY!,
+      webhookSecret: process.env.CREEM_WEBHOOK_SECRET, // Optional
+      testMode: true, // Use test mode for development
+      defaultSuccessUrl: '/success', // Redirect URL after payments
+      persistSubscriptions: true, // Enable database persistence (recommended)
+    }),
+  ],
+});
+```
+
+### Client Configuration
+
+```typescript
+// lib/auth-client.ts
+import { createAuthClient } from 'better-auth/react';
+import { creemClient } from '@creem_io/better-auth/client';
+
+export const authClient = createAuthClient({
+  baseURL: process.env.NEXT_PUBLIC_APP_URL,
+  plugins: [creemClient()],
+});
+```
+
+### Database Migration
+
+Generate and run the database schema for subscription persistence:
+
+```bash
+npx @better-auth/cli generate
+npx @better-auth/cli migrate
+```
+
+## Webhook Setup
+
+<Steps>
+  <Step>
+    ### Create Webhook in Creem Dashboard
+
+    1. Go to your [Creem dashboard](https://creem.io/dashboard/developers/webhooks)
+    2. Click on the "Developers" tab
+    3. Navigate to the "Webhooks" section
+    4. Click "Add Webhook"
+    5. Enter your webhook URL:
+
+    ```text
+    https://your-domain.com/api/auth/creem/webhook
+    ```
+
+    <Info>
+      The `/api/auth` prefix is the default Better Auth server path. Adjust if you've customized your Better Auth configuration.
+    </Info>
+
+  </Step>
+
+  <Step>
+    ### Configure Webhook Secret
+
+    1. Copy the webhook signing secret from Creem
+    2. Add it to your environment variables:
+
+    ```bash
+    CREEM_WEBHOOK_SECRET=your_webhook_secret_here
+    ```
+
+    3. Update your server configuration to include the webhook secret (shown in Configuration section above)
+
+  </Step>
+
+  <Step>
+    ### Local Development (Optional)
+
+    For local testing, use [ngrok](https://ngrok.com) to expose your local server:
+
+    ```bash
+    ngrok http 3000
+    ```
+
+    Then add the ngrok URL to your Creem webhook settings.
+
+  </Step>
+</Steps>
+
+## Usage Examples
+
+### Create Checkout Session
+
+Allow users to subscribe to your products:
+
+```typescript
+"use client";
+
+import { authClient } from "@/lib/auth-client";
+
+export function SubscribeButton({ productId }: { productId: string }) {
+  const handleCheckout = async () => {
+    const { data, error } = await authClient.creem.createCheckout({
+      productId,
+      successUrl: "/dashboard",
+      discountCode: "LAUNCH50", // Optional
+      metadata: { planType: "pro" }, // Optional
+    });
+
+    if (data?.url) {
+      window.location.href = data.url;
+    }
+  };
+
+  return <button onClick={handleCheckout}>Subscribe Now</button>;
+}
+```
+
+### Customer Portal
+
+Let users manage their subscriptions:
+
+```typescript
+const handlePortal = async () => {
+  const { data } = await authClient.creem.createPortal();
+
+  if (data?.url) {
+    window.location.href = data.url;
+  }
+};
+```
+
+### Check Subscription Access
+
+Verify if a user has an active subscription:
+
+```typescript
+const { data } = await authClient.creem.hasAccessGranted();
+
+if (data?.hasAccess) {
+  // User has active subscription
+  console.log(`Access expires: ${data.expiresAt}`);
+}
+```
+
+### Cancel Subscription
+
+Allow users to cancel their subscription:
+
+```typescript
+const handleCancel = async () => {
+  const { data, error } = await authClient.creem.cancelSubscription();
+
+  if (data?.success) {
+    console.log('Subscription canceled successfully');
+  }
+};
+```
+
+## Access Control with Webhooks
+
+The plugin provides high-level handlers to manage user access automatically:
+
+```typescript
+// lib/auth.ts
+import { betterAuth } from 'better-auth';
+import { creem } from '@creem_io/better-auth';
+
+export const auth = betterAuth({
+  database: {
+    // your database config
+  },
+  plugins: [
+    creem({
+      apiKey: process.env.CREEM_API_KEY!,
+      webhookSecret: process.env.CREEM_WEBHOOK_SECRET!,
+
+      onGrantAccess: async ({ reason, product, customer, metadata }) => {
+        const userId = metadata?.referenceId as string;
+
+        // Grant access in your database
+        await db.user.update({
+          where: { id: userId },
+          data: {
+            hasAccess: true,
+            subscriptionTier: product.name,
+          },
+        });
+
+        console.log(`Granted access to ${customer.email}`);
+      },
+
+      onRevokeAccess: async ({ reason, product, customer, metadata }) => {
+        const userId = metadata?.referenceId as string;
+
+        // Revoke access in your database
+        await db.user.update({
+          where: { id: userId },
+          data: {
+            hasAccess: false,
+          },
+        });
+
+        console.log(`Revoked access from ${customer.email}`);
+      },
+    }),
+  ],
+});
+```
+
+## Server-Side Usage
+
+Use Creem functions directly in Server Components or API routes:
+
+```typescript
+import { checkSubscriptionAccess } from "@creem_io/better-auth/server";
+import { auth } from "@/lib/auth";
+import { headers } from "next/headers";
+import { redirect } from "next/navigation";
+
+export default async function DashboardPage() {
+  const session = await auth.api.getSession({ headers: await headers() });
+
+  if (!session?.user) {
+    redirect("/login");
+  }
+
+  const status = await checkSubscriptionAccess(
+    {
+      apiKey: process.env.CREEM_API_KEY!,
+      testMode: true,
+    },
+    {
+      database: auth.options.database,
+      userId: session.user.id,
+    }
+  );
+
+  if (!status.hasAccess) {
+    redirect("/subscribe");
+  }
+
+  return (
+    <div>
+      <h1>Welcome to Dashboard</h1>
+      <p>Subscription Status: {status.status}</p>
+    </div>
+  );
+}
+```
+
+## Key Features
+
+### Automatic Trial Abuse Prevention
+
+When using database mode, the plugin automatically prevents users from abusing trial periods. Each user can only receive one trial across all subscription plans.
+
+### Database Persistence
+
+Store subscription data in your database for fast access checks without API calls. This enables:
+
+- Offline access to subscription data
+- SQL queries for subscription management
+- Automatic synchronization via webhooks
+
+### Transaction History
+
+Search and filter transaction records for authenticated users:
+
+```typescript
+const { data } = await authClient.creem.searchTransactions({
+  productId: 'prod_xyz789', // Optional filter
+  pageNumber: 1,
+  pageSize: 50,
+});
+```
+
+## Best Practices
+
+- **Always test in development** - Use test mode and a development environment before going live
+- **Implement error handling** - Handle payment failures and webhook errors gracefully
+- **Monitor webhooks** - Set up logging and alerts for webhook processing
+- **Use database mode** - Enable `persistSubscriptions` for better performance and features
+- **Protect sensitive routes** - Use middleware or server-side checks to protect premium content
+- **Validate subscriptions** - Always verify subscription status before granting access to premium features
+
+## Additional Resources
+
+- [Better Auth Plugin Documentation](https://better-auth.com/docs/plugins/creem)
+- [Creem Documentation](https://docs.creem.io)
+- [Creem Dashboard](https://creem.io/dashboard)
+- [Plugin GitHub Repository](https://github.com/armitage-labs/creem-betterauth)
+
+## Support
+
+Need help with the integration?
+
+- Join our [Discord community](https://discord.gg/q3GKZs92Av) for real-time support
+- Chat with us directly using the in-app live chat on the [Creem dashboard](https://creem.io/dashboard)
+- [Contact us](https://www.creem.io/contact) via our support form
+- Open an issue on [GitHub](https://github.com/armitage-labs/creem-betterauth/issues)
