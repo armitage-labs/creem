@@ -1984,12 +1984,7 @@
           "mode": { "$ref": "#/components/schemas/EnvironmentMode" },
           "object": {
             "type": "string",
-            "description": "A string representing the object's type. Objects of the same type share the same value."
-          },
-          "product_id": {
-            "type": "string",
-            "description": "The ID of the product this license belongs to.",
-            "example": "prod_abc123"
+            "description": "A string representing the object’s type. Objects of the same type share the same value."
           },
           "status": {
             "example": "active",
@@ -2034,7 +2029,6 @@
           "id",
           "mode",
           "object",
-          "product_id",
           "status",
           "key",
           "activation",

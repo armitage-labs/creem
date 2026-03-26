@@ -1,0 +1,87 @@
+---
+title: 'Evendeals'
+description: 'Add purchase parity pricing to your Creem products and boost international conversions.'
+---
+
+<Frame>
+  <img
+    style={{ borderRadius: '0.5rem' }}
+    src="https://www.evendeals.com/integrations/creem/og-image"
+    alt="Creem + Evendeals"
+  />
+</Frame>
+
+## Overview
+
+[Evendeals](https://www.evendeals.com) is a purchase parity pricing platform that helps you adjust prices based on your customers' location. Combined with Creem's payment processing and tax compliance, you get a complete global sales stack.
+
+A single price doesn't work for a global audience. $49/mo might be reasonable in the US, but it could represent days of work in other countries. Parity pricing consistently drives **20-30% more international sales** by showing location-based discounts to visitors from lower-income regions.
+
+<Accordion title="What you'll learn">
+
+How to integrate Evendeals' purchase parity pricing with Creem's payment processing to automatically offer regional discounts and capture revenue from visitors who would otherwise bounce.
+
+</Accordion>
+
+<Card title="Requirements" icon="gears">
+
+- A Creem account
+- An Evendeals account ([sign up free](https://www.evendeals.com/signin))
+- Your Creem API keys
+
+</Card>
+
+## How It Works
+
+Evendeals detects your visitor's country, shows a discount banner with a region-appropriate price, and automatically creates and manages discount codes in Creem. When a visitor applies the code at checkout, they pay the adjusted price through Creem's standard checkout flow.
+
+**Key features:**
+- **Automatic discount sync** — Discount codes are created and managed in Creem automatically. No manual coupon work.
+- **Code rotation** — Codes rotate by time or view count. Leaked coupons expire automatically.
+- **VPN detection** — Block discount abuse from users masking their real location.
+
+## Integration Steps
+
+Five steps, about 10 minutes.
+
+### 1. Create a Creem API key
+
+In your [Creem dashboard](https://www.creem.io/dashboard/developers), create an API key with the right permissions. Use **Full access**, or enable Products, Subscriptions, and Transactions read + Discounts read/write.
+
+### 2. Create a webhook in Creem
+
+Create a webhook in [Creem Webhooks](https://www.creem.io/dashboard/developers/webhooks), paste the URL from Evendeals, and select all events. Copy the signing secret for the next step.
+
+### 3. Connect in Evendeals
+
+Paste your API key and webhook secret in the Evendeals connect dialog. The connection validates instantly.
+
+### 4. Set regional discounts
+
+Choose percentage or fixed-amount discounts per country group. Evendeals creates the discount codes in Creem automatically.
+
+### 5. Add the script to your site
+
+Add one line of code to your website. Visitors from lower-income countries will see a discount banner and can apply the code at Creem checkout.
+
+<Info>
+For detailed step-by-step instructions with screenshots, visit the [Evendeals Creem integration guide](https://www.evendeals.com/integrations/creem).
+</Info>
+
+## Best Practices
+
+- Start with conservative discounts (15-25%) and adjust based on conversion data
+- Test the integration in Creem's test mode before going live
+- Monitor which regions are driving the most conversions
+- Review discount redemption rates regularly to optimize pricing tiers
+
+## Resources
+
+<CardGroup cols={2}>
+  <Card title="Evendeals Integration Guide" icon="book" href="https://www.evendeals.com/integrations/creem">
+    Detailed setup instructions with screenshots on the Evendeals site.
+  </Card>
+  <Card title="Evendeals Website" icon="globe" href="https://www.evendeals.com">
+    Learn more about purchase parity pricing and sign up.
+  </Card>
+</CardGroup>

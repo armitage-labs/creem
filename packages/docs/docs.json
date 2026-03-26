@@ -134,7 +134,13 @@
           {
             "group": "Integrations",
             "icon": "link",
-            "pages": ["integrations/ai-negotiation-bot"]
+            "pages": [
+              "integrations/ai-negotiation-bot",
+              {
+                "group": "Purchase Parity Platforms",
+                "pages": ["integrations/evendeals"]
+              }
+            ]
           },
           {
             "group": "Community",
