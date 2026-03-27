@@ -2,7 +2,7 @@
 import { test } from "vitest";
 import { convexTest } from "convex-test";
 import schema from "./schema.js";
-import component from "@mmailaender/convex-creem/test";
+import component from "@creem_io/convex/test";
 
 const modules = import.meta.glob("./**/*.*s");
 // When users want to write tests that use your component, they need to

@@ -53,5 +53,5 @@ export declare const internal: FilterApi<
 >;
 
 export declare const components: {
-  creem: import("@mmailaender/convex-creem/_generated/component.js").ComponentApi<"creem">;
+  creem: import("@creem_io/convex/_generated/component.js").ComponentApi<"creem">;
 };

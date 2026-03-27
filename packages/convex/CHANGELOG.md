@@ -18,7 +18,7 @@ Fix
 
 ## 0.1.0
 
-- Initial npm release of `@mmailaender/convex-creem`.
+- Initial npm release of this package.
 - Convex component for Creem billing:
   - Webhook sync engine (customers, subscriptions, orders, products).
   - `creem.api({ resolve })` convenience exports for common billing flows.

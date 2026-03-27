@@ -4,6 +4,7 @@
     "lib": ["DOM", "DOM.Iterable", "ESNext"],
     "skipLibCheck": true,
     "allowSyntheticDefaultImports": true,
+    "customConditions": ["creem/source"],
     "strict": true,
     "forceConsistentCasingInFileNames": true,
     "module": "ESNext",
@@ -13,12 +14,12 @@
     "jsx": "react-jsx",
     "paths": {
       "@/*": ["./src/*"],
-      "@mmailaender/convex-creem": ["../src/client/index.ts"],
-      "@mmailaender/convex-creem/react": ["../src/react/index.tsx"],
-      "@mmailaender/convex-creem/convex.config": [
+      "@creem_io/convex": ["../src/client/index.ts"],
+      "@creem_io/convex/react": ["../src/react/index.tsx"],
+      "@creem_io/convex/convex.config": [
         "../src/component/convex.config.ts"
       ],
-      "@mmailaender/convex-creem/_generated/component.js": [
+      "@creem_io/convex/_generated/component.js": [
         "../src/component/_generated/component.ts"
       ]
     },

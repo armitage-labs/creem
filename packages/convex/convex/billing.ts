@@ -1,4 +1,4 @@
-import { Creem, type ApiResolver } from "@mmailaender/convex-creem";
+import { Creem, type ApiResolver } from "@creem_io/convex";
 import { api, components } from "./_generated/api";
 import { internalAction, query } from "./_generated/server";
 import { Id } from "./_generated/dataModel";

@@ -11,18 +11,18 @@ export default defineConfig({
     conditions: ["svelte", "browser", "module", "import", "default"],
     alias: {
       "@": path.resolve(__dirname, "./src"),
-      "@mmailaender/creem/svelte": path.resolve(
+      "@creem_io/convex/svelte": path.resolve(
         __dirname,
         "../src/svelte/index.ts",
       ),
-      "@mmailaender/creem/react": path.resolve(
+      "@creem_io/convex/react": path.resolve(
         __dirname,
         "../src/react/index.tsx",
       ),
-      "@mmailaender/creem": path.resolve(__dirname, "../src/client/index.ts"),
+      "@creem_io/convex": path.resolve(__dirname, "../src/client/index.ts"),
     },
   },
   optimizeDeps: {
-    exclude: ["@mmailaender/convex-creem/svelte"],
+    exclude: ["@creem_io/convex/svelte"],
   },
 });

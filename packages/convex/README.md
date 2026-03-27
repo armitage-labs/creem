@@ -52,7 +52,7 @@ frontend framework required.
 ### 1. Install
 
 ```bash
-npm install @mmailaender/convex-creem
+npm install @creem_io/convex
 ```
 
 ### 2. Register component
@@ -60,7 +60,7 @@ npm install @mmailaender/convex-creem
 ```ts
 // convex/convex.config.ts
 import { defineApp } from "convex/server";
-import creem from "@mmailaender/convex-creem/convex.config";
+import creem from "@creem_io/convex/convex.config";
 
 const app = defineApp();
 app.use(creem);
@@ -79,7 +79,7 @@ npx convex env set CREEM_WEBHOOK_SECRET <your_creem_webhook_signing_secret>
 
 ```ts
 // convex/billing.ts
-import { Creem, type ApiResolver } from "@mmailaender/convex-creem";
+import { Creem, type ApiResolver } from "@creem_io/convex";
 import { api, components } from "./_generated/api";
 import { query, internalAction } from "./_generated/server";
 
@@ -203,7 +203,7 @@ Tailwind import:
 
 ```css
 @import "tailwindcss";
-@import "@mmailaender/convex-creem/styles";
+@import "@creem_io/convex/styles";
 ```
 
 This registers the component's design tokens, base styles, and `@source`
@@ -266,7 +266,7 @@ or page component:
   import {
     Subscription, Product, BillingPortal,
     type ConnectedBillingApi,
-  } from "@mmailaender/convex-creem/svelte";
+  } from "@creem_io/convex/svelte";
   import { api } from "../convex/_generated/api.js";
 
   setupConvex(import.meta.env.VITE_CONVEX_URL);
@@ -292,7 +292,7 @@ import {
   Product,
   BillingPortal,
   type ConnectedBillingApi,
-} from "@mmailaender/convex-creem/react";
+} from "@creem_io/convex/react";
 import { api } from "../convex/_generated/api";
 
 const billingApi: ConnectedBillingApi = {
@@ -583,7 +583,7 @@ import {
   Creem,
   checkoutCreateArgs,
   subscriptionCancelArgs,
-} from "@mmailaender/convex-creem";
+} from "@creem_io/convex";
 import { ConvexError } from "convex/values";
 import { action, mutation } from "./_generated/server";
 import { api, components } from "./_generated/api";
@@ -719,7 +719,7 @@ subscription (`<Subscription.Root>`) or already owns the product
 library:
 
 ```ts
-import { pendingCheckout } from "@mmailaender/convex-creem/svelte";
+import { pendingCheckout } from "@creem_io/convex/svelte";
 
 pendingCheckout.save(intent); // store before sign-in
 pendingCheckout.load(); // read + auto-clear (used internally by widgets)
@@ -892,8 +892,7 @@ export const createDiscount = action({
 
 All components share **identical props** across Svelte and React.
 
-- **Import:** `@mmailaender/convex-creem/svelte` or
-  `@mmailaender/convex-creem/react`
+- **Import:** `@creem_io/convex/svelte` or `@creem_io/convex/react`
 - **CSS class prop:** `class` in Svelte, `className` in React
 - **Children:** Svelte `Snippet` / React `ReactNode`
 - **Svelte** components use Svelte 5 runes and snippet rendering
@@ -1159,7 +1158,7 @@ setting up webhooks. Ensure `CREEM_API_KEY` is set and the key has read access
 to products.
 
 **Widgets rendering unstyled** Ensure both Tailwind CSS v4 and
-`@import "@mmailaender/convex-creem/styles"` are in your CSS entry point. The
+`@import "@creem_io/convex/styles"` are in your CSS entry point. The
 styles import must come after the Tailwind import.
 
 **Checkout URL missing from response** The Creem API returned no checkout URL.

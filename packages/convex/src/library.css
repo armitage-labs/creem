@@ -1,8 +1,8 @@
-/* @mmailaender/convex-creem — importable design-system + component CSS.
+/* @creem_io/convex — importable design-system + component CSS.
    Consumers import this alongside Tailwind to get full design-system support:
 
      @import "tailwindcss";
-     @import "@mmailaender/convex-creem/styles";
+     @import "@creem_io/convex/styles";
 
    This file bundles:
    1. Design-system tokens, base styles, and @utility definitions

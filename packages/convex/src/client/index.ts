@@ -223,7 +223,7 @@ type CreemConfig = {
  *
  * @example
  * ```ts
- * import { Creem } from "@mmailaender/convex-creem";
+ * import { Creem } from "@creem_io/convex";
  * import { components } from "./_generated/api";
  *
  * export const creem = new Creem(components.creem);

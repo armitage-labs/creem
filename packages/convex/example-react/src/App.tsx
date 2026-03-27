@@ -5,7 +5,7 @@ import {
   Subscription,
   type ConnectedBillingApi,
   type Transition,
-} from "@mmailaender/convex-creem/react";
+} from "@creem_io/convex/react";
 import { api } from "../../convex/_generated/api";
 import creemLogoUrl from "./assets/creem.svg";
 import convexLogoUrl from "./assets/convex.svg";
@@ -136,7 +136,7 @@ export default function App() {
               </div>
             </div>
             <a
-              href="https://github.com/mmailaender/convex-creem"
+              href="https://github.com/armitage-labs/creem/tree/main/packages/convex"
               target="_blank"
               rel="noopener noreferrer"
               className="button-outline inline-flex items-center justify-center gap-2"

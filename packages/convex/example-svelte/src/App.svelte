@@ -7,7 +7,7 @@
     Subscription,
     type ConnectedBillingApi,
     type Transition,
-  } from "@mmailaender/convex-creem/svelte";
+  } from "@creem_io/convex/svelte";
   import { api } from "../../convex/_generated/api.js";
   import creemLogoUrl from "./assets/creem.svg";
   import convexLogoUrl from "./assets/convex.svg";
@@ -110,7 +110,7 @@
           </div>
         </div>
         <a
-          href="https://github.com/mmailaender/convex-creem"
+          href="https://github.com/armitage-labs/creem/tree/main/packages/convex"
           target="_blank"
           rel="noopener noreferrer"
           class="button-outline inline-flex items-center justify-center gap-2"

@@ -9,21 +9,21 @@ export default defineConfig({
   resolve: {
     alias: {
       "@": path.resolve(__dirname, "./src"),
-      "@mmailaender/convex-creem/react": path.resolve(
+      "@creem_io/convex/react": path.resolve(
         __dirname,
         "../src/react/index.tsx",
       ),
-      "@mmailaender/convex-creem/styles": path.resolve(
+      "@creem_io/convex/styles": path.resolve(
         __dirname,
         "../src/library.css",
       ),
-      "@mmailaender/convex-creem": path.resolve(
+      "@creem_io/convex": path.resolve(
         __dirname,
         "../src/client/index.ts",
       ),
     },
   },
   optimizeDeps: {
-    exclude: ["@mmailaender/convex-creem/react"],
+    exclude: ["@creem_io/convex/react"],
   },
 });
