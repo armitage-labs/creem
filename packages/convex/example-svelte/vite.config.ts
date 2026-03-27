@@ -19,6 +19,10 @@ export default defineConfig({
         __dirname,
         "../src/react/index.tsx",
       ),
+      "@creem_io/convex/styles": path.resolve(
+        __dirname,
+        "../src/library.css",
+      ),
       "@creem_io/convex": path.resolve(__dirname, "../src/client/index.ts"),
     },
   },
