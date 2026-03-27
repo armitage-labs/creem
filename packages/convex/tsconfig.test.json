@@ -1,0 +1,12 @@
+{
+  "extends": "./tsconfig.json",
+  "include": [
+    "src/**/*.ts",
+    "src/**/*.tsx",
+    "example-react/src/**/*.ts",
+    "example-react/src/**/*.tsx",
+    "example-svelte/src/**/*.ts",
+    "convex/**/*.ts"
+  ],
+  "exclude": ["node_modules", "dist", "**/_generated"]
+}

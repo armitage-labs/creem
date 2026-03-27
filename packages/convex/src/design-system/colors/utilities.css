@@ -1,0 +1,2328 @@
+/* Components: Colors */
+
+@layer base {
+  :root {
+    --et-color-surface-base: oklch(0.9851 0 89.88);
+    --et-color-surface-base-dark: oklch(0.2404 0.0015 17.26);
+    --et-color-surface-subtle: oklch(0.9612 0 89.88);
+    --et-color-surface-subtle-dark: oklch(0.2861 0.0015 17.24);
+    --et-color-surface-elevated: oklch(0.9461 0 89.88);
+    --et-color-surface-elevated-dark: oklch(0.33 0.0014 17.23);
+    --et-color-surface-tonal: oklch(0.9249 0 89.88);
+    --et-color-surface-tonal-dark: oklch(0.3562 0 89.88);
+    --et-color-surface-filled: oklch(0.2861 0.0015 17.24);
+    --et-color-surface-filled-dark: oklch(0.9612 0 89.88);
+    --et-color-surface-backdrop: oklch(0.7252 0 89.88);
+    --et-color-surface-backdrop-dark: oklch(0.3562 0 89.88);
+    --et-color-border-subtle: oklch(0.9067 0 89.88);
+    --et-color-border-subtle-dark: oklch(0.3942 0 89.88);
+    --et-color-border-default: oklch(0.8853 0 89.88);
+    --et-color-border-default-dark: oklch(0.464 0 89.88);
+    --et-color-foreground-default: oklch(0.2404 0.0015 17.26);
+    --et-color-foreground-default-dark: oklch(0.9851 0 89.88);
+    --et-color-foreground-muted: oklch(0.464 0 89.88);
+    --et-color-foreground-muted-dark: oklch(0.8853 0 89.88);
+    --et-color-foreground-placeholder: oklch(0.7252 0 89.88);
+    --et-color-foreground-placeholder-dark: oklch(0.6066 0 89.88);
+    --et-color-foreground-on-filled: oklch(0.9851 0 89.88);
+    --et-color-foreground-on-filled-dark: oklch(0.2404 0.0015 17.26);
+    --et-color-foreground-on-tonal: oklch(0.2861 0.0015 17.24);
+    --et-color-foreground-on-tonal-dark: oklch(0.9612 0 89.88);
+    --et-color-surface-inverse: oklch(0.2404 0.0015 17.26);
+    --et-color-surface-inverse-dark: oklch(0.9851 0 89.88);
+    --et-color-foreground-on-inverse-primary: oklch(0.9851 0 89.88);
+    --et-color-foreground-on-inverse-primary-dark: oklch(0.2404 0.0015 17.26);
+    --et-color-foreground-on-inverse-secondary: oklch(0.7889 0 89.88);
+    --et-color-foreground-on-inverse-secondary-dark: oklch(0.464 0 89.88);
+    --et-color-primary-surface-base: oklch(0.9766 0.0096 273.36);
+    --et-color-primary-surface-base-dark: oklch(0.2393 0.1035 267.86);
+    --et-color-primary-surface-subtle: oklch(0.9577 0.0189 279.53);
+    --et-color-primary-surface-subtle-dark: oklch(0.2779 0.1284 267.4);
+    --et-color-primary-surface-elevated: oklch(0.9389 0.0262 274.11);
+    --et-color-primary-surface-elevated-dark: oklch(0.3486 0.171 266.59);
+    --et-color-primary-surface-tonal: oklch(0.9165 0.0373 275.7);
+    --et-color-primary-surface-tonal-dark: oklch(0.3887 0.1943 266.54);
+    --et-color-primary-surface-filled: oklch(0.5572 0.2221 268.76);
+    --et-color-primary-surface-filled-dark: oklch(0.618 0.1883 271.07);
+    --et-color-primary-border-subtle: oklch(0.8795 0.0545 276.1);
+    --et-color-primary-border-subtle-dark: oklch(0.4603 0.2332 266.15);
+    --et-color-primary-border-default: oklch(0.827 0.0785 274.99);
+    --et-color-primary-border-default-dark: oklch(0.5075 0.2521 266.56);
+    --et-color-primary-foreground-default: oklch(0.2779 0.1284 267.4);
+    --et-color-primary-foreground-default-dark: oklch(0.9577 0.0189 279.53);
+    --et-color-primary-foreground-muted: oklch(0.3887 0.1943 266.54);
+    --et-color-primary-foreground-muted-dark: oklch(0.9165 0.0373 275.7);
+    --et-color-primary-foreground-placeholder: oklch(0.4603 0.2332 266.15);
+    --et-color-primary-foreground-placeholder-dark: oklch(0.8795 0.0545 276.1);
+    --et-color-primary-foreground-on-filled: oklch(0.9766 0.0096 273.36);
+    --et-color-primary-foreground-on-filled-dark: oklch(0.2393 0.1035 267.86);
+    --et-color-primary-foreground-on-tonal: oklch(0.5572 0.2221 268.76);
+    --et-color-primary-foreground-on-tonal-dark: oklch(0.827 0.0785 274.99);
+    --et-color-primary-surface-inverse: oklch(0.2393 0.1035 267.86);
+    --et-color-primary-surface-inverse-dark: oklch(0.9766 0.0096 273.36);
+    --et-color-primary-foreground-on-inverse-primary: oklch(
+      0.9766 0.0096 273.36
+    );
+    --et-color-primary-foreground-on-inverse-primary-dark: oklch(
+      0.2393 0.1035 267.86
+    );
+    --et-color-primary-foreground-on-inverse-secondary: oklch(
+      0.6986 0.1411 273.24
+    );
+    --et-color-primary-foreground-on-inverse-secondary-dark: oklch(
+      0.5075 0.2521 266.56
+    );
+    --et-color-success-surface-base: oklch(0.9922 0.0074 151.89);
+    --et-color-success-surface-base-dark: oklch(0.2481 0.0527 149.95);
+    --et-color-success-surface-subtle: oklch(0.9794 0.0132 152.61);
+    --et-color-success-surface-subtle-dark: oklch(0.3087 0.0659 149.58);
+    --et-color-success-surface-elevated: oklch(0.9637 0.019 152.82);
+    --et-color-success-surface-elevated-dark: oklch(0.3659 0.0802 149.07);
+    --et-color-success-surface-tonal: oklch(0.9447 0.0259 150.77);
+    --et-color-success-surface-tonal-dark: oklch(0.4447 0.1057 147.39);
+    --et-color-success-surface-filled: oklch(0.3087 0.0659 149.58);
+    --et-color-success-surface-filled-dark: oklch(0.9794 0.0132 152.61);
+    --et-color-success-border-subtle: oklch(0.92 0.0369 150.26);
+    --et-color-success-border-subtle-dark: oklch(0.515 0.1252 146.76);
+    --et-color-success-border-default: oklch(0.8877 0.0484 154.56);
+    --et-color-success-border-default-dark: oklch(0.5858 0.1454 146.29);
+    --et-color-success-foreground-default: oklch(0.2481 0.0527 149.95);
+    --et-color-success-foreground-default-dark: oklch(0.9922 0.0074 151.89);
+    --et-color-success-foreground-muted: oklch(0.5858 0.1454 146.29);
+    --et-color-success-foreground-muted-dark: oklch(0.8877 0.0484 154.56);
+    --et-color-success-foreground-placeholder: oklch(0.7268 0.1093 149.35);
+    --et-color-success-foreground-placeholder-dark: oklch(0.6549 0.1305 147.84);
+    --et-color-success-foreground-on-filled: oklch(0.9922 0.0074 151.89);
+    --et-color-success-foreground-on-filled-dark: oklch(0.2481 0.0527 149.95);
+    --et-color-success-foreground-on-tonal: oklch(0.3087 0.0659 149.58);
+    --et-color-success-foreground-on-tonal-dark: oklch(0.9794 0.0132 152.61);
+    --et-color-success-surface-inverse: oklch(0.2481 0.0527 149.95);
+    --et-color-success-surface-inverse-dark: oklch(0.9922 0.0074 151.89);
+    --et-color-success-foreground-on-inverse-primary: oklch(
+      0.9922 0.0074 151.89
+    );
+    --et-color-success-foreground-on-inverse-primary-dark: oklch(
+      0.2481 0.0527 149.95
+    );
+    --et-color-success-foreground-on-inverse-secondary: oklch(
+      0.8069 0.0778 152.59
+    );
+    --et-color-success-foreground-on-inverse-secondary-dark: oklch(
+      0.5858 0.1454 146.29
+    );
+    --et-color-warning-surface-base: oklch(0.9945 0.0057 84.57);
+    --et-color-warning-surface-base-dark: oklch(0.2693 0.0489 78.79);
+    --et-color-warning-surface-subtle: oklch(0.9827 0.0126 86.83);
+    --et-color-warning-surface-subtle-dark: oklch(0.331 0.0619 77.75);
+    --et-color-warning-surface-elevated: oklch(0.9696 0.0204 81.78);
+    --et-color-warning-surface-elevated-dark: oklch(0.396 0.0765 75.73);
+    --et-color-warning-surface-tonal: oklch(0.952 0.0313 84.59);
+    --et-color-warning-surface-tonal-dark: oklch(0.4747 0.0942 74.38);
+    --et-color-warning-surface-filled: oklch(0.331 0.0619 77.75);
+    --et-color-warning-surface-filled-dark: oklch(0.9827 0.0126 86.83);
+    --et-color-warning-border-subtle: oklch(0.9344 0.0423 85.96);
+    --et-color-warning-border-subtle-dark: oklch(0.5523 0.111 74.37);
+    --et-color-warning-border-default: oklch(0.9071 0.0556 83.98);
+    --et-color-warning-border-default-dark: oklch(0.6273 0.1267 74.22);
+    --et-color-warning-foreground-default: oklch(0.2693 0.0489 78.79);
+    --et-color-warning-foreground-default-dark: oklch(0.9945 0.0057 84.57);
+    --et-color-warning-foreground-muted: oklch(0.6273 0.1267 74.22);
+    --et-color-warning-foreground-muted-dark: oklch(0.9071 0.0556 83.98);
+    --et-color-warning-foreground-placeholder: oklch(0.7718 0.1075 79.76);
+    --et-color-warning-foreground-placeholder-dark: oklch(0.7054 0.125 77.42);
+    --et-color-warning-foreground-on-filled: oklch(0.9945 0.0057 84.57);
+    --et-color-warning-foreground-on-filled-dark: oklch(0.2693 0.0489 78.79);
+    --et-color-warning-foreground-on-tonal: oklch(0.331 0.0619 77.75);
+    --et-color-warning-foreground-on-tonal-dark: oklch(0.9827 0.0126 86.83);
+    --et-color-warning-surface-inverse: oklch(0.2693 0.0489 78.79);
+    --et-color-warning-surface-inverse-dark: oklch(0.9945 0.0057 84.57);
+    --et-color-warning-foreground-on-inverse-primary: oklch(
+      0.9945 0.0057 84.57
+    );
+    --et-color-warning-foreground-on-inverse-primary-dark: oklch(
+      0.2693 0.0489 78.79
+    );
+    --et-color-warning-foreground-on-inverse-secondary: oklch(
+      0.8384 0.0836 81.23
+    );
+    --et-color-warning-foreground-on-inverse-secondary-dark: oklch(
+      0.6273 0.1267 74.22
+    );
+    --et-color-error-surface-base: oklch(0.987 0.0065 5.62);
+    --et-color-error-surface-base-dark: oklch(0.2397 0.0707 17.94);
+    --et-color-error-surface-subtle: oklch(0.9725 0.011 3.49);
+    --et-color-error-surface-subtle-dark: oklch(0.2928 0.094 18.41);
+    --et-color-error-surface-elevated: oklch(0.9577 0.0154 7.49);
+    --et-color-error-surface-elevated-dark: oklch(0.356 0.1189 19.66);
+    --et-color-error-surface-tonal: oklch(0.9412 0.0213 3.09);
+    --et-color-error-surface-tonal-dark: oklch(0.4207 0.1444 20.13);
+    --et-color-error-surface-filled: oklch(0.2928 0.094 18.41);
+    --et-color-error-surface-filled-dark: oklch(0.9725 0.011 3.49);
+    --et-color-error-border-subtle: oklch(0.9172 0.0294 4.55);
+    --et-color-error-border-subtle-dark: oklch(0.4841 0.1679 20.24);
+    --et-color-error-border-default: oklch(0.8817 0.0426 5.18);
+    --et-color-error-border-default-dark: oklch(0.545 0.1913 19.79);
+    --et-color-error-foreground-default: oklch(0.2397 0.0707 17.94);
+    --et-color-error-foreground-default-dark: oklch(0.987 0.0065 5.62);
+    --et-color-error-foreground-muted: oklch(0.545 0.1913 19.79);
+    --et-color-error-foreground-muted-dark: oklch(0.8817 0.0426 5.18);
+    --et-color-error-foreground-placeholder: oklch(0.6835 0.135 11.37);
+    --et-color-error-foreground-placeholder-dark: oklch(0.6051 0.1741 15.61);
+    --et-color-error-foreground-on-filled: oklch(0.987 0.0065 5.62);
+    --et-color-error-foreground-on-filled-dark: oklch(0.2397 0.0707 17.94);
+    --et-color-error-foreground-on-tonal: oklch(0.2928 0.094 18.41);
+    --et-color-error-foreground-on-tonal-dark: oklch(0.9725 0.011 3.49);
+    --et-color-error-surface-inverse: oklch(0.2397 0.0707 17.94);
+    --et-color-error-surface-inverse-dark: oklch(0.987 0.0065 5.62);
+    --et-color-error-foreground-on-inverse-primary: oklch(0.987 0.0065 5.62);
+    --et-color-error-foreground-on-inverse-primary-dark: oklch(
+      0.2397 0.0707 17.94
+    );
+    --et-color-error-foreground-on-inverse-secondary: oklch(0.7805 0.0854 9.02);
+    --et-color-error-foreground-on-inverse-secondary-dark: oklch(
+      0.545 0.1913 19.79
+    );
+  }
+}
+
+@utility bg-surface-base {
+  background-color: var(--et-color-surface-base);
+  @variant dark {
+    background-color: var(--et-color-surface-base-dark);
+  }
+}
+
+@utility text-surface-base {
+  color: var(--et-color-surface-base);
+  @variant dark {
+    color: var(--et-color-surface-base-dark);
+  }
+}
+
+@utility border-surface-base {
+  border-color: var(--et-color-surface-base);
+  @variant dark {
+    border-color: var(--et-color-surface-base-dark);
+  }
+}
+
+@utility surface-base {
+  background-color: var(--et-color-surface-base);
+  @variant dark {
+    background-color: var(--et-color-surface-base-dark);
+  }
+}
+
+@utility bg-surface-subtle {
+  background-color: var(--et-color-surface-subtle);
+  @variant dark {
+    background-color: var(--et-color-surface-subtle-dark);
+  }
+}
+
+@utility text-surface-subtle {
+  color: var(--et-color-surface-subtle);
+  @variant dark {
+    color: var(--et-color-surface-subtle-dark);
+  }
+}
+
+@utility border-surface-subtle {
+  border-color: var(--et-color-surface-subtle);
+  @variant dark {
+    border-color: var(--et-color-surface-subtle-dark);
+  }
+}
+
+@utility surface-subtle {
+  background-color: var(--et-color-surface-subtle);
+  @variant dark {
+    background-color: var(--et-color-surface-subtle-dark);
+  }
+}
+
+@utility bg-surface-elevated {
+  background-color: var(--et-color-surface-elevated);
+  @variant dark {
+    background-color: var(--et-color-surface-elevated-dark);
+  }
+}
+
+@utility text-surface-elevated {
+  color: var(--et-color-surface-elevated);
+  @variant dark {
+    color: var(--et-color-surface-elevated-dark);
+  }
+}
+
+@utility border-surface-elevated {
+  border-color: var(--et-color-surface-elevated);
+  @variant dark {
+    border-color: var(--et-color-surface-elevated-dark);
+  }
+}
+
+@utility surface-elevated {
+  background-color: var(--et-color-surface-elevated);
+  @variant dark {
+    background-color: var(--et-color-surface-elevated-dark);
+  }
+}
+
+@utility bg-surface-tonal {
+  background-color: var(--et-color-surface-tonal);
+  @variant dark {
+    background-color: var(--et-color-surface-tonal-dark);
+  }
+}
+
+@utility text-surface-tonal {
+  color: var(--et-color-surface-tonal);
+  @variant dark {
+    color: var(--et-color-surface-tonal-dark);
+  }
+}
+
+@utility border-surface-tonal {
+  border-color: var(--et-color-surface-tonal);
+  @variant dark {
+    border-color: var(--et-color-surface-tonal-dark);
+  }
+}
+
+@utility surface-tonal {
+  background-color: var(--et-color-surface-tonal);
+  @variant dark {
+    background-color: var(--et-color-surface-tonal-dark);
+  }
+}
+
+@utility bg-surface-filled {
+  background-color: var(--et-color-surface-filled);
+  @variant dark {
+    background-color: var(--et-color-surface-filled-dark);
+  }
+}
+
+@utility text-surface-filled {
+  color: var(--et-color-surface-filled);
+  @variant dark {
+    color: var(--et-color-surface-filled-dark);
+  }
+}
+
+@utility border-surface-filled {
+  border-color: var(--et-color-surface-filled);
+  @variant dark {
+    border-color: var(--et-color-surface-filled-dark);
+  }
+}
+
+@utility surface-filled {
+  background-color: var(--et-color-surface-filled);
+  @variant dark {
+    background-color: var(--et-color-surface-filled-dark);
+  }
+}
+
+@utility bg-surface-backdrop {
+  background-color: var(--et-color-surface-backdrop);
+  @variant dark {
+    background-color: var(--et-color-surface-backdrop-dark);
+  }
+}
+
+@utility text-surface-backdrop {
+  color: var(--et-color-surface-backdrop);
+  @variant dark {
+    color: var(--et-color-surface-backdrop-dark);
+  }
+}
+
+@utility border-surface-backdrop {
+  border-color: var(--et-color-surface-backdrop);
+  @variant dark {
+    border-color: var(--et-color-surface-backdrop-dark);
+  }
+}
+
+@utility surface-backdrop {
+  background-color: var(--et-color-surface-backdrop);
+  @variant dark {
+    background-color: var(--et-color-surface-backdrop-dark);
+  }
+}
+
+@utility bg-border-subtle {
+  background-color: var(--et-color-border-subtle);
+  @variant dark {
+    background-color: var(--et-color-border-subtle-dark);
+  }
+}
+
+@utility text-border-subtle {
+  color: var(--et-color-border-subtle);
+  @variant dark {
+    color: var(--et-color-border-subtle-dark);
+  }
+}
+
+@utility border-border-subtle {
+  border-color: var(--et-color-border-subtle);
+  @variant dark {
+    border-color: var(--et-color-border-subtle-dark);
+  }
+}
+
+@utility border-subtle {
+  border-color: var(--et-color-border-subtle);
+  @variant dark {
+    border-color: var(--et-color-border-subtle-dark);
+  }
+}
+
+@utility bg-border-default {
+  background-color: var(--et-color-border-default);
+  @variant dark {
+    background-color: var(--et-color-border-default-dark);
+  }
+}
+
+@utility text-border-default {
+  color: var(--et-color-border-default);
+  @variant dark {
+    color: var(--et-color-border-default-dark);
+  }
+}
+
+@utility border-border-default {
+  border-color: var(--et-color-border-default);
+  @variant dark {
+    border-color: var(--et-color-border-default-dark);
+  }
+}
+
+@utility border-default {
+  border-color: var(--et-color-border-default);
+  @variant dark {
+    border-color: var(--et-color-border-default-dark);
+  }
+}
+
+@utility bg-foreground-default {
+  background-color: var(--et-color-foreground-default);
+  @variant dark {
+    background-color: var(--et-color-foreground-default-dark);
+  }
+}
+
+@utility text-foreground-default {
+  color: var(--et-color-foreground-default);
+  @variant dark {
+    color: var(--et-color-foreground-default-dark);
+  }
+}
+
+@utility border-foreground-default {
+  border-color: var(--et-color-foreground-default);
+  @variant dark {
+    border-color: var(--et-color-foreground-default-dark);
+  }
+}
+
+@utility foreground-default {
+  color: var(--et-color-foreground-default);
+  @variant dark {
+    color: var(--et-color-foreground-default-dark);
+  }
+}
+
+@utility bg-foreground-muted {
+  background-color: var(--et-color-foreground-muted);
+  @variant dark {
+    background-color: var(--et-color-foreground-muted-dark);
+  }
+}
+
+@utility text-foreground-muted {
+  color: var(--et-color-foreground-muted);
+  @variant dark {
+    color: var(--et-color-foreground-muted-dark);
+  }
+}
+
+@utility border-foreground-muted {
+  border-color: var(--et-color-foreground-muted);
+  @variant dark {
+    border-color: var(--et-color-foreground-muted-dark);
+  }
+}
+
+@utility foreground-muted {
+  color: var(--et-color-foreground-muted);
+  @variant dark {
+    color: var(--et-color-foreground-muted-dark);
+  }
+}
+
+@utility bg-foreground-placeholder {
+  background-color: var(--et-color-foreground-placeholder);
+  @variant dark {
+    background-color: var(--et-color-foreground-placeholder-dark);
+  }
+}
+
+@utility text-foreground-placeholder {
+  color: var(--et-color-foreground-placeholder);
+  @variant dark {
+    color: var(--et-color-foreground-placeholder-dark);
+  }
+}
+
+@utility border-foreground-placeholder {
+  border-color: var(--et-color-foreground-placeholder);
+  @variant dark {
+    border-color: var(--et-color-foreground-placeholder-dark);
+  }
+}
+
+@utility foreground-placeholder {
+  color: var(--et-color-foreground-placeholder);
+  @variant dark {
+    color: var(--et-color-foreground-placeholder-dark);
+  }
+}
+
+@utility bg-foreground-on-filled {
+  background-color: var(--et-color-foreground-on-filled);
+  @variant dark {
+    background-color: var(--et-color-foreground-on-filled-dark);
+  }
+}
+
+@utility text-foreground-on-filled {
+  color: var(--et-color-foreground-on-filled);
+  @variant dark {
+    color: var(--et-color-foreground-on-filled-dark);
+  }
+}
+
+@utility border-foreground-on-filled {
+  border-color: var(--et-color-foreground-on-filled);
+  @variant dark {
+    border-color: var(--et-color-foreground-on-filled-dark);
+  }
+}
+
+@utility foreground-on-filled {
+  color: var(--et-color-foreground-on-filled);
+  @variant dark {
+    color: var(--et-color-foreground-on-filled-dark);
+  }
+}
+
+@utility bg-foreground-on-tonal {
+  background-color: var(--et-color-foreground-on-tonal);
+  @variant dark {
+    background-color: var(--et-color-foreground-on-tonal-dark);
+  }
+}
+
+@utility text-foreground-on-tonal {
+  color: var(--et-color-foreground-on-tonal);
+  @variant dark {
+    color: var(--et-color-foreground-on-tonal-dark);
+  }
+}
+
+@utility border-foreground-on-tonal {
+  border-color: var(--et-color-foreground-on-tonal);
+  @variant dark {
+    border-color: var(--et-color-foreground-on-tonal-dark);
+  }
+}
+
+@utility foreground-on-tonal {
+  color: var(--et-color-foreground-on-tonal);
+  @variant dark {
+    color: var(--et-color-foreground-on-tonal-dark);
+  }
+}
+
+@utility bg-surface-inverse {
+  background-color: var(--et-color-surface-inverse);
+  @variant dark {
+    background-color: var(--et-color-surface-inverse-dark);
+  }
+}
+
+@utility text-surface-inverse {
+  color: var(--et-color-surface-inverse);
+  @variant dark {
+    color: var(--et-color-surface-inverse-dark);
+  }
+}
+
+@utility border-surface-inverse {
+  border-color: var(--et-color-surface-inverse);
+  @variant dark {
+    border-color: var(--et-color-surface-inverse-dark);
+  }
+}
+
+@utility surface-inverse {
+  background-color: var(--et-color-surface-inverse);
+  @variant dark {
+    background-color: var(--et-color-surface-inverse-dark);
+  }
+}
+
+@utility bg-foreground-on-inverse-primary {
+  background-color: var(--et-color-foreground-on-inverse-primary);
+  @variant dark {
+    background-color: var(--et-color-foreground-on-inverse-primary-dark);
+  }
+}
+
+@utility text-foreground-on-inverse-primary {
+  color: var(--et-color-foreground-on-inverse-primary);
+  @variant dark {
+    color: var(--et-color-foreground-on-inverse-primary-dark);
+  }
+}
+
+@utility border-foreground-on-inverse-primary {
+  border-color: var(--et-color-foreground-on-inverse-primary);
+  @variant dark {
+    border-color: var(--et-color-foreground-on-inverse-primary-dark);
+  }
+}
+
+@utility foreground-on-inverse-primary {
+  color: var(--et-color-foreground-on-inverse-primary);
+  @variant dark {
+    color: var(--et-color-foreground-on-inverse-primary-dark);
+  }
+}
+
+@utility bg-foreground-on-inverse-secondary {
+  background-color: var(--et-color-foreground-on-inverse-secondary);
+  @variant dark {
+    background-color: var(--et-color-foreground-on-inverse-secondary-dark);
+  }
+}
+
+@utility text-foreground-on-inverse-secondary {
+  color: var(--et-color-foreground-on-inverse-secondary);
+  @variant dark {
+    color: var(--et-color-foreground-on-inverse-secondary-dark);
+  }
+}
+
+@utility border-foreground-on-inverse-secondary {
+  border-color: var(--et-color-foreground-on-inverse-secondary);
+  @variant dark {
+    border-color: var(--et-color-foreground-on-inverse-secondary-dark);
+  }
+}
+
+@utility foreground-on-inverse-secondary {
+  color: var(--et-color-foreground-on-inverse-secondary);
+  @variant dark {
+    color: var(--et-color-foreground-on-inverse-secondary-dark);
+  }
+}
+
+@utility bg-primary-surface-base {
+  background-color: var(--et-color-primary-surface-base);
+  @variant dark {
+    background-color: var(--et-color-primary-surface-base-dark);
+  }
+}
+
+@utility text-primary-surface-base {
+  color: var(--et-color-primary-surface-base);
+  @variant dark {
+    color: var(--et-color-primary-surface-base-dark);
+  }
+}
+
+@utility border-primary-surface-base {
+  border-color: var(--et-color-primary-surface-base);
+  @variant dark {
+    border-color: var(--et-color-primary-surface-base-dark);
+  }
+}
+
+@utility primary-surface-base {
+  background-color: var(--et-color-primary-surface-base);
+  @variant dark {
+    background-color: var(--et-color-primary-surface-base-dark);
+  }
+}
+
+@utility bg-primary-surface-subtle {
+  background-color: var(--et-color-primary-surface-subtle);
+  @variant dark {
+    background-color: var(--et-color-primary-surface-subtle-dark);
+  }
+}
+
+@utility text-primary-surface-subtle {
+  color: var(--et-color-primary-surface-subtle);
+  @variant dark {
+    color: var(--et-color-primary-surface-subtle-dark);
+  }
+}
+
+@utility border-primary-surface-subtle {
+  border-color: var(--et-color-primary-surface-subtle);
+  @variant dark {
+    border-color: var(--et-color-primary-surface-subtle-dark);
+  }
+}
+
+@utility primary-surface-subtle {
+  background-color: var(--et-color-primary-surface-subtle);
+  @variant dark {
+    background-color: var(--et-color-primary-surface-subtle-dark);
+  }
+}
+
+@utility bg-primary-surface-elevated {
+  background-color: var(--et-color-primary-surface-elevated);
+  @variant dark {
+    background-color: var(--et-color-primary-surface-elevated-dark);
+  }
+}
+
+@utility text-primary-surface-elevated {
+  color: var(--et-color-primary-surface-elevated);
+  @variant dark {
+    color: var(--et-color-primary-surface-elevated-dark);
+  }
+}
+
+@utility border-primary-surface-elevated {
+  border-color: var(--et-color-primary-surface-elevated);
+  @variant dark {
+    border-color: var(--et-color-primary-surface-elevated-dark);
+  }
+}
+
+@utility primary-surface-elevated {
+  background-color: var(--et-color-primary-surface-elevated);
+  @variant dark {
+    background-color: var(--et-color-primary-surface-elevated-dark);
+  }
+}
+
+@utility bg-primary-surface-tonal {
+  background-color: var(--et-color-primary-surface-tonal);
+  @variant dark {
+    background-color: var(--et-color-primary-surface-tonal-dark);
+  }
+}
+
+@utility text-primary-surface-tonal {
+  color: var(--et-color-primary-surface-tonal);
+  @variant dark {
+    color: var(--et-color-primary-surface-tonal-dark);
+  }
+}
+
+@utility border-primary-surface-tonal {
+  border-color: var(--et-color-primary-surface-tonal);
+  @variant dark {
+    border-color: var(--et-color-primary-surface-tonal-dark);
+  }
+}
+
+@utility primary-surface-tonal {
+  background-color: var(--et-color-primary-surface-tonal);
+  @variant dark {
+    background-color: var(--et-color-primary-surface-tonal-dark);
+  }
+}
+
+@utility bg-primary-surface-filled {
+  background-color: var(--et-color-primary-surface-filled);
+  @variant dark {
+    background-color: var(--et-color-primary-surface-filled-dark);
+  }
+}
+
+@utility text-primary-surface-filled {
+  color: var(--et-color-primary-surface-filled);
+  @variant dark {
+    color: var(--et-color-primary-surface-filled-dark);
+  }
+}
+
+@utility border-primary-surface-filled {
+  border-color: var(--et-color-primary-surface-filled);
+  @variant dark {
+    border-color: var(--et-color-primary-surface-filled-dark);
+  }
+}
+
+@utility primary-surface-filled {
+  background-color: var(--et-color-primary-surface-filled);
+  @variant dark {
+    background-color: var(--et-color-primary-surface-filled-dark);
+  }
+}
+
+@utility bg-primary-border-subtle {
+  background-color: var(--et-color-primary-border-subtle);
+  @variant dark {
+    background-color: var(--et-color-primary-border-subtle-dark);
+  }
+}
+
+@utility text-primary-border-subtle {
+  color: var(--et-color-primary-border-subtle);
+  @variant dark {
+    color: var(--et-color-primary-border-subtle-dark);
+  }
+}
+
+@utility border-primary-border-subtle {
+  border-color: var(--et-color-primary-border-subtle);
+  @variant dark {
+    border-color: var(--et-color-primary-border-subtle-dark);
+  }
+}
+
+@utility primary-border-subtle {
+  border-color: var(--et-color-primary-border-subtle);
+  @variant dark {
+    border-color: var(--et-color-primary-border-subtle-dark);
+  }
+}
+
+@utility bg-primary-border-default {
+  background-color: var(--et-color-primary-border-default);
+  @variant dark {
+    background-color: var(--et-color-primary-border-default-dark);
+  }
+}
+
+@utility text-primary-border-default {
+  color: var(--et-color-primary-border-default);
+  @variant dark {
+    color: var(--et-color-primary-border-default-dark);
+  }
+}
+
+@utility border-primary-border-default {
+  border-color: var(--et-color-primary-border-default);
+  @variant dark {
+    border-color: var(--et-color-primary-border-default-dark);
+  }
+}
+
+@utility primary-border-default {
+  border-color: var(--et-color-primary-border-default);
+  @variant dark {
+    border-color: var(--et-color-primary-border-default-dark);
+  }
+}
+
+@utility bg-primary-foreground-default {
+  background-color: var(--et-color-primary-foreground-default);
+  @variant dark {
+    background-color: var(--et-color-primary-foreground-default-dark);
+  }
+}
+
+@utility text-primary-foreground-default {
+  color: var(--et-color-primary-foreground-default);
+  @variant dark {
+    color: var(--et-color-primary-foreground-default-dark);
+  }
+}
+
+@utility border-primary-foreground-default {
+  border-color: var(--et-color-primary-foreground-default);
+  @variant dark {
+    border-color: var(--et-color-primary-foreground-default-dark);
+  }
+}
+
+@utility primary-foreground-default {
+  color: var(--et-color-primary-foreground-default);
+  @variant dark {
+    color: var(--et-color-primary-foreground-default-dark);
+  }
+}
+
+@utility bg-primary-foreground-muted {
+  background-color: var(--et-color-primary-foreground-muted);
+  @variant dark {
+    background-color: var(--et-color-primary-foreground-muted-dark);
+  }
+}
+
+@utility text-primary-foreground-muted {
+  color: var(--et-color-primary-foreground-muted);
+  @variant dark {
+    color: var(--et-color-primary-foreground-muted-dark);
+  }
+}
+
+@utility border-primary-foreground-muted {
+  border-color: var(--et-color-primary-foreground-muted);
+  @variant dark {
+    border-color: var(--et-color-primary-foreground-muted-dark);
+  }
+}
+
+@utility primary-foreground-muted {
+  color: var(--et-color-primary-foreground-muted);
+  @variant dark {
+    color: var(--et-color-primary-foreground-muted-dark);
+  }
+}
+
+@utility bg-primary-foreground-placeholder {
+  background-color: var(--et-color-primary-foreground-placeholder);
+  @variant dark {
+    background-color: var(--et-color-primary-foreground-placeholder-dark);
+  }
+}
+
+@utility text-primary-foreground-placeholder {
+  color: var(--et-color-primary-foreground-placeholder);
+  @variant dark {
+    color: var(--et-color-primary-foreground-placeholder-dark);
+  }
+}
+
+@utility border-primary-foreground-placeholder {
+  border-color: var(--et-color-primary-foreground-placeholder);
+  @variant dark {
+    border-color: var(--et-color-primary-foreground-placeholder-dark);
+  }
+}
+
+@utility primary-foreground-placeholder {
+  color: var(--et-color-primary-foreground-placeholder);
+  @variant dark {
+    color: var(--et-color-primary-foreground-placeholder-dark);
+  }
+}
+
+@utility bg-primary-foreground-on-filled {
+  background-color: var(--et-color-primary-foreground-on-filled);
+  @variant dark {
+    background-color: var(--et-color-primary-foreground-on-filled-dark);
+  }
+}
+
+@utility text-primary-foreground-on-filled {
+  color: var(--et-color-primary-foreground-on-filled);
+  @variant dark {
+    color: var(--et-color-primary-foreground-on-filled-dark);
+  }
+}
+
+@utility border-primary-foreground-on-filled {
+  border-color: var(--et-color-primary-foreground-on-filled);
+  @variant dark {
+    border-color: var(--et-color-primary-foreground-on-filled-dark);
+  }
+}
+
+@utility primary-foreground-on-filled {
+  color: var(--et-color-primary-foreground-on-filled);
+  @variant dark {
+    color: var(--et-color-primary-foreground-on-filled-dark);
+  }
+}
+
+@utility bg-primary-foreground-on-tonal {
+  background-color: var(--et-color-primary-foreground-on-tonal);
+  @variant dark {
+    background-color: var(--et-color-primary-foreground-on-tonal-dark);
+  }
+}
+
+@utility text-primary-foreground-on-tonal {
+  color: var(--et-color-primary-foreground-on-tonal);
+  @variant dark {
+    color: var(--et-color-primary-foreground-on-tonal-dark);
+  }
+}
+
+@utility border-primary-foreground-on-tonal {
+  border-color: var(--et-color-primary-foreground-on-tonal);
+  @variant dark {
+    border-color: var(--et-color-primary-foreground-on-tonal-dark);
+  }
+}
+
+@utility primary-foreground-on-tonal {
+  color: var(--et-color-primary-foreground-on-tonal);
+  @variant dark {
+    color: var(--et-color-primary-foreground-on-tonal-dark);
+  }
+}
+
+@utility bg-primary-surface-inverse {
+  background-color: var(--et-color-primary-surface-inverse);
+  @variant dark {
+    background-color: var(--et-color-primary-surface-inverse-dark);
+  }
+}
+
+@utility text-primary-surface-inverse {
+  color: var(--et-color-primary-surface-inverse);
+  @variant dark {
+    color: var(--et-color-primary-surface-inverse-dark);
+  }
+}
+
+@utility border-primary-surface-inverse {
+  border-color: var(--et-color-primary-surface-inverse);
+  @variant dark {
+    border-color: var(--et-color-primary-surface-inverse-dark);
+  }
+}
+
+@utility primary-surface-inverse {
+  background-color: var(--et-color-primary-surface-inverse);
+  @variant dark {
+    background-color: var(--et-color-primary-surface-inverse-dark);
+  }
+}
+
+@utility bg-primary-foreground-on-inverse-primary {
+  background-color: var(--et-color-primary-foreground-on-inverse-primary);
+  @variant dark {
+    background-color: var(
+      --et-color-primary-foreground-on-inverse-primary-dark
+    );
+  }
+}
+
+@utility text-primary-foreground-on-inverse-primary {
+  color: var(--et-color-primary-foreground-on-inverse-primary);
+  @variant dark {
+    color: var(--et-color-primary-foreground-on-inverse-primary-dark);
+  }
+}
+
+@utility border-primary-foreground-on-inverse-primary {
+  border-color: var(--et-color-primary-foreground-on-inverse-primary);
+  @variant dark {
+    border-color: var(--et-color-primary-foreground-on-inverse-primary-dark);
+  }
+}
+
+@utility primary-foreground-on-inverse-primary {
+  color: var(--et-color-primary-foreground-on-inverse-primary);
+  @variant dark {
+    color: var(--et-color-primary-foreground-on-inverse-primary-dark);
+  }
+}
+
+@utility bg-primary-foreground-on-inverse-secondary {
+  background-color: var(--et-color-primary-foreground-on-inverse-secondary);
+  @variant dark {
+    background-color: var(
+      --et-color-primary-foreground-on-inverse-secondary-dark
+    );
+  }
+}
+
+@utility text-primary-foreground-on-inverse-secondary {
+  color: var(--et-color-primary-foreground-on-inverse-secondary);
+  @variant dark {
+    color: var(--et-color-primary-foreground-on-inverse-secondary-dark);
+  }
+}
+
+@utility border-primary-foreground-on-inverse-secondary {
+  border-color: var(--et-color-primary-foreground-on-inverse-secondary);
+  @variant dark {
+    border-color: var(--et-color-primary-foreground-on-inverse-secondary-dark);
+  }
+}
+
+@utility primary-foreground-on-inverse-secondary {
+  color: var(--et-color-primary-foreground-on-inverse-secondary);
+  @variant dark {
+    color: var(--et-color-primary-foreground-on-inverse-secondary-dark);
+  }
+}
+
+@utility bg-success-surface-base {
+  background-color: var(--et-color-success-surface-base);
+  @variant dark {
+    background-color: var(--et-color-success-surface-base-dark);
+  }
+}
+
+@utility text-success-surface-base {
+  color: var(--et-color-success-surface-base);
+  @variant dark {
+    color: var(--et-color-success-surface-base-dark);
+  }
+}
+
+@utility border-success-surface-base {
+  border-color: var(--et-color-success-surface-base);
+  @variant dark {
+    border-color: var(--et-color-success-surface-base-dark);
+  }
+}
+
+@utility success-surface-base {
+  background-color: var(--et-color-success-surface-base);
+  @variant dark {
+    background-color: var(--et-color-success-surface-base-dark);
+  }
+}
+
+@utility bg-success-surface-subtle {
+  background-color: var(--et-color-success-surface-subtle);
+  @variant dark {
+    background-color: var(--et-color-success-surface-subtle-dark);
+  }
+}
+
+@utility text-success-surface-subtle {
+  color: var(--et-color-success-surface-subtle);
+  @variant dark {
+    color: var(--et-color-success-surface-subtle-dark);
+  }
+}
+
+@utility border-success-surface-subtle {
+  border-color: var(--et-color-success-surface-subtle);
+  @variant dark {
+    border-color: var(--et-color-success-surface-subtle-dark);
+  }
+}
+
+@utility success-surface-subtle {
+  background-color: var(--et-color-success-surface-subtle);
+  @variant dark {
+    background-color: var(--et-color-success-surface-subtle-dark);
+  }
+}
+
+@utility bg-success-surface-elevated {
+  background-color: var(--et-color-success-surface-elevated);
+  @variant dark {
+    background-color: var(--et-color-success-surface-elevated-dark);
+  }
+}
+
+@utility text-success-surface-elevated {
+  color: var(--et-color-success-surface-elevated);
+  @variant dark {
+    color: var(--et-color-success-surface-elevated-dark);
+  }
+}
+
+@utility border-success-surface-elevated {
+  border-color: var(--et-color-success-surface-elevated);
+  @variant dark {
+    border-color: var(--et-color-success-surface-elevated-dark);
+  }
+}
+
+@utility success-surface-elevated {
+  background-color: var(--et-color-success-surface-elevated);
+  @variant dark {
+    background-color: var(--et-color-success-surface-elevated-dark);
+  }
+}
+
+@utility bg-success-surface-tonal {
+  background-color: var(--et-color-success-surface-tonal);
+  @variant dark {
+    background-color: var(--et-color-success-surface-tonal-dark);
+  }
+}
+
+@utility text-success-surface-tonal {
+  color: var(--et-color-success-surface-tonal);
+  @variant dark {
+    color: var(--et-color-success-surface-tonal-dark);
+  }
+}
+
+@utility border-success-surface-tonal {
+  border-color: var(--et-color-success-surface-tonal);
+  @variant dark {
+    border-color: var(--et-color-success-surface-tonal-dark);
+  }
+}
+
+@utility success-surface-tonal {
+  background-color: var(--et-color-success-surface-tonal);
+  @variant dark {
+    background-color: var(--et-color-success-surface-tonal-dark);
+  }
+}
+
+@utility bg-success-surface-filled {
+  background-color: var(--et-color-success-surface-filled);
+  @variant dark {
+    background-color: var(--et-color-success-surface-filled-dark);
+  }
+}
+
+@utility text-success-surface-filled {
+  color: var(--et-color-success-surface-filled);
+  @variant dark {
+    color: var(--et-color-success-surface-filled-dark);
+  }
+}
+
+@utility border-success-surface-filled {
+  border-color: var(--et-color-success-surface-filled);
+  @variant dark {
+    border-color: var(--et-color-success-surface-filled-dark);
+  }
+}
+
+@utility success-surface-filled {
+  background-color: var(--et-color-success-surface-filled);
+  @variant dark {
+    background-color: var(--et-color-success-surface-filled-dark);
+  }
+}
+
+@utility bg-success-border-subtle {
+  background-color: var(--et-color-success-border-subtle);
+  @variant dark {
+    background-color: var(--et-color-success-border-subtle-dark);
+  }
+}
+
+@utility text-success-border-subtle {
+  color: var(--et-color-success-border-subtle);
+  @variant dark {
+    color: var(--et-color-success-border-subtle-dark);
+  }
+}
+
+@utility border-success-border-subtle {
+  border-color: var(--et-color-success-border-subtle);
+  @variant dark {
+    border-color: var(--et-color-success-border-subtle-dark);
+  }
+}
+
+@utility success-border-subtle {
+  border-color: var(--et-color-success-border-subtle);
+  @variant dark {
+    border-color: var(--et-color-success-border-subtle-dark);
+  }
+}
+
+@utility bg-success-border-default {
+  background-color: var(--et-color-success-border-default);
+  @variant dark {
+    background-color: var(--et-color-success-border-default-dark);
+  }
+}
+
+@utility text-success-border-default {
+  color: var(--et-color-success-border-default);
+  @variant dark {
+    color: var(--et-color-success-border-default-dark);
+  }
+}
+
+@utility border-success-border-default {
+  border-color: var(--et-color-success-border-default);
+  @variant dark {
+    border-color: var(--et-color-success-border-default-dark);
+  }
+}
+
+@utility success-border-default {
+  border-color: var(--et-color-success-border-default);
+  @variant dark {
+    border-color: var(--et-color-success-border-default-dark);
+  }
+}
+
+@utility bg-success-foreground-default {
+  background-color: var(--et-color-success-foreground-default);
+  @variant dark {
+    background-color: var(--et-color-success-foreground-default-dark);
+  }
+}
+
+@utility text-success-foreground-default {
+  color: var(--et-color-success-foreground-default);
+  @variant dark {
+    color: var(--et-color-success-foreground-default-dark);
+  }
+}
+
+@utility border-success-foreground-default {
+  border-color: var(--et-color-success-foreground-default);
+  @variant dark {
+    border-color: var(--et-color-success-foreground-default-dark);
+  }
+}
+
+@utility success-foreground-default {
+  color: var(--et-color-success-foreground-default);
+  @variant dark {
+    color: var(--et-color-success-foreground-default-dark);
+  }
+}
+
+@utility bg-success-foreground-muted {
+  background-color: var(--et-color-success-foreground-muted);
+  @variant dark {
+    background-color: var(--et-color-success-foreground-muted-dark);
+  }
+}
+
+@utility text-success-foreground-muted {
+  color: var(--et-color-success-foreground-muted);
+  @variant dark {
+    color: var(--et-color-success-foreground-muted-dark);
+  }
+}
+
+@utility border-success-foreground-muted {
+  border-color: var(--et-color-success-foreground-muted);
+  @variant dark {
+    border-color: var(--et-color-success-foreground-muted-dark);
+  }
+}
+
+@utility success-foreground-muted {
+  color: var(--et-color-success-foreground-muted);
+  @variant dark {
+    color: var(--et-color-success-foreground-muted-dark);
+  }
+}
+
+@utility bg-success-foreground-placeholder {
+  background-color: var(--et-color-success-foreground-placeholder);
+  @variant dark {
+    background-color: var(--et-color-success-foreground-placeholder-dark);
+  }
+}
+
+@utility text-success-foreground-placeholder {
+  color: var(--et-color-success-foreground-placeholder);
+  @variant dark {
+    color: var(--et-color-success-foreground-placeholder-dark);
+  }
+}
+
+@utility border-success-foreground-placeholder {
+  border-color: var(--et-color-success-foreground-placeholder);
+  @variant dark {
+    border-color: var(--et-color-success-foreground-placeholder-dark);
+  }
+}
+
+@utility success-foreground-placeholder {
+  color: var(--et-color-success-foreground-placeholder);
+  @variant dark {
+    color: var(--et-color-success-foreground-placeholder-dark);
+  }
+}
+
+@utility bg-success-foreground-on-filled {
+  background-color: var(--et-color-success-foreground-on-filled);
+  @variant dark {
+    background-color: var(--et-color-success-foreground-on-filled-dark);
+  }
+}
+
+@utility text-success-foreground-on-filled {
+  color: var(--et-color-success-foreground-on-filled);
+  @variant dark {
+    color: var(--et-color-success-foreground-on-filled-dark);
+  }
+}
+
+@utility border-success-foreground-on-filled {
+  border-color: var(--et-color-success-foreground-on-filled);
+  @variant dark {
+    border-color: var(--et-color-success-foreground-on-filled-dark);
+  }
+}
+
+@utility success-foreground-on-filled {
+  color: var(--et-color-success-foreground-on-filled);
+  @variant dark {
+    color: var(--et-color-success-foreground-on-filled-dark);
+  }
+}
+
+@utility bg-success-foreground-on-tonal {
+  background-color: var(--et-color-success-foreground-on-tonal);
+  @variant dark {
+    background-color: var(--et-color-success-foreground-on-tonal-dark);
+  }
+}
+
+@utility text-success-foreground-on-tonal {
+  color: var(--et-color-success-foreground-on-tonal);
+  @variant dark {
+    color: var(--et-color-success-foreground-on-tonal-dark);
+  }
+}
+
+@utility border-success-foreground-on-tonal {
+  border-color: var(--et-color-success-foreground-on-tonal);
+  @variant dark {
+    border-color: var(--et-color-success-foreground-on-tonal-dark);
+  }
+}
+
+@utility success-foreground-on-tonal {
+  color: var(--et-color-success-foreground-on-tonal);
+  @variant dark {
+    color: var(--et-color-success-foreground-on-tonal-dark);
+  }
+}
+
+@utility bg-success-surface-inverse {
+  background-color: var(--et-color-success-surface-inverse);
+  @variant dark {
+    background-color: var(--et-color-success-surface-inverse-dark);
+  }
+}
+
+@utility text-success-surface-inverse {
+  color: var(--et-color-success-surface-inverse);
+  @variant dark {
+    color: var(--et-color-success-surface-inverse-dark);
+  }
+}
+
+@utility border-success-surface-inverse {
+  border-color: var(--et-color-success-surface-inverse);
+  @variant dark {
+    border-color: var(--et-color-success-surface-inverse-dark);
+  }
+}
+
+@utility success-surface-inverse {
+  background-color: var(--et-color-success-surface-inverse);
+  @variant dark {
+    background-color: var(--et-color-success-surface-inverse-dark);
+  }
+}
+
+@utility bg-success-foreground-on-inverse-primary {
+  background-color: var(--et-color-success-foreground-on-inverse-primary);
+  @variant dark {
+    background-color: var(
+      --et-color-success-foreground-on-inverse-primary-dark
+    );
+  }
+}
+
+@utility text-success-foreground-on-inverse-primary {
+  color: var(--et-color-success-foreground-on-inverse-primary);
+  @variant dark {
+    color: var(--et-color-success-foreground-on-inverse-primary-dark);
+  }
+}
+
+@utility border-success-foreground-on-inverse-primary {
+  border-color: var(--et-color-success-foreground-on-inverse-primary);
+  @variant dark {
+    border-color: var(--et-color-success-foreground-on-inverse-primary-dark);
+  }
+}
+
+@utility success-foreground-on-inverse-primary {
+  color: var(--et-color-success-foreground-on-inverse-primary);
+  @variant dark {
+    color: var(--et-color-success-foreground-on-inverse-primary-dark);
+  }
+}
+
+@utility bg-success-foreground-on-inverse-secondary {
+  background-color: var(--et-color-success-foreground-on-inverse-secondary);
+  @variant dark {
+    background-color: var(
+      --et-color-success-foreground-on-inverse-secondary-dark
+    );
+  }
+}
+
+@utility text-success-foreground-on-inverse-secondary {
+  color: var(--et-color-success-foreground-on-inverse-secondary);
+  @variant dark {
+    color: var(--et-color-success-foreground-on-inverse-secondary-dark);
+  }
+}
+
+@utility border-success-foreground-on-inverse-secondary {
+  border-color: var(--et-color-success-foreground-on-inverse-secondary);
+  @variant dark {
+    border-color: var(--et-color-success-foreground-on-inverse-secondary-dark);
+  }
+}
+
+@utility success-foreground-on-inverse-secondary {
+  color: var(--et-color-success-foreground-on-inverse-secondary);
+  @variant dark {
+    color: var(--et-color-success-foreground-on-inverse-secondary-dark);
+  }
+}
+
+@utility bg-warning-surface-base {
+  background-color: var(--et-color-warning-surface-base);
+  @variant dark {
+    background-color: var(--et-color-warning-surface-base-dark);
+  }
+}
+
+@utility text-warning-surface-base {
+  color: var(--et-color-warning-surface-base);
+  @variant dark {
+    color: var(--et-color-warning-surface-base-dark);
+  }
+}
+
+@utility border-warning-surface-base {
+  border-color: var(--et-color-warning-surface-base);
+  @variant dark {
+    border-color: var(--et-color-warning-surface-base-dark);
+  }
+}
+
+@utility warning-surface-base {
+  background-color: var(--et-color-warning-surface-base);
+  @variant dark {
+    background-color: var(--et-color-warning-surface-base-dark);
+  }
+}
+
+@utility bg-warning-surface-subtle {
+  background-color: var(--et-color-warning-surface-subtle);
+  @variant dark {
+    background-color: var(--et-color-warning-surface-subtle-dark);
+  }
+}
+
+@utility text-warning-surface-subtle {
+  color: var(--et-color-warning-surface-subtle);
+  @variant dark {
+    color: var(--et-color-warning-surface-subtle-dark);
+  }
+}
+
+@utility border-warning-surface-subtle {
+  border-color: var(--et-color-warning-surface-subtle);
+  @variant dark {
+    border-color: var(--et-color-warning-surface-subtle-dark);
+  }
+}
+
+@utility warning-surface-subtle {
+  background-color: var(--et-color-warning-surface-subtle);
+  @variant dark {
+    background-color: var(--et-color-warning-surface-subtle-dark);
+  }
+}
+
+@utility bg-warning-surface-elevated {
+  background-color: var(--et-color-warning-surface-elevated);
+  @variant dark {
+    background-color: var(--et-color-warning-surface-elevated-dark);
+  }
+}
+
+@utility text-warning-surface-elevated {
+  color: var(--et-color-warning-surface-elevated);
+  @variant dark {
+    color: var(--et-color-warning-surface-elevated-dark);
+  }
+}
+
+@utility border-warning-surface-elevated {
+  border-color: var(--et-color-warning-surface-elevated);
+  @variant dark {
+    border-color: var(--et-color-warning-surface-elevated-dark);
+  }
+}
+
+@utility warning-surface-elevated {
+  background-color: var(--et-color-warning-surface-elevated);
+  @variant dark {
+    background-color: var(--et-color-warning-surface-elevated-dark);
+  }
+}
+
+@utility bg-warning-surface-tonal {
+  background-color: var(--et-color-warning-surface-tonal);
+  @variant dark {
+    background-color: var(--et-color-warning-surface-tonal-dark);
+  }
+}
+
+@utility text-warning-surface-tonal {
+  color: var(--et-color-warning-surface-tonal);
+  @variant dark {
+    color: var(--et-color-warning-surface-tonal-dark);
+  }
+}
+
+@utility border-warning-surface-tonal {
+  border-color: var(--et-color-warning-surface-tonal);
+  @variant dark {
+    border-color: var(--et-color-warning-surface-tonal-dark);
+  }
+}
+
+@utility warning-surface-tonal {
+  background-color: var(--et-color-warning-surface-tonal);
+  @variant dark {
+    background-color: var(--et-color-warning-surface-tonal-dark);
+  }
+}
+
+@utility bg-warning-surface-filled {
+  background-color: var(--et-color-warning-surface-filled);
+  @variant dark {
+    background-color: var(--et-color-warning-surface-filled-dark);
+  }
+}
+
+@utility text-warning-surface-filled {
+  color: var(--et-color-warning-surface-filled);
+  @variant dark {
+    color: var(--et-color-warning-surface-filled-dark);
+  }
+}
+
+@utility border-warning-surface-filled {
+  border-color: var(--et-color-warning-surface-filled);
+  @variant dark {
+    border-color: var(--et-color-warning-surface-filled-dark);
+  }
+}
+
+@utility warning-surface-filled {
+  background-color: var(--et-color-warning-surface-filled);
+  @variant dark {
+    background-color: var(--et-color-warning-surface-filled-dark);
+  }
+}
+
+@utility bg-warning-border-subtle {
+  background-color: var(--et-color-warning-border-subtle);
+  @variant dark {
+    background-color: var(--et-color-warning-border-subtle-dark);
+  }
+}
+
+@utility text-warning-border-subtle {
+  color: var(--et-color-warning-border-subtle);
+  @variant dark {
+    color: var(--et-color-warning-border-subtle-dark);
+  }
+}
+
+@utility border-warning-border-subtle {
+  border-color: var(--et-color-warning-border-subtle);
+  @variant dark {
+    border-color: var(--et-color-warning-border-subtle-dark);
+  }
+}
+
+@utility warning-border-subtle {
+  border-color: var(--et-color-warning-border-subtle);
+  @variant dark {
+    border-color: var(--et-color-warning-border-subtle-dark);
+  }
+}
+
+@utility bg-warning-border-default {
+  background-color: var(--et-color-warning-border-default);
+  @variant dark {
+    background-color: var(--et-color-warning-border-default-dark);
+  }
+}
+
+@utility text-warning-border-default {
+  color: var(--et-color-warning-border-default);
+  @variant dark {
+    color: var(--et-color-warning-border-default-dark);
+  }
+}
+
+@utility border-warning-border-default {
+  border-color: var(--et-color-warning-border-default);
+  @variant dark {
+    border-color: var(--et-color-warning-border-default-dark);
+  }
+}
+
+@utility warning-border-default {
+  border-color: var(--et-color-warning-border-default);
+  @variant dark {
+    border-color: var(--et-color-warning-border-default-dark);
+  }
+}
+
+@utility bg-warning-foreground-default {
+  background-color: var(--et-color-warning-foreground-default);
+  @variant dark {
+    background-color: var(--et-color-warning-foreground-default-dark);
+  }
+}
+
+@utility text-warning-foreground-default {
+  color: var(--et-color-warning-foreground-default);
+  @variant dark {
+    color: var(--et-color-warning-foreground-default-dark);
+  }
+}
+
+@utility border-warning-foreground-default {
+  border-color: var(--et-color-warning-foreground-default);
+  @variant dark {
+    border-color: var(--et-color-warning-foreground-default-dark);
+  }
+}
+
+@utility warning-foreground-default {
+  color: var(--et-color-warning-foreground-default);
+  @variant dark {
+    color: var(--et-color-warning-foreground-default-dark);
+  }
+}
+
+@utility bg-warning-foreground-muted {
+  background-color: var(--et-color-warning-foreground-muted);
+  @variant dark {
+    background-color: var(--et-color-warning-foreground-muted-dark);
+  }
+}
+
+@utility text-warning-foreground-muted {
+  color: var(--et-color-warning-foreground-muted);
+  @variant dark {
+    color: var(--et-color-warning-foreground-muted-dark);
+  }
+}
+
+@utility border-warning-foreground-muted {
+  border-color: var(--et-color-warning-foreground-muted);
+  @variant dark {
+    border-color: var(--et-color-warning-foreground-muted-dark);
+  }
+}
+
+@utility warning-foreground-muted {
+  color: var(--et-color-warning-foreground-muted);
+  @variant dark {
+    color: var(--et-color-warning-foreground-muted-dark);
+  }
+}
+
+@utility bg-warning-foreground-placeholder {
+  background-color: var(--et-color-warning-foreground-placeholder);
+  @variant dark {
+    background-color: var(--et-color-warning-foreground-placeholder-dark);
+  }
+}
+
+@utility text-warning-foreground-placeholder {
+  color: var(--et-color-warning-foreground-placeholder);
+  @variant dark {
+    color: var(--et-color-warning-foreground-placeholder-dark);
+  }
+}
+
+@utility border-warning-foreground-placeholder {
+  border-color: var(--et-color-warning-foreground-placeholder);
+  @variant dark {
+    border-color: var(--et-color-warning-foreground-placeholder-dark);
+  }
+}
+
+@utility warning-foreground-placeholder {
+  color: var(--et-color-warning-foreground-placeholder);
+  @variant dark {
+    color: var(--et-color-warning-foreground-placeholder-dark);
+  }
+}
+
+@utility bg-warning-foreground-on-filled {
+  background-color: var(--et-color-warning-foreground-on-filled);
+  @variant dark {
+    background-color: var(--et-color-warning-foreground-on-filled-dark);
+  }
+}
+
+@utility text-warning-foreground-on-filled {
+  color: var(--et-color-warning-foreground-on-filled);
+  @variant dark {
+    color: var(--et-color-warning-foreground-on-filled-dark);
+  }
+}
+
+@utility border-warning-foreground-on-filled {
+  border-color: var(--et-color-warning-foreground-on-filled);
+  @variant dark {
+    border-color: var(--et-color-warning-foreground-on-filled-dark);
+  }
+}
+
+@utility warning-foreground-on-filled {
+  color: var(--et-color-warning-foreground-on-filled);
+  @variant dark {
+    color: var(--et-color-warning-foreground-on-filled-dark);
+  }
+}
+
+@utility bg-warning-foreground-on-tonal {
+  background-color: var(--et-color-warning-foreground-on-tonal);
+  @variant dark {
+    background-color: var(--et-color-warning-foreground-on-tonal-dark);
+  }
+}
+
+@utility text-warning-foreground-on-tonal {
+  color: var(--et-color-warning-foreground-on-tonal);
+  @variant dark {
+    color: var(--et-color-warning-foreground-on-tonal-dark);
+  }
+}
+
+@utility border-warning-foreground-on-tonal {
+  border-color: var(--et-color-warning-foreground-on-tonal);
+  @variant dark {
+    border-color: var(--et-color-warning-foreground-on-tonal-dark);
+  }
+}
+
+@utility warning-foreground-on-tonal {
+  color: var(--et-color-warning-foreground-on-tonal);
+  @variant dark {
+    color: var(--et-color-warning-foreground-on-tonal-dark);
+  }
+}
+
+@utility bg-warning-surface-inverse {
+  background-color: var(--et-color-warning-surface-inverse);
+  @variant dark {
+    background-color: var(--et-color-warning-surface-inverse-dark);
+  }
+}
+
+@utility text-warning-surface-inverse {
+  color: var(--et-color-warning-surface-inverse);
+  @variant dark {
+    color: var(--et-color-warning-surface-inverse-dark);
+  }
+}
+
+@utility border-warning-surface-inverse {
+  border-color: var(--et-color-warning-surface-inverse);
+  @variant dark {
+    border-color: var(--et-color-warning-surface-inverse-dark);
+  }
+}
+
+@utility warning-surface-inverse {
+  background-color: var(--et-color-warning-surface-inverse);
+  @variant dark {
+    background-color: var(--et-color-warning-surface-inverse-dark);
+  }
+}
+
+@utility bg-warning-foreground-on-inverse-primary {
+  background-color: var(--et-color-warning-foreground-on-inverse-primary);
+  @variant dark {
+    background-color: var(
+      --et-color-warning-foreground-on-inverse-primary-dark
+    );
+  }
+}
+
+@utility text-warning-foreground-on-inverse-primary {
+  color: var(--et-color-warning-foreground-on-inverse-primary);
+  @variant dark {
+    color: var(--et-color-warning-foreground-on-inverse-primary-dark);
+  }
+}
+
+@utility border-warning-foreground-on-inverse-primary {
+  border-color: var(--et-color-warning-foreground-on-inverse-primary);
+  @variant dark {
+    border-color: var(--et-color-warning-foreground-on-inverse-primary-dark);
+  }
+}
+
+@utility warning-foreground-on-inverse-primary {
+  color: var(--et-color-warning-foreground-on-inverse-primary);
+  @variant dark {
+    color: var(--et-color-warning-foreground-on-inverse-primary-dark);
+  }
+}
+
+@utility bg-warning-foreground-on-inverse-secondary {
+  background-color: var(--et-color-warning-foreground-on-inverse-secondary);
+  @variant dark {
+    background-color: var(
+      --et-color-warning-foreground-on-inverse-secondary-dark
+    );
+  }
+}
+
+@utility text-warning-foreground-on-inverse-secondary {
+  color: var(--et-color-warning-foreground-on-inverse-secondary);
+  @variant dark {
+    color: var(--et-color-warning-foreground-on-inverse-secondary-dark);
+  }
+}
+
+@utility border-warning-foreground-on-inverse-secondary {
+  border-color: var(--et-color-warning-foreground-on-inverse-secondary);
+  @variant dark {
+    border-color: var(--et-color-warning-foreground-on-inverse-secondary-dark);
+  }
+}
+
+@utility warning-foreground-on-inverse-secondary {
+  color: var(--et-color-warning-foreground-on-inverse-secondary);
+  @variant dark {
+    color: var(--et-color-warning-foreground-on-inverse-secondary-dark);
+  }
+}
+
+@utility bg-error-surface-base {
+  background-color: var(--et-color-error-surface-base);
+  @variant dark {
+    background-color: var(--et-color-error-surface-base-dark);
+  }
+}
+
+@utility text-error-surface-base {
+  color: var(--et-color-error-surface-base);
+  @variant dark {
+    color: var(--et-color-error-surface-base-dark);
+  }
+}
+
+@utility border-error-surface-base {
+  border-color: var(--et-color-error-surface-base);
+  @variant dark {
+    border-color: var(--et-color-error-surface-base-dark);
+  }
+}
+
+@utility error-surface-base {
+  background-color: var(--et-color-error-surface-base);
+  @variant dark {
+    background-color: var(--et-color-error-surface-base-dark);
+  }
+}
+
+@utility bg-error-surface-subtle {
+  background-color: var(--et-color-error-surface-subtle);
+  @variant dark {
+    background-color: var(--et-color-error-surface-subtle-dark);
+  }
+}
+
+@utility text-error-surface-subtle {
+  color: var(--et-color-error-surface-subtle);
+  @variant dark {
+    color: var(--et-color-error-surface-subtle-dark);
+  }
+}
+
+@utility border-error-surface-subtle {
+  border-color: var(--et-color-error-surface-subtle);
+  @variant dark {
+    border-color: var(--et-color-error-surface-subtle-dark);
+  }
+}
+
+@utility error-surface-subtle {
+  background-color: var(--et-color-error-surface-subtle);
+  @variant dark {
+    background-color: var(--et-color-error-surface-subtle-dark);
+  }
+}
+
+@utility bg-error-surface-elevated {
+  background-color: var(--et-color-error-surface-elevated);
+  @variant dark {
+    background-color: var(--et-color-error-surface-elevated-dark);
+  }
+}
+
+@utility text-error-surface-elevated {
+  color: var(--et-color-error-surface-elevated);
+  @variant dark {
+    color: var(--et-color-error-surface-elevated-dark);
+  }
+}
+
+@utility border-error-surface-elevated {
+  border-color: var(--et-color-error-surface-elevated);
+  @variant dark {
+    border-color: var(--et-color-error-surface-elevated-dark);
+  }
+}
+
+@utility error-surface-elevated {
+  background-color: var(--et-color-error-surface-elevated);
+  @variant dark {
+    background-color: var(--et-color-error-surface-elevated-dark);
+  }
+}
+
+@utility bg-error-surface-tonal {
+  background-color: var(--et-color-error-surface-tonal);
+  @variant dark {
+    background-color: var(--et-color-error-surface-tonal-dark);
+  }
+}
+
+@utility text-error-surface-tonal {
+  color: var(--et-color-error-surface-tonal);
+  @variant dark {
+    color: var(--et-color-error-surface-tonal-dark);
+  }
+}
+
+@utility border-error-surface-tonal {
+  border-color: var(--et-color-error-surface-tonal);
+  @variant dark {
+    border-color: var(--et-color-error-surface-tonal-dark);
+  }
+}
+
+@utility error-surface-tonal {
+  background-color: var(--et-color-error-surface-tonal);
+  @variant dark {
+    background-color: var(--et-color-error-surface-tonal-dark);
+  }
+}
+
+@utility bg-error-surface-filled {
+  background-color: var(--et-color-error-surface-filled);
+  @variant dark {
+    background-color: var(--et-color-error-surface-filled-dark);
+  }
+}
+
+@utility text-error-surface-filled {
+  color: var(--et-color-error-surface-filled);
+  @variant dark {
+    color: var(--et-color-error-surface-filled-dark);
+  }
+}
+
+@utility border-error-surface-filled {
+  border-color: var(--et-color-error-surface-filled);
+  @variant dark {
+    border-color: var(--et-color-error-surface-filled-dark);
+  }
+}
+
+@utility error-surface-filled {
+  background-color: var(--et-color-error-surface-filled);
+  @variant dark {
+    background-color: var(--et-color-error-surface-filled-dark);
+  }
+}
+
+@utility bg-error-border-subtle {
+  background-color: var(--et-color-error-border-subtle);
+  @variant dark {
+    background-color: var(--et-color-error-border-subtle-dark);
+  }
+}
+
+@utility text-error-border-subtle {
+  color: var(--et-color-error-border-subtle);
+  @variant dark {
+    color: var(--et-color-error-border-subtle-dark);
+  }
+}
+
+@utility border-error-border-subtle {
+  border-color: var(--et-color-error-border-subtle);
+  @variant dark {
+    border-color: var(--et-color-error-border-subtle-dark);
+  }
+}
+
+@utility error-border-subtle {
+  border-color: var(--et-color-error-border-subtle);
+  @variant dark {
+    border-color: var(--et-color-error-border-subtle-dark);
+  }
+}
+
+@utility bg-error-border-default {
+  background-color: var(--et-color-error-border-default);
+  @variant dark {
+    background-color: var(--et-color-error-border-default-dark);
+  }
+}
+
+@utility text-error-border-default {
+  color: var(--et-color-error-border-default);
+  @variant dark {
+    color: var(--et-color-error-border-default-dark);
+  }
+}
+
+@utility border-error-border-default {
+  border-color: var(--et-color-error-border-default);
+  @variant dark {
+    border-color: var(--et-color-error-border-default-dark);
+  }
+}
+
+@utility error-border-default {
+  border-color: var(--et-color-error-border-default);
+  @variant dark {
+    border-color: var(--et-color-error-border-default-dark);
+  }
+}
+
+@utility bg-error-foreground-default {
+  background-color: var(--et-color-error-foreground-default);
+  @variant dark {
+    background-color: var(--et-color-error-foreground-default-dark);
+  }
+}
+
+@utility text-error-foreground-default {
+  color: var(--et-color-error-foreground-default);
+  @variant dark {
+    color: var(--et-color-error-foreground-default-dark);
+  }
+}
+
+@utility border-error-foreground-default {
+  border-color: var(--et-color-error-foreground-default);
+  @variant dark {
+    border-color: var(--et-color-error-foreground-default-dark);
+  }
+}
+
+@utility error-foreground-default {
+  color: var(--et-color-error-foreground-default);
+  @variant dark {
+    color: var(--et-color-error-foreground-default-dark);
+  }
+}
+
+@utility bg-error-foreground-muted {
+  background-color: var(--et-color-error-foreground-muted);
+  @variant dark {
+    background-color: var(--et-color-error-foreground-muted-dark);
+  }
+}
+
+@utility text-error-foreground-muted {
+  color: var(--et-color-error-foreground-muted);
+  @variant dark {
+    color: var(--et-color-error-foreground-muted-dark);
+  }
+}
+
+@utility border-error-foreground-muted {
+  border-color: var(--et-color-error-foreground-muted);
+  @variant dark {
+    border-color: var(--et-color-error-foreground-muted-dark);
+  }
+}
+
+@utility error-foreground-muted {
+  color: var(--et-color-error-foreground-muted);
+  @variant dark {
+    color: var(--et-color-error-foreground-muted-dark);
+  }
+}
+
+@utility bg-error-foreground-placeholder {
+  background-color: var(--et-color-error-foreground-placeholder);
+  @variant dark {
+    background-color: var(--et-color-error-foreground-placeholder-dark);
+  }
+}
+
+@utility text-error-foreground-placeholder {
+  color: var(--et-color-error-foreground-placeholder);
+  @variant dark {
+    color: var(--et-color-error-foreground-placeholder-dark);
+  }
+}
+
+@utility border-error-foreground-placeholder {
+  border-color: var(--et-color-error-foreground-placeholder);
+  @variant dark {
+    border-color: var(--et-color-error-foreground-placeholder-dark);
+  }
+}
+
+@utility error-foreground-placeholder {
+  color: var(--et-color-error-foreground-placeholder);
+  @variant dark {
+    color: var(--et-color-error-foreground-placeholder-dark);
+  }
+}
+
+@utility bg-error-foreground-on-filled {
+  background-color: var(--et-color-error-foreground-on-filled);
+  @variant dark {
+    background-color: var(--et-color-error-foreground-on-filled-dark);
+  }
+}
+
+@utility text-error-foreground-on-filled {
+  color: var(--et-color-error-foreground-on-filled);
+  @variant dark {
+    color: var(--et-color-error-foreground-on-filled-dark);
+  }
+}
+
+@utility border-error-foreground-on-filled {
+  border-color: var(--et-color-error-foreground-on-filled);
+  @variant dark {
+    border-color: var(--et-color-error-foreground-on-filled-dark);
+  }
+}
+
+@utility error-foreground-on-filled {
+  color: var(--et-color-error-foreground-on-filled);
+  @variant dark {
+    color: var(--et-color-error-foreground-on-filled-dark);
+  }
+}
+
+@utility bg-error-foreground-on-tonal {
+  background-color: var(--et-color-error-foreground-on-tonal);
+  @variant dark {
+    background-color: var(--et-color-error-foreground-on-tonal-dark);
+  }
+}
+
+@utility text-error-foreground-on-tonal {
+  color: var(--et-color-error-foreground-on-tonal);
+  @variant dark {
+    color: var(--et-color-error-foreground-on-tonal-dark);
+  }
+}
+
+@utility border-error-foreground-on-tonal {
+  border-color: var(--et-color-error-foreground-on-tonal);
+  @variant dark {
+    border-color: var(--et-color-error-foreground-on-tonal-dark);
+  }
+}
+
+@utility error-foreground-on-tonal {
+  color: var(--et-color-error-foreground-on-tonal);
+  @variant dark {
+    color: var(--et-color-error-foreground-on-tonal-dark);
+  }
+}
+
+@utility bg-error-surface-inverse {
+  background-color: var(--et-color-error-surface-inverse);
+  @variant dark {
+    background-color: var(--et-color-error-surface-inverse-dark);
+  }
+}
+
+@utility text-error-surface-inverse {
+  color: var(--et-color-error-surface-inverse);
+  @variant dark {
+    color: var(--et-color-error-surface-inverse-dark);
+  }
+}
+
+@utility border-error-surface-inverse {
+  border-color: var(--et-color-error-surface-inverse);
+  @variant dark {
+    border-color: var(--et-color-error-surface-inverse-dark);
+  }
+}
+
+@utility error-surface-inverse {
+  background-color: var(--et-color-error-surface-inverse);
+  @variant dark {
+    background-color: var(--et-color-error-surface-inverse-dark);
+  }
+}
+
+@utility bg-error-foreground-on-inverse-primary {
+  background-color: var(--et-color-error-foreground-on-inverse-primary);
+  @variant dark {
+    background-color: var(--et-color-error-foreground-on-inverse-primary-dark);
+  }
+}
+
+@utility text-error-foreground-on-inverse-primary {
+  color: var(--et-color-error-foreground-on-inverse-primary);
+  @variant dark {
+    color: var(--et-color-error-foreground-on-inverse-primary-dark);
+  }
+}
+
+@utility border-error-foreground-on-inverse-primary {
+  border-color: var(--et-color-error-foreground-on-inverse-primary);
+  @variant dark {
+    border-color: var(--et-color-error-foreground-on-inverse-primary-dark);
+  }
+}
+
+@utility error-foreground-on-inverse-primary {
+  color: var(--et-color-error-foreground-on-inverse-primary);
+  @variant dark {
+    color: var(--et-color-error-foreground-on-inverse-primary-dark);
+  }
+}
+
+@utility bg-error-foreground-on-inverse-secondary {
+  background-color: var(--et-color-error-foreground-on-inverse-secondary);
+  @variant dark {
+    background-color: var(
+      --et-color-error-foreground-on-inverse-secondary-dark
+    );
+  }
+}
+
+@utility text-error-foreground-on-inverse-secondary {
+  color: var(--et-color-error-foreground-on-inverse-secondary);
+  @variant dark {
+    color: var(--et-color-error-foreground-on-inverse-secondary-dark);
+  }
+}
+
+@utility border-error-foreground-on-inverse-secondary {
+  border-color: var(--et-color-error-foreground-on-inverse-secondary);
+  @variant dark {
+    border-color: var(--et-color-error-foreground-on-inverse-secondary-dark);
+  }
+}
+
+@utility error-foreground-on-inverse-secondary {
+  color: var(--et-color-error-foreground-on-inverse-secondary);
+  @variant dark {
+    color: var(--et-color-error-foreground-on-inverse-secondary-dark);
+  }
+}

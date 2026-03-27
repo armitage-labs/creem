@@ -1,0 +1,28 @@
+{
+  "compilerOptions": {
+    "target": "ESNext",
+    "lib": ["DOM", "DOM.Iterable", "ESNext"],
+    "skipLibCheck": true,
+    "allowSyntheticDefaultImports": true,
+    "strict": true,
+    "forceConsistentCasingInFileNames": true,
+    "module": "ESNext",
+    "moduleResolution": "Bundler",
+    "resolveJsonModule": true,
+    "isolatedModules": true,
+    "jsx": "react-jsx",
+    "paths": {
+      "@/*": ["./src/*"],
+      "@mmailaender/convex-creem": ["../src/client/index.ts"],
+      "@mmailaender/convex-creem/react": ["../src/react/index.tsx"],
+      "@mmailaender/convex-creem/convex.config": [
+        "../src/component/convex.config.ts"
+      ],
+      "@mmailaender/convex-creem/_generated/component.js": [
+        "../src/component/_generated/component.ts"
+      ]
+    },
+    "noEmit": true
+  },
+  "include": ["./src", "vite.config.ts"]
+}

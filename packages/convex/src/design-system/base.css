@@ -1,0 +1,27 @@
+@layer base {
+  html {
+    scroll-behavior: smooth;
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    html {
+      scroll-behavior: auto;
+    }
+  }
+
+  body {
+    background-color: var(--et-color-surface-subtle);
+    color: var(--et-color-foreground-default);
+    font-family: var(--et-typeface-plain);
+    font-weight: var(--et-font-weight-plain);
+    font-synthesis: none;
+    font-size: var(--et-type-body-l-size-desktop);
+    line-height: var(--et-type-body-l-line-height-desktop);
+    letter-spacing: var(--et-type-body-l-tracking-desktop);
+
+    @variant dark {
+      background-color: var(--et-color-surface-subtle-dark);
+      color: var(--et-color-foreground-default-dark);
+    }
+  }
+}

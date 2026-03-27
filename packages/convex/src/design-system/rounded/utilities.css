@@ -1,0 +1,37 @@
+/* Components: Rounded */
+
+@layer base {
+  :root {
+    --et-radius-token-rounded-sm: 0.375rem;
+    --et-radius-token-rounded: 0.5rem;
+    --et-radius-token-rounded-lg: 0.75rem;
+    --et-radius-token-rounded-xl: 1rem;
+    --et-radius-token-rounded-full: 9999px;
+
+    --et-radius-s: var(--et-radius-token-rounded-sm);
+    --et-radius-m: var(--et-radius-token-rounded);
+    --et-radius-l: var(--et-radius-token-rounded-lg);
+    --et-radius-xl: var(--et-radius-token-rounded-xl);
+    --et-radius-full: var(--et-radius-token-rounded-full);
+  }
+}
+
+@utility radius-s {
+  border-radius: var(--et-radius-s);
+}
+
+@utility radius-m {
+  border-radius: var(--et-radius-m);
+}
+
+@utility radius-l {
+  border-radius: var(--et-radius-l);
+}
+
+@utility radius-xl {
+  border-radius: var(--et-radius-xl);
+}
+
+@utility radius-full {
+  border-radius: var(--et-radius-full);
+}

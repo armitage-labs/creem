@@ -1,0 +1,6 @@
+/* IntelliSense-only entrypoint.
+   NOT used in any build — exists solely so the Tailwind CSS IDE plugin
+   can discover @utility classes from the design-system when editing
+   files inside src/svelte/.  */
+@import "tailwindcss";
+@import "./library.css";

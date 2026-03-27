@@ -1,0 +1,256 @@
+/* Components: Buttons */
+
+@utility button-filled {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.375rem;
+  height: 2rem;
+  padding-inline: 12px;
+  border-radius: var(--et-radius-m);
+  font-family: var(--et-typeface-plain);
+  font-size: var(--et-type-button-m-size-desktop);
+  line-height: var(--et-type-button-m-line-height-desktop);
+  letter-spacing: var(--et-type-button-m-tracking-desktop);
+  font-weight: var(--et-type-button-m-font-weight);
+  text-transform: none;
+  text-decoration: none;
+  overflow: hidden;
+  cursor: pointer;
+  user-select: none;
+
+  background-color: var(--et-color-surface-filled);
+  color: var(--et-color-foreground-on-filled);
+
+  &::after {
+    content: "";
+    position: absolute;
+    inset: 0;
+    background: color-mix(
+      in oklab,
+      var(--et-color-foreground-default) 0%,
+      transparent
+    );
+    transition: background-color 120ms ease;
+    pointer-events: none;
+  }
+
+  &:hover::after {
+    background: color-mix(
+      in oklab,
+      var(--et-color-foreground-default) 8%,
+      transparent
+    );
+  }
+
+  &:active::after {
+    background: color-mix(
+      in oklab,
+      var(--et-color-foreground-default) 10%,
+      transparent
+    );
+  }
+
+  @variant dark {
+    background-color: var(--et-color-surface-filled-dark);
+    color: var(--et-color-foreground-on-filled-dark);
+
+    &::after {
+      background: color-mix(
+        in oklab,
+        var(--et-color-foreground-default-dark) 0%,
+        transparent
+      );
+    }
+
+    &:hover::after {
+      background: color-mix(
+        in oklab,
+        var(--et-color-foreground-default-dark) 8%,
+        transparent
+      );
+    }
+
+    &:active::after {
+      background: color-mix(
+        in oklab,
+        var(--et-color-foreground-default-dark) 10%,
+        transparent
+      );
+    }
+  }
+}
+
+@utility button-faded {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.375rem;
+  min-height: 2rem;
+  padding-inline: 12px;
+  border-radius: var(--et-radius-m);
+  font-family: var(--et-typeface-plain);
+  font-size: var(--et-type-button-m-size-desktop);
+  line-height: var(--et-type-button-m-line-height-desktop);
+  letter-spacing: var(--et-type-button-m-tracking-desktop);
+  font-weight: var(--et-type-button-m-font-weight);
+  text-transform: none;
+  text-decoration: none;
+  overflow: hidden;
+  cursor: pointer;
+  user-select: none;
+
+  background-color: var(--et-color-surface-tonal);
+  color: var(--et-color-foreground-on-tonal);
+
+  &::after {
+    content: "";
+    position: absolute;
+    inset: 0;
+    background: color-mix(
+      in oklab,
+      var(--et-color-foreground-default) 0%,
+      transparent
+    );
+    transition: background-color 120ms ease;
+    pointer-events: none;
+  }
+
+  &:hover::after {
+    background: color-mix(
+      in oklab,
+      var(--et-color-foreground-default) 8%,
+      transparent
+    );
+  }
+
+  &:active::after {
+    background: color-mix(
+      in oklab,
+      var(--et-color-foreground-default) 10%,
+      transparent
+    );
+  }
+
+  @variant dark {
+    background-color: var(--et-color-surface-tonal-dark);
+    color: var(--et-color-foreground-on-tonal-dark);
+
+    &::after {
+      background: color-mix(
+        in oklab,
+        var(--et-color-foreground-default-dark) 0%,
+        transparent
+      );
+    }
+
+    &:hover::after {
+      background: color-mix(
+        in oklab,
+        var(--et-color-foreground-default-dark) 8%,
+        transparent
+      );
+    }
+
+    &:active::after {
+      background: color-mix(
+        in oklab,
+        var(--et-color-foreground-default-dark) 10%,
+        transparent
+      );
+    }
+  }
+}
+
+@utility button-outline {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.375rem;
+  min-height: 2rem;
+  padding-inline: 12px;
+  border-radius: var(--et-radius-m);
+  border-width: 1px;
+  border-style: solid;
+  border-color: var(--et-color-border-default);
+  font-family: var(--et-typeface-plain);
+  font-size: var(--et-type-button-m-size-desktop);
+  line-height: var(--et-type-button-m-line-height-desktop);
+  letter-spacing: var(--et-type-button-m-tracking-desktop);
+  font-weight: var(--et-type-button-m-font-weight);
+  text-transform: none;
+  text-decoration: none;
+  overflow: hidden;
+  cursor: pointer;
+  user-select: none;
+
+  background-color: transparent;
+  color: var(--et-color-foreground-default);
+
+  &::after {
+    content: "";
+    position: absolute;
+    inset: 0;
+    background: color-mix(
+      in oklab,
+      var(--et-color-foreground-default) 0%,
+      transparent
+    );
+    transition: background-color 120ms ease;
+    pointer-events: none;
+  }
+
+  &:hover::after {
+    background: color-mix(
+      in oklab,
+      var(--et-color-foreground-default) 8%,
+      transparent
+    );
+  }
+
+  &:active::after {
+    background: color-mix(
+      in oklab,
+      var(--et-color-foreground-default) 10%,
+      transparent
+    );
+  }
+
+  @variant dark {
+    border-color: var(--et-color-border-default-dark);
+    color: var(--et-color-foreground-default-dark);
+
+    &::after {
+      background: color-mix(
+        in oklab,
+        var(--et-color-foreground-default-dark) 0%,
+        transparent
+      );
+    }
+
+    &:hover::after {
+      background: color-mix(
+        in oklab,
+        var(--et-color-foreground-default-dark) 8%,
+        transparent
+      );
+    }
+
+    &:active::after {
+      background: color-mix(
+        in oklab,
+        var(--et-color-foreground-default-dark) 10%,
+        transparent
+      );
+    }
+  }
+}
+
+@utility button-icon {
+  width: 2rem;
+  height: 2rem;
+  padding: 0;
+}

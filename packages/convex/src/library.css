@@ -1,0 +1,20 @@
+/* @mmailaender/convex-creem — importable design-system + component CSS.
+   Consumers import this alongside Tailwind to get full design-system support:
+
+     @import "tailwindcss";
+     @import "@mmailaender/convex-creem/styles";
+
+   This file bundles:
+   1. Design-system tokens, base styles, and @utility definitions
+   2. @source directives so Tailwind scans the library's own component files
+
+   The @source globs below resolve relative to THIS file (src/), keeping them
+   inside the same directory tree as the components. This is the Tailwind v4
+   recommended pattern for libraries — it works in both dev (HMR) and
+   production builds, unlike @source paths that traverse above the consumer's
+   project root with ../../.                                                 */
+
+@import "./design-system/index.css";
+
+@source "./svelte/**/*.{svelte,ts}";
+@source "./react/**/*.{tsx,ts}";

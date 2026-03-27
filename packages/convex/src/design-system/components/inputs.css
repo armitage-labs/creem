@@ -1,0 +1,94 @@
+/* Components: Inputs */
+
+@utility input-base {
+  display: inline-flex;
+  align-items: center;
+  block-size: 2rem;
+  padding-inline: 12px;
+  border-radius: var(--et-radius-m);
+  font-family: var(--et-typeface-plain);
+  font-size: var(--et-type-label-m-size-desktop);
+  line-height: 1.25rem;
+  letter-spacing: var(--et-type-label-m-tracking-desktop);
+  font-weight: 500;
+  color: var(--et-color-foreground-default);
+  background-color: transparent;
+  outline: none;
+
+  &::placeholder {
+    color: var(--et-color-foreground-placeholder);
+  }
+
+  &:focus-visible {
+    outline: none;
+    box-shadow: 0 0 0 2px var(--et-color-border-default);
+  }
+
+  &:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+  }
+
+  @variant dark {
+    color: var(--et-color-foreground-default-dark);
+
+    &::placeholder {
+      color: var(--et-color-foreground-placeholder-dark);
+    }
+
+    &:focus-visible {
+      box-shadow: 0 0 0 2px var(--et-color-border-default-dark);
+    }
+  }
+}
+
+@utility input-variant-default {
+  border: 1px solid var(--et-color-border-default);
+
+  @variant dark {
+    border-color: var(--et-color-border-default-dark);
+  }
+}
+
+@utility input-variant-ghost {
+  border: none;
+}
+
+/* Precomposed classes for direct markup usage, e.g. <input class="input-default" /> */
+@utility input-default {
+  @apply input-base input-variant-default;
+}
+
+@utility input-ghost {
+  @apply input-base input-variant-ghost;
+}
+
+@utility number-input {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.25rem;
+  padding-inline: 0.25rem;
+}
+
+@utility number-input-value {
+  inline-size: 11.0625rem;
+  text-align: center;
+}
+
+@utility number-input-value-compact {
+  inline-size: auto;
+  min-inline-size: 1ch;
+  padding-inline: 0;
+  text-align: center;
+}
+
+@utility input-no-spinner {
+  -moz-appearance: textfield;
+  appearance: textfield;
+
+  &::-webkit-outer-spin-button,
+  &::-webkit-inner-spin-button {
+    -webkit-appearance: none;
+    margin: 0;
+  }
+}

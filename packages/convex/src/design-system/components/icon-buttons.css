@@ -1,0 +1,115 @@
+/* Components: Icon Buttons */
+
+@utility icon-button-base {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: var(--et-radius-m);
+  cursor: pointer;
+  user-select: none;
+  overflow: hidden;
+  text-decoration: none;
+  color: inherit;
+  background-color: transparent;
+
+  &::after {
+    content: "";
+    position: absolute;
+    inset: 0;
+    border-radius: inherit;
+    background: color-mix(
+      in oklab,
+      var(--et-color-foreground-default) 0%,
+      transparent
+    );
+    transition: background-color 120ms ease;
+    pointer-events: none;
+  }
+
+  &:hover::after {
+    background: color-mix(
+      in oklab,
+      var(--et-color-foreground-default) 8%,
+      transparent
+    );
+  }
+
+  &:active::after {
+    background: color-mix(
+      in oklab,
+      var(--et-color-foreground-default) 10%,
+      transparent
+    );
+  }
+
+  &:focus-visible {
+    outline: none;
+    box-shadow: 0 0 0 2px var(--et-color-border-default);
+  }
+
+  &:disabled,
+  &[aria-disabled="true"] {
+    cursor: not-allowed;
+    opacity: 0.5;
+  }
+
+  @variant dark {
+    &::after {
+      background: color-mix(
+        in oklab,
+        var(--et-color-foreground-default-dark) 0%,
+        transparent
+      );
+    }
+
+    &:hover::after {
+      background: color-mix(
+        in oklab,
+        var(--et-color-foreground-default-dark) 8%,
+        transparent
+      );
+    }
+
+    &:active::after {
+      background: color-mix(
+        in oklab,
+        var(--et-color-foreground-default-dark) 10%,
+        transparent
+      );
+    }
+  }
+}
+
+@utility icon-button-size-sm {
+  inline-size: 1.5rem;
+  block-size: 1.5rem;
+}
+
+@utility icon-button-variant-tonal {
+  color: var(--et-color-foreground-on-tonal);
+  background-color: var(--et-color-surface-tonal);
+
+  @variant dark {
+    color: var(--et-color-foreground-on-tonal-dark);
+    background-color: var(--et-color-surface-tonal-dark);
+  }
+}
+
+@utility icon-button-variant-ghost {
+  color: var(--et-color-foreground-muted);
+  background-color: transparent;
+
+  @variant dark {
+    color: var(--et-color-foreground-muted-dark);
+  }
+}
+
+/* Precomposed classes for direct markup usage. */
+@utility icon-button-sm {
+  @apply icon-button-base icon-button-size-sm icon-button-variant-tonal;
+}
+
+@utility icon-button-ghost-sm {
+  @apply icon-button-base icon-button-size-sm icon-button-variant-ghost;
+}

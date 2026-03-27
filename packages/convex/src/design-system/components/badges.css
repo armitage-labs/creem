@@ -1,0 +1,65 @@
+/* Components: Badges */
+
+@utility badge {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  height: 1.75rem;
+  padding-inline: 12px;
+  padding-block: 8px;
+  border-radius: var(--et-radius-full);
+  font-family: var(--et-typeface-plain);
+  font-size: var(--et-type-label-m-size-desktop);
+  line-height: var(--et-type-label-m-line-height-desktop);
+  letter-spacing: var(--et-type-label-m-tracking-desktop);
+  font-weight: 500;
+  white-space: nowrap;
+}
+
+@utility badge-s {
+  height: 1.25rem;
+  padding-inline: 8px;
+  padding-block: 0;
+  font-size: var(--et-type-label-s-size-desktop);
+  line-height: var(--et-type-label-s-line-height-desktop);
+  letter-spacing: var(--et-type-label-s-tracking-desktop);
+}
+
+@utility badge-neutral-faded {
+  background-color: var(--et-color-surface-tonal);
+  color: var(--et-color-foreground-muted);
+  @variant dark {
+    background-color: var(--et-color-surface-tonal-dark);
+    color: var(--et-color-foreground-muted-dark);
+  }
+}
+
+@utility badge-primary-filled {
+  background-color: var(--et-color-primary-surface-filled);
+  color: var(--et-color-primary-foreground-on-filled);
+  box-shadow:
+    0px 4px 8px 0px rgba(0, 0, 0, 0),
+    0px 2.821px 5.642px 0px rgba(0, 0, 0, 0.04),
+    0px 1.179px 2.358px 0px rgba(0, 0, 0, 0.08);
+  @variant dark {
+    background-color: var(--et-color-primary-surface-filled-dark);
+    color: var(--et-color-primary-foreground-on-filled-dark);
+  }
+}
+
+/* Precomposed badge classes for direct markup usage, e.g. <span class="badge-filled-sm"> */
+@utility badge-filled-sm {
+  @apply badge badge-s badge-primary-filled;
+}
+
+@utility badge-filled-md {
+  @apply badge badge-primary-filled;
+}
+
+@utility badge-faded-sm {
+  @apply badge badge-s badge-neutral-faded;
+}
+
+@utility badge-faded-md {
+  @apply badge badge-neutral-faded;
+}

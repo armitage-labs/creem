@@ -1,0 +1,303 @@
+/* Components: Segment Group */
+
+@utility segment-group {
+  position: relative;
+  display: inline-flex;
+  align-items: stretch;
+  gap: 2px;
+  padding: 2px;
+  border-radius: 10px;
+  background-color: var(--et-color-surface-tonal);
+  @variant dark {
+    background-color: var(--et-color-surface-tonal-dark);
+  }
+}
+
+@utility segment-group-indicator {
+  position: absolute;
+  top: var(--top);
+  left: var(--left);
+  width: var(--width);
+  height: var(--height);
+  border-radius: var(--et-radius-m);
+  background-color: var(--et-color-surface-base);
+  box-shadow:
+    0px 4px 8px 0px rgba(0, 0, 0, 0),
+    0px 2.821px 5.642px 0px rgba(0, 0, 0, 0.04),
+    0px 1.179px 2.358px 0px rgba(0, 0, 0, 0.08);
+  --transition-timing-function: cubic-bezier(0.2, 0.8, 0.2, 1);
+  transition:
+    left var(--transition-duration, 150ms) var(--transition-timing-function),
+    top var(--transition-duration, 150ms) var(--transition-timing-function),
+    width var(--transition-duration, 150ms) var(--transition-timing-function),
+    height var(--transition-duration, 150ms) var(--transition-timing-function);
+  z-index: 0;
+  @variant dark {
+    background-color: var(--et-color-surface-base-dark);
+  }
+}
+
+@utility segment-group-item {
+  position: relative;
+  z-index: 1;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.25rem;
+  min-height: 2rem;
+  padding-inline: 12px;
+  padding-block: 8px;
+  border-radius: var(--et-radius-m);
+  cursor: pointer;
+  user-select: none;
+  color: var(--et-color-foreground-default);
+  background: transparent;
+  outline: none;
+
+  &::after {
+    content: "";
+    position: absolute;
+    inset: 0;
+    border-radius: inherit;
+    background: color-mix(
+      in oklab,
+      var(--et-color-foreground-default) 0%,
+      transparent
+    );
+    transition: background-color 120ms ease;
+    pointer-events: none;
+  }
+
+  &:hover::after {
+    background: color-mix(
+      in oklab,
+      var(--et-color-foreground-default) 8%,
+      transparent
+    );
+  }
+
+  &:active::after {
+    background: color-mix(
+      in oklab,
+      var(--et-color-foreground-default) 10%,
+      transparent
+    );
+  }
+
+  /* Checked state stays transparent; active background is the moving indicator */
+  &[data-state="checked"]::after,
+  &[aria-checked="true"]::after,
+  &[data-current]::after {
+    background: transparent;
+  }
+
+  &[data-focus-visible] {
+    box-shadow: 0 0 0 2px var(--et-color-border-default);
+  }
+
+  &[data-disabled] {
+    cursor: not-allowed;
+    opacity: 0.5;
+  }
+
+  &[data-disabled]::after {
+    background: transparent;
+  }
+
+  @variant dark {
+    color: var(--et-color-foreground-default-dark);
+
+    &::after {
+      background: color-mix(
+        in oklab,
+        var(--et-color-foreground-default-dark) 0%,
+        transparent
+      );
+    }
+
+    &:hover::after {
+      background: color-mix(
+        in oklab,
+        var(--et-color-foreground-default-dark) 8%,
+        transparent
+      );
+    }
+
+    &:active::after {
+      background: color-mix(
+        in oklab,
+        var(--et-color-foreground-default-dark) 10%,
+        transparent
+      );
+    }
+
+    &[data-focus-visible] {
+      box-shadow: 0 0 0 2px var(--et-color-border-default-dark);
+    }
+  }
+}
+
+@utility segment-group-item-text {
+  color: var(--et-color-foreground-default);
+  @variant dark {
+    color: var(--et-color-foreground-default-dark);
+  }
+}
+
+@utility segment-group-item-control {
+  position: absolute;
+  inset: 0;
+  opacity: 0;
+  pointer-events: none;
+}
+
+/* Backward-compatible utility aliases */
+@utility segment-control {
+  position: relative;
+  display: inline-flex;
+  align-items: stretch;
+  gap: 2px;
+  padding: 2px;
+  border-radius: 10px;
+  background-color: var(--et-color-surface-tonal);
+  @variant dark {
+    background-color: var(--et-color-surface-tonal-dark);
+  }
+}
+
+@utility segment-control-indicator {
+  position: absolute;
+  top: var(--top);
+  left: var(--left);
+  width: var(--width);
+  height: var(--height);
+  border-radius: var(--et-radius-m);
+  background-color: var(--et-color-surface-base);
+  box-shadow:
+    0px 4px 8px 0px rgba(0, 0, 0, 0),
+    0px 2.821px 5.642px 0px rgba(0, 0, 0, 0.04),
+    0px 1.179px 2.358px 0px rgba(0, 0, 0, 0.08);
+  --transition-timing-function: cubic-bezier(0.2, 0.8, 0.2, 1);
+  transition:
+    left var(--transition-duration, 150ms) var(--transition-timing-function),
+    top var(--transition-duration, 150ms) var(--transition-timing-function),
+    width var(--transition-duration, 150ms) var(--transition-timing-function),
+    height var(--transition-duration, 150ms) var(--transition-timing-function);
+  z-index: 0;
+  @variant dark {
+    background-color: var(--et-color-surface-base-dark);
+  }
+}
+
+@utility segment-control-item {
+  position: relative;
+  z-index: 1;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.25rem;
+  min-height: 2rem;
+  padding-inline: 12px;
+  padding-block: 8px;
+  border-radius: var(--et-radius-m);
+  cursor: pointer;
+  user-select: none;
+  color: var(--et-color-foreground-default);
+  background: transparent;
+  outline: none;
+
+  &::after {
+    content: "";
+    position: absolute;
+    inset: 0;
+    border-radius: inherit;
+    background: color-mix(
+      in oklab,
+      var(--et-color-foreground-default) 0%,
+      transparent
+    );
+    transition: background-color 120ms ease;
+    pointer-events: none;
+  }
+
+  &:hover::after {
+    background: color-mix(
+      in oklab,
+      var(--et-color-foreground-default) 8%,
+      transparent
+    );
+  }
+
+  &:active::after {
+    background: color-mix(
+      in oklab,
+      var(--et-color-foreground-default) 10%,
+      transparent
+    );
+  }
+
+  &[data-state="checked"]::after,
+  &[aria-checked="true"]::after,
+  &[data-current]::after {
+    background: transparent;
+  }
+
+  &[data-focus-visible] {
+    box-shadow: 0 0 0 2px var(--et-color-border-default);
+  }
+
+  &[data-disabled] {
+    cursor: not-allowed;
+    opacity: 0.5;
+  }
+
+  &[data-disabled]::after {
+    background: transparent;
+  }
+
+  @variant dark {
+    color: var(--et-color-foreground-default-dark);
+
+    &::after {
+      background: color-mix(
+        in oklab,
+        var(--et-color-foreground-default-dark) 0%,
+        transparent
+      );
+    }
+
+    &:hover::after {
+      background: color-mix(
+        in oklab,
+        var(--et-color-foreground-default-dark) 8%,
+        transparent
+      );
+    }
+
+    &:active::after {
+      background: color-mix(
+        in oklab,
+        var(--et-color-foreground-default-dark) 10%,
+        transparent
+      );
+    }
+
+    &[data-focus-visible] {
+      box-shadow: 0 0 0 2px var(--et-color-border-default-dark);
+    }
+  }
+}
+
+@utility segment-control-item-text {
+  color: var(--et-color-foreground-default);
+  @variant dark {
+    color: var(--et-color-foreground-default-dark);
+  }
+}
+
+@utility segment-control-item-control {
+  position: absolute;
+  inset: 0;
+  opacity: 0;
+  pointer-events: none;
+}

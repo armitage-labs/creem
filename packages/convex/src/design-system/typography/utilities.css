@@ -1,0 +1,728 @@
+/* Components: Typography */
+
+@layer base {
+  :root {
+    --et-typeface-brand: Inter, sans-serif;
+    --et-typeface-plain: Inter, sans-serif;
+    --et-font-weight-brand: 600;
+    --et-font-weight-plain: 400;
+    --et-type-display-l-color: inherit;
+    --et-type-display-l-color-dark: inherit;
+    --et-type-display-l-font-weight: var(--et-font-weight-brand);
+    --et-type-display-l-size-desktop: 5.9375rem;
+    --et-type-display-l-line-height-desktop: 6.0625rem;
+    --et-type-display-l-tracking-desktop: -0.21875rem;
+    --et-type-display-l-size-tablet: 4.82437rem;
+    --et-type-display-l-line-height-tablet: 4.92563rem;
+    --et-type-display-l-tracking-tablet: -0.175rem;
+    --et-type-display-l-size-mobile: 3.71125rem;
+    --et-type-display-l-line-height-mobile: 3.78938rem;
+    --et-type-display-l-tracking-mobile: -0.1125rem;
+    --et-type-display-m-color: inherit;
+    --et-type-display-m-color-dark: inherit;
+    --et-type-display-m-font-weight: var(--et-font-weight-brand);
+    --et-type-display-m-size-desktop: 4.75rem;
+    --et-type-display-m-line-height-desktop: 5.225rem;
+    --et-type-display-m-tracking-desktop: -0.175rem;
+    --et-type-display-m-size-tablet: 3.85938rem;
+    --et-type-display-m-line-height-tablet: 4.24563rem;
+    --et-type-display-m-tracking-tablet: -0.1375rem;
+    --et-type-display-m-size-mobile: 2.96875rem;
+    --et-type-display-m-line-height-mobile: 3.26563rem;
+    --et-type-display-m-tracking-mobile: -0.0875rem;
+    --et-type-display-s-color: inherit;
+    --et-type-display-s-color-dark: inherit;
+    --et-type-display-s-font-weight: var(--et-font-weight-brand);
+    --et-type-display-s-size-desktop: 3.8125rem;
+    --et-type-display-s-line-height-desktop: 4.19375rem;
+    --et-type-display-s-tracking-desktop: -0.1875rem;
+    --et-type-display-s-size-tablet: 3.0975rem;
+    --et-type-display-s-line-height-tablet: 3.4075rem;
+    --et-type-display-s-tracking-tablet: -0.1125rem;
+    --et-type-display-s-size-mobile: 2.38313rem;
+    --et-type-display-s-line-height-mobile: 2.62125rem;
+    --et-type-display-s-tracking-mobile: -0.0875rem;
+    --et-type-heading-l-color: inherit;
+    --et-type-heading-l-color-dark: inherit;
+    --et-type-heading-l-font-weight: var(--et-font-weight-brand);
+    --et-type-heading-l-size-desktop: 3.0625rem;
+    --et-type-heading-l-line-height-desktop: 3.36875rem;
+    --et-type-heading-l-tracking-desktop: -0.1125rem;
+    --et-type-heading-l-size-tablet: 2.48813rem;
+    --et-type-heading-l-line-height-tablet: 2.73687rem;
+    --et-type-heading-l-tracking-tablet: -0.0875rem;
+    --et-type-heading-l-size-mobile: 1.91437rem;
+    --et-type-heading-l-line-height-mobile: 2.10562rem;
+    --et-type-heading-l-tracking-mobile: -0.0625rem;
+    --et-type-heading-m-color: inherit;
+    --et-type-heading-m-color-dark: inherit;
+    --et-type-heading-m-font-weight: var(--et-font-weight-brand);
+    --et-type-heading-m-size-desktop: 2.4375rem;
+    --et-type-heading-m-line-height-desktop: 2.68125rem;
+    --et-type-heading-m-tracking-desktop: -0.0875rem;
+    --et-type-heading-m-size-tablet: 1.98063rem;
+    --et-type-heading-m-line-height-tablet: 2.17875rem;
+    --et-type-heading-m-tracking-tablet: -0.0625rem;
+    --et-type-heading-m-size-mobile: 1.52375rem;
+    --et-type-heading-m-line-height-mobile: 1.67562rem;
+    --et-type-heading-m-tracking-mobile: -0.0375rem;
+    --et-type-heading-s-color: inherit;
+    --et-type-heading-s-color-dark: inherit;
+    --et-type-heading-s-font-weight: var(--et-font-weight-brand);
+    --et-type-heading-s-size-desktop: 1.9375rem;
+    --et-type-heading-s-line-height-desktop: 2.13125rem;
+    --et-type-heading-s-tracking-desktop: -0.0625rem;
+    --et-type-heading-s-size-tablet: 1.57438rem;
+    --et-type-heading-s-line-height-tablet: 1.73188rem;
+    --et-type-heading-s-tracking-tablet: -0.0375rem;
+    --et-type-heading-s-size-mobile: 1.21125rem;
+    --et-type-heading-s-line-height-mobile: 1.33187rem;
+    --et-type-heading-s-tracking-mobile: 0rem;
+    --et-type-heading-xs-color: inherit;
+    --et-type-heading-xs-color-dark: inherit;
+    --et-type-heading-xs-font-weight: var(--et-font-weight-brand);
+    --et-type-heading-xs-size-desktop: 1.5625rem;
+    --et-type-heading-xs-line-height-desktop: 1.71875rem;
+    --et-type-heading-xs-tracking-desktop: -0.0375rem;
+    --et-type-heading-xs-size-tablet: 1.26937rem;
+    --et-type-heading-xs-line-height-tablet: 1.39625rem;
+    --et-type-heading-xs-tracking-tablet: -0.01875rem;
+    --et-type-heading-xs-size-mobile: 0.97688rem;
+    --et-type-heading-xs-line-height-mobile: 1.07438rem;
+    --et-type-heading-xs-tracking-mobile: 0rem;
+    --et-type-title-l-color: inherit;
+    --et-type-title-l-color-dark: inherit;
+    --et-type-title-l-font-weight: var(--et-font-weight-brand);
+    --et-type-title-l-size-desktop: 1.5625rem;
+    --et-type-title-l-line-height-desktop: 1.875rem;
+    --et-type-title-l-tracking-desktop: -0.0375rem;
+    --et-type-title-l-size-tablet: 1.5625rem;
+    --et-type-title-l-line-height-tablet: 1.875rem;
+    --et-type-title-l-tracking-tablet: -0.0375rem;
+    --et-type-title-l-size-mobile: 1.5625rem;
+    --et-type-title-l-line-height-mobile: 1.875rem;
+    --et-type-title-l-tracking-mobile: -0.0375rem;
+    --et-type-title-m-color: inherit;
+    --et-type-title-m-color-dark: inherit;
+    --et-type-title-m-font-weight: var(--et-font-weight-brand);
+    --et-type-title-m-size-desktop: 1.25rem;
+    --et-type-title-m-line-height-desktop: 1.5rem;
+    --et-type-title-m-tracking-desktop: -0.01875rem;
+    --et-type-title-m-size-tablet: 1.25rem;
+    --et-type-title-m-line-height-tablet: 1.5rem;
+    --et-type-title-m-tracking-tablet: -0.01875rem;
+    --et-type-title-m-size-mobile: 1.25rem;
+    --et-type-title-m-line-height-mobile: 1.5rem;
+    --et-type-title-m-tracking-mobile: -0.01875rem;
+    --et-type-title-s-color: inherit;
+    --et-type-title-s-color-dark: inherit;
+    --et-type-title-s-font-weight: var(--et-font-weight-brand);
+    --et-type-title-s-size-desktop: 1rem;
+    --et-type-title-s-line-height-desktop: 1.25rem;
+    --et-type-title-s-tracking-desktop: 0rem;
+    --et-type-title-s-size-tablet: 1rem;
+    --et-type-title-s-line-height-tablet: 1.25rem;
+    --et-type-title-s-tracking-tablet: 0rem;
+    --et-type-title-s-size-mobile: 1rem;
+    --et-type-title-s-line-height-mobile: 1.25rem;
+    --et-type-title-s-tracking-mobile: 0rem;
+    --et-type-subtitle-l-color: inherit;
+    --et-type-subtitle-l-color-dark: inherit;
+    --et-type-subtitle-l-font-weight: var(--et-font-weight-plain);
+    --et-type-subtitle-l-size-desktop: 1.5625rem;
+    --et-type-subtitle-l-line-height-desktop: 2.34375rem;
+    --et-type-subtitle-l-tracking-desktop: -0.0375rem;
+    --et-type-subtitle-l-size-tablet: 1.5625rem;
+    --et-type-subtitle-l-line-height-tablet: 2.34375rem;
+    --et-type-subtitle-l-tracking-tablet: -0.0375rem;
+    --et-type-subtitle-l-size-mobile: 1.5625rem;
+    --et-type-subtitle-l-line-height-mobile: 2.34375rem;
+    --et-type-subtitle-l-tracking-mobile: -0.0375rem;
+    --et-type-subtitle-m-color: inherit;
+    --et-type-subtitle-m-color-dark: inherit;
+    --et-type-subtitle-m-font-weight: var(--et-font-weight-plain);
+    --et-type-subtitle-m-size-desktop: 1.25rem;
+    --et-type-subtitle-m-line-height-desktop: 1.875rem;
+    --et-type-subtitle-m-tracking-desktop: -0.01875rem;
+    --et-type-subtitle-m-size-tablet: 1.25rem;
+    --et-type-subtitle-m-line-height-tablet: 1.875rem;
+    --et-type-subtitle-m-tracking-tablet: -0.01875rem;
+    --et-type-subtitle-m-size-mobile: 1.25rem;
+    --et-type-subtitle-m-line-height-mobile: 1.875rem;
+    --et-type-subtitle-m-tracking-mobile: -0.01875rem;
+    --et-type-body-l-color: inherit;
+    --et-type-body-l-color-dark: inherit;
+    --et-type-body-l-font-weight: var(--et-font-weight-plain);
+    --et-type-body-l-size-desktop: 1rem;
+    --et-type-body-l-line-height-desktop: 1.5rem;
+    --et-type-body-l-tracking-desktop: 0rem;
+    --et-type-body-l-size-tablet: 1rem;
+    --et-type-body-l-line-height-tablet: 1.5rem;
+    --et-type-body-l-tracking-tablet: 0rem;
+    --et-type-body-l-size-mobile: 1rem;
+    --et-type-body-l-line-height-mobile: 1.5rem;
+    --et-type-body-l-tracking-mobile: 0rem;
+    --et-type-body-m-color: inherit;
+    --et-type-body-m-color-dark: inherit;
+    --et-type-body-m-font-weight: var(--et-font-weight-plain);
+    --et-type-body-m-size-desktop: 0.875rem;
+    --et-type-body-m-line-height-desktop: 1.21875rem;
+    --et-type-body-m-tracking-desktop: 0rem;
+    --et-type-body-m-size-tablet: 0.875rem;
+    --et-type-body-m-line-height-tablet: 1.21875rem;
+    --et-type-body-m-tracking-tablet: 0rem;
+    --et-type-body-m-size-mobile: 0.875rem;
+    --et-type-body-m-line-height-mobile: 1.21875rem;
+    --et-type-body-m-tracking-mobile: 0rem;
+    --et-type-body-s-color: inherit;
+    --et-type-body-s-color-dark: inherit;
+    --et-type-body-s-font-weight: var(--et-font-weight-plain);
+    --et-type-body-s-size-desktop: 0.6875rem;
+    --et-type-body-s-line-height-desktop: 1rem;
+    --et-type-body-s-tracking-desktop: 0rem;
+    --et-type-body-s-size-tablet: 0.6875rem;
+    --et-type-body-s-line-height-tablet: 1rem;
+    --et-type-body-s-tracking-tablet: 0rem;
+    --et-type-body-s-size-mobile: 0.6875rem;
+    --et-type-body-s-line-height-mobile: 1rem;
+    --et-type-body-s-tracking-mobile: 0rem;
+    --et-type-label-l-color: inherit;
+    --et-type-label-l-color-dark: inherit;
+    --et-type-label-l-font-weight: var(--et-font-weight-plain);
+    --et-type-label-l-size-desktop: 1rem;
+    --et-type-label-l-line-height-desktop: 1.5rem;
+    --et-type-label-l-tracking-desktop: 0rem;
+    --et-type-label-l-size-tablet: 1rem;
+    --et-type-label-l-line-height-tablet: 1.5rem;
+    --et-type-label-l-tracking-tablet: 0rem;
+    --et-type-label-l-size-mobile: 1rem;
+    --et-type-label-l-line-height-mobile: 1.5rem;
+    --et-type-label-l-tracking-mobile: 0rem;
+    --et-type-label-m-color: inherit;
+    --et-type-label-m-color-dark: inherit;
+    --et-type-label-m-font-weight: var(--et-font-weight-plain);
+    --et-type-label-m-size-desktop: 0.875rem;
+    --et-type-label-m-line-height-desktop: 1.21875rem;
+    --et-type-label-m-tracking-desktop: 0rem;
+    --et-type-label-m-size-tablet: 0.875rem;
+    --et-type-label-m-line-height-tablet: 1.21875rem;
+    --et-type-label-m-tracking-tablet: 0rem;
+    --et-type-label-m-size-mobile: 0.875rem;
+    --et-type-label-m-line-height-mobile: 1.21875rem;
+    --et-type-label-m-tracking-mobile: 0rem;
+    --et-type-label-s-color: inherit;
+    --et-type-label-s-color-dark: inherit;
+    --et-type-label-s-font-weight: var(--et-font-weight-plain);
+    --et-type-label-s-size-desktop: 0.6875rem;
+    --et-type-label-s-line-height-desktop: 1rem;
+    --et-type-label-s-tracking-desktop: 0rem;
+    --et-type-label-s-size-tablet: 0.6875rem;
+    --et-type-label-s-line-height-tablet: 1rem;
+    --et-type-label-s-tracking-tablet: 0rem;
+    --et-type-label-s-size-mobile: 0.6875rem;
+    --et-type-label-s-line-height-mobile: 1rem;
+    --et-type-label-s-tracking-mobile: 0rem;
+    --et-type-button-l-color: inherit;
+    --et-type-button-l-color-dark: inherit;
+    --et-type-button-l-font-weight: var(--et-font-weight-plain);
+    --et-type-button-l-size-desktop: 1rem;
+    --et-type-button-l-line-height-desktop: 1.5rem;
+    --et-type-button-l-tracking-desktop: 0rem;
+    --et-type-button-l-size-tablet: 1rem;
+    --et-type-button-l-line-height-tablet: 1.5rem;
+    --et-type-button-l-tracking-tablet: 0rem;
+    --et-type-button-l-size-mobile: 1rem;
+    --et-type-button-l-line-height-mobile: 1.5rem;
+    --et-type-button-l-tracking-mobile: 0rem;
+    --et-type-button-m-color: inherit;
+    --et-type-button-m-color-dark: inherit;
+    --et-type-button-m-font-weight: var(--et-font-weight-plain);
+    --et-type-button-m-size-desktop: 0.875rem;
+    --et-type-button-m-line-height-desktop: 1.25rem;
+    --et-type-button-m-tracking-desktop: 0rem;
+    --et-type-button-m-size-tablet: 0.875rem;
+    --et-type-button-m-line-height-tablet: 1.25rem;
+    --et-type-button-m-tracking-tablet: 0rem;
+    --et-type-button-m-size-mobile: 0.875rem;
+    --et-type-button-m-line-height-mobile: 1.25rem;
+    --et-type-button-m-tracking-mobile: 0rem;
+    --et-type-button-s-color: inherit;
+    --et-type-button-s-color-dark: inherit;
+    --et-type-button-s-font-weight: var(--et-font-weight-plain);
+    --et-type-button-s-size-desktop: 0.6875rem;
+    --et-type-button-s-line-height-desktop: 1rem;
+    --et-type-button-s-tracking-desktop: 0rem;
+    --et-type-button-s-size-tablet: 0.6875rem;
+    --et-type-button-s-line-height-tablet: 1rem;
+    --et-type-button-s-tracking-tablet: 0rem;
+    --et-type-button-s-size-mobile: 0.6875rem;
+    --et-type-button-s-line-height-mobile: 1rem;
+    --et-type-button-s-tracking-mobile: 0rem;
+    --et-type-link-l-color: inherit;
+    --et-type-link-l-color-dark: inherit;
+    --et-type-link-l-font-weight: var(--et-font-weight-plain);
+    --et-type-link-l-size-desktop: 1rem;
+    --et-type-link-l-line-height-desktop: 1.5rem;
+    --et-type-link-l-tracking-desktop: 0rem;
+    --et-type-link-l-size-tablet: 1rem;
+    --et-type-link-l-line-height-tablet: 1.5rem;
+    --et-type-link-l-tracking-tablet: 0rem;
+    --et-type-link-l-size-mobile: 1rem;
+    --et-type-link-l-line-height-mobile: 1.5rem;
+    --et-type-link-l-tracking-mobile: 0rem;
+    --et-type-link-m-color: inherit;
+    --et-type-link-m-color-dark: inherit;
+    --et-type-link-m-font-weight: var(--et-font-weight-plain);
+    --et-type-link-m-size-desktop: 0.875rem;
+    --et-type-link-m-line-height-desktop: 1.21875rem;
+    --et-type-link-m-tracking-desktop: 0rem;
+    --et-type-link-m-size-tablet: 0.875rem;
+    --et-type-link-m-line-height-tablet: 1.21875rem;
+    --et-type-link-m-tracking-tablet: 0rem;
+    --et-type-link-m-size-mobile: 0.875rem;
+    --et-type-link-m-line-height-mobile: 1.21875rem;
+    --et-type-link-m-tracking-mobile: 0rem;
+    --et-type-link-s-color: inherit;
+    --et-type-link-s-color-dark: inherit;
+    --et-type-link-s-font-weight: var(--et-font-weight-plain);
+    --et-type-link-s-size-desktop: 0.6875rem;
+    --et-type-link-s-line-height-desktop: 1rem;
+    --et-type-link-s-tracking-desktop: 0rem;
+    --et-type-link-s-size-tablet: 0.6875rem;
+    --et-type-link-s-line-height-tablet: 1rem;
+    --et-type-link-s-tracking-tablet: 0rem;
+    --et-type-link-s-size-mobile: 0.6875rem;
+    --et-type-link-s-line-height-mobile: 1rem;
+    --et-type-link-s-tracking-mobile: 0rem;
+  }
+}
+
+@utility display-l {
+  color: var(--et-type-display-l-color);
+  font-family: var(--et-typeface-brand);
+  font-weight: var(--et-type-display-l-font-weight);
+  font-style: normal;
+  font-size: var(--et-type-display-l-size-desktop);
+  line-height: var(--et-type-display-l-line-height-desktop);
+  letter-spacing: var(--et-type-display-l-tracking-desktop);
+
+  @variant max-sm {
+    font-size: var(--et-type-display-l-size-mobile);
+    line-height: var(--et-type-display-l-line-height-mobile);
+    letter-spacing: var(--et-type-display-l-tracking-mobile);
+  }
+  @variant sm {
+    font-size: var(--et-type-display-l-size-tablet);
+    line-height: var(--et-type-display-l-line-height-tablet);
+    letter-spacing: var(--et-type-display-l-tracking-tablet);
+  }
+  @variant lg {
+    font-size: var(--et-type-display-l-size-desktop);
+    line-height: var(--et-type-display-l-line-height-desktop);
+    letter-spacing: var(--et-type-display-l-tracking-desktop);
+  }
+  @variant dark {
+    color: var(--et-type-display-l-color-dark);
+  }
+}
+
+@utility display-m {
+  color: var(--et-type-display-m-color);
+  font-family: var(--et-typeface-brand);
+  font-weight: var(--et-type-display-m-font-weight);
+  font-style: normal;
+  font-size: var(--et-type-display-m-size-desktop);
+  line-height: var(--et-type-display-m-line-height-desktop);
+  letter-spacing: var(--et-type-display-m-tracking-desktop);
+
+  @variant max-sm {
+    font-size: var(--et-type-display-m-size-mobile);
+    line-height: var(--et-type-display-m-line-height-mobile);
+    letter-spacing: var(--et-type-display-m-tracking-mobile);
+  }
+  @variant sm {
+    font-size: var(--et-type-display-m-size-tablet);
+    line-height: var(--et-type-display-m-line-height-tablet);
+    letter-spacing: var(--et-type-display-m-tracking-tablet);
+  }
+  @variant lg {
+    font-size: var(--et-type-display-m-size-desktop);
+    line-height: var(--et-type-display-m-line-height-desktop);
+    letter-spacing: var(--et-type-display-m-tracking-desktop);
+  }
+  @variant dark {
+    color: var(--et-type-display-m-color-dark);
+  }
+}
+
+@utility display-s {
+  color: var(--et-type-display-s-color);
+  font-family: var(--et-typeface-brand);
+  font-weight: var(--et-type-display-s-font-weight);
+  font-style: normal;
+  font-size: var(--et-type-display-s-size-desktop);
+  line-height: var(--et-type-display-s-line-height-desktop);
+  letter-spacing: var(--et-type-display-s-tracking-desktop);
+
+  @variant max-sm {
+    font-size: var(--et-type-display-s-size-mobile);
+    line-height: var(--et-type-display-s-line-height-mobile);
+    letter-spacing: var(--et-type-display-s-tracking-mobile);
+  }
+  @variant sm {
+    font-size: var(--et-type-display-s-size-tablet);
+    line-height: var(--et-type-display-s-line-height-tablet);
+    letter-spacing: var(--et-type-display-s-tracking-tablet);
+  }
+  @variant lg {
+    font-size: var(--et-type-display-s-size-desktop);
+    line-height: var(--et-type-display-s-line-height-desktop);
+    letter-spacing: var(--et-type-display-s-tracking-desktop);
+  }
+  @variant dark {
+    color: var(--et-type-display-s-color-dark);
+  }
+}
+
+@utility heading-l {
+  color: var(--et-type-heading-l-color);
+  font-family: var(--et-typeface-brand);
+  font-weight: var(--et-type-heading-l-font-weight);
+  font-style: normal;
+  font-size: var(--et-type-heading-l-size-desktop);
+  line-height: var(--et-type-heading-l-line-height-desktop);
+  letter-spacing: var(--et-type-heading-l-tracking-desktop);
+
+  @variant max-sm {
+    font-size: var(--et-type-heading-l-size-mobile);
+    line-height: var(--et-type-heading-l-line-height-mobile);
+    letter-spacing: var(--et-type-heading-l-tracking-mobile);
+  }
+  @variant sm {
+    font-size: var(--et-type-heading-l-size-tablet);
+    line-height: var(--et-type-heading-l-line-height-tablet);
+    letter-spacing: var(--et-type-heading-l-tracking-tablet);
+  }
+  @variant lg {
+    font-size: var(--et-type-heading-l-size-desktop);
+    line-height: var(--et-type-heading-l-line-height-desktop);
+    letter-spacing: var(--et-type-heading-l-tracking-desktop);
+  }
+  @variant dark {
+    color: var(--et-type-heading-l-color-dark);
+  }
+}
+
+@utility heading-m {
+  color: var(--et-type-heading-m-color);
+  font-family: var(--et-typeface-brand);
+  font-weight: var(--et-type-heading-m-font-weight);
+  font-style: normal;
+  font-size: var(--et-type-heading-m-size-desktop);
+  line-height: var(--et-type-heading-m-line-height-desktop);
+  letter-spacing: var(--et-type-heading-m-tracking-desktop);
+
+  @variant max-sm {
+    font-size: var(--et-type-heading-m-size-mobile);
+    line-height: var(--et-type-heading-m-line-height-mobile);
+    letter-spacing: var(--et-type-heading-m-tracking-mobile);
+  }
+  @variant sm {
+    font-size: var(--et-type-heading-m-size-tablet);
+    line-height: var(--et-type-heading-m-line-height-tablet);
+    letter-spacing: var(--et-type-heading-m-tracking-tablet);
+  }
+  @variant lg {
+    font-size: var(--et-type-heading-m-size-desktop);
+    line-height: var(--et-type-heading-m-line-height-desktop);
+    letter-spacing: var(--et-type-heading-m-tracking-desktop);
+  }
+  @variant dark {
+    color: var(--et-type-heading-m-color-dark);
+  }
+}
+
+@utility heading-s {
+  color: var(--et-type-heading-s-color);
+  font-family: var(--et-typeface-brand);
+  font-weight: var(--et-type-heading-s-font-weight);
+  font-style: normal;
+  font-size: var(--et-type-heading-s-size-desktop);
+  line-height: var(--et-type-heading-s-line-height-desktop);
+  letter-spacing: var(--et-type-heading-s-tracking-desktop);
+
+  @variant max-sm {
+    font-size: var(--et-type-heading-s-size-mobile);
+    line-height: var(--et-type-heading-s-line-height-mobile);
+    letter-spacing: var(--et-type-heading-s-tracking-mobile);
+  }
+  @variant sm {
+    font-size: var(--et-type-heading-s-size-tablet);
+    line-height: var(--et-type-heading-s-line-height-tablet);
+    letter-spacing: var(--et-type-heading-s-tracking-tablet);
+  }
+  @variant lg {
+    font-size: var(--et-type-heading-s-size-desktop);
+    line-height: var(--et-type-heading-s-line-height-desktop);
+    letter-spacing: var(--et-type-heading-s-tracking-desktop);
+  }
+  @variant dark {
+    color: var(--et-type-heading-s-color-dark);
+  }
+}
+
+@utility heading-xs {
+  color: var(--et-type-heading-xs-color);
+  font-family: var(--et-typeface-brand);
+  font-weight: var(--et-type-heading-xs-font-weight);
+  font-style: normal;
+  font-size: var(--et-type-heading-xs-size-desktop);
+  line-height: var(--et-type-heading-xs-line-height-desktop);
+  letter-spacing: var(--et-type-heading-xs-tracking-desktop);
+
+  @variant max-sm {
+    font-size: var(--et-type-heading-xs-size-mobile);
+    line-height: var(--et-type-heading-xs-line-height-mobile);
+    letter-spacing: var(--et-type-heading-xs-tracking-mobile);
+  }
+  @variant sm {
+    font-size: var(--et-type-heading-xs-size-tablet);
+    line-height: var(--et-type-heading-xs-line-height-tablet);
+    letter-spacing: var(--et-type-heading-xs-tracking-tablet);
+  }
+  @variant lg {
+    font-size: var(--et-type-heading-xs-size-desktop);
+    line-height: var(--et-type-heading-xs-line-height-desktop);
+    letter-spacing: var(--et-type-heading-xs-tracking-desktop);
+  }
+  @variant dark {
+    color: var(--et-type-heading-xs-color-dark);
+  }
+}
+
+@utility title-l {
+  color: var(--et-type-title-l-color);
+  font-family: var(--et-typeface-brand);
+  font-weight: var(--et-type-title-l-font-weight);
+  font-style: normal;
+  font-size: var(--et-type-title-l-size-desktop);
+  line-height: var(--et-type-title-l-line-height-desktop);
+  letter-spacing: var(--et-type-title-l-tracking-desktop);
+  @variant dark {
+    color: var(--et-type-title-l-color-dark);
+  }
+}
+
+@utility title-m {
+  color: var(--et-type-title-m-color);
+  font-family: var(--et-typeface-brand);
+  font-weight: var(--et-type-title-m-font-weight);
+  font-style: normal;
+  font-size: var(--et-type-title-m-size-desktop);
+  line-height: var(--et-type-title-m-line-height-desktop);
+  letter-spacing: var(--et-type-title-m-tracking-desktop);
+  @variant dark {
+    color: var(--et-type-title-m-color-dark);
+  }
+}
+
+@utility title-s {
+  color: var(--et-type-title-s-color);
+  font-family: var(--et-typeface-brand);
+  font-weight: var(--et-type-title-s-font-weight);
+  font-style: normal;
+  font-size: var(--et-type-title-s-size-desktop);
+  line-height: var(--et-type-title-s-line-height-desktop);
+  letter-spacing: var(--et-type-title-s-tracking-desktop);
+  @variant dark {
+    color: var(--et-type-title-s-color-dark);
+  }
+}
+
+@utility subtitle-l {
+  color: var(--et-type-subtitle-l-color);
+  font-family: var(--et-typeface-plain);
+  font-weight: var(--et-type-subtitle-l-font-weight);
+  font-style: normal;
+  font-size: var(--et-type-subtitle-l-size-desktop);
+  line-height: var(--et-type-subtitle-l-line-height-desktop);
+  letter-spacing: var(--et-type-subtitle-l-tracking-desktop);
+  @variant dark {
+    color: var(--et-type-subtitle-l-color-dark);
+  }
+}
+
+@utility subtitle-m {
+  color: var(--et-type-subtitle-m-color);
+  font-family: var(--et-typeface-plain);
+  font-weight: var(--et-type-subtitle-m-font-weight);
+  font-style: normal;
+  font-size: var(--et-type-subtitle-m-size-desktop);
+  line-height: var(--et-type-subtitle-m-line-height-desktop);
+  letter-spacing: var(--et-type-subtitle-m-tracking-desktop);
+  @variant dark {
+    color: var(--et-type-subtitle-m-color-dark);
+  }
+}
+
+@utility body-l {
+  color: var(--et-type-body-l-color);
+  font-family: var(--et-typeface-plain);
+  font-weight: var(--et-type-body-l-font-weight);
+  font-style: normal;
+  font-size: var(--et-type-body-l-size-desktop);
+  line-height: var(--et-type-body-l-line-height-desktop);
+  letter-spacing: var(--et-type-body-l-tracking-desktop);
+  @variant dark {
+    color: var(--et-type-body-l-color-dark);
+  }
+}
+
+@utility body-m {
+  color: var(--et-type-body-m-color);
+  font-family: var(--et-typeface-plain);
+  font-weight: var(--et-type-body-m-font-weight);
+  font-style: normal;
+  font-size: var(--et-type-body-m-size-desktop);
+  line-height: var(--et-type-body-m-line-height-desktop);
+  letter-spacing: var(--et-type-body-m-tracking-desktop);
+  @variant dark {
+    color: var(--et-type-body-m-color-dark);
+  }
+}
+
+@utility body-s {
+  color: var(--et-type-body-s-color);
+  font-family: var(--et-typeface-plain);
+  font-weight: var(--et-type-body-s-font-weight);
+  font-style: normal;
+  font-size: var(--et-type-body-s-size-desktop);
+  line-height: var(--et-type-body-s-line-height-desktop);
+  letter-spacing: var(--et-type-body-s-tracking-desktop);
+  @variant dark {
+    color: var(--et-type-body-s-color-dark);
+  }
+}
+
+@utility label-l {
+  color: var(--et-type-label-l-color);
+  font-family: var(--et-typeface-plain);
+  font-weight: var(--et-type-label-l-font-weight);
+  font-style: normal;
+  font-size: var(--et-type-label-l-size-desktop);
+  line-height: var(--et-type-label-l-line-height-desktop);
+  letter-spacing: var(--et-type-label-l-tracking-desktop);
+  @variant dark {
+    color: var(--et-type-label-l-color-dark);
+  }
+}
+
+@utility label-m {
+  color: var(--et-type-label-m-color);
+  font-family: var(--et-typeface-plain);
+  font-weight: var(--et-type-label-m-font-weight);
+  font-style: normal;
+  font-size: var(--et-type-label-m-size-desktop);
+  line-height: var(--et-type-label-m-line-height-desktop);
+  letter-spacing: var(--et-type-label-m-tracking-desktop);
+  @variant dark {
+    color: var(--et-type-label-m-color-dark);
+  }
+}
+
+@utility label-s {
+  color: var(--et-type-label-s-color);
+  font-family: var(--et-typeface-plain);
+  font-weight: var(--et-type-label-s-font-weight);
+  font-style: normal;
+  font-size: var(--et-type-label-s-size-desktop);
+  line-height: var(--et-type-label-s-line-height-desktop);
+  letter-spacing: var(--et-type-label-s-tracking-desktop);
+  @variant dark {
+    color: var(--et-type-label-s-color-dark);
+  }
+}
+
+@utility button-l {
+  color: var(--et-type-button-l-color);
+  font-family: var(--et-typeface-plain);
+  font-weight: var(--et-type-button-l-font-weight);
+  font-style: normal;
+  font-size: var(--et-type-button-l-size-desktop);
+  line-height: var(--et-type-button-l-line-height-desktop);
+  letter-spacing: var(--et-type-button-l-tracking-desktop);
+  text-transform: none;
+  @variant dark {
+    color: var(--et-type-button-l-color-dark);
+  }
+}
+
+@utility button-m {
+  color: var(--et-type-button-m-color);
+  font-family: var(--et-typeface-plain);
+  font-weight: var(--et-type-button-m-font-weight);
+  font-style: normal;
+  font-size: var(--et-type-button-m-size-desktop);
+  line-height: var(--et-type-button-m-line-height-desktop);
+  letter-spacing: var(--et-type-button-m-tracking-desktop);
+  text-transform: none;
+  @variant dark {
+    color: var(--et-type-button-m-color-dark);
+  }
+}
+
+@utility button-s {
+  color: var(--et-type-button-s-color);
+  font-family: var(--et-typeface-plain);
+  font-weight: var(--et-type-button-s-font-weight);
+  font-style: normal;
+  font-size: var(--et-type-button-s-size-desktop);
+  line-height: var(--et-type-button-s-line-height-desktop);
+  letter-spacing: var(--et-type-button-s-tracking-desktop);
+  text-transform: none;
+  @variant dark {
+    color: var(--et-type-button-s-color-dark);
+  }
+}
+
+@utility link-l {
+  color: var(--et-type-link-l-color);
+  font-family: var(--et-typeface-plain);
+  font-weight: var(--et-type-link-l-font-weight);
+  font-style: normal;
+  font-size: var(--et-type-link-l-size-desktop);
+  line-height: var(--et-type-link-l-line-height-desktop);
+  letter-spacing: var(--et-type-link-l-tracking-desktop);
+  text-decoration: underline;
+  @variant dark {
+    color: var(--et-type-link-l-color-dark);
+  }
+}
+
+@utility link-m {
+  color: var(--et-type-link-m-color);
+  font-family: var(--et-typeface-plain);
+  font-weight: var(--et-type-link-m-font-weight);
+  font-style: normal;
+  font-size: var(--et-type-link-m-size-desktop);
+  line-height: var(--et-type-link-m-line-height-desktop);
+  letter-spacing: var(--et-type-link-m-tracking-desktop);
+  text-decoration: underline;
+  @variant dark {
+    color: var(--et-type-link-m-color-dark);
+  }
+}
+
+@utility link-s {
+  color: var(--et-type-link-s-color);
+  font-family: var(--et-typeface-plain);
+  font-weight: var(--et-type-link-s-font-weight);
+  font-style: normal;
+  font-size: var(--et-type-link-s-size-desktop);
+  line-height: var(--et-type-link-s-line-height-desktop);
+  letter-spacing: var(--et-type-link-s-tracking-desktop);
+  text-decoration: underline;
+  @variant dark {
+    color: var(--et-type-link-s-color-dark);
+  }
+}
