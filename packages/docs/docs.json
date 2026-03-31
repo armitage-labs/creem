@@ -248,7 +248,8 @@
             "pages": [
               "api-reference/endpoint/create-discount-code",
               "api-reference/endpoint/delete-discount-code",
-              "api-reference/endpoint/get-discount-code"
+              "api-reference/endpoint/get-discount-code",
+              "api-reference/endpoint/list-discount-codes"
             ]
           },
           {
