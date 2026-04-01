@@ -113,6 +113,10 @@ export const Webhook = (options: WebhookOptions) => {
 
         case "subscription.canceled":
           console.log("Subscription canceled");
+          await options.onRevokeAccess?.({
+            reason: "subscription_canceled",
+            ...event.object,
+          });
           await options.onSubscriptionCanceled?.({
             webhookEventType: event.eventType,
             webhookId: event.id,
