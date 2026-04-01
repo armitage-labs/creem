@@ -195,9 +195,13 @@ export interface WebhookOptions {
    * Called when a checkout is completed.
    * All properties are flattened for easy destructuring.
    *
+   * Transaction amount is available via `order.amount` (number, in cents)
+   * and `order.currency` (string, e.g. "USD").
+   *
    * @example
    * onCheckoutCompleted: async ({ webhookEventType, product, customer, order, subscription }) => {
    *   console.log(`Checkout completed: ${customer?.email} purchased ${product.name}`);
+   *   console.log(`Amount: $${order?.amount / 100} ${order?.currency}`);
    * }
    */
   onCheckoutCompleted?: (data: FlatCheckoutCompleted) => void | Promise<void>;
