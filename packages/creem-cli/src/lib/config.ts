@@ -1,20 +1,20 @@
-import * as fs from 'fs';
-import * as path from 'path';
-import * as os from 'os';
+import * as fs from "fs";
+import * as path from "path";
+import * as os from "os";
 
 export interface CreemConfig {
   api_key?: string;
-  environment: 'test' | 'live';
-  output_format: 'table' | 'json';
+  environment: "test" | "live";
+  output_format: "table" | "json";
 }
 
 const DEFAULT_CONFIG: CreemConfig = {
-  environment: 'test',
-  output_format: 'table',
+  environment: "test",
+  output_format: "table",
 };
 
-const CONFIG_DIR = path.join(os.homedir(), '.creem');
-const CONFIG_FILE = path.join(CONFIG_DIR, 'config.json');
+const CONFIG_DIR = path.join(os.homedir(), ".creem");
+const CONFIG_FILE = path.join(CONFIG_DIR, "config.json");
 
 /**
  * Ensures the config directory exists
@@ -25,8 +25,8 @@ function ensureConfigDir(): void {
   }
 }
 
-const VALID_ENVIRONMENTS = ['test', 'live'] as const;
-const VALID_OUTPUT_FORMATS = ['table', 'json'] as const;
+const VALID_ENVIRONMENTS = ["test", "live"] as const;
+const VALID_OUTPUT_FORMATS = ["table", "json"] as const;
 
 /**
  * Validates and sanitizes config values
@@ -37,17 +37,17 @@ function validateConfig(config: Partial<CreemConfig>): CreemConfig {
   // Validate environment
   if (
     config.environment &&
-    VALID_ENVIRONMENTS.includes(config.environment as 'test' | 'live')
+    VALID_ENVIRONMENTS.includes(config.environment as "test" | "live")
   ) {
-    validated.environment = config.environment as 'test' | 'live';
+    validated.environment = config.environment as "test" | "live";
   }
 
   // Validate output_format
   if (
     config.output_format &&
-    VALID_OUTPUT_FORMATS.includes(config.output_format as 'table' | 'json')
+    VALID_OUTPUT_FORMATS.includes(config.output_format as "table" | "json")
   ) {
-    validated.output_format = config.output_format as 'table' | 'json';
+    validated.output_format = config.output_format as "table" | "json";
   }
 
   // Copy api_key if present
@@ -64,7 +64,7 @@ function validateConfig(config: Partial<CreemConfig>): CreemConfig {
 export function loadConfig(): CreemConfig {
   try {
     if (fs.existsSync(CONFIG_FILE)) {
-      const data = fs.readFileSync(CONFIG_FILE, 'utf-8');
+      const data = fs.readFileSync(CONFIG_FILE, "utf-8");
       const parsed = JSON.parse(data);
       return validateConfig(parsed);
     }
@@ -88,7 +88,7 @@ export function saveConfig(config: CreemConfig): void {
  * Gets a specific config value
  */
 export function getConfigValue<K extends keyof CreemConfig>(
-  key: K
+  key: K,
 ): CreemConfig[K] {
   const config = loadConfig();
   return config[key];
@@ -99,7 +99,7 @@ export function getConfigValue<K extends keyof CreemConfig>(
  */
 export function setConfigValue<K extends keyof CreemConfig>(
   key: K,
-  value: CreemConfig[K]
+  value: CreemConfig[K],
 ): void {
   const config = loadConfig();
   config[key] = value;
@@ -113,7 +113,7 @@ export function shouldOutputJson(cliJsonFlag?: boolean): boolean {
   if (cliJsonFlag !== undefined) {
     return cliJsonFlag;
   }
-  return getConfigValue('output_format') === 'json';
+  return getConfigValue("output_format") === "json";
 }
 
 /**

@@ -1,5 +1,5 @@
-import Table from 'cli-table3';
-import chalk from 'chalk';
+import Table from "cli-table3";
+import chalk from "chalk";
 
 export interface OutputOptions {
   json?: boolean;
@@ -17,7 +17,7 @@ export function outputJson(data: unknown): void {
  */
 function stripAnsi(str: string): string {
   // eslint-disable-next-line no-control-regex
-  return str.replace(/\x1B\[[0-9;]*m/g, '');
+  return str.replace(/\x1B\[[0-9;]*m/g, "");
 }
 
 /**
@@ -26,7 +26,7 @@ function stripAnsi(str: string): string {
  */
 export function outputTable(
   headers: string[],
-  rows: (string | number | boolean | null | undefined)[][]
+  rows: (string | number | boolean | null | undefined)[][],
 ): void {
   const termWidth = process.stdout.columns || 80;
   const colCount = headers.length;
@@ -39,7 +39,9 @@ export function outputTable(
   for (const row of rows) {
     for (let i = 0; i < colCount; i++) {
       const cell = row[i];
-      const len = stripAnsi(cell === null || cell === undefined ? '-' : String(cell)).length;
+      const len = stripAnsi(
+        cell === null || cell === undefined ? "-" : String(cell),
+      ).length;
       if (len > maxColWidths[i]) {
         maxColWidths[i] = len;
       }
@@ -47,7 +49,8 @@ export function outputTable(
   }
 
   // Each column needs at least its content width + 2 chars padding (cli-table3 default)
-  const naturalWidth = maxColWidths.reduce((sum, w) => sum + w + 2, 0) + borderOverhead;
+  const naturalWidth =
+    maxColWidths.reduce((sum, w) => sum + w + 2, 0) + borderOverhead;
 
   // If the table fits, render normally
   if (naturalWidth <= termWidth) {
@@ -56,7 +59,11 @@ export function outputTable(
       style: { head: [], border: [] },
     });
     rows.forEach((row) => {
-      table.push(row.map((cell) => (cell === null || cell === undefined ? '-' : String(cell))));
+      table.push(
+        row.map((cell) =>
+          cell === null || cell === undefined ? "-" : String(cell),
+        ),
+      );
     });
     console.log(table.toString());
     return;
@@ -75,9 +82,9 @@ export function outputTable(
     rows.forEach((row) => {
       table.push(
         row.map((cell, i) => {
-          const val = cell === null || cell === undefined ? '-' : String(cell);
+          const val = cell === null || cell === undefined ? "-" : String(cell);
           return truncate(stripAnsi(val), colWidths[i]);
-        })
+        }),
       );
     });
     console.log(table.toString());
@@ -86,10 +93,10 @@ export function outputTable(
 
   // Terminal is very narrow — fall back to card layout
   for (let r = 0; r < rows.length; r++) {
-    if (r > 0) console.log(chalk.dim('─'.repeat(Math.min(termWidth - 1, 40))));
+    if (r > 0) console.log(chalk.dim("─".repeat(Math.min(termWidth - 1, 40))));
     for (let c = 0; c < colCount; c++) {
       const cell = rows[r][c];
-      const val = cell === null || cell === undefined ? '-' : String(cell);
+      const val = cell === null || cell === undefined ? "-" : String(cell);
       console.log(`${chalk.cyan(headers[c])}: ${val}`);
     }
   }
@@ -139,7 +146,7 @@ function fitColumns(naturalWidths: number[], available: number): number[] {
  */
 export function outputKeyValue(
   data: Record<string, unknown>,
-  options: OutputOptions = {}
+  options: OutputOptions = {},
 ): void {
   if (options.json) {
     outputJson(data);
@@ -150,7 +157,8 @@ export function outputKeyValue(
 
   for (const [key, value] of Object.entries(data)) {
     const paddedKey = key.padEnd(maxKeyLength);
-    const displayValue = value === null || value === undefined ? chalk.dim('-') : String(value);
+    const displayValue =
+      value === null || value === undefined ? chalk.dim("-") : String(value);
     console.log(`${chalk.cyan(paddedKey)}  ${displayValue}`);
   }
 }
@@ -159,28 +167,28 @@ export function outputKeyValue(
  * Outputs a success message
  */
 export function success(message: string): void {
-  console.log(chalk.green('✓'), message);
+  console.log(chalk.green("✓"), message);
 }
 
 /**
  * Outputs an error message
  */
 export function error(message: string): void {
-  console.error(chalk.red('✗'), message);
+  console.error(chalk.red("✗"), message);
 }
 
 /**
  * Outputs a warning message
  */
 export function warning(message: string): void {
-  console.log(chalk.yellow('⚠'), message);
+  console.log(chalk.yellow("⚠"), message);
 }
 
 /**
  * Outputs an info message
  */
 export function info(message: string): void {
-  console.log(chalk.blue('ℹ'), message);
+  console.log(chalk.blue("ℹ"), message);
 }
 
 /**
@@ -196,7 +204,7 @@ export function dim(message: string): void {
 export function header(text: string): void {
   console.log();
   console.log(chalk.bold(text));
-  console.log(chalk.dim('─'.repeat(text.length)));
+  console.log(chalk.dim("─".repeat(text.length)));
 }
 
 /**
@@ -210,22 +218,22 @@ export function newline(): void {
  * Formats a date for display
  */
 export function formatDate(date: string | Date): string {
-  const d = typeof date === 'string' ? new Date(date) : date;
-  return d.toLocaleDateString('en-US', {
-    year: 'numeric',
-    month: 'short',
-    day: 'numeric',
-    hour: '2-digit',
-    minute: '2-digit',
+  const d = typeof date === "string" ? new Date(date) : date;
+  return d.toLocaleDateString("en-US", {
+    year: "numeric",
+    month: "short",
+    day: "numeric",
+    hour: "2-digit",
+    minute: "2-digit",
   });
 }
 
 /**
  * Formats currency for display
  */
-export function formatCurrency(amount: number, currency = 'USD'): string {
-  return new Intl.NumberFormat('en-US', {
-    style: 'currency',
+export function formatCurrency(amount: number, currency = "USD"): string {
+  return new Intl.NumberFormat("en-US", {
+    style: "currency",
     currency: currency.toUpperCase(),
   }).format(amount / 100); // Assuming amounts are in cents
 }
@@ -235,7 +243,7 @@ export function formatCurrency(amount: number, currency = 'USD'): string {
  */
 export function truncate(str: string, maxLength: number): string {
   if (str.length <= maxLength) return str;
-  return str.slice(0, maxLength - 3) + '...';
+  return str.slice(0, maxLength - 3) + "...";
 }
 
 /**

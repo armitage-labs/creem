@@ -1,9 +1,9 @@
-import { Command } from 'commander';
-import ora from 'ora';
-import chalk from 'chalk';
-import { getClient } from '../lib/api';
-import { shouldOutputJson } from '../lib/config';
-import * as output from '../utils/output';
+import { Command } from "commander";
+import ora from "ora";
+import chalk from "chalk";
+import { getClient } from "../lib/api";
+import { shouldOutputJson } from "../lib/config";
+import * as output from "../utils/output";
 
 interface Checkout {
   id: string;
@@ -24,31 +24,33 @@ interface Checkout {
  */
 function formatStatus(status: string): string {
   switch (status?.toLowerCase()) {
-    case 'completed':
+    case "completed":
       return chalk.green(status);
-    case 'expired':
+    case "expired":
       return chalk.red(status);
-    case 'pending':
-    case 'open':
+    case "pending":
+    case "open":
       return chalk.yellow(status);
     default:
-      return status || '-';
+      return status || "-";
   }
 }
 
 export function createCheckoutsCommand(): Command {
-  const command = new Command('checkouts').description('Manage checkout sessions');
+  const command = new Command("checkouts").description(
+    "Manage checkout sessions",
+  );
 
   // Create checkout
   command
-    .command('create')
-    .description('Create a new checkout session')
-    .requiredOption('--product <id>', 'Product ID')
-    .option('--customer <id>', 'Customer ID (optional)')
-    .option('--success-url <url>', 'Success redirect URL')
-    .option('--discount <code>', 'Discount code')
-    .option('--request-id <id>', 'Idempotency request ID')
-    .option('--json', 'Output as JSON')
+    .command("create")
+    .description("Create a new checkout session")
+    .requiredOption("--product <id>", "Product ID")
+    .option("--customer <id>", "Customer ID (optional)")
+    .option("--success-url <url>", "Success redirect URL")
+    .option("--discount <code>", "Discount code")
+    .option("--request-id <id>", "Idempotency request ID")
+    .option("--json", "Output as JSON")
     .action(
       async (options: {
         product: string;
@@ -58,7 +60,7 @@ export function createCheckoutsCommand(): Command {
         requestId?: string;
         json?: boolean;
       }) => {
-        const spinner = ora('Creating checkout session...').start();
+        const spinner = ora("Creating checkout session...").start();
 
         try {
           const client = getClient();
@@ -87,7 +89,9 @@ export function createCheckoutsCommand(): Command {
             params.requestId = options.requestId;
           }
 
-          const checkout = (await client.checkouts.create(params)) as unknown as Checkout;
+          const checkout = (await client.checkouts.create(
+            params,
+          )) as unknown as Checkout;
 
           spinner.stop();
 
@@ -97,44 +101,52 @@ export function createCheckoutsCommand(): Command {
           }
 
           output.newline();
-          output.success('Checkout session created!');
+          output.success("Checkout session created!");
           output.newline();
 
           output.outputKeyValue({
             ID: checkout.id,
             Status: formatStatus(checkout.status),
-            'Product ID': checkout.product || '-',
-            'Customer ID': checkout.customer || '-',
+            "Product ID": checkout.product || "-",
+            "Customer ID": checkout.customer || "-",
             Mode: checkout.mode,
-            Created: checkout.createdAt ? output.formatDate(checkout.createdAt) : 'N/A',
+            Created: checkout.createdAt
+              ? output.formatDate(checkout.createdAt)
+              : "N/A",
           });
 
           output.newline();
-          output.info('Checkout URL:');
+          output.info("Checkout URL:");
           console.log(chalk.cyan.bold(checkout.checkoutUrl));
           output.newline();
 
-          output.dim('Share this URL with your customer to complete payment.');
+          output.dim("Share this URL with your customer to complete payment.");
           output.newline();
         } catch (error) {
           spinner.stop();
-          output.error(error instanceof Error ? error.message : 'Failed to create checkout');
+          output.error(
+            error instanceof Error
+              ? error.message
+              : "Failed to create checkout",
+          );
           process.exit(1);
         }
-      }
+      },
     );
 
   // Get checkout by ID
   command
-    .command('get <checkout-id>')
-    .description('Get checkout session details')
-    .option('--json', 'Output as JSON')
+    .command("get <checkout-id>")
+    .description("Get checkout session details")
+    .option("--json", "Output as JSON")
     .action(async (checkoutId: string, options: { json?: boolean }) => {
-      const spinner = ora('Fetching checkout...').start();
+      const spinner = ora("Fetching checkout...").start();
 
       try {
         const client = getClient();
-        const checkout = (await client.checkouts.retrieve(checkoutId)) as unknown as Checkout;
+        const checkout = (await client.checkouts.retrieve(
+          checkoutId,
+        )) as unknown as Checkout;
 
         spinner.stop();
 
@@ -144,40 +156,46 @@ export function createCheckoutsCommand(): Command {
         }
 
         output.newline();
-        output.header('Checkout Session');
+        output.header("Checkout Session");
         output.newline();
 
         output.outputKeyValue({
           ID: checkout.id,
           Status: formatStatus(checkout.status),
-          'Product ID': checkout.product || '-',
-          'Customer ID': checkout.customer || '-',
+          "Product ID": checkout.product || "-",
+          "Customer ID": checkout.customer || "-",
           Mode: checkout.mode,
-          Created: checkout.createdAt ? output.formatDate(checkout.createdAt) : 'N/A',
+          Created: checkout.createdAt
+            ? output.formatDate(checkout.createdAt)
+            : "N/A",
         });
 
         if (checkout.checkoutUrl) {
           output.newline();
-          output.dim('Checkout URL:');
+          output.dim("Checkout URL:");
           console.log(chalk.cyan(checkout.checkoutUrl));
         }
 
         if (checkout.successUrl) {
           output.newline();
-          output.dim('Success URL:');
+          output.dim("Success URL:");
           console.log(checkout.successUrl);
         }
 
         if (checkout.expiresAt) {
           output.newline();
-          output.dim('Expires:');
-          console.log(checkout.expiresAt ? output.formatDate(checkout.expiresAt) : 'N/A');
+          output.dim("Expires:");
+          console.log(
+            checkout.expiresAt ? output.formatDate(checkout.expiresAt) : "N/A",
+          );
         }
 
         output.newline();
       } catch (error) {
         spinner.stop();
-        output.error(error instanceof Error ? error.message : 'Failed to fetch checkout');
+        output.error(
+          error instanceof Error ? error.message : "Failed to fetch checkout",
+        );
         process.exit(1);
       }
     });

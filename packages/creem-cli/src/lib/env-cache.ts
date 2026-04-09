@@ -1,4 +1,4 @@
-import { getConfigValue } from './config';
+import { getConfigValue } from "./config";
 
 /**
  * Cache the environment string to avoid sync file I/O on every render frame.
@@ -11,7 +11,7 @@ let cachedEnv: string | null = null;
  */
 export function getCachedEnv(): string {
   if (cachedEnv === null) {
-    cachedEnv = getConfigValue('environment') || 'test';
+    cachedEnv = getConfigValue("environment") || "test";
   }
   return cachedEnv;
 }

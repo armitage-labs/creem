@@ -1,8 +1,8 @@
 export interface TuiColumnDef<T> {
   header: string;
-  width: number | 'auto';
+  width: number | "auto";
   value: (item: T) => string;
-  align?: 'left' | 'right' | 'center';
+  align?: "left" | "right" | "center";
 }
 
 export interface TuiFetchResult<T> {
@@ -35,7 +35,7 @@ export interface TuiModuleDescriptor<T> {
   searchFilter?: (item: T, query: string) => boolean;
 }
 
-export type TuiMode = 'list' | 'detail' | 'command' | 'search' | 'confirm';
+export type TuiMode = "list" | "detail" | "command" | "search" | "confirm";
 
 export interface TuiState<T> {
   mode: TuiMode;
@@ -52,27 +52,27 @@ export interface TuiState<T> {
   totalItems: number | null;
   isLoading: boolean;
   statusMessage: string | null;
-  statusType: 'info' | 'success' | 'error';
+  statusType: "info" | "success" | "error";
   pendingCommand: TuiCommandDef<T> | null;
 }
 
 export function createInitialState<T>(): TuiState<T> {
   return {
-    mode: 'list',
+    mode: "list",
     items: [],
     cursorIndex: 0,
     scrollOffset: 0,
     selectedItem: null,
     detailScrollOffset: 0,
-    commandInput: '',
-    searchQuery: '',
+    commandInput: "",
+    searchQuery: "",
     filteredItems: [],
     currentPage: 0,
     hasMorePages: true,
     totalItems: null,
     isLoading: false,
     statusMessage: null,
-    statusType: 'info',
+    statusType: "info",
     pendingCommand: null,
   };
 }

@@ -3,8 +3,8 @@ import {
   saveConfig,
   isAuthenticated,
   getConfigValue,
-} from './config';
-import { validateApiKey, resetClient } from './api';
+} from "./config";
+import { validateApiKey, resetClient } from "./api";
 
 export interface LoginResult {
   success: boolean;
@@ -17,16 +17,16 @@ export interface LoginResult {
  * creem_live_xxx or creem_xxx (non-test) -> live
  * Invalid prefix -> throws error
  */
-export function detectEnvironment(apiKey: string): 'test' | 'live' {
-  if (apiKey.startsWith('creem_test_')) {
-    return 'test';
+export function detectEnvironment(apiKey: string): "test" | "live" {
+  if (apiKey.startsWith("creem_test_")) {
+    return "test";
   }
-  if (apiKey.startsWith('creem_live_') || apiKey.startsWith('creem_')) {
-    return 'live';
+  if (apiKey.startsWith("creem_live_") || apiKey.startsWith("creem_")) {
+    return "live";
   }
   throw new Error(
     'Invalid API key format. Key must start with "creem_test_" or "creem_live_" (or "creem_" for live). ' +
-    'Get your API key from https://creem.io/dashboard/api-keys'
+      "Get your API key from https://creem.io/dashboard/api-keys",
   );
 }
 
@@ -38,20 +38,21 @@ export async function loginWithApiKey(apiKey: string): Promise<LoginResult> {
   if (!apiKey || apiKey.trim().length === 0) {
     return {
       success: false,
-      message: 'API key cannot be empty',
+      message: "API key cannot be empty",
     };
   }
 
   const trimmedKey = apiKey.trim();
 
   // Auto-detect environment from API key prefix
-  let detectedEnv: 'test' | 'live';
+  let detectedEnv: "test" | "live";
   try {
     detectedEnv = detectEnvironment(trimmedKey);
   } catch (error) {
     return {
       success: false,
-      message: error instanceof Error ? error.message : 'Invalid API key format',
+      message:
+        error instanceof Error ? error.message : "Invalid API key format",
     };
   }
 
@@ -62,7 +63,7 @@ export async function loginWithApiKey(apiKey: string): Promise<LoginResult> {
   if (!validation.valid) {
     return {
       success: false,
-      message: validation.error || 'Failed to validate API key',
+      message: validation.error || "Failed to validate API key",
     };
   }
 
@@ -86,7 +87,7 @@ export function logout(): LoginResult {
   if (!isAuthenticated()) {
     return {
       success: true,
-      message: 'Already logged out',
+      message: "Already logged out",
     };
   }
 
@@ -98,7 +99,7 @@ export function logout(): LoginResult {
 
   return {
     success: true,
-    message: 'Successfully logged out',
+    message: "Successfully logged out",
   };
 }
 
@@ -107,15 +108,15 @@ export function logout(): LoginResult {
  */
 export function getAuthInfo(): {
   authenticated: boolean;
-  environment: 'test' | 'live';
+  environment: "test" | "live";
   apiKeyPreview?: string;
 } {
   const authenticated = isAuthenticated();
-  const environment = getConfigValue('environment');
+  const environment = getConfigValue("environment");
 
   let apiKeyPreview: string | undefined;
   if (authenticated) {
-    const apiKey = getConfigValue('api_key');
+    const apiKey = getConfigValue("api_key");
     if (apiKey) {
       // Show first 8 and last 4 characters
       if (apiKey.length > 16) {

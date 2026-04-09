@@ -1,13 +1,13 @@
-import { Command } from 'commander';
-import { getAuthInfo } from '../lib/auth';
-import { getBaseUrl } from '../lib/api';
-import { shouldOutputJson } from '../lib/config';
-import * as output from '../utils/output';
+import { Command } from "commander";
+import { getAuthInfo } from "../lib/auth";
+import { getBaseUrl } from "../lib/api";
+import { shouldOutputJson } from "../lib/config";
+import * as output from "../utils/output";
 
 export function createWhoamiCommand(): Command {
-  const command = new Command('whoami')
-    .description('Display current authentication status')
-    .option('--json', 'Output as JSON')
+  const command = new Command("whoami")
+    .description("Display current authentication status")
+    .option("--json", "Output as JSON")
     .action((options: { json?: boolean }) => {
       const authInfo = getAuthInfo();
 
@@ -25,19 +25,19 @@ export function createWhoamiCommand(): Command {
       output.newline();
 
       if (!authInfo.authenticated) {
-        output.warning('Not logged in');
+        output.warning("Not logged in");
         output.newline();
-        output.info('Run `creem login` to authenticate.');
+        output.info("Run `creem login` to authenticate.");
         return;
       }
 
-      output.success('Logged in to Creem');
+      output.success("Logged in to Creem");
       output.newline();
 
       output.outputKeyValue({
-        'Environment': authInfo.environment,
-        'API Key': authInfo.apiKeyPreview || '-',
-        'API URL': getBaseUrl(),
+        Environment: authInfo.environment,
+        "API Key": authInfo.apiKeyPreview || "-",
+        "API URL": getBaseUrl(),
       });
 
       output.newline();

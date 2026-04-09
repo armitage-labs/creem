@@ -1,10 +1,10 @@
-import { Command } from 'commander';
-import ora from 'ora';
-import chalk from 'chalk';
-import { getClient } from '../lib/api';
-import { shouldOutputJson } from '../lib/config';
-import * as output from '../utils/output';
-import type { TuiModuleDescriptor } from '../tui';
+import { Command } from "commander";
+import ora from "ora";
+import chalk from "chalk";
+import { getClient } from "../lib/api";
+import { shouldOutputJson } from "../lib/config";
+import * as output from "../utils/output";
+import type { TuiModuleDescriptor } from "../tui";
 
 interface ProductFeature {
   id: string;
@@ -47,10 +47,10 @@ interface ProductListResponse {
  * Formats billing info for display
  */
 function formatBilling(product: Product): string {
-  if (product.billingType === 'onetime') {
-    return 'One-time';
+  if (product.billingType === "onetime") {
+    return "One-time";
   }
-  const period = product.billingPeriod?.replace('every-', '') || 'month';
+  const period = product.billingPeriod?.replace("every-", "") || "month";
   return `Recurring / ${period}`;
 }
 
@@ -59,14 +59,14 @@ function formatBilling(product: Product): string {
  */
 function formatStatus(status: string): string {
   switch (status?.toLowerCase()) {
-    case 'active':
+    case "active":
       return chalk.green(status);
-    case 'archived':
+    case "archived":
       return chalk.yellow(status);
-    case 'draft':
+    case "draft":
       return chalk.dim(status);
     default:
-      return status || '-';
+      return status || "-";
   }
 }
 
@@ -74,34 +74,36 @@ function getProductDetailLines(product: Product): string[] {
   const lines: string[] = [];
   const dl = output.detailLine;
 
-  lines.push('');
-  lines.push(dl('ID', product.id));
-  lines.push(dl('Name', product.name));
-  lines.push(dl('Status', formatStatus(product.status)));
-  lines.push(dl('Price', output.formatCurrency(product.price, product.currency)));
-  lines.push(dl('Currency', product.currency.toUpperCase()));
-  lines.push(dl('Billing', formatBilling(product)));
-  lines.push(dl('Tax Mode', product.taxMode));
-  lines.push(dl('Tax Category', product.taxCategory));
-  lines.push(dl('Mode', product.mode));
-  lines.push(dl('Created', output.formatDate(product.createdAt)));
-  lines.push(dl('Updated', output.formatDate(product.updatedAt)));
+  lines.push("");
+  lines.push(dl("ID", product.id));
+  lines.push(dl("Name", product.name));
+  lines.push(dl("Status", formatStatus(product.status)));
+  lines.push(
+    dl("Price", output.formatCurrency(product.price, product.currency)),
+  );
+  lines.push(dl("Currency", product.currency.toUpperCase()));
+  lines.push(dl("Billing", formatBilling(product)));
+  lines.push(dl("Tax Mode", product.taxMode));
+  lines.push(dl("Tax Category", product.taxCategory));
+  lines.push(dl("Mode", product.mode));
+  lines.push(dl("Created", output.formatDate(product.createdAt)));
+  lines.push(dl("Updated", output.formatDate(product.updatedAt)));
 
   if (product.description) {
-    lines.push('');
-    lines.push(chalk.dim('Description:'));
+    lines.push("");
+    lines.push(chalk.dim("Description:"));
     lines.push(product.description);
   }
 
   if (product.productUrl) {
-    lines.push('');
-    lines.push(chalk.dim('Product URL:'));
+    lines.push("");
+    lines.push(chalk.dim("Product URL:"));
     lines.push(chalk.cyan(product.productUrl));
   }
 
   if (product.features && product.features.length > 0) {
-    lines.push('');
-    lines.push(chalk.dim('Features:'));
+    lines.push("");
+    lines.push(chalk.dim("Features:"));
     for (const f of product.features) {
       lines.push(`  \u2022 ${f.type}: ${f.description}`);
     }
@@ -112,22 +114,25 @@ function getProductDetailLines(product: Product): string[] {
 
 function getProductsTuiDescriptor(): TuiModuleDescriptor<Product> {
   return {
-    name: 'Products',
+    name: "Products",
     columns: [
-      { header: 'ID', width: 24, value: (p) => p.id },
-      { header: 'Name', width: 30, value: (p) => output.truncate(p.name, 30) },
+      { header: "ID", width: 24, value: (p) => p.id },
+      { header: "Name", width: 30, value: (p) => output.truncate(p.name, 30) },
       {
-        header: 'Price',
+        header: "Price",
         width: 14,
         value: (p) => output.formatCurrency(p.price, p.currency),
-        align: 'right',
+        align: "right",
       },
-      { header: 'Billing', width: 18, value: (p) => formatBilling(p) },
-      { header: 'Status', width: 'auto', value: (p) => formatStatus(p.status) },
+      { header: "Billing", width: 18, value: (p) => formatBilling(p) },
+      { header: "Status", width: "auto", value: (p) => formatStatus(p.status) },
     ],
     fetchPage: async (page: number, pageSize: number) => {
       const client = getClient();
-      const response = (await client.products.search(page, pageSize)) as unknown as ProductListResponse;
+      const response = (await client.products.search(
+        page,
+        pageSize,
+      )) as unknown as ProductListResponse;
       const { items, pagination } = response;
       return {
         items,
@@ -150,49 +155,52 @@ function getProductsTuiDescriptor(): TuiModuleDescriptor<Product> {
 }
 
 export function createProductsCommand(): Command {
-  const command = new Command('products')
-    .description('Manage products')
+  const command = new Command("products")
+    .description("Manage products")
     .action(async () => {
-      const { launchInteractiveMode } = await import('../tui');
+      const { launchInteractiveMode } = await import("../tui");
       const descriptor = getProductsTuiDescriptor();
       await launchInteractiveMode(descriptor);
     });
 
   // Create product
   command
-    .command('create')
-    .description('Create a new product')
-    .requiredOption('--name <name>', 'Product name')
-    .requiredOption('--description <text>', 'Product description')
+    .command("create")
+    .description("Create a new product")
+    .requiredOption("--name <name>", "Product name")
+    .requiredOption("--description <text>", "Product description")
     .requiredOption(
-      '--price <cents>',
-      'Price in cents (e.g. 1000 = $10.00, minimum 100)'
+      "--price <cents>",
+      "Price in cents (e.g. 1000 = $10.00, minimum 100)",
     )
     .requiredOption(
-      '--currency <code>',
-      'Three-letter ISO currency code (USD, EUR)'
+      "--currency <code>",
+      "Three-letter ISO currency code (USD, EUR)",
     )
     .requiredOption(
-      '--billing-type <type>',
-      'Billing method: "recurring" or "onetime"'
+      "--billing-type <type>",
+      'Billing method: "recurring" or "onetime"',
     )
     .option(
-      '--billing-period <period>',
-      'Billing period (required for recurring): every-month, every-three-months, every-six-months, every-year'
+      "--billing-period <period>",
+      "Billing period (required for recurring): every-month, every-three-months, every-six-months, every-year",
     )
-    .option('--tax-mode <mode>', 'Tax calculation mode: "inclusive" or "exclusive"')
     .option(
-      '--tax-category <category>',
-      'Tax category: "saas", "digital-goods-service", or "ebooks"'
+      "--tax-mode <mode>",
+      'Tax calculation mode: "inclusive" or "exclusive"',
     )
-    .option('--image-url <url>', 'Product image URL')
-    .option('--success-url <url>', 'Redirect URL after successful payment')
-    .option('--abandoned-cart-recovery', 'Enable abandoned cart recovery')
-    .option('--json', 'Output as JSON')
+    .option(
+      "--tax-category <category>",
+      'Tax category: "saas", "digital-goods-service", or "ebooks"',
+    )
+    .option("--image-url <url>", "Product image URL")
+    .option("--success-url <url>", "Redirect URL after successful payment")
+    .option("--abandoned-cart-recovery", "Enable abandoned cart recovery")
+    .option("--json", "Output as JSON")
     .addHelpText(
-      'after',
+      "after",
       `
-${chalk.dim('Required fields:')}
+${chalk.dim("Required fields:")}
   --name               Product name
   --description        Product description
   --price              Price in cents (minimum 100 = $1.00)
@@ -205,19 +213,19 @@ ${chalk.dim('Billing periods (required when --billing-type is "recurring"):')}
   every-six-months     Semi-annual billing cycle
   every-year           Annual billing cycle
 
-${chalk.dim('Tax modes:')}
+${chalk.dim("Tax modes:")}
   inclusive             Tax is included in the price
   exclusive             Tax is added on top of the price
 
-${chalk.dim('Tax categories:')}
+${chalk.dim("Tax categories:")}
   saas                  Software as a Service
   digital-goods-service Digital goods or services
   ebooks                E-books
 
-${chalk.dim('Examples:')}
+${chalk.dim("Examples:")}
   ${chalk.cyan('creem products create --name "Pro Plan" --description "Full access" --price 2999 --currency USD --billing-type recurring --billing-period every-month')}
   ${chalk.cyan('creem products create --name "Template Pack" --description "50 premium templates" --price 4999 --currency USD --billing-type onetime --tax-mode exclusive --tax-category digital-goods-service')}
-`
+`,
     )
     .action(
       async (options: {
@@ -237,29 +245,29 @@ ${chalk.dim('Examples:')}
         // Validate price
         const price = parseInt(options.price, 10);
         if (isNaN(price) || price < 100) {
-          output.error('Price must be a number of at least 100 cents ($1.00).');
+          output.error("Price must be a number of at least 100 cents ($1.00).");
           process.exit(1);
         }
 
         // Validate billing type
-        const validBillingTypes = ['recurring', 'onetime'];
+        const validBillingTypes = ["recurring", "onetime"];
         if (!validBillingTypes.includes(options.billingType)) {
           output.error(
-            `Invalid billing type "${options.billingType}". Must be "recurring" or "onetime".`
+            `Invalid billing type "${options.billingType}". Must be "recurring" or "onetime".`,
           );
           process.exit(1);
         }
 
         // Validate billing period is provided for recurring
         const validBillingPeriods = [
-          'every-month',
-          'every-three-months',
-          'every-six-months',
-          'every-year',
+          "every-month",
+          "every-three-months",
+          "every-six-months",
+          "every-year",
         ];
-        if (options.billingType === 'recurring' && !options.billingPeriod) {
+        if (options.billingType === "recurring" && !options.billingPeriod) {
           output.error(
-            'Billing period is required for recurring products. Use --billing-period.'
+            "Billing period is required for recurring products. Use --billing-period.",
           );
           process.exit(1);
         }
@@ -268,38 +276,44 @@ ${chalk.dim('Examples:')}
           !validBillingPeriods.includes(options.billingPeriod)
         ) {
           output.error(
-            `Invalid billing period "${options.billingPeriod}". Must be one of: ${validBillingPeriods.join(', ')}.`
+            `Invalid billing period "${options.billingPeriod}". Must be one of: ${validBillingPeriods.join(", ")}.`,
           );
           process.exit(1);
         }
 
         // Validate tax mode
-        if (options.taxMode && !['inclusive', 'exclusive'].includes(options.taxMode)) {
+        if (
+          options.taxMode &&
+          !["inclusive", "exclusive"].includes(options.taxMode)
+        ) {
           output.error(
-            `Invalid tax mode "${options.taxMode}". Must be "inclusive" or "exclusive".`
+            `Invalid tax mode "${options.taxMode}". Must be "inclusive" or "exclusive".`,
           );
           process.exit(1);
         }
 
         // Validate tax category
-        const validTaxCategories = ['saas', 'digital-goods-service', 'ebooks'];
-        if (options.taxCategory && !validTaxCategories.includes(options.taxCategory)) {
+        const validTaxCategories = ["saas", "digital-goods-service", "ebooks"];
+        if (
+          options.taxCategory &&
+          !validTaxCategories.includes(options.taxCategory)
+        ) {
           output.error(
-            `Invalid tax category "${options.taxCategory}". Must be one of: ${validTaxCategories.join(', ')}.`
+            `Invalid tax category "${options.taxCategory}". Must be one of: ${validTaxCategories.join(", ")}.`,
           );
           process.exit(1);
         }
 
         // Validate currency
         const currency = options.currency.toUpperCase();
-        if (!['USD', 'EUR'].includes(currency)) {
+        if (!["USD", "EUR"].includes(currency)) {
           output.error(
-            `Invalid currency "${options.currency}". Supported currencies: USD, EUR.`
+            `Invalid currency "${options.currency}". Supported currencies: USD, EUR.`,
           );
           process.exit(1);
         }
 
-        const spinner = ora('Creating product...').start();
+        const spinner = ora("Creating product...").start();
 
         try {
           const client = getClient();
@@ -344,7 +358,7 @@ ${chalk.dim('Examples:')}
           }
 
           const product = (await client.products.create(
-            params as Parameters<typeof client.products.create>[0]
+            params as Parameters<typeof client.products.create>[0],
           )) as unknown as Product;
 
           spinner.stop();
@@ -355,7 +369,7 @@ ${chalk.dim('Examples:')}
           }
 
           output.newline();
-          output.success('Product created!');
+          output.success("Product created!");
           output.newline();
 
           output.outputKeyValue({
@@ -365,101 +379,111 @@ ${chalk.dim('Examples:')}
             Price: output.formatCurrency(product.price, product.currency),
             Currency: product.currency.toUpperCase(),
             Billing: formatBilling(product),
-            'Tax Mode': product.taxMode,
-            'Tax Category': product.taxCategory,
+            "Tax Mode": product.taxMode,
+            "Tax Category": product.taxCategory,
             Mode: product.mode,
             Created: output.formatDate(product.createdAt),
           });
 
           if (product.description) {
             output.newline();
-            output.dim('Description:');
+            output.dim("Description:");
             console.log(product.description);
           }
 
           if (product.productUrl) {
             output.newline();
-            output.info('Product URL:');
+            output.info("Product URL:");
             console.log(chalk.cyan.bold(product.productUrl));
           }
 
           output.newline();
         } catch (error) {
-          spinner.fail('Failed to create product');
-          output.error(error instanceof Error ? error.message : 'Unknown error');
+          spinner.fail("Failed to create product");
+          output.error(
+            error instanceof Error ? error.message : "Unknown error",
+          );
           process.exit(1);
         }
-      }
+      },
     );
 
   // List products
   command
-    .command('list')
-    .description('List all products')
-    .option('--json', 'Output as JSON')
-    .option('--page <number>', 'Page number', '1')
-    .option('--limit <number>', 'Number of results per page', '20')
-    .action(async (options: { json?: boolean; page: string; limit: string }) => {
-      const spinner = ora('Fetching products...').start();
+    .command("list")
+    .description("List all products")
+    .option("--json", "Output as JSON")
+    .option("--page <number>", "Page number", "1")
+    .option("--limit <number>", "Number of results per page", "20")
+    .action(
+      async (options: { json?: boolean; page: string; limit: string }) => {
+        const spinner = ora("Fetching products...").start();
 
-      try {
-        const client = getClient();
-        const response = (await client.products.search(
-          parseInt(options.page, 10),
-          parseInt(options.limit, 10)
-        )) as unknown as ProductListResponse;
+        try {
+          const client = getClient();
+          const response = (await client.products.search(
+            parseInt(options.page, 10),
+            parseInt(options.limit, 10),
+          )) as unknown as ProductListResponse;
 
-        spinner.stop();
+          spinner.stop();
 
-        const { items, pagination } = response;
+          const { items, pagination } = response;
 
-        if (shouldOutputJson(options.json)) {
-          output.outputJson(response);
-          return;
+          if (shouldOutputJson(options.json)) {
+            output.outputJson(response);
+            return;
+          }
+
+          output.newline();
+
+          if (items.length === 0) {
+            output.info("No products found.");
+            output.dim(
+              "Create a product at: https://creem.io/dashboard/products",
+            );
+            return;
+          }
+
+          output.outputTable(
+            ["ID", "Name", "Price", "Billing", "Status"],
+            items.map((p) => [
+              p.id,
+              output.truncate(p.name, 30),
+              output.formatCurrency(p.price, p.currency),
+              formatBilling(p),
+              formatStatus(p.status),
+            ]),
+          );
+
+          output.newline();
+          output.dim(
+            `Page ${pagination.currentPage} of ${pagination.totalPages} (${pagination.totalRecords} total)`,
+          );
+          output.newline();
+        } catch (error) {
+          spinner.stop();
+          output.error(
+            error instanceof Error ? error.message : "Failed to fetch products",
+          );
+          process.exit(1);
         }
-
-        output.newline();
-
-        if (items.length === 0) {
-          output.info('No products found.');
-          output.dim('Create a product at: https://creem.io/dashboard/products');
-          return;
-        }
-
-        output.outputTable(
-          ['ID', 'Name', 'Price', 'Billing', 'Status'],
-          items.map((p) => [
-            p.id,
-            output.truncate(p.name, 30),
-            output.formatCurrency(p.price, p.currency),
-            formatBilling(p),
-            formatStatus(p.status),
-          ])
-        );
-
-        output.newline();
-        output.dim(
-          `Page ${pagination.currentPage} of ${pagination.totalPages} (${pagination.totalRecords} total)`
-        );
-        output.newline();
-      } catch (error) {
-        spinner.stop();
-        output.error(error instanceof Error ? error.message : 'Failed to fetch products');
-        process.exit(1);
-      }
-    });
+      },
+    );
 
   // Get product by ID
   command
-    .command('get <product-id>')
-    .description('Get product details')
-    .option('--json', 'Output as JSON')
+    .command("get <product-id>")
+    .description("Get product details")
+    .option("--json", "Output as JSON")
     .action(async (productId: string, options: { json?: boolean }) => {
-      const spinner = ora('Fetching product...').start();
+      const spinner = ora("Fetching product...").start();
 
       try {
         const client = getClient();
-        const product = (await client.products.get(productId)) as unknown as Product;
+        const product = (await client.products.get(
+          productId,
+        )) as unknown as Product;
 
         spinner.stop();
 
@@ -478,8 +502,8 @@ ${chalk.dim('Examples:')}
           Price: output.formatCurrency(product.price, product.currency),
           Currency: product.currency.toUpperCase(),
           Billing: formatBilling(product),
-          'Tax Mode': product.taxMode,
-          'Tax Category': product.taxCategory,
+          "Tax Mode": product.taxMode,
+          "Tax Category": product.taxCategory,
           Mode: product.mode,
           Created: output.formatDate(product.createdAt),
           Updated: output.formatDate(product.updatedAt),
@@ -487,19 +511,19 @@ ${chalk.dim('Examples:')}
 
         if (product.description) {
           output.newline();
-          output.dim('Description:');
+          output.dim("Description:");
           console.log(product.description);
         }
 
         if (product.productUrl) {
           output.newline();
-          output.dim('Product URL:');
+          output.dim("Product URL:");
           console.log(chalk.cyan(product.productUrl));
         }
 
         if (product.features && product.features.length > 0) {
           output.newline();
-          output.dim('Features:');
+          output.dim("Features:");
           product.features.forEach((f) => {
             console.log(`  • ${f.type}: ${f.description}`);
           });
@@ -508,7 +532,9 @@ ${chalk.dim('Examples:')}
         output.newline();
       } catch (error) {
         spinner.stop();
-        output.error(error instanceof Error ? error.message : 'Failed to fetch product');
+        output.error(
+          error instanceof Error ? error.message : "Failed to fetch product",
+        );
         process.exit(1);
       }
     });

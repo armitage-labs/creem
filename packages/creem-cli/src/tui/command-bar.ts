@@ -1,4 +1,4 @@
-import type { TuiCommandDef } from './types';
+import type { TuiCommandDef } from "./types";
 
 export interface ParsedCommand<T> {
   command: TuiCommandDef<T>;
@@ -7,16 +7,16 @@ export interface ParsedCommand<T> {
 
 export function parseCommand<T>(
   input: string,
-  commands: TuiCommandDef<T>[]
+  commands: TuiCommandDef<T>[],
 ): { parsed: ParsedCommand<T> | null; error: string | null } {
   const trimmed = input.trim();
   if (!trimmed) {
     return { parsed: null, error: null };
   }
 
-  const spaceIdx = trimmed.indexOf(' ');
+  const spaceIdx = trimmed.indexOf(" ");
   const name = spaceIdx === -1 ? trimmed : trimmed.slice(0, spaceIdx);
-  const args = spaceIdx === -1 ? '' : trimmed.slice(spaceIdx + 1).trim();
+  const args = spaceIdx === -1 ? "" : trimmed.slice(spaceIdx + 1).trim();
 
   // First try exact match
   const exactMatch = commands.find((cmd) => cmd.name === name);
@@ -28,7 +28,7 @@ export function parseCommand<T>(
   const prefixMatches = commands.filter((cmd) => cmd.name.startsWith(name));
 
   if (prefixMatches.length === 0) {
-    const available = commands.map((c) => c.name).join(', ');
+    const available = commands.map((c) => c.name).join(", ");
     return {
       parsed: null,
       error: `Unknown command: ${name}. Available: ${available}`,
@@ -36,7 +36,7 @@ export function parseCommand<T>(
   }
 
   if (prefixMatches.length > 1) {
-    const ambiguous = prefixMatches.map((c) => c.name).join(', ');
+    const ambiguous = prefixMatches.map((c) => c.name).join(", ");
     return {
       parsed: null,
       error: `Ambiguous command: ${name}. Did you mean: ${ambiguous}?`,

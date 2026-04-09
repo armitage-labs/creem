@@ -1,10 +1,10 @@
-import { Command } from 'commander';
-import chalk from 'chalk';
-import ora from 'ora';
-import { getClient } from '../lib/api';
-import { shouldOutputJson } from '../lib/config';
-import * as output from '../utils/output';
-import type { TuiModuleDescriptor } from '../tui';
+import { Command } from "commander";
+import chalk from "chalk";
+import ora from "ora";
+import { getClient } from "../lib/api";
+import { shouldOutputJson } from "../lib/config";
+import * as output from "../utils/output";
+import type { TuiModuleDescriptor } from "../tui";
 
 // Types based on API response (camelCase from SDK)
 interface Transaction {
@@ -46,12 +46,12 @@ interface TransactionListResponse {
  */
 function formatTimestamp(ts: number): string {
   const d = new Date(ts);
-  return d.toLocaleDateString('en-US', {
-    year: 'numeric',
-    month: 'short',
-    day: 'numeric',
-    hour: '2-digit',
-    minute: '2-digit',
+  return d.toLocaleDateString("en-US", {
+    year: "numeric",
+    month: "short",
+    day: "numeric",
+    hour: "2-digit",
+    minute: "2-digit",
   });
 }
 
@@ -60,20 +60,20 @@ function formatTimestamp(ts: number): string {
  */
 function formatStatus(status: string): string {
   switch (status?.toLowerCase()) {
-    case 'paid':
+    case "paid":
       return chalk.green(status);
-    case 'pending':
+    case "pending":
       return chalk.yellow(status);
-    case 'refunded':
-    case 'partialrefund':
-    case 'chargedback':
-    case 'declined':
-    case 'void':
+    case "refunded":
+    case "partialrefund":
+    case "chargedback":
+    case "declined":
+    case "void":
       return chalk.red(status);
-    case 'uncollectible':
+    case "uncollectible":
       return chalk.dim(status);
     default:
-      return status || '-';
+      return status || "-";
   }
 }
 
@@ -82,12 +82,12 @@ function formatStatus(status: string): string {
  */
 function formatType(type: string): string {
   switch (type) {
-    case 'payment':
-      return chalk.cyan('payment');
-    case 'invoice':
-      return chalk.magenta('invoice');
+    case "payment":
+      return chalk.cyan("payment");
+    case "invoice":
+      return chalk.magenta("invoice");
     default:
-      return type || '-';
+      return type || "-";
   }
 }
 
@@ -97,7 +97,7 @@ function formatTransaction(txn: Transaction, jsonFlag?: boolean): void {
     return;
   }
 
-  output.header('Transaction Details');
+  output.header("Transaction Details");
   output.newline();
 
   const data: Record<string, unknown> = {
@@ -110,40 +110,40 @@ function formatTransaction(txn: Transaction, jsonFlag?: boolean): void {
   };
 
   if (txn.amountPaid != null) {
-    data['Amount Paid'] = output.formatCurrency(txn.amountPaid, txn.currency);
+    data["Amount Paid"] = output.formatCurrency(txn.amountPaid, txn.currency);
   }
   if (txn.discountAmount != null) {
-    data['Discount'] = output.formatCurrency(txn.discountAmount, txn.currency);
+    data["Discount"] = output.formatCurrency(txn.discountAmount, txn.currency);
   }
   if (txn.taxAmount != null) {
-    data['Tax Amount'] = output.formatCurrency(txn.taxAmount, txn.currency);
+    data["Tax Amount"] = output.formatCurrency(txn.taxAmount, txn.currency);
   }
   if (txn.taxCountry) {
-    data['Tax Country'] = txn.taxCountry;
+    data["Tax Country"] = txn.taxCountry;
   }
   if (txn.refundedAmount != null) {
-    data['Refunded'] = output.formatCurrency(txn.refundedAmount, txn.currency);
+    data["Refunded"] = output.formatCurrency(txn.refundedAmount, txn.currency);
   }
   if (txn.order) {
-    data['Order'] = txn.order;
+    data["Order"] = txn.order;
   }
   if (txn.subscription) {
-    data['Subscription'] = txn.subscription;
+    data["Subscription"] = txn.subscription;
   }
   if (txn.customer) {
-    data['Customer'] = txn.customer;
+    data["Customer"] = txn.customer;
   }
   if (txn.description) {
-    data['Description'] = txn.description;
+    data["Description"] = txn.description;
   }
   if (txn.periodStart) {
-    data['Period Start'] = formatTimestamp(txn.periodStart);
+    data["Period Start"] = formatTimestamp(txn.periodStart);
   }
   if (txn.periodEnd) {
-    data['Period End'] = formatTimestamp(txn.periodEnd);
+    data["Period End"] = formatTimestamp(txn.periodEnd);
   }
 
-  data['Created'] = formatTimestamp(txn.createdAt);
+  data["Created"] = formatTimestamp(txn.createdAt);
 
   output.outputKeyValue(data);
 }
@@ -152,67 +152,79 @@ function getTransactionDetailLines(txn: Transaction): string[] {
   const lines: string[] = [];
   const dl = output.detailLine;
 
-  lines.push('');
-  lines.push(dl('ID', txn.id));
-  lines.push(dl('Status', formatStatus(txn.status)));
-  lines.push(dl('Type', formatType(txn.type)));
-  lines.push(dl('Amount', output.formatCurrency(txn.amount, txn.currency)));
-  lines.push(dl('Currency', txn.currency.toUpperCase()));
-  lines.push(dl('Mode', txn.mode));
+  lines.push("");
+  lines.push(dl("ID", txn.id));
+  lines.push(dl("Status", formatStatus(txn.status)));
+  lines.push(dl("Type", formatType(txn.type)));
+  lines.push(dl("Amount", output.formatCurrency(txn.amount, txn.currency)));
+  lines.push(dl("Currency", txn.currency.toUpperCase()));
+  lines.push(dl("Mode", txn.mode));
 
   if (txn.amountPaid != null) {
-    lines.push(dl('Amount Paid', output.formatCurrency(txn.amountPaid, txn.currency)));
+    lines.push(
+      dl("Amount Paid", output.formatCurrency(txn.amountPaid, txn.currency)),
+    );
   }
   if (txn.discountAmount != null) {
-    lines.push(dl('Discount', output.formatCurrency(txn.discountAmount, txn.currency)));
+    lines.push(
+      dl("Discount", output.formatCurrency(txn.discountAmount, txn.currency)),
+    );
   }
   if (txn.taxAmount != null) {
-    lines.push(dl('Tax Amount', output.formatCurrency(txn.taxAmount, txn.currency)));
+    lines.push(
+      dl("Tax Amount", output.formatCurrency(txn.taxAmount, txn.currency)),
+    );
   }
   if (txn.taxCountry) {
-    lines.push(dl('Tax Country', txn.taxCountry));
+    lines.push(dl("Tax Country", txn.taxCountry));
   }
   if (txn.refundedAmount != null) {
-    lines.push(dl('Refunded', output.formatCurrency(txn.refundedAmount, txn.currency)));
+    lines.push(
+      dl("Refunded", output.formatCurrency(txn.refundedAmount, txn.currency)),
+    );
   }
   if (txn.order) {
-    lines.push(dl('Order', txn.order));
+    lines.push(dl("Order", txn.order));
   }
   if (txn.subscription) {
-    lines.push(dl('Subscription', txn.subscription));
+    lines.push(dl("Subscription", txn.subscription));
   }
   if (txn.customer) {
-    lines.push(dl('Customer', txn.customer));
+    lines.push(dl("Customer", txn.customer));
   }
   if (txn.description) {
-    lines.push(dl('Description', txn.description));
+    lines.push(dl("Description", txn.description));
   }
   if (txn.periodStart) {
-    lines.push(dl('Period Start', formatTimestamp(txn.periodStart)));
+    lines.push(dl("Period Start", formatTimestamp(txn.periodStart)));
   }
   if (txn.periodEnd) {
-    lines.push(dl('Period End', formatTimestamp(txn.periodEnd)));
+    lines.push(dl("Period End", formatTimestamp(txn.periodEnd)));
   }
 
-  lines.push(dl('Created', formatTimestamp(txn.createdAt)));
+  lines.push(dl("Created", formatTimestamp(txn.createdAt)));
 
   return lines;
 }
 
 function getTransactionsTuiDescriptor(): TuiModuleDescriptor<Transaction> {
   return {
-    name: 'Transactions',
+    name: "Transactions",
     columns: [
-      { header: 'ID', width: 24, value: (t) => output.truncate(t.id, 24) },
+      { header: "ID", width: 24, value: (t) => output.truncate(t.id, 24) },
       {
-        header: 'Amount',
+        header: "Amount",
         width: 14,
         value: (t) => output.formatCurrency(t.amount, t.currency),
-        align: 'right',
+        align: "right",
       },
-      { header: 'Type', width: 10, value: (t) => formatType(t.type) },
-      { header: 'Status', width: 14, value: (t) => formatStatus(t.status) },
-      { header: 'Created', width: 'auto', value: (t) => formatTimestamp(t.createdAt) },
+      { header: "Type", width: 10, value: (t) => formatType(t.type) },
+      { header: "Status", width: 14, value: (t) => formatStatus(t.status) },
+      {
+        header: "Created",
+        width: "auto",
+        value: (t) => formatTimestamp(t.createdAt),
+      },
     ],
     fetchPage: async (page: number, pageSize: number) => {
       const client = getClient();
@@ -239,35 +251,39 @@ function getTransactionsTuiDescriptor(): TuiModuleDescriptor<Transaction> {
         t.id.toLowerCase().includes(q) ||
         t.status.toLowerCase().includes(q) ||
         t.type.toLowerCase().includes(q) ||
-        (t.customer?.toLowerCase().includes(q) || false) ||
-        (t.order?.toLowerCase().includes(q) || false) ||
-        (t.subscription?.toLowerCase().includes(q) || false) ||
-        (t.description?.toLowerCase().includes(q) || false)
+        t.customer?.toLowerCase().includes(q) ||
+        false ||
+        t.order?.toLowerCase().includes(q) ||
+        false ||
+        t.subscription?.toLowerCase().includes(q) ||
+        false ||
+        t.description?.toLowerCase().includes(q) ||
+        false
       );
     },
   };
 }
 
 export function createTransactionsCommand(): Command {
-  const command = new Command('transactions')
-    .description('Manage transactions')
-    .alias('txn')
+  const command = new Command("transactions")
+    .description("Manage transactions")
+    .alias("txn")
     .action(async () => {
-      const { launchInteractiveMode } = await import('../tui');
+      const { launchInteractiveMode } = await import("../tui");
       const descriptor = getTransactionsTuiDescriptor();
       await launchInteractiveMode(descriptor);
     });
 
   // List / search transactions
   command
-    .command('list')
-    .description('List transactions')
-    .option('--page <number>', 'Page number', '1')
-    .option('--limit <number>', 'Number of results per page', '20')
-    .option('--customer <id>', 'Filter by customer ID')
-    .option('--order <id>', 'Filter by order ID')
-    .option('--product <id>', 'Filter by product ID')
-    .option('--json', 'Output as JSON')
+    .command("list")
+    .description("List transactions")
+    .option("--page <number>", "Page number", "1")
+    .option("--limit <number>", "Number of results per page", "20")
+    .option("--customer <id>", "Filter by customer ID")
+    .option("--order <id>", "Filter by order ID")
+    .option("--product <id>", "Filter by product ID")
+    .option("--json", "Output as JSON")
     .action(
       async (options: {
         page: string;
@@ -277,7 +293,7 @@ export function createTransactionsCommand(): Command {
         product?: string;
         json?: boolean;
       }) => {
-        const spinner = ora('Fetching transactions...').start();
+        const spinner = ora("Fetching transactions...").start();
 
         try {
           const client = getClient();
@@ -301,18 +317,18 @@ export function createTransactionsCommand(): Command {
           output.newline();
 
           if (items.length === 0) {
-            output.info('No transactions found.');
+            output.info("No transactions found.");
             return;
           }
 
           output.outputTable(
-            ['ID', 'Amount', 'Type', 'Status', 'Customer', 'Created'],
+            ["ID", "Amount", "Type", "Status", "Customer", "Created"],
             items.map((t) => [
               output.truncate(t.id, 24),
               output.formatCurrency(t.amount, t.currency),
               formatType(t.type),
               formatStatus(t.status),
-              t.customer || '-',
+              t.customer || "-",
               formatTimestamp(t.createdAt),
             ]),
           );
@@ -331,14 +347,16 @@ export function createTransactionsCommand(): Command {
           if (options.order) filters.push(`order: ${options.order}`);
           if (options.product) filters.push(`product: ${options.product}`);
           if (filters.length > 0) {
-            output.dim(`Filtered by ${filters.join(', ')}`);
+            output.dim(`Filtered by ${filters.join(", ")}`);
           }
 
           output.newline();
         } catch (error) {
           spinner.stop();
           output.error(
-            error instanceof Error ? error.message : 'Failed to fetch transactions',
+            error instanceof Error
+              ? error.message
+              : "Failed to fetch transactions",
           );
           process.exit(1);
         }
@@ -347,11 +365,11 @@ export function createTransactionsCommand(): Command {
 
   // Get transaction by ID
   command
-    .command('get <transaction-id>')
-    .description('Get transaction details')
-    .option('--json', 'Output as JSON')
+    .command("get <transaction-id>")
+    .description("Get transaction details")
+    .option("--json", "Output as JSON")
     .action(async (transactionId: string, options: { json?: boolean }) => {
-      const spinner = ora('Fetching transaction...').start();
+      const spinner = ora("Fetching transaction...").start();
 
       try {
         const client = getClient();
@@ -362,8 +380,8 @@ export function createTransactionsCommand(): Command {
         spinner.stop();
         formatTransaction(transaction, options.json);
       } catch (error) {
-        spinner.fail('Failed to fetch transaction');
-        output.error(error instanceof Error ? error.message : 'Unknown error');
+        spinner.fail("Failed to fetch transaction");
+        output.error(error instanceof Error ? error.message : "Unknown error");
         process.exit(1);
       }
     });

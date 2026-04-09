@@ -1,10 +1,10 @@
-import { Command } from 'commander';
-import chalk from 'chalk';
-import ora from 'ora';
-import { getClient } from '../lib/api';
-import { shouldOutputJson } from '../lib/config';
-import * as output from '../utils/output';
-import type { TuiModuleDescriptor } from '../tui';
+import { Command } from "commander";
+import chalk from "chalk";
+import ora from "ora";
+import { getClient } from "../lib/api";
+import { shouldOutputJson } from "../lib/config";
+import * as output from "../utils/output";
+import type { TuiModuleDescriptor } from "../tui";
 
 // Types based on API response (camelCase from SDK)
 interface Customer {
@@ -38,14 +38,14 @@ function formatCustomer(customer: Customer, jsonFlag?: boolean): void {
     return;
   }
 
-  output.header('Customer Details');
+  output.header("Customer Details");
   output.newline();
 
   const data: Record<string, unknown> = {
     ID: customer.id,
     Email: customer.email,
-    Name: customer.name || chalk.dim('-'),
-    Country: customer.country || chalk.dim('-'),
+    Name: customer.name || chalk.dim("-"),
+    Country: customer.country || chalk.dim("-"),
     Mode: customer.mode,
     Created: output.formatDate(customer.createdAt),
     Updated: output.formatDate(customer.updatedAt),
@@ -58,31 +58,42 @@ function getCustomerDetailLines(customer: Customer): string[] {
   const lines: string[] = [];
   const dl = output.detailLine;
 
-  lines.push('');
-  lines.push(dl('ID', customer.id));
-  lines.push(dl('Email', customer.email));
-  lines.push(dl('Name', customer.name || chalk.dim('-')));
-  lines.push(dl('Country', customer.country || chalk.dim('-')));
-  lines.push(dl('Mode', customer.mode));
-  lines.push(dl('Created', output.formatDate(customer.createdAt)));
-  lines.push(dl('Updated', output.formatDate(customer.updatedAt)));
+  lines.push("");
+  lines.push(dl("ID", customer.id));
+  lines.push(dl("Email", customer.email));
+  lines.push(dl("Name", customer.name || chalk.dim("-")));
+  lines.push(dl("Country", customer.country || chalk.dim("-")));
+  lines.push(dl("Mode", customer.mode));
+  lines.push(dl("Created", output.formatDate(customer.createdAt)));
+  lines.push(dl("Updated", output.formatDate(customer.updatedAt)));
 
   return lines;
 }
 
 function getCustomersTuiDescriptor(): TuiModuleDescriptor<Customer> {
   return {
-    name: 'Customers',
+    name: "Customers",
     columns: [
-      { header: 'ID', width: 24, value: (c) => output.truncate(c.id, 24) },
-      { header: 'Email', width: 30, value: (c) => output.truncate(c.email, 30) },
-      { header: 'Name', width: 20, value: (c) => c.name || '-' },
-      { header: 'Country', width: 10, value: (c) => c.country || '-' },
-      { header: 'Created', width: 'auto', value: (c) => output.formatDate(c.createdAt) },
+      { header: "ID", width: 24, value: (c) => output.truncate(c.id, 24) },
+      {
+        header: "Email",
+        width: 30,
+        value: (c) => output.truncate(c.email, 30),
+      },
+      { header: "Name", width: 20, value: (c) => c.name || "-" },
+      { header: "Country", width: 10, value: (c) => c.country || "-" },
+      {
+        header: "Created",
+        width: "auto",
+        value: (c) => output.formatDate(c.createdAt),
+      },
     ],
     fetchPage: async (page: number, pageSize: number) => {
       const client = getClient();
-      const result = (await client.customers.list(page, pageSize)) as unknown as CustomerListResponse;
+      const result = (await client.customers.list(
+        page,
+        pageSize,
+      )) as unknown as CustomerListResponse;
       const { items, pagination } = result;
       return {
         items,
@@ -94,8 +105,8 @@ function getCustomersTuiDescriptor(): TuiModuleDescriptor<Customer> {
     renderDetail: (c) => getCustomerDetailLines(c),
     commands: [
       {
-        name: 'billing',
-        description: 'Generate billing portal link',
+        name: "billing",
+        description: "Generate billing portal link",
         requiresSelection: true,
         execute: async (item) => {
           const client = getClient();
@@ -114,115 +125,133 @@ function getCustomersTuiDescriptor(): TuiModuleDescriptor<Customer> {
       return (
         c.id.toLowerCase().includes(q) ||
         c.email.toLowerCase().includes(q) ||
-        (c.name?.toLowerCase().includes(q) || false) ||
-        (c.country?.toLowerCase().includes(q) || false)
+        c.name?.toLowerCase().includes(q) ||
+        false ||
+        c.country?.toLowerCase().includes(q) ||
+        false
       );
     },
   };
 }
 
 export function createCustomersCommand(): Command {
-  const command = new Command('customers')
-    .description('Manage customers')
-    .alias('cust')
+  const command = new Command("customers")
+    .description("Manage customers")
+    .alias("cust")
     .action(async () => {
-      const { launchInteractiveMode } = await import('../tui');
+      const { launchInteractiveMode } = await import("../tui");
       const descriptor = getCustomersTuiDescriptor();
       await launchInteractiveMode(descriptor);
     });
 
   // List customers
   command
-    .command('list')
-    .description('List all customers')
-    .option('--page <number>', 'Page number', '1')
-    .option('--limit <number>', 'Number of results per page', '20')
-    .option('--json', 'Output as JSON')
-    .action(async (options: { page: string; limit: string; json?: boolean }) => {
-      const spinner = ora('Fetching customers...').start();
+    .command("list")
+    .description("List all customers")
+    .option("--page <number>", "Page number", "1")
+    .option("--limit <number>", "Number of results per page", "20")
+    .option("--json", "Output as JSON")
+    .action(
+      async (options: { page: string; limit: string; json?: boolean }) => {
+        const spinner = ora("Fetching customers...").start();
 
-      try {
-        const client = getClient();
-        const result = (await client.customers.list(
-          parseInt(options.page, 10),
-          parseInt(options.limit, 10)
-        )) as unknown as CustomerListResponse;
+        try {
+          const client = getClient();
+          const result = (await client.customers.list(
+            parseInt(options.page, 10),
+            parseInt(options.limit, 10),
+          )) as unknown as CustomerListResponse;
 
-        spinner.stop();
+          spinner.stop();
 
-        const { items, pagination } = result;
+          const { items, pagination } = result;
 
-        if (shouldOutputJson(options.json)) {
-          output.outputJson(result);
-          return;
+          if (shouldOutputJson(options.json)) {
+            output.outputJson(result);
+            return;
+          }
+
+          if (items.length === 0) {
+            output.info("No customers found.");
+            return;
+          }
+
+          // Table output
+          const headers = ["ID", "Email", "Name", "Country", "Created"];
+          const rows = items.map((c) => [
+            output.truncate(c.id, 24),
+            output.truncate(c.email, 30),
+            c.name || "-",
+            c.country || "-",
+            output.formatDate(c.createdAt),
+          ]);
+
+          output.outputTable(headers, rows);
+
+          // Pagination info
+          output.newline();
+          output.dim(
+            `Page ${pagination.currentPage} of ${pagination.totalPages} (${pagination.totalRecords} total customers)`,
+          );
+
+          if (pagination.nextPage) {
+            output.dim(`Use --page ${pagination.nextPage} for next page`);
+          }
+        } catch (error) {
+          spinner.fail("Failed to fetch customers");
+          output.error(
+            error instanceof Error ? error.message : "Unknown error",
+          );
+          process.exit(1);
         }
-
-        if (items.length === 0) {
-          output.info('No customers found.');
-          return;
-        }
-
-        // Table output
-        const headers = ['ID', 'Email', 'Name', 'Country', 'Created'];
-        const rows = items.map((c) => [
-          output.truncate(c.id, 24),
-          output.truncate(c.email, 30),
-          c.name || '-',
-          c.country || '-',
-          output.formatDate(c.createdAt),
-        ]);
-
-        output.outputTable(headers, rows);
-
-        // Pagination info
-        output.newline();
-        output.dim(
-          `Page ${pagination.currentPage} of ${pagination.totalPages} (${pagination.totalRecords} total customers)`
-        );
-
-        if (pagination.nextPage) {
-          output.dim(`Use --page ${pagination.nextPage} for next page`);
-        }
-      } catch (error) {
-        spinner.fail('Failed to fetch customers');
-        output.error(error instanceof Error ? error.message : 'Unknown error');
-        process.exit(1);
-      }
-    });
+      },
+    );
 
   // Get customer
   command
-    .command('get <id>')
-    .description('Get customer details by ID or email')
-    .option('--email', 'Treat the argument as an email instead of ID')
-    .option('--json', 'Output as JSON')
-    .action(async (idOrEmail: string, options: { email?: boolean; json?: boolean }) => {
-      const spinner = ora('Fetching customer...').start();
+    .command("get <id>")
+    .description("Get customer details by ID or email")
+    .option("--email", "Treat the argument as an email instead of ID")
+    .option("--json", "Output as JSON")
+    .action(
+      async (
+        idOrEmail: string,
+        options: { email?: boolean; json?: boolean },
+      ) => {
+        const spinner = ora("Fetching customer...").start();
 
-      try {
-        const client = getClient();
+        try {
+          const client = getClient();
 
-        // SDK method: retrieve(customerId?, email?)
-        const result = options.email
-          ? ((await client.customers.retrieve(undefined, idOrEmail)) as unknown as Customer)
-          : ((await client.customers.retrieve(idOrEmail)) as unknown as Customer);
+          // SDK method: retrieve(customerId?, email?)
+          const result = options.email
+            ? ((await client.customers.retrieve(
+                undefined,
+                idOrEmail,
+              )) as unknown as Customer)
+            : ((await client.customers.retrieve(
+                idOrEmail,
+              )) as unknown as Customer);
 
-        spinner.stop();
-        formatCustomer(result, options.json);
-      } catch (error) {
-        spinner.fail('Failed to fetch customer');
-        output.error(error instanceof Error ? error.message : 'Unknown error');
-        process.exit(1);
-      }
-    });
+          spinner.stop();
+          formatCustomer(result, options.json);
+        } catch (error) {
+          spinner.fail("Failed to fetch customer");
+          output.error(
+            error instanceof Error ? error.message : "Unknown error",
+          );
+          process.exit(1);
+        }
+      },
+    );
 
   // Get billing portal link
   command
-    .command('billing <id>')
-    .description('Get billing portal link for a customer')
-    .option('--json', 'Output as JSON')
+    .command("billing <id>")
+    .description("Get billing portal link for a customer")
+    .option("--json", "Output as JSON")
     .action(async (customerId: string, options: { json?: boolean }) => {
-      const spinner = ora('Generating billing portal link...').start();
+      const spinner = ora("Generating billing portal link...").start();
 
       try {
         const client = getClient();
@@ -230,7 +259,7 @@ export function createCustomersCommand(): Command {
           customerId,
         })) as unknown as CustomerLinksResponse;
 
-        spinner.succeed('Billing portal link generated');
+        spinner.succeed("Billing portal link generated");
 
         if (shouldOutputJson(options.json)) {
           output.outputJson(result);
@@ -240,17 +269,19 @@ export function createCustomersCommand(): Command {
         output.newline();
 
         const data: Record<string, unknown> = {
-          'Customer ID': customerId,
-          'Portal Link': result.customerPortalLink,
+          "Customer ID": customerId,
+          "Portal Link": result.customerPortalLink,
         };
 
         output.outputKeyValue(data);
 
         output.newline();
-        output.dim('This link allows the customer to manage their billing and subscriptions.');
+        output.dim(
+          "This link allows the customer to manage their billing and subscriptions.",
+        );
       } catch (error) {
-        spinner.fail('Failed to generate billing portal link');
-        output.error(error instanceof Error ? error.message : 'Unknown error');
+        spinner.fail("Failed to generate billing portal link");
+        output.error(error instanceof Error ? error.message : "Unknown error");
         process.exit(1);
       }
     });

@@ -1,10 +1,10 @@
-import { Command } from 'commander';
-import chalk from 'chalk';
-import ora from 'ora';
-import { getClient } from '../lib/api';
-import { shouldOutputJson } from '../lib/config';
-import * as output from '../utils/output';
-import type { TuiModuleDescriptor } from '../tui';
+import { Command } from "commander";
+import chalk from "chalk";
+import ora from "ora";
+import { getClient } from "../lib/api";
+import { shouldOutputJson } from "../lib/config";
+import * as output from "../utils/output";
+import type { TuiModuleDescriptor } from "../tui";
 
 // Types based on API response (camelCase from SDK)
 interface SubscriptionProduct {
@@ -67,7 +67,7 @@ interface FetchSubscriptionsOptions {
 }
 
 async function fetchSubscriptionsFromTransactions(
-  options: FetchSubscriptionsOptions
+  options: FetchSubscriptionsOptions,
 ): Promise<FetchSubscriptionsResult> {
   const client = getClient();
   const {
@@ -82,17 +82,22 @@ async function fetchSubscriptionsFromTransactions(
   let transactionPage = 1;
   let noMoreTransactions = false;
 
-  onProgress?.('Scanning transactions for subscriptions...');
+  onProgress?.("Scanning transactions for subscriptions...");
 
-  while (subscriptionIds.size < targetCount && transactionPage <= maxTransactionPages) {
+  while (
+    subscriptionIds.size < targetCount &&
+    transactionPage <= maxTransactionPages
+  ) {
     const transactions = await client.transactions.search(
       undefined,
       undefined,
       undefined,
       transactionPage,
-      50
+      50,
     );
-    const items = (transactions as { items?: Array<{ subscription?: string }> }).items || [];
+    const items =
+      (transactions as { items?: Array<{ subscription?: string }> }).items ||
+      [];
 
     if (items.length === 0) {
       noMoreTransactions = true;
@@ -122,11 +127,11 @@ async function fetchSubscriptionsFromTransactions(
   for (let i = 0; i < subscriptionIdArray.length; i += batchSize) {
     const batch = subscriptionIdArray.slice(i, i + batchSize);
     const results = await Promise.allSettled(
-      batch.map(id => client.subscriptions.get(id))
+      batch.map((id) => client.subscriptions.get(id)),
     );
 
     for (const result of results) {
-      if (result.status === 'fulfilled') {
+      if (result.status === "fulfilled") {
         allSubscriptions.push(result.value as unknown as Subscription);
       }
     }
@@ -136,7 +141,7 @@ async function fetchSubscriptionsFromTransactions(
   let filteredSubscriptions = allSubscriptions;
   if (statusFilter) {
     filteredSubscriptions = allSubscriptions.filter(
-      sub => sub.status.toLowerCase() === statusFilter
+      (sub) => sub.status.toLowerCase() === statusFilter,
     );
   }
 
@@ -152,10 +157,10 @@ function formatSubscription(sub: Subscription, jsonFlag?: boolean): void {
     return;
   }
 
-  const product = typeof sub.product === 'object' ? sub.product : null;
-  const customer = typeof sub.customer === 'object' ? sub.customer : null;
+  const product = typeof sub.product === "object" ? sub.product : null;
+  const customer = typeof sub.customer === "object" ? sub.customer : null;
 
-  output.header('Subscription Details');
+  output.header("Subscription Details");
   output.newline();
 
   const data: Record<string, unknown> = {
@@ -163,100 +168,118 @@ function formatSubscription(sub: Subscription, jsonFlag?: boolean): void {
     Status: formatStatus(sub.status),
     Mode: sub.mode,
     Customer: customer
-      ? `${customer.email}${customer.name ? ` (${customer.name})` : ''}`
+      ? `${customer.email}${customer.name ? ` (${customer.name})` : ""}`
       : (sub.customer as string),
-    'Customer ID': customer?.id || sub.customer,
+    "Customer ID": customer?.id || sub.customer,
     Product: product?.name || (sub.product as string),
-    'Product ID': product?.id || sub.product,
+    "Product ID": product?.id || sub.product,
   };
 
   if (product) {
-    data['Price'] = output.formatCurrency(product.price, product.currency);
+    data["Price"] = output.formatCurrency(product.price, product.currency);
     if (product.billingPeriod) {
-      data['Billing Period'] = product.billingPeriod;
+      data["Billing Period"] = product.billingPeriod;
     }
   }
 
   if (sub.currentPeriodStartDate) {
-    data['Period Start'] = output.formatDate(sub.currentPeriodStartDate);
+    data["Period Start"] = output.formatDate(sub.currentPeriodStartDate);
   }
   if (sub.currentPeriodEndDate) {
-    data['Period End'] = output.formatDate(sub.currentPeriodEndDate);
+    data["Period End"] = output.formatDate(sub.currentPeriodEndDate);
   }
   if (sub.nextTransactionDate) {
-    data['Next Billing'] = output.formatDate(sub.nextTransactionDate);
+    data["Next Billing"] = output.formatDate(sub.nextTransactionDate);
   }
   if (sub.canceledAt) {
-    data['Canceled At'] = output.formatDate(sub.canceledAt);
+    data["Canceled At"] = output.formatDate(sub.canceledAt);
   }
 
-  data['Created'] = output.formatDate(sub.createdAt);
-  data['Updated'] = output.formatDate(sub.updatedAt);
+  data["Created"] = output.formatDate(sub.createdAt);
+  data["Updated"] = output.formatDate(sub.updatedAt);
 
   output.outputKeyValue(data);
 }
 
 function getSubscriptionDetailLines(sub: Subscription): string[] {
-  const product = typeof sub.product === 'object' ? sub.product : null;
-  const customer = typeof sub.customer === 'object' ? sub.customer : null;
+  const product = typeof sub.product === "object" ? sub.product : null;
+  const customer = typeof sub.customer === "object" ? sub.customer : null;
   const lines: string[] = [];
   const dl = output.detailLine;
 
-  lines.push('');
-  lines.push(dl('ID', sub.id));
-  lines.push(dl('Status', formatStatus(sub.status)));
-  lines.push(dl('Mode', sub.mode));
-  lines.push(dl('Customer', customer ? `${customer.email}${customer.name ? ` (${customer.name})` : ''}` : (sub.customer as string)));
-  lines.push(dl('Customer ID', String(customer?.id || sub.customer)));
-  lines.push(dl('Product', String(product?.name || sub.product)));
-  lines.push(dl('Product ID', String(product?.id || sub.product)));
+  lines.push("");
+  lines.push(dl("ID", sub.id));
+  lines.push(dl("Status", formatStatus(sub.status)));
+  lines.push(dl("Mode", sub.mode));
+  lines.push(
+    dl(
+      "Customer",
+      customer
+        ? `${customer.email}${customer.name ? ` (${customer.name})` : ""}`
+        : (sub.customer as string),
+    ),
+  );
+  lines.push(dl("Customer ID", String(customer?.id || sub.customer)));
+  lines.push(dl("Product", String(product?.name || sub.product)));
+  lines.push(dl("Product ID", String(product?.id || sub.product)));
 
   if (product) {
-    lines.push(dl('Price', output.formatCurrency(product.price, product.currency)));
+    lines.push(
+      dl("Price", output.formatCurrency(product.price, product.currency)),
+    );
     if (product.billingPeriod) {
-      lines.push(dl('Billing Period', product.billingPeriod));
+      lines.push(dl("Billing Period", product.billingPeriod));
     }
   }
 
   if (sub.currentPeriodStartDate) {
-    lines.push(dl('Period Start', output.formatDate(sub.currentPeriodStartDate)));
+    lines.push(
+      dl("Period Start", output.formatDate(sub.currentPeriodStartDate)),
+    );
   }
   if (sub.currentPeriodEndDate) {
-    lines.push(dl('Period End', output.formatDate(sub.currentPeriodEndDate)));
+    lines.push(dl("Period End", output.formatDate(sub.currentPeriodEndDate)));
   }
   if (sub.nextTransactionDate) {
-    lines.push(dl('Next Billing', output.formatDate(sub.nextTransactionDate)));
+    lines.push(dl("Next Billing", output.formatDate(sub.nextTransactionDate)));
   }
   if (sub.canceledAt) {
-    lines.push(dl('Canceled At', output.formatDate(sub.canceledAt)));
+    lines.push(dl("Canceled At", output.formatDate(sub.canceledAt)));
   }
 
-  lines.push(dl('Created', output.formatDate(sub.createdAt)));
-  lines.push(dl('Updated', output.formatDate(sub.updatedAt)));
+  lines.push(dl("Created", output.formatDate(sub.createdAt)));
+  lines.push(dl("Updated", output.formatDate(sub.updatedAt)));
 
   return lines;
 }
 
 function getSubscriptionsTuiDescriptor(): TuiModuleDescriptor<Subscription> {
   return {
-    name: 'Subscriptions',
+    name: "Subscriptions",
     columns: [
-      { header: 'ID', width: 24, value: (s) => s.id },
+      { header: "ID", width: 24, value: (s) => s.id },
       {
-        header: 'Customer',
+        header: "Customer",
         width: 28,
-        value: (s) => (typeof s.customer === 'object' ? s.customer.email : String(s.customer)),
+        value: (s) =>
+          typeof s.customer === "object"
+            ? s.customer.email
+            : String(s.customer),
       },
       {
-        header: 'Product',
+        header: "Product",
         width: 20,
-        value: (s) => (typeof s.product === 'object' ? s.product.name : String(s.product)),
+        value: (s) =>
+          typeof s.product === "object" ? s.product.name : String(s.product),
       },
-      { header: 'Status', width: 12, value: (s) => formatStatus(s.status) },
+      { header: "Status", width: 12, value: (s) => formatStatus(s.status) },
       {
-        header: 'Next Billing',
-        width: 'auto',
-        value: (s) => (s.nextTransactionDate ? output.formatDate(s.nextTransactionDate) : '-'),
+        header: "Next Billing",
+        width: "auto",
+        value: (s) =>
+          s.nextTransactionDate
+            ? output.formatDate(s.nextTransactionDate)
+            : "-",
       },
     ],
     fetchPage: (() => {
@@ -285,7 +308,8 @@ function getSubscriptionsTuiDescriptor(): TuiModuleDescriptor<Subscription> {
         // - Or we're on page 1 and API indicated more pages exist (for initial load indicator)
         // Don't use hasMorePages on pages > 1 as we only slice from cache at that point
         const hasMoreInCache = cachedSubscriptions.length > endIndex;
-        const mightHaveMoreFromApi = page === 1 && hasMorePages && pageItems.length > 0;
+        const mightHaveMoreFromApi =
+          page === 1 && hasMorePages && pageItems.length > 0;
 
         return {
           items: pageItems,
@@ -297,42 +321,56 @@ function getSubscriptionsTuiDescriptor(): TuiModuleDescriptor<Subscription> {
     renderDetail: (s) => getSubscriptionDetailLines(s),
     commands: [
       {
-        name: 'cancel',
-        description: 'Cancel subscription',
+        name: "cancel",
+        description: "Cancel subscription",
         requiresSelection: true,
         destructive: true,
         execute: async (item) => {
           const client = getClient();
-          await client.subscriptions.cancel(item!.id, { mode: 'immediate' });
-          return { success: true, message: 'Subscription canceled', refreshList: true };
+          await client.subscriptions.cancel(item!.id, { mode: "immediate" });
+          return {
+            success: true,
+            message: "Subscription canceled",
+            refreshList: true,
+          };
         },
       },
       {
-        name: 'pause',
-        description: 'Pause subscription',
+        name: "pause",
+        description: "Pause subscription",
         requiresSelection: true,
         destructive: true,
         execute: async (item) => {
           const client = getClient();
           await client.subscriptions.pause(item!.id);
-          return { success: true, message: 'Subscription paused', refreshList: true };
+          return {
+            success: true,
+            message: "Subscription paused",
+            refreshList: true,
+          };
         },
       },
       {
-        name: 'resume',
-        description: 'Resume subscription',
+        name: "resume",
+        description: "Resume subscription",
         requiresSelection: true,
         execute: async (item) => {
           const client = getClient();
           await client.subscriptions.resume(item!.id);
-          return { success: true, message: 'Subscription resumed', refreshList: true };
+          return {
+            success: true,
+            message: "Subscription resumed",
+            refreshList: true,
+          };
         },
       },
     ],
     searchFilter: (s, query) => {
       const q = query.toLowerCase();
-      const customer = typeof s.customer === 'object' ? s.customer.email : String(s.customer);
-      const product = typeof s.product === 'object' ? s.product.name : String(s.product);
+      const customer =
+        typeof s.customer === "object" ? s.customer.email : String(s.customer);
+      const product =
+        typeof s.product === "object" ? s.product.name : String(s.product);
       return (
         s.id.toLowerCase().includes(q) ||
         customer.toLowerCase().includes(q) ||
@@ -344,198 +382,255 @@ function getSubscriptionsTuiDescriptor(): TuiModuleDescriptor<Subscription> {
 }
 
 export function createSubscriptionsCommand(): Command {
-  const command = new Command('subscriptions')
-    .description('Manage subscriptions')
-    .alias('subs')
+  const command = new Command("subscriptions")
+    .description("Manage subscriptions")
+    .alias("subs")
     .action(async () => {
-      const { launchInteractiveMode } = await import('../tui');
+      const { launchInteractiveMode } = await import("../tui");
       const descriptor = getSubscriptionsTuiDescriptor();
       await launchInteractiveMode(descriptor);
     });
 
   // Get subscription
   command
-    .command('get <id>')
-    .description('Get subscription details by ID')
-    .option('--json', 'Output as JSON')
+    .command("get <id>")
+    .description("Get subscription details by ID")
+    .option("--json", "Output as JSON")
     .action(async (id: string, options: { json?: boolean }) => {
-      const spinner = ora('Fetching subscription...').start();
+      const spinner = ora("Fetching subscription...").start();
 
       try {
         const client = getClient();
-        const result = (await client.subscriptions.get(id)) as unknown as Subscription;
+        const result = (await client.subscriptions.get(
+          id,
+        )) as unknown as Subscription;
 
         spinner.stop();
         formatSubscription(result, options.json);
       } catch (error) {
-        spinner.fail('Failed to fetch subscription');
-        output.error(error instanceof Error ? error.message : 'Unknown error');
+        spinner.fail("Failed to fetch subscription");
+        output.error(error instanceof Error ? error.message : "Unknown error");
         process.exit(1);
       }
     });
 
   // Cancel subscription
   command
-    .command('cancel <id>')
-    .description('Cancel a subscription')
-    .option('--mode <mode>', 'Cancellation mode: immediate or scheduled', 'immediate')
-    .option('--on-execute <action>', 'Action on scheduled cancel: cancel or pause')
-    .option('--json', 'Output as JSON')
-    .action(async (id: string, options: { mode?: string; onExecute?: string; json?: boolean }) => {
-      const spinner = ora('Canceling subscription...').start();
+    .command("cancel <id>")
+    .description("Cancel a subscription")
+    .option(
+      "--mode <mode>",
+      "Cancellation mode: immediate or scheduled",
+      "immediate",
+    )
+    .option(
+      "--on-execute <action>",
+      "Action on scheduled cancel: cancel or pause",
+    )
+    .option("--json", "Output as JSON")
+    .action(
+      async (
+        id: string,
+        options: { mode?: string; onExecute?: string; json?: boolean },
+      ) => {
+        const spinner = ora("Canceling subscription...").start();
 
-      try {
-        const client = getClient();
+        try {
+          const client = getClient();
 
-        // Cast to the expected SDK types
-        const params: { mode?: 'immediate' | 'scheduled'; onExecute?: 'cancel' | 'pause' } = {};
-        if (options.mode === 'immediate' || options.mode === 'scheduled') {
-          params.mode = options.mode;
+          // Cast to the expected SDK types
+          const params: {
+            mode?: "immediate" | "scheduled";
+            onExecute?: "cancel" | "pause";
+          } = {};
+          if (options.mode === "immediate" || options.mode === "scheduled") {
+            params.mode = options.mode;
+          }
+          if (options.onExecute === "cancel" || options.onExecute === "pause") {
+            params.onExecute = options.onExecute;
+          }
+
+          const result = (await client.subscriptions.cancel(
+            id,
+            params,
+          )) as unknown as Subscription;
+
+          spinner.succeed("Subscription canceled");
+          if (!shouldOutputJson(options.json)) {
+            output.newline();
+          }
+          formatSubscription(result, options.json);
+        } catch (error) {
+          spinner.fail("Failed to cancel subscription");
+          output.error(
+            error instanceof Error ? error.message : "Unknown error",
+          );
+          process.exit(1);
         }
-        if (options.onExecute === 'cancel' || options.onExecute === 'pause') {
-          params.onExecute = options.onExecute;
-        }
-
-        const result = (await client.subscriptions.cancel(id, params)) as unknown as Subscription;
-
-        spinner.succeed('Subscription canceled');
-        if (!shouldOutputJson(options.json)) {
-          output.newline();
-        }
-        formatSubscription(result, options.json);
-      } catch (error) {
-        spinner.fail('Failed to cancel subscription');
-        output.error(error instanceof Error ? error.message : 'Unknown error');
-        process.exit(1);
-      }
-    });
+      },
+    );
 
   // Pause subscription
   command
-    .command('pause <id>')
-    .description('Pause a subscription')
-    .option('--json', 'Output as JSON')
+    .command("pause <id>")
+    .description("Pause a subscription")
+    .option("--json", "Output as JSON")
     .action(async (id: string, options: { json?: boolean }) => {
-      const spinner = ora('Pausing subscription...').start();
+      const spinner = ora("Pausing subscription...").start();
 
       try {
         const client = getClient();
-        const result = (await client.subscriptions.pause(id)) as unknown as Subscription;
+        const result = (await client.subscriptions.pause(
+          id,
+        )) as unknown as Subscription;
 
-        spinner.succeed('Subscription paused');
+        spinner.succeed("Subscription paused");
         if (!shouldOutputJson(options.json)) {
           output.newline();
         }
         formatSubscription(result, options.json);
       } catch (error) {
-        spinner.fail('Failed to pause subscription');
-        output.error(error instanceof Error ? error.message : 'Unknown error');
+        spinner.fail("Failed to pause subscription");
+        output.error(error instanceof Error ? error.message : "Unknown error");
         process.exit(1);
       }
     });
 
   // Resume subscription
   command
-    .command('resume <id>')
-    .description('Resume a paused subscription')
-    .option('--json', 'Output as JSON')
+    .command("resume <id>")
+    .description("Resume a paused subscription")
+    .option("--json", "Output as JSON")
     .action(async (id: string, options: { json?: boolean }) => {
-      const spinner = ora('Resuming subscription...').start();
+      const spinner = ora("Resuming subscription...").start();
 
       try {
         const client = getClient();
-        const result = (await client.subscriptions.resume(id)) as unknown as Subscription;
+        const result = (await client.subscriptions.resume(
+          id,
+        )) as unknown as Subscription;
 
-        spinner.succeed('Subscription resumed');
+        spinner.succeed("Subscription resumed");
         if (!shouldOutputJson(options.json)) {
           output.newline();
         }
         formatSubscription(result, options.json);
       } catch (error) {
-        spinner.fail('Failed to resume subscription');
-        output.error(error instanceof Error ? error.message : 'Unknown error');
+        spinner.fail("Failed to resume subscription");
+        output.error(error instanceof Error ? error.message : "Unknown error");
         process.exit(1);
       }
     });
 
   // List subscriptions (derived from transactions with subscription field)
   command
-    .command('list')
-    .description('List all subscriptions')
-    .option('--page <number>', 'Page number', '1')
-    .option('--limit <number>', 'Results per page', '10')
-    .option('--status <status>', 'Filter by status (active, paused, canceled, scheduled_cancel)')
-    .option('--json', 'Output as JSON')
-    .action(async (options: { page?: string; limit?: string; status?: string; json?: boolean }) => {
-      const spinner = ora('Fetching subscriptions...').start();
+    .command("list")
+    .description("List all subscriptions")
+    .option("--page <number>", "Page number", "1")
+    .option("--limit <number>", "Results per page", "10")
+    .option(
+      "--status <status>",
+      "Filter by status (active, paused, canceled, scheduled_cancel)",
+    )
+    .option("--json", "Output as JSON")
+    .action(
+      async (options: {
+        page?: string;
+        limit?: string;
+        status?: string;
+        json?: boolean;
+      }) => {
+        const spinner = ora("Fetching subscriptions...").start();
 
-      try {
-        const pageSize = Math.min(parseInt(options.limit || '10', 10), 50);
-        const statusFilter = options.status?.toLowerCase();
-        const requestedPage = parseInt(options.page || '1', 10);
+        try {
+          const pageSize = Math.min(parseInt(options.limit || "10", 10), 50);
+          const statusFilter = options.status?.toLowerCase();
+          const requestedPage = parseInt(options.page || "1", 10);
 
-        // Use shared helper to fetch subscriptions (avoids N+1 queries)
-        const targetCount = requestedPage * pageSize + 50; // Fetch extra to account for filtering
-        const result = await fetchSubscriptionsFromTransactions({
-          targetCount,
-          statusFilter,
-          onProgress: (msg) => { spinner.text = msg; },
-        });
-
-        if (result.subscriptions.length === 0) {
-          spinner.stop();
-          output.info('No subscriptions found');
-          return;
-        }
-
-        // Apply pagination
-        const startIndex = (requestedPage - 1) * pageSize;
-        const subscriptions = result.subscriptions.slice(startIndex, startIndex + pageSize);
-
-        spinner.stop();
-
-        if (shouldOutputJson(options.json)) {
-          output.outputJson({
-            items: subscriptions,
-            total: result.subscriptions.length,
-            page: requestedPage,
-            pageSize: pageSize,
-            note: 'Subscriptions derived from transaction history',
+          // Use shared helper to fetch subscriptions (avoids N+1 queries)
+          const targetCount = requestedPage * pageSize + 50; // Fetch extra to account for filtering
+          const result = await fetchSubscriptionsFromTransactions({
+            targetCount,
+            statusFilter,
+            onProgress: (msg) => {
+              spinner.text = msg;
+            },
           });
-          return;
-        }
 
-        if (subscriptions.length === 0) {
-          output.info('No subscriptions found');
-          return;
-        }
+          if (result.subscriptions.length === 0) {
+            spinner.stop();
+            output.info("No subscriptions found");
+            return;
+          }
 
-        // Format as table
-        const headers = ['ID', 'Customer', 'Product', 'Status', 'Next Billing'];
-        const rows = subscriptions.map((sub) => {
-          const customer = typeof sub.customer === 'object' ? sub.customer.email : sub.customer;
-          const product = typeof sub.product === 'object' ? sub.product.name : sub.product;
-          return [
-            sub.id,
-            customer,
-            product,
-            formatStatus(sub.status),
-            sub.nextTransactionDate ? output.formatDate(sub.nextTransactionDate) : '-',
+          // Apply pagination
+          const startIndex = (requestedPage - 1) * pageSize;
+          const subscriptions = result.subscriptions.slice(
+            startIndex,
+            startIndex + pageSize,
+          );
+
+          spinner.stop();
+
+          if (shouldOutputJson(options.json)) {
+            output.outputJson({
+              items: subscriptions,
+              total: result.subscriptions.length,
+              page: requestedPage,
+              pageSize: pageSize,
+              note: "Subscriptions derived from transaction history",
+            });
+            return;
+          }
+
+          if (subscriptions.length === 0) {
+            output.info("No subscriptions found");
+            return;
+          }
+
+          // Format as table
+          const headers = [
+            "ID",
+            "Customer",
+            "Product",
+            "Status",
+            "Next Billing",
           ];
-        });
+          const rows = subscriptions.map((sub) => {
+            const customer =
+              typeof sub.customer === "object"
+                ? sub.customer.email
+                : sub.customer;
+            const product =
+              typeof sub.product === "object" ? sub.product.name : sub.product;
+            return [
+              sub.id,
+              customer,
+              product,
+              formatStatus(sub.status),
+              sub.nextTransactionDate
+                ? output.formatDate(sub.nextTransactionDate)
+                : "-",
+            ];
+          });
 
-        output.outputTable(headers, rows);
-        output.newline();
-        output.info(`Showing ${subscriptions.length} of ${result.subscriptions.length} subscription(s) (page ${requestedPage})`);
-        if (statusFilter) {
-          output.info(`Filtered by status: ${statusFilter}`);
+          output.outputTable(headers, rows);
+          output.newline();
+          output.info(
+            `Showing ${subscriptions.length} of ${result.subscriptions.length} subscription(s) (page ${requestedPage})`,
+          );
+          if (statusFilter) {
+            output.info(`Filtered by status: ${statusFilter}`);
+          }
+        } catch (error) {
+          spinner.fail("Failed to fetch subscriptions");
+          output.error(
+            error instanceof Error ? error.message : "Unknown error",
+          );
+          process.exit(1);
         }
-      } catch (error) {
-        spinner.fail('Failed to fetch subscriptions');
-        output.error(error instanceof Error ? error.message : 'Unknown error');
-        process.exit(1);
-      }
-    });
+      },
+    );
 
   return command;
 }
