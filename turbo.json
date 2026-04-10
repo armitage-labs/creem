@@ -6,7 +6,8 @@
       "outputs": ["dist/**", ".tshy-build/**"]
     },
     "test": {
-      "dependsOn": ["build"]
+      "dependsOn": ["build"],
+      "env": ["TEST_API_KEY"]
     },
     "typecheck": {
       "dependsOn": ["^build"]
