@@ -380,14 +380,22 @@
             "required": false,
             "in": "query",
             "description": "The page number for pagination.",
-            "schema": { "default": 1, "example": 1, "type": "number" }
+            "schema": {
+              "default": 1,
+              "example": 1,
+              "type": "number"
+            }
           },
           {
             "name": "page_size",
             "required": false,
             "in": "query",
             "description": "The number of items per page.",
-            "schema": { "default": 10, "example": 10, "type": "number" }
+            "schema": {
+              "default": 10,
+              "example": 10,
+              "type": "number"
+            }
           }
         ],
         "responses": {
@@ -401,12 +409,24 @@
               }
             }
           },
-          "400": { "description": "Bad Request - Invalid input parameters" },
-          "401": { "description": "Unauthorized - Invalid or missing API key" },
-          "404": { "description": "Not Found - Resource does not exist" }
+          "400": {
+            "description": "Bad Request - Invalid input parameters"
+          },
+          "401": {
+            "description": "Unauthorized - Invalid or missing API key"
+          },
+          "404": {
+            "description": "Not Found - Resource does not exist"
+          }
         },
-        "tags": ["Subscriptions"],
-        "security": [{ "ApiKey": [] }]
+        "tags": [
+          "Subscriptions"
+        ],
+        "security": [
+          {
+            "ApiKey": []
+          }
+        ]
       }
     },
     "/v1/subscriptions/{id}/cancel": {
@@ -915,6 +935,122 @@
         ]
       }
     },
+    "/v1/discounts/search": {
+      "get": {
+        "operationId": "searchDiscounts",
+        "summary": "Search discounts",
+        "description": "Search and list discount codes for a store with filters and pagination.",
+        "parameters": [
+          {
+            "name": "page_number",
+            "required": false,
+            "in": "query",
+            "description": "The page number for pagination.",
+            "schema": {
+              "default": 1,
+              "example": 1,
+              "type": "number"
+            }
+          },
+          {
+            "name": "page_size",
+            "required": false,
+            "in": "query",
+            "description": "The number of items per page.",
+            "schema": {
+              "default": 10,
+              "example": 10,
+              "type": "number"
+            }
+          },
+          {
+            "name": "product_id",
+            "required": false,
+            "in": "query",
+            "description": "Filter discounts that apply to a specific product.",
+            "schema": {
+              "example": "prod_1234567890",
+              "type": "string"
+            }
+          },
+          {
+            "name": "status",
+            "required": false,
+            "in": "query",
+            "description": "Filter by discount status.",
+            "schema": {
+              "enum": [
+                "active",
+                "deleted"
+              ],
+              "type": "string"
+            }
+          },
+          {
+            "name": "type",
+            "required": false,
+            "in": "query",
+            "description": "Filter by discount type.",
+            "schema": {
+              "enum": [
+                "percentage",
+                "fixed"
+              ],
+              "type": "string"
+            }
+          },
+          {
+            "name": "created_after",
+            "required": false,
+            "in": "query",
+            "description": "Filter discounts created after this date.",
+            "schema": {
+              "example": "2024-01-01T00:00:00Z",
+              "type": "string"
+            }
+          },
+          {
+            "name": "created_before",
+            "required": false,
+            "in": "query",
+            "description": "Filter discounts created before this date.",
+            "schema": {
+              "example": "2024-12-31T23:59:59Z",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successfully retrieved the list of discounts",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/DiscountListEntity"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Bad Request - Invalid input parameters"
+          },
+          "401": {
+            "description": "Unauthorized - Invalid or missing API key"
+          },
+          "404": {
+            "description": "Not Found - Resource does not exist"
+          }
+        },
+        "tags": [
+          "Discounts"
+        ],
+        "security": [
+          {
+            "ApiKey": []
+          }
+        ]
+      }
+    },
     "/v1/discounts": {
       "get": {
         "operationId": "retrieveDiscount",
@@ -1278,6 +1414,54 @@
         },
         "tags": [
           "Stats"
+        ],
+        "security": [
+          {
+            "ApiKey": []
+          }
+        ]
+      }
+    },
+    "/v1/moderation/prompt": {
+      "post": {
+        "operationId": "screenPrompt",
+        "summary": "Screen a prompt",
+        "description": "Evaluate a text prompt against content policies before generation. This endpoint is experimental and may change.",
+        "parameters": [],
+        "requestBody": {
+          "required": true,
+          "description": "Prompt screening request payload",
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ScreenPromptRequest"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Prompt screening result",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ScreenPromptResponse"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Bad Request - Invalid input parameters"
+          },
+          "401": {
+            "description": "Unauthorized - Invalid or missing API key"
+          },
+          "404": {
+            "description": "Not Found - Resource does not exist"
+          }
+        },
+        "tags": [
+          "Moderation"
         ],
         "security": [
           {
@@ -2265,15 +2449,24 @@
         "properties": {
           "items": {
             "description": "List of subscription items",
-            "items": { "$ref": "#/components/schemas/SubscriptionEntity" },
+            "items": {
+              "$ref": "#/components/schemas/SubscriptionEntity"
+            },
             "type": "array"
           },
           "pagination": {
             "description": "Pagination details for the list",
-            "allOf": [{ "$ref": "#/components/schemas/PaginationEntity" }]
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/PaginationEntity"
+              }
+            ]
           }
         },
-        "required": ["items", "pagination"]
+        "required": [
+          "items",
+          "pagination"
+        ]
       },
       "CancelSubscriptionRequestEntity": {
         "type": "object",
@@ -2507,58 +2700,6 @@
           "updated_at"
         ]
       },
-      "FeatureFileEntity": {
-        "type": "object",
-        "properties": {
-          "id": {
-            "type": "string",
-            "description": "Unique identifier for the file.",
-            "example": "file_abc123"
-          },
-          "file_name": {
-            "type": "string",
-            "description": "The name of the file.",
-            "example": "ebook.pdf"
-          },
-          "url": {
-            "type": "string",
-            "description": "The URL to download the file.",
-            "example": "https://storage.creem.io/files/ebook.pdf"
-          },
-          "type": {
-            "type": "string",
-            "description": "The MIME type of the file.",
-            "example": "application/pdf"
-          },
-          "size": {
-            "type": "number",
-            "description": "The size of the file in bytes.",
-            "example": 1024000
-          }
-        },
-        "required": [
-          "id",
-          "file_name",
-          "url",
-          "type",
-          "size"
-        ]
-      },
-      "FileFeatureEntity": {
-        "type": "object",
-        "properties": {
-          "files": {
-            "description": "List of downloadable files.",
-            "type": "array",
-            "items": {
-              "$ref": "#/components/schemas/FeatureFileEntity"
-            }
-          }
-        },
-        "required": [
-          "files"
-        ]
-      },
       "LicenseStatus": {
         "type": "string",
         "description": "The current status of the license key.",
@@ -2626,7 +2767,7 @@
           },
           "object": {
             "type": "string",
-            "description": "A string representing the object’s type. Objects of the same type share the same value."
+            "description": "A string representing the object's type. Objects of the same type share the same value."
           },
           "product_id": {
             "type": "string",
@@ -2685,6 +2826,58 @@
           "key",
           "activation",
           "created_at"
+        ]
+      },
+      "FeatureFileEntity": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "description": "Unique identifier for the file.",
+            "example": "file_abc123"
+          },
+          "file_name": {
+            "type": "string",
+            "description": "The name of the file.",
+            "example": "ebook.pdf"
+          },
+          "url": {
+            "type": "string",
+            "description": "The URL to download the file.",
+            "example": "https://storage.creem.io/files/ebook.pdf"
+          },
+          "type": {
+            "type": "string",
+            "description": "The MIME type of the file.",
+            "example": "application/pdf"
+          },
+          "size": {
+            "type": "number",
+            "description": "The size of the file in bytes.",
+            "example": 1024000
+          }
+        },
+        "required": [
+          "id",
+          "file_name",
+          "url",
+          "type",
+          "size"
+        ]
+      },
+      "FileFeatureEntity": {
+        "type": "object",
+        "properties": {
+          "files": {
+            "description": "List of downloadable files.",
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/FeatureFileEntity"
+            }
+          }
+        },
+        "required": [
+          "files"
         ]
       },
       "ProductFeatureEntity": {
@@ -3113,6 +3306,30 @@
           "type"
         ]
       },
+      "DiscountListEntity": {
+        "type": "object",
+        "properties": {
+          "items": {
+            "description": "List of discount items",
+            "items": {
+              "$ref": "#/components/schemas/DiscountEntity"
+            },
+            "type": "array"
+          },
+          "pagination": {
+            "description": "Pagination details for the list",
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/PaginationEntity"
+              }
+            ]
+          }
+        },
+        "required": [
+          "items",
+          "pagination"
+        ]
+      },
       "DiscountType": {
         "type": "string",
         "description": "The type of the discount, either \"percentage\" or \"fixed\".",
@@ -3373,6 +3590,80 @@
         },
         "required": [
           "totals"
+        ]
+      },
+      "ScreenPromptRequest": {
+        "type": "object",
+        "properties": {
+          "prompt": {
+            "type": "string",
+            "description": "The text prompt to evaluate against content policies."
+          },
+          "external_id": {
+            "type": "string",
+            "description": "An optional identifier to associate this request with."
+          }
+        },
+        "required": [
+          "prompt"
+        ]
+      },
+      "UsageEntity": {
+        "type": "object",
+        "properties": {
+          "units": {
+            "type": "number",
+            "description": "Number of units consumed by this call."
+          }
+        },
+        "required": [
+          "units"
+        ]
+      },
+      "ScreenPromptResponse": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "description": "Unique identifier for the moderation result."
+          },
+          "object": {
+            "type": "string",
+            "description": "Object type.",
+            "example": "moderation_result"
+          },
+          "prompt": {
+            "type": "string",
+            "description": "The prompt that was screened."
+          },
+          "external_id": {
+            "type": "string",
+            "description": "The external identifier provided in the request."
+          },
+          "decision": {
+            "type": "string",
+            "description": "The moderation decision.",
+            "enum": [
+              "allow",
+              "deny",
+              "flag"
+            ]
+          },
+          "usage": {
+            "description": "Usage information for this call.",
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/UsageEntity"
+              }
+            ]
+          }
+        },
+        "required": [
+          "id",
+          "object",
+          "prompt",
+          "decision",
+          "usage"
         ]
       }
     }

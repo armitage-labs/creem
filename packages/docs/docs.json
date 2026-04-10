@@ -248,7 +248,8 @@
             "pages": [
               "api-reference/endpoint/create-discount-code",
               "api-reference/endpoint/delete-discount-code",
-              "api-reference/endpoint/get-discount-code"
+              "api-reference/endpoint/get-discount-code",
+              "api-reference/endpoint/search-discounts"
             ]
           },
           {
@@ -269,6 +270,13 @@
             "icon": "chart-line",
             "pages": [
               "api-reference/endpoint/get-stats-summary"
+            ]
+          },
+          {
+            "group": "Moderation",
+            "icon": "shield-check",
+            "pages": [
+              "api-reference/endpoint/screen-prompt"
             ]
           }
         ]
