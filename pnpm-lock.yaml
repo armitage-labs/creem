@@ -257,7 +257,7 @@ importers:
         specifier: 4.69.0
         version: 4.69.0
 
-  packages/creem-cli:
+  packages/cli:
     dependencies:
       '@inquirer/prompts':
         specifier: ^7.5.1
