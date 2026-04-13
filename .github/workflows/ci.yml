@@ -5,6 +5,7 @@ on:
     branches: [main]
   pull_request:
     branches: [main]
+  workflow_dispatch: {}
 
 jobs:
   build-and-test:
@@ -23,14 +24,26 @@ jobs:
 
       - run: pnpm install --frozen-lockfile
 
-      - name: Build changed packages
-        run: pnpm turbo build --filter='...[origin/main]' --filter='!./packages/creem-io'
+      - name: Determine turbo filter
+        id: filter
+        run: |
+          if [ "${{ github.event_name }}" = "pull_request" ]; then
+            echo "args=--filter='...[origin/main]'" >> $GITHUB_OUTPUT
+          else
+            # On push to main or manual dispatch, run all packages
+            echo "args=" >> $GITHUB_OUTPUT
+          fi
+
+      - name: Build
+        run: pnpm turbo build ${{ steps.filter.outputs.args }} --filter='!./packages/creem-io'
 
       - name: Typecheck
-        run: pnpm turbo typecheck --filter='...[origin/main]' --filter='!./packages/creem-io' --filter='!./packages/creem-sdk'
+        run: pnpm turbo typecheck ${{ steps.filter.outputs.args }} --filter='!./packages/creem-io' --filter='!./packages/creem-sdk'
 
       - name: Test
-        run: pnpm turbo test --filter='...[origin/main]' --filter='!./packages/creem-io'
+        env:
+          TEST_API_KEY: ${{ secrets.TEST_API_KEY }}
+        run: pnpm turbo test ${{ steps.filter.outputs.args }} --filter='!./packages/creem-io'
 
       - name: Lint
-        run: pnpm turbo lint --filter='...[origin/main]' --filter='!./packages/creem-io' --filter='!./packages/creem-sdk'
+        run: pnpm turbo lint ${{ steps.filter.outputs.args }} --filter='!./packages/creem-io' --filter='!./packages/creem-sdk'

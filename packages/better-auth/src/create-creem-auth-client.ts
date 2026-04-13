@@ -213,7 +213,9 @@ export interface CreemClient {
  * });
  * ```
  */
-export function createCreemAuthClient(config: Parameters<typeof createAuthClient>[0]): ReturnType<typeof createAuthClient> & {
+export function createCreemAuthClient(config: Parameters<typeof createAuthClient>[0]): ReturnType<
+  typeof createAuthClient
+> & {
   creem: CreemClient;
 } {
   const baseClient = createAuthClient(config);

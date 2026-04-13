@@ -1,0 +1,80 @@
+name: SDK Version Cascade
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - "packages/creem-sdk/package.json"
+  workflow_dispatch: {}
+
+jobs:
+  cascade:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+      pull-requests: write
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: pnpm/action-setup@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: "pnpm"
+
+      - name: Get new SDK version
+        id: sdk
+        run: echo "version=$(jq -r .version packages/creem-sdk/package.json)" >> $GITHUB_OUTPUT
+
+      - name: Check if adaptors need updating
+        id: check
+        run: |
+          SDK_VERSION="${{ steps.sdk.outputs.version }}"
+          NEEDS_UPDATE=false
+          for pkg in packages/better-auth packages/nextjs packages/convex; do
+            CURRENT=$(jq -r '.dependencies.creem // empty' "$pkg/package.json")
+            if [ "$CURRENT" != "^${SDK_VERSION}" ]; then
+              NEEDS_UPDATE=true
+              break
+            fi
+          done
+          echo "needs_update=$NEEDS_UPDATE" >> $GITHUB_OUTPUT
+
+      - name: Update adaptor dependencies
+        if: steps.check.outputs.needs_update == 'true'
+        run: |
+          SDK_VERSION="${{ steps.sdk.outputs.version }}"
+          for pkg in packages/better-auth packages/nextjs packages/convex; do
+            jq --arg v "^${SDK_VERSION}" '.dependencies.creem = $v' "$pkg/package.json" > tmp.json && mv tmp.json "$pkg/package.json"
+          done
+
+      - name: Install dependencies
+        if: steps.check.outputs.needs_update == 'true'
+        run: pnpm install --no-frozen-lockfile
+
+      - name: Create changeset
+        if: steps.check.outputs.needs_update == 'true'
+        run: |
+          cat > ".changeset/sdk-cascade-$(date +%s).md" << EOF
+          ---
+          "@creem_io/better-auth": patch
+          "@creem_io/convex": patch
+          "@creem_io/nextjs": patch
+          ---
+
+          Bump creem SDK dependency to ${{ steps.sdk.outputs.version }}
+          EOF
+
+      - name: Create PR
+        if: steps.check.outputs.needs_update == 'true'
+        uses: peter-evans/create-pull-request@v7
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
+          commit-message: "chore: bump adaptor deps to creem@${{ steps.sdk.outputs.version }}"
+          title: "chore: bump adaptors to creem@${{ steps.sdk.outputs.version }}"
+          branch: chore/sdk-cascade-${{ steps.sdk.outputs.version }}
+          body: |
+            Auto-generated: bumps `creem` dependency in adaptor packages after Speakeasy SDK release to `${{ steps.sdk.outputs.version }}`.
+
+            When merged, the changesets release workflow will publish new patch versions of the adaptors.
