@@ -18,6 +18,6 @@ jobs:
 
       - name: Deploy to Mintlify
         working-directory: packages/docs
-        run: mintlify deploy
+        run: mintlify push
         env:
           MINTLIFY_TOKEN: ${{ secrets.MINTLIFY_TOKEN }}
