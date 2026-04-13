@@ -5,6 +5,7 @@ on:
     branches: [main]
     paths:
       - "packages/creem-sdk/package.json"
+  workflow_dispatch: {}
 
 jobs:
   cascade:
