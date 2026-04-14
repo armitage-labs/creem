@@ -254,7 +254,67 @@ curl -X POST https://api.creem.io/v1/customer-credits/accounts/{account_id}/debi
 
 ---
 
-## Recipe 8: Reconciliation Without Webhooks
+## Recipe 8: AI Wrapper / SaaS Usage Credits
+
+If you're building an AI wrapper (or any SaaS that proxies a paid API), Customer Credits handles the billing balance so you don't have to build it yourself. Customers buy credit packs via Creem checkout, credits get added to their account, and each AI call deducts from their balance.
+
+### Create a Credits Account on Signup
+
+```bash
+curl -X POST https://api.creem.io/v1/customer-credits/accounts \
+  -H "x-api-key: YOUR_API_KEY" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "customer_id": "cust_abc123",
+    "name": "ai_credits",
+    "unit_label": "credits"
+  }'
+```
+
+### Top Up When Customer Buys a Credit Pack
+
+```bash
+# In your checkout.completed webhook handler
+curl -X POST https://api.creem.io/v1/customer-credits/accounts/{account_id}/credit \
+  -H "x-api-key: YOUR_API_KEY" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "amount": "5000",
+    "reference": "order_credit_pack_500",
+    "idempotency_key": "topup_order_credit_pack_500"
+  }'
+```
+
+### Deduct Per AI Call
+
+```bash
+# Before proxying to OpenAI/Anthropic, check balance and debit
+# Different models can cost different amounts
+curl -X POST https://api.creem.io/v1/customer-credits/accounts/{account_id}/debit \
+  -H "x-api-key: YOUR_API_KEY" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "amount": "10",
+    "reference": "ai_call_gpt4_req_abc123",
+    "idempotency_key": "ai_debit_req_abc123"
+  }'
+```
+
+### Check Remaining Balance
+
+```bash
+# Show the user how many credits they have left
+curl https://api.creem.io/v1/customer-credits/accounts/{account_id}/balance \
+  -H "x-api-key: YOUR_API_KEY"
+```
+
+<Tip>
+  Price different models at different credit costs (e.g., GPT-4 = 10 credits, GPT-3.5 = 1 credit) by varying the `amount` on each debit. Use the `reference` field to record which model was called for reconciliation.
+</Tip>
+
+---
+
+## Recipe 9: Reconciliation Without Webhooks
 
 Since v1 ships without webhooks, use the reference field and transaction history for reconciliation.
 
