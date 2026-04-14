@@ -98,6 +98,14 @@
               "features/product-bundles",
               "features/moderation",
               {
+                "group": "Customer Credits",
+                "pages": [
+                  "features/customer-credits/introduction",
+                  "features/customer-credits/accounts",
+                  "features/customer-credits/transactions"
+                ]
+              },
+              {
                 "group": "Addons",
                 "pages": [
                   "features/addons/licenses",
@@ -187,6 +195,7 @@
               "guides/introduction",
               "guides/create-your-first-product",
               "guides/create-checkout-session",
+              "guides/customer-credits-recipes",
               "guides/faq"
             ]
           }
@@ -271,6 +280,23 @@
             "icon": "chart-line",
             "pages": [
               "api-reference/endpoint/get-stats-summary"
+            ]
+          },
+          {
+            "group": "Customer Credits",
+            "icon": "coins",
+            "pages": [
+              "api-reference/endpoint/create-credits-account",
+              "api-reference/endpoint/list-credits-accounts",
+              "api-reference/endpoint/get-credits-account",
+              "api-reference/endpoint/get-credits-account-balance",
+              "api-reference/endpoint/list-credits-entries",
+              "api-reference/endpoint/credit-account",
+              "api-reference/endpoint/debit-account",
+              "api-reference/endpoint/reverse-credits-transaction",
+              "api-reference/endpoint/freeze-credits-account",
+              "api-reference/endpoint/unfreeze-credits-account",
+              "api-reference/endpoint/close-credits-account"
             ]
           },
           {

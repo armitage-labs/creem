@@ -3342,11 +3342,6 @@
             "description": "Account name",
             "example": "default"
           },
-          "type": {
-            "type": "string",
-            "description": "Account type",
-            "enum": ["asset", "liability", "revenue", "expense", "equity"]
-          },
           "unit_label": {
             "type": "string",
             "description": "Unit label",
@@ -3371,7 +3366,6 @@
           "store_id",
           "customer_id",
           "name",
-          "type",
           "unit_label",
           "status",
           "created_at",
