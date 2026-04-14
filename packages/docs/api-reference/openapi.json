@@ -984,6 +984,484 @@
         "tags": ["Moderation"],
         "security": [{ "ApiKey": [] }]
       }
+    },
+    "/v1/customer-credits/accounts": {
+      "post": {
+        "operationId": "createCustomerCreditsAccount",
+        "summary": "Create a customer credits account",
+        "description": "Create a new credits account for a customer. Optionally seed it with an initial balance.",
+        "parameters": [],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": { "$ref": "#/components/schemas/CreateAccountDto" }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Account created",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/AccountResponseDto" }
+              }
+            }
+          },
+          "400": { "description": "Bad Request - Invalid input parameters" },
+          "401": { "description": "Unauthorized - Invalid or missing API key" },
+          "404": { "description": "Not Found - Resource does not exist" }
+        },
+        "tags": ["Customer Credits - Accounts (Experimental)"],
+        "security": [{ "ApiKey": [] }]
+      },
+      "get": {
+        "operationId": "listCustomerCreditsAccounts",
+        "summary": "List customer credits accounts",
+        "description": "List accounts for the authenticated store with cursor pagination. System accounts are excluded.",
+        "parameters": [
+          {
+            "name": "limit",
+            "required": false,
+            "in": "query",
+            "description": "Maximum number of accounts to return",
+            "schema": {
+              "minimum": 1,
+              "maximum": 100,
+              "default": 10,
+              "type": "number"
+            }
+          },
+          {
+            "name": "customer_id",
+            "required": false,
+            "in": "query",
+            "description": "Filter by owner ID (e.g. customer ID)",
+            "schema": { "example": "cust_abc123", "type": "string" }
+          },
+          {
+            "name": "starting_after",
+            "required": false,
+            "in": "query",
+            "description": "Cursor for forward pagination — account ID to start after",
+            "schema": { "type": "string" }
+          },
+          {
+            "name": "ending_before",
+            "required": false,
+            "in": "query",
+            "description": "Cursor for backward pagination — account ID to end before",
+            "schema": { "type": "string" }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Paginated list of accounts",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AccountListResponseDto"
+                }
+              }
+            }
+          },
+          "400": { "description": "Bad Request - Invalid input parameters" },
+          "401": { "description": "Unauthorized - Invalid or missing API key" },
+          "404": { "description": "Not Found - Resource does not exist" }
+        },
+        "tags": ["Customer Credits - Accounts (Experimental)"],
+        "security": [{ "ApiKey": [] }]
+      }
+    },
+    "/v1/customer-credits/accounts/{id}": {
+      "get": {
+        "operationId": "getCustomerCreditsAccount",
+        "summary": "Retrieve a customer credits account",
+        "description": "Get details of a customer credits account by ID.",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": { "type": "string" }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Account details",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/AccountResponseDto" }
+              }
+            }
+          },
+          "400": { "description": "Bad Request - Invalid input parameters" },
+          "401": { "description": "Unauthorized - Invalid or missing API key" },
+          "404": { "description": "Not Found - Resource does not exist" }
+        },
+        "tags": ["Customer Credits - Accounts (Experimental)"],
+        "security": [{ "ApiKey": [] }]
+      }
+    },
+    "/v1/customer-credits/accounts/{id}/balance": {
+      "get": {
+        "operationId": "getCustomerCreditsAccountBalance",
+        "summary": "Get account balance",
+        "description": "Get the current balance of an account. Optionally pass ?at= for historical balance.",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": { "type": "string" }
+          },
+          {
+            "name": "at",
+            "required": false,
+            "in": "query",
+            "description": "ISO 8601 date. If present, computes balance at that point in time. If absent, returns O(1) projected balance.",
+            "schema": {
+              "example": "2024-01-15T00:00:00.000Z",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Account balance",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/BalanceResponseDto" }
+              }
+            }
+          },
+          "400": { "description": "Bad Request - Invalid input parameters" },
+          "401": { "description": "Unauthorized - Invalid or missing API key" },
+          "404": { "description": "Not Found - Resource does not exist" }
+        },
+        "tags": ["Customer Credits - Accounts (Experimental)"],
+        "security": [{ "ApiKey": [] }]
+      }
+    },
+    "/v1/customer-credits/accounts/{id}/entries": {
+      "get": {
+        "operationId": "listCustomerCreditsAccountEntries",
+        "summary": "List account entries",
+        "description": "List the credit and debit history for an account with cursor pagination.",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": { "type": "string" }
+          },
+          {
+            "name": "limit",
+            "required": false,
+            "in": "query",
+            "description": "Maximum number of entries to return",
+            "schema": {
+              "minimum": 1,
+              "maximum": 100,
+              "default": 10,
+              "type": "number"
+            }
+          },
+          {
+            "name": "starting_after",
+            "required": false,
+            "in": "query",
+            "description": "Cursor for forward pagination — entry ID to start after",
+            "schema": { "type": "string" }
+          },
+          {
+            "name": "ending_before",
+            "required": false,
+            "in": "query",
+            "description": "Cursor for backward pagination — entry ID to end before",
+            "schema": { "type": "string" }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Paginated list of entries",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/EntryListResponseDto"
+                }
+              }
+            }
+          },
+          "400": { "description": "Bad Request - Invalid input parameters" },
+          "401": { "description": "Unauthorized - Invalid or missing API key" },
+          "404": { "description": "Not Found - Resource does not exist" }
+        },
+        "tags": ["Customer Credits - Accounts (Experimental)"],
+        "security": [{ "ApiKey": [] }]
+      }
+    },
+    "/v1/customer-credits/accounts/{id}/freeze": {
+      "post": {
+        "operationId": "freezeCustomerCreditsAccount",
+        "summary": "Freeze an account",
+        "description": "Freeze an account to prevent new transactions.",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": { "type": "string" }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Account frozen",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/AccountResponseDto" }
+              }
+            }
+          },
+          "400": { "description": "Bad Request - Invalid input parameters" },
+          "401": { "description": "Unauthorized - Invalid or missing API key" },
+          "404": { "description": "Not Found - Resource does not exist" },
+          "409": {
+            "description": "Account already frozen or closed",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CustomerCreditsErrorResponseDto"
+                }
+              }
+            }
+          }
+        },
+        "tags": ["Customer Credits - Accounts (Experimental)"],
+        "security": [{ "ApiKey": [] }]
+      }
+    },
+    "/v1/customer-credits/accounts/{id}/unfreeze": {
+      "post": {
+        "operationId": "unfreezeCustomerCreditsAccount",
+        "summary": "Unfreeze an account",
+        "description": "Unfreeze a frozen account to allow transactions again.",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": { "type": "string" }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Account unfrozen",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/AccountResponseDto" }
+              }
+            }
+          },
+          "400": { "description": "Bad Request - Invalid input parameters" },
+          "401": { "description": "Unauthorized - Invalid or missing API key" },
+          "404": { "description": "Not Found - Resource does not exist" },
+          "409": {
+            "description": "Account is not frozen or is closed",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CustomerCreditsErrorResponseDto"
+                }
+              }
+            }
+          }
+        },
+        "tags": ["Customer Credits - Accounts (Experimental)"],
+        "security": [{ "ApiKey": [] }]
+      }
+    },
+    "/v1/customer-credits/accounts/{id}/credit": {
+      "post": {
+        "operationId": "creditCustomerCreditsAccount",
+        "summary": "Credit an account",
+        "description": "Add credits to a customer account. Returns the resulting transaction record.",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": { "type": "string" }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": { "$ref": "#/components/schemas/CreditDebitRequestDto" }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Credit transaction created",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/TransactionResponseDto"
+                }
+              }
+            }
+          },
+          "400": { "description": "Bad Request - Invalid input parameters" },
+          "401": { "description": "Unauthorized - Invalid or missing API key" },
+          "404": { "description": "Not Found - Resource does not exist" },
+          "409": {
+            "description": "Account frozen or closed",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CustomerCreditsErrorResponseDto"
+                }
+              }
+            }
+          }
+        },
+        "tags": ["Customer Credits - Accounts (Experimental)"],
+        "security": [{ "ApiKey": [] }]
+      }
+    },
+    "/v1/customer-credits/accounts/{id}/debit": {
+      "post": {
+        "operationId": "debitCustomerCreditsAccount",
+        "summary": "Debit an account",
+        "description": "Deduct credits from a customer account. Returns the resulting transaction record.",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": { "type": "string" }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": { "$ref": "#/components/schemas/CreditDebitRequestDto" }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Debit transaction created",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/TransactionResponseDto"
+                }
+              }
+            }
+          },
+          "400": { "description": "Bad Request - Invalid input parameters" },
+          "401": { "description": "Unauthorized - Invalid or missing API key" },
+          "404": { "description": "Not Found - Resource does not exist" },
+          "409": {
+            "description": "Account frozen or closed",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CustomerCreditsErrorResponseDto"
+                }
+              }
+            }
+          }
+        },
+        "tags": ["Customer Credits - Accounts (Experimental)"],
+        "security": [{ "ApiKey": [] }]
+      }
+    },
+    "/v1/customer-credits/accounts/{id}/reverse": {
+      "post": {
+        "operationId": "reverseCustomerCreditsAccountTransaction",
+        "summary": "Reverse a transaction",
+        "description": "Reverse a previous credit or debit on this account. Creates a new transaction that undoes the original, preserving the full history.",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": { "type": "string" }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ReverseTransactionRequestDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Reversal transaction created",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/TransactionResponseDto"
+                }
+              }
+            }
+          },
+          "400": { "description": "Bad Request - Invalid input parameters" },
+          "401": { "description": "Unauthorized - Invalid or missing API key" },
+          "404": { "description": "Not Found - Resource does not exist" }
+        },
+        "tags": ["Customer Credits - Accounts (Experimental)"],
+        "security": [{ "ApiKey": [] }]
+      }
+    },
+    "/v1/customer-credits/accounts/{id}/close": {
+      "post": {
+        "operationId": "closeCustomerCreditsAccount",
+        "summary": "Close an account",
+        "description": "Permanently close an account. This action cannot be undone.",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": { "type": "string" }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Account closed",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/AccountResponseDto" }
+              }
+            }
+          },
+          "400": { "description": "Bad Request - Invalid input parameters" },
+          "401": { "description": "Unauthorized - Invalid or missing API key" },
+          "404": { "description": "Not Found - Resource does not exist" },
+          "409": {
+            "description": "Account already closed",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CustomerCreditsErrorResponseDto"
+                }
+              }
+            }
+          }
+        },
+        "tags": ["Customer Credits - Accounts (Experimental)"],
+        "security": [{ "ApiKey": [] }]
+      }
     }
   },
   "info": {
@@ -2816,6 +3294,315 @@
           }
         },
         "required": ["id", "object", "prompt", "decision", "usage"]
+      },
+      "CreateAccountDto": {
+        "type": "object",
+        "properties": {
+          "name": {
+            "type": "string",
+            "description": "Human-readable name for the account",
+            "example": "default",
+            "default": "default"
+          },
+          "customer_id": {
+            "type": "string",
+            "description": "The owner ID this account belongs to (e.g. customer ID)",
+            "example": "cust_abc123"
+          },
+          "unit_label": {
+            "type": "string",
+            "description": "Label for the unit of currency/credits",
+            "example": "credits",
+            "default": "credits"
+          },
+          "initial_balance": {
+            "type": "string",
+            "description": "Seed the account with this many credits on creation",
+            "example": "300"
+          }
+        },
+        "required": ["customer_id"]
+      },
+      "AccountResponseDto": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "description": "Account ID",
+            "example": "cca_abc123"
+          },
+          "store_id": { "type": "string", "description": "Store ID" },
+          "customer_id": {
+            "type": "string",
+            "description": "Owner ID",
+            "example": "cust_abc123"
+          },
+          "name": {
+            "type": "string",
+            "description": "Account name",
+            "example": "default"
+          },
+          "type": {
+            "type": "string",
+            "description": "Account type",
+            "enum": ["asset", "liability", "revenue", "expense", "equity"]
+          },
+          "unit_label": {
+            "type": "string",
+            "description": "Unit label",
+            "example": "credits"
+          },
+          "status": {
+            "type": "string",
+            "description": "Account status",
+            "enum": ["active", "frozen", "closed"]
+          },
+          "created_at": {
+            "type": "string",
+            "description": "Creation timestamp"
+          },
+          "updated_at": {
+            "type": "string",
+            "description": "Last update timestamp"
+          }
+        },
+        "required": [
+          "id",
+          "store_id",
+          "customer_id",
+          "name",
+          "type",
+          "unit_label",
+          "status",
+          "created_at",
+          "updated_at"
+        ]
+      },
+      "AccountListResponseDto": {
+        "type": "object",
+        "properties": {
+          "object": {
+            "type": "string",
+            "description": "Object type",
+            "example": "list"
+          },
+          "data": {
+            "description": "Array of accounts",
+            "type": "array",
+            "items": { "$ref": "#/components/schemas/AccountResponseDto" }
+          },
+          "has_more": {
+            "type": "boolean",
+            "description": "Whether more items exist beyond this page"
+          }
+        },
+        "required": ["object", "data", "has_more"]
+      },
+      "BalanceResponseDto": {
+        "type": "object",
+        "properties": {
+          "balance": {
+            "type": "string",
+            "description": "Current balance as string for bigint safety",
+            "example": "5000"
+          },
+          "updated_at": {
+            "type": "string",
+            "description": "Last update timestamp (present for projected balance)"
+          },
+          "as_of": {
+            "type": "string",
+            "description": "Point-in-time the balance was computed at (present for at-time queries)"
+          }
+        },
+        "required": ["balance"]
+      },
+      "EntryResponseDto": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "description": "Entry ID",
+            "example": "cce_abc123"
+          },
+          "transaction_id": {
+            "type": "string",
+            "description": "Transaction ID",
+            "example": "cct_abc123"
+          },
+          "account_id": {
+            "type": "string",
+            "description": "Account ID",
+            "example": "cca_abc123"
+          },
+          "side": {
+            "type": "string",
+            "description": "Debit or credit side",
+            "enum": ["debit", "credit"]
+          },
+          "amount": {
+            "type": "string",
+            "description": "Amount as string for bigint safety",
+            "example": "1000"
+          },
+          "created_at": {
+            "type": "string",
+            "description": "Creation timestamp"
+          }
+        },
+        "required": [
+          "id",
+          "transaction_id",
+          "account_id",
+          "side",
+          "amount",
+          "created_at"
+        ]
+      },
+      "EntryListResponseDto": {
+        "type": "object",
+        "properties": {
+          "object": {
+            "type": "string",
+            "description": "Object type",
+            "example": "list"
+          },
+          "data": {
+            "description": "Array of entries",
+            "type": "array",
+            "items": { "$ref": "#/components/schemas/EntryResponseDto" }
+          },
+          "has_more": {
+            "type": "boolean",
+            "description": "Whether more items exist beyond this page"
+          }
+        },
+        "required": ["object", "data", "has_more"]
+      },
+      "CustomerCreditsErrorDetailDto": {
+        "type": "object",
+        "properties": {
+          "type": {
+            "type": "string",
+            "description": "Error category",
+            "enum": [
+              "invalid_request_error",
+              "api_error",
+              "authentication_error",
+              "rate_limit_error"
+            ],
+            "example": "invalid_request_error"
+          },
+          "code": {
+            "type": "object",
+            "description": "Machine-readable error code",
+            "example": "unbalanced_transaction",
+            "nullable": true
+          },
+          "message": {
+            "type": "string",
+            "description": "Human-readable error message",
+            "example": "Total debits must equal total credits"
+          },
+          "param": {
+            "type": "object",
+            "description": "The parameter related to the error, if applicable",
+            "example": "entries",
+            "nullable": true
+          },
+          "request_id": {
+            "type": "string",
+            "description": "Unique request identifier for support",
+            "example": "req_abc123def456"
+          }
+        },
+        "required": ["type", "code", "message", "request_id"]
+      },
+      "CustomerCreditsErrorResponseDto": {
+        "type": "object",
+        "properties": {
+          "error": {
+            "description": "Error details",
+            "allOf": [
+              { "$ref": "#/components/schemas/CustomerCreditsErrorDetailDto" }
+            ]
+          }
+        },
+        "required": ["error"]
+      },
+      "CreditDebitRequestDto": {
+        "type": "object",
+        "properties": {
+          "amount": {
+            "type": "string",
+            "description": "Amount to credit or debit (string to support large numbers)",
+            "example": "1000"
+          },
+          "reference": {
+            "type": "string",
+            "description": "Your reference ID to link this transaction to an event in your system (e.g. order ID, campaign ID)",
+            "example": "signup_bonus"
+          },
+          "idempotency_key": {
+            "type": "string",
+            "description": "Idempotency key to prevent duplicate transactions",
+            "example": "idem_abc123"
+          }
+        },
+        "required": ["amount", "reference", "idempotency_key"]
+      },
+      "TransactionResponseDto": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "description": "Transaction ID",
+            "example": "cct_abc123"
+          },
+          "store_id": { "type": "string", "description": "Store ID" },
+          "reference": {
+            "type": "string",
+            "description": "Reference string",
+            "example": "order_xyz"
+          },
+          "idempotency_key": {
+            "type": "string",
+            "description": "Idempotency key"
+          },
+          "reversal_of": {
+            "type": "object",
+            "description": "ID of the transaction this reverses, if applicable",
+            "example": "cct_abc123"
+          },
+          "entries": {
+            "description": "Transaction entries",
+            "type": "array",
+            "items": { "$ref": "#/components/schemas/EntryResponseDto" }
+          },
+          "created_at": {
+            "type": "string",
+            "description": "Creation timestamp"
+          }
+        },
+        "required": [
+          "id",
+          "store_id",
+          "reference",
+          "idempotency_key",
+          "entries",
+          "created_at"
+        ]
+      },
+      "ReverseTransactionRequestDto": {
+        "type": "object",
+        "properties": {
+          "transaction_id": {
+            "type": "string",
+            "description": "ID of the transaction to reverse",
+            "example": "cct_abc123"
+          }
+        },
+        "required": ["transaction_id"]
       }
     }
   },
