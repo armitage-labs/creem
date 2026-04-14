@@ -158,9 +158,19 @@ Each entry shows:
 
 ---
 
-## Safe retries
+## What is an `idempotency_key`?
 
-Every write operation requires an `idempotency_key`. This means you can safely retry any request — network timeouts, server errors, whatever — without worrying about double-crediting.
+An `idempotency_key` is a unique string you include with every credit or debit request. It's your safety net against accidental duplicates.
+
+Imagine your app credits a customer 500 points for an order. The request goes through, but your app doesn't get the response back (network hiccup, timeout, server restart). Without protection, retrying would give the customer 1,000 points instead of 500.
+
+The `idempotency_key` prevents this. When you retry with the same key, Creem recognizes it's the same request and returns the original result — no double-crediting.
+
+<Tip>
+  Use a key that's tied to the business event, like `reward_order_789` or `topup_sub_123_2026-04`. This way, even if your code accidentally fires twice for the same order, the customer only gets credited once.
+</Tip>
+
+### How it works
 
 ```mermaid
 sequenceDiagram
@@ -173,7 +183,7 @@ sequenceDiagram
     Note over App: Network timeout, not sure if it worked...
 
     App->>Creem: Credit 500 (key: "reward_789")
-    Creem-->>App: ✅ Original result + X-Idempotent-Replay header
+    Creem-->>App: ✅ Same result, no duplicate
 ```
 
 | Scenario                        | Result                                                      |
@@ -182,11 +192,7 @@ sequenceDiagram
 | Retry with same key + same body | Returns original result, `X-Idempotent-Replay: true` header |
 | Same key but different body     | `409 Conflict` error                                        |
 
-<Tip>
-  Use meaningful keys like `reward_order_789` or `topup_sub_123_2026-04` instead
-  of random UUIDs. They're easier to debug and naturally prevent duplicates tied
-  to the same business event.
-</Tip>
+
 
 ---
 
