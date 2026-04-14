@@ -31,17 +31,11 @@ curl -X POST https://api.creem.io/v1/customer-credits/accounts \
   "store_id": "store_xxx",
   "customer_id": "cust_abc123",
   "name": "loyalty_points",
-  "type": "liability",
   "unit_label": "points",
   "status": "active",
   "created_at": "2026-04-14T12:00:00.000Z",
   "updated_at": "2026-04-14T12:00:00.000Z"
 }
-```
-
-<Info>
-  The `type` field is managed by Creem — you don't need to set or think about it.
-</Info>
 
 | Parameter | Type | Required | Description |
 | --- | --- | --- | --- |
@@ -75,7 +69,6 @@ curl "https://api.creem.io/v1/customer-credits/accounts?customer_id=cust_abc123"
       "store_id": "store_xxx",
       "customer_id": "cust_abc123",
       "name": "loyalty_points",
-      "type": "liability",
       "unit_label": "points",
       "status": "active",
       "created_at": "2026-04-14T12:00:00.000Z",
