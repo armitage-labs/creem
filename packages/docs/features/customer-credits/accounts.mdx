@@ -142,7 +142,7 @@ stateDiagram-v2
 
 ### Freeze — pause an account
 
-Temporarily block all credits and debits. Useful for fraud review or disputes. The account stays readable.
+Temporarily block all credits and debits. The account stays readable.
 
 ```bash
 curl -X POST https://api.creem.io/v1/customer-credits/accounts/{account_id}/freeze \
@@ -169,11 +169,11 @@ curl -X POST https://api.creem.io/v1/customer-credits/accounts/{account_id}/clos
   Closing is permanent. If you might need the account later, freeze it instead.
 </Warning>
 
-| Status   | Can credit/debit? | Can read? | Use case                          |
-| -------- | ----------------- | --------- | --------------------------------- |
-| `active` | ✅                | ✅        | Normal operation                  |
-| `frozen` | ❌                | ✅        | Fraud review, disputes            |
-| `closed` | ❌                | ✅        | Customer churned, account retired |
+| Status | Can credit/debit? | Can read? | Use case |
+| --- | --- | --- | --- |
+| `active` | ✅ | ✅ | Default |
+| `frozen` | ❌ | ✅ | Temporarily paused |
+| `closed` | ❌ | ✅ | Permanent |
 
 ---
 
