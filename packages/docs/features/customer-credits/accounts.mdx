@@ -13,52 +13,31 @@ A credit account holds a balance for one of your customers. Most customers will 
 
 ## Create an Account
 
-<Tabs>
-  <Tab title="TypeScript SDK">
-
-```typescript
-const account = await creem.customerCredits.accounts.create({
-  owner_id: 'cust_abc123',
-  name: 'loyalty_points',
-  unit_label: 'points',
-  initial_credit_amount: 100,    // optional: seed the account
-  initial_credit_reference: 'signup_bonus',
-});
-```
-
-  </Tab>
-
-  <Tab title="REST API">
-
 ```bash
 curl -X POST https://api.creem.io/v1/customer-credits/accounts \
   -H "x-api-key: YOUR_API_KEY" \
-  -H "Idempotency-Key: create_acct_cust_abc123_loyalty" \
   -H "Content-Type: application/json" \
   -d '{
-    "owner_id": "cust_abc123",
+    "customer_id": "cust_abc123",
     "name": "loyalty_points",
     "unit_label": "points",
-    "initial_credit_amount": 100,
-    "initial_credit_reference": "signup_bonus"
+    "initial_balance": "100"
   }'
 ```
-
-  </Tab>
-</Tabs>
 
 ### Response
 
 ```json
 {
   "id": "cca_7kXmR2pQ9vN",
-  "owner_id": "cust_abc123",
+  "store_id": "store_xxx",
+  "customer_id": "cust_abc123",
   "name": "loyalty_points",
+  "type": "liability",
   "unit_label": "points",
   "status": "active",
-  "balance": 100,
-  "created_at": "2026-04-14T12:00:00Z",
-  "updated_at": "2026-04-14T12:00:00Z"
+  "created_at": "2026-04-14T12:00:00.000Z",
+  "updated_at": "2026-04-14T12:00:00.000Z"
 }
 ```
 
@@ -66,56 +45,28 @@ curl -X POST https://api.creem.io/v1/customer-credits/accounts \
 
 | Parameter | Type | Required | Description |
 | --- | --- | --- | --- |
-| `owner_id` | string | ✅ | Creem `customer_id` or your `external_customer_id` |
+| `customer_id` | string | ✅ | The customer this account belongs to |
 | `name` | string | | Account name. Default: `"default"`. Must be unique per customer within your store. |
 | `unit_label` | string | | Display label for the unit. Default: `"credits"`. Purely cosmetic. |
-| `initial_credit_amount` | integer | | Seed the account with this many units on creation. |
-| `initial_credit_reference` | string | Conditional | Required if `initial_credit_amount` is set. Reference for the seed transaction. |
-| `metadata` | object | | Arbitrary key-value pairs for your own tracking. |
+| `initial_balance` | string | | Seed the account with this many credits on creation (as a string for large number support). |
 
 <Info>
-  Account creation is atomic: if `initial_credit_amount` is provided and the initial credit fails, the account is not created. You won't end up with orphaned zero-balance accounts.
+  Account creation is atomic: if `initial_balance` is provided and the initial credit fails, the account is not created. You won't end up with orphaned zero-balance accounts.
 </Info>
 
 ## List Accounts
 
-Retrieve all credit accounts in your store, with optional filtering by owner.
-
-<Tabs>
-  <Tab title="TypeScript SDK">
-
-```typescript
-// All accounts
-const accounts = await creem.customerCredits.accounts.list();
-
-// Filter by customer
-const customerAccounts = await creem.customerCredits.accounts.list({
-  owner_id: 'cust_abc123',
-});
-
-// Paginate
-const page2 = await creem.customerCredits.accounts.list({
-  starting_after: 'cca_7kXmR2pQ9vN',
-  limit: 25,
-});
-```
-
-  </Tab>
-
-  <Tab title="REST API">
+Retrieve all credit accounts in your store, with optional filtering by customer.
 
 ```bash
 # All accounts
 curl https://api.creem.io/v1/customer-credits/accounts \
   -H "x-api-key: YOUR_API_KEY"
 
-# Filter by owner
-curl "https://api.creem.io/v1/customer-credits/accounts?owner_id=cust_abc123" \
+# Filter by customer
+curl "https://api.creem.io/v1/customer-credits/accounts?customer_id=cust_abc123" \
   -H "x-api-key: YOUR_API_KEY"
 ```
-
-  </Tab>
-</Tabs>
 
 ### Response
 
@@ -125,13 +76,14 @@ curl "https://api.creem.io/v1/customer-credits/accounts?owner_id=cust_abc123" \
   "data": [
     {
       "id": "cca_7kXmR2pQ9vN",
-      "owner_id": "cust_abc123",
+      "store_id": "store_xxx",
+      "customer_id": "cust_abc123",
       "name": "loyalty_points",
+      "type": "liability",
       "unit_label": "points",
       "status": "active",
-      "balance": 300,
-      "created_at": "2026-04-14T12:00:00Z",
-      "updated_at": "2026-04-14T14:30:00Z"
+      "created_at": "2026-04-14T12:00:00.000Z",
+      "updated_at": "2026-04-14T14:30:00.000Z"
     }
   ],
   "has_more": false
@@ -142,14 +94,14 @@ curl "https://api.creem.io/v1/customer-credits/accounts?owner_id=cust_abc123" \
 
 | Parameter | Type | Description |
 | --- | --- | --- |
-| `owner_id` | string | Filter to accounts owned by this customer |
-| `limit` | integer | Number of results (1–100, default 20) |
+| `customer_id` | string | Filter to accounts owned by this customer |
+| `limit` | integer | Number of results (1–100, default 10) |
 | `starting_after` | string | Cursor: return results after this account ID |
 | `ending_before` | string | Cursor: return results before this account ID |
 
 ## Get Account Balance
 
-Returns the current balance for an account. This is an instant lookup — no scanning required.
+Returns the current balance for an account. Optionally pass `?at=` for a historical balance at a specific point in time.
 
 ```bash
 curl https://api.creem.io/v1/customer-credits/accounts/{account_id}/balance \
@@ -158,10 +110,22 @@ curl https://api.creem.io/v1/customer-credits/accounts/{account_id}/balance \
 
 ```json
 {
-  "account_id": "cca_7kXmR2pQ9vN",
-  "total_debits": 200,
-  "total_credits": 500,
-  "balance": 300
+  "balance": "5000",
+  "updated_at": "2026-04-14T14:30:00.000Z"
+}
+```
+
+### Historical Balance
+
+```bash
+curl "https://api.creem.io/v1/customer-credits/accounts/{account_id}/balance?at=2026-04-01T00:00:00.000Z" \
+  -H "x-api-key: YOUR_API_KEY"
+```
+
+```json
+{
+  "balance": "3000",
+  "as_of": "2026-04-01T00:00:00.000Z"
 }
 ```
 
@@ -194,17 +158,4 @@ curl -X POST https://api.creem.io/v1/customer-credits/accounts/{account_id}/clos
 
 <Warning>
   Closing an account is irreversible. Consider freezing first if you may need to reactivate it.
-</Warning>
-
-## Delete an Account
-
-Empty accounts (zero entries) can be deleted to clean up test data or abandoned accounts.
-
-```bash
-curl -X DELETE https://api.creem.io/v1/customer-credits/accounts/{account_id} \
-  -H "x-api-key: YOUR_API_KEY"
-```
-
-<Warning>
-  Deletion only succeeds if the account has zero entries. Accounts with any transaction history cannot be deleted — use **close** instead.
 </Warning>

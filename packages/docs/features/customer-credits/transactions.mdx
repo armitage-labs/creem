@@ -11,56 +11,43 @@ description: 'Credit, debit, and reverse transactions on customer credit account
 
 Every time you add or remove credits from a customer's account, it creates a transaction. Transactions are permanent records — you can always see the full history of what happened and why.
 
-For most use cases, the `/credit` and `/debit` endpoints are all you need. Each one takes an amount, a reference back to your system, and an idempotency key to make retries safe.
+For most use cases, the `/credit` and `/debit` endpoints are all you need. Each one takes an amount (as a string), a reference back to your system, and an idempotency key to make retries safe.
 
 ## Credit an Account
 
 Add units to a customer's account balance.
 
-<Tabs>
-  <Tab title="TypeScript SDK">
-
-```typescript
-const tx = await creem.customerCredits.credit({
-  account_id: 'cca_7kXmR2pQ9vN',
-  amount: 500,
-  reference: 'order_789',
-  description: 'Purchase reward — 5x points on electronics',
-}, {
-  idempotencyKey: 'reward_order_789',
-});
-```
-
-  </Tab>
-
-  <Tab title="REST API">
-
 ```bash
 curl -X POST https://api.creem.io/v1/customer-credits/accounts/{account_id}/credit \
   -H "x-api-key: YOUR_API_KEY" \
-  -H "Idempotency-Key: reward_order_789" \
   -H "Content-Type: application/json" \
   -d '{
-    "amount": 500,
+    "amount": "500",
     "reference": "order_789",
-    "description": "Purchase reward — 5x points on electronics"
+    "idempotency_key": "reward_order_789"
   }'
 ```
-
-  </Tab>
-</Tabs>
 
 ### Response
 
 ```json
 {
   "id": "cct_3mNpK8rW2xY",
-  "account_id": "cca_7kXmR2pQ9vN",
-  "type": "credit",
-  "amount": 500,
+  "store_id": "store_xxx",
   "reference": "order_789",
-  "description": "Purchase reward — 5x points on electronics",
-  "posted_at": "2026-04-14T14:30:00Z"
+  "idempotency_key": "reward_order_789",
+  "reversal_of": null,
+  "entries": [
+    {
+      "id": "cce_2hJnR6wP5bC",
+      "transaction_id": "cct_3mNpK8rW2xY",
+      "account_id": "cca_7kXmR2pQ9vN",
+      "side": "credit",
+      "amount": "500",
+      "created_at": "2026-04-14T14:30:00.000Z"
+    }
+  ],
+  "created_at": "2026-04-14T14:30:00.000Z"
 }
 ```
 
@@ -68,30 +55,22 @@ curl -X POST https://api.creem.io/v1/customer-credits/accounts/{account_id}/cred
 
 | Parameter | Type | Required | Description |
 | --- | --- | --- | --- |
-| `amount` | integer | ✅ | Number of units to credit. Must be positive. |
+| `amount` | string | ✅ | Number of units to credit (string to support large numbers). Must be positive. |
 | `reference` | string | ✅ | Your own correlation ID (e.g., order ID, campaign ID). |
-| `description` | string | | Human-readable note for the transaction. |
-| `metadata` | object | | Arbitrary key-value pairs for your own tracking. |
-
-### Headers
-
-| Header | Required | Description |
-| --- | --- | --- |
-| `Idempotency-Key` | ✅ | Unique key for this operation. Retries with the same key return the original response. |
+| `idempotency_key` | string | ✅ | Unique key for this operation. Retries with the same key return the original response. |
 
 ## Debit an Account
 
-Remove units from a customer's account balance.
+Remove units from a customer's account balance. Same request format as credit.
 
 ```bash
 curl -X POST https://api.creem.io/v1/customer-credits/accounts/{account_id}/debit \
   -H "x-api-key: YOUR_API_KEY" \
-  -H "Idempotency-Key: redeem_checkout_456" \
   -H "Content-Type: application/json" \
   -d '{
-    "amount": 200,
+    "amount": "200",
     "reference": "checkout_456",
-    "description": "Points redeemed at checkout"
+    "idempotency_key": "redeem_checkout_456"
   }'
 ```
 
@@ -103,22 +82,6 @@ curl -X POST https://api.creem.io/v1/customer-credits/accounts/{account_id}/debi
 
 Mistakes happen. Reversals undo a previous transaction by creating a new opposite transaction — the original record stays intact so you always have the full history.
 
-<Tabs>
-  <Tab title="TypeScript SDK">
-
-```typescript
-const reversal = await creem.customerCredits.reverse({
-  account_id: 'cca_7kXmR2pQ9vN',
-  transaction_id: 'cct_3mNpK8rW2xY',
-}, {
-  idempotencyKey: 'reverse_order_789',
-});
-```
-
-  </Tab>
-
-  <Tab title="REST API">
-
 ```bash
 curl -X POST https://api.creem.io/v1/customer-credits/accounts/{account_id}/reverse \
   -H "x-api-key: YOUR_API_KEY" \
@@ -127,9 +90,6 @@ curl -X POST https://api.creem.io/v1/customer-credits/accounts/{account_id}/reve
     "transaction_id": "cct_3mNpK8rW2xY"
   }'
 ```
-
-  </Tab>
-</Tabs>
 
 The reversal transaction will have a `reversal_of` field linking back to the original, so you can always trace what happened.
 
@@ -150,17 +110,17 @@ curl "https://api.creem.io/v1/customer-credits/accounts/{account_id}/entries?lim
       "id": "cce_2hJnR6wP5bC",
       "transaction_id": "cct_3mNpK8rW2xY",
       "account_id": "cca_7kXmR2pQ9vN",
-      "type": "credit",
-      "amount": 500,
-      "created_at": "2026-04-14T14:30:00Z"
+      "side": "credit",
+      "amount": "500",
+      "created_at": "2026-04-14T14:30:00.000Z"
     },
     {
       "id": "cce_8dFmQ1tY4wK",
       "transaction_id": "cct_5pRsL9uZ3cB",
       "account_id": "cca_7kXmR2pQ9vN",
-      "type": "debit",
-      "amount": 200,
-      "created_at": "2026-04-14T15:00:00Z"
+      "side": "debit",
+      "amount": "200",
+      "created_at": "2026-04-14T15:00:00.000Z"
     }
   ],
   "has_more": false
@@ -169,7 +129,7 @@ curl "https://api.creem.io/v1/customer-credits/accounts/{account_id}/entries?lim
 
 ## Idempotency
 
-All mutation endpoints require an `Idempotency-Key` header. This makes retries completely safe — you never have to worry about double-crediting or double-debiting:
+All mutation endpoints require an `idempotency_key` in the request body. This makes retries completely safe — you never have to worry about double-crediting or double-debiting:
 
 | Scenario | Result |
 | --- | --- |

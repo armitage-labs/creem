@@ -20,8 +20,8 @@ Think of it as a hosted balance system: you define what your units are called, C
 | --- | --- |
 | **Unit-agnostic** | Credits, gems, stars, points, tokens — you name them, we track them |
 | **Immutable history** | Every balance change is recorded permanently. Corrections are new entries, never edits to old ones |
-| **BigInt amounts** | Handles any scale — no overflow limits |
-| **Idempotent writes** | Every mutation requires an `Idempotency-Key` header — safe to retry without double-counting |
+| **BigInt amounts** | Handles any scale — amounts are strings to support arbitrarily large numbers |
+| **Idempotent writes** | Every mutation requires an `idempotency_key` — safe to retry without double-counting |
 | **Reference tracking** | Every transaction carries a mandatory `reference` field for linking back to your own events (orders, signups, campaigns) |
 
 ## How It Works
@@ -44,7 +44,7 @@ sequenceDiagram
     Creem-->>App: Balance: 70 units
 ```
 
-1. **Create an account** for each customer (or use your own `external_customer_id` to let Creem auto-resolve).
+1. **Create an account** for each customer using their `customer_id`.
 2. **Credit or debit** units via the API. Each operation is tracked as a transaction with a reference back to your system.
 3. **Query balances and history** for dashboards, receipts, or reconciliation.
 
@@ -62,7 +62,7 @@ An account holds a credit balance for one customer. Each account has:
 
 A transaction represents a single balance change — a credit (adding units) or a debit (removing units). Every transaction requires:
 
-- An **`Idempotency-Key` header** — prevents duplicate processing on retries
+- An **`idempotency_key`** — prevents duplicate processing on retries
 - A **`reference`** — your own correlation ID (e.g., `"order_12345"`, `"referral_signup_abc"`)
 
 ### Balance History
@@ -101,49 +101,6 @@ Every credit and debit is stored as an immutable entry. You can list the full hi
 ## Quick Example
 
 <Tabs>
-  <Tab title="TypeScript SDK">
-
-```typescript
-import { createCreem } from 'creem_io';
-
-const creem = createCreem({
-  apiKey: process.env.CREEM_API_KEY!,
-});
-
-// 1. Create an account for a customer
-const account = await creem.customerCredits.accounts.create({
-  owner_id: 'cust_abc123',        // Creem customer ID or your external ID
-  name: 'loyalty_points',          // optional, defaults to "default"
-  unit_label: 'points',            // optional, defaults to "credits"
-});
-
-// 2. Credit 500 points for a purchase reward
-const creditTx = await creem.customerCredits.credit({
-  account_id: account.id,
-  amount: 500,
-  reference: 'order_789',
-  description: 'Purchase reward — Order #789',
-}, {
-  idempotencyKey: 'reward_order_789',
-});
-
-// 3. Debit 200 points for a redemption
-const debitTx = await creem.customerCredits.debit({
-  account_id: account.id,
-  amount: 200,
-  reference: 'redemption_456',
-  description: 'Points redemption at checkout',
-}, {
-  idempotencyKey: 'redeem_456',
-});
-
-// 4. Check balance
-const balance = await creem.customerCredits.accounts.getBalance(account.id);
-console.log(balance.balance); // 300
-```
-
-  </Tab>
-
   <Tab title="REST API">
 
 <Warning>
@@ -154,49 +111,77 @@ console.log(balance.balance); // 300
 # 1. Create an account
 curl -X POST https://api.creem.io/v1/customer-credits/accounts \
   -H "x-api-key: YOUR_API_KEY" \
-  -H "Idempotency-Key: create_acct_cust_abc123" \
   -H "Content-Type: application/json" \
   -d '{
-    "owner_id": "cust_abc123",
+    "customer_id": "cust_abc123",
     "name": "loyalty_points",
     "unit_label": "points"
   }'
-
-# 2. Credit 500 points
-curl -X POST https://api.creem.io/v1/customer-credits/accounts/{account_id}/credit \
-  -H "x-api-key: YOUR_API_KEY" \
-  -H "Idempotency-Key: reward_order_789" \
-  -H "Content-Type: application/json" \
-  -d '{
-    "amount": 500,
-    "reference": "order_789",
-    "description": "Purchase reward — Order #789"
-  }'
-
-# 3. Debit 200 points
-curl -X POST https://api.creem.io/v1/customer-credits/accounts/{account_id}/debit \
-  -H "x-api-key: YOUR_API_KEY" \
-  -H "Idempotency-Key: redeem_456" \
-  -H "Content-Type: application/json" \
-  -d '{
-    "amount": 200,
-    "reference": "redemption_456",
-    "description": "Points redemption at checkout"
-  }'
-
-# 4. Check balance
-curl https://api.creem.io/v1/customer-credits/accounts/{account_id}/balance \
-  -H "x-api-key: YOUR_API_KEY"
 ```
 
-### Response
+### Create Account Response
 
 ```json
 {
-  "account_id": "cca_7kXmR2pQ9vN",
-  "total_debits": 200,
-  "total_credits": 500,
-  "balance": 300
+  "id": "cca_7kXmR2pQ9vN",
+  "store_id": "store_xxx",
+  "customer_id": "cust_abc123",
+  "name": "loyalty_points",
+  "type": "liability",
+  "unit_label": "points",
+  "status": "active",
+  "created_at": "2026-04-14T12:00:00.000Z",
+  "updated_at": "2026-04-14T12:00:00.000Z"
+}
+```
+
+```bash
+# 2. Credit 500 points
+curl -X POST https://api.creem.io/v1/customer-credits/accounts/cca_7kXmR2pQ9vN/credit \
+  -H "x-api-key: YOUR_API_KEY" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "amount": "500",
+    "reference": "order_789",
+    "idempotency_key": "reward_order_789"
+  }'
+```
+
+### Credit Response
+
+```json
+{
+  "id": "cct_3mNpK8rW2xY",
+  "store_id": "store_xxx",
+  "reference": "order_789",
+  "idempotency_key": "reward_order_789",
+  "reversal_of": null,
+  "entries": [
+    {
+      "id": "cce_2hJnR6wP5bC",
+      "transaction_id": "cct_3mNpK8rW2xY",
+      "account_id": "cca_7kXmR2pQ9vN",
+      "side": "credit",
+      "amount": "500",
+      "created_at": "2026-04-14T14:30:00.000Z"
+    }
+  ],
+  "created_at": "2026-04-14T14:30:00.000Z"
+}
+```
+
+```bash
+# 3. Check balance
+curl https://api.creem.io/v1/customer-credits/accounts/cca_7kXmR2pQ9vN/balance \
+  -H "x-api-key: YOUR_API_KEY"
+```
+
+### Balance Response
+
+```json
+{
+  "balance": "500",
+  "updated_at": "2026-04-14T14:30:00.000Z"
 }
 ```
 
@@ -224,8 +209,5 @@ Accounts have three states:
   </Card>
   <Card title="Recipes" icon="book-open" href="/guides/customer-credits-recipes">
     Step-by-step guides for loyalty programs, prepaid wallets, referral credits, and more.
-  </Card>
-  <Card title="API Reference" icon="code" href="/api-reference/endpoint/create-credits-account">
-    Full endpoint documentation.
   </Card>
 </CardGroup>
