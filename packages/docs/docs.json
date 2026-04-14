@@ -96,6 +96,7 @@
               "features/trials",
               "features/customer-portal",
               "features/product-bundles",
+              "features/moderation",
               {
                 "group": "Addons",
                 "pages": [
