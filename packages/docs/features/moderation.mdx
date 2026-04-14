@@ -212,21 +212,7 @@ closely monitoring it. We recommend treating `flag` exactly like `deny` —
 block the request and surface an error to the user. This keeps your
 integration simple and keeps your account on the safe side of the line.
 
-### 4. Log and retain moderation results
-
-Persist the full moderation response alongside the generation record. At
-minimum, store:
-
-- `id` (the moderation result ID)
-- `decision`
-- `external_id` you sent
-- Timestamp
-- The generation it was associated with (if any)
-
-This is the audit trail that protects you. If a generation is later disputed
-or reviewed, you can point to the exact moderation decision that gated it.
-
-### 5. Fail closed, not open
+### 4. Fail closed, not open
 
 If the Moderation API call fails (network error, timeout, unexpected 5xx), **do
 not fall back to generating anyway.** Treat failures as a temporary block and
@@ -240,7 +226,7 @@ control and will be treated as a policy violation.
   is not.
 </Tip>
 
-### 6. Screen the prompt, not the output
+### 5. Screen the prompt, not the output
 
 Moderation is designed for pre-generation prompt screening. The correct place
 to call it is **before** your model runs, on the raw user input. Do not skip
@@ -290,22 +276,13 @@ export async function POST(req: NextRequest) {
 
   // 2. Route on the decision.
   if (moderation.decision === 'deny' || moderation.decision === 'flag') {
-    return NextResponse.json(
-      {
-        error: 'prompt_rejected',
-        moderation_id: moderation.id,
-      },
-      { status: 400 },
-    );
+    return NextResponse.json({ error: 'prompt_rejected' }, { status: 400 });
   }
 
   // 3. Only now call your generation model.
   const image = await generateImage(prompt);
 
-  return NextResponse.json({
-    image,
-    moderation_id: moderation.id,
-  });
+  return NextResponse.json({ image });
 }
 ```
 
@@ -327,11 +304,26 @@ export async function POST(req: NextRequest) {
   <Step title="Moderation failures fail closed">
     Simulate a moderation timeout or 5xx and confirm no generation happens.
   </Step>
-  <Step title="Moderation results are persisted">
-    Every moderation call's `id` and `decision` is stored alongside the
-    associated generation record.
-  </Step>
 </Steps>
+
+## Pricing
+
+The Moderation API is currently **free to use** while it is in its experimental
+phase. You don't need to worry about cost today — focus on integrating it
+correctly.
+
+When the product is officially released, the most likely launch price will be
+**$30 USD per 100,000 units**. Creem does not aim to make a profit margin on
+this product. We built the Moderation API because we want our merchants to
+succeed and because we are committed to a safe environment for everyone on the
+platform — pricing it is purely about covering the cost of running it.
+
+<Note>
+  When official pricing rolls out, we **will not** retroactively charge for
+  usage that occurred during the experimental period. Anything you screen
+  today is on us. You can count on Creem's values of honest and fair pricing
+  — no surprise bills, no retroactive invoices.
+</Note>
 
 ## Related
 
