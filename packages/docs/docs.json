@@ -98,6 +98,14 @@
               "features/product-bundles",
               "features/moderation",
               {
+                "group": "Customer Credits",
+                "pages": [
+                  "features/customer-credits/introduction",
+                  "features/customer-credits/accounts",
+                  "features/customer-credits/transactions"
+                ]
+              },
+              {
                 "group": "Addons",
                 "pages": [
                   "features/addons/licenses",
@@ -187,6 +195,7 @@
               "guides/introduction",
               "guides/create-your-first-product",
               "guides/create-checkout-session",
+              "guides/customer-credits-recipes",
               "guides/faq"
             ]
           }

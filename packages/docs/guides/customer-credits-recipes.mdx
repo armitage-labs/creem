@@ -1,0 +1,316 @@
+---
+title: 'Customer Credits Recipes'
+sidebarTitle: 'Credits Recipes'
+description: 'Step-by-step guides for common Customer Credits use cases: loyalty programs, prepaid wallets, referral systems, usage metering, and more.'
+---
+
+<Note>
+  Customer Credits is currently in **Experimental** preview.
+</Note>
+
+## Recipe 1: Loyalty Points Program
+
+Award points on purchases, let customers redeem them for discounts.
+
+### Setup
+
+```typescript
+// When a customer signs up, create their points account
+const account = await creem.customerCredits.accounts.create({
+  owner_id: customer.id,
+  name: 'loyalty_points',
+  unit_label: 'points',
+  initial_credit_amount: 50,           // signup bonus
+  initial_credit_reference: 'signup_bonus',
+});
+```
+
+### Earning Points
+
+```typescript
+// After a successful purchase, credit points (e.g., 1 point per $1)
+await creem.customerCredits.credit({
+  account_id: account.id,
+  amount: Math.floor(order.total_usd),
+  reference: `order_${order.id}`,
+  description: `Purchase reward — Order #${order.id}`,
+}, {
+  idempotencyKey: `loyalty_earn_${order.id}`,
+});
+```
+
+### Redeeming Points
+
+```typescript
+// At checkout, debit points for a discount
+const balance = await creem.customerCredits.accounts.getBalance(account.id);
+
+if (balance.balance >= pointsToRedeem) {
+  await creem.customerCredits.debit({
+    account_id: account.id,
+    amount: pointsToRedeem,
+    reference: `checkout_${checkout.id}`,
+    description: `Redeemed ${pointsToRedeem} points for $${discount} discount`,
+  }, {
+    idempotencyKey: `loyalty_redeem_${checkout.id}`,
+  });
+}
+```
+
+### Handling Order Cancellations
+
+```typescript
+// If the order is cancelled, reverse the earned points
+await creem.customerCredits.transactions.reverse({
+  transaction_id: earnTxId,
+  reference: `order_${order.id}_cancelled`,
+  description: 'Order cancelled — reversing loyalty points',
+}, {
+  idempotencyKey: `loyalty_reverse_${order.id}`,
+});
+```
+
+---
+
+## Recipe 2: Prepaid Credit Balance
+
+Customers top up a balance and draw down for future purchases.
+
+### Create the Wallet
+
+```typescript
+const wallet = await creem.customerCredits.accounts.create({
+  owner_id: customer.id,
+  name: 'prepaid_balance',
+  unit_label: 'credits',
+});
+```
+
+### Top Up After Payment
+
+```typescript
+// After a Creem checkout for a "credit pack" product completes
+// (in your webhook handler for checkout.completed)
+await creem.customerCredits.credit({
+  account_id: wallet.id,
+  amount: creditPack.amount,       // e.g., 1000 credits for the $10 pack
+  reference: `topup_${order.id}`,
+  description: `Purchased ${creditPack.name}`,
+}, {
+  idempotencyKey: `topup_${order.id}`,
+});
+```
+
+### Consume Credits
+
+```typescript
+// When the customer uses a feature that costs credits
+const cost = 25;
+const balance = await creem.customerCredits.accounts.getBalance(wallet.id);
+
+if (balance.balance < cost) {
+  throw new InsufficientCreditsError(balance.balance, cost);
+}
+
+await creem.customerCredits.debit({
+  account_id: wallet.id,
+  amount: cost,
+  reference: `usage_${usageEvent.id}`,
+  description: `${featureName} — ${cost} credits`,
+}, {
+  idempotencyKey: `usage_${usageEvent.id}`,
+});
+```
+
+---
+
+## Recipe 3: Referral Credits
+
+Credit both referrer and referee when a referred user converts.
+
+```typescript
+// When a referred user completes their first purchase
+async function handleReferralConversion(referrerId: string, newCustomerId: string, orderId: string) {
+  // Credit the referrer
+  await creem.customerCredits.credit({
+    account_id: await getOrCreateAccount(referrerId, 'referral_credits'),
+    amount: 500,
+    reference: `referral_${newCustomerId}_${orderId}`,
+    description: `Referral reward — ${newCustomerId} made their first purchase`,
+  }, {
+    idempotencyKey: `referral_reward_${newCustomerId}`,
+  });
+
+  // Credit the referee (welcome bonus)
+  await creem.customerCredits.credit({
+    account_id: await getOrCreateAccount(newCustomerId, 'referral_credits'),
+    amount: 200,
+    reference: `referred_welcome_${orderId}`,
+    description: 'Welcome bonus — referred by a friend',
+  }, {
+    idempotencyKey: `referred_welcome_${newCustomerId}`,
+  });
+}
+```
+
+---
+
+## Recipe 4: API Usage Metering
+
+Allocate a monthly credit pool for API access, debit per call.
+
+### Monthly Allocation
+
+```typescript
+// On subscription renewal (webhook: subscription.renewed)
+await creem.customerCredits.credit({
+  account_id: apiCreditsAccount.id,
+  amount: plan.monthlyApiCredits,    // e.g., 10000
+  reference: `subscription_${subscription.id}_period_${periodStart}`,
+  description: `Monthly API credit allocation — ${plan.name}`,
+}, {
+  idempotencyKey: `api_alloc_${subscription.id}_${periodStart}`,
+});
+```
+
+### Per-Request Debit
+
+```typescript
+// In your API middleware
+async function deductApiCredit(customerId: string, requestId: string, cost: number = 1) {
+  const account = await getOrCreateAccount(customerId, 'api_credits');
+  const balance = await creem.customerCredits.accounts.getBalance(account.id);
+
+  if (balance.balance <= 0) {
+    throw new RateLimitError('API credit balance exhausted');
+  }
+
+  await creem.customerCredits.debit({
+    account_id: account.id,
+    amount: cost,
+    reference: `api_call_${requestId}`,
+    description: `API call`,
+  }, {
+    idempotencyKey: `api_debit_${requestId}`,
+  });
+}
+```
+
+<Tip>
+  For high-frequency API metering, consider batching debits (e.g., debit every 100 calls) rather than per-request to reduce API overhead. Use the `reference` field to link back to your internal batch records.
+</Tip>
+
+---
+
+## Recipe 5: Promotional Campaign Credits
+
+Issue time-limited credits for a marketing campaign.
+
+```typescript
+// Bulk issue promo credits to a list of customers
+async function issuePromoCampaign(campaignId: string, customerIds: string[], amount: number) {
+  for (const customerId of customerIds) {
+    const account = await getOrCreateAccount(customerId, 'promo_credits');
+
+    await creem.customerCredits.credit({
+      account_id: account.id,
+      amount,
+      reference: `campaign_${campaignId}`,
+      description: `Promotional credits — ${campaignId}`,
+      metadata: {
+        campaign_id: campaignId,
+        expires_at: '2026-05-14T23:59:59Z',  // tracked in your app logic
+      },
+    }, {
+      idempotencyKey: `promo_${campaignId}_${customerId}`,
+    });
+  }
+}
+```
+
+<Info>
+  Expiration logic is handled in your application, not in Creem. Creem stores the credit and its metadata — your app checks the `expires_at` before allowing redemption. This keeps the credit system simple and the business rules in your control.
+</Info>
+
+---
+
+## Recipe 6: Compensation & Goodwill Credits
+
+Issue credits for service disruptions or customer support escalations.
+
+```typescript
+// Support agent issues goodwill credits via your admin panel
+await creem.customerCredits.credit({
+  account_id: customerAccount.id,
+  amount: 100,
+  reference: `support_ticket_${ticketId}`,
+  description: `Goodwill credit — service disruption on ${incidentDate}`,
+  metadata: {
+    support_agent: agentId,
+    ticket_id: ticketId,
+    reason: 'service_disruption',
+  },
+}, {
+  idempotencyKey: `goodwill_${ticketId}`,
+});
+```
+
+---
+
+## Recipe 7: In-Game Currency (Gems / Coins)
+
+Power a virtual economy for games or creator platforms.
+
+```typescript
+// Player earns gems from completing a quest
+await creem.customerCredits.credit({
+  account_id: playerGemsAccount.id,
+  amount: 50,
+  reference: `quest_complete_${questId}_${playerId}`,
+  description: `Quest reward — "${questName}"`,
+}, {
+  idempotencyKey: `quest_reward_${questId}_${playerId}`,
+});
+
+// Player buys an item from the in-game shop
+await creem.customerCredits.debit({
+  account_id: playerGemsAccount.id,
+  amount: item.price,
+  reference: `shop_purchase_${purchaseId}`,
+  description: `Purchased "${item.name}"`,
+}, {
+  idempotencyKey: `shop_${purchaseId}`,
+});
+```
+
+---
+
+## Recipe 8: Reconciliation Without Webhooks
+
+Since v1 ships without webhooks, use the reference field and transaction history for reconciliation.
+
+```typescript
+// Periodically reconcile your orders with credit history
+async function reconcileOrders(accountId: string, since: string) {
+  const entries = await creem.customerCredits.entries.list({
+    account_id: accountId,
+    starting_after: since,
+    limit: 100,
+  });
+
+  for (const entry of entries.data) {
+    // Look up the transaction to get the reference
+    const tx = await creem.customerCredits.transactions.get(entry.transaction_id);
+
+    // Match against your order system
+    const order = await db.orders.findByReference(tx.reference);
+    if (!order) {
+      console.warn(`Unmatched transaction: ${tx.id}, reference: ${tx.reference}`);
+    }
+  }
+}
+```
+
+<Tip>
+  The `reference` field is your primary reconciliation key. Use consistent, predictable references like `order_{id}`, `subscription_{id}_period_{date}`, or `campaign_{id}` to make matching trivial.
+</Tip>

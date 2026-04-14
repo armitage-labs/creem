@@ -1,0 +1,231 @@
+---
+title: 'Customer Credits'
+sidebarTitle: 'Introduction'
+description: 'Manage customer credit balances — points, gems, tokens, coins, or any unit you want. Ship loyalty programs, in-app currencies, and prepaid balances without building balance infrastructure from scratch.'
+---
+
+<Note>
+  Customer Credits is currently in **Experimental** preview. The API is stable but may receive additive changes. All responses include the `X-API-Stability: experimental` header.
+</Note>
+
+## What is Customer Credits?
+
+Customer Credits lets you create and manage credit balances for your customers — points, gems, tokens, coins, or any unit you want. You credit and debit through a simple API, and Creem takes care of tracking every change with a complete history.
+
+Think of it as a hosted balance system: you define what your units are called, Creem stores and tracks them reliably. Every change is recorded, so you always have a full audit trail if you need it.
+
+### Key Properties
+
+| Property | Detail |
+| --- | --- |
+| **Unit-agnostic** | Credits, gems, stars, points, tokens — you name them, we track them |
+| **Immutable history** | Every balance change is recorded permanently. Corrections are new entries, never edits to old ones |
+| **BigInt amounts** | Handles any scale — no overflow limits |
+| **Idempotent writes** | Every mutation requires an `Idempotency-Key` header — safe to retry without double-counting |
+| **Reference tracking** | Every transaction carries a mandatory `reference` field for linking back to your own events (orders, signups, campaigns) |
+
+## How It Works
+
+```mermaid
+sequenceDiagram
+    participant App as Your App
+    participant Creem as Creem API
+
+    App->>Creem: Create account for customer
+    Creem-->>App: Account created (cca_xxx)
+
+    App->>Creem: Credit 100 units (purchase reward)
+    Creem-->>App: Transaction posted (cct_xxx)
+
+    App->>Creem: Debit 30 units (redemption)
+    Creem-->>App: Transaction posted (cct_xxx)
+
+    App->>Creem: GET /accounts/:id/balance
+    Creem-->>App: Balance: 70 units
+```
+
+1. **Create an account** for each customer (or use your own `external_customer_id` to let Creem auto-resolve).
+2. **Credit or debit** units via the API. Each operation is tracked as a transaction with a reference back to your system.
+3. **Query balances and history** for dashboards, receipts, or reconciliation.
+
+## Core Concepts
+
+### Accounts
+
+An account holds a credit balance for one customer. Each account has:
+
+- A **name** (default: `"default"`) — useful when a customer has multiple balances (e.g., `"loyalty_points"` and `"referral_credits"`)
+- A **unit label** (default: `"credits"`) — purely cosmetic, for display purposes
+- A **status**: `active`, `frozen`, or `closed`
+
+### Transactions
+
+A transaction represents a single balance change — a credit (adding units) or a debit (removing units). Every transaction requires:
+
+- An **`Idempotency-Key` header** — prevents duplicate processing on retries
+- A **`reference`** — your own correlation ID (e.g., `"order_12345"`, `"referral_signup_abc"`)
+
+### Balance History
+
+Every credit and debit is stored as an immutable entry. You can list the full history of an account at any time — useful for building transaction logs, customer-facing dashboards, or running reconciliation.
+
+## Use Cases
+
+<CardGroup cols={2}>
+  <Card title="Loyalty & Rewards" icon="star">
+    Award points on purchases, redeem for discounts or perks. Track earning and spending with a full history.
+  </Card>
+  <Card title="In-App Currency" icon="coins">
+    Power virtual currencies — gems, tokens, coins — for games, marketplaces, or creator platforms.
+  </Card>
+  <Card title="Prepaid Balances" icon="wallet">
+    Let customers top up a balance and draw down against it for future purchases or service usage.
+  </Card>
+  <Card title="Referral Credits" icon="user-plus">
+    Credit referrers automatically when their invitees convert. Track the full referral-to-redemption lifecycle.
+  </Card>
+  <Card title="Service Usage Metering" icon="gauge">
+    Allocate credit pools for API calls, compute hours, storage, or any metered resource. Debit on consumption.
+  </Card>
+  <Card title="Promotional Campaigns" icon="gift">
+    Issue time-limited promotional credits for marketing campaigns, seasonal offers, or beta incentives.
+  </Card>
+  <Card title="Compensation & Goodwill" icon="hand-holding-heart">
+    Issue credits for service disruptions or support escalations — tracked and auditable.
+  </Card>
+  <Card title="Marketplace Escrow" icon="handshake">
+    Hold credits between buyer payment and seller delivery, releasing on confirmation.
+  </Card>
+</CardGroup>
+
+## Quick Example
+
+<Tabs>
+  <Tab title="TypeScript SDK">
+
+```typescript
+import { createCreem } from 'creem_io';
+
+const creem = createCreem({
+  apiKey: process.env.CREEM_API_KEY!,
+});
+
+// 1. Create an account for a customer
+const account = await creem.customerCredits.accounts.create({
+  owner_id: 'cust_abc123',        // Creem customer ID or your external ID
+  name: 'loyalty_points',          // optional, defaults to "default"
+  unit_label: 'points',            // optional, defaults to "credits"
+});
+
+// 2. Credit 500 points for a purchase reward
+const creditTx = await creem.customerCredits.credit({
+  account_id: account.id,
+  amount: 500,
+  reference: 'order_789',
+  description: 'Purchase reward — Order #789',
+}, {
+  idempotencyKey: 'reward_order_789',
+});
+
+// 3. Debit 200 points for a redemption
+const debitTx = await creem.customerCredits.debit({
+  account_id: account.id,
+  amount: 200,
+  reference: 'redemption_456',
+  description: 'Points redemption at checkout',
+}, {
+  idempotencyKey: 'redeem_456',
+});
+
+// 4. Check balance
+const balance = await creem.customerCredits.accounts.getBalance(account.id);
+console.log(balance.balance); // 300
+```
+
+  </Tab>
+
+  <Tab title="REST API">
+
+<Warning>
+  If you're in test mode, use `https://test-api.creem.io` instead of `https://api.creem.io`. Learn more about [Test Mode](/getting-started/test-mode).
+</Warning>
+
+```bash
+# 1. Create an account
+curl -X POST https://api.creem.io/v1/customer-credits/accounts \
+  -H "x-api-key: YOUR_API_KEY" \
+  -H "Idempotency-Key: create_acct_cust_abc123" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "owner_id": "cust_abc123",
+    "name": "loyalty_points",
+    "unit_label": "points"
+  }'
+
+# 2. Credit 500 points
+curl -X POST https://api.creem.io/v1/customer-credits/accounts/{account_id}/credit \
+  -H "x-api-key: YOUR_API_KEY" \
+  -H "Idempotency-Key: reward_order_789" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "amount": 500,
+    "reference": "order_789",
+    "description": "Purchase reward — Order #789"
+  }'
+
+# 3. Debit 200 points
+curl -X POST https://api.creem.io/v1/customer-credits/accounts/{account_id}/debit \
+  -H "x-api-key: YOUR_API_KEY" \
+  -H "Idempotency-Key: redeem_456" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "amount": 200,
+    "reference": "redemption_456",
+    "description": "Points redemption at checkout"
+  }'
+
+# 4. Check balance
+curl https://api.creem.io/v1/customer-credits/accounts/{account_id}/balance \
+  -H "x-api-key: YOUR_API_KEY"
+```
+
+### Response
+
+```json
+{
+  "account_id": "cca_7kXmR2pQ9vN",
+  "total_debits": 200,
+  "total_credits": 500,
+  "balance": 300
+}
+```
+
+  </Tab>
+</Tabs>
+
+## Account Lifecycle
+
+Accounts have three states:
+
+| Status | Can transact? | Can read? | Notes |
+| --- | --- | --- | --- |
+| `active` | ✅ | ✅ | Default state |
+| `frozen` | ❌ | ✅ | Temporarily paused — useful for fraud review or disputes |
+| `closed` | ❌ | ✅ | Permanently closed. Cannot be reopened. Balance and history remain readable. |
+
+## What's Next?
+
+<CardGroup cols={2}>
+  <Card title="Accounts" icon="user" href="/features/customer-credits/accounts">
+    Create, list, freeze, and close credit accounts.
+  </Card>
+  <Card title="Transactions" icon="arrow-right-arrow-left" href="/features/customer-credits/transactions">
+    Credit, debit, reverse, and query transactions.
+  </Card>
+  <Card title="Recipes" icon="book-open" href="/guides/customer-credits-recipes">
+    Step-by-step guides for loyalty programs, prepaid wallets, referral credits, and more.
+  </Card>
+  <Card title="API Reference" icon="code" href="/api-reference/endpoint/create-credits-account">
+    Full endpoint documentation.
+  </Card>
+</CardGroup>
