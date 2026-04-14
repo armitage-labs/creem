@@ -1,21 +1,17 @@
 ---
 title: 'Transactions'
-description: 'Credit, debit, and reverse transactions on customer credit accounts. Every operation is idempotent, referenced, and produces an immutable history.'
+description: 'Add credits, remove credits, undo mistakes. Every change is tracked.'
 ---
 
 <Note>
-  Customer Credits is currently in **Experimental** preview. All responses include the `X-API-Stability: experimental` header.
+  Customer Credits is in **Experimental** preview.
 </Note>
 
 ## Overview
 
-Every time you add or remove credits from a customer's account, it creates a transaction. Transactions are permanent records — you can always see the full history of what happened and why.
+Every time you add or remove credits, a transaction is created. Transactions are permanent — you can always see exactly what happened and why.
 
-For most use cases, the `/credit` and `/debit` endpoints are all you need. Each one takes an amount (as a string), a reference back to your system, and an idempotency key to make retries safe.
-
-## Credit an Account
-
-Add units to a customer's account balance.
+## Credit (add)
 
 ```bash
 curl -X POST https://api.creem.io/v1/customer-credits/accounts/{account_id}/credit \
@@ -27,8 +23,6 @@ curl -X POST https://api.creem.io/v1/customer-credits/accounts/{account_id}/cred
     "idempotency_key": "reward_order_789"
   }'
 ```
-
-### Response
 
 ```json
 {
@@ -51,17 +45,15 @@ curl -X POST https://api.creem.io/v1/customer-credits/accounts/{account_id}/cred
 }
 ```
 
-### Parameters
-
 | Parameter | Type | Required | Description |
 | --- | --- | --- | --- |
-| `amount` | string | ✅ | Number of units to credit (string to support large numbers). Must be positive. |
-| `reference` | string | ✅ | Your own correlation ID (e.g., order ID, campaign ID). |
-| `idempotency_key` | string | ✅ | Unique key for this operation. Retries with the same key return the original response. |
+| `amount` | string | ✅ | How many credits to add (string for large number support) |
+| `reference` | string | ✅ | Your reference — an order ID, campaign ID, whatever links this to your system |
+| `idempotency_key` | string | ✅ | Prevents double-processing on retries |
 
-## Debit an Account
+## Debit (remove)
 
-Remove units from a customer's account balance. Same request format as credit.
+Same format as credit, just a different endpoint.
 
 ```bash
 curl -X POST https://api.creem.io/v1/customer-credits/accounts/{account_id}/debit \
@@ -75,12 +67,12 @@ curl -X POST https://api.creem.io/v1/customer-credits/accounts/{account_id}/debi
 ```
 
 <Info>
-  Negative balances are allowed by default. If you want to prevent overdrafts, check the balance before debiting in your application logic.
+  Negative balances are allowed. If you want to block overdrafts, check the balance first in your app.
 </Info>
 
-## Reverse a Transaction
+## Reverse (undo)
 
-Mistakes happen. Reversals undo a previous transaction by creating a new opposite transaction — the original record stays intact so you always have the full history.
+Made a mistake? Reverse a transaction to undo it. The original stays in the history — a new opposite transaction is created so you have a complete paper trail.
 
 ```bash
 curl -X POST https://api.creem.io/v1/customer-credits/accounts/{account_id}/reverse \
@@ -91,11 +83,11 @@ curl -X POST https://api.creem.io/v1/customer-credits/accounts/{account_id}/reve
   }'
 ```
 
-The reversal transaction will have a `reversal_of` field linking back to the original, so you can always trace what happened.
+The response will have `reversal_of` set to the original transaction ID.
 
-## List Transaction History
+## View history
 
-Retrieve the full history of credits and debits for an account. Useful for building activity feeds, customer-facing dashboards, or running reconciliation.
+See every credit and debit on an account.
 
 ```bash
 curl "https://api.creem.io/v1/customer-credits/accounts/{account_id}/entries?limit=50" \
@@ -127,18 +119,16 @@ curl "https://api.creem.io/v1/customer-credits/accounts/{account_id}/entries?lim
 }
 ```
 
-## Idempotency
+## Safe retries
 
-All mutation endpoints require an `idempotency_key` in the request body. This makes retries completely safe — you never have to worry about double-crediting or double-debiting:
+Every write requires an `idempotency_key`. This means you can safely retry any request without worrying about double-crediting:
 
-| Scenario | Result |
+| What happens | Result |
 | --- | --- |
-| First request with a new key | Processes normally, returns result |
-| Retry with the same key and same body | Returns the original result with `X-Idempotent-Replay: true` header |
-| Same key but different body | Returns `409 Conflict` with `idempotency_key_mismatch` error code |
-
-Keys are scoped per-store and retained for a minimum of 24 hours.
+| First request | Processes normally |
+| Retry with same key + same body | Returns original result + `X-Idempotent-Replay: true` header |
+| Same key but different body | `409 Conflict` |
 
 <Tip>
-  Use domain-meaningful keys like `reward_order_789` rather than random UUIDs — they're easier to debug and naturally prevent duplicate business events.
+  Use meaningful keys like `reward_order_789` instead of random UUIDs. They're easier to debug and naturally prevent duplicates.
 </Tip>

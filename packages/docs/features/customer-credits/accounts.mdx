@@ -1,17 +1,17 @@
 ---
 title: 'Accounts'
-description: 'Create and manage credit accounts for your customers. Each account tracks a named balance with full history.'
+description: 'Create and manage credit accounts for your customers.'
 ---
 
 <Note>
-  Customer Credits is currently in **Experimental** preview. All responses include the `X-API-Stability: experimental` header.
+  Customer Credits is in **Experimental** preview.
 </Note>
 
 ## Overview
 
-A credit account holds a balance for one of your customers. Most customers will have a single `"default"` account, but you can create multiple accounts per customer for different balance types (e.g., `"loyalty_points"`, `"referral_credits"`, `"promo_balance"`).
+An account holds a credit balance for one customer. Most customers need just one account, but you can create multiple per customer for different purposes (e.g., `"loyalty_points"` and `"referral_credits"`).
 
-## Create an Account
+## Create an account
 
 ```bash
 curl -X POST https://api.creem.io/v1/customer-credits/accounts \
@@ -24,8 +24,6 @@ curl -X POST https://api.creem.io/v1/customer-credits/accounts \
     "initial_balance": "100"
   }'
 ```
-
-### Response
 
 ```json
 {
@@ -42,37 +40,31 @@ curl -X POST https://api.creem.io/v1/customer-credits/accounts \
 ```
 
 <Info>
-  The `type` field defaults to `"liability"` and is managed by Creem — you don't need to set or worry about it. It's included in the response for completeness.
+  The `type` field is managed by Creem — you don't need to set or think about it.
 </Info>
-
-### Parameters
 
 | Parameter | Type | Required | Description |
 | --- | --- | --- | --- |
 | `customer_id` | string | ✅ | The customer this account belongs to |
-| `name` | string | | Account name. Default: `"default"`. Must be unique per customer within your store. |
-| `unit_label` | string | | Display label for the unit. Default: `"credits"`. Purely cosmetic. |
-| `initial_balance` | string | | Seed the account with this many credits on creation (as a string for large number support). |
+| `name` | string | | Account name. Default: `"default"`. Unique per customer in your store |
+| `unit_label` | string | | What to call the units. Default: `"credits"` |
+| `initial_balance` | string | | Start the account with this many credits |
 
 <Info>
-  Account creation is atomic: if `initial_balance` is provided and the initial credit fails, the account is not created. You won't end up with orphaned zero-balance accounts.
+  If you set `initial_balance` and the initial credit fails, the account isn't created either. No orphaned accounts.
 </Info>
 
-## List Accounts
-
-Retrieve all credit accounts in your store, with optional filtering by customer.
+## List accounts
 
 ```bash
 # All accounts
 curl https://api.creem.io/v1/customer-credits/accounts \
   -H "x-api-key: YOUR_API_KEY"
 
-# Filter by customer
+# For a specific customer
 curl "https://api.creem.io/v1/customer-credits/accounts?customer_id=cust_abc123" \
   -H "x-api-key: YOUR_API_KEY"
 ```
-
-### Response
 
 ```json
 {
@@ -94,28 +86,23 @@ curl "https://api.creem.io/v1/customer-credits/accounts?customer_id=cust_abc123"
 }
 ```
 
-## Get an Account
+| Parameter | Type | Description |
+| --- | --- | --- |
+| `customer_id` | string | Filter by customer |
+| `limit` | integer | Results per page (1–100, default 10) |
+| `starting_after` | string | Cursor for forward pagination |
+| `ending_before` | string | Cursor for backward pagination |
 
-Retrieve a single account by ID.
+## Get an account
 
 ```bash
 curl https://api.creem.io/v1/customer-credits/accounts/{account_id} \
   -H "x-api-key: YOUR_API_KEY"
 ```
-```
 
-### Query Parameters
+## Check balance
 
-| Parameter | Type | Description |
-| --- | --- | --- |
-| `customer_id` | string | Filter to accounts owned by this customer |
-| `limit` | integer | Number of results (1–100, default 10) |
-| `starting_after` | string | Cursor: return results after this account ID |
-| `ending_before` | string | Cursor: return results before this account ID |
-
-## Get Account Balance
-
-Returns the current balance for an account. Optionally pass `?at=` for a historical balance at a specific point in time.
+Returns the current balance instantly.
 
 ```bash
 curl https://api.creem.io/v1/customer-credits/accounts/{account_id}/balance \
@@ -129,7 +116,7 @@ curl https://api.creem.io/v1/customer-credits/accounts/{account_id}/balance \
 }
 ```
 
-### Historical Balance
+You can also check what the balance was at a specific point in time:
 
 ```bash
 curl "https://api.creem.io/v1/customer-credits/accounts/{account_id}/balance?at=2026-04-01T00:00:00.000Z" \
@@ -143,27 +130,25 @@ curl "https://api.creem.io/v1/customer-credits/accounts/{account_id}/balance?at=
 }
 ```
 
-## Freeze an Account
+## Freeze an account
 
-Freezing prevents any new transactions from being posted to the account. The account remains readable — balances and history are still accessible. Useful for fraud investigations or dispute holds.
+Temporarily block new transactions. The account stays readable.
 
 ```bash
 curl -X POST https://api.creem.io/v1/customer-credits/accounts/{account_id}/freeze \
   -H "x-api-key: YOUR_API_KEY"
 ```
 
-## Unfreeze an Account
-
-Restores a frozen account to `active` status.
+## Unfreeze an account
 
 ```bash
 curl -X POST https://api.creem.io/v1/customer-credits/accounts/{account_id}/unfreeze \
   -H "x-api-key: YOUR_API_KEY"
 ```
 
-## Close an Account
+## Close an account
 
-Closing an account is permanent. The account cannot be reopened, but all data (balance, entries, transactions) remains readable for audit purposes.
+Permanently close an account. Balance and history stay readable, but no new transactions are allowed.
 
 ```bash
 curl -X POST https://api.creem.io/v1/customer-credits/accounts/{account_id}/close \
@@ -171,5 +156,5 @@ curl -X POST https://api.creem.io/v1/customer-credits/accounts/{account_id}/clos
 ```
 
 <Warning>
-  Closing an account is irreversible. Consider freezing first if you may need to reactivate it.
+  This can't be undone. If you might need the account later, freeze it instead.
 </Warning>
