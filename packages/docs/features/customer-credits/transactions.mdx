@@ -87,8 +87,7 @@ curl -X POST https://api.creem.io/v1/customer-credits/accounts/{account_id}/debi
 Same parameters as credit. The response looks identical, just with `"side": "debit"` in the entry.
 
 <Info>
-  Negative balances are allowed by default. If you want to block overdrafts,
-  check the balance before debiting in your app logic.
+  The API prevents negative balances — if a debit would bring the balance below zero, it returns an `insufficient_balance` error. Check the balance first if you want to show your users a friendly message.
 </Info>
 
 ---
