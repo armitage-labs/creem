@@ -3,9 +3,7 @@ title: 'Accounts'
 description: 'Create and manage credit accounts for your customers.'
 ---
 
-<Note>
-  Customer Credits is in **Experimental** preview.
-</Note>
+<Note>Customer Credits is in **Experimental** preview.</Note>
 
 ## What is an account?
 
@@ -56,15 +54,16 @@ curl -X POST https://api.creem.io/v1/customer-credits/accounts \
 
 ### Options
 
-| Parameter | Type | Required | Description |
-| --- | --- | --- | --- |
-| `customer_id` | string | ✅ | The customer this account belongs to |
-| `name` | string | | A label for this account. Default: `"default"`. Unique per customer |
-| `unit_label` | string | | What to call the units — "points", "gems", "credits". Default: `"credits"` |
-| `initial_balance` | string | | Seed the account with credits on creation |
+| Parameter         | Type   | Required | Description                                                                |
+| ----------------- | ------ | -------- | -------------------------------------------------------------------------- |
+| `customer_id`     | string | ✅       | The customer this account belongs to                                       |
+| `name`            | string |          | A label for this account. Default: `"default"`. Unique per customer        |
+| `unit_label`      | string |          | What to call the units — "points", "gems", "credits". Default: `"credits"` |
+| `initial_balance` | string |          | Seed the account with credits on creation                                  |
 
 <Info>
-  If you set `initial_balance` and the initial credit fails, the account isn't created either. No orphaned accounts.
+  If you set `initial_balance` and the initial credit fails, the account isn't
+  created either. No orphaned accounts.
 </Info>
 
 ---
@@ -170,27 +169,43 @@ curl -X POST https://api.creem.io/v1/customer-credits/accounts/{account_id}/clos
   Closing is permanent. If you might need the account later, freeze it instead.
 </Warning>
 
-| Status | Can credit/debit? | Can read? | Use case |
-| --- | --- | --- | --- |
-| `active` | ✅ | ✅ | Normal operation |
-| `frozen` | ❌ | ✅ | Fraud review, disputes |
-| `closed` | ❌ | ✅ | Customer churned, account retired |
+| Status   | Can credit/debit? | Can read? | Use case                          |
+| -------- | ----------------- | --------- | --------------------------------- |
+| `active` | ✅                | ✅        | Normal operation                  |
+| `frozen` | ❌                | ✅        | Fraud review, disputes            |
+| `closed` | ❌                | ✅        | Customer churned, account retired |
 
 ---
 
 ## Next steps
 
 <CardGroup cols={2}>
-  <Card title="Transactions" icon="arrow-right-arrow-left" href="/features/customer-credits/transactions">
+  <Card
+    title="Transactions"
+    icon="arrow-right-arrow-left"
+    href="/features/customer-credits/transactions"
+  >
     Credit, debit, reverse, and view history.
   </Card>
-  <Card title="Recipes" icon="book-open" href="/guides/customer-credits-recipes">
+  <Card
+    title="Recipes"
+    icon="book-open"
+    href="/guides/customer-credits-recipes"
+  >
     Step-by-step guides for common patterns.
   </Card>
-  <Card title="API Reference" icon="code" href="/api-reference/endpoint/create-credits-account">
+  <Card
+    title="API Reference"
+    icon="code"
+    href="/api-reference/endpoint/create-credits-account"
+  >
     Full endpoint schemas.
   </Card>
-  <Card title="Introduction" icon="house" href="/features/customer-credits/introduction">
+  <Card
+    title="Introduction"
+    icon="house"
+    href="/features/customer-credits/introduction"
+  >
     Back to overview.
   </Card>
 </CardGroup>

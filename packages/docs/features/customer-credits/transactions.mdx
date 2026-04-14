@@ -3,9 +3,7 @@ title: 'Transactions'
 description: 'Add credits, remove credits, undo mistakes. Every change is tracked.'
 ---
 
-<Note>
-  Customer Credits is in **Experimental** preview.
-</Note>
+<Note>Customer Credits is in **Experimental** preview.</Note>
 
 ## How transactions work
 
@@ -63,11 +61,11 @@ curl -X POST https://api.creem.io/v1/customer-credits/accounts/{account_id}/cred
 
 ### Parameters
 
-| Parameter | Type | Required | Description |
-| --- | --- | --- | --- |
-| `amount` | string | ✅ | How many credits to add. String to support large numbers |
-| `reference` | string | ✅ | Link this to your system — an order ID, campaign name, anything |
-| `idempotency_key` | string | ✅ | Prevents double-processing on retries |
+| Parameter         | Type   | Required | Description                                                     |
+| ----------------- | ------ | -------- | --------------------------------------------------------------- |
+| `amount`          | string | ✅       | How many credits to add. String to support large numbers        |
+| `reference`       | string | ✅       | Link this to your system — an order ID, campaign name, anything |
+| `idempotency_key` | string | ✅       | Prevents double-processing on retries                           |
 
 ---
 
@@ -89,7 +87,8 @@ curl -X POST https://api.creem.io/v1/customer-credits/accounts/{account_id}/debi
 Same parameters as credit. The response looks identical, just with `"side": "debit"` in the entry.
 
 <Info>
-  Negative balances are allowed by default. If you want to block overdrafts, check the balance before debiting in your app logic.
+  Negative balances are allowed by default. If you want to block overdrafts,
+  check the balance before debiting in your app logic.
 </Info>
 
 ---
@@ -112,7 +111,8 @@ curl -X POST https://api.creem.io/v1/customer-credits/accounts/{account_id}/reve
 The response includes `"reversal_of": "cct_3mNpK8rW2xY"` linking back to the original.
 
 <Tip>
-  Reversals are idempotent — reversing the same transaction twice returns the original reversal.
+  Reversals are idempotent — reversing the same transaction twice returns the
+  original reversal.
 </Tip>
 
 ---
@@ -152,6 +152,7 @@ curl "https://api.creem.io/v1/customer-credits/accounts/{account_id}/entries?lim
 ```
 
 Each entry shows:
+
 - **`side`** — `"credit"` (added) or `"debit"` (removed)
 - **`amount`** — how many credits
 - **`transaction_id`** — links back to the transaction (which has the `reference` and `idempotency_key`)
@@ -176,14 +177,16 @@ sequenceDiagram
     Creem-->>App: ✅ Original result + X-Idempotent-Replay header
 ```
 
-| Scenario | Result |
-| --- | --- |
-| First request | Processes normally |
+| Scenario                        | Result                                                      |
+| ------------------------------- | ----------------------------------------------------------- |
+| First request                   | Processes normally                                          |
 | Retry with same key + same body | Returns original result, `X-Idempotent-Replay: true` header |
-| Same key but different body | `409 Conflict` error |
+| Same key but different body     | `409 Conflict` error                                        |
 
 <Tip>
-  Use meaningful keys like `reward_order_789` or `topup_sub_123_2026-04` instead of random UUIDs. They're easier to debug and naturally prevent duplicates tied to the same business event.
+  Use meaningful keys like `reward_order_789` or `topup_sub_123_2026-04` instead
+  of random UUIDs. They're easier to debug and naturally prevent duplicates tied
+  to the same business event.
 </Tip>
 
 ---
@@ -194,13 +197,25 @@ sequenceDiagram
   <Card title="Accounts" icon="user" href="/features/customer-credits/accounts">
     Create, freeze, and manage accounts.
   </Card>
-  <Card title="Recipes" icon="book-open" href="/guides/customer-credits-recipes">
+  <Card
+    title="Recipes"
+    icon="book-open"
+    href="/guides/customer-credits-recipes"
+  >
     Step-by-step guides for common patterns.
   </Card>
-  <Card title="API Reference" icon="code" href="/api-reference/endpoint/credit-account">
+  <Card
+    title="API Reference"
+    icon="code"
+    href="/api-reference/endpoint/credit-account"
+  >
     Full endpoint schemas.
   </Card>
-  <Card title="Introduction" icon="house" href="/features/customer-credits/introduction">
+  <Card
+    title="Introduction"
+    icon="house"
+    href="/features/customer-credits/introduction"
+  >
     Back to overview.
   </Card>
 </CardGroup>
