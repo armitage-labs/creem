@@ -41,6 +41,10 @@ curl -X POST https://api.creem.io/v1/customer-credits/accounts \
 }
 ```
 
+<Info>
+  The `type` field defaults to `"liability"` and is managed by Creem — you don't need to set or worry about it. It's included in the response for completeness.
+</Info>
+
 ### Parameters
 
 | Parameter | Type | Required | Description |
@@ -88,6 +92,16 @@ curl "https://api.creem.io/v1/customer-credits/accounts?customer_id=cust_abc123"
   ],
   "has_more": false
 }
+```
+
+## Get an Account
+
+Retrieve a single account by ID.
+
+```bash
+curl https://api.creem.io/v1/customer-credits/accounts/{account_id} \
+  -H "x-api-key: YOUR_API_KEY"
+```
 ```
 
 ### Query Parameters

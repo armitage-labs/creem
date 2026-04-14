@@ -1,7 +1,7 @@
 ---
 title: 'Customer Credits'
 sidebarTitle: 'Introduction'
-description: 'Manage customer credit balances — points, gems, tokens, coins, or any unit you want. Ship loyalty programs, in-app currencies, and prepaid balances without building balance infrastructure from scratch.'
+description: 'Manage customer credit balances — points, gems, stars, or any unit you want. Ship loyalty programs, in-app currencies, and prepaid balances without building balance infrastructure from scratch.'
 ---
 
 <Note>
@@ -10,7 +10,7 @@ description: 'Manage customer credit balances — points, gems, tokens, coins, o
 
 ## What is Customer Credits?
 
-Customer Credits lets you create and manage credit balances for your customers — points, gems, tokens, coins, or any unit you want. You credit and debit through a simple API, and Creem takes care of tracking every change with a complete history.
+Customer Credits lets you create and manage credit balances for your customers — points, gems, stars, or any unit you want. You credit and debit through a simple API, and Creem takes care of tracking every change with a complete history.
 
 Think of it as a hosted balance system: you define what your units are called, Creem stores and tracks them reliably. Every change is recorded, so you always have a full audit trail if you need it.
 
@@ -19,7 +19,7 @@ Think of it as a hosted balance system: you define what your units are called, C
 | Property | Detail |
 | --- | --- |
 | **Unit-agnostic** | Credits, gems, stars, points, tokens — you name them, we track them |
-| **Immutable history** | Every balance change is recorded permanently. Corrections are new entries, never edits to old ones |
+| **Full history** | Every balance change is recorded permanently. Corrections are new entries, never edits to old ones |
 | **BigInt amounts** | Handles any scale — amounts are strings to support arbitrarily large numbers |
 | **Idempotent writes** | Every mutation requires an `idempotency_key` — safe to retry without double-counting |
 | **Reference tracking** | Every transaction carries a mandatory `reference` field for linking back to your own events (orders, signups, campaigns) |
@@ -44,9 +44,9 @@ sequenceDiagram
     Creem-->>App: Balance: 70 units
 ```
 
-1. **Create an account** for each customer using their `customer_id`.
-2. **Credit or debit** units via the API. Each operation is tracked as a transaction with a reference back to your system.
-3. **Query balances and history** for dashboards, receipts, or reconciliation.
+1. **Create an account** for a customer — just pass their `customer_id`.
+2. **Credit or debit** — add or remove units with a single API call.
+3. **Check balance & history** — show customers their balance or export for reconciliation.
 
 ## Core Concepts
 
@@ -76,7 +76,7 @@ Every credit and debit is stored as an immutable entry. You can list the full hi
     Award points on purchases, redeem for discounts or perks. Track earning and spending with a full history.
   </Card>
   <Card title="In-App Currency" icon="coins">
-    Power virtual currencies — gems, tokens, coins — for games, marketplaces, or creator platforms.
+    Power virtual currencies — gems, stars, credits — for games, marketplaces, or creator platforms.
   </Card>
   <Card title="Prepaid Balances" icon="wallet">
     Let customers top up a balance and draw down against it for future purchases or service usage.
@@ -96,9 +96,7 @@ Every credit and debit is stored as an immutable entry. You can list the full hi
   <Card title="AI Wrapper Credits" icon="microchip">
     Sell credit packs for your AI product — customers buy credits, each API call deducts from their balance. No need to build billing infrastructure.
   </Card>
-  <Card title="Marketplace Escrow" icon="handshake">
-    Hold credits between buyer payment and seller delivery, releasing on confirmation.
-  </Card>
+
 </CardGroup>
 
 ## Quick Example
