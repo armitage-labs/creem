@@ -283,6 +283,23 @@
             ]
           },
           {
+            "group": "Customer Credits",
+            "icon": "coins",
+            "pages": [
+              "api-reference/endpoint/create-credits-account",
+              "api-reference/endpoint/list-credits-accounts",
+              "api-reference/endpoint/get-credits-account",
+              "api-reference/endpoint/get-credits-account-balance",
+              "api-reference/endpoint/list-credits-entries",
+              "api-reference/endpoint/credit-account",
+              "api-reference/endpoint/debit-account",
+              "api-reference/endpoint/reverse-credits-transaction",
+              "api-reference/endpoint/freeze-credits-account",
+              "api-reference/endpoint/unfreeze-credits-account",
+              "api-reference/endpoint/close-credits-account"
+            ]
+          },
+          {
             "group": "Moderation",
             "icon": "shield-check",
             "pages": [
