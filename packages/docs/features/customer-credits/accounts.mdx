@@ -7,11 +7,27 @@ description: 'Create and manage credit accounts for your customers.'
   Customer Credits is in **Experimental** preview.
 </Note>
 
-## Overview
+## What is an account?
 
-An account holds a credit balance for one customer. Most customers need just one account, but you can create multiple per customer for different purposes (e.g., `"loyalty_points"` and `"referral_credits"`).
+An account holds a credit balance for one customer. Think of it as a digital wallet — you create it, add credits to it, and debit from it when the customer uses them.
 
-## Create an account
+Most customers need just one account. But you can create multiple per customer for different purposes:
+
+<CardGroup cols={3}>
+  <Card title="loyalty_points" icon="star">
+    Earned from purchases
+  </Card>
+  <Card title="referral_credits" icon="user-plus">
+    Earned from inviting friends
+  </Card>
+  <Card title="promo_credits" icon="gift">
+    Given during campaigns
+  </Card>
+</CardGroup>
+
+## Creating accounts
+
+Pass a `customer_id` and you're done. Everything else is optional.
 
 ```bash
 curl -X POST https://api.creem.io/v1/customer-credits/accounts \
@@ -38,65 +54,24 @@ curl -X POST https://api.creem.io/v1/customer-credits/accounts \
 }
 ```
 
+### Options
+
 | Parameter | Type | Required | Description |
 | --- | --- | --- | --- |
 | `customer_id` | string | ✅ | The customer this account belongs to |
-| `name` | string | | Account name. Default: `"default"`. Unique per customer in your store |
-| `unit_label` | string | | What to call the units. Default: `"credits"` |
-| `initial_balance` | string | | Start the account with this many credits |
+| `name` | string | | A label for this account. Default: `"default"`. Unique per customer |
+| `unit_label` | string | | What to call the units — "points", "gems", "credits". Default: `"credits"` |
+| `initial_balance` | string | | Seed the account with credits on creation |
 
 <Info>
   If you set `initial_balance` and the initial credit fails, the account isn't created either. No orphaned accounts.
 </Info>
 
-## List accounts
+---
 
-```bash
-# All accounts
-curl https://api.creem.io/v1/customer-credits/accounts \
-  -H "x-api-key: YOUR_API_KEY"
+## Checking balance
 
-# For a specific customer
-curl "https://api.creem.io/v1/customer-credits/accounts?customer_id=cust_abc123" \
-  -H "x-api-key: YOUR_API_KEY"
-```
-
-```json
-{
-  "object": "list",
-  "data": [
-    {
-      "id": "cca_7kXmR2pQ9vN",
-      "store_id": "store_xxx",
-      "customer_id": "cust_abc123",
-      "name": "loyalty_points",
-      "unit_label": "points",
-      "status": "active",
-      "created_at": "2026-04-14T12:00:00.000Z",
-      "updated_at": "2026-04-14T14:30:00.000Z"
-    }
-  ],
-  "has_more": false
-}
-```
-
-| Parameter | Type | Description |
-| --- | --- | --- |
-| `customer_id` | string | Filter by customer |
-| `limit` | integer | Results per page (1–100, default 10) |
-| `starting_after` | string | Cursor for forward pagination |
-| `ending_before` | string | Cursor for backward pagination |
-
-## Get an account
-
-```bash
-curl https://api.creem.io/v1/customer-credits/accounts/{account_id} \
-  -H "x-api-key: YOUR_API_KEY"
-```
-
-## Check balance
-
-Returns the current balance instantly.
+One call to see what's available.
 
 ```bash
 curl https://api.creem.io/v1/customer-credits/accounts/{account_id}/balance \
@@ -110,7 +85,9 @@ curl https://api.creem.io/v1/customer-credits/accounts/{account_id}/balance \
 }
 ```
 
-You can also check what the balance was at a specific point in time:
+### Point-in-time balance
+
+Need to know what the balance was last Tuesday? Pass an `at` parameter.
 
 ```bash
 curl "https://api.creem.io/v1/customer-credits/accounts/{account_id}/balance?at=2026-04-01T00:00:00.000Z" \
@@ -124,25 +101,65 @@ curl "https://api.creem.io/v1/customer-credits/accounts/{account_id}/balance?at=
 }
 ```
 
-## Freeze an account
+---
 
-Temporarily block new transactions. The account stays readable.
+## Listing accounts
+
+```bash
+# All accounts in your store
+curl https://api.creem.io/v1/customer-credits/accounts \
+  -H "x-api-key: YOUR_API_KEY"
+
+# For a specific customer
+curl "https://api.creem.io/v1/customer-credits/accounts?customer_id=cust_abc123" \
+  -H "x-api-key: YOUR_API_KEY"
+```
+
+Supports cursor-based pagination with `limit`, `starting_after`, and `ending_before`.
+
+---
+
+## Getting a single account
+
+```bash
+curl https://api.creem.io/v1/customer-credits/accounts/{account_id} \
+  -H "x-api-key: YOUR_API_KEY"
+```
+
+---
+
+## Account lifecycle
+
+Accounts have three states. You can move between them as needed.
+
+```mermaid
+stateDiagram-v2
+    [*] --> Active
+    Active --> Frozen: Freeze
+    Frozen --> Active: Unfreeze
+    Active --> Closed: Close
+    Frozen --> Closed: Close
+```
+
+### Freeze — pause an account
+
+Temporarily block all credits and debits. Useful for fraud review or disputes. The account stays readable.
 
 ```bash
 curl -X POST https://api.creem.io/v1/customer-credits/accounts/{account_id}/freeze \
   -H "x-api-key: YOUR_API_KEY"
 ```
 
-## Unfreeze an account
+### Unfreeze — resume an account
 
 ```bash
 curl -X POST https://api.creem.io/v1/customer-credits/accounts/{account_id}/unfreeze \
   -H "x-api-key: YOUR_API_KEY"
 ```
 
-## Close an account
+### Close — permanently retire an account
 
-Permanently close an account. Balance and history stay readable, but no new transactions are allowed.
+Balance and history stay readable forever, but no new transactions are allowed.
 
 ```bash
 curl -X POST https://api.creem.io/v1/customer-credits/accounts/{account_id}/close \
@@ -150,5 +167,30 @@ curl -X POST https://api.creem.io/v1/customer-credits/accounts/{account_id}/clos
 ```
 
 <Warning>
-  This can't be undone. If you might need the account later, freeze it instead.
+  Closing is permanent. If you might need the account later, freeze it instead.
 </Warning>
+
+| Status | Can credit/debit? | Can read? | Use case |
+| --- | --- | --- | --- |
+| `active` | ✅ | ✅ | Normal operation |
+| `frozen` | ❌ | ✅ | Fraud review, disputes |
+| `closed` | ❌ | ✅ | Customer churned, account retired |
+
+---
+
+## Next steps
+
+<CardGroup cols={2}>
+  <Card title="Transactions" icon="arrow-right-arrow-left" href="/features/customer-credits/transactions">
+    Credit, debit, reverse, and view history.
+  </Card>
+  <Card title="Recipes" icon="book-open" href="/guides/customer-credits-recipes">
+    Step-by-step guides for common patterns.
+  </Card>
+  <Card title="API Reference" icon="code" href="/api-reference/endpoint/create-credits-account">
+    Full endpoint schemas.
+  </Card>
+  <Card title="Introduction" icon="house" href="/features/customer-credits/introduction">
+    Back to overview.
+  </Card>
+</CardGroup>

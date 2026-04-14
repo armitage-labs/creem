@@ -7,11 +7,27 @@ description: 'Add credits, remove credits, undo mistakes. Every change is tracke
   Customer Credits is in **Experimental** preview.
 </Note>
 
-## Overview
+## How transactions work
 
-Every time you add or remove credits, a transaction is created. Transactions are permanent — you can always see exactly what happened and why.
+Every time you add or remove credits, a transaction is created. Transactions are permanent — you always have a complete history of what happened and why.
 
-## Credit (add)
+<CardGroup cols={3}>
+  <Card title="Credit" icon="plus">
+    Add credits to an account
+  </Card>
+  <Card title="Debit" icon="minus">
+    Remove credits from an account
+  </Card>
+  <Card title="Reverse" icon="rotate-left">
+    Undo a previous transaction
+  </Card>
+</CardGroup>
+
+---
+
+## Credit — add credits
+
+Use this when a customer earns credits, buys a credit pack, or receives a reward.
 
 ```bash
 curl -X POST https://api.creem.io/v1/customer-credits/accounts/{account_id}/credit \
@@ -45,15 +61,19 @@ curl -X POST https://api.creem.io/v1/customer-credits/accounts/{account_id}/cred
 }
 ```
 
+### Parameters
+
 | Parameter | Type | Required | Description |
 | --- | --- | --- | --- |
-| `amount` | string | ✅ | How many credits to add (string for large number support) |
-| `reference` | string | ✅ | Your reference — an order ID, campaign ID, whatever links this to your system |
+| `amount` | string | ✅ | How many credits to add. String to support large numbers |
+| `reference` | string | ✅ | Link this to your system — an order ID, campaign name, anything |
 | `idempotency_key` | string | ✅ | Prevents double-processing on retries |
 
-## Debit (remove)
+---
 
-Same format as credit, just a different endpoint.
+## Debit — remove credits
+
+Use this when a customer spends credits, uses a feature, or redeems a reward.
 
 ```bash
 curl -X POST https://api.creem.io/v1/customer-credits/accounts/{account_id}/debit \
@@ -66,13 +86,19 @@ curl -X POST https://api.creem.io/v1/customer-credits/accounts/{account_id}/debi
   }'
 ```
 
+Same parameters as credit. The response looks identical, just with `"side": "debit"` in the entry.
+
 <Info>
-  Negative balances are allowed. If you want to block overdrafts, check the balance first in your app.
+  Negative balances are allowed by default. If you want to block overdrafts, check the balance before debiting in your app logic.
 </Info>
 
-## Reverse (undo)
+---
 
-Made a mistake? Reverse a transaction to undo it. The original stays in the history — a new opposite transaction is created so you have a complete paper trail.
+## Reverse — undo a transaction
+
+Made a mistake? Order cancelled? Reverse a transaction to undo it.
+
+The original transaction stays in the history — a new opposite transaction is created so you always have a complete paper trail.
 
 ```bash
 curl -X POST https://api.creem.io/v1/customer-credits/accounts/{account_id}/reverse \
@@ -83,11 +109,17 @@ curl -X POST https://api.creem.io/v1/customer-credits/accounts/{account_id}/reve
   }'
 ```
 
-The response will have `reversal_of` set to the original transaction ID.
+The response includes `"reversal_of": "cct_3mNpK8rW2xY"` linking back to the original.
 
-## View history
+<Tip>
+  Reversals are idempotent — reversing the same transaction twice returns the original reversal.
+</Tip>
 
-See every credit and debit on an account.
+---
+
+## Viewing history
+
+See every credit and debit on an account, newest first.
 
 ```bash
 curl "https://api.creem.io/v1/customer-credits/accounts/{account_id}/entries?limit=50" \
@@ -99,36 +131,76 @@ curl "https://api.creem.io/v1/customer-credits/accounts/{account_id}/entries?lim
   "object": "list",
   "data": [
     {
-      "id": "cce_2hJnR6wP5bC",
-      "transaction_id": "cct_3mNpK8rW2xY",
-      "account_id": "cca_7kXmR2pQ9vN",
-      "side": "credit",
-      "amount": "500",
-      "created_at": "2026-04-14T14:30:00.000Z"
-    },
-    {
       "id": "cce_8dFmQ1tY4wK",
       "transaction_id": "cct_5pRsL9uZ3cB",
       "account_id": "cca_7kXmR2pQ9vN",
       "side": "debit",
       "amount": "200",
       "created_at": "2026-04-14T15:00:00.000Z"
+    },
+    {
+      "id": "cce_2hJnR6wP5bC",
+      "transaction_id": "cct_3mNpK8rW2xY",
+      "account_id": "cca_7kXmR2pQ9vN",
+      "side": "credit",
+      "amount": "500",
+      "created_at": "2026-04-14T14:30:00.000Z"
     }
   ],
   "has_more": false
 }
 ```
 
+Each entry shows:
+- **`side`** — `"credit"` (added) or `"debit"` (removed)
+- **`amount`** — how many credits
+- **`transaction_id`** — links back to the transaction (which has the `reference` and `idempotency_key`)
+
+---
+
 ## Safe retries
 
-Every write requires an `idempotency_key`. This means you can safely retry any request without worrying about double-crediting:
+Every write operation requires an `idempotency_key`. This means you can safely retry any request — network timeouts, server errors, whatever — without worrying about double-crediting.
 
-| What happens | Result |
+```mermaid
+sequenceDiagram
+    participant App as Your App
+    participant Creem as Creem API
+
+    App->>Creem: Credit 500 (key: "reward_789")
+    Creem-->>App: ✅ Transaction created
+
+    Note over App: Network timeout, not sure if it worked...
+
+    App->>Creem: Credit 500 (key: "reward_789")
+    Creem-->>App: ✅ Original result + X-Idempotent-Replay header
+```
+
+| Scenario | Result |
 | --- | --- |
 | First request | Processes normally |
-| Retry with same key + same body | Returns original result + `X-Idempotent-Replay: true` header |
-| Same key but different body | `409 Conflict` |
+| Retry with same key + same body | Returns original result, `X-Idempotent-Replay: true` header |
+| Same key but different body | `409 Conflict` error |
 
 <Tip>
-  Use meaningful keys like `reward_order_789` instead of random UUIDs. They're easier to debug and naturally prevent duplicates.
+  Use meaningful keys like `reward_order_789` or `topup_sub_123_2026-04` instead of random UUIDs. They're easier to debug and naturally prevent duplicates tied to the same business event.
 </Tip>
+
+---
+
+## Next steps
+
+<CardGroup cols={2}>
+  <Card title="Accounts" icon="user" href="/features/customer-credits/accounts">
+    Create, freeze, and manage accounts.
+  </Card>
+  <Card title="Recipes" icon="book-open" href="/guides/customer-credits-recipes">
+    Step-by-step guides for common patterns.
+  </Card>
+  <Card title="API Reference" icon="code" href="/api-reference/endpoint/credit-account">
+    Full endpoint schemas.
+  </Card>
+  <Card title="Introduction" icon="house" href="/features/customer-credits/introduction">
+    Back to overview.
+  </Card>
+</CardGroup>
