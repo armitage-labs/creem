@@ -1,0 +1,345 @@
+---
+title: 'Moderation'
+description: 'Screen user prompts against content policies before generating images or videos with your AI models.'
+---
+
+<Note>
+  The Moderation API is **required** for all merchants running AI image or video
+  generation products on Creem. Every user-supplied prompt that will be routed
+  to an image or video generation model must be screened through this endpoint
+  before generation happens.
+</Note>
+
+## Why moderation matters
+
+Running generative AI products carries real risk — for your users, for your
+business, and for the payments infrastructure underneath it. The Moderation API
+exists to protect your platform from unforeseen consequences: policy-violating
+content, high-risk chargebacks, processor escalations, and reputational damage
+that can follow a single bad generation.
+
+We are proud to offer a safe and inclusive environment for a wide range of AI
+products, and we want you to thrive on Creem. Correctly integrating the
+Moderation API is not just a compliance checkbox — it is directly for your own
+benefit. Merchants who route generative AI traffic without upstream screening
+risk:
+
+- Violation of Creem's Terms of Service
+- Permanent removal from the platform
+- Frozen funds held against chargeback and risk exposure
+- Loss of processor relationships that are difficult to recover
+
+Screening every prompt before it reaches your model is the simplest,
+highest-leverage control you can add. It keeps prohibited content out of your
+pipeline, documents your good-faith enforcement, and keeps your account in good
+standing.
+
+<Warning>
+  If you operate an AI image or video generation product on Creem and do not
+  integrate the Moderation API on every user prompt, your account is considered
+  out of compliance with the Creem Terms of Service and may be suspended
+  without notice.
+</Warning>
+
+## How it works
+
+The Moderation API evaluates a text prompt against Creem's content policies
+and returns a decision. Your application calls the Moderation API **before**
+sending the prompt to your image or video model, and uses the decision to
+route traffic:
+
+<Steps>
+  <Step title="User submits a prompt">
+    A user types a prompt in your application and hits Generate.
+  </Step>
+  <Step title="Your backend calls the Moderation API">
+    Before anything else, your server sends the prompt to
+    `POST /v1/moderation/prompt`.
+  </Step>
+  <Step title="Moderation returns a decision">
+    The API responds with `allow`, `flag`, or `deny`.
+  </Step>
+  <Step title="You route based on the decision">
+    On `allow`, pass the prompt to your model. On `deny`, block the request
+    and surface a friendly error to the user. On `flag`, decide based on your
+    own risk policy (see below).
+  </Step>
+</Steps>
+
+## The endpoint
+
+<Card
+  title="Screen a prompt"
+  icon="shield-check"
+  href="/api-reference/endpoint/screen-prompt"
+>
+  `POST /v1/moderation/prompt` — full request and response schema.
+</Card>
+
+### Request
+
+| Field         | Type   | Required | Description                                              |
+| ------------- | ------ | -------- | -------------------------------------------------------- |
+| `prompt`      | string | Yes      | The text prompt to evaluate against content policies.    |
+| `external_id` | string | No       | Optional identifier to associate this request with (e.g. your internal user or generation ID). Useful for auditing. |
+
+### Response
+
+| Field         | Type   | Description                                                    |
+| ------------- | ------ | -------------------------------------------------------------- |
+| `id`          | string | Unique identifier for the moderation result.                   |
+| `object`      | string | Always `moderation_result`.                                    |
+| `prompt`      | string | The prompt that was screened.                                  |
+| `external_id` | string | Echoes the `external_id` you supplied, if any.                 |
+| `decision`    | enum   | One of `allow`, `flag`, or `deny`.                             |
+| `usage`       | object | Usage information for the call. Contains `units` (number).     |
+
+### Decision values
+
+| Decision | Meaning                                                         | Recommended action                                           |
+| -------- | --------------------------------------------------------------- | ------------------------------------------------------------ |
+| `allow`  | The prompt passed screening.                                    | Forward to your model and generate normally.                 |
+| `flag`   | The prompt is not explicitly denied, but it is closely monitored by Creem. | We recommend blocking it as well.                 |
+| `deny`   | The prompt violates Creem's content policies.                   | Do **not** forward to your model. Surface an error to the user. |
+
+<Info>
+  The endpoint is currently marked **experimental** in the OpenAPI spec. The
+  decision values above are stable, but additional fields may be added in the
+  future. Design your integration to ignore unknown fields rather than fail on
+  them.
+</Info>
+
+## Integration guide
+
+### 1. Add moderation to your generation handler
+
+The rule is simple: **no prompt reaches your model without a decision from the
+Moderation API first.** Put the call at the very top of your generation
+handler, before any queueing, billing, or model invocation.
+
+<CodeGroup>
+
+```typescript TypeScript
+const moderation = await fetch('https://api.creem.io/v1/moderation/prompt', {
+  method: 'POST',
+  headers: {
+    'x-api-key': process.env.CREEM_API_KEY!,
+    'content-type': 'application/json',
+  },
+  body: JSON.stringify({
+    prompt: userPrompt,
+    external_id: `user_${userId}:gen_${generationId}`,
+  }),
+}).then((r) => r.json());
+
+if (moderation.decision === 'deny') {
+  return res.status(400).json({
+    error: 'prompt_rejected',
+    message:
+      'Your prompt was rejected because it violates our content policy. Please revise and try again.',
+  });
+}
+
+if (moderation.decision === 'flag') {
+  // Creem closely monitors flagged prompts. We recommend blocking.
+  return res.status(400).json({
+    error: 'prompt_flagged',
+    message: 'Your prompt could not be processed. Please revise and try again.',
+  });
+}
+
+// decision === 'allow' — safe to generate
+const image = await myModel.generate(userPrompt);
+return res.json({ image });
+```
+
+```python Python
+import os
+import requests
+
+moderation = requests.post(
+    "https://api.creem.io/v1/moderation/prompt",
+    headers={
+        "x-api-key": os.environ["CREEM_API_KEY"],
+        "content-type": "application/json",
+    },
+    json={
+        "prompt": user_prompt,
+        "external_id": f"user_{user_id}:gen_{generation_id}",
+    },
+).json()
+
+if moderation["decision"] == "deny":
+    return {"error": "prompt_rejected"}, 400
+
+if moderation["decision"] == "flag":
+    # Creem closely monitors flagged prompts. We recommend blocking.
+    return {"error": "prompt_flagged"}, 400
+
+# decision == "allow" — safe to generate
+image = my_model.generate(user_prompt)
+return {"image": image}
+```
+
+```bash cURL
+curl -X POST https://api.creem.io/v1/moderation/prompt \
+  -H "x-api-key: $CREEM_API_KEY" \
+  -H "content-type: application/json" \
+  -d '{
+    "prompt": "a watercolor painting of a lighthouse at sunset",
+    "external_id": "user_42:gen_9001"
+  }'
+```
+
+</CodeGroup>
+
+### 2. Choose an environment
+
+Moderation is available on both environments:
+
+| Environment | Base URL                     | API key prefix      |
+| ----------- | ---------------------------- | ------------------- |
+| Sandbox     | `https://test-api.creem.io`  | `creem_test_xxxxx`  |
+| Production  | `https://api.creem.io`       | `creem_xxxxx`       |
+
+Use sandbox while building and testing your routing logic. Move to production
+once you are confident your handler blocks on both `deny` and `flag`.
+
+### 3. Treat `flag` as a block
+
+A `flag` decision means the prompt was not explicitly denied, but Creem is
+closely monitoring it. We recommend treating `flag` exactly like `deny` —
+block the request and surface an error to the user. This keeps your
+integration simple and keeps your account on the safe side of the line.
+
+### 4. Fail closed, not open
+
+If the Moderation API call fails (network error, timeout, unexpected 5xx), **do
+not fall back to generating anyway.** Treat failures as a temporary block and
+return an error to the user. Failing open defeats the entire purpose of the
+control and will be treated as a policy violation.
+
+<Tip>
+  Set a short, sensible timeout on the moderation call (e.g. 5 seconds) and
+  return a clean retryable error to the user if it trips. Users retrying a
+  safe prompt is fine; users slipping unsafe prompts past a broken moderator
+  is not.
+</Tip>
+
+### 5. Screen the prompt, not the output
+
+Moderation is designed for pre-generation prompt screening. The correct place
+to call it is **before** your model runs, on the raw user input. Do not skip
+screening because you plan to inspect the output afterwards — by the time the
+output exists, you have already spent compute on disallowed content and the
+risk event has already occurred.
+
+## End-to-end example
+
+A minimal Next.js API route that gates an image generation model behind the
+Moderation API:
+
+```typescript app/api/generate/route.ts
+import { NextRequest, NextResponse } from 'next/server';
+
+export async function POST(req: NextRequest) {
+  const { prompt, userId } = await req.json();
+
+  if (!prompt || typeof prompt !== 'string') {
+    return NextResponse.json({ error: 'prompt_required' }, { status: 400 });
+  }
+
+  // 1. Screen the prompt BEFORE anything else.
+  let moderation;
+  try {
+    const res = await fetch('https://api.creem.io/v1/moderation/prompt', {
+      method: 'POST',
+      headers: {
+        'x-api-key': process.env.CREEM_API_KEY!,
+        'content-type': 'application/json',
+      },
+      body: JSON.stringify({
+        prompt,
+        external_id: `user_${userId}`,
+      }),
+      signal: AbortSignal.timeout(5000),
+    });
+    if (!res.ok) throw new Error(`moderation_http_${res.status}`);
+    moderation = await res.json();
+  } catch (err) {
+    // Fail closed.
+    return NextResponse.json(
+      { error: 'moderation_unavailable' },
+      { status: 503 },
+    );
+  }
+
+  // 2. Route on the decision.
+  if (moderation.decision === 'deny' || moderation.decision === 'flag') {
+    return NextResponse.json({ error: 'prompt_rejected' }, { status: 400 });
+  }
+
+  // 3. Only now call your generation model.
+  const image = await generateImage(prompt);
+
+  return NextResponse.json({ image });
+}
+```
+
+## Checklist before going live
+
+<Steps>
+  <Step title="Every generation path calls the Moderation API">
+    Audit every code path that can reach your image or video model. There
+    should be no way to generate without a preceding moderation call.
+  </Step>
+  <Step title="`deny` always blocks generation">
+    Confirm with a test prompt that a `deny` decision returns an error to the
+    user and never reaches your model.
+  </Step>
+  <Step title="`flag` also blocks generation">
+    Confirm a `flag` decision is treated the same as `deny` and never reaches
+    your model.
+  </Step>
+  <Step title="Moderation failures fail closed">
+    Simulate a moderation timeout or 5xx and confirm no generation happens.
+  </Step>
+</Steps>
+
+## Pricing
+
+The Moderation API is currently **free to use** while it is in its experimental
+phase. You don't need to worry about cost today — focus on integrating it
+correctly.
+
+When the product is officially released, the most likely launch price will be
+**$30 USD per 100,000 units**. Creem does not aim to make a profit margin on
+this product. We built the Moderation API because we want our merchants to
+succeed and because we are committed to a safe environment for everyone on the
+platform — pricing it is purely about covering the cost of running it.
+
+<Note>
+  When official pricing rolls out, we **will not** retroactively charge for
+  usage that occurred during the experimental period. Anything you screen
+  today is on us. You can count on Creem's values of honest and fair pricing
+  — no surprise bills, no retroactive invoices.
+</Note>
+
+## Related
+
+<CardGroup cols={2}>
+  <Card
+    title="Screen a prompt — API Reference"
+    icon="code"
+    href="/api-reference/endpoint/screen-prompt"
+  >
+    Full request and response schema for `POST /v1/moderation/prompt`.
+  </Card>
+  <Card
+    title="Account Reviews"
+    icon="clipboard-check"
+    href="/merchant-of-record/account-reviews/account-reviews"
+  >
+    How Creem reviews merchants and what keeps your account in good standing.
+  </Card>
+</CardGroup>

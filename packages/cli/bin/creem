@@ -1,0 +1,3 @@
+#!/bin/sh
+# Dev wrapper for creem CLI
+exec node "$(dirname "$0")/../dist/index.js" "$@"
