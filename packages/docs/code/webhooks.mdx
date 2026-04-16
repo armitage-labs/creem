@@ -1,7 +1,7 @@
 ---
 title: 'Webhooks'
 description: 'Creem webhooks guide: receive real-time payment notifications, handle subscription lifecycle events, and verify webhook signatures securely.'
-keywords: 'webhooks, payment notifications, subscription events, webhook verification'
+keywords: 'webhooks, payment notifications, subscription events, webhook verification, webhook IP allowlist, webhook source IPs'
 ---
 
 ## What is a webhook?
@@ -103,6 +103,24 @@ After you're done testing, deploy your webhook endpoint to production.
 ### 5. Register your production webhook endpoint
 
 Once your webhook endpoint is deployed to production, you can register it in the Creem dashboard.
+
+## Network Configuration
+
+<Info>
+  Creem does not provide static source IP addresses for outbound webhooks in
+  either Test Mode or production. If your firewall or WAF protects the webhook
+  endpoint, do not rely on source-IP allowlists as the authentication mechanism.
+  Keep the endpoint reachable over HTTPS and verify every request with the
+  `creem-signature` header.
+</Info>
+
+<Tip>
+  Bot protection and WAF products can challenge webhook deliveries because
+  webhooks are automated server-to-server requests. If this happens, add a
+  route-level exception or skip rule for your webhook endpoint. On Cloudflare
+  specifically, Bot Fight Mode cannot be skipped with custom rules; disable it
+  or use Super Bot Fight Mode or Bot Management with a skip rule.
+</Tip>
 
 ## Webhook Signatures
 

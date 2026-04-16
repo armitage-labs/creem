@@ -18,6 +18,20 @@ Webhooks push real-time notifications about payments, subscriptions, and other e
 3. Copy the webhook secret for signature verification
 4. Test with the test environment before going live
 
+## Network and WAF Configuration
+
+CREEM does not provide static source IP addresses for outbound webhooks in
+either production or Test Mode. If a firewall or WAF protects the webhook
+endpoint, do not rely on source-IP allowlists as the authentication mechanism.
+Keep the endpoint reachable over HTTPS and verify every request with the
+`creem-signature` header.
+
+Bot protection and WAF products can challenge webhook deliveries because
+webhooks are automated server-to-server requests. If this happens, add a
+route-level exception or skip rule for the webhook endpoint. On Cloudflare
+specifically, Bot Fight Mode cannot be skipped with custom rules; disable it or
+use Super Bot Fight Mode or Bot Management with a skip rule.
+
 ## Signature Verification
 
 **CRITICAL**: Always verify signatures to prevent fraud.
