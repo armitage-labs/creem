@@ -40,7 +40,7 @@ describe("createDiscount - Percentage Discounts", () => {
       fail("Expected an API error but none was thrown");
     } catch (error) {
       expect(error).toBeInstanceOf(APIError);
-      expect((error as APIError).statusCode).toBe(403);
+      expect((error as APIError).statusCode).toBe(401);
     }
   });
 

@@ -24,9 +24,9 @@ describe("generateCustomerLinks", () => {
       // If it succeeds, fail the test (we expect it to throw)
       fail("Expected an API error but none was thrown");
     } catch (error) {
-      // We expect this to fail with a 403 error due to invalid API key
+      // We expect this to fail with a 401 error due to invalid API key
       expect(error).toBeInstanceOf(APIError);
-      expect((error as APIError).statusCode).toBe(403);
+      expect((error as APIError).statusCode).toBe(401);
     }
   });
 

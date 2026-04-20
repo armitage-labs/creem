@@ -27,10 +27,10 @@ describe("License Key Operations", () => {
       // If it succeeds, fail the test (we expect it to throw)
       fail("Expected an error but none was thrown");
     } catch (error) {
-      // We expect either an APIError (403) or an SDKValidationError
+      // We expect either an APIError (401) or an SDKValidationError
       expect(error).toBeDefined();
       if (error instanceof APIError) {
-        expect((error as APIError).statusCode).toBe(403);
+        expect((error as APIError).statusCode).toBe(401);
       }
     }
   });
