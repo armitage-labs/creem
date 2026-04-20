@@ -152,7 +152,26 @@
           {
             "ApiKey": []
           }
-        ]
+        ],
+        "x-speakeasy-pagination": {
+          "type": "offsetLimit",
+          "inputs": [
+            {
+              "name": "page_number",
+              "in": "parameters",
+              "type": "page"
+            },
+            {
+              "name": "page_size",
+              "in": "parameters",
+              "type": "limit"
+            }
+          ],
+          "outputs": {
+            "numPages": "$.pagination.total_pages",
+            "results": "$.items"
+          }
+        }
       }
     },
     "/v1/customers/list": {
@@ -212,7 +231,26 @@
           {
             "ApiKey": []
           }
-        ]
+        ],
+        "x-speakeasy-pagination": {
+          "type": "offsetLimit",
+          "inputs": [
+            {
+              "name": "page_number",
+              "in": "parameters",
+              "type": "page"
+            },
+            {
+              "name": "page_size",
+              "in": "parameters",
+              "type": "limit"
+            }
+          ],
+          "outputs": {
+            "numPages": "$.pagination.total_pages",
+            "results": "$.items"
+          }
+        }
       }
     },
     "/v1/customers": {
@@ -426,7 +464,26 @@
           {
             "ApiKey": []
           }
-        ]
+        ],
+        "x-speakeasy-pagination": {
+          "type": "offsetLimit",
+          "inputs": [
+            {
+              "name": "page_number",
+              "in": "parameters",
+              "type": "page"
+            },
+            {
+              "name": "page_size",
+              "in": "parameters",
+              "type": "limit"
+            }
+          ],
+          "outputs": {
+            "numPages": "$.pagination.total_pages",
+            "results": "$.items"
+          }
+        }
       }
     },
     "/v1/subscriptions/{id}/cancel": {
@@ -1048,7 +1105,26 @@
           {
             "ApiKey": []
           }
-        ]
+        ],
+        "x-speakeasy-pagination": {
+          "type": "offsetLimit",
+          "inputs": [
+            {
+              "name": "page_number",
+              "in": "parameters",
+              "type": "page"
+            },
+            {
+              "name": "page_size",
+              "in": "parameters",
+              "type": "limit"
+            }
+          ],
+          "outputs": {
+            "numPages": "$.pagination.total_pages",
+            "results": "$.items"
+          }
+        }
       }
     },
     "/v1/discounts": {
@@ -1337,7 +1413,26 @@
           {
             "ApiKey": []
           }
-        ]
+        ],
+        "x-speakeasy-pagination": {
+          "type": "offsetLimit",
+          "inputs": [
+            {
+              "name": "page_number",
+              "in": "parameters",
+              "type": "page"
+            },
+            {
+              "name": "page_size",
+              "in": "parameters",
+              "type": "limit"
+            }
+          ],
+          "outputs": {
+            "numPages": "$.pagination.total_pages",
+            "results": "$.items"
+          }
+        }
       }
     },
     "/v1/stats/summary": {
@@ -2049,7 +2144,7 @@
           },
           "object": {
             "type": "string",
-            "description": "String representing the object’s type. Objects of the same type share the same value."
+            "description": "String representing the object\u2019s type. Objects of the same type share the same value."
           },
           "email": {
             "type": "string",
@@ -2151,7 +2246,7 @@
           },
           "object": {
             "type": "string",
-            "description": "String representing the object’s type. Objects of the same type share the same value."
+            "description": "String representing the object\u2019s type. Objects of the same type share the same value."
           },
           "product_id": {
             "type": "string",
@@ -2722,7 +2817,7 @@
           },
           "object": {
             "type": "string",
-            "description": "A string representing the object’s type. Objects of the same type share the same value.",
+            "description": "A string representing the object\u2019s type. Objects of the same type share the same value.",
             "example": "license-instance"
           },
           "name": {
@@ -3204,7 +3299,7 @@
           },
           "object": {
             "type": "string",
-            "description": "A string representing the object’s type. Objects of the same type share the same value.",
+            "description": "A string representing the object\u2019s type. Objects of the same type share the same value.",
             "example": "discount"
           },
           "status": {
