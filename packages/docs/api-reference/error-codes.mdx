@@ -17,25 +17,26 @@ When an API request fails, Creem returns a JSON error response:
 }
 ```
 
-| Field | Type | Description |
-|-------|------|-------------|
-| `trace_id` | string | Unique identifier for the request (useful for debugging) |
-| `status` | number | HTTP status code |
-| `error` | string | Error category |
-| `message` | string[] | Array of human-readable error messages |
-| `timestamp` | number | Unix timestamp in milliseconds |
+| Field       | Type     | Description                                              |
+| ----------- | -------- | -------------------------------------------------------- |
+| `trace_id`  | string   | Unique identifier for the request (useful for debugging) |
+| `status`    | number   | HTTP status code                                         |
+| `error`     | string   | Error category                                           |
+| `message`   | string[] | Array of human-readable error messages                   |
+| `timestamp` | number   | Unix timestamp in milliseconds                           |
 
 <Note>
-  The `trace_id` is included in every error response. Include it when contacting support for faster debugging.
+  The `trace_id` is included in every error response. Include it when contacting
+  support for faster debugging.
 </Note>
 
 ## HTTP Status Codes
 
-| Status | Error | When It Occurs |
-|--------|-------|----------------|
-| `400` | Bad Request | Invalid request parameters, malformed JSON, or validation errors |
-| `403` | Forbidden | Invalid API key or insufficient permissions |
-| `404` | Not Found | Requested resource doesn't exist |
+| Status | Error       | When It Occurs                                                   |
+| ------ | ----------- | ---------------------------------------------------------------- |
+| `400`  | Bad Request | Invalid request parameters, malformed JSON, or validation errors |
+| `403`  | Forbidden   | Invalid API key or insufficient permissions                      |
+| `404`  | Not Found   | Requested resource doesn't exist                                 |
 
 ## Common Error Scenarios
 
@@ -53,6 +54,7 @@ Returned when the API key is missing, invalid, or doesn't have permission for th
 ```
 
 **How to fix:**
+
 - Verify your API key in the [dashboard](https://creem.io/dashboard/developers)
 - Ensure the `x-api-key` header is included in your request
 - Check you're using the correct key for the environment (test vs. production)
@@ -77,6 +79,7 @@ Returned when request parameters are missing or invalid.
 ```
 
 **How to fix:**
+
 - Check the `message` array for specific validation errors
 - Verify all required fields are included
 - Ensure data types match the expected format
@@ -96,6 +99,7 @@ Returned when the requested resource doesn't exist.
 ```
 
 **How to fix:**
+
 - Verify the resource ID is correct
 - Ensure you're using the right environment (test vs. production resources are separate)
 - Check if the resource was deleted
@@ -115,6 +119,7 @@ Returned when trying to create a resource that already exists.
 ```
 
 **How to fix:**
+
 - Use a unique identifier for idempotent requests
 - Check if the resource already exists before creating
 
@@ -156,13 +161,14 @@ curl -X POST https://api.creem.io/v1/checkouts \
 
 Make sure you're using the correct base URL:
 
-| Environment | Base URL |
-|-------------|----------|
-| Production | `https://api.creem.io` |
-| Test Mode | `https://test-api.creem.io` |
+| Environment | Base URL                    |
+| ----------- | --------------------------- |
+| Production  | `https://api.creem.io`      |
+| Test Mode   | `https://test-api.creem.io` |
 
 <Warning>
-  Test mode API keys only work with `test-api.creem.io`, and production keys only work with `api.creem.io`.
+  Test mode API keys only work with `test-api.creem.io`, and production keys
+  only work with `api.creem.io`.
 </Warning>
 
 ## Need Help?

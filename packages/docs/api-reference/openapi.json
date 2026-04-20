@@ -140,6 +140,143 @@
         "security": [{ "ApiKey": [] }]
       }
     },
+    "/v1/customers/{id}/orders": {
+      "get": {
+        "operationId": "listCustomerOrders",
+        "summary": "List customer orders",
+        "description": "Retrieve a paginated list of orders for a specific customer.",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "description": "The unique identifier of the customer",
+            "schema": { "type": "string" }
+          },
+          {
+            "name": "page_number",
+            "required": false,
+            "in": "query",
+            "description": "The page number for pagination.",
+            "schema": { "default": 1, "example": 1, "type": "number" }
+          },
+          {
+            "name": "page_size",
+            "required": false,
+            "in": "query",
+            "description": "The number of items per page.",
+            "schema": { "default": 10, "example": 10, "type": "number" }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successfully retrieved customer orders",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/OrderListEntity" }
+              }
+            }
+          },
+          "400": { "description": "Bad Request - Invalid input parameters" },
+          "401": { "description": "Unauthorized - Invalid or missing API key" },
+          "404": { "description": "Not Found - Resource does not exist" }
+        },
+        "tags": ["Customers"],
+        "security": [{ "ApiKey": [] }]
+      }
+    },
+    "/v1/customers/{id}/subscriptions": {
+      "get": {
+        "operationId": "listCustomerSubscriptions",
+        "summary": "List customer subscriptions",
+        "description": "Retrieve a paginated list of subscriptions for a specific customer.",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "description": "The unique identifier of the customer",
+            "schema": { "type": "string" }
+          },
+          {
+            "name": "page_number",
+            "required": false,
+            "in": "query",
+            "description": "The page number for pagination.",
+            "schema": { "default": 1, "example": 1, "type": "number" }
+          },
+          {
+            "name": "page_size",
+            "required": false,
+            "in": "query",
+            "description": "The number of items per page.",
+            "schema": { "default": 10, "example": 10, "type": "number" }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successfully retrieved customer subscriptions",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SubscriptionListEntity"
+                }
+              }
+            }
+          },
+          "400": { "description": "Bad Request - Invalid input parameters" },
+          "401": { "description": "Unauthorized - Invalid or missing API key" },
+          "404": { "description": "Not Found - Resource does not exist" }
+        },
+        "tags": ["Customers"],
+        "security": [{ "ApiKey": [] }]
+      }
+    },
+    "/v1/customers/{id}/licenses": {
+      "get": {
+        "operationId": "listCustomerLicenses",
+        "summary": "List customer licenses",
+        "description": "Retrieve a paginated list of license keys for a specific customer.",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "description": "The unique identifier of the customer",
+            "schema": { "type": "string" }
+          },
+          {
+            "name": "page_number",
+            "required": false,
+            "in": "query",
+            "description": "The page number for pagination.",
+            "schema": { "default": 1, "example": 1, "type": "number" }
+          },
+          {
+            "name": "page_size",
+            "required": false,
+            "in": "query",
+            "description": "The number of items per page.",
+            "schema": { "default": 10, "example": 10, "type": "number" }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successfully retrieved customer licenses",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/LicenseListEntity" }
+              }
+            }
+          },
+          "400": { "description": "Bad Request - Invalid input parameters" },
+          "401": { "description": "Unauthorized - Invalid or missing API key" },
+          "404": { "description": "Not Found - Resource does not exist" }
+        },
+        "tags": ["Customers"],
+        "security": [{ "ApiKey": [] }]
+      }
+    },
     "/v1/customers": {
       "get": {
         "operationId": "retrieveCustomer",
@@ -164,6 +301,69 @@
         "responses": {
           "200": {
             "description": "Successfully retrieved the customer",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/CustomerEntity" }
+              }
+            }
+          },
+          "400": { "description": "Bad Request - Invalid input parameters" },
+          "401": { "description": "Unauthorized - Invalid or missing API key" },
+          "404": { "description": "Not Found - Resource does not exist" }
+        },
+        "tags": ["Customers"],
+        "security": [{ "ApiKey": [] }]
+      },
+      "post": {
+        "operationId": "createCustomer",
+        "summary": "Create a customer",
+        "description": "Create a new customer record for the authenticated store.",
+        "parameters": [],
+        "requestBody": {
+          "required": true,
+          "description": "Customer creation payload",
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CreateCustomerRequestEntity"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Successfully created the customer",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/CustomerEntity" }
+              }
+            }
+          },
+          "400": { "description": "Bad Request - Invalid input parameters" },
+          "401": { "description": "Unauthorized - Invalid or missing API key" },
+          "404": { "description": "Not Found - Resource does not exist" }
+        },
+        "tags": ["Customers"],
+        "security": [{ "ApiKey": [] }]
+      },
+      "patch": {
+        "operationId": "updateCustomer",
+        "summary": "Update a customer",
+        "parameters": [],
+        "requestBody": {
+          "required": true,
+          "description": "Customer update payload",
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/UpdateCustomerRequestEntity"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Successfully updated the customer",
             "content": {
               "application/json": {
                 "schema": { "$ref": "#/components/schemas/CustomerEntity" }
@@ -1499,7 +1699,7 @@
       "ProductFeatureType": {
         "type": "string",
         "description": "The type of the feature: privateNote (custom note), file (downloadable files), or licenseKey (license key).",
-        "enum": ["custom", "file", "licenseKey"]
+        "enum": ["custom", "file", "licenseKey", "customerCredits"]
       },
       "FeatureEntity": {
         "type": "object",
@@ -1883,9 +2083,8 @@
           },
           "price": {
             "type": "integer",
-            "description": "The price of the product in cents ",
-            "example": 400,
-            "minimum": 100
+            "description": "The price of the product in cents. Must be 0 (free product) or at least 100 (one whole unit of the currency).",
+            "example": 400
           },
           "currency": {
             "example": "USD",
@@ -1929,7 +2128,7 @@
             "default": false
           }
         },
-        "required": ["name", "price", "currency", "billing_type"]
+        "required": ["name", "description", "price", "currency", "billing_type"]
       },
       "CustomerEntity": {
         "type": "object",
@@ -1954,6 +2153,12 @@
             "example": "John Doe",
             "nullable": true
           },
+          "metadata": {
+            "type": "object",
+            "description": "Additional metadata associated with the customer.",
+            "example": { "key": "value" },
+            "nullable": true
+          },
           "country": {
             "type": "string",
             "description": "The ISO alpha-2 country code for the customer.",
@@ -1963,13 +2168,13 @@
           "created_at": {
             "format": "date-time",
             "type": "string",
-            "description": "Creation date of the product",
+            "description": "Creation date of the customer",
             "example": "2023-01-01T00:00:00Z"
           },
           "updated_at": {
             "format": "date-time",
             "type": "string",
-            "description": "Last updated date of the product",
+            "description": "Last updated date of the customer",
             "example": "2023-01-01T00:00:00Z"
           }
         },
@@ -1998,25 +2203,155 @@
         },
         "required": ["items", "pagination"]
       },
-      "CreateCustomerPortalLinkRequestEntity": {
-        "type": "object",
-        "properties": {
-          "customer_id": {
-            "type": "string",
-            "description": "Unique identifier of the customer."
-          }
-        },
-        "required": ["customer_id"]
+      "OrderStatus": {
+        "type": "string",
+        "description": "Current status of the order.",
+        "enum": ["pending", "paid"]
       },
-      "CustomerLinksEntity": {
+      "OrderType": {
+        "type": "string",
+        "description": "The type of order. This can specify whether it's a regular purchase, subscription, etc.",
+        "enum": ["recurring", "onetime"]
+      },
+      "OrderEntity": {
         "type": "object",
         "properties": {
-          "customer_portal_link": {
+          "id": {
             "type": "string",
-            "description": "Customer portal link."
+            "description": "Unique identifier for the object."
+          },
+          "mode": { "$ref": "#/components/schemas/EnvironmentMode" },
+          "object": {
+            "type": "string",
+            "description": "String representing the object's type. Objects of the same type share the same value."
+          },
+          "customer": {
+            "type": "string",
+            "description": "The customer who placed the order.",
+            "nullable": true
+          },
+          "product": {
+            "type": "string",
+            "description": "The product associated with the order."
+          },
+          "transaction": {
+            "type": "string",
+            "description": "The transaction ID of the order",
+            "example": "tx_1234567890",
+            "nullable": true
+          },
+          "discount": {
+            "type": "string",
+            "description": "The discount ID of the order",
+            "example": "dis_1234567890",
+            "nullable": true
+          },
+          "amount": {
+            "type": "number",
+            "description": "The total amount of the order in cents. 1000 = $10.00",
+            "example": 2000
+          },
+          "sub_total": {
+            "type": "number",
+            "description": "The subtotal of the order in cents. 1000 = $10.00",
+            "example": 1800
+          },
+          "tax_amount": {
+            "type": "number",
+            "description": "The tax amount of the order in cents. 1000 = $10.00",
+            "example": 200
+          },
+          "discount_amount": {
+            "type": "number",
+            "description": "The discount amount of the order in cents. 1000 = $10.00",
+            "example": 100
+          },
+          "amount_due": {
+            "type": "number",
+            "description": "The amount due for the order in cents. 1000 = $10.00",
+            "example": 1900
+          },
+          "amount_paid": {
+            "type": "number",
+            "description": "The amount paid for the order in cents. 1000 = $10.00",
+            "example": 1900
+          },
+          "currency": {
+            "type": "string",
+            "description": "Three-letter ISO currency code, in uppercase. Must be a supported currency.",
+            "example": "USD"
+          },
+          "fx_amount": {
+            "type": "number",
+            "description": "The amount in the foreign currency, if applicable.",
+            "example": 15,
+            "nullable": true
+          },
+          "fx_currency": {
+            "type": "string",
+            "description": "Three-letter ISO code of the foreign currency, if applicable.",
+            "example": "EUR",
+            "nullable": true
+          },
+          "fx_rate": {
+            "type": "number",
+            "description": "The exchange rate used for converting between currencies, if applicable.",
+            "example": 1.2,
+            "nullable": true
+          },
+          "status": {
+            "example": "pending",
+            "$ref": "#/components/schemas/OrderStatus"
+          },
+          "type": {
+            "example": "recurring",
+            "$ref": "#/components/schemas/OrderType"
+          },
+          "affiliate": {
+            "type": "string",
+            "description": "The affiliate associated with the order, if applicable.",
+            "nullable": true
+          },
+          "created_at": {
+            "format": "date-time",
+            "type": "string",
+            "description": "Creation date of the order",
+            "example": "2023-09-13T00:00:00Z"
+          },
+          "updated_at": {
+            "format": "date-time",
+            "type": "string",
+            "description": "Last updated date of the order",
+            "example": "2023-09-13T00:00:00Z"
           }
         },
-        "required": ["customer_portal_link"]
+        "required": [
+          "id",
+          "mode",
+          "object",
+          "product",
+          "amount",
+          "currency",
+          "status",
+          "type",
+          "created_at",
+          "updated_at"
+        ]
+      },
+      "OrderListEntity": {
+        "type": "object",
+        "properties": {
+          "items": {
+            "description": "List of order items",
+            "items": { "$ref": "#/components/schemas/OrderEntity" },
+            "type": "array"
+          },
+          "pagination": {
+            "description": "Pagination details for the list",
+            "allOf": [{ "$ref": "#/components/schemas/PaginationEntity" }]
+          }
+        },
+        "required": ["items", "pagination"]
       },
       "SubscriptionItemEntity": {
         "type": "object",
@@ -2305,222 +2640,6 @@
         },
         "required": ["items", "pagination"]
       },
-      "CancelSubscriptionRequestEntity": {
-        "type": "object",
-        "properties": {
-          "mode": {
-            "type": "string",
-            "description": "The mode of cancellation (immediate or scheduled), default can be configured in the store billing settings.",
-            "enum": ["immediate", "scheduled"],
-            "example": "immediate"
-          },
-          "onExecute": {
-            "type": "string",
-            "description": "The action to execute when canceling (cancel or pause) when mode is scheduled, ignored when mode is immediate or not provided",
-            "enum": ["cancel", "pause"],
-            "example": "cancel"
-          }
-        }
-      },
-      "UpsertSubscriptionItemEntity": {
-        "type": "object",
-        "properties": {
-          "id": {
-            "type": "string",
-            "description": "The id of the item to update."
-          },
-          "product_id": {
-            "type": "string",
-            "description": "The ID of the product associated with the subscription item."
-          },
-          "price_id": {
-            "type": "string",
-            "description": "The ID of the price associated with the subscription item."
-          },
-          "units": {
-            "type": "number",
-            "description": "The number of units for the subscription item."
-          }
-        }
-      },
-      "UpdateSubscriptionRequestEntity": {
-        "type": "object",
-        "properties": {
-          "items": {
-            "description": "List of subscription items to update/create. If no item ID is provided, the item will be created.",
-            "type": "array",
-            "items": {
-              "$ref": "#/components/schemas/UpsertSubscriptionItemEntity"
-            }
-          },
-          "update_behavior": {
-            "type": "string",
-            "description": "The update behavior for the subscription (defaults to proration)",
-            "enum": [
-              "proration-charge-immediately",
-              "proration-charge",
-              "proration-none"
-            ],
-            "default": "proration-charge"
-          }
-        }
-      },
-      "UpgradeSubscriptionRequestEntity": {
-        "type": "object",
-        "properties": {
-          "product_id": {
-            "type": "string",
-            "description": "The ID of the product to upgrade to",
-            "example": "prod_123"
-          },
-          "update_behavior": {
-            "type": "string",
-            "description": "The update behavior for the subscription (defaults to proration-charge-immediately)",
-            "enum": [
-              "proration-charge-immediately",
-              "proration-charge",
-              "proration-none"
-            ],
-            "default": "proration-charge-immediately"
-          }
-        },
-        "required": ["product_id"]
-      },
-      "OrderStatus": {
-        "type": "string",
-        "description": "Current status of the order.",
-        "enum": ["pending", "paid"]
-      },
-      "OrderType": {
-        "type": "string",
-        "description": "The type of order. This can specify whether it's a regular purchase, subscription, etc.",
-        "enum": ["recurring", "onetime"]
-      },
-      "OrderEntity": {
-        "type": "object",
-        "properties": {
-          "id": {
-            "type": "string",
-            "description": "Unique identifier for the object."
-          },
-          "mode": { "$ref": "#/components/schemas/EnvironmentMode" },
-          "object": {
-            "type": "string",
-            "description": "String representing the object's type. Objects of the same type share the same value."
-          },
-          "customer": {
-            "type": "string",
-            "description": "The customer who placed the order.",
-            "nullable": true
-          },
-          "product": {
-            "type": "string",
-            "description": "The product associated with the order."
-          },
-          "transaction": {
-            "type": "string",
-            "description": "The transaction ID of the order",
-            "example": "tx_1234567890",
-            "nullable": true
-          },
-          "discount": {
-            "type": "string",
-            "description": "The discount ID of the order",
-            "example": "dis_1234567890",
-            "nullable": true
-          },
-          "amount": {
-            "type": "number",
-            "description": "The total amount of the order in cents. 1000 = $10.00",
-            "example": 2000
-          },
-          "sub_total": {
-            "type": "number",
-            "description": "The subtotal of the order in cents. 1000 = $10.00",
-            "example": 1800
-          },
-          "tax_amount": {
-            "type": "number",
-            "description": "The tax amount of the order in cents. 1000 = $10.00",
-            "example": 200
-          },
-          "discount_amount": {
-            "type": "number",
-            "description": "The discount amount of the order in cents. 1000 = $10.00",
-            "example": 100
-          },
-          "amount_due": {
-            "type": "number",
-            "description": "The amount due for the order in cents. 1000 = $10.00",
-            "example": 1900
-          },
-          "amount_paid": {
-            "type": "number",
-            "description": "The amount paid for the order in cents. 1000 = $10.00",
-            "example": 1900
-          },
-          "currency": {
-            "type": "string",
-            "description": "Three-letter ISO currency code, in uppercase. Must be a supported currency.",
-            "example": "USD"
-          },
-          "fx_amount": {
-            "type": "number",
-            "description": "The amount in the foreign currency, if applicable.",
-            "example": 15,
-            "nullable": true
-          },
-          "fx_currency": {
-            "type": "string",
-            "description": "Three-letter ISO code of the foreign currency, if applicable.",
-            "example": "EUR",
-            "nullable": true
-          },
-          "fx_rate": {
-            "type": "number",
-            "description": "The exchange rate used for converting between currencies, if applicable.",
-            "example": 1.2,
-            "nullable": true
-          },
-          "status": {
-            "example": "pending",
-            "$ref": "#/components/schemas/OrderStatus"
-          },
-          "type": {
-            "example": "recurring",
-            "$ref": "#/components/schemas/OrderType"
-          },
-          "affiliate": {
-            "type": "string",
-            "description": "The affiliate associated with the order, if applicable.",
-            "nullable": true
-          },
-          "created_at": {
-            "format": "date-time",
-            "type": "string",
-            "description": "Creation date of the order",
-            "example": "2023-09-13T00:00:00Z"
-          },
-          "updated_at": {
-            "format": "date-time",
-            "type": "string",
-            "description": "Last updated date of the order",
-            "example": "2023-09-13T00:00:00Z"
-          }
-        },
-        "required": [
-          "id",
-          "mode",
-          "object",
-          "product",
-          "amount",
-          "currency",
-          "status",
-          "type",
-          "created_at",
-          "updated_at"
-        ]
-      },
       "LicenseStatus": {
         "type": "string",
         "description": "The current status of the license key.",
@@ -2626,6 +2745,164 @@
           "created_at"
         ]
       },
+      "LicenseListEntity": {
+        "type": "object",
+        "properties": {
+          "items": {
+            "description": "List of license items",
+            "items": { "$ref": "#/components/schemas/LicenseEntity" },
+            "type": "array"
+          },
+          "pagination": {
+            "description": "Pagination details for the list",
+            "allOf": [{ "$ref": "#/components/schemas/PaginationEntity" }]
+          }
+        },
+        "required": ["items", "pagination"]
+      },
+      "CreateCustomerRequestEntity": {
+        "type": "object",
+        "properties": {
+          "email": {
+            "type": "string",
+            "description": "The email address of the customer.",
+            "example": "john@example.com"
+          },
+          "name": {
+            "type": "string",
+            "description": "The full name of the customer.",
+            "example": "John Doe"
+          },
+          "metadata": {
+            "type": "object",
+            "description": "Additional metadata for the customer.",
+            "example": { "key": "value" }
+          }
+        },
+        "required": ["email", "name"]
+      },
+      "UpdateCustomerRequestEntity": {
+        "type": "object",
+        "properties": {
+          "customer_id": {
+            "type": "string",
+            "description": "The ID of the customer to update.",
+            "example": "cust_abc123"
+          },
+          "name": {
+            "type": "string",
+            "description": "The full name of the customer.",
+            "example": "John Doe"
+          },
+          "metadata": {
+            "type": "object",
+            "description": "Additional metadata for the customer.",
+            "example": { "key": "value" }
+          }
+        },
+        "required": ["customer_id"]
+      },
+      "CreateCustomerPortalLinkRequestEntity": {
+        "type": "object",
+        "properties": {
+          "customer_id": {
+            "type": "string",
+            "description": "Unique identifier of the customer."
+          }
+        },
+        "required": ["customer_id"]
+      },
+      "CustomerLinksEntity": {
+        "type": "object",
+        "properties": {
+          "customer_portal_link": {
+            "type": "string",
+            "description": "Customer portal link."
+          }
+        },
+        "required": ["customer_portal_link"]
+      },
+      "CancelSubscriptionRequestEntity": {
+        "type": "object",
+        "properties": {
+          "mode": {
+            "type": "string",
+            "description": "The mode of cancellation (immediate or scheduled), default can be configured in the store billing settings.",
+            "enum": ["immediate", "scheduled"],
+            "example": "immediate"
+          },
+          "onExecute": {
+            "type": "string",
+            "description": "The action to execute when canceling (cancel or pause) when mode is scheduled, ignored when mode is immediate or not provided",
+            "enum": ["cancel", "pause"],
+            "example": "cancel"
+          }
+        }
+      },
+      "UpsertSubscriptionItemEntity": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "description": "The id of the item to update."
+          },
+          "product_id": {
+            "type": "string",
+            "description": "The ID of the product associated with the subscription item."
+          },
+          "price_id": {
+            "type": "string",
+            "description": "The ID of the price associated with the subscription item."
+          },
+          "units": {
+            "type": "number",
+            "description": "The number of units for the subscription item."
+          }
+        }
+      },
+      "UpdateSubscriptionRequestEntity": {
+        "type": "object",
+        "properties": {
+          "items": {
+            "description": "List of subscription items to update/create. If no item ID is provided, the item will be created.",
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/UpsertSubscriptionItemEntity"
+            }
+          },
+          "update_behavior": {
+            "type": "string",
+            "description": "The update behavior for the subscription (defaults to proration)",
+            "enum": [
+              "proration-charge-immediately",
+              "proration-charge",
+              "proration-none"
+            ],
+            "default": "proration-charge"
+          }
+        }
+      },
+      "UpgradeSubscriptionRequestEntity": {
+        "type": "object",
+        "properties": {
+          "product_id": {
+            "type": "string",
+            "description": "The ID of the product to upgrade to",
+            "example": "prod_123"
+          },
+          "update_behavior": {
+            "type": "string",
+            "description": "The update behavior for the subscription (defaults to proration-charge-immediately)",
+            "enum": [
+              "proration-charge-immediately",
+              "proration-charge",
+              "proration-none"
+            ],
+            "default": "proration-charge-immediately"
+          }
+        },
+        "required": ["product_id"]
+      },
       "FeatureFileEntity": {
         "type": "object",
         "properties": {
@@ -2668,6 +2945,23 @@
         },
         "required": ["files"]
       },
+      "CustomerCreditsFeatureEntity": {
+        "type": "object",
+        "properties": {
+          "amount": {
+            "type": "string",
+            "description": "The number of credits to grant. String to preserve BigInt precision.",
+            "example": "100"
+          },
+          "unit_label": {
+            "type": "object",
+            "description": "Optional label for the credit unit (e.g. \"tokens\", \"credits\").",
+            "example": "tokens",
+            "nullable": true
+          }
+        },
+        "required": ["amount"]
+      },
       "ProductFeatureEntity": {
         "type": "object",
         "properties": {
@@ -2703,6 +2997,13 @@
             "description": "License key issued for the order.",
             "nullable": true,
             "allOf": [{ "$ref": "#/components/schemas/LicenseEntity" }]
+          },
+          "customer_credits": {
+            "description": "Customer credits feature data.",
+            "nullable": true,
+            "allOf": [
+              { "$ref": "#/components/schemas/CustomerCreditsFeatureEntity" }
+            ]
           },
           "license": {
             "description": "DEPRECATED: Use `license_key` instead. License key issued for the order.",
