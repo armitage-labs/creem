@@ -50,10 +50,7 @@
               "ai/introduction",
               {
                 "group": "For Humans",
-                "pages": [
-                  "ai/for-humans/getting-started",
-                  "ai/for-humans/cli"
-                ]
+                "pages": ["ai/for-humans/getting-started", "ai/for-humans/cli"]
               },
               {
                 "group": "For Agents",
@@ -195,6 +192,7 @@
               "guides/introduction",
               "guides/create-your-first-product",
               "guides/create-checkout-session",
+              "guides/sell-framer-templates-instant-remix-links",
               "guides/customer-credits-recipes",
               "guides/faq"
             ]
@@ -278,9 +276,7 @@
           {
             "group": "Stats",
             "icon": "chart-line",
-            "pages": [
-              "api-reference/endpoint/get-stats-summary"
-            ]
+            "pages": ["api-reference/endpoint/get-stats-summary"]
           },
           {
             "group": "Customer Credits",
@@ -302,9 +298,7 @@
           {
             "group": "Moderation",
             "icon": "shield-check",
-            "pages": [
-              "api-reference/endpoint/screen-prompt"
-            ]
+            "pages": ["api-reference/endpoint/screen-prompt"]
           }
         ]
       }
