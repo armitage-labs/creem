@@ -245,7 +245,39 @@ Before requesting payouts, you must complete verification:
   </Accordion>
 </AccordionGroup>
 
-Once verified, you can request payouts from the Payouts page. Funds are distributed according to the merchant's payout schedule.
+Once verified, you can request payouts from the Payouts page.
+
+### Payout Schedule and Thresholds
+
+Affiliate payouts follow the same schedule as merchant payouts:
+
+| Detail | Value |
+|--------|-------|
+| **Payout windows** | 1st and 15th of each month |
+| **Minimum balance** | 50 USD or 50 EUR |
+| **Hold period** | 7–12 days (required by payment partners for risk assessment) |
+
+<Note>
+Only commissions that have cleared the hold period by the payout date will be included. For example, if your payout is scheduled for the 15th, only commissions from sales processed before approximately the 8th will be available for that payout.
+</Note>
+
+When your available balance reaches the minimum threshold, click the **Withdraw** button on your Balance page. Your payout will be queued and processed in the next available payout window (1st or 15th of the month).
+
+If the payout date falls on a weekend or public holiday, the payout will be processed on the next business day.
+
+### Payout Methods and Fees
+
+| Method | Provider | Fee |
+|--------|----------|-----|
+| **Bank Transfer (SEPA / EU)** | Paysway | No additional fee |
+| **Bank Transfer (International)** | Paysway | 7 USD/EUR or 1% of payout amount, whichever is higher |
+| **Cryptocurrency (USDC via Polygon)** | Mural | 2% of payout volume |
+
+<Info>
+If your bank account currency differs from the commission currency, a conversion fee may be applied by the payment provider. This is outside of Creem's control.
+</Info>
+
+After your payout is processed, a payout record will appear on the **Payout Activity** tab of your Balance page, with a reverse invoice available for download for tax purposes.
 
 ### Managing Your Profile
 
@@ -298,7 +330,7 @@ Merchants can customize settings for individual affiliates:
     Cookie duration is set by the merchant when creating the program. Typical durations range from 30 to 90 days. If a customer returns and purchases within the cookie window, you earn commission.
   </Accordion>
   <Accordion title="When do I get paid?">
-    Payouts are processed according to the merchant's schedule after you request a withdrawal. You must complete identity verification and set up a payout method first. Processing typically takes 3-5 business days.
+    Payouts are processed on the 1st and 15th of each month. You must reach a minimum balance of 50 USD/EUR, complete identity verification (KYC), and set up a payout method before requesting a withdrawal. Once you click Withdraw, your payout is queued for the next available window. Note that commissions have a 7–12 day hold period before they become available.
   </Accordion>
   <Accordion title="Can I promote multiple merchants?">
     Yes! You can join multiple affiliate programs and manage them all from your affiliate portal. Use the membership switcher to view stats and earnings for each program.
@@ -316,7 +348,7 @@ Merchants can customize settings for individual affiliates:
     Affiliates can receive payouts via bank transfer (processed through Paysway) or cryptocurrency (USDC via Mural). Set up your preferred method in the Payouts section.
   </Accordion>
   <Accordion title="Is there a minimum payout amount?">
-    This depends on the merchant's program settings. Some programs have minimum payout thresholds, while others allow withdrawals of any amount.
+    Yes, you need a minimum available balance of 50 USD or 50 EUR to request a withdrawal. Once you reach this threshold, the Withdraw button becomes available on your Balance page.
   </Accordion>
 </AccordionGroup>
 
