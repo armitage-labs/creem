@@ -8,11 +8,9 @@
     "generate:api": "node scripts/generate-api-docs.js",
     "generate:api:remote": "node scripts/generate-api-docs.js --update-spec --cleanup --url",
     "generate:api:dry-run": "node scripts/generate-api-docs.js --dry-run",
-    "generate:api:cleanup": "node scripts/generate-api-docs.js --cleanup",
-    "prepare": "husky"
+    "generate:api:cleanup": "node scripts/generate-api-docs.js --cleanup"
   },
   "devDependencies": {
-    "husky": "^9.1.7",
     "prettier": "^3.1.0"
   }
 }

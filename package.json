@@ -11,10 +11,12 @@
     "format:check": "prettier --check \"packages/*/src/**/*.ts\"",
     "changeset": "changeset",
     "version-packages": "changeset version",
-    "release": "turbo run build && changeset publish"
+    "release": "turbo run build && changeset publish",
+    "prepare": "husky"
   },
   "devDependencies": {
     "@changesets/cli": "^2.27.0",
+    "husky": "^9.1.7",
     "prettier": "^3.8.1",
     "turbo": "^2.8.20",
     "typescript": "^5.8.3"
