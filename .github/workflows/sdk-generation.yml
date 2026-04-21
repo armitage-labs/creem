@@ -2,8 +2,16 @@ name: Speakeasy SDK Generation
 
 on:
   workflow_dispatch: {}
-  schedule:
-    - cron: "0 0 * * *"
+  push:
+    branches: [main]
+    paths:
+      - "packages/creem-sdk/openapi.json"
+      - "packages/creem-sdk/.speakeasy/**"
+
+permissions:
+  contents: write
+  pull-requests: write
+  id-token: write
 
 jobs:
   generate:
@@ -11,7 +19,7 @@ jobs:
     with:
       speakeasy_version: latest
       working_directory: packages/creem-sdk
+      mode: pr
     secrets:
       github_access_token: ${{ secrets.GITHUB_TOKEN }}
-      npm_token: ${{ secrets.NPM_TOKEN }}
       speakeasy_api_key: ${{ secrets.SPEAKEASY_API_KEY }}
