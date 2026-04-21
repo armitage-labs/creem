@@ -7,8 +7,8 @@
     "test": "turbo run test",
     "typecheck": "turbo run typecheck",
     "lint": "turbo run lint",
-    "format": "prettier --write \"packages/*/src/**/*.ts\"",
-    "format:check": "prettier --check \"packages/*/src/**/*.ts\"",
+    "format": "prettier --write \"**/*.{ts,tsx,js,jsx,mjs,cjs}\"",
+    "format:check": "prettier --check \"**/*.{ts,tsx,js,jsx,mjs,cjs}\"",
     "changeset": "changeset",
     "version-packages": "changeset version",
     "release": "turbo run build && changeset publish",
@@ -17,9 +17,13 @@
   "devDependencies": {
     "@changesets/cli": "^2.27.0",
     "husky": "^9.1.7",
+    "lint-staged": "^16.1.0",
     "prettier": "^3.8.1",
     "turbo": "^2.8.20",
     "typescript": "^5.8.3"
+  },
+  "lint-staged": {
+    "*.{ts,tsx,js,jsx,mjs,cjs}": "prettier --write"
   },
   "pnpm": {
     "onlyBuiltDependencies": [

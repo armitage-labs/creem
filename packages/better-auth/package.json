@@ -14,8 +14,7 @@
     "test:integration": "vitest run --config vitest.integration.config.ts",
     "test:all": "vitest run && vitest run --config vitest.integration.config.ts",
     "format": "prettier --write \"src/**/*.ts\"",
-    "format:check": "prettier --check \"src/**/*.ts\"",
-    "lint": "prettier --check \"src/**/*.ts\""
+    "format:check": "prettier --check \"src/**/*.ts\""
   },
   "exports": {
     ".": {

@@ -27,7 +27,6 @@
     "dev": "tsup --watch",
     "prepublishOnly": "pnpm run build",
     "typecheck": "tsc --noEmit",
-    "lint": "prettier --check .",
     "format": "prettier --write .",
     "format:check": "prettier --check .",
     "test": "vitest run",
