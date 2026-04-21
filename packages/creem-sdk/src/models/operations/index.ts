@@ -3,10 +3,21 @@
  */
 
 export * from "./cancelsubscription.js";
+export * from "./closecustomercreditsaccount.js";
+export * from "./creditcustomercreditsaccount.js";
+export * from "./debitcustomercreditsaccount.js";
 export * from "./deletediscount.js";
+export * from "./freezecustomercreditsaccount.js";
+export * from "./getcustomercreditsaccount.js";
+export * from "./getcustomercreditsaccountbalance.js";
 export * from "./getmetricssummary.js";
 export * from "./gettransactionbyid.js";
+export * from "./listcustomercreditsaccountentries.js";
+export * from "./listcustomercreditsaccounts.js";
+export * from "./listcustomerlicenses.js";
+export * from "./listcustomerorders.js";
 export * from "./listcustomers.js";
+export * from "./listcustomersubscriptions.js";
 export * from "./pausesubscription.js";
 export * from "./resumesubscription.js";
 export * from "./retrievecheckout.js";
@@ -14,8 +25,11 @@ export * from "./retrievecustomer.js";
 export * from "./retrievediscount.js";
 export * from "./retrieveproduct.js";
 export * from "./retrievesubscription.js";
+export * from "./reversecustomercreditsaccounttransaction.js";
+export * from "./searchdiscounts.js";
 export * from "./searchproducts.js";
 export * from "./searchsubscriptions.js";
 export * from "./searchtransactions.js";
+export * from "./unfreezecustomercreditsaccount.js";
 export * from "./updatesubscription.js";
 export * from "./upgradesubscription.js";

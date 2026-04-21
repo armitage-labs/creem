@@ -1,14 +1,15 @@
 lockVersion: 2.0.0
 id: 091f072e-89b5-4c97-b605-63f1bf64ee97
 management:
-  docChecksum: 7915a497f26b1a8159b2f5c9f72f77cf
+  docChecksum: 83ad0413cad667a9f6f91bfa5a3184ac
   docVersion: v1
-  speakeasyVersion: 1.758.0
-  generationVersion: 2.866.2
-  releaseVersion: 1.4.4
-  configChecksum: 12fca8be245450effc059ddb04cc9c34
-  repoURL: https://github.com/armitage-labs/creem-sdk.git
-  installationURL: https://github.com/armitage-labs/creem-sdk
+  speakeasyVersion: 1.761.9
+  generationVersion: 2.881.4
+  releaseVersion: 1.4.5
+  configChecksum: 837a75dcde1585ee947c95748a397569
+  repoURL: https://github.com/armitage-labs/creem.git
+  repoSubDirectory: packages/creem-sdk
+  installationURL: https://github.com/armitage-labs/creem
   published: true
 persistentEdits:
   generation_id: 2ae3947a-1a0f-4467-8464-88dcdadef11e
@@ -18,14 +19,14 @@ features:
   typescript:
     additionalDependencies: 0.1.0
     constsAndDefaults: 0.1.14
-    core: 3.26.42
+    core: 3.26.49
     defaultEnabledRetries: 0.1.0
     deprecations: 2.81.1
     devContainers: 2.90.1
     enumUnions: 0.1.0
     envVarSecurityUsage: 0.1.2
     flattening: 2.82.1
-    globalSecurity: 2.82.15
+    globalSecurity: 2.82.16
     globalSecurityCallbacks: 0.1.0
     globalSecurityFlattening: 0.1.1
     globalServerURLs: 2.83.1
@@ -40,7 +41,7 @@ features:
 trackedFiles:
   .devcontainer/README.md:
     id: b170c0f184ac
-    last_write_checksum: sha1:356253e3045969e3d82ff4543e0c8475b1df742f
+    last_write_checksum: sha1:4e8e6e91b25d30e961176ebc10e13599b39410b8
     pristine_git_object: 12fe5e7353696202f1e99a59bcf2bc4a9e4a2dc5
   .devcontainer/devcontainer.json:
     id: b34062a34eb1
@@ -74,10 +75,18 @@ trackedFiles:
     id: 0ce9707cb848
     last_write_checksum: sha1:bc4454e196fcd219f5a78da690375a884f5ed07b
     pristine_git_object: 08f95f4552349360b2c0b01802aa71ec3a55d2c2
+  docs/models/components/accountlistresponsedto.md:
+    last_write_checksum: sha1:48d0e36cc0e55fbfe6366c49e8e5bf12047b4799
+  docs/models/components/accountresponsedto.md:
+    last_write_checksum: sha1:e1d1695a3345c9cf7224f3b8fecfa0b109efe6cd
+  docs/models/components/accountresponsedtostatus.md:
+    last_write_checksum: sha1:a6f69e5a1c132ac5621960f470da4af1edf5fbee
   docs/models/components/activatelicenserequestentity.md:
     id: 3dc1cb0e852e
     last_write_checksum: sha1:71ded0506a82e47bc3fddd1eb82c72c732f8de21
     pristine_git_object: 634cbc45074962fdbda3c112c4a3ba2a1b429754
+  docs/models/components/balanceresponsedto.md:
+    last_write_checksum: sha1:bd8b66f0d47fe09063f8ac68d2ce68449ffbbd8c
   docs/models/components/cancelsubscriptionrequestentity.md:
     id: 058fefa14fc4
     last_write_checksum: sha1:d494995f6f8b38446649d86496e8839f64425d54
@@ -90,37 +99,53 @@ trackedFiles:
     last_write_checksum: sha1:9c75ad8bf74f5133574514adecbba17c7a738806
   docs/models/components/checkoutentity.md:
     id: 67c12f078b56
-    last_write_checksum: sha1:02646fa037032d319bae6c066156bd3cc8c0b0b4
+    last_write_checksum: sha1:9c1bcb71a86ce1ff2d28535869bee4b8e38611be
     pristine_git_object: 76ae3c39c23dd3a963acc8cae8af7f16bee53a23
   docs/models/components/checkoutentitycustomer.md:
-    last_write_checksum: sha1:dd5a2612f6b742476fa3fb7e955dcb559b359efa
+    last_write_checksum: sha1:450111bf57a390d1d395cca66a20a76ac3f171e7
   docs/models/components/checkoutentityproduct.md:
-    last_write_checksum: sha1:ff1f0c88107453a9eaa6351746e6c6243273cae8
+    last_write_checksum: sha1:0e16f9d9f455c574807c0a9d8b562ee7c866afb8
+  docs/models/components/code.md:
+    last_write_checksum: sha1:6ad6596ee16b80d2a09d192d7efde66e2d56266b
   docs/models/components/coupondurationtype.md:
     last_write_checksum: sha1:2fdb43e46b3a6e06927388fad93cb6982fa340d6
+  docs/models/components/createaccountdto.md:
+    last_write_checksum: sha1:862ca655d02657b2da30ac63030a3173b2d7e132
   docs/models/components/createcheckoutrequest.md:
     id: 7557df49b680
-    last_write_checksum: sha1:717276675edfbfaa68eb2ff8fb89ffbc38f02486
+    last_write_checksum: sha1:16e352bc3631df47423d73bd5a4090839ab278cb
     pristine_git_object: bb8482df255701edcc1079c08c610b233ecdbbf1
   docs/models/components/createcustomerportallinkrequestentity.md:
     id: f493dd6265e5
     last_write_checksum: sha1:dd3c1198fe0eed12b076fb28050f0afe3d434587
     pristine_git_object: 11fa2a78d8805e426dbabe9aff94c93c01faff92
+  docs/models/components/createcustomerrequestentity.md:
+    last_write_checksum: sha1:b9b0278b563c44a95beed465516414daf72a969f
+  docs/models/components/createcustomerrequestentitymetadata.md:
+    last_write_checksum: sha1:0e8b1de0979687cc6608ef11a559952df70791b6
   docs/models/components/creatediscountrequestentity.md:
     id: 246b87c4416f
     last_write_checksum: sha1:c9599a907a14363d922c95c00bb95f3a52f6261a
     pristine_git_object: 9b48051f449ee9e7d0a4263354c3a113db0012a0
   docs/models/components/createproductrequestentity.md:
     id: 8257f878173d
-    last_write_checksum: sha1:a93594f5df10561c5ce164d49eeff2fe4c0f144a
+    last_write_checksum: sha1:62eb2ac8c4e74b1cc717fc56bf0ed4b08f6a0031
     pristine_git_object: 1a0798d76f055612a9f62df2a317829617cf3d11
+  docs/models/components/creditdebitrequestdto.md:
+    last_write_checksum: sha1:73b194bec6339ab4508e94ad73a09581c1b00fb5
   docs/models/components/customer.md:
     id: c4a50385ed0c
-    last_write_checksum: sha1:6d584b8b378d61430c476892f975c818bc9f25b2
+    last_write_checksum: sha1:987efcb5e9c003a1eda24215627eff1fff601f2d
     pristine_git_object: e90603c9526c6d2ffbe60436dae40e6989cd43ed
+  docs/models/components/customercredits.md:
+    last_write_checksum: sha1:32c96134d7a8984f866262e8b28df96e240225ba
+  docs/models/components/customercreditserrordetaildto.md:
+    last_write_checksum: sha1:65e5fff87ade0856cba1f300b8b228f81b10444c
+  docs/models/components/customercreditserrordetaildtotype.md:
+    last_write_checksum: sha1:94926ecd39de019eb352062525e55673686f9198
   docs/models/components/customerentity.md:
     id: 2e9b74ad0ca6
-    last_write_checksum: sha1:1b6a2304cddfd5253c16d0bf2e1d738d64cdae1b
+    last_write_checksum: sha1:21fd119e4156b8bee2391fd99c4e532b95908602
     pristine_git_object: e22cc8d2ac887e6af76d92b025abf0a6e7f936d7
   docs/models/components/customerlinksentity.md:
     id: 7ed83d8861eb
@@ -128,7 +153,7 @@ trackedFiles:
     pristine_git_object: b18f40bbc66ce93b5a4fe6a96b7013c9e2b46276
   docs/models/components/customerlistentity.md:
     id: 395f610a1576
-    last_write_checksum: sha1:340bc1a289528788ffc179bc93c049044e8feeaa
+    last_write_checksum: sha1:119e500804a886ad9d0f98e76c870f3eac3ad354
     pristine_git_object: c3b813f01a82cc2e66cec3193a37c0b8ff04003e
   docs/models/components/customerrequestentity.md:
     id: d568e70e39e2
@@ -152,6 +177,8 @@ trackedFiles:
     id: e531da73e7f9
     last_write_checksum: sha1:09bc50df2ac5c68121286445eaddfb37af358708
     pristine_git_object: a4031a40e5d35d9aa03fbff408c4b58ca123ffdd
+  docs/models/components/decision.md:
+    last_write_checksum: sha1:e58547bb08ad1e99c01da44542dbed9cac4c0c4d
   docs/models/components/discount.md:
     id: 902ead98a895
     last_write_checksum: sha1:e647f09d4fbb48032813a75ce16e36fb4a59a2d7
@@ -162,15 +189,21 @@ trackedFiles:
     pristine_git_object: c0e14bf946daaeef5240dbf4a75748336747b86a
   docs/models/components/discountentitystatus.md:
     last_write_checksum: sha1:c10900151c98211d048ff468a5759b1c49be6d13
+  docs/models/components/discountlistentity.md:
+    last_write_checksum: sha1:15273a6b495692ceaab7f0c2063b8860bede3e7f
   docs/models/components/discounttype.md:
     last_write_checksum: sha1:2e162973afe678e1e14418b8348bcb410913a880
   docs/models/components/duration.md:
     last_write_checksum: sha1:ab1efd268c2288a991190e8c7eeacc4908c96c0b
+  docs/models/components/entrylistresponsedto.md:
+    last_write_checksum: sha1:02e8ed6d5ed60882965198f7a008d70de439ef70
+  docs/models/components/entryresponsedto.md:
+    last_write_checksum: sha1:ede43338cf27d2e222967a23ff350cb87357622f
   docs/models/components/environmentmode.md:
     last_write_checksum: sha1:bd424324d00e9495461e19207d9531be9d4bb02e
   docs/models/components/featureentity.md:
     id: fe7695d86411
-    last_write_checksum: sha1:70bf37834b4b68a5fe432e56749bf2bab56bd6d3
+    last_write_checksum: sha1:c8ec62a6097c63a3720a8e9b7c30dd6eda402a1d
     pristine_git_object: f60f2dcf49c631efa5aa780eaf2b47a80e6b908e
   docs/models/components/featurefileentity.md:
     last_write_checksum: sha1:7c88339bf2272c8f34875e3e2ad0035ad1f7dff3
@@ -181,17 +214,21 @@ trackedFiles:
     last_write_checksum: sha1:47553a744537d783099d133fa24daa06df9a020c
     pristine_git_object: 056846e8c98e3dc4bd67c7e694e9c7fe5e5f0755
   docs/models/components/license.md:
-    last_write_checksum: sha1:f983b181b5714861ce30f20299c98ffa77be9e17
+    last_write_checksum: sha1:208a8d2416ea93634e6d919c8e7bc2aaf2523911
   docs/models/components/licenseentity.md:
     id: 2d0cf735e53f
-    last_write_checksum: sha1:4230b38231703a5ae42ffd068c65b23997652be9
+    last_write_checksum: sha1:933290fab96c4807fd91796502770fc694dede65
     pristine_git_object: 26599d872e2051eba024640bf7000dd8420e8bc8
   docs/models/components/licenseentitystatus.md:
     last_write_checksum: sha1:dfede055510e2244a2c3fa646e7b7ce0ba45c0dd
   docs/models/components/licensekey.md:
-    last_write_checksum: sha1:7be2a18895ca436fb74755b3d36c6c64da9db150
+    last_write_checksum: sha1:ef91ecf48fc961b1b186aa18abbed420bb852c21
+  docs/models/components/licenselistentity.md:
+    last_write_checksum: sha1:cf5e0d186b49175b8e5f5e90e38c733034b7a041
   docs/models/components/licensestatus.md:
     last_write_checksum: sha1:f179327cd49570a74fabd1b76b80bfddebe75377
+  docs/models/components/metadata.md:
+    last_write_checksum: sha1:ba5785bc40e172ab64873edf86842dadaff98983
   docs/models/components/mode.md:
     id: ecad6afdf106
     last_write_checksum: sha1:8da111ddd5598f68354ae0c62781135db9badd8f
@@ -204,6 +241,8 @@ trackedFiles:
     id: 5af33ed8aff2
     last_write_checksum: sha1:44d9ff71cf7dfbdd1e0dd199d5f70a24f5bd17fe
     pristine_git_object: eed4d64839e22ae0a74e7afefc53f28d293b40f1
+  docs/models/components/orderlistentity.md:
+    last_write_checksum: sha1:dde43f0688ecd6c9a27269066bd9dec2c07191b5
   docs/models/components/orderstatus.md:
     last_write_checksum: sha1:60293d1e59e35caa4fe80a50ce492badabffa73b
   docs/models/components/ordertype.md:
@@ -212,9 +251,11 @@ trackedFiles:
     id: 9473e5fff17d
     last_write_checksum: sha1:953b0f352c1062e2a833bb8d5e2f12de6047b553
     pristine_git_object: 111a8b029c00eba4f26c5b660d8cdd43e2fdac36
+  docs/models/components/param.md:
+    last_write_checksum: sha1:a998eac3b10fab86fdf4610749a3085867245cb9
   docs/models/components/product.md:
     id: ba34ccd38ab6
-    last_write_checksum: sha1:e0ec1e97d17919c833efb7f4f23c7ad45d7c41e7
+    last_write_checksum: sha1:5e9493e4362585241f73cb11f04f50222aa4183c
     pristine_git_object: 709453d1ecb4d6a24bffc77ced210daf47d8b709
   docs/models/components/productbillingperiod.md:
     last_write_checksum: sha1:81c599885037479b82b3955a08ad25cae58d7781
@@ -224,11 +265,11 @@ trackedFiles:
     last_write_checksum: sha1:d125fe68182c427436240551adb120d81ba02bbb
   docs/models/components/productentity.md:
     id: 01b586923dbb
-    last_write_checksum: sha1:59fa466a077a820e0ab0f0d9434ed4f142d54fb4
+    last_write_checksum: sha1:97f3d316d8a264837b626ee4cc0c43f7a448760a
     pristine_git_object: aa473e7b23f86649b6c80f3c5c11569dc6207ab2
   docs/models/components/productfeatureentity.md:
     id: 54a8ab410373
-    last_write_checksum: sha1:a4dfd3ea82e336eb3268068798bfed8c1a573775
+    last_write_checksum: sha1:82cc5708a065f3bb34856c4720810eaab318d516
     pristine_git_object: ac862ed56532a94754de17f42f42bbca51d96ac1
   docs/models/components/productfeatureentityinstance.md:
     last_write_checksum: sha1:162bbca77c360847c16ed09f62d765807620b437
@@ -239,7 +280,7 @@ trackedFiles:
   docs/models/components/productfeatureentitystatus.md:
     last_write_checksum: sha1:55ae66839360b4e3aee41159c068d3be98a24b34
   docs/models/components/productfeaturetype.md:
-    last_write_checksum: sha1:c3bcdbad07f5af91923bc6d9204164e8cf48dd14
+    last_write_checksum: sha1:9aca85ddee127bad8b96e18455afd3a645c0672d
   docs/models/components/productlistentity.md:
     id: b087b47a2019
     last_write_checksum: sha1:f7ca7c6f9537856ebfaa41472cfbcefcab4c68c2
@@ -250,8 +291,18 @@ trackedFiles:
     last_write_checksum: sha1:f694224a94a6b1f1295849052d922a1be07455d9
   docs/models/components/productstatus.md:
     last_write_checksum: sha1:040a457b714b1727e239bbd7cd8627578f9d5733
+  docs/models/components/reversalof.md:
+    last_write_checksum: sha1:1fadcfedbaede49f9fab80f840a30eb001d08d95
+  docs/models/components/reversetransactionrequestdto.md:
+    last_write_checksum: sha1:8741f88428906956cadbca735f7523d9c0dbbe6d
+  docs/models/components/screenpromptrequest.md:
+    last_write_checksum: sha1:7b3977e8fbbaa6ac293311ea1beafe5baedb7c9e
+  docs/models/components/screenpromptresponse.md:
+    last_write_checksum: sha1:82f356590cea3deed68decc95b83ecbd2ee968f8
   docs/models/components/security.md:
     last_write_checksum: sha1:82e5c2f8a9f131654365162ba6e8f8d7eba0a575
+  docs/models/components/side.md:
+    last_write_checksum: sha1:275c756847843bd363ee5f0238ff953ea01b3f13
   docs/models/components/statsmetricperiodentity.md:
     last_write_checksum: sha1:f3d50aa5f1929901fbd68418504d3d7ebf49d972
   docs/models/components/statsmetrictotalsentity.md:
@@ -262,20 +313,20 @@ trackedFiles:
     last_write_checksum: sha1:63b716135206289d56fea2ac74a40b237e45c4a4
   docs/models/components/subscription.md:
     id: 66a8decfafdd
-    last_write_checksum: sha1:fb4742c13455f04ee913cdd94a270ae23d3adfdf
+    last_write_checksum: sha1:c6c2d2b6dd883fdb054777b3f03b01068f1306c9
     pristine_git_object: 145d65c10a85c733d69cfad65ddbb7aef1e40571
   docs/models/components/subscriptioncollectionmethod.md:
     last_write_checksum: sha1:f6a90b9b40f12c1d16d9255ff993678297a09c7d
   docs/models/components/subscriptionentity.md:
     id: ac5d50bdbfb7
-    last_write_checksum: sha1:e96c186471884016dd0054090f01fc6def645372
+    last_write_checksum: sha1:2c93bb220d24d3947e5db9b5526ad24acc208833
     pristine_git_object: f7f20478fd491f4f790ac0cadb003a13f6881361
   docs/models/components/subscriptionitementity.md:
     id: a3e9d39a5879
     last_write_checksum: sha1:3223b5268f77b9c939a59a5663ff8bc7ebbfa5df
     pristine_git_object: 511c90d69614f263f009aa87c87d29589f1c9883
   docs/models/components/subscriptionlistentity.md:
-    last_write_checksum: sha1:039a65159a23188c116967ca364fded87330a7b9
+    last_write_checksum: sha1:cf89e39b89fbd1073bfb5fa1e10c036da25651a5
   docs/models/components/subscriptionstatus.md:
     last_write_checksum: sha1:2feb0929d0974010c60dec64f88b50eb8c50d536
   docs/models/components/taxcategory.md:
@@ -296,16 +347,24 @@ trackedFiles:
     id: b572848678dd
     last_write_checksum: sha1:e0f55d4d6ef20aba2adca4c0012c6da1bee3feea
     pristine_git_object: 80d97f8c96303b3b2ca4caf3daa81f77f451421a
+  docs/models/components/transactionresponsedto.md:
+    last_write_checksum: sha1:4c333e8de265431b5ec24d80935a2a6f14bc1636
   docs/models/components/transactionstatus.md:
     last_write_checksum: sha1:bb03484868c40a691d6afd4a07184bb36d1373ff
   docs/models/components/transactiontype.md:
     last_write_checksum: sha1:2013a0a1e8c5f4bfeebe9ccb6dce3f0a3ff3247f
   docs/models/components/type.md:
     last_write_checksum: sha1:89adfffc9ba72e4198e8d3bd38a39ec2a9d695a6
+  docs/models/components/unitlabel.md:
+    last_write_checksum: sha1:c0d82cd9550b45e87cb8066171273c0d697256df
   docs/models/components/updatebehavior.md:
     id: 2bbf9ee35707
     last_write_checksum: sha1:f3b55bedb0b2f2bad6ed0b3c987e3e7ed40a7d41
     pristine_git_object: 13e4d6b4004b5c7b69287e17d07375883709d365
+  docs/models/components/updatecustomerrequestentity.md:
+    last_write_checksum: sha1:c60b99cd74ff39f78bb99edb9755e9d227f18bc7
+  docs/models/components/updatecustomerrequestentitymetadata.md:
+    last_write_checksum: sha1:12d23440bae88817c722a213ae5ea5ce005e53d6
   docs/models/components/updatesubscriptionrequestentity.md:
     id: a9203ebb8593
     last_write_checksum: sha1:77c191c4e53064e2528407ec9773670fee29cf0b
@@ -322,20 +381,36 @@ trackedFiles:
     id: 9a6b940566f5
     last_write_checksum: sha1:8241fe5d30bd88c11096672245244253dda532b8
     pristine_git_object: b53daec6082bfb6c07ace88d7d0209da53cc90d8
+  docs/models/components/usageentity.md:
+    last_write_checksum: sha1:735c8c36334a6eb04fdef31e75853c7f8b42daf9
   docs/models/components/validatelicenserequestentity.md:
     id: f26067c83d89
     last_write_checksum: sha1:4abf7e6fa8315f107b0d401113693cf8b6e66371
     pristine_git_object: dc04743be5b60d9ec782327ae8488a79bbcb2257
+  docs/models/errors/customercreditserrorresponsedto.md:
+    last_write_checksum: sha1:e279ee0dc5022f25a85211e462fe0b72917d2a70
   docs/models/operations/cancelsubscriptionrequest.md:
     id: 838f185094b0
     last_write_checksum: sha1:9d15e4aaaa5b67b42dce3ef66dab4738904a172f
     pristine_git_object: 13ced3d7d373f88b0c13145ce7f7bc656725084e
+  docs/models/operations/closecustomercreditsaccountrequest.md:
+    last_write_checksum: sha1:ea90f857332d356dbd9433f87cafa8f827c9ceec
+  docs/models/operations/creditcustomercreditsaccountrequest.md:
+    last_write_checksum: sha1:1d7cb016062a08938252ad6ea4547e451b923fdf
   docs/models/operations/currency.md:
     last_write_checksum: sha1:46b239016d5ef0aba17a18a92bbcf211dfe41b83
+  docs/models/operations/debitcustomercreditsaccountrequest.md:
+    last_write_checksum: sha1:9be778df8147ca56eadee22a8083055c9fb22547
   docs/models/operations/deletediscountrequest.md:
     id: a531c39a8944
     last_write_checksum: sha1:4b7e9868d040221511eb39e527a24d52dff23e74
     pristine_git_object: 6c568413b4ab173f9f65480f60859637f85103b7
+  docs/models/operations/freezecustomercreditsaccountrequest.md:
+    last_write_checksum: sha1:ad067fa1532851742f6b4e338d1bf9300e616a2a
+  docs/models/operations/getcustomercreditsaccountbalancerequest.md:
+    last_write_checksum: sha1:c7e75505e3c048147b4f9129417fce72fa751b95
+  docs/models/operations/getcustomercreditsaccountrequest.md:
+    last_write_checksum: sha1:d38b92443458194dbdc6413313d5c5f67805c782
   docs/models/operations/getmetricssummaryrequest.md:
     last_write_checksum: sha1:6bb0141622b35e29b93ae1217ba956597895291c
   docs/models/operations/gettransactionbyidrequest.md:
@@ -344,10 +419,20 @@ trackedFiles:
     pristine_git_object: 35e14c16281dbd4f6b58863ab29a1160b8b55181
   docs/models/operations/interval.md:
     last_write_checksum: sha1:9cd92c6291d8d7fcd4c58cfe7ef4a7b78b0cedaf
+  docs/models/operations/listcustomercreditsaccountentriesrequest.md:
+    last_write_checksum: sha1:d8acd4a104da767c94368700c015226cc6ae634e
+  docs/models/operations/listcustomercreditsaccountsrequest.md:
+    last_write_checksum: sha1:23c26a15f9d31781f6a2f8280ed3fccaed1f857d
+  docs/models/operations/listcustomerlicensesrequest.md:
+    last_write_checksum: sha1:19685866f6e00fcd5d2f39e0a16d085345380e38
+  docs/models/operations/listcustomerordersrequest.md:
+    last_write_checksum: sha1:e4096a77726f496b3e1f1be576a16f0d455e98f4
   docs/models/operations/listcustomersrequest.md:
     id: 14ff269ba0f9
     last_write_checksum: sha1:c22cbae63c25d808b3f91657648da5a033a20e94
     pristine_git_object: 0ca867d8074f7212a50f8d5b4cfafdcbbaba37c0
+  docs/models/operations/listcustomersubscriptionsrequest.md:
+    last_write_checksum: sha1:5516af6e468be802dd2001fa0232d4e06b36a0d1
   docs/models/operations/pausesubscriptionrequest.md:
     id: 13bd0ce6ef15
     last_write_checksum: sha1:55beefb89887dcc9ec53226735b8374781037dd2
@@ -376,6 +461,10 @@ trackedFiles:
     id: 609d4d39c68f
     last_write_checksum: sha1:b4b842d54dcbb0fd36731ebf4270bdb40f7cb365
     pristine_git_object: 84912b498ab54a11cac4e7d21916a8c9573bc1d2
+  docs/models/operations/reversecustomercreditsaccounttransactionrequest.md:
+    last_write_checksum: sha1:89939b2c120b6b69416bba66c136b599cb48a337
+  docs/models/operations/searchdiscountsrequest.md:
+    last_write_checksum: sha1:6949297f5c0b3e28decf6bad5f7dd24c78fdf19a
   docs/models/operations/searchproductsrequest.md:
     id: c2b3f4ec5379
     last_write_checksum: sha1:37a6c22e12a52c8ac6e5db63c25fd60708e248a7
@@ -386,6 +475,12 @@ trackedFiles:
     id: 2bb8a7f7a3c8
     last_write_checksum: sha1:54b4dc3068e187de34e72603ef325f411424bcd0
     pristine_git_object: 5e55c99a18314b651860acbe680c94634689b9a0
+  docs/models/operations/status.md:
+    last_write_checksum: sha1:b8c5b8cfe6ebfb22dee451ebaefaf2314b662e43
+  docs/models/operations/type.md:
+    last_write_checksum: sha1:405208182632f4868bfee2d87dcaa2d180afdb89
+  docs/models/operations/unfreezecustomercreditsaccountrequest.md:
+    last_write_checksum: sha1:e0f993418aab8d67d0d75cd43b7103f962441169
   docs/models/operations/updatesubscriptionrequest.md:
     id: ce583ff5488a
     last_write_checksum: sha1:1ee83b303791cbb23689ef32d39a1d477cd71495
@@ -398,21 +493,25 @@ trackedFiles:
     id: 4fb6631c9f7a
     last_write_checksum: sha1:fbcfaaa6fbf9f1870cb394f73bfaa4f515313ef3
     pristine_git_object: 576619253f2ac8dfc4b648dbd3c2bacd02c78618
+  docs/sdks/customercreditsaccountsexperimental/README.md:
+    last_write_checksum: sha1:95fb204024517d1031eb798e7e1f163fe1d3edbc
   docs/sdks/customers/README.md:
     id: 9332759cffc2
-    last_write_checksum: sha1:3745ce4db71ba50944c34b5cf7f50e54a299e05f
+    last_write_checksum: sha1:58a9328362e6326b52d55af59c788e1176c62ad9
     pristine_git_object: 4c3f33ea1a241248c0ca359e1f8fe12b76019642
   docs/sdks/discounts/README.md:
     id: "000723261694"
-    last_write_checksum: sha1:472567cf5f5ca114a111cceb5c900c0c2208d9c7
+    last_write_checksum: sha1:df8a1e1e696c9f06b3fef26ae28528695b8f22b0
     pristine_git_object: 0b3a5d36f6dbb5983f831f147ecfeff80c1049d4
   docs/sdks/licenses/README.md:
     id: 28ca188b6148
     last_write_checksum: sha1:c5d260917f4c909defc3086233e4d2a7d81aebe1
     pristine_git_object: 0940a9ab10fc7952917543409c21d0c319d2c9ab
+  docs/sdks/moderation/README.md:
+    last_write_checksum: sha1:e21bbb0797f956cdb4019dff3f4fc697b2dd19a4
   docs/sdks/products/README.md:
     id: af06255e12ab
-    last_write_checksum: sha1:31e8b9e0a5e320b876310b73895dff5ea3262151
+    last_write_checksum: sha1:257ba1641c739420365daf929893890836d55412
     pristine_git_object: 380264dd8701ed10359bbde1079f8183b4fc0004
   docs/sdks/stats/README.md:
     last_write_checksum: sha1:d643afa689ebee3c54836eda9cfb53ee5e2f5c45
@@ -444,64 +543,100 @@ trackedFiles:
     last_write_checksum: sha1:f365e8683dec3c0eb457d1863badea30ebd4b76d
   jsr.json:
     id: 7f6ab7767282
-    last_write_checksum: sha1:867921387a182fd0b269a5ef928706aee41f8f91
+    last_write_checksum: sha1:cc8a005a3ac64a6b9f727e89373efc3e9aa2d219
     pristine_git_object: e5888a4c7af0aee5100b8d817f757e0d44eddad1
   package.json:
     id: 7030d0b2f71b
-    last_write_checksum: sha1:25765af9a9d706be2f9d869f31a1d6d05bbea53d
+    last_write_checksum: sha1:33484b09f449ad0bcace03f8861357ad8997fa09
     pristine_git_object: 4904751d275b1cbba4d414fee5ca96961af59a8c
   src/core.ts:
     id: f431fdbcd144
     last_write_checksum: sha1:cfe52efffa2249730665e76efe01d6717dc4d765
     pristine_git_object: 9720cacca56b86669855b5e92956a5e2a3ee77c1
   src/funcs/checkoutsCreate.ts:
-    last_write_checksum: sha1:4f3f3a48226ab802f9cc892ffa457e322dfeb883
+    last_write_checksum: sha1:90df3a68a49b201483a2f24869b765aed3fc7b7b
   src/funcs/checkoutsRetrieve.ts:
-    last_write_checksum: sha1:42812ab0dae1a4543066faecc76c97eb954425bf
+    last_write_checksum: sha1:59392a2327ca61b1980742cfd66f91ace5c60bea
+  src/funcs/customerCreditsAccountsExperimentalCloseCustomerCreditsAccount.ts:
+    last_write_checksum: sha1:914e76fcc4bd0418a716a5ed2c92b3efb2efe8bf
+  src/funcs/customerCreditsAccountsExperimentalCreateCustomerCreditsAccount.ts:
+    last_write_checksum: sha1:5e2a13b5c9ca24eab34f3afe916238dde48b4a65
+  src/funcs/customerCreditsAccountsExperimentalCreditCustomerCreditsAccount.ts:
+    last_write_checksum: sha1:b1e6f4f7bd0faba7f1b6e16065b98e5908d795c7
+  src/funcs/customerCreditsAccountsExperimentalDebitCustomerCreditsAccount.ts:
+    last_write_checksum: sha1:e4a3db6269c026c0e98a90019bee22fdaee833fd
+  src/funcs/customerCreditsAccountsExperimentalFreezeCustomerCreditsAccount.ts:
+    last_write_checksum: sha1:a204ceaf9db7e85b58108a4bbaaf3c02115a07b6
+  src/funcs/customerCreditsAccountsExperimentalGetCustomerCreditsAccount.ts:
+    last_write_checksum: sha1:e16a6cb270533c1e3ce1966ddb455ad056e33fe8
+  src/funcs/customerCreditsAccountsExperimentalGetCustomerCreditsAccountBalance.ts:
+    last_write_checksum: sha1:cbc72b7c0ec81569e29c53aae0baddd6ba3bd9e3
+  src/funcs/customerCreditsAccountsExperimentalListCustomerCreditsAccountEntries.ts:
+    last_write_checksum: sha1:3af986a642a3737c485e778fa841c0ba03e54ba0
+  src/funcs/customerCreditsAccountsExperimentalListCustomerCreditsAccounts.ts:
+    last_write_checksum: sha1:fef67c36b13dd8f9b6a28cd429de732bccae1a55
+  src/funcs/customerCreditsAccountsExperimentalReverseCustomerCreditsAccountTransaction.ts:
+    last_write_checksum: sha1:2681ff7ca51f309e34e303b96871712739e06f78
+  src/funcs/customerCreditsAccountsExperimentalUnfreezeCustomerCreditsAccount.ts:
+    last_write_checksum: sha1:75f06344fb6376fda5005e96b38d7e60e40f23ac
+  src/funcs/customersCreateCustomer.ts:
+    last_write_checksum: sha1:631c9c8f11ecd5c2a2e84b27e6453111cc26fd16
   src/funcs/customersGenerateBillingLinks.ts:
-    last_write_checksum: sha1:923bd1d37383376491af3faef2449c7af1f94617
+    last_write_checksum: sha1:e3e7c516de411200b36294440e4b90116a5b5057
   src/funcs/customersList.ts:
-    last_write_checksum: sha1:f00cabc0c783c3e802e8a6a2e59c5b641e1cd3c2
+    last_write_checksum: sha1:7db5eaeb46e4068b94e2d8b18b1c6748bd439407
+  src/funcs/customersListCustomerLicenses.ts:
+    last_write_checksum: sha1:d42890f7a9b62d583e6cd1ba5458e1710062ef92
+  src/funcs/customersListCustomerOrders.ts:
+    last_write_checksum: sha1:7ac8d95fb0089550ee09da6cedaa829631da865f
+  src/funcs/customersListCustomerSubscriptions.ts:
+    last_write_checksum: sha1:bcd49b1e6d643e927ede6d9022e5eaa797bdb4e0
   src/funcs/customersRetrieve.ts:
-    last_write_checksum: sha1:6427c97e2b22a4788c26f403b9c61127dd577a21
+    last_write_checksum: sha1:72caec14df8715b0e7b1353b750785195f3e69e8
+  src/funcs/customersUpdateCustomer.ts:
+    last_write_checksum: sha1:932ff6ca969aff909e1ef61665b24133098c7065
   src/funcs/discountsCreate.ts:
-    last_write_checksum: sha1:6d1f06ad3fdf5cdbe01ea5230f737469dbd35e6e
+    last_write_checksum: sha1:b88407bd06ebdd8bdc5a7a6635ba199cc7f8b85e
   src/funcs/discountsDelete.ts:
-    last_write_checksum: sha1:76b1ca4f1edadb79a5d3ada8f76a83d4dc6bd7ed
+    last_write_checksum: sha1:82e51008ab647c72d99a836c5ad657476eea11f8
   src/funcs/discountsGet.ts:
-    last_write_checksum: sha1:cec8247b54a8e4b4f6326f1616070a5456113db2
+    last_write_checksum: sha1:6e02ea652cea0f6396d069a9d5e266c4385eb57a
+  src/funcs/discountsSearchDiscounts.ts:
+    last_write_checksum: sha1:2dabfebed24e92ea18464c7295850074e2e30370
   src/funcs/licensesActivate.ts:
-    last_write_checksum: sha1:f541099d3a621f564942c90135d66246c9eac097
+    last_write_checksum: sha1:8399d8ccf8bc7a1e1597d0ad74570562042a2aad
   src/funcs/licensesDeactivate.ts:
-    last_write_checksum: sha1:481a67ff6ccccb126998aa4ef279378bc789b707
+    last_write_checksum: sha1:b26257ac0ba34e6687936e38754b83fb05354a13
   src/funcs/licensesValidate.ts:
-    last_write_checksum: sha1:f6b3dddb61bd93f70879dff2742f44845dc26de0
+    last_write_checksum: sha1:86c04a8bbb6bd028c0273bb3573837e8e0bf0dcf
+  src/funcs/moderationScreenPrompt.ts:
+    last_write_checksum: sha1:d8db4fe2abfd5905ab31522046c45d6045f77f69
   src/funcs/productsCreate.ts:
-    last_write_checksum: sha1:8e0936d0bcecff045cc5bea4fc4b46054cd1b46e
+    last_write_checksum: sha1:d134c8aed5d21b18a7e1c165dca42500fb958321
   src/funcs/productsGet.ts:
-    last_write_checksum: sha1:e8a0bf57d401cca310c9d17bcfaf25660857475d
+    last_write_checksum: sha1:c2f57bd993f51a191d83efa96e168114a9070d00
   src/funcs/productsSearch.ts:
-    last_write_checksum: sha1:cd4bca82541a3885b00890b5f05bc739a5850707
+    last_write_checksum: sha1:7eb86f9596e3213a118bebf5cabee8b4f96fed2b
   src/funcs/statsGetMetricsSummary.ts:
-    last_write_checksum: sha1:695b85f782c8bfda4dfc725587b7b13eeef4c003
+    last_write_checksum: sha1:f23fcc6223dd78bd513225ba06f453a61756355f
   src/funcs/subscriptionsCancel.ts:
-    last_write_checksum: sha1:6c41f9ba1172ad21d7f43a391d89c0cdb31775f8
+    last_write_checksum: sha1:7fb9521b6d36c9e5c542a559bb79d907bc445853
   src/funcs/subscriptionsGet.ts:
-    last_write_checksum: sha1:b2c4f4ac2447af89d2f019eea3008b0b47f064da
+    last_write_checksum: sha1:ca3f04cd6fefb4b645d2b5cf55dfbc5532f93bea
   src/funcs/subscriptionsPause.ts:
-    last_write_checksum: sha1:150c9054152d0826dd17ea0e99790ea8b33449cc
+    last_write_checksum: sha1:331b1edda2b030935828bf05fa2f5a423adcc051
   src/funcs/subscriptionsResume.ts:
-    last_write_checksum: sha1:8a1c722cc401ac94da99d7a11239d06e2c4fd4bc
+    last_write_checksum: sha1:82f66141e88b8b2b0ce141096b9d5450b17c644e
   src/funcs/subscriptionsSearchSubscriptions.ts:
-    last_write_checksum: sha1:d89302a5bfdc4b01aabdfba01ed981cbe866d01f
+    last_write_checksum: sha1:767401c4fe41ad82f477deb367535fbbee5aca7b
   src/funcs/subscriptionsUpdate.ts:
-    last_write_checksum: sha1:f3f174fe894d9ac284fab7a2a99b46b439599439
+    last_write_checksum: sha1:3a3a904e9013fdd1a24544010da0b7051b7167b6
   src/funcs/subscriptionsUpgrade.ts:
-    last_write_checksum: sha1:534bcf0fc2b4d3624361d648d9fe06e3d9e6cc43
+    last_write_checksum: sha1:98b72b52ede2e56853879daec0568d744f0ef233
   src/funcs/transactionsGetById.ts:
-    last_write_checksum: sha1:9e36fe769fb81ca5eef36eb42d9a6f54a8e26ee5
+    last_write_checksum: sha1:f79967d4c377e66f70407daeadf6e15177cfde74
   src/funcs/transactionsSearch.ts:
-    last_write_checksum: sha1:1217ed1564593c1d9c29084376f7be1e8a6f574b
+    last_write_checksum: sha1:8fa634605b95675bcb10258c9319c0d9d92fe5a6
   src/hooks/hooks.ts:
     id: a2463fc6f69b
     last_write_checksum: sha1:646c1538dbffb2552af9d7516de64c339b5e96c2
@@ -524,7 +659,7 @@ trackedFiles:
     pristine_git_object: 0aebd8b0a4867e35cb3348fc52921c3c0b4725b7
   src/lib/config.ts:
     id: 320761608fb3
-    last_write_checksum: sha1:aaec4c09dab0c31ad4824542bf6c3ee35156f936
+    last_write_checksum: sha1:231ebe565b8ed0b735412537c5bfe3b211457b46
     pristine_git_object: 21c35be9d8c1ab94c37377361515b326d654872b
   src/lib/dlv.ts:
     id: b1988214835a
@@ -532,7 +667,7 @@ trackedFiles:
     pristine_git_object: e81091f5e536f82739f71379b1fddc2d147c49e2
   src/lib/encodings.ts:
     id: 3bd8ead98afd
-    last_write_checksum: sha1:d20c131976ab8ac68b22bdde2b7ed84b5b873922
+    last_write_checksum: sha1:d47614c415b37e092965c34cb668562195701004
     pristine_git_object: 31cd3733907afbee3641b9ab680ed417247a7d33
   src/lib/env.ts:
     id: c52972a3b198
@@ -572,15 +707,15 @@ trackedFiles:
     pristine_git_object: 47edb9725c2482c667e2ddc8a56b1fec4285c492
   src/lib/sdks.ts:
     id: 8a6d91f1218d
-    last_write_checksum: sha1:5d7597d5f33a925d83802bb5fe671b352771988d
+    last_write_checksum: sha1:63a8eeee7523cb6c3d680ad69613e7a0e9ec1dc4
     pristine_git_object: 536c1e103bbbf8c0beec1b9e90075d6540086b78
   src/lib/security.ts:
     id: 0502afa7922e
-    last_write_checksum: sha1:1892f996cf70d7764bf5f14d0d4671228beafa3d
+    last_write_checksum: sha1:20b685ff8ea8161158bda558395e513fa676f62e
     pristine_git_object: e9501534a329d2cb89103184f1d669f605e177d4
   src/lib/url.ts:
     id: b0057e24ed76
-    last_write_checksum: sha1:d124050c7e755c0cce233b9e029afb584ff65201
+    last_write_checksum: sha1:3bceadd74bf0b31adf13eb06b7531077c3e07d65
     pristine_git_object: f3a8de6c021de59c991707946cd294596cae954d
   src/mcp-server/build.mts:
     id: f7a2ed2de4d7
@@ -608,7 +743,7 @@ trackedFiles:
     pristine_git_object: 0955a573c2ce989d63c737410ab8cc28706d9f74
   src/mcp-server/mcp-server.ts:
     id: aabbc4ab07c1
-    last_write_checksum: sha1:da47ecc742004de652c79be431bc73acc23f910e
+    last_write_checksum: sha1:dfa0328085ee792b574b494dd650933422226b44
     pristine_git_object: 4153fdc4ac7a39fd057e811c809b67b84b86cb9b
   src/mcp-server/prompts.ts:
     id: 26f3d73cbf31
@@ -624,7 +759,7 @@ trackedFiles:
     pristine_git_object: c25696d4c4f70e081fa5d87ad6891874c509a577
   src/mcp-server/server.ts:
     id: 2784dd48e82a
-    last_write_checksum: sha1:4d8bc10c4c24d9ff2c544b1284fd056119cc148e
+    last_write_checksum: sha1:cd1ca0cf93d711e23aae9b1056993f38ab20aaf4
     pristine_git_object: 93c59790bc4d517a18cdd7e83fe3a2dceffda1c5
   src/mcp-server/shared.ts:
     id: 074e80d4be1e
@@ -638,24 +773,60 @@ trackedFiles:
     last_write_checksum: sha1:04d4c2bc629a4e2c72579267c2bee65bd4b5bb48
   src/mcp-server/tools/checkoutsRetrieve.ts:
     last_write_checksum: sha1:ee12b15521e878e6fa5a4d7158d3c891fb9b846d
+  src/mcp-server/tools/customerCreditsAccountsExperimentalCloseCustomerCreditsAccount.ts:
+    last_write_checksum: sha1:23ee5775147cfe6e6c47df2b33ee09adf7a5ad04
+  src/mcp-server/tools/customerCreditsAccountsExperimentalCreateCustomerCreditsAccount.ts:
+    last_write_checksum: sha1:088c232d0d851f8cccaea13893b39b43db55aad9
+  src/mcp-server/tools/customerCreditsAccountsExperimentalCreditCustomerCreditsAccount.ts:
+    last_write_checksum: sha1:2b13398670f7d6418808489f7c31d168b2303341
+  src/mcp-server/tools/customerCreditsAccountsExperimentalDebitCustomerCreditsAccount.ts:
+    last_write_checksum: sha1:529b988c1ac2c9a04d52ede81427a6988bb13e58
+  src/mcp-server/tools/customerCreditsAccountsExperimentalFreezeCustomerCreditsAccount.ts:
+    last_write_checksum: sha1:7bb7a0ec069e6c3cc2cd866974d89d646b9eb4c5
+  src/mcp-server/tools/customerCreditsAccountsExperimentalGetCustomerCreditsAccount.ts:
+    last_write_checksum: sha1:d048c803f9beca745e04e407050dc36851d04a73
+  src/mcp-server/tools/customerCreditsAccountsExperimentalGetCustomerCreditsAccountBalance.ts:
+    last_write_checksum: sha1:e8407fa0611106cb548b254bb710fdfb625e89c2
+  src/mcp-server/tools/customerCreditsAccountsExperimentalListCustomerCreditsAccountEntries.ts:
+    last_write_checksum: sha1:50e8b2135a97c46c820b0c6c3b086b7f66cad68c
+  src/mcp-server/tools/customerCreditsAccountsExperimentalListCustomerCreditsAccounts.ts:
+    last_write_checksum: sha1:ca1fc283a1b8ba95620feec547ae24a3654198fe
+  src/mcp-server/tools/customerCreditsAccountsExperimentalReverseCustomerCreditsAccountTransaction.ts:
+    last_write_checksum: sha1:e1f5b7eb6ff36bac74f42d4ebf657859ef0fa694
+  src/mcp-server/tools/customerCreditsAccountsExperimentalUnfreezeCustomerCreditsAccount.ts:
+    last_write_checksum: sha1:47018f8f39c1ebf89cf4b3c331605d512e5b986c
+  src/mcp-server/tools/customersCreateCustomer.ts:
+    last_write_checksum: sha1:f571a3c906cc4dff1744d25292ebe91b6c78b0d5
   src/mcp-server/tools/customersGenerateBillingLinks.ts:
     last_write_checksum: sha1:3ad984903abba50a5752bb39b72a1a7e2a040978
   src/mcp-server/tools/customersList.ts:
     last_write_checksum: sha1:88c4c3af5875190bf9d119b1db7823fd3b6e32c6
+  src/mcp-server/tools/customersListCustomerLicenses.ts:
+    last_write_checksum: sha1:4b7ee25779b2c019e83ae20f3dd7d6c9b3d3eeba
+  src/mcp-server/tools/customersListCustomerOrders.ts:
+    last_write_checksum: sha1:bcfd33c3853f6d9b8915fdd176b33f43c7ee379f
+  src/mcp-server/tools/customersListCustomerSubscriptions.ts:
+    last_write_checksum: sha1:51c6d1a6d39f8bae8fab28d0b60b30e5ecda858b
   src/mcp-server/tools/customersRetrieve.ts:
     last_write_checksum: sha1:99b6a0a8b46438856d3bf07a9a5368a42f6294f6
+  src/mcp-server/tools/customersUpdateCustomer.ts:
+    last_write_checksum: sha1:51e5ee7684fbe497ccea790c0589168bb2a2c1d2
   src/mcp-server/tools/discountsCreate.ts:
     last_write_checksum: sha1:78ec95baeb2cad227d1056041b2e2ff9bafdfbe7
   src/mcp-server/tools/discountsDelete.ts:
     last_write_checksum: sha1:72d6a872c65e9a296a05cca6a3d4318a154ce339
   src/mcp-server/tools/discountsGet.ts:
     last_write_checksum: sha1:d95c203268b006bf9bc1f82558aed4628130f9f2
+  src/mcp-server/tools/discountsSearchDiscounts.ts:
+    last_write_checksum: sha1:b1b0e90721846af6bd61438cf53ef3c3812ca071
   src/mcp-server/tools/licensesActivate.ts:
     last_write_checksum: sha1:71dee1f872e3969f0fd8d2dfecb8f3d00762091f
   src/mcp-server/tools/licensesDeactivate.ts:
     last_write_checksum: sha1:f2ef03a53d705e8c03f5e15cb9ed058d79e65a21
   src/mcp-server/tools/licensesValidate.ts:
     last_write_checksum: sha1:728f3e241d827ac6bdc2c3952b31e42085452e6d
+  src/mcp-server/tools/moderationScreenPrompt.ts:
+    last_write_checksum: sha1:5e6b5fbe3a19d9846d4921a711351bbe666a56d2
   src/mcp-server/tools/productsCreate.ts:
     last_write_checksum: sha1:64429d4fd9134d4501153079270cb3a64d3a5ac2
   src/mcp-server/tools/productsGet.ts:
@@ -682,10 +853,16 @@ trackedFiles:
     last_write_checksum: sha1:5f0ff4c33a0bea8aa001988df3ff7d49cb500d1c
   src/mcp-server/tools/transactionsSearch.ts:
     last_write_checksum: sha1:a589a1be57050dccea516dd9ca4b510bf13a1e9c
+  src/models/components/accountlistresponsedto.ts:
+    last_write_checksum: sha1:f4f2136b28f9c8e38671a9b2953a588bf0635814
+  src/models/components/accountresponsedto.ts:
+    last_write_checksum: sha1:c06b7a3b51f646904f3fa663a90ce0b36ddd67dd
   src/models/components/activatelicenserequestentity.ts:
     id: 26d50dbe81c8
     last_write_checksum: sha1:fdb0b24a359d88e4e5f6dc7a57bd227e3253f6a0
     pristine_git_object: 5818ab94ac9ae349a458051e22fc2abd99ed4d0e
+  src/models/components/balanceresponsedto.ts:
+    last_write_checksum: sha1:ea60ca96e6b7dd20e2a45a329ce8ec94da78d6a5
   src/models/components/cancelsubscriptionrequestentity.ts:
     id: 9774bfe34c00
     last_write_checksum: sha1:de95989aafc54a4302895d9e0161544cbb6d025f
@@ -698,6 +875,8 @@ trackedFiles:
     pristine_git_object: dffb33e7306cb4455729933c528202db25b4067f
   src/models/components/coupondurationtype.ts:
     last_write_checksum: sha1:b157a60acf38784a432bcc548d1f539c89a67170
+  src/models/components/createaccountdto.ts:
+    last_write_checksum: sha1:98196e2880f82f42f3ea61511da7d436ac15eee6
   src/models/components/createcheckoutrequest.ts:
     id: 7b48e312d3c0
     last_write_checksum: sha1:a397b3ca1e1b3e38c66d6f609715775551ed2f79
@@ -706,17 +885,23 @@ trackedFiles:
     id: 62b7ec08eb9a
     last_write_checksum: sha1:1ad9e0c4e961d86e125f4dae34052f0c625e1f77
     pristine_git_object: d3a55fa0f567e993310c8d8190db91528ea08806
+  src/models/components/createcustomerrequestentity.ts:
+    last_write_checksum: sha1:bb8a221ab862b6f632673920cf1275f61649f2c7
   src/models/components/creatediscountrequestentity.ts:
     id: 0f4006ef7d1c
     last_write_checksum: sha1:57ced87c851b430993e8de04c76d84c118fe21a6
     pristine_git_object: 8ca5ea4adb2ad2285208dd928407c9e239973448
   src/models/components/createproductrequestentity.ts:
     id: 81f983fd0163
-    last_write_checksum: sha1:90f75df95844d8315bffd9e091ed376c28ee6934
+    last_write_checksum: sha1:837892e5634946afac0f08c6ffbd5a5923b14545
     pristine_git_object: f903f420dbbf910473c8620607273dba93f0f14e
+  src/models/components/creditdebitrequestdto.ts:
+    last_write_checksum: sha1:fbfee1d1e604d2a4c34195665de53328441578bd
+  src/models/components/customercreditserrordetaildto.ts:
+    last_write_checksum: sha1:ef5d65cd2d6c7246a41fed247c6917f58255420b
   src/models/components/customerentity.ts:
     id: 1a7de3219dab
-    last_write_checksum: sha1:4aebef8073470384fa1798048bb8f6c67f5bcc72
+    last_write_checksum: sha1:a2efa6f99d0b598e91f20e96c32371fc5db3ca02
     pristine_git_object: ad6b862892f24506ae9876896a336d38f6ac84b8
   src/models/components/customerlinksentity.ts:
     id: 4b68e006b20d
@@ -750,8 +935,14 @@ trackedFiles:
     id: 705708d25113
     last_write_checksum: sha1:00830f0e3e2090a6abe07391d62272f7a01f19c5
     pristine_git_object: a69c87efe8e9fc2b9d970b195b4d7a8220833ab9
+  src/models/components/discountlistentity.ts:
+    last_write_checksum: sha1:8fca9babc8e8d9ad5ee899fe6ad24565de8a233e
   src/models/components/discounttype.ts:
     last_write_checksum: sha1:129f1a75bf2df601296dd40be3922b18901e7149
+  src/models/components/entrylistresponsedto.ts:
+    last_write_checksum: sha1:9ce243fc7523ab4d74485f4c965ca84f90f45ec4
+  src/models/components/entryresponsedto.ts:
+    last_write_checksum: sha1:cf0164b0daa540ec74b4c647f6133caca4219708
   src/models/components/environmentmode.ts:
     last_write_checksum: sha1:a8b58dd7123666765baf1e087aa93b731f25e1d7
   src/models/components/featureentity.ts:
@@ -762,18 +953,22 @@ trackedFiles:
     last_write_checksum: sha1:3559b9f220abdc49f90a65c44b761bdce790927c
   src/models/components/index.ts:
     id: 0aa842dce54d
-    last_write_checksum: sha1:fb804a9b87e89dbdc71b17ec76e78875f2669c81
+    last_write_checksum: sha1:03ced86859a0d88b38cafb3064a295cdf0edc5f4
     pristine_git_object: 1087c422faa5594a8ec19160f7299d1afeeee9a4
   src/models/components/licenseentity.ts:
     id: 233af4f00429
-    last_write_checksum: sha1:7d7176f38a6ca25fd2c4635d394a1a107b3b27c7
+    last_write_checksum: sha1:3312b0d7455af0d98a920b35e5379e2d50f90ef0
     pristine_git_object: 3feea4852df433f51d8095c2e9c1c761c7fd1d44
+  src/models/components/licenselistentity.ts:
+    last_write_checksum: sha1:57ccfb53e4b40ad4adfc29ae188a021283ad0b75
   src/models/components/licensestatus.ts:
     last_write_checksum: sha1:dc268de24e255845285fb86fdfa0f9a5f1fc34d9
   src/models/components/orderentity.ts:
     id: 187f5a873311
     last_write_checksum: sha1:133798b3b4ae1b916302d341b92b8d97af7f1943
     pristine_git_object: 83d46e9dc801524ad49ae89e5ca165df76ad9ad2
+  src/models/components/orderlistentity.ts:
+    last_write_checksum: sha1:e9a20ad28a34c5db9a78559b6e6ecdc6970c08e3
   src/models/components/orderstatus.ts:
     last_write_checksum: sha1:07be2d15a7db4ea1b7f4c3e94c680634dd2df897
   src/models/components/ordertype.ts:
@@ -794,10 +989,10 @@ trackedFiles:
     pristine_git_object: f9a993aff2aaad6b61512c30d1571c34af3fc177
   src/models/components/productfeatureentity.ts:
     id: bda25f411261
-    last_write_checksum: sha1:812a482d687d70a34b07b8a94cb17a357826a648
+    last_write_checksum: sha1:3cbcb15e44cc7554f89c731777717df963f6a4fd
     pristine_git_object: 2e9834eb05cec7a81bf656c86db4b754614aa79a
   src/models/components/productfeaturetype.ts:
-    last_write_checksum: sha1:85fc2cf2b2cc756837c9b877bd8441e3dbade1e7
+    last_write_checksum: sha1:903b951896752b29c895d0d7ab3213eac47c04aa
   src/models/components/productlistentity.ts:
     id: df4238ae8cbf
     last_write_checksum: sha1:2d3536d4c60c5b2b944f9bfc535b6c4927610d55
@@ -808,6 +1003,12 @@ trackedFiles:
     last_write_checksum: sha1:5d5447384d85c4e8eada0c53cf25c837e9b63ab6
   src/models/components/productstatus.ts:
     last_write_checksum: sha1:a6eeaff2be08ac3f0773462b484d3a663e646c37
+  src/models/components/reversetransactionrequestdto.ts:
+    last_write_checksum: sha1:81bacbbaedf8bf1e56673bcbbad3dfdc6add1e55
+  src/models/components/screenpromptrequest.ts:
+    last_write_checksum: sha1:1a5e33efadf6072d58e45d968506d9c8ca1eb7c9
+  src/models/components/screenpromptresponse.ts:
+    last_write_checksum: sha1:4df5fcd79fd79d549a038d7983c2230a337b9fd0
   src/models/components/security.ts:
     last_write_checksum: sha1:009bd7a101e5ec4b52b26eedc0283683d2a1cc66
   src/models/components/statsmetricperiodentity.ts:
@@ -844,10 +1045,14 @@ trackedFiles:
     id: b5120a9c2a09
     last_write_checksum: sha1:905bd473aefe3b021055fae5b4545378ea6493a7
     pristine_git_object: a5c4250ef68c78b48944e978f2cbc967124f21c1
+  src/models/components/transactionresponsedto.ts:
+    last_write_checksum: sha1:25759498a3c057f5659fb0980e88b846769bcbb2
   src/models/components/transactionstatus.ts:
     last_write_checksum: sha1:ca45f52ee2ef37cbb4146bda253d2a1f22c93928
   src/models/components/transactiontype.ts:
     last_write_checksum: sha1:9083659f8fa0c44c6f5270d1c90be21d6756a017
+  src/models/components/updatecustomerrequestentity.ts:
+    last_write_checksum: sha1:b3092c6af4d9edcd8884d7741cbe67e74fd64620
   src/models/components/updatesubscriptionrequestentity.ts:
     id: 07c0be17653a
     last_write_checksum: sha1:6d4edbbc7ac565b7d9e60d731a1c96ae36a8fbd2
@@ -860,6 +1065,8 @@ trackedFiles:
     id: 7f25875973d8
     last_write_checksum: sha1:fc8c799f44b7652b309d771d9c5c4d42390c3a8b
     pristine_git_object: 5be559269e682ca7f96f76a88a0a30034d89bedc
+  src/models/components/usageentity.ts:
+    last_write_checksum: sha1:6978965ea3afdd87d97bb53e92f0b8341ec54d65
   src/models/components/validatelicenserequestentity.ts:
     id: c74671333029
     last_write_checksum: sha1:45e33c92e2497e77c7cfa64f5f346c76aa8466a0
@@ -872,13 +1079,15 @@ trackedFiles:
     id: f0a92ba93fb0
     last_write_checksum: sha1:2753b891a26dc5be83d055ffe430516736c5943c
     pristine_git_object: b46799ff743d0e4412d7cbce621b1c80f90fa480
+  src/models/errors/customercreditserrorresponsedto.ts:
+    last_write_checksum: sha1:5ef84f0cc38dcd852f356685455571d712a19c82
   src/models/errors/httpclienterrors.ts:
     id: 6948de76af99
     last_write_checksum: sha1:994ced121c54fecd0af038ccfb7855fbfd3868ec
     pristine_git_object: b34f612124c797c2a1106b9735708f679a90b74f
   src/models/errors/index.ts:
     id: c4e22507cb83
-    last_write_checksum: sha1:6c8642c3840826892e83d796ef48f6fe9771c14f
+    last_write_checksum: sha1:3d59f8892e3f7d9b3a168d39295c9cde46a9fedf
     pristine_git_object: 77bd6356ce1576e48b01e1d9122730b2334cc0d9
   src/models/errors/responsevalidationerror.ts:
     id: 88ff98a41be9
@@ -892,10 +1101,22 @@ trackedFiles:
     id: 69393943824c
     last_write_checksum: sha1:d2e139b1aa2be494a9e3428be455a4bfdf1f8441
     pristine_git_object: 2782cba715628f5dd71e890d65206e2e77901242
+  src/models/operations/closecustomercreditsaccount.ts:
+    last_write_checksum: sha1:766adff41a36e4f973ec9c7bbbb3253e5e9b96c0
+  src/models/operations/creditcustomercreditsaccount.ts:
+    last_write_checksum: sha1:0502e5fee7e4b82330ccf6dbb06be4cbfdb269c4
+  src/models/operations/debitcustomercreditsaccount.ts:
+    last_write_checksum: sha1:4408d3c006800638f3fe55a599892e77c7467b0f
   src/models/operations/deletediscount.ts:
     id: 026f15ee4bfa
     last_write_checksum: sha1:79453d96cd0e37b20de57514e7e7cd1a24d4d4c9
     pristine_git_object: 946c37cf9b94129851519dc34c92751b9653f062
+  src/models/operations/freezecustomercreditsaccount.ts:
+    last_write_checksum: sha1:17fb983c61856a1771e99b36dc2c15c35ae6299d
+  src/models/operations/getcustomercreditsaccount.ts:
+    last_write_checksum: sha1:b74c52e678912979ef65ac0c837c62320d72ea8e
+  src/models/operations/getcustomercreditsaccountbalance.ts:
+    last_write_checksum: sha1:a53f0be0958c21542fa2e50bdf2e0b83b9d08344
   src/models/operations/getmetricssummary.ts:
     last_write_checksum: sha1:3612d54fb5d6a4562eabde17e0c388557b3ec396
   src/models/operations/gettransactionbyid.ts:
@@ -904,12 +1125,22 @@ trackedFiles:
     pristine_git_object: 8bb83e0a5f1efcbc99fe37b658f3884459dcbd72
   src/models/operations/index.ts:
     id: 0d9ffaf774d2
-    last_write_checksum: sha1:c6d802d47797e687509f5de875aa19d737ce456b
+    last_write_checksum: sha1:ed1f2c257fdf8ea95495b469d0b075f3abc748e8
     pristine_git_object: b913dce8f9e69774c040f831d83754a78616264a
+  src/models/operations/listcustomercreditsaccountentries.ts:
+    last_write_checksum: sha1:b123fabd0803f26ee6452aca97460231bfbe68cc
+  src/models/operations/listcustomercreditsaccounts.ts:
+    last_write_checksum: sha1:54b03c16dfa1bacab56505e68f0870fc2a0d8a88
+  src/models/operations/listcustomerlicenses.ts:
+    last_write_checksum: sha1:cb56bae31bdf7df71d8227a0003916365536c26b
+  src/models/operations/listcustomerorders.ts:
+    last_write_checksum: sha1:b2406b72ff62b24b3e5b90522adf7701a1b70697
   src/models/operations/listcustomers.ts:
     id: fa5992922803
     last_write_checksum: sha1:af760001cb07f2e6a51fa97e42a90a6634981783
     pristine_git_object: a171343908626c6c0eee4bdec87a2c1ad3d1f84f
+  src/models/operations/listcustomersubscriptions.ts:
+    last_write_checksum: sha1:095ed8154a05d02fe13340f57dcba12eb251eeec
   src/models/operations/pausesubscription.ts:
     id: 1871e521cda7
     last_write_checksum: sha1:2b3c597a401ec094c218cf4ef1a2fdc9cea7976a
@@ -938,6 +1169,10 @@ trackedFiles:
     id: a0fcf4ad186d
     last_write_checksum: sha1:61e48d75f6c312670e0ad1bf35f3e9907dd8675a
     pristine_git_object: bf2b8dc16c3db64ad05685d5147ed790857791b4
+  src/models/operations/reversecustomercreditsaccounttransaction.ts:
+    last_write_checksum: sha1:cb31dc1fda1b3e8f0a5a59447c2c9a6b7d1533ce
+  src/models/operations/searchdiscounts.ts:
+    last_write_checksum: sha1:48137f130aea63500d7d9e3571552116962c5d53
   src/models/operations/searchproducts.ts:
     id: f7be5bc8e0b2
     last_write_checksum: sha1:c4697e83ad1bcd6f86711d00ad63fe7bb54f27ef
@@ -948,6 +1183,8 @@ trackedFiles:
     id: 9e0cf81e2211
     last_write_checksum: sha1:04f35e081b134b21508f4adf5e09f1c18f601f0e
     pristine_git_object: c39a211d0e695e931d94d04b939463953b2e163e
+  src/models/operations/unfreezecustomercreditsaccount.ts:
+    last_write_checksum: sha1:49eddcce2c1b55555276c402561a66500d409521
   src/models/operations/updatesubscription.ts:
     id: 056dbed5624c
     last_write_checksum: sha1:3f5fee2e469891bd60a237625d5c30fe1e1139c8
@@ -960,13 +1197,15 @@ trackedFiles:
     id: cd7ce1658f32
     last_write_checksum: sha1:876cea5f6488b03eb8a8c470bc09ea7f49626e53
     pristine_git_object: 370e322a6e6d1432ef69474203fccc0cdffa716a
+  src/sdk/customercreditsaccountsexperimental.ts:
+    last_write_checksum: sha1:dd25c85bd343a73681c52cd451b86f6076c6355b
   src/sdk/customers.ts:
     id: d33e193e0c00
-    last_write_checksum: sha1:6e0835ed31060ae5d40fbdac8e818f9bbb189fa5
+    last_write_checksum: sha1:6a4ffa2ef4020779fb0bf0fbba336157cb0f1f47
     pristine_git_object: b223e6b71bdf864efbb04c2294527f6223647a20
   src/sdk/discounts.ts:
     id: 413e4d5bc639
-    last_write_checksum: sha1:feb04d4da50dee774cc32beb3455a2a7ca29afb0
+    last_write_checksum: sha1:e60ef985f314852dda788fcfc7962f07f0e6613b
     pristine_git_object: bee6ede9e1cb2acbcb14f6ce7790dce6d3269d3d
   src/sdk/index.ts:
     id: a857902a703f
@@ -976,13 +1215,15 @@ trackedFiles:
     id: ea9e33a052fc
     last_write_checksum: sha1:deb2ae7bada94d77020d2adbb0e21c4d2b26886b
     pristine_git_object: 50db819386729343ddc4aa91f6f85fb82abbce81
+  src/sdk/moderation.ts:
+    last_write_checksum: sha1:4e29404d217a2630de35da8fa5c59a25ab176c2a
   src/sdk/products.ts:
     id: b199702e5352
     last_write_checksum: sha1:a69e012edc3bf8309442774fbc87ff4b0923d661
     pristine_git_object: eb2dda41175fdea6bc07db049a3f7a9e42045285
   src/sdk/sdk.ts:
     id: 784571af2f69
-    last_write_checksum: sha1:2441818581635dbc8b01d36d40704f780f860e13
+    last_write_checksum: sha1:e1cc57687454aa7515785fa6d9613f0c790e380f
     pristine_git_object: b268469561a95cf8c984a218f9cd4f08e2f5e7e2
   src/sdk/stats.ts:
     last_write_checksum: sha1:881eed039b3ccc6e856ffb87caf7d988affc74f3
@@ -1055,7 +1296,7 @@ examples:
         header:
           x-api-key: "<value>"
       requestBody:
-        application/json: {"name": "<value>", "image_url": "https://picsum.photos/200/300", "price": 400, "currency": "USD", "billing_type": "recurring", "default_success_url": "https://example.com/?status=successful", "custom_fields": [{"type": "checkbox", "key": "companyName", "label": "Company Name", "text": {"max_length": 200, "min_length": 1}, "checkbox": {"label": "I agree to the [terms and conditions](https://example.com/terms)"}}], "abandoned_cart_recovery_enabled": false}
+        application/json: {"name": "<value>", "description": "at through very dishearten knife ashamed baa beret amongst", "image_url": "https://picsum.photos/200/300", "price": 400, "currency": "USD", "billing_type": "recurring", "default_success_url": "https://example.com/?status=successful", "custom_fields": [{"type": "checkbox", "key": "companyName", "label": "Company Name", "text": {"max_length": 200, "min_length": 1}, "checkbox": {"label": "I agree to the [terms and conditions](https://example.com/terms)"}}], "abandoned_cart_recovery_enabled": false}
       responses:
         "200":
           application/json: {"id": "<id>", "mode": "sandbox", "object": "{}", "name": "<value>", "description": "This is a sample product description.", "image_url": "https://example.com/image.jpg", "features": [{"id": "<id>", "type": "licenseKey", "description": "Get access to discord server."}], "price": 400, "currency": "USD", "billing_type": "recurring", "billing_period": "every-month", "status": "archived", "tax_mode": "inclusive", "tax_category": "ebooks", "product_url": "https://creem.io/product/prod_123123123123", "default_success_url": "https://example.com/?status=successful", "created_at": "2023-01-01T00:00:00Z", "updated_at": "2023-01-01T00:00:00Z"}
@@ -1091,7 +1332,7 @@ examples:
           x-api-key: "<value>"
       responses:
         "200":
-          application/json: {"id": "<id>", "mode": "sandbox", "object": "{}", "email": "user@example.com", "name": "John Doe", "country": "US", "created_at": "2023-01-01T00:00:00Z", "updated_at": "2023-01-01T00:00:00Z"}
+          application/json: {"id": "<id>", "mode": "sandbox", "object": "{}", "email": "user@example.com", "name": "John Doe", "metadata": {}, "country": "US", "created_at": "2023-01-01T00:00:00Z", "updated_at": "2023-01-01T00:00:00Z"}
   generateCustomerLinks:
     speakeasy-default-generate-customer-links:
       parameters:
@@ -1504,15 +1745,183 @@ examples:
       responses:
         "200":
           application/json: {"items": [], "pagination": {"total_records": 0, "total_pages": 0, "current_page": 1, "next_page": 2, "prev_page": null}}
+  listCustomerOrders:
+    speakeasy-default-list-customer-orders:
+      parameters:
+        path:
+          id: "<id>"
+        query:
+          page_number: 1
+          page_size: 10
+      responses:
+        "200":
+          application/json: {"items": [], "pagination": {"total_records": 0, "total_pages": 0, "current_page": 1, "next_page": 2, "prev_page": null}}
+  listCustomerSubscriptions:
+    speakeasy-default-list-customer-subscriptions:
+      parameters:
+        path:
+          id: "<id>"
+        query:
+          page_number: 1
+          page_size: 10
+      responses:
+        "200":
+          application/json: {"items": [], "pagination": {"total_records": 0, "total_pages": 0, "current_page": 1, "next_page": 2, "prev_page": null}}
+  listCustomerLicenses:
+    speakeasy-default-list-customer-licenses:
+      parameters:
+        path:
+          id: "<id>"
+        query:
+          page_number: 1
+          page_size: 10
+      responses:
+        "200":
+          application/json: {"items": [{"id": "<id>", "mode": "test", "object": "<value>", "product_id": "prod_abc123", "status": "inactive", "key": "ABC123-XYZ456-XYZ456-XYZ456", "activation": 5, "activation_limit": 1, "expires_at": "2023-09-13T00:00:00Z", "created_at": "2023-09-13T00:00:00Z", "instance": {"id": "<id>", "mode": "sandbox", "object": "license-instance", "name": "My Customer License Instance", "status": "active", "created_at": "2023-09-13T00:00:00Z"}}], "pagination": {"total_records": 0, "total_pages": 0, "current_page": 1, "next_page": 2, "prev_page": null}}
+  createCustomer:
+    speakeasy-default-create-customer:
+      requestBody:
+        application/json: {"email": "john@example.com", "name": "John Doe", "metadata": {}}
+      responses:
+        "200":
+          application/json: {"id": "<id>", "mode": "test", "object": "<value>", "email": "user@example.com", "name": "John Doe", "metadata": {}, "country": "US", "created_at": "2023-01-01T00:00:00Z", "updated_at": "2023-01-01T00:00:00Z"}
+  updateCustomer:
+    speakeasy-default-update-customer:
+      requestBody:
+        application/json: {"customer_id": "cust_abc123", "name": "John Doe", "metadata": {}}
+      responses:
+        "200":
+          application/json: {"id": "<id>", "mode": "test", "object": "<value>", "email": "user@example.com", "name": "John Doe", "metadata": {}, "country": "US", "created_at": "2023-01-01T00:00:00Z", "updated_at": "2023-01-01T00:00:00Z"}
+  searchDiscounts:
+    speakeasy-default-search-discounts:
+      parameters:
+        query:
+          page_number: 1
+          page_size: 10
+          product_id: "prod_1234567890"
+          created_after: "2024-01-01T00:00:00Z"
+          created_before: "2024-12-31T23:59:59Z"
+      responses:
+        "200":
+          application/json: {"items": [], "pagination": {"total_records": 0, "total_pages": 0, "current_page": 1, "next_page": 2, "prev_page": null}}
+  screenPrompt:
+    speakeasy-default-screen-prompt:
+      requestBody:
+        application/json: {"prompt": "<value>"}
+      responses:
+        "200":
+          application/json: {"id": "<id>", "object": "moderation_result", "prompt": "<value>", "decision": "deny", "usage": {"units": 4689.34}}
+  createCustomerCreditsAccount:
+    speakeasy-default-create-customer-credits-account:
+      requestBody:
+        application/json: {"name": "default", "customer_id": "cust_abc123", "unit_label": "credits", "initial_balance": "300"}
+      responses:
+        "201":
+          application/json: {"id": "cca_abc123", "store_id": "<id>", "customer_id": "cust_abc123", "name": "default", "unit_label": "credits", "status": "active", "created_at": "1721418551205", "updated_at": "1735678294861"}
+  listCustomerCreditsAccounts:
+    speakeasy-default-list-customer-credits-accounts:
+      parameters:
+        query:
+          limit: 10
+          customer_id: "cust_abc123"
+      responses:
+        "200":
+          application/json: {"object": "list", "data": [], "has_more": false}
+  getCustomerCreditsAccount:
+    speakeasy-default-get-customer-credits-account:
+      parameters:
+        path:
+          id: "<id>"
+      responses:
+        "200":
+          application/json: {"id": "cca_abc123", "store_id": "<id>", "customer_id": "cust_abc123", "name": "default", "unit_label": "credits", "status": "active", "created_at": "1719437810776", "updated_at": "1735673290347"}
+  getCustomerCreditsAccountBalance:
+    speakeasy-default-get-customer-credits-account-balance:
+      parameters:
+        path:
+          id: "<id>"
+        query:
+          at: "2024-01-15T00:00:00.000Z"
+      responses:
+        "200":
+          application/json: {"balance": "5000"}
+  listCustomerCreditsAccountEntries:
+    speakeasy-default-list-customer-credits-account-entries:
+      parameters:
+        path:
+          id: "<id>"
+        query:
+          limit: 10
+      responses:
+        "200":
+          application/json: {"object": "list", "data": [], "has_more": false}
+  freezeCustomerCreditsAccount:
+    speakeasy-default-freeze-customer-credits-account:
+      parameters:
+        path:
+          id: "<id>"
+      responses:
+        "200":
+          application/json: {"id": "cca_abc123", "store_id": "<id>", "customer_id": "cust_abc123", "name": "default", "unit_label": "credits", "status": "frozen", "created_at": "1728689035823", "updated_at": "1735648440259"}
+        "409":
+          application/json: {"error": {"type": "invalid_request_error", "code": {}, "message": "Total debits must equal total credits", "param": {}, "request_id": "req_abc123def456"}}
+  unfreezeCustomerCreditsAccount:
+    speakeasy-default-unfreeze-customer-credits-account:
+      parameters:
+        path:
+          id: "<id>"
+      responses:
+        "200":
+          application/json: {"id": "cca_abc123", "store_id": "<id>", "customer_id": "cust_abc123", "name": "default", "unit_label": "credits", "status": "frozen", "created_at": "1733583367559", "updated_at": "1735675011055"}
+        "409":
+          application/json: {"error": {"type": "invalid_request_error", "code": {}, "message": "Total debits must equal total credits", "param": {}, "request_id": "req_abc123def456"}}
+  creditCustomerCreditsAccount:
+    speakeasy-default-credit-customer-credits-account:
+      parameters:
+        path:
+          id: "<id>"
+      requestBody:
+        application/json: {"amount": "1000", "reference": "signup_bonus", "idempotency_key": "idem_abc123"}
+      responses:
+        "201":
+          application/json: {"id": "cct_abc123", "store_id": "<id>", "reference": "order_xyz", "idempotency_key": "<value>", "reversal_of": {}, "entries": [{"id": "cce_abc123", "transaction_id": "cct_abc123", "account_id": "cca_abc123", "side": "debit", "amount": "1000", "created_at": "1709237874487"}], "created_at": "1724504322214"}
+        "409":
+          application/json: {"error": {"type": "invalid_request_error", "code": {}, "message": "Total debits must equal total credits", "param": {}, "request_id": "req_abc123def456"}}
+  debitCustomerCreditsAccount:
+    speakeasy-default-debit-customer-credits-account:
+      parameters:
+        path:
+          id: "<id>"
+      requestBody:
+        application/json: {"amount": "1000", "reference": "signup_bonus", "idempotency_key": "idem_abc123"}
+      responses:
+        "201":
+          application/json: {"id": "cct_abc123", "store_id": "<id>", "reference": "order_xyz", "idempotency_key": "<value>", "reversal_of": {}, "entries": [], "created_at": "1725719636034"}
+        "409":
+          application/json: {"error": {"type": "invalid_request_error", "code": {}, "message": "Total debits must equal total credits", "param": {}, "request_id": "req_abc123def456"}}
+  reverseCustomerCreditsAccountTransaction:
+    speakeasy-default-reverse-customer-credits-account-transaction:
+      parameters:
+        path:
+          id: "<id>"
+      requestBody:
+        application/json: {"transaction_id": "cct_abc123"}
+      responses:
+        "201":
+          application/json: {"id": "cct_abc123", "store_id": "<id>", "reference": "order_xyz", "idempotency_key": "<value>", "reversal_of": {}, "entries": [], "created_at": "1716740707727"}
+  closeCustomerCreditsAccount:
+    speakeasy-default-close-customer-credits-account:
+      parameters:
+        path:
+          id: "<id>"
+      responses:
+        "200":
+          application/json: {"id": "cca_abc123", "store_id": "<id>", "customer_id": "cust_abc123", "name": "default", "unit_label": "credits", "status": "frozen", "created_at": "1720589047332", "updated_at": "1735616393285"}
+        "409":
+          application/json: {"error": {"type": "invalid_request_error", "code": {}, "message": "Total debits must equal total credits", "param": {}, "request_id": "req_abc123def456"}}
 examplesVersion: 1.0.2
 generatedTests: {}
-releaseNotes: |
-  ## Typescript SDK Changes:
-  * `creem.checkouts.retrieve()`:  `response` **Changed**
-  * `creem.checkouts.create()`:  `response` **Changed**
-  * `creem.licenses.activate()`:  `response.productId` **Added**
-  * `creem.licenses.deactivate()`:  `response.productId` **Added**
-  * `creem.licenses.validate()`:  `response.productId` **Added**
+releaseNotes: "## Typescript SDK Changes:\n* `creem.products.get()`:  `response.features[].type.enum(customerCredits)` **Added** (Breaking ⚠️)\n* `creem.checkouts.create()`:  `response` **Changed** (Breaking ⚠️)\n* `creem.checkouts.retrieve()`:  `response` **Changed** (Breaking ⚠️)\n* `creem.subscriptions.searchSubscriptions()`:  `response.items[]` **Changed** (Breaking ⚠️)\n* `creem.subscriptions.resume()`:  `response` **Changed** (Breaking ⚠️)\n* `creem.subscriptions.pause()`:  `response` **Changed** (Breaking ⚠️)\n* `creem.subscriptions.upgrade()`:  `response` **Changed** (Breaking ⚠️)\n* `creem.subscriptions.update()`:  `response` **Changed** (Breaking ⚠️)\n* `creem.subscriptions.cancel()`:  `response` **Changed** (Breaking ⚠️)\n* `creem.subscriptions.get()`:  `response` **Changed** (Breaking ⚠️)\n* `creem.products.search()`:  `response.items[].features[].type.enum(customerCredits)` **Added** (Breaking ⚠️)\n* `creem.products.create()`: \n  *  `request.description` **Changed** (Breaking ⚠️)\n  *  `response.features[].type.enum(customerCredits)` **Added** (Breaking ⚠️)\n* `creem.customerCreditsAccounts(experimental).debitCustomerCreditsAccount()`: **Added**\n* `creem.customerCreditsAccounts(experimental).listCustomerCreditsAccounts()`: **Added**\n* `creem.customerCreditsAccounts(experimental).listCustomerCreditsAccountEntries()`: **Added**\n* `creem.customerCreditsAccounts(experimental).freezeCustomerCreditsAccount()`: **Added**\n* `creem.customerCreditsAccounts(experimental).unfreezeCustomerCreditsAccount()`: **Added**\n* `creem.customerCreditsAccounts(experimental).creditCustomerCreditsAccount()`: **Added**\n* `creem.customers.listCustomerOrders()`: **Added**\n* `creem.customerCreditsAccounts(experimental).reverseCustomerCreditsAccountTransaction()`: **Added**\n* `creem.customerCreditsAccounts(experimental).closeCustomerCreditsAccount()`: **Added**\n* `creem.discounts.get()`: **Removed** (Breaking ⚠️)\n* `creem.discounts.create()`: **Removed** (Breaking ⚠️)\n* `creem.discounts.delete()`: **Removed** (Breaking ⚠️)\n* `creem.customerCreditsAccounts(experimental).getCustomerCreditsAccount()`: **Added**\n* `creem.customerCreditsAccounts(experimental).getCustomerCreditsAccountBalance()`: **Added**\n* `creem.customerCreditsAccounts(experimental).createCustomerCreditsAccount()`: **Added**\n* `creem.customers.list()`:  `response.items[].metadata` **Added**\n* `creem.customers.retrieve()`:  `response.metadata` **Added**\n* `creem.moderation.screenPrompt()`: **Added**\n* `creem.discounts.delete()`: **Added**\n* `creem.discounts.create()`: **Added**\n* `creem.discounts.get()`: **Added**\n* `creem.discounts.searchDiscounts()`: **Added**\n* `creem.customers.updateCustomer()`: **Added**\n* `creem.customers.createCustomer()`: **Added**\n* `creem.customers.listCustomerLicenses()`: **Added**\n* `creem.customers.listCustomerSubscriptions()`: **Added**\n"
 generatedFiles:
   - .devcontainer/README.md
   - .devcontainer/devcontainer.json

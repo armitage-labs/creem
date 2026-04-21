@@ -20,7 +20,7 @@ let value: CheckoutEntity = {
     features: [
       {
         id: "feat_abc123",
-        type: "file",
+        type: "licenseKey",
         description: "Access to premium course materials.",
       },
     ],
@@ -75,7 +75,7 @@ let value: CheckoutEntity = {
       createdAt: new Date("2023-09-13T00:00:00Z"),
       instance: {
         id: "<id>",
-        mode: "test",
+        mode: "prod",
         object: "license-instance",
         name: "My Customer License Instance",
         status: "active",

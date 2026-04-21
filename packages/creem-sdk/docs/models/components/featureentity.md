@@ -7,7 +7,7 @@ import { FeatureEntity } from "creem/models/components";
 
 let value: FeatureEntity = {
   id: "feat_abc123",
-  type: "licenseKey",
+  type: "customerCredits",
   description: "Access to premium course materials.",
 };
 ```

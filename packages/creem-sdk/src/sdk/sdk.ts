@@ -4,9 +4,11 @@
 
 import { ClientSDK } from "../lib/sdks.js";
 import { Checkouts } from "./checkouts.js";
+import { CustomerCreditsAccountsExperimental } from "./customercreditsaccountsexperimental.js";
 import { Customers } from "./customers.js";
 import { Discounts } from "./discounts.js";
 import { Licenses } from "./licenses.js";
+import { Moderation } from "./moderation.js";
 import { Products } from "./products.js";
 import { Stats } from "./stats.js";
 import { Subscriptions } from "./subscriptions.js";
@@ -51,5 +53,17 @@ export class Creem extends ClientSDK {
   private _stats?: Stats;
   get stats(): Stats {
     return (this._stats ??= new Stats(this._options));
+  }
+
+  private _moderation?: Moderation;
+  get moderation(): Moderation {
+    return (this._moderation ??= new Moderation(this._options));
+  }
+
+  private _customerCreditsAccountsExperimental?:
+    CustomerCreditsAccountsExperimental;
+  get customerCreditsAccountsExperimental(): CustomerCreditsAccountsExperimental {
+    return (this._customerCreditsAccountsExperimental ??=
+      new CustomerCreditsAccountsExperimental(this._options));
   }
 }
