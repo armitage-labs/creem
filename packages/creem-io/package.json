@@ -61,11 +61,12 @@
   },
   "repository": {
     "type": "git",
-    "url": "https://github.com/armitage-labs/creem_io"
+    "url": "https://github.com/armitage-labs/creem.git",
+    "directory": "packages/creem-io"
   },
-  "homepage": "https://creem.io",
+  "homepage": "https://github.com/armitage-labs/creem/tree/main/packages/creem-io",
   "bugs": {
-    "url": "https://github.com/armitage-labs/creem_io/issues"
+    "url": "https://github.com/armitage-labs/creem/issues"
   },
   "deprecated": "This package is deprecated. Please use the 'creem' package instead: npm install creem",
   "engines": {

@@ -31,6 +31,12 @@
     "types",
     "typescript"
   ],
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/armitage-labs/creem.git",
+    "directory": "packages/webhook-types"
+  },
+  "homepage": "https://github.com/armitage-labs/creem/tree/main/packages/webhook-types",
   "author": "Creem",
   "license": "MIT",
   "devDependencies": {

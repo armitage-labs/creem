@@ -48,8 +48,10 @@
   ],
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/armitage-labs/creem-betterauth.git"
+    "url": "https://github.com/armitage-labs/creem.git",
+    "directory": "packages/better-auth"
   },
+  "homepage": "https://github.com/armitage-labs/creem/tree/main/packages/better-auth",
   "keywords": [
     "creem",
     "betterauth",
@@ -61,9 +63,8 @@
   "author": "Creem",
   "license": "MIT",
   "bugs": {
-    "url": "https://github.com/armitage-labs/creem-betterauth/issues"
+    "url": "https://github.com/armitage-labs/creem/issues"
   },
-  "homepage": "https://github.com/armitage-labs/creem-betterauth#readme",
   "devDependencies": {
     "@better-auth/core": "^1.5.6",
     "@types/better-sqlite3": "^7.6.13",

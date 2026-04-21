@@ -4,7 +4,8 @@
   "author": "Speakeasy",
   "repository": {
     "type": "git",
-    "url": "https://github.com/armitage-labs/creem-sdk.git"
+    "url": "https://github.com/armitage-labs/creem.git",
+    "directory": "packages/creem-sdk"
   },
   "type": "module",
   "bin": {

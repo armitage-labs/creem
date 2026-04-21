@@ -13,10 +13,10 @@
   "license": "MIT",
   "repository": {
     "type": "git",
-    "url": "https://github.com/armitage-labs/creem",
-    "directory": "packages/creem-cli"
+    "url": "https://github.com/armitage-labs/creem.git",
+    "directory": "packages/cli"
   },
-  "homepage": "https://creem.io",
+  "homepage": "https://github.com/armitage-labs/creem/tree/main/packages/cli",
   "bugs": "https://github.com/armitage-labs/creem/issues",
   "bin": {
     "creem": "./dist/index.js"
