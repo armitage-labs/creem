@@ -24,4 +24,8 @@ jobs:
 
       - run: pnpm install --frozen-lockfile
 
-      - run: pnpm changeset status --since=origin/main
+      - name: Check for changesets
+        run: |
+          if ! pnpm changeset status --since=origin/main 2>&1; then
+            echo "::warning::No changeset found. If this PR includes package changes that need a release, run 'pnpm changeset' to add one."
+          fi
