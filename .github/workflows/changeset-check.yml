@@ -12,6 +12,9 @@ jobs:
         with:
           fetch-depth: 0
 
+      - name: Fetch main branch
+        run: git fetch origin main
+
       - uses: pnpm/action-setup@v4
 
       - uses: actions/setup-node@v4
