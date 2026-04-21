@@ -3,6 +3,9 @@ name: Changeset Check
 on:
   pull_request:
     branches: [main]
+    paths:
+      - "packages/*/src/**"
+      - "packages/*/package.json"
 
 jobs:
   changeset:
