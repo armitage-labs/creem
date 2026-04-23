@@ -216,7 +216,7 @@ Your Creem integration should be used for a single, clearly defined product.
 If your product generates images or videos using AI models, you must integrate the [CREEM Moderation API](/features/moderation). This applies to all AI image and video generation products regardless of which model you use. This is a strict requirement — accounts that do not integrate the Moderation API are considered out of compliance and may be suspended.
 
 <Note>
-  The Moderation API requirement applies to AI **image and video generation** products only. It does not apply to image editing, upscaling, background removal, audio/music generation, text generation, or other non-generative use cases.
+  The Moderation API requirement applies to AI **image and video generation** products only. It does not apply to image upscaling, background removal, audio/music generation, text generation, or other non-generative use cases.
 </Note>
 
 #### How the Moderation API works
@@ -227,10 +227,6 @@ The Moderation API screens user-submitted text prompts against CREEM's content p
   Full integration guide, code examples, endpoint reference, and go-live checklist.
 </Card>
 
-#### How we verify integration
-
-We verify Moderation API integration by checking for entries in our records. To confirm your integration is working, test the API at least a few times from your production environment. Accounts with zero moderation records will be flagged during review.
-
 <Warning>
   This requirement is enforced starting May 1st, 2026. AI image and video generation merchants who have not integrated the Moderation API by this date risk account suspension.
 </Warning>
@@ -239,13 +235,11 @@ We verify Moderation API integration by checking for entries in our records. To 
 
 Even with the Moderation API integrated, the following are not allowed on CREEM:
 
-- Generating nude, semi-nude, or sexually explicit images or video — even behind a paywall or "premium" tier
 - Gallery or showcase content featuring suggestive, borderline, or sexually provocative material
 - Marketing that uses terms like "uncensored", "no filter", "NSFW", "18+", or "unfiltered generation"
-- Face-swap, deepfake, and face-manipulation tools (the Moderation API screens text prompts only — it does not screen uploaded photos or videos, so it is not a valid remediation for face-swap features)
+- Face-swap, deepfake, and face-manipulation tools
 
 <Accordion title="What counts as a violation?">
-  - Generating nude, semi-nude, or sexually explicit images or video — even if behind a paywall or "premium" tier
   - Gallery or showcase content featuring suggestive, borderline, or sexually provocative material
   - Marketing that uses terms like "uncensored", "no filter", "NSFW", "18+", or "unfiltered generation"
   - Operating an AI image or video generation product without integrating the Moderation API
@@ -262,7 +256,7 @@ Even with the Moderation API integrated, the following are not allowed on CREEM:
 </Warning>
 
 <Tip>
-  Not sure if your product needs the Moderation API? If users type a text prompt and your product generates an image or video from it, yes — you need it. If your product only edits, upscales, or translates existing content, you don't. See the [full Moderation API documentation](/features/moderation) for details.
+  Not sure if your product needs the Moderation API? If users type a text prompt and your product generates an image or video from it, yes — you need it. If your product only upscales, or translates existing content, you don't. See the [full Moderation API documentation](/features/moderation) for details.
 </Tip>
 
 ### On-going Monitoring
