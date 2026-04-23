@@ -19,7 +19,7 @@ Before you can accept payments through Creem, your store needs to pass our accou
 | **Pricing is visible** | Pricing is clearly displayed and easy for users to find |
 | **Acceptable use** | No high-risk, shady, or illegitimate use cases — you're proud of what you're building |
 | **Customer support email** | [Reachable support email](#customer-experience-and-support) is set up and shown on receipts |
-| **AI content moderation** | AI image/video products must have [NSFW content filters](#content-safety-%26-moderation-requirements) |
+| **Moderation API** | AI image/video generation products must integrate the [CREEM Moderation API](/features/moderation) |
 | **Not on prohibited list** | Your product is not in our [prohibited product list](#prohibited-products) |
 
 ## The Review Process
@@ -211,63 +211,58 @@ Your Creem integration should be used for a single, clearly defined product.
 - **Disclose the Wrapper Nature:** Clearly state that your platform provides a custom interface for underlying AI models. This prevents potential flags for consumer deception.
 - **Example Disclosure:** `"Our platform offers a user-friendly interface built on top of models like VEO3 to enhance usability and provide additional features. We are an independent service and not affiliated with the model providers."`
 
-### Content Safety & Moderation Requirements
+### Moderation API Requirement
 
-All AI-powered generation tools — including image, video, and text products — must implement robust content moderation to prevent the creation of prohibited content.
+If your product generates images or videos using AI models, you must integrate the [CREEM Moderation API](/features/moderation). This applies to all AI image and video generation products regardless of which model you use. This is a strict requirement — accounts that do not integrate the Moderation API are considered out of compliance and may be suspended.
 
-#### Required Safeguards
+<Note>
+  The Moderation API requirement applies to AI **image and video generation** products only. It does not apply to image editing, upscaling, background removal, audio/music generation, text generation, or other non-generative use cases.
+</Note>
 
-- **NSFW content filters are mandatory.** Your product must have effective filters that prevent generation of sexually explicit, nude, sexually suggestive (e.g. undressing, twerking, suggestive poses), or otherwise NSFW content.
-- **Acceptable Use Policy required.** Your platform must include a visible Acceptable Use Policy that explicitly prohibits NSFW and sexually explicit content generation.
-- **Marketing must not promote NSFW capability.** Your marketing materials, landing pages, social media, and galleries must not promote, showcase, or imply the capability to generate NSFW content — even indirectly through suggestive examples or "uncensored" messaging.
+#### How the Moderation API works
+
+The Moderation API screens user-submitted text prompts against CREEM's content policies **before** your AI model generates any output. Every prompt that will be routed to an image or video generation model must be screened through this endpoint first — no exceptions.
+
+<Card title="Moderation API Documentation" icon="shield-check" href="/features/moderation">
+  Full integration guide, code examples, endpoint reference, and go-live checklist.
+</Card>
+
+#### How we verify integration
+
+We verify Moderation API integration by checking for entries in our records. To confirm your integration is working, test the API at least a few times from your production environment. Accounts with zero moderation records will be flagged during review.
 
 <Warning>
-  Creem conducts ongoing compliance monitoring and reserves the right to test AI generation outputs at any time. Merchants are fully responsible for the content their platform enables users to generate — "we use a third-party API" is not a defense. Violations result in immediate suspension of payment processing.
+  This requirement is enforced starting May 1st, 2026. AI image and video generation merchants who have not integrated the Moderation API by this date risk account suspension.
 </Warning>
+
+#### Content policy — what's still prohibited
+
+Even with the Moderation API integrated, the following are not allowed on CREEM:
+
+- Generating nude, semi-nude, or sexually explicit images or video — even behind a paywall or "premium" tier
+- Gallery or showcase content featuring suggestive, borderline, or sexually provocative material
+- Marketing that uses terms like "uncensored", "no filter", "NSFW", "18+", or "unfiltered generation"
+- Face-swap, deepfake, and face-manipulation tools (the Moderation API screens text prompts only — it does not screen uploaded photos or videos, so it is not a valid remediation for face-swap features)
 
 <Accordion title="What counts as a violation?">
   - Generating nude, semi-nude, or sexually explicit images or video — even if behind a paywall or "premium" tier
   - Gallery or showcase content featuring suggestive, borderline, or sexually provocative material
   - Marketing that uses terms like "uncensored", "no filter", "NSFW", "18+", or "unfiltered generation"
-  - Absence of content moderation filters on an AI generation product
-  - Deploying prohibited models (see table below) without adequate NSFW content filtering
+  - Operating an AI image or video generation product without integrating the Moderation API
 </Accordion>
 
-#### Prohibited Models
+#### Additional requirements for AI generation products
 
-The following open-source/open-weight models lack built-in NSFW content filters. These models are not allowed to be used without robust NSFW content filters.
+- **Acceptable Use Policy required.** Your platform must include a visible Acceptable Use Policy that explicitly prohibits NSFW and sexually explicit content generation.
+- **NSFW content prohibition in your Terms of Service.** Your ToS must explicitly prohibit the generation of NSFW, explicit, or sexually suggestive content.
+- **No "uncensored" or "unfiltered" marketing.** Products marketed as offering unfiltered AI generation will be rejected regardless of Moderation API integration.
 
-<Note>
-  All versions and community derivatives of the listed models are covered by this policy.
-</Note>
-
-**Image Generation**
-
-| Model | Developer |
-| ----- | --------- |
-| **Stable Diffusion** (all versions) and community derivatives (RealVisXL, DreamShaper, Deliberate, Pony Diffusion, Illustrious XL and others) | Stability AI / Community |
-| **Flux** (all versions) and derivatives (Chroma) | Black Forest Labs / Community |
-| **Z-Image** | Community |
-
-**Video Generation**
-
-| Model | Developer |
-| ----- | --------- |
-| **Wan** (all versions) | Alibaba |
-| **CogVideo** (all versions) | Tsinghua/THUDM |
-| **HunyuanVideo** | Tencent |
-| **LTX-Video** | Lightricks |
-| **Mochi** (all versions) | Genmo |
-| **SkyReels** (all versions) | Skywork AI |
-| **MAGI-1** | Sand AI |
-| **AnimateDiff** | Community |
-| **Stable Video Diffusion** (all versions) | Stability AI |
-| **Hotshot-XL** | Hotshot |
+<Warning>
+  Creem conducts ongoing compliance monitoring and reserves the right to test AI generation outputs at any time. Merchants are fully responsible for the content their platform enables users to generate — "we use a third-party API" is not a defense. Violations result in immediate suspension of payment processing.
+</Warning>
 
 <Tip>
-  These policies are actively enforced. We encourage you to review your product
-  and marketing materials to ensure full compliance. If you have any questions,
-  please reach out to our support team.
+  Not sure if your product needs the Moderation API? If users type a text prompt and your product generates an image or video from it, yes — you need it. If your product only edits, upscales, or translates existing content, you don't. See the [full Moderation API documentation](/features/moderation) for details.
 </Tip>
 
 ### On-going Monitoring
@@ -278,7 +273,7 @@ All accounts are continuously monitored for compliance and fraud. If suspicious 
 
 <CardGroup cols={2}>
   <Card title="Content Safety" icon="shield-check">
-    NSFW filters, acceptable use policy, and marketing compliance
+    Moderation API integration, acceptable use policy, and marketing compliance
   </Card>
   <Card title="Customer Support" icon="headset">
     Reachability and quality of your support contact

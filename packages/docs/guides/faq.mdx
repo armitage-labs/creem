@@ -43,6 +43,15 @@ description: 'Answers to the most common questions about using Creem.'
   <Accordion title="Do I need a separate store for each website?">
     **Yes.** Each website must have its own Creem store. During account review, we verify your website, support email, and product details — these are tied to a specific store. Using one store for multiple websites will cause review issues and is not supported.
   </Accordion>
+  <Accordion title="What is the Moderation API and do I need it?">
+    The [Moderation API](/features/moderation) is CREEM's prompt screening endpoint. It checks user-submitted text prompts against content policies before your AI model generates output.
+
+    **You need it if** your product generates images or videos from text prompts (regardless of which AI model you use).
+
+    **You don't need it if** your product only does image editing, upscaling, background removal, audio/music generation, text generation, or other non-generative tasks.
+
+    Integration is required starting May 1st, 2026. The API is currently free to use. See the [full documentation](/features/moderation) for code examples and a go-live checklist.
+  </Accordion>
 </AccordionGroup>
 
 ## Products & Pricing
