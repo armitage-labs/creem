@@ -335,4 +335,86 @@ describe("webhook handler", () => {
     const ctx = await callWebhook(defaultOptions, event);
     expect(ctx.json).toHaveBeenCalledWith({ error: "Failed to process webhook" }, { status: 500 });
   });
+
+  // Regression: async user callbacks must be awaited so async work (DB writes,
+  // API calls) finishes before the response returns. Without await, serverless
+  // runtimes (Cloudflare Workers, Vercel Edge) terminate the worker and drop
+  // the pending Promise.
+  describe("async user-facing callbacks are awaited", () => {
+    const delayMacrotask = () => new Promise((resolve) => setTimeout(resolve, 10));
+
+    it("awaits onCheckoutCompleted before returning", async () => {
+      let completed = false;
+      const onCheckoutCompleted = vi.fn(async () => {
+        await delayMacrotask();
+        completed = true;
+      });
+      const options = { ...defaultOptions, onCheckoutCompleted };
+      const event = {
+        eventType: "checkout.completed",
+        id: "e1",
+        created_at: 1234567890,
+        object: mockCheckout,
+      };
+      await callWebhook(options, event);
+      expect(completed).toBe(true);
+    });
+
+    it("awaits onGrantAccess and onSubscriptionActive before returning", async () => {
+      let grantDone = false;
+      let activeDone = false;
+      const onGrantAccess = vi.fn(async () => {
+        await delayMacrotask();
+        grantDone = true;
+      });
+      const onSubscriptionActive = vi.fn(async () => {
+        await delayMacrotask();
+        activeDone = true;
+      });
+      const options = { ...defaultOptions, onGrantAccess, onSubscriptionActive };
+      const event = {
+        eventType: "subscription.active",
+        id: "e1",
+        created_at: 1234567890,
+        object: mockSubscription,
+      };
+      await callWebhook(options, event);
+      expect(grantDone).toBe(true);
+      expect(activeDone).toBe(true);
+    });
+
+    it("awaits onRevokeAccess on subscription.expired", async () => {
+      let revoked = false;
+      const onRevokeAccess = vi.fn(async () => {
+        await delayMacrotask();
+        revoked = true;
+      });
+      const options = { ...defaultOptions, onRevokeAccess };
+      const event = {
+        eventType: "subscription.expired",
+        id: "e1",
+        created_at: 1234567890,
+        object: { ...mockSubscription, status: "expired" },
+      };
+      await callWebhook(options, event);
+      expect(revoked).toBe(true);
+    });
+
+    it("awaits onRefundCreated before returning", async () => {
+      let done = false;
+      const onRefundCreated = vi.fn(async () => {
+        await delayMacrotask();
+        done = true;
+      });
+      const options = { ...defaultOptions, onRefundCreated };
+      const event = {
+        eventType: "refund.created",
+        id: "e1",
+        created_at: 1234567890,
+        object: mockRefund,
+      };
+      await callWebhook(options, event);
+      expect(done).toBe(true);
+    });
+  });
 });

@@ -153,19 +153,19 @@ export interface CreemOptions {
    *   console.log(`Checkout completed: ${customer?.email} purchased ${product.name}`);
    * }
    */
-  onCheckoutCompleted?: (data: FlatCheckoutCompleted) => void;
+  onCheckoutCompleted?: (data: FlatCheckoutCompleted) => void | Promise<void>;
 
   /**
    * Called when a refund is created.
    * All properties are flattened for easy destructuring.
    */
-  onRefundCreated?: (data: FlatRefundCreated) => void;
+  onRefundCreated?: (data: FlatRefundCreated) => void | Promise<void>;
 
   /**
    * Called when a dispute is created.
    * All properties are flattened for easy destructuring.
    */
-  onDisputeCreated?: (data: FlatDisputeCreated) => void;
+  onDisputeCreated?: (data: FlatDisputeCreated) => void | Promise<void>;
 
   /**
    * Called when a subscription becomes active.
@@ -177,55 +177,71 @@ export interface CreemOptions {
    *   console.log(`${customer.email} subscribed to ${product.name}`);
    * }
    */
-  onSubscriptionActive?: (data: FlatSubscriptionEvent<"subscription.active">) => void;
+  onSubscriptionActive?: (
+    data: FlatSubscriptionEvent<"subscription.active">,
+  ) => void | Promise<void>;
 
   /**
    * Called when a subscription is in trialing state.
    * All properties are flattened for easy destructuring.
    */
-  onSubscriptionTrialing?: (data: FlatSubscriptionEvent<"subscription.trialing">) => void;
+  onSubscriptionTrialing?: (
+    data: FlatSubscriptionEvent<"subscription.trialing">,
+  ) => void | Promise<void>;
 
   /**
    * Called when a subscription is canceled.
    * All properties are flattened for easy destructuring.
    */
-  onSubscriptionCanceled?: (data: FlatSubscriptionEvent<"subscription.canceled">) => void;
+  onSubscriptionCanceled?: (
+    data: FlatSubscriptionEvent<"subscription.canceled">,
+  ) => void | Promise<void>;
 
   /**
    * Called when a subscription is paid.
    * All properties are flattened for easy destructuring.
    */
-  onSubscriptionPaid?: (data: FlatSubscriptionEvent<"subscription.paid">) => void;
+  onSubscriptionPaid?: (data: FlatSubscriptionEvent<"subscription.paid">) => void | Promise<void>;
 
   /**
    * Called when a subscription has expired.
    * All properties are flattened for easy destructuring.
    */
-  onSubscriptionExpired?: (data: FlatSubscriptionEvent<"subscription.expired">) => void;
+  onSubscriptionExpired?: (
+    data: FlatSubscriptionEvent<"subscription.expired">,
+  ) => void | Promise<void>;
 
   /**
    * Called when a subscription is unpaid.
    * All properties are flattened for easy destructuring.
    */
-  onSubscriptionUnpaid?: (data: FlatSubscriptionEvent<"subscription.unpaid">) => void;
+  onSubscriptionUnpaid?: (
+    data: FlatSubscriptionEvent<"subscription.unpaid">,
+  ) => void | Promise<void>;
 
   /**
    * Called when a subscription is updated.
    * All properties are flattened for easy destructuring.
    */
-  onSubscriptionUpdate?: (data: FlatSubscriptionEvent<"subscription.update">) => void;
+  onSubscriptionUpdate?: (
+    data: FlatSubscriptionEvent<"subscription.update">,
+  ) => void | Promise<void>;
 
   /**
    * Called when a subscription is past due.
    * All properties are flattened for easy destructuring.
    */
-  onSubscriptionPastDue?: (data: FlatSubscriptionEvent<"subscription.past_due">) => void;
+  onSubscriptionPastDue?: (
+    data: FlatSubscriptionEvent<"subscription.past_due">,
+  ) => void | Promise<void>;
 
   /**
    * Called when a subscription is paused.
    * All properties are flattened for easy destructuring.
    */
-  onSubscriptionPaused?: (data: FlatSubscriptionEvent<"subscription.paused">) => void;
+  onSubscriptionPaused?: (
+    data: FlatSubscriptionEvent<"subscription.paused">,
+  ) => void | Promise<void>;
 
   /**
    * Called when a user should be granted access to the platform.
