@@ -69,6 +69,12 @@ description: 'Answers to the most common questions about using Creem.'
   <Accordion title="Does Creem support weekly billing?">
     Currently, Creem supports **monthly**, **3-month**, **6-month**, and **yearly** billing cycles for subscriptions. Weekly billing is not available at this time.
   </Accordion>
+  <Accordion title="If I change a product's price, will existing subscribers be charged the new amount?">
+    No. Existing active subscriptions are **automatically grandfathered** at the price they signed up at. Only new checkouts use the updated price. This means you can safely adjust pricing without affecting current customers. To migrate existing subscribers to a new price, use the [subscription upgrade endpoint](/features/subscriptions/managing#changing-a-products-price).
+  </Accordion>
+  <Accordion title="Can customers switch subscription plans or tiers themselves?">
+    Not through the Customer Portal. The portal allows customers to cancel, update payment methods, and generate invoices — but not to switch plans. You can build plan-switching in your own application using the [subscription upgrade API](/features/subscriptions/managing#subscription-upgrades-and-downgrades).
+  </Accordion>
 </AccordionGroup>
 
 ## Payouts & Finance

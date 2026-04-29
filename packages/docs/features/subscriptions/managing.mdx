@@ -245,6 +245,86 @@ curl -X POST https://api.creem.io/v1/subscriptions/sub_YOUR_SUBSCRIPTION_ID \
 
 ---
 
+## Changing a Product's Price
+
+When you edit a product's recurring price in the Creem dashboard, the change takes effect for **new checkouts only**. All existing active subscriptions continue at their original price — they are automatically grandfathered.
+
+<Warning>
+No confirmation dialog or warning is shown in the dashboard when editing a price. The change is immediate for new customers, while existing subscribers are unaffected.
+</Warning>
+
+This behavior differs from platforms like Apple's App Store, which offers an explicit choice to grandfather or raise prices for existing subscribers.
+
+### Raising Prices for Existing Subscribers
+
+If you need to raise the price for existing subscribers — for example, phasing out a founding-member discount — Creem does not provide a built-in migration flow. You can achieve this by writing a one-off script that:
+
+1. Lists all active subscriptions on the old price (using the [list subscriptions API](/api-reference/endpoint/get-subscriptions))
+2. Calls the [subscription upgrade endpoint](/api-reference/endpoint/upgrade-subscription) for each subscription, specifying the new product and your preferred proration behavior
+
+<Tabs>
+  <Tab title="TypeScript SDK">
+
+```typescript
+import { createCreem } from 'creem_io';
+
+const creem = createCreem({
+  apiKey: process.env.CREEM_API_KEY!,
+  testMode: process.env.NODE_ENV !== 'production',
+});
+
+// List all active subscriptions on the old product
+const subscriptions = await creem.subscriptions.list({
+  productId: 'prod_OLD_PRICE',
+  status: 'active',
+});
+
+// Migrate each subscription to the new product
+for (const sub of subscriptions.data) {
+  await creem.subscriptions.upgrade({
+    subscriptionId: sub.id,
+    productId: 'prod_NEW_PRICE',
+    updateBehavior: 'proration-charge-immediately',
+  });
+}
+```
+
+  </Tab>
+
+  <Tab title="REST API">
+
+```bash
+# Step 1: List active subscriptions for the old product
+curl -X GET "https://api.creem.io/v1/subscriptions?product_id=prod_OLD_PRICE&status=active" \
+  -H "x-api-key: YOUR_API_KEY"
+
+# Step 2: Upgrade each subscription
+curl -X POST https://api.creem.io/v1/subscriptions/sub_YOUR_SUBSCRIPTION_ID/upgrade \
+  -H "x-api-key: YOUR_API_KEY" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "product_id": "prod_NEW_PRICE",
+    "update_behavior": "proration-charge-immediately"
+  }'
+```
+
+  </Tab>
+</Tabs>
+
+Choose the proration behavior that fits your use case:
+
+| Behavior                       | When to use                                                                    |
+| ------------------------------ | ------------------------------------------------------------------------------ |
+| `proration-charge-immediately` | Charge the difference immediately. Best for immediate price enforcement.         |
+| `proration-charge`             | Add difference to next invoice. Best for grandfathered price phase-outs.        |
+| `proration-none`               | No immediate charge. New price starts next cycle. Best for low-friction changes. |
+
+<Warning>
+Creem does **not** send automatic price-change notifications to customers. Merchants are responsible for notifying their customers about upcoming price changes. This is especially important for compliance with consumer protection regulations, such as the EU Consumer Rights Directive, which requires advance notice for price increases on recurring services.
+</Warning>
+
+---
+
 ## Dashboard Management
 
 You can also manage subscriptions directly through the Creem Dashboard:
