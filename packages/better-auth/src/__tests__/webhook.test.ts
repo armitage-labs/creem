@@ -341,12 +341,12 @@ describe("webhook handler", () => {
   // runtimes (Cloudflare Workers, Vercel Edge) terminate the worker and drop
   // the pending Promise.
   describe("async user-facing callbacks are awaited", () => {
-    const flushMicrotasks = () => new Promise((resolve) => setTimeout(resolve, 10));
+    const delayMacrotask = () => new Promise((resolve) => setTimeout(resolve, 10));
 
     it("awaits onCheckoutCompleted before returning", async () => {
       let completed = false;
       const onCheckoutCompleted = vi.fn(async () => {
-        await flushMicrotasks();
+        await delayMacrotask();
         completed = true;
       });
       const options = { ...defaultOptions, onCheckoutCompleted };
@@ -364,11 +364,11 @@ describe("webhook handler", () => {
       let grantDone = false;
       let activeDone = false;
       const onGrantAccess = vi.fn(async () => {
-        await flushMicrotasks();
+        await delayMacrotask();
         grantDone = true;
       });
       const onSubscriptionActive = vi.fn(async () => {
-        await flushMicrotasks();
+        await delayMacrotask();
         activeDone = true;
       });
       const options = { ...defaultOptions, onGrantAccess, onSubscriptionActive };
@@ -386,7 +386,7 @@ describe("webhook handler", () => {
     it("awaits onRevokeAccess on subscription.expired", async () => {
       let revoked = false;
       const onRevokeAccess = vi.fn(async () => {
-        await flushMicrotasks();
+        await delayMacrotask();
         revoked = true;
       });
       const options = { ...defaultOptions, onRevokeAccess };
@@ -403,7 +403,7 @@ describe("webhook handler", () => {
     it("awaits onRefundCreated before returning", async () => {
       let done = false;
       const onRefundCreated = vi.fn(async () => {
-        await flushMicrotasks();
+        await delayMacrotask();
         done = true;
       });
       const options = { ...defaultOptions, onRefundCreated };
