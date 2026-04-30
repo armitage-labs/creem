@@ -13,6 +13,7 @@ let value: CustomerListEntity = {
       object: "<value>",
       email: "user@example.com",
       name: "John Doe",
+      metadata: {},
       country: "US",
       createdAt: new Date("2023-01-01T00:00:00Z"),
       updatedAt: new Date("2023-01-01T00:00:00Z"),

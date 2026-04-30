@@ -4,6 +4,7 @@
 
 export * from "./apierror.js";
 export * from "./creemerror.js";
+export * from "./customercreditserrorresponsedto.js";
 export * from "./httpclienterrors.js";
 export * from "./responsevalidationerror.js";
 export * from "./sdkvalidationerror.js";

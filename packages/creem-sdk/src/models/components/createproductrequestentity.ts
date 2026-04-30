@@ -47,13 +47,13 @@ export type CreateProductRequestEntity = {
   /**
    * Description of the product
    */
-  description?: string | undefined;
+  description: string;
   /**
    * URL of the product image
    */
   imageUrl?: string | undefined;
   /**
-   * The price of the product in cents
+   * The price of the product in cents. Must be 0 (free product) or at least 100 (one whole unit of the currency).
    */
   price: number;
   /**
@@ -103,7 +103,7 @@ export const CreateProductRequestEntity$inboundSchema: z.ZodType<
   unknown
 > = z.object({
   name: z.string(),
-  description: z.string().optional(),
+  description: z.string(),
   image_url: z.string().optional(),
   price: z.number().int(),
   currency: ProductCurrency$inboundSchema,
@@ -131,7 +131,7 @@ export const CreateProductRequestEntity$inboundSchema: z.ZodType<
 /** @internal */
 export type CreateProductRequestEntity$Outbound = {
   name: string;
-  description?: string | undefined;
+  description: string;
   image_url?: string | undefined;
   price: number;
   currency: string;
@@ -152,7 +152,7 @@ export const CreateProductRequestEntity$outboundSchema: z.ZodType<
   CreateProductRequestEntity
 > = z.object({
   name: z.string(),
-  description: z.string().optional(),
+  description: z.string(),
   imageUrl: z.string().optional(),
   price: z.number().int(),
   currency: ProductCurrency$outboundSchema,

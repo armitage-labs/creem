@@ -5,11 +5,42 @@
 import { discountsCreate } from "../funcs/discountsCreate.js";
 import { discountsDelete } from "../funcs/discountsDelete.js";
 import { discountsGet } from "../funcs/discountsGet.js";
+import { discountsSearchDiscounts } from "../funcs/discountsSearchDiscounts.js";
 import { ClientSDK, RequestOptions } from "../lib/sdks.js";
 import * as components from "../models/components/index.js";
+import * as operations from "../models/operations/index.js";
 import { unwrapAsync } from "../types/fp.js";
 
 export class Discounts extends ClientSDK {
+  /**
+   * Search discounts
+   *
+   * @remarks
+   * Search and list discount codes for a store with filters and pagination.
+   */
+  async searchDiscounts(
+    pageNumber?: number | undefined,
+    pageSize?: number | undefined,
+    productId?: string | undefined,
+    status?: operations.Status | undefined,
+    type?: operations.Type | undefined,
+    createdAfter?: string | undefined,
+    createdBefore?: string | undefined,
+    options?: RequestOptions,
+  ): Promise<components.DiscountListEntity> {
+    return unwrapAsync(discountsSearchDiscounts(
+      this,
+      pageNumber,
+      pageSize,
+      productId,
+      status,
+      type,
+      createdAfter,
+      createdBefore,
+      options,
+    ));
+  }
+
   /**
    * Retrieve discount
    *

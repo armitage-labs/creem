@@ -13,6 +13,11 @@ import {
   EnvironmentMode$outboundSchema,
 } from "./environmentmode.js";
 
+/**
+ * Additional metadata associated with the customer.
+ */
+export type Metadata = {};
+
 export type CustomerEntity = {
   /**
    * Unique identifier for the object.
@@ -35,18 +40,51 @@ export type CustomerEntity = {
    */
   name?: string | null | undefined;
   /**
+   * Additional metadata associated with the customer.
+   */
+  metadata?: Metadata | null | undefined;
+  /**
    * The ISO alpha-2 country code for the customer.
    */
   country: string;
   /**
-   * Creation date of the product
+   * Creation date of the customer
    */
   createdAt: Date;
   /**
-   * Last updated date of the product
+   * Last updated date of the customer
    */
   updatedAt: Date;
 };
+
+/** @internal */
+export const Metadata$inboundSchema: z.ZodType<
+  Metadata,
+  z.ZodTypeDef,
+  unknown
+> = z.object({});
+/** @internal */
+export type Metadata$Outbound = {};
+
+/** @internal */
+export const Metadata$outboundSchema: z.ZodType<
+  Metadata$Outbound,
+  z.ZodTypeDef,
+  Metadata
+> = z.object({});
+
+export function metadataToJSON(metadata: Metadata): string {
+  return JSON.stringify(Metadata$outboundSchema.parse(metadata));
+}
+export function metadataFromJSON(
+  jsonString: string,
+): SafeParseResult<Metadata, SDKValidationError> {
+  return safeParse(
+    jsonString,
+    (x) => Metadata$inboundSchema.parse(JSON.parse(x)),
+    `Failed to parse 'Metadata' from JSON`,
+  );
+}
 
 /** @internal */
 export const CustomerEntity$inboundSchema: z.ZodType<
@@ -59,6 +97,7 @@ export const CustomerEntity$inboundSchema: z.ZodType<
   object: z.string(),
   email: z.string(),
   name: z.nullable(z.string()).optional(),
+  metadata: z.nullable(z.lazy(() => Metadata$inboundSchema)).optional(),
   country: z.string(),
   created_at: z.string().datetime({ offset: true }).transform(v => new Date(v)),
   updated_at: z.string().datetime({ offset: true }).transform(v => new Date(v)),
@@ -75,6 +114,7 @@ export type CustomerEntity$Outbound = {
   object: string;
   email: string;
   name?: string | null | undefined;
+  metadata?: Metadata$Outbound | null | undefined;
   country: string;
   created_at: string;
   updated_at: string;
@@ -91,6 +131,7 @@ export const CustomerEntity$outboundSchema: z.ZodType<
   object: z.string(),
   email: z.string(),
   name: z.nullable(z.string()).optional(),
+  metadata: z.nullable(z.lazy(() => Metadata$outboundSchema)).optional(),
   country: z.string(),
   createdAt: z.date().transform(v => v.toISOString()),
   updatedAt: z.date().transform(v => v.toISOString()),

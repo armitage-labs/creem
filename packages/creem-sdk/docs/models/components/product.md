@@ -18,7 +18,7 @@ const value: components.ProductEntity = {
   features: [
     {
       id: "feat_abc123",
-      type: "file",
+      type: "licenseKey",
       description: "Access to premium course materials.",
     },
   ],

@@ -12,6 +12,7 @@ export const ProductFeatureType = {
   Custom: "custom",
   File: "file",
   LicenseKey: "licenseKey",
+  CustomerCredits: "customerCredits",
 } as const;
 /**
  * The type of the feature: privateNote (custom note), file (downloadable files), or licenseKey (license key).
