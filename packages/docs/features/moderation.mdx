@@ -286,6 +286,47 @@ export async function POST(req: NextRequest) {
 }
 ```
 
+## Verify your integration is live
+
+Before requesting a re-review, confirm your Moderation API calls are reaching Creem's production servers — not just your sandbox. The compliance team checks your production account logs directly, so sandbox calls will not satisfy the requirement.
+
+**How to verify:**
+
+<Steps>
+  <Step title="Use a production API key">
+    Production keys start with `creem_` (not `creem_test_`). Check that the key in your environment variables is a live key, not a test key. Go to **Developers** in your dashboard (in live mode) to find or generate your production key.
+  </Step>
+  <Step title="Send a test call against production">
+    Run this from your terminal to confirm calls reach production:
+
+    ```bash
+    curl -X POST https://api.creem.io/v1/moderation/prompt \
+      -H "x-api-key: $CREEM_API_KEY" \
+      -H "content-type: application/json" \
+      -d '{"prompt": "a watercolor painting of a sunset", "external_id": "verify-test-001"}'
+    ```
+
+    A successful response returns `"decision": "allow"`. If you get an authentication error, your key is wrong or missing.
+  </Step>
+  <Step title="Trigger a real call from your product">
+    Submit a prompt through your actual product in production mode. Then check your server logs to confirm a call to `https://api.creem.io/v1/moderation/prompt` was made before any generation call went out.
+  </Step>
+</Steps>
+
+### Error: "Content moderation is not configured"
+
+If you see this error message, it means your integration is calling the Moderation API in **sandbox mode** (`https://test-api.creem.io`) while the request is trying to reach **production** (`https://api.creem.io`), or the API key being used does not match the environment.
+
+| Situation | What it means |
+| --- | --- |
+| You're in sandbox with a test key | Expected — sandbox responses don't appear in production logs |
+| You're in production with a test key | Fix: switch to a live `creem_` key |
+| Error fires on every real user request | Fix: confirm `CREEM_API_KEY` in your production environment is a live key |
+
+<Note>
+  Sandbox calls are completely separate from production. A working integration in sandbox does not mean your production integration is active. The compliance review team can only see production logs.
+</Note>
+
 ## Checklist before going live
 
 <Steps>

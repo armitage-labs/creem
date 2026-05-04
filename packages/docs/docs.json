@@ -38,7 +38,13 @@
               "getting-started/introduction",
               "getting-started/quickstart",
               "getting-started/test-mode",
-              "merchant-of-record/account-reviews/account-reviews",
+              {
+                "group": "Account Reviews",
+                "pages": [
+                  "merchant-of-record/account-reviews/account-reviews",
+                  "merchant-of-record/account-reviews/re-review-guide"
+                ]
+              },
               "getting-started/dashboard-overview",
               "getting-started/migrate"
             ]
