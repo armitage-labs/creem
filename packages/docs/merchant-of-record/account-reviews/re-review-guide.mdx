@@ -1,0 +1,136 @@
+---
+title: 'How to Request a Re-Review'
+description: 'Your account review came back with changes requested. Here is exactly what to do next.'
+---
+
+<Note>
+  Re-reviews are triggered by replying directly to the compliance email you received from **compliance@creem.io** — not through support chat, and not through a button in the dashboard. If you reply in the wrong place, your re-review will not be queued.
+</Note>
+
+## Step 1 — Find the rejection email
+
+Check your inbox (and spam/junk folder) for an email from **compliance@creem.io**. This email contains the specific reasons your review did not pass.
+
+**If you didn't receive the email:**
+
+1. Search your spam folder for `compliance@creem.io`
+2. Log into your dashboard and check **Settings** for any review notes
+3. If there's still no feedback visible, contact [Creem support](https://creem.io/contact) with your Store ID and ask for the rejection reason to be resent — do not resubmit before you know what to fix
+
+<Warning>
+  Do not resubmit for re-review without knowing the specific reason for rejection. Resubmitting without addressing the flagged issues will result in a second rejection and delay your approval.
+</Warning>
+
+## Step 2 — Find your Store ID
+
+You will need your Store ID when requesting a re-review. Your Store ID starts with `sto_` and looks like `sto_abc123`.
+
+**Where to find it:**
+
+Go to **Settings** in your dashboard. Your Store ID is displayed at the top of the page.
+
+<Frame caption="Your Store ID is at the top of Settings. Copy it before contacting compliance.">
+  <img
+    style={{ borderRadius: '0.5rem' }}
+    src="/images/store-id-settings.png"
+    alt="Dashboard Settings page showing Store ID at the top"
+  />
+</Frame>
+
+<Tip>
+  Save your Store ID somewhere handy. Every time you contact Creem support or the compliance team, leading with your Store ID lets us find your account in seconds.
+</Tip>
+
+## Step 3 — Make the required changes
+
+Address each issue listed in the rejection email before requesting a re-review.
+
+The most common requests, and how to fix them:
+
+| Rejection reason | What to do |
+| --- | --- |
+| **Missing or inaccessible legal pages** | Add a Privacy Policy and Terms of Service to your website. Both must load without authentication. |
+| **Support email mismatch** | Update your email in **Settings → Business Details** to match what is shown on your website. |
+| **Moderation API not integrated** | See the [full integration guide](/features/moderation). Your integration must be running in production, not just sandbox. |
+| **Product not live** | Your product must be accessible and functional — not a placeholder or "coming soon" page. |
+| **Missing Acceptable Use Policy (AI products)** | Add an AUP to your website that explicitly prohibits NSFW and harmful content generation. |
+| **Website inaccessible during review** | Remove any password protection or maintenance mode from your site. The review team must be able to access it. |
+| **NSFW or "unfiltered" marketing language** | Remove terms like "uncensored," "no filter," "NSFW," or "18+" from your website, marketing pages, and product UI. |
+
+<Note>
+  For AI image and video generation products, the most common failure is that the Moderation API is integrated in sandbox mode only, not in production. The review team verifies calls in your production account logs. See [Verify your integration is live](/features/moderation#verify-your-integration-is-live).
+</Note>
+
+## Step 4 — Request the re-review
+
+**Reply directly to the compliance email** you received from compliance@creem.io. Do not open a new support ticket or reply in chat — your re-review is only queued when you reply to that specific email.
+
+Your reply should include:
+
+1. **Your Store ID** (e.g. `sto_abc123`)
+2. A brief description of what you changed, one item per line
+3. Any relevant screenshots or links (e.g. your updated Terms of Service page, a screenshot of your Moderation API logs)
+
+**Example reply:**
+
+```
+Hi Creem compliance team,
+
+Store ID: sto_abc123
+
+Changes made:
+- Added Privacy Policy at myproduct.com/privacy
+- Added Terms of Service at myproduct.com/terms (includes explicit NSFW prohibition)
+- Integrated Creem Moderation API in production — live calls visible in account logs
+- Updated support email in Settings to match myproduct.com/contact
+
+Let me know if you need anything else.
+```
+
+## What happens next
+
+Re-reviews are typically completed within **24–48 hours** after you send your reply. You'll receive a follow-up email from compliance@creem.io once the review is complete.
+
+During the re-review, the team will:
+
+- Verify the changes you described are live on your website
+- For AI products: check that your production account has Moderation API calls in the logs
+- Confirm no new issues were introduced
+
+If additional changes are still needed, you'll receive another email with specific feedback. There is no limit on the number of re-reviews.
+
+## Common questions
+
+<AccordionGroup>
+  <Accordion title="I replied to the compliance email but haven't heard back after 48 hours">
+    Contact [Creem support](https://creem.io/contact) with your Store ID and the date you sent your re-review reply. Include a copy of your reply if possible. Do not send a second re-review reply — this can create duplicate entries.
+  </Accordion>
+  <Accordion title="My rejection email says my website was inaccessible, but it was working fine">
+    This is usually caused by a maintenance mode plugin, Cloudflare bot protection, or a regional access block active during the review window. Remove any such restrictions and let the compliance team know in your re-review reply that the issue was temporary.
+  </Accordion>
+  <Accordion title="Can I submit multiple stores for re-review at the same time?">
+    Yes. Send a separate reply for each store, including the relevant Store ID for each. Do not combine multiple stores in a single reply — this can slow down processing.
+  </Accordion>
+  <Accordion title="My account was suspended, not just flagged for changes — is the process different?">
+    Suspended accounts follow the same re-review process. Reply to the compliance email with your Store ID and the changes you made. If you believe the suspension was in error, say so explicitly in your reply and describe why.
+  </Accordion>
+</AccordionGroup>
+
+## Related
+
+<CardGroup cols={2}>
+  <Card
+    title="Account Reviews"
+    icon="clipboard-check"
+    href="/merchant-of-record/account-reviews/account-reviews"
+  >
+    Full requirements checklist and what Creem reviews for.
+  </Card>
+  <Card
+    title="Moderation API"
+    icon="shield-check"
+    href="/features/moderation"
+  >
+    Integration guide for AI image and video generation products.
+  </Card>
+</CardGroup>
