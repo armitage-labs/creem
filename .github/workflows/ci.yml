@@ -47,3 +47,6 @@ jobs:
 
       - name: Lint
         run: pnpm turbo lint ${{ steps.filter.outputs.args }} --filter='!./packages/creem-io' --filter='!./packages/creem-sdk'
+
+      - name: Format check
+        run: pnpm format:check
