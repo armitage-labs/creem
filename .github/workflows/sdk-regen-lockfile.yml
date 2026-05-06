@@ -1,0 +1,49 @@
+name: SDK Regen — Refresh pnpm-lock
+
+# When the Speakeasy bot pushes a regen branch, the new SDK package.json
+# may pin different deps than pnpm-lock.yaml expects (the bot generates
+# with npm, never touches pnpm-lock.yaml). Without this workflow,
+# `pnpm install --frozen-lockfile` in CI fails on the regen PR and on
+# main once it's merged.
+#
+# This job runs after the bot's push, regenerates pnpm-lock.yaml, and
+# commits it back to the same branch. Pushes made with GITHUB_TOKEN do
+# not retrigger workflows, so there's no loop.
+
+on:
+  push:
+    branches:
+      - "speakeasy-sdk-regen-*"
+
+permissions:
+  contents: write
+
+jobs:
+  refresh-lockfile:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
+
+      - uses: pnpm/action-setup@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: "pnpm"
+
+      - name: Refresh pnpm-lock.yaml
+        run: pnpm install --lockfile-only
+
+      - name: Commit and push if lockfile changed
+        run: |
+          if git diff --quiet pnpm-lock.yaml; then
+            echo "pnpm-lock.yaml already in sync — nothing to do"
+            exit 0
+          fi
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add pnpm-lock.yaml
+          git commit -m "chore(sdk): refresh pnpm-lock.yaml after Speakeasy regen"
+          git push
