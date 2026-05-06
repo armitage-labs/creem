@@ -151,61 +151,57 @@ export function createCustomersCommand(): Command {
     .option("--page <number>", "Page number", "1")
     .option("--limit <number>", "Number of results per page", "20")
     .option("--json", "Output as JSON")
-    .action(
-      async (options: { page: string; limit: string; json?: boolean }) => {
-        const spinner = ora("Fetching customers...").start();
+    .action(async (options: { page: string; limit: string; json?: boolean }) => {
+      const spinner = ora("Fetching customers...").start();
 
-        try {
-          const client = getClient();
-          const result = (await client.customers.list(
-            parseInt(options.page, 10),
-            parseInt(options.limit, 10),
-          )) as unknown as CustomerListResponse;
+      try {
+        const client = getClient();
+        const result = (await client.customers.list(
+          parseInt(options.page, 10),
+          parseInt(options.limit, 10),
+        )) as unknown as CustomerListResponse;
 
-          spinner.stop();
+        spinner.stop();
 
-          const { items, pagination } = result;
+        const { items, pagination } = result;
 
-          if (shouldOutputJson(options.json)) {
-            output.outputJson(result);
-            return;
-          }
-
-          if (items.length === 0) {
-            output.info("No customers found.");
-            return;
-          }
-
-          // Table output
-          const headers = ["ID", "Email", "Name", "Country", "Created"];
-          const rows = items.map((c) => [
-            output.truncate(c.id, 24),
-            output.truncate(c.email, 30),
-            c.name || "-",
-            c.country || "-",
-            output.formatDate(c.createdAt),
-          ]);
-
-          output.outputTable(headers, rows);
-
-          // Pagination info
-          output.newline();
-          output.dim(
-            `Page ${pagination.currentPage} of ${pagination.totalPages} (${pagination.totalRecords} total customers)`,
-          );
-
-          if (pagination.nextPage) {
-            output.dim(`Use --page ${pagination.nextPage} for next page`);
-          }
-        } catch (error) {
-          spinner.fail("Failed to fetch customers");
-          output.error(
-            error instanceof Error ? error.message : "Unknown error",
-          );
-          process.exit(1);
+        if (shouldOutputJson(options.json)) {
+          output.outputJson(result);
+          return;
         }
-      },
-    );
+
+        if (items.length === 0) {
+          output.info("No customers found.");
+          return;
+        }
+
+        // Table output
+        const headers = ["ID", "Email", "Name", "Country", "Created"];
+        const rows = items.map((c) => [
+          output.truncate(c.id, 24),
+          output.truncate(c.email, 30),
+          c.name || "-",
+          c.country || "-",
+          output.formatDate(c.createdAt),
+        ]);
+
+        output.outputTable(headers, rows);
+
+        // Pagination info
+        output.newline();
+        output.dim(
+          `Page ${pagination.currentPage} of ${pagination.totalPages} (${pagination.totalRecords} total customers)`,
+        );
+
+        if (pagination.nextPage) {
+          output.dim(`Use --page ${pagination.nextPage} for next page`);
+        }
+      } catch (error) {
+        spinner.fail("Failed to fetch customers");
+        output.error(error instanceof Error ? error.message : "Unknown error");
+        process.exit(1);
+      }
+    });
 
   // Get customer
   command
@@ -213,37 +209,25 @@ export function createCustomersCommand(): Command {
     .description("Get customer details by ID or email")
     .option("--email", "Treat the argument as an email instead of ID")
     .option("--json", "Output as JSON")
-    .action(
-      async (
-        idOrEmail: string,
-        options: { email?: boolean; json?: boolean },
-      ) => {
-        const spinner = ora("Fetching customer...").start();
+    .action(async (idOrEmail: string, options: { email?: boolean; json?: boolean }) => {
+      const spinner = ora("Fetching customer...").start();
 
-        try {
-          const client = getClient();
+      try {
+        const client = getClient();
 
-          // SDK method: retrieve(customerId?, email?)
-          const result = options.email
-            ? ((await client.customers.retrieve(
-                undefined,
-                idOrEmail,
-              )) as unknown as Customer)
-            : ((await client.customers.retrieve(
-                idOrEmail,
-              )) as unknown as Customer);
+        // SDK method: retrieve(customerId?, email?)
+        const result = options.email
+          ? ((await client.customers.retrieve(undefined, idOrEmail)) as unknown as Customer)
+          : ((await client.customers.retrieve(idOrEmail)) as unknown as Customer);
 
-          spinner.stop();
-          formatCustomer(result, options.json);
-        } catch (error) {
-          spinner.fail("Failed to fetch customer");
-          output.error(
-            error instanceof Error ? error.message : "Unknown error",
-          );
-          process.exit(1);
-        }
-      },
-    );
+        spinner.stop();
+        formatCustomer(result, options.json);
+      } catch (error) {
+        spinner.fail("Failed to fetch customer");
+        output.error(error instanceof Error ? error.message : "Unknown error");
+        process.exit(1);
+      }
+    });
 
   // Get billing portal link
   command
@@ -276,9 +260,7 @@ export function createCustomersCommand(): Command {
         output.outputKeyValue(data);
 
         output.newline();
-        output.dim(
-          "This link allows the customer to manage their billing and subscriptions.",
-        );
+        output.dim("This link allows the customer to manage their billing and subscriptions.");
       } catch (error) {
         spinner.fail("Failed to generate billing portal link");
         output.error(error instanceof Error ? error.message : "Unknown error");

@@ -221,63 +221,61 @@ export interface WebhookOptions {
    * }
    */
   onSubscriptionActive?: (
-    data: FlatSubscriptionEvent<"subscription.active">
+    data: FlatSubscriptionEvent<"subscription.active">,
   ) => void | Promise<void>;
 
   /**
    * Called when a subscription is in trialing state.
    */
   onSubscriptionTrialing?: (
-    data: FlatSubscriptionEvent<"subscription.trialing">
+    data: FlatSubscriptionEvent<"subscription.trialing">,
   ) => void | Promise<void>;
 
   /**
    * Called when a subscription is canceled.
    */
   onSubscriptionCanceled?: (
-    data: FlatSubscriptionEvent<"subscription.canceled">
+    data: FlatSubscriptionEvent<"subscription.canceled">,
   ) => void | Promise<void>;
 
   /**
    * Called when a subscription is paid.
    */
-  onSubscriptionPaid?: (
-    data: FlatSubscriptionEvent<"subscription.paid">
-  ) => void | Promise<void>;
+  onSubscriptionPaid?: (data: FlatSubscriptionEvent<"subscription.paid">) => void | Promise<void>;
 
   /**
    * Called when a subscription has expired.
    */
   onSubscriptionExpired?: (
-    data: FlatSubscriptionEvent<"subscription.expired">
+    data: FlatSubscriptionEvent<"subscription.expired">,
   ) => void | Promise<void>;
 
   /**
    * Called when a subscription is unpaid.
    */
   onSubscriptionUnpaid?: (
-    data: FlatSubscriptionEvent<"subscription.unpaid">
+    data: FlatSubscriptionEvent<"subscription.unpaid">,
   ) => void | Promise<void>;
 
   /**
    * Called when a subscription is updated.
    */
   onSubscriptionUpdate?: (
-    data: FlatSubscriptionEvent<"subscription.update">
+    data: FlatSubscriptionEvent<"subscription.update">,
   ) => void | Promise<void>;
 
   /**
    * Called when a subscription is past due.
    */
   onSubscriptionPastDue?: (
-    data: FlatSubscriptionEvent<"subscription.past_due">
+    data: FlatSubscriptionEvent<"subscription.past_due">,
   ) => void | Promise<void>;
 
   /**
    * Called when a subscription is paused.
    */
   onSubscriptionPaused?: (
-    data: FlatSubscriptionEvent<"subscription.paused">
+    data: FlatSubscriptionEvent<"subscription.paused">,
   ) => void | Promise<void>;
 
   /**

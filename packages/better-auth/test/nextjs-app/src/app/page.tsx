@@ -29,9 +29,7 @@ export default function Home() {
     <main className="min-h-screen flex flex-col items-center justify-center p-8">
       <div className="max-w-4xl w-full space-y-8">
         <div className="text-center">
-          <h1 className="text-4xl font-bold text-gray-900 mb-4">
-            Creem Better-Auth Test App
-          </h1>
+          <h1 className="text-4xl font-bold text-gray-900 mb-4">Creem Better-Auth Test App</h1>
           <p className="text-lg text-gray-600">
             Test the Creem integration with Better-Auth locally
           </p>
@@ -44,9 +42,7 @@ export default function Home() {
                 <h2 className="text-2xl font-semibold text-gray-900">
                   Welcome, {user.name || user.email}!
                 </h2>
-                <p className="text-gray-600 mt-2">
-                  You&apos;re successfully authenticated.
-                </p>
+                <p className="text-gray-600 mt-2">You&apos;re successfully authenticated.</p>
               </div>
 
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -55,9 +51,7 @@ export default function Home() {
                   className="block p-6 bg-blue-50 rounded-lg hover:bg-blue-100 transition"
                 >
                   <h3 className="font-semibold text-blue-900 mb-2">Dashboard</h3>
-                  <p className="text-sm text-blue-700">
-                    View your account and subscription status
-                  </p>
+                  <p className="text-sm text-blue-700">View your account and subscription status</p>
                 </Link>
 
                 <Link
@@ -65,9 +59,7 @@ export default function Home() {
                   className="block p-6 bg-green-50 rounded-lg hover:bg-green-100 transition"
                 >
                   <h3 className="font-semibold text-green-900 mb-2">Pricing</h3>
-                  <p className="text-sm text-green-700">
-                    Subscribe to a plan using Creem
-                  </p>
+                  <p className="text-sm text-green-700">Subscribe to a plan using Creem</p>
                 </Link>
 
                 <Link
@@ -75,9 +67,7 @@ export default function Home() {
                   className="block p-6 bg-purple-50 rounded-lg hover:bg-purple-100 transition"
                 >
                   <h3 className="font-semibold text-purple-900 mb-2">Customer Portal</h3>
-                  <p className="text-sm text-purple-700">
-                    Manage your subscription
-                  </p>
+                  <p className="text-sm text-purple-700">Manage your subscription</p>
                 </Link>
 
                 <Link
@@ -85,18 +75,14 @@ export default function Home() {
                   className="block p-6 bg-orange-50 rounded-lg hover:bg-orange-100 transition"
                 >
                   <h3 className="font-semibold text-orange-900 mb-2">Transactions</h3>
-                  <p className="text-sm text-orange-700">
-                    View your transaction history
-                  </p>
+                  <p className="text-sm text-orange-700">View your transaction history</p>
                 </Link>
               </div>
             </>
           ) : (
             <>
               <div className="text-center space-y-4">
-                <p className="text-gray-600">
-                  Please sign in to test the Creem integration
-                </p>
+                <p className="text-gray-600">Please sign in to test the Creem integration</p>
                 <div className="space-x-4">
                   <Link
                     href="/auth/signin"
@@ -133,4 +119,3 @@ export default function Home() {
     </main>
   );
 }
-

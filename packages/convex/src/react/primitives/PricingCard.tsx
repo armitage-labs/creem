@@ -231,7 +231,6 @@ export const PricingCard = ({
         ) : null}
       </div>
 
-
       <div
         className={`mb-4 mt-6 ${showSeatCheckoutControls ? "flex flex-col gap-2" : "flex min-h-8 items-start"}`}
       >
@@ -326,8 +325,9 @@ export const PricingCard = ({
               Cancel subscription
             </button>
           ) : isActiveProduct ||
-            isActiveFreePlan ? /* Keep CTA row height but intentionally empty when current plan has no action */
-          null : (isSiblingPlan || isActivePlanOtherCycle) && productId ? (
+            isActiveFreePlan /* Keep CTA row height but intentionally empty when current plan has no action */ ? null : (isSiblingPlan ||
+              isActivePlanOtherCycle) &&
+            productId ? (
             <CheckoutButton
               productId={productId}
               disabled={disableSwitch}

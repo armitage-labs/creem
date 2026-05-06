@@ -161,27 +161,19 @@ function getTransactionDetailLines(txn: Transaction): string[] {
   lines.push(dl("Mode", txn.mode));
 
   if (txn.amountPaid != null) {
-    lines.push(
-      dl("Amount Paid", output.formatCurrency(txn.amountPaid, txn.currency)),
-    );
+    lines.push(dl("Amount Paid", output.formatCurrency(txn.amountPaid, txn.currency)));
   }
   if (txn.discountAmount != null) {
-    lines.push(
-      dl("Discount", output.formatCurrency(txn.discountAmount, txn.currency)),
-    );
+    lines.push(dl("Discount", output.formatCurrency(txn.discountAmount, txn.currency)));
   }
   if (txn.taxAmount != null) {
-    lines.push(
-      dl("Tax Amount", output.formatCurrency(txn.taxAmount, txn.currency)),
-    );
+    lines.push(dl("Tax Amount", output.formatCurrency(txn.taxAmount, txn.currency)));
   }
   if (txn.taxCountry) {
     lines.push(dl("Tax Country", txn.taxCountry));
   }
   if (txn.refundedAmount != null) {
-    lines.push(
-      dl("Refunded", output.formatCurrency(txn.refundedAmount, txn.currency)),
-    );
+    lines.push(dl("Refunded", output.formatCurrency(txn.refundedAmount, txn.currency)));
   }
   if (txn.order) {
     lines.push(dl("Order", txn.order));
@@ -353,11 +345,7 @@ export function createTransactionsCommand(): Command {
           output.newline();
         } catch (error) {
           spinner.stop();
-          output.error(
-            error instanceof Error
-              ? error.message
-              : "Failed to fetch transactions",
-          );
+          output.error(error instanceof Error ? error.message : "Failed to fetch transactions");
           process.exit(1);
         }
       },

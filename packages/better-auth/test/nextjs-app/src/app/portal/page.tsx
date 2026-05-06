@@ -13,12 +13,12 @@ export default function Portal() {
   useEffect(() => {
     const getUser = async () => {
       const session = await authClient.getSession();
-      
+
       if (!session.data?.user) {
         router.push("/auth/signin");
         return;
       }
-      
+
       setUser(session.data.user);
     };
     getUser();
@@ -56,25 +56,19 @@ export default function Portal() {
   return (
     <main className="min-h-screen p-8">
       <div className="max-w-4xl mx-auto">
-        <h1 className="text-4xl font-bold text-gray-900 mb-8">
-          Customer Portal
-        </h1>
+        <h1 className="text-4xl font-bold text-gray-900 mb-8">Customer Portal</h1>
 
         <div className="bg-white rounded-lg shadow-lg p-8 space-y-6">
           <div>
-            <h2 className="text-2xl font-semibold text-gray-900 mb-4">
-              Manage Your Subscription
-            </h2>
+            <h2 className="text-2xl font-semibold text-gray-900 mb-4">Manage Your Subscription</h2>
             <p className="text-gray-600 mb-6">
-              Access the Creem customer portal to manage your subscription, update
-              payment methods, view invoices, and more.
+              Access the Creem customer portal to manage your subscription, update payment methods,
+              view invoices, and more.
             </p>
           </div>
 
           <div className="border-t pt-6">
-            <h3 className="font-semibold text-gray-900 mb-3">
-              What you can do in the portal:
-            </h3>
+            <h3 className="font-semibold text-gray-900 mb-3">What you can do in the portal:</h3>
             <ul className="space-y-2 text-gray-700">
               <li className="flex items-start">
                 <svg
@@ -155,22 +149,12 @@ export default function Portal() {
         </div>
 
         <div className="mt-8 bg-blue-50 rounded-lg p-6 border border-blue-200">
-          <h3 className="font-semibold text-blue-900 mb-3">
-            💡 Testing the Portal
-          </h3>
+          <h3 className="font-semibold text-blue-900 mb-3">💡 Testing the Portal</h3>
           <ul className="space-y-2 text-sm text-blue-800">
-            <li>
-              1. Make sure you have a Creem customer associated with your email
-            </li>
-            <li>
-              2. Click &quot;Open Customer Portal&quot; to create a portal session
-            </li>
-            <li>
-              3. You&apos;ll be redirected to Creem&apos;s hosted portal page
-            </li>
-            <li>
-              4. After making changes, you&apos;ll be redirected back to the dashboard
-            </li>
+            <li>1. Make sure you have a Creem customer associated with your email</li>
+            <li>2. Click &quot;Open Customer Portal&quot; to create a portal session</li>
+            <li>3. You&apos;ll be redirected to Creem&apos;s hosted portal page</li>
+            <li>4. After making changes, you&apos;ll be redirected back to the dashboard</li>
           </ul>
         </div>
 
@@ -183,4 +167,3 @@ export default function Portal() {
     </main>
   );
 }
-

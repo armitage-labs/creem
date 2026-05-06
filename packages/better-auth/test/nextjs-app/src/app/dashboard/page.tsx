@@ -15,7 +15,7 @@ export default function Dashboard() {
   useEffect(() => {
     const fetchData = async () => {
       const session = await authClient.getSession();
-      
+
       if (!session.data?.user) {
         router.push("/auth/signin");
         return;
@@ -75,9 +75,7 @@ export default function Dashboard() {
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
           {/* User Info Card */}
           <div className="bg-white rounded-lg shadow-lg p-6">
-            <h2 className="text-xl font-semibold text-gray-900 mb-4">
-              Account Information
-            </h2>
+            <h2 className="text-xl font-semibold text-gray-900 mb-4">Account Information</h2>
             <div className="space-y-2">
               <div>
                 <span className="text-sm text-gray-600">Name:</span>
@@ -96,15 +94,11 @@ export default function Dashboard() {
 
           {/* Subscription Status Card */}
           <div className="bg-white rounded-lg shadow-lg p-6">
-            <h2 className="text-xl font-semibold text-gray-900 mb-4">
-              Subscription Status
-            </h2>
+            <h2 className="text-xl font-semibold text-gray-900 mb-4">Subscription Status</h2>
             <div className="space-y-4">
               <div className="flex items-center space-x-2">
                 <div
-                  className={`w-3 h-3 rounded-full ${
-                    hasAccess ? "bg-green-500" : "bg-gray-300"
-                  }`}
+                  className={`w-3 h-3 rounded-full ${hasAccess ? "bg-green-500" : "bg-gray-300"}`}
                 ></div>
                 <span className="font-medium">
                   {hasAccess ? "Active Subscription" : "No Active Subscription"}
@@ -142,18 +136,14 @@ export default function Dashboard() {
 
         {/* Quick Actions */}
         <div className="bg-white rounded-lg shadow-lg p-6">
-          <h2 className="text-xl font-semibold text-gray-900 mb-4">
-            Quick Actions
-          </h2>
+          <h2 className="text-xl font-semibold text-gray-900 mb-4">Quick Actions</h2>
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
             <Link
               href="/pricing"
               className="p-4 border-2 border-gray-200 rounded-lg hover:border-blue-500 hover:bg-blue-50 transition"
             >
               <h3 className="font-semibold text-gray-900 mb-1">View Pricing</h3>
-              <p className="text-sm text-gray-600">
-                Explore available subscription plans
-              </p>
+              <p className="text-sm text-gray-600">Explore available subscription plans</p>
             </Link>
 
             <Link
@@ -161,9 +151,7 @@ export default function Dashboard() {
               className="p-4 border-2 border-gray-200 rounded-lg hover:border-purple-500 hover:bg-purple-50 transition"
             >
               <h3 className="font-semibold text-gray-900 mb-1">Customer Portal</h3>
-              <p className="text-sm text-gray-600">
-                Manage billing and subscriptions
-              </p>
+              <p className="text-sm text-gray-600">Manage billing and subscriptions</p>
             </Link>
 
             <Link
@@ -171,9 +159,7 @@ export default function Dashboard() {
               className="p-4 border-2 border-gray-200 rounded-lg hover:border-green-500 hover:bg-green-50 transition"
             >
               <h3 className="font-semibold text-gray-900 mb-1">Transactions</h3>
-              <p className="text-sm text-gray-600">
-                View your payment history
-              </p>
+              <p className="text-sm text-gray-600">View your payment history</p>
             </Link>
           </div>
         </div>
@@ -187,4 +173,3 @@ export default function Dashboard() {
     </main>
   );
 }
-

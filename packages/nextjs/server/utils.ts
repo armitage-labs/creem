@@ -9,7 +9,7 @@ export { generateSignature, parseWebhookEvent };
  */
 export function resolveSuccessUrl(
   url: string | undefined | null,
-  req: NextRequest
+  req: NextRequest,
 ): string | undefined {
   if (!url) return undefined;
 

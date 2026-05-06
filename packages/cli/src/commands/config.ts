@@ -1,10 +1,5 @@
 import { Command } from "commander";
-import {
-  loadConfig,
-  setConfigValue,
-  getConfigPath,
-  CreemConfig,
-} from "../lib/config";
+import { loadConfig, setConfigValue, getConfigPath, CreemConfig } from "../lib/config";
 import { resetClient } from "../lib/api";
 import { detectEnvironment } from "../lib/auth";
 import * as output from "../utils/output";
@@ -32,9 +27,7 @@ function displayConfig(): void {
 }
 
 export function createConfigCommand(): Command {
-  const command = new Command("config").description(
-    "View and manage CLI configuration",
-  );
+  const command = new Command("config").description("View and manage CLI configuration");
 
   // Show all config
   command
@@ -65,9 +58,7 @@ export function createConfigCommand(): Command {
       const config = loadConfig();
 
       if (key === "api_key") {
-        output.warning(
-          "API key cannot be displayed. Use `creem whoami` instead.",
-        );
+        output.warning("API key cannot be displayed. Use `creem whoami` instead.");
         return;
       }
 
@@ -129,10 +120,7 @@ export function createConfigCommand(): Command {
         }
       }
 
-      setConfigValue(
-        key as keyof CreemConfig,
-        value as CreemConfig[keyof CreemConfig],
-      );
+      setConfigValue(key as keyof CreemConfig, value as CreemConfig[keyof CreemConfig]);
 
       // Reset client when environment changes so subsequent API calls use new endpoint
       if (key === "environment") {

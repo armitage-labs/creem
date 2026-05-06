@@ -39,9 +39,7 @@ export default function SignIn() {
     <main className="min-h-screen flex items-center justify-center p-8">
       <div className="max-w-md w-full">
         <div className="bg-white rounded-lg shadow-lg p-8">
-          <h1 className="text-3xl font-bold text-gray-900 mb-6 text-center">
-            Sign In
-          </h1>
+          <h1 className="text-3xl font-bold text-gray-900 mb-6 text-center">Sign In</h1>
 
           {error && (
             <div className="mb-4 p-3 bg-red-50 border border-red-200 rounded-lg text-red-700 text-sm">
@@ -108,4 +106,3 @@ export default function SignIn() {
     </main>
   );
 }
-

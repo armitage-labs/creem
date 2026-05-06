@@ -23,13 +23,10 @@ export default function Success() {
             </svg>
           </div>
 
-          <h1 className="text-3xl font-bold text-gray-900 mb-4">
-            Payment Successful!
-          </h1>
-          
+          <h1 className="text-3xl font-bold text-gray-900 mb-4">Payment Successful!</h1>
+
           <p className="text-gray-600 mb-8">
-            Thank you for your subscription. Your payment has been processed
-            successfully.
+            Thank you for your subscription. Your payment has been processed successfully.
           </p>
 
           <div className="space-y-3">
@@ -39,7 +36,7 @@ export default function Success() {
             >
               Go to Dashboard
             </Link>
-            
+
             <Link
               href="/portal"
               className="block px-6 py-3 bg-gray-200 text-gray-900 rounded-lg hover:bg-gray-300 transition font-medium"
@@ -59,4 +56,3 @@ export default function Success() {
     </main>
   );
 }
-

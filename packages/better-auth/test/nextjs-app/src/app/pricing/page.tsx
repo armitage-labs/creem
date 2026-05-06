@@ -60,12 +60,7 @@ export default function Pricing() {
       name: "Starter",
       price: "$9",
       period: "month",
-      features: [
-        "Basic features",
-        "Up to 10 users",
-        "Email support",
-        "1GB storage",
-      ],
+      features: ["Basic features", "Up to 10 users", "Email support", "1GB storage"],
     },
     {
       id: "add-your-product-id-here",
@@ -101,12 +96,8 @@ export default function Pricing() {
     <main className="min-h-screen p-8">
       <div className="max-w-7xl mx-auto">
         <div className="text-center mb-12">
-          <h1 className="text-4xl font-bold text-gray-900 mb-4">
-            Choose Your Plan
-          </h1>
-          <p className="text-lg text-gray-600">
-            Select a plan that works best for you
-          </p>
+          <h1 className="text-4xl font-bold text-gray-900 mb-4">Choose Your Plan</h1>
+          <p className="text-lg text-gray-600">Select a plan that works best for you</p>
         </div>
 
         {!user && (
@@ -135,13 +126,9 @@ export default function Pricing() {
                 </div>
               )}
 
-              <h2 className="text-2xl font-bold text-gray-900 mb-2">
-                {plan.name}
-              </h2>
+              <h2 className="text-2xl font-bold text-gray-900 mb-2">{plan.name}</h2>
               <div className="mb-6">
-                <span className="text-4xl font-bold text-gray-900">
-                  {plan.price}
-                </span>
+                <span className="text-4xl font-bold text-gray-900">{plan.price}</span>
                 <span className="text-gray-600">/{plan.period}</span>
               </div>
 
@@ -175,43 +162,34 @@ export default function Pricing() {
                     : "bg-gray-200 text-gray-900 hover:bg-gray-300"
                 } disabled:opacity-50 disabled:cursor-not-allowed`}
               >
-                {loading && selectedPlan === plan.id
-                  ? "Processing..."
-                  : "Subscribe"}
+                {loading && selectedPlan === plan.id ? "Processing..." : "Subscribe"}
               </button>
             </div>
           ))}
         </div>
 
         <div className="bg-gray-100 rounded-lg p-6">
-          <h3 className="font-semibold text-gray-900 mb-3">
-            💡 Testing Instructions
-          </h3>
+          <h3 className="font-semibold text-gray-900 mb-3">💡 Testing Instructions</h3>
           <ul className="space-y-2 text-sm text-gray-700">
             <li>
               1. Make sure you have set up your Creem API key in{" "}
               <code className="bg-white px-2 py-1 rounded">.env.local</code>
             </li>
             <li>
-              2. Replace the{" "}
-              <code className="bg-white px-2 py-1 rounded">productId</code>{" "}
-              values above with actual product IDs from your Creem dashboard
+              2. Replace the <code className="bg-white px-2 py-1 rounded">productId</code> values
+              above with actual product IDs from your Creem dashboard
             </li>
             <li>3. Click "Subscribe" to create a checkout session</li>
             <li>4. Complete the checkout on Creem's hosted page</li>
             <li>
               5. The webhook will trigger the{" "}
-              <code className="bg-white px-2 py-1 rounded">onGrantAccess</code>{" "}
-              callback
+              <code className="bg-white px-2 py-1 rounded">onGrantAccess</code> callback
             </li>
           </ul>
         </div>
 
         <div className="mt-6 text-center">
-          <Link
-            href="/dashboard"
-            className="text-sm text-gray-500 hover:text-gray-700"
-          >
+          <Link href="/dashboard" className="text-sm text-gray-500 hover:text-gray-700">
             ← Back to Dashboard
           </Link>
         </div>

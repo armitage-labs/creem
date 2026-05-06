@@ -35,10 +35,7 @@ function validateConfig(config: Partial<CreemConfig>): CreemConfig {
   const validated: CreemConfig = { ...DEFAULT_CONFIG };
 
   // Validate environment
-  if (
-    config.environment &&
-    VALID_ENVIRONMENTS.includes(config.environment as "test" | "live")
-  ) {
+  if (config.environment && VALID_ENVIRONMENTS.includes(config.environment as "test" | "live")) {
     validated.environment = config.environment as "test" | "live";
   }
 
@@ -87,9 +84,7 @@ export function saveConfig(config: CreemConfig): void {
 /**
  * Gets a specific config value
  */
-export function getConfigValue<K extends keyof CreemConfig>(
-  key: K,
-): CreemConfig[K] {
+export function getConfigValue<K extends keyof CreemConfig>(key: K): CreemConfig[K] {
   const config = loadConfig();
   return config[key];
 }
@@ -97,10 +92,7 @@ export function getConfigValue<K extends keyof CreemConfig>(
 /**
  * Sets a specific config value
  */
-export function setConfigValue<K extends keyof CreemConfig>(
-  key: K,
-  value: CreemConfig[K],
-): void {
+export function setConfigValue<K extends keyof CreemConfig>(key: K, value: CreemConfig[K]): void {
   const config = loadConfig();
   config[key] = value;
   saveConfig(config);

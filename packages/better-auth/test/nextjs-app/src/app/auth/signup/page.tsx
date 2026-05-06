@@ -41,9 +41,7 @@ export default function SignUp() {
     <main className="min-h-screen flex items-center justify-center p-8">
       <div className="max-w-md w-full">
         <div className="bg-white rounded-lg shadow-lg p-8">
-          <h1 className="text-3xl font-bold text-gray-900 mb-6 text-center">
-            Sign Up
-          </h1>
+          <h1 className="text-3xl font-bold text-gray-900 mb-6 text-center">Sign Up</h1>
 
           {error && (
             <div className="mb-4 p-3 bg-red-50 border border-red-200 rounded-lg text-red-700 text-sm">
@@ -96,9 +94,7 @@ export default function SignUp() {
                 className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                 placeholder="••••••••"
               />
-              <p className="text-xs text-gray-500 mt-1">
-                Must be at least 8 characters
-              </p>
+              <p className="text-xs text-gray-500 mt-1">Must be at least 8 characters</p>
             </div>
 
             <button
@@ -129,4 +125,3 @@ export default function SignUp() {
     </main>
   );
 }
-

@@ -153,7 +153,9 @@ export default function App() {
 
         {/* Test card info */}
         <div className="rounded-lg border border-surface-300-700 bg-surface-100-900 px-4 py-3 text-sm text-foreground-muted">
-          <span className="font-medium text-foreground-default">Test card:</span>
+          <span className="font-medium text-foreground-default">
+            Test card:
+          </span>
           <code className="ml-1 rounded bg-surface-200-800 px-1.5 py-0.5 font-mono text-xs">
             4242 4242 4242 4242
           </code>
@@ -178,8 +180,8 @@ export default function App() {
               </h2>
               <p className="body-l col-span-12 mt-6 text-center text-foreground-muted lg:col-start-4 lg:col-span-6">
                 Subscription plans with a free trial. Monthly, quarterly,
-                semi-annual, and annual billing cycles — the cycle toggle appears
-                automatically from the registered plans.
+                semi-annual, and annual billing cycles — the cycle toggle
+                appears automatically from the registered plans.
               </p>
             </div>
 
@@ -411,8 +413,8 @@ export default function App() {
                 Mutually Exclusive Product Group
               </h2>
               <p className="body-l col-span-12 mt-6 text-center text-foreground-muted lg:col-start-4 lg:col-span-6">
-                A group of products where owning one affects available actions on
-                others. Upgrade paths are defined via a transition graph —
+                A group of products where owning one affects available actions
+                on others. Upgrade paths are defined via a transition graph —
                 upgrading from Basic to Premium uses a dedicated delta product.
                 Product images are synced from Creem.
               </p>

@@ -27,16 +27,13 @@ export const Checkout = ({
     const customFieldsParam = req.nextUrl.searchParams.get("customFields");
     const successUrl = resolveSuccessUrl(
       req.nextUrl.searchParams.get("successUrl") ?? defaultSuccessUrl,
-      req
+      req,
     );
     const metadataParam = req.nextUrl.searchParams.get("metadata");
     const referenceId = req.nextUrl.searchParams.get("referenceId");
 
     if (!productId) {
-      return NextResponse.json(
-        { error: "Product ID is required" },
-        { status: 400 }
-      );
+      return NextResponse.json({ error: "Product ID is required" }, { status: 400 });
     }
 
     // Parse units to number
@@ -47,10 +44,7 @@ export const Checkout = ({
     try {
       customer = customerParam ? JSON.parse(customerParam) : undefined;
     } catch {
-      return NextResponse.json(
-        { error: "Invalid customer JSON" },
-        { status: 400 }
-      );
+      return NextResponse.json({ error: "Invalid customer JSON" }, { status: 400 });
     }
 
     // Parse metadata JSON if provided
@@ -58,10 +52,7 @@ export const Checkout = ({
     try {
       metadata = metadataParam ? JSON.parse(metadataParam) : undefined;
     } catch {
-      return NextResponse.json(
-        { error: "Invalid metadata JSON" },
-        { status: 400 }
-      );
+      return NextResponse.json({ error: "Invalid metadata JSON" }, { status: 400 });
     }
 
     // Parse customFields JSON if provided
@@ -69,10 +60,7 @@ export const Checkout = ({
     try {
       customFields = customFieldsParam ? JSON.parse(customFieldsParam) : undefined;
     } catch {
-      return NextResponse.json(
-        { error: "Invalid customFields JSON" },
-        { status: 400 }
-      );
+      return NextResponse.json({ error: "Invalid customFields JSON" }, { status: 400 });
     }
 
     try {
@@ -91,25 +79,21 @@ export const Checkout = ({
 
       // Redirect to the checkout URL
       if (!checkout.checkoutUrl) {
-        return NextResponse.json(
-          { error: "Checkout URL not available" },
-          { status: 500 }
-        );
+        return NextResponse.json({ error: "Checkout URL not available" }, { status: 500 });
       }
 
       return NextResponse.redirect(checkout.checkoutUrl);
     } catch (error) {
       console.error("Checkout creation failed:", error);
 
-      const errorMessage =
-        error instanceof Error ? error.message : "An unexpected error occurred";
+      const errorMessage = error instanceof Error ? error.message : "An unexpected error occurred";
 
       return NextResponse.json(
         {
           error: "Failed to create checkout",
           details: errorMessage,
         },
-        { status: 500 }
+        { status: 500 },
       );
     }
   };

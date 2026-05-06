@@ -87,11 +87,7 @@ export default function Home() {
               />
             </label>
           </div>
-          <button
-            type="submit"
-            disabled={loading}
-            style={{ padding: "8px 16px", marginRight: 8 }}
-          >
+          <button type="submit" disabled={loading} style={{ padding: "8px 16px", marginRight: 8 }}>
             {loading ? "..." : isSignUp ? "Sign Up" : "Sign In"}
           </button>
           <button type="button" onClick={() => setIsSignUp(!isSignUp)}>
@@ -168,8 +164,7 @@ function Dashboard() {
   };
 
   const onetimeProductId = process.env.NEXT_PUBLIC_CREEM_ONETIME_PRODUCT_ID;
-  const subscriptionProductId =
-    process.env.NEXT_PUBLIC_CREEM_SUBSCRIPTION_PRODUCT_ID;
+  const subscriptionProductId = process.env.NEXT_PUBLIC_CREEM_SUBSCRIPTION_PRODUCT_ID;
 
   return (
     <div>
@@ -187,28 +182,22 @@ function Dashboard() {
             disabled={checkoutLoading !== null}
             style={{ padding: "8px 16px" }}
           >
-            {checkoutLoading === "onetime"
-              ? "..."
-              : "Buy One-Time Product"}
+            {checkoutLoading === "onetime" ? "..." : "Buy One-Time Product"}
           </button>
         )}
         {subscriptionProductId && (
           <button
-            onClick={() =>
-              handleCheckout(subscriptionProductId, "subscription")
-            }
+            onClick={() => handleCheckout(subscriptionProductId, "subscription")}
             disabled={checkoutLoading !== null}
             style={{ padding: "8px 16px" }}
           >
-            {checkoutLoading === "subscription"
-              ? "..."
-              : "Subscribe"}
+            {checkoutLoading === "subscription" ? "..." : "Subscribe"}
           </button>
         )}
         {!onetimeProductId && !subscriptionProductId && (
           <p style={{ color: "#888" }}>
-            Set NEXT_PUBLIC_CREEM_ONETIME_PRODUCT_ID or
-            NEXT_PUBLIC_CREEM_SUBSCRIPTION_PRODUCT_ID in .env.local
+            Set NEXT_PUBLIC_CREEM_ONETIME_PRODUCT_ID or NEXT_PUBLIC_CREEM_SUBSCRIPTION_PRODUCT_ID in
+            .env.local
           </p>
         )}
       </div>
@@ -220,13 +209,8 @@ function Dashboard() {
       </button>
       {accessStatus && (
         <p>
-          Access:{" "}
-          <strong>
-            {accessStatus.hasAccessGranted ? "Granted" : "Not granted"}
-          </strong>
-          {accessStatus.message && (
-            <span style={{ color: "#888" }}> — {accessStatus.message}</span>
-          )}
+          Access: <strong>{accessStatus.hasAccessGranted ? "Granted" : "Not granted"}</strong>
+          {accessStatus.message && <span style={{ color: "#888" }}> — {accessStatus.message}</span>}
         </p>
       )}
 
@@ -239,10 +223,7 @@ function Dashboard() {
         <button onClick={handleTransactions} style={{ padding: "8px 16px" }}>
           View Transactions
         </button>
-        <button
-          onClick={() => authClient.signOut()}
-          style={{ padding: "8px 16px" }}
-        >
+        <button onClick={() => authClient.signOut()} style={{ padding: "8px 16px" }}>
           Sign Out
         </button>
       </div>

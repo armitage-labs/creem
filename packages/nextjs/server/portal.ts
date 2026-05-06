@@ -17,10 +17,7 @@ export const Portal = ({ apiKey, testMode = false }: PortalRouteInstance) => {
     const customerId = req.nextUrl.searchParams.get("customerId");
 
     if (!customerId) {
-      return NextResponse.json(
-        { error: "Customer ID is required" },
-        { status: 400 }
-      );
+      return NextResponse.json({ error: "Customer ID is required" }, { status: 400 });
     }
 
     try {
@@ -30,25 +27,21 @@ export const Portal = ({ apiKey, testMode = false }: PortalRouteInstance) => {
 
       // Redirect to the portal URL
       if (!portal.customerPortalLink) {
-        return NextResponse.json(
-          { error: "Portal URL not available" },
-          { status: 500 }
-        );
+        return NextResponse.json({ error: "Portal URL not available" }, { status: 500 });
       }
 
       return NextResponse.redirect(portal.customerPortalLink);
     } catch (error) {
       console.error("Portal creation failed:", error);
 
-      const errorMessage =
-        error instanceof Error ? error.message : "An unexpected error occurred";
+      const errorMessage = error instanceof Error ? error.message : "An unexpected error occurred";
 
       return NextResponse.json(
         {
           error: "Failed to create portal",
           details: errorMessage,
         },
-        { status: 500 }
+        { status: 500 },
       );
     }
   };

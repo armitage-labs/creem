@@ -26,9 +26,7 @@ describe("renderMarkdown", () => {
   });
 
   it("renders GFM tables", () => {
-    const result = renderMarkdown(
-      "| col1 | col2 |\n| --- | --- |\n| a | b |",
-    );
+    const result = renderMarkdown("| col1 | col2 |\n| --- | --- |\n| a | b |");
     expect(result).toContain("<table>");
     expect(result).toContain("<th>");
     expect(result).toContain("<td>");

@@ -84,11 +84,9 @@ function formatDuration(discount: Discount): string {
 }
 
 export function createDiscountsCommand(): Command {
-  const command = new Command("discounts")
-    .description("Manage discounts")
-    .action(() => {
-      command.help();
-    });
+  const command = new Command("discounts").description("Manage discounts").action(() => {
+    command.help();
+  });
 
   // List discounts
   command
@@ -97,116 +95,103 @@ export function createDiscountsCommand(): Command {
     .option("--json", "Output as JSON")
     .option("--page <number>", "Page number", "1")
     .option("--limit <number>", "Number of results per page", "20")
-    .action(
-      async (options: { json?: boolean; page: string; limit: string }) => {
-        const spinner = ora("Fetching discounts...").start();
+    .action(async (options: { json?: boolean; page: string; limit: string }) => {
+      const spinner = ora("Fetching discounts...").start();
 
-        try {
-          // Note: The SDK doesn't have a list method for discounts yet,
-          // so we make a direct API call to the internal endpoint
-          const apiKey = getConfigValue("api_key");
-          if (!apiKey) {
+      try {
+        // Note: The SDK doesn't have a list method for discounts yet,
+        // so we make a direct API call to the internal endpoint
+        const apiKey = getConfigValue("api_key");
+        if (!apiKey) {
+          spinner.stop();
+          output.error("Not authenticated. Run `creem login` first.");
+          process.exit(1);
+        }
+
+        const baseUrl = getBaseUrl();
+
+        const url = new URL(`${baseUrl}/v1/discounts/list`);
+        url.searchParams.set("page", options.page);
+        url.searchParams.set("limit", options.limit);
+
+        const response = await fetch(url.toString(), {
+          method: "GET",
+          headers: {
+            "x-api-key": apiKey,
+            "Content-Type": "application/json",
+          },
+        });
+
+        if (!response.ok) {
+          // If endpoint doesn't exist, show helpful message
+          if (response.status === 404) {
             spinner.stop();
-            output.error("Not authenticated. Run `creem login` first.");
-            process.exit(1);
-          }
-
-          const baseUrl = getBaseUrl();
-
-          const url = new URL(`${baseUrl}/v1/discounts/list`);
-          url.searchParams.set("page", options.page);
-          url.searchParams.set("limit", options.limit);
-
-          const response = await fetch(url.toString(), {
-            method: "GET",
-            headers: {
-              "x-api-key": apiKey,
-              "Content-Type": "application/json",
-            },
-          });
-
-          if (!response.ok) {
-            // If endpoint doesn't exist, show helpful message
-            if (response.status === 404) {
-              spinner.stop();
-              output.newline();
-              output.info("Discount list endpoint is not available via API.");
-              output.dim(
-                "View your discounts at: https://creem.io/dashboard/discounts",
-              );
-              output.newline();
-              output.dim("You can retrieve a specific discount using:");
-              console.log(chalk.cyan("  creem discounts get <discount-id>"));
-              console.log(
-                chalk.cyan("  creem discounts get --code <discount-code>"),
-              );
-              return;
-            }
-            throw new Error(
-              `API error: ${response.status} ${response.statusText}`,
-            );
-          }
-
-          const data = (await response.json()) as DiscountListResponse;
-          spinner.stop();
-
-          const { items, pagination } = data;
-
-          if (shouldOutputJson(options.json)) {
-            output.outputJson(data);
-            return;
-          }
-
-          output.newline();
-
-          if (items.length === 0) {
-            output.info("No discounts found.");
-            output.dim("Create a discount with: creem discounts create");
-            return;
-          }
-
-          output.outputTable(
-            ["ID", "Code", "Value", "Duration", "Status"],
-            items.map((d) => [
-              d.id,
-              d.code,
-              formatDiscountValue(d),
-              formatDuration(d),
-              formatStatus(d.status),
-            ]),
-          );
-
-          output.newline();
-          output.dim(
-            `Page ${pagination.currentPage} of ${pagination.totalPages} (${pagination.totalRecords} total)`,
-          );
-          output.newline();
-        } catch (error) {
-          spinner.stop();
-
-          // Check if it's a network/API error that suggests the endpoint doesn't exist
-          const errorMsg =
-            error instanceof Error ? error.message : "Unknown error";
-          if (errorMsg.includes("404") || errorMsg.includes("Not Found")) {
             output.newline();
             output.info("Discount list endpoint is not available via API.");
-            output.dim(
-              "View your discounts at: https://creem.io/dashboard/discounts",
-            );
+            output.dim("View your discounts at: https://creem.io/dashboard/discounts");
             output.newline();
             output.dim("You can retrieve a specific discount using:");
             console.log(chalk.cyan("  creem discounts get <discount-id>"));
-            console.log(
-              chalk.cyan("  creem discounts get --code <discount-code>"),
-            );
+            console.log(chalk.cyan("  creem discounts get --code <discount-code>"));
             return;
           }
-
-          output.error(errorMsg);
-          process.exit(1);
+          throw new Error(`API error: ${response.status} ${response.statusText}`);
         }
-      },
-    );
+
+        const data = (await response.json()) as DiscountListResponse;
+        spinner.stop();
+
+        const { items, pagination } = data;
+
+        if (shouldOutputJson(options.json)) {
+          output.outputJson(data);
+          return;
+        }
+
+        output.newline();
+
+        if (items.length === 0) {
+          output.info("No discounts found.");
+          output.dim("Create a discount with: creem discounts create");
+          return;
+        }
+
+        output.outputTable(
+          ["ID", "Code", "Value", "Duration", "Status"],
+          items.map((d) => [
+            d.id,
+            d.code,
+            formatDiscountValue(d),
+            formatDuration(d),
+            formatStatus(d.status),
+          ]),
+        );
+
+        output.newline();
+        output.dim(
+          `Page ${pagination.currentPage} of ${pagination.totalPages} (${pagination.totalRecords} total)`,
+        );
+        output.newline();
+      } catch (error) {
+        spinner.stop();
+
+        // Check if it's a network/API error that suggests the endpoint doesn't exist
+        const errorMsg = error instanceof Error ? error.message : "Unknown error";
+        if (errorMsg.includes("404") || errorMsg.includes("Not Found")) {
+          output.newline();
+          output.info("Discount list endpoint is not available via API.");
+          output.dim("View your discounts at: https://creem.io/dashboard/discounts");
+          output.newline();
+          output.dim("You can retrieve a specific discount using:");
+          console.log(chalk.cyan("  creem discounts get <discount-id>"));
+          console.log(chalk.cyan("  creem discounts get --code <discount-code>"));
+          return;
+        }
+
+        output.error(errorMsg);
+        process.exit(1);
+      }
+    });
 
   // Get discount by ID or code
   command
@@ -214,80 +199,65 @@ export function createDiscountsCommand(): Command {
     .description("Get discount details by ID or code")
     .option("--code <code>", "Get discount by code instead of ID")
     .option("--json", "Output as JSON")
-    .action(
-      async (
-        discountId: string | undefined,
-        options: { code?: string; json?: boolean },
-      ) => {
-        if (!discountId && !options.code) {
-          output.error("Please provide a discount ID or use --code <code>");
-          process.exit(1);
+    .action(async (discountId: string | undefined, options: { code?: string; json?: boolean }) => {
+      if (!discountId && !options.code) {
+        output.error("Please provide a discount ID or use --code <code>");
+        process.exit(1);
+      }
+
+      if (discountId && options.code) {
+        output.error("Please provide either a discount ID or --code, not both");
+        process.exit(1);
+      }
+
+      const spinner = ora("Fetching discount...").start();
+
+      try {
+        const client = getClient();
+        const discount = (await client.discounts.get(
+          discountId || undefined,
+          options.code || undefined,
+        )) as unknown as Discount;
+
+        spinner.stop();
+
+        if (shouldOutputJson(options.json)) {
+          output.outputJson(discount);
+          return;
         }
 
-        if (discountId && options.code) {
-          output.error(
-            "Please provide either a discount ID or --code, not both",
-          );
-          process.exit(1);
-        }
+        output.newline();
+        output.header(discount.name);
+        output.newline();
 
-        const spinner = ora("Fetching discount...").start();
+        output.outputKeyValue({
+          ID: discount.id,
+          Code: discount.code,
+          Status: formatStatus(discount.status),
+          Type: discount.type,
+          Value: formatDiscountValue(discount),
+          Duration: formatDuration(discount),
+          Mode: discount.mode,
+          "Max Redemptions": discount.maxRedemptions?.toString() || "Unlimited",
+          "Times Redeemed": discount.redeemCount?.toString() || "0",
+          "Expiry Date": discount.expiryDate ? output.formatDate(discount.expiryDate) : "Never",
+        });
 
-        try {
-          const client = getClient();
-          const discount = (await client.discounts.get(
-            discountId || undefined,
-            options.code || undefined,
-          )) as unknown as Discount;
-
-          spinner.stop();
-
-          if (shouldOutputJson(options.json)) {
-            output.outputJson(discount);
-            return;
-          }
-
+        if (discount.appliesToProducts && discount.appliesToProducts.length > 0) {
           output.newline();
-          output.header(discount.name);
-          output.newline();
-
-          output.outputKeyValue({
-            ID: discount.id,
-            Code: discount.code,
-            Status: formatStatus(discount.status),
-            Type: discount.type,
-            Value: formatDiscountValue(discount),
-            Duration: formatDuration(discount),
-            Mode: discount.mode,
-            "Max Redemptions":
-              discount.maxRedemptions?.toString() || "Unlimited",
-            "Times Redeemed": discount.redeemCount?.toString() || "0",
-            "Expiry Date": discount.expiryDate
-              ? output.formatDate(discount.expiryDate)
-              : "Never",
+          output.dim("Applies to Products:");
+          discount.appliesToProducts.forEach((productId) => {
+            console.log(`  • ${productId}`);
           });
-
-          if (
-            discount.appliesToProducts &&
-            discount.appliesToProducts.length > 0
-          ) {
-            output.newline();
-            output.dim("Applies to Products:");
-            discount.appliesToProducts.forEach((productId) => {
-              console.log(`  • ${productId}`);
-            });
-          }
-
-          output.newline();
-        } catch (error) {
-          spinner.stop();
-          output.error(
-            error instanceof Error ? error.message : "Failed to fetch discount",
-          );
-          process.exit(1);
         }
-      },
-    );
+
+        output.newline();
+      } catch (error) {
+        spinner.stop();
+        output.error(error instanceof Error ? error.message : "Failed to fetch discount");
+        process.exit(1);
+      }
+    });
 
   // Create discount
   command
@@ -296,31 +266,13 @@ export function createDiscountsCommand(): Command {
     .requiredOption("--name <name>", "Discount name")
     .option("--code <code>", "Discount code (auto-generated if not provided)")
     .requiredOption("--type <type>", 'Discount type: "percentage" or "fixed"')
-    .option(
-      "--amount <cents>",
-      "Discount amount in cents (required for fixed type)",
-    )
-    .option(
-      "--percentage <number>",
-      "Discount percentage 1-100 (required for percentage type)",
-    )
-    .option(
-      "--currency <code>",
-      "Currency code for fixed discounts (default: USD)",
-    )
+    .option("--amount <cents>", "Discount amount in cents (required for fixed type)")
+    .option("--percentage <number>", "Discount percentage 1-100 (required for percentage type)")
+    .option("--currency <code>", "Currency code for fixed discounts (default: USD)")
     .option("--expires <date>", "Expiry date (ISO format, e.g., 2025-12-31)")
-    .option(
-      "--max-redemptions <number>",
-      "Maximum number of times the discount can be used",
-    )
-    .requiredOption(
-      "--duration <type>",
-      'Duration type: "once", "forever", or "repeating"',
-    )
-    .option(
-      "--duration-months <number>",
-      "Number of months for repeating duration",
-    )
+    .option("--max-redemptions <number>", "Maximum number of times the discount can be used")
+    .requiredOption("--duration <type>", 'Duration type: "once", "forever", or "repeating"')
+    .option("--duration-months <number>", "Number of months for repeating duration")
     .requiredOption(
       "--products <ids>",
       "Comma-separated list of product IDs this discount applies to",
@@ -416,9 +368,7 @@ ${chalk.dim("Examples:")}
 
         // Validate repeating duration requires months
         if (options.duration === "repeating" && !options.durationMonths) {
-          output.error(
-            '--duration-months is required when duration is "repeating"',
-          );
+          output.error('--duration-months is required when duration is "repeating"');
           process.exit(1);
         }
 
@@ -481,9 +431,7 @@ ${chalk.dim("Examples:")}
             params.durationInMonths = parseInt(options.durationMonths, 10);
           }
 
-          const discount = (await client.discounts.create(
-            params,
-          )) as unknown as Discount;
+          const discount = (await client.discounts.create(params)) as unknown as Discount;
 
           spinner.stop();
 
@@ -513,9 +461,7 @@ ${chalk.dim("Examples:")}
           output.newline();
         } catch (error) {
           spinner.fail("Failed to create discount");
-          output.error(
-            error instanceof Error ? error.message : "Unknown error",
-          );
+          output.error(error instanceof Error ? error.message : "Unknown error");
           process.exit(1);
         }
       },
@@ -531,9 +477,7 @@ ${chalk.dim("Examples:")}
 
       try {
         const client = getClient();
-        const discount = (await client.discounts.delete(
-          discountId,
-        )) as unknown as Discount;
+        const discount = (await client.discounts.delete(discountId)) as unknown as Discount;
 
         spinner.stop();
 
@@ -543,15 +487,11 @@ ${chalk.dim("Examples:")}
         }
 
         output.newline();
-        output.success(
-          `Discount "${discount.name}" (${discount.code}) deleted`,
-        );
+        output.success(`Discount "${discount.name}" (${discount.code}) deleted`);
         output.newline();
       } catch (error) {
         spinner.stop();
-        output.error(
-          error instanceof Error ? error.message : "Failed to delete discount",
-        );
+        output.error(error instanceof Error ? error.message : "Failed to delete discount");
         process.exit(1);
       }
     });

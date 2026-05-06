@@ -5,11 +5,7 @@ export const metadata: Metadata = {
   description: "Minimal Next.js example for the @creem_io/better-auth plugin",
 };
 
-export default function RootLayout({
-  children,
-}: {
-  children: React.ReactNode;
-}) {
+export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
     <html lang="en">
       <body

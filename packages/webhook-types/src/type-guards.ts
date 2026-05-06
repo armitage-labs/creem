@@ -54,37 +54,61 @@ export function isWebhookEventEntity(obj: unknown): obj is WebhookEventEntity {
 }
 
 export function isCheckoutEntity(obj: unknown): obj is CheckoutEntity {
-  return obj !== null && typeof obj === "object" && "object" in obj && (obj as any).object === "checkout";
+  return (
+    obj !== null && typeof obj === "object" && "object" in obj && (obj as any).object === "checkout"
+  );
 }
 
 export function isCustomerEntity(obj: unknown): obj is CustomerEntity {
-  return obj !== null && typeof obj === "object" && "object" in obj && (obj as any).object === "customer";
+  return (
+    obj !== null && typeof obj === "object" && "object" in obj && (obj as any).object === "customer"
+  );
 }
 
 export function isOrderEntity(obj: unknown): obj is OrderEntity {
-  return obj !== null && typeof obj === "object" && "object" in obj && (obj as any).object === "order";
+  return (
+    obj !== null && typeof obj === "object" && "object" in obj && (obj as any).object === "order"
+  );
 }
 
 export function isProductEntity(obj: unknown): obj is ProductEntity {
-  return obj !== null && typeof obj === "object" && "object" in obj && (obj as any).object === "product";
+  return (
+    obj !== null && typeof obj === "object" && "object" in obj && (obj as any).object === "product"
+  );
 }
 
 export function isSubscriptionEntity(obj: unknown): obj is SubscriptionEntity {
-  return obj !== null && typeof obj === "object" && "object" in obj && (obj as any).object === "subscription";
+  return (
+    obj !== null &&
+    typeof obj === "object" &&
+    "object" in obj &&
+    (obj as any).object === "subscription"
+  );
 }
 
 export function isRefundEntity(obj: unknown): obj is RefundEntity {
-  return obj !== null && typeof obj === "object" && "object" in obj && (obj as any).object === "refund";
+  return (
+    obj !== null && typeof obj === "object" && "object" in obj && (obj as any).object === "refund"
+  );
 }
 
 export function isDisputeEntity(obj: unknown): obj is DisputeEntity {
-  return obj !== null && typeof obj === "object" && "object" in obj && (obj as any).object === "dispute";
+  return (
+    obj !== null && typeof obj === "object" && "object" in obj && (obj as any).object === "dispute"
+  );
 }
 
 export function isTransactionEntity(obj: unknown): obj is TransactionEntity {
-  return obj !== null && typeof obj === "object" && "object" in obj && (obj as any).object === "transaction";
+  return (
+    obj !== null &&
+    typeof obj === "object" &&
+    "object" in obj &&
+    (obj as any).object === "transaction"
+  );
 }
 
 export function isDiscountEntity(obj: unknown): obj is DiscountEntity {
-  return obj !== null && typeof obj === "object" && "object" in obj && (obj as any).object === "discount";
+  return (
+    obj !== null && typeof obj === "object" && "object" in obj && (obj as any).object === "discount"
+  );
 }

@@ -8,14 +8,10 @@ import { parseCommand } from "./command-bar";
 const PAGE_SIZE = 15;
 const STATUS_CLEAR_MS = 3000;
 
-export async function launchInteractiveMode<T>(
-  descriptor: TuiModuleDescriptor<T>,
-): Promise<void> {
+export async function launchInteractiveMode<T>(descriptor: TuiModuleDescriptor<T>): Promise<void> {
   // Non-TTY fallback
   if (!process.stdout.isTTY || !process.stdin.isTTY) {
-    console.error(
-      'Interactive mode requires a TTY. Use the "list" subcommand instead.',
-    );
+    console.error('Interactive mode requires a TTY. Use the "list" subcommand instead.');
     process.exit(1);
   }
 
@@ -48,10 +44,7 @@ export async function launchInteractiveMode<T>(
     process.stdin.pause();
   };
 
-  const setStatus = (
-    message: string,
-    type: "info" | "success" | "error",
-  ): void => {
+  const setStatus = (message: string, type: "info" | "success" | "error"): void => {
     state.statusMessage = message;
     state.statusType = type;
     if (statusTimer) clearTimeout(statusTimer);
@@ -70,17 +63,13 @@ export async function launchInteractiveMode<T>(
     doRender();
     try {
       const result = await descriptor.fetchPage(page, PAGE_SIZE);
-      state.items =
-        page === 1 ? result.items : [...state.items, ...result.items];
+      state.items = page === 1 ? result.items : [...state.items, ...result.items];
       state.hasMorePages = result.hasMore;
       state.currentPage = page;
       if (result.total !== undefined) state.totalItems = result.total;
       applySearchFilter();
     } catch (err) {
-      setStatus(
-        err instanceof Error ? err.message : "Failed to fetch data",
-        "error",
-      );
+      setStatus(err instanceof Error ? err.message : "Failed to fetch data", "error");
     } finally {
       state.isLoading = false;
       doRender();
@@ -108,10 +97,7 @@ export async function launchInteractiveMode<T>(
       state.scrollOffset = 0;
       return;
     }
-    state.cursorIndex = Math.max(
-      0,
-      Math.min(state.cursorIndex, items.length - 1),
-    );
+    state.cursorIndex = Math.max(0, Math.min(state.cursorIndex, items.length - 1));
     const visibleRows = getVisibleRows();
     if (state.cursorIndex < state.scrollOffset) {
       state.scrollOffset = state.cursorIndex;
@@ -126,19 +112,12 @@ export async function launchInteractiveMode<T>(
     // Wrap lines the same way the renderer does to get accurate line count
     const wrappedLines = wrapDetailLines(rawDetailLines, cols - 2);
     const maxScroll = Math.max(0, wrappedLines.length - detailVisibleRows);
-    state.detailScrollOffset = Math.max(
-      0,
-      Math.min(state.detailScrollOffset, maxScroll),
-    );
+    state.detailScrollOffset = Math.max(0, Math.min(state.detailScrollOffset, maxScroll));
   };
 
   const maybeFetchMore = async (): Promise<void> => {
     const items = getActiveItems();
-    if (
-      state.hasMorePages &&
-      !state.isLoading &&
-      state.cursorIndex >= items.length - 5
-    ) {
+    if (state.hasMorePages && !state.isLoading && state.cursorIndex >= items.length - 5) {
       await fetchPage(state.currentPage + 1);
     }
   };
@@ -192,14 +171,8 @@ export async function launchInteractiveMode<T>(
             const cols = process.stdout.columns || 80;
             const rawLines = descriptor.renderDetail(state.selectedItem);
             const wrappedLines = wrapDetailLines(rawLines, cols - 2);
-            const detailVisibleRows = Math.max(
-              1,
-              (process.stdout.rows || 24) - 3,
-            );
-            state.detailScrollOffset = Math.max(
-              0,
-              wrappedLines.length - detailVisibleRows,
-            );
+            const detailVisibleRows = Math.max(1, (process.stdout.rows || 24) - 3);
+            state.detailScrollOffset = Math.max(0, wrappedLines.length - detailVisibleRows);
           } else {
             state.cursorIndex = items.length - 1;
             clampCursor();
@@ -225,10 +198,7 @@ export async function launchInteractiveMode<T>(
         case "half_page_up": {
           const half = Math.floor(visibleRows / 2);
           if (state.mode === "detail") {
-            state.detailScrollOffset = Math.max(
-              0,
-              state.detailScrollOffset - half,
-            );
+            state.detailScrollOffset = Math.max(0, state.detailScrollOffset - half);
           } else {
             state.cursorIndex -= half;
             clampCursor();
@@ -324,9 +294,7 @@ export async function launchInteractiveMode<T>(
         case "confirm_yes": {
           if (state.mode === "confirm" && state.pendingCommand) {
             const cmd = state.pendingCommand;
-            const item =
-              state.selectedItem ||
-              (items.length > 0 ? items[state.cursorIndex] : null);
+            const item = state.selectedItem || (items.length > 0 ? items[state.cursorIndex] : null);
             state.pendingCommand = null;
             state.mode = state.selectedItem ? "detail" : "list";
             await runCommand(cmd, item);
@@ -364,10 +332,7 @@ export async function launchInteractiveMode<T>(
   };
 
   const executeCommand = async (): Promise<void> => {
-    const { parsed, error } = parseCommand(
-      state.commandInput,
-      descriptor.commands,
-    );
+    const { parsed, error } = parseCommand(state.commandInput, descriptor.commands);
     state.commandInput = "";
 
     if (error) {
@@ -382,9 +347,7 @@ export async function launchInteractiveMode<T>(
     }
 
     const items = getActiveItems();
-    const selectedItem =
-      state.selectedItem ||
-      (items.length > 0 ? items[state.cursorIndex] : null);
+    const selectedItem = state.selectedItem || (items.length > 0 ? items[state.cursorIndex] : null);
 
     if (parsed.command.requiresSelection && !selectedItem) {
       state.mode = "list";
@@ -452,18 +415,15 @@ export async function launchInteractiveMode<T>(
   // Keypress handler
   keymap.setPendingExpiredHandler(doRender);
 
-  process.stdin.on(
-    "keypress",
-    (str: string | undefined, key: readline.Key | undefined) => {
-      if (!running) return;
-      const action = keymap.resolve(str, key, state.mode);
-      // Handle async actions
-      handleAction(action).catch((err) => {
-        setStatus(err instanceof Error ? err.message : "Error", "error");
-        doRender();
-      });
-    },
-  );
+  process.stdin.on("keypress", (str: string | undefined, key: readline.Key | undefined) => {
+    if (!running) return;
+    const action = keymap.resolve(str, key, state.mode);
+    // Handle async actions
+    handleAction(action).catch((err) => {
+      setStatus(err instanceof Error ? err.message : "Error", "error");
+      doRender();
+    });
+  });
 
   // Fetch initial data
   await fetchPage(1);

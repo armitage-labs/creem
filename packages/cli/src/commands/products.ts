@@ -78,9 +78,7 @@ function getProductDetailLines(product: Product): string[] {
   lines.push(dl("ID", product.id));
   lines.push(dl("Name", product.name));
   lines.push(dl("Status", formatStatus(product.status)));
-  lines.push(
-    dl("Price", output.formatCurrency(product.price, product.currency)),
-  );
+  lines.push(dl("Price", output.formatCurrency(product.price, product.currency)));
   lines.push(dl("Currency", product.currency.toUpperCase()));
   lines.push(dl("Billing", formatBilling(product)));
   lines.push(dl("Tax Mode", product.taxMode));
@@ -155,13 +153,11 @@ function getProductsTuiDescriptor(): TuiModuleDescriptor<Product> {
 }
 
 export function createProductsCommand(): Command {
-  const command = new Command("products")
-    .description("Manage products")
-    .action(async () => {
-      const { launchInteractiveMode } = await import("../tui");
-      const descriptor = getProductsTuiDescriptor();
-      await launchInteractiveMode(descriptor);
-    });
+  const command = new Command("products").description("Manage products").action(async () => {
+    const { launchInteractiveMode } = await import("../tui");
+    const descriptor = getProductsTuiDescriptor();
+    await launchInteractiveMode(descriptor);
+  });
 
   // Create product
   command
@@ -169,26 +165,14 @@ export function createProductsCommand(): Command {
     .description("Create a new product")
     .requiredOption("--name <name>", "Product name")
     .requiredOption("--description <text>", "Product description")
-    .requiredOption(
-      "--price <cents>",
-      "Price in cents (e.g. 1000 = $10.00, minimum 100)",
-    )
-    .requiredOption(
-      "--currency <code>",
-      "Three-letter ISO currency code (USD, EUR)",
-    )
-    .requiredOption(
-      "--billing-type <type>",
-      'Billing method: "recurring" or "onetime"',
-    )
+    .requiredOption("--price <cents>", "Price in cents (e.g. 1000 = $10.00, minimum 100)")
+    .requiredOption("--currency <code>", "Three-letter ISO currency code (USD, EUR)")
+    .requiredOption("--billing-type <type>", 'Billing method: "recurring" or "onetime"')
     .option(
       "--billing-period <period>",
       "Billing period (required for recurring): every-month, every-three-months, every-six-months, every-year",
     )
-    .option(
-      "--tax-mode <mode>",
-      'Tax calculation mode: "inclusive" or "exclusive"',
-    )
+    .option("--tax-mode <mode>", 'Tax calculation mode: "inclusive" or "exclusive"')
     .option(
       "--tax-category <category>",
       'Tax category: "saas", "digital-goods-service", or "ebooks"',
@@ -266,15 +250,10 @@ ${chalk.dim("Examples:")}
           "every-year",
         ];
         if (options.billingType === "recurring" && !options.billingPeriod) {
-          output.error(
-            "Billing period is required for recurring products. Use --billing-period.",
-          );
+          output.error("Billing period is required for recurring products. Use --billing-period.");
           process.exit(1);
         }
-        if (
-          options.billingPeriod &&
-          !validBillingPeriods.includes(options.billingPeriod)
-        ) {
+        if (options.billingPeriod && !validBillingPeriods.includes(options.billingPeriod)) {
           output.error(
             `Invalid billing period "${options.billingPeriod}". Must be one of: ${validBillingPeriods.join(", ")}.`,
           );
@@ -282,10 +261,7 @@ ${chalk.dim("Examples:")}
         }
 
         // Validate tax mode
-        if (
-          options.taxMode &&
-          !["inclusive", "exclusive"].includes(options.taxMode)
-        ) {
+        if (options.taxMode && !["inclusive", "exclusive"].includes(options.taxMode)) {
           output.error(
             `Invalid tax mode "${options.taxMode}". Must be "inclusive" or "exclusive".`,
           );
@@ -294,10 +270,7 @@ ${chalk.dim("Examples:")}
 
         // Validate tax category
         const validTaxCategories = ["saas", "digital-goods-service", "ebooks"];
-        if (
-          options.taxCategory &&
-          !validTaxCategories.includes(options.taxCategory)
-        ) {
+        if (options.taxCategory && !validTaxCategories.includes(options.taxCategory)) {
           output.error(
             `Invalid tax category "${options.taxCategory}". Must be one of: ${validTaxCategories.join(", ")}.`,
           );
@@ -307,9 +280,7 @@ ${chalk.dim("Examples:")}
         // Validate currency
         const currency = options.currency.toUpperCase();
         if (!["USD", "EUR"].includes(currency)) {
-          output.error(
-            `Invalid currency "${options.currency}". Supported currencies: USD, EUR.`,
-          );
+          output.error(`Invalid currency "${options.currency}". Supported currencies: USD, EUR.`);
           process.exit(1);
         }
 
@@ -400,9 +371,7 @@ ${chalk.dim("Examples:")}
           output.newline();
         } catch (error) {
           spinner.fail("Failed to create product");
-          output.error(
-            error instanceof Error ? error.message : "Unknown error",
-          );
+          output.error(error instanceof Error ? error.message : "Unknown error");
           process.exit(1);
         }
       },
@@ -415,61 +384,55 @@ ${chalk.dim("Examples:")}
     .option("--json", "Output as JSON")
     .option("--page <number>", "Page number", "1")
     .option("--limit <number>", "Number of results per page", "20")
-    .action(
-      async (options: { json?: boolean; page: string; limit: string }) => {
-        const spinner = ora("Fetching products...").start();
+    .action(async (options: { json?: boolean; page: string; limit: string }) => {
+      const spinner = ora("Fetching products...").start();
 
-        try {
-          const client = getClient();
-          const response = (await client.products.search(
-            parseInt(options.page, 10),
-            parseInt(options.limit, 10),
-          )) as unknown as ProductListResponse;
+      try {
+        const client = getClient();
+        const response = (await client.products.search(
+          parseInt(options.page, 10),
+          parseInt(options.limit, 10),
+        )) as unknown as ProductListResponse;
 
-          spinner.stop();
+        spinner.stop();
 
-          const { items, pagination } = response;
+        const { items, pagination } = response;
 
-          if (shouldOutputJson(options.json)) {
-            output.outputJson(response);
-            return;
-          }
-
-          output.newline();
-
-          if (items.length === 0) {
-            output.info("No products found.");
-            output.dim(
-              "Create a product at: https://creem.io/dashboard/products",
-            );
-            return;
-          }
-
-          output.outputTable(
-            ["ID", "Name", "Price", "Billing", "Status"],
-            items.map((p) => [
-              p.id,
-              output.truncate(p.name, 30),
-              output.formatCurrency(p.price, p.currency),
-              formatBilling(p),
-              formatStatus(p.status),
-            ]),
-          );
-
-          output.newline();
-          output.dim(
-            `Page ${pagination.currentPage} of ${pagination.totalPages} (${pagination.totalRecords} total)`,
-          );
-          output.newline();
-        } catch (error) {
-          spinner.stop();
-          output.error(
-            error instanceof Error ? error.message : "Failed to fetch products",
-          );
-          process.exit(1);
+        if (shouldOutputJson(options.json)) {
+          output.outputJson(response);
+          return;
         }
-      },
-    );
+
+        output.newline();
+
+        if (items.length === 0) {
+          output.info("No products found.");
+          output.dim("Create a product at: https://creem.io/dashboard/products");
+          return;
+        }
+
+        output.outputTable(
+          ["ID", "Name", "Price", "Billing", "Status"],
+          items.map((p) => [
+            p.id,
+            output.truncate(p.name, 30),
+            output.formatCurrency(p.price, p.currency),
+            formatBilling(p),
+            formatStatus(p.status),
+          ]),
+        );
+
+        output.newline();
+        output.dim(
+          `Page ${pagination.currentPage} of ${pagination.totalPages} (${pagination.totalRecords} total)`,
+        );
+        output.newline();
+      } catch (error) {
+        spinner.stop();
+        output.error(error instanceof Error ? error.message : "Failed to fetch products");
+        process.exit(1);
+      }
+    });
 
   // Get product by ID
   command
@@ -481,9 +444,7 @@ ${chalk.dim("Examples:")}
 
       try {
         const client = getClient();
-        const product = (await client.products.get(
-          productId,
-        )) as unknown as Product;
+        const product = (await client.products.get(productId)) as unknown as Product;
 
         spinner.stop();
 
@@ -532,9 +493,7 @@ ${chalk.dim("Examples:")}
         output.newline();
       } catch (error) {
         spinner.stop();
-        output.error(
-          error instanceof Error ? error.message : "Failed to fetch product",
-        );
+        output.error(error instanceof Error ? error.message : "Failed to fetch product");
         process.exit(1);
       }
     });

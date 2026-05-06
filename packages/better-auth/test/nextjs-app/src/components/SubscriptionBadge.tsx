@@ -48,4 +48,3 @@ export function SubscriptionBadge({ status, className = "" }: SubscriptionBadgeP
     </div>
   );
 }
-

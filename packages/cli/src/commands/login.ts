@@ -18,9 +18,7 @@ export function createLoginCommand(): Command {
         if (isAuthenticated() && !options.force) {
           const env = getConfigValue("environment");
           output.warning(`Already logged in (${env} mode).`);
-          output.info(
-            "Use --force to re-authenticate, or run `creem logout` first.",
-          );
+          output.info("Use --force to re-authenticate, or run `creem logout` first.");
           return;
         }
 
@@ -36,9 +34,7 @@ export function createLoginCommand(): Command {
         if (!apiKey) {
           output.newline();
           output.info("Enter your API key from the Creem dashboard.");
-          output.dim(
-            "Get your API key at: https://creem.io/dashboard/api-keys",
-          );
+          output.dim("Get your API key at: https://creem.io/dashboard/api-keys");
           output.newline();
 
           apiKey = await password({
@@ -67,9 +63,7 @@ export function createLoginCommand(): Command {
           const env = getConfigValue("environment");
           output.info(`Environment: ${env}`);
           if (env !== "live") {
-            output.dim(
-              "Use `creem config set environment live` to switch to live mode.",
-            );
+            output.dim("Use `creem config set environment live` to switch to live mode.");
           }
         } else {
           spinner.fail("Authentication failed");

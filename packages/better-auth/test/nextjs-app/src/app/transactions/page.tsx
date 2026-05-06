@@ -14,12 +14,12 @@ export default function Transactions() {
   useEffect(() => {
     const fetchData = async () => {
       const session = await authClient.getSession();
-      
+
       if (!session.data?.user) {
         router.push("/auth/signin");
         return;
       }
-      
+
       setUser(session.data.user);
 
       // Fetch transactions
@@ -52,9 +52,7 @@ export default function Transactions() {
   return (
     <main className="min-h-screen p-8">
       <div className="max-w-6xl mx-auto">
-        <h1 className="text-4xl font-bold text-gray-900 mb-8">
-          Transaction History
-        </h1>
+        <h1 className="text-4xl font-bold text-gray-900 mb-8">Transaction History</h1>
 
         <div className="bg-white rounded-lg shadow-lg overflow-hidden">
           {transactions.length === 0 ? (
@@ -72,9 +70,7 @@ export default function Transactions() {
                   d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"
                 />
               </svg>
-              <h3 className="text-lg font-semibold text-gray-900 mb-2">
-                No transactions yet
-              </h3>
+              <h3 className="text-lg font-semibold text-gray-900 mb-2">No transactions yet</h3>
               <p className="text-gray-600 mb-6">
                 Your transaction history will appear here after your first purchase.
               </p>
@@ -125,8 +121,8 @@ export default function Transactions() {
                             transaction.status === "succeeded"
                               ? "bg-green-100 text-green-800"
                               : transaction.status === "pending"
-                              ? "bg-yellow-100 text-yellow-800"
-                              : "bg-red-100 text-red-800"
+                                ? "bg-yellow-100 text-yellow-800"
+                                : "bg-red-100 text-red-800"
                           }`}
                         >
                           {transaction.status}
@@ -144,13 +140,11 @@ export default function Transactions() {
         </div>
 
         <div className="mt-8 bg-blue-50 rounded-lg p-6 border border-blue-200">
-          <h3 className="font-semibold text-blue-900 mb-3">
-            💡 Transaction Search
-          </h3>
+          <h3 className="font-semibold text-blue-900 mb-3">💡 Transaction Search</h3>
           <p className="text-sm text-blue-800">
             The <code className="bg-white px-2 py-1 rounded">searchTransactions</code> endpoint
-            fetches your transaction history from Creem. You can filter by date range, amount,
-            and other parameters.
+            fetches your transaction history from Creem. You can filter by date range, amount, and
+            other parameters.
           </p>
         </div>
 
@@ -163,4 +157,3 @@ export default function Transactions() {
     </main>
   );
 }
-

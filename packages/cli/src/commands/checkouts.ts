@@ -37,9 +37,7 @@ function formatStatus(status: string): string {
 }
 
 export function createCheckoutsCommand(): Command {
-  const command = new Command("checkouts").description(
-    "Manage checkout sessions",
-  );
+  const command = new Command("checkouts").description("Manage checkout sessions");
 
   // Create checkout
   command
@@ -89,9 +87,7 @@ export function createCheckoutsCommand(): Command {
             params.requestId = options.requestId;
           }
 
-          const checkout = (await client.checkouts.create(
-            params,
-          )) as unknown as Checkout;
+          const checkout = (await client.checkouts.create(params)) as unknown as Checkout;
 
           spinner.stop();
 
@@ -110,9 +106,7 @@ export function createCheckoutsCommand(): Command {
             "Product ID": checkout.product || "-",
             "Customer ID": checkout.customer || "-",
             Mode: checkout.mode,
-            Created: checkout.createdAt
-              ? output.formatDate(checkout.createdAt)
-              : "N/A",
+            Created: checkout.createdAt ? output.formatDate(checkout.createdAt) : "N/A",
           });
 
           output.newline();
@@ -124,11 +118,7 @@ export function createCheckoutsCommand(): Command {
           output.newline();
         } catch (error) {
           spinner.stop();
-          output.error(
-            error instanceof Error
-              ? error.message
-              : "Failed to create checkout",
-          );
+          output.error(error instanceof Error ? error.message : "Failed to create checkout");
           process.exit(1);
         }
       },
@@ -144,9 +134,7 @@ export function createCheckoutsCommand(): Command {
 
       try {
         const client = getClient();
-        const checkout = (await client.checkouts.retrieve(
-          checkoutId,
-        )) as unknown as Checkout;
+        const checkout = (await client.checkouts.retrieve(checkoutId)) as unknown as Checkout;
 
         spinner.stop();
 
@@ -165,9 +153,7 @@ export function createCheckoutsCommand(): Command {
           "Product ID": checkout.product || "-",
           "Customer ID": checkout.customer || "-",
           Mode: checkout.mode,
-          Created: checkout.createdAt
-            ? output.formatDate(checkout.createdAt)
-            : "N/A",
+          Created: checkout.createdAt ? output.formatDate(checkout.createdAt) : "N/A",
         });
 
         if (checkout.checkoutUrl) {
@@ -185,17 +171,13 @@ export function createCheckoutsCommand(): Command {
         if (checkout.expiresAt) {
           output.newline();
           output.dim("Expires:");
-          console.log(
-            checkout.expiresAt ? output.formatDate(checkout.expiresAt) : "N/A",
-          );
+          console.log(checkout.expiresAt ? output.formatDate(checkout.expiresAt) : "N/A");
         }
 
         output.newline();
       } catch (error) {
         spinner.stop();
-        output.error(
-          error instanceof Error ? error.message : "Failed to fetch checkout",
-        );
+        output.error(error instanceof Error ? error.message : "Failed to fetch checkout");
         process.exit(1);
       }
     });

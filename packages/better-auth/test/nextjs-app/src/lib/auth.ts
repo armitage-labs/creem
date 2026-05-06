@@ -16,9 +16,8 @@ const db = new Kysely({
 });
 
 // Check if Creem is configured
-const hasValidCreemApiKey = 
-  process.env.CREEM_API_KEY && 
-  process.env.CREEM_API_KEY !== "your-creem-api-key-here";
+const hasValidCreemApiKey =
+  process.env.CREEM_API_KEY && process.env.CREEM_API_KEY !== "your-creem-api-key-here";
 
 // Build plugins array conditionally
 const plugins = [];
@@ -30,7 +29,7 @@ if (hasValidCreemApiKey) {
       testMode: process.env.CREEM_TEST_MODE === "true",
       defaultSuccessUrl: "/dashboard",
       webhookSecret: process.env.CREEM_WEBHOOK_SECRET,
-      
+
       // Grant access when subscription is created or updated
       onGrantAccess: async (context) => {
         console.log("🎉 Granting access to user:", {
@@ -39,22 +38,22 @@ if (hasValidCreemApiKey) {
           reason: context.reason,
           metadata: context.metadata,
         });
-        
+
         // Here you would typically:
         // 1. Update user's role/permissions in your database
         // 2. Send welcome email
         // 3. Log the event
-        
+
         // Example: Update user subscription status
         // await db.prepare(`
-        //   UPDATE user 
-        //   SET subscriptionStatus = ?, 
+        //   UPDATE user
+        //   SET subscriptionStatus = ?,
         //       subscriptionId = ?,
         //       productId = ?
         //   WHERE id = ?
         // `).run('active', context.metadata.subscriptionId, context.product.id, context.customer.userId);
       },
-      
+
       // Revoke access when subscription ends or is cancelled
       onRevokeAccess: async (context) => {
         console.log("🚫 Revoking access from user:", {
@@ -63,23 +62,25 @@ if (hasValidCreemApiKey) {
           reason: context.reason,
           metadata: context.metadata,
         });
-        
+
         // Here you would typically:
         // 1. Remove user's premium permissions
         // 2. Send notification email
         // 3. Log the event
-        
+
         // Example: Update user subscription status
         // await db.prepare(`
-        //   UPDATE user 
+        //   UPDATE user
         //   SET subscriptionStatus = ?
         //   WHERE id = ?
         // `).run('cancelled', context.customer.userId);
       },
-    })
+    }),
   );
 } else {
-  console.warn("⚠️  Creem plugin not configured. Set CREEM_API_KEY in .env.local to enable payment features.");
+  console.warn(
+    "⚠️  Creem plugin not configured. Set CREEM_API_KEY in .env.local to enable payment features.",
+  );
 }
 
 export const auth = betterAuth({
@@ -99,4 +100,3 @@ export const auth = betterAuth({
   },
   plugins,
 });
-

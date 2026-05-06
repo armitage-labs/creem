@@ -2,10 +2,10 @@ import { NextRequest, NextResponse } from "next/server";
 
 /**
  * Webhook endpoint for Creem events
- * 
+ *
  * Note: The Better-Auth plugin already handles webhooks at /api/auth/creem-webhook
  * This is just an example of how you could set up a custom webhook endpoint if needed.
- * 
+ *
  * For production use, rely on the built-in webhook handler provided by the plugin.
  */
 export async function POST(request: NextRequest) {
@@ -24,10 +24,6 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({ received: true });
   } catch (error: any) {
     console.error("Webhook error:", error);
-    return NextResponse.json(
-      { error: error.message },
-      { status: 400 }
-    );
+    return NextResponse.json({ error: error.message }, { status: 400 });
   }
 }
-

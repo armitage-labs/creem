@@ -37,15 +37,9 @@ export const Webhook = (options: WebhookOptions) => {
 
       // Verify the webhook signature
       const computedSignature = await generateSignature(body, options.webhookSecret);
-      if (
-        !signature ||
-        computedSignature !== signature
-      ) {
+      if (!signature || computedSignature !== signature) {
         console.error("Creem webhook: Invalid signature");
-        return NextResponse.json(
-          { error: "Invalid signature" },
-          { status: 400 }
-        );
+        return NextResponse.json({ error: "Invalid signature" }, { status: 400 });
       }
 
       // Parse the webhook event
@@ -195,19 +189,13 @@ export const Webhook = (options: WebhookOptions) => {
 
         default:
           console.error("Unknown event type", event);
-          return NextResponse.json(
-            { error: "Unknown event type" },
-            { status: 400 }
-          );
+          return NextResponse.json({ error: "Unknown event type" }, { status: 400 });
       }
 
       return NextResponse.json({ message: "Webhook received" });
     } catch (error) {
       console.error("Creem webhook error:", error);
-      return NextResponse.json(
-        { error: "Failed to process webhook" },
-        { status: 500 }
-      );
+      return NextResponse.json({ error: "Failed to process webhook" }, { status: 500 });
     }
   };
 };

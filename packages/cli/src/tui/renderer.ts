@@ -63,10 +63,7 @@ export function getVisibleRows(): number {
   return Math.max(1, (process.stdout.rows || 24) - HEADER_LINES - FOOTER_LINES);
 }
 
-export function render<T>(
-  descriptor: TuiModuleDescriptor<T>,
-  state: TuiState<T>,
-): void {
+export function render<T>(descriptor: TuiModuleDescriptor<T>, state: TuiState<T>): void {
   const cols = process.stdout.columns || 80;
   const rows = process.stdout.rows || 24;
 
@@ -112,9 +109,7 @@ function renderListView<T>(
   let headerLine = " ";
   for (let i = 0; i < descriptor.columns.length; i++) {
     const col = descriptor.columns[i];
-    headerLine += chalk.cyan(
-      padCell(col.header, columnWidths[i], col.align || "left"),
-    );
+    headerLine += chalk.cyan(padCell(col.header, columnWidths[i], col.align || "left"));
     if (i < descriptor.columns.length - 1) headerLine += "  ";
   }
   buffer += truncateAnsi(headerLine, cols) + "\n";
@@ -186,8 +181,7 @@ function renderDetailView<T>(
   const detailLines = wrapDetailLines(rawLines, cols - 2); // -2 for leading space + margin
 
   // Header
-  buffer +=
-    truncateAnsi(` ${chalk.bold(descriptor.name + " Details")}`, cols) + "\n";
+  buffer += truncateAnsi(` ${chalk.bold(descriptor.name + " Details")}`, cols) + "\n";
   buffer += chalk.dim(" " + "\u2500".repeat(Math.max(0, cols - 2))) + "\n";
 
   // Detail content with scroll
@@ -414,11 +408,7 @@ function computeColumnWidths(
   });
 }
 
-function padCell(
-  text: string,
-  width: number,
-  align: "left" | "right" | "center",
-): string {
+function padCell(text: string, width: number, align: "left" | "right" | "center"): string {
   const visLen = displayWidth(text);
 
   // Need to truncate — use truncateAnsi to preserve ANSI color codes

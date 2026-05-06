@@ -1,9 +1,4 @@
-import {
-  loadConfig,
-  saveConfig,
-  isAuthenticated,
-  getConfigValue,
-} from "./config";
+import { loadConfig, saveConfig, isAuthenticated, getConfigValue } from "./config";
 import { validateApiKey, resetClient } from "./api";
 
 export interface LoginResult {
@@ -51,8 +46,7 @@ export async function loginWithApiKey(apiKey: string): Promise<LoginResult> {
   } catch (error) {
     return {
       success: false,
-      message:
-        error instanceof Error ? error.message : "Invalid API key format",
+      message: error instanceof Error ? error.message : "Invalid API key format",
     };
   }
 

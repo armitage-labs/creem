@@ -33,11 +33,7 @@ export function getClient(): Creem {
   const environment = getConfigValue("environment");
 
   // Recreate client if API key or environment changed
-  if (
-    !clientInstance ||
-    apiKey !== cachedApiKey ||
-    environment !== cachedEnvironment
-  ) {
+  if (!clientInstance || apiKey !== cachedApiKey || environment !== cachedEnvironment) {
     clientInstance = new Creem({
       apiKey,
       // 0 = live (api.creem.io), 1 = test (test-api.creem.io)

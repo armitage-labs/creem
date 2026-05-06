@@ -5,4 +5,3 @@ export function LoadingSpinner({ className = "" }: { className?: string }) {
     </div>
   );
 }
-
