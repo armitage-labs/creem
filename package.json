@@ -7,9 +7,9 @@
     "test": "turbo run test",
     "typecheck": "turbo run typecheck",
     "lint": "turbo run lint",
-    "format": "prettier --write \"**/*.{ts,tsx,js,jsx,mjs,cjs}\"",
-    "format:check": "prettier --check \"**/*.{ts,tsx,js,jsx,mjs,cjs}\"",
-    "gen:sdk": "cd packages/creem-sdk && speakeasy run --skip-compile",
+    "format": "prettier --write \"**/*.{ts,tsx,js,jsx,mjs,cjs}\" packages/creem-sdk/openapi.json",
+    "format:check": "prettier --check \"**/*.{ts,tsx,js,jsx,mjs,cjs}\" packages/creem-sdk/openapi.json",
+    "gen:sdk": "prettier --write packages/creem-sdk/openapi.json && cd packages/creem-sdk && speakeasy run --skip-compile",
     "changeset": "changeset",
     "version-packages": "changeset version",
     "release": "turbo run build && changeset publish",
@@ -24,7 +24,8 @@
     "typescript": "^5.8.3"
   },
   "lint-staged": {
-    "*.{ts,tsx,js,jsx,mjs,cjs}": "prettier --write"
+    "*.{ts,tsx,js,jsx,mjs,cjs}": "prettier --write",
+    "packages/creem-sdk/openapi.json": "prettier --write"
   },
   "pnpm": {
     "onlyBuiltDependencies": [

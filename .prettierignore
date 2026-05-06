@@ -9,7 +9,13 @@ package-lock.json
 
 # Speakeasy-generated SDK — formatting is owned by `speakeasy run`, not prettier.
 # Any prettier reformat here is overwritten on the next regen.
-packages/creem-sdk/
+# (Use a `**` glob, not `packages/creem-sdk/`, so the openapi.json exception
+# below can re-include the spec — gitignore rules can't re-include files inside
+# an excluded directory.)
+packages/creem-sdk/**
+# Exception: the OpenAPI spec is the input to Speakeasy (we own it, not the
+# generator), so it should be prettier-formatted for reviewable diffs.
+!packages/creem-sdk/openapi.json
 
 # OpenAPI spec — synced from upstream / generated, not hand-edited.
 packages/docs/api-reference/openapi.json
