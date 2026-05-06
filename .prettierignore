@@ -6,3 +6,10 @@ build
 *.lock
 pnpm-lock.yaml
 package-lock.json
+
+# Speakeasy-generated SDK — formatting is owned by `speakeasy run`, not prettier.
+# Any prettier reformat here is overwritten on the next regen.
+packages/creem-sdk/
+
+# OpenAPI spec — synced from upstream / generated, not hand-edited.
+packages/docs/api-reference/openapi.json
