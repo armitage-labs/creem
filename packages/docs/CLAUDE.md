@@ -124,7 +124,7 @@ icon: 'icon-name'  # Optional — Font Awesome icon name
 
 ### Source of Truth
 
-The OpenAPI 3.0 spec lives at `api-reference/openapi.json`. This is the single source of truth for all API endpoint documentation.
+The OpenAPI 3.0 spec authored at `../creem-sdk/openapi.json` (workspace-shared with the SDK generator) is the single source of truth. `api-reference/openapi.json` is a **generated copy** kept in sync by `pnpm gen:sdk` so Mintlify can auto-discover it for the API playground — don't edit it directly.
 
 ### How API Docs Are Generated
 

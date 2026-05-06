@@ -1,0 +1,5 @@
+# Copied from packages/creem-sdk/openapi.json by `pnpm gen:sdk`. Don't edit
+# directly — Mintlify auto-discovers an openapi.json under the docs root for
+# the API playground, so we keep a synced copy here. Marked generated so
+# GitHub collapses diffs by default.
+packages/docs/api-reference/openapi.json linguist-generated=true

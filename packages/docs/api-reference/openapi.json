@@ -1677,10 +1677,7 @@
     "termsOfService": "https://creem.io/terms"
   },
   "tags": [],
-  "servers": [
-    { "url": "https://api.creem.io" },
-    { "url": "https://test-api.creem.io" }
-  ],
+  "servers": [{ "url": "https://api.creem.io" }, { "url": "https://test-api.creem.io" }],
   "components": {
     "securitySchemes": {
       "ApiKey": {
@@ -1729,13 +1726,7 @@
       "ProductBillingPeriod": {
         "type": "string",
         "description": "Billing period",
-        "enum": [
-          "every-month",
-          "every-three-months",
-          "every-six-months",
-          "every-year",
-          "once"
-        ]
+        "enum": ["every-month", "every-three-months", "every-six-months", "every-year", "once"]
       },
       "ProductStatus": {
         "type": "string",
@@ -1960,13 +1951,7 @@
             "nullable": true
           }
         },
-        "required": [
-          "total_records",
-          "total_pages",
-          "current_page",
-          "next_page",
-          "prev_page"
-        ]
+        "required": ["total_records", "total_pages", "current_page", "next_page", "prev_page"]
       },
       "ProductListEntity": {
         "type": "object",
@@ -1996,13 +1981,7 @@
       "ProductRequestBillingPeriod": {
         "type": "string",
         "description": "Billing period, required if billing_type is recurring",
-        "enum": [
-          "once",
-          "every-month",
-          "every-three-months",
-          "every-six-months",
-          "every-year"
-        ]
+        "enum": ["once", "every-month", "every-three-months", "every-six-months", "every-year"]
       },
       "CustomFieldRequestType": {
         "type": "string",
@@ -2178,15 +2157,7 @@
             "example": "2023-01-01T00:00:00Z"
           }
         },
-        "required": [
-          "id",
-          "mode",
-          "object",
-          "email",
-          "country",
-          "created_at",
-          "updated_at"
-        ]
+        "required": ["id", "mode", "object", "email", "country", "created_at", "updated_at"]
       },
       "CustomerListEntity": {
         "type": "object",
@@ -2389,14 +2360,7 @@
       "SubscriptionStatus": {
         "type": "string",
         "description": "The current status of the subscription.",
-        "enum": [
-          "active",
-          "canceled",
-          "unpaid",
-          "paused",
-          "trialing",
-          "scheduled_cancel"
-        ]
+        "enum": ["active", "canceled", "unpaid", "paused", "trialing", "scheduled_cancel"]
       },
       "TransactionType": {
         "type": "string",
@@ -2506,16 +2470,7 @@
             "description": "Creation date of the order as timestamp"
           }
         },
-        "required": [
-          "id",
-          "mode",
-          "object",
-          "amount",
-          "currency",
-          "type",
-          "status",
-          "created_at"
-        ]
+        "required": ["id", "mode", "object", "amount", "currency", "type", "status", "created_at"]
       },
       "SubscriptionEntity": {
         "type": "object",
@@ -2532,17 +2487,11 @@
           },
           "product": {
             "description": "The product associated with the subscription.",
-            "oneOf": [
-              { "$ref": "#/components/schemas/ProductEntity" },
-              { "type": "string" }
-            ]
+            "oneOf": [{ "$ref": "#/components/schemas/ProductEntity" }, { "type": "string" }]
           },
           "customer": {
             "description": "The customer who owns the subscription.",
-            "oneOf": [
-              { "$ref": "#/components/schemas/CustomerEntity" },
-              { "type": "string" }
-            ]
+            "oneOf": [{ "$ref": "#/components/schemas/CustomerEntity" }, { "type": "string" }]
           },
           "items": {
             "description": "Subscription items.",
@@ -2874,11 +2823,7 @@
           "update_behavior": {
             "type": "string",
             "description": "The update behavior for the subscription (defaults to proration)",
-            "enum": [
-              "proration-charge-immediately",
-              "proration-charge",
-              "proration-none"
-            ],
+            "enum": ["proration-charge-immediately", "proration-charge", "proration-none"],
             "default": "proration-charge"
           }
         }
@@ -2894,11 +2839,7 @@
           "update_behavior": {
             "type": "string",
             "description": "The update behavior for the subscription (defaults to proration-charge-immediately)",
-            "enum": [
-              "proration-charge-immediately",
-              "proration-charge",
-              "proration-none"
-            ],
+            "enum": ["proration-charge-immediately", "proration-charge", "proration-none"],
             "default": "proration-charge-immediately"
           }
         },
@@ -3002,9 +2943,7 @@
           "customer_credits": {
             "description": "Customer credits feature data.",
             "nullable": true,
-            "allOf": [
-              { "$ref": "#/components/schemas/CustomerCreditsFeatureEntity" }
-            ]
+            "allOf": [{ "$ref": "#/components/schemas/CustomerCreditsFeatureEntity" }]
           },
           "license": {
             "description": "DEPRECATED: Use `license_key` instead. License key issued for the order.",
@@ -3038,10 +2977,7 @@
           },
           "product": {
             "description": "The product associated with the checkout session.",
-            "oneOf": [
-              { "type": "string" },
-              { "$ref": "#/components/schemas/ProductEntity" }
-            ]
+            "oneOf": [{ "type": "string" }, { "$ref": "#/components/schemas/ProductEntity" }]
           },
           "units": {
             "type": "number",
@@ -3054,17 +2990,11 @@
           },
           "subscription": {
             "description": "The subscription associated with the checkout session.",
-            "oneOf": [
-              { "type": "string" },
-              { "$ref": "#/components/schemas/SubscriptionEntity" }
-            ]
+            "oneOf": [{ "type": "string" }, { "$ref": "#/components/schemas/SubscriptionEntity" }]
           },
           "customer": {
             "description": "The customer associated with the checkout session.",
-            "oneOf": [
-              { "type": "string" },
-              { "$ref": "#/components/schemas/CustomerEntity" }
-            ]
+            "oneOf": [{ "type": "string" }, { "$ref": "#/components/schemas/CustomerEntity" }]
           },
           "custom_fields": {
             "description": "Additional information collected from your customer during the checkout process.",
@@ -3487,9 +3417,7 @@
         "properties": {
           "totals": {
             "description": "Aggregated totals for the queried date range",
-            "allOf": [
-              { "$ref": "#/components/schemas/StatsMetricTotalsEntity" }
-            ]
+            "allOf": [{ "$ref": "#/components/schemas/StatsMetricTotalsEntity" }]
           },
           "periods": {
             "description": "Time-series data points grouped by the requested interval. Only present when interval, startDate, and endDate are provided.",
@@ -3746,14 +3674,7 @@
             "description": "Creation timestamp"
           }
         },
-        "required": [
-          "id",
-          "transaction_id",
-          "account_id",
-          "side",
-          "amount",
-          "created_at"
-        ]
+        "required": ["id", "transaction_id", "account_id", "side", "amount", "created_at"]
       },
       "EntryListResponseDto": {
         "type": "object",
@@ -3819,9 +3740,7 @@
         "properties": {
           "error": {
             "description": "Error details",
-            "allOf": [
-              { "$ref": "#/components/schemas/CustomerCreditsErrorDetailDto" }
-            ]
+            "allOf": [{ "$ref": "#/components/schemas/CustomerCreditsErrorDetailDto" }]
           }
         },
         "required": ["error"]
@@ -3880,14 +3799,7 @@
             "description": "Creation timestamp"
           }
         },
-        "required": [
-          "id",
-          "store_id",
-          "reference",
-          "idempotency_key",
-          "entries",
-          "created_at"
-        ]
+        "required": ["id", "store_id", "reference", "idempotency_key", "entries", "created_at"]
       },
       "ReverseTransactionRequestDto": {
         "type": "object",
