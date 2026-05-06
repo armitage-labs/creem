@@ -23,7 +23,7 @@ jobs:
       # Speakeasy's compile step runs `npm install`, which collides with this
       # repo's pnpm-managed node_modules and corrupts esbuild's binary. The
       # monorepo's own `pnpm turbo build` covers compile/typecheck.
-      skip_compile: "true"
+      skip_compile: true
     secrets:
       github_access_token: ${{ secrets.GITHUB_TOKEN }}
       speakeasy_api_key: ${{ secrets.SPEAKEASY_API_KEY }}
