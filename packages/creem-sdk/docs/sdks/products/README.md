@@ -94,6 +94,7 @@ const creem = new Creem({
 async function run() {
   const result = await creem.products.create({
     name: "<value>",
+    description: "at through very dishearten knife ashamed baa beret amongst",
     imageUrl: "https://picsum.photos/200/300",
     price: 400,
     currency: "USD",
@@ -138,6 +139,7 @@ const creem = new CreemCore({
 async function run() {
   const res = await productsCreate(creem, {
     name: "<value>",
+    description: "at through very dishearten knife ashamed baa beret amongst",
     imageUrl: "https://picsum.photos/200/300",
     price: 400,
     currency: "USD",

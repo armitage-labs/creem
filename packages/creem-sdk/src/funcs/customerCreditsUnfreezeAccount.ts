@@ -3,7 +3,8 @@
  */
 
 import { CreemCore } from "../core.js";
-import { encodeFormQuery } from "../lib/encodings.js";
+import { encodeSimple } from "../lib/encodings.js";
+import { matchStatusCode } from "../lib/http.js";
 import * as M from "../lib/matchers.js";
 import { compactMap } from "../lib/primitives.js";
 import { safeParse } from "../lib/schemas.js";
@@ -19,6 +20,7 @@ import {
   RequestTimeoutError,
   UnexpectedClientError,
 } from "../models/errors/httpclienterrors.js";
+import * as errors from "../models/errors/index.js";
 import { ResponseValidationError } from "../models/errors/responsevalidationerror.js";
 import { SDKValidationError } from "../models/errors/sdkvalidationerror.js";
 import * as operations from "../models/operations/index.js";
@@ -26,19 +28,19 @@ import { APICall, APIPromise } from "../types/async.js";
 import { Result } from "../types/fp.js";
 
 /**
- * List all subscriptions
+ * Unfreeze an account
  *
  * @remarks
- * Search and retrieve a paginated list of subscriptions. View status, billing cycle, and customer info.
+ * Unfreeze a frozen account to allow transactions again.
  */
-export function subscriptionsSearchSubscriptions(
+export function customerCreditsUnfreezeAccount(
   client: CreemCore,
-  pageNumber?: number | undefined,
-  pageSize?: number | undefined,
+  id: string,
   options?: RequestOptions,
 ): APIPromise<
   Result<
-    components.SubscriptionListEntity,
+    components.AccountResponseDto,
+    | errors.CustomerCreditsErrorResponseDto
     | CreemError
     | ResponseValidationError
     | ConnectionError
@@ -51,21 +53,20 @@ export function subscriptionsSearchSubscriptions(
 > {
   return new APIPromise($do(
     client,
-    pageNumber,
-    pageSize,
+    id,
     options,
   ));
 }
 
 async function $do(
   client: CreemCore,
-  pageNumber?: number | undefined,
-  pageSize?: number | undefined,
+  id: string,
   options?: RequestOptions,
 ): Promise<
   [
     Result<
-      components.SubscriptionListEntity,
+      components.AccountResponseDto,
+      | errors.CustomerCreditsErrorResponseDto
       | CreemError
       | ResponseValidationError
       | ConnectionError
@@ -78,15 +79,16 @@ async function $do(
     APICall,
   ]
 > {
-  const input: operations.SearchSubscriptionsRequest = {
-    pageNumber: pageNumber,
-    pageSize: pageSize,
+  const input: operations.UnfreezeCustomerCreditsAccountRequest = {
+    id: id,
   };
 
   const parsed = safeParse(
     input,
     (value) =>
-      operations.SearchSubscriptionsRequest$outboundSchema.parse(value),
+      operations.UnfreezeCustomerCreditsAccountRequest$outboundSchema.parse(
+        value,
+      ),
     "Input validation failed",
   );
   if (!parsed.ok) {
@@ -95,12 +97,15 @@ async function $do(
   const payload = parsed.value;
   const body = null;
 
-  const path = pathToFunc("/v1/subscriptions/search")();
-
-  const query = encodeFormQuery({
-    "page_number": payload.page_number,
-    "page_size": payload.page_size,
-  });
+  const pathParams = {
+    id: encodeSimple("id", payload.id, {
+      explode: false,
+      charEncoding: "percent",
+    }),
+  };
+  const path = pathToFunc("/v1/customer-credits/accounts/{id}/unfreeze")(
+    pathParams,
+  );
 
   const headers = new Headers(compactMap({
     Accept: "application/json",
@@ -113,7 +118,7 @@ async function $do(
   const context = {
     options: client._options,
     baseURL: options?.serverURL ?? client._baseURL ?? "",
-    operationID: "searchSubscriptions",
+    operationID: "unfreezeCustomerCreditsAccount",
     oAuth2Scopes: null,
 
     resolvedSecurity: requestSecurity,
@@ -127,11 +132,10 @@ async function $do(
 
   const requestRes = client._createRequest(context, {
     security: requestSecurity,
-    method: "GET",
+    method: "POST",
     baseURL: options?.serverURL,
     path: path,
     headers: headers,
-    query: query,
     body: body,
     userAgent: client._options.userAgent,
     timeoutMs: options?.timeoutMs || client._options.timeoutMs || -1,
@@ -143,7 +147,8 @@ async function $do(
 
   const doResult = await client._do(req, {
     context,
-    errorCodes: ["400", "401", "404", "4XX", "5XX"],
+    isErrorStatusCode: (statusCode: number) =>
+      matchStatusCode({ status: statusCode } as Response, ["4XX", "5XX"]),
     retryConfig: context.retryConfig,
     retryCodes: context.retryCodes,
   });
@@ -152,8 +157,13 @@ async function $do(
   }
   const response = doResult.value;
 
+  const responseFields = {
+    HttpMeta: { Response: response, Request: req },
+  };
+
   const [result] = await M.match<
-    components.SubscriptionListEntity,
+    components.AccountResponseDto,
+    | errors.CustomerCreditsErrorResponseDto
     | CreemError
     | ResponseValidationError
     | ConnectionError
@@ -163,10 +173,11 @@ async function $do(
     | UnexpectedClientError
     | SDKValidationError
   >(
-    M.json(200, components.SubscriptionListEntity$inboundSchema),
+    M.json(200, components.AccountResponseDto$inboundSchema),
+    M.jsonErr(409, errors.CustomerCreditsErrorResponseDto$inboundSchema),
     M.fail([400, 401, 404, "4XX"]),
     M.fail("5XX"),
-  )(response, req);
+  )(response, req, { extraFields: responseFields });
   if (!result.ok) {
     return [result, { status: "complete", request: req, response }];
   }

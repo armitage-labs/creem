@@ -15,7 +15,7 @@ let value: CreateCheckoutRequest = {
   },
   customFields: [
     {
-      type: "text",
+      type: "checkbox",
       key: "companyName",
       label: "Company Name",
       text: {

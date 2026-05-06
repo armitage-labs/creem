@@ -4,9 +4,9 @@
 
 ### Available Operations
 
-* [getMetricsSummary](#getmetricssummary) - Get store metrics summary
+* [getSummary](#getsummary) - Get store metrics summary
 
-## getMetricsSummary
+## getSummary
 
 Retrieve aggregated store metrics including counts, revenue, and MRR. When startDate and endDate are provided, totals are filtered to that date range. When interval is also provided, the response includes a periods array with time-series data points grouped by that interval. The periods array starts from the store's first transaction or startDate, whichever is later, to avoid empty leading buckets. All monetary amounts are in cents (integer, no decimals).
 
@@ -21,7 +21,7 @@ const creem = new Creem({
 });
 
 async function run() {
-  const result = await creem.stats.getMetricsSummary("USD");
+  const result = await creem.stats.getSummary("USD");
 
   console.log(result);
 }
@@ -35,7 +35,7 @@ The standalone function version of this method:
 
 ```typescript
 import { CreemCore } from "creem/core.js";
-import { statsGetMetricsSummary } from "creem/funcs/statsGetMetricsSummary.js";
+import { statsGetSummary } from "creem/funcs/statsGetSummary.js";
 
 // Use `CreemCore` for best tree-shaking performance.
 // You can create one instance of it to use across an application.
@@ -44,12 +44,12 @@ const creem = new CreemCore({
 });
 
 async function run() {
-  const res = await statsGetMetricsSummary(creem, "USD");
+  const res = await statsGetSummary(creem, "USD");
   if (res.ok) {
     const { value: result } = res;
     console.log(result);
   } else {
-    console.log("statsGetMetricsSummary failed:", res.error);
+    console.log("statsGetSummary failed:", res.error);
   }
 }
 

@@ -1,6 +1,6 @@
 
 <div align="center">
-    <a href="https://codespaces.new/armitage-labs/creem-sdk.git/tree/main"><img src="https://github.com/codespaces/badge.svg" /></a>
+    <a href="https://codespaces.new/armitage-labs/creem.git/tree/main"><img src="https://github.com/codespaces/badge.svg" /></a>
 </div>
 <br>
 

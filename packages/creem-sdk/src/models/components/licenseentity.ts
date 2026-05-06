@@ -71,7 +71,7 @@ export type LicenseEntity = {
    */
   mode: EnvironmentMode;
   /**
-   * A string representing the object’s type. Objects of the same type share the same value.
+   * A string representing the object's type. Objects of the same type share the same value.
    */
   object: string;
   /**

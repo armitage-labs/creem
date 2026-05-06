@@ -18,7 +18,7 @@ let value: TransactionListEntity = {
       type: "invoice",
       taxCountry: "US",
       taxAmount: 2000,
-      status: "chargedBack",
+      status: "uncollectible",
       refundedAmount: 2000,
       createdAt: 2926.3,
     },

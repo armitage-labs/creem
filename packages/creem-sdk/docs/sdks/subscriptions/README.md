@@ -5,12 +5,12 @@
 ### Available Operations
 
 * [get](#get) - Retrieve a subscription
+* [search](#search) - List all subscriptions
 * [cancel](#cancel) - Cancel a subscription.
 * [update](#update) - Update a subscription.
 * [upgrade](#upgrade) - Upgrade a subscription to a different product
 * [pause](#pause) - Pause a subscription.
 * [resume](#resume) - Resume a subscription.
-* [searchSubscriptions](#searchsubscriptions) - List all subscriptions
 
 ## get
 
@@ -74,6 +74,76 @@ run();
 ### Response
 
 **Promise\<[components.SubscriptionEntity](../../models/components/subscriptionentity.md)\>**
+
+### Errors
+
+| Error Type      | Status Code     | Content Type    |
+| --------------- | --------------- | --------------- |
+| errors.APIError | 4XX, 5XX        | \*/\*           |
+
+## search
+
+Search and retrieve a paginated list of subscriptions. View status, billing cycle, and customer info.
+
+### Example Usage
+
+<!-- UsageSnippet language="typescript" operationID="searchSubscriptions" method="get" path="/v1/subscriptions/search" -->
+```typescript
+import { Creem } from "creem";
+
+const creem = new Creem({
+  apiKey: process.env["CREEM_API_KEY"] ?? "",
+});
+
+async function run() {
+  const result = await creem.subscriptions.search();
+
+  console.log(result);
+}
+
+run();
+```
+
+### Standalone function
+
+The standalone function version of this method:
+
+```typescript
+import { CreemCore } from "creem/core.js";
+import { subscriptionsSearch } from "creem/funcs/subscriptionsSearch.js";
+
+// Use `CreemCore` for best tree-shaking performance.
+// You can create one instance of it to use across an application.
+const creem = new CreemCore({
+  apiKey: process.env["CREEM_API_KEY"] ?? "",
+});
+
+async function run() {
+  const res = await subscriptionsSearch(creem);
+  if (res.ok) {
+    const { value: result } = res;
+    console.log(result);
+  } else {
+    console.log("subscriptionsSearch failed:", res.error);
+  }
+}
+
+run();
+```
+
+### Parameters
+
+| Parameter                                                                                                                                                                      | Type                                                                                                                                                                           | Required                                                                                                                                                                       | Description                                                                                                                                                                    | Example                                                                                                                                                                        |
+| ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| `pageNumber`                                                                                                                                                                   | *number*                                                                                                                                                                       | :heavy_minus_sign:                                                                                                                                                             | The page number for pagination.                                                                                                                                                | 1                                                                                                                                                                              |
+| `pageSize`                                                                                                                                                                     | *number*                                                                                                                                                                       | :heavy_minus_sign:                                                                                                                                                             | The number of items per page.                                                                                                                                                  | 10                                                                                                                                                                             |
+| `options`                                                                                                                                                                      | RequestOptions                                                                                                                                                                 | :heavy_minus_sign:                                                                                                                                                             | Used to set various options for making HTTP requests.                                                                                                                          |                                                                                                                                                                                |
+| `options.fetchOptions`                                                                                                                                                         | [RequestInit](https://developer.mozilla.org/en-US/docs/Web/API/Request/Request#options)                                                                                        | :heavy_minus_sign:                                                                                                                                                             | Options that are passed to the underlying HTTP request. This can be used to inject extra headers for examples. All `Request` options, except `method` and `body`, are allowed. |                                                                                                                                                                                |
+| `options.retries`                                                                                                                                                              | [RetryConfig](../../lib/utils/retryconfig.md)                                                                                                                                  | :heavy_minus_sign:                                                                                                                                                             | Enables retrying HTTP requests under certain failure conditions.                                                                                                               |                                                                                                                                                                                |
+
+### Response
+
+**Promise\<[components.SubscriptionListEntity](../../models/components/subscriptionlistentity.md)\>**
 
 ### Errors
 
@@ -432,76 +502,6 @@ run();
 ### Response
 
 **Promise\<[components.SubscriptionEntity](../../models/components/subscriptionentity.md)\>**
-
-### Errors
-
-| Error Type      | Status Code     | Content Type    |
-| --------------- | --------------- | --------------- |
-| errors.APIError | 4XX, 5XX        | \*/\*           |
-
-## searchSubscriptions
-
-Search and retrieve a paginated list of subscriptions. View status, billing cycle, and customer info.
-
-### Example Usage
-
-<!-- UsageSnippet language="typescript" operationID="searchSubscriptions" method="get" path="/v1/subscriptions/search" -->
-```typescript
-import { Creem } from "creem";
-
-const creem = new Creem({
-  apiKey: process.env["CREEM_API_KEY"] ?? "",
-});
-
-async function run() {
-  const result = await creem.subscriptions.searchSubscriptions();
-
-  console.log(result);
-}
-
-run();
-```
-
-### Standalone function
-
-The standalone function version of this method:
-
-```typescript
-import { CreemCore } from "creem/core.js";
-import { subscriptionsSearchSubscriptions } from "creem/funcs/subscriptionsSearchSubscriptions.js";
-
-// Use `CreemCore` for best tree-shaking performance.
-// You can create one instance of it to use across an application.
-const creem = new CreemCore({
-  apiKey: process.env["CREEM_API_KEY"] ?? "",
-});
-
-async function run() {
-  const res = await subscriptionsSearchSubscriptions(creem);
-  if (res.ok) {
-    const { value: result } = res;
-    console.log(result);
-  } else {
-    console.log("subscriptionsSearchSubscriptions failed:", res.error);
-  }
-}
-
-run();
-```
-
-### Parameters
-
-| Parameter                                                                                                                                                                      | Type                                                                                                                                                                           | Required                                                                                                                                                                       | Description                                                                                                                                                                    | Example                                                                                                                                                                        |
-| ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
-| `pageNumber`                                                                                                                                                                   | *number*                                                                                                                                                                       | :heavy_minus_sign:                                                                                                                                                             | The page number for pagination.                                                                                                                                                | 1                                                                                                                                                                              |
-| `pageSize`                                                                                                                                                                     | *number*                                                                                                                                                                       | :heavy_minus_sign:                                                                                                                                                             | The number of items per page.                                                                                                                                                  | 10                                                                                                                                                                             |
-| `options`                                                                                                                                                                      | RequestOptions                                                                                                                                                                 | :heavy_minus_sign:                                                                                                                                                             | Used to set various options for making HTTP requests.                                                                                                                          |                                                                                                                                                                                |
-| `options.fetchOptions`                                                                                                                                                         | [RequestInit](https://developer.mozilla.org/en-US/docs/Web/API/Request/Request#options)                                                                                        | :heavy_minus_sign:                                                                                                                                                             | Options that are passed to the underlying HTTP request. This can be used to inject extra headers for examples. All `Request` options, except `method` and `body`, are allowed. |                                                                                                                                                                                |
-| `options.retries`                                                                                                                                                              | [RetryConfig](../../lib/utils/retryconfig.md)                                                                                                                                  | :heavy_minus_sign:                                                                                                                                                             | Enables retrying HTTP requests under certain failure conditions.                                                                                                               |                                                                                                                                                                                |
-
-### Response
-
-**Promise\<[components.SubscriptionListEntity](../../models/components/subscriptionlistentity.md)\>**
 
 ### Errors
 

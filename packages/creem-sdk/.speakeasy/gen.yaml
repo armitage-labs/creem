@@ -33,7 +33,7 @@ generation:
     generateNewTests: false
     skipResponseBodyAssertions: false
 typescript:
-  version: 1.4.4
+  version: 1.4.5
   acceptHeaderEnum: true
   additionalDependencies:
     dependencies: {}
@@ -59,6 +59,7 @@ typescript:
   enumFormat: union
   envVarPrefix: CREEM
   exportZodModelNamespace: false
+  fixEnumNameSanitization: false
   flatAdditionalProperties: false
   flattenGlobalSecurity: true
   flatteningOrder: parameters-first

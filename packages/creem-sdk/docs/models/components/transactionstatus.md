@@ -7,11 +7,11 @@ Status of the transaction.
 ```typescript
 import { TransactionStatus } from "creem/models/components";
 
-let value: TransactionStatus = "uncollectible";
+let value: TransactionStatus = "declined";
 ```
 
 ## Values
 
 ```typescript
-"pending" | "paid" | "refunded" | "partialRefund" | "chargedBack" | "uncollectible" | "declined" | "void"
+"pending" | "paid" | "refunded" | "partialRefund" | "chargedBack" | "uncollectible" | "declined" | "void" | "canceled"
 ```

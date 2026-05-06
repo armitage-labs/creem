@@ -3,7 +3,7 @@
  */
 
 import * as z from "zod/v3";
-import { statsGetMetricsSummary } from "../../funcs/statsGetMetricsSummary.js";
+import { statsGetSummary } from "../../funcs/statsGetSummary.js";
 import * as operations from "../../models/operations/index.js";
 import { formatResult, ToolDefinition } from "../tools.js";
 
@@ -14,14 +14,14 @@ const args = {
   interval: operations.Interval$inboundSchema.optional(),
 };
 
-export const tool$statsGetMetricsSummary: ToolDefinition<typeof args> = {
-  name: "stats-get-metrics-summary",
+export const tool$statsGetSummary: ToolDefinition<typeof args> = {
+  name: "stats-get-summary",
   description: `Get store metrics summary
 
 Retrieve aggregated store metrics including counts, revenue, and MRR. When startDate and endDate are provided, totals are filtered to that date range. When interval is also provided, the response includes a periods array with time-series data points grouped by that interval. The periods array starts from the store's first transaction or startDate, whichever is later, to avoid empty leading buckets. All monetary amounts are in cents (integer, no decimals).`,
   args,
   tool: async (client, args, ctx) => {
-    const [result, apiCall] = await statsGetMetricsSummary(
+    const [result, apiCall] = await statsGetSummary(
       client,
       args.currency,
       args.startDate,

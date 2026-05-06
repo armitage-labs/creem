@@ -6,7 +6,7 @@ import { subscriptionsCancel } from "../funcs/subscriptionsCancel.js";
 import { subscriptionsGet } from "../funcs/subscriptionsGet.js";
 import { subscriptionsPause } from "../funcs/subscriptionsPause.js";
 import { subscriptionsResume } from "../funcs/subscriptionsResume.js";
-import { subscriptionsSearchSubscriptions } from "../funcs/subscriptionsSearchSubscriptions.js";
+import { subscriptionsSearch } from "../funcs/subscriptionsSearch.js";
 import { subscriptionsUpdate } from "../funcs/subscriptionsUpdate.js";
 import { subscriptionsUpgrade } from "../funcs/subscriptionsUpgrade.js";
 import { ClientSDK, RequestOptions } from "../lib/sdks.js";
@@ -27,6 +27,25 @@ export class Subscriptions extends ClientSDK {
     return unwrapAsync(subscriptionsGet(
       this,
       subscriptionId,
+      options,
+    ));
+  }
+
+  /**
+   * List all subscriptions
+   *
+   * @remarks
+   * Search and retrieve a paginated list of subscriptions. View status, billing cycle, and customer info.
+   */
+  async search(
+    pageNumber?: number | undefined,
+    pageSize?: number | undefined,
+    options?: RequestOptions,
+  ): Promise<components.SubscriptionListEntity> {
+    return unwrapAsync(subscriptionsSearch(
+      this,
+      pageNumber,
+      pageSize,
       options,
     ));
   }
@@ -119,25 +138,6 @@ export class Subscriptions extends ClientSDK {
     return unwrapAsync(subscriptionsResume(
       this,
       id,
-      options,
-    ));
-  }
-
-  /**
-   * List all subscriptions
-   *
-   * @remarks
-   * Search and retrieve a paginated list of subscriptions. View status, billing cycle, and customer info.
-   */
-  async searchSubscriptions(
-    pageNumber?: number | undefined,
-    pageSize?: number | undefined,
-    options?: RequestOptions,
-  ): Promise<components.SubscriptionListEntity> {
-    return unwrapAsync(subscriptionsSearchSubscriptions(
-      this,
-      pageNumber,
-      pageSize,
       options,
     ));
   }

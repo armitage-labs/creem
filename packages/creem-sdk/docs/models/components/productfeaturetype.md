@@ -13,5 +13,5 @@ let value: ProductFeatureType = "file";
 ## Values
 
 ```typescript
-"custom" | "file" | "licenseKey"
+"custom" | "file" | "licenseKey" | "customerCredits"
 ```

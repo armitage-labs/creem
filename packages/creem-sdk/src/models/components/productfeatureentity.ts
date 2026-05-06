@@ -97,7 +97,7 @@ export type LicenseKey = {
    */
   mode: EnvironmentMode;
   /**
-   * A string representing the object’s type. Objects of the same type share the same value.
+   * A string representing the object's type. Objects of the same type share the same value.
    */
   object: string;
   /**
@@ -132,6 +132,25 @@ export type LicenseKey = {
    * Associated license instances.
    */
   instance?: ProductFeatureEntityInstance | null | undefined;
+};
+
+/**
+ * Optional label for the credit unit (e.g. "tokens", "credits").
+ */
+export type UnitLabel = {};
+
+/**
+ * Customer credits feature data.
+ */
+export type CustomerCredits = {
+  /**
+   * The number of credits to grant. String to preserve BigInt precision.
+   */
+  amount: string;
+  /**
+   * Optional label for the credit unit (e.g. "tokens", "credits").
+   */
+  unitLabel?: UnitLabel | null | undefined;
 };
 
 /**
@@ -193,7 +212,7 @@ export type License = {
    */
   mode: EnvironmentMode;
   /**
-   * A string representing the object’s type. Objects of the same type share the same value.
+   * A string representing the object's type. Objects of the same type share the same value.
    */
   object: string;
   /**
@@ -255,6 +274,10 @@ export type ProductFeatureEntity = {
    * License key issued for the order.
    */
   licenseKey?: LicenseKey | null | undefined;
+  /**
+   * Customer credits feature data.
+   */
+  customerCredits?: CustomerCredits | null | undefined;
   /**
    * DEPRECATED: Use `license_key` instead. License key issued for the order.
    *
@@ -453,6 +476,83 @@ export function licenseKeyFromJSON(
 }
 
 /** @internal */
+export const UnitLabel$inboundSchema: z.ZodType<
+  UnitLabel,
+  z.ZodTypeDef,
+  unknown
+> = z.object({});
+/** @internal */
+export type UnitLabel$Outbound = {};
+
+/** @internal */
+export const UnitLabel$outboundSchema: z.ZodType<
+  UnitLabel$Outbound,
+  z.ZodTypeDef,
+  UnitLabel
+> = z.object({});
+
+export function unitLabelToJSON(unitLabel: UnitLabel): string {
+  return JSON.stringify(UnitLabel$outboundSchema.parse(unitLabel));
+}
+export function unitLabelFromJSON(
+  jsonString: string,
+): SafeParseResult<UnitLabel, SDKValidationError> {
+  return safeParse(
+    jsonString,
+    (x) => UnitLabel$inboundSchema.parse(JSON.parse(x)),
+    `Failed to parse 'UnitLabel' from JSON`,
+  );
+}
+
+/** @internal */
+export const CustomerCredits$inboundSchema: z.ZodType<
+  CustomerCredits,
+  z.ZodTypeDef,
+  unknown
+> = z.object({
+  amount: z.string(),
+  unit_label: z.nullable(z.lazy(() => UnitLabel$inboundSchema)).optional(),
+}).transform((v) => {
+  return remap$(v, {
+    "unit_label": "unitLabel",
+  });
+});
+/** @internal */
+export type CustomerCredits$Outbound = {
+  amount: string;
+  unit_label?: UnitLabel$Outbound | null | undefined;
+};
+
+/** @internal */
+export const CustomerCredits$outboundSchema: z.ZodType<
+  CustomerCredits$Outbound,
+  z.ZodTypeDef,
+  CustomerCredits
+> = z.object({
+  amount: z.string(),
+  unitLabel: z.nullable(z.lazy(() => UnitLabel$outboundSchema)).optional(),
+}).transform((v) => {
+  return remap$(v, {
+    unitLabel: "unit_label",
+  });
+});
+
+export function customerCreditsToJSON(
+  customerCredits: CustomerCredits,
+): string {
+  return JSON.stringify(CustomerCredits$outboundSchema.parse(customerCredits));
+}
+export function customerCreditsFromJSON(
+  jsonString: string,
+): SafeParseResult<CustomerCredits, SDKValidationError> {
+  return safeParse(
+    jsonString,
+    (x) => CustomerCredits$inboundSchema.parse(JSON.parse(x)),
+    `Failed to parse 'CustomerCredits' from JSON`,
+  );
+}
+
+/** @internal */
 export const ProductFeatureEntityLicenseStatus$inboundSchema: z.ZodNativeEnum<
   typeof ProductFeatureEntityLicenseStatus
 > = z.nativeEnum(ProductFeatureEntityLicenseStatus);
@@ -622,11 +722,14 @@ export const ProductFeatureEntity$inboundSchema: z.ZodType<
   private_note: z.nullable(z.string()).optional(),
   file: z.nullable(z.lazy(() => FileT$inboundSchema)).optional(),
   license_key: z.nullable(z.lazy(() => LicenseKey$inboundSchema)).optional(),
+  customer_credits: z.nullable(z.lazy(() => CustomerCredits$inboundSchema))
+    .optional(),
   license: z.nullable(z.lazy(() => License$inboundSchema)).optional(),
 }).transform((v) => {
   return remap$(v, {
     "private_note": "privateNote",
     "license_key": "licenseKey",
+    "customer_credits": "customerCredits",
   });
 });
 /** @internal */
@@ -637,6 +740,7 @@ export type ProductFeatureEntity$Outbound = {
   private_note?: string | null | undefined;
   file?: FileT$Outbound | null | undefined;
   license_key?: LicenseKey$Outbound | null | undefined;
+  customer_credits?: CustomerCredits$Outbound | null | undefined;
   license?: License$Outbound | null | undefined;
 };
 
@@ -652,11 +756,14 @@ export const ProductFeatureEntity$outboundSchema: z.ZodType<
   privateNote: z.nullable(z.string()).optional(),
   file: z.nullable(z.lazy(() => FileT$outboundSchema)).optional(),
   licenseKey: z.nullable(z.lazy(() => LicenseKey$outboundSchema)).optional(),
+  customerCredits: z.nullable(z.lazy(() => CustomerCredits$outboundSchema))
+    .optional(),
   license: z.nullable(z.lazy(() => License$outboundSchema)).optional(),
 }).transform((v) => {
   return remap$(v, {
     privateNote: "private_note",
     licenseKey: "license_key",
+    customerCredits: "customer_credits",
   });
 });
 

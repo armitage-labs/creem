@@ -226,14 +226,34 @@ run();
 * [retrieve](docs/sdks/checkouts/README.md#retrieve) - Retrieve a checkout session.
 * [create](docs/sdks/checkouts/README.md#create) - Creates a new checkout session.
 
+### [CustomerCredits](docs/sdks/customercredits/README.md)
+
+* [createAccount](docs/sdks/customercredits/README.md#createaccount) - Create a customer credits account
+* [listAccounts](docs/sdks/customercredits/README.md#listaccounts) - List customer credits accounts
+* [getAccount](docs/sdks/customercredits/README.md#getaccount) - Retrieve a customer credits account
+* [getAccountBalance](docs/sdks/customercredits/README.md#getaccountbalance) - Get account balance
+* [listEntries](docs/sdks/customercredits/README.md#listentries) - List account entries
+* [freezeAccount](docs/sdks/customercredits/README.md#freezeaccount) - Freeze an account
+* [unfreezeAccount](docs/sdks/customercredits/README.md#unfreezeaccount) - Unfreeze an account
+* [creditAccount](docs/sdks/customercredits/README.md#creditaccount) - Credit an account
+* [debitAccount](docs/sdks/customercredits/README.md#debitaccount) - Debit an account
+* [reverseTransaction](docs/sdks/customercredits/README.md#reversetransaction) - Reverse a transaction
+* [closeAccount](docs/sdks/customercredits/README.md#closeaccount) - Close an account
+
 ### [Customers](docs/sdks/customers/README.md)
 
 * [list](docs/sdks/customers/README.md#list) - List all customers
+* [getOrders](docs/sdks/customers/README.md#getorders) - List customer orders
+* [listSubscriptions](docs/sdks/customers/README.md#listsubscriptions) - List customer subscriptions
+* [listLicenses](docs/sdks/customers/README.md#listlicenses) - List customer licenses
 * [retrieve](docs/sdks/customers/README.md#retrieve) - Retrieve a customer
+* [create](docs/sdks/customers/README.md#create) - Create a customer
+* [update](docs/sdks/customers/README.md#update) - Update a customer
 * [generateBillingLinks](docs/sdks/customers/README.md#generatebillinglinks) - Generate Customer Links
 
 ### [Discounts](docs/sdks/discounts/README.md)
 
+* [search](docs/sdks/discounts/README.md#search) - Search discounts
 * [get](docs/sdks/discounts/README.md#get) - Retrieve discount
 * [create](docs/sdks/discounts/README.md#create) - Create a discount.
 * [delete](docs/sdks/discounts/README.md#delete) - Delete a discount.
@@ -244,6 +264,10 @@ run();
 * [deactivate](docs/sdks/licenses/README.md#deactivate) - Deactivate a license key instance.
 * [validate](docs/sdks/licenses/README.md#validate) - Validates a license key or instance.
 
+### [Moderation](docs/sdks/moderation/README.md)
+
+* [screenPrompt](docs/sdks/moderation/README.md#screenprompt) - Screen a prompt
+
 ### [Products](docs/sdks/products/README.md)
 
 * [get](docs/sdks/products/README.md#get) - Retrieve a product
@@ -252,17 +276,17 @@ run();
 
 ### [Stats](docs/sdks/stats/README.md)
 
-* [getMetricsSummary](docs/sdks/stats/README.md#getmetricssummary) - Get store metrics summary
+* [getSummary](docs/sdks/stats/README.md#getsummary) - Get store metrics summary
 
 ### [Subscriptions](docs/sdks/subscriptions/README.md)
 
 * [get](docs/sdks/subscriptions/README.md#get) - Retrieve a subscription
+* [search](docs/sdks/subscriptions/README.md#search) - List all subscriptions
 * [cancel](docs/sdks/subscriptions/README.md#cancel) - Cancel a subscription.
 * [update](docs/sdks/subscriptions/README.md#update) - Update a subscription.
 * [upgrade](docs/sdks/subscriptions/README.md#upgrade) - Upgrade a subscription to a different product
 * [pause](docs/sdks/subscriptions/README.md#pause) - Pause a subscription.
 * [resume](docs/sdks/subscriptions/README.md#resume) - Resume a subscription.
-* [searchSubscriptions](docs/sdks/subscriptions/README.md#searchsubscriptions) - List all subscriptions
 
 ### [Transactions](docs/sdks/transactions/README.md)
 
@@ -289,24 +313,42 @@ To read more about standalone functions, check [FUNCTIONS.md](./FUNCTIONS.md).
 
 - [`checkoutsCreate`](docs/sdks/checkouts/README.md#create) - Creates a new checkout session.
 - [`checkoutsRetrieve`](docs/sdks/checkouts/README.md#retrieve) - Retrieve a checkout session.
+- [`customerCreditsCloseAccount`](docs/sdks/customercredits/README.md#closeaccount) - Close an account
+- [`customerCreditsCreateAccount`](docs/sdks/customercredits/README.md#createaccount) - Create a customer credits account
+- [`customerCreditsCreditAccount`](docs/sdks/customercredits/README.md#creditaccount) - Credit an account
+- [`customerCreditsDebitAccount`](docs/sdks/customercredits/README.md#debitaccount) - Debit an account
+- [`customerCreditsFreezeAccount`](docs/sdks/customercredits/README.md#freezeaccount) - Freeze an account
+- [`customerCreditsGetAccount`](docs/sdks/customercredits/README.md#getaccount) - Retrieve a customer credits account
+- [`customerCreditsGetAccountBalance`](docs/sdks/customercredits/README.md#getaccountbalance) - Get account balance
+- [`customerCreditsListAccounts`](docs/sdks/customercredits/README.md#listaccounts) - List customer credits accounts
+- [`customerCreditsListEntries`](docs/sdks/customercredits/README.md#listentries) - List account entries
+- [`customerCreditsReverseTransaction`](docs/sdks/customercredits/README.md#reversetransaction) - Reverse a transaction
+- [`customerCreditsUnfreezeAccount`](docs/sdks/customercredits/README.md#unfreezeaccount) - Unfreeze an account
+- [`customersCreate`](docs/sdks/customers/README.md#create) - Create a customer
 - [`customersGenerateBillingLinks`](docs/sdks/customers/README.md#generatebillinglinks) - Generate Customer Links
+- [`customersGetOrders`](docs/sdks/customers/README.md#getorders) - List customer orders
 - [`customersList`](docs/sdks/customers/README.md#list) - List all customers
+- [`customersListLicenses`](docs/sdks/customers/README.md#listlicenses) - List customer licenses
+- [`customersListSubscriptions`](docs/sdks/customers/README.md#listsubscriptions) - List customer subscriptions
 - [`customersRetrieve`](docs/sdks/customers/README.md#retrieve) - Retrieve a customer
+- [`customersUpdate`](docs/sdks/customers/README.md#update) - Update a customer
 - [`discountsCreate`](docs/sdks/discounts/README.md#create) - Create a discount.
 - [`discountsDelete`](docs/sdks/discounts/README.md#delete) - Delete a discount.
 - [`discountsGet`](docs/sdks/discounts/README.md#get) - Retrieve discount
+- [`discountsSearch`](docs/sdks/discounts/README.md#search) - Search discounts
 - [`licensesActivate`](docs/sdks/licenses/README.md#activate) - Activates a license key.
 - [`licensesDeactivate`](docs/sdks/licenses/README.md#deactivate) - Deactivate a license key instance.
 - [`licensesValidate`](docs/sdks/licenses/README.md#validate) - Validates a license key or instance.
+- [`moderationScreenPrompt`](docs/sdks/moderation/README.md#screenprompt) - Screen a prompt
 - [`productsCreate`](docs/sdks/products/README.md#create) - Creates a new product.
 - [`productsGet`](docs/sdks/products/README.md#get) - Retrieve a product
 - [`productsSearch`](docs/sdks/products/README.md#search) - List all products
-- [`statsGetMetricsSummary`](docs/sdks/stats/README.md#getmetricssummary) - Get store metrics summary
+- [`statsGetSummary`](docs/sdks/stats/README.md#getsummary) - Get store metrics summary
 - [`subscriptionsCancel`](docs/sdks/subscriptions/README.md#cancel) - Cancel a subscription.
 - [`subscriptionsGet`](docs/sdks/subscriptions/README.md#get) - Retrieve a subscription
 - [`subscriptionsPause`](docs/sdks/subscriptions/README.md#pause) - Pause a subscription.
 - [`subscriptionsResume`](docs/sdks/subscriptions/README.md#resume) - Resume a subscription.
-- [`subscriptionsSearchSubscriptions`](docs/sdks/subscriptions/README.md#searchsubscriptions) - List all subscriptions
+- [`subscriptionsSearch`](docs/sdks/subscriptions/README.md#search) - List all subscriptions
 - [`subscriptionsUpdate`](docs/sdks/subscriptions/README.md#update) - Update a subscription.
 - [`subscriptionsUpgrade`](docs/sdks/subscriptions/README.md#upgrade) - Upgrade a subscription to a different product
 - [`transactionsGetById`](docs/sdks/transactions/README.md#getbyid) - Get a transaction by ID
@@ -383,13 +425,14 @@ run();
 
 [`CreemError`](./src/models/errors/creemerror.ts) is the base class for all HTTP error responses. It has the following properties:
 
-| Property            | Type       | Description                                            |
-| ------------------- | ---------- | ------------------------------------------------------ |
-| `error.message`     | `string`   | Error message                                          |
-| `error.statusCode`  | `number`   | HTTP response status code eg `404`                     |
-| `error.headers`     | `Headers`  | HTTP response headers                                  |
-| `error.body`        | `string`   | HTTP body. Can be empty string if no body is returned. |
-| `error.rawResponse` | `Response` | Raw HTTP response                                      |
+| Property            | Type       | Description                                                                             |
+| ------------------- | ---------- | --------------------------------------------------------------------------------------- |
+| `error.message`     | `string`   | Error message                                                                           |
+| `error.statusCode`  | `number`   | HTTP response status code eg `404`                                                      |
+| `error.headers`     | `Headers`  | HTTP response headers                                                                   |
+| `error.body`        | `string`   | HTTP body. Can be empty string if no body is returned.                                  |
+| `error.rawResponse` | `Response` | Raw HTTP response                                                                       |
+| `error.data$`       |            | Optional. Some errors may contain structured data. [See Error Classes](#error-classes). |
 
 ### Example
 ```typescript
@@ -402,15 +445,21 @@ const creem = new Creem({
 
 async function run() {
   try {
-    const result = await creem.products.get("prod_1234567890");
+    const result = await creem.customerCredits.freezeAccount("<id>");
 
     console.log(result);
   } catch (error) {
+    // The base class for HTTP error responses
     if (error instanceof errors.CreemError) {
       console.log(error.message);
       console.log(error.statusCode);
       console.log(error.body);
       console.log(error.headers);
+
+      // Depending on the method different errors may be thrown
+      if (error instanceof errors.CustomerCreditsErrorResponseDto) {
+        console.log(error.data$.error); // components.CustomerCreditsErrorDetailDto
+      }
     }
   }
 }
@@ -423,7 +472,7 @@ run();
 **Primary error:**
 * [`CreemError`](./src/models/errors/creemerror.ts): The base class for HTTP error responses.
 
-<details><summary>Less common errors (6)</summary>
+<details><summary>Less common errors (7)</summary>
 
 <br />
 
@@ -436,9 +485,12 @@ run();
 
 
 **Inherit from [`CreemError`](./src/models/errors/creemerror.ts)**:
+* [`CustomerCreditsErrorResponseDto`](./src/models/errors/customercreditserrorresponsedto.ts): Status code `409`. Applicable to 5 of 42 methods.*
 * [`ResponseValidationError`](./src/models/errors/responsevalidationerror.ts): Type mismatch between the data returned from the server and the structure expected by the SDK. See `error.rawValue` for the raw value and `error.pretty()` for a nicely formatted multi-line string.
 
 </details>
+
+\* Check [the method documentation](#available-resources-and-operations) to see if the error is applicable.
 <!-- End Error Handling [errors] -->
 
 <!-- Start Server Selection [server] -->

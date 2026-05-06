@@ -3,7 +3,8 @@
  */
 
 import { CreemCore } from "../core.js";
-import { encodeFormQuery } from "../lib/encodings.js";
+import { encodeSimple } from "../lib/encodings.js";
+import { matchStatusCode } from "../lib/http.js";
 import * as M from "../lib/matchers.js";
 import { compactMap } from "../lib/primitives.js";
 import { safeParse } from "../lib/schemas.js";
@@ -19,6 +20,7 @@ import {
   RequestTimeoutError,
   UnexpectedClientError,
 } from "../models/errors/httpclienterrors.js";
+import * as errors from "../models/errors/index.js";
 import { ResponseValidationError } from "../models/errors/responsevalidationerror.js";
 import { SDKValidationError } from "../models/errors/sdkvalidationerror.js";
 import * as operations from "../models/operations/index.js";
@@ -26,21 +28,19 @@ import { APICall, APIPromise } from "../types/async.js";
 import { Result } from "../types/fp.js";
 
 /**
- * Get store metrics summary
+ * Close an account
  *
  * @remarks
- * Retrieve aggregated store metrics including counts, revenue, and MRR. When startDate and endDate are provided, totals are filtered to that date range. When interval is also provided, the response includes a periods array with time-series data points grouped by that interval. The periods array starts from the store's first transaction or startDate, whichever is later, to avoid empty leading buckets. All monetary amounts are in cents (integer, no decimals).
+ * Permanently close an account. This action cannot be undone.
  */
-export function statsGetMetricsSummary(
+export function customerCreditsCloseAccount(
   client: CreemCore,
-  currency: operations.Currency,
-  startDate?: number | undefined,
-  endDate?: number | undefined,
-  interval?: operations.Interval | undefined,
+  id: string,
   options?: RequestOptions,
 ): APIPromise<
   Result<
-    components.StatsSummaryEntity,
+    components.AccountResponseDto,
+    | errors.CustomerCreditsErrorResponseDto
     | CreemError
     | ResponseValidationError
     | ConnectionError
@@ -53,25 +53,20 @@ export function statsGetMetricsSummary(
 > {
   return new APIPromise($do(
     client,
-    currency,
-    startDate,
-    endDate,
-    interval,
+    id,
     options,
   ));
 }
 
 async function $do(
   client: CreemCore,
-  currency: operations.Currency,
-  startDate?: number | undefined,
-  endDate?: number | undefined,
-  interval?: operations.Interval | undefined,
+  id: string,
   options?: RequestOptions,
 ): Promise<
   [
     Result<
-      components.StatsSummaryEntity,
+      components.AccountResponseDto,
+      | errors.CustomerCreditsErrorResponseDto
       | CreemError
       | ResponseValidationError
       | ConnectionError
@@ -84,16 +79,14 @@ async function $do(
     APICall,
   ]
 > {
-  const input: operations.GetMetricsSummaryRequest = {
-    currency: currency,
-    startDate: startDate,
-    endDate: endDate,
-    interval: interval,
+  const input: operations.CloseCustomerCreditsAccountRequest = {
+    id: id,
   };
 
   const parsed = safeParse(
     input,
-    (value) => operations.GetMetricsSummaryRequest$outboundSchema.parse(value),
+    (value) =>
+      operations.CloseCustomerCreditsAccountRequest$outboundSchema.parse(value),
     "Input validation failed",
   );
   if (!parsed.ok) {
@@ -102,14 +95,15 @@ async function $do(
   const payload = parsed.value;
   const body = null;
 
-  const path = pathToFunc("/v1/stats/summary")();
-
-  const query = encodeFormQuery({
-    "currency": payload.currency,
-    "endDate": payload.endDate,
-    "interval": payload.interval,
-    "startDate": payload.startDate,
-  });
+  const pathParams = {
+    id: encodeSimple("id", payload.id, {
+      explode: false,
+      charEncoding: "percent",
+    }),
+  };
+  const path = pathToFunc("/v1/customer-credits/accounts/{id}/close")(
+    pathParams,
+  );
 
   const headers = new Headers(compactMap({
     Accept: "application/json",
@@ -122,7 +116,7 @@ async function $do(
   const context = {
     options: client._options,
     baseURL: options?.serverURL ?? client._baseURL ?? "",
-    operationID: "getMetricsSummary",
+    operationID: "closeCustomerCreditsAccount",
     oAuth2Scopes: null,
 
     resolvedSecurity: requestSecurity,
@@ -136,11 +130,10 @@ async function $do(
 
   const requestRes = client._createRequest(context, {
     security: requestSecurity,
-    method: "GET",
+    method: "POST",
     baseURL: options?.serverURL,
     path: path,
     headers: headers,
-    query: query,
     body: body,
     userAgent: client._options.userAgent,
     timeoutMs: options?.timeoutMs || client._options.timeoutMs || -1,
@@ -152,7 +145,8 @@ async function $do(
 
   const doResult = await client._do(req, {
     context,
-    errorCodes: ["400", "401", "404", "4XX", "5XX"],
+    isErrorStatusCode: (statusCode: number) =>
+      matchStatusCode({ status: statusCode } as Response, ["4XX", "5XX"]),
     retryConfig: context.retryConfig,
     retryCodes: context.retryCodes,
   });
@@ -161,8 +155,13 @@ async function $do(
   }
   const response = doResult.value;
 
+  const responseFields = {
+    HttpMeta: { Response: response, Request: req },
+  };
+
   const [result] = await M.match<
-    components.StatsSummaryEntity,
+    components.AccountResponseDto,
+    | errors.CustomerCreditsErrorResponseDto
     | CreemError
     | ResponseValidationError
     | ConnectionError
@@ -172,10 +171,11 @@ async function $do(
     | UnexpectedClientError
     | SDKValidationError
   >(
-    M.json(200, components.StatsSummaryEntity$inboundSchema),
+    M.json(200, components.AccountResponseDto$inboundSchema),
+    M.jsonErr(409, errors.CustomerCreditsErrorResponseDto$inboundSchema),
     M.fail([400, 401, 404, "4XX"]),
     M.fail("5XX"),
-  )(response, req);
+  )(response, req, { extraFields: responseFields });
   if (!result.ok) {
     return [result, { status: "complete", request: req, response }];
   }

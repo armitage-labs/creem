@@ -3,25 +3,25 @@
  */
 
 import * as z from "zod/v3";
-import { subscriptionsSearchSubscriptions } from "../../funcs/subscriptionsSearchSubscriptions.js";
+import { customersListLicenses } from "../../funcs/customersListLicenses.js";
 import { formatResult, ToolDefinition } from "../tools.js";
 
 const args = {
+  id: z.string(),
   pageNumber: z.number().default(1),
   pageSize: z.number().default(10),
 };
 
-export const tool$subscriptionsSearchSubscriptions: ToolDefinition<
-  typeof args
-> = {
-  name: "subscriptions-search-subscriptions",
-  description: `List all subscriptions
+export const tool$customersListLicenses: ToolDefinition<typeof args> = {
+  name: "customers-list-licenses",
+  description: `List customer licenses
 
-Search and retrieve a paginated list of subscriptions. View status, billing cycle, and customer info.`,
+Retrieve a paginated list of license keys for a specific customer.`,
   args,
   tool: async (client, args, ctx) => {
-    const [result, apiCall] = await subscriptionsSearchSubscriptions(
+    const [result, apiCall] = await customersListLicenses(
       client,
+      args.id,
       args.pageNumber,
       args.pageSize,
       { fetchOptions: { signal: ctx.signal } },

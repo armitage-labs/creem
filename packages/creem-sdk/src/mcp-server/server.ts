@@ -15,24 +15,42 @@ import { MCPScope } from "./scopes.js";
 import { createRegisterTool } from "./tools.js";
 import { tool$checkoutsCreate } from "./tools/checkoutsCreate.js";
 import { tool$checkoutsRetrieve } from "./tools/checkoutsRetrieve.js";
+import { tool$customerCreditsCloseAccount } from "./tools/customerCreditsCloseAccount.js";
+import { tool$customerCreditsCreateAccount } from "./tools/customerCreditsCreateAccount.js";
+import { tool$customerCreditsCreditAccount } from "./tools/customerCreditsCreditAccount.js";
+import { tool$customerCreditsDebitAccount } from "./tools/customerCreditsDebitAccount.js";
+import { tool$customerCreditsFreezeAccount } from "./tools/customerCreditsFreezeAccount.js";
+import { tool$customerCreditsGetAccount } from "./tools/customerCreditsGetAccount.js";
+import { tool$customerCreditsGetAccountBalance } from "./tools/customerCreditsGetAccountBalance.js";
+import { tool$customerCreditsListAccounts } from "./tools/customerCreditsListAccounts.js";
+import { tool$customerCreditsListEntries } from "./tools/customerCreditsListEntries.js";
+import { tool$customerCreditsReverseTransaction } from "./tools/customerCreditsReverseTransaction.js";
+import { tool$customerCreditsUnfreezeAccount } from "./tools/customerCreditsUnfreezeAccount.js";
+import { tool$customersCreate } from "./tools/customersCreate.js";
 import { tool$customersGenerateBillingLinks } from "./tools/customersGenerateBillingLinks.js";
+import { tool$customersGetOrders } from "./tools/customersGetOrders.js";
 import { tool$customersList } from "./tools/customersList.js";
+import { tool$customersListLicenses } from "./tools/customersListLicenses.js";
+import { tool$customersListSubscriptions } from "./tools/customersListSubscriptions.js";
 import { tool$customersRetrieve } from "./tools/customersRetrieve.js";
+import { tool$customersUpdate } from "./tools/customersUpdate.js";
 import { tool$discountsCreate } from "./tools/discountsCreate.js";
 import { tool$discountsDelete } from "./tools/discountsDelete.js";
 import { tool$discountsGet } from "./tools/discountsGet.js";
+import { tool$discountsSearch } from "./tools/discountsSearch.js";
 import { tool$licensesActivate } from "./tools/licensesActivate.js";
 import { tool$licensesDeactivate } from "./tools/licensesDeactivate.js";
 import { tool$licensesValidate } from "./tools/licensesValidate.js";
+import { tool$moderationScreenPrompt } from "./tools/moderationScreenPrompt.js";
 import { tool$productsCreate } from "./tools/productsCreate.js";
 import { tool$productsGet } from "./tools/productsGet.js";
 import { tool$productsSearch } from "./tools/productsSearch.js";
-import { tool$statsGetMetricsSummary } from "./tools/statsGetMetricsSummary.js";
+import { tool$statsGetSummary } from "./tools/statsGetSummary.js";
 import { tool$subscriptionsCancel } from "./tools/subscriptionsCancel.js";
 import { tool$subscriptionsGet } from "./tools/subscriptionsGet.js";
 import { tool$subscriptionsPause } from "./tools/subscriptionsPause.js";
 import { tool$subscriptionsResume } from "./tools/subscriptionsResume.js";
-import { tool$subscriptionsSearchSubscriptions } from "./tools/subscriptionsSearchSubscriptions.js";
+import { tool$subscriptionsSearch } from "./tools/subscriptionsSearch.js";
 import { tool$subscriptionsUpdate } from "./tools/subscriptionsUpdate.js";
 import { tool$subscriptionsUpgrade } from "./tools/subscriptionsUpgrade.js";
 import { tool$transactionsGetById } from "./tools/transactionsGetById.js";
@@ -48,7 +66,7 @@ export function createMCPServer(deps: {
 }) {
   const server = new McpServer({
     name: "Creem",
-    version: "1.4.4",
+    version: "1.4.5",
   });
 
   const client = new CreemCore({
@@ -82,26 +100,44 @@ export function createMCPServer(deps: {
   tool(tool$productsCreate);
   tool(tool$productsSearch);
   tool(tool$customersList);
+  tool(tool$customersGetOrders);
+  tool(tool$customersListSubscriptions);
+  tool(tool$customersListLicenses);
   tool(tool$customersRetrieve);
+  tool(tool$customersCreate);
+  tool(tool$customersUpdate);
   tool(tool$customersGenerateBillingLinks);
   tool(tool$subscriptionsGet);
+  tool(tool$subscriptionsSearch);
   tool(tool$subscriptionsCancel);
   tool(tool$subscriptionsUpdate);
   tool(tool$subscriptionsUpgrade);
   tool(tool$subscriptionsPause);
   tool(tool$subscriptionsResume);
-  tool(tool$subscriptionsSearchSubscriptions);
   tool(tool$checkoutsRetrieve);
   tool(tool$checkoutsCreate);
   tool(tool$licensesActivate);
   tool(tool$licensesDeactivate);
   tool(tool$licensesValidate);
+  tool(tool$discountsSearch);
   tool(tool$discountsGet);
   tool(tool$discountsCreate);
   tool(tool$discountsDelete);
   tool(tool$transactionsGetById);
   tool(tool$transactionsSearch);
-  tool(tool$statsGetMetricsSummary);
+  tool(tool$statsGetSummary);
+  tool(tool$moderationScreenPrompt);
+  tool(tool$customerCreditsCreateAccount);
+  tool(tool$customerCreditsListAccounts);
+  tool(tool$customerCreditsGetAccount);
+  tool(tool$customerCreditsGetAccountBalance);
+  tool(tool$customerCreditsListEntries);
+  tool(tool$customerCreditsFreezeAccount);
+  tool(tool$customerCreditsUnfreezeAccount);
+  tool(tool$customerCreditsCreditAccount);
+  tool(tool$customerCreditsDebitAccount);
+  tool(tool$customerCreditsReverseTransaction);
+  tool(tool$customerCreditsCloseAccount);
 
   return server;
 }
