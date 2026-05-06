@@ -2414,7 +2414,8 @@
           "chargedBack",
           "uncollectible",
           "declined",
-          "void"
+          "void",
+          "canceled"
         ]
       },
       "TransactionEntity": {
