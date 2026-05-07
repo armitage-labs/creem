@@ -1,7 +1,7 @@
 import { Command } from "commander";
 import ora from "ora";
 import chalk from "chalk";
-import { password, confirm } from "@inquirer/prompts";
+import { password, confirm, select } from "@inquirer/prompts";
 import { getClient } from "../lib/api";
 import * as output from "../utils/output";
 
@@ -412,29 +412,21 @@ class LemonSqueezyClient {
     return this.fetchAll<LSFile>("/files", false);
   }
 
+  async getStores(): Promise<LSStore[]> {
+    return this.fetchAll<LSStore>("/stores", false);
+  }
+
   async validateKey(): Promise<{
     valid: boolean;
-    storeId?: number;
-    currency?: string;
+    stores?: LSStore[];
     error?: string;
   }> {
     try {
-      const response = await this.request<LSStore>("/stores", 1, 1);
-      if (response.data.length === 0) {
+      const stores = await this.getStores();
+      if (stores.length === 0) {
         return { valid: false, error: "No store found for this API key" };
       }
-      const store = response.data[0];
-      const storeId = parseInt(store.id, 10);
-      // Get the store's currency - LS supports 150+ currencies, not just USD
-      // Fail if currency is missing to avoid incorrect pricing during migration
-      const currency = store.attributes?.currency;
-      if (!currency) {
-        return {
-          valid: false,
-          error: "Store currency not found in API response. Cannot proceed with migration.",
-        };
-      }
-      return { valid: true, storeId, currency };
+      return { valid: true, stores };
     } catch (error) {
       return {
         valid: false,
@@ -982,6 +974,7 @@ function createLemonSqueezyCommand(): Command {
   const command = new Command("lemon-squeezy")
     .description("Migrate from Lemon Squeezy to CREEM")
     .option("--ls-api-key <key>", "Lemon Squeezy API key")
+    .option("--ls-store-id <id>", "Lemon Squeezy store ID to migrate from")
     .option("--dry-run", "Preview migration without making changes")
     // Note: --log-file is not yet implemented - will be added in future version
     .option("--json", "Output migration plan as JSON (implies --dry-run)")
@@ -989,6 +982,7 @@ function createLemonSqueezyCommand(): Command {
     .action(
       async (options: {
         lsApiKey?: string;
+        lsStoreId?: string;
         dryRun?: boolean;
         json?: boolean;
         excludeDiscounts?: boolean;
@@ -1040,18 +1034,91 @@ function createLemonSqueezyCommand(): Command {
           process.exit(1);
         }
 
-        validateSpinner.succeed(`Connected to Lemon Squeezy (Store ID: ${validation.storeId})`);
+        const stores = validation.stores || [];
+        validateSpinner.succeed(
+          `Connected to Lemon Squeezy (${stores.length} store${stores.length === 1 ? "" : "s"} found)`,
+        );
 
-        // Set store ID for filtering subsequent API requests
-        lsClient.setStoreId(validation.storeId!);
+        let selectedStore: LSStore | undefined;
 
-        // Validate store currency - CREEM only supports USD and EUR
-        // Currency must exist (validated in validateKey), but guard against edge cases
-        if (!validation.currency) {
+        if (options.lsStoreId) {
+          if (!/^\d+$/.test(options.lsStoreId)) {
+            output.error(`Invalid Lemon Squeezy store ID: ${options.lsStoreId}`);
+            process.exit(1);
+          }
+
+          const requestedStoreId = parseInt(options.lsStoreId, 10);
+          if (!Number.isInteger(requestedStoreId) || requestedStoreId <= 0) {
+            output.error(`Invalid Lemon Squeezy store ID: ${options.lsStoreId}`);
+            process.exit(1);
+          }
+
+          selectedStore = stores.find((store) => parseInt(store.id, 10) === requestedStoreId);
+          if (!selectedStore) {
+            output.error(
+              `Lemon Squeezy store ID ${options.lsStoreId} was not found for this API key.`,
+            );
+            if (stores.length > 0) {
+              output.dim(`Available store IDs: ${stores.map((store) => store.id).join(", ")}`);
+            }
+            process.exit(1);
+          }
+        } else if (stores.length === 1) {
+          selectedStore = stores[0];
+        } else {
+          try {
+            selectedStore = await select<LSStore>({
+              message: "Which Lemon Squeezy store do you want to migrate?",
+              choices: stores.map((store) => {
+                const parts = [
+                  store.attributes.name,
+                  store.attributes.domain || store.attributes.slug,
+                  `ID: ${store.id}`,
+                  store.attributes.currency,
+                ].filter(Boolean);
+
+                return {
+                  name: parts.join(" · "),
+                  value: store,
+                };
+              }),
+            });
+          } catch {
+            console.log(chalk.dim("\nMigration cancelled."));
+            return;
+          }
+        }
+
+        if (!selectedStore) {
+          output.error("No Lemon Squeezy store selected. Cannot proceed with migration.");
+          process.exit(1);
+        }
+
+        const selectedStoreId = parseInt(selectedStore.id, 10);
+        if (!Number.isInteger(selectedStoreId) || selectedStoreId <= 0) {
+          output.error(`Invalid Lemon Squeezy store ID: ${selectedStore.id}`);
+          process.exit(1);
+        }
+
+        const selectedStoreCurrency = selectedStore.attributes?.currency;
+        if (!selectedStoreCurrency) {
           output.error("Store currency not found. Cannot proceed with migration.");
           process.exit(1);
         }
-        const rawCurrency = validation.currency.toUpperCase();
+
+        if (!options.json) {
+          console.log(
+            chalk.dim(
+              `Using Lemon Squeezy store: ${selectedStore.attributes.name} (ID: ${selectedStore.id})`,
+            ),
+          );
+        }
+
+        // Set store ID for filtering subsequent API requests
+        lsClient.setStoreId(selectedStoreId);
+
+        // Validate store currency - CREEM only supports USD and EUR
+        const rawCurrency = selectedStoreCurrency.toUpperCase();
         if (rawCurrency !== "USD" && rawCurrency !== "EUR") {
           output.error(
             `Your Lemon Squeezy store uses ${rawCurrency}, but CREEM currently only supports USD and EUR.\n` +
@@ -1431,12 +1498,15 @@ ${chalk.dim("Available migrations:")}
 ${chalk.dim("Options:")}
   --dry-run               Preview what would be migrated without making changes
   --ls-api-key <key>      Provide API key via flag (skips interactive prompt)
+  --ls-store-id <id>      Lemon Squeezy store ID to migrate from
   --json                  Output migration plan as JSON
   --exclude-discounts     Skip migrating discounts entirely
 
 ${chalk.dim("Examples:")}
   ${chalk.cyan("creem migrate lemon-squeezy")}                    Interactive migration wizard
   ${chalk.cyan("creem migrate lemon-squeezy --dry-run")}          Preview migration plan
+  ${chalk.cyan("creem migrate lemon-squeezy --ls-store-id 123")}  Skip store selection prompt
+  ${chalk.cyan("creem migrate lemon-squeezy --ls-api-key ls_xxx --ls-store-id 123")}  Non-interactive migration
   ${chalk.cyan("creem migrate lemon-squeezy --json > plan.json")} Export migration plan
 `,
     );
