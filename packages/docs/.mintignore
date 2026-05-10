@@ -1,0 +1,15 @@
+# Files Mintlify must NOT publish or index.
+#
+# Mintlify auto-indexes every .md/.mdx under packages/docs/ into the public
+# site (and into https://docs.creem.io/llms-full.txt) regardless of docs.json
+# navigation. Files listed here stay in the repo for contributors but are
+# removed from the published site, unreachable by URL, and excluded from
+# search/LLM indexing.
+#
+# Syntax matches .gitignore.
+
+# Internal repo dev guide for working on the docs package — no API relevance.
+CLAUDE.md
+
+# Repo-level README that explains how to develop the docs package locally.
+README.md
