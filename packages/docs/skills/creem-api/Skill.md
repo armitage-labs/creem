@@ -1,6 +1,7 @@
 ---
 name: CREEM API Integration
-description: Integrate CREEM payment infrastructure for checkouts, subscriptions, licenses, and webhooks. Supports one-time payments, recurring billing, and MoR compliance.
+description: Integrate CREEM payment infrastructure for checkouts, subscriptions, free products, licenses, and webhooks. Supports one-time payments, recurring billing, free products, and MoR compliance.
+noindex: true
 ---
 
 # CREEM API Integration Skill
@@ -14,7 +15,7 @@ CREEM acts as the legal seller (Merchant of Record), handling tax compliance, pa
 - **Production API**: `https://api.creem.io`
 - **Test API**: `https://test-api.creem.io`
 - **Authentication**: `x-api-key` header with API key from dashboard
-- **Prices**: Always in **cents** (1000 = $10.00)
+- **Prices**: Always in **cents** (1000 = $10.00). Use `0` for free products.
 - **Currencies**: Three-letter ISO codes in uppercase (USD, EUR, etc.)
 
 ## Authentication Setup

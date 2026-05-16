@@ -1,3 +1,8 @@
+---
+title: CREEM Webhooks Reference
+noindex: true
+---
+
 # CREEM Webhooks Reference
 
 Comprehensive guide to implementing webhook handlers for CREEM events.
@@ -330,6 +335,102 @@ async function handleSubscriptionCanceled(subscription: SubscriptionObject) {
 
 ---
 
+### subscription.scheduled_cancel
+
+Fired when a subscription is scheduled to cancel at the end of the current billing period. The subscription remains active until `current_period_end_date`.
+
+```json
+{
+  "id": "evt_4RfTc700qGW6FBzloh3Ms8",
+  "eventType": "subscription.scheduled_cancel",
+  "created_at": 1728734337932,
+  "object": {
+    "id": "sub_6pC2lNB6joCRQIZ1aMrTpi",
+    "object": "subscription",
+    "status": "scheduled_cancel",
+    "product": {
+      "id": "prod_d1AY2Sadk9YAvLI0pj97f",
+      "name": "Monthly",
+      "price": 1000,
+      "billing_type": "recurring",
+      "billing_period": "every-month"
+    },
+    "customer": {
+      "id": "cust_1OcIK1GEuVvXZwD19tjq2z",
+      "email": "customer@example.com"
+    },
+    "current_period_start_date": "2024-10-12T11:58:38.000Z",
+    "current_period_end_date": "2024-11-12T11:58:38.000Z",
+    "canceled_at": null,
+    "metadata": {}
+  }
+}
+```
+
+**Handler Example:**
+
+```typescript
+async function handleSubscriptionScheduledCancel(subscription: SubscriptionObject) {
+  await db.subscriptions.update({
+    where: { creemSubscriptionId: subscription.id },
+    data: {
+      status: 'scheduled_cancel',
+      accessUntil: new Date(subscription.current_period_end_date)
+    }
+  });
+}
+```
+
+---
+
+### subscription.past_due
+
+Fired when a subscription payment fails and the subscription enters a past-due state. Creem will retry payment; if a retry succeeds, the subscription can return to active.
+
+```json
+{
+  "id": "evt_7HkTd800rHX7GCampi4Nt9",
+  "eventType": "subscription.past_due",
+  "created_at": 1728734337932,
+  "object": {
+    "id": "sub_6pC2lNB6joCRQIZ1aMrTpi",
+    "object": "subscription",
+    "status": "past_due",
+    "product": {
+      "id": "prod_d1AY2Sadk9YAvLI0pj97f",
+      "name": "Monthly",
+      "price": 1000,
+      "billing_type": "recurring",
+      "billing_period": "every-month"
+    },
+    "customer": {
+      "id": "cust_1OcIK1GEuVvXZwD19tjq2z",
+      "email": "customer@example.com"
+    },
+    "current_period_start_date": "2024-10-12T11:58:38.000Z",
+    "current_period_end_date": "2024-11-12T11:58:38.000Z",
+    "canceled_at": null,
+    "metadata": {}
+  }
+}
+```
+
+**Handler Example:**
+
+```typescript
+async function handleSubscriptionPastDue(subscription: SubscriptionObject) {
+  await db.subscriptions.update({
+    where: { creemSubscriptionId: subscription.id },
+    data: {
+      status: 'past_due',
+      pastDueAt: new Date()
+    }
+  });
+}
+```
+
+---
+
 ### subscription.expired
 
 Fired when the billing period ends without successful payment. Retries may still happen.
@@ -359,108 +460,6 @@ Fired when the billing period ends without successful payment. Retries may still
 ```
 
 **Note:** Status remains "active" during retry period. Only act on `subscription.canceled` for terminal state.
-
----
-
-### subscription.trialing
-
-Fired when a subscription enters a trial period.
-
-```json
-{
-  "id": "evt_2ciAM8ABYtj0pVueeJPxUZ",
-  "eventType": "subscription.trialing",
-  "created_at": 1739963911073,
-  "object": {
-    "id": "sub_dxiauR8zZOwULx5QM70wJ",
-    "object": "subscription",
-    "status": "trialing",
-    "product": {
-      "id": "prod_3kpf0ZdpcfsSCQ3kDiwg9m",
-      "name": "Pro Plan with Trial",
-      "price": 1100
-    },
-    "customer": {
-      "id": "cust_4fpU8kYkQmI1XKBwU2qeME",
-      "email": "customer@example.com"
-    },
-    "current_period_start_date": "2025-02-19T11:18:25.000Z",
-    "current_period_end_date": "2025-02-26T11:18:25.000Z",
-    "items": [
-      {
-        "id": "sitem_1xbHCmIM61DHGRBCFn0W1L",
-        "product_id": "prod_3kpf0ZdpcfsSCQ3kDiwg9m",
-        "units": 1
-      }
-    ]
-  }
-}
-```
-
----
-
-### subscription.paused
-
-Fired when a subscription is paused.
-
-```json
-{
-  "id": "evt_5veN2cn5N9Grz8u7w3yJuL",
-  "eventType": "subscription.paused",
-  "created_at": 1754041946898,
-  "object": {
-    "id": "sub_3ZT1iYMeDBpiUpRTqq4veE",
-    "object": "subscription",
-    "status": "paused",
-    "product": {
-      "id": "prod_sYwbyE1tPbsqbLu6S0bsR",
-      "name": "Monthly Plan",
-      "price": 2000
-    },
-    "customer": {
-      "id": "cust_4fpU8kYkQmI1XKBwU2qeME",
-      "email": "customer@example.com"
-    },
-    "current_period_end_date": "2025-09-01T09:51:47.000Z"
-  }
-}
-```
-
----
-
-### subscription.update
-
-Fired when a subscription is modified (seats changed, upgraded, etc.).
-
-```json
-{
-  "id": "evt_5pJMUuvqaqvttFVUvtpY32",
-  "eventType": "subscription.update",
-  "created_at": 1737890536421,
-  "object": {
-    "id": "sub_2qAuJgWmXhXHAuef9k4Kur",
-    "object": "subscription",
-    "status": "active",
-    "product": {
-      "id": "prod_1dP15yoyogQe2seEt1Evf3",
-      "name": "Monthly Sub",
-      "price": 1000
-    },
-    "customer": {
-      "id": "cust_2fQZKKUZqtNhH2oDWevQkW",
-      "email": "customer@example.com"
-    },
-    "items": [
-      {
-        "id": "sitem_3QWlqRbAat2eBRakAxFtt9",
-        "product_id": "prod_5jnudVkLGZWF4AqMFBs5t5",
-        "units": 1
-      }
-    ],
-    "current_period_end_date": "2025-02-26T11:20:36.000Z"
-  }
-}
-```
 
 ---
 
@@ -559,6 +558,108 @@ Fired when a chargeback/dispute is opened.
 
 ---
 
+### subscription.update
+
+Fired when a subscription is modified (seats changed, upgraded, etc.).
+
+```json
+{
+  "id": "evt_5pJMUuvqaqvttFVUvtpY32",
+  "eventType": "subscription.update",
+  "created_at": 1737890536421,
+  "object": {
+    "id": "sub_2qAuJgWmXhXHAuef9k4Kur",
+    "object": "subscription",
+    "status": "active",
+    "product": {
+      "id": "prod_1dP15yoyogQe2seEt1Evf3",
+      "name": "Monthly Sub",
+      "price": 1000
+    },
+    "customer": {
+      "id": "cust_2fQZKKUZqtNhH2oDWevQkW",
+      "email": "customer@example.com"
+    },
+    "items": [
+      {
+        "id": "sitem_3QWlqRbAat2eBRakAxFtt9",
+        "product_id": "prod_5jnudVkLGZWF4AqMFBs5t5",
+        "units": 1
+      }
+    ],
+    "current_period_end_date": "2025-02-26T11:20:36.000Z"
+  }
+}
+```
+
+---
+
+### subscription.trialing
+
+Fired when a subscription enters a trial period.
+
+```json
+{
+  "id": "evt_2ciAM8ABYtj0pVueeJPxUZ",
+  "eventType": "subscription.trialing",
+  "created_at": 1739963911073,
+  "object": {
+    "id": "sub_dxiauR8zZOwULx5QM70wJ",
+    "object": "subscription",
+    "status": "trialing",
+    "product": {
+      "id": "prod_3kpf0ZdpcfsSCQ3kDiwg9m",
+      "name": "Pro Plan with Trial",
+      "price": 1100
+    },
+    "customer": {
+      "id": "cust_4fpU8kYkQmI1XKBwU2qeME",
+      "email": "customer@example.com"
+    },
+    "current_period_start_date": "2025-02-19T11:18:25.000Z",
+    "current_period_end_date": "2025-02-26T11:18:25.000Z",
+    "items": [
+      {
+        "id": "sitem_1xbHCmIM61DHGRBCFn0W1L",
+        "product_id": "prod_3kpf0ZdpcfsSCQ3kDiwg9m",
+        "units": 1
+      }
+    ]
+  }
+}
+```
+
+---
+
+### subscription.paused
+
+Fired when a subscription is paused.
+
+```json
+{
+  "id": "evt_5veN2cn5N9Grz8u7w3yJuL",
+  "eventType": "subscription.paused",
+  "created_at": 1754041946898,
+  "object": {
+    "id": "sub_3ZT1iYMeDBpiUpRTqq4veE",
+    "object": "subscription",
+    "status": "paused",
+    "product": {
+      "id": "prod_sYwbyE1tPbsqbLu6S0bsR",
+      "name": "Monthly Plan",
+      "price": 2000
+    },
+    "customer": {
+      "id": "cust_4fpU8kYkQmI1XKBwU2qeME",
+      "email": "customer@example.com"
+    },
+    "current_period_end_date": "2025-09-01T09:51:47.000Z"
+  }
+}
+```
+
+---
+
 ## Complete Webhook Handler
 
 Here's a complete TypeScript webhook handler with all event types:
@@ -612,20 +713,16 @@ export async function handleCreemWebhook(req: Request): Promise<Response> {
         await handleSubscriptionCanceled(event.object);
         break;
 
+      case 'subscription.scheduled_cancel':
+        await handleSubscriptionScheduledCancel(event.object);
+        break;
+
+      case 'subscription.past_due':
+        await handleSubscriptionPastDue(event.object);
+        break;
+
       case 'subscription.expired':
         await handleSubscriptionExpired(event.object);
-        break;
-
-      case 'subscription.trialing':
-        await handleSubscriptionTrialing(event.object);
-        break;
-
-      case 'subscription.paused':
-        await handleSubscriptionPaused(event.object);
-        break;
-
-      case 'subscription.update':
-        await handleSubscriptionUpdate(event.object);
         break;
 
       case 'refund.created':
@@ -634,6 +731,18 @@ export async function handleCreemWebhook(req: Request): Promise<Response> {
 
       case 'dispute.created':
         await handleDisputeCreated(event.object);
+        break;
+
+      case 'subscription.update':
+        await handleSubscriptionUpdate(event.object);
+        break;
+
+      case 'subscription.trialing':
+        await handleSubscriptionTrialing(event.object);
+        break;
+
+      case 'subscription.paused':
+        await handleSubscriptionPaused(event.object);
         break;
 
       default:

@@ -1,3 +1,8 @@
+---
+title: CREEM Integration Workflows
+noindex: true
+---
+
 # CREEM Integration Workflows
 
 Step-by-step guides for common integration patterns.

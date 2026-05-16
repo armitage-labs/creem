@@ -1,3 +1,8 @@
+---
+title: CREEM API Reference
+noindex: true
+---
+
 # CREEM API Reference
 
 Complete API reference with all endpoints, request/response schemas, and field descriptions.
@@ -123,7 +128,7 @@ POST /v1/products
 | `name` | string | Yes | Product name |
 | `description` | string | No | Product description |
 | `image_url` | string | No | Product image URL (PNG/JPG) |
-| `price` | integer | Yes | Price in cents (min: 100) |
+| `price` | integer | Yes | Price in cents. Use `0` for free products; paid products must be at least 100 cents. |
 | `currency` | string | Yes | ISO currency code (USD, EUR, etc.) |
 | `billing_type` | string | Yes | `recurring` or `onetime` |
 | `billing_period` | string | If recurring | `every-month`, `every-year`, etc. |
