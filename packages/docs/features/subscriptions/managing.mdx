@@ -145,13 +145,15 @@ curl -X POST https://api.creem.io/v1/subscriptions/sub_YOUR_SUBSCRIPTION_ID/upgr
 
 ### Update Behavior Options
 
-When upgrading or downgrading subscriptions, you can control how the change is processed:
+When upgrading or downgrading subscriptions, the plan change takes effect
+immediately. `update_behavior` controls how the unused or additional time in the
+current billing period is handled:
 
-| Behavior                       | Description                                                                                    |
-| ------------------------------ | ---------------------------------------------------------------------------------------------- |
-| `proration-charge-immediately` | Calculate prorated amount and charge immediately. Starts a new billing cycle from today.       |
-| `proration-charge`             | Calculate prorated amount as credit and add to next invoice. Maintains original billing cycle. |
-| `proration-none`               | No proration. Change takes effect on next billing cycle with no immediate charges.             |
+| Behavior                       | Upgrade                                                                     | Downgrade                                                                 |
+| ------------------------------ | --------------------------------------------------------------------------- | ------------------------------------------------------------------------- |
+| `proration-charge-immediately` | Access changes now; prorated difference is charged immediately.             | Plan changes now; unused time and tax are refunded to the original payment method. |
+| `proration-charge`             | Access changes now; prorated difference is charged on the next invoice.     | Plan changes now; unused time becomes subscription credit for a future invoice. |
+| `proration-none`               | Access changes now; no prorated difference is charged this period.          | Plan changes now; unused time creates no credit or refund.               |
 
 <Note>
 **Proration Example:**
@@ -159,8 +161,12 @@ When upgrading or downgrading subscriptions, you can control how the change is p
 If a customer upgrades from a \$10/month plan to a \$30/month plan halfway through their billing cycle:
 
 - **proration-charge-immediately**: Customer is charged ~\$10 now (the difference for the remaining half of the month) and \$30 on the next billing date.
-- **proration-charge**: Customer receives ~\$5 credit (unused half of old plan) and pays ~\$25 on next billing date (\$30 - \$5).
-- **proration-none**: Customer continues paying \$10 until the next billing cycle, then pays \$30.
+- **proration-charge**: Customer pays the ~\$10 prorated difference on the next invoice.
+- **proration-none**: Customer gets the upgrade for the rest of the current period without paying the prorated difference.
+
+Fees apply only to the amount actually charged to the payment method after
+credits. For example, if a \$100 invoice uses \$50 in subscription credits, fees
+apply to the remaining \$50 charge.
 
 </Note>
 
