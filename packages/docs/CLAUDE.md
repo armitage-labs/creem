@@ -139,7 +139,7 @@ The `scripts/generate-api-docs.js` script:
 ```yaml
 ---
 title: 'Creates a new product'
-description: 'Create a new product for one-time payments or subscriptions.'
+description: 'Create a new product for one-time payments, including free products with a 0 price, or subscriptions.'
 openapi: post /v1/products
 ---
 
