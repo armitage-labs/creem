@@ -98,7 +98,7 @@ If the payout day falls on a weekend or a public holiday, delays might occur due
 ## Transfer Limits
 
 Creem is actively working to increase the number of banking partners it operates with.
-At the moment, some countries have transfer limits or Wise business transfer restrictions. For a full country-by-country list, see [Supported Countries](/merchant-of-record/supported-countries#wise-transfer-restrictions).
+At the moment, some countries have transfer limits or bank transfer partner restrictions. For the current country-by-country list, see [Supported Countries](/merchant-of-record/supported-countries).
 
 ### China
 
@@ -119,26 +119,28 @@ For example, if you are getting your payout executed on the 15th, only funds tha
 
 ## What to do if your payout fails
 
-If a payout fails, the funds are returned to your Creem balance and will be available for the next payout window. You do not lose the money - it stays in your balance.
+If a payout fails and is returned to your balance, the issue is usually one of these:
 
-### Common causes and fixes
+### Bank account issue
 
-| Cause | How to identify | Fix |
-| --- | --- | --- |
-| **Bank account details incorrect** | Payout shows `failed` in Balance → Payout Activity | Update your bank details in **Balance → Payout Account** and try again |
-| **Identity mismatch** | The name on the bank account doesn't match your Creem KYC/KYB details | Contact [Creem support](https://creem.io/contact) with your Store ID |
-| **Banking partner processing issue** | Payout appears stuck in processing for several business days | Contact [Creem support](https://creem.io/contact) with your Store ID and payout date |
-| **International transfer limits** | Payout amount exceeds a partner limit for your country | Check the [transfer limits section](#transfer-limits) and split into smaller withdrawals if needed |
-| **Weekend or holiday delay** | Expected 1-2 day delay around a payout date | Wait until the next business day |
+We tried to send the payout to your selected payout instrument, but the bank could not process it.
 
-### If your funds still haven't returned
+Please make sure:
 
-If several business days have passed since the payout failure and the funds have not returned to your balance, contact [Creem support](https://creem.io/contact) and include:
+- your bank account details are correct
+- the bank account can receive international payments
+- your default payout account is the one you want us to use for the next payout
 
-- Your **Store ID**
-- The **date** the withdrawal was initiated
-- The **amount** of the failed payout
-- The last 4 digits of the bank account, if relevant
+If setting up a bank account is difficult in your region, we also support **USDC payouts**.
+
+### Identity mismatch
+
+There is a mismatch between your selected payout instrument and the identity you onboarded with, so we cannot release the payout.
+
+For your next withdrawal:
+
+- if you onboarded as a **business**, the payout account must be a business account and the beneficiary name must match the onboarded business entity
+- if you onboarded as an **individual**, the payout account must be an individual account and the beneficiary name must match your KYC identity
 
 ## Managing Your Payout Account
 
