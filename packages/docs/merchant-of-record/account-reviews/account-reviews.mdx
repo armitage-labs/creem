@@ -1,59 +1,51 @@
 ---
 title: 'Account Reviews'
-description: 'Learn how account reviews work on Creem.'
+description: 'Learn how account reviews work on Creem and what you need to get approved.'
 ---
 
-Before you can accept payments through Creem, your store needs to pass our account review. Here's everything you need to know to get approved on the first try.
+Before you can accept live payments through Creem, your store needs to pass an account review.
+
+This page gives you the core checklist. If you need next-step guidance after a rejection, use the [Re-Review Guide](/merchant-of-record/account-reviews/re-review-guide). If you're building an AI image or video product, also read [AI Wrapper Compliance](/merchant-of-record/account-reviews/ai-wrapper-compliance).
 
 <Tip>
-  Run through this checklist before submitting for review — it covers the most common reasons applications are sent back.
+  The fastest approvals happen when your product is already live, your legal pages are visible, and your support email matches what appears on your website.
 </Tip>
+
+## Approval checklist
 
 | Requirement | Details |
 | --- | --- |
-| **Product is live** | Your product is ready for production. Still building? Use [Test Mode](/getting-started/test-mode) first |
-| **No false information** | No fake reviews, testimonials, or inflated user/customer counts on your website |
-| **Privacy Policy & Terms of Service** | Both legal pages must be present and accessible on your website |
-| **Product clearly visible** | We must be able to understand what you're selling from your website or landing page |
-| **No trademark conflicts** | Your product name doesn't infringe existing trademarks or cause consumer confusion |
-| **Pricing is visible** | Pricing is clearly displayed and easy for users to find |
-| **Acceptable use** | No high-risk, shady, or illegitimate use cases — you're proud of what you're building |
-| **Customer support email** | [Reachable support email](#customer-experience-and-support) is set up and shown on receipts |
-| **Moderation API** | AI image/video generation products must integrate the [CREEM Moderation API](/features/moderation) |
-| **Not on prohibited list** | Your product is not in our [prohibited product list](#prohibited-products) |
+| **Product is live** | Your product is ready for production. Still building? Use [Test Mode](/getting-started/test-mode) first. |
+| **No false information** | No fake reviews, testimonials, or inflated user/customer counts on your website. |
+| **Privacy Policy & Terms of Service** | Both legal pages must be present and accessible on your website. |
+| **Product clearly visible** | We must be able to understand what you're selling from your website or landing page. |
+| **No trademark conflicts** | Your product name must not infringe existing trademarks or create customer confusion. |
+| **Pricing is visible** | Pricing must be clearly displayed and easy for users to find. |
+| **Acceptable use** | No high-risk, shady, or illegitimate use cases. |
+| **Customer support email** | A reachable support email must be set up and shown on your website and receipts. |
+| **Moderation API** | AI image/video generation products must integrate the [CREEM Moderation API](/features/moderation). |
+| **Not on prohibited list** | Your product must not fall under our [prohibited product list](#prohibited-products). |
 
-## The Review Process
+## Review process
 
 ### How long does the review take?
 
 Account reviews are typically completed within **24-48 hours**. During peak periods, it may take up to 72 hours. You'll receive an email notification once the review is complete or if changes are requested.
 
-If changes are requested, address them and request a re-review using the **Request Re-Review** button on the **Payout Account** page in your dashboard — your account will be re-reviewed promptly.
+### What happens after the review?
 
-<Tip>
-  You can find your Store ID in **Settings** in your dashboard. Always include it when contacting support — it helps us locate your account instantly.
-</Tip>
+- **Approved** - Your store can start accepting live payments.
+- **Changes requested** - Fix the flagged issues, then use the **Request re-review** button on the **Balance → Payout Account** page.
 
-### Common reasons for requests for changes
+<Card title="Need to request another review?" icon="rotate-right" href="/merchant-of-record/account-reviews/re-review-guide">
+  Step-by-step guide for fixing issues and using the Request re-review button.
+</Card>
 
-The most frequent issues that cause requests for changes during account review:
+### Where do I start the review?
 
-1. **Support email mismatch** — The email in your Business Details doesn't match what's on your website. Update it in **Settings** → **Business Details**.
-2. **Website not accessible** — Your site is down, password-protected, or returning errors during our review.
-3. **Missing legal pages** — Your website needs a Privacy Policy and Terms of Service.
-4. **False information** — Fake reviews, testimonials, or inflated user counts on your website.
-5. **Product not ready** — If your product isn't live yet, use [Test Mode](/getting-started/test-mode) until it's ready.
+Go to **Balance → Payout Account** and click **Set up Payout Account** to submit your details.
 
-### Why do you need to review my account?
-
-We review accounts to ensure that they are legitimate and in compliance with our terms of service.
-This helps us prevent fraud, misuse, malicious activities, and high-risk accounts.
-
-## How to submit an account review, and what information is needed?
-
-To submit an account review, you need to navigate to the Account tab Located in the Balance Menu. Click 'Set up Payout Account' to start the process of submitting your details and getting your store reviewed.
-
-<Frame caption="Navigate to Balance → Payout Account to start the review process. Note: payout accounts are only available in live mode.">
+<Frame caption="Navigate to Balance → Payout Account to start the review process. Payout accounts are only available in live mode.">
   <img
     style={{ borderRadius: '0.5rem' }}
     src="/images/payout-account-test-mode.png"
@@ -61,35 +53,43 @@ To submit an account review, you need to navigate to the Account tab Located in 
   />
 </Frame>
 
-The information necessary for the store review includes:
+### What information is needed?
 
 - Your full individual name and/or your business entity name
-- Your store/product name
+- Your store or product name
 - The product URL of your store
 - A description of your business and how you operate
-- A description of the products you are intending to sell through Creem with your store
-- The country you are a tax resident in (Country of citizenship if an individual store account, or country of incorporation if a business entity)
+- A description of the products you intend to sell through Creem
+- Your country of tax residence
 
-### How to ensure that your account review is successful?
+### Common reasons for requests for changes
 
-Provide accurate, detailed information about your store and products. The more clearly you describe what you're selling and how it works, the faster we can approve you.
+1. **Support email mismatch** - The email in your Business Details doesn't match what's on your website.
+2. **Website not accessible** - Your site is down, password-protected, or returning errors during review.
+3. **Missing legal pages** - Your website needs a Privacy Policy and Terms of Service.
+4. **False information** - Fake reviews, testimonials, or inflated user counts on your website.
+5. **Product not ready** - If your product isn't live yet, use [Test Mode](/getting-started/test-mode) until it's ready.
+6. **AI compliance issues** - AI image/video products are missing moderation, AUP, or clear product disclosures.
 
-Every application is reviewed for deceptive content. The following will get your application rejected:
+<CardGroup cols={2}>
+  <Card title="Re-Review Guide" icon="rotate-right" href="/merchant-of-record/account-reviews/re-review-guide">
+    What to fix and how to request another review.
+  </Card>
+  <Card title="AI Wrapper Compliance" icon="shield-check" href="/merchant-of-record/account-reviews/ai-wrapper-compliance">
+    Extra rules for AI image and video generation products.
+  </Card>
+</CardGroup>
 
-- Unearned badges (e.g. Product Hunt, "As Seen On")
-- Fake customer testimonials
-- Misleading reviews or inflated user counts
+## Why do we review accounts?
 
-<Tip>
-  Not sure if your product qualifies? Reach out before submitting — we're happy to clarify.
-</Tip>
+We review accounts to ensure stores are legitimate and in compliance with our terms. This helps prevent fraud, misuse, malicious activity, and high-risk accounts.
 
-## Product Guidelines
+## Product guidelines
 
-### Acceptable Products
+### Acceptable products
 
 <Accordion title="Examples of products we support">
-  We allow selling of digital goods that can be fulfilled through Creem. Some examples:
+  We allow digital goods that can be fulfilled through Creem. Examples include:
 
   - Software & SaaS
   - eBooks
@@ -100,182 +100,51 @@ Every application is reviewed for deceptive content. The following will get your
   - Video
 </Accordion>
 
-### Prohibited Products
+### Prohibited products
 
 <Warning>
-  If you violate our terms of service or attempt to sell prohibited products,
-  you risk getting your account placed in review or suspended.
+  If you attempt to sell prohibited products or violate our terms, your account may be placed in review or suspended.
 </Warning>
 
 <Accordion title="Full list of prohibited products">
-  The following products and services are prohibited on Creem:
-
   - Sexually-oriented or pornographic content of any kind, including AI-generated content and NSFW chatbots
-  - Face-swap, deepfake, and face-manipulation tools and services of any kind
+  - Face-swap, deepfake, and face-manipulation tools of any kind
   - IPTV services
   - Physical goods of any kind
   - Spyware or parental control apps
   - Donations or charity giving where no product exists or where the price is greater than the product value
   - Products or content for which you do not hold a proper license or intellectual property rights
-  - Third-party content downloaders and rippers that violate platform Terms of Service (e.g. video downloaders, audio rippers, stream recorders). Tools that only process user-owned content or use official APIs are not affected.
-  - Marketplaces — where you use your Creem store to "partner" to sell others' products
+  - Third-party content downloaders and rippers that violate platform Terms of Service
+  - Marketplaces where you use your Creem store to partner to sell others' products
   - Dating sites
-  - Private Label Rights (PLR) products or Master Resell Products (MRR) — products you've obtained a license to sell but do not hold the original IP rights
+  - PLR or MRR products where you do not hold the original IP rights
   - Counterfeit goods
-  - Illegal or age-restricted products such as: drugs and paraphernalia, alcohol, tobacco, vaping products
-  - Regulated products such as: CBD, gambling, weapons, ammunition, pay-to-play auctions, sweepstakes, lotteries, business-in-a-box, work-from-home, get-rich-quick schemes, etc.
-  - Regulated services such as: real estate, mortgage, lending, telemarketing, cellular/communication, door-to-door sales, bankruptcy, legal, merchant, debt-relief, collections, banking/financing, currency exchange, warranties, etc.
+  - Illegal or age-restricted products such as drugs, alcohol, tobacco, vaping products, or weapons
+  - Regulated services such as gambling, lending, telemarketing, debt relief, or banking/financing services
   - Timeshares
-  - Pharmacies, pharmaceuticals and nutraceuticals
-  - Homework/Essay mills
+  - Pharmacies, pharmaceuticals, and nutraceuticals
+  - Homework/essay mills
   - Multi-level marketing, pyramid, or IBO schemes
-  - NFT & Crypto assets products
+  - NFT & crypto asset products
   - In-game items, currencies, and virtual goods tied to third-party games
   - Any other products that our providers and partners deem too risky
 </Accordion>
 
-### Restricted Products
+### Restricted products
 
 <Accordion title="Products subject to strict due diligence">
-  These services are not guaranteed to be accepted:
-
-  - Services of any kind (including marketing, design, web development, consulting or other related services)
+  - Services of any kind, including marketing, design, web development, consulting, and similar work
   - Job boards
   - Advertising in newsletters, on websites, or in social media posts
 </Accordion>
 
-If you are unsure whether your content is prohibited, please contact Creem support with a description or example of the content before you start selling.
+If you are unsure whether your content is prohibited, contact Creem support with a description or example before you start selling.
 
-## Customer Experience and Support
+## Customer experience and support
 
 Providing excellent customer support is a core requirement for all merchants on Creem.
 
-### Support Channels
-
 - **A visible support email is mandatory.** This email must be accessible on your public website and within the user dashboard.
 - **Use a branded support email.** If your product is `MintAI`, your support email should be `support@mintai.com`, not a generic address.
-
-### Subscription Management
-
-- **Users must be able to cancel subscriptions directly from your product.** You can achieve this by integrating with the `Creem Cancel Subscription API` or by redirecting users to the `Creem Customer Portal`.
-
-### Refund Policy
-
-Timely customer resolution is critical.
-
-- **Respond to customer requests within 3 business days.**
-- If you do not respond within this timeframe, Creem reserves the right to issue a refund on your behalf to ensure customer satisfaction.
-
-## AI Wrapper Compliance
-
-To ensure a fair and transparent ecosystem for both merchants and customers, Creem has established a set of compliance requirements for all AI wrapper products. These are platforms that provide a custom interface or extended features for third-party AI models like VEO3, Claude, or Gemini.
-
-<Warning>
-  Failure to comply with these policies will result in the suspension of your
-  payment processing capabilities.
-</Warning>
-
-### Product Branding and Naming
-
-Your product's brand identity must be distinct from the underlying AI models it uses. This is crucial for trademark protection and to avoid customer confusion.
-
-#### Prohibited Practices
-
-- **Do not use AI model brand names in your product name.** For example, names like "VEO3Studio" or "GeminiVideo" are not allowed.
-
-#### Required Practices
-
-- **Develop independent branding.** Choose a name that is unique and does not directly reference the AI models. Examples of compliant names include `MintAI`, `RenderZen`, or `SlateVidAI`.
-- **You may mention supported models within your application or on your website**, but not as part of the core product branding. For instance, you can say "Powered by VEO3" or "Integrates with Gemini."
-- **SEO-focused domains are permitted with a redirect.** You can use a domain like `veo3generator.com` for SEO, but it must redirect to your properly branded product website.
-
-### Marketing and Transparency
-
-When marketing your product, it's essential to be transparent about its nature and your relationship with the AI model providers.
-
-#### Disclaimers
-
-- If you use model names in advertisements or marketing content, you must include a disclaimer stating that your product is not affiliated with, endorsed by, or sponsored by the model creators.
-- **Example Disclaimer:** `"This platform is an independent product and is not affiliated with Google. We provide access to the VEO3 model through our custom interface."`
-
-#### Feature Representation
-
-- **Advertise only the features you deliver.** Do not claim functionalities that are part of a more advanced model version than the one you use.
-- Be explicit about any limitations or tiered access to specific model capabilities.
-
-### Platform and Product Integrity
-
-Your Creem integration should be used for a single, clearly defined product.
-
-- **One Product per Integration:** If you launch new AI tools, they must be onboarded as separate products through Creem's review process.
-- **Disclose the Wrapper Nature:** Clearly state that your platform provides a custom interface for underlying AI models. This prevents potential flags for consumer deception.
-- **Example Disclosure:** `"Our platform offers a user-friendly interface built on top of models like VEO3 to enhance usability and provide additional features. We are an independent service and not affiliated with the model providers."`
-
-### Moderation API Requirement
-
-If your product generates images or videos using AI models, you must integrate the [CREEM Moderation API](/features/moderation). This applies to all AI image and video generation products regardless of which model you use. This is a strict requirement — accounts that do not integrate the Moderation API are considered out of compliance and may be suspended.
-
-<Note>
-  The Moderation API requirement applies to AI **image and video generation** products only. It does not apply to image upscaling, background removal, audio/music generation, text generation, or other non-generative use cases.
-</Note>
-
-#### How the Moderation API works
-
-The Moderation API screens user-submitted text prompts against CREEM's content policies **before** your AI model generates any output. Every prompt that will be routed to an image or video generation model must be screened through this endpoint first — no exceptions.
-
-<Card title="Moderation API Documentation" icon="shield-check" href="/features/moderation">
-  Full integration guide, code examples, endpoint reference, and go-live checklist.
-</Card>
-
-<Warning>
-  This requirement is enforced starting May 1st, 2026. AI image and video generation merchants who have not integrated the Moderation API by this date risk account suspension.
-</Warning>
-
-#### Content policy — what's still prohibited
-
-Even with the Moderation API integrated, the following are not allowed on CREEM:
-
-- Gallery or showcase content featuring suggestive, borderline, or sexually provocative material
-- Marketing that uses terms like "uncensored", "no filter", "NSFW", "18+", or "unfiltered generation"
-- Face-swap, deepfake, and face-manipulation tools
-
-<Accordion title="What counts as a violation?">
-  - Gallery or showcase content featuring suggestive, borderline, or sexually provocative material
-  - Marketing that uses terms like "uncensored", "no filter", "NSFW", "18+", or "unfiltered generation"
-  - Operating an AI image or video generation product without integrating the Moderation API
-</Accordion>
-
-#### Additional requirements for AI generation products
-
-- **Acceptable Use Policy required.** Your platform must include a visible Acceptable Use Policy that explicitly prohibits NSFW and sexually explicit content generation.
-- **NSFW content prohibition in your Terms of Service.** Your ToS must explicitly prohibit the generation of NSFW, explicit, or sexually suggestive content.
-- **No "uncensored" or "unfiltered" marketing.** Products marketed as offering unfiltered AI generation will be rejected regardless of Moderation API integration.
-
-<Warning>
-  Creem conducts ongoing compliance monitoring and reserves the right to test AI generation outputs at any time. Merchants are fully responsible for the content their platform enables users to generate — "we use a third-party API" is not a defense. Violations result in immediate suspension of payment processing.
-</Warning>
-
-<Tip>
-  Not sure if your product needs the Moderation API? If users type a text prompt and your product generates an image or video from it, yes — you need it. If your product only upscales, or translates existing content, you don't. See the [full Moderation API documentation](/features/moderation) for details.
-</Tip>
-
-### On-going Monitoring
-
-All accounts are continuously monitored for compliance and fraud. If suspicious activity is detected, your account will be suspended or rejected based on the severity of the breach.
-
-**What we look at during a monitoring review:**
-
-<CardGroup cols={2}>
-  <Card title="Content Safety" icon="shield-check">
-    Moderation API integration, acceptable use policy, and marketing compliance
-  </Card>
-  <Card title="Customer Support" icon="headset">
-    Reachability and quality of your support contact
-  </Card>
-  <Card title="Website & Landing Page" icon="browser">
-    Accuracy and integrity of your public-facing pages
-  </Card>
-  <Card title="Risk & Disputes" icon="shield-exclamation">
-    Risk scores, refund rate, and chargeback ratio
-  </Card>
-</CardGroup>
+- **Users must be able to cancel subscriptions directly from your product.** You can do this via the Cancel Subscription API or by redirecting users to the Creem Customer Portal.
+- **Respond to customer requests within 3 business days.** If you do not respond within that timeframe, Creem may issue a refund on your behalf.
