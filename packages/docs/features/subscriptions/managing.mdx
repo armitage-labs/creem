@@ -152,8 +152,12 @@ current billing period is handled:
 | Behavior                       | Upgrade                                                                     | Downgrade                                                                 |
 | ------------------------------ | --------------------------------------------------------------------------- | ------------------------------------------------------------------------- |
 | `proration-charge-immediately` | Access changes now; prorated difference is charged immediately.             | Plan changes now; unused time and tax are refunded to the original payment method. |
-| `proration-charge`             | Access changes now; prorated difference is charged on the next invoice.     | Plan changes now; unused time becomes subscription credit for a future invoice. |
+| ~~`proration-charge`~~ *(deprecated)* | Behaves identically to `proration-charge-immediately`. | Behaves identically to `proration-charge-immediately`. |
 | `proration-none`               | Access changes now; no prorated difference is charged this period.          | Plan changes now; unused time creates no credit or refund.               |
+
+<Warning>
+**Deprecation Notice:** `proration-charge` is deprecated and now behaves identically to `proration-charge-immediately` (charges are applied immediately rather than deferred to the next invoice). Existing integrations passing `proration-charge` will continue to work but should migrate to `proration-charge-immediately` for clarity.
+</Warning>
 
 <Note>
 **Proration Example:**
@@ -161,7 +165,6 @@ current billing period is handled:
 If a customer upgrades from a \$10/month plan to a \$30/month plan halfway through their billing cycle:
 
 - **proration-charge-immediately**: Customer is charged ~\$10 now (the difference for the remaining half of the month) and \$30 on the next billing date.
-- **proration-charge**: Customer pays the ~\$10 prorated difference on the next invoice.
 - **proration-none**: Customer gets the upgrade for the rest of the current period without paying the prorated difference.
 
 Fees apply only to the amount actually charged to the payment method after
