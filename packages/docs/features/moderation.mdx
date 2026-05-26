@@ -286,6 +286,45 @@ export async function POST(req: NextRequest) {
 }
 ```
 
+## Verify your integration is live
+
+Before requesting a review or re-review, confirm your Moderation API calls are reaching Creem's production servers - not just sandbox. Working in sandbox alone does not satisfy the requirement.
+
+<Steps>
+  <Step title="Use a production API key">
+    Production keys start with `creem_` - not `creem_test_`. Check that your environment variables and deployed app are using a live key.
+  </Step>
+  <Step title="Send a test call against production">
+    Run this from your terminal to confirm calls reach production:
+
+    ```bash
+    curl -X POST https://api.creem.io/v1/moderation/prompt \
+      -H "x-api-key: $CREEM_API_KEY" \
+      -H "content-type: application/json" \
+      -d '{"prompt": "a watercolor painting of a sunset", "external_id": "verify-test-001"}'
+    ```
+
+    A successful response returns a moderation decision. If you get an authentication error, your key is wrong or missing.
+  </Step>
+  <Step title="Trigger a real production call from your product">
+    Submit a prompt through your actual product in production mode, then verify that the moderation call is made before any image or video generation call goes out.
+  </Step>
+</Steps>
+
+### Error: "Content moderation is not configured"
+
+If you see this error, the most likely causes are:
+
+| Situation | What it means |
+| --- | --- |
+| You're in sandbox with a test key | Expected - sandbox activity does not count as production integration |
+| You're in production with a test key | Switch to a live `creem_` key |
+| Error fires on every real user request | Confirm your production environment is using the correct live API key |
+
+<Note>
+  Sandbox and production are fully separate. A working sandbox integration does not mean your production integration is active.
+</Note>
+
 ## Checklist before going live
 
 <Steps>

@@ -66,12 +66,8 @@ These additional fees help cover the specialized infrastructure and processing c
 
 ## Payout Fees
 
-Payouts do not incur any additional fees if no external services are used to transfer money to your bank account.
-
-You can receive payouts without any transfer costs from SEPA countries and European Union if you are using Stripe Connect. We plan to expand this list soon.
-
-If your country is outside of the European Union region, Creem will charge from 7USD/EUR to 1% of the payout amount, whichever is higher, to cover international transfer costs.
-Conversion rates are automatically applied by Stripe and other partners in case you registered a bank account that is not in the currency that you are charging products with.
+Creem charges 7 USD/EUR or 1% of the payout amount, whichever is higher, to cover bank transfer costs.
+Conversion rates are automatically applied by our banking partners if your registered bank account uses a different currency than the one you charge customers in.
 In that case, a small conversion fee from our Partners will be applied, which is outside of our control.
 
 ### Stablecoin Payouts (USDC via Polygon)
@@ -102,7 +98,7 @@ If the payout day falls on a weekend or a public holiday, delays might occur due
 ## Transfer Limits
 
 Creem is actively working to increase the number of banking partners it operates with.
-At the moment, there are some countries in which transfer limits are imposed:
+At the moment, some countries have transfer limits or bank transfer partner restrictions. For the current country-by-country list, see [Supported Countries](/merchant-of-record/supported-countries).
 
 ### China
 
@@ -117,14 +113,35 @@ Unlimited
 
 ## Important Note on Payout Availability
 
-Please note that if you have applied for a payout, we will only be able to execute your available balance on that date. Stripe requires a 7-12 day hold on any payments received on your account for risk assessment purposes.
+Please note that if you have applied for a payout, we will only be able to execute your available balance on that date. Payments may be held for 7-12 days for risk assessment before they become available for payout.
 
 For example, if you are getting your payout executed on the 15th, only funds that were processed via payments before the 8th day of the calendar month will be available for withdrawal on that specific payout.
+
+## What to do if your payout fails
+
+If a payout fails and is returned to your balance, the issue is usually one of these:
+
+### Bank account issue
+
+We tried to send the payout to your selected payout instrument, but the bank could not process it.
+
+Please make sure:
+
+- your bank account details are correct
+- the bank account can receive international payments
+- your default payout account is the one you want us to use for the next payout
+
+If setting up a bank account is difficult in your region, we also support **USDC payouts**.
+
+### Identity mismatch
+
+There is a mismatch between your selected payout instrument and the identity you onboarded with, so we cannot release the payout.
+
+For your next withdrawal:
+
+- if you onboarded as a **business**, the payout account must be a business account and the beneficiary name must match the onboarded business entity
+- if you onboarded as an **individual**, the payout account must be an individual account and the beneficiary name must match your KYC identity
 
 ## Managing Your Payout Account
 
 For information on setting up, changing, or managing your payout accounts, see [Payout Accounts](/merchant-of-record/finance/payout-accounts).
-
-## Custom Pricing
-
-If you're a fast-growing or established large-scale business, sell products lower than $10, or have a business model that processes a high volume of transactions, [contact our sales team](https://www.creem.io/contact) for custom pricing.
