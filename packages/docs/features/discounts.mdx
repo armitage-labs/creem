@@ -30,11 +30,11 @@ You can also create discounts programmatically using the API.
   <Tab title="TypeScript SDK">
 
 ```typescript
-import { createCreem } from 'creem_io';
+import { Creem } from 'creem';
 
-const creem = createCreem({
+const creem = new Creem({
   apiKey: process.env.CREEM_API_KEY!,
-  testMode: process.env.NODE_ENV !== 'production',
+  serverIdx: process.env.NODE_ENV === 'production' ? 0 : 1,
 });
 
 // Create a percentage discount
@@ -45,6 +45,7 @@ const percentageDiscount = await creem.discounts.create({
   type: 'percentage',
   percentage: 10,
   duration: 'forever',
+  appliesToProducts: ['prod_YOUR_PRODUCT_ID'],
 });
 
 // Create a fixed amount discount
@@ -55,6 +56,7 @@ const fixedDiscount = await creem.discounts.create({
   currency: 'USD',
   type: 'fixed',
   duration: 'forever',
+  appliesToProducts: ['prod_YOUR_PRODUCT_ID'],
 });
 ```
 
@@ -220,7 +222,7 @@ const checkout = await creem.checkouts.create({
 });
 
 // Redirect to checkout with discount pre-applied
-window.location.href = checkout.checkout_url;
+window.location.href = checkout.checkoutUrl;
 ```
 
   </Tab>

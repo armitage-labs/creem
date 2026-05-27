@@ -76,11 +76,11 @@ curl -X POST https://test-api.creem.io/v1/checkouts \
 ```
 
 ```typescript TypeScript SDK
-import { createCreem } from 'creem_io';
+import { Creem } from 'creem';
 
-const creem = createCreem({
+const creem = new Creem({
   apiKey: process.env.CREEM_API_KEY!,
-  testMode: process.env.NODE_ENV !== 'production',
+  serverIdx: process.env.NODE_ENV === 'production' ? 0 : 1,
 });
 
 const checkout = await creem.checkouts.create({
@@ -164,7 +164,7 @@ Every error response includes a `trace_id` you can share with support for faster
 ## SDKs & Libraries
 
 <CardGroup cols={2}>
-  <Card title="TypeScript SDK" icon="js" href="/code/sdks/typescript-core">
+  <Card title="TypeScript SDK" icon="js" href="/code/sdks/typescript">
     Core SDK for Node.js and TypeScript projects
   </Card>
   <Card title="Next.js Adapter" icon="react" href="/code/sdks/nextjs">

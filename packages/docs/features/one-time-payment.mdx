@@ -61,11 +61,11 @@ export function BuyButton() {
   <Tab title="TypeScript SDK">
 
 ```typescript
-import { createCreem } from 'creem_io';
+import { Creem } from 'creem';
 
-const creem = createCreem({
+const creem = new Creem({
   apiKey: process.env.CREEM_API_KEY!,
-  testMode: process.env.NODE_ENV !== 'production',
+  serverIdx: process.env.NODE_ENV === 'production' ? 0 : 1,
 });
 
 // Create a one-time payment checkout session
@@ -79,7 +79,7 @@ const checkout = await creem.checkouts.create({
 });
 
 // Redirect to the checkout URL
-console.log(checkout.checkout_url);
+console.log(checkout.checkoutUrl);
 ```
 
 <Card

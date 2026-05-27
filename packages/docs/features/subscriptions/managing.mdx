@@ -31,15 +31,15 @@ export function ManageBillingButton({ customerId }: { customerId: string }) {
   <Tab title="TypeScript SDK">
 
 ```typescript
-import { createCreem } from 'creem_io';
+import { Creem } from 'creem';
 
-const creem = createCreem({
+const creem = new Creem({
   apiKey: process.env.CREEM_API_KEY!,
-  testMode: process.env.NODE_ENV !== 'production',
+  serverIdx: process.env.NODE_ENV === 'production' ? 0 : 1,
 });
 
 // Create customer portal link
-const portal = await creem.customers.createPortal({
+const portal = await creem.customers.generateBillingLinks({
   customerId: 'cust_YOUR_CUSTOMER_ID',
 });
 
@@ -109,19 +109,21 @@ Upgrade or downgrade a subscription to a different product using the subscriptio
   <Tab title="TypeScript SDK">
 
 ```typescript
-import { createCreem } from 'creem_io';
+import { Creem } from 'creem';
 
-const creem = createCreem({
+const creem = new Creem({
   apiKey: process.env.CREEM_API_KEY!,
-  testMode: process.env.NODE_ENV !== 'production',
+  serverIdx: process.env.NODE_ENV === 'production' ? 0 : 1,
 });
 
 // Upgrade subscription to a different product
-const upgraded = await creem.subscriptions.upgrade({
-  subscriptionId: 'sub_YOUR_SUBSCRIPTION_ID',
-  productId: 'prod_PREMIUM_PLAN', // New product ID
-  updateBehavior: 'proration-charge-immediately',
-});
+const upgraded = await creem.subscriptions.upgrade(
+  'sub_YOUR_SUBSCRIPTION_ID',
+  {
+    productId: 'prod_PREMIUM_PLAN', // New product ID
+    updateBehavior: 'proration-charge-immediately',
+  }
+);
 
 console.log('Subscription upgraded:', upgraded);
 ```
@@ -191,31 +193,31 @@ For seat-based subscriptions, you can update the number of seats:
   <Tab title="TypeScript SDK">
 
 ```typescript
-import { createCreem } from 'creem_io';
+import { Creem } from 'creem';
 
-const creem = createCreem({
+const creem = new Creem({
   apiKey: process.env.CREEM_API_KEY!,
-  testMode: process.env.NODE_ENV !== 'production',
+  serverIdx: process.env.NODE_ENV === 'production' ? 0 : 1,
 });
 
 // First, get the subscription to retrieve the item ID
-const subscription = await creem.subscriptions.get({
-  subscriptionId: 'sub_YOUR_SUBSCRIPTION_ID',
-});
+const subscription = await creem.subscriptions.get('sub_YOUR_SUBSCRIPTION_ID');
 
 const itemId = subscription.items[0].id;
 
 // Update the seat count
-const updated = await creem.subscriptions.update({
-  subscriptionId: 'sub_YOUR_SUBSCRIPTION_ID',
-  items: [
-    {
-      id: itemId,
-      units: 10, // New seat count
-    },
-  ],
-  updateBehavior: 'proration-charge-immediately',
-});
+const updated = await creem.subscriptions.update(
+  'sub_YOUR_SUBSCRIPTION_ID',
+  {
+    items: [
+      {
+        id: itemId,
+        units: 10, // New seat count
+      },
+    ],
+    updateBehavior: 'proration-charge-immediately',
+  }
+);
 ```
 
   </Tab>

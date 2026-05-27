@@ -22,16 +22,16 @@ Cancel subscriptions programmatically using the API:
   <Tab title="TypeScript SDK">
 
 ```typescript
-import { createCreem } from 'creem_io';
+import { Creem } from 'creem';
 
-const creem = createCreem({
+const creem = new Creem({
   apiKey: process.env.CREEM_API_KEY!,
-  testMode: process.env.NODE_ENV !== 'production',
+  serverIdx: process.env.NODE_ENV === 'production' ? 0 : 1,
 });
 
 // Cancel subscription
-const canceled = await creem.subscriptions.cancel({
-  subscriptionId: 'sub_YOUR_SUBSCRIPTION_ID',
+const canceled = await creem.subscriptions.cancel('sub_YOUR_SUBSCRIPTION_ID', {
+  mode: 'immediate',
 });
 
 console.log('Subscription canceled:', canceled);
@@ -137,7 +137,7 @@ export function ManageSubscriptionButton({
 
 ```typescript
 // Create customer portal link
-const portal = await creem.customers.createPortal({
+const portal = await creem.customers.generateBillingLinks({
   customerId: 'cust_YOUR_CUSTOMER_ID',
 });
 
@@ -247,9 +247,9 @@ When you process a refund:
 ### Cancellation Flow Example
 
 ```typescript
-import { createCreem } from 'creem_io';
+import { Creem } from 'creem';
 
-const creem = createCreem({
+const creem = new Creem({
   apiKey: process.env.CREEM_API_KEY!,
 });
 
@@ -259,12 +259,14 @@ async function handleCancellation(subscriptionId: string, reason?: string) {
     console.log(`Canceling subscription: ${subscriptionId}`, { reason });
 
     // Cancel the subscription
-    const canceled = await creem.subscriptions.cancel({
-      subscriptionId,
+    const canceled = await creem.subscriptions.cancel(subscriptionId, {
+      mode: 'immediate',
     });
 
-    // Send cancellation email to customer
-    await sendCancellationEmail(canceled.customer.email);
+    // Send cancellation email to customer when the response includes expanded customer data
+    if (typeof canceled.customer !== 'string') {
+      await sendCancellationEmail(canceled.customer.email);
+    }
 
     // Update internal database
     await db.subscription.update({

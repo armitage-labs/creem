@@ -55,11 +55,11 @@ export const GET = Checkout({
     Enable test mode when initializing the SDK:
 
 ```typescript
-import { createCreem } from 'creem_io';
+import { Creem } from 'creem';
 
-const creem = createCreem({
+const creem = new Creem({
   apiKey: process.env.CREEM_API_KEY!,
-  testMode: true, // Enable test mode
+  serverIdx: 1, // Enable test mode
 });
 
 const checkout = await creem.checkouts.create({
@@ -71,9 +71,9 @@ const checkout = await creem.checkouts.create({
 Use environment-based configuration:
 
 ```typescript
-const creem = createCreem({
+const creem = new Creem({
   apiKey: process.env.CREEM_API_KEY!,
-  testMode: process.env.NODE_ENV !== 'production',
+  serverIdx: process.env.NODE_ENV === 'production' ? 0 : 1,
 });
 ```
 

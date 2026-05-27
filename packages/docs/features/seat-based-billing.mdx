@@ -57,11 +57,11 @@ export function SeatBasedCheckout({ seatCount }: { seatCount: number }) {
   <Tab title="TypeScript SDK">
 
 ```typescript
-import { createCreem } from 'creem_io';
+import { Creem } from 'creem';
 
-const creem = createCreem({
+const creem = new Creem({
   apiKey: process.env.CREEM_API_KEY!,
-  testMode: process.env.NODE_ENV !== 'production',
+  serverIdx: process.env.NODE_ENV === 'production' ? 0 : 1,
 });
 
 // Create a checkout session with multiple seats
@@ -72,7 +72,7 @@ const checkout = await creem.checkouts.create({
 });
 
 // Redirect to the checkout URL
-console.log(checkout.checkout_url);
+console.log(checkout.checkoutUrl);
 ```
 
 <Card
@@ -188,17 +188,15 @@ First, retrieve the subscription to get the subscription item ID:
   <Tab title="TypeScript SDK">
 
 ```typescript
-import { createCreem } from 'creem_io';
+import { Creem } from 'creem';
 
-const creem = createCreem({
+const creem = new Creem({
   apiKey: process.env.CREEM_API_KEY!,
-  testMode: process.env.NODE_ENV !== 'production',
+  serverIdx: process.env.NODE_ENV === 'production' ? 0 : 1,
 });
 
 // Get subscription details
-const subscription = await creem.subscriptions.get({
-  subscriptionId: 'sub_YOUR_SUBSCRIPTION_ID',
-});
+const subscription = await creem.subscriptions.get('sub_YOUR_SUBSCRIPTION_ID');
 
 // Extract the subscription item ID
 const itemId = subscription.items[0].id;
@@ -252,17 +250,19 @@ Use the subscription item ID to update the number of seats:
 
 ```typescript
 // Update the subscription to 15 seats
-const updated = await creem.subscriptions.update({
-  subscriptionId: 'sub_YOUR_SUBSCRIPTION_ID',
-  items: [
-    {
-      id: 'sitem_3l8jhRR2jWWhIBbJrKLwPT', // Item ID from step 1
-      price_id: 'pprice_YOUR_PRICE_ID', // Price ID for validation
-      units: 5, // New seat count
-    },
-  ],
-  updateBehavior: 'proration-charge-immediately', // Optional
-});
+const updated = await creem.subscriptions.update(
+  'sub_YOUR_SUBSCRIPTION_ID',
+  {
+    items: [
+      {
+        id: 'sitem_3l8jhRR2jWWhIBbJrKLwPT', // Item ID from step 1
+        priceId: 'pprice_YOUR_PRICE_ID', // Price ID for validation
+        units: 15, // New seat count
+      },
+    ],
+    updateBehavior: 'proration-charge-immediately', // Optional
+  }
+);
 
 console.log('Subscription updated:', updated);
 ```
