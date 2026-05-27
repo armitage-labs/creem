@@ -4,6 +4,7 @@
     "/v1/products": {
       "get": {
         "operationId": "retrieveProduct",
+        "x-speakeasy-name-override": "get",
         "summary": "Retrieve a product",
         "description": "Retrieve product details by ID. View pricing, billing type, status, and product configuration.",
         "parameters": [
@@ -19,9 +20,7 @@
           "200": {
             "description": "Successfully retrieved the product",
             "content": {
-              "application/json": {
-                "schema": { "$ref": "#/components/schemas/ProductEntity" }
-              }
+              "application/json": { "schema": { "$ref": "#/components/schemas/ProductEntity" } }
             }
           },
           "400": { "description": "Bad Request - Invalid input parameters" },
@@ -33,17 +32,16 @@
       },
       "post": {
         "operationId": "createProduct",
+        "x-speakeasy-name-override": "create",
         "summary": "Creates a new product.",
-        "description": "Create a new product for one-time payments, including free products with a 0 price, or subscriptions. Configure pricing, billing cycles, and features.",
+        "description": "Create a new product for one-time payments or subscriptions. Configure pricing, billing cycles, and features.",
         "parameters": [],
         "requestBody": {
           "required": true,
           "description": "Product creation payload",
           "content": {
             "application/json": {
-              "schema": {
-                "$ref": "#/components/schemas/CreateProductRequestEntity"
-              }
+              "schema": { "$ref": "#/components/schemas/CreateProductRequestEntity" }
             }
           }
         },
@@ -51,9 +49,7 @@
           "200": {
             "description": "Successfully created a product",
             "content": {
-              "application/json": {
-                "schema": { "$ref": "#/components/schemas/ProductEntity" }
-              }
+              "application/json": { "schema": { "$ref": "#/components/schemas/ProductEntity" } }
             }
           },
           "400": { "description": "Bad Request - Invalid input parameters" },
@@ -67,6 +63,15 @@
     "/v1/products/search": {
       "get": {
         "operationId": "searchProducts",
+        "x-speakeasy-pagination": {
+          "type": "offsetLimit",
+          "inputs": [
+            { "name": "page_number", "in": "parameters", "type": "page" },
+            { "name": "page_size", "in": "parameters", "type": "limit" }
+          ],
+          "outputs": { "numPages": "$.pagination.total_pages", "results": "$.items" }
+        },
+        "x-speakeasy-name-override": "search",
         "summary": "List all products",
         "description": "Search and retrieve a paginated list of products. Filter by status, billing type, and other criteria.",
         "parameters": [
@@ -89,9 +94,7 @@
           "200": {
             "description": "Successfully retrieved products",
             "content": {
-              "application/json": {
-                "schema": { "$ref": "#/components/schemas/ProductListEntity" }
-              }
+              "application/json": { "schema": { "$ref": "#/components/schemas/ProductListEntity" } }
             }
           },
           "400": { "description": "Bad Request - Invalid input parameters" },
@@ -105,6 +108,15 @@
     "/v1/customers/list": {
       "get": {
         "operationId": "listCustomers",
+        "x-speakeasy-pagination": {
+          "type": "offsetLimit",
+          "inputs": [
+            { "name": "page_number", "in": "parameters", "type": "page" },
+            { "name": "page_size", "in": "parameters", "type": "limit" }
+          ],
+          "outputs": { "numPages": "$.pagination.total_pages", "results": "$.items" }
+        },
+        "x-speakeasy-name-override": "list",
         "summary": "List all customers",
         "description": "Retrieve a paginated list of all customers. Filter and search through your customer base.",
         "parameters": [
@@ -143,6 +155,7 @@
     "/v1/customers/{id}/orders": {
       "get": {
         "operationId": "listCustomerOrders",
+        "x-speakeasy-name-override": "getOrders",
         "summary": "List customer orders",
         "description": "Retrieve a paginated list of orders for a specific customer.",
         "parameters": [
@@ -172,9 +185,7 @@
           "200": {
             "description": "Successfully retrieved customer orders",
             "content": {
-              "application/json": {
-                "schema": { "$ref": "#/components/schemas/OrderListEntity" }
-              }
+              "application/json": { "schema": { "$ref": "#/components/schemas/OrderListEntity" } }
             }
           },
           "400": { "description": "Bad Request - Invalid input parameters" },
@@ -188,6 +199,7 @@
     "/v1/customers/{id}/subscriptions": {
       "get": {
         "operationId": "listCustomerSubscriptions",
+        "x-speakeasy-name-override": "listSubscriptions",
         "summary": "List customer subscriptions",
         "description": "Retrieve a paginated list of subscriptions for a specific customer.",
         "parameters": [
@@ -218,9 +230,7 @@
             "description": "Successfully retrieved customer subscriptions",
             "content": {
               "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/SubscriptionListEntity"
-                }
+                "schema": { "$ref": "#/components/schemas/SubscriptionListEntity" }
               }
             }
           },
@@ -235,6 +245,7 @@
     "/v1/customers/{id}/licenses": {
       "get": {
         "operationId": "listCustomerLicenses",
+        "x-speakeasy-name-override": "listLicenses",
         "summary": "List customer licenses",
         "description": "Retrieve a paginated list of license keys for a specific customer.",
         "parameters": [
@@ -264,9 +275,7 @@
           "200": {
             "description": "Successfully retrieved customer licenses",
             "content": {
-              "application/json": {
-                "schema": { "$ref": "#/components/schemas/LicenseListEntity" }
-              }
+              "application/json": { "schema": { "$ref": "#/components/schemas/LicenseListEntity" } }
             }
           },
           "400": { "description": "Bad Request - Invalid input parameters" },
@@ -280,6 +289,7 @@
     "/v1/customers": {
       "get": {
         "operationId": "retrieveCustomer",
+        "x-speakeasy-name-override": "retrieve",
         "summary": "Retrieve a customer",
         "description": "Retrieve customer information by ID or email. View purchase history, subscriptions, and profile details.",
         "parameters": [
@@ -302,9 +312,7 @@
           "200": {
             "description": "Successfully retrieved the customer",
             "content": {
-              "application/json": {
-                "schema": { "$ref": "#/components/schemas/CustomerEntity" }
-              }
+              "application/json": { "schema": { "$ref": "#/components/schemas/CustomerEntity" } }
             }
           },
           "400": { "description": "Bad Request - Invalid input parameters" },
@@ -316,6 +324,7 @@
       },
       "post": {
         "operationId": "createCustomer",
+        "x-speakeasy-name-override": "create",
         "summary": "Create a customer",
         "description": "Create a new customer record for the authenticated store.",
         "parameters": [],
@@ -324,9 +333,7 @@
           "description": "Customer creation payload",
           "content": {
             "application/json": {
-              "schema": {
-                "$ref": "#/components/schemas/CreateCustomerRequestEntity"
-              }
+              "schema": { "$ref": "#/components/schemas/CreateCustomerRequestEntity" }
             }
           }
         },
@@ -334,9 +341,7 @@
           "200": {
             "description": "Successfully created the customer",
             "content": {
-              "application/json": {
-                "schema": { "$ref": "#/components/schemas/CustomerEntity" }
-              }
+              "application/json": { "schema": { "$ref": "#/components/schemas/CustomerEntity" } }
             }
           },
           "400": { "description": "Bad Request - Invalid input parameters" },
@@ -348,6 +353,7 @@
       },
       "patch": {
         "operationId": "updateCustomer",
+        "x-speakeasy-name-override": "update",
         "summary": "Update a customer",
         "parameters": [],
         "requestBody": {
@@ -355,9 +361,7 @@
           "description": "Customer update payload",
           "content": {
             "application/json": {
-              "schema": {
-                "$ref": "#/components/schemas/UpdateCustomerRequestEntity"
-              }
+              "schema": { "$ref": "#/components/schemas/UpdateCustomerRequestEntity" }
             }
           }
         },
@@ -365,9 +369,7 @@
           "200": {
             "description": "Successfully updated the customer",
             "content": {
-              "application/json": {
-                "schema": { "$ref": "#/components/schemas/CustomerEntity" }
-              }
+              "application/json": { "schema": { "$ref": "#/components/schemas/CustomerEntity" } }
             }
           },
           "400": { "description": "Bad Request - Invalid input parameters" },
@@ -381,6 +383,7 @@
     "/v1/customers/billing": {
       "post": {
         "operationId": "generateCustomerLinks",
+        "x-speakeasy-name-override": "generateBillingLinks",
         "summary": "Generate Customer Links",
         "description": "Generate a customer portal link for managing billing, subscriptions, and payment methods.",
         "parameters": [],
@@ -389,9 +392,7 @@
           "description": "Customer portal link generation request",
           "content": {
             "application/json": {
-              "schema": {
-                "$ref": "#/components/schemas/CreateCustomerPortalLinkRequestEntity"
-              }
+              "schema": { "$ref": "#/components/schemas/CreateCustomerPortalLinkRequestEntity" }
             }
           }
         },
@@ -415,6 +416,7 @@
     "/v1/subscriptions": {
       "get": {
         "operationId": "retrieveSubscription",
+        "x-speakeasy-name-override": "get",
         "summary": "Retrieve a subscription",
         "description": "Retrieve subscription details by ID. View status, billing cycle, customer info, and payment history.",
         "parameters": [
@@ -446,6 +448,15 @@
     "/v1/subscriptions/search": {
       "get": {
         "operationId": "searchSubscriptions",
+        "x-speakeasy-pagination": {
+          "type": "offsetLimit",
+          "inputs": [
+            { "name": "page_number", "in": "parameters", "type": "page" },
+            { "name": "page_size", "in": "parameters", "type": "limit" }
+          ],
+          "outputs": { "numPages": "$.pagination.total_pages", "results": "$.items" }
+        },
+        "x-speakeasy-name-override": "search",
         "summary": "List all subscriptions",
         "description": "Search and retrieve a paginated list of subscriptions. View status, billing cycle, and customer info.",
         "parameters": [
@@ -469,9 +480,7 @@
             "description": "Successfully retrieved subscriptions",
             "content": {
               "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/SubscriptionListEntity"
-                }
+                "schema": { "$ref": "#/components/schemas/SubscriptionListEntity" }
               }
             }
           },
@@ -486,6 +495,7 @@
     "/v1/subscriptions/{id}/cancel": {
       "post": {
         "operationId": "cancelSubscription",
+        "x-speakeasy-name-override": "cancel",
         "summary": "Cancel a subscription.",
         "description": "Cancel an active subscription immediately or schedule cancellation at period end.",
         "parameters": [
@@ -502,9 +512,7 @@
           "description": "Subscription cancellation options",
           "content": {
             "application/json": {
-              "schema": {
-                "$ref": "#/components/schemas/CancelSubscriptionRequestEntity"
-              }
+              "schema": { "$ref": "#/components/schemas/CancelSubscriptionRequestEntity" }
             }
           }
         },
@@ -528,6 +536,7 @@
     "/v1/subscriptions/{id}": {
       "post": {
         "operationId": "updateSubscription",
+        "x-speakeasy-name-override": "update",
         "summary": "Update a subscription.",
         "description": "Modify subscription details like units, seats, or add-ons. Support proration and immediate billing options.",
         "parameters": [
@@ -544,9 +553,7 @@
           "description": "Subscription update payload",
           "content": {
             "application/json": {
-              "schema": {
-                "$ref": "#/components/schemas/UpdateSubscriptionRequestEntity"
-              }
+              "schema": { "$ref": "#/components/schemas/UpdateSubscriptionRequestEntity" }
             }
           }
         },
@@ -570,6 +577,7 @@
     "/v1/subscriptions/{id}/upgrade": {
       "post": {
         "operationId": "upgradeSubscription",
+        "x-speakeasy-name-override": "upgrade",
         "summary": "Upgrade a subscription to a different product",
         "description": "Upgrade a subscription to a different product or plan. Handle proration and plan changes seamlessly.",
         "parameters": [
@@ -586,9 +594,7 @@
           "description": "Subscription upgrade payload",
           "content": {
             "application/json": {
-              "schema": {
-                "$ref": "#/components/schemas/UpgradeSubscriptionRequestEntity"
-              }
+              "schema": { "$ref": "#/components/schemas/UpgradeSubscriptionRequestEntity" }
             }
           }
         },
@@ -612,6 +618,7 @@
     "/v1/subscriptions/{id}/pause": {
       "post": {
         "operationId": "pauseSubscription",
+        "x-speakeasy-name-override": "pause",
         "summary": "Pause a subscription.",
         "description": "Temporarily pause a subscription. Stop billing while retaining the subscription for later resumption.",
         "parameters": [
@@ -643,6 +650,7 @@
     "/v1/subscriptions/{id}/resume": {
       "post": {
         "operationId": "resumeSubscription",
+        "x-speakeasy-name-override": "resume",
         "summary": "Resume a subscription.",
         "description": "Resume a subscription. Subscription must be in paused or scheduled_cancel status.",
         "parameters": [
@@ -674,6 +682,7 @@
     "/v1/checkouts": {
       "get": {
         "operationId": "retrieveCheckout",
+        "x-speakeasy-name-override": "retrieve",
         "summary": "Retrieve a checkout session.",
         "description": "Retrieve details of a checkout session by ID. View status, customer info, and payment details.",
         "parameters": [
@@ -689,9 +698,7 @@
           "200": {
             "description": "Successfully retrieved the checkout session",
             "content": {
-              "application/json": {
-                "schema": { "$ref": "#/components/schemas/CheckoutEntity" }
-              }
+              "application/json": { "schema": { "$ref": "#/components/schemas/CheckoutEntity" } }
             }
           },
           "400": { "description": "Bad Request - Invalid input parameters" },
@@ -703,6 +710,7 @@
       },
       "post": {
         "operationId": "createCheckout",
+        "x-speakeasy-name-override": "create",
         "summary": "Creates a new checkout session.",
         "description": "Create a new checkout session to accept one-time payments or start subscriptions. Returns a checkout URL to redirect customers.",
         "parameters": [],
@@ -719,9 +727,7 @@
           "200": {
             "description": "Successfully created a checkout session",
             "content": {
-              "application/json": {
-                "schema": { "$ref": "#/components/schemas/CheckoutEntity" }
-              }
+              "application/json": { "schema": { "$ref": "#/components/schemas/CheckoutEntity" } }
             }
           },
           "400": { "description": "Bad Request - Invalid input parameters" },
@@ -735,6 +741,7 @@
     "/v1/licenses/activate": {
       "post": {
         "operationId": "activateLicense",
+        "x-speakeasy-name-override": "activate",
         "summary": "Activates a license key.",
         "description": "Activate a license key for a specific device or instance. Register new activations and track usage limits.",
         "parameters": [],
@@ -743,9 +750,7 @@
           "description": "License activation request payload",
           "content": {
             "application/json": {
-              "schema": {
-                "$ref": "#/components/schemas/ActivateLicenseRequestEntity"
-              }
+              "schema": { "$ref": "#/components/schemas/ActivateLicenseRequestEntity" }
             }
           }
         },
@@ -753,9 +758,7 @@
           "200": {
             "description": "Successfully activated a license key",
             "content": {
-              "application/json": {
-                "schema": { "$ref": "#/components/schemas/LicenseEntity" }
-              }
+              "application/json": { "schema": { "$ref": "#/components/schemas/LicenseEntity" } }
             }
           },
           "400": { "description": "Bad Request - Invalid input parameters" },
@@ -769,6 +772,7 @@
     "/v1/licenses/deactivate": {
       "post": {
         "operationId": "deactivateLicense",
+        "x-speakeasy-name-override": "deactivate",
         "summary": "Deactivate a license key instance.",
         "description": "Remove a device activation from a license key. Free up activation slots for new devices.",
         "parameters": [],
@@ -777,9 +781,7 @@
           "description": "License deactivation request payload",
           "content": {
             "application/json": {
-              "schema": {
-                "$ref": "#/components/schemas/DeactivateLicenseRequestEntity"
-              }
+              "schema": { "$ref": "#/components/schemas/DeactivateLicenseRequestEntity" }
             }
           }
         },
@@ -787,9 +789,7 @@
           "200": {
             "description": "Successfully deactivated a license key instance",
             "content": {
-              "application/json": {
-                "schema": { "$ref": "#/components/schemas/LicenseEntity" }
-              }
+              "application/json": { "schema": { "$ref": "#/components/schemas/LicenseEntity" } }
             }
           },
           "400": { "description": "Bad Request - Invalid input parameters" },
@@ -803,6 +803,7 @@
     "/v1/licenses/validate": {
       "post": {
         "operationId": "validateLicense",
+        "x-speakeasy-name-override": "validate",
         "summary": "Validates a license key or instance.",
         "description": "Verify if a license key is valid and active for a specific instance. Check activation status and expiration.",
         "parameters": [],
@@ -811,9 +812,7 @@
           "description": "License validation request payload",
           "content": {
             "application/json": {
-              "schema": {
-                "$ref": "#/components/schemas/ValidateLicenseRequestEntity"
-              }
+              "schema": { "$ref": "#/components/schemas/ValidateLicenseRequestEntity" }
             }
           }
         },
@@ -821,9 +820,7 @@
           "200": {
             "description": "Successfully validated a license key instance",
             "content": {
-              "application/json": {
-                "schema": { "$ref": "#/components/schemas/LicenseEntity" }
-              }
+              "application/json": { "schema": { "$ref": "#/components/schemas/LicenseEntity" } }
             }
           },
           "400": { "description": "Bad Request - Invalid input parameters" },
@@ -837,6 +834,15 @@
     "/v1/discounts/search": {
       "get": {
         "operationId": "searchDiscounts",
+        "x-speakeasy-pagination": {
+          "type": "offsetLimit",
+          "inputs": [
+            { "name": "page_number", "in": "parameters", "type": "page" },
+            { "name": "page_size", "in": "parameters", "type": "limit" }
+          ],
+          "outputs": { "numPages": "$.pagination.total_pages", "results": "$.items" }
+        },
+        "x-speakeasy-name-override": "search",
         "summary": "Search discounts",
         "description": "Search and list discount codes for a store with filters and pagination.",
         "parameters": [
@@ -910,6 +916,7 @@
     "/v1/discounts": {
       "get": {
         "operationId": "retrieveDiscount",
+        "x-speakeasy-name-override": "get",
         "summary": "Retrieve discount",
         "description": "Retrieve discount code details by ID or code. Check usage limits, expiration, and discount amount.",
         "parameters": [
@@ -932,9 +939,7 @@
           "200": {
             "description": "Successfully retrieved the discount",
             "content": {
-              "application/json": {
-                "schema": { "$ref": "#/components/schemas/DiscountEntity" }
-              }
+              "application/json": { "schema": { "$ref": "#/components/schemas/DiscountEntity" } }
             }
           },
           "400": { "description": "Bad Request - Invalid input parameters" },
@@ -946,6 +951,7 @@
       },
       "post": {
         "operationId": "createDiscount",
+        "x-speakeasy-name-override": "create",
         "summary": "Create a discount.",
         "description": "Create promotional discount codes for products. Set percentage or fixed amount discounts with expiration dates.",
         "parameters": [],
@@ -954,9 +960,7 @@
           "description": "Discount creation payload",
           "content": {
             "application/json": {
-              "schema": {
-                "$ref": "#/components/schemas/CreateDiscountRequestEntity"
-              }
+              "schema": { "$ref": "#/components/schemas/CreateDiscountRequestEntity" }
             }
           }
         },
@@ -964,9 +968,7 @@
           "200": {
             "description": "Successfully created a discount",
             "content": {
-              "application/json": {
-                "schema": { "$ref": "#/components/schemas/DiscountEntity" }
-              }
+              "application/json": { "schema": { "$ref": "#/components/schemas/DiscountEntity" } }
             }
           },
           "400": { "description": "Bad Request - Invalid input parameters" },
@@ -980,6 +982,7 @@
     "/v1/discounts/{id}/delete": {
       "delete": {
         "operationId": "deleteDiscount",
+        "x-speakeasy-name-override": "delete",
         "summary": "Delete a discount.",
         "description": "Permanently delete a discount code. Prevent further usage of the discount.",
         "parameters": [
@@ -995,9 +998,7 @@
           "200": {
             "description": "Successfully deleted a discount",
             "content": {
-              "application/json": {
-                "schema": { "$ref": "#/components/schemas/DiscountEntity" }
-              }
+              "application/json": { "schema": { "$ref": "#/components/schemas/DiscountEntity" } }
             }
           },
           "400": { "description": "Bad Request - Invalid input parameters" },
@@ -1011,6 +1012,7 @@
     "/v1/transactions": {
       "get": {
         "operationId": "getTransactionById",
+        "x-speakeasy-name-override": "getById",
         "summary": "Get a transaction by ID",
         "description": "Retrieve a single transaction by ID. View payment details, status, and associated order information.",
         "parameters": [
@@ -1026,9 +1028,7 @@
           "200": {
             "description": "Successfully retrieved transaction",
             "content": {
-              "application/json": {
-                "schema": { "$ref": "#/components/schemas/TransactionEntity" }
-              }
+              "application/json": { "schema": { "$ref": "#/components/schemas/TransactionEntity" } }
             }
           },
           "400": { "description": "Bad Request - Invalid input parameters" },
@@ -1042,6 +1042,15 @@
     "/v1/transactions/search": {
       "get": {
         "operationId": "searchTransactions",
+        "x-speakeasy-pagination": {
+          "type": "offsetLimit",
+          "inputs": [
+            { "name": "page_number", "in": "parameters", "type": "page" },
+            { "name": "page_size", "in": "parameters", "type": "limit" }
+          ],
+          "outputs": { "numPages": "$.pagination.total_pages", "results": "$.items" }
+        },
+        "x-speakeasy-name-override": "search",
         "summary": "List all transactions",
         "description": "Search and retrieve payment transactions. Filter by customer, product, date range, and status.",
         "parameters": [
@@ -1086,9 +1095,7 @@
             "description": "Successfully retrieved transactions",
             "content": {
               "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/TransactionListEntity"
-                }
+                "schema": { "$ref": "#/components/schemas/TransactionListEntity" }
               }
             }
           },
@@ -1103,6 +1110,7 @@
     "/v1/stats/summary": {
       "get": {
         "operationId": "getMetricsSummary",
+        "x-speakeasy-name-override": "getSummary",
         "summary": "Get store metrics summary",
         "description": "Retrieve aggregated store metrics including counts, revenue, and MRR. When startDate and endDate are provided, totals are filtered to that date range. When interval is also provided, the response includes a periods array with time-series data points grouped by that interval. The periods array starts from the store's first transaction or startDate, whichever is later, to avoid empty leading buckets. All monetary amounts are in cents (integer, no decimals).",
         "parameters": [
@@ -1154,6 +1162,7 @@
     "/v1/moderation/prompt": {
       "post": {
         "operationId": "screenPrompt",
+        "x-speakeasy-name-override": "screenPrompt",
         "summary": "Screen a prompt",
         "description": "Evaluate a text prompt against content policies before generation. This endpoint is experimental and may change.",
         "parameters": [],
@@ -1161,9 +1170,7 @@
           "required": true,
           "description": "Prompt screening request payload",
           "content": {
-            "application/json": {
-              "schema": { "$ref": "#/components/schemas/ScreenPromptRequest" }
-            }
+            "application/json": { "schema": { "$ref": "#/components/schemas/ScreenPromptRequest" } }
           }
         },
         "responses": {
@@ -1171,9 +1178,7 @@
             "description": "Prompt screening result",
             "content": {
               "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/ScreenPromptResponse"
-                }
+                "schema": { "$ref": "#/components/schemas/ScreenPromptResponse" }
               }
             }
           },
@@ -1188,15 +1193,15 @@
     "/v1/customer-credits/accounts": {
       "post": {
         "operationId": "createCustomerCreditsAccount",
+        "x-speakeasy-name-override": "createAccount",
+        "x-speakeasy-group": "customerCredits",
         "summary": "Create a customer credits account",
         "description": "Create a new credits account for a customer. Optionally seed it with an initial balance.",
         "parameters": [],
         "requestBody": {
           "required": true,
           "content": {
-            "application/json": {
-              "schema": { "$ref": "#/components/schemas/CreateAccountDto" }
-            }
+            "application/json": { "schema": { "$ref": "#/components/schemas/CreateAccountDto" } }
           }
         },
         "responses": {
@@ -1217,6 +1222,16 @@
       },
       "get": {
         "operationId": "listCustomerCreditsAccounts",
+        "x-speakeasy-pagination": {
+          "type": "cursor",
+          "inputs": [
+            { "name": "starting_after", "in": "parameters", "type": "cursor" },
+            { "name": "limit", "in": "parameters", "type": "limit" }
+          ],
+          "outputs": { "nextCursor": "$.data[-1].id", "results": "$.data" }
+        },
+        "x-speakeasy-name-override": "listAccounts",
+        "x-speakeasy-group": "customerCredits",
         "summary": "List customer credits accounts",
         "description": "List accounts for the authenticated store with cursor pagination. System accounts are excluded.",
         "parameters": [
@@ -1225,12 +1240,7 @@
             "required": false,
             "in": "query",
             "description": "Maximum number of accounts to return",
-            "schema": {
-              "minimum": 1,
-              "maximum": 100,
-              "default": 10,
-              "type": "number"
-            }
+            "schema": { "minimum": 1, "maximum": 100, "default": 10, "type": "number" }
           },
           {
             "name": "customer_id",
@@ -1259,9 +1269,7 @@
             "description": "Paginated list of accounts",
             "content": {
               "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/AccountListResponseDto"
-                }
+                "schema": { "$ref": "#/components/schemas/AccountListResponseDto" }
               }
             }
           },
@@ -1276,15 +1284,12 @@
     "/v1/customer-credits/accounts/{id}": {
       "get": {
         "operationId": "getCustomerCreditsAccount",
+        "x-speakeasy-name-override": "getAccount",
+        "x-speakeasy-group": "customerCredits",
         "summary": "Retrieve a customer credits account",
         "description": "Get details of a customer credits account by ID.",
         "parameters": [
-          {
-            "name": "id",
-            "required": true,
-            "in": "path",
-            "schema": { "type": "string" }
-          }
+          { "name": "id", "required": true, "in": "path", "schema": { "type": "string" } }
         ],
         "responses": {
           "200": {
@@ -1306,24 +1311,18 @@
     "/v1/customer-credits/accounts/{id}/balance": {
       "get": {
         "operationId": "getCustomerCreditsAccountBalance",
+        "x-speakeasy-name-override": "getAccountBalance",
+        "x-speakeasy-group": "customerCredits",
         "summary": "Get account balance",
         "description": "Get the current balance of an account. Optionally pass ?at= for historical balance.",
         "parameters": [
-          {
-            "name": "id",
-            "required": true,
-            "in": "path",
-            "schema": { "type": "string" }
-          },
+          { "name": "id", "required": true, "in": "path", "schema": { "type": "string" } },
           {
             "name": "at",
             "required": false,
             "in": "query",
             "description": "ISO 8601 date. If present, computes balance at that point in time. If absent, returns O(1) projected balance.",
-            "schema": {
-              "example": "2024-01-15T00:00:00.000Z",
-              "type": "string"
-            }
+            "schema": { "example": "2024-01-15T00:00:00.000Z", "type": "string" }
           }
         ],
         "responses": {
@@ -1346,26 +1345,26 @@
     "/v1/customer-credits/accounts/{id}/entries": {
       "get": {
         "operationId": "listCustomerCreditsAccountEntries",
+        "x-speakeasy-pagination": {
+          "type": "cursor",
+          "inputs": [
+            { "name": "starting_after", "in": "parameters", "type": "cursor" },
+            { "name": "limit", "in": "parameters", "type": "limit" }
+          ],
+          "outputs": { "nextCursor": "$.data[-1].id", "results": "$.data" }
+        },
+        "x-speakeasy-name-override": "listEntries",
+        "x-speakeasy-group": "customerCredits",
         "summary": "List account entries",
         "description": "List the credit and debit history for an account with cursor pagination.",
         "parameters": [
-          {
-            "name": "id",
-            "required": true,
-            "in": "path",
-            "schema": { "type": "string" }
-          },
+          { "name": "id", "required": true, "in": "path", "schema": { "type": "string" } },
           {
             "name": "limit",
             "required": false,
             "in": "query",
             "description": "Maximum number of entries to return",
-            "schema": {
-              "minimum": 1,
-              "maximum": 100,
-              "default": 10,
-              "type": "number"
-            }
+            "schema": { "minimum": 1, "maximum": 100, "default": 10, "type": "number" }
           },
           {
             "name": "starting_after",
@@ -1387,9 +1386,7 @@
             "description": "Paginated list of entries",
             "content": {
               "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/EntryListResponseDto"
-                }
+                "schema": { "$ref": "#/components/schemas/EntryListResponseDto" }
               }
             }
           },
@@ -1404,15 +1401,12 @@
     "/v1/customer-credits/accounts/{id}/freeze": {
       "post": {
         "operationId": "freezeCustomerCreditsAccount",
+        "x-speakeasy-name-override": "freezeAccount",
+        "x-speakeasy-group": "customerCredits",
         "summary": "Freeze an account",
         "description": "Freeze an account to prevent new transactions.",
         "parameters": [
-          {
-            "name": "id",
-            "required": true,
-            "in": "path",
-            "schema": { "type": "string" }
-          }
+          { "name": "id", "required": true, "in": "path", "schema": { "type": "string" } }
         ],
         "responses": {
           "200": {
@@ -1430,9 +1424,7 @@
             "description": "Account already frozen or closed",
             "content": {
               "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/CustomerCreditsErrorResponseDto"
-                }
+                "schema": { "$ref": "#/components/schemas/CustomerCreditsErrorResponseDto" }
               }
             }
           }
@@ -1444,15 +1436,12 @@
     "/v1/customer-credits/accounts/{id}/unfreeze": {
       "post": {
         "operationId": "unfreezeCustomerCreditsAccount",
+        "x-speakeasy-name-override": "unfreezeAccount",
+        "x-speakeasy-group": "customerCredits",
         "summary": "Unfreeze an account",
         "description": "Unfreeze a frozen account to allow transactions again.",
         "parameters": [
-          {
-            "name": "id",
-            "required": true,
-            "in": "path",
-            "schema": { "type": "string" }
-          }
+          { "name": "id", "required": true, "in": "path", "schema": { "type": "string" } }
         ],
         "responses": {
           "200": {
@@ -1470,9 +1459,7 @@
             "description": "Account is not frozen or is closed",
             "content": {
               "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/CustomerCreditsErrorResponseDto"
-                }
+                "schema": { "$ref": "#/components/schemas/CustomerCreditsErrorResponseDto" }
               }
             }
           }
@@ -1484,15 +1471,12 @@
     "/v1/customer-credits/accounts/{id}/credit": {
       "post": {
         "operationId": "creditCustomerCreditsAccount",
+        "x-speakeasy-name-override": "creditAccount",
+        "x-speakeasy-group": "customerCredits",
         "summary": "Credit an account",
         "description": "Add credits to a customer account. Returns the resulting transaction record.",
         "parameters": [
-          {
-            "name": "id",
-            "required": true,
-            "in": "path",
-            "schema": { "type": "string" }
-          }
+          { "name": "id", "required": true, "in": "path", "schema": { "type": "string" } }
         ],
         "requestBody": {
           "required": true,
@@ -1507,9 +1491,7 @@
             "description": "Credit transaction created",
             "content": {
               "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/TransactionResponseDto"
-                }
+                "schema": { "$ref": "#/components/schemas/TransactionResponseDto" }
               }
             }
           },
@@ -1520,9 +1502,7 @@
             "description": "Account frozen or closed",
             "content": {
               "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/CustomerCreditsErrorResponseDto"
-                }
+                "schema": { "$ref": "#/components/schemas/CustomerCreditsErrorResponseDto" }
               }
             }
           }
@@ -1534,15 +1514,12 @@
     "/v1/customer-credits/accounts/{id}/debit": {
       "post": {
         "operationId": "debitCustomerCreditsAccount",
+        "x-speakeasy-name-override": "debitAccount",
+        "x-speakeasy-group": "customerCredits",
         "summary": "Debit an account",
         "description": "Deduct credits from a customer account. Returns the resulting transaction record.",
         "parameters": [
-          {
-            "name": "id",
-            "required": true,
-            "in": "path",
-            "schema": { "type": "string" }
-          }
+          { "name": "id", "required": true, "in": "path", "schema": { "type": "string" } }
         ],
         "requestBody": {
           "required": true,
@@ -1557,9 +1534,7 @@
             "description": "Debit transaction created",
             "content": {
               "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/TransactionResponseDto"
-                }
+                "schema": { "$ref": "#/components/schemas/TransactionResponseDto" }
               }
             }
           },
@@ -1570,9 +1545,7 @@
             "description": "Account frozen or closed",
             "content": {
               "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/CustomerCreditsErrorResponseDto"
-                }
+                "schema": { "$ref": "#/components/schemas/CustomerCreditsErrorResponseDto" }
               }
             }
           }
@@ -1584,23 +1557,18 @@
     "/v1/customer-credits/accounts/{id}/reverse": {
       "post": {
         "operationId": "reverseCustomerCreditsAccountTransaction",
+        "x-speakeasy-name-override": "reverseTransaction",
+        "x-speakeasy-group": "customerCredits",
         "summary": "Reverse a transaction",
         "description": "Reverse a previous credit or debit on this account. Creates a new transaction that undoes the original, preserving the full history.",
         "parameters": [
-          {
-            "name": "id",
-            "required": true,
-            "in": "path",
-            "schema": { "type": "string" }
-          }
+          { "name": "id", "required": true, "in": "path", "schema": { "type": "string" } }
         ],
         "requestBody": {
           "required": true,
           "content": {
             "application/json": {
-              "schema": {
-                "$ref": "#/components/schemas/ReverseTransactionRequestDto"
-              }
+              "schema": { "$ref": "#/components/schemas/ReverseTransactionRequestDto" }
             }
           }
         },
@@ -1609,9 +1577,7 @@
             "description": "Reversal transaction created",
             "content": {
               "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/TransactionResponseDto"
-                }
+                "schema": { "$ref": "#/components/schemas/TransactionResponseDto" }
               }
             }
           },
@@ -1626,15 +1592,12 @@
     "/v1/customer-credits/accounts/{id}/close": {
       "post": {
         "operationId": "closeCustomerCreditsAccount",
+        "x-speakeasy-name-override": "closeAccount",
+        "x-speakeasy-group": "customerCredits",
         "summary": "Close an account",
         "description": "Permanently close an account. This action cannot be undone.",
         "parameters": [
-          {
-            "name": "id",
-            "required": true,
-            "in": "path",
-            "schema": { "type": "string" }
-          }
+          { "name": "id", "required": true, "in": "path", "schema": { "type": "string" } }
         ],
         "responses": {
           "200": {
@@ -1652,9 +1615,7 @@
             "description": "Account already closed",
             "content": {
               "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/CustomerCreditsErrorResponseDto"
-                }
+                "schema": { "$ref": "#/components/schemas/CustomerCreditsErrorResponseDto" }
               }
             }
           }
@@ -1668,11 +1629,7 @@
     "title": "Creem API",
     "description": "Creem is an all-in-one platform for managing subscriptions and recurring revenue, tailored specifically for today's SaaS companies. It enables you to boost revenue, enhance customer retention, and scale your operations seamlessly.",
     "version": "v1",
-    "contact": {
-      "name": "Creem Support",
-      "url": "https://creem.io",
-      "email": "support@creem.io"
-    },
+    "contact": { "name": "Creem Support", "url": "https://creem.io", "email": "support@creem.io" },
     "license": { "name": "Commercial", "url": "https://creem.io/terms" },
     "termsOfService": "https://creem.io/terms"
   },
@@ -1706,10 +1663,7 @@
             "description": "Unique identifier for the feature.",
             "example": "feat_abc123"
           },
-          "type": {
-            "example": "licenseKey",
-            "$ref": "#/components/schemas/ProductFeatureType"
-          },
+          "type": { "example": "licenseKey", "$ref": "#/components/schemas/ProductFeatureType" },
           "description": {
             "type": "string",
             "description": "A brief description of the feature.",
@@ -1726,7 +1680,14 @@
       "ProductBillingPeriod": {
         "type": "string",
         "description": "Billing period",
-        "enum": ["every-month", "every-three-months", "every-six-months", "every-year", "once"]
+        "enum": [
+          "every-month",
+          "every-three-months",
+          "every-six-months",
+          "every-year",
+          "every-day",
+          "once"
+        ]
       },
       "ProductStatus": {
         "type": "string",
@@ -1761,11 +1722,7 @@
             "description": "Minimum character length requirement for the input.",
             "nullable": true
           },
-          "value": {
-            "type": "string",
-            "description": "The value of the input.",
-            "nullable": true
-          }
+          "value": { "type": "string", "description": "The value of the input.", "nullable": true }
         }
       },
       "Checkbox": {
@@ -1818,19 +1775,13 @@
       "ProductEntity": {
         "type": "object",
         "properties": {
-          "id": {
-            "type": "string",
-            "description": "Unique identifier for the object."
-          },
+          "id": { "type": "string", "description": "Unique identifier for the object." },
           "mode": { "$ref": "#/components/schemas/EnvironmentMode" },
           "object": {
             "type": "string",
             "description": "String representing the object's type. Objects of the same type share the same value."
           },
-          "name": {
-            "type": "string",
-            "description": "The name of the product"
-          },
+          "name": { "type": "string", "description": "The name of the product" },
           "description": {
             "type": "string",
             "description": "A brief description of the product",
@@ -1865,14 +1816,8 @@
             "$ref": "#/components/schemas/ProductBillingPeriod"
           },
           "status": { "$ref": "#/components/schemas/ProductStatus" },
-          "tax_mode": {
-            "example": "inclusive",
-            "$ref": "#/components/schemas/TaxMode"
-          },
-          "tax_category": {
-            "example": "saas",
-            "$ref": "#/components/schemas/TaxCategory"
-          },
+          "tax_mode": { "example": "inclusive", "$ref": "#/components/schemas/TaxMode" },
+          "tax_category": { "example": "saas", "$ref": "#/components/schemas/TaxCategory" },
           "product_url": {
             "type": "string",
             "description": "The product page you can redirect your customers to for express checkout.",
@@ -1981,7 +1926,14 @@
       "ProductRequestBillingPeriod": {
         "type": "string",
         "description": "Billing period, required if billing_type is recurring",
-        "enum": ["once", "every-month", "every-three-months", "every-six-months", "every-year"]
+        "enum": [
+          "once",
+          "every-day",
+          "every-month",
+          "every-three-months",
+          "every-six-months",
+          "every-year"
+        ]
       },
       "CustomFieldRequestType": {
         "type": "string",
@@ -2016,10 +1968,7 @@
       "CustomFieldRequestEntity": {
         "type": "object",
         "properties": {
-          "type": {
-            "example": "text",
-            "$ref": "#/components/schemas/CustomFieldRequestType"
-          },
+          "type": { "example": "text", "$ref": "#/components/schemas/CustomFieldRequestType" },
           "key": {
             "type": "string",
             "description": "Unique key for custom field. Must be unique to this field, alphanumeric, and up to 200 characters.",
@@ -2051,10 +2000,7 @@
         "type": "object",
         "properties": {
           "name": { "type": "string", "description": "Name of the product" },
-          "description": {
-            "type": "string",
-            "description": "Description of the product"
-          },
+          "description": { "type": "string", "description": "Description of the product" },
           "image_url": {
             "type": "string",
             "description": "URL of the product image",
@@ -2065,10 +2011,7 @@
             "description": "The price of the product in cents. Must be 0 (free product) or at least 100 (one whole unit of the currency).",
             "example": 400
           },
-          "currency": {
-            "example": "USD",
-            "$ref": "#/components/schemas/ProductCurrency"
-          },
+          "currency": { "example": "USD", "$ref": "#/components/schemas/ProductCurrency" },
           "billing_type": {
             "example": "recurring",
             "$ref": "#/components/schemas/ProductRequestBillingType"
@@ -2077,14 +2020,8 @@
             "example": "every-month",
             "$ref": "#/components/schemas/ProductRequestBillingPeriod"
           },
-          "tax_mode": {
-            "example": "inclusive",
-            "$ref": "#/components/schemas/TaxMode"
-          },
-          "tax_category": {
-            "example": "saas",
-            "$ref": "#/components/schemas/TaxCategory"
-          },
+          "tax_mode": { "example": "inclusive", "$ref": "#/components/schemas/TaxMode" },
+          "tax_category": { "example": "saas", "$ref": "#/components/schemas/TaxCategory" },
           "default_success_url": {
             "type": "string",
             "description": "The URL to which the user will be redirected after successfull payment.",
@@ -2112,10 +2049,7 @@
       "CustomerEntity": {
         "type": "object",
         "properties": {
-          "id": {
-            "type": "string",
-            "description": "Unique identifier for the object."
-          },
+          "id": { "type": "string", "description": "Unique identifier for the object." },
           "mode": { "$ref": "#/components/schemas/EnvironmentMode" },
           "object": {
             "type": "string",
@@ -2187,10 +2121,7 @@
       "OrderEntity": {
         "type": "object",
         "properties": {
-          "id": {
-            "type": "string",
-            "description": "Unique identifier for the object."
-          },
+          "id": { "type": "string", "description": "Unique identifier for the object." },
           "mode": { "$ref": "#/components/schemas/EnvironmentMode" },
           "object": {
             "type": "string",
@@ -2201,10 +2132,7 @@
             "description": "The customer who placed the order.",
             "nullable": true
           },
-          "product": {
-            "type": "string",
-            "description": "The product associated with the order."
-          },
+          "product": { "type": "string", "description": "The product associated with the order." },
           "transaction": {
             "type": "string",
             "description": "The transaction ID of the order",
@@ -2270,14 +2198,8 @@
             "example": 1.2,
             "nullable": true
           },
-          "status": {
-            "example": "pending",
-            "$ref": "#/components/schemas/OrderStatus"
-          },
-          "type": {
-            "example": "recurring",
-            "$ref": "#/components/schemas/OrderType"
-          },
+          "status": { "example": "pending", "$ref": "#/components/schemas/OrderStatus" },
+          "type": { "example": "recurring", "$ref": "#/components/schemas/OrderType" },
           "affiliate": {
             "type": "string",
             "description": "The affiliate associated with the order, if applicable.",
@@ -2327,10 +2249,7 @@
       "SubscriptionItemEntity": {
         "type": "object",
         "properties": {
-          "id": {
-            "type": "string",
-            "description": "Unique identifier for the object."
-          },
+          "id": { "type": "string", "description": "Unique identifier for the object." },
           "mode": { "$ref": "#/components/schemas/EnvironmentMode" },
           "object": {
             "type": "string",
@@ -2378,17 +2297,14 @@
           "chargedBack",
           "uncollectible",
           "declined",
-          "void",
-          "canceled"
+          "canceled",
+          "void"
         ]
       },
       "TransactionEntity": {
         "type": "object",
         "properties": {
-          "id": {
-            "type": "string",
-            "description": "Unique identifier for the object."
-          },
+          "id": { "type": "string", "description": "Unique identifier for the object." },
           "mode": { "$ref": "#/components/schemas/EnvironmentMode" },
           "object": {
             "type": "string",
@@ -2453,10 +2369,7 @@
             "description": "The customer associated with the transaction.",
             "nullable": true
           },
-          "description": {
-            "type": "string",
-            "description": "The description of the transaction."
-          },
+          "description": { "type": "string", "description": "The description of the transaction." },
           "period_start": {
             "type": "number",
             "description": "Start period for the invoice as timestamp"
@@ -2475,10 +2388,7 @@
       "SubscriptionEntity": {
         "type": "object",
         "properties": {
-          "id": {
-            "type": "string",
-            "description": "Unique identifier for the object."
-          },
+          "id": { "type": "string", "description": "Unique identifier for the object." },
           "mode": { "$ref": "#/components/schemas/EnvironmentMode" },
           "object": {
             "type": "string",
@@ -2502,10 +2412,7 @@
             "example": "charge_automatically",
             "$ref": "#/components/schemas/SubscriptionCollectionMethod"
           },
-          "status": {
-            "example": "active",
-            "$ref": "#/components/schemas/SubscriptionStatus"
-          },
+          "status": { "example": "active", "$ref": "#/components/schemas/SubscriptionStatus" },
           "last_transaction_id": {
             "type": "string",
             "description": "The ID of the last paid transaction.",
@@ -2598,10 +2505,7 @@
       "LicenseInstanceEntity": {
         "type": "object",
         "properties": {
-          "id": {
-            "type": "string",
-            "description": "Unique identifier for the object."
-          },
+          "id": { "type": "string", "description": "Unique identifier for the object." },
           "mode": { "$ref": "#/components/schemas/EnvironmentMode" },
           "object": {
             "type": "string",
@@ -2631,10 +2535,7 @@
       "LicenseEntity": {
         "type": "object",
         "properties": {
-          "id": {
-            "type": "string",
-            "description": "Unique identifier for the object."
-          },
+          "id": { "type": "string", "description": "Unique identifier for the object." },
           "mode": { "$ref": "#/components/schemas/EnvironmentMode" },
           "object": {
             "type": "string",
@@ -2645,10 +2546,7 @@
             "description": "The ID of the product this license belongs to.",
             "example": "prod_abc123"
           },
-          "status": {
-            "example": "active",
-            "$ref": "#/components/schemas/LicenseStatus"
-          },
+          "status": { "example": "active", "$ref": "#/components/schemas/LicenseStatus" },
           "key": {
             "type": "string",
             "description": "The license key.",
@@ -2755,20 +2653,14 @@
       "CreateCustomerPortalLinkRequestEntity": {
         "type": "object",
         "properties": {
-          "customer_id": {
-            "type": "string",
-            "description": "Unique identifier of the customer."
-          }
+          "customer_id": { "type": "string", "description": "Unique identifier of the customer." }
         },
         "required": ["customer_id"]
       },
       "CustomerLinksEntity": {
         "type": "object",
         "properties": {
-          "customer_portal_link": {
-            "type": "string",
-            "description": "Customer portal link."
-          }
+          "customer_portal_link": { "type": "string", "description": "Customer portal link." }
         },
         "required": ["customer_portal_link"]
       },
@@ -2792,10 +2684,7 @@
       "UpsertSubscriptionItemEntity": {
         "type": "object",
         "properties": {
-          "id": {
-            "type": "string",
-            "description": "The id of the item to update."
-          },
+          "id": { "type": "string", "description": "The id of the item to update." },
           "product_id": {
             "type": "string",
             "description": "The ID of the product associated with the subscription item."
@@ -2816,9 +2705,7 @@
           "items": {
             "description": "List of subscription items to update/create. If no item ID is provided, the item will be created.",
             "type": "array",
-            "items": {
-              "$ref": "#/components/schemas/UpsertSubscriptionItemEntity"
-            }
+            "items": { "$ref": "#/components/schemas/UpsertSubscriptionItemEntity" }
           },
           "update_behavior": {
             "type": "string",
@@ -2956,10 +2843,7 @@
       "CheckoutEntity": {
         "type": "object",
         "properties": {
-          "id": {
-            "type": "string",
-            "description": "Unique identifier for the object."
-          },
+          "id": { "type": "string", "description": "Unique identifier for the object." },
           "mode": { "$ref": "#/components/schemas/EnvironmentMode" },
           "object": {
             "type": "string",
@@ -3025,11 +2909,7 @@
           "metadata": {
             "type": "object",
             "description": "Metadata for the checkout in the form of key-value pairs",
-            "example": {
-              "userId": "user_123",
-              "visitCount": 42,
-              "lastVisit": "2023-04-01"
-            },
+            "example": { "userId": "user_123", "visitCount": 42, "lastVisit": "2023-04-01" },
             "additionalProperties": true
           }
         },
@@ -3094,11 +2974,7 @@
           "metadata": {
             "type": "object",
             "description": "Metadata for the checkout in the form of key-value pairs",
-            "example": {
-              "userId": "user_123",
-              "visitCount": 42,
-              "lastVisit": "2023-04-01"
-            },
+            "example": { "userId": "user_123", "visitCount": 42, "lastVisit": "2023-04-01" },
             "additionalProperties": true
           }
         },
@@ -3107,10 +2983,7 @@
       "ActivateLicenseRequestEntity": {
         "type": "object",
         "properties": {
-          "key": {
-            "type": "string",
-            "description": "The license key to activate."
-          },
+          "key": { "type": "string", "description": "The license key to activate." },
           "instance_name": {
             "type": "string",
             "description": "A label for the new instance to identify it in Creem."
@@ -3121,38 +2994,23 @@
       "DeactivateLicenseRequestEntity": {
         "type": "object",
         "properties": {
-          "key": {
-            "type": "string",
-            "description": "The license key to deactivate."
-          },
-          "instance_id": {
-            "type": "string",
-            "description": "Id of the instance to deactivate."
-          }
+          "key": { "type": "string", "description": "The license key to deactivate." },
+          "instance_id": { "type": "string", "description": "Id of the instance to deactivate." }
         },
         "required": ["key", "instance_id"]
       },
       "ValidateLicenseRequestEntity": {
         "type": "object",
         "properties": {
-          "key": {
-            "type": "string",
-            "description": "The license key to validate."
-          },
-          "instance_id": {
-            "type": "string",
-            "description": "Id of the instance to validate."
-          }
+          "key": { "type": "string", "description": "The license key to validate." },
+          "instance_id": { "type": "string", "description": "Id of the instance to validate." }
         },
         "required": ["key", "instance_id"]
       },
       "DiscountEntity": {
         "type": "object",
         "properties": {
-          "id": {
-            "type": "string",
-            "description": "Unique identifier for the object."
-          },
+          "id": { "type": "string", "description": "Unique identifier for the object." },
           "mode": { "$ref": "#/components/schemas/EnvironmentMode" },
           "object": {
             "type": "string",
@@ -3297,10 +3155,7 @@
             "description": "The maximum number of redemptions for the discount.",
             "example": 100
           },
-          "duration": {
-            "example": "repeating",
-            "$ref": "#/components/schemas/CouponDurationType"
-          },
+          "duration": { "example": "repeating", "$ref": "#/components/schemas/CouponDurationType" },
           "duration_in_months": {
             "type": "number",
             "description": "The number of months the discount is valid for. Only applicable if the duration is \"repeating\" and the product is a subscription.",
@@ -3422,46 +3277,14 @@
           "periods": {
             "description": "Time-series data points grouped by the requested interval. Only present when interval, startDate, and endDate are provided.",
             "example": [
-              {
-                "timestamp": 1763337600000,
-                "grossRevenue": 2999,
-                "netRevenue": 2909
-              },
-              {
-                "timestamp": 1763942400000,
-                "grossRevenue": 32989,
-                "netRevenue": 31998
-              },
-              {
-                "timestamp": 1764547200000,
-                "grossRevenue": 47984,
-                "netRevenue": 46542
-              },
-              {
-                "timestamp": 1765152000000,
-                "grossRevenue": 125958,
-                "netRevenue": 122173
-              },
-              {
-                "timestamp": 1765756800000,
-                "grossRevenue": 343968,
-                "netRevenue": 278372
-              },
-              {
-                "timestamp": 1766361600000,
-                "grossRevenue": 0,
-                "netRevenue": 0
-              },
-              {
-                "timestamp": 1766966400000,
-                "grossRevenue": 0,
-                "netRevenue": 0
-              },
-              {
-                "timestamp": 1767571200000,
-                "grossRevenue": 225240,
-                "netRevenue": 192096
-              }
+              { "timestamp": 1763337600000, "grossRevenue": 2999, "netRevenue": 2909 },
+              { "timestamp": 1763942400000, "grossRevenue": 32989, "netRevenue": 31998 },
+              { "timestamp": 1764547200000, "grossRevenue": 47984, "netRevenue": 46542 },
+              { "timestamp": 1765152000000, "grossRevenue": 125958, "netRevenue": 122173 },
+              { "timestamp": 1765756800000, "grossRevenue": 343968, "netRevenue": 278372 },
+              { "timestamp": 1766361600000, "grossRevenue": 0, "netRevenue": 0 },
+              { "timestamp": 1766966400000, "grossRevenue": 0, "netRevenue": 0 },
+              { "timestamp": 1767571200000, "grossRevenue": 225240, "netRevenue": 192096 }
             ],
             "type": "array",
             "items": { "$ref": "#/components/schemas/StatsMetricPeriodEntity" }
@@ -3486,29 +3309,20 @@
       "UsageEntity": {
         "type": "object",
         "properties": {
-          "units": {
-            "type": "number",
-            "description": "Number of units consumed by this call."
-          }
+          "units": { "type": "number", "description": "Number of units consumed by this call." }
         },
         "required": ["units"]
       },
       "ScreenPromptResponse": {
         "type": "object",
         "properties": {
-          "id": {
-            "type": "string",
-            "description": "Unique identifier for the moderation result."
-          },
+          "id": { "type": "string", "description": "Unique identifier for the moderation result." },
           "object": {
             "type": "string",
             "description": "Object type.",
             "example": "moderation_result"
           },
-          "prompt": {
-            "type": "string",
-            "description": "The prompt that was screened."
-          },
+          "prompt": { "type": "string", "description": "The prompt that was screened." },
           "external_id": {
             "type": "string",
             "description": "The external identifier provided in the request."
@@ -3556,40 +3370,18 @@
       "AccountResponseDto": {
         "type": "object",
         "properties": {
-          "id": {
-            "type": "string",
-            "description": "Account ID",
-            "example": "cca_abc123"
-          },
+          "id": { "type": "string", "description": "Account ID", "example": "cca_abc123" },
           "store_id": { "type": "string", "description": "Store ID" },
-          "customer_id": {
-            "type": "string",
-            "description": "Owner ID",
-            "example": "cust_abc123"
-          },
-          "name": {
-            "type": "string",
-            "description": "Account name",
-            "example": "default"
-          },
-          "unit_label": {
-            "type": "string",
-            "description": "Unit label",
-            "example": "credits"
-          },
+          "customer_id": { "type": "string", "description": "Owner ID", "example": "cust_abc123" },
+          "name": { "type": "string", "description": "Account name", "example": "default" },
+          "unit_label": { "type": "string", "description": "Unit label", "example": "credits" },
           "status": {
             "type": "string",
             "description": "Account status",
             "enum": ["active", "frozen", "closed"]
           },
-          "created_at": {
-            "type": "string",
-            "description": "Creation timestamp"
-          },
-          "updated_at": {
-            "type": "string",
-            "description": "Last update timestamp"
-          }
+          "created_at": { "type": "string", "description": "Creation timestamp" },
+          "updated_at": { "type": "string", "description": "Last update timestamp" }
         },
         "required": [
           "id",
@@ -3605,11 +3397,7 @@
       "AccountListResponseDto": {
         "type": "object",
         "properties": {
-          "object": {
-            "type": "string",
-            "description": "Object type",
-            "example": "list"
-          },
+          "object": { "type": "string", "description": "Object type", "example": "list" },
           "data": {
             "description": "Array of accounts",
             "type": "array",
@@ -3644,21 +3432,13 @@
       "EntryResponseDto": {
         "type": "object",
         "properties": {
-          "id": {
-            "type": "string",
-            "description": "Entry ID",
-            "example": "cce_abc123"
-          },
+          "id": { "type": "string", "description": "Entry ID", "example": "cce_abc123" },
           "transaction_id": {
             "type": "string",
             "description": "Transaction ID",
             "example": "cct_abc123"
           },
-          "account_id": {
-            "type": "string",
-            "description": "Account ID",
-            "example": "cca_abc123"
-          },
+          "account_id": { "type": "string", "description": "Account ID", "example": "cca_abc123" },
           "side": {
             "type": "string",
             "description": "Debit or credit side",
@@ -3669,21 +3449,14 @@
             "description": "Amount as string for bigint safety",
             "example": "1000"
           },
-          "created_at": {
-            "type": "string",
-            "description": "Creation timestamp"
-          }
+          "created_at": { "type": "string", "description": "Creation timestamp" }
         },
         "required": ["id", "transaction_id", "account_id", "side", "amount", "created_at"]
       },
       "EntryListResponseDto": {
         "type": "object",
         "properties": {
-          "object": {
-            "type": "string",
-            "description": "Object type",
-            "example": "list"
-          },
+          "object": { "type": "string", "description": "Object type", "example": "list" },
           "data": {
             "description": "Array of entries",
             "type": "array",
@@ -3769,21 +3542,14 @@
       "TransactionResponseDto": {
         "type": "object",
         "properties": {
-          "id": {
-            "type": "string",
-            "description": "Transaction ID",
-            "example": "cct_abc123"
-          },
+          "id": { "type": "string", "description": "Transaction ID", "example": "cct_abc123" },
           "store_id": { "type": "string", "description": "Store ID" },
           "reference": {
             "type": "string",
             "description": "Reference string",
             "example": "order_xyz"
           },
-          "idempotency_key": {
-            "type": "string",
-            "description": "Idempotency key"
-          },
+          "idempotency_key": { "type": "string", "description": "Idempotency key" },
           "reversal_of": {
             "type": "object",
             "description": "ID of the transaction this reverses, if applicable",
@@ -3794,10 +3560,7 @@
             "type": "array",
             "items": { "$ref": "#/components/schemas/EntryResponseDto" }
           },
-          "created_at": {
-            "type": "string",
-            "description": "Creation timestamp"
-          }
+          "created_at": { "type": "string", "description": "Creation timestamp" }
         },
         "required": ["id", "store_id", "reference", "idempotency_key", "entries", "created_at"]
       },
@@ -3814,8 +3577,5 @@
       }
     }
   },
-  "externalDocs": {
-    "description": "Creem Documentation",
-    "url": "https://docs.creem.io"
-  }
+  "externalDocs": { "description": "Creem Documentation", "url": "https://docs.creem.io" }
 }
