@@ -2136,6 +2136,7 @@
             "type": "object",
             "description": "Additional metadata associated with the customer.",
             "example": { "key": "value" },
+            "additionalProperties": true,
             "nullable": true
           },
           "country": {
@@ -2558,6 +2559,15 @@
             "example": "2024-09-12T12:34:56Z",
             "format": "date-time"
           },
+          "metadata": {
+            "type": "object",
+            "description": "Metadata for the subscription in the form of key-value pairs.",
+            "example": {
+              "userId": "user_123",
+              "plan": "pro"
+            },
+            "additionalProperties": true
+          },
           "discount": {
             "type": "object",
             "description": "The discount code applied to the subscription, if any."
@@ -2726,7 +2736,8 @@
           "metadata": {
             "type": "object",
             "description": "Additional metadata for the customer.",
-            "example": { "key": "value" }
+            "example": { "key": "value" },
+            "additionalProperties": true
           }
         },
         "required": ["email", "name"]
@@ -2747,7 +2758,8 @@
           "metadata": {
             "type": "object",
             "description": "Additional metadata for the customer.",
-            "example": { "key": "value" }
+            "example": { "key": "value" },
+            "additionalProperties": true
           }
         },
         "required": ["customer_id"]

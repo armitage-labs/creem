@@ -298,10 +298,27 @@ console.log(res.value);
 
 ## Webhooks
 
-The `creem` TypeScript SDK focuses on making API calls (products, checkouts, subscriptions, etc.) and **does not** include webhook routing helpers.
+The `creem` TypeScript SDK includes helpers for verifying webhook signatures and parsing raw webhook payloads. It does not include opinionated access-management callbacks, so your application remains responsible for deciding which events grant or revoke access.
 
 - If you're on Next.js, prefer the [`@creem_io/nextjs`](/code/sdks/nextjs) `Webhook` helper.
-- Otherwise, implement an HTTP endpoint and verify the `creem-signature` header yourself (see the [Webhook Setup Guide](/code/webhooks)).
+- Otherwise, use `constructWebhookEvent` in your HTTP endpoint:
+
+```ts
+import { constructWebhookEvent } from 'creem/webhooks';
+
+const event = await constructWebhookEvent(rawBody, request.headers, {
+  secret: process.env.CREEM_WEBHOOK_SECRET!,
+});
+
+switch (event.type) {
+  case 'checkout.completed':
+    // Grant access, send email, update your database, etc.
+    break;
+  case 'subscription.canceled':
+    // Revoke access or mark the subscription as canceled.
+    break;
+}
+```
 
 ---
 

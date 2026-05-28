@@ -132,6 +132,10 @@ export type SubscriptionEntity = {
    */
   updatedAt: Date;
   /**
+   * Metadata for the subscription in the form of key-value pairs.
+   */
+  metadata?: { [k: string]: any } | undefined;
+  /**
    * The discount code applied to the subscription, if any.
    */
   discount?: Discount | undefined;
@@ -254,6 +258,7 @@ export const SubscriptionEntity$inboundSchema: z.ZodType<
   ).optional(),
   created_at: z.string().datetime({ offset: true }).transform(v => new Date(v)),
   updated_at: z.string().datetime({ offset: true }).transform(v => new Date(v)),
+  metadata: z.record(z.any()).optional(),
   discount: z.lazy(() => Discount$inboundSchema).optional(),
 }).transform((v) => {
   return remap$(v, {
@@ -288,6 +293,7 @@ export type SubscriptionEntity$Outbound = {
   canceled_at?: string | null | undefined;
   created_at: string;
   updated_at: string;
+  metadata?: { [k: string]: any } | undefined;
   discount?: Discount$Outbound | undefined;
 };
 
@@ -314,6 +320,7 @@ export const SubscriptionEntity$outboundSchema: z.ZodType<
   canceledAt: z.nullable(z.date().transform(v => v.toISOString())).optional(),
   createdAt: z.date().transform(v => v.toISOString()),
   updatedAt: z.date().transform(v => v.toISOString()),
+  metadata: z.record(z.any()).optional(),
   discount: z.lazy(() => Discount$outboundSchema).optional(),
 }).transform((v) => {
   return remap$(v, {

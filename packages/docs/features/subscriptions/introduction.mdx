@@ -234,14 +234,14 @@ https://yoursite.com/success?checkout_id=ch_xxx&subscription_id=sub_xxx&customer
 
 ## Managing Subscription Access
 
-Creem makes it incredibly simple to grant and revoke access based on subscription status. Instead of manually handling multiple webhook events, you can use the high-level `onGrantAccess` and `onRevokeAccess` callbacks that automatically fire at the right times in your subscription lifecycle.
+Use webhooks to grant and revoke access based on subscription status. The Next.js and Better Auth adapters provide high-level `onGrantAccess` and `onRevokeAccess` callbacks. With the TypeScript SDK, verify the webhook payload and handle the subscription event types directly.
 
 ### How It Works
 
-- **`onGrantAccess`** - Automatically called when a customer should have access (when subscription is `active`, `trialing`, or `paid`)
-- **`onRevokeAccess`** - Automatically called when a customer should lose access (when subscription is `paused` or `expired`)
+- **Grant access** when subscription events indicate the customer should have access, such as `subscription.active`, `subscription.trialing`, or `subscription.paid`.
+- **Revoke access** when subscription events indicate the customer should lose access, such as `subscription.paused` or `subscription.expired`.
 
-This abstraction means you don't need to track individual subscription events. Just implement these two callbacks to handle your entire access management flow.
+The adapters can group these events into callbacks for you. In a generic TypeScript endpoint, keep the event mapping explicit so your application owns the access policy.
 
 <Tabs>
   <Tab title="Next.js">
@@ -295,54 +295,56 @@ export const POST = Webhook({
   <Tab title="TypeScript SDK">
 
 ```typescript
-// app/api/webhook/route.ts
-import { createCreem } from 'creem_io';
+import { constructWebhookEvent } from 'creem/webhooks';
+import type { SubscriptionEntity } from 'creem/models/components';
 
-const creem = createCreem({
-  apiKey: process.env.CREEM_API_KEY!,
-  webhookSecret: process.env.CREEM_WEBHOOK_SECRET!,
-});
+const grantAccessEvents = new Set([
+  'subscription.active',
+  'subscription.trialing',
+  'subscription.paid',
+]);
 
-app.post('/webhook', async (req, res) => {
+const revokeAccessEvents = new Set(['subscription.paused', 'subscription.expired']);
+
+// In your webhook endpoint
+export async function handleWebhook(request: Request) {
   try {
-    await creem.webhooks.handleEvents(
-      req.body,
-      req.headers['creem-signature'],
-      {
-        onGrantAccess: async ({ reason, customer, product, metadata }) => {
-          // Called for: subscription.active, subscription.trialing, subscription.paid
-          const userId = metadata?.userId as string;
+    const rawBody = await request.text();
+    const event = await constructWebhookEvent<SubscriptionEntity>(rawBody, request.headers, {
+      secret: process.env.CREEM_WEBHOOK_SECRET!,
+    });
 
-          await db.user.update({
-            where: { id: userId },
-            data: {
-              subscriptionActive: true,
-              subscriptionTier: product.name,
-            },
-          });
+    const userId = event.data.metadata?.userId;
+    if (!userId) {
+      return new Response('No user metadata', { status: 200 });
+    }
 
-          console.log(`Granted ${reason} to ${customer.email}`);
+    if (grantAccessEvents.has(event.type)) {
+      await db.user.update({
+        where: { id: userId },
+        data: {
+          subscriptionActive: true,
+          subscriptionId: event.data.id,
         },
+      });
 
-        onRevokeAccess: async ({ reason, customer, metadata }) => {
-          // Called for: subscription.paused, subscription.expired
-          const userId = metadata?.userId as string;
+      console.log(`Granted access for subscription ${event.data.id}`);
+    }
 
-          await db.user.update({
-            where: { id: userId },
-            data: { subscriptionActive: false },
-          });
+    if (revokeAccessEvents.has(event.type)) {
+      await db.user.update({
+        where: { id: userId },
+        data: { subscriptionActive: false },
+      });
 
-          console.log(`Revoked access (${reason}) from ${customer.email}`);
-        },
-      }
-    );
+      console.log(`Revoked access for subscription ${event.data.id}`);
+    }
 
-    res.status(200).send('OK');
+    return new Response('OK', { status: 200 });
   } catch (error) {
-    res.status(400).send('Invalid signature');
+    return new Response('Invalid signature', { status: 400 });
   }
-});
+}
 ```
 
 <Card

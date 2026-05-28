@@ -318,37 +318,43 @@ export const POST = Webhook({
   <Tab title="TypeScript SDK">
 
 ```typescript
-import { createCreem } from 'creem_io';
-
-const creem = createCreem({
-  apiKey: process.env.CREEM_API_KEY!,
-  webhookSecret: process.env.CREEM_WEBHOOK_SECRET!,
-});
+import { constructWebhookEvent } from 'creem/webhooks';
+import type { SubscriptionEntity } from 'creem/models/components';
 
 // In your webhook endpoint
-await creem.webhooks.handleEvents(
-  request.body,
-  request.headers['creem-signature'],
-  {
-    onSubscriptionCanceled: async (data) => {
-      const { subscription, customer } = data;
+const rawBody = await request.text();
+const event = await constructWebhookEvent<SubscriptionEntity>(rawBody, request.headers, {
+  secret: process.env.CREEM_WEBHOOK_SECRET!,
+});
 
-      console.log(`Subscription ${subscription.id} canceled`);
+if (event.type === 'subscription.canceled') {
+  const customer =
+    typeof event.data.customer === 'string' ? undefined : event.data.customer;
 
-      // Revoke access
-      await revokeAccess(customer.email);
-    },
+  console.log(`Subscription ${event.data.id} canceled`);
 
-    onRevokeAccess: async (context) => {
-      // Simplified access management
-      const userId = context.metadata?.userId;
-      await db.user.update({
-        where: { id: userId },
-        data: { subscriptionActive: false },
-      });
-    },
+  if (customer) {
+    // Revoke access in your database
+    await revokeAccess(customer.email);
+
+    // Send cancellation confirmation email
+    await sendEmail({
+      to: customer.email,
+      subject: 'Subscription Canceled',
+      body: 'Your subscription has been canceled...',
+    });
   }
-);
+}
+
+if (['subscription.canceled', 'subscription.paused', 'subscription.expired'].includes(event.type)) {
+  const userId = event.data.metadata?.userId;
+  if (userId) {
+    await db.user.update({
+      where: { id: userId },
+      data: { subscriptionActive: false },
+    });
+  }
+}
 ```
 
   </Tab>
@@ -376,29 +382,39 @@ When a subscription payment fails:
 
 ```typescript
 // Handle failed payment webhook
-await creem.webhooks.handleEvents(
-  request.body,
-  request.headers['creem-signature'],
-  {
-    onSubscriptionPastDue: async (data) => {
-      const { subscription, customer } = data;
+import { constructWebhookEvent } from 'creem/webhooks';
+import type { SubscriptionEntity } from 'creem/models/components';
 
-      // Notify customer to update payment method
-      await sendPaymentFailedEmail(customer.email, {
-        portalLink: `https://yoursite.com/portal?customer=${customer.id}`,
-      });
+const rawBody = await request.text();
+const event = await constructWebhookEvent<SubscriptionEntity>(rawBody, request.headers, {
+  secret: process.env.CREEM_WEBHOOK_SECRET!,
+});
 
-      // Optionally restrict access or show warning
-      await showPaymentWarning(customer.email);
-    },
+if (event.type === 'subscription.past_due') {
+  const customer =
+    typeof event.data.customer === 'string' ? undefined : event.data.customer;
 
-    onSubscriptionCanceled: async (data) => {
-      // After all retries failed
-      await revokeAccess(data.customer.email);
-      await sendSubscriptionEndedEmail(data.customer.email);
-    },
+  // Notify customer to update payment method
+  if (customer) {
+    await sendPaymentFailedEmail(customer.email, {
+      portalLink: `https://yoursite.com/portal?customer=${customer.id}`,
+    });
+
+    // Optionally restrict access or show warning
+    await showPaymentWarning(customer.email);
   }
-);
+}
+
+if (event.type === 'subscription.canceled') {
+  const customer =
+    typeof event.data.customer === 'string' ? undefined : event.data.customer;
+
+  // After all retries failed
+  if (customer) {
+    await revokeAccess(customer.email);
+    await sendSubscriptionEndedEmail(customer.email);
+  }
+}
 ```
 
 ---

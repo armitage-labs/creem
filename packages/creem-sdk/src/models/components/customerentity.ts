@@ -16,7 +16,7 @@ import {
 /**
  * Additional metadata associated with the customer.
  */
-export type Metadata = {};
+export type Metadata = { [k: string]: any };
 
 export type CustomerEntity = {
   /**
@@ -62,16 +62,16 @@ export const Metadata$inboundSchema: z.ZodType<
   Metadata,
   z.ZodTypeDef,
   unknown
-> = z.object({});
+> = z.record(z.any());
 /** @internal */
-export type Metadata$Outbound = {};
+export type Metadata$Outbound = { [k: string]: any };
 
 /** @internal */
 export const Metadata$outboundSchema: z.ZodType<
   Metadata$Outbound,
   z.ZodTypeDef,
   Metadata
-> = z.object({});
+> = z.record(z.any());
 
 export function metadataToJSON(metadata: Metadata): string {
   return JSON.stringify(Metadata$outboundSchema.parse(metadata));

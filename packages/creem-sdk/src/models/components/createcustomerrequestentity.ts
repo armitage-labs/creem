@@ -10,7 +10,7 @@ import { SDKValidationError } from "../errors/sdkvalidationerror.js";
 /**
  * Additional metadata for the customer.
  */
-export type CreateCustomerRequestEntityMetadata = {};
+export type CreateCustomerRequestEntityMetadata = { [k: string]: any };
 
 export type CreateCustomerRequestEntity = {
   /**
@@ -32,16 +32,16 @@ export const CreateCustomerRequestEntityMetadata$inboundSchema: z.ZodType<
   CreateCustomerRequestEntityMetadata,
   z.ZodTypeDef,
   unknown
-> = z.object({});
+> = z.record(z.any());
 /** @internal */
-export type CreateCustomerRequestEntityMetadata$Outbound = {};
+export type CreateCustomerRequestEntityMetadata$Outbound = { [k: string]: any };
 
 /** @internal */
 export const CreateCustomerRequestEntityMetadata$outboundSchema: z.ZodType<
   CreateCustomerRequestEntityMetadata$Outbound,
   z.ZodTypeDef,
   CreateCustomerRequestEntityMetadata
-> = z.object({});
+> = z.record(z.any());
 
 export function createCustomerRequestEntityMetadataToJSON(
   createCustomerRequestEntityMetadata: CreateCustomerRequestEntityMetadata,

@@ -11,7 +11,7 @@ import { SDKValidationError } from "../errors/sdkvalidationerror.js";
 /**
  * Additional metadata for the customer.
  */
-export type UpdateCustomerRequestEntityMetadata = {};
+export type UpdateCustomerRequestEntityMetadata = { [k: string]: any };
 
 export type UpdateCustomerRequestEntity = {
   /**
@@ -33,16 +33,16 @@ export const UpdateCustomerRequestEntityMetadata$inboundSchema: z.ZodType<
   UpdateCustomerRequestEntityMetadata,
   z.ZodTypeDef,
   unknown
-> = z.object({});
+> = z.record(z.any());
 /** @internal */
-export type UpdateCustomerRequestEntityMetadata$Outbound = {};
+export type UpdateCustomerRequestEntityMetadata$Outbound = { [k: string]: any };
 
 /** @internal */
 export const UpdateCustomerRequestEntityMetadata$outboundSchema: z.ZodType<
   UpdateCustomerRequestEntityMetadata$Outbound,
   z.ZodTypeDef,
   UpdateCustomerRequestEntityMetadata
-> = z.object({});
+> = z.record(z.any());
 
 export function updateCustomerRequestEntityMetadataToJSON(
   updateCustomerRequestEntityMetadata: UpdateCustomerRequestEntityMetadata,
