@@ -32,7 +32,7 @@ Retrieve a paginated list of all customers. Filter and search through your custo
       };
     }
 
-    const value = result.value;
+    const value = result.value.result;
 
     return formatResult(value, apiCall);
   },

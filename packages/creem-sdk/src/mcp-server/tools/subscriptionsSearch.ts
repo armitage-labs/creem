@@ -32,7 +32,7 @@ Search and retrieve a paginated list of subscriptions. View status, billing cycl
       };
     }
 
-    const value = result.value;
+    const value = result.value.result;
 
     return formatResult(value, apiCall);
   },

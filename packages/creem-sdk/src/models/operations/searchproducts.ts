@@ -6,6 +6,7 @@ import * as z from "zod/v3";
 import { remap as remap$ } from "../../lib/primitives.js";
 import { safeParse } from "../../lib/schemas.js";
 import { Result as SafeParseResult } from "../../types/fp.js";
+import * as components from "../components/index.js";
 import { SDKValidationError } from "../errors/sdkvalidationerror.js";
 
 export type SearchProductsRequest = {
@@ -17,6 +18,10 @@ export type SearchProductsRequest = {
    * The number of items per page.
    */
   pageSize?: number | undefined;
+};
+
+export type SearchProductsResponse = {
+  result: components.ProductListEntity;
 };
 
 /** @internal */
@@ -68,5 +73,52 @@ export function searchProductsRequestFromJSON(
     jsonString,
     (x) => SearchProductsRequest$inboundSchema.parse(JSON.parse(x)),
     `Failed to parse 'SearchProductsRequest' from JSON`,
+  );
+}
+
+/** @internal */
+export const SearchProductsResponse$inboundSchema: z.ZodType<
+  SearchProductsResponse,
+  z.ZodTypeDef,
+  unknown
+> = z.object({
+  Result: components.ProductListEntity$inboundSchema,
+}).transform((v) => {
+  return remap$(v, {
+    "Result": "result",
+  });
+});
+/** @internal */
+export type SearchProductsResponse$Outbound = {
+  Result: components.ProductListEntity$Outbound;
+};
+
+/** @internal */
+export const SearchProductsResponse$outboundSchema: z.ZodType<
+  SearchProductsResponse$Outbound,
+  z.ZodTypeDef,
+  SearchProductsResponse
+> = z.object({
+  result: components.ProductListEntity$outboundSchema,
+}).transform((v) => {
+  return remap$(v, {
+    result: "Result",
+  });
+});
+
+export function searchProductsResponseToJSON(
+  searchProductsResponse: SearchProductsResponse,
+): string {
+  return JSON.stringify(
+    SearchProductsResponse$outboundSchema.parse(searchProductsResponse),
+  );
+}
+export function searchProductsResponseFromJSON(
+  jsonString: string,
+): SafeParseResult<SearchProductsResponse, SDKValidationError> {
+  return safeParse(
+    jsonString,
+    (x) => SearchProductsResponse$inboundSchema.parse(JSON.parse(x)),
+    `Failed to parse 'SearchProductsResponse' from JSON`,
   );
 }

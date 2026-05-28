@@ -13,6 +13,7 @@ export const ProductBillingPeriod = {
   EveryThreeMonths: "every-three-months",
   EverySixMonths: "every-six-months",
   EveryYear: "every-year",
+  EveryDay: "every-day",
   Once: "once",
 } as const;
 /**

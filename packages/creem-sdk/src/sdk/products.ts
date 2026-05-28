@@ -7,7 +7,9 @@ import { productsGet } from "../funcs/productsGet.js";
 import { productsSearch } from "../funcs/productsSearch.js";
 import { ClientSDK, RequestOptions } from "../lib/sdks.js";
 import * as components from "../models/components/index.js";
+import * as operations from "../models/operations/index.js";
 import { unwrapAsync } from "../types/fp.js";
+import { PageIterator, unwrapResultIterator } from "../types/operations.js";
 
 export class Products extends ClientSDK {
   /**
@@ -54,8 +56,10 @@ export class Products extends ClientSDK {
     pageNumber?: number | undefined,
     pageSize?: number | undefined,
     options?: RequestOptions,
-  ): Promise<components.ProductListEntity> {
-    return unwrapAsync(productsSearch(
+  ): Promise<
+    PageIterator<operations.SearchProductsResponse, { page: number }>
+  > {
+    return unwrapResultIterator(productsSearch(
       this,
       pageNumber,
       pageSize,

@@ -13,5 +13,5 @@ let value: ProductRequestBillingPeriod = "every-six-months";
 ## Values
 
 ```typescript
-"once" | "every-month" | "every-three-months" | "every-six-months" | "every-year"
+"once" | "every-day" | "every-month" | "every-three-months" | "every-six-months" | "every-year"
 ```

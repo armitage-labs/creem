@@ -43,7 +43,7 @@ Search and list discount codes for a store with filters and pagination.`,
       };
     }
 
-    const value = result.value;
+    const value = result.value.result;
 
     return formatResult(value, apiCall);
   },

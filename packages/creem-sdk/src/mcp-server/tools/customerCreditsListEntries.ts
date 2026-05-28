@@ -36,7 +36,7 @@ List the credit and debit history for an account with cursor pagination.`,
       };
     }
 
-    const value = result.value;
+    const value = result.value.result;
 
     return formatResult(value, apiCall);
   },

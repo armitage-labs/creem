@@ -6,6 +6,7 @@ import * as z from "zod/v3";
 import { remap as remap$ } from "../../lib/primitives.js";
 import { safeParse } from "../../lib/schemas.js";
 import { Result as SafeParseResult } from "../../types/fp.js";
+import * as components from "../components/index.js";
 import { SDKValidationError } from "../errors/sdkvalidationerror.js";
 
 export type ListCustomersRequest = {
@@ -17,6 +18,10 @@ export type ListCustomersRequest = {
    * The number of items per page.
    */
   pageSize?: number | undefined;
+};
+
+export type ListCustomersResponse = {
+  result: components.CustomerListEntity;
 };
 
 /** @internal */
@@ -68,5 +73,52 @@ export function listCustomersRequestFromJSON(
     jsonString,
     (x) => ListCustomersRequest$inboundSchema.parse(JSON.parse(x)),
     `Failed to parse 'ListCustomersRequest' from JSON`,
+  );
+}
+
+/** @internal */
+export const ListCustomersResponse$inboundSchema: z.ZodType<
+  ListCustomersResponse,
+  z.ZodTypeDef,
+  unknown
+> = z.object({
+  Result: components.CustomerListEntity$inboundSchema,
+}).transform((v) => {
+  return remap$(v, {
+    "Result": "result",
+  });
+});
+/** @internal */
+export type ListCustomersResponse$Outbound = {
+  Result: components.CustomerListEntity$Outbound;
+};
+
+/** @internal */
+export const ListCustomersResponse$outboundSchema: z.ZodType<
+  ListCustomersResponse$Outbound,
+  z.ZodTypeDef,
+  ListCustomersResponse
+> = z.object({
+  result: components.CustomerListEntity$outboundSchema,
+}).transform((v) => {
+  return remap$(v, {
+    result: "Result",
+  });
+});
+
+export function listCustomersResponseToJSON(
+  listCustomersResponse: ListCustomersResponse,
+): string {
+  return JSON.stringify(
+    ListCustomersResponse$outboundSchema.parse(listCustomersResponse),
+  );
+}
+export function listCustomersResponseFromJSON(
+  jsonString: string,
+): SafeParseResult<ListCustomersResponse, SDKValidationError> {
+  return safeParse(
+    jsonString,
+    (x) => ListCustomersResponse$inboundSchema.parse(JSON.parse(x)),
+    `Failed to parse 'ListCustomersResponse' from JSON`,
   );
 }

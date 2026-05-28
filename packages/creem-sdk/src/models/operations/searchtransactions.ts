@@ -6,6 +6,7 @@ import * as z from "zod/v3";
 import { remap as remap$ } from "../../lib/primitives.js";
 import { safeParse } from "../../lib/schemas.js";
 import { Result as SafeParseResult } from "../../types/fp.js";
+import * as components from "../components/index.js";
 import { SDKValidationError } from "../errors/sdkvalidationerror.js";
 
 export type SearchTransactionsRequest = {
@@ -29,6 +30,10 @@ export type SearchTransactionsRequest = {
    * The number of items per page.
    */
   pageSize?: number | undefined;
+};
+
+export type SearchTransactionsResponse = {
+  result: components.TransactionListEntity;
 };
 
 /** @internal */
@@ -95,5 +100,52 @@ export function searchTransactionsRequestFromJSON(
     jsonString,
     (x) => SearchTransactionsRequest$inboundSchema.parse(JSON.parse(x)),
     `Failed to parse 'SearchTransactionsRequest' from JSON`,
+  );
+}
+
+/** @internal */
+export const SearchTransactionsResponse$inboundSchema: z.ZodType<
+  SearchTransactionsResponse,
+  z.ZodTypeDef,
+  unknown
+> = z.object({
+  Result: components.TransactionListEntity$inboundSchema,
+}).transform((v) => {
+  return remap$(v, {
+    "Result": "result",
+  });
+});
+/** @internal */
+export type SearchTransactionsResponse$Outbound = {
+  Result: components.TransactionListEntity$Outbound;
+};
+
+/** @internal */
+export const SearchTransactionsResponse$outboundSchema: z.ZodType<
+  SearchTransactionsResponse$Outbound,
+  z.ZodTypeDef,
+  SearchTransactionsResponse
+> = z.object({
+  result: components.TransactionListEntity$outboundSchema,
+}).transform((v) => {
+  return remap$(v, {
+    result: "Result",
+  });
+});
+
+export function searchTransactionsResponseToJSON(
+  searchTransactionsResponse: SearchTransactionsResponse,
+): string {
+  return JSON.stringify(
+    SearchTransactionsResponse$outboundSchema.parse(searchTransactionsResponse),
+  );
+}
+export function searchTransactionsResponseFromJSON(
+  jsonString: string,
+): SafeParseResult<SearchTransactionsResponse, SDKValidationError> {
+  return safeParse(
+    jsonString,
+    (x) => SearchTransactionsResponse$inboundSchema.parse(JSON.parse(x)),
+    `Failed to parse 'SearchTransactionsResponse' from JSON`,
   );
 }

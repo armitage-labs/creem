@@ -207,7 +207,9 @@ const creem = new Creem({
 async function run() {
   const result = await creem.products.search();
 
-  console.log(result);
+  for await (const page of result) {
+    console.log(page);
+  }
 }
 
 run();
@@ -231,7 +233,9 @@ async function run() {
   const res = await productsSearch(creem);
   if (res.ok) {
     const { value: result } = res;
-    console.log(result);
+    for await (const page of result) {
+    console.log(page);
+  }
   } else {
     console.log("productsSearch failed:", res.error);
   }
@@ -252,7 +256,7 @@ run();
 
 ### Response
 
-**Promise\<[components.ProductListEntity](../../models/components/productlistentity.md)\>**
+**Promise\<[operations.SearchProductsResponse](../../models/operations/searchproductsresponse.md)\>**
 
 ### Errors
 

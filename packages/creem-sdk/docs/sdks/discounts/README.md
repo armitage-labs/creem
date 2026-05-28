@@ -26,7 +26,9 @@ const creem = new Creem({
 async function run() {
   const result = await creem.discounts.search(1, 10, "prod_1234567890", undefined, undefined, "2024-01-01T00:00:00Z", "2024-12-31T23:59:59Z");
 
-  console.log(result);
+  for await (const page of result) {
+    console.log(page);
+  }
 }
 
 run();
@@ -50,7 +52,9 @@ async function run() {
   const res = await discountsSearch(creem, 1, 10, "prod_1234567890", undefined, undefined, "2024-01-01T00:00:00Z", "2024-12-31T23:59:59Z");
   if (res.ok) {
     const { value: result } = res;
-    console.log(result);
+    for await (const page of result) {
+    console.log(page);
+  }
   } else {
     console.log("discountsSearch failed:", res.error);
   }
@@ -76,7 +80,7 @@ run();
 
 ### Response
 
-**Promise\<[components.DiscountListEntity](../../models/components/discountlistentity.md)\>**
+**Promise\<[operations.SearchDiscountsResponse](../../models/operations/searchdiscountsresponse.md)\>**
 
 ### Errors
 

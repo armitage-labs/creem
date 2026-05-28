@@ -6,7 +6,9 @@ import { transactionsGetById } from "../funcs/transactionsGetById.js";
 import { transactionsSearch } from "../funcs/transactionsSearch.js";
 import { ClientSDK, RequestOptions } from "../lib/sdks.js";
 import * as components from "../models/components/index.js";
+import * as operations from "../models/operations/index.js";
 import { unwrapAsync } from "../types/fp.js";
+import { PageIterator, unwrapResultIterator } from "../types/operations.js";
 
 export class Transactions extends ClientSDK {
   /**
@@ -39,8 +41,10 @@ export class Transactions extends ClientSDK {
     pageNumber?: number | undefined,
     pageSize?: number | undefined,
     options?: RequestOptions,
-  ): Promise<components.TransactionListEntity> {
-    return unwrapAsync(transactionsSearch(
+  ): Promise<
+    PageIterator<operations.SearchTransactionsResponse, { page: number }>
+  > {
+    return unwrapResultIterator(transactionsSearch(
       this,
       customerId,
       orderId,

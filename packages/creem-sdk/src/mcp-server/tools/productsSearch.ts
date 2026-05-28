@@ -32,7 +32,7 @@ Search and retrieve a paginated list of products. Filter by status, billing type
       };
     }
 
-    const value = result.value;
+    const value = result.value.result;
 
     return formatResult(value, apiCall);
   },

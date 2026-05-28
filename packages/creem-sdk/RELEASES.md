@@ -49,3 +49,13 @@ Based on:
 - [typescript v1.4.5] packages/creem-sdk
 ### Releases
 - [NPM v1.4.5] https://www.npmjs.com/package/creem/v/1.4.5 - packages/creem-sdk
+
+## 2026-05-28 11:59:06
+### Changes
+Based on:
+- OpenAPI Doc  
+- Speakeasy CLI 1.768.2 (2.889.1) https://github.com/speakeasy-api/speakeasy
+### Generated
+- [typescript v1.5.0] packages/creem-sdk
+### Releases
+- [NPM v1.5.0] https://www.npmjs.com/package/creem/v/1.5.0 - packages/creem-sdk
