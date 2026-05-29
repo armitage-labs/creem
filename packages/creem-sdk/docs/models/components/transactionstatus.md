@@ -13,5 +13,5 @@ let value: TransactionStatus = "declined";
 ## Values
 
 ```typescript
-"pending" | "paid" | "refunded" | "partialRefund" | "chargedBack" | "uncollectible" | "declined" | "void" | "canceled"
+"pending" | "paid" | "refunded" | "partialRefund" | "chargedBack" | "uncollectible" | "declined" | "canceled" | "void"
 ```

@@ -50,7 +50,9 @@ const value: components.SubscriptionEntity = {
     object: "<value>",
     email: "user@example.com",
     name: "John Doe",
-    metadata: {},
+    metadata: {
+      "key": "value",
+    },
     country: "US",
     createdAt: new Date("2023-01-01T00:00:00Z"),
     updatedAt: new Date("2023-01-01T00:00:00Z"),
@@ -80,6 +82,14 @@ const value: components.SubscriptionEntity = {
   canceledAt: new Date("2024-09-12T12:34:56Z"),
   createdAt: new Date("2024-01-01T00:00:00Z"),
   updatedAt: new Date("2024-09-12T12:34:56Z"),
+  discount: {
+    id: "dis_3e6Z6TzvHKdsjEgXnGDEp0",
+    discountCode: "HOLIDAY2024",
+  },
+  metadata: {
+    "userId": "user_123",
+    "plan": "pro",
+  },
 };
 ```
 

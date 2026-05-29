@@ -8,6 +8,12 @@ import { ClosedEnum } from "../../types/enums.js";
 import { Result as SafeParseResult } from "../../types/fp.js";
 import { SDKValidationError } from "../errors/sdkvalidationerror.js";
 
+export const Currency = {
+  Eur: "EUR",
+  Usd: "USD",
+} as const;
+export type Currency = ClosedEnum<typeof Currency>;
+
 /**
  * Groups time-series data into buckets of this size. Requires startDate and endDate. Returns a periods array with one entry per bucket containing grossRevenue and netRevenue.
  */
@@ -21,13 +27,8 @@ export const Interval = {
  */
 export type Interval = ClosedEnum<typeof Interval>;
 
-export const Currency = {
-  Eur: "EUR",
-  Usd: "USD",
-} as const;
-export type Currency = ClosedEnum<typeof Currency>;
-
 export type GetMetricsSummaryRequest = {
+  currency: Currency;
   /**
    * Start of the date range as a Unix timestamp in milliseconds (e.g. 1740614400000). When provided with endDate, filters totals to this range. Required when interval is specified.
    */
@@ -40,15 +41,7 @@ export type GetMetricsSummaryRequest = {
    * Groups time-series data into buckets of this size. Requires startDate and endDate. Returns a periods array with one entry per bucket containing grossRevenue and netRevenue.
    */
   interval?: Interval | undefined;
-  currency: Currency;
 };
-
-/** @internal */
-export const Interval$inboundSchema: z.ZodNativeEnum<typeof Interval> = z
-  .nativeEnum(Interval);
-/** @internal */
-export const Interval$outboundSchema: z.ZodNativeEnum<typeof Interval> =
-  Interval$inboundSchema;
 
 /** @internal */
 export const Currency$inboundSchema: z.ZodNativeEnum<typeof Currency> = z
@@ -58,22 +51,29 @@ export const Currency$outboundSchema: z.ZodNativeEnum<typeof Currency> =
   Currency$inboundSchema;
 
 /** @internal */
+export const Interval$inboundSchema: z.ZodNativeEnum<typeof Interval> = z
+  .nativeEnum(Interval);
+/** @internal */
+export const Interval$outboundSchema: z.ZodNativeEnum<typeof Interval> =
+  Interval$inboundSchema;
+
+/** @internal */
 export const GetMetricsSummaryRequest$inboundSchema: z.ZodType<
   GetMetricsSummaryRequest,
   z.ZodTypeDef,
   unknown
 > = z.object({
+  currency: Currency$inboundSchema,
   startDate: z.number().optional(),
   endDate: z.number().optional(),
   interval: Interval$inboundSchema.optional(),
-  currency: Currency$inboundSchema,
 });
 /** @internal */
 export type GetMetricsSummaryRequest$Outbound = {
+  currency: string;
   startDate?: number | undefined;
   endDate?: number | undefined;
   interval?: string | undefined;
-  currency: string;
 };
 
 /** @internal */
@@ -82,10 +82,10 @@ export const GetMetricsSummaryRequest$outboundSchema: z.ZodType<
   z.ZodTypeDef,
   GetMetricsSummaryRequest
 > = z.object({
+  currency: Currency$outboundSchema,
   startDate: z.number().optional(),
   endDate: z.number().optional(),
   interval: Interval$outboundSchema.optional(),
-  currency: Currency$outboundSchema,
 });
 
 export function getMetricsSummaryRequestToJSON(

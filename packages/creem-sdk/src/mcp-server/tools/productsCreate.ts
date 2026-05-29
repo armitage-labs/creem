@@ -14,7 +14,7 @@ export const tool$productsCreate: ToolDefinition<typeof args> = {
   name: "products-create",
   description: `Creates a new product.
 
-Create a new product for one-time payments or subscriptions. Configure pricing, billing cycles, and features.`,
+Create a new product for one-time payments, including free products with a 0 price, or subscriptions. Configure pricing, billing cycles, and features.`,
   args,
   tool: async (client, args, ctx) => {
     const [result, apiCall] = await productsCreate(

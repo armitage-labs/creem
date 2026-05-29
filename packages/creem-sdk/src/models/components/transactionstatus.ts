@@ -16,8 +16,8 @@ export const TransactionStatus = {
   ChargedBack: "chargedBack",
   Uncollectible: "uncollectible",
   Declined: "declined",
-  Void: "void",
   Canceled: "canceled",
+  Void: "void",
 } as const;
 /**
  * Status of the transaction.

@@ -6,6 +6,7 @@ import * as z from "zod/v3";
 import { remap as remap$ } from "../../lib/primitives.js";
 import { safeParse } from "../../lib/schemas.js";
 import { Result as SafeParseResult } from "../../types/fp.js";
+import * as components from "../components/index.js";
 import { SDKValidationError } from "../errors/sdkvalidationerror.js";
 
 export type SearchSubscriptionsRequest = {
@@ -17,6 +18,10 @@ export type SearchSubscriptionsRequest = {
    * The number of items per page.
    */
   pageSize?: number | undefined;
+};
+
+export type SearchSubscriptionsResponse = {
+  result: components.SubscriptionListEntity;
 };
 
 /** @internal */
@@ -68,5 +73,54 @@ export function searchSubscriptionsRequestFromJSON(
     jsonString,
     (x) => SearchSubscriptionsRequest$inboundSchema.parse(JSON.parse(x)),
     `Failed to parse 'SearchSubscriptionsRequest' from JSON`,
+  );
+}
+
+/** @internal */
+export const SearchSubscriptionsResponse$inboundSchema: z.ZodType<
+  SearchSubscriptionsResponse,
+  z.ZodTypeDef,
+  unknown
+> = z.object({
+  Result: components.SubscriptionListEntity$inboundSchema,
+}).transform((v) => {
+  return remap$(v, {
+    "Result": "result",
+  });
+});
+/** @internal */
+export type SearchSubscriptionsResponse$Outbound = {
+  Result: components.SubscriptionListEntity$Outbound;
+};
+
+/** @internal */
+export const SearchSubscriptionsResponse$outboundSchema: z.ZodType<
+  SearchSubscriptionsResponse$Outbound,
+  z.ZodTypeDef,
+  SearchSubscriptionsResponse
+> = z.object({
+  result: components.SubscriptionListEntity$outboundSchema,
+}).transform((v) => {
+  return remap$(v, {
+    result: "Result",
+  });
+});
+
+export function searchSubscriptionsResponseToJSON(
+  searchSubscriptionsResponse: SearchSubscriptionsResponse,
+): string {
+  return JSON.stringify(
+    SearchSubscriptionsResponse$outboundSchema.parse(
+      searchSubscriptionsResponse,
+    ),
+  );
+}
+export function searchSubscriptionsResponseFromJSON(
+  jsonString: string,
+): SafeParseResult<SearchSubscriptionsResponse, SDKValidationError> {
+  return safeParse(
+    jsonString,
+    (x) => SearchSubscriptionsResponse$inboundSchema.parse(JSON.parse(x)),
+    `Failed to parse 'SearchSubscriptionsResponse' from JSON`,
   );
 }

@@ -108,7 +108,9 @@ const creem = new Creem({
 async function run() {
   const result = await creem.customerCredits.listAccounts(10, "cust_abc123");
 
-  console.log(result);
+  for await (const page of result) {
+    console.log(page);
+  }
 }
 
 run();
@@ -132,7 +134,9 @@ async function run() {
   const res = await customerCreditsListAccounts(creem, 10, "cust_abc123");
   if (res.ok) {
     const { value: result } = res;
-    console.log(result);
+    for await (const page of result) {
+    console.log(page);
+  }
   } else {
     console.log("customerCreditsListAccounts failed:", res.error);
   }
@@ -155,7 +159,7 @@ run();
 
 ### Response
 
-**Promise\<[components.AccountListResponseDto](../../models/components/accountlistresponsedto.md)\>**
+**Promise\<[operations.ListCustomerCreditsAccountsResponse](../../models/operations/listcustomercreditsaccountsresponse.md)\>**
 
 ### Errors
 
@@ -319,7 +323,9 @@ const creem = new Creem({
 async function run() {
   const result = await creem.customerCredits.listEntries("<id>");
 
-  console.log(result);
+  for await (const page of result) {
+    console.log(page);
+  }
 }
 
 run();
@@ -343,7 +349,9 @@ async function run() {
   const res = await customerCreditsListEntries(creem, "<id>");
   if (res.ok) {
     const { value: result } = res;
-    console.log(result);
+    for await (const page of result) {
+    console.log(page);
+  }
   } else {
     console.log("customerCreditsListEntries failed:", res.error);
   }
@@ -366,7 +374,7 @@ run();
 
 ### Response
 
-**Promise\<[components.EntryListResponseDto](../../models/components/entrylistresponsedto.md)\>**
+**Promise\<[operations.ListCustomerCreditsAccountEntriesResponse](../../models/operations/listcustomercreditsaccountentriesresponse.md)\>**
 
 ### Errors
 

@@ -10,6 +10,7 @@ import { ClientSDK, RequestOptions } from "../lib/sdks.js";
 import * as components from "../models/components/index.js";
 import * as operations from "../models/operations/index.js";
 import { unwrapAsync } from "../types/fp.js";
+import { PageIterator, unwrapResultIterator } from "../types/operations.js";
 
 export class Discounts extends ClientSDK {
   /**
@@ -27,8 +28,10 @@ export class Discounts extends ClientSDK {
     createdAfter?: string | undefined,
     createdBefore?: string | undefined,
     options?: RequestOptions,
-  ): Promise<components.DiscountListEntity> {
-    return unwrapAsync(discountsSearch(
+  ): Promise<
+    PageIterator<operations.SearchDiscountsResponse, { page: number }>
+  > {
+    return unwrapResultIterator(discountsSearch(
       this,
       pageNumber,
       pageSize,

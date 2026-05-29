@@ -11,7 +11,9 @@ import { subscriptionsUpdate } from "../funcs/subscriptionsUpdate.js";
 import { subscriptionsUpgrade } from "../funcs/subscriptionsUpgrade.js";
 import { ClientSDK, RequestOptions } from "../lib/sdks.js";
 import * as components from "../models/components/index.js";
+import * as operations from "../models/operations/index.js";
 import { unwrapAsync } from "../types/fp.js";
+import { PageIterator, unwrapResultIterator } from "../types/operations.js";
 
 export class Subscriptions extends ClientSDK {
   /**
@@ -41,8 +43,10 @@ export class Subscriptions extends ClientSDK {
     pageNumber?: number | undefined,
     pageSize?: number | undefined,
     options?: RequestOptions,
-  ): Promise<components.SubscriptionListEntity> {
-    return unwrapAsync(subscriptionsSearch(
+  ): Promise<
+    PageIterator<operations.SearchSubscriptionsResponse, { page: number }>
+  > {
+    return unwrapResultIterator(subscriptionsSearch(
       this,
       pageNumber,
       pageSize,
