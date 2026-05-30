@@ -357,48 +357,42 @@ export async function POST(request: NextRequest) {
 ```typescript
 // app/api/webhooks/creem/route.ts
 import { NextRequest, NextResponse } from 'next/server';
-import crypto from 'crypto';
+import { constructWebhookEventEntity } from 'creem/webhooks';
 
 export async function POST(request: NextRequest) {
   const body = await request.text();
-  const signature = request.headers.get('creem-signature');
-  
-  // Verify webhook signature
-  const expectedSignature = crypto
-    .createHmac('sha256', process.env.CREEM_WEBHOOK_SECRET!)
-    .update(body)
-    .digest('hex');
-  
-  if (signature !== expectedSignature) {
+  const event = await constructWebhookEventEntity(body, request.headers, {
+    secret: process.env.CREEM_WEBHOOK_SECRET!,
+  }).catch(() => null);
+
+  if (!event) {
     return NextResponse.json(
       { error: 'Invalid signature' },
       { status: 401 }
     );
   }
-  
-  const event = JSON.parse(body);
-  
+
   // Handle different event types
-  switch (event.type) {
+  switch (event.eventType) {
     case 'checkout.completed':
       console.log('Payment successful!', {
-        checkoutId: event.data.id,
-        customerId: event.data.customer_id,
-        productId: event.data.product_id,
+        checkoutId: event.object.id,
+        customer: event.object.customer,
+        product: event.object.product,
       });
       // Grant access, send email, update database, etc.
       break;
-      
-    case 'subscription.created':
-      console.log('New subscription:', event.data);
+
+    case 'subscription.active':
+      console.log('Subscription active:', event.object);
       break;
-      
+
     case 'subscription.canceled':
-      console.log('Subscription canceled:', event.data);
+      console.log('Subscription canceled:', event.object);
       // Revoke access
       break;
   }
-  
+
   return NextResponse.json({ received: true });
 }
 ```

@@ -295,49 +295,50 @@ export const POST = Webhook({
   <Tab title="TypeScript SDK">
 
 ```typescript
-import { constructWebhookEvent } from 'creem/webhooks';
-import type { SubscriptionEntity } from 'creem/models/components';
-
-const grantAccessEvents = new Set([
-  'subscription.active',
-  'subscription.trialing',
-  'subscription.paid',
-]);
-
-const revokeAccessEvents = new Set(['subscription.paused', 'subscription.expired']);
+import { constructWebhookEventEntity } from 'creem/webhooks';
 
 // In your webhook endpoint
 export async function handleWebhook(request: Request) {
   try {
     const rawBody = await request.text();
-    const event = await constructWebhookEvent<SubscriptionEntity>(rawBody, request.headers, {
+    const event = await constructWebhookEventEntity(rawBody, request.headers, {
       secret: process.env.CREEM_WEBHOOK_SECRET!,
     });
 
-    const userId = event.data.metadata?.userId;
-    if (!userId) {
-      return new Response('No user metadata', { status: 200 });
-    }
+    switch (event.eventType) {
+      case 'subscription.active':
+      case 'subscription.trialing':
+      case 'subscription.paid': {
+        const subscription = event.object;
+        const userId = subscription.metadata?.userId;
+        if (!userId) return new Response('No user metadata', { status: 200 });
 
-    if (grantAccessEvents.has(event.type)) {
-      await db.user.update({
-        where: { id: userId },
-        data: {
-          subscriptionActive: true,
-          subscriptionId: event.data.id,
-        },
-      });
+        await db.user.update({
+          where: { id: userId },
+          data: {
+            subscriptionActive: true,
+            subscriptionId: subscription.id,
+          },
+        });
 
-      console.log(`Granted access for subscription ${event.data.id}`);
-    }
+        console.log(`Granted access for subscription ${subscription.id}`);
+        break;
+      }
 
-    if (revokeAccessEvents.has(event.type)) {
-      await db.user.update({
-        where: { id: userId },
-        data: { subscriptionActive: false },
-      });
+      case 'subscription.paused':
+      case 'subscription.expired': {
+        const subscription = event.object;
+        const userId = subscription.metadata?.userId;
+        if (!userId) return new Response('No user metadata', { status: 200 });
 
-      console.log(`Revoked access for subscription ${event.data.id}`);
+        await db.user.update({
+          where: { id: userId },
+          data: { subscriptionActive: false },
+        });
+
+        console.log(`Revoked access for subscription ${subscription.id}`);
+        break;
+      }
     }
 
     return new Response('OK', { status: 200 });

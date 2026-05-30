@@ -318,41 +318,54 @@ export const POST = Webhook({
   <Tab title="TypeScript SDK">
 
 ```typescript
-import { constructWebhookEvent } from 'creem/webhooks';
-import type { SubscriptionEntity } from 'creem/models/components';
+import { constructWebhookEventEntity } from 'creem/webhooks';
 
 // In your webhook endpoint
 const rawBody = await request.text();
-const event = await constructWebhookEvent<SubscriptionEntity>(rawBody, request.headers, {
+const event = await constructWebhookEventEntity(rawBody, request.headers, {
   secret: process.env.CREEM_WEBHOOK_SECRET!,
 });
 
-if (event.type === 'subscription.canceled') {
-  const customer =
-    typeof event.data.customer === 'string' ? undefined : event.data.customer;
+switch (event.eventType) {
+  case 'subscription.canceled': {
+    const subscription = event.object;
+    const customer =
+      typeof subscription.customer === 'string' ? undefined : subscription.customer;
 
-  console.log(`Subscription ${event.data.id} canceled`);
+    console.log(`Subscription ${subscription.id} canceled`);
 
-  if (customer) {
-    // Revoke access in your database
-    await revokeAccess(customer.email);
+    if (customer) {
+      // Revoke access in your database
+      await revokeAccess(customer.email);
 
-    // Send cancellation confirmation email
-    await sendEmail({
-      to: customer.email,
-      subject: 'Subscription Canceled',
-      body: 'Your subscription has been canceled...',
-    });
+      // Send cancellation confirmation email
+      await sendEmail({
+        to: customer.email,
+        subject: 'Subscription Canceled',
+        body: 'Your subscription has been canceled...',
+      });
+    }
+
+    const userId = subscription.metadata?.userId;
+    if (userId) {
+      await db.user.update({
+        where: { id: userId },
+        data: { subscriptionActive: false },
+      });
+    }
+    break;
   }
-}
 
-if (['subscription.canceled', 'subscription.paused', 'subscription.expired'].includes(event.type)) {
-  const userId = event.data.metadata?.userId;
-  if (userId) {
-    await db.user.update({
-      where: { id: userId },
-      data: { subscriptionActive: false },
-    });
+  case 'subscription.paused':
+  case 'subscription.expired': {
+    const userId = event.object.metadata?.userId;
+    if (userId) {
+      await db.user.update({
+        where: { id: userId },
+        data: { subscriptionActive: false },
+      });
+    }
+    break;
   }
 }
 ```
@@ -382,17 +395,16 @@ When a subscription payment fails:
 
 ```typescript
 // Handle failed payment webhook
-import { constructWebhookEvent } from 'creem/webhooks';
-import type { SubscriptionEntity } from 'creem/models/components';
+import { constructWebhookEventEntity } from 'creem/webhooks';
 
 const rawBody = await request.text();
-const event = await constructWebhookEvent<SubscriptionEntity>(rawBody, request.headers, {
+const event = await constructWebhookEventEntity(rawBody, request.headers, {
   secret: process.env.CREEM_WEBHOOK_SECRET!,
 });
 
-if (event.type === 'subscription.past_due') {
+if (event.eventType === 'subscription.past_due') {
   const customer =
-    typeof event.data.customer === 'string' ? undefined : event.data.customer;
+    typeof event.object.customer === 'string' ? undefined : event.object.customer;
 
   // Notify customer to update payment method
   if (customer) {
@@ -405,9 +417,9 @@ if (event.type === 'subscription.past_due') {
   }
 }
 
-if (event.type === 'subscription.canceled') {
+if (event.eventType === 'subscription.canceled') {
   const customer =
-    typeof event.data.customer === 'string' ? undefined : event.data.customer;
+    typeof event.object.customer === 'string' ? undefined : event.object.customer;
 
   // After all retries failed
   if (customer) {

@@ -105,22 +105,14 @@ export const GET = Checkout({
 
 Creem sends real-time event notifications to your server via webhooks. Webhook payloads are signed using HMAC-SHA256 so you can verify their authenticity.
 
-**Signature verification:** Every webhook request includes a `creem-signature` header. Verify it using your webhook secret (found in [Developers > Webhook](https://creem.io/dashboard/developers)) and the HMAC-SHA256 algorithm:
+**Signature verification:** Every webhook request includes a `creem-signature` header. Verify it using your webhook secret (found in [Developers > Webhook](https://creem.io/dashboard/developers)) before processing the payload:
 
 ```typescript
-import * as crypto from 'crypto';
+import { verifyWebhookSignature } from 'creem/webhooks';
 
-function verifySignature(
-  payload: string,
-  secret: string,
-  signature: string
-): boolean {
-  const computed = crypto
-    .createHmac('sha256', secret)
-    .update(payload)
-    .digest('hex');
-  return computed === signature;
-}
+await verifyWebhookSignature(rawBody, request.headers, {
+  secret: process.env.CREEM_WEBHOOK_SECRET!,
+});
 ```
 
 **Supported events:**
