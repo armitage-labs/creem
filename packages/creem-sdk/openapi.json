@@ -1706,15 +1706,6 @@
         "description": "Retrieve aggregated store metrics including counts, revenue, and MRR. When startDate and endDate are provided, totals are filtered to that date range. When interval is also provided, the response includes a periods array with time-series data points grouped by that interval. The periods array starts from the store's first transaction or startDate, whichever is later, to avoid empty leading buckets. All monetary amounts are in cents (integer, no decimals).",
         "parameters": [
           {
-            "name": "currency",
-            "required": true,
-            "in": "query",
-            "schema": {
-              "enum": ["EUR", "USD"],
-              "type": "string"
-            }
-          },
-          {
             "name": "startDate",
             "required": false,
             "in": "query",
@@ -1739,6 +1730,15 @@
             "description": "Groups time-series data into buckets of this size. Requires startDate and endDate. Returns a periods array with one entry per bucket containing grossRevenue and netRevenue.",
             "schema": {
               "enum": ["day", "week", "month"],
+              "type": "string"
+            }
+          },
+          {
+            "name": "currency",
+            "required": true,
+            "in": "query",
+            "schema": {
+              "enum": ["EUR", "USD"],
               "type": "string"
             }
           }
@@ -3295,7 +3295,15 @@
       "SubscriptionStatus": {
         "type": "string",
         "description": "The current status of the subscription.",
-        "enum": ["active", "canceled", "unpaid", "paused", "trialing", "scheduled_cancel"]
+        "enum": [
+          "active",
+          "canceled",
+          "unpaid",
+          "paused",
+          "trialing",
+          "scheduled_cancel",
+          "past_due"
+        ]
       },
       "TransactionType": {
         "type": "string",
@@ -4978,7 +4986,6 @@
         "required": ["transaction_id"]
       },
       "WebhookSubscriptionEntity": {
-        "x-speakeasy-include": true,
         "type": "object",
         "properties": {
           "id": {
@@ -5133,10 +5140,10 @@
           "status",
           "created_at",
           "updated_at"
-        ]
+        ],
+        "x-speakeasy-include": true
       },
       "WebhookCheckoutCompletedEventEntity": {
-        "x-speakeasy-include": true,
         "type": "object",
         "properties": {
           "id": {
@@ -5161,7 +5168,8 @@
             ]
           }
         },
-        "required": ["id", "eventType", "created_at", "object"]
+        "required": ["id", "eventType", "created_at", "object"],
+        "x-speakeasy-include": true
       },
       "RefundStatus": {
         "type": "string",
@@ -5273,7 +5281,6 @@
         ]
       },
       "WebhookRefundCreatedEventEntity": {
-        "x-speakeasy-include": true,
         "type": "object",
         "properties": {
           "id": {
@@ -5298,7 +5305,8 @@
             ]
           }
         },
-        "required": ["id", "eventType", "created_at", "object"]
+        "required": ["id", "eventType", "created_at", "object"],
+        "x-speakeasy-include": true
       },
       "DisputeEntity": {
         "type": "object",
@@ -5384,7 +5392,6 @@
         "required": ["id", "mode", "object", "amount", "currency", "transaction", "created_at"]
       },
       "WebhookDisputeCreatedEventEntity": {
-        "x-speakeasy-include": true,
         "type": "object",
         "properties": {
           "id": {
@@ -5409,10 +5416,10 @@
             ]
           }
         },
-        "required": ["id", "eventType", "created_at", "object"]
+        "required": ["id", "eventType", "created_at", "object"],
+        "x-speakeasy-include": true
       },
       "WebhookSubscriptionActiveEventEntity": {
-        "x-speakeasy-include": true,
         "type": "object",
         "properties": {
           "id": {
@@ -5437,10 +5444,10 @@
             ]
           }
         },
-        "required": ["id", "eventType", "created_at", "object"]
+        "required": ["id", "eventType", "created_at", "object"],
+        "x-speakeasy-include": true
       },
       "WebhookSubscriptionTrialingEventEntity": {
-        "x-speakeasy-include": true,
         "type": "object",
         "properties": {
           "id": {
@@ -5465,10 +5472,10 @@
             ]
           }
         },
-        "required": ["id", "eventType", "created_at", "object"]
+        "required": ["id", "eventType", "created_at", "object"],
+        "x-speakeasy-include": true
       },
       "WebhookSubscriptionCanceledEventEntity": {
-        "x-speakeasy-include": true,
         "type": "object",
         "properties": {
           "id": {
@@ -5493,10 +5500,10 @@
             ]
           }
         },
-        "required": ["id", "eventType", "created_at", "object"]
+        "required": ["id", "eventType", "created_at", "object"],
+        "x-speakeasy-include": true
       },
       "WebhookSubscriptionScheduledCancelEventEntity": {
-        "x-speakeasy-include": true,
         "type": "object",
         "properties": {
           "id": {
@@ -5521,10 +5528,10 @@
             ]
           }
         },
-        "required": ["id", "eventType", "created_at", "object"]
+        "required": ["id", "eventType", "created_at", "object"],
+        "x-speakeasy-include": true
       },
       "WebhookSubscriptionPaidEventEntity": {
-        "x-speakeasy-include": true,
         "type": "object",
         "properties": {
           "id": {
@@ -5549,10 +5556,10 @@
             ]
           }
         },
-        "required": ["id", "eventType", "created_at", "object"]
+        "required": ["id", "eventType", "created_at", "object"],
+        "x-speakeasy-include": true
       },
       "WebhookSubscriptionExpiredEventEntity": {
-        "x-speakeasy-include": true,
         "type": "object",
         "properties": {
           "id": {
@@ -5577,10 +5584,10 @@
             ]
           }
         },
-        "required": ["id", "eventType", "created_at", "object"]
+        "required": ["id", "eventType", "created_at", "object"],
+        "x-speakeasy-include": true
       },
       "WebhookSubscriptionUnpaidEventEntity": {
-        "x-speakeasy-include": true,
         "type": "object",
         "properties": {
           "id": {
@@ -5605,10 +5612,10 @@
             ]
           }
         },
-        "required": ["id", "eventType", "created_at", "object"]
+        "required": ["id", "eventType", "created_at", "object"],
+        "x-speakeasy-include": true
       },
       "WebhookSubscriptionUpdateEventEntity": {
-        "x-speakeasy-include": true,
         "type": "object",
         "properties": {
           "id": {
@@ -5633,10 +5640,10 @@
             ]
           }
         },
-        "required": ["id", "eventType", "created_at", "object"]
+        "required": ["id", "eventType", "created_at", "object"],
+        "x-speakeasy-include": true
       },
       "WebhookSubscriptionPastDueEventEntity": {
-        "x-speakeasy-include": true,
         "type": "object",
         "properties": {
           "id": {
@@ -5661,10 +5668,10 @@
             ]
           }
         },
-        "required": ["id", "eventType", "created_at", "object"]
+        "required": ["id", "eventType", "created_at", "object"],
+        "x-speakeasy-include": true
       },
       "WebhookSubscriptionPausedEventEntity": {
-        "x-speakeasy-include": true,
         "type": "object",
         "properties": {
           "id": {
@@ -5689,10 +5696,10 @@
             ]
           }
         },
-        "required": ["id", "eventType", "created_at", "object"]
+        "required": ["id", "eventType", "created_at", "object"],
+        "x-speakeasy-include": true
       },
       "WebhookEventEntity": {
-        "x-speakeasy-include": true,
         "description": "Webhook event delivered by Creem. The eventType property determines the shape of object.",
         "oneOf": [
           {
@@ -5752,7 +5759,8 @@
             "subscription.past_due": "#/components/schemas/WebhookSubscriptionPastDueEventEntity",
             "subscription.paused": "#/components/schemas/WebhookSubscriptionPausedEventEntity"
           }
-        }
+        },
+        "x-speakeasy-include": true
       }
     }
   },
