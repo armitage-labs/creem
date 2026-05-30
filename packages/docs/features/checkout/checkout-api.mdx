@@ -304,8 +304,16 @@ https://yoursite.com/success?checkout_id=ch_xxx&order_id=ord_xxx&customer_id=cus
 The `signature` query parameter allows you to verify that the redirect came from Creem. This prevents malicious users from spoofing successful payment redirects.
 
 <Note>
-  The signature is generated using HMAC-SHA256 with your API key as the secret. **Null or undefined values are excluded** from the signature string — only include parameters that have actual values.
+  The signature is a SHA-256 hex digest of the redirect parameters joined with `|`, with `salt={apiKey}` appended at the end. **Parameters appear in the order they arrive in the redirect URL** (not alphabetically sorted), and **null or empty values are excluded** — only include parameters that have actual values.
 </Note>
+
+The canonical string is built as:
+
+```text
+key1=value1|key2=value2|...|keyN=valueN|salt={apiKey}
+```
+
+Then hashed with SHA-256 and hex-encoded to produce the `signature` value.
 
 <Tabs>
   <Tab title="TypeScript">
@@ -314,31 +322,31 @@ The `signature` query parameter allows you to verify that the redirect came from
 import * as crypto from 'crypto';
 
 interface RedirectParams {
+  request_id?: string | null;
   checkout_id: string;
   order_id: string | null;
   customer_id: string | null;
   subscription_id: string | null;
   product_id: string;
-  request_id?: string | null;
   signature: string;
 }
 
 function verifyRedirectSignature(
   params: RedirectParams,
-  apiKey: string
+  apiKey: string,
 ): boolean {
   const { signature, ...rest } = params;
 
-  // Filter out null/undefined values before generating signature
-  const sortedParams = Object.keys(rest)
-    .filter((key) => rest[key as keyof typeof rest] !== null && rest[key as keyof typeof rest] !== undefined)
-    .sort()
-    .map((key) => `${key}=${rest[key as keyof typeof rest]}`)
-    .join('&');
+  // Keep insertion order; exclude null/undefined/empty values.
+  const data = Object.entries(rest)
+    .filter(([, value]) => value !== null && value !== undefined && value !== '')
+    .map(([key, value]) => `${key}=${value}`)
+    .concat(`salt=${apiKey}`)
+    .join('|');
 
   const expectedSignature = crypto
-    .createHmac('sha256', apiKey)
-    .update(sortedParams)
+    .createHash('sha256')
+    .update(data)
     .digest('hex');
 
   return signature === expectedSignature;
@@ -347,13 +355,15 @@ function verifyRedirectSignature(
 // Usage in your success page
 export async function GET(request: Request) {
   const url = new URL(request.url);
+
+  // Read fields in the order they appear in the redirect URL.
   const params: RedirectParams = {
+    request_id: url.searchParams.get('request_id'),
     checkout_id: url.searchParams.get('checkout_id')!,
     order_id: url.searchParams.get('order_id'),
     customer_id: url.searchParams.get('customer_id'),
     subscription_id: url.searchParams.get('subscription_id'),
     product_id: url.searchParams.get('product_id')!,
-    request_id: url.searchParams.get('request_id'),
     signature: url.searchParams.get('signature')!,
   };
 
@@ -372,51 +382,46 @@ export async function GET(request: Request) {
   <Tab title="Python">
 
 ```python
-import hmac
 import hashlib
-from urllib.parse import parse_qs
+import hmac
+from urllib.parse import urlparse, parse_qsl
 
-def verify_redirect_signature(params: dict, api_key: str) -> bool:
+def verify_redirect_signature(query_string: str, api_key: str) -> bool:
     """
     Verify the redirect signature from Creem checkout.
-    
+
     Args:
-        params: Dictionary of query parameters from the redirect URL
-        api_key: Your Creem API key
-    
+        query_string: The raw query string from the redirect URL.
+        api_key: Your Creem API key.
+
     Returns:
-        True if signature is valid, False otherwise
+        True if signature is valid, False otherwise.
     """
-    signature = params.get('signature', [''])[0]
-    
-    # Filter out null/None values and the signature itself
-    filtered = {
-        k: v[0] if isinstance(v, list) else v
-        for k, v in params.items()
-        if k != 'signature' and v and v[0] not in (None, 'null', '')
-    }
-    
-    # Sort and build the signature string
-    sorted_params = '&'.join(
-        f'{k}={v}' for k, v in sorted(filtered.items())
-    )
-    
-    expected_signature = hmac.new(
-        api_key.encode(),
-        sorted_params.encode(),
-        hashlib.sha256
-    ).hexdigest()
-    
+    # parse_qsl preserves the order parameters appear in the URL.
+    pairs = parse_qsl(query_string, keep_blank_values=False)
+
+    signature = ''
+    parts = []
+    for key, value in pairs:
+        if key == 'signature':
+            signature = value
+            continue
+        if value in (None, '', 'null'):
+            continue
+        parts.append(f'{key}={value}')
+
+    parts.append(f'salt={api_key}')
+    data = '|'.join(parts)
+
+    expected_signature = hashlib.sha256(data.encode()).hexdigest()
     return hmac.compare_digest(signature, expected_signature)
 
 # Usage in Flask
 @app.route('/success')
 def success():
-    params = request.args.to_dict(flat=False)
-    
-    if not verify_redirect_signature(params, os.environ['CREEM_API_KEY']):
+    if not verify_redirect_signature(request.query_string.decode(), os.environ['CREEM_API_KEY']):
         return 'Invalid signature', 401
-    
+
     # Proceed with success page...
 ```
 
@@ -428,42 +433,50 @@ def success():
 package main
 
 import (
-    "crypto/hmac"
     "crypto/sha256"
+    "crypto/subtle"
     "encoding/hex"
     "net/url"
-    "sort"
     "strings"
 )
 
-func verifyRedirectSignature(params url.Values, apiKey string) bool {
-    signature := params.Get("signature")
-    
-    // Build list of non-null parameters (excluding signature)
-    var keys []string
-    for k := range params {
-        if k != "signature" {
-            v := params.Get(k)
-            if v != "" && v != "null" {
-                keys = append(keys, k)
-            }
+// verifyRedirectSignature checks the redirect signature using the raw query
+// string so parameter order matches what Creem signed.
+func verifyRedirectSignature(rawQuery, apiKey string) bool {
+    var signature string
+    var parts []string
+
+    for _, pair := range strings.Split(rawQuery, "&") {
+        if pair == "" {
+            continue
         }
+        key, value, _ := strings.Cut(pair, "=")
+        decodedKey, err := url.QueryUnescape(key)
+        if err != nil {
+            return false
+        }
+        decodedValue, err := url.QueryUnescape(value)
+        if err != nil {
+            return false
+        }
+
+        if decodedKey == "signature" {
+            signature = decodedValue
+            continue
+        }
+        if decodedValue == "" || decodedValue == "null" {
+            continue
+        }
+        parts = append(parts, decodedKey+"="+decodedValue)
     }
-    sort.Strings(keys)
-    
-    // Build signature string
-    var pairs []string
-    for _, k := range keys {
-        pairs = append(pairs, k+"="+params.Get(k))
-    }
-    sortedParams := strings.Join(pairs, "&")
-    
-    // Generate expected signature
-    mac := hmac.New(sha256.New, []byte(apiKey))
-    mac.Write([]byte(sortedParams))
-    expectedSignature := hex.EncodeToString(mac.Sum(nil))
-    
-    return hmac.Equal([]byte(signature), []byte(expectedSignature))
+
+    parts = append(parts, "salt="+apiKey)
+    data := strings.Join(parts, "|")
+
+    sum := sha256.Sum256([]byte(data))
+    expected := hex.EncodeToString(sum[:])
+
+    return subtle.ConstantTimeCompare([]byte(signature), []byte(expected)) == 1
 }
 ```
 
@@ -471,7 +484,7 @@ func verifyRedirectSignature(params url.Values, apiKey string) bool {
 </Tabs>
 
 <Warning>
-  **Important:** Parameters with `null` values (like `order_id` for subscription-only checkouts, or `subscription_id` for one-time payments) must be **excluded** from the signature string. Including them as `"order_id=null"` will cause verification to fail.
+  **Important:** Parameters with `null` or empty values (like `order_id` for subscription-only checkouts, or `subscription_id` for one-time payments) must be **excluded** from the signed string. Including them as `"order_id=null"` will cause verification to fail.
 </Warning>
 
 ---
