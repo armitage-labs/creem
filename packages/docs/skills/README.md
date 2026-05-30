@@ -153,6 +153,7 @@ skills/
 This skill focuses on the CREEM REST API. It does not cover:
 
 - **TypeScript SDK** (`creem`) - See [TypeScript SDK docs](https://docs.creem.io/code/sdks/typescript)
+- **Migration from `creem_io`** - See [migration guide](https://docs.creem.io/code/sdks/migrate-from-creem-io)
 - **Next.js SDK** (`@creem_io/nextjs`) - See [Next.js SDK docs](https://docs.creem.io/code/sdks/nextjs)
 - **Better Auth Plugin** (`@creem_io/better-auth`) - See [Better Auth docs](https://docs.creem.io/code/sdks/better-auth)
 
