@@ -69,7 +69,7 @@ npm run format:check
 npm run generate:api
 
 # Generate from remote API, update local spec, and clean orphans
-npm run generate:api:remote -- https://api.creem.io/open-api/json
+npm run generate:api:remote -- https://api.creem.io/open-api-json
 
 # Preview API doc generation without writing files
 npm run generate:api:dry-run
@@ -126,6 +126,12 @@ icon: 'icon-name'  # Optional — Font Awesome icon name
 
 The OpenAPI 3.0 spec authored at `../creem-sdk/openapi.json` (workspace-shared with the SDK generator) is the single source of truth. `api-reference/openapi.json` is a **generated copy** kept in sync by `pnpm gen:sdk` so Mintlify can auto-discover it for the API playground — don't edit it directly.
 
+Deployed backend Swagger JSON is exposed at `/open-api-json`, for example `https://api.creem.io/open-api-json`, `https://test-api.creem.io/open-api-json`, and `https://stg-api.creem.io/open-api-json`. The private backend's local/sandbox Swagger setup may expose `/open-api/json` when run with `APP_ENVIRONMENT=local` or `APP_ENVIRONMENT=sandbox`.
+
+For backend schema changes, fix the private backend annotations first, regenerate `../creem-sdk/openapi.json`, run `speakeasy run` from `../creem-sdk`, then copy the spec to `api-reference/openapi.json`. Do not manually patch generated SDK files or the public OpenAPI spec for backend schema changes. Check that the SDK package version was not bumped unless a release is intentional.
+
+Speakeasy requires an authenticated CLI session and network access. If generation changes the package version unexpectedly, restore the intended version before committing.
+
 ### How API Docs Are Generated
 
 The `scripts/generate-api-docs.js` script:
@@ -157,7 +163,7 @@ The script has a `FILENAME_OVERRIDES` map for custom filenames. If an operationI
 When the backend API changes:
 
 1. Deploy or run the backend locally to expose the updated OpenAPI spec
-2. Run: `npm run generate:api:remote -- https://api.creem.io/open-api/json` (or sandbox URL)
+2. Run: `npm run generate:api:remote -- https://api.creem.io/open-api-json` (or sandbox URL)
 3. Review the generated changes
 4. Add the new endpoint page path to `docs.json` navigation if it's a new endpoint
 5. Commit both the updated `openapi.json` and any new/changed MDX files
