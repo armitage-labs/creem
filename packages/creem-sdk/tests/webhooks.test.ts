@@ -1,7 +1,9 @@
 import { describe, expect, it } from "vitest";
 import {
   constructWebhookEvent,
+  constructWebhookEventEntity,
   parseWebhookEvent,
+  parseWebhookEventEntity,
   verifyWebhookSignature,
   WebhookVerificationError,
 } from "../src/webhooks.js";
@@ -126,6 +128,55 @@ describe("webhooks", () => {
     });
   });
 
+  it("constructs generated webhook event entities after verification", async () => {
+    const entityPayload = JSON.stringify({
+      id: "evt_123",
+      eventType: "checkout.completed",
+      created_at: 1700000000,
+      object: {
+        id: "ch_123",
+        mode: "test",
+        object: "checkout",
+        status: "completed",
+        product: {
+          id: "prod_123",
+          mode: "test",
+          object: "product",
+          name: "Test Product",
+          description: "A test product",
+          price: 2999,
+          currency: "USD",
+          billing_type: "onetime",
+          billing_period: "once",
+          status: "active",
+          tax_mode: "exclusive",
+          tax_category: "saas",
+          created_at: "2024-01-01T00:00:00Z",
+          updated_at: "2024-01-01T00:00:00Z",
+        },
+        units: 1,
+        customer: {
+          id: "cust_123",
+          mode: "test",
+          object: "customer",
+          email: "customer@example.com",
+          country: "US",
+          created_at: "2024-01-01T00:00:00Z",
+          updated_at: "2024-01-01T00:00:00Z",
+        },
+      },
+    });
+
+    const event = await constructWebhookEventEntity(
+      entityPayload,
+      { "creem-signature": await legacySignature(entityPayload) },
+      legacySecret,
+    );
+
+    expect(event.eventType).toBe("checkout.completed");
+    expect(event.object.id).toBe("ch_123");
+  });
+
   it("parses type/data webhook payloads", () => {
     const event = parseWebhookEvent<{ id: string }>(
       JSON.stringify({
@@ -174,5 +225,52 @@ describe("webhooks", () => {
     expect(subscription.ok).toBe(true);
     if (!subscription.ok) throw subscription.error;
     expect(subscription.value.metadata?.userId).toBe("user_123");
+  });
+
+  it("accepts past_due subscription webhook status", () => {
+    const event = parseWebhookEventEntity(
+      JSON.stringify({
+        id: "evt_123",
+        eventType: "subscription.past_due",
+        created_at: 1700000000,
+        object: {
+          id: "sub_123",
+          mode: "test",
+          object: "subscription",
+          product: {
+            id: "prod_123",
+            mode: "test",
+            object: "product",
+            name: "Test Product",
+            description: "A test product",
+            price: 2999,
+            currency: "USD",
+            billing_type: "recurring",
+            billing_period: "every-month",
+            status: "active",
+            tax_mode: "exclusive",
+            tax_category: "saas",
+            created_at: "2024-01-01T00:00:00Z",
+            updated_at: "2024-01-01T00:00:00Z",
+          },
+          customer: {
+            id: "cust_123",
+            mode: "test",
+            object: "customer",
+            email: "customer@example.com",
+            country: "US",
+            created_at: "2024-01-01T00:00:00Z",
+            updated_at: "2024-01-01T00:00:00Z",
+          },
+          collection_method: "charge_automatically",
+          status: "past_due",
+          created_at: "2024-01-01T00:00:00Z",
+          updated_at: "2024-01-01T00:00:00Z",
+        },
+      }),
+    );
+
+    expect(event.eventType).toBe("subscription.past_due");
+    expect(event.object.status).toBe("past_due");
   });
 });

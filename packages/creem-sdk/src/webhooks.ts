@@ -1,3 +1,6 @@
+import type { WebhookEventEntity } from "./models/components/webhookevententity.js";
+import { webhookEventEntityFromJSON } from "./models/components/webhookevententity.js";
+
 export type WebhookHeaders =
   | Headers
   | Iterable<[string, string]>
@@ -238,6 +241,16 @@ export const parseWebhookEvent = <TData = unknown>(
   return event;
 };
 
+export const parseWebhookEventEntity = (
+  payload: string | ArrayBuffer | Uint8Array,
+): WebhookEventEntity => {
+  const result = webhookEventEntityFromJSON(payloadToString(payload));
+  if (!result.ok) {
+    throw result.error;
+  }
+  return result.value;
+};
+
 export const constructWebhookEvent = async <TData = unknown>(
   payload: string | ArrayBuffer | Uint8Array,
   headers: WebhookHeaders,
@@ -245,4 +258,13 @@ export const constructWebhookEvent = async <TData = unknown>(
 ) => {
   await verifyWebhookSignature(payload, headers, options);
   return parseWebhookEvent<TData>(payload);
+};
+
+export const constructWebhookEventEntity = async (
+  payload: string | ArrayBuffer | Uint8Array,
+  headers: WebhookHeaders,
+  options: string | WebhookSecretOptions,
+): Promise<WebhookEventEntity> => {
+  await verifyWebhookSignature(payload, headers, options);
+  return parseWebhookEventEntity(payload);
 };
