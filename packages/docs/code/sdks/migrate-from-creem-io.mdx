@@ -109,8 +109,8 @@ To fetch across pages, iterate over the result:
 
 ```ts
 const products = [];
-for await (const product of await creem.products.search(1, 20)) {
-  products.push(product);
+for await (const page of await creem.products.search(1, 20)) {
+  products.push(...page.result.items);
 }
 ```
 

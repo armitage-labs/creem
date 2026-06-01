@@ -104,7 +104,8 @@ The SDK organizes all operations into logical resources:
 
 ```ts
 // List products
-const products = await creem.products.search(1, 10);
+const productPage = await creem.products.search(1, 10);
+const products = productPage.result.items;
 
 // Get a product
 const product = await creem.products.get('prod_7CIbb...');
@@ -120,7 +121,8 @@ const createdProduct = await creem.products.create({
 });
 
 // Search products
-const products = await creem.products.search(1, 10);
+const productsPage = await creem.products.search(1, 10);
+console.log(productsPage.result.items);
 ```
 
 ### Checkouts
@@ -160,7 +162,8 @@ const retrievedCheckout = await creem.checkouts.retrieve('chck_1234567890');
 
 ```ts
 // List customers
-const customers = await creem.customers.list(1, 10);
+const customerPage = await creem.customers.list(1, 10);
+const customers = customerPage.result.items;
 
 // Get a customer by ID
 const customer = await creem.customers.retrieve('cust_abc123');
@@ -272,13 +275,14 @@ await creem.discounts.delete('disc_xxxxx');
 const transaction = await creem.transactions.getById('txn_xxxxx');
 
 // List transactions
-const transactions = await creem.transactions.search(
+const transactionPage = await creem.transactions.search(
   'cust_xxxxx', // customerId (optional)
   undefined, // orderId
   undefined, // productId
   1, // page
   50 // pageSize
 );
+const transactions = transactionPage.result.items;
 ```
 
 ---

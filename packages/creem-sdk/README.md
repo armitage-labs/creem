@@ -378,10 +378,12 @@ const creem = new Creem({
 });
 
 async function run() {
-  const result = await creem.products.search();
+  const page = await creem.products.search();
 
-  for await (const page of result) {
-    console.log(page);
+  console.log(page.result.items);
+
+  for await (const nextPage of page) {
+    console.log(nextPage.result.items);
   }
 }
 

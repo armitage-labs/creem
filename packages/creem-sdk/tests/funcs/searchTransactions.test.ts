@@ -23,7 +23,8 @@ describe("searchTransactions", () => {
   });
 
   it("should search transactions with no filters successfully", async () => {
-    const result = await creem.transactions.search();
+    const page = await creem.transactions.search();
+    const result = page.result;
 
     // Test the response structure
     expect(result).toHaveProperty("items");
@@ -46,7 +47,8 @@ describe("searchTransactions", () => {
     const pageNumber = 1;
 
     // search(customerId, orderId, productId, pageNumber, pageSize)
-    const result = await creem.transactions.search(undefined, undefined, undefined, pageNumber, pageSize);
+    const page = await creem.transactions.search(undefined, undefined, undefined, pageNumber, pageSize);
+    const result = page.result;
 
     // Test pagination structure
     expect(result.pagination).toHaveProperty("totalRecords");

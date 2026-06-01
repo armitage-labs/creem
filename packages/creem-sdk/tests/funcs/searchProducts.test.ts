@@ -32,8 +32,8 @@ describe("searchProducts", () => {
   });
 
   it("should search products successfully", async () => {
-    // When using the SDK instance directly, it returns ProductEntity[]
-    const result = await creem.products.search();
+    const page = await creem.products.search();
+    const result = page.result;
 
     // Test direct SDK method
     expect(result).toHaveProperty("items");
@@ -60,7 +60,8 @@ describe("searchProducts", () => {
   it("should handle pagination parameters correctly", async () => {
     const pageSize = 2;
     // Note: search(pageNumber, pageSize) - pageNumber comes first
-    const result = await creem.products.search(1, pageSize);
+    const page = await creem.products.search(1, pageSize);
+    const result = page.result;
 
     expect(result.items.length).toBeLessThanOrEqual(pageSize);
     expect(result.pagination.currentPage).toBe(1);

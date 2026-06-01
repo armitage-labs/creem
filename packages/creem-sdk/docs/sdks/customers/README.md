@@ -31,7 +31,7 @@ async function run() {
   const result = await creem.customers.list();
 
   for await (const page of result) {
-    console.log(page);
+    console.log(page.result.items);
   }
 }
 
@@ -57,7 +57,7 @@ async function run() {
   if (res.ok) {
     const { value: result } = res;
     for await (const page of result) {
-    console.log(page);
+    console.log(page.result.items);
   }
   } else {
     console.log("customersList failed:", res.error);
