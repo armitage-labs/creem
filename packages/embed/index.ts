@@ -127,21 +127,67 @@ export function openCheckout(options: CreemCheckoutOptions): CreemCheckoutHandle
     throw new Error("openCheckout must run in the browser");
   }
   const checkoutUrl = withParams(options.checkoutUrl, options);
+  // Surface color behind the iframe — matched to the checkout theme so the
+  // rounded corners and any overscroll never flash white on a dark checkout.
+  const isDark = options.theme === "dark";
+  const surface = isDark ? "#000" : "#fff";
+  const btnBg = isDark ? "rgba(255,255,255,.08)" : "rgba(0,0,0,.04)";
+  const btnBorder = isDark ? "rgba(255,255,255,.16)" : "rgba(0,0,0,.12)";
+  const btnColor = isDark ? "#e5e5e5" : "#3f3f46";
 
   const overlay = document.createElement("div");
   overlay.style.cssText =
-    "position:fixed;inset:0;z-index:2147483647;background:rgba(0,0,0,.6);display:flex;align-items:center;justify-content:center;padding:16px;";
+    "position:fixed;inset:0;z-index:2147483647;background:rgba(0,0,0,.6);display:flex;align-items:center;justify-content:center;padding:30px;";
 
+  // Coral brand edge (right + bottom) + its matching glow live on this one
+  // element — no separate overlay div.
   const wrap = document.createElement("div");
   wrap.style.cssText =
-    "position:relative;width:min(460px,100%);height:min(860px,100%);background:#fff;border-radius:14px;overflow:hidden;box-shadow:0 20px 60px rgba(0,0,0,.35);";
+    "position:relative;display:flex;flex-direction:column;width:min(460px,100%);height:min(860px,100%);background:" +
+    surface +
+    ";border-radius:14px;overflow:hidden;border-right:3px solid #ff8f5e;border-bottom:3px solid #ff8f5e;box-shadow:8px 0 28px -10px rgba(255,140,80,.6),0 8px 28px -10px rgba(255,140,80,.6);";
+
+  // Slim header strip that owns the close button, so it never overlaps the
+  // checkout content (e.g. the price in the checkout header's top-right).
+  const bar = document.createElement("div");
+  bar.style.cssText =
+    "flex:0 0 auto;display:flex;align-items:center;justify-content:flex-end;height:44px;padding:0 10px;background:" +
+    surface +
+    ";";
 
   const closeBtn = document.createElement("button");
   closeBtn.setAttribute("aria-label", "Close checkout");
-  closeBtn.innerHTML = "&times;";
-  // Flex-center the glyph; high-contrast pill so it reads on any checkout theme.
+  // Crisp SVG glyph — perfectly centered (the &times; glyph sits low in its line box).
+  closeBtn.innerHTML =
+    '<svg width="13" height="13" viewBox="0 0 14 14" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M2 2 12 12M12 2 2 12"/></svg>';
   closeBtn.style.cssText =
-    "position:absolute;top:12px;right:12px;z-index:2;display:flex;align-items:center;justify-content:center;width:32px;height:32px;padding:0;border:1px solid rgba(255,255,255,.25);border-radius:999px;background:rgba(0,0,0,.6);color:#fff;font-size:20px;line-height:1;font-family:system-ui,sans-serif;cursor:pointer;box-shadow:0 1px 6px rgba(0,0,0,.35);";
+    "display:flex;align-items:center;justify-content:center;width:34px;height:34px;padding:0;border:1px solid " +
+    btnBorder +
+    ";border-radius:10px;background:" +
+    btnBg +
+    ";color:" +
+    btnColor +
+    ";cursor:pointer;transition:background .15s,color .15s,border-color .15s,box-shadow .15s;";
+  // Violet hover state (matches the dashboard's modal close button).
+  closeBtn.addEventListener("mouseenter", () => {
+    closeBtn.style.background = "#a78bfa";
+    closeBtn.style.borderColor = "#a78bfa";
+    closeBtn.style.color = "#2e1065";
+    closeBtn.style.boxShadow = "0 2px 10px rgba(167,139,250,.55)";
+  });
+  closeBtn.addEventListener("mouseleave", () => {
+    closeBtn.style.background = btnBg;
+    closeBtn.style.borderColor = btnBorder;
+    closeBtn.style.color = btnColor;
+    closeBtn.style.boxShadow = "none";
+  });
+
+  // Fill the space under the bar; theme surface prevents a white flash on load.
+  const iframe = makeIframe(checkoutUrl);
+  iframe.style.flex = "1 1 auto";
+  iframe.style.height = "auto";
+  iframe.style.minHeight = "0";
+  iframe.style.background = surface;
 
   const unsubscribe = subscribe(checkoutUrl, options);
 
@@ -164,8 +210,9 @@ export function openCheckout(options: CreemCheckoutOptions): CreemCheckoutHandle
   });
   document.addEventListener("keydown", onKey);
 
-  wrap.appendChild(closeBtn);
-  wrap.appendChild(makeIframe(checkoutUrl));
+  bar.appendChild(closeBtn);
+  wrap.appendChild(bar);
+  wrap.appendChild(iframe);
   overlay.appendChild(wrap);
   document.body.appendChild(overlay);
 
@@ -182,7 +229,9 @@ export function mount(
   const checkoutUrl = withParams(options.checkoutUrl, options);
   options.container.replaceChildren();
   const unsubscribe = subscribe(checkoutUrl, options);
-  options.container.appendChild(makeIframe(checkoutUrl));
+  const iframe = makeIframe(checkoutUrl);
+  iframe.style.background = options.theme === "dark" ? "#000" : "#fff";
+  options.container.appendChild(iframe);
   return {
     destroy() {
       unsubscribe();
