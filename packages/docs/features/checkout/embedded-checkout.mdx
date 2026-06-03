@@ -1,0 +1,181 @@
+---
+title: 'Embedded Checkout'
+description: 'Embed Creem checkout directly in your site — as a modal overlay or inline — without redirecting customers away.'
+---
+
+Embedded checkout runs the entire Creem payment flow **inside your own site** instead of sending customers to a hosted page. Drop in a small script, open checkout as a modal or inline iframe, and get a callback when payment completes.
+
+<Note>
+  Card data is entered inside the payment provider's own secure-field iframes — embedding Creem checkout never brings card data onto your page, so your PCI scope is unchanged.
+</Note>
+
+## How it works
+
+1. Create a **checkout session** on your server with your secret API key (see [Checkout API](/features/checkout/checkout-api)) and read its `checkout_url`.
+2. Load the Creem embed script on your page.
+3. Open the checkout as an overlay or inline, and handle `onComplete`.
+
+<Tip>
+  You create the session server-side (secret key) and pass the resulting URL to the browser — the URL is safe to expose, and completion is always confirmed server-side via webhook. A no-backend, publishable-key flow is coming soon.
+</Tip>
+
+## Quickstart — overlay
+
+<Steps>
+  <Step title="Add the script">
+    ```html
+    <script src="https://www.creem.io/embed.js" defer></script>
+    ```
+  </Step>
+  <Step title="Open checkout on click">
+    ```html
+    <button id="buy">Subscribe</button>
+    <script>
+      document.getElementById('buy').onclick = () => {
+        Creem.openCheckout({
+          checkoutUrl: 'CHECKOUT_URL', // from the Checkout API
+          onComplete: (detail) => {
+            // detail = { checkoutId, orderId, orderNo }
+            console.log('Payment complete', detail);
+          },
+        });
+      };
+    </script>
+    ```
+  </Step>
+</Steps>
+
+The overlay shows the confirmation screen on success; call `Creem.close()` from `onComplete` if you want it to dismiss automatically.
+
+## Inline
+
+Mount checkout inside a container on your page:
+
+```html
+<div id="creem-checkout" style="height: 820px"></div>
+<script>
+  Creem.mount({
+    checkoutUrl: 'CHECKOUT_URL',
+    container: '#creem-checkout',
+    onComplete: (detail) => unlockContent(detail.orderId),
+  });
+</script>
+```
+
+## Zero-JS — data attribute
+
+Any element with `data-creem-checkout` opens the overlay on click:
+
+```html
+<a data-creem-checkout data-creem-url="CHECKOUT_URL">Buy now</a>
+```
+
+Optionally set the theme and language with `data-creem-theme` and `data-creem-locale`:
+
+```html
+<a
+  data-creem-checkout
+  data-creem-url="CHECKOUT_URL"
+  data-creem-theme="dark"
+  data-creem-locale="fr"
+>Buy now</a>
+```
+
+## Presentation — theme & language
+
+`openCheckout` and `mount` accept two presentation options, appended to the checkout URL for you:
+
+```js
+Creem.openCheckout({
+  checkoutUrl: 'CHECKOUT_URL',
+  theme: 'dark',   // 'light' | 'dark'
+  locale: 'pt-BR', // BCP47 tag — forces the checkout language
+});
+```
+
+By default the checkout follows the customer's **browser language**. Pass `locale` to force a specific one (e.g. to match your own site's language). Unsupported locales fall back to English. See the [supported languages](/features/checkout/checkout-api) for the full list.
+
+## Raw iframe (no loader)
+
+Prefer not to use the script? Embed the checkout URL directly:
+
+```html
+<iframe
+  src="CHECKOUT_URL"
+  allow="payment *"
+  style="border:0;width:460px;height:820px">
+</iframe>
+```
+
+<Warning>
+  The `allow="payment *"` attribute is required — without it, digital wallets and 3-D Secure challenges can't run inside the iframe.
+</Warning>
+
+## API reference
+
+### `Creem.openCheckout(options)`
+
+Opens checkout in a modal overlay.
+
+<ParamField path="checkoutUrl" type="string" required>
+  The checkout session URL from the [Checkout API](/features/checkout/checkout-api).
+</ParamField>
+<ParamField path="theme" type="'light' | 'dark'">
+  Color theme for the checkout. Defaults to light.
+</ParamField>
+<ParamField path="locale" type="string">
+  BCP47 language tag (e.g. `'fr'`, `'pt-BR'`) to force the checkout language. Defaults to the customer's browser language; unsupported locales fall back to English.
+</ParamField>
+<ParamField path="onReady" type="() => void">
+  Called once the checkout UI has rendered and is ready for input.
+</ParamField>
+<ParamField path="onComplete" type="(detail) => void">
+  Called when payment completes. `detail = { checkoutId, orderId, orderNo }`.
+</ParamField>
+<ParamField path="onClose" type="() => void">
+  Called when the overlay is dismissed by the customer.
+</ParamField>
+
+### `Creem.mount(options)`
+
+Mounts checkout inline. Same options as `openCheckout`, plus:
+
+<ParamField path="container" type="string | HTMLElement" required>
+  The element (or a CSS selector) to mount the checkout iframe into.
+</ParamField>
+
+### `Creem.close()`
+
+Programmatically closes the overlay.
+
+## Events
+
+Under the hood, the checkout posts messages to the parent window over its lifecycle. The loader handles these for you (`onReady`, `onComplete`); if you build a fully custom integration (e.g. a raw iframe), listen for them directly:
+
+```js
+window.addEventListener('message', (event) => {
+  // Only trust events from the checkout's own origin.
+  if (event.origin !== 'https://www.creem.io') return;
+  const data = event.data;
+  if (data?.source !== 'creem-embed') return;
+  if (data.type === 'ready') {
+    console.log('checkout ready');
+  } else if (data.type === 'completed') {
+    // { checkoutId, orderId, orderNo }
+    console.log('completed', data);
+  }
+});
+```
+
+<ParamField path="source" type="string">Always `"creem-embed"`.</ParamField>
+<ParamField path="version" type="number">Protocol version (currently `1`).</ParamField>
+<ParamField path="type" type="string">`"ready"` when the UI has rendered, then `"completed"` on payment.</ParamField>
+
+## Security
+
+Creem checkout pages send `Content-Security-Policy: frame-ancestors *`, so they can be embedded from any site — the standard model for embeddable, PCI-safe checkout. This is safe because:
+
+- **Card data never touches your page** — it's entered inside the payment provider's secure-field iframes, nested inside the Creem checkout iframe.
+- **A checkout session only authorizes paying for itself** — it can't read customer data, refund, or perform any privileged operation.
+
+Every other Creem surface (dashboard, customer portal) stays same-origin-only.
