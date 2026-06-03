@@ -19,7 +19,103 @@ Embedded checkout runs the entire Creem payment flow **inside your own site** in
   You create the session server-side (secret key) and pass the resulting URL to the browser — the URL is safe to expose, and completion is always confirmed server-side via webhook. A no-backend, publishable-key flow is coming soon.
 </Tip>
 
-## Quickstart — overlay
+## 1. Create a checkout session (server-side)
+
+Every embed needs a **checkout URL**, created on your server with your secret API key so the price and product can't be tampered with. Use the [Checkout API](/features/checkout/checkout-api) or one of its SDKs and read `checkout_url`:
+
+```ts
+// Server-side only — keep CREEM_API_KEY secret
+import { createCreem } from 'creem_io';
+
+const creem = createCreem({ apiKey: process.env.CREEM_API_KEY! });
+
+const checkout = await creem.checkouts.create({
+  productId: 'prod_YOUR_PRODUCT_ID',
+  successUrl: 'https://yoursite.com/success', // optional
+});
+
+// Send checkout.checkout_url to the browser, then embed it (below).
+```
+
+Then embed that URL with **a framework SDK**, the **script loader**, or a **raw iframe** — pick one.
+
+## 2. Embed it — Framework SDKs
+
+First-class packages for **React, Vue, and Svelte** with typed props and lifecycle events. They share a framework-agnostic core, [`@creem_io/embed`](https://www.npmjs.com/package/@creem_io/embed), which you can also use directly in vanilla JS.
+
+<Tabs>
+  <Tab title="React">
+    ```bash
+    npm install @creem_io/react
+    ```
+
+    ```tsx
+    import { CreemCheckout, CreemCheckoutInline } from '@creem_io/react';
+
+    // Overlay — wrap any clickable element
+    <CreemCheckout checkoutUrl={checkoutUrl} onComplete={(d) => console.log('paid', d)}>
+      <button>Subscribe</button>
+    </CreemCheckout>
+
+    // Inline — mount in place
+    <CreemCheckoutInline
+      checkoutUrl={checkoutUrl}
+      onComplete={onComplete}
+      style={{ width: 460, height: 820 }}
+    />
+    ```
+
+    Also available: the `useCreemCheckout()` hook and the `CreemEmbedCheckout.create()` promise API. [Full reference →](https://www.npmjs.com/package/@creem_io/react)
+  </Tab>
+  <Tab title="Vue">
+    ```bash
+    npm install @creem_io/vue
+    ```
+
+    ```vue
+    <script setup>
+    import { CreemCheckout, CreemCheckoutInline } from '@creem_io/vue';
+    </script>
+
+    <template>
+      <!-- Overlay -->
+      <CreemCheckout :checkout-url="checkoutUrl" @complete="onComplete">
+        <button>Subscribe</button>
+      </CreemCheckout>
+
+      <!-- Inline -->
+      <CreemCheckoutInline :checkout-url="checkoutUrl" @complete="onComplete" />
+    </template>
+    ```
+
+    Also available: the `useCreemCheckout()` composable and `CreemEmbedCheckout.create()`. [Full reference →](https://www.npmjs.com/package/@creem_io/vue)
+  </Tab>
+  <Tab title="Svelte">
+    ```bash
+    npm install @creem_io/svelte
+    ```
+
+    ```svelte
+    <script>
+      import { creemCheckout, creemCheckoutInline } from '@creem_io/svelte';
+    </script>
+
+    <!-- Overlay -->
+    <button use:creemCheckout={{ checkoutUrl, onComplete }}>Subscribe</button>
+
+    <!-- Inline -->
+    <div use:creemCheckoutInline={{ checkoutUrl, onComplete }} style="height:820px" />
+    ```
+
+    Also available: `openCheckout()` and `CreemEmbedCheckout.create()`. [Full reference →](https://www.npmjs.com/package/@creem_io/svelte)
+  </Tab>
+</Tabs>
+
+Every SDK takes the same options as the loader below (`theme`, `locale`, `redirect`) and emits the same `ready` + `completed` events.
+
+## Embed it — Script loader (overlay)
+
+No build step? Drop in the loader script and open checkout from any framework or plain HTML.
 
 <Steps>
   <Step title="Add the script">
@@ -33,7 +129,7 @@ Embedded checkout runs the entire Creem payment flow **inside your own site** in
     <script>
       document.getElementById('buy').onclick = () => {
         Creem.openCheckout({
-          checkoutUrl: 'CHECKOUT_URL', // from the Checkout API
+          checkoutUrl: 'CHECKOUT_URL', // from step 1
           onComplete: (detail) => {
             // detail = { checkoutId, orderId, orderNo }
             console.log('Payment complete', detail);
@@ -47,7 +143,7 @@ Embedded checkout runs the entire Creem payment flow **inside your own site** in
 
 The overlay shows the confirmation screen on success; call `Creem.close()` from `onComplete` if you want it to dismiss automatically.
 
-## Inline
+## Script loader — inline
 
 Mount checkout inside a container on your page:
 
@@ -113,6 +209,8 @@ Prefer not to use the script? Embed the checkout URL directly:
 
 ## API reference
 
+The framework SDKs (`@creem_io/react`, `/vue`, `/svelte`) accept these same options — as props/args, with `onComplete`/`onClose` surfaced as the `complete`/`close` events where idiomatic.
+
 ### `Creem.openCheckout(options)`
 
 Opens checkout in a modal overlay.
@@ -126,11 +224,14 @@ Opens checkout in a modal overlay.
 <ParamField path="locale" type="string">
   BCP47 language tag (e.g. `'fr'`, `'pt-BR'`) to force the checkout language. Defaults to the customer's browser language; unsupported locales fall back to English.
 </ParamField>
+<ParamField path="redirect" type="boolean" default="false">
+  When `true`, the page navigates to the checkout's success URL on completion (if one is configured). Off by default — handle `onComplete` yourself instead.
+</ParamField>
 <ParamField path="onReady" type="() => void">
   Called once the checkout UI has rendered and is ready for input.
 </ParamField>
 <ParamField path="onComplete" type="(detail) => void">
-  Called when payment completes. `detail = { checkoutId, orderId, orderNo }`.
+  Called when payment completes. `detail = { checkoutId, orderId?, orderNo?, redirect?, redirectUrl? }` — `redirectUrl` is the merchant success URL, if set.
 </ParamField>
 <ParamField path="onClose" type="() => void">
   Called when the overlay is dismissed by the customer.
@@ -170,6 +271,20 @@ window.addEventListener('message', (event) => {
 <ParamField path="source" type="string">Always `"creem-embed"`.</ParamField>
 <ParamField path="version" type="number">Protocol version (currently `1`).</ParamField>
 <ParamField path="type" type="string">`"ready"` when the UI has rendered, then `"completed"` on payment.</ParamField>
+
+## Embedding under a strict CSP
+
+Nothing is required on Creem's side — checkout sends `frame-ancestors *`. But if **your own site** sends a `Content-Security-Policy`, the browser still enforces *your* policy on the frame. Allow Creem in your `frame-src` (or `child-src`):
+
+```
+Content-Security-Policy: frame-src https://www.creem.io;
+```
+
+Without this, your CSP — not Creem's — is what blocks the iframe.
+
+<Note>
+  **Digital wallets.** Apple Pay / Google Pay can require domain registration with the card networks and may be unavailable inside a cross-origin iframe. Card and 3-D Secure payments always work in the embed; if wallet buttons are critical for you, the hosted checkout page remains the most reliable surface today.
+</Note>
 
 ## Security
 
