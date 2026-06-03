@@ -68,10 +68,14 @@ import { CreemCheckoutInline } from "@creem_io/react";
 />;
 ```
 
+## Options
+
+All components accept `theme` (`'light' | 'dark'`), `locale` (BCP47 tag, e.g. `'pt-BR'`, to force the checkout language), and `redirect` (`true` to navigate to the checkout's success URL on completion). They also emit a `ready` event (`onReady`) once the checkout UI has rendered.
+
 ## `onComplete` payload
 
 ```ts
-{ checkoutId: string; orderId?: string; orderNo?: string }
+{ checkoutId: string; orderId?: string; orderNo?: string; redirect?: boolean; redirectUrl?: string }
 ```
 
 Fired when the embedded checkout finishes successfully. The SDK only accepts the completion event from the checkout's own origin.
