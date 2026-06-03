@@ -95,12 +95,11 @@ function subscribe(checkoutUrl: string, options: CreemCheckoutOptions): () => vo
       type: string;
     }> &
       CreemCheckoutCompleted;
-    if (
-      !data ||
-      data.source !== CREEM_EMBED_SOURCE ||
-      data.version !== CREEM_EMBED_PROTOCOL_VERSION
-    )
-      return;
+    // SECURITY: the origin check above is the gate. We do NOT gate on protocol
+    // version — the SDK is forward-compatible, so a pinned older SDK keeps
+    // working against a newer checkout deploy (it handles the event types it
+    // knows and ignores the rest). Breaking changes ship as a new event type.
+    if (!data || data.source !== CREEM_EMBED_SOURCE) return;
     if (data.type === "ready") {
       options.onReady?.();
     } else if (data.type === "completed") {
