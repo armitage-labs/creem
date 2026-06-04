@@ -120,6 +120,14 @@ function subscribe(checkoutUrl: string, options: CreemCheckoutOptions): () => vo
       // delay so the customer sees the confirmation screen first, the same way
       // the hosted checkout waits before returning to the merchant.
       if (options.redirect && detail.redirectUrl) {
+        // Tell the checkout (inside the iframe) to show its "Returning to
+        // merchant" countdown while we redirect the top window.
+        if (event.source && expectedOrigin) {
+          (event.source as Window).postMessage(
+            { source: CREEM_EMBED_SOURCE, type: "arm_redirect" },
+            expectedOrigin,
+          );
+        }
         const redirectUrl = detail.redirectUrl;
         window.setTimeout(() => {
           window.location.href = redirectUrl;
