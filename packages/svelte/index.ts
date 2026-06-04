@@ -67,3 +67,35 @@ export function creemCheckoutInline(
     },
   };
 }
+
+// ---- Svelte 5.29+ attachments (the modern low-level API) ----
+// Used with the `{@attach ...}` directive. Attachments are plain functions, so
+// no Svelte compiler is needed here. For Svelte 4, use the actions above.
+
+/**
+ * Open the checkout overlay when the element is clicked:
+ *   <button {@attach creemCheckoutAttach({ checkoutUrl, onComplete })}>Buy</button>
+ */
+export function creemCheckoutAttach(options: CreemCheckoutOptions): (node: Element) => () => void {
+  return (node: Element) => {
+    const handleClick = (): CreemCheckoutHandle => openCheckout(options);
+    node.addEventListener("click", handleClick);
+    return () => node.removeEventListener("click", handleClick);
+  };
+}
+
+/**
+ * Mount the checkout inline into the element:
+ *   <div {@attach creemCheckoutInlineAttach({ checkoutUrl, onComplete })}></div>
+ */
+export function creemCheckoutInlineAttach(
+  options: CreemCheckoutOptions,
+): (node: HTMLElement) => () => void {
+  return (node: HTMLElement) => {
+    const handle: CreemCheckoutInlineHandle = mount({
+      ...options,
+      container: node,
+    });
+    return () => handle.destroy();
+  };
+}

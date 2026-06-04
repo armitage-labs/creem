@@ -39,7 +39,11 @@ const checkout = await creem.checkouts.create({
 
 Then embed that URL with **a framework SDK**, the **script loader**, or a **raw iframe** — pick one.
 
-## 2. Embed it — Framework SDKs
+## 2. Choose an embed path
+
+Use exactly **one** of the three paths below — framework SDKs, the script loader, or a raw iframe.
+
+### Framework SDKs
 
 First-class packages for **React, Vue, and Svelte** with typed props and lifecycle events. They share a framework-agnostic core, [`@creem_io/embed`](https://www.npmjs.com/package/@creem_io/embed), which you can also use directly in vanilla JS.
 
@@ -97,25 +101,29 @@ First-class packages for **React, Vue, and Svelte** with typed props and lifecyc
 
     ```svelte
     <script>
-      import { creemCheckout, creemCheckoutInline } from '@creem_io/svelte';
+      import { CreemCheckout, CreemCheckoutInline } from '@creem_io/svelte';
     </script>
 
-    <!-- Overlay -->
-    <button use:creemCheckout={{ checkoutUrl, onComplete }}>Subscribe</button>
+    <!-- Overlay — wrap any clickable element -->
+    <CreemCheckout {checkoutUrl} onComplete={onComplete}>
+      <button>Subscribe</button>
+    </CreemCheckout>
 
     <!-- Inline -->
-    <div use:creemCheckoutInline={{ checkoutUrl, onComplete }} style="height:820px" />
+    <CreemCheckoutInline {checkoutUrl} onComplete={onComplete} style="height:820px" />
     ```
 
-    Also available: `openCheckout()` and `CreemEmbedCheckout.create()`. [Full reference →](https://www.npmjs.com/package/@creem_io/svelte)
+    Low-level: the `{@attach}` attachments (Svelte 5.29+) or `use:` actions (Svelte 4). [Full reference →](https://www.npmjs.com/package/@creem_io/svelte)
   </Tab>
 </Tabs>
 
 Every SDK takes the same options as the loader below (`theme`, `locale`) and emits the same `ready` + `completed` events. On completion, if the product has a **Return URL**, the page navigates there automatically (after a short confirmation screen) — handle `onComplete` for custom behavior.
 
-## Embed it — Script loader (overlay)
+### Script loader
 
-No build step? Drop in the loader script and open checkout from any framework or plain HTML.
+For non-framework apps, or when you want a global `Creem` object. No build step — drop in the loader script and open checkout from any framework or plain HTML.
+
+#### Overlay
 
 <Steps>
   <Step title="Add the script">
@@ -143,7 +151,7 @@ No build step? Drop in the loader script and open checkout from any framework or
 
 The overlay shows the confirmation screen on success; call `Creem.close()` from `onComplete` if you want it to dismiss automatically.
 
-## Script loader — inline
+#### Inline
 
 Mount checkout inside a container on your page:
 
@@ -158,9 +166,9 @@ Mount checkout inside a container on your page:
 </script>
 ```
 
-## Zero-JS — data attribute
+#### Declarative data attributes
 
-Any element with `data-creem-checkout` opens the overlay on click:
+Any element with `data-creem-checkout` opens the overlay on click — no JS wiring, but it still relies on the loader script above:
 
 ```html
 <a data-creem-checkout data-creem-url="CHECKOUT_URL">Buy now</a>
@@ -177,23 +185,9 @@ Optionally set the theme and language with `data-creem-theme` and `data-creem-lo
 >Buy now</a>
 ```
 
-## Presentation — theme & language
+### Raw iframe
 
-`openCheckout` and `mount` accept two presentation options, appended to the checkout URL for you:
-
-```js
-Creem.openCheckout({
-  checkoutUrl: 'CHECKOUT_URL',
-  theme: 'dark',   // 'light' | 'dark'
-  locale: 'pt-BR', // BCP47 tag — forces the checkout language
-});
-```
-
-By default the checkout follows the customer's **browser language**. Pass `locale` to force a specific one (e.g. to match your own site's language). Unsupported locales fall back to English. See the [supported languages](/features/checkout/checkout-api) for the full list.
-
-## Raw iframe (no loader)
-
-Prefer not to use the script? Embed the checkout URL directly:
+The lowest-level option — no loader, no SDK. Use it when you only need inline display and will handle the lifecycle yourself, or don't need callbacks:
 
 ```html
 <iframe
@@ -206,6 +200,20 @@ Prefer not to use the script? Embed the checkout URL directly:
 <Warning>
   The `allow="payment *"` attribute is required — without it, digital wallets and 3-D Secure challenges can't run inside the iframe.
 </Warning>
+
+## Presentation — theme & language
+
+Works with the framework SDKs and the script loader. `openCheckout` and `mount` accept two presentation options, appended to the checkout URL for you:
+
+```js
+Creem.openCheckout({
+  checkoutUrl: 'CHECKOUT_URL',
+  theme: 'dark',   // 'light' | 'dark'
+  locale: 'pt-BR', // BCP47 tag — forces the checkout language
+});
+```
+
+By default the checkout follows the customer's **browser language**. Pass `locale` to force a specific one (e.g. to match your own site's language). Unsupported locales fall back to English. See the [supported languages](/features/checkout/checkout-api) for the full list.
 
 ## API reference
 

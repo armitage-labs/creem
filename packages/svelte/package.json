@@ -1,12 +1,14 @@
 {
   "name": "@creem_io/svelte",
   "version": "0.1.0",
-  "description": "Svelte actions to embed Creem checkout (modal & inline).",
+  "description": "Svelte components (+ attachment / action APIs) to embed Creem checkout (modal & inline).",
   "main": "./dist/index.js",
   "module": "./dist/index.mjs",
   "types": "./dist/index.d.ts",
+  "svelte": "./svelte.mjs",
   "exports": {
     ".": {
+      "svelte": "./svelte.mjs",
       "types": "./dist/index.d.ts",
       "import": "./dist/index.mjs",
       "require": "./dist/index.js"
@@ -14,6 +16,9 @@
   },
   "files": [
     "dist",
+    "svelte.mjs",
+    "CreemCheckout.svelte",
+    "CreemCheckoutInline.svelte",
     "README.md"
   ],
   "scripts": {
