@@ -41,8 +41,6 @@ export interface CreemCheckoutOptions {
   onReady?: () => void;
   /** Fired once the payment completes. */
   onComplete?: (detail: CreemCheckoutCompleted) => void;
-  /** Opt-in: on completion, navigate this page to the checkout's success URL. Off by default. */
-  redirect?: boolean;
   /** Fired when the overlay is dismissed (overlay mode only). */
   onClose?: () => void;
 }
@@ -116,10 +114,11 @@ function subscribe(checkoutUrl: string, options: CreemCheckoutOptions): () => vo
         redirectUrl: data.redirectUrl,
       };
       options.onComplete?.(detail);
-      // Opt-in: navigate the merchant's page to the success URL — after a short
-      // delay so the customer sees the confirmation screen first, the same way
-      // the hosted checkout waits before returning to the merchant.
-      if (options.redirect && detail.redirectUrl) {
+      // If the checkout has a return URL, navigate the merchant's page to it
+      // after a short delay so the customer sees the confirmation screen first
+      // — same behavior as the hosted checkout (the merchant opts in/out by
+      // setting the product's Return URL; no extra flag needed).
+      if (detail.redirectUrl) {
         // Tell the checkout (inside the iframe) to show its "Returning to
         // merchant" countdown while we redirect the top window.
         if (event.source && expectedOrigin) {

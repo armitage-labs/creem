@@ -111,7 +111,7 @@ First-class packages for **React, Vue, and Svelte** with typed props and lifecyc
   </Tab>
 </Tabs>
 
-Every SDK takes the same options as the loader below (`theme`, `locale`, `redirect`) and emits the same `ready` + `completed` events.
+Every SDK takes the same options as the loader below (`theme`, `locale`) and emits the same `ready` + `completed` events. On completion, if the product has a **Return URL**, the page navigates there automatically (after a short confirmation screen) — handle `onComplete` for custom behavior.
 
 ## Embed it — Script loader (overlay)
 
@@ -223,9 +223,6 @@ Opens checkout in a modal overlay.
 </ParamField>
 <ParamField path="locale" type="string">
   BCP47 language tag (e.g. `'fr'`, `'pt-BR'`) to force the checkout language. Defaults to the customer's browser language; unsupported locales fall back to English.
-</ParamField>
-<ParamField path="redirect" type="boolean" default="false">
-  When `true`, the page navigates to the checkout's success URL on completion (if one is configured). Off by default — handle `onComplete` yourself instead.
 </ParamField>
 <ParamField path="onReady" type="() => void">
   Called once the checkout UI has rendered and is ready for input.

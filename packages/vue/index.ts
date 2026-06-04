@@ -31,7 +31,6 @@ export const CreemCheckout = defineComponent({
     checkoutUrl: { type: String, required: true },
     theme: { type: String as PropType<"light" | "dark">, default: undefined },
     locale: { type: String, default: undefined },
-    redirect: { type: Boolean, default: false },
   },
   emits: {
     ready: () => true,
@@ -44,7 +43,6 @@ export const CreemCheckout = defineComponent({
         checkoutUrl: props.checkoutUrl,
         theme: props.theme,
         locale: props.locale,
-        redirect: props.redirect,
         onReady: () => emit("ready"),
         onComplete: (detail) => emit("complete", detail),
         onClose: () => emit("close"),
@@ -65,7 +63,6 @@ export const CreemCheckoutInline = defineComponent({
     checkoutUrl: { type: String, required: true },
     theme: { type: String as PropType<"light" | "dark">, default: undefined },
     locale: { type: String, default: undefined },
-    redirect: { type: Boolean, default: false },
   },
   emits: {
     ready: () => true,
@@ -80,7 +77,6 @@ export const CreemCheckoutInline = defineComponent({
           checkoutUrl: props.checkoutUrl,
           theme: props.theme,
           locale: props.locale,
-          redirect: props.redirect,
           container: el.value,
           onReady: () => emit("ready"),
           onComplete: (detail) => emit("complete", detail),
