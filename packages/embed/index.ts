@@ -11,6 +11,11 @@ export const CREEM_EMBED_PROTOCOL_VERSION = 1 as const;
 
 const IFRAME_ALLOW = "payment *; publickey-credentials-get *";
 
+// Opt-in redirect waits this long after completion before navigating, so the
+// customer sees the confirmation screen first — matches the hosted checkout's
+// "Returning to Merchant in 3s" countdown.
+const REDIRECT_DELAY_MS = 3000;
+
 export interface CreemCheckoutCompleted {
   checkoutId: string;
   orderId?: string;
@@ -111,8 +116,14 @@ function subscribe(checkoutUrl: string, options: CreemCheckoutOptions): () => vo
         redirectUrl: data.redirectUrl,
       };
       options.onComplete?.(detail);
+      // Opt-in: navigate the merchant's page to the success URL — after a short
+      // delay so the customer sees the confirmation screen first, the same way
+      // the hosted checkout waits before returning to the merchant.
       if (options.redirect && detail.redirectUrl) {
-        window.location.href = detail.redirectUrl;
+        const redirectUrl = detail.redirectUrl;
+        window.setTimeout(() => {
+          window.location.href = redirectUrl;
+        }, REDIRECT_DELAY_MS);
       }
     }
   }
