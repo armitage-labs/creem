@@ -90,6 +90,7 @@ function makeIframe(checkoutUrl: string): HTMLIFrameElement {
 // open framing).
 function subscribe(checkoutUrl: string, options: CreemCheckoutOptions): () => void {
   const expectedOrigin = originOf(checkoutUrl);
+  let redirectTimer: ReturnType<typeof window.setTimeout> | undefined;
   function handler(event: MessageEvent): void {
     if (expectedOrigin && event.origin !== expectedOrigin) return;
     const data = event.data as Partial<{
@@ -128,14 +129,22 @@ function subscribe(checkoutUrl: string, options: CreemCheckoutOptions): () => vo
           );
         }
         const redirectUrl = detail.redirectUrl;
-        window.setTimeout(() => {
+        redirectTimer = window.setTimeout(() => {
           window.location.href = redirectUrl;
         }, REDIRECT_DELAY_MS);
       }
     }
   }
   window.addEventListener("message", handler);
-  return () => window.removeEventListener("message", handler);
+  // Unsubscribe also cancels a pending redirect, so closing the overlay (or
+  // destroying an inline mount) before it fires never navigates the merchant.
+  return () => {
+    window.removeEventListener("message", handler);
+    if (redirectTimer !== undefined) {
+      window.clearTimeout(redirectTimer);
+      redirectTimer = undefined;
+    }
+  };
 }
 
 /** Open a checkout as a modal overlay. */
