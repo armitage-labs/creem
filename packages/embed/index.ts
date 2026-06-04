@@ -219,6 +219,11 @@ export function openCheckout(options: CreemCheckoutOptions): CreemCheckoutHandle
   return { close: handleClose };
 }
 
+// Tracks the active inline teardown per container, so re-mounting on the same
+// container tears down the previous subscription instead of leaking its message
+// listener (which would otherwise double-fire onComplete on the next checkout).
+const inlineTeardowns = new WeakMap<HTMLElement, () => void>();
+
 /** Mount a checkout inline into a container element. */
 export function mount(
   options: CreemCheckoutOptions & { container: HTMLElement },
@@ -226,16 +231,23 @@ export function mount(
   if (typeof window === "undefined" || typeof document === "undefined") {
     throw new Error("mount must run in the browser");
   }
+  const { container } = options;
   const checkoutUrl = withParams(options.checkoutUrl, options);
-  options.container.replaceChildren();
+  inlineTeardowns.get(container)?.();
+  container.replaceChildren();
   const unsubscribe = subscribe(checkoutUrl, options);
   const iframe = makeIframe(checkoutUrl);
   iframe.style.background = options.theme === "dark" ? "#000" : "#fff";
-  options.container.appendChild(iframe);
+  container.appendChild(iframe);
+  const teardown = (): void => {
+    unsubscribe();
+    inlineTeardowns.delete(container);
+  };
+  inlineTeardowns.set(container, teardown);
   return {
     destroy() {
-      unsubscribe();
-      options.container.replaceChildren();
+      teardown();
+      container.replaceChildren();
     },
   };
 }
