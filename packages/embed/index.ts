@@ -198,22 +198,17 @@ export function openCheckout(options: CreemCheckoutOptions): CreemCheckoutHandle
 
   function cleanup(): void {
     unsubscribe();
-    document.removeEventListener("keydown", onKey);
     overlay.remove();
   }
   function handleClose(): void {
     cleanup();
     options.onClose?.();
   }
-  function onKey(event: KeyboardEvent): void {
-    if (event.key === "Escape") handleClose();
-  }
 
+  // The checkout closes ONLY via the explicit ✕ button — NO backdrop-click and
+  // NO Escape dismissal, so a customer can't lose an in-progress payment by
+  // clicking outside the modal or pressing a key. (Matches public/embed.js.)
   closeBtn.addEventListener("click", handleClose);
-  overlay.addEventListener("click", (event) => {
-    if (event.target === overlay) handleClose();
-  });
-  document.addEventListener("keydown", onKey);
 
   bar.appendChild(closeBtn);
   wrap.appendChild(bar);
