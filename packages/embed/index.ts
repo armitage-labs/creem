@@ -126,6 +126,11 @@ export function openCheckout(options: CreemCheckoutOptions): CreemCheckoutHandle
   if (typeof window === "undefined" || typeof document === "undefined") {
     throw new Error("openCheckout must run in the browser");
   }
+  // Fail loudly on a malformed URL — otherwise the origin check can never match
+  // and onReady/onComplete would silently never fire.
+  if (!originOf(options.checkoutUrl)) {
+    throw new Error("openCheckout: `checkoutUrl` is not a valid URL");
+  }
   const checkoutUrl = withParams(options.checkoutUrl, options);
   // Surface color behind the iframe — matched to the checkout theme so the
   // rounded corners and any overscroll never flash white on a dark checkout.
@@ -215,6 +220,8 @@ export function openCheckout(options: CreemCheckoutOptions): CreemCheckoutHandle
   wrap.appendChild(iframe);
   overlay.appendChild(wrap);
   document.body.appendChild(overlay);
+  // Move keyboard focus into the checkout so Tab stays inside the modal.
+  iframe.focus();
 
   return { close: handleClose };
 }
@@ -230,6 +237,9 @@ export function mount(
 ): CreemCheckoutInlineHandle {
   if (typeof window === "undefined" || typeof document === "undefined") {
     throw new Error("mount must run in the browser");
+  }
+  if (!originOf(options.checkoutUrl)) {
+    throw new Error("mount: `checkoutUrl` is not a valid URL");
   }
   const { container } = options;
   const checkoutUrl = withParams(options.checkoutUrl, options);
