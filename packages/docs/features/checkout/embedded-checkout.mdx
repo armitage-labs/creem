@@ -273,16 +273,6 @@ window.addEventListener('message', (event) => {
 <ParamField path="version" type="number">Protocol version (currently `1`).</ParamField>
 <ParamField path="type" type="string">`"ready"` when the UI has rendered, then `"completed"` on payment.</ParamField>
 
-## Embedding under a strict CSP
-
-Nothing is required on Creem's side — checkout sends `frame-ancestors *`. But if **your own site** sends a `Content-Security-Policy`, the browser still enforces *your* policy on the frame. Allow Creem in your `frame-src` (or `child-src`):
-
-```
-Content-Security-Policy: frame-src https://www.creem.io;
-```
-
-Without this, your CSP — not Creem's — is what blocks the iframe.
-
 <Note>
   **Digital wallets.** Apple Pay / Google Pay can require domain registration with the card networks and may be unavailable inside a cross-origin iframe. Card and 3-D Secure payments always work in the embed; if wallet buttons are critical for you, the hosted checkout page remains the most reliable surface today.
 </Note>
