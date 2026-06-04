@@ -5,10 +5,6 @@ description: 'Embed Creem checkout directly in your site — as a modal overlay 
 
 Embedded checkout runs the entire Creem payment flow **inside your own site** instead of sending customers to a hosted page. Drop in a small script, open checkout as a modal or inline iframe, and get a callback when payment completes.
 
-<Note>
-  Card data is entered inside the payment provider's own secure-field iframes — embedding Creem checkout never brings card data onto your page, so your PCI scope is unchanged.
-</Note>
-
 ## How it works
 
 1. Create a **checkout session** on your server with your secret API key (see [Checkout API](/features/checkout/checkout-api)) and read its `checkout_url`.
