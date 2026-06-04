@@ -57,7 +57,6 @@ export function CreemCheckoutInline({
   locale,
   onComplete,
   onReady,
-  redirect,
   className,
   style,
 }: CreemCheckoutInlineProps): React.ReactElement {
@@ -71,7 +70,6 @@ export function CreemCheckoutInline({
       locale,
       onComplete,
       onReady,
-      redirect,
       container,
     });
     return () => handle.destroy();
