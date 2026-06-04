@@ -11,11 +11,6 @@ export const CREEM_EMBED_PROTOCOL_VERSION = 1 as const;
 
 const IFRAME_ALLOW = "payment *; publickey-credentials-get *";
 
-// Opt-in redirect waits this long after completion before navigating, so the
-// customer sees the confirmation screen first — matches the hosted checkout's
-// "Returning to Merchant in 3s" countdown.
-const REDIRECT_DELAY_MS = 3000;
-
 export interface CreemCheckoutCompleted {
   checkoutId: string;
   orderId?: string;
@@ -90,7 +85,6 @@ function makeIframe(checkoutUrl: string): HTMLIFrameElement {
 // open framing).
 function subscribe(checkoutUrl: string, options: CreemCheckoutOptions): () => void {
   const expectedOrigin = originOf(checkoutUrl);
-  let redirectTimer: ReturnType<typeof window.setTimeout> | undefined;
   function handler(event: MessageEvent): void {
     if (expectedOrigin && event.origin !== expectedOrigin) return;
     const data = event.data as Partial<{
@@ -115,36 +109,16 @@ function subscribe(checkoutUrl: string, options: CreemCheckoutOptions): () => vo
         redirectUrl: data.redirectUrl,
       };
       options.onComplete?.(detail);
-      // If the checkout has a return URL, navigate the merchant's page to it
-      // after a short delay so the customer sees the confirmation screen first
-      // — same behavior as the hosted checkout (the merchant opts in/out by
-      // setting the product's Return URL; no extra flag needed).
-      if (detail.redirectUrl) {
-        // Tell the checkout (inside the iframe) to show its "Returning to
-        // merchant" countdown while we redirect the top window.
-        if (event.source && expectedOrigin) {
-          (event.source as Window).postMessage(
-            { source: CREEM_EMBED_SOURCE, type: "arm_redirect" },
-            expectedOrigin,
-          );
-        }
-        const redirectUrl = detail.redirectUrl;
-        redirectTimer = window.setTimeout(() => {
-          window.location.href = redirectUrl;
-        }, REDIRECT_DELAY_MS);
-      }
+    } else if (data.type === "redirect") {
+      // The checkout's "Returning to merchant" countdown finished. A
+      // cross-origin iframe can't navigate the top window, so it asked us to.
+      // If the overlay is closed before then, this event never arrives — so a
+      // closed checkout never navigates the merchant.
+      if (data.redirectUrl) window.location.href = data.redirectUrl;
     }
   }
   window.addEventListener("message", handler);
-  // Unsubscribe also cancels a pending redirect, so closing the overlay (or
-  // destroying an inline mount) before it fires never navigates the merchant.
-  return () => {
-    window.removeEventListener("message", handler);
-    if (redirectTimer !== undefined) {
-      window.clearTimeout(redirectTimer);
-      redirectTimer = undefined;
-    }
-  };
+  return () => window.removeEventListener("message", handler);
 }
 
 /** Open a checkout as a modal overlay. */
