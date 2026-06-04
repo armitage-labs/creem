@@ -279,6 +279,15 @@ export interface WebhookOptions {
   ) => void | Promise<void>;
 
   /**
+   * Called when a subscription is scheduled to cancel at the end of the
+   * current period. The subscription remains active until then, so access
+   * is not revoked by this event.
+   */
+  onSubscriptionScheduledCancel?: (
+    data: FlatSubscriptionEvent<"subscription.scheduled_cancel">,
+  ) => void | Promise<void>;
+
+  /**
    * Called when a user should be granted access to the platform.
    * This is triggered for: active, trialing, and paid subscriptions.
    *
@@ -296,7 +305,7 @@ export interface WebhookOptions {
 
   /**
    * Called when a user's access should be revoked.
-   * This is triggered for: paused, expired, and canceled (after period ends) subscriptions.
+   * This is triggered for: paused and expired subscriptions.
    *
    * NOTE: This may be called multiple times for the same user/subscription.
    * Implement this as an idempotent operation (safe to call repeatedly).

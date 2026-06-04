@@ -187,6 +187,19 @@ export const Webhook = (options: WebhookOptions) => {
           });
           break;
 
+        case "subscription.scheduled_cancel":
+          console.log("Subscription scheduled to cancel");
+          // The subscription is set to cancel at period end but remains active
+          // until then, so access is not changed here. Access ends when
+          // subscription.expired fires.
+          await options.onSubscriptionScheduledCancel?.({
+            webhookEventType: event.eventType,
+            webhookId: event.id,
+            webhookCreatedAt: event.created_at,
+            ...event.object,
+          });
+          break;
+
         default:
           console.error("Unknown event type", event);
           return NextResponse.json({ error: "Unknown event type" }, { status: 400 });
