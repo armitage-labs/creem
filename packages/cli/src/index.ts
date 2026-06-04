@@ -57,7 +57,7 @@ ${chalk.dim("Agents:")}
   Creem Skills:      https://github.com/armitage-labs/creem-skills
 
 ${chalk.dim("Documentation:")}  https://docs.creem.io
-${chalk.dim("API keys:")}       https://creem.io/dashboard/api-keys
+${chalk.dim("API keys:")}       https://creem.io/dashboard/developers
 `;
 
 const program = new Command();
