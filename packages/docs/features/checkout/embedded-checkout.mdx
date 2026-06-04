@@ -286,12 +286,3 @@ Without this, your CSP — not Creem's — is what blocks the iframe.
 <Note>
   **Digital wallets.** Apple Pay / Google Pay can require domain registration with the card networks and may be unavailable inside a cross-origin iframe. Card and 3-D Secure payments always work in the embed; if wallet buttons are critical for you, the hosted checkout page remains the most reliable surface today.
 </Note>
-
-## Security
-
-Creem checkout pages send `Content-Security-Policy: frame-ancestors *`, so they can be embedded from any site — the standard model for embeddable, PCI-safe checkout. This is safe because:
-
-- **Card data never touches your page** — it's entered inside the payment provider's secure-field iframes, nested inside the Creem checkout iframe.
-- **A checkout session only authorizes paying for itself** — it can't read customer data, refund, or perform any privileged operation.
-
-Every other Creem surface (dashboard, customer portal) stays same-origin-only.
