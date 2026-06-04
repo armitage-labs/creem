@@ -19,4 +19,4 @@ mount({ checkoutUrl, container: document.getElementById("checkout")!, onComplete
 const checkout = await CreemEmbedCheckout.create({ checkoutUrl, onComplete: (d) => checkout.close() });
 ```
 
-Get `checkoutUrl` from the [Checkout API](https://docs.creem.io/features/checkout/checkout-api). `onComplete` receives `{ checkoutId, orderId, orderNo, redirect, redirectUrl }`. Pass `redirect: true` to auto-navigate to the checkout's success URL on completion.
+Get `checkoutUrl` from the [Checkout API](https://docs.creem.io/features/checkout/checkout-api). `onComplete` receives `{ checkoutId, orderId, orderNo, redirect, redirectUrl }` — `redirect` is `true` when the checkout has a success/return URL configured, in which case the embed navigates the top window to `redirectUrl` automatically once payment completes. Handle `onComplete` to run your own post-payment logic instead.

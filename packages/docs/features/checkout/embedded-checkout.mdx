@@ -7,7 +7,7 @@ Embedded checkout runs the entire Creem payment flow **inside your own site** in
 
 ## How it works
 
-1. Create a **checkout session** on your server with your secret API key (see [Checkout API](/features/checkout/checkout-api)) and read its `checkout_url`.
+1. Create a **checkout session** on your server with your secret API key (see [Checkout API](/features/checkout/checkout-api)) and read its `checkoutUrl`.
 2. Load the Creem embed script on your page.
 3. Open the checkout as an overlay or inline, and handle `onComplete`.
 
@@ -17,7 +17,7 @@ Embedded checkout runs the entire Creem payment flow **inside your own site** in
 
 ## 1. Create a checkout session (server-side)
 
-Every embed needs a **checkout URL**, created on your server with your secret API key so the price and product can't be tampered with. Use the [Checkout API](/features/checkout/checkout-api) or one of its SDKs and read `checkout_url`:
+Every embed needs a **checkout URL**, created on your server with your secret API key so the price and product can't be tampered with. Use the [Checkout API](/features/checkout/checkout-api) or one of its SDKs and read `checkoutUrl` (the raw REST API returns it as `checkout_url`):
 
 ```ts
 // Server-side only — keep CREEM_API_KEY secret
@@ -30,7 +30,7 @@ const checkout = await creem.checkouts.create({
   successUrl: 'https://yoursite.com/success', // optional
 });
 
-// Send checkout.checkout_url to the browser, then embed it (below).
+// Send checkout.checkoutUrl to the browser, then embed it (below).
 ```
 
 Then embed that URL with **a framework SDK**, the **script loader**, or a **raw iframe** — pick one.
