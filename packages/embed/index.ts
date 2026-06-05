@@ -15,9 +15,12 @@ export interface CreemCheckoutCompleted {
   checkoutId: string;
   orderId?: string;
   orderNo?: string;
-  /** Whether the checkout has a merchant success URL (the embed never auto-navigates there unless you opt in). */
+  /** Whether the checkout has a merchant success/return URL configured. */
   redirect?: boolean;
-  /** The merchant's success/return URL, if any. */
+  /**
+   * The merchant's success/return URL, if any. When present, the SDK navigates
+   * the top window here after the in-iframe confirmation countdown.
+   */
   redirectUrl?: string;
 }
 
@@ -85,6 +88,7 @@ function makeIframe(checkoutUrl: string): HTMLIFrameElement {
 // open framing).
 function subscribe(checkoutUrl: string, options: CreemCheckoutOptions): () => void {
   const expectedOrigin = originOf(checkoutUrl);
+  let redirectTimer: ReturnType<typeof setTimeout> | null = null;
   function handler(event: MessageEvent): void {
     if (expectedOrigin && event.origin !== expectedOrigin) return;
     const data = event.data as Partial<{
@@ -109,16 +113,24 @@ function subscribe(checkoutUrl: string, options: CreemCheckoutOptions): () => vo
         redirectUrl: data.redirectUrl,
       };
       options.onComplete?.(detail);
-    } else if (data.type === "redirect") {
-      // The checkout's "Returning to merchant" countdown finished. A
-      // cross-origin iframe can't navigate the top window, so it asked us to.
-      // If the overlay is closed before then, this event never arrives — so a
-      // closed checkout never navigates the merchant.
-      if (data.redirectUrl) window.location.href = data.redirectUrl;
+      // Single-event model: no separate "redirect" event. The checkout shows a
+      // ~3s "Returning to merchant" confirmation in-iframe; we mirror that delay
+      // here, then navigate the top window (a cross-origin iframe can't move it
+      // itself). Cancelled on close/unsubscribe below, so a checkout the
+      // customer closed never navigates the merchant.
+      if (detail.redirectUrl) {
+        const url = detail.redirectUrl;
+        redirectTimer = setTimeout(() => {
+          window.location.href = url;
+        }, 3000);
+      }
     }
   }
   window.addEventListener("message", handler);
-  return () => window.removeEventListener("message", handler);
+  return () => {
+    window.removeEventListener("message", handler);
+    if (redirectTimer) clearTimeout(redirectTimer);
+  };
 }
 
 /** Open a checkout as a modal overlay. */
