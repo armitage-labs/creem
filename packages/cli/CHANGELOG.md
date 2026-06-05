@@ -1,5 +1,11 @@
 # creem-cli
 
+## 0.2.1
+
+### Patch Changes
+
+- 6725550: add multi-store support to Lemon Squeezy migration
+
 ## 0.2.0
 
 ### Minor Changes
