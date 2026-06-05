@@ -30,7 +30,10 @@ const checkout = await creem.checkouts.create({
   successUrl: 'https://yoursite.com/success', // optional
 });
 
-// Send checkout.checkoutUrl to the browser, then embed it (below).
+// `checkoutUrl` is typed as optional in the SDK — assert (or guard) it:
+const checkoutUrl = checkout.checkoutUrl!;
+
+// Send `checkoutUrl` to the browser, then embed it (below).
 ```
 
 Then embed that URL with **a framework SDK**, the **script loader**, or a **raw iframe** — pick one.
@@ -41,7 +44,7 @@ Use exactly **one** of the three paths below — framework SDKs, the script load
 
 ### Framework SDKs
 
-First-class packages for **React, Vue, and Svelte** with typed props and lifecycle events. They share a framework-agnostic core, [`@creem_io/embed`](https://www.npmjs.com/package/@creem_io/embed), which you can also use directly in vanilla JS.
+First-class packages for **React (≥18), Vue (≥3), and Svelte (≥4)** with typed props and lifecycle events. They share a framework-agnostic core, [`@creem_io/embed`](https://www.npmjs.com/package/@creem_io/embed), which you can also use directly in vanilla JS.
 
 <Tabs>
   <Tab title="React">
@@ -163,6 +166,33 @@ First-class packages for **React, Vue, and Svelte** with typed props and lifecyc
 
 Every SDK takes the same options as the loader below (`theme`, `locale`) and emits the same `ready` + `completed` events. On completion, if the product has a **Return URL**, the page navigates there automatically (after a short confirmation screen) — handle `onComplete` for custom behavior.
 
+#### Open on click (dynamic sessions)
+
+The components above need the `checkoutUrl` at render time. For a **pricing grid** — many products, where you don't want to pre-create a session for each one on page load — create the session **on demand** and open it imperatively with the `useCreemCheckout()` hook:
+
+```tsx
+import { useCreemCheckout } from '@creem_io/react';
+
+function BuyButton({ productId }: { productId: string }) {
+  const openCheckout = useCreemCheckout();
+
+  async function buy() {
+    // Create the session on YOUR server (keeps the secret key off the client),
+    // then open the returned URL — no need to pre-create sessions on load.
+    const res = await fetch('/api/checkout', {
+      method: 'POST',
+      body: JSON.stringify({ productId }),
+    });
+    const { checkoutUrl } = await res.json();
+    openCheckout({ checkoutUrl, onComplete: (detail) => console.log('paid', detail) });
+  }
+
+  return <button onClick={buy}>Subscribe</button>;
+}
+```
+
+Vue exposes the same `useCreemCheckout()` composable. In vanilla JS (or any framework), use the promise-based `CreemEmbedCheckout.create({ checkoutUrl })`, which resolves once the checkout has rendered.
+
 ### Script loader
 
 For non-framework apps, or when you want a global `Creem` object. No build step — drop in the loader script and open checkout from any framework or plain HTML.
@@ -209,6 +239,10 @@ Mount checkout inside a container on your page:
   });
 </script>
 ```
+
+<Warning>
+  **`onComplete` is UX-only.** It fires in the browser and can be spoofed — use it to close the modal or show a success state. Grant entitlements / fulfil orders from your **[webhook handler](/code/webhooks)** (verified server-side), never from `onComplete`.
+</Warning>
 
 #### Declarative data attributes
 
@@ -286,13 +320,17 @@ Opens checkout in a modal overlay.
   Called when the overlay is dismissed by the customer.
 </ParamField>
 
+**Returns** a handle `{ close() }` — call `close()` to dismiss the overlay programmatically.
+
 ### `Creem.mount(options)`
 
 Mounts checkout inline. Same options as `openCheckout`, plus:
 
 <ParamField path="container" type="string | HTMLElement" required>
-  The element (or a CSS selector) to mount the checkout iframe into.
+  The element (or a CSS selector) to mount the checkout iframe into. The loader accepts a CSS selector; the npm `@creem_io/embed` `mount` requires an `HTMLElement` (pass `document.querySelector('#…')`).
 </ParamField>
+
+**Returns** a handle `{ destroy() }` — call `destroy()` to unmount the inline checkout and remove its listener (important in SPAs, e.g. on component unmount).
 
 ### `Creem.close()`
 
