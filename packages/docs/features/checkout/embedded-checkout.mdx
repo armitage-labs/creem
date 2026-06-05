@@ -236,13 +236,13 @@ The lowest-level option — no loader, no SDK. Use it when you only need inline 
 ```html
 <iframe
   src="CHECKOUT_URL"
-  allow="payment *"
+  allow="payment *; publickey-credentials-get *"
   style="border:0;width:460px;height:820px">
 </iframe>
 ```
 
 <Warning>
-  The `allow="payment *"` attribute is required — without it, digital wallets and 3-D Secure challenges can't run inside the iframe.
+  The `allow="payment *; publickey-credentials-get *"` attribute is required — without it, digital wallets, passkeys, and 3-D Secure challenges can't run inside the iframe. (The framework SDKs and the script loader set this for you.)
 </Warning>
 
 ## Presentation — theme & language
@@ -311,7 +311,7 @@ window.addEventListener('message', (event) => {
   if (data.type === 'ready') {
     console.log('checkout ready');
   } else if (data.type === 'completed') {
-    // { checkoutId, orderId, orderNo }
+    // { checkoutId, orderId, orderNo, redirect, redirectUrl }
     console.log('completed', data);
   }
 });
