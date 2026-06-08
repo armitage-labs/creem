@@ -147,30 +147,29 @@ export function openCheckout(options: CreemCheckoutOptions): CreemCheckoutHandle
   // Surface color behind the iframe — matched to the checkout theme so the
   // rounded corners and any overscroll never flash white on a dark checkout.
   const isDark = options.theme === "dark";
-  const surface = isDark ? "#000" : "#fff";
-  const btnBg = isDark ? "rgba(255,255,255,.08)" : "rgba(0,0,0,.04)";
-  const btnBorder = isDark ? "rgba(255,255,255,.16)" : "rgba(0,0,0,.12)";
-  const btnColor = isDark ? "#e5e5e5" : "#3f3f46";
+  const surface = isDark ? "#000" : "#f9fafb";
+  const btnBg = "#333";
+  const btnColor = "#fff";
 
   const overlay = document.createElement("div");
+  // Scroll container (overflow:auto) so a tall modal still scrolls on a short
+  // viewport; overscroll-behavior:contain keeps that scroll from chaining
+  // through to the merchant page behind it.
   overlay.style.cssText =
-    "position:fixed;inset:0;z-index:2147483647;background:rgba(0,0,0,.6);display:flex;align-items:center;justify-content:center;padding:30px;";
+    "position:fixed;inset:0;z-index:2147483647;background:rgba(1,1,1,.7);display:flex;align-items:center;justify-content:center;padding:16px;overflow:auto;overscroll-behavior:contain;";
 
-  // Coral brand edge (right + bottom) + its matching glow live on this one
-  // element — no separate overlay div.
+  // Column that stacks the close button above the modal; its width matches the
+  // modal so an align-self:flex-end button lines up with the modal's right edge.
+  const modalColumn = document.createElement("div");
+  modalColumn.style.cssText =
+    "display:flex;flex-direction:column;gap:12px;width:min(460px,100%);height:min(860px,100%);";
+
+  // The modal itself — fills the column below the close button.
   const wrap = document.createElement("div");
   wrap.style.cssText =
-    "position:relative;display:flex;flex-direction:column;width:min(460px,100%);height:min(860px,100%);background:" +
+    "position:relative;display:flex;flex-direction:column;width:100%;flex:1 1 auto;min-height:0;background:" +
     surface +
-    ";border-radius:14px;overflow:hidden;border-right:3px solid #ff8f5e;border-bottom:3px solid #ff8f5e;box-shadow:8px 0 28px -10px rgba(255,140,80,.6),0 8px 28px -10px rgba(255,140,80,.6);";
-
-  // Slim header strip that owns the close button, so it never overlaps the
-  // checkout content (e.g. the price in the checkout header's top-right).
-  const bar = document.createElement("div");
-  bar.style.cssText =
-    "flex:0 0 auto;display:flex;align-items:center;justify-content:flex-end;height:44px;padding:0 10px;background:" +
-    surface +
-    ";";
+    ";border-radius:14px;overflow:hidden;";
 
   const closeBtn = document.createElement("button");
   closeBtn.setAttribute("aria-label", "Close checkout");
@@ -178,9 +177,7 @@ export function openCheckout(options: CreemCheckoutOptions): CreemCheckoutHandle
   closeBtn.innerHTML =
     '<svg width="13" height="13" viewBox="0 0 14 14" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M2 2 12 12M12 2 2 12"/></svg>';
   closeBtn.style.cssText =
-    "display:flex;align-items:center;justify-content:center;width:34px;height:34px;padding:0;border:1px solid " +
-    btnBorder +
-    ";border-radius:10px;background:" +
+    "align-self:flex-end;flex:0 0 auto;display:flex;align-items:center;justify-content:center;width:34px;height:34px;padding:0;border-radius:10px;border:none;background:" +
     btnBg +
     ";color:" +
     btnColor +
@@ -188,18 +185,14 @@ export function openCheckout(options: CreemCheckoutOptions): CreemCheckoutHandle
   // Violet hover state (matches the dashboard's modal close button).
   closeBtn.addEventListener("mouseenter", () => {
     closeBtn.style.background = "#a78bfa";
-    closeBtn.style.borderColor = "#a78bfa";
     closeBtn.style.color = "#2e1065";
-    closeBtn.style.boxShadow = "0 2px 10px rgba(167,139,250,.55)";
   });
   closeBtn.addEventListener("mouseleave", () => {
     closeBtn.style.background = btnBg;
-    closeBtn.style.borderColor = btnBorder;
     closeBtn.style.color = btnColor;
-    closeBtn.style.boxShadow = "none";
   });
 
-  // Fill the space under the bar; theme surface prevents a white flash on load.
+  // Fill the modal; theme surface prevents a white flash on load.
   const iframe = makeIframe(checkoutUrl);
   iframe.style.flex = "1 1 auto";
   iframe.style.height = "auto";
@@ -208,9 +201,13 @@ export function openCheckout(options: CreemCheckoutOptions): CreemCheckoutHandle
 
   const unsubscribe = subscribe(checkoutUrl, options);
 
+  // Stash the merchant's prior body overflow so we restore it exactly on close
+  // (we lock it to "hidden" below so the page behind the modal can't scroll).
+  let prevBodyOverflow = "";
   function cleanup(): void {
     unsubscribe();
     overlay.remove();
+    document.body.style.overflow = prevBodyOverflow;
   }
   function handleClose(): void {
     cleanup();
@@ -222,10 +219,15 @@ export function openCheckout(options: CreemCheckoutOptions): CreemCheckoutHandle
   // clicking outside the modal or pressing a key. (Matches public/embed.js.)
   closeBtn.addEventListener("click", handleClose);
 
-  bar.appendChild(closeBtn);
-  wrap.appendChild(bar);
+  modalColumn.appendChild(closeBtn);
+  modalColumn.appendChild(wrap);
   wrap.appendChild(iframe);
-  overlay.appendChild(wrap);
+  overlay.appendChild(modalColumn);
+  // Lock the merchant page's scroll while the modal is open (iOS Safari touch
+  // momentum can still scroll the body even with overscroll-behavior set on the
+  // overlay). Restored on close via cleanup().
+  prevBodyOverflow = document.body.style.overflow;
+  document.body.style.overflow = "hidden";
   document.body.appendChild(overlay);
   // Move keyboard focus into the checkout so Tab stays inside the modal.
   iframe.focus();
