@@ -34,7 +34,7 @@ export function createLoginCommand(): Command {
         if (!apiKey) {
           output.newline();
           output.info("Enter your API key from the Creem dashboard.");
-          output.dim("Get your API key at: https://creem.io/dashboard/api-keys");
+          output.dim("Get your API key at: https://creem.io/dashboard/developers");
           output.newline();
 
           apiKey = await password({

@@ -21,7 +21,7 @@ export function detectEnvironment(apiKey: string): "test" | "live" {
   }
   throw new Error(
     'Invalid API key format. Key must start with "creem_test_" or "creem_live_" (or "creem_" for live). ' +
-      "Get your API key from https://creem.io/dashboard/api-keys",
+      "Get your API key from https://creem.io/dashboard/developers",
   );
 }
 

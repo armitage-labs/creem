@@ -38,7 +38,7 @@ creem whoami
 creem config set environment live
 ```
 
-Get your API key from the [Creem Dashboard](https://creem.io/dashboard/api-keys).
+Get your API key from the [Creem Dashboard](https://creem.io/dashboard/developers).
 
 - Test keys start with `creem_test_`
 - Live keys start with `creem_`

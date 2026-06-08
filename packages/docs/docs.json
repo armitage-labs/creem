@@ -78,6 +78,7 @@
                 "pages": [
                   "features/checkout/checkout-api",
                   "features/checkout/checkout-link",
+                  "features/checkout/embedded-checkout",
                   "features/checkout/checkout-customization",
                   "features/checkout/checkout-custom-fields",
                   "features/checkout/checkout-localization"
