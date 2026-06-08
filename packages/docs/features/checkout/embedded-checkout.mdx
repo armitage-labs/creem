@@ -29,9 +29,9 @@ Every embed needs a **checkout URL**, created on your server with your secret AP
 
 ```ts
 // Server-side only — keep CREEM_API_KEY secret
-import { createCreem } from 'creem_io';
+import { Creem } from 'creem';
 
-const creem = createCreem({ apiKey: process.env.CREEM_API_KEY! });
+const creem = new Creem({ apiKey: process.env.CREEM_API_KEY! });
 
 const checkout = await creem.checkouts.create({
   productId: 'prod_YOUR_PRODUCT_ID',

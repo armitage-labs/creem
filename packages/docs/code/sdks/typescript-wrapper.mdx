@@ -1,13 +1,17 @@
 ---
-title: SDK Wrapper (creem_io)
-description: A convenience wrapper SDK with helper functions for webhooks, access management, and simplified API interactions. Ideal for quick integrations with less boilerplate.
+title: SDK Wrapper (creem_io) — Deprecated
+description: The standalone creem_io wrapper SDK is deprecated. Use the core creem SDK for API calls, and the @creem_io/nextjs or @creem_io/better-auth adapters for onGrantAccess / onRevokeAccess callbacks.
 ---
 
-<Info>
-  This is the **creem_io** wrapper package, which provides convenience methods and webhook helpers for common use cases.
+<Warning>
+  **The standalone `creem_io` wrapper package is deprecated** and shows a deprecation notice on npm and GitHub. This page is kept for reference only.
 
-  For full API access with all endpoints and maximum flexibility, see the [Core SDK (creem)](/code/sdks/typescript-core).
-</Info>
+  Use these actively maintained packages instead:
+
+  - **API calls** → the core SDK [`creem`](/code/sdks/typescript-core)
+  - **`onGrantAccess` / `onRevokeAccess` callbacks** → the framework adapters [`@creem_io/nextjs`](/code/sdks/nextjs) or [`@creem_io/better-auth`](/code/sdks/better-auth)
+  - **Handling webhooks yourself** → verify the `creem-signature` header manually (see the [Webhook Guide](/code/webhooks))
+</Warning>
 
 ## Overview
 

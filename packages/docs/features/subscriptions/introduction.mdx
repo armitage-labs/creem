@@ -91,9 +91,9 @@ export function SubscribeButton() {
   <Tab title="TypeScript SDK">
 
 ```typescript
-import { createCreem } from 'creem_io';
+import { Creem } from 'creem';
 
-const creem = createCreem({
+const creem = new Creem({
   apiKey: process.env.CREEM_API_KEY!,
   testMode: process.env.NODE_ENV !== 'production',
 });
@@ -288,69 +288,6 @@ export const POST = Webhook({
   href="/code/sdks/nextjs"
 >
   Learn more about webhook handling and server functions.
-</Card>
-
-  </Tab>
-
-  <Tab title="TypeScript SDK">
-
-```typescript
-// app/api/webhook/route.ts
-import { createCreem } from 'creem_io';
-
-const creem = createCreem({
-  apiKey: process.env.CREEM_API_KEY!,
-  webhookSecret: process.env.CREEM_WEBHOOK_SECRET!,
-});
-
-app.post('/webhook', async (req, res) => {
-  try {
-    await creem.webhooks.handleEvents(
-      req.body,
-      req.headers['creem-signature'],
-      {
-        onGrantAccess: async ({ reason, customer, product, metadata }) => {
-          // Called for: subscription.active, subscription.trialing, subscription.paid
-          const userId = metadata?.userId as string;
-
-          await db.user.update({
-            where: { id: userId },
-            data: {
-              subscriptionActive: true,
-              subscriptionTier: product.name,
-            },
-          });
-
-          console.log(`Granted ${reason} to ${customer.email}`);
-        },
-
-        onRevokeAccess: async ({ reason, customer, metadata }) => {
-          // Called for: subscription.paused, subscription.expired
-          const userId = metadata?.userId as string;
-
-          await db.user.update({
-            where: { id: userId },
-            data: { subscriptionActive: false },
-          });
-
-          console.log(`Revoked access (${reason}) from ${customer.email}`);
-        },
-      }
-    );
-
-    res.status(200).send('OK');
-  } catch (error) {
-    res.status(400).send('Invalid signature');
-  }
-});
-```
-
-<Card
-  title="TypeScript SDK Documentation"
-  icon="code"
-  href="/code/sdks/typescript-core"
->
-  View the complete webhook API and all available events.
 </Card>
 
   </Tab>

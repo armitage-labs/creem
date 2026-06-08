@@ -107,15 +107,15 @@ export function ManageSubscriptionButton({
   <Tab title="TypeScript SDK">
 
 ```typescript
-import { createCreem } from 'creem_io';
+import { Creem } from 'creem';
 
-const creem = createCreem({
+const creem = new Creem({
   apiKey: process.env.CREEM_API_KEY!,
   testMode: process.env.NODE_ENV !== 'production',
 });
 
 // Create customer portal link
-const portal = await creem.customers.createPortal({
+const portal = await creem.customers.generateBillingLinks({
   customerId: 'cust_abc123',
 });
 
@@ -128,12 +128,13 @@ You can also retrieve the customer ID by email:
 
 ```typescript
 // Get customer by email first
-const customer = await creem.customers.get({
-  email: 'customer@example.com',
-});
+const customer = await creem.customers.retrieve(
+  undefined,
+  'customer@example.com',
+);
 
 // Then create portal link
-const portal = await creem.customers.createPortal({
+const portal = await creem.customers.generateBillingLinks({
   customerId: customer.id,
 });
 

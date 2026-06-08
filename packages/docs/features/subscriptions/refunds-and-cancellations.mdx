@@ -22,9 +22,9 @@ Cancel subscriptions programmatically using the API:
   <Tab title="TypeScript SDK">
 
 ```typescript
-import { createCreem } from 'creem_io';
+import { Creem } from 'creem';
 
-const creem = createCreem({
+const creem = new Creem({
   apiKey: process.env.CREEM_API_KEY!,
   testMode: process.env.NODE_ENV !== 'production',
 });
@@ -137,7 +137,7 @@ export function ManageSubscriptionButton({
 
 ```typescript
 // Create customer portal link
-const portal = await creem.customers.createPortal({
+const portal = await creem.customers.generateBillingLinks({
   customerId: 'cust_YOUR_CUSTOMER_ID',
 });
 
@@ -247,9 +247,9 @@ When you process a refund:
 ### Cancellation Flow Example
 
 ```typescript
-import { createCreem } from 'creem_io';
+import { Creem } from 'creem';
 
-const creem = createCreem({
+const creem = new Creem({
   apiKey: process.env.CREEM_API_KEY!,
 });
 
@@ -313,40 +313,42 @@ export const POST = Webhook({
 
   </Tab>
 
-  <Tab title="TypeScript SDK">
+  <Tab title="Manual Webhook">
 
 ```typescript
-import { createCreem } from 'creem_io';
-
-const creem = createCreem({
-  apiKey: process.env.CREEM_API_KEY!,
-  webhookSecret: process.env.CREEM_WEBHOOK_SECRET!,
-});
-
 // In your webhook endpoint
-await creem.webhooks.handleEvents(
-  request.body,
-  request.headers['creem-signature'],
-  {
-    onSubscriptionCanceled: async (data) => {
-      const { subscription, customer } = data;
+import crypto from 'crypto';
 
-      console.log(`Subscription ${subscription.id} canceled`);
+function verifySignature(payload: string, signature: string) {
+  const computed = crypto
+    .createHmac('sha256', process.env.CREEM_WEBHOOK_SECRET!)
+    .update(payload)
+    .digest('hex');
+  return computed === signature;
+}
 
-      // Revoke access
-      await revokeAccess(customer.email);
-    },
+app.post('/webhook', async (req, res) => {
+  const signature = req.headers['creem-signature'];
+  const payload = JSON.stringify(req.body);
 
-    onRevokeAccess: async (context) => {
-      // Simplified access management
-      const userId = context.metadata?.userId;
-      await db.user.update({
-        where: { id: userId },
-        data: { subscriptionActive: false },
-      });
-    },
+  if (!verifySignature(payload, signature)) {
+    return res.status(401).send('Invalid signature');
   }
-);
+
+  const { eventType, object } = req.body;
+
+  // Revoke access when a subscription is canceled
+  if (eventType === 'subscription.canceled') {
+    const customer = object.customer;
+
+    console.log(`Subscription ${object.id} canceled`);
+
+    // Revoke access
+    await revokeAccess(customer.email);
+  }
+
+  res.status(200).send('OK');
+});
 ```
 
   </Tab>
@@ -374,29 +376,46 @@ When a subscription payment fails:
 
 ```typescript
 // Handle failed payment webhook
-await creem.webhooks.handleEvents(
-  request.body,
-  request.headers['creem-signature'],
-  {
-    onSubscriptionPastDue: async (data) => {
-      const { subscription, customer } = data;
+import crypto from 'crypto';
 
-      // Notify customer to update payment method
-      await sendPaymentFailedEmail(customer.email, {
-        portalLink: `https://yoursite.com/portal?customer=${customer.id}`,
-      });
+function verifySignature(payload: string, signature: string) {
+  const computed = crypto
+    .createHmac('sha256', process.env.CREEM_WEBHOOK_SECRET!)
+    .update(payload)
+    .digest('hex');
+  return computed === signature;
+}
 
-      // Optionally restrict access or show warning
-      await showPaymentWarning(customer.email);
-    },
+app.post('/webhook', async (req, res) => {
+  const signature = req.headers['creem-signature'];
+  const payload = JSON.stringify(req.body);
 
-    onSubscriptionCanceled: async (data) => {
-      // After all retries failed
-      await revokeAccess(data.customer.email);
-      await sendSubscriptionEndedEmail(data.customer.email);
-    },
+  if (!verifySignature(payload, signature)) {
+    return res.status(401).send('Invalid signature');
   }
-);
+
+  const { eventType, object } = req.body;
+  const customer = object.customer;
+
+  // Payment failed — subscription is past due
+  if (eventType === 'subscription.past_due') {
+    // Notify customer to update payment method
+    await sendPaymentFailedEmail(customer.email, {
+      portalLink: `https://yoursite.com/portal?customer=${customer.id}`,
+    });
+
+    // Optionally restrict access or show warning
+    await showPaymentWarning(customer.email);
+  }
+
+  // After all retries failed
+  if (eventType === 'subscription.canceled') {
+    await revokeAccess(customer.email);
+    await sendSubscriptionEndedEmail(customer.email);
+  }
+
+  res.status(200).send('OK');
+});
 ```
 
 ---

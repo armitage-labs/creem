@@ -142,9 +142,9 @@ Here's how a typical activation flow works:
 <CodeGroup>
 
 ```ts TypeScript SDK
-import { createCreem } from 'creem_io';
+import { Creem } from 'creem';
 
-const creem = createCreem({
+const creem = new Creem({
   apiKey: process.env.CREEM_API_KEY!,
   testMode: true,
 });
@@ -289,9 +289,9 @@ Here's how the validation process typically works:
 <CodeGroup>
 
 ```ts TypeScript SDK
-import { createCreem } from 'creem_io';
+import { Creem } from 'creem';
 
-const creem = createCreem({
+const creem = new Creem({
   apiKey: process.env.CREEM_API_KEY!,
   testMode: true,
 });
@@ -444,9 +444,9 @@ Here's how the deactivation process typically works:
 <CodeGroup>
 
 ```ts TypeScript SDK
-import { createCreem } from 'creem_io';
+import { Creem } from 'creem';
 
-const creem = createCreem({
+const creem = new Creem({
   apiKey: process.env.CREEM_API_KEY!,
   testMode: true,
 });

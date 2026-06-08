@@ -30,9 +30,9 @@ You can also create discounts programmatically using the API.
   <Tab title="TypeScript SDK">
 
 ```typescript
-import { createCreem } from 'creem_io';
+import { Creem } from 'creem';
 
-const creem = createCreem({
+const creem = new Creem({
   apiKey: process.env.CREEM_API_KEY!,
   testMode: process.env.NODE_ENV !== 'production',
 });

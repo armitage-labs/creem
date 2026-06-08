@@ -57,9 +57,9 @@ export function SeatBasedCheckout({ seatCount }: { seatCount: number }) {
   <Tab title="TypeScript SDK">
 
 ```typescript
-import { createCreem } from 'creem_io';
+import { Creem } from 'creem';
 
-const creem = createCreem({
+const creem = new Creem({
   apiKey: process.env.CREEM_API_KEY!,
   testMode: process.env.NODE_ENV !== 'production',
 });
@@ -188,9 +188,9 @@ First, retrieve the subscription to get the subscription item ID:
   <Tab title="TypeScript SDK">
 
 ```typescript
-import { createCreem } from 'creem_io';
+import { Creem } from 'creem';
 
-const creem = createCreem({
+const creem = new Creem({
   apiKey: process.env.CREEM_API_KEY!,
   testMode: process.env.NODE_ENV !== 'production',
 });

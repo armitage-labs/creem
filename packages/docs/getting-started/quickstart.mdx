@@ -102,19 +102,19 @@ export default function Page() {
 <CodeGroup>
 
 ```bash npm
-npm install creem_io
+npm install creem
 ```
 
 ```bash yarn
-yarn add creem_io
+yarn add creem
 ```
 
 ```bash pnpm
-pnpm install creem_io
+pnpm install creem
 ```
 
 ```bash bun
-bun install creem_io
+bun install creem
 ```
 
 </CodeGroup>
@@ -133,9 +133,9 @@ CREEM_API_KEY=your_api_key_here
 Create a checkout session:
 
 ```ts
-import { createCreem } from 'creem_io';
+import { Creem } from 'creem';
 
-const creem = createCreem({
+const creem = new Creem({
   apiKey: process.env.CREEM_API_KEY!,
   testMode: true, // Set to false for production
 });
@@ -315,9 +315,9 @@ NEXT_PUBLIC_APP_URL=http://localhost:3000
 
 ```typescript
 // lib/creem.ts
-import { createCreem } from 'creem_io';
+import { Creem } from 'creem';
 
-export const creem = createCreem({
+export const creem = new Creem({
   apiKey: process.env.CREEM_API_KEY!,
   testMode: true, // Set to false for production
 });
@@ -502,7 +502,7 @@ export default function SuccessPage({
 
 1. Install dependencies:
 ```bash
-npm install creem_io
+npm install creem
 ```
 
 2. Create a product in the [Creem dashboard](https://creem.io/dashboard/products)

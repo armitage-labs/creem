@@ -31,15 +31,15 @@ export function ManageBillingButton({ customerId }: { customerId: string }) {
   <Tab title="TypeScript SDK">
 
 ```typescript
-import { createCreem } from 'creem_io';
+import { Creem } from 'creem';
 
-const creem = createCreem({
+const creem = new Creem({
   apiKey: process.env.CREEM_API_KEY!,
   testMode: process.env.NODE_ENV !== 'production',
 });
 
 // Create customer portal link
-const portal = await creem.customers.createPortal({
+const portal = await creem.customers.generateBillingLinks({
   customerId: 'cust_YOUR_CUSTOMER_ID',
 });
 
@@ -109,9 +109,9 @@ Upgrade or downgrade a subscription to a different product using the subscriptio
   <Tab title="TypeScript SDK">
 
 ```typescript
-import { createCreem } from 'creem_io';
+import { Creem } from 'creem';
 
-const creem = createCreem({
+const creem = new Creem({
   apiKey: process.env.CREEM_API_KEY!,
   testMode: process.env.NODE_ENV !== 'production',
 });
@@ -191,9 +191,9 @@ For seat-based subscriptions, you can update the number of seats:
   <Tab title="TypeScript SDK">
 
 ```typescript
-import { createCreem } from 'creem_io';
+import { Creem } from 'creem';
 
-const creem = createCreem({
+const creem = new Creem({
   apiKey: process.env.CREEM_API_KEY!,
   testMode: process.env.NODE_ENV !== 'production',
 });

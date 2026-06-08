@@ -76,9 +76,9 @@ curl -X POST https://test-api.creem.io/v1/checkouts \
 ```
 
 ```typescript TypeScript SDK
-import { createCreem } from 'creem_io';
+import { Creem } from 'creem';
 
-const creem = createCreem({
+const creem = new Creem({
   apiKey: process.env.CREEM_API_KEY!,
   testMode: process.env.NODE_ENV !== 'production',
 });

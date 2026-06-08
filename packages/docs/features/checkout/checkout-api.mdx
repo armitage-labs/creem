@@ -104,19 +104,19 @@ The `CreemCheckout` component automatically handles the checkout session creatio
 <CodeGroup>
 
 ```bash npm
-npm install creem_io
+npm install creem
 ```
 
 ```bash yarn
-yarn add creem_io
+yarn add creem
 ```
 
 ```bash pnpm
-pnpm install creem_io
+pnpm install creem
 ```
 
 ```bash bun
-bun install creem_io
+bun install creem
 ```
 
 </CodeGroup>
@@ -124,9 +124,9 @@ bun install creem_io
 ### Create a checkout session
 
 ```typescript
-import { createCreem } from 'creem_io';
+import { Creem } from 'creem';
 
-const creem = createCreem({
+const creem = new Creem({
   apiKey: process.env.CREEM_API_KEY!,
   testMode: process.env.NODE_ENV !== 'production',
 });
