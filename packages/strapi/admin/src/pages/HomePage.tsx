@@ -82,10 +82,6 @@ const HomePage = () => {
   const [currency, setCurrency] = useState("USD");
   const [paymentInterval, setPaymentInterval] = useState("month");
 
-  const [includePrivateNote, setIncludePrivateNote] = useState(false);
-  const [privateNote, setPrivateNote] = useState("");
-  const [includeLicenseKeys, setIncludeLicenseKeys] = useState(false);
-
   const [error, setError] = useState("");
   const [success, setSuccess] = useState("");
 
@@ -123,9 +119,6 @@ const HomePage = () => {
     setIsFreeProduct(false);
     setCurrency((settings.defaultCurrency || "USD").toUpperCase());
     setPaymentInterval("month");
-    setIncludePrivateNote(false);
-    setPrivateNote("");
-    setIncludeLicenseKeys(false);
   };
 
   const openCreate = () => {
@@ -154,9 +147,6 @@ const HomePage = () => {
         price,
         currency,
         recurringInterval: paymentInterval,
-        include_private_note: includePrivateNote,
-        private_note: includePrivateNote ? privateNote : undefined,
-        include_license_keys: includeLicenseKeys,
       });
       setSuccess("Product created.");
       setIsModalOpen(false);
@@ -545,52 +535,6 @@ function checkout(btn) {
                           </SingleSelectOption>
                         ))}
                       </SingleSelect>
-                    </Box>
-                  </Box>
-
-                  <Box {...ui.field}>
-                    <Typography {...ui.fieldLabel}>Post-purchase benefits (Creem)</Typography>
-                    <br />
-                    <Typography variant="pi" textColor="neutral600" {...ui.mt2}>
-                      License keys and private notes are attached as product features when supported
-                      by the Creem API.
-                    </Typography>
-                    <Box {...ui.benefitGridBox}>
-                      <Box>
-                        <Checkbox
-                          checked={includePrivateNote}
-                          onCheckedChange={(v: boolean) => setIncludePrivateNote(v)}
-                        >
-                          Private note for buyers
-                        </Checkbox>
-                      </Box>
-                      <Box>
-                        <Checkbox
-                          checked={includeLicenseKeys}
-                          onCheckedChange={(v: boolean) => setIncludeLicenseKeys(v)}
-                        >
-                          License keys
-                        </Checkbox>
-                      </Box>
-
-                      <Box>
-                        {includePrivateNote ? (
-                          <Box {...ui.mt2}>
-                            <Textarea
-                              style={styles.privateNoteTextarea}
-                              placeholder="Shown to the customer after purchase"
-                              name="privateNote"
-                              value={privateNote}
-                              onChange={(e: React.ChangeEvent<HTMLTextAreaElement>) =>
-                                setPrivateNote(e.target.value)
-                              }
-                            />
-                          </Box>
-                        ) : (
-                          <Box height="40px" />
-                        )}
-                      </Box>
-                      <Box />
                     </Box>
                   </Box>
                 </Flex>

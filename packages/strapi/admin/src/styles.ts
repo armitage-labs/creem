@@ -20,13 +20,6 @@ export const shimmerCss = `
 export const styles = {
   inputFullWidth: { width: "100%" } as const,
   descriptionTextarea: { width: "100%", minHeight: 120 } as const,
-  privateNoteTextarea: { width: "100%", minHeight: 110 } as const,
-  benefitGridStyle: {
-    display: "grid",
-    gridTemplateColumns: "1fr 1fr",
-    gap: 16,
-    alignItems: "start",
-  } as const,
 } as const;
 
 export const ui = {
@@ -81,7 +74,6 @@ export const ui = {
   rowGap2Wrap: { gap: 2, wrap: "wrap" } as const,
   justifyBetween: { justifyContent: "space-between" } as const,
   justifyEnd: { justifyContent: "flex-end" } as const,
-  benefitGridBox: { style: styles.benefitGridStyle, marginTop: 4 } as const,
   headingBetaBold: { variant: "beta", fontWeight: "bold" } as const,
   settingsHeader: { direction: "column", gap: 2, alignItems: "flex-start", width: "100%" } as const,
   settingsTitle: { variant: "beta", style: { textAlign: "left", width: "100%" } } as const,
