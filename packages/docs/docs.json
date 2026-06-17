@@ -150,6 +150,7 @@
             "icon": "link",
             "pages": [
               "integrations/ai-negotiation-bot",
+              "integrations/strapi",
               {
                 "group": "Purchase Parity Platforms",
                 "pages": ["integrations/evendeals"]
