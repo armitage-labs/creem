@@ -368,5 +368,5 @@ window.addEventListener('message', (event) => {
 <ParamField path="type" type="string">`"ready"` when the UI has rendered, then `"completed"` on payment.</ParamField>
 
 <Note>
-  **Digital wallets.** Apple Pay / Google Pay can require domain registration with the card networks and may be unavailable inside a cross-origin iframe. Card and 3-D Secure payments always work in the embed; if wallet buttons are critical for you, the hosted checkout page remains the most reliable surface today.
+  **Digital wallets.** **Google Pay** works inside the embedded iframe. **Apple Pay does not** — this is an Apple platform restriction, not an embed limitation. In a cross-origin iframe, Safari only presents the Apple Pay sheet when the **top-level page's domain** (your site) is registered as an Apple Pay merchant domain and the merchant session is validated against that top-level domain, not the iframe's. Your site isn't registered under Creem's Apple Pay account, so Safari suppresses the button — Google Pay has no equivalent top-level-domain requirement, which is why it still appears. Card and 3-D Secure payments always work in the embed. If Apple Pay is critical for you, use the hosted checkout page, where payment runs on Creem's own registered domain.
 </Note>
