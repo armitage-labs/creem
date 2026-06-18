@@ -1,6 +1,6 @@
 {
   "name": "@creem_io/react",
-  "version": "0.2.0",
+  "version": "0.2.1",
   "description": "React components and SDK to embed Creem checkout (modal & inline).",
   "main": "./dist/index.js",
   "module": "./dist/index.mjs",
