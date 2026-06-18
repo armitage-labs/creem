@@ -457,6 +457,7 @@ function checkout(btn) {
                         <Typography {...ui.fieldLabel}>Billing interval</Typography>
                         <Flex {...ui.buttonRow} {...ui.mt2}>
                           {[
+                            { value: "day", label: "Daily" },
                             { value: "month", label: "Monthly" },
                             { value: "3months", label: "3 months" },
                             { value: "6months", label: "6 months" },

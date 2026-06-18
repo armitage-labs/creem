@@ -13,6 +13,8 @@ export type CreemProduct = {
 export function intervalToSelect(p: Pick<CreemProduct, "billing_type" | "billing_period">): string {
   if (p.billing_type !== "recurring") return "oneTime";
   switch (p.billing_period) {
+    case "every-day":
+      return "day";
     case "every-month":
       return "month";
     case "every-three-months":
@@ -28,6 +30,8 @@ export function intervalToSelect(p: Pick<CreemProduct, "billing_type" | "billing
 
 export function subscriptionFrequencyLabel(p: Pick<CreemProduct, "billing_period">): string | null {
   switch (p.billing_period) {
+    case "every-day":
+      return "Daily";
     case "every-month":
       return "Monthly";
     case "every-three-months":

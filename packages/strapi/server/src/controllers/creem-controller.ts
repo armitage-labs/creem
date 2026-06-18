@@ -62,6 +62,8 @@ function getEnvironmentAvailability(): { test: boolean; production: boolean } {
 
 function mapBillingPeriod(value: string): string {
   switch (value) {
+    case "day":
+      return "every-day";
     case "month":
       return "every-month";
     case "3months":

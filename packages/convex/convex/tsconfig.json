@@ -22,15 +22,13 @@
     "noEmit": true,
     "baseUrl": "..",
     "paths": {
-      "@creem_io/convex": ["../src/client/index.ts"],
-      "@creem_io/convex/react": ["../src/react/index.tsx"],
-      "@creem_io/convex/svelte": ["../src/svelte/index.ts"],
-      "@creem_io/convex/convex.config": [
-        "../src/component/convex.config.ts"
-      ],
-      "@creem_io/convex/test": ["../src/test.ts"],
+      "@creem_io/convex": ["src/client/index.ts"],
+      "@creem_io/convex/react": ["src/react/index.tsx"],
+      "@creem_io/convex/svelte": ["src/svelte/index.ts"],
+      "@creem_io/convex/convex.config": ["src/component/convex.config.ts"],
+      "@creem_io/convex/test": ["src/test.ts"],
       "@creem_io/convex/_generated/component.js": [
-        "../src/component/_generated/component.ts"
+        "src/component/_generated/component.ts"
       ]
     }
   },
