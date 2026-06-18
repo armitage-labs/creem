@@ -2,7 +2,7 @@ import { Creem } from "../../src/index.js";
 import { describe, it, expect } from "vitest";
 import { APIError } from "../../src/models/errors/index.js";
 import { fail } from "../../src/lib/matchers.js";
-import { TEST_SERVER_IDX, TEST_MODE } from "../fixtures/testValues.js";
+import { TEST_SERVER, TEST_MODE } from "../fixtures/testValues.js";
 import { creem } from "../fixtures/testData.js";
 import {
   ProductRequestBillingType,
@@ -41,7 +41,7 @@ const SAMPLE_PRODUCT = {
 // Create an instance with invalid API key for auth error tests
 const creemWithInvalidKey = new Creem({
   apiKey: "fail",
-  serverIdx: TEST_SERVER_IDX,
+  server: TEST_SERVER,
 });
 
 describe("createProduct", () => {
@@ -91,7 +91,7 @@ describe("createProduct", () => {
     // Create an instance with empty API key
     const creemWithEmptyKey = new Creem({
       apiKey: "",
-      serverIdx: TEST_SERVER_IDX,
+      server: TEST_SERVER,
     });
 
     try {

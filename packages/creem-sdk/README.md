@@ -531,14 +531,14 @@ run();
 <!-- Start Server Selection [server] -->
 ## Server Selection
 
-### Select Server by Index
+### Select Server by Name
 
-You can override the default server globally by passing a server index to the `serverIdx: number` optional parameter when initializing the SDK client instance. The selected server will then be used as the default on the operations that use it. This table lists the indexes associated with the available servers:
+You can override the default server globally by passing a server name to the `server: keyof typeof ServerList` optional parameter when initializing the SDK client instance. The selected server will then be used as the default on the operations that use it. This table lists the names associated with the available servers:
 
-| #   | Server                      | Description |
-| --- | --------------------------- | ----------- |
-| 0   | `https://api.creem.io`      |             |
-| 1   | `https://test-api.creem.io` |             |
+| Name   | Server                      | Description |
+| ------ | --------------------------- | ----------- |
+| `prod` | `https://api.creem.io`      | Production  |
+| `test` | `https://test-api.creem.io` | Test        |
 
 #### Example
 
@@ -546,7 +546,7 @@ You can override the default server globally by passing a server index to the `s
 import { Creem } from "creem";
 
 const creem = new Creem({
-  serverIdx: 0,
+  server: "test",
   apiKey: process.env["CREEM_API_KEY"] ?? "",
 });
 

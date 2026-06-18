@@ -3,7 +3,6 @@
  */
 
 import { CreemCore } from "../core.js";
-import { dlv } from "../lib/dlv.js";
 import { encodeFormQuery } from "../lib/encodings.js";
 import { matchStatusCode } from "../lib/http.js";
 import * as M from "../lib/matchers.js";
@@ -215,7 +214,9 @@ async function $do(
   } => {
     const page = input?.pageNumber ?? 1;
     const nextPage = page + 1;
-    const numPages = dlv(responseData, "pagination.total_pages");
+    const numPages =
+      (responseData as { pagination: { total_pages: unknown } }).pagination
+        .total_pages;
     if (typeof numPages !== "number" || numPages <= page) {
       return { next: () => null };
     }
@@ -223,7 +224,7 @@ async function $do(
     if (!responseData) {
       return { next: () => null };
     }
-    const results = dlv(responseData, "items");
+    const results = (responseData as { items: unknown }).items;
     if (!Array.isArray(results) || !results.length) {
       return { next: () => null };
     }

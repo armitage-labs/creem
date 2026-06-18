@@ -23,7 +23,7 @@ export const TEST_INSTANCE_NAME: string = "LICENSE0";
 export const TEST_ORDER_ID: string = "ord_bER6x088zTFRL76JGdFVv";
 
 // Server Configuration
-export const TEST_SERVER_IDX: number = 1;
+export const TEST_SERVER = "test" as const;
 export const TEST_MODE: string = "test";
 
 export const TEST_CHECKOUT_ID_RECURRING: string = "ch_15UGAdf4Gfa1jscpQqvGW9";

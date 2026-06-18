@@ -49,7 +49,7 @@ let value: WebhookSubscriptionEntity = {
     updatedAt: new Date("2023-01-01T00:00:00Z"),
   },
   collectionMethod: "charge_automatically",
-  status: "scheduled_cancel",
+  status: "past_due",
   lastTransactionId: "tran_3e6Z6TzvHKdsjEgXnGDEp0",
   lastTransaction: {
     id: "<id>",

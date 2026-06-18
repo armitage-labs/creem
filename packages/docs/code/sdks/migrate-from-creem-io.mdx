@@ -8,9 +8,8 @@ The `creem_io` wrapper package is deprecated and no longer receives updates. Exi
 This guide walks through the main code changes for moving an existing `creem_io` integration to `creem`.
 
 <Info>
-  If you are using the `@creem_io/nextjs` or `@creem_io/better-auth` packages,
-  those are separate adapter packages and are not the deprecated bare
-  `creem_io` wrapper.
+  If you are using the `@creem_io/nextjs` or `@creem_io/better-auth` packages, those are separate
+  adapter packages and are not the deprecated bare `creem_io` wrapper.
 </Info>
 
 ## Install the SDK Alongside creem_io
@@ -44,7 +43,7 @@ Remove `creem_io` only after the migrated code compiles, tests pass, and no impo
 Replace `createCreem(...)` with the `Creem` client:
 
 ```ts creem_io
-import { createCreem } from 'creem_io';
+import { createCreem } from "creem_io";
 
 const creem = createCreem({
   apiKey: process.env.CREEM_API_KEY!,
@@ -54,45 +53,43 @@ const creem = createCreem({
 ```
 
 ```ts creem
-import { Creem } from 'creem';
+import { Creem } from "creem";
 
 const creem = new Creem({
   apiKey: process.env.CREEM_API_KEY!,
-  // 0 = production, 1 = test
-  serverIdx: 1,
+  server: "test",
 });
 ```
 
 <Warning>
-  Do not expose your API key in browser code. Initialize `Creem` only in trusted
-  server-side code.
+  Do not expose your API key in browser code. Initialize `Creem` only in trusted server-side code.
 </Warning>
 
 ## API Call Changes
 
 The core SDK is generated from the public OpenAPI schema, so method names and argument shapes are closer to the API.
 
-| Area | `creem_io` wrapper | `creem` SDK |
-| --- | --- | --- |
-| Initialize client | `createCreem({ apiKey, testMode })` | `new Creem({ apiKey, serverIdx })` |
-| Product get | `creem.products.get({ productId })` | `creem.products.get(productId)` |
-| Product search | `creem.products.list({ page, limit })` | `creem.products.search(page, pageSize)` |
-| Checkout create | `creem.checkouts.create({ ... })` | `creem.checkouts.create({ ... })` |
-| Customer retrieve | wrapper helper methods | `creem.customers.retrieve(customerId, email)` |
-| Subscription get | `creem.subscriptions.get({ subscriptionId })` | `creem.subscriptions.get(subscriptionId)` |
-| Subscription cancel | wrapper helper methods | `creem.subscriptions.cancel(subscriptionId, { mode })` |
-| Transactions search | wrapper helper methods | `creem.transactions.search(customerId, orderId, productId, page, pageSize)` |
+| Area                | `creem_io` wrapper                            | `creem` SDK                                                                 |
+| ------------------- | --------------------------------------------- | --------------------------------------------------------------------------- |
+| Initialize client   | `createCreem({ apiKey, testMode })`           | `new Creem({ apiKey, server })`                                             |
+| Product get         | `creem.products.get({ productId })`           | `creem.products.get(productId)`                                             |
+| Product search      | `creem.products.list({ page, limit })`        | `creem.products.search(page, pageSize)`                                     |
+| Checkout create     | `creem.checkouts.create({ ... })`             | `creem.checkouts.create({ ... })`                                           |
+| Customer retrieve   | wrapper helper methods                        | `creem.customers.retrieve(customerId, email)`                               |
+| Subscription get    | `creem.subscriptions.get({ subscriptionId })` | `creem.subscriptions.get(subscriptionId)`                                   |
+| Subscription cancel | wrapper helper methods                        | `creem.subscriptions.cancel(subscriptionId, { mode })`                      |
+| Transactions search | wrapper helper methods                        | `creem.transactions.search(customerId, orderId, productId, page, pageSize)` |
 
 Example:
 
 ```ts creem_io
 const product = await creem.products.get({
-  productId: 'prod_123',
+  productId: "prod_123",
 });
 ```
 
 ```ts creem
-const product = await creem.products.get('prod_123');
+const product = await creem.products.get("prod_123");
 ```
 
 ## Search and Pagination
@@ -121,7 +118,7 @@ The wrapper provided high-level callbacks such as `onGrantAccess` and `onRevokeA
 ### Verify and Parse Events
 
 ```ts
-import { constructWebhookEventEntity } from 'creem/webhooks';
+import { constructWebhookEventEntity } from "creem/webhooks";
 
 export async function POST(request: Request) {
   const body = await request.text();
@@ -130,22 +127,22 @@ export async function POST(request: Request) {
   });
 
   switch (event.eventType) {
-    case 'checkout.completed':
+    case "checkout.completed":
       await handleCheckoutCompleted(event.object);
       break;
-    case 'subscription.active':
-    case 'subscription.trialing':
-    case 'subscription.paid':
+    case "subscription.active":
+    case "subscription.trialing":
+    case "subscription.paid":
       await grantAccess(event.object);
       break;
-    case 'subscription.paused':
-    case 'subscription.expired':
-    case 'subscription.canceled':
+    case "subscription.paused":
+    case "subscription.expired":
+    case "subscription.canceled":
       await revokeAccess(event.object);
       break;
   }
 
-  return new Response('OK', { status: 200 });
+  return new Response("OK", { status: 200 });
 }
 ```
 
@@ -176,9 +173,7 @@ async function grantSubscriptionAccess(subscription: {
   if (!userId) return;
 
   const customerEmail =
-    typeof subscription.customer === 'string'
-      ? undefined
-      : subscription.customer.email;
+    typeof subscription.customer === "string" ? undefined : subscription.customer.email;
 
   await grantAccess(userId, customerEmail);
 }
@@ -188,8 +183,8 @@ If you already have separate grant and revoke functions, keep those functions an
 
 <Tip>
   If you want adapter-style lifecycle callbacks in a Next.js app, use the
-  [`@creem_io/nextjs`](/code/sdks/nextjs) adapter. If you want full API access
-  and generated webhook payload types, use the core `creem` SDK directly.
+  [`@creem_io/nextjs`](/code/sdks/nextjs) adapter. If you want full API access and generated webhook
+  payload types, use the core `creem` SDK directly.
 </Tip>
 
 ## Metadata
@@ -239,7 +234,8 @@ When migrating a codebase, use this checklist:
 - Install `creem` alongside `creem_io` until the migration is complete.
 - Replace imports from `creem_io` with imports from `creem`.
 - Replace `createCreem(...)` with `new Creem(...)`.
-- Convert `testMode: true` to `serverIdx: 1` and production to `serverIdx: 0`.
+- Convert `testMode: true` to `server: "test"`. Production is the SDK default, so no `server`
+  option is required.
 - Update resource method calls from object-wrapper arguments to the core SDK signatures.
 - Replace local webhook HMAC code with `constructWebhookEventEntity(...)` or `verifyWebhookSignature(...)`.
 - Replace `event.type` / `event.data` webhook usage with `event.eventType` / `event.object`.

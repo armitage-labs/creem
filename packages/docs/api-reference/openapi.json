@@ -2533,10 +2533,14 @@
   "tags": [],
   "servers": [
     {
-      "url": "https://api.creem.io"
+      "url": "https://api.creem.io",
+      "description": "Production",
+      "x-speakeasy-server-id": "prod"
     },
     {
-      "url": "https://test-api.creem.io"
+      "url": "https://test-api.creem.io",
+      "description": "Test",
+      "x-speakeasy-server-id": "test"
     }
   ],
   "components": {
