@@ -95,6 +95,28 @@ function originOf(url: string): string | null {
   }
 }
 
+// Treat the apex and the `www.` subdomain of the SAME host as one origin.
+// Production canonicalizes `creem.io` -> `www.creem.io` with a 308 redirect, so a
+// checkout opened at `https://creem.io/checkout/...` (the URL the API hands
+// merchants) actually loads — and posts its `ready`/`completed` events — from
+// `https://www.creem.io`. A strict `===` against the merchant-supplied origin
+// then silently drops those events and the post-payment redirect never fires
+// (ENG-809). Folding a leading `www.` cannot widen trust to an unrelated host;
+// protocol and port must still match exactly.
+function sameOrigin(actualOrigin: string, expectedOrigin: string): boolean {
+  if (actualOrigin === expectedOrigin) return true;
+  if (!actualOrigin || !expectedOrigin) return false;
+  try {
+    const actual = new URL(actualOrigin);
+    const expected = new URL(expectedOrigin);
+    if (actual.protocol !== expected.protocol) return false;
+    if (actual.port !== expected.port) return false;
+    return actual.hostname.replace(/^www\./, "") === expected.hostname.replace(/^www\./, "");
+  } catch {
+    return false;
+  }
+}
+
 function makeIframe(checkoutUrl: string): HTMLIFrameElement {
   const iframe = document.createElement("iframe");
   iframe.src = checkoutUrl;
@@ -111,7 +133,7 @@ function subscribe(checkoutUrl: string, options: CreemCheckoutOptions): () => vo
   const expectedOrigin = originOf(checkoutUrl);
   let redirectTimer: ReturnType<typeof setTimeout> | null = null;
   function handler(event: MessageEvent): void {
-    if (expectedOrigin && event.origin !== expectedOrigin) return;
+    if (expectedOrigin && !sameOrigin(event.origin, expectedOrigin)) return;
     const data = event.data as Partial<{
       source: string;
       version: number;
