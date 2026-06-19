@@ -245,3 +245,17 @@ console.log(data.customer_portal_link);
 
   </Tab>
 </Tabs>
+
+## Limitations
+
+The Customer Portal is designed for self-service management of existing subscriptions. Currently, customers **cannot**:
+
+- Switch between subscription tiers or plans
+- Change from one product to another
+- Modify their subscription's billing cycle
+
+To offer tier switching or plan changes, implement it in your own application using the [subscription upgrade API](/features/subscriptions/managing#subscription-upgrades-and-downgrades). This gives you full control over the upgrade/downgrade flow, proration behavior, and user experience.
+
+<Note>
+If you need to change a product's price, note that existing subscriptions are automatically grandfathered at their original price. See [Changing a Product's Price](/features/subscriptions/managing#changing-a-products-price) for details on price change behavior and how to migrate existing subscribers.
+</Note>
