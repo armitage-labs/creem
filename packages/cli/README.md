@@ -16,13 +16,13 @@ brew install creem
 ### npm (Global)
 
 ```bash
-npm install -g creem-cli
+npm install -g @creem_io/cli
 ```
 
 ### npx (No Install)
 
 ```bash
-npx creem-cli <command>
+npx @creem_io/cli <command>
 ```
 
 ## Quick Start
@@ -120,10 +120,10 @@ This package lives inside the [armitage-labs/creem](https://github.com/armitage-
 ```bash
 # From the repo root
 pnpm install
-pnpm --filter creem-cli build
+pnpm --filter @creem_io/cli build
 
 # Or from this directory
-cd packages/creem-cli
+cd packages/cli
 pnpm build      # build once
 pnpm dev        # watch mode
 ```
@@ -131,16 +131,16 @@ pnpm dev        # watch mode
 Run the locally built binary:
 
 ```bash
-node packages/creem-cli/dist/index.js <command>
+node packages/cli/dist/index.js <command>
 ```
 
 ### Optional: direnv
 
-A `.envrc` is included that adds `packages/creem-cli/bin` to your `PATH`, so after building you can just run `creem`:
+A `.envrc` is included that adds `packages/cli/bin` to your `PATH`, so after building you can just run `creem`:
 
 ```bash
 brew install direnv       # if not already installed
-cd packages/creem-cli
+cd packages/cli
 direnv allow
 creem whoami
 ```
