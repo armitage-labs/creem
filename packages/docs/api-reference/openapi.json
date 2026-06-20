@@ -2534,12 +2534,12 @@
   "servers": [
     {
       "url": "https://api.creem.io",
-      "description": "Production",
+      "description": "Production — live API for processing real transactions and data.",
       "x-speakeasy-server-id": "prod"
     },
     {
       "url": "https://test-api.creem.io",
-      "description": "Test",
+      "description": "Test — sandbox API for development and testing with no real charges.",
       "x-speakeasy-server-id": "test"
     }
   ],
