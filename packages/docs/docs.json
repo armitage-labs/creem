@@ -143,10 +143,17 @@
             "group": "Integrations",
             "icon": "link",
             "pages": [
-              "integrations/ai-negotiation-bot",
               {
                 "group": "Purchase Parity Platforms",
                 "pages": ["integrations/evendeals"]
+              },
+              {
+                "group": "CMS",
+                "pages": ["integrations/strapi"]
+              },
+              {
+                "group": "AI Chatbot",
+                "pages": ["integrations/ai-negotiation-bot"]
               }
             ]
           },

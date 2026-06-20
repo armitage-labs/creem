@@ -51,15 +51,36 @@ export interface CreemCheckoutInlineHandle {
   destroy: () => void;
 }
 
-// Append the merchant-controlled presentation params (`theme`, `locale`) to the
-// checkout URL. Both are optional; the checkout page falls back to its defaults
-// (browser language, light theme) when absent.
+// Read the affiliate ref token (`creem_ref`) from the MERCHANT page URL. The
+// /affiliate redirect lands the visitor on the merchant's own site with
+// `?creem_ref=<signed token>` — first-party to the visitor, so it's readable
+// here even in browsers that drop our third-party cookie (Safari ITP,
+// Firefox TCP). Returns null when absent or the URL can't be parsed.
+function readAffiliateRef(): string | null {
+  try {
+    return new URLSearchParams(window.location.search).get("creem_ref");
+  } catch {
+    return null;
+  }
+}
+
+// Append the merchant-controlled presentation params (`theme`, `locale`) and the
+// affiliate ref token (`creem_ref`) to the checkout URL. Presentation params are
+// optional; the checkout page falls back to its defaults (browser language,
+// light theme) when absent. Forwarding `creem_ref` into the iframe URL is what
+// carries affiliate attribution across the third-party boundary (ENG-757), so it
+// survives in browsers that drop the cookie.
 function withParams(url: string, options: CreemCheckoutOptions): string {
-  if (!options.theme && !options.locale) return url;
+  const ref = readAffiliateRef();
+  if (!options.theme && !options.locale && !ref) return url;
   try {
     const parsed = new URL(url);
     if (options.theme) parsed.searchParams.set("theme", options.theme);
     if (options.locale) parsed.searchParams.set("locale", options.locale);
+    // Don't clobber a creem_ref the merchant already put on the checkout URL.
+    if (ref && !parsed.searchParams.has("creem_ref")) {
+      parsed.searchParams.set("creem_ref", ref);
+    }
     return parsed.toString();
   } catch {
     return url;

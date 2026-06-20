@@ -1,4 +1,6 @@
-# creem-cli
+# @creem_io/cli
+
+> Renamed from `creem-cli` to `@creem_io/cli` to follow the `@creem_io` scope convention. The installed command remains `creem`.
 
 ## 0.2.1
 
