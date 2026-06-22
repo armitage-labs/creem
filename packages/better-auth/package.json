@@ -1,6 +1,6 @@
 {
   "name": "@creem_io/better-auth",
-  "version": "1.1.1",
+  "version": "1.1.2",
   "description": "Creem official Better-Auth plugin",
   "main": "./dist/index.js",
   "module": "./dist/index.mjs",
