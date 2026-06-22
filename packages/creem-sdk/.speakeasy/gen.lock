@@ -1,12 +1,12 @@
 lockVersion: 2.0.0
 id: 091f072e-89b5-4c97-b605-63f1bf64ee97
 management:
-  docChecksum: 8647aa8ca27a4cfbb164e03c7734fa38
+  docChecksum: ced660b9acef164ce26b46e7f3f77c22
   docVersion: v1
-  speakeasyVersion: 1.762.0
-  generationVersion: 2.882.0
-  releaseVersion: 1.4.5
-  configChecksum: 837a75dcde1585ee947c95748a397569
+  speakeasyVersion: 1.783.1
+  generationVersion: 2.910.1
+  releaseVersion: 1.5.0
+  configChecksum: c93e5667d0d7a8ed4c8d6229e9f7050e
   repoURL: https://github.com/armitage-labs/creem.git
   repoSubDirectory: packages/creem-sdk
   installationURL: https://github.com/armitage-labs/creem
@@ -19,7 +19,7 @@ features:
   typescript:
     additionalDependencies: 0.1.0
     constsAndDefaults: 0.1.14
-    core: 3.26.50
+    core: 3.31.1
     defaultEnabledRetries: 0.1.0
     deprecations: 2.81.1
     devContainers: 2.90.1
@@ -31,12 +31,15 @@ features:
     globalSecurityFlattening: 0.1.1
     globalServerURLs: 2.83.1
     groups: 2.81.3
+    includes: 2.81.1
     mcpServer: 0.9.4
     nameOverrides: 2.81.4
     nullables: 0.1.1
+    pagination: 2.83.2
     responseFormat: 0.3.0
-    retries: 2.83.0
+    retries: 2.83.1
     sdkHooks: 0.4.0
+    serverIDs: 2.81.2
     unions: 2.86.4
 trackedFiles:
   .devcontainer/README.md:
@@ -97,14 +100,22 @@ trackedFiles:
     pristine_git_object: b8c063daa3f7c1895dd78be342504e7c745a85bd
   docs/models/components/checkboxfieldconfig.md:
     last_write_checksum: sha1:9c75ad8bf74f5133574514adecbba17c7a738806
+  docs/models/components/checkout.md:
+    last_write_checksum: sha1:af8bb0cc21d22c2120f2746ea21bf82f98740bd2
   docs/models/components/checkoutentity.md:
     id: 67c12f078b56
-    last_write_checksum: sha1:9c1bcb71a86ce1ff2d28535869bee4b8e38611be
+    last_write_checksum: sha1:01583ebb43e134b2051f6e6ed9f6d08ab0942ad5
     pristine_git_object: 76ae3c39c23dd3a963acc8cae8af7f16bee53a23
   docs/models/components/checkoutentitycustomer.md:
-    last_write_checksum: sha1:450111bf57a390d1d395cca66a20a76ac3f171e7
+    last_write_checksum: sha1:44133d2b1fc45b0182cc8417c58d37472f71f033
+  docs/models/components/checkoutentitydiscount.md:
+    last_write_checksum: sha1:ad33e4e0f58ee766797bdeeecb7b13f8cab5a49d
+  docs/models/components/checkoutentityduration.md:
+    last_write_checksum: sha1:c6c4bcee4d533053acb38d48829da1bf54f61ea6
   docs/models/components/checkoutentityproduct.md:
     last_write_checksum: sha1:0e16f9d9f455c574807c0a9d8b562ee7c866afb8
+  docs/models/components/checkoutentitytype.md:
+    last_write_checksum: sha1:8dcd935096f7252ecfeae2a17310215e4dc5fc45
   docs/models/components/code.md:
     last_write_checksum: sha1:6ad6596ee16b80d2a09d192d7efde66e2d56266b
   docs/models/components/coupondurationtype.md:
@@ -120,9 +131,7 @@ trackedFiles:
     last_write_checksum: sha1:dd3c1198fe0eed12b076fb28050f0afe3d434587
     pristine_git_object: 11fa2a78d8805e426dbabe9aff94c93c01faff92
   docs/models/components/createcustomerrequestentity.md:
-    last_write_checksum: sha1:b9b0278b563c44a95beed465516414daf72a969f
-  docs/models/components/createcustomerrequestentitymetadata.md:
-    last_write_checksum: sha1:0e8b1de0979687cc6608ef11a559952df70791b6
+    last_write_checksum: sha1:8901297978970eef8ac0ef2946353d6d112e7bc2
   docs/models/components/creatediscountrequestentity.md:
     id: 246b87c4416f
     last_write_checksum: sha1:c9599a907a14363d922c95c00bb95f3a52f6261a
@@ -135,7 +144,7 @@ trackedFiles:
     last_write_checksum: sha1:73b194bec6339ab4508e94ad73a09581c1b00fb5
   docs/models/components/customer.md:
     id: c4a50385ed0c
-    last_write_checksum: sha1:987efcb5e9c003a1eda24215627eff1fff601f2d
+    last_write_checksum: sha1:d2f842e90bbf4e01843ae706f5acc44ae1d5a54a
     pristine_git_object: e90603c9526c6d2ffbe60436dae40e6989cd43ed
   docs/models/components/customercredits.md:
     last_write_checksum: sha1:32c96134d7a8984f866262e8b28df96e240225ba
@@ -145,7 +154,7 @@ trackedFiles:
     last_write_checksum: sha1:94926ecd39de019eb352062525e55673686f9198
   docs/models/components/customerentity.md:
     id: 2e9b74ad0ca6
-    last_write_checksum: sha1:21fd119e4156b8bee2391fd99c4e532b95908602
+    last_write_checksum: sha1:88d02ba18d010fc5c69f367e112d1be8d4e1f3ab
     pristine_git_object: e22cc8d2ac887e6af76d92b025abf0a6e7f936d7
   docs/models/components/customerlinksentity.md:
     id: 7ed83d8861eb
@@ -153,7 +162,7 @@ trackedFiles:
     pristine_git_object: b18f40bbc66ce93b5a4fe6a96b7013c9e2b46276
   docs/models/components/customerlistentity.md:
     id: 395f610a1576
-    last_write_checksum: sha1:119e500804a886ad9d0f98e76c870f3eac3ad354
+    last_write_checksum: sha1:1dbfb1f876c758ab687a5aef74a2c44312c9c08a
     pristine_git_object: c3b813f01a82cc2e66cec3193a37c0b8ff04003e
   docs/models/components/customerrequestentity.md:
     id: d568e70e39e2
@@ -181,7 +190,7 @@ trackedFiles:
     last_write_checksum: sha1:e58547bb08ad1e99c01da44542dbed9cac4c0c4d
   docs/models/components/discount.md:
     id: 902ead98a895
-    last_write_checksum: sha1:e647f09d4fbb48032813a75ce16e36fb4a59a2d7
+    last_write_checksum: sha1:2cd490cab306a645478fcd2e58997e580f683322
     pristine_git_object: dcdafadaa2a9290fc163bffe5513958f8d075bae
   docs/models/components/discountentity.md:
     id: 54cb40af5e5d
@@ -193,6 +202,16 @@ trackedFiles:
     last_write_checksum: sha1:15273a6b495692ceaab7f0c2063b8860bede3e7f
   docs/models/components/discounttype.md:
     last_write_checksum: sha1:2e162973afe678e1e14418b8348bcb410913a880
+  docs/models/components/disputeentity.md:
+    last_write_checksum: sha1:7d33f23c22c51b54aa3f068b2958a0e40df77298
+  docs/models/components/disputeentitycheckout.md:
+    last_write_checksum: sha1:83bbec289fb7284b85aa7138b7bdf52ecf91c57b
+  docs/models/components/disputeentitycustomer.md:
+    last_write_checksum: sha1:133dc2eee0ef70e6a74c1a1cf72cb36ff6d7014f
+  docs/models/components/disputeentityorder.md:
+    last_write_checksum: sha1:9649124790fe3c271ee043917e559439c3b97955
+  docs/models/components/disputeentitysubscription.md:
+    last_write_checksum: sha1:76a0c4eb57127a9bdf6a8967de7cb9b0a1601339
   docs/models/components/duration.md:
     last_write_checksum: sha1:ab1efd268c2288a991190e8c7eeacc4908c96c0b
   docs/models/components/entrylistresponsedto.md:
@@ -201,6 +220,8 @@ trackedFiles:
     last_write_checksum: sha1:ede43338cf27d2e222967a23ff350cb87357622f
   docs/models/components/environmentmode.md:
     last_write_checksum: sha1:bd424324d00e9495461e19207d9531be9d4bb02e
+  docs/models/components/eventtype.md:
+    last_write_checksum: sha1:38942a0e523ae0543f2ab646fd917999f752a80e
   docs/models/components/featureentity.md:
     id: fe7695d86411
     last_write_checksum: sha1:c8ec62a6097c63a3720a8e9b7c30dd6eda402a1d
@@ -227,8 +248,6 @@ trackedFiles:
     last_write_checksum: sha1:cf5e0d186b49175b8e5f5e90e38c733034b7a041
   docs/models/components/licensestatus.md:
     last_write_checksum: sha1:f179327cd49570a74fabd1b76b80bfddebe75377
-  docs/models/components/metadata.md:
-    last_write_checksum: sha1:ba5785bc40e172ab64873edf86842dadaff98983
   docs/models/components/mode.md:
     id: ecad6afdf106
     last_write_checksum: sha1:8da111ddd5598f68354ae0c62781135db9badd8f
@@ -237,6 +256,8 @@ trackedFiles:
     id: ea2374b1a0da
     last_write_checksum: sha1:af425b13632321d4ead60d84d82359961edb05a0
     pristine_git_object: bc42d77227211b22835ceba9a38bed88fc096553
+  docs/models/components/order.md:
+    last_write_checksum: sha1:add2b23b55c178c73c53d2b866aa365aa6fe23e2
   docs/models/components/orderentity.md:
     id: 5af33ed8aff2
     last_write_checksum: sha1:44d9ff71cf7dfbdd1e0dd199d5f70a24f5bd17fe
@@ -249,7 +270,7 @@ trackedFiles:
     last_write_checksum: sha1:6f25b8edf79d2f58d65180691a6d56886e7fb13b
   docs/models/components/paginationentity.md:
     id: 9473e5fff17d
-    last_write_checksum: sha1:953b0f352c1062e2a833bb8d5e2f12de6047b553
+    last_write_checksum: sha1:0f14f1ee96045d5bf3c44d048fa25fb398f04827
     pristine_git_object: 111a8b029c00eba4f26c5b660d8cdd43e2fdac36
   docs/models/components/param.md:
     last_write_checksum: sha1:a998eac3b10fab86fdf4610749a3085867245cb9
@@ -258,7 +279,7 @@ trackedFiles:
     last_write_checksum: sha1:5e9493e4362585241f73cb11f04f50222aa4183c
     pristine_git_object: 709453d1ecb4d6a24bffc77ced210daf47d8b709
   docs/models/components/productbillingperiod.md:
-    last_write_checksum: sha1:81c599885037479b82b3955a08ad25cae58d7781
+    last_write_checksum: sha1:32bef12048057c0a8301dabb970e66ee94459776
   docs/models/components/productbillingtype.md:
     last_write_checksum: sha1:e880aa51480fdd55aac7e9679736422814e8ccd6
   docs/models/components/productcurrency.md:
@@ -286,11 +307,21 @@ trackedFiles:
     last_write_checksum: sha1:f7ca7c6f9537856ebfaa41472cfbcefcab4c68c2
     pristine_git_object: 1e5a17f2e6379b4f887ccdbf851af7a50876ea00
   docs/models/components/productrequestbillingperiod.md:
-    last_write_checksum: sha1:35092d12ee0aeb8f7863db76a94d03cbfa813839
+    last_write_checksum: sha1:980bbb794aa1169b2b90148812ef75eb4a37225e
   docs/models/components/productrequestbillingtype.md:
     last_write_checksum: sha1:f694224a94a6b1f1295849052d922a1be07455d9
   docs/models/components/productstatus.md:
     last_write_checksum: sha1:040a457b714b1727e239bbd7cd8627578f9d5733
+  docs/models/components/refundentity.md:
+    last_write_checksum: sha1:c9c5890f2f4915f0a4fecb2f85cb3cda53b0a763
+  docs/models/components/refundentitycustomer.md:
+    last_write_checksum: sha1:2ae29c595b34e02dd76c886f270286b6a4d128d7
+  docs/models/components/refundentitysubscription.md:
+    last_write_checksum: sha1:9daf293f0e9ce04b0b0c0f9e395a75b14b2a6182
+  docs/models/components/refundreason.md:
+    last_write_checksum: sha1:9273d9aa8d8ac0f49f817a8b3f206defc271b2ca
+  docs/models/components/refundstatus.md:
+    last_write_checksum: sha1:06e071c06f92282a31a1d6d8b4845ce0a3056051
   docs/models/components/reversalof.md:
     last_write_checksum: sha1:1fadcfedbaede49f9fab80f840a30eb001d08d95
   docs/models/components/reversetransactionrequestdto.md:
@@ -313,22 +344,26 @@ trackedFiles:
     last_write_checksum: sha1:63b716135206289d56fea2ac74a40b237e45c4a4
   docs/models/components/subscription.md:
     id: 66a8decfafdd
-    last_write_checksum: sha1:c67a4d68a2fc579e1e9e3679c41659bb6cfd8cb8
+    last_write_checksum: sha1:a0e5b848ff8b56c70b200ae2b8aa47a846891d3d
     pristine_git_object: 145d65c10a85c733d69cfad65ddbb7aef1e40571
   docs/models/components/subscriptioncollectionmethod.md:
     last_write_checksum: sha1:f6a90b9b40f12c1d16d9255ff993678297a09c7d
   docs/models/components/subscriptionentity.md:
     id: ac5d50bdbfb7
-    last_write_checksum: sha1:4efa0a89bd2eaaaf313281258a0a1972eea83fc6
+    last_write_checksum: sha1:da077a0abe79ca3830d86984355076bf9c7fe875
     pristine_git_object: f7f20478fd491f4f790ac0cadb003a13f6881361
+  docs/models/components/subscriptionentityduration.md:
+    last_write_checksum: sha1:0e8c7c5a90809e5bdfa5980738412f71ae52a7f0
+  docs/models/components/subscriptionentitytype.md:
+    last_write_checksum: sha1:a374832f50499bdfaf9bcb4d382f53e765e08ca3
   docs/models/components/subscriptionitementity.md:
     id: a3e9d39a5879
     last_write_checksum: sha1:3223b5268f77b9c939a59a5663ff8bc7ebbfa5df
     pristine_git_object: 511c90d69614f263f009aa87c87d29589f1c9883
   docs/models/components/subscriptionlistentity.md:
-    last_write_checksum: sha1:1e6498eec59ddc7e98c54c70b41840819f587f99
+    last_write_checksum: sha1:0b90ddb1f479e968ea0e3a288041dbedd6a57e0c
   docs/models/components/subscriptionstatus.md:
-    last_write_checksum: sha1:2feb0929d0974010c60dec64f88b50eb8c50d536
+    last_write_checksum: sha1:5b6a06020db16160ee53c52544938de7f5ffd57f
   docs/models/components/taxcategory.md:
     last_write_checksum: sha1:17f430b76d419e07285309529bbc0d10e8814e82
   docs/models/components/taxmode.md:
@@ -350,7 +385,7 @@ trackedFiles:
   docs/models/components/transactionresponsedto.md:
     last_write_checksum: sha1:4c333e8de265431b5ec24d80935a2a6f14bc1636
   docs/models/components/transactionstatus.md:
-    last_write_checksum: sha1:0dbae778acfd7793ef3a84d5a1707100878c6f49
+    last_write_checksum: sha1:1edd9335a8b1c1704a1b093352f4734153139f9d
   docs/models/components/transactiontype.md:
     last_write_checksum: sha1:2013a0a1e8c5f4bfeebe9ccb6dce3f0a3ff3247f
   docs/models/components/type.md:
@@ -362,9 +397,7 @@ trackedFiles:
     last_write_checksum: sha1:f3b55bedb0b2f2bad6ed0b3c987e3e7ed40a7d41
     pristine_git_object: 13e4d6b4004b5c7b69287e17d07375883709d365
   docs/models/components/updatecustomerrequestentity.md:
-    last_write_checksum: sha1:c60b99cd74ff39f78bb99edb9755e9d227f18bc7
-  docs/models/components/updatecustomerrequestentitymetadata.md:
-    last_write_checksum: sha1:12d23440bae88817c722a213ae5ea5ce005e53d6
+    last_write_checksum: sha1:4c153b119e3e57cb422964ea2c24bd99514254f3
   docs/models/components/updatesubscriptionrequestentity.md:
     id: a9203ebb8593
     last_write_checksum: sha1:77c191c4e53064e2528407ec9773670fee29cf0b
@@ -387,6 +420,66 @@ trackedFiles:
     id: f26067c83d89
     last_write_checksum: sha1:4abf7e6fa8315f107b0d401113693cf8b6e66371
     pristine_git_object: dc04743be5b60d9ec782327ae8488a79bbcb2257
+  docs/models/components/webhookcheckoutcompletedevententity.md:
+    last_write_checksum: sha1:6a318cfb017d1dc47e27c73adc65504fd3904027
+  docs/models/components/webhookdisputecreatedevententity.md:
+    last_write_checksum: sha1:ca95e2776c0dfb761706c917074abd8503d88cbd
+  docs/models/components/webhookdisputecreatedevententityeventtype.md:
+    last_write_checksum: sha1:56236d7d8526f78cfa2754aaa56c4c7b092dd81a
+  docs/models/components/webhookevententity.md:
+    last_write_checksum: sha1:6c59f8845acbd481ff1e51f044a7297f75b99e9f
+  docs/models/components/webhookrefundcreatedevententity.md:
+    last_write_checksum: sha1:165d254495f20a3a536a5aa311505af9c9ff183d
+  docs/models/components/webhookrefundcreatedevententityeventtype.md:
+    last_write_checksum: sha1:babf73124eb227a3c0d2fccd62ee04608031cc80
+  docs/models/components/webhooksubscriptionactiveevententity.md:
+    last_write_checksum: sha1:48cf045504a0f92a746d0ebdaaf0a5363366c5a4
+  docs/models/components/webhooksubscriptionactiveevententityeventtype.md:
+    last_write_checksum: sha1:2baa0ce884a53338b3494b75bad2de66a841ae78
+  docs/models/components/webhooksubscriptioncanceledevententity.md:
+    last_write_checksum: sha1:21d538ddd736fdca7367ac1a097b6d401398f135
+  docs/models/components/webhooksubscriptioncanceledevententityeventtype.md:
+    last_write_checksum: sha1:beb936e2b19e015d030b003ec7b0ef8086121ce8
+  docs/models/components/webhooksubscriptionentity.md:
+    last_write_checksum: sha1:6bb508278ce6c35010be73961823bed75b789f40
+  docs/models/components/webhooksubscriptionentitydiscount.md:
+    last_write_checksum: sha1:c7afb916a819e75d197b1cba834d41707dab4c5b
+  docs/models/components/webhooksubscriptionentityduration.md:
+    last_write_checksum: sha1:4e74415e3ffed38c3c1c2ca54fde6a1fd6c7b9f3
+  docs/models/components/webhooksubscriptionentitytype.md:
+    last_write_checksum: sha1:2ec5322c3d99390b6627e9d13a880cbf6390962e
+  docs/models/components/webhooksubscriptionexpiredevententity.md:
+    last_write_checksum: sha1:3904c542fd1007f3fa4b3389159566ceb01ee40f
+  docs/models/components/webhooksubscriptionexpiredevententityeventtype.md:
+    last_write_checksum: sha1:c57cc0139df51ccf657be034bb724c3d6b603268
+  docs/models/components/webhooksubscriptionpaidevententity.md:
+    last_write_checksum: sha1:39ce6a71b630eb1032473be97caaeeeb59aa313e
+  docs/models/components/webhooksubscriptionpaidevententityeventtype.md:
+    last_write_checksum: sha1:28cd660e2c9f0f78156a8c295a7b76a9b09a69e4
+  docs/models/components/webhooksubscriptionpastdueevententity.md:
+    last_write_checksum: sha1:91ae80f2dc4403249df73502f5187c7508020841
+  docs/models/components/webhooksubscriptionpastdueevententityeventtype.md:
+    last_write_checksum: sha1:f71cad719a93bad080558ed85cce797bcf596bd6
+  docs/models/components/webhooksubscriptionpausedevententity.md:
+    last_write_checksum: sha1:2b12666dca16bfb21cfaf519f07d318cf24a3a51
+  docs/models/components/webhooksubscriptionpausedevententityeventtype.md:
+    last_write_checksum: sha1:3d80744da68f9344db8d03439bc473aa95b2f5ff
+  docs/models/components/webhooksubscriptionscheduledcancelevententity.md:
+    last_write_checksum: sha1:dff9afe80b3091a5822f6c3b769281f0dbb529f2
+  docs/models/components/webhooksubscriptionscheduledcancelevententityeventtype.md:
+    last_write_checksum: sha1:e012509068f3ec9c2ca0f944c119ac1bb81aeaba
+  docs/models/components/webhooksubscriptiontrialingevententity.md:
+    last_write_checksum: sha1:0eb0dba78dc9467f3334b51f3e8254640a6e6790
+  docs/models/components/webhooksubscriptiontrialingevententityeventtype.md:
+    last_write_checksum: sha1:59733ae1c0513274ee245284c5683abcca3658d6
+  docs/models/components/webhooksubscriptionunpaidevententity.md:
+    last_write_checksum: sha1:a29b2fa85c0cf9b46e3960fc0fffde0d8fb2f994
+  docs/models/components/webhooksubscriptionunpaidevententityeventtype.md:
+    last_write_checksum: sha1:35f04fd6291f37221a8c020003f8d888355582cc
+  docs/models/components/webhooksubscriptionupdateevententity.md:
+    last_write_checksum: sha1:c76dc653dad7f3d7d5e31d272d7d8b034f299724
+  docs/models/components/webhooksubscriptionupdateevententityeventtype.md:
+    last_write_checksum: sha1:03edb748198d1e167c694e293c35bf7886a4e664
   docs/models/errors/customercreditserrorresponsedto.md:
     last_write_checksum: sha1:e279ee0dc5022f25a85211e462fe0b72917d2a70
   docs/models/operations/cancelsubscriptionrequest.md:
@@ -421,8 +514,12 @@ trackedFiles:
     last_write_checksum: sha1:9cd92c6291d8d7fcd4c58cfe7ef4a7b78b0cedaf
   docs/models/operations/listcustomercreditsaccountentriesrequest.md:
     last_write_checksum: sha1:d8acd4a104da767c94368700c015226cc6ae634e
+  docs/models/operations/listcustomercreditsaccountentriesresponse.md:
+    last_write_checksum: sha1:994ad4b91d7df4521aba3ccce3f5c9aa1a350381
   docs/models/operations/listcustomercreditsaccountsrequest.md:
     last_write_checksum: sha1:23c26a15f9d31781f6a2f8280ed3fccaed1f857d
+  docs/models/operations/listcustomercreditsaccountsresponse.md:
+    last_write_checksum: sha1:46ded8bdf4a0aa34c450349b5d76d3f892fe27a1
   docs/models/operations/listcustomerlicensesrequest.md:
     last_write_checksum: sha1:19685866f6e00fcd5d2f39e0a16d085345380e38
   docs/models/operations/listcustomerordersrequest.md:
@@ -431,6 +528,8 @@ trackedFiles:
     id: 14ff269ba0f9
     last_write_checksum: sha1:c22cbae63c25d808b3f91657648da5a033a20e94
     pristine_git_object: 0ca867d8074f7212a50f8d5b4cfafdcbbaba37c0
+  docs/models/operations/listcustomersresponse.md:
+    last_write_checksum: sha1:f96e342b8ed2c46e29753274a8ec1ad4e36481a9
   docs/models/operations/listcustomersubscriptionsrequest.md:
     last_write_checksum: sha1:5516af6e468be802dd2001fa0232d4e06b36a0d1
   docs/models/operations/pausesubscriptionrequest.md:
@@ -465,16 +564,24 @@ trackedFiles:
     last_write_checksum: sha1:89939b2c120b6b69416bba66c136b599cb48a337
   docs/models/operations/searchdiscountsrequest.md:
     last_write_checksum: sha1:6949297f5c0b3e28decf6bad5f7dd24c78fdf19a
+  docs/models/operations/searchdiscountsresponse.md:
+    last_write_checksum: sha1:802d1a702ff7d87275ebd442f0ba205078502d05
   docs/models/operations/searchproductsrequest.md:
     id: c2b3f4ec5379
     last_write_checksum: sha1:37a6c22e12a52c8ac6e5db63c25fd60708e248a7
     pristine_git_object: c4a6570893311b03895aac22542931ccc3859c41
+  docs/models/operations/searchproductsresponse.md:
+    last_write_checksum: sha1:e85103c9089f6064cf8413914f935415fcbeb111
   docs/models/operations/searchsubscriptionsrequest.md:
     last_write_checksum: sha1:6aa13a2937d2a8b4f4e729e43f9e045603d6f201
+  docs/models/operations/searchsubscriptionsresponse.md:
+    last_write_checksum: sha1:d496b6c34ef3f485b1e8a61da2615f0f3f1b932a
   docs/models/operations/searchtransactionsrequest.md:
     id: 2bb8a7f7a3c8
     last_write_checksum: sha1:54b4dc3068e187de34e72603ef325f411424bcd0
     pristine_git_object: 5e55c99a18314b651860acbe680c94634689b9a0
+  docs/models/operations/searchtransactionsresponse.md:
+    last_write_checksum: sha1:08ea9d7a54e17c0c28ee38faffed3414d1838b2e
   docs/models/operations/status.md:
     last_write_checksum: sha1:b8c5b8cfe6ebfb22dee451ebaefaf2314b662e43
   docs/models/operations/type.md:
@@ -494,14 +601,14 @@ trackedFiles:
     last_write_checksum: sha1:fbcfaaa6fbf9f1870cb394f73bfaa4f515313ef3
     pristine_git_object: 576619253f2ac8dfc4b648dbd3c2bacd02c78618
   docs/sdks/customercredits/README.md:
-    last_write_checksum: sha1:a9bd9ba922b960d1c65fe68536dee7b0388abd8c
+    last_write_checksum: sha1:ee47a85fdefa9afc325b3354c3ac17d692deb3e7
   docs/sdks/customers/README.md:
     id: 9332759cffc2
-    last_write_checksum: sha1:21ed1e0c81ceb1487812946831bbd7f330773a9a
+    last_write_checksum: sha1:34f43e0176628072c0154793efe4d5f7d8141a7e
     pristine_git_object: 4c3f33ea1a241248c0ca359e1f8fe12b76019642
   docs/sdks/discounts/README.md:
     id: "000723261694"
-    last_write_checksum: sha1:2187474bac36121a488cd024d7f3ea51a1dd8960
+    last_write_checksum: sha1:37da3446325cf42275360ae473a3e10f57398af9
     pristine_git_object: 0b3a5d36f6dbb5983f831f147ecfeff80c1049d4
   docs/sdks/licenses/README.md:
     id: 28ca188b6148
@@ -511,17 +618,17 @@ trackedFiles:
     last_write_checksum: sha1:e21bbb0797f956cdb4019dff3f4fc697b2dd19a4
   docs/sdks/products/README.md:
     id: af06255e12ab
-    last_write_checksum: sha1:257ba1641c739420365daf929893890836d55412
+    last_write_checksum: sha1:0d8f7f6b1e9aa2f99f89793df8cec561574d2225
     pristine_git_object: 380264dd8701ed10359bbde1079f8183b4fc0004
   docs/sdks/stats/README.md:
     last_write_checksum: sha1:f2bebf0d1ad47a4b3e7c8374fabd9204b9f7cde2
   docs/sdks/subscriptions/README.md:
     id: 298b9ab3c3e0
-    last_write_checksum: sha1:9c52a4107bc9fa0519f86d5e42106d39275e4a25
+    last_write_checksum: sha1:7634b17401b2826628c7e62fa17f87dc5777afd3
     pristine_git_object: ee93e52a2de62da609c4b3736e97595520fdcba4
   docs/sdks/transactions/README.md:
     id: 85592abe3c6b
-    last_write_checksum: sha1:ee918f4599c5140e964853f84b2925e0eafef132
+    last_write_checksum: sha1:ff39ca69adb0ebc2b956c779b4754f4f16c67cfb
     pristine_git_object: 73c87b3c1655fe3bcb6b4fcf276ee6947819052e
   eslint.config.mjs:
     id: 461c8d07f6da
@@ -543,11 +650,11 @@ trackedFiles:
     last_write_checksum: sha1:f365e8683dec3c0eb457d1863badea30ebd4b76d
   jsr.json:
     id: 7f6ab7767282
-    last_write_checksum: sha1:cc8a005a3ac64a6b9f727e89373efc3e9aa2d219
+    last_write_checksum: sha1:6eeb167cc23a13e83d43a9355cf6d8163017a490
     pristine_git_object: e5888a4c7af0aee5100b8d817f757e0d44eddad1
   package.json:
     id: 7030d0b2f71b
-    last_write_checksum: sha1:33484b09f449ad0bcace03f8861357ad8997fa09
+    last_write_checksum: sha1:80d7e90ec6c0a6d999989d4c1b5063e6933e085d
     pristine_git_object: 4904751d275b1cbba4d414fee5ca96961af59a8c
   src/core.ts:
     id: f431fdbcd144
@@ -572,9 +679,9 @@ trackedFiles:
   src/funcs/customerCreditsGetAccountBalance.ts:
     last_write_checksum: sha1:a01aa406ad0b626e833d14007def2f18f1ec8318
   src/funcs/customerCreditsListAccounts.ts:
-    last_write_checksum: sha1:5799046d0e8c2d1470eb0769ab190790eba21c58
+    last_write_checksum: sha1:975885dc7921de95710f169c5937498bcb93354a
   src/funcs/customerCreditsListEntries.ts:
-    last_write_checksum: sha1:16230421062b2e712ebdbbe519a7bcecc2297c91
+    last_write_checksum: sha1:5826dc7438862f033b86a551a3406dd7c9379f79
   src/funcs/customerCreditsReverseTransaction.ts:
     last_write_checksum: sha1:d4b355159e3b4e93cd4ea04fa32b2dc7d48de6c2
   src/funcs/customerCreditsUnfreezeAccount.ts:
@@ -586,7 +693,7 @@ trackedFiles:
   src/funcs/customersGetOrders.ts:
     last_write_checksum: sha1:a819000f376d729e2a193133b79e84bc79437499
   src/funcs/customersList.ts:
-    last_write_checksum: sha1:7db5eaeb46e4068b94e2d8b18b1c6748bd439407
+    last_write_checksum: sha1:75afae801c7dd4c6b76341a11891531b5cffe0aa
   src/funcs/customersListLicenses.ts:
     last_write_checksum: sha1:69d402a65cea778f64230c066ba740974dba6a51
   src/funcs/customersListSubscriptions.ts:
@@ -602,7 +709,7 @@ trackedFiles:
   src/funcs/discountsGet.ts:
     last_write_checksum: sha1:6e02ea652cea0f6396d069a9d5e266c4385eb57a
   src/funcs/discountsSearch.ts:
-    last_write_checksum: sha1:47398ba7cb0e4f47d5dfa255d87d63cf77de7093
+    last_write_checksum: sha1:c8e9fc72b526d4016ead52db47dca2f098ddbb05
   src/funcs/licensesActivate.ts:
     last_write_checksum: sha1:8399d8ccf8bc7a1e1597d0ad74570562042a2aad
   src/funcs/licensesDeactivate.ts:
@@ -612,11 +719,11 @@ trackedFiles:
   src/funcs/moderationScreenPrompt.ts:
     last_write_checksum: sha1:d8db4fe2abfd5905ab31522046c45d6045f77f69
   src/funcs/productsCreate.ts:
-    last_write_checksum: sha1:d134c8aed5d21b18a7e1c165dca42500fb958321
+    last_write_checksum: sha1:bca6cde495e54ff84aac3b8a38b355d1f7fe77f1
   src/funcs/productsGet.ts:
     last_write_checksum: sha1:c2f57bd993f51a191d83efa96e168114a9070d00
   src/funcs/productsSearch.ts:
-    last_write_checksum: sha1:7eb86f9596e3213a118bebf5cabee8b4f96fed2b
+    last_write_checksum: sha1:c6c2d72dbe1ed952a5824347e97e8666c0459889
   src/funcs/statsGetSummary.ts:
     last_write_checksum: sha1:dbd166d3c491abbbe709cb4112f2c454065e29a2
   src/funcs/subscriptionsCancel.ts:
@@ -628,7 +735,7 @@ trackedFiles:
   src/funcs/subscriptionsResume.ts:
     last_write_checksum: sha1:82f66141e88b8b2b0ce141096b9d5450b17c644e
   src/funcs/subscriptionsSearch.ts:
-    last_write_checksum: sha1:e8527ecd9f61b905b0d59b75e30418cf95b3941a
+    last_write_checksum: sha1:33316f407341600a14368e6a028195263759a5eb
   src/funcs/subscriptionsUpdate.ts:
     last_write_checksum: sha1:3a3a904e9013fdd1a24544010da0b7051b7167b6
   src/funcs/subscriptionsUpgrade.ts:
@@ -636,7 +743,7 @@ trackedFiles:
   src/funcs/transactionsGetById.ts:
     last_write_checksum: sha1:f79967d4c377e66f70407daeadf6e15177cfde74
   src/funcs/transactionsSearch.ts:
-    last_write_checksum: sha1:8fa634605b95675bcb10258c9319c0d9d92fe5a6
+    last_write_checksum: sha1:5b5a0514e6aa57b154583650f7e3a16bc92bffa1
   src/hooks/hooks.ts:
     id: a2463fc6f69b
     last_write_checksum: sha1:646c1538dbffb2552af9d7516de64c339b5e96c2
@@ -647,7 +754,7 @@ trackedFiles:
     pristine_git_object: f60ec7acd76141a71d78008c5a362eb0236d8335
   src/hooks/types.ts:
     id: 2a02d86ec24f
-    last_write_checksum: sha1:29372122898cc523fa47576f3f6608a28ec6080e
+    last_write_checksum: sha1:da18f72efc4b8bef7912bc70fc6166b4be2f8a95
     pristine_git_object: 8bfe4fe8137138decea7af0a5ed791bf01201789
   src/index.ts:
     id: c5fb850250c7
@@ -659,19 +766,15 @@ trackedFiles:
     pristine_git_object: 0aebd8b0a4867e35cb3348fc52921c3c0b4725b7
   src/lib/config.ts:
     id: 320761608fb3
-    last_write_checksum: sha1:e8284c81b9ffaafcf7581b476715a04de432ead2
+    last_write_checksum: sha1:eeb88bbe0e4ec419a6ec27bf279d88ee41a5ba40
     pristine_git_object: 21c35be9d8c1ab94c37377361515b326d654872b
-  src/lib/dlv.ts:
-    id: b1988214835a
-    last_write_checksum: sha1:1dd3e3fbb4550c4bf31f5ef997faff355d6f3250
-    pristine_git_object: e81091f5e536f82739f71379b1fddc2d147c49e2
   src/lib/encodings.ts:
     id: 3bd8ead98afd
-    last_write_checksum: sha1:d47614c415b37e092965c34cb668562195701004
+    last_write_checksum: sha1:50d9b187dcfc3cca8d3bbd9fe074f865d715d2b0
     pristine_git_object: 31cd3733907afbee3641b9ab680ed417247a7d33
   src/lib/env.ts:
     id: c52972a3b198
-    last_write_checksum: sha1:019901feda9efb7a31e4cf7a9bf723eb9c3b841d
+    last_write_checksum: sha1:cc29d02a6f59d836fc1050289f8dd9dffea7e653
     pristine_git_object: 2b2f81bd668ae08ef7a2071718df89d111b8fc01
   src/lib/files.ts:
     id: e5efa54fcb95
@@ -681,25 +784,21 @@ trackedFiles:
     id: 63a80782d37e
     last_write_checksum: sha1:797cbf16d3c7c4d62d3ba0eedb08617524938457
     pristine_git_object: 13cf1fd7894a89f727b8d2db2ad24313a94f68c7
-  src/lib/is-plain-object.ts:
-    id: b9862591096a
-    last_write_checksum: sha1:df687f25a9590b6fd95d39df41a652ae3fd4e517
-    pristine_git_object: 61070d3d7c7e5e95b1ed7e7ea21869eb0767db77
   src/lib/logger.ts:
     id: 7ee7741a02bf
     last_write_checksum: sha1:0ec9d3a2a34c362746b767e4f9a746c055d57a7b
     pristine_git_object: d181f2937d4128afbe9b0327e0f81d1fa9c877b7
   src/lib/matchers.ts:
     id: d54b2253b719
-    last_write_checksum: sha1:32bda3887292d2b0430bb6688982e34038342919
+    last_write_checksum: sha1:43e3184df0c1dc3d7ba2d50ccdd7655d3a6697ce
     pristine_git_object: 77d41086d77e53263a3a9ba0ec73aea3df521096
   src/lib/primitives.ts:
     id: 74859f750b28
-    last_write_checksum: sha1:987869fc54790b9c22e9182099103d6aa7c67016
+    last_write_checksum: sha1:fe3abb7d6b61596e346873519bcec9b2eaa61467
     pristine_git_object: d21f1dc49affa4e6d324bdd60811b470fdfa7eb6
   src/lib/retries.ts:
     id: b24a69d15639
-    last_write_checksum: sha1:f3da74dffcbe2756c69393f8600205aa1dc06e68
+    last_write_checksum: sha1:42c8f6cc4c875be236230a8c760f4f32d8c1ab68
     pristine_git_object: e3ce9aba72150fc3c18f3105d39b21aba809377b
   src/lib/schemas.ts:
     id: deb4b531fae1
@@ -707,7 +806,7 @@ trackedFiles:
     pristine_git_object: 47edb9725c2482c667e2ddc8a56b1fec4285c492
   src/lib/sdks.ts:
     id: 8a6d91f1218d
-    last_write_checksum: sha1:63a8eeee7523cb6c3d680ad69613e7a0e9ec1dc4
+    last_write_checksum: sha1:0d502f6daf17c821d49ba1c62baddf73126c28b8
     pristine_git_object: 536c1e103bbbf8c0beec1b9e90075d6540086b78
   src/lib/security.ts:
     id: 0502afa7922e
@@ -727,11 +826,11 @@ trackedFiles:
     pristine_git_object: b878d8de9f2a0275c3cdbfdcaed48a31092e558a
   src/mcp-server/cli/start/command.ts:
     id: b3e53408ccb4
-    last_write_checksum: sha1:89820a173696131d224349b80eb888c235f61331
+    last_write_checksum: sha1:c2500104e6366dbe35429dd4e9bfa2e7670f8ab9
     pristine_git_object: 48902d11677f5e8ffcb72b4186bac3f791d02d65
   src/mcp-server/cli/start/impl.ts:
     id: 37494f674015
-    last_write_checksum: sha1:7b2089a733cc53899c8b6b8df3a899c04d82f74b
+    last_write_checksum: sha1:e4a3741761d106e1b7c8e49577a460b535d66741
     pristine_git_object: a7f843d25820b1089d6a0956bc35cb9f063ecb49
   src/mcp-server/console-logger.ts:
     id: 57aff4ff2e15
@@ -743,7 +842,7 @@ trackedFiles:
     pristine_git_object: 0955a573c2ce989d63c737410ab8cc28706d9f74
   src/mcp-server/mcp-server.ts:
     id: aabbc4ab07c1
-    last_write_checksum: sha1:dfa0328085ee792b574b494dd650933422226b44
+    last_write_checksum: sha1:d262d22f858c8542f12595c026284475a2257aaa
     pristine_git_object: 4153fdc4ac7a39fd057e811c809b67b84b86cb9b
   src/mcp-server/prompts.ts:
     id: 26f3d73cbf31
@@ -759,7 +858,7 @@ trackedFiles:
     pristine_git_object: c25696d4c4f70e081fa5d87ad6891874c509a577
   src/mcp-server/server.ts:
     id: 2784dd48e82a
-    last_write_checksum: sha1:3a238dd57589f5a7ed9eaa9b105e496c3ec98e54
+    last_write_checksum: sha1:d539d077549842f79e29491c3dcb2f6df620f2e3
     pristine_git_object: 93c59790bc4d517a18cdd7e83fe3a2dceffda1c5
   src/mcp-server/shared.ts:
     id: 074e80d4be1e
@@ -788,9 +887,9 @@ trackedFiles:
   src/mcp-server/tools/customerCreditsGetAccountBalance.ts:
     last_write_checksum: sha1:4454006e78c7af235ccc5e74edea57b073286804
   src/mcp-server/tools/customerCreditsListAccounts.ts:
-    last_write_checksum: sha1:16abb327931cebf50d6f6e32148a8aa775ea39b6
+    last_write_checksum: sha1:3006efa33db88025ef856f0476fbb6dd9806e26d
   src/mcp-server/tools/customerCreditsListEntries.ts:
-    last_write_checksum: sha1:2011f69fe76bc79948e185e2e0046442878f954b
+    last_write_checksum: sha1:90daa0dd30f031fc41d3085edfd12620e0f263e2
   src/mcp-server/tools/customerCreditsReverseTransaction.ts:
     last_write_checksum: sha1:e2da5ea7f29f904024d351e403618bd18cdb829a
   src/mcp-server/tools/customerCreditsUnfreezeAccount.ts:
@@ -802,7 +901,7 @@ trackedFiles:
   src/mcp-server/tools/customersGetOrders.ts:
     last_write_checksum: sha1:c44ea16e86f07b27aff9a5899a58703acec319f9
   src/mcp-server/tools/customersList.ts:
-    last_write_checksum: sha1:88c4c3af5875190bf9d119b1db7823fd3b6e32c6
+    last_write_checksum: sha1:f7e09b8257a3385b6bb1a4b6f69e0c4f188d828a
   src/mcp-server/tools/customersListLicenses.ts:
     last_write_checksum: sha1:0a93e91a2bdc31b56ce613727cad27f5aea17097
   src/mcp-server/tools/customersListSubscriptions.ts:
@@ -818,7 +917,7 @@ trackedFiles:
   src/mcp-server/tools/discountsGet.ts:
     last_write_checksum: sha1:d95c203268b006bf9bc1f82558aed4628130f9f2
   src/mcp-server/tools/discountsSearch.ts:
-    last_write_checksum: sha1:b2c9e27059d7c28cdb959443cc2c67f2313ed6d9
+    last_write_checksum: sha1:5fdadf82cd546e3848703f75587fe179614c2474
   src/mcp-server/tools/licensesActivate.ts:
     last_write_checksum: sha1:71dee1f872e3969f0fd8d2dfecb8f3d00762091f
   src/mcp-server/tools/licensesDeactivate.ts:
@@ -828,11 +927,11 @@ trackedFiles:
   src/mcp-server/tools/moderationScreenPrompt.ts:
     last_write_checksum: sha1:5e6b5fbe3a19d9846d4921a711351bbe666a56d2
   src/mcp-server/tools/productsCreate.ts:
-    last_write_checksum: sha1:64429d4fd9134d4501153079270cb3a64d3a5ac2
+    last_write_checksum: sha1:91c9e172e7675780e43205d1b90c79842f8f9164
   src/mcp-server/tools/productsGet.ts:
     last_write_checksum: sha1:868ab9f8b36279e0b3377c6ce7587258d562f195
   src/mcp-server/tools/productsSearch.ts:
-    last_write_checksum: sha1:93b6665c33ce838521a9023c698e996c38fc062b
+    last_write_checksum: sha1:da9c07beb8bd73409753ccddee678776736d98b9
   src/mcp-server/tools/statsGetSummary.ts:
     last_write_checksum: sha1:4d34707e5eb32790e2d097f7f0b2fa6762289ac8
   src/mcp-server/tools/subscriptionsCancel.ts:
@@ -844,7 +943,7 @@ trackedFiles:
   src/mcp-server/tools/subscriptionsResume.ts:
     last_write_checksum: sha1:411a3ff4dddfb1aa7a595178a340c55bd55b49b2
   src/mcp-server/tools/subscriptionsSearch.ts:
-    last_write_checksum: sha1:9919ce3c2b35378df6e4ccdf58356f18ca9e30d2
+    last_write_checksum: sha1:f16877905b49f24d4485e709c441233347d53a85
   src/mcp-server/tools/subscriptionsUpdate.ts:
     last_write_checksum: sha1:edbe85067cec5abab3fb080da8e2a4b5910edfee
   src/mcp-server/tools/subscriptionsUpgrade.ts:
@@ -852,7 +951,7 @@ trackedFiles:
   src/mcp-server/tools/transactionsGetById.ts:
     last_write_checksum: sha1:5f0ff4c33a0bea8aa001988df3ff7d49cb500d1c
   src/mcp-server/tools/transactionsSearch.ts:
-    last_write_checksum: sha1:a589a1be57050dccea516dd9ca4b510bf13a1e9c
+    last_write_checksum: sha1:16e5f9504eca506370f0dbcb9bdf79b2d9d6f02c
   src/models/components/accountlistresponsedto.ts:
     last_write_checksum: sha1:f4f2136b28f9c8e38671a9b2953a588bf0635814
   src/models/components/accountresponsedto.ts:
@@ -871,7 +970,7 @@ trackedFiles:
     last_write_checksum: sha1:0d2e7e301ffe8e889dd9c37c3ce480af4d980918
   src/models/components/checkoutentity.ts:
     id: 9375d8731949
-    last_write_checksum: sha1:6bba545334725b7db3286edb6ac664cda9c8d9e0
+    last_write_checksum: sha1:4f64ae78d64872919deec4502e870eb1614a0db3
     pristine_git_object: dffb33e7306cb4455729933c528202db25b4067f
   src/models/components/coupondurationtype.ts:
     last_write_checksum: sha1:b157a60acf38784a432bcc548d1f539c89a67170
@@ -886,7 +985,7 @@ trackedFiles:
     last_write_checksum: sha1:1ad9e0c4e961d86e125f4dae34052f0c625e1f77
     pristine_git_object: d3a55fa0f567e993310c8d8190db91528ea08806
   src/models/components/createcustomerrequestentity.ts:
-    last_write_checksum: sha1:bb8a221ab862b6f632673920cf1275f61649f2c7
+    last_write_checksum: sha1:35007ecb22834253ac85d44d33ab964be916fa7f
   src/models/components/creatediscountrequestentity.ts:
     id: 0f4006ef7d1c
     last_write_checksum: sha1:57ced87c851b430993e8de04c76d84c118fe21a6
@@ -901,7 +1000,7 @@ trackedFiles:
     last_write_checksum: sha1:ef5d65cd2d6c7246a41fed247c6917f58255420b
   src/models/components/customerentity.ts:
     id: 1a7de3219dab
-    last_write_checksum: sha1:a2efa6f99d0b598e91f20e96c32371fc5db3ca02
+    last_write_checksum: sha1:3a97622b81357f9fdbab3e11a01c883e20c2b88a
     pristine_git_object: ad6b862892f24506ae9876896a336d38f6ac84b8
   src/models/components/customerlinksentity.ts:
     id: 4b68e006b20d
@@ -939,6 +1038,8 @@ trackedFiles:
     last_write_checksum: sha1:8fca9babc8e8d9ad5ee899fe6ad24565de8a233e
   src/models/components/discounttype.ts:
     last_write_checksum: sha1:129f1a75bf2df601296dd40be3922b18901e7149
+  src/models/components/disputeentity.ts:
+    last_write_checksum: sha1:c8ed67ccd0ac3683e14b4d7bc3d1e943aac4bbbc
   src/models/components/entrylistresponsedto.ts:
     last_write_checksum: sha1:9ce243fc7523ab4d74485f4c965ca84f90f45ec4
   src/models/components/entryresponsedto.ts:
@@ -953,7 +1054,7 @@ trackedFiles:
     last_write_checksum: sha1:3559b9f220abdc49f90a65c44b761bdce790927c
   src/models/components/index.ts:
     id: 0aa842dce54d
-    last_write_checksum: sha1:03ced86859a0d88b38cafb3064a295cdf0edc5f4
+    last_write_checksum: sha1:cf2fed0ee5300f492b24d9b1f0728a9a07092cf9
     pristine_git_object: 1087c422faa5594a8ec19160f7299d1afeeee9a4
   src/models/components/licenseentity.ts:
     id: 233af4f00429
@@ -978,7 +1079,7 @@ trackedFiles:
     last_write_checksum: sha1:0f985c23dd620a5534c82de1b257b737aaa902dd
     pristine_git_object: b7da6165b41637f02a25636cb6be6fc4e7da6e2d
   src/models/components/productbillingperiod.ts:
-    last_write_checksum: sha1:51d0906ed52bb4da62fe1cc82c6753334015dbe7
+    last_write_checksum: sha1:704ee75d4208248f2cd830fd4e3ea1021e0a5341
   src/models/components/productbillingtype.ts:
     last_write_checksum: sha1:7b619b05f470335f5165830b79c2a8922f0e2785
   src/models/components/productcurrency.ts:
@@ -998,11 +1099,17 @@ trackedFiles:
     last_write_checksum: sha1:2d3536d4c60c5b2b944f9bfc535b6c4927610d55
     pristine_git_object: e670fa2042c4cf4d0652c350597e85fc851ebbcc
   src/models/components/productrequestbillingperiod.ts:
-    last_write_checksum: sha1:552cbbbdcc653bac8eb3d0fd78800c361a5671cb
+    last_write_checksum: sha1:24dbe367ef5f5357aeb2efcfb4d74ad0c5d0feca
   src/models/components/productrequestbillingtype.ts:
     last_write_checksum: sha1:5d5447384d85c4e8eada0c53cf25c837e9b63ab6
   src/models/components/productstatus.ts:
     last_write_checksum: sha1:a6eeaff2be08ac3f0773462b484d3a663e646c37
+  src/models/components/refundentity.ts:
+    last_write_checksum: sha1:3174fd187fd6ce27334d1f9ea78105b159af605a
+  src/models/components/refundreason.ts:
+    last_write_checksum: sha1:5e4fcba802e80e093d4977a74e3c8532f868026b
+  src/models/components/refundstatus.ts:
+    last_write_checksum: sha1:fb3aba23134ff132495fef5589f82ddae55223a7
   src/models/components/reversetransactionrequestdto.ts:
     last_write_checksum: sha1:81bacbbaedf8bf1e56673bcbbad3dfdc6add1e55
   src/models/components/screenpromptrequest.ts:
@@ -1021,7 +1128,7 @@ trackedFiles:
     last_write_checksum: sha1:33ba833abaf78f6977b6790714f7cdf8167f7f03
   src/models/components/subscriptionentity.ts:
     id: b3380f288cea
-    last_write_checksum: sha1:432d5206205352d85a3a8afae27f7a761348ee54
+    last_write_checksum: sha1:9c4ab5ef17ff926f53e077dc3d89d92cac1e68f7
     pristine_git_object: 899b4d067b6a830deea1f95358af90de3d3a1633
   src/models/components/subscriptionitementity.ts:
     id: ab7f5c1e62c5
@@ -1030,7 +1137,7 @@ trackedFiles:
   src/models/components/subscriptionlistentity.ts:
     last_write_checksum: sha1:ea3011904387a584ff72bdc37973b9803641a1f6
   src/models/components/subscriptionstatus.ts:
-    last_write_checksum: sha1:b14d0001a4f9388623b726b82eab87431274f990
+    last_write_checksum: sha1:ee577cc0129fe88faa1ca88d700774f41da4952e
   src/models/components/taxcategory.ts:
     last_write_checksum: sha1:efb65d7ebe55970e20b8f4e9666eb53c0f4045d0
   src/models/components/taxmode.ts:
@@ -1048,11 +1155,11 @@ trackedFiles:
   src/models/components/transactionresponsedto.ts:
     last_write_checksum: sha1:25759498a3c057f5659fb0980e88b846769bcbb2
   src/models/components/transactionstatus.ts:
-    last_write_checksum: sha1:b83646b4ccdd6572c984c3184e29a30d7b96c85b
+    last_write_checksum: sha1:250f21913341771a1fd19a8b8f816387390b983d
   src/models/components/transactiontype.ts:
     last_write_checksum: sha1:9083659f8fa0c44c6f5270d1c90be21d6756a017
   src/models/components/updatecustomerrequestentity.ts:
-    last_write_checksum: sha1:b3092c6af4d9edcd8884d7741cbe67e74fd64620
+    last_write_checksum: sha1:d21e1af2b252690392cdc263b93f5b8813b74a32
   src/models/components/updatesubscriptionrequestentity.ts:
     id: 07c0be17653a
     last_write_checksum: sha1:6d4edbbc7ac565b7d9e60d731a1c96ae36a8fbd2
@@ -1071,6 +1178,36 @@ trackedFiles:
     id: c74671333029
     last_write_checksum: sha1:45e33c92e2497e77c7cfa64f5f346c76aa8466a0
     pristine_git_object: e88eb827ee9d67491476047fc3e64e147de5cabf
+  src/models/components/webhookcheckoutcompletedevententity.ts:
+    last_write_checksum: sha1:a899ec64a0e3b8b2f55184161452dff258dab463
+  src/models/components/webhookdisputecreatedevententity.ts:
+    last_write_checksum: sha1:334aa7540c44f0dd8d87f80585ef904d3aaf87b5
+  src/models/components/webhookevententity.ts:
+    last_write_checksum: sha1:290731bd6c7b702064a223f3dc5da9ccb145bf1b
+  src/models/components/webhookrefundcreatedevententity.ts:
+    last_write_checksum: sha1:c235a39b2b1ad438a6138b40018bd6c2ba098657
+  src/models/components/webhooksubscriptionactiveevententity.ts:
+    last_write_checksum: sha1:70f10c46064cdf19ffce232e1508ce03a7a445c1
+  src/models/components/webhooksubscriptioncanceledevententity.ts:
+    last_write_checksum: sha1:6abc0177e242e607fbc649e9b3464c5627a7bc2b
+  src/models/components/webhooksubscriptionentity.ts:
+    last_write_checksum: sha1:c0e5cb244b3b9a702bf40218c3cbefbfd92a8e7b
+  src/models/components/webhooksubscriptionexpiredevententity.ts:
+    last_write_checksum: sha1:a1e376a5ace36313039058cfe7790336b5c32389
+  src/models/components/webhooksubscriptionpaidevententity.ts:
+    last_write_checksum: sha1:d3ebf23d20d762eb1169eedbe66e5eba865eaf26
+  src/models/components/webhooksubscriptionpastdueevententity.ts:
+    last_write_checksum: sha1:43588d581063b1351920206aa2c64b50be77eb88
+  src/models/components/webhooksubscriptionpausedevententity.ts:
+    last_write_checksum: sha1:4da3c9f58e0a40383749ddeb8482dd2b414566f8
+  src/models/components/webhooksubscriptionscheduledcancelevententity.ts:
+    last_write_checksum: sha1:e7f3927f304bd6d1493c9f1267bd4e2faeffd9f5
+  src/models/components/webhooksubscriptiontrialingevententity.ts:
+    last_write_checksum: sha1:eea7bc4e156fb915e9f789297f0388ad5b4c407b
+  src/models/components/webhooksubscriptionunpaidevententity.ts:
+    last_write_checksum: sha1:7341c5415c0c9700877ecced90c00c352bb2f605
+  src/models/components/webhooksubscriptionupdateevententity.ts:
+    last_write_checksum: sha1:44c3334e97d7c08900589026c84eb5fe152f4d38
   src/models/errors/apierror.ts:
     id: e2280e075454
     last_write_checksum: sha1:01d5fbd319a51f566d46b73de1196c10666f81b9
@@ -1128,16 +1265,16 @@ trackedFiles:
     last_write_checksum: sha1:ed1f2c257fdf8ea95495b469d0b075f3abc748e8
     pristine_git_object: b913dce8f9e69774c040f831d83754a78616264a
   src/models/operations/listcustomercreditsaccountentries.ts:
-    last_write_checksum: sha1:b123fabd0803f26ee6452aca97460231bfbe68cc
+    last_write_checksum: sha1:affb43b6f3ec744c01676a886491108c2e856d21
   src/models/operations/listcustomercreditsaccounts.ts:
-    last_write_checksum: sha1:54b03c16dfa1bacab56505e68f0870fc2a0d8a88
+    last_write_checksum: sha1:b5e0061936231fb7153620697fdef440a07e2be6
   src/models/operations/listcustomerlicenses.ts:
     last_write_checksum: sha1:cb56bae31bdf7df71d8227a0003916365536c26b
   src/models/operations/listcustomerorders.ts:
     last_write_checksum: sha1:b2406b72ff62b24b3e5b90522adf7701a1b70697
   src/models/operations/listcustomers.ts:
     id: fa5992922803
-    last_write_checksum: sha1:af760001cb07f2e6a51fa97e42a90a6634981783
+    last_write_checksum: sha1:c6d8177c622393b5891562adc7e5a1fd49dd2c96
     pristine_git_object: a171343908626c6c0eee4bdec87a2c1ad3d1f84f
   src/models/operations/listcustomersubscriptions.ts:
     last_write_checksum: sha1:095ed8154a05d02fe13340f57dcba12eb251eeec
@@ -1172,16 +1309,16 @@ trackedFiles:
   src/models/operations/reversecustomercreditsaccounttransaction.ts:
     last_write_checksum: sha1:cb31dc1fda1b3e8f0a5a59447c2c9a6b7d1533ce
   src/models/operations/searchdiscounts.ts:
-    last_write_checksum: sha1:48137f130aea63500d7d9e3571552116962c5d53
+    last_write_checksum: sha1:e9d36cbc4ebc2efdcfd3ad633c699d16e6ac4ead
   src/models/operations/searchproducts.ts:
     id: f7be5bc8e0b2
-    last_write_checksum: sha1:c4697e83ad1bcd6f86711d00ad63fe7bb54f27ef
+    last_write_checksum: sha1:c4ae800a96412af8291e60f8ad0a852637666534
     pristine_git_object: 5d883473b6467b12b60da14f420290d986808496
   src/models/operations/searchsubscriptions.ts:
-    last_write_checksum: sha1:53cbed11d76517b318d217735ad2ff39e3f3aaa7
+    last_write_checksum: sha1:e26707af942f1c3cd76524ad08e3bb49c3d98d28
   src/models/operations/searchtransactions.ts:
     id: 9e0cf81e2211
-    last_write_checksum: sha1:04f35e081b134b21508f4adf5e09f1c18f601f0e
+    last_write_checksum: sha1:116af54d9136b376590aa8babd9e498a8f26afe5
     pristine_git_object: c39a211d0e695e931d94d04b939463953b2e163e
   src/models/operations/unfreezecustomercreditsaccount.ts:
     last_write_checksum: sha1:49eddcce2c1b55555276c402561a66500d409521
@@ -1198,14 +1335,14 @@ trackedFiles:
     last_write_checksum: sha1:876cea5f6488b03eb8a8c470bc09ea7f49626e53
     pristine_git_object: 370e322a6e6d1432ef69474203fccc0cdffa716a
   src/sdk/customercredits.ts:
-    last_write_checksum: sha1:8b2c29af1c784079b859a7002fa68ea7dabb16fa
+    last_write_checksum: sha1:cbad7ee980249ec00fa47929dff762115fdf0c15
   src/sdk/customers.ts:
     id: d33e193e0c00
-    last_write_checksum: sha1:b557596182d419d5d3caf98dd3051eac52f6ce07
+    last_write_checksum: sha1:289eda3030337039ed834ffa97e6663e2bb0b3b6
     pristine_git_object: b223e6b71bdf864efbb04c2294527f6223647a20
   src/sdk/discounts.ts:
     id: 413e4d5bc639
-    last_write_checksum: sha1:b38b42ba3bdec073828a4e46115296cb746029d3
+    last_write_checksum: sha1:a6cdeb70251f4565af2249680e9a73bef61bafad
     pristine_git_object: bee6ede9e1cb2acbcb14f6ce7790dce6d3269d3d
   src/sdk/index.ts:
     id: a857902a703f
@@ -1219,7 +1356,7 @@ trackedFiles:
     last_write_checksum: sha1:4e29404d217a2630de35da8fa5c59a25ab176c2a
   src/sdk/products.ts:
     id: b199702e5352
-    last_write_checksum: sha1:a69e012edc3bf8309442774fbc87ff4b0923d661
+    last_write_checksum: sha1:055c4ae60112b4ad08d8e5c1f8a754b37bafe55a
     pristine_git_object: eb2dda41175fdea6bc07db049a3f7a9e42045285
   src/sdk/sdk.ts:
     id: 784571af2f69
@@ -1229,15 +1366,15 @@ trackedFiles:
     last_write_checksum: sha1:eb3786daefd12186be80df489e567a8ff736a365
   src/sdk/subscriptions.ts:
     id: fb904d08fb20
-    last_write_checksum: sha1:1e7416ade1541ebdfdf828f2300d9e502e09f2a7
+    last_write_checksum: sha1:25984ffcd446a79faf08250a04bddbe7dc694c2f
     pristine_git_object: f6b11f119bb5a545a1672797f1d487b52ddcfcb6
   src/sdk/transactions.ts:
     id: bcd7a9b32ed7
-    last_write_checksum: sha1:bf72690b6f111b956201025919c4928facb75136
+    last_write_checksum: sha1:0e8ce27e6f1c426172b619e42af47ca12918ded3
     pristine_git_object: ffa659f97c7d3839412341722d5c580a69b52477
   src/types/async.ts:
     id: fac8da972f86
-    last_write_checksum: sha1:3ff07b3feaf390ec1aeb18ff938e139c6c4a9585
+    last_write_checksum: sha1:675d04bb4b4081dc3482f18de98674f9b446e7b4
     pristine_git_object: 689dba5de50e8769e5f3bb913e3f42a146d15bc1
   src/types/blobs.ts:
     id: f8ab9b326c86
@@ -1352,7 +1489,7 @@ examples:
           x-api-key: "<value>"
       responses:
         "200":
-          application/json: {"id": "<id>", "mode": "prod", "object": "subscription", "product": "{\"id\":\"<id>\",\"mode\":\"prod\",\"object\":{},\"name\":\"<value>\",\"description\":\"This is a sample product description.\",\"image_url\":\"https://example.com/image.jpg\",\"features\":[{\"id\":\"<id>\",\"type\":\"file\",\"description\":\"Get access to discord server.\"}],\"price\":400,\"currency\":\"USD\",\"billing_type\":\"recurring\",\"billing_period\":\"every-three-months\",\"status\":\"archived\",\"tax_mode\":\"inclusive\",\"tax_category\":\"saas\",\"product_url\":\"https://creem.io/product/prod_123123123123\",\"default_success_url\":\"https://example.com/?status=successful\",\"created_at\":\"2023-01-01T00:00:00Z\",\"updated_at\":\"2023-01-01T00:00:00Z\"}", "customer": "{\"id\":\"<id>\",\"mode\":\"test\",\"object\":{},\"email\":\"user@example.com\",\"name\":\"John Doe\",\"country\":\"US\",\"created_at\":\"2023-01-01T00:00:00Z\",\"updated_at\":\"2023-01-01T00:00:00Z\"}", "collection_method": "charge_automatically", "status": "active", "last_transaction_id": "tran_3e6Z6TzvHKdsjEgXnGDEp0", "last_transaction": {"id": "<id>", "mode": "prod", "object": "transaction", "amount": 2000, "amount_paid": 2000, "discount_amount": 2000, "currency": "USD", "type": "invoice", "tax_country": "US", "tax_amount": 2000, "status": "declined", "refunded_amount": 2000, "created_at": 382.66}, "last_transaction_date": "2024-09-12T12:34:56Z", "next_transaction_date": "2024-09-12T12:34:56Z", "current_period_start_date": "2024-09-12T12:34:56Z", "current_period_end_date": "2024-09-12T12:34:56Z", "canceled_at": "2024-09-12T12:34:56Z", "created_at": "2024-01-01T00:00:00Z", "updated_at": "2024-09-12T12:34:56Z"}
+          application/json: {"id": "<id>", "mode": "prod", "object": "subscription", "product": "{\"id\":\"<id>\",\"mode\":\"prod\",\"object\":{},\"name\":\"<value>\",\"description\":\"This is a sample product description.\",\"image_url\":\"https://example.com/image.jpg\",\"features\":[{\"id\":\"<id>\",\"type\":\"file\",\"description\":\"Get access to discord server.\"}],\"price\":400,\"currency\":\"USD\",\"billing_type\":\"recurring\",\"billing_period\":\"every-three-months\",\"status\":\"archived\",\"tax_mode\":\"inclusive\",\"tax_category\":\"saas\",\"product_url\":\"https://creem.io/product/prod_123123123123\",\"default_success_url\":\"https://example.com/?status=successful\",\"created_at\":\"2023-01-01T00:00:00Z\",\"updated_at\":\"2023-01-01T00:00:00Z\"}", "customer": "{\"id\":\"<id>\",\"mode\":\"test\",\"object\":{},\"email\":\"user@example.com\",\"name\":\"John Doe\",\"country\":\"US\",\"created_at\":\"2023-01-01T00:00:00Z\",\"updated_at\":\"2023-01-01T00:00:00Z\"}", "collection_method": "charge_automatically", "status": "active", "last_transaction_id": "tran_3e6Z6TzvHKdsjEgXnGDEp0", "last_transaction": {"id": "<id>", "mode": "prod", "object": "transaction", "amount": 2000, "amount_paid": 2000, "discount_amount": 2000, "currency": "USD", "type": "invoice", "tax_country": "US", "tax_amount": 2000, "status": "declined", "refunded_amount": 2000, "created_at": 382.66}, "last_transaction_date": "2024-09-12T12:34:56Z", "next_transaction_date": "2024-09-12T12:34:56Z", "current_period_start_date": "2024-09-12T12:34:56Z", "current_period_end_date": "2024-09-12T12:34:56Z", "canceled_at": "2024-09-12T12:34:56Z", "created_at": "2024-01-01T00:00:00Z", "updated_at": "2024-09-12T12:34:56Z", "discount": {"id": "dis_3e6Z6TzvHKdsjEgXnGDEp0", "discountCode": "HOLIDAY2024"}, "metadata": {"userId": "user_123", "plan": "pro"}}
   cancelSubscription:
     speakeasy-default-cancel-subscription:
       parameters:
@@ -1364,7 +1501,7 @@ examples:
         application/json: {"mode": "immediate", "onExecute": "cancel"}
       responses:
         "200":
-          application/json: {"id": "<id>", "mode": "test", "object": "subscription", "product": {"id": "<id>", "mode": "test", "object": "{}", "name": "<value>", "description": "This is a sample product description.", "image_url": "https://example.com/image.jpg", "features": [{"id": "<id>", "type": "custom", "description": "Get access to discord server."}], "price": 400, "currency": "USD", "billing_type": "recurring", "billing_period": "every-month", "status": "archived", "tax_mode": "inclusive", "tax_category": "ebooks", "product_url": "https://creem.io/product/prod_123123123123", "default_success_url": "https://example.com/?status=successful", "created_at": "2023-01-01T00:00:00Z", "updated_at": "2023-01-01T00:00:00Z"}, "customer": "{\"id\":\"<id>\",\"mode\":\"prod\",\"object\":{},\"email\":\"user@example.com\",\"name\":\"John Doe\",\"country\":\"US\",\"created_at\":\"2023-01-01T00:00:00Z\",\"updated_at\":\"2023-01-01T00:00:00Z\"}", "collection_method": "charge_automatically", "status": "active", "last_transaction_id": "tran_3e6Z6TzvHKdsjEgXnGDEp0", "last_transaction": {"id": "<id>", "mode": "sandbox", "object": "transaction", "amount": 2000, "amount_paid": 2000, "discount_amount": 2000, "currency": "USD", "type": "invoice", "tax_country": "US", "tax_amount": 2000, "status": "declined", "refunded_amount": 2000, "created_at": 174.01}, "last_transaction_date": "2024-09-12T12:34:56Z", "next_transaction_date": "2024-09-12T12:34:56Z", "current_period_start_date": "2024-09-12T12:34:56Z", "current_period_end_date": "2024-09-12T12:34:56Z", "canceled_at": "2024-09-12T12:34:56Z", "created_at": "2024-01-01T00:00:00Z", "updated_at": "2024-09-12T12:34:56Z"}
+          application/json: {"id": "<id>", "mode": "test", "object": "subscription", "product": {"id": "<id>", "mode": "test", "object": "{}", "name": "<value>", "description": "This is a sample product description.", "image_url": "https://example.com/image.jpg", "features": [{"id": "<id>", "type": "custom", "description": "Get access to discord server."}], "price": 400, "currency": "USD", "billing_type": "recurring", "billing_period": "every-month", "status": "archived", "tax_mode": "inclusive", "tax_category": "ebooks", "product_url": "https://creem.io/product/prod_123123123123", "default_success_url": "https://example.com/?status=successful", "created_at": "2023-01-01T00:00:00Z", "updated_at": "2023-01-01T00:00:00Z"}, "customer": "{\"id\":\"<id>\",\"mode\":\"prod\",\"object\":{},\"email\":\"user@example.com\",\"name\":\"John Doe\",\"country\":\"US\",\"created_at\":\"2023-01-01T00:00:00Z\",\"updated_at\":\"2023-01-01T00:00:00Z\"}", "collection_method": "charge_automatically", "status": "active", "last_transaction_id": "tran_3e6Z6TzvHKdsjEgXnGDEp0", "last_transaction": {"id": "<id>", "mode": "sandbox", "object": "transaction", "amount": 2000, "amount_paid": 2000, "discount_amount": 2000, "currency": "USD", "type": "invoice", "tax_country": "US", "tax_amount": 2000, "status": "declined", "refunded_amount": 2000, "created_at": 174.01}, "last_transaction_date": "2024-09-12T12:34:56Z", "next_transaction_date": "2024-09-12T12:34:56Z", "current_period_start_date": "2024-09-12T12:34:56Z", "current_period_end_date": "2024-09-12T12:34:56Z", "canceled_at": "2024-09-12T12:34:56Z", "created_at": "2024-01-01T00:00:00Z", "updated_at": "2024-09-12T12:34:56Z", "discount": {"id": "dis_3e6Z6TzvHKdsjEgXnGDEp0", "discountCode": "HOLIDAY2024"}, "metadata": {"userId": "user_123", "plan": "pro"}}
   updateSubscription:
     speakeasy-default-update-subscription:
       parameters:
@@ -1376,7 +1513,7 @@ examples:
         application/json: {"update_behavior": "proration-charge"}
       responses:
         "200":
-          application/json: {"id": "<id>", "mode": "prod", "object": "subscription", "product": {"id": "<id>", "mode": "prod", "object": "{}", "name": "<value>", "description": "This is a sample product description.", "image_url": "https://example.com/image.jpg", "features": [{"id": "<id>", "type": "file", "description": "Get access to discord server."}], "price": 400, "currency": "USD", "billing_type": "recurring", "billing_period": "every-month", "status": "archived", "tax_mode": "inclusive", "tax_category": "ebooks", "product_url": "https://creem.io/product/prod_123123123123", "default_success_url": "https://example.com/?status=successful", "created_at": "2023-01-01T00:00:00Z", "updated_at": "2023-01-01T00:00:00Z"}, "customer": "{\"id\":\"<id>\",\"mode\":\"test\",\"object\":{},\"email\":\"user@example.com\",\"name\":\"John Doe\",\"country\":\"US\",\"created_at\":\"2023-01-01T00:00:00Z\",\"updated_at\":\"2023-01-01T00:00:00Z\"}", "collection_method": "charge_automatically", "status": "active", "last_transaction_id": "tran_3e6Z6TzvHKdsjEgXnGDEp0", "last_transaction": {"id": "<id>", "mode": "test", "object": "transaction", "amount": 2000, "amount_paid": 2000, "discount_amount": 2000, "currency": "USD", "type": "invoice", "tax_country": "US", "tax_amount": 2000, "status": "void", "refunded_amount": 2000, "created_at": 8102.12}, "last_transaction_date": "2024-09-12T12:34:56Z", "next_transaction_date": "2024-09-12T12:34:56Z", "current_period_start_date": "2024-09-12T12:34:56Z", "current_period_end_date": "2024-09-12T12:34:56Z", "canceled_at": "2024-09-12T12:34:56Z", "created_at": "2024-01-01T00:00:00Z", "updated_at": "2024-09-12T12:34:56Z"}
+          application/json: {"id": "<id>", "mode": "prod", "object": "subscription", "product": {"id": "<id>", "mode": "prod", "object": "{}", "name": "<value>", "description": "This is a sample product description.", "image_url": "https://example.com/image.jpg", "features": [{"id": "<id>", "type": "file", "description": "Get access to discord server."}], "price": 400, "currency": "USD", "billing_type": "recurring", "billing_period": "every-month", "status": "archived", "tax_mode": "inclusive", "tax_category": "ebooks", "product_url": "https://creem.io/product/prod_123123123123", "default_success_url": "https://example.com/?status=successful", "created_at": "2023-01-01T00:00:00Z", "updated_at": "2023-01-01T00:00:00Z"}, "customer": "{\"id\":\"<id>\",\"mode\":\"test\",\"object\":{},\"email\":\"user@example.com\",\"name\":\"John Doe\",\"country\":\"US\",\"created_at\":\"2023-01-01T00:00:00Z\",\"updated_at\":\"2023-01-01T00:00:00Z\"}", "collection_method": "charge_automatically", "status": "active", "last_transaction_id": "tran_3e6Z6TzvHKdsjEgXnGDEp0", "last_transaction": {"id": "<id>", "mode": "test", "object": "transaction", "amount": 2000, "amount_paid": 2000, "discount_amount": 2000, "currency": "USD", "type": "invoice", "tax_country": "US", "tax_amount": 2000, "status": "void", "refunded_amount": 2000, "created_at": 8102.12}, "last_transaction_date": "2024-09-12T12:34:56Z", "next_transaction_date": "2024-09-12T12:34:56Z", "current_period_start_date": "2024-09-12T12:34:56Z", "current_period_end_date": "2024-09-12T12:34:56Z", "canceled_at": "2024-09-12T12:34:56Z", "created_at": "2024-01-01T00:00:00Z", "updated_at": "2024-09-12T12:34:56Z", "discount": {"id": "dis_3e6Z6TzvHKdsjEgXnGDEp0", "discountCode": "HOLIDAY2024"}, "metadata": {"userId": "user_123", "plan": "pro"}}
   upgradeSubscription:
     speakeasy-default-upgrade-subscription:
       parameters:
@@ -1388,7 +1525,7 @@ examples:
         application/json: {"product_id": "prod_123", "update_behavior": "proration-charge-immediately"}
       responses:
         "200":
-          application/json: {"id": "<id>", "mode": "prod", "object": "subscription", "product": "{\"id\":\"<id>\",\"mode\":\"prod\",\"object\":{},\"name\":\"<value>\",\"description\":\"This is a sample product description.\",\"image_url\":\"https://example.com/image.jpg\",\"features\":[{\"id\":\"<id>\",\"type\":\"file\",\"description\":\"Get access to discord server.\"}],\"price\":400,\"currency\":\"USD\",\"billing_type\":\"recurring\",\"billing_period\":\"every-three-months\",\"status\":\"archived\",\"tax_mode\":\"exclusive\",\"tax_category\":\"saas\",\"product_url\":\"https://creem.io/product/prod_123123123123\",\"default_success_url\":\"https://example.com/?status=successful\",\"created_at\":\"2023-01-01T00:00:00Z\",\"updated_at\":\"2023-01-01T00:00:00Z\"}", "customer": "{\"id\":\"<id>\",\"mode\":\"test\",\"object\":{},\"email\":\"user@example.com\",\"name\":\"John Doe\",\"country\":\"US\",\"created_at\":\"2023-01-01T00:00:00Z\",\"updated_at\":\"2023-01-01T00:00:00Z\"}", "collection_method": "charge_automatically", "status": "active", "last_transaction_id": "tran_3e6Z6TzvHKdsjEgXnGDEp0", "last_transaction": {"id": "<id>", "mode": "test", "object": "transaction", "amount": 2000, "amount_paid": 2000, "discount_amount": 2000, "currency": "USD", "type": "invoice", "tax_country": "US", "tax_amount": 2000, "status": "declined", "refunded_amount": 2000, "created_at": 1773.86}, "last_transaction_date": "2024-09-12T12:34:56Z", "next_transaction_date": "2024-09-12T12:34:56Z", "current_period_start_date": "2024-09-12T12:34:56Z", "current_period_end_date": "2024-09-12T12:34:56Z", "canceled_at": "2024-09-12T12:34:56Z", "created_at": "2024-01-01T00:00:00Z", "updated_at": "2024-09-12T12:34:56Z"}
+          application/json: {"id": "<id>", "mode": "prod", "object": "subscription", "product": "{\"id\":\"<id>\",\"mode\":\"prod\",\"object\":{},\"name\":\"<value>\",\"description\":\"This is a sample product description.\",\"image_url\":\"https://example.com/image.jpg\",\"features\":[{\"id\":\"<id>\",\"type\":\"file\",\"description\":\"Get access to discord server.\"}],\"price\":400,\"currency\":\"USD\",\"billing_type\":\"recurring\",\"billing_period\":\"every-three-months\",\"status\":\"archived\",\"tax_mode\":\"exclusive\",\"tax_category\":\"saas\",\"product_url\":\"https://creem.io/product/prod_123123123123\",\"default_success_url\":\"https://example.com/?status=successful\",\"created_at\":\"2023-01-01T00:00:00Z\",\"updated_at\":\"2023-01-01T00:00:00Z\"}", "customer": "{\"id\":\"<id>\",\"mode\":\"test\",\"object\":{},\"email\":\"user@example.com\",\"name\":\"John Doe\",\"country\":\"US\",\"created_at\":\"2023-01-01T00:00:00Z\",\"updated_at\":\"2023-01-01T00:00:00Z\"}", "collection_method": "charge_automatically", "status": "active", "last_transaction_id": "tran_3e6Z6TzvHKdsjEgXnGDEp0", "last_transaction": {"id": "<id>", "mode": "test", "object": "transaction", "amount": 2000, "amount_paid": 2000, "discount_amount": 2000, "currency": "USD", "type": "invoice", "tax_country": "US", "tax_amount": 2000, "status": "declined", "refunded_amount": 2000, "created_at": 1773.86}, "last_transaction_date": "2024-09-12T12:34:56Z", "next_transaction_date": "2024-09-12T12:34:56Z", "current_period_start_date": "2024-09-12T12:34:56Z", "current_period_end_date": "2024-09-12T12:34:56Z", "canceled_at": "2024-09-12T12:34:56Z", "created_at": "2024-01-01T00:00:00Z", "updated_at": "2024-09-12T12:34:56Z", "discount": {"id": "dis_3e6Z6TzvHKdsjEgXnGDEp0", "discountCode": "HOLIDAY2024"}, "metadata": {"userId": "user_123", "plan": "pro"}}
   retrieveCheckout:
     speakeasy-default-retrieve-checkout:
       parameters:
@@ -1398,7 +1535,7 @@ examples:
           x-api-key: "<value>"
       responses:
         "200":
-          application/json: {"id": "<id>", "mode": "test", "object": "{}", "status": "completed", "product": "{\"id\":\"<id>\",\"mode\":\"test\",\"object\":\"<value>\",\"name\":\"<value>\",\"description\":\"This is a sample product description.\",\"image_url\":\"https://example.com/image.jpg\",\"features\":[{\"id\":\"<id>\",\"type\":\"<value>\",\"description\":\"Get access to discord server.\"}],\"price\":400,\"currency\":\"EUR\",\"billing_type\":\"recurring\",\"billing_period\":\"every-month\",\"status\":\"<value>\",\"tax_mode\":\"inclusive\",\"tax_category\":\"saas\",\"product_url\":\"https://creem.io/product/prod_123123123123\",\"default_success_url\":\"https://example.com/?status=successful\",\"created_at\":\"2023-01-01T00:00:00Z\",\"updated_at\":\"2023-01-01T00:00:00Z\"}", "units": 1, "order": {"id": "<id>", "mode": "sandbox", "object": "{}", "product": "Unbranded Rubber Chair", "transaction": "tx_1234567890", "discount": "dis_1234567890", "amount": 2000, "sub_total": 1800, "tax_amount": 200, "discount_amount": 100, "amount_due": 1900, "amount_paid": 1900, "currency": "USD", "fx_amount": 15, "fx_currency": "EUR", "fx_rate": 1.2, "status": "pending", "type": "recurring", "created_at": "2023-09-13T00:00:00Z", "updated_at": "2023-09-13T00:00:00Z"}, "subscription": "{\"id\":\"<id>\",\"mode\":\"test\",\"object\":\"subscription\",\"product\":\"Handcrafted Metal Pizza\",\"customer\":{\"id\":\"<id>\",\"mode\":\"test\",\"object\":\"<value>\",\"email\":\"user@example.com\",\"name\":\"John Doe\",\"country\":\"US\",\"created_at\":\"2023-01-01T00:00:00Z\",\"updated_at\":\"2023-01-01T00:00:00Z\"},\"collection_method\":\"charge_automatically\",\"status\":\"active\",\"last_transaction_id\":\"tran_3e6Z6TzvHKdsjEgXnGDEp0\",\"last_transaction\":{\"id\":\"<id>\",\"mode\":\"test\",\"object\":\"transaction\",\"amount\":2000,\"amount_paid\":2000,\"discount_amount\":2000,\"currency\":\"EUR\",\"type\":\"<value>\",\"tax_country\":\"US\",\"tax_amount\":2000,\"status\":\"<value>\",\"refunded_amount\":2000,\"created_at\":8159.34},\"last_transaction_date\":\"2024-09-12T12:34:56Z\",\"next_transaction_date\":\"2024-09-12T12:34:56Z\",\"current_period_start_date\":\"2024-09-12T12:34:56Z\",\"current_period_end_date\":\"2024-09-12T12:34:56Z\",\"canceled_at\":\"2024-09-12T12:34:56Z\",\"created_at\":\"2024-01-01T00:00:00Z\",\"updated_at\":\"2024-09-12T12:34:56Z\"}", "customer": "<value>", "success_url": "https://example.com/return", "license_keys": [{"id": "<id>", "mode": "test", "object": "<value>", "product_id": "prod_abc123", "status": "expired", "key": "ABC123-XYZ456-XYZ456-XYZ456", "activation": 5, "activation_limit": 1, "expires_at": "2023-09-13T00:00:00Z", "created_at": "2023-09-13T00:00:00Z", "instance": {"id": "<id>", "mode": "sandbox", "object": "license-instance", "name": "My Customer License Instance", "status": "active", "created_at": "2023-09-13T00:00:00Z"}}], "metadata": {"userId": "user_123", "visitCount": 42, "lastVisit": "2023-04-01"}}
+          application/json: {"id": "<id>", "mode": "test", "object": "{}", "status": "completed", "product": "{\"id\":\"<id>\",\"mode\":\"test\",\"object\":\"<value>\",\"name\":\"<value>\",\"description\":\"This is a sample product description.\",\"image_url\":\"https://example.com/image.jpg\",\"features\":[{\"id\":\"<id>\",\"type\":\"<value>\",\"description\":\"Get access to discord server.\"}],\"price\":400,\"currency\":\"EUR\",\"billing_type\":\"recurring\",\"billing_period\":\"every-month\",\"status\":\"<value>\",\"tax_mode\":\"inclusive\",\"tax_category\":\"saas\",\"product_url\":\"https://creem.io/product/prod_123123123123\",\"default_success_url\":\"https://example.com/?status=successful\",\"created_at\":\"2023-01-01T00:00:00Z\",\"updated_at\":\"2023-01-01T00:00:00Z\"}", "units": 1, "order": {"id": "<id>", "mode": "sandbox", "object": "{}", "product": "Unbranded Rubber Chair", "transaction": "tx_1234567890", "discount": "dis_1234567890", "amount": 2000, "sub_total": 1800, "tax_amount": 200, "discount_amount": 100, "amount_due": 1900, "amount_paid": 1900, "currency": "USD", "fx_amount": 15, "fx_currency": "EUR", "fx_rate": 1.2, "status": "pending", "type": "recurring", "created_at": "2023-09-13T00:00:00Z", "updated_at": "2023-09-13T00:00:00Z"}, "subscription": "{\"id\":\"<id>\",\"mode\":\"test\",\"object\":\"subscription\",\"product\":\"Handcrafted Metal Pizza\",\"customer\":{\"id\":\"<id>\",\"mode\":\"test\",\"object\":\"<value>\",\"email\":\"user@example.com\",\"name\":\"John Doe\",\"country\":\"US\",\"created_at\":\"2023-01-01T00:00:00Z\",\"updated_at\":\"2023-01-01T00:00:00Z\"},\"collection_method\":\"charge_automatically\",\"status\":\"active\",\"last_transaction_id\":\"tran_3e6Z6TzvHKdsjEgXnGDEp0\",\"last_transaction\":{\"id\":\"<id>\",\"mode\":\"test\",\"object\":\"transaction\",\"amount\":2000,\"amount_paid\":2000,\"discount_amount\":2000,\"currency\":\"EUR\",\"type\":\"<value>\",\"tax_country\":\"US\",\"tax_amount\":2000,\"status\":\"<value>\",\"refunded_amount\":2000,\"created_at\":8159.34},\"last_transaction_date\":\"2024-09-12T12:34:56Z\",\"next_transaction_date\":\"2024-09-12T12:34:56Z\",\"current_period_start_date\":\"2024-09-12T12:34:56Z\",\"current_period_end_date\":\"2024-09-12T12:34:56Z\",\"canceled_at\":\"2024-09-12T12:34:56Z\",\"created_at\":\"2024-01-01T00:00:00Z\",\"updated_at\":\"2024-09-12T12:34:56Z\"}", "customer": "<value>", "success_url": "https://example.com/return", "license_keys": [{"id": "<id>", "mode": "test", "object": "<value>", "product_id": "prod_abc123", "status": "expired", "key": "ABC123-XYZ456-XYZ456-XYZ456", "activation": 5, "activation_limit": 1, "expires_at": "2023-09-13T00:00:00Z", "created_at": "2023-09-13T00:00:00Z", "instance": {"id": "<id>", "mode": "sandbox", "object": "license-instance", "name": "My Customer License Instance", "status": "active", "created_at": "2023-09-13T00:00:00Z"}}], "metadata": {"userId": "user_123", "visitCount": 42, "lastVisit": "2023-04-01"}, "discount": {"id": "dis_3e6Z6TzvHKdsjEgXnGDEp0", "discountCode": "HOLIDAY2024"}}
   createCheckout:
     speakeasy-default-create-checkout:
       parameters:
@@ -1408,7 +1545,7 @@ examples:
         application/json: {"product_id": "prod_1234567890", "units": 1, "discount_code": "SUMMER2024", "customer": {"id": "cust_1234567890", "email": "user@example.com"}, "custom_fields": [{"type": "text", "key": "companyName", "label": "Company Name", "text": {"max_length": 200, "min_length": 1}, "checkbox": {"label": "I agree to the [terms and conditions](https://example.com/terms)"}}], "metadata": {"userId": "user_123", "visitCount": 42, "lastVisit": "2023-04-01"}}
       responses:
         "200":
-          application/json: {"id": "<id>", "mode": "prod", "object": "{}", "status": "completed", "product": "Generic Bronze Bike", "units": 1, "order": {"id": "<id>", "mode": "sandbox", "object": "{}", "product": "Recycled Frozen Keyboard", "transaction": "tx_1234567890", "discount": "dis_1234567890", "amount": 2000, "sub_total": 1800, "tax_amount": 200, "discount_amount": 100, "amount_due": 1900, "amount_paid": 1900, "currency": "USD", "fx_amount": 15, "fx_currency": "EUR", "fx_rate": 1.2, "status": "pending", "type": "recurring", "created_at": "2023-09-13T00:00:00Z", "updated_at": "2023-09-13T00:00:00Z"}, "subscription": "<value>", "customer": "<value>", "success_url": "https://example.com/return", "license_keys": [{"id": "<id>", "mode": "prod", "object": "<value>", "product_id": "prod_abc123", "status": "active", "key": "ABC123-XYZ456-XYZ456-XYZ456", "activation": 5, "activation_limit": 1, "expires_at": "2023-09-13T00:00:00Z", "created_at": "2023-09-13T00:00:00Z", "instance": {"id": "<id>", "mode": "test", "object": "license-instance", "name": "My Customer License Instance", "status": "active", "created_at": "2023-09-13T00:00:00Z"}}], "metadata": {"userId": "user_123", "visitCount": 42, "lastVisit": "2023-04-01"}}
+          application/json: {"id": "<id>", "mode": "prod", "object": "{}", "status": "completed", "product": "Generic Bronze Bike", "units": 1, "order": {"id": "<id>", "mode": "sandbox", "object": "{}", "product": "Recycled Frozen Keyboard", "transaction": "tx_1234567890", "discount": "dis_1234567890", "amount": 2000, "sub_total": 1800, "tax_amount": 200, "discount_amount": 100, "amount_due": 1900, "amount_paid": 1900, "currency": "USD", "fx_amount": 15, "fx_currency": "EUR", "fx_rate": 1.2, "status": "pending", "type": "recurring", "created_at": "2023-09-13T00:00:00Z", "updated_at": "2023-09-13T00:00:00Z"}, "subscription": "<value>", "customer": "<value>", "success_url": "https://example.com/return", "license_keys": [{"id": "<id>", "mode": "prod", "object": "<value>", "product_id": "prod_abc123", "status": "active", "key": "ABC123-XYZ456-XYZ456-XYZ456", "activation": 5, "activation_limit": 1, "expires_at": "2023-09-13T00:00:00Z", "created_at": "2023-09-13T00:00:00Z", "instance": {"id": "<id>", "mode": "test", "object": "license-instance", "name": "My Customer License Instance", "status": "active", "created_at": "2023-09-13T00:00:00Z"}}], "metadata": {"userId": "user_123", "visitCount": 42, "lastVisit": "2023-04-01"}, "discount": {"id": "dis_3e6Z6TzvHKdsjEgXnGDEp0", "discountCode": "HOLIDAY2024"}}
   activateLicense:
     speakeasy-default-activate-license:
       parameters:
@@ -1503,7 +1640,7 @@ examples:
           x-api-key: "<value>"
       responses:
         "200":
-          application/json: {"id": "<id>", "mode": "prod", "object": "subscription", "product": "{\"id\":\"<id>\",\"mode\":\"prod\",\"object\":{},\"name\":\"<value>\",\"description\":\"This is a sample product description.\",\"image_url\":\"https://example.com/image.jpg\",\"features\":[{\"id\":\"<id>\",\"type\":\"file\",\"description\":\"Get access to discord server.\"}],\"price\":400,\"currency\":\"USD\",\"billing_type\":\"one-time\",\"billing_period\":\"every-six-months\",\"status\":\"active\",\"tax_mode\":\"exclusive\",\"tax_category\":\"ebooks\",\"product_url\":\"https://creem.io/product/prod_123123123123\",\"default_success_url\":\"https://example.com/?status=successful\",\"created_at\":\"2023-01-01T00:00:00Z\",\"updated_at\":\"2023-01-01T00:00:00Z\"}", "customer": "{\"id\":\"<id>\",\"mode\":\"test\",\"object\":\"{}\",\"email\":\"user@example.com\",\"name\":\"John Doe\",\"country\":\"US\",\"created_at\":\"2023-01-01T00:00:00Z\",\"updated_at\":\"2023-01-01T00:00:00Z\"}", "collection_method": "charge_automatically", "status": "active", "last_transaction_id": "tran_3e6Z6TzvHKdsjEgXnGDEp0", "last_transaction": {"id": "<id>", "mode": "sandbox", "object": "transaction", "amount": 2000, "amount_paid": 2000, "discount_amount": 2000, "currency": "USD", "type": "invoice", "tax_country": "US", "tax_amount": 2000, "status": "refunded", "refunded_amount": 2000, "created_at": 8744.24}, "last_transaction_date": "2024-09-12T12:34:56Z", "next_transaction_date": "2024-09-12T12:34:56Z", "current_period_start_date": "2024-09-12T12:34:56Z", "current_period_end_date": "2024-09-12T12:34:56Z", "canceled_at": "2024-09-12T12:34:56Z", "created_at": "2024-01-01T00:00:00Z", "updated_at": "2024-09-12T12:34:56Z"}
+          application/json: {"id": "<id>", "mode": "prod", "object": "subscription", "product": "{\"id\":\"<id>\",\"mode\":\"prod\",\"object\":{},\"name\":\"<value>\",\"description\":\"This is a sample product description.\",\"image_url\":\"https://example.com/image.jpg\",\"features\":[{\"id\":\"<id>\",\"type\":\"file\",\"description\":\"Get access to discord server.\"}],\"price\":400,\"currency\":\"USD\",\"billing_type\":\"one-time\",\"billing_period\":\"every-six-months\",\"status\":\"active\",\"tax_mode\":\"exclusive\",\"tax_category\":\"ebooks\",\"product_url\":\"https://creem.io/product/prod_123123123123\",\"default_success_url\":\"https://example.com/?status=successful\",\"created_at\":\"2023-01-01T00:00:00Z\",\"updated_at\":\"2023-01-01T00:00:00Z\"}", "customer": "{\"id\":\"<id>\",\"mode\":\"test\",\"object\":\"{}\",\"email\":\"user@example.com\",\"name\":\"John Doe\",\"country\":\"US\",\"created_at\":\"2023-01-01T00:00:00Z\",\"updated_at\":\"2023-01-01T00:00:00Z\"}", "collection_method": "charge_automatically", "status": "active", "last_transaction_id": "tran_3e6Z6TzvHKdsjEgXnGDEp0", "last_transaction": {"id": "<id>", "mode": "sandbox", "object": "transaction", "amount": 2000, "amount_paid": 2000, "discount_amount": 2000, "currency": "USD", "type": "invoice", "tax_country": "US", "tax_amount": 2000, "status": "refunded", "refunded_amount": 2000, "created_at": 8744.24}, "last_transaction_date": "2024-09-12T12:34:56Z", "next_transaction_date": "2024-09-12T12:34:56Z", "current_period_start_date": "2024-09-12T12:34:56Z", "current_period_end_date": "2024-09-12T12:34:56Z", "canceled_at": "2024-09-12T12:34:56Z", "created_at": "2024-01-01T00:00:00Z", "updated_at": "2024-09-12T12:34:56Z", "discount": {"id": "dis_3e6Z6TzvHKdsjEgXnGDEp0", "discountCode": "HOLIDAY2024"}, "metadata": {"userId": "user_123", "plan": "pro"}}
   resumeSubscription:
     speakeasy-default-resume-subscription:
       parameters:
@@ -1513,7 +1650,7 @@ examples:
           x-api-key: "<value>"
       responses:
         "200":
-          application/json: {"id": "<id>", "mode": "sandbox", "object": "subscription", "product": "{\"id\":\"<id>\",\"mode\":\"sandbox\",\"object\":{},\"name\":\"<value>\",\"description\":\"This is a sample product description.\",\"image_url\":\"https://example.com/image.jpg\",\"features\":[{\"id\":\"<id>\",\"type\":\"licenseKey\",\"description\":\"Get access to discord server.\"}],\"price\":400,\"currency\":\"USD\",\"billing_type\":\"one-time\",\"billing_period\":\"once\",\"status\":\"active\",\"tax_mode\":\"inclusive\",\"tax_category\":\"saas\",\"product_url\":\"https://creem.io/product/prod_123123123123\",\"default_success_url\":\"https://example.com/?status=successful\",\"created_at\":\"2023-01-01T00:00:00Z\",\"updated_at\":\"2023-01-01T00:00:00Z\"}", "customer": "{\"id\":\"<id>\",\"mode\":\"test\",\"object\":{},\"email\":\"user@example.com\",\"name\":\"John Doe\",\"country\":\"US\",\"created_at\":\"2023-01-01T00:00:00Z\",\"updated_at\":\"2023-01-01T00:00:00Z\"}", "collection_method": "charge_automatically", "status": "active", "last_transaction_id": "tran_3e6Z6TzvHKdsjEgXnGDEp0", "last_transaction": {"id": "<id>", "mode": "prod", "object": "transaction", "amount": 2000, "amount_paid": 2000, "discount_amount": 2000, "currency": "USD", "type": "invoice", "tax_country": "US", "tax_amount": 2000, "status": "uncollectible", "refunded_amount": 2000, "created_at": 9943.21}, "last_transaction_date": "2024-09-12T12:34:56Z", "next_transaction_date": "2024-09-12T12:34:56Z", "current_period_start_date": "2024-09-12T12:34:56Z", "current_period_end_date": "2024-09-12T12:34:56Z", "canceled_at": "2024-09-12T12:34:56Z", "created_at": "2024-01-01T00:00:00Z", "updated_at": "2024-09-12T12:34:56Z"}
+          application/json: {"id": "<id>", "mode": "sandbox", "object": "subscription", "product": "{\"id\":\"<id>\",\"mode\":\"sandbox\",\"object\":{},\"name\":\"<value>\",\"description\":\"This is a sample product description.\",\"image_url\":\"https://example.com/image.jpg\",\"features\":[{\"id\":\"<id>\",\"type\":\"licenseKey\",\"description\":\"Get access to discord server.\"}],\"price\":400,\"currency\":\"USD\",\"billing_type\":\"one-time\",\"billing_period\":\"once\",\"status\":\"active\",\"tax_mode\":\"inclusive\",\"tax_category\":\"saas\",\"product_url\":\"https://creem.io/product/prod_123123123123\",\"default_success_url\":\"https://example.com/?status=successful\",\"created_at\":\"2023-01-01T00:00:00Z\",\"updated_at\":\"2023-01-01T00:00:00Z\"}", "customer": "{\"id\":\"<id>\",\"mode\":\"test\",\"object\":{},\"email\":\"user@example.com\",\"name\":\"John Doe\",\"country\":\"US\",\"created_at\":\"2023-01-01T00:00:00Z\",\"updated_at\":\"2023-01-01T00:00:00Z\"}", "collection_method": "charge_automatically", "status": "active", "last_transaction_id": "tran_3e6Z6TzvHKdsjEgXnGDEp0", "last_transaction": {"id": "<id>", "mode": "prod", "object": "transaction", "amount": 2000, "amount_paid": 2000, "discount_amount": 2000, "currency": "USD", "type": "invoice", "tax_country": "US", "tax_amount": 2000, "status": "uncollectible", "refunded_amount": 2000, "created_at": 9943.21}, "last_transaction_date": "2024-09-12T12:34:56Z", "next_transaction_date": "2024-09-12T12:34:56Z", "current_period_start_date": "2024-09-12T12:34:56Z", "current_period_end_date": "2024-09-12T12:34:56Z", "canceled_at": "2024-09-12T12:34:56Z", "created_at": "2024-01-01T00:00:00Z", "updated_at": "2024-09-12T12:34:56Z", "discount": {"id": "dis_3e6Z6TzvHKdsjEgXnGDEp0", "discountCode": "HOLIDAY2024"}, "metadata": {"userId": "user_123", "plan": "pro"}}
   AuthController_authenticateClient: {}
   AuthController_getUser:
     speakeasy-default-auth-controller-get-user:
@@ -1921,7 +2058,6 @@ examples:
           application/json: {"error": {"type": "invalid_request_error", "code": {}, "message": "Total debits must equal total credits", "param": {}, "request_id": "req_abc123def456"}}
 examplesVersion: 1.0.2
 generatedTests: {}
-releaseNotes: "## Typescript SDK Changes:\n* `creem.products.get()`:  `response.features[].type.enum(customerCredits)` **Added** (Breaking ⚠️)\n* `creem.transactions.search()`:  `response.items[].status.enum(canceled)` **Added** (Breaking ⚠️)\n* `creem.transactions.getById()`:  `response.status.enum(canceled)` **Added** (Breaking ⚠️)\n* `creem.checkouts.create()`:  `response` **Changed** (Breaking ⚠️)\n* `creem.checkouts.retrieve()`:  `response` **Changed** (Breaking ⚠️)\n* `creem.subscriptions.resume()`:  `response` **Changed** (Breaking ⚠️)\n* `creem.subscriptions.pause()`:  `response` **Changed** (Breaking ⚠️)\n* `creem.subscriptions.upgrade()`:  `response` **Changed** (Breaking ⚠️)\n* `creem.subscriptions.update()`:  `response` **Changed** (Breaking ⚠️)\n* `creem.subscriptions.cancel()`:  `response` **Changed** (Breaking ⚠️)\n* `creem.subscriptions.get()`:  `response` **Changed** (Breaking ⚠️)\n* `creem.products.search()`:  `response.items[].features[].type.enum(customerCredits)` **Added** (Breaking ⚠️)\n* `creem.products.create()`: \n  *  `request.description` **Changed** (Breaking ⚠️)\n  *  `response.features[].type.enum(customerCredits)` **Added** (Breaking ⚠️)\n* `creem.customerCredits.createAccount()`: **Added**\n* `creem.customerCredits.getAccount()`: **Added**\n* `creem.customerCredits.unfreezeAccount()`: **Added**\n* `creem.customerCredits.creditAccount()`: **Added**\n* `creem.customerCredits.debitAccount()`: **Added**\n* `creem.customerCredits.reverseTransaction()`: **Added**\n* `creem.customerCredits.closeAccount()`: **Added**\n* `creem.subscriptions.searchSubscriptions()`: **Removed** (Breaking ⚠️)\n* `creem.stats.getMetricsSummary()`: **Removed** (Breaking ⚠️)\n* `creem.customerCredits.listEntries()`: **Added**\n* `creem.customerCredits.getAccountBalance()`: **Added**\n* `creem.customerCredits.freezeAccount()`: **Added**\n* `creem.customers.list()`:  `response.items[].metadata` **Added**\n* `creem.customers.retrieve()`:  `response.metadata` **Added**\n* `creem.customerCredits.listAccounts()`: **Added**\n* `creem.customers.getOrders()`: **Added**\n* `creem.moderation.screenPrompt()`: **Added**\n* `creem.stats.getSummary()`: **Added**\n* `creem.discounts.search()`: **Added**\n* `creem.subscriptions.search()`: **Added**\n* `creem.customers.update()`: **Added**\n* `creem.customers.create()`: **Added**\n* `creem.customers.listLicenses()`: **Added**\n* `creem.customers.listSubscriptions()`: **Added**\n"
 generatedFiles:
   - .devcontainer/README.md
   - .devcontainer/devcontainer.json

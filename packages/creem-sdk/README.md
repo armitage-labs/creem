@@ -28,6 +28,7 @@ For more information about the API: [Creem Documentation](https://docs.creem.io)
   * [Authentication](#authentication)
   * [Available Resources and Operations](#available-resources-and-operations)
   * [Standalone functions](#standalone-functions)
+  * [Pagination](#pagination)
   * [Retries](#retries)
   * [Error Handling](#error-handling)
   * [Server Selection](#server-selection)
@@ -357,6 +358,40 @@ To read more about standalone functions, check [FUNCTIONS.md](./FUNCTIONS.md).
 </details>
 <!-- End Standalone functions [standalone-funcs] -->
 
+<!-- Start Pagination [pagination] -->
+## Pagination
+
+Some of the endpoints in this SDK support pagination. To use pagination, you
+make your SDK calls as usual, but the returned response object will also be an
+async iterable that can be consumed using the [`for await...of`][for-await-of]
+syntax.
+
+[for-await-of]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Statements/for-await...of
+
+Here's an example of one such pagination call:
+
+```typescript
+import { Creem } from "creem";
+
+const creem = new Creem({
+  apiKey: process.env["CREEM_API_KEY"] ?? "",
+});
+
+async function run() {
+  const page = await creem.products.search();
+
+  console.log(page.result.items);
+
+  for await (const nextPage of page) {
+    console.log(nextPage.result.items);
+  }
+}
+
+run();
+
+```
+<!-- End Pagination [pagination] -->
+
 <!-- Start Retries [retries] -->
 ## Retries
 
@@ -496,14 +531,14 @@ run();
 <!-- Start Server Selection [server] -->
 ## Server Selection
 
-### Select Server by Index
+### Select Server by Name
 
-You can override the default server globally by passing a server index to the `serverIdx: number` optional parameter when initializing the SDK client instance. The selected server will then be used as the default on the operations that use it. This table lists the indexes associated with the available servers:
+You can override the default server globally by passing a server name to the `server: keyof typeof ServerList` optional parameter when initializing the SDK client instance. The selected server will then be used as the default on the operations that use it. This table lists the names associated with the available servers:
 
-| #   | Server                      | Description |
-| --- | --------------------------- | ----------- |
-| 0   | `https://api.creem.io`      |             |
-| 1   | `https://test-api.creem.io` |             |
+| Name   | Server                      | Description |
+| ------ | --------------------------- | ----------- |
+| `prod` | `https://api.creem.io`      | Production  |
+| `test` | `https://test-api.creem.io` | Test        |
 
 #### Example
 
@@ -511,7 +546,7 @@ You can override the default server globally by passing a server index to the `s
 import { Creem } from "creem";
 
 const creem = new Creem({
-  serverIdx: 0,
+  server: "test",
   apiKey: process.env["CREEM_API_KEY"] ?? "",
 });
 

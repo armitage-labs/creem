@@ -5,6 +5,7 @@
 import * as z from "zod/v3";
 import { remap as remap$ } from "../../lib/primitives.js";
 import { safeParse } from "../../lib/schemas.js";
+import { ClosedEnum } from "../../types/enums.js";
 import { Result as SafeParseResult } from "../../types/fp.js";
 import { SDKValidationError } from "../errors/sdkvalidationerror.js";
 import {
@@ -57,10 +58,39 @@ export type Product = ProductEntity | string;
  */
 export type Customer = CustomerEntity | string;
 
+export const SubscriptionEntityType = {
+  Percentage: "percentage",
+  Fixed: "fixed",
+} as const;
+export type SubscriptionEntityType = ClosedEnum<typeof SubscriptionEntityType>;
+
+export const SubscriptionEntityDuration = {
+  Forever: "forever",
+  Once: "once",
+  Repeating: "repeating",
+} as const;
+export type SubscriptionEntityDuration = ClosedEnum<
+  typeof SubscriptionEntityDuration
+>;
+
 /**
- * The discount code applied to the subscription, if any.
+ * The discount applied to the subscription, if any.
  */
-export type Discount = {};
+export type Discount = {
+  /**
+   * The unique identifier of the discount (e.g. dis_...).
+   */
+  id?: string | undefined;
+  /**
+   * The discount code applied to the subscription.
+   */
+  discountCode?: string | undefined;
+  name?: string | undefined;
+  type?: SubscriptionEntityType | undefined;
+  amount?: number | undefined;
+  duration?: SubscriptionEntityDuration | undefined;
+  durationInMonths?: number | undefined;
+};
 
 export type SubscriptionEntity = {
   /**
@@ -132,9 +162,13 @@ export type SubscriptionEntity = {
    */
   updatedAt: Date;
   /**
-   * The discount code applied to the subscription, if any.
+   * The discount applied to the subscription, if any.
    */
   discount?: Discount | undefined;
+  /**
+   * Metadata for the subscription in the form of key-value pairs.
+   */
+  metadata?: { [k: string]: any } | undefined;
 };
 
 /** @internal */
@@ -193,20 +227,62 @@ export function customerFromJSON(
 }
 
 /** @internal */
+export const SubscriptionEntityType$inboundSchema: z.ZodNativeEnum<
+  typeof SubscriptionEntityType
+> = z.nativeEnum(SubscriptionEntityType);
+/** @internal */
+export const SubscriptionEntityType$outboundSchema: z.ZodNativeEnum<
+  typeof SubscriptionEntityType
+> = SubscriptionEntityType$inboundSchema;
+
+/** @internal */
+export const SubscriptionEntityDuration$inboundSchema: z.ZodNativeEnum<
+  typeof SubscriptionEntityDuration
+> = z.nativeEnum(SubscriptionEntityDuration);
+/** @internal */
+export const SubscriptionEntityDuration$outboundSchema: z.ZodNativeEnum<
+  typeof SubscriptionEntityDuration
+> = SubscriptionEntityDuration$inboundSchema;
+
+/** @internal */
 export const Discount$inboundSchema: z.ZodType<
   Discount,
   z.ZodTypeDef,
   unknown
-> = z.object({});
+> = z.object({
+  id: z.string().optional(),
+  discountCode: z.string().optional(),
+  name: z.string().optional(),
+  type: SubscriptionEntityType$inboundSchema.optional(),
+  amount: z.number().optional(),
+  duration: SubscriptionEntityDuration$inboundSchema.optional(),
+  durationInMonths: z.number().optional(),
+});
 /** @internal */
-export type Discount$Outbound = {};
+export type Discount$Outbound = {
+  id?: string | undefined;
+  discountCode?: string | undefined;
+  name?: string | undefined;
+  type?: string | undefined;
+  amount?: number | undefined;
+  duration?: string | undefined;
+  durationInMonths?: number | undefined;
+};
 
 /** @internal */
 export const Discount$outboundSchema: z.ZodType<
   Discount$Outbound,
   z.ZodTypeDef,
   Discount
-> = z.object({});
+> = z.object({
+  id: z.string().optional(),
+  discountCode: z.string().optional(),
+  name: z.string().optional(),
+  type: SubscriptionEntityType$outboundSchema.optional(),
+  amount: z.number().optional(),
+  duration: SubscriptionEntityDuration$outboundSchema.optional(),
+  durationInMonths: z.number().optional(),
+});
 
 export function discountToJSON(discount: Discount): string {
   return JSON.stringify(Discount$outboundSchema.parse(discount));
@@ -255,6 +331,7 @@ export const SubscriptionEntity$inboundSchema: z.ZodType<
   created_at: z.string().datetime({ offset: true }).transform(v => new Date(v)),
   updated_at: z.string().datetime({ offset: true }).transform(v => new Date(v)),
   discount: z.lazy(() => Discount$inboundSchema).optional(),
+  metadata: z.record(z.any()).optional(),
 }).transform((v) => {
   return remap$(v, {
     "collection_method": "collectionMethod",
@@ -289,6 +366,7 @@ export type SubscriptionEntity$Outbound = {
   created_at: string;
   updated_at: string;
   discount?: Discount$Outbound | undefined;
+  metadata?: { [k: string]: any } | undefined;
 };
 
 /** @internal */
@@ -315,6 +393,7 @@ export const SubscriptionEntity$outboundSchema: z.ZodType<
   createdAt: z.date().transform(v => v.toISOString()),
   updatedAt: z.date().transform(v => v.toISOString()),
   discount: z.lazy(() => Discount$outboundSchema).optional(),
+  metadata: z.record(z.any()).optional(),
 }).transform((v) => {
   return remap$(v, {
     collectionMethod: "collection_method",

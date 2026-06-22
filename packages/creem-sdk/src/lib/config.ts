@@ -8,12 +8,20 @@ import { RetryConfig } from "./retries.js";
 import { Params, pathToFunc } from "./url.js";
 
 /**
+ * Production
+ */
+export const ServerProd = "prod";
+/**
+ * Test
+ */
+export const ServerTest = "test";
+/**
  * Contains the list of servers available to the SDK
  */
-export const ServerList = [
-  "https://api.creem.io",
-  "https://test-api.creem.io",
-] as const;
+export const ServerList = {
+  [ServerProd]: "https://api.creem.io",
+  [ServerTest]: "https://test-api.creem.io",
+} as const;
 
 export type SDKOptions = {
   apiKey?: string | (() => Promise<string>) | undefined;
@@ -22,7 +30,7 @@ export type SDKOptions = {
   /**
    * Allows overriding the default server used by the SDK
    */
-  serverIdx?: number | undefined;
+  server?: keyof typeof ServerList | undefined;
   /**
    * Allows overriding the default server URL used by the SDK
    */
@@ -45,11 +53,8 @@ export function serverURLFromOptions(options: SDKOptions): URL | null {
   const params: Params = {};
 
   if (!serverURL) {
-    const serverIdx = options.serverIdx ?? 0;
-    if (serverIdx < 0 || serverIdx >= ServerList.length) {
-      throw new Error(`Invalid server index ${serverIdx}`);
-    }
-    serverURL = ServerList[serverIdx] || "";
+    const server = options.server ?? ServerProd;
+    serverURL = ServerList[server] || "";
   }
 
   const u = pathToFunc(serverURL)(params);
@@ -59,7 +64,7 @@ export function serverURLFromOptions(options: SDKOptions): URL | null {
 export const SDK_METADATA = {
   language: "typescript",
   openapiDocVersion: "v1",
-  sdkVersion: "1.4.5",
-  genVersion: "2.882.0",
-  userAgent: "speakeasy-sdk/typescript 1.4.5 2.882.0 v1 creem",
+  sdkVersion: "1.5.0",
+  genVersion: "2.910.1",
+  userAgent: "speakeasy-sdk/typescript 1.5.0 2.910.1 v1 creem",
 } as const;

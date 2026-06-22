@@ -15,7 +15,9 @@ import { customerCreditsReverseTransaction } from "../funcs/customerCreditsRever
 import { customerCreditsUnfreezeAccount } from "../funcs/customerCreditsUnfreezeAccount.js";
 import { ClientSDK, RequestOptions } from "../lib/sdks.js";
 import * as components from "../models/components/index.js";
+import * as operations from "../models/operations/index.js";
 import { unwrapAsync } from "../types/fp.js";
+import { PageIterator, unwrapResultIterator } from "../types/operations.js";
 
 export class CustomerCredits extends ClientSDK {
   /**
@@ -47,8 +49,13 @@ export class CustomerCredits extends ClientSDK {
     startingAfter?: string | undefined,
     endingBefore?: string | undefined,
     options?: RequestOptions,
-  ): Promise<components.AccountListResponseDto> {
-    return unwrapAsync(customerCreditsListAccounts(
+  ): Promise<
+    PageIterator<
+      operations.ListCustomerCreditsAccountsResponse,
+      { cursor: string }
+    >
+  > {
+    return unwrapResultIterator(customerCreditsListAccounts(
       this,
       limit,
       customerId,
@@ -106,8 +113,13 @@ export class CustomerCredits extends ClientSDK {
     startingAfter?: string | undefined,
     endingBefore?: string | undefined,
     options?: RequestOptions,
-  ): Promise<components.EntryListResponseDto> {
-    return unwrapAsync(customerCreditsListEntries(
+  ): Promise<
+    PageIterator<
+      operations.ListCustomerCreditsAccountEntriesResponse,
+      { cursor: string }
+    >
+  > {
+    return unwrapResultIterator(customerCreditsListEntries(
       this,
       id,
       limit,

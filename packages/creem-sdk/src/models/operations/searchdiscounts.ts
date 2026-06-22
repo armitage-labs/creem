@@ -7,6 +7,7 @@ import { remap as remap$ } from "../../lib/primitives.js";
 import { safeParse } from "../../lib/schemas.js";
 import { ClosedEnum } from "../../types/enums.js";
 import { Result as SafeParseResult } from "../../types/fp.js";
+import * as components from "../components/index.js";
 import { SDKValidationError } from "../errors/sdkvalidationerror.js";
 
 /**
@@ -62,6 +63,10 @@ export type SearchDiscountsRequest = {
    * Filter discounts created before this date.
    */
   createdBefore?: string | undefined;
+};
+
+export type SearchDiscountsResponse = {
+  result: components.DiscountListEntity;
 };
 
 /** @internal */
@@ -149,5 +154,52 @@ export function searchDiscountsRequestFromJSON(
     jsonString,
     (x) => SearchDiscountsRequest$inboundSchema.parse(JSON.parse(x)),
     `Failed to parse 'SearchDiscountsRequest' from JSON`,
+  );
+}
+
+/** @internal */
+export const SearchDiscountsResponse$inboundSchema: z.ZodType<
+  SearchDiscountsResponse,
+  z.ZodTypeDef,
+  unknown
+> = z.object({
+  Result: components.DiscountListEntity$inboundSchema,
+}).transform((v) => {
+  return remap$(v, {
+    "Result": "result",
+  });
+});
+/** @internal */
+export type SearchDiscountsResponse$Outbound = {
+  Result: components.DiscountListEntity$Outbound;
+};
+
+/** @internal */
+export const SearchDiscountsResponse$outboundSchema: z.ZodType<
+  SearchDiscountsResponse$Outbound,
+  z.ZodTypeDef,
+  SearchDiscountsResponse
+> = z.object({
+  result: components.DiscountListEntity$outboundSchema,
+}).transform((v) => {
+  return remap$(v, {
+    result: "Result",
+  });
+});
+
+export function searchDiscountsResponseToJSON(
+  searchDiscountsResponse: SearchDiscountsResponse,
+): string {
+  return JSON.stringify(
+    SearchDiscountsResponse$outboundSchema.parse(searchDiscountsResponse),
+  );
+}
+export function searchDiscountsResponseFromJSON(
+  jsonString: string,
+): SafeParseResult<SearchDiscountsResponse, SDKValidationError> {
+  return safeParse(
+    jsonString,
+    (x) => SearchDiscountsResponse$inboundSchema.parse(JSON.parse(x)),
+    `Failed to parse 'SearchDiscountsResponse' from JSON`,
   );
 }

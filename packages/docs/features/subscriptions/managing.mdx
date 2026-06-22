@@ -1,6 +1,6 @@
 ---
-title: 'Managing Subscriptions'
-description: 'Update, upgrade, and manage active subscriptions with flexible billing options and self-service customer management.'
+title: "Managing Subscriptions"
+description: "Update, upgrade, and manage active subscriptions with flexible billing options and self-service customer management."
 ---
 
 Creem provides comprehensive tools for managing active subscriptions, including updating seat counts, changing billing information, upgrading/downgrading plans, and enabling self-service management for your customers.
@@ -15,7 +15,7 @@ Customers can update their payment method through the Customer Portal:
   <Tab title="Next.js">
 
 ```tsx
-import { CreemPortal } from '@creem_io/nextjs';
+import { CreemPortal } from "@creem_io/nextjs";
 
 export function ManageBillingButton({ customerId }: { customerId: string }) {
   return (
@@ -31,16 +31,16 @@ export function ManageBillingButton({ customerId }: { customerId: string }) {
   <Tab title="TypeScript SDK">
 
 ```typescript
-import { createCreem } from 'creem_io';
+import { Creem } from "creem";
 
-const creem = createCreem({
+const creem = new Creem({
   apiKey: process.env.CREEM_API_KEY!,
-  testMode: process.env.NODE_ENV !== 'production',
+  server: process.env.NODE_ENV === "production" ? "prod" : "test",
 });
 
 // Create customer portal link
-const portal = await creem.customers.createPortal({
-  customerId: 'cust_YOUR_CUSTOMER_ID',
+const portal = await creem.customers.generateBillingLinks({
+  customerId: "cust_YOUR_CUSTOMER_ID",
 });
 
 // Redirect to portal
@@ -89,11 +89,7 @@ curl -X POST https://api.creem.io/v1/customer-portal \
   </Tab>
 </Tabs>
 
-<Card
-  title="Customer Portal"
-  icon="user-circle"
-  href="/features/customer-portal"
->
+<Card title="Customer Portal" icon="user-circle" href="/features/customer-portal">
   Learn more about the Customer Portal and its features.
 </Card>
 
@@ -109,21 +105,20 @@ Upgrade or downgrade a subscription to a different product using the subscriptio
   <Tab title="TypeScript SDK">
 
 ```typescript
-import { createCreem } from 'creem_io';
+import { Creem } from "creem";
 
-const creem = createCreem({
+const creem = new Creem({
   apiKey: process.env.CREEM_API_KEY!,
-  testMode: process.env.NODE_ENV !== 'production',
+  server: process.env.NODE_ENV === "production" ? "prod" : "test",
 });
 
 // Upgrade subscription to a different product
-const upgraded = await creem.subscriptions.upgrade({
-  subscriptionId: 'sub_YOUR_SUBSCRIPTION_ID',
-  productId: 'prod_PREMIUM_PLAN', // New product ID
-  updateBehavior: 'proration-charge-immediately',
+const upgraded = await creem.subscriptions.upgrade("sub_YOUR_SUBSCRIPTION_ID", {
+  productId: "prod_PREMIUM_PLAN", // New product ID
+  updateBehavior: "proration-charge-immediately",
 });
 
-console.log('Subscription upgraded:', upgraded);
+console.log("Subscription upgraded:", upgraded);
 ```
 
   </Tab>
@@ -149,14 +144,17 @@ When upgrading or downgrading subscriptions, the plan change takes effect
 immediately. `update_behavior` controls how the unused or additional time in the
 current billing period is handled:
 
-| Behavior                       | Upgrade                                                                     | Downgrade                                                                 |
-| ------------------------------ | --------------------------------------------------------------------------- | ------------------------------------------------------------------------- |
-| `proration-charge-immediately` | Access changes now; prorated difference is charged immediately.             | Plan changes now; unused time and tax are refunded to the original payment method. |
-| ~~`proration-charge`~~ *(deprecated)* | Behaves identically to `proration-charge-immediately`. | Behaves identically to `proration-charge-immediately`. |
-| `proration-none`               | Access changes now; no prorated difference is charged this period.          | Plan changes now; unused time creates no credit or refund.               |
+| Behavior                              | Upgrade                                                            | Downgrade                                                                          |
+| ------------------------------------- | ------------------------------------------------------------------ | ---------------------------------------------------------------------------------- |
+| `proration-charge-immediately`        | Access changes now; prorated difference is charged immediately.    | Plan changes now; unused time and tax are refunded to the original payment method. |
+| ~~`proration-charge`~~ _(deprecated)_ | Behaves identically to `proration-charge-immediately`.             | Behaves identically to `proration-charge-immediately`.                             |
+| `proration-none`                      | Access changes now; no prorated difference is charged this period. | Plan changes now; unused time creates no credit or refund.                         |
 
 <Warning>
-**Deprecation Notice:** `proration-charge` is deprecated and now behaves identically to `proration-charge-immediately` (charges are applied immediately rather than deferred to the next invoice). Existing integrations passing `proration-charge` will continue to work but should migrate to `proration-charge-immediately` for clarity.
+  **Deprecation Notice:** `proration-charge` is deprecated and now behaves identically to
+  `proration-charge-immediately` (charges are applied immediately rather than deferred to the next
+  invoice). Existing integrations passing `proration-charge` will continue to work but should
+  migrate to `proration-charge-immediately` for clarity.
 </Warning>
 
 <Note>
@@ -191,30 +189,27 @@ For seat-based subscriptions, you can update the number of seats:
   <Tab title="TypeScript SDK">
 
 ```typescript
-import { createCreem } from 'creem_io';
+import { Creem } from "creem";
 
-const creem = createCreem({
+const creem = new Creem({
   apiKey: process.env.CREEM_API_KEY!,
-  testMode: process.env.NODE_ENV !== 'production',
+  server: process.env.NODE_ENV === "production" ? "prod" : "test",
 });
 
 // First, get the subscription to retrieve the item ID
-const subscription = await creem.subscriptions.get({
-  subscriptionId: 'sub_YOUR_SUBSCRIPTION_ID',
-});
+const subscription = await creem.subscriptions.get("sub_YOUR_SUBSCRIPTION_ID");
 
 const itemId = subscription.items[0].id;
 
 // Update the seat count
-const updated = await creem.subscriptions.update({
-  subscriptionId: 'sub_YOUR_SUBSCRIPTION_ID',
+const updated = await creem.subscriptions.update("sub_YOUR_SUBSCRIPTION_ID", {
   items: [
     {
       id: itemId,
       units: 10, // New seat count
     },
   ],
-  updateBehavior: 'proration-charge-immediately',
+  updateBehavior: "proration-charge-immediately",
 });
 ```
 
@@ -244,11 +239,7 @@ curl -X POST https://api.creem.io/v1/subscriptions/sub_YOUR_SUBSCRIPTION_ID \
   </Tab>
 </Tabs>
 
-<Card
-  title="Seat-Based Billing"
-  icon="users"
-  href="/features/seat-based-billing"
->
+<Card title="Seat-Based Billing" icon="users" href="/features/seat-based-billing">
   Learn more about implementing seat-based pricing models.
 </Card>
 
@@ -280,18 +271,10 @@ Simply navigate to a subscription and click "Modify Subscription" to make change
   <Card title="Webhooks" icon="webhook" href="/code/webhooks">
     Handle subscription events like renewals and cancellations
   </Card>
-  <Card
-    title="Customer Portal"
-    icon="user-circle"
-    href="/features/customer-portal"
-  >
+  <Card title="Customer Portal" icon="user-circle" href="/features/customer-portal">
     Enable self-service subscription management
   </Card>
-  <Card
-    title="API Reference"
-    icon="book"
-    href="/api-reference/endpoint/update-subscription"
-  >
+  <Card title="API Reference" icon="book" href="/api-reference/endpoint/update-subscription">
     View the complete API documentation
   </Card>
 </CardGroup>

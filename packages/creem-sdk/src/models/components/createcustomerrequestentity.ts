@@ -7,11 +7,6 @@ import { safeParse } from "../../lib/schemas.js";
 import { Result as SafeParseResult } from "../../types/fp.js";
 import { SDKValidationError } from "../errors/sdkvalidationerror.js";
 
-/**
- * Additional metadata for the customer.
- */
-export type CreateCustomerRequestEntityMetadata = {};
-
 export type CreateCustomerRequestEntity = {
   /**
    * The email address of the customer.
@@ -24,44 +19,8 @@ export type CreateCustomerRequestEntity = {
   /**
    * Additional metadata for the customer.
    */
-  metadata?: CreateCustomerRequestEntityMetadata | undefined;
+  metadata?: { [k: string]: any } | undefined;
 };
-
-/** @internal */
-export const CreateCustomerRequestEntityMetadata$inboundSchema: z.ZodType<
-  CreateCustomerRequestEntityMetadata,
-  z.ZodTypeDef,
-  unknown
-> = z.object({});
-/** @internal */
-export type CreateCustomerRequestEntityMetadata$Outbound = {};
-
-/** @internal */
-export const CreateCustomerRequestEntityMetadata$outboundSchema: z.ZodType<
-  CreateCustomerRequestEntityMetadata$Outbound,
-  z.ZodTypeDef,
-  CreateCustomerRequestEntityMetadata
-> = z.object({});
-
-export function createCustomerRequestEntityMetadataToJSON(
-  createCustomerRequestEntityMetadata: CreateCustomerRequestEntityMetadata,
-): string {
-  return JSON.stringify(
-    CreateCustomerRequestEntityMetadata$outboundSchema.parse(
-      createCustomerRequestEntityMetadata,
-    ),
-  );
-}
-export function createCustomerRequestEntityMetadataFromJSON(
-  jsonString: string,
-): SafeParseResult<CreateCustomerRequestEntityMetadata, SDKValidationError> {
-  return safeParse(
-    jsonString,
-    (x) =>
-      CreateCustomerRequestEntityMetadata$inboundSchema.parse(JSON.parse(x)),
-    `Failed to parse 'CreateCustomerRequestEntityMetadata' from JSON`,
-  );
-}
 
 /** @internal */
 export const CreateCustomerRequestEntity$inboundSchema: z.ZodType<
@@ -71,14 +30,13 @@ export const CreateCustomerRequestEntity$inboundSchema: z.ZodType<
 > = z.object({
   email: z.string(),
   name: z.string(),
-  metadata: z.lazy(() => CreateCustomerRequestEntityMetadata$inboundSchema)
-    .optional(),
+  metadata: z.record(z.any()).optional(),
 });
 /** @internal */
 export type CreateCustomerRequestEntity$Outbound = {
   email: string;
   name: string;
-  metadata?: CreateCustomerRequestEntityMetadata$Outbound | undefined;
+  metadata?: { [k: string]: any } | undefined;
 };
 
 /** @internal */
@@ -89,8 +47,7 @@ export const CreateCustomerRequestEntity$outboundSchema: z.ZodType<
 > = z.object({
   email: z.string(),
   name: z.string(),
-  metadata: z.lazy(() => CreateCustomerRequestEntityMetadata$outboundSchema)
-    .optional(),
+  metadata: z.record(z.any()).optional(),
 });
 
 export function createCustomerRequestEntityToJSON(

@@ -331,23 +331,17 @@ Create a webhook handler that verifies signatures and handles subscription event
 ```typescript Generated Code
 // app/api/webhooks/creem/route.ts
 import { NextRequest, NextResponse } from 'next/server';
-import crypto from 'crypto';
+import { constructWebhookEventEntity } from 'creem/webhooks';
 
 export async function POST(req: NextRequest) {
-  const signature = req.headers.get('creem-signature');
   const rawBody = await req.text();
+  const event = await constructWebhookEventEntity(rawBody, req.headers, {
+    secret: process.env.CREEM_WEBHOOK_SECRET!,
+  }).catch(() => null);
 
-  // Verify signature
-  const computed = crypto
-    .createHmac('sha256', process.env.CREEM_WEBHOOK_SECRET!)
-    .update(rawBody)
-    .digest('hex');
-
-  if (computed !== signature) {
+  if (!event) {
     return NextResponse.json({ error: 'Invalid signature' }, { status: 401 });
   }
-
-  const event = JSON.parse(rawBody);
 
   switch (event.eventType) {
     case 'checkout.completed':

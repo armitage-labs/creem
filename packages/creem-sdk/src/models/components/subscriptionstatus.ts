@@ -15,6 +15,7 @@ export const SubscriptionStatus = {
   Paused: "paused",
   Trialing: "trialing",
   ScheduledCancel: "scheduled_cancel",
+  PastDue: "past_due",
 } as const;
 /**
  * The current status of the subscription.

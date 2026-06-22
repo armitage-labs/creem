@@ -79,7 +79,7 @@ run();
 
 ## create
 
-Create a new product for one-time payments or subscriptions. Configure pricing, billing cycles, and features.
+Create a new product for one-time payments, including free products with a 0 price, or subscriptions. Configure pricing, billing cycles, and features.
 
 ### Example Usage
 
@@ -207,7 +207,9 @@ const creem = new Creem({
 async function run() {
   const result = await creem.products.search();
 
-  console.log(result);
+  for await (const page of result) {
+    console.log(page.result.items);
+  }
 }
 
 run();
@@ -231,7 +233,9 @@ async function run() {
   const res = await productsSearch(creem);
   if (res.ok) {
     const { value: result } = res;
-    console.log(result);
+    for await (const page of result) {
+    console.log(page.result.items);
+  }
   } else {
     console.log("productsSearch failed:", res.error);
   }
@@ -252,7 +256,7 @@ run();
 
 ### Response
 
-**Promise\<[components.ProductListEntity](../../models/components/productlistentity.md)\>**
+**Promise\<[operations.SearchProductsResponse](../../models/operations/searchproductsresponse.md)\>**
 
 ### Errors
 

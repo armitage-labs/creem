@@ -1,14 +1,13 @@
 ---
-title: 'Test Mode'
-description: 'Develop and test your integration safely without processing real payments or affecting production data'
+title: "Test Mode"
+description: "Develop and test your integration safely without processing real payments or affecting production data"
 ---
 
 Test Mode allows you to build and test your Creem integration in a completely isolated environment. All API calls, payments, webhooks, and data are kept separate from your production environment, ensuring you can develop with confidence.
 
 <Tip>
-  Always develop and test your integration in Test Mode before going live. This
-  prevents accidental charges and allows you to verify your entire payment flow
-  safely.
+  Always develop and test your integration in Test Mode before going live. This prevents accidental
+  charges and allows you to verify your entire payment flow safely.
 </Tip>
 
 ## Activating Test Mode
@@ -16,7 +15,7 @@ Test Mode allows you to build and test your Creem integration in a completely is
 To switch to the test environment, click the **Test Mode** toggle at the bottom of the left sidebar.
 
 <img
-  style={{ borderRadius: '0.5rem', maxWidth: '450px' }}
+  style={{ borderRadius: "0.5rem", maxWidth: "450px" }}
   src="https://nucn5fajkcc6sgrd.public.blob.vercel-storage.com/test-mode-BMpcC8LrMTvzYQerR0pSe55z3gWLD3"
 />
 
@@ -30,12 +29,12 @@ When building your integration, you'll need to configure your code to use Test M
 
 ```typescript
 // app/api/checkout/route.ts
-import { Checkout } from '@creem_io/nextjs';
+import { Checkout } from "@creem_io/nextjs";
 
 export const GET = Checkout({
   apiKey: process.env.CREEM_API_KEY!,
   testMode: true, // Enable test mode
-  defaultSuccessUrl: '/success',
+  defaultSuccessUrl: "/success",
 });
 ```
 
@@ -44,8 +43,8 @@ For production, use an environment variable:
 ```typescript
 export const GET = Checkout({
   apiKey: process.env.CREEM_API_KEY!,
-  testMode: process.env.NODE_ENV !== 'production',
-  defaultSuccessUrl: '/success',
+  testMode: process.env.NODE_ENV !== "production",
+  defaultSuccessUrl: "/success",
 });
 ```
 
@@ -55,25 +54,24 @@ export const GET = Checkout({
     Enable test mode when initializing the SDK:
 
 ```typescript
-import { createCreem } from 'creem_io';
+import { Creem } from "creem";
 
-const creem = createCreem({
+const creem = new Creem({
   apiKey: process.env.CREEM_API_KEY!,
-  testMode: true, // Enable test mode
+  server: "test", // Enable test mode
 });
 
 const checkout = await creem.checkouts.create({
-  productId: 'prod_abc123',
-  successUrl: 'https://yoursite.com/success',
+  productId: "prod_abc123",
+  successUrl: "https://yoursite.com/success",
 });
 ```
 
-Use environment-based configuration:
+For production, omit `server`; production is the default:
 
 ```typescript
-const creem = createCreem({
+const creem = new Creem({
   apiKey: process.env.CREEM_API_KEY!,
-  testMode: process.env.NODE_ENV !== 'production',
 });
 ```
 
@@ -84,8 +82,8 @@ const creem = createCreem({
 
 ```typescript
 // auth.ts
-import { betterAuth } from 'better-auth';
-import { creem } from '@creem_io/better-auth';
+import { betterAuth } from "better-auth";
+import { creem } from "@creem_io/better-auth";
 
 export const auth = betterAuth({
   database: {
@@ -140,19 +138,15 @@ Creem uses separate API endpoints for test and production environments:
 | Test Mode   | `https://test-api.creem.io` |
 
 <Warning>
-  Make sure to use the correct API endpoint for your environment. Using the
-  production endpoint with test mode enabled (or vice versa) will result in
-  errors.
+  Make sure to use the correct API endpoint for your environment. Using the production endpoint with
+  test mode enabled (or vice versa) will result in errors.
 </Warning>
 
 ## API Keys
 
 Test and production environments use different API keys. You can find both keys in the [Developers section](https://creem.io/dashboard/developers). Make sure to toggle Test Mode in the bottom of the left sidebar.
 
-<Tip>
-  Store your API keys as environment variables and never commit them to version
-  control.
-</Tip>
+<Tip>Store your API keys as environment variables and never commit them to version control.</Tip>
 
 ```bash
 # .env.local
@@ -164,8 +158,7 @@ CREEM_API_KEY=your_test_api_key_here
 Use these test card numbers to simulate different payment scenarios:
 
 <Note>
-  All test card numbers work with any future expiration date, any CVV, and any
-  billing information.
+  All test card numbers work with any future expiration date, any CVV, and any billing information.
 </Note>
 
 | Card Number           | Behavior           |
@@ -195,14 +188,13 @@ If you want a more in-depth explanation about webhooks, check the guide below:
 When you're ready to go live:
 
 <Steps>
-  <Step title="Complete Testing">
-    Verify all payment flows work correctly in Test Mode
-  </Step>
+  <Step title="Complete Testing">Verify all payment flows work correctly in Test Mode</Step>
   <Step title="Update API Keys">
     Replace test API keys with production API keys in your environment variables
   </Step>
   <Step title="Update API Endpoint">
-    Ensure your code uses `https://api.creem.io` or disable `testMode` flag
+    Ensure direct API calls use `https://api.creem.io`. The TypeScript SDK uses production by
+    default when `server` is omitted.
   </Step>
   <Step title="Configure Production Webhooks">
     Register your production webhook URL in the live dashboard
@@ -211,38 +203,25 @@ When you're ready to go live:
     Switch to production mode in the dashboard and create your live products
   </Step>
   <Step title="Monitor First Transactions">
-    Watch your first few production transactions carefully to ensure everything
-    works as expected
+    Watch your first few production transactions carefully to ensure everything works as expected
   </Step>
 </Steps>
 
 <Warning>
-  Never use test API keys or the test API endpoint in production. This will
-  cause all payments to fail.
+  Never use test API keys or the test API endpoint in production. This will cause all payments to
+  fail.
 </Warning>
 
 ## Next Steps
 
 <CardGroup cols={2}>
-  <Card
-    title="Checkout"
-    icon="shopping-cart"
-    href="/features/checkout/checkout-link"
-  >
+  <Card title="Checkout" icon="shopping-cart" href="/features/checkout/checkout-link">
     Learn how to create checkout sessions and payment links
   </Card>
-  <Card
-    title="One-Time Payments"
-    icon="credit-card"
-    href="/features/one-time-payment"
-  >
+  <Card title="One-Time Payments" icon="credit-card" href="/features/one-time-payment">
     Accept single payments for products and services
   </Card>
-  <Card
-    title="Subscriptions"
-    icon="repeat"
-    href="/features/subscriptions/introduction"
-  >
+  <Card title="Subscriptions" icon="repeat" href="/features/subscriptions/introduction">
     Set up recurring billing and subscription management
   </Card>
   <Card title="Webhooks" icon="webhook" href="/code/webhooks">

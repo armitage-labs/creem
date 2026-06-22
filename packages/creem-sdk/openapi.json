@@ -4,6 +4,7 @@
     "/v1/products": {
       "get": {
         "operationId": "retrieveProduct",
+        "x-speakeasy-name-override": "get",
         "summary": "Retrieve a product",
         "description": "Retrieve product details by ID. View pricing, billing type, status, and product configuration.",
         "parameters": [
@@ -12,7 +13,10 @@
             "required": true,
             "in": "query",
             "description": "The unique identifier of the product.",
-            "schema": { "example": "prod_1234567890", "type": "string" }
+            "schema": {
+              "example": "prod_1234567890",
+              "type": "string"
+            }
           }
         ],
         "responses": {
@@ -20,19 +24,32 @@
             "description": "Successfully retrieved the product",
             "content": {
               "application/json": {
-                "schema": { "$ref": "#/components/schemas/ProductEntity" }
+                "schema": {
+                  "$ref": "#/components/schemas/ProductEntity"
+                }
               }
             }
           },
-          "400": { "description": "Bad Request - Invalid input parameters" },
-          "401": { "description": "Unauthorized - Invalid or missing API key" },
-          "404": { "description": "Not Found - Resource does not exist" }
+          "400": {
+            "description": "Bad Request - Invalid input parameters"
+          },
+          "401": {
+            "description": "Unauthorized - Invalid or missing API key"
+          },
+          "404": {
+            "description": "Not Found - Resource does not exist"
+          }
         },
         "tags": ["Products"],
-        "security": [{ "ApiKey": [] }]
+        "security": [
+          {
+            "ApiKey": []
+          }
+        ]
       },
       "post": {
         "operationId": "createProduct",
+        "x-speakeasy-name-override": "create",
         "summary": "Creates a new product.",
         "description": "Create a new product for one-time payments, including free products with a 0 price, or subscriptions. Configure pricing, billing cycles, and features.",
         "parameters": [],
@@ -52,21 +69,53 @@
             "description": "Successfully created a product",
             "content": {
               "application/json": {
-                "schema": { "$ref": "#/components/schemas/ProductEntity" }
+                "schema": {
+                  "$ref": "#/components/schemas/ProductEntity"
+                }
               }
             }
           },
-          "400": { "description": "Bad Request - Invalid input parameters" },
-          "401": { "description": "Unauthorized - Invalid or missing API key" },
-          "404": { "description": "Not Found - Resource does not exist" }
+          "400": {
+            "description": "Bad Request - Invalid input parameters"
+          },
+          "401": {
+            "description": "Unauthorized - Invalid or missing API key"
+          },
+          "404": {
+            "description": "Not Found - Resource does not exist"
+          }
         },
         "tags": ["Products"],
-        "security": [{ "ApiKey": [] }]
+        "security": [
+          {
+            "ApiKey": []
+          }
+        ]
       }
     },
     "/v1/products/search": {
       "get": {
         "operationId": "searchProducts",
+        "x-speakeasy-pagination": {
+          "type": "offsetLimit",
+          "inputs": [
+            {
+              "name": "page_number",
+              "in": "parameters",
+              "type": "page"
+            },
+            {
+              "name": "page_size",
+              "in": "parameters",
+              "type": "limit"
+            }
+          ],
+          "outputs": {
+            "numPages": "$.pagination.total_pages",
+            "results": "$.items"
+          }
+        },
+        "x-speakeasy-name-override": "search",
         "summary": "List all products",
         "description": "Search and retrieve a paginated list of products. Filter by status, billing type, and other criteria.",
         "parameters": [
@@ -75,14 +124,22 @@
             "required": false,
             "in": "query",
             "description": "The page number for pagination.",
-            "schema": { "default": 1, "example": 1, "type": "number" }
+            "schema": {
+              "default": 1,
+              "example": 1,
+              "type": "number"
+            }
           },
           {
             "name": "page_size",
             "required": false,
             "in": "query",
             "description": "The number of items per page.",
-            "schema": { "default": 10, "example": 10, "type": "number" }
+            "schema": {
+              "default": 10,
+              "example": 10,
+              "type": "number"
+            }
           }
         ],
         "responses": {
@@ -90,21 +147,53 @@
             "description": "Successfully retrieved products",
             "content": {
               "application/json": {
-                "schema": { "$ref": "#/components/schemas/ProductListEntity" }
+                "schema": {
+                  "$ref": "#/components/schemas/ProductListEntity"
+                }
               }
             }
           },
-          "400": { "description": "Bad Request - Invalid input parameters" },
-          "401": { "description": "Unauthorized - Invalid or missing API key" },
-          "404": { "description": "Not Found - Resource does not exist" }
+          "400": {
+            "description": "Bad Request - Invalid input parameters"
+          },
+          "401": {
+            "description": "Unauthorized - Invalid or missing API key"
+          },
+          "404": {
+            "description": "Not Found - Resource does not exist"
+          }
         },
         "tags": ["Products"],
-        "security": [{ "ApiKey": [] }]
+        "security": [
+          {
+            "ApiKey": []
+          }
+        ]
       }
     },
     "/v1/customers/list": {
       "get": {
         "operationId": "listCustomers",
+        "x-speakeasy-pagination": {
+          "type": "offsetLimit",
+          "inputs": [
+            {
+              "name": "page_number",
+              "in": "parameters",
+              "type": "page"
+            },
+            {
+              "name": "page_size",
+              "in": "parameters",
+              "type": "limit"
+            }
+          ],
+          "outputs": {
+            "numPages": "$.pagination.total_pages",
+            "results": "$.items"
+          }
+        },
+        "x-speakeasy-name-override": "list",
         "summary": "List all customers",
         "description": "Retrieve a paginated list of all customers. Filter and search through your customer base.",
         "parameters": [
@@ -113,14 +202,22 @@
             "required": false,
             "in": "query",
             "description": "The page number for pagination.",
-            "schema": { "default": 1, "example": 1, "type": "number" }
+            "schema": {
+              "default": 1,
+              "example": 1,
+              "type": "number"
+            }
           },
           {
             "name": "page_size",
             "required": false,
             "in": "query",
             "description": "The number of items per page.",
-            "schema": { "default": 50, "example": 50, "type": "number" }
+            "schema": {
+              "default": 50,
+              "example": 50,
+              "type": "number"
+            }
           }
         ],
         "responses": {
@@ -128,21 +225,34 @@
             "description": "Successfully retrieved customers",
             "content": {
               "application/json": {
-                "schema": { "$ref": "#/components/schemas/CustomerListEntity" }
+                "schema": {
+                  "$ref": "#/components/schemas/CustomerListEntity"
+                }
               }
             }
           },
-          "400": { "description": "Bad Request - Invalid input parameters" },
-          "401": { "description": "Unauthorized - Invalid or missing API key" },
-          "404": { "description": "Not Found - Resource does not exist" }
+          "400": {
+            "description": "Bad Request - Invalid input parameters"
+          },
+          "401": {
+            "description": "Unauthorized - Invalid or missing API key"
+          },
+          "404": {
+            "description": "Not Found - Resource does not exist"
+          }
         },
         "tags": ["Customers"],
-        "security": [{ "ApiKey": [] }]
+        "security": [
+          {
+            "ApiKey": []
+          }
+        ]
       }
     },
     "/v1/customers/{id}/orders": {
       "get": {
         "operationId": "listCustomerOrders",
+        "x-speakeasy-name-override": "getOrders",
         "summary": "List customer orders",
         "description": "Retrieve a paginated list of orders for a specific customer.",
         "parameters": [
@@ -151,21 +261,31 @@
             "required": true,
             "in": "path",
             "description": "The unique identifier of the customer",
-            "schema": { "type": "string" }
+            "schema": {
+              "type": "string"
+            }
           },
           {
             "name": "page_number",
             "required": false,
             "in": "query",
             "description": "The page number for pagination.",
-            "schema": { "default": 1, "example": 1, "type": "number" }
+            "schema": {
+              "default": 1,
+              "example": 1,
+              "type": "number"
+            }
           },
           {
             "name": "page_size",
             "required": false,
             "in": "query",
             "description": "The number of items per page.",
-            "schema": { "default": 10, "example": 10, "type": "number" }
+            "schema": {
+              "default": 10,
+              "example": 10,
+              "type": "number"
+            }
           }
         ],
         "responses": {
@@ -173,21 +293,34 @@
             "description": "Successfully retrieved customer orders",
             "content": {
               "application/json": {
-                "schema": { "$ref": "#/components/schemas/OrderListEntity" }
+                "schema": {
+                  "$ref": "#/components/schemas/OrderListEntity"
+                }
               }
             }
           },
-          "400": { "description": "Bad Request - Invalid input parameters" },
-          "401": { "description": "Unauthorized - Invalid or missing API key" },
-          "404": { "description": "Not Found - Resource does not exist" }
+          "400": {
+            "description": "Bad Request - Invalid input parameters"
+          },
+          "401": {
+            "description": "Unauthorized - Invalid or missing API key"
+          },
+          "404": {
+            "description": "Not Found - Resource does not exist"
+          }
         },
         "tags": ["Customers"],
-        "security": [{ "ApiKey": [] }]
+        "security": [
+          {
+            "ApiKey": []
+          }
+        ]
       }
     },
     "/v1/customers/{id}/subscriptions": {
       "get": {
         "operationId": "listCustomerSubscriptions",
+        "x-speakeasy-name-override": "listSubscriptions",
         "summary": "List customer subscriptions",
         "description": "Retrieve a paginated list of subscriptions for a specific customer.",
         "parameters": [
@@ -196,21 +329,31 @@
             "required": true,
             "in": "path",
             "description": "The unique identifier of the customer",
-            "schema": { "type": "string" }
+            "schema": {
+              "type": "string"
+            }
           },
           {
             "name": "page_number",
             "required": false,
             "in": "query",
             "description": "The page number for pagination.",
-            "schema": { "default": 1, "example": 1, "type": "number" }
+            "schema": {
+              "default": 1,
+              "example": 1,
+              "type": "number"
+            }
           },
           {
             "name": "page_size",
             "required": false,
             "in": "query",
             "description": "The number of items per page.",
-            "schema": { "default": 10, "example": 10, "type": "number" }
+            "schema": {
+              "default": 10,
+              "example": 10,
+              "type": "number"
+            }
           }
         ],
         "responses": {
@@ -224,17 +367,28 @@
               }
             }
           },
-          "400": { "description": "Bad Request - Invalid input parameters" },
-          "401": { "description": "Unauthorized - Invalid or missing API key" },
-          "404": { "description": "Not Found - Resource does not exist" }
+          "400": {
+            "description": "Bad Request - Invalid input parameters"
+          },
+          "401": {
+            "description": "Unauthorized - Invalid or missing API key"
+          },
+          "404": {
+            "description": "Not Found - Resource does not exist"
+          }
         },
         "tags": ["Customers"],
-        "security": [{ "ApiKey": [] }]
+        "security": [
+          {
+            "ApiKey": []
+          }
+        ]
       }
     },
     "/v1/customers/{id}/licenses": {
       "get": {
         "operationId": "listCustomerLicenses",
+        "x-speakeasy-name-override": "listLicenses",
         "summary": "List customer licenses",
         "description": "Retrieve a paginated list of license keys for a specific customer.",
         "parameters": [
@@ -243,21 +397,31 @@
             "required": true,
             "in": "path",
             "description": "The unique identifier of the customer",
-            "schema": { "type": "string" }
+            "schema": {
+              "type": "string"
+            }
           },
           {
             "name": "page_number",
             "required": false,
             "in": "query",
             "description": "The page number for pagination.",
-            "schema": { "default": 1, "example": 1, "type": "number" }
+            "schema": {
+              "default": 1,
+              "example": 1,
+              "type": "number"
+            }
           },
           {
             "name": "page_size",
             "required": false,
             "in": "query",
             "description": "The number of items per page.",
-            "schema": { "default": 10, "example": 10, "type": "number" }
+            "schema": {
+              "default": 10,
+              "example": 10,
+              "type": "number"
+            }
           }
         ],
         "responses": {
@@ -265,21 +429,34 @@
             "description": "Successfully retrieved customer licenses",
             "content": {
               "application/json": {
-                "schema": { "$ref": "#/components/schemas/LicenseListEntity" }
+                "schema": {
+                  "$ref": "#/components/schemas/LicenseListEntity"
+                }
               }
             }
           },
-          "400": { "description": "Bad Request - Invalid input parameters" },
-          "401": { "description": "Unauthorized - Invalid or missing API key" },
-          "404": { "description": "Not Found - Resource does not exist" }
+          "400": {
+            "description": "Bad Request - Invalid input parameters"
+          },
+          "401": {
+            "description": "Unauthorized - Invalid or missing API key"
+          },
+          "404": {
+            "description": "Not Found - Resource does not exist"
+          }
         },
         "tags": ["Customers"],
-        "security": [{ "ApiKey": [] }]
+        "security": [
+          {
+            "ApiKey": []
+          }
+        ]
       }
     },
     "/v1/customers": {
       "get": {
         "operationId": "retrieveCustomer",
+        "x-speakeasy-name-override": "retrieve",
         "summary": "Retrieve a customer",
         "description": "Retrieve customer information by ID or email. View purchase history, subscriptions, and profile details.",
         "parameters": [
@@ -288,14 +465,20 @@
             "required": false,
             "in": "query",
             "description": "The unique identifier of the customer.",
-            "schema": { "example": "cust_1234567890", "type": "string" }
+            "schema": {
+              "example": "cust_1234567890",
+              "type": "string"
+            }
           },
           {
             "name": "email",
             "required": false,
             "in": "query",
             "description": "The email address of the customer.",
-            "schema": { "example": "customer@example.com", "type": "string" }
+            "schema": {
+              "example": "customer@example.com",
+              "type": "string"
+            }
           }
         ],
         "responses": {
@@ -303,19 +486,32 @@
             "description": "Successfully retrieved the customer",
             "content": {
               "application/json": {
-                "schema": { "$ref": "#/components/schemas/CustomerEntity" }
+                "schema": {
+                  "$ref": "#/components/schemas/CustomerEntity"
+                }
               }
             }
           },
-          "400": { "description": "Bad Request - Invalid input parameters" },
-          "401": { "description": "Unauthorized - Invalid or missing API key" },
-          "404": { "description": "Not Found - Resource does not exist" }
+          "400": {
+            "description": "Bad Request - Invalid input parameters"
+          },
+          "401": {
+            "description": "Unauthorized - Invalid or missing API key"
+          },
+          "404": {
+            "description": "Not Found - Resource does not exist"
+          }
         },
         "tags": ["Customers"],
-        "security": [{ "ApiKey": [] }]
+        "security": [
+          {
+            "ApiKey": []
+          }
+        ]
       },
       "post": {
         "operationId": "createCustomer",
+        "x-speakeasy-name-override": "create",
         "summary": "Create a customer",
         "description": "Create a new customer record for the authenticated store.",
         "parameters": [],
@@ -335,19 +531,32 @@
             "description": "Successfully created the customer",
             "content": {
               "application/json": {
-                "schema": { "$ref": "#/components/schemas/CustomerEntity" }
+                "schema": {
+                  "$ref": "#/components/schemas/CustomerEntity"
+                }
               }
             }
           },
-          "400": { "description": "Bad Request - Invalid input parameters" },
-          "401": { "description": "Unauthorized - Invalid or missing API key" },
-          "404": { "description": "Not Found - Resource does not exist" }
+          "400": {
+            "description": "Bad Request - Invalid input parameters"
+          },
+          "401": {
+            "description": "Unauthorized - Invalid or missing API key"
+          },
+          "404": {
+            "description": "Not Found - Resource does not exist"
+          }
         },
         "tags": ["Customers"],
-        "security": [{ "ApiKey": [] }]
+        "security": [
+          {
+            "ApiKey": []
+          }
+        ]
       },
       "patch": {
         "operationId": "updateCustomer",
+        "x-speakeasy-name-override": "update",
         "summary": "Update a customer",
         "parameters": [],
         "requestBody": {
@@ -366,21 +575,34 @@
             "description": "Successfully updated the customer",
             "content": {
               "application/json": {
-                "schema": { "$ref": "#/components/schemas/CustomerEntity" }
+                "schema": {
+                  "$ref": "#/components/schemas/CustomerEntity"
+                }
               }
             }
           },
-          "400": { "description": "Bad Request - Invalid input parameters" },
-          "401": { "description": "Unauthorized - Invalid or missing API key" },
-          "404": { "description": "Not Found - Resource does not exist" }
+          "400": {
+            "description": "Bad Request - Invalid input parameters"
+          },
+          "401": {
+            "description": "Unauthorized - Invalid or missing API key"
+          },
+          "404": {
+            "description": "Not Found - Resource does not exist"
+          }
         },
         "tags": ["Customers"],
-        "security": [{ "ApiKey": [] }]
+        "security": [
+          {
+            "ApiKey": []
+          }
+        ]
       }
     },
     "/v1/customers/billing": {
       "post": {
         "operationId": "generateCustomerLinks",
+        "x-speakeasy-name-override": "generateBillingLinks",
         "summary": "Generate Customer Links",
         "description": "Generate a customer portal link for managing billing, subscriptions, and payment methods.",
         "parameters": [],
@@ -400,21 +622,34 @@
             "description": "Successfully generated customer links",
             "content": {
               "application/json": {
-                "schema": { "$ref": "#/components/schemas/CustomerLinksEntity" }
+                "schema": {
+                  "$ref": "#/components/schemas/CustomerLinksEntity"
+                }
               }
             }
           },
-          "400": { "description": "Bad Request - Invalid input parameters" },
-          "401": { "description": "Unauthorized - Invalid or missing API key" },
-          "404": { "description": "Not Found - Resource does not exist" }
+          "400": {
+            "description": "Bad Request - Invalid input parameters"
+          },
+          "401": {
+            "description": "Unauthorized - Invalid or missing API key"
+          },
+          "404": {
+            "description": "Not Found - Resource does not exist"
+          }
         },
         "tags": ["Customers"],
-        "security": [{ "ApiKey": [] }]
+        "security": [
+          {
+            "ApiKey": []
+          }
+        ]
       }
     },
     "/v1/subscriptions": {
       "get": {
         "operationId": "retrieveSubscription",
+        "x-speakeasy-name-override": "get",
         "summary": "Retrieve a subscription",
         "description": "Retrieve subscription details by ID. View status, billing cycle, customer info, and payment history.",
         "parameters": [
@@ -423,7 +658,10 @@
             "required": true,
             "in": "query",
             "description": "The unique identifier of the subscription",
-            "schema": { "example": "sub_1234567890", "type": "string" }
+            "schema": {
+              "example": "sub_1234567890",
+              "type": "string"
+            }
           }
         ],
         "responses": {
@@ -431,21 +669,53 @@
             "description": "Successfully retrieved the subscription",
             "content": {
               "application/json": {
-                "schema": { "$ref": "#/components/schemas/SubscriptionEntity" }
+                "schema": {
+                  "$ref": "#/components/schemas/SubscriptionEntity"
+                }
               }
             }
           },
-          "400": { "description": "Bad Request - Invalid input parameters" },
-          "401": { "description": "Unauthorized - Invalid or missing API key" },
-          "404": { "description": "Not Found - Resource does not exist" }
+          "400": {
+            "description": "Bad Request - Invalid input parameters"
+          },
+          "401": {
+            "description": "Unauthorized - Invalid or missing API key"
+          },
+          "404": {
+            "description": "Not Found - Resource does not exist"
+          }
         },
         "tags": ["Subscriptions"],
-        "security": [{ "ApiKey": [] }]
+        "security": [
+          {
+            "ApiKey": []
+          }
+        ]
       }
     },
     "/v1/subscriptions/search": {
       "get": {
         "operationId": "searchSubscriptions",
+        "x-speakeasy-pagination": {
+          "type": "offsetLimit",
+          "inputs": [
+            {
+              "name": "page_number",
+              "in": "parameters",
+              "type": "page"
+            },
+            {
+              "name": "page_size",
+              "in": "parameters",
+              "type": "limit"
+            }
+          ],
+          "outputs": {
+            "numPages": "$.pagination.total_pages",
+            "results": "$.items"
+          }
+        },
+        "x-speakeasy-name-override": "search",
         "summary": "List all subscriptions",
         "description": "Search and retrieve a paginated list of subscriptions. View status, billing cycle, and customer info.",
         "parameters": [
@@ -454,14 +724,22 @@
             "required": false,
             "in": "query",
             "description": "The page number for pagination.",
-            "schema": { "default": 1, "example": 1, "type": "number" }
+            "schema": {
+              "default": 1,
+              "example": 1,
+              "type": "number"
+            }
           },
           {
             "name": "page_size",
             "required": false,
             "in": "query",
             "description": "The number of items per page.",
-            "schema": { "default": 10, "example": 10, "type": "number" }
+            "schema": {
+              "default": 10,
+              "example": 10,
+              "type": "number"
+            }
           }
         ],
         "responses": {
@@ -475,17 +753,28 @@
               }
             }
           },
-          "400": { "description": "Bad Request - Invalid input parameters" },
-          "401": { "description": "Unauthorized - Invalid or missing API key" },
-          "404": { "description": "Not Found - Resource does not exist" }
+          "400": {
+            "description": "Bad Request - Invalid input parameters"
+          },
+          "401": {
+            "description": "Unauthorized - Invalid or missing API key"
+          },
+          "404": {
+            "description": "Not Found - Resource does not exist"
+          }
         },
         "tags": ["Subscriptions"],
-        "security": [{ "ApiKey": [] }]
+        "security": [
+          {
+            "ApiKey": []
+          }
+        ]
       }
     },
     "/v1/subscriptions/{id}/cancel": {
       "post": {
         "operationId": "cancelSubscription",
+        "x-speakeasy-name-override": "cancel",
         "summary": "Cancel a subscription.",
         "description": "Cancel an active subscription immediately or schedule cancellation at period end.",
         "parameters": [
@@ -494,7 +783,9 @@
             "required": true,
             "in": "path",
             "description": "The unique identifier of the subscription",
-            "schema": { "type": "string" }
+            "schema": {
+              "type": "string"
+            }
           }
         ],
         "requestBody": {
@@ -513,21 +804,34 @@
             "description": "Successfully canceled a subscription",
             "content": {
               "application/json": {
-                "schema": { "$ref": "#/components/schemas/SubscriptionEntity" }
+                "schema": {
+                  "$ref": "#/components/schemas/SubscriptionEntity"
+                }
               }
             }
           },
-          "400": { "description": "Bad Request - Invalid input parameters" },
-          "401": { "description": "Unauthorized - Invalid or missing API key" },
-          "404": { "description": "Not Found - Resource does not exist" }
+          "400": {
+            "description": "Bad Request - Invalid input parameters"
+          },
+          "401": {
+            "description": "Unauthorized - Invalid or missing API key"
+          },
+          "404": {
+            "description": "Not Found - Resource does not exist"
+          }
         },
         "tags": ["Subscriptions"],
-        "security": [{ "ApiKey": [] }]
+        "security": [
+          {
+            "ApiKey": []
+          }
+        ]
       }
     },
     "/v1/subscriptions/{id}": {
       "post": {
         "operationId": "updateSubscription",
+        "x-speakeasy-name-override": "update",
         "summary": "Update a subscription.",
         "description": "Modify subscription details like units, seats, or add-ons. Support proration and immediate billing options.",
         "parameters": [
@@ -536,7 +840,9 @@
             "required": true,
             "in": "path",
             "description": "The unique identifier of the subscription",
-            "schema": { "type": "string" }
+            "schema": {
+              "type": "string"
+            }
           }
         ],
         "requestBody": {
@@ -555,21 +861,34 @@
             "description": "Successfully updated a subscription",
             "content": {
               "application/json": {
-                "schema": { "$ref": "#/components/schemas/SubscriptionEntity" }
+                "schema": {
+                  "$ref": "#/components/schemas/SubscriptionEntity"
+                }
               }
             }
           },
-          "400": { "description": "Bad Request - Invalid input parameters" },
-          "401": { "description": "Unauthorized - Invalid or missing API key" },
-          "404": { "description": "Not Found - Resource does not exist" }
+          "400": {
+            "description": "Bad Request - Invalid input parameters"
+          },
+          "401": {
+            "description": "Unauthorized - Invalid or missing API key"
+          },
+          "404": {
+            "description": "Not Found - Resource does not exist"
+          }
         },
         "tags": ["Subscriptions"],
-        "security": [{ "ApiKey": [] }]
+        "security": [
+          {
+            "ApiKey": []
+          }
+        ]
       }
     },
     "/v1/subscriptions/{id}/upgrade": {
       "post": {
         "operationId": "upgradeSubscription",
+        "x-speakeasy-name-override": "upgrade",
         "summary": "Upgrade a subscription to a different product",
         "description": "Upgrade a subscription to a different product or plan. Handle proration and plan changes seamlessly.",
         "parameters": [
@@ -578,7 +897,9 @@
             "required": true,
             "in": "path",
             "description": "The unique identifier of the subscription",
-            "schema": { "type": "string" }
+            "schema": {
+              "type": "string"
+            }
           }
         ],
         "requestBody": {
@@ -597,21 +918,34 @@
             "description": "Successfully upgraded the subscription",
             "content": {
               "application/json": {
-                "schema": { "$ref": "#/components/schemas/SubscriptionEntity" }
+                "schema": {
+                  "$ref": "#/components/schemas/SubscriptionEntity"
+                }
               }
             }
           },
-          "400": { "description": "Bad Request - Invalid input parameters" },
-          "401": { "description": "Unauthorized - Invalid or missing API key" },
-          "404": { "description": "Not Found - Resource does not exist" }
+          "400": {
+            "description": "Bad Request - Invalid input parameters"
+          },
+          "401": {
+            "description": "Unauthorized - Invalid or missing API key"
+          },
+          "404": {
+            "description": "Not Found - Resource does not exist"
+          }
         },
         "tags": ["Subscriptions"],
-        "security": [{ "ApiKey": [] }]
+        "security": [
+          {
+            "ApiKey": []
+          }
+        ]
       }
     },
     "/v1/subscriptions/{id}/pause": {
       "post": {
         "operationId": "pauseSubscription",
+        "x-speakeasy-name-override": "pause",
         "summary": "Pause a subscription.",
         "description": "Temporarily pause a subscription. Stop billing while retaining the subscription for later resumption.",
         "parameters": [
@@ -620,7 +954,9 @@
             "required": true,
             "in": "path",
             "description": "The unique identifier of the subscription",
-            "schema": { "type": "string" }
+            "schema": {
+              "type": "string"
+            }
           }
         ],
         "responses": {
@@ -628,21 +964,34 @@
             "description": "Successfully paused a subscription",
             "content": {
               "application/json": {
-                "schema": { "$ref": "#/components/schemas/SubscriptionEntity" }
+                "schema": {
+                  "$ref": "#/components/schemas/SubscriptionEntity"
+                }
               }
             }
           },
-          "400": { "description": "Bad Request - Invalid input parameters" },
-          "401": { "description": "Unauthorized - Invalid or missing API key" },
-          "404": { "description": "Not Found - Resource does not exist" }
+          "400": {
+            "description": "Bad Request - Invalid input parameters"
+          },
+          "401": {
+            "description": "Unauthorized - Invalid or missing API key"
+          },
+          "404": {
+            "description": "Not Found - Resource does not exist"
+          }
         },
         "tags": ["Subscriptions"],
-        "security": [{ "ApiKey": [] }]
+        "security": [
+          {
+            "ApiKey": []
+          }
+        ]
       }
     },
     "/v1/subscriptions/{id}/resume": {
       "post": {
         "operationId": "resumeSubscription",
+        "x-speakeasy-name-override": "resume",
         "summary": "Resume a subscription.",
         "description": "Resume a subscription. Subscription must be in paused or scheduled_cancel status.",
         "parameters": [
@@ -651,7 +1000,9 @@
             "required": true,
             "in": "path",
             "description": "The unique identifier of the subscription",
-            "schema": { "type": "string" }
+            "schema": {
+              "type": "string"
+            }
           }
         ],
         "responses": {
@@ -659,21 +1010,34 @@
             "description": "Successfully resumed a subscription",
             "content": {
               "application/json": {
-                "schema": { "$ref": "#/components/schemas/SubscriptionEntity" }
+                "schema": {
+                  "$ref": "#/components/schemas/SubscriptionEntity"
+                }
               }
             }
           },
-          "400": { "description": "Bad Request - Invalid input parameters" },
-          "401": { "description": "Unauthorized - Invalid or missing API key" },
-          "404": { "description": "Not Found - Resource does not exist" }
+          "400": {
+            "description": "Bad Request - Invalid input parameters"
+          },
+          "401": {
+            "description": "Unauthorized - Invalid or missing API key"
+          },
+          "404": {
+            "description": "Not Found - Resource does not exist"
+          }
         },
         "tags": ["Subscriptions"],
-        "security": [{ "ApiKey": [] }]
+        "security": [
+          {
+            "ApiKey": []
+          }
+        ]
       }
     },
     "/v1/checkouts": {
       "get": {
         "operationId": "retrieveCheckout",
+        "x-speakeasy-name-override": "retrieve",
         "summary": "Retrieve a checkout session.",
         "description": "Retrieve details of a checkout session by ID. View status, customer info, and payment details.",
         "parameters": [
@@ -682,7 +1046,10 @@
             "required": true,
             "in": "query",
             "description": "The ID of the checkout session to retrieve.",
-            "schema": { "example": "chk_1234567890", "type": "string" }
+            "schema": {
+              "example": "chk_1234567890",
+              "type": "string"
+            }
           }
         ],
         "responses": {
@@ -690,19 +1057,32 @@
             "description": "Successfully retrieved the checkout session",
             "content": {
               "application/json": {
-                "schema": { "$ref": "#/components/schemas/CheckoutEntity" }
+                "schema": {
+                  "$ref": "#/components/schemas/CheckoutEntity"
+                }
               }
             }
           },
-          "400": { "description": "Bad Request - Invalid input parameters" },
-          "401": { "description": "Unauthorized - Invalid or missing API key" },
-          "404": { "description": "Not Found - Resource does not exist" }
+          "400": {
+            "description": "Bad Request - Invalid input parameters"
+          },
+          "401": {
+            "description": "Unauthorized - Invalid or missing API key"
+          },
+          "404": {
+            "description": "Not Found - Resource does not exist"
+          }
         },
         "tags": ["Checkouts"],
-        "security": [{ "ApiKey": [] }]
+        "security": [
+          {
+            "ApiKey": []
+          }
+        ]
       },
       "post": {
         "operationId": "createCheckout",
+        "x-speakeasy-name-override": "create",
         "summary": "Creates a new checkout session.",
         "description": "Create a new checkout session to accept one-time payments or start subscriptions. Returns a checkout URL to redirect customers.",
         "parameters": [],
@@ -711,7 +1091,9 @@
           "description": "Create checkout request payload",
           "content": {
             "application/json": {
-              "schema": { "$ref": "#/components/schemas/CreateCheckoutRequest" }
+              "schema": {
+                "$ref": "#/components/schemas/CreateCheckoutRequest"
+              }
             }
           }
         },
@@ -720,21 +1102,34 @@
             "description": "Successfully created a checkout session",
             "content": {
               "application/json": {
-                "schema": { "$ref": "#/components/schemas/CheckoutEntity" }
+                "schema": {
+                  "$ref": "#/components/schemas/CheckoutEntity"
+                }
               }
             }
           },
-          "400": { "description": "Bad Request - Invalid input parameters" },
-          "401": { "description": "Unauthorized - Invalid or missing API key" },
-          "404": { "description": "Not Found - Resource does not exist" }
+          "400": {
+            "description": "Bad Request - Invalid input parameters"
+          },
+          "401": {
+            "description": "Unauthorized - Invalid or missing API key"
+          },
+          "404": {
+            "description": "Not Found - Resource does not exist"
+          }
         },
         "tags": ["Checkouts"],
-        "security": [{ "ApiKey": [] }]
+        "security": [
+          {
+            "ApiKey": []
+          }
+        ]
       }
     },
     "/v1/licenses/activate": {
       "post": {
         "operationId": "activateLicense",
+        "x-speakeasy-name-override": "activate",
         "summary": "Activates a license key.",
         "description": "Activate a license key for a specific device or instance. Register new activations and track usage limits.",
         "parameters": [],
@@ -754,21 +1149,34 @@
             "description": "Successfully activated a license key",
             "content": {
               "application/json": {
-                "schema": { "$ref": "#/components/schemas/LicenseEntity" }
+                "schema": {
+                  "$ref": "#/components/schemas/LicenseEntity"
+                }
               }
             }
           },
-          "400": { "description": "Bad Request - Invalid input parameters" },
-          "401": { "description": "Unauthorized - Invalid or missing API key" },
-          "404": { "description": "Not Found - Resource does not exist" }
+          "400": {
+            "description": "Bad Request - Invalid input parameters"
+          },
+          "401": {
+            "description": "Unauthorized - Invalid or missing API key"
+          },
+          "404": {
+            "description": "Not Found - Resource does not exist"
+          }
         },
         "tags": ["Licenses"],
-        "security": [{ "ApiKey": [] }]
+        "security": [
+          {
+            "ApiKey": []
+          }
+        ]
       }
     },
     "/v1/licenses/deactivate": {
       "post": {
         "operationId": "deactivateLicense",
+        "x-speakeasy-name-override": "deactivate",
         "summary": "Deactivate a license key instance.",
         "description": "Remove a device activation from a license key. Free up activation slots for new devices.",
         "parameters": [],
@@ -788,21 +1196,34 @@
             "description": "Successfully deactivated a license key instance",
             "content": {
               "application/json": {
-                "schema": { "$ref": "#/components/schemas/LicenseEntity" }
+                "schema": {
+                  "$ref": "#/components/schemas/LicenseEntity"
+                }
               }
             }
           },
-          "400": { "description": "Bad Request - Invalid input parameters" },
-          "401": { "description": "Unauthorized - Invalid or missing API key" },
-          "404": { "description": "Not Found - Resource does not exist" }
+          "400": {
+            "description": "Bad Request - Invalid input parameters"
+          },
+          "401": {
+            "description": "Unauthorized - Invalid or missing API key"
+          },
+          "404": {
+            "description": "Not Found - Resource does not exist"
+          }
         },
         "tags": ["Licenses"],
-        "security": [{ "ApiKey": [] }]
+        "security": [
+          {
+            "ApiKey": []
+          }
+        ]
       }
     },
     "/v1/licenses/validate": {
       "post": {
         "operationId": "validateLicense",
+        "x-speakeasy-name-override": "validate",
         "summary": "Validates a license key or instance.",
         "description": "Verify if a license key is valid and active for a specific instance. Check activation status and expiration.",
         "parameters": [],
@@ -822,21 +1243,53 @@
             "description": "Successfully validated a license key instance",
             "content": {
               "application/json": {
-                "schema": { "$ref": "#/components/schemas/LicenseEntity" }
+                "schema": {
+                  "$ref": "#/components/schemas/LicenseEntity"
+                }
               }
             }
           },
-          "400": { "description": "Bad Request - Invalid input parameters" },
-          "401": { "description": "Unauthorized - Invalid or missing API key" },
-          "404": { "description": "Not Found - Resource does not exist" }
+          "400": {
+            "description": "Bad Request - Invalid input parameters"
+          },
+          "401": {
+            "description": "Unauthorized - Invalid or missing API key"
+          },
+          "404": {
+            "description": "Not Found - Resource does not exist"
+          }
         },
         "tags": ["Licenses"],
-        "security": [{ "ApiKey": [] }]
+        "security": [
+          {
+            "ApiKey": []
+          }
+        ]
       }
     },
     "/v1/discounts/search": {
       "get": {
         "operationId": "searchDiscounts",
+        "x-speakeasy-pagination": {
+          "type": "offsetLimit",
+          "inputs": [
+            {
+              "name": "page_number",
+              "in": "parameters",
+              "type": "page"
+            },
+            {
+              "name": "page_size",
+              "in": "parameters",
+              "type": "limit"
+            }
+          ],
+          "outputs": {
+            "numPages": "$.pagination.total_pages",
+            "results": "$.items"
+          }
+        },
+        "x-speakeasy-name-override": "search",
         "summary": "Search discounts",
         "description": "Search and list discount codes for a store with filters and pagination.",
         "parameters": [
@@ -845,49 +1298,72 @@
             "required": false,
             "in": "query",
             "description": "The page number for pagination.",
-            "schema": { "default": 1, "example": 1, "type": "number" }
+            "schema": {
+              "default": 1,
+              "example": 1,
+              "type": "number"
+            }
           },
           {
             "name": "page_size",
             "required": false,
             "in": "query",
             "description": "The number of items per page.",
-            "schema": { "default": 10, "example": 10, "type": "number" }
+            "schema": {
+              "default": 10,
+              "example": 10,
+              "type": "number"
+            }
           },
           {
             "name": "product_id",
             "required": false,
             "in": "query",
             "description": "Filter discounts that apply to a specific product.",
-            "schema": { "example": "prod_1234567890", "type": "string" }
+            "schema": {
+              "example": "prod_1234567890",
+              "type": "string"
+            }
           },
           {
             "name": "status",
             "required": false,
             "in": "query",
             "description": "Filter by discount status.",
-            "schema": { "enum": ["active", "deleted"], "type": "string" }
+            "schema": {
+              "enum": ["active", "deleted"],
+              "type": "string"
+            }
           },
           {
             "name": "type",
             "required": false,
             "in": "query",
             "description": "Filter by discount type.",
-            "schema": { "enum": ["percentage", "fixed"], "type": "string" }
+            "schema": {
+              "enum": ["percentage", "fixed"],
+              "type": "string"
+            }
           },
           {
             "name": "created_after",
             "required": false,
             "in": "query",
             "description": "Filter discounts created after this date.",
-            "schema": { "example": "2024-01-01T00:00:00Z", "type": "string" }
+            "schema": {
+              "example": "2024-01-01T00:00:00Z",
+              "type": "string"
+            }
           },
           {
             "name": "created_before",
             "required": false,
             "in": "query",
             "description": "Filter discounts created before this date.",
-            "schema": { "example": "2024-12-31T23:59:59Z", "type": "string" }
+            "schema": {
+              "example": "2024-12-31T23:59:59Z",
+              "type": "string"
+            }
           }
         ],
         "responses": {
@@ -895,21 +1371,34 @@
             "description": "Successfully retrieved the list of discounts",
             "content": {
               "application/json": {
-                "schema": { "$ref": "#/components/schemas/DiscountListEntity" }
+                "schema": {
+                  "$ref": "#/components/schemas/DiscountListEntity"
+                }
               }
             }
           },
-          "400": { "description": "Bad Request - Invalid input parameters" },
-          "401": { "description": "Unauthorized - Invalid or missing API key" },
-          "404": { "description": "Not Found - Resource does not exist" }
+          "400": {
+            "description": "Bad Request - Invalid input parameters"
+          },
+          "401": {
+            "description": "Unauthorized - Invalid or missing API key"
+          },
+          "404": {
+            "description": "Not Found - Resource does not exist"
+          }
         },
         "tags": ["Discounts"],
-        "security": [{ "ApiKey": [] }]
+        "security": [
+          {
+            "ApiKey": []
+          }
+        ]
       }
     },
     "/v1/discounts": {
       "get": {
         "operationId": "retrieveDiscount",
+        "x-speakeasy-name-override": "get",
         "summary": "Retrieve discount",
         "description": "Retrieve discount code details by ID or code. Check usage limits, expiration, and discount amount.",
         "parameters": [
@@ -918,14 +1407,20 @@
             "required": false,
             "in": "query",
             "description": "The unique identifier of the discount (provide either discount_id OR discount_code).",
-            "schema": { "example": "disc_1234567890", "type": "string" }
+            "schema": {
+              "example": "disc_1234567890",
+              "type": "string"
+            }
           },
           {
             "name": "discount_code",
             "required": false,
             "in": "query",
             "description": "The unique discount code (provide either discount_id OR discount_code).",
-            "schema": { "example": "SAVE20", "type": "string" }
+            "schema": {
+              "example": "SAVE20",
+              "type": "string"
+            }
           }
         ],
         "responses": {
@@ -933,19 +1428,32 @@
             "description": "Successfully retrieved the discount",
             "content": {
               "application/json": {
-                "schema": { "$ref": "#/components/schemas/DiscountEntity" }
+                "schema": {
+                  "$ref": "#/components/schemas/DiscountEntity"
+                }
               }
             }
           },
-          "400": { "description": "Bad Request - Invalid input parameters" },
-          "401": { "description": "Unauthorized - Invalid or missing API key" },
-          "404": { "description": "Not Found - Resource does not exist" }
+          "400": {
+            "description": "Bad Request - Invalid input parameters"
+          },
+          "401": {
+            "description": "Unauthorized - Invalid or missing API key"
+          },
+          "404": {
+            "description": "Not Found - Resource does not exist"
+          }
         },
         "tags": ["Discounts"],
-        "security": [{ "ApiKey": [] }]
+        "security": [
+          {
+            "ApiKey": []
+          }
+        ]
       },
       "post": {
         "operationId": "createDiscount",
+        "x-speakeasy-name-override": "create",
         "summary": "Create a discount.",
         "description": "Create promotional discount codes for products. Set percentage or fixed amount discounts with expiration dates.",
         "parameters": [],
@@ -965,21 +1473,34 @@
             "description": "Successfully created a discount",
             "content": {
               "application/json": {
-                "schema": { "$ref": "#/components/schemas/DiscountEntity" }
+                "schema": {
+                  "$ref": "#/components/schemas/DiscountEntity"
+                }
               }
             }
           },
-          "400": { "description": "Bad Request - Invalid input parameters" },
-          "401": { "description": "Unauthorized - Invalid or missing API key" },
-          "404": { "description": "Not Found - Resource does not exist" }
+          "400": {
+            "description": "Bad Request - Invalid input parameters"
+          },
+          "401": {
+            "description": "Unauthorized - Invalid or missing API key"
+          },
+          "404": {
+            "description": "Not Found - Resource does not exist"
+          }
         },
         "tags": ["Discounts"],
-        "security": [{ "ApiKey": [] }]
+        "security": [
+          {
+            "ApiKey": []
+          }
+        ]
       }
     },
     "/v1/discounts/{id}/delete": {
       "delete": {
         "operationId": "deleteDiscount",
+        "x-speakeasy-name-override": "delete",
         "summary": "Delete a discount.",
         "description": "Permanently delete a discount code. Prevent further usage of the discount.",
         "parameters": [
@@ -988,7 +1509,9 @@
             "required": true,
             "in": "path",
             "description": "The unique identifier of the discount to delete",
-            "schema": { "type": "string" }
+            "schema": {
+              "type": "string"
+            }
           }
         ],
         "responses": {
@@ -996,21 +1519,34 @@
             "description": "Successfully deleted a discount",
             "content": {
               "application/json": {
-                "schema": { "$ref": "#/components/schemas/DiscountEntity" }
+                "schema": {
+                  "$ref": "#/components/schemas/DiscountEntity"
+                }
               }
             }
           },
-          "400": { "description": "Bad Request - Invalid input parameters" },
-          "401": { "description": "Unauthorized - Invalid or missing API key" },
-          "404": { "description": "Not Found - Resource does not exist" }
+          "400": {
+            "description": "Bad Request - Invalid input parameters"
+          },
+          "401": {
+            "description": "Unauthorized - Invalid or missing API key"
+          },
+          "404": {
+            "description": "Not Found - Resource does not exist"
+          }
         },
         "tags": ["Discounts"],
-        "security": [{ "ApiKey": [] }]
+        "security": [
+          {
+            "ApiKey": []
+          }
+        ]
       }
     },
     "/v1/transactions": {
       "get": {
         "operationId": "getTransactionById",
+        "x-speakeasy-name-override": "getById",
         "summary": "Get a transaction by ID",
         "description": "Retrieve a single transaction by ID. View payment details, status, and associated order information.",
         "parameters": [
@@ -1019,7 +1555,10 @@
             "required": true,
             "in": "query",
             "description": "The unique identifier of the transaction.",
-            "schema": { "example": "txn_1234567890", "type": "string" }
+            "schema": {
+              "example": "txn_1234567890",
+              "type": "string"
+            }
           }
         ],
         "responses": {
@@ -1027,21 +1566,53 @@
             "description": "Successfully retrieved transaction",
             "content": {
               "application/json": {
-                "schema": { "$ref": "#/components/schemas/TransactionEntity" }
+                "schema": {
+                  "$ref": "#/components/schemas/TransactionEntity"
+                }
               }
             }
           },
-          "400": { "description": "Bad Request - Invalid input parameters" },
-          "401": { "description": "Unauthorized - Invalid or missing API key" },
-          "404": { "description": "Not Found - Resource does not exist" }
+          "400": {
+            "description": "Bad Request - Invalid input parameters"
+          },
+          "401": {
+            "description": "Unauthorized - Invalid or missing API key"
+          },
+          "404": {
+            "description": "Not Found - Resource does not exist"
+          }
         },
         "tags": ["Transactions"],
-        "security": [{ "ApiKey": [] }]
+        "security": [
+          {
+            "ApiKey": []
+          }
+        ]
       }
     },
     "/v1/transactions/search": {
       "get": {
         "operationId": "searchTransactions",
+        "x-speakeasy-pagination": {
+          "type": "offsetLimit",
+          "inputs": [
+            {
+              "name": "page_number",
+              "in": "parameters",
+              "type": "page"
+            },
+            {
+              "name": "page_size",
+              "in": "parameters",
+              "type": "limit"
+            }
+          ],
+          "outputs": {
+            "numPages": "$.pagination.total_pages",
+            "results": "$.items"
+          }
+        },
+        "x-speakeasy-name-override": "search",
         "summary": "List all transactions",
         "description": "Search and retrieve payment transactions. Filter by customer, product, date range, and status.",
         "parameters": [
@@ -1050,35 +1621,52 @@
             "required": false,
             "in": "query",
             "description": "Filter transactions by customer ID.",
-            "schema": { "example": "cust_1234567890", "type": "string" }
+            "schema": {
+              "example": "cust_1234567890",
+              "type": "string"
+            }
           },
           {
             "name": "order_id",
             "required": false,
             "in": "query",
             "description": "Filter transactions by order ID.",
-            "schema": { "example": "ord_1234567890", "type": "string" }
+            "schema": {
+              "example": "ord_1234567890",
+              "type": "string"
+            }
           },
           {
             "name": "product_id",
             "required": false,
             "in": "query",
             "description": "Filter transactions by product ID.",
-            "schema": { "example": "prod_1234567890", "type": "string" }
+            "schema": {
+              "example": "prod_1234567890",
+              "type": "string"
+            }
           },
           {
             "name": "page_number",
             "required": false,
             "in": "query",
             "description": "The page number for pagination.",
-            "schema": { "default": 1, "example": 1, "type": "number" }
+            "schema": {
+              "default": 1,
+              "example": 1,
+              "type": "number"
+            }
           },
           {
             "name": "page_size",
             "required": false,
             "in": "query",
             "description": "The number of items per page.",
-            "schema": { "default": 10, "example": 10, "type": "number" }
+            "schema": {
+              "default": 10,
+              "example": 10,
+              "type": "number"
+            }
           }
         ],
         "responses": {
@@ -1092,17 +1680,28 @@
               }
             }
           },
-          "400": { "description": "Bad Request - Invalid input parameters" },
-          "401": { "description": "Unauthorized - Invalid or missing API key" },
-          "404": { "description": "Not Found - Resource does not exist" }
+          "400": {
+            "description": "Bad Request - Invalid input parameters"
+          },
+          "401": {
+            "description": "Unauthorized - Invalid or missing API key"
+          },
+          "404": {
+            "description": "Not Found - Resource does not exist"
+          }
         },
         "tags": ["Transactions"],
-        "security": [{ "ApiKey": [] }]
+        "security": [
+          {
+            "ApiKey": []
+          }
+        ]
       }
     },
     "/v1/stats/summary": {
       "get": {
         "operationId": "getMetricsSummary",
+        "x-speakeasy-name-override": "getSummary",
         "summary": "Get store metrics summary",
         "description": "Retrieve aggregated store metrics including counts, revenue, and MRR. When startDate and endDate are provided, totals are filtered to that date range. When interval is also provided, the response includes a periods array with time-series data points grouped by that interval. The periods array starts from the store's first transaction or startDate, whichever is later, to avoid empty leading buckets. All monetary amounts are in cents (integer, no decimals).",
         "parameters": [
@@ -1111,27 +1710,37 @@
             "required": false,
             "in": "query",
             "description": "Start of the date range as a Unix timestamp in milliseconds (e.g. 1740614400000). When provided with endDate, filters totals to this range. Required when interval is specified.",
-            "schema": { "type": "number" }
+            "schema": {
+              "type": "number"
+            }
           },
           {
             "name": "endDate",
             "required": false,
             "in": "query",
             "description": "End of the date range as a Unix timestamp in milliseconds (e.g. 1772150400000). When provided with startDate, filters totals to this range. Required when interval is specified.",
-            "schema": { "type": "number" }
+            "schema": {
+              "type": "number"
+            }
           },
           {
             "name": "interval",
             "required": false,
             "in": "query",
             "description": "Groups time-series data into buckets of this size. Requires startDate and endDate. Returns a periods array with one entry per bucket containing grossRevenue and netRevenue.",
-            "schema": { "enum": ["day", "week", "month"], "type": "string" }
+            "schema": {
+              "enum": ["day", "week", "month"],
+              "type": "string"
+            }
           },
           {
             "name": "currency",
             "required": true,
             "in": "query",
-            "schema": { "enum": ["EUR", "USD"], "type": "string" }
+            "schema": {
+              "enum": ["EUR", "USD"],
+              "type": "string"
+            }
           }
         ],
         "responses": {
@@ -1139,21 +1748,34 @@
             "description": "Successfully retrieved store metrics summary",
             "content": {
               "application/json": {
-                "schema": { "$ref": "#/components/schemas/StatsSummaryEntity" }
+                "schema": {
+                  "$ref": "#/components/schemas/StatsSummaryEntity"
+                }
               }
             }
           },
-          "400": { "description": "Bad Request - Invalid input parameters" },
-          "401": { "description": "Unauthorized - Invalid or missing API key" },
-          "404": { "description": "Not Found - Resource does not exist" }
+          "400": {
+            "description": "Bad Request - Invalid input parameters"
+          },
+          "401": {
+            "description": "Unauthorized - Invalid or missing API key"
+          },
+          "404": {
+            "description": "Not Found - Resource does not exist"
+          }
         },
         "tags": ["Stats"],
-        "security": [{ "ApiKey": [] }]
+        "security": [
+          {
+            "ApiKey": []
+          }
+        ]
       }
     },
     "/v1/moderation/prompt": {
       "post": {
         "operationId": "screenPrompt",
+        "x-speakeasy-name-override": "screenPrompt",
         "summary": "Screen a prompt",
         "description": "Evaluate a text prompt against content policies before generation. This endpoint is experimental and may change.",
         "parameters": [],
@@ -1162,7 +1784,9 @@
           "description": "Prompt screening request payload",
           "content": {
             "application/json": {
-              "schema": { "$ref": "#/components/schemas/ScreenPromptRequest" }
+              "schema": {
+                "$ref": "#/components/schemas/ScreenPromptRequest"
+              }
             }
           }
         },
@@ -1177,17 +1801,29 @@
               }
             }
           },
-          "400": { "description": "Bad Request - Invalid input parameters" },
-          "401": { "description": "Unauthorized - Invalid or missing API key" },
-          "404": { "description": "Not Found - Resource does not exist" }
+          "400": {
+            "description": "Bad Request - Invalid input parameters"
+          },
+          "401": {
+            "description": "Unauthorized - Invalid or missing API key"
+          },
+          "404": {
+            "description": "Not Found - Resource does not exist"
+          }
         },
         "tags": ["Moderation"],
-        "security": [{ "ApiKey": [] }]
+        "security": [
+          {
+            "ApiKey": []
+          }
+        ]
       }
     },
     "/v1/customer-credits/accounts": {
       "post": {
         "operationId": "createCustomerCreditsAccount",
+        "x-speakeasy-name-override": "createAccount",
+        "x-speakeasy-group": "customerCredits",
         "summary": "Create a customer credits account",
         "description": "Create a new credits account for a customer. Optionally seed it with an initial balance.",
         "parameters": [],
@@ -1195,7 +1831,9 @@
           "required": true,
           "content": {
             "application/json": {
-              "schema": { "$ref": "#/components/schemas/CreateAccountDto" }
+              "schema": {
+                "$ref": "#/components/schemas/CreateAccountDto"
+              }
             }
           }
         },
@@ -1204,19 +1842,52 @@
             "description": "Account created",
             "content": {
               "application/json": {
-                "schema": { "$ref": "#/components/schemas/AccountResponseDto" }
+                "schema": {
+                  "$ref": "#/components/schemas/AccountResponseDto"
+                }
               }
             }
           },
-          "400": { "description": "Bad Request - Invalid input parameters" },
-          "401": { "description": "Unauthorized - Invalid or missing API key" },
-          "404": { "description": "Not Found - Resource does not exist" }
+          "400": {
+            "description": "Bad Request - Invalid input parameters"
+          },
+          "401": {
+            "description": "Unauthorized - Invalid or missing API key"
+          },
+          "404": {
+            "description": "Not Found - Resource does not exist"
+          }
         },
         "tags": ["Customer Credits - Accounts (Experimental)"],
-        "security": [{ "ApiKey": [] }]
+        "security": [
+          {
+            "ApiKey": []
+          }
+        ]
       },
       "get": {
         "operationId": "listCustomerCreditsAccounts",
+        "x-speakeasy-pagination": {
+          "type": "cursor",
+          "inputs": [
+            {
+              "name": "starting_after",
+              "in": "parameters",
+              "type": "cursor"
+            },
+            {
+              "name": "limit",
+              "in": "parameters",
+              "type": "limit"
+            }
+          ],
+          "outputs": {
+            "nextCursor": "$.data[-1].id",
+            "results": "$.data"
+          }
+        },
+        "x-speakeasy-name-override": "listAccounts",
+        "x-speakeasy-group": "customerCredits",
         "summary": "List customer credits accounts",
         "description": "List accounts for the authenticated store with cursor pagination. System accounts are excluded.",
         "parameters": [
@@ -1237,21 +1908,28 @@
             "required": false,
             "in": "query",
             "description": "Filter by owner ID (e.g. customer ID)",
-            "schema": { "example": "cust_abc123", "type": "string" }
+            "schema": {
+              "example": "cust_abc123",
+              "type": "string"
+            }
           },
           {
             "name": "starting_after",
             "required": false,
             "in": "query",
             "description": "Cursor for forward pagination — account ID to start after",
-            "schema": { "type": "string" }
+            "schema": {
+              "type": "string"
+            }
           },
           {
             "name": "ending_before",
             "required": false,
             "in": "query",
             "description": "Cursor for backward pagination — account ID to end before",
-            "schema": { "type": "string" }
+            "schema": {
+              "type": "string"
+            }
           }
         ],
         "responses": {
@@ -1265,17 +1943,29 @@
               }
             }
           },
-          "400": { "description": "Bad Request - Invalid input parameters" },
-          "401": { "description": "Unauthorized - Invalid or missing API key" },
-          "404": { "description": "Not Found - Resource does not exist" }
+          "400": {
+            "description": "Bad Request - Invalid input parameters"
+          },
+          "401": {
+            "description": "Unauthorized - Invalid or missing API key"
+          },
+          "404": {
+            "description": "Not Found - Resource does not exist"
+          }
         },
         "tags": ["Customer Credits - Accounts (Experimental)"],
-        "security": [{ "ApiKey": [] }]
+        "security": [
+          {
+            "ApiKey": []
+          }
+        ]
       }
     },
     "/v1/customer-credits/accounts/{id}": {
       "get": {
         "operationId": "getCustomerCreditsAccount",
+        "x-speakeasy-name-override": "getAccount",
+        "x-speakeasy-group": "customerCredits",
         "summary": "Retrieve a customer credits account",
         "description": "Get details of a customer credits account by ID.",
         "parameters": [
@@ -1283,7 +1973,9 @@
             "name": "id",
             "required": true,
             "in": "path",
-            "schema": { "type": "string" }
+            "schema": {
+              "type": "string"
+            }
           }
         ],
         "responses": {
@@ -1291,21 +1983,35 @@
             "description": "Account details",
             "content": {
               "application/json": {
-                "schema": { "$ref": "#/components/schemas/AccountResponseDto" }
+                "schema": {
+                  "$ref": "#/components/schemas/AccountResponseDto"
+                }
               }
             }
           },
-          "400": { "description": "Bad Request - Invalid input parameters" },
-          "401": { "description": "Unauthorized - Invalid or missing API key" },
-          "404": { "description": "Not Found - Resource does not exist" }
+          "400": {
+            "description": "Bad Request - Invalid input parameters"
+          },
+          "401": {
+            "description": "Unauthorized - Invalid or missing API key"
+          },
+          "404": {
+            "description": "Not Found - Resource does not exist"
+          }
         },
         "tags": ["Customer Credits - Accounts (Experimental)"],
-        "security": [{ "ApiKey": [] }]
+        "security": [
+          {
+            "ApiKey": []
+          }
+        ]
       }
     },
     "/v1/customer-credits/accounts/{id}/balance": {
       "get": {
         "operationId": "getCustomerCreditsAccountBalance",
+        "x-speakeasy-name-override": "getAccountBalance",
+        "x-speakeasy-group": "customerCredits",
         "summary": "Get account balance",
         "description": "Get the current balance of an account. Optionally pass ?at= for historical balance.",
         "parameters": [
@@ -1313,7 +2019,9 @@
             "name": "id",
             "required": true,
             "in": "path",
-            "schema": { "type": "string" }
+            "schema": {
+              "type": "string"
+            }
           },
           {
             "name": "at",
@@ -1331,21 +2039,54 @@
             "description": "Account balance",
             "content": {
               "application/json": {
-                "schema": { "$ref": "#/components/schemas/BalanceResponseDto" }
+                "schema": {
+                  "$ref": "#/components/schemas/BalanceResponseDto"
+                }
               }
             }
           },
-          "400": { "description": "Bad Request - Invalid input parameters" },
-          "401": { "description": "Unauthorized - Invalid or missing API key" },
-          "404": { "description": "Not Found - Resource does not exist" }
+          "400": {
+            "description": "Bad Request - Invalid input parameters"
+          },
+          "401": {
+            "description": "Unauthorized - Invalid or missing API key"
+          },
+          "404": {
+            "description": "Not Found - Resource does not exist"
+          }
         },
         "tags": ["Customer Credits - Accounts (Experimental)"],
-        "security": [{ "ApiKey": [] }]
+        "security": [
+          {
+            "ApiKey": []
+          }
+        ]
       }
     },
     "/v1/customer-credits/accounts/{id}/entries": {
       "get": {
         "operationId": "listCustomerCreditsAccountEntries",
+        "x-speakeasy-pagination": {
+          "type": "cursor",
+          "inputs": [
+            {
+              "name": "starting_after",
+              "in": "parameters",
+              "type": "cursor"
+            },
+            {
+              "name": "limit",
+              "in": "parameters",
+              "type": "limit"
+            }
+          ],
+          "outputs": {
+            "nextCursor": "$.data[-1].id",
+            "results": "$.data"
+          }
+        },
+        "x-speakeasy-name-override": "listEntries",
+        "x-speakeasy-group": "customerCredits",
         "summary": "List account entries",
         "description": "List the credit and debit history for an account with cursor pagination.",
         "parameters": [
@@ -1353,7 +2094,9 @@
             "name": "id",
             "required": true,
             "in": "path",
-            "schema": { "type": "string" }
+            "schema": {
+              "type": "string"
+            }
           },
           {
             "name": "limit",
@@ -1372,14 +2115,18 @@
             "required": false,
             "in": "query",
             "description": "Cursor for forward pagination — entry ID to start after",
-            "schema": { "type": "string" }
+            "schema": {
+              "type": "string"
+            }
           },
           {
             "name": "ending_before",
             "required": false,
             "in": "query",
             "description": "Cursor for backward pagination — entry ID to end before",
-            "schema": { "type": "string" }
+            "schema": {
+              "type": "string"
+            }
           }
         ],
         "responses": {
@@ -1393,17 +2140,29 @@
               }
             }
           },
-          "400": { "description": "Bad Request - Invalid input parameters" },
-          "401": { "description": "Unauthorized - Invalid or missing API key" },
-          "404": { "description": "Not Found - Resource does not exist" }
+          "400": {
+            "description": "Bad Request - Invalid input parameters"
+          },
+          "401": {
+            "description": "Unauthorized - Invalid or missing API key"
+          },
+          "404": {
+            "description": "Not Found - Resource does not exist"
+          }
         },
         "tags": ["Customer Credits - Accounts (Experimental)"],
-        "security": [{ "ApiKey": [] }]
+        "security": [
+          {
+            "ApiKey": []
+          }
+        ]
       }
     },
     "/v1/customer-credits/accounts/{id}/freeze": {
       "post": {
         "operationId": "freezeCustomerCreditsAccount",
+        "x-speakeasy-name-override": "freezeAccount",
+        "x-speakeasy-group": "customerCredits",
         "summary": "Freeze an account",
         "description": "Freeze an account to prevent new transactions.",
         "parameters": [
@@ -1411,7 +2170,9 @@
             "name": "id",
             "required": true,
             "in": "path",
-            "schema": { "type": "string" }
+            "schema": {
+              "type": "string"
+            }
           }
         ],
         "responses": {
@@ -1419,13 +2180,21 @@
             "description": "Account frozen",
             "content": {
               "application/json": {
-                "schema": { "$ref": "#/components/schemas/AccountResponseDto" }
+                "schema": {
+                  "$ref": "#/components/schemas/AccountResponseDto"
+                }
               }
             }
           },
-          "400": { "description": "Bad Request - Invalid input parameters" },
-          "401": { "description": "Unauthorized - Invalid or missing API key" },
-          "404": { "description": "Not Found - Resource does not exist" },
+          "400": {
+            "description": "Bad Request - Invalid input parameters"
+          },
+          "401": {
+            "description": "Unauthorized - Invalid or missing API key"
+          },
+          "404": {
+            "description": "Not Found - Resource does not exist"
+          },
           "409": {
             "description": "Account already frozen or closed",
             "content": {
@@ -1438,12 +2207,18 @@
           }
         },
         "tags": ["Customer Credits - Accounts (Experimental)"],
-        "security": [{ "ApiKey": [] }]
+        "security": [
+          {
+            "ApiKey": []
+          }
+        ]
       }
     },
     "/v1/customer-credits/accounts/{id}/unfreeze": {
       "post": {
         "operationId": "unfreezeCustomerCreditsAccount",
+        "x-speakeasy-name-override": "unfreezeAccount",
+        "x-speakeasy-group": "customerCredits",
         "summary": "Unfreeze an account",
         "description": "Unfreeze a frozen account to allow transactions again.",
         "parameters": [
@@ -1451,7 +2226,9 @@
             "name": "id",
             "required": true,
             "in": "path",
-            "schema": { "type": "string" }
+            "schema": {
+              "type": "string"
+            }
           }
         ],
         "responses": {
@@ -1459,13 +2236,21 @@
             "description": "Account unfrozen",
             "content": {
               "application/json": {
-                "schema": { "$ref": "#/components/schemas/AccountResponseDto" }
+                "schema": {
+                  "$ref": "#/components/schemas/AccountResponseDto"
+                }
               }
             }
           },
-          "400": { "description": "Bad Request - Invalid input parameters" },
-          "401": { "description": "Unauthorized - Invalid or missing API key" },
-          "404": { "description": "Not Found - Resource does not exist" },
+          "400": {
+            "description": "Bad Request - Invalid input parameters"
+          },
+          "401": {
+            "description": "Unauthorized - Invalid or missing API key"
+          },
+          "404": {
+            "description": "Not Found - Resource does not exist"
+          },
           "409": {
             "description": "Account is not frozen or is closed",
             "content": {
@@ -1478,12 +2263,18 @@
           }
         },
         "tags": ["Customer Credits - Accounts (Experimental)"],
-        "security": [{ "ApiKey": [] }]
+        "security": [
+          {
+            "ApiKey": []
+          }
+        ]
       }
     },
     "/v1/customer-credits/accounts/{id}/credit": {
       "post": {
         "operationId": "creditCustomerCreditsAccount",
+        "x-speakeasy-name-override": "creditAccount",
+        "x-speakeasy-group": "customerCredits",
         "summary": "Credit an account",
         "description": "Add credits to a customer account. Returns the resulting transaction record.",
         "parameters": [
@@ -1491,14 +2282,18 @@
             "name": "id",
             "required": true,
             "in": "path",
-            "schema": { "type": "string" }
+            "schema": {
+              "type": "string"
+            }
           }
         ],
         "requestBody": {
           "required": true,
           "content": {
             "application/json": {
-              "schema": { "$ref": "#/components/schemas/CreditDebitRequestDto" }
+              "schema": {
+                "$ref": "#/components/schemas/CreditDebitRequestDto"
+              }
             }
           }
         },
@@ -1513,9 +2308,15 @@
               }
             }
           },
-          "400": { "description": "Bad Request - Invalid input parameters" },
-          "401": { "description": "Unauthorized - Invalid or missing API key" },
-          "404": { "description": "Not Found - Resource does not exist" },
+          "400": {
+            "description": "Bad Request - Invalid input parameters"
+          },
+          "401": {
+            "description": "Unauthorized - Invalid or missing API key"
+          },
+          "404": {
+            "description": "Not Found - Resource does not exist"
+          },
           "409": {
             "description": "Account frozen or closed",
             "content": {
@@ -1528,12 +2329,18 @@
           }
         },
         "tags": ["Customer Credits - Accounts (Experimental)"],
-        "security": [{ "ApiKey": [] }]
+        "security": [
+          {
+            "ApiKey": []
+          }
+        ]
       }
     },
     "/v1/customer-credits/accounts/{id}/debit": {
       "post": {
         "operationId": "debitCustomerCreditsAccount",
+        "x-speakeasy-name-override": "debitAccount",
+        "x-speakeasy-group": "customerCredits",
         "summary": "Debit an account",
         "description": "Deduct credits from a customer account. Returns the resulting transaction record.",
         "parameters": [
@@ -1541,14 +2348,18 @@
             "name": "id",
             "required": true,
             "in": "path",
-            "schema": { "type": "string" }
+            "schema": {
+              "type": "string"
+            }
           }
         ],
         "requestBody": {
           "required": true,
           "content": {
             "application/json": {
-              "schema": { "$ref": "#/components/schemas/CreditDebitRequestDto" }
+              "schema": {
+                "$ref": "#/components/schemas/CreditDebitRequestDto"
+              }
             }
           }
         },
@@ -1563,9 +2374,15 @@
               }
             }
           },
-          "400": { "description": "Bad Request - Invalid input parameters" },
-          "401": { "description": "Unauthorized - Invalid or missing API key" },
-          "404": { "description": "Not Found - Resource does not exist" },
+          "400": {
+            "description": "Bad Request - Invalid input parameters"
+          },
+          "401": {
+            "description": "Unauthorized - Invalid or missing API key"
+          },
+          "404": {
+            "description": "Not Found - Resource does not exist"
+          },
           "409": {
             "description": "Account frozen or closed",
             "content": {
@@ -1578,12 +2395,18 @@
           }
         },
         "tags": ["Customer Credits - Accounts (Experimental)"],
-        "security": [{ "ApiKey": [] }]
+        "security": [
+          {
+            "ApiKey": []
+          }
+        ]
       }
     },
     "/v1/customer-credits/accounts/{id}/reverse": {
       "post": {
         "operationId": "reverseCustomerCreditsAccountTransaction",
+        "x-speakeasy-name-override": "reverseTransaction",
+        "x-speakeasy-group": "customerCredits",
         "summary": "Reverse a transaction",
         "description": "Reverse a previous credit or debit on this account. Creates a new transaction that undoes the original, preserving the full history.",
         "parameters": [
@@ -1591,7 +2414,9 @@
             "name": "id",
             "required": true,
             "in": "path",
-            "schema": { "type": "string" }
+            "schema": {
+              "type": "string"
+            }
           }
         ],
         "requestBody": {
@@ -1615,17 +2440,29 @@
               }
             }
           },
-          "400": { "description": "Bad Request - Invalid input parameters" },
-          "401": { "description": "Unauthorized - Invalid or missing API key" },
-          "404": { "description": "Not Found - Resource does not exist" }
+          "400": {
+            "description": "Bad Request - Invalid input parameters"
+          },
+          "401": {
+            "description": "Unauthorized - Invalid or missing API key"
+          },
+          "404": {
+            "description": "Not Found - Resource does not exist"
+          }
         },
         "tags": ["Customer Credits - Accounts (Experimental)"],
-        "security": [{ "ApiKey": [] }]
+        "security": [
+          {
+            "ApiKey": []
+          }
+        ]
       }
     },
     "/v1/customer-credits/accounts/{id}/close": {
       "post": {
         "operationId": "closeCustomerCreditsAccount",
+        "x-speakeasy-name-override": "closeAccount",
+        "x-speakeasy-group": "customerCredits",
         "summary": "Close an account",
         "description": "Permanently close an account. This action cannot be undone.",
         "parameters": [
@@ -1633,7 +2470,9 @@
             "name": "id",
             "required": true,
             "in": "path",
-            "schema": { "type": "string" }
+            "schema": {
+              "type": "string"
+            }
           }
         ],
         "responses": {
@@ -1641,13 +2480,21 @@
             "description": "Account closed",
             "content": {
               "application/json": {
-                "schema": { "$ref": "#/components/schemas/AccountResponseDto" }
+                "schema": {
+                  "$ref": "#/components/schemas/AccountResponseDto"
+                }
               }
             }
           },
-          "400": { "description": "Bad Request - Invalid input parameters" },
-          "401": { "description": "Unauthorized - Invalid or missing API key" },
-          "404": { "description": "Not Found - Resource does not exist" },
+          "400": {
+            "description": "Bad Request - Invalid input parameters"
+          },
+          "401": {
+            "description": "Unauthorized - Invalid or missing API key"
+          },
+          "404": {
+            "description": "Not Found - Resource does not exist"
+          },
           "409": {
             "description": "Account already closed",
             "content": {
@@ -1660,7 +2507,11 @@
           }
         },
         "tags": ["Customer Credits - Accounts (Experimental)"],
-        "security": [{ "ApiKey": [] }]
+        "security": [
+          {
+            "ApiKey": []
+          }
+        ]
       }
     }
   },
@@ -1673,11 +2524,25 @@
       "url": "https://creem.io",
       "email": "support@creem.io"
     },
-    "license": { "name": "Commercial", "url": "https://creem.io/terms" },
+    "license": {
+      "name": "Commercial",
+      "url": "https://creem.io/terms"
+    },
     "termsOfService": "https://creem.io/terms"
   },
   "tags": [],
-  "servers": [{ "url": "https://api.creem.io" }, { "url": "https://test-api.creem.io" }],
+  "servers": [
+    {
+      "url": "https://api.creem.io",
+      "description": "Production — live API for processing real transactions and data.",
+      "x-speakeasy-server-id": "prod"
+    },
+    {
+      "url": "https://test-api.creem.io",
+      "description": "Test — sandbox API for development and testing with no real charges.",
+      "x-speakeasy-server-id": "test"
+    }
+  ],
   "components": {
     "securitySchemes": {
       "ApiKey": {
@@ -1726,7 +2591,14 @@
       "ProductBillingPeriod": {
         "type": "string",
         "description": "Billing period",
-        "enum": ["every-month", "every-three-months", "every-six-months", "every-year", "once"]
+        "enum": [
+          "every-month",
+          "every-three-months",
+          "every-six-months",
+          "every-year",
+          "every-day",
+          "once"
+        ]
       },
       "ProductStatus": {
         "type": "string",
@@ -1786,7 +2658,9 @@
       "CustomField": {
         "type": "object",
         "properties": {
-          "type": { "$ref": "#/components/schemas/CustomFieldType" },
+          "type": {
+            "$ref": "#/components/schemas/CustomFieldType"
+          },
           "key": {
             "type": "string",
             "description": "Unique key for custom field. Must be unique to this field, alphanumeric, and up to 200 characters.",
@@ -1805,12 +2679,20 @@
           "text": {
             "description": "Configuration for text field type.",
             "nullable": true,
-            "allOf": [{ "$ref": "#/components/schemas/Text" }]
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/Text"
+              }
+            ]
           },
           "checkbox": {
             "description": "Configuration for checkbox field type.",
             "nullable": true,
-            "allOf": [{ "$ref": "#/components/schemas/Checkbox" }]
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/Checkbox"
+              }
+            ]
           }
         },
         "required": ["type", "key", "label"]
@@ -1822,7 +2704,9 @@
             "type": "string",
             "description": "Unique identifier for the object."
           },
-          "mode": { "$ref": "#/components/schemas/EnvironmentMode" },
+          "mode": {
+            "$ref": "#/components/schemas/EnvironmentMode"
+          },
           "object": {
             "type": "string",
             "description": "String representing the object's type. Objects of the same type share the same value."
@@ -1844,7 +2728,9 @@
           "features": {
             "description": "Features of the product.",
             "type": "array",
-            "items": { "$ref": "#/components/schemas/FeatureEntity" }
+            "items": {
+              "$ref": "#/components/schemas/FeatureEntity"
+            }
           },
           "price": {
             "type": "number",
@@ -1864,7 +2750,9 @@
             "example": "every-month",
             "$ref": "#/components/schemas/ProductBillingPeriod"
           },
-          "status": { "$ref": "#/components/schemas/ProductStatus" },
+          "status": {
+            "$ref": "#/components/schemas/ProductStatus"
+          },
           "tax_mode": {
             "example": "inclusive",
             "$ref": "#/components/schemas/TaxMode"
@@ -1888,7 +2776,9 @@
             "description": "Custom fields configured for the product. Collect additional information from your customer during checkout.",
             "nullable": true,
             "type": "array",
-            "items": { "$ref": "#/components/schemas/CustomField" }
+            "items": {
+              "$ref": "#/components/schemas/CustomField"
+            }
           },
           "created_at": {
             "format": "date-time",
@@ -1958,12 +2848,18 @@
         "properties": {
           "items": {
             "description": "List of product items",
-            "items": { "$ref": "#/components/schemas/ProductEntity" },
+            "items": {
+              "$ref": "#/components/schemas/ProductEntity"
+            },
             "type": "array"
           },
           "pagination": {
             "description": "Pagination details for the list",
-            "allOf": [{ "$ref": "#/components/schemas/PaginationEntity" }]
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/PaginationEntity"
+              }
+            ]
           }
         },
         "required": ["items", "pagination"]
@@ -1981,7 +2877,14 @@
       "ProductRequestBillingPeriod": {
         "type": "string",
         "description": "Billing period, required if billing_type is recurring",
-        "enum": ["once", "every-month", "every-three-months", "every-six-months", "every-year"]
+        "enum": [
+          "once",
+          "every-day",
+          "every-month",
+          "every-three-months",
+          "every-six-months",
+          "every-year"
+        ]
       },
       "CustomFieldRequestType": {
         "type": "string",
@@ -2038,11 +2941,19 @@
           },
           "text": {
             "description": "Configuration for text field type.",
-            "allOf": [{ "$ref": "#/components/schemas/TextFieldConfig" }]
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/TextFieldConfig"
+              }
+            ]
           },
           "checkbox": {
             "description": "Configuration for checkbox field type.",
-            "allOf": [{ "$ref": "#/components/schemas/CheckboxFieldConfig" }]
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/CheckboxFieldConfig"
+              }
+            ]
           }
         },
         "required": ["type", "key", "label"]
@@ -2050,7 +2961,10 @@
       "CreateProductRequestEntity": {
         "type": "object",
         "properties": {
-          "name": { "type": "string", "description": "Name of the product" },
+          "name": {
+            "type": "string",
+            "description": "Name of the product"
+          },
           "description": {
             "type": "string",
             "description": "Description of the product"
@@ -2093,13 +3007,17 @@
           "custom_fields": {
             "description": "Collect additional information from your customer using custom fields during checkout. Up to 3 fields are supported.",
             "type": "array",
-            "items": { "$ref": "#/components/schemas/CustomFieldRequestEntity" }
+            "items": {
+              "$ref": "#/components/schemas/CustomFieldRequestEntity"
+            }
           },
           "custom_field": {
             "description": "DEPRECATED: Use `custom_fields` instead. Collect additional information from your customer using custom fields during checkout. Up to 3 fields are supported.",
             "deprecated": true,
             "type": "array",
-            "items": { "$ref": "#/components/schemas/CustomFieldRequestEntity" }
+            "items": {
+              "$ref": "#/components/schemas/CustomFieldRequestEntity"
+            }
           },
           "abandoned_cart_recovery_enabled": {
             "type": "boolean",
@@ -2116,7 +3034,9 @@
             "type": "string",
             "description": "Unique identifier for the object."
           },
-          "mode": { "$ref": "#/components/schemas/EnvironmentMode" },
+          "mode": {
+            "$ref": "#/components/schemas/EnvironmentMode"
+          },
           "object": {
             "type": "string",
             "description": "String representing the object’s type. Objects of the same type share the same value."
@@ -2135,7 +3055,10 @@
           "metadata": {
             "type": "object",
             "description": "Additional metadata associated with the customer.",
-            "example": { "key": "value" },
+            "example": {
+              "key": "value"
+            },
+            "additionalProperties": true,
             "nullable": true
           },
           "country": {
@@ -2164,12 +3087,18 @@
         "properties": {
           "items": {
             "description": "List of customer items",
-            "items": { "$ref": "#/components/schemas/CustomerEntity" },
+            "items": {
+              "$ref": "#/components/schemas/CustomerEntity"
+            },
             "type": "array"
           },
           "pagination": {
             "description": "Pagination details for the list",
-            "allOf": [{ "$ref": "#/components/schemas/PaginationEntity" }]
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/PaginationEntity"
+              }
+            ]
           }
         },
         "required": ["items", "pagination"]
@@ -2191,7 +3120,9 @@
             "type": "string",
             "description": "Unique identifier for the object."
           },
-          "mode": { "$ref": "#/components/schemas/EnvironmentMode" },
+          "mode": {
+            "$ref": "#/components/schemas/EnvironmentMode"
+          },
           "object": {
             "type": "string",
             "description": "String representing the object's type. Objects of the same type share the same value."
@@ -2314,12 +3245,18 @@
         "properties": {
           "items": {
             "description": "List of order items",
-            "items": { "$ref": "#/components/schemas/OrderEntity" },
+            "items": {
+              "$ref": "#/components/schemas/OrderEntity"
+            },
             "type": "array"
           },
           "pagination": {
             "description": "Pagination details for the list",
-            "allOf": [{ "$ref": "#/components/schemas/PaginationEntity" }]
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/PaginationEntity"
+              }
+            ]
           }
         },
         "required": ["items", "pagination"]
@@ -2331,7 +3268,9 @@
             "type": "string",
             "description": "Unique identifier for the object."
           },
-          "mode": { "$ref": "#/components/schemas/EnvironmentMode" },
+          "mode": {
+            "$ref": "#/components/schemas/EnvironmentMode"
+          },
           "object": {
             "type": "string",
             "description": "String representing the object’s type. Objects of the same type share the same value."
@@ -2360,7 +3299,15 @@
       "SubscriptionStatus": {
         "type": "string",
         "description": "The current status of the subscription.",
-        "enum": ["active", "canceled", "unpaid", "paused", "trialing", "scheduled_cancel"]
+        "enum": [
+          "active",
+          "canceled",
+          "unpaid",
+          "paused",
+          "trialing",
+          "scheduled_cancel",
+          "past_due"
+        ]
       },
       "TransactionType": {
         "type": "string",
@@ -2378,8 +3325,8 @@
           "chargedBack",
           "uncollectible",
           "declined",
-          "void",
-          "canceled"
+          "canceled",
+          "void"
         ]
       },
       "TransactionEntity": {
@@ -2389,7 +3336,9 @@
             "type": "string",
             "description": "Unique identifier for the object."
           },
-          "mode": { "$ref": "#/components/schemas/EnvironmentMode" },
+          "mode": {
+            "$ref": "#/components/schemas/EnvironmentMode"
+          },
           "object": {
             "type": "string",
             "description": "String representing the object's type. Objects of the same type share the same value.",
@@ -2417,7 +3366,9 @@
             "description": "Three-letter ISO currency code, in uppercase. Must be a supported currency.",
             "example": "USD"
           },
-          "type": { "$ref": "#/components/schemas/TransactionType" },
+          "type": {
+            "$ref": "#/components/schemas/TransactionType"
+          },
           "tax_country": {
             "type": "string",
             "description": "The ISO alpha-2 country code where tax is collected.",
@@ -2431,7 +3382,9 @@
             "example": 2000,
             "nullable": true
           },
-          "status": { "$ref": "#/components/schemas/TransactionStatus" },
+          "status": {
+            "$ref": "#/components/schemas/TransactionStatus"
+          },
           "refunded_amount": {
             "type": "number",
             "description": "The amount that has been refunded in cents. 1000 = $10.00",
@@ -2479,7 +3432,9 @@
             "type": "string",
             "description": "Unique identifier for the object."
           },
-          "mode": { "$ref": "#/components/schemas/EnvironmentMode" },
+          "mode": {
+            "$ref": "#/components/schemas/EnvironmentMode"
+          },
           "object": {
             "type": "string",
             "description": "String representing the object's type. Objects of the same type share the same value.",
@@ -2487,16 +3442,32 @@
           },
           "product": {
             "description": "The product associated with the subscription.",
-            "oneOf": [{ "$ref": "#/components/schemas/ProductEntity" }, { "type": "string" }]
+            "oneOf": [
+              {
+                "$ref": "#/components/schemas/ProductEntity"
+              },
+              {
+                "type": "string"
+              }
+            ]
           },
           "customer": {
             "description": "The customer who owns the subscription.",
-            "oneOf": [{ "$ref": "#/components/schemas/CustomerEntity" }, { "type": "string" }]
+            "oneOf": [
+              {
+                "$ref": "#/components/schemas/CustomerEntity"
+              },
+              {
+                "type": "string"
+              }
+            ]
           },
           "items": {
             "description": "Subscription items.",
             "type": "array",
-            "items": { "$ref": "#/components/schemas/SubscriptionItemEntity" }
+            "items": {
+              "$ref": "#/components/schemas/SubscriptionItemEntity"
+            }
           },
           "collection_method": {
             "example": "charge_automatically",
@@ -2513,7 +3484,11 @@
           },
           "last_transaction": {
             "description": "The last paid transaction.",
-            "allOf": [{ "$ref": "#/components/schemas/TransactionEntity" }]
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/TransactionEntity"
+              }
+            ]
           },
           "last_transaction_date": {
             "format": "date-time",
@@ -2560,7 +3535,45 @@
           },
           "discount": {
             "type": "object",
-            "description": "The discount code applied to the subscription, if any."
+            "description": "The discount applied to the subscription, if any.",
+            "properties": {
+              "id": {
+                "type": "string",
+                "description": "The unique identifier of the discount (e.g. dis_...).",
+                "example": "dis_3e6Z6TzvHKdsjEgXnGDEp0"
+              },
+              "discountCode": {
+                "type": "string",
+                "description": "The discount code applied to the subscription.",
+                "example": "HOLIDAY2024"
+              },
+              "name": {
+                "type": "string"
+              },
+              "type": {
+                "type": "string",
+                "enum": ["percentage", "fixed"]
+              },
+              "amount": {
+                "type": "number"
+              },
+              "duration": {
+                "type": "string",
+                "enum": ["forever", "once", "repeating"]
+              },
+              "durationInMonths": {
+                "type": "number"
+              }
+            }
+          },
+          "metadata": {
+            "type": "object",
+            "description": "Metadata for the subscription in the form of key-value pairs.",
+            "example": {
+              "userId": "user_123",
+              "plan": "pro"
+            },
+            "additionalProperties": true
           }
         },
         "required": [
@@ -2580,12 +3593,18 @@
         "properties": {
           "items": {
             "description": "List of subscription items",
-            "items": { "$ref": "#/components/schemas/SubscriptionEntity" },
+            "items": {
+              "$ref": "#/components/schemas/SubscriptionEntity"
+            },
             "type": "array"
           },
           "pagination": {
             "description": "Pagination details for the list",
-            "allOf": [{ "$ref": "#/components/schemas/PaginationEntity" }]
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/PaginationEntity"
+              }
+            ]
           }
         },
         "required": ["items", "pagination"]
@@ -2602,7 +3621,9 @@
             "type": "string",
             "description": "Unique identifier for the object."
           },
-          "mode": { "$ref": "#/components/schemas/EnvironmentMode" },
+          "mode": {
+            "$ref": "#/components/schemas/EnvironmentMode"
+          },
           "object": {
             "type": "string",
             "description": "A string representing the object’s type. Objects of the same type share the same value.",
@@ -2635,7 +3656,9 @@
             "type": "string",
             "description": "Unique identifier for the object."
           },
-          "mode": { "$ref": "#/components/schemas/EnvironmentMode" },
+          "mode": {
+            "$ref": "#/components/schemas/EnvironmentMode"
+          },
           "object": {
             "type": "string",
             "description": "A string representing the object's type. Objects of the same type share the same value."
@@ -2681,7 +3704,11 @@
           "instance": {
             "description": "Associated license instances.",
             "nullable": true,
-            "allOf": [{ "$ref": "#/components/schemas/LicenseInstanceEntity" }]
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/LicenseInstanceEntity"
+              }
+            ]
           }
         },
         "required": [
@@ -2700,12 +3727,18 @@
         "properties": {
           "items": {
             "description": "List of license items",
-            "items": { "$ref": "#/components/schemas/LicenseEntity" },
+            "items": {
+              "$ref": "#/components/schemas/LicenseEntity"
+            },
             "type": "array"
           },
           "pagination": {
             "description": "Pagination details for the list",
-            "allOf": [{ "$ref": "#/components/schemas/PaginationEntity" }]
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/PaginationEntity"
+              }
+            ]
           }
         },
         "required": ["items", "pagination"]
@@ -2726,7 +3759,10 @@
           "metadata": {
             "type": "object",
             "description": "Additional metadata for the customer.",
-            "example": { "key": "value" }
+            "example": {
+              "key": "value"
+            },
+            "additionalProperties": true
           }
         },
         "required": ["email", "name"]
@@ -2747,7 +3783,10 @@
           "metadata": {
             "type": "object",
             "description": "Additional metadata for the customer.",
-            "example": { "key": "value" }
+            "example": {
+              "key": "value"
+            },
+            "additionalProperties": true
           }
         },
         "required": ["customer_id"]
@@ -2882,7 +3921,9 @@
           "files": {
             "description": "List of downloadable files.",
             "type": "array",
-            "items": { "$ref": "#/components/schemas/FeatureFileEntity" }
+            "items": {
+              "$ref": "#/components/schemas/FeatureFileEntity"
+            }
           }
         },
         "required": ["files"]
@@ -2933,23 +3974,39 @@
           "file": {
             "description": "File feature data containing downloadable files.",
             "nullable": true,
-            "allOf": [{ "$ref": "#/components/schemas/FileFeatureEntity" }]
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/FileFeatureEntity"
+              }
+            ]
           },
           "license_key": {
             "description": "License key issued for the order.",
             "nullable": true,
-            "allOf": [{ "$ref": "#/components/schemas/LicenseEntity" }]
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/LicenseEntity"
+              }
+            ]
           },
           "customer_credits": {
             "description": "Customer credits feature data.",
             "nullable": true,
-            "allOf": [{ "$ref": "#/components/schemas/CustomerCreditsFeatureEntity" }]
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/CustomerCreditsFeatureEntity"
+              }
+            ]
           },
           "license": {
             "description": "DEPRECATED: Use `license_key` instead. License key issued for the order.",
             "nullable": true,
             "deprecated": true,
-            "allOf": [{ "$ref": "#/components/schemas/LicenseEntity" }]
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/LicenseEntity"
+              }
+            ]
           }
         }
       },
@@ -2960,7 +4017,9 @@
             "type": "string",
             "description": "Unique identifier for the object."
           },
-          "mode": { "$ref": "#/components/schemas/EnvironmentMode" },
+          "mode": {
+            "$ref": "#/components/schemas/EnvironmentMode"
+          },
           "object": {
             "type": "string",
             "description": "String representing the object's type. Objects of the same type share the same value."
@@ -2977,7 +4036,14 @@
           },
           "product": {
             "description": "The product associated with the checkout session.",
-            "oneOf": [{ "type": "string" }, { "$ref": "#/components/schemas/ProductEntity" }]
+            "oneOf": [
+              {
+                "type": "string"
+              },
+              {
+                "$ref": "#/components/schemas/ProductEntity"
+              }
+            ]
           },
           "units": {
             "type": "number",
@@ -2986,20 +4052,40 @@
           },
           "order": {
             "description": "The order associated with the checkout session.",
-            "allOf": [{ "$ref": "#/components/schemas/OrderEntity" }]
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/OrderEntity"
+              }
+            ]
           },
           "subscription": {
             "description": "The subscription associated with the checkout session.",
-            "oneOf": [{ "type": "string" }, { "$ref": "#/components/schemas/SubscriptionEntity" }]
+            "oneOf": [
+              {
+                "type": "string"
+              },
+              {
+                "$ref": "#/components/schemas/SubscriptionEntity"
+              }
+            ]
           },
           "customer": {
             "description": "The customer associated with the checkout session.",
-            "oneOf": [{ "type": "string" }, { "$ref": "#/components/schemas/CustomerEntity" }]
+            "oneOf": [
+              {
+                "type": "string"
+              },
+              {
+                "$ref": "#/components/schemas/CustomerEntity"
+              }
+            ]
           },
           "custom_fields": {
             "description": "Additional information collected from your customer during the checkout process.",
             "type": "array",
-            "items": { "$ref": "#/components/schemas/CustomField" }
+            "items": {
+              "$ref": "#/components/schemas/CustomField"
+            }
           },
           "checkout_url": {
             "type": "string",
@@ -3014,13 +4100,17 @@
           "license_keys": {
             "description": "License keys issued for the order.",
             "type": "array",
-            "items": { "$ref": "#/components/schemas/LicenseEntity" }
+            "items": {
+              "$ref": "#/components/schemas/LicenseEntity"
+            }
           },
           "feature": {
             "description": "DEPRECATED: Use `license_keys` instead. Features issued for the order.",
             "deprecated": true,
             "type": "array",
-            "items": { "$ref": "#/components/schemas/ProductFeatureEntity" }
+            "items": {
+              "$ref": "#/components/schemas/ProductFeatureEntity"
+            }
           },
           "metadata": {
             "type": "object",
@@ -3031,6 +4121,39 @@
               "lastVisit": "2023-04-01"
             },
             "additionalProperties": true
+          },
+          "discount": {
+            "type": "object",
+            "description": "The discount applied to the checkout, if any.",
+            "properties": {
+              "id": {
+                "type": "string",
+                "description": "The unique identifier of the discount (e.g. dis_...).",
+                "example": "dis_3e6Z6TzvHKdsjEgXnGDEp0"
+              },
+              "discountCode": {
+                "type": "string",
+                "description": "The discount code applied to the checkout.",
+                "example": "HOLIDAY2024"
+              },
+              "name": {
+                "type": "string"
+              },
+              "type": {
+                "type": "string",
+                "enum": ["percentage", "fixed"]
+              },
+              "amount": {
+                "type": "number"
+              },
+              "duration": {
+                "type": "string",
+                "enum": ["forever", "once", "repeating"]
+              },
+              "durationInMonths": {
+                "type": "number"
+              }
+            }
           }
         },
         "required": ["id", "mode", "object", "status", "product"]
@@ -3074,18 +4197,26 @@
           },
           "customer": {
             "description": "Customer data for checkout session. This will prefill the customer info on the checkout page.",
-            "allOf": [{ "$ref": "#/components/schemas/CustomerRequestEntity" }]
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/CustomerRequestEntity"
+              }
+            ]
           },
           "custom_fields": {
             "description": "Collect additional information from your customer using custom fields. Up to 3 fields are supported.",
             "type": "array",
-            "items": { "$ref": "#/components/schemas/CustomFieldRequestEntity" }
+            "items": {
+              "$ref": "#/components/schemas/CustomFieldRequestEntity"
+            }
           },
           "custom_field": {
             "description": "DEPRECATED: Use `custom_fields` instead. Collect additional information from your customer using custom fields. Up to 3 fields are supported.",
             "deprecated": true,
             "type": "array",
-            "items": { "$ref": "#/components/schemas/CustomFieldRequestEntity" }
+            "items": {
+              "$ref": "#/components/schemas/CustomFieldRequestEntity"
+            }
           },
           "success_url": {
             "type": "string",
@@ -3153,7 +4284,9 @@
             "type": "string",
             "description": "Unique identifier for the object."
           },
-          "mode": { "$ref": "#/components/schemas/EnvironmentMode" },
+          "mode": {
+            "$ref": "#/components/schemas/EnvironmentMode"
+          },
           "object": {
             "type": "string",
             "description": "A string representing the object’s type. Objects of the same type share the same value.",
@@ -3222,7 +4355,9 @@
             "description": "The list of product IDs to which this discount applies.",
             "example": ["prod_123", "prod_456"],
             "type": "array",
-            "items": { "type": "string" }
+            "items": {
+              "type": "string"
+            }
           },
           "redeem_count": {
             "type": "number",
@@ -3237,12 +4372,18 @@
         "properties": {
           "items": {
             "description": "List of discount items",
-            "items": { "$ref": "#/components/schemas/DiscountEntity" },
+            "items": {
+              "$ref": "#/components/schemas/DiscountEntity"
+            },
             "type": "array"
           },
           "pagination": {
             "description": "Pagination details for the list",
-            "allOf": [{ "$ref": "#/components/schemas/PaginationEntity" }]
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/PaginationEntity"
+              }
+            ]
           }
         },
         "required": ["items", "pagination"]
@@ -3270,7 +4411,9 @@
             "description": "Optional discount code. If left empty, a code will be generated.",
             "example": "HOLIDAY2024"
           },
-          "type": { "$ref": "#/components/schemas/DiscountType" },
+          "type": {
+            "$ref": "#/components/schemas/DiscountType"
+          },
           "amount": {
             "type": "number",
             "description": "The fixed value for the discount. Only applicable if the type is \"fixed\".",
@@ -3310,7 +4453,9 @@
             "description": "The list of product IDs to which this discount applies.",
             "example": ["prod_123", "prod_456"],
             "type": "array",
-            "items": { "type": "string" }
+            "items": {
+              "type": "string"
+            }
           }
         },
         "required": ["name", "type", "duration", "applies_to_products"]
@@ -3320,12 +4465,18 @@
         "properties": {
           "items": {
             "description": "List of transactions items",
-            "items": { "$ref": "#/components/schemas/TransactionEntity" },
+            "items": {
+              "$ref": "#/components/schemas/TransactionEntity"
+            },
             "type": "array"
           },
           "pagination": {
             "description": "Pagination details for the list",
-            "allOf": [{ "$ref": "#/components/schemas/PaginationEntity" }]
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/PaginationEntity"
+              }
+            ]
           }
         },
         "required": ["items", "pagination"]
@@ -3417,7 +4568,11 @@
         "properties": {
           "totals": {
             "description": "Aggregated totals for the queried date range",
-            "allOf": [{ "$ref": "#/components/schemas/StatsMetricTotalsEntity" }]
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/StatsMetricTotalsEntity"
+              }
+            ]
           },
           "periods": {
             "description": "Time-series data points grouped by the requested interval. Only present when interval, startDate, and endDate are provided.",
@@ -3464,7 +4619,9 @@
               }
             ],
             "type": "array",
-            "items": { "$ref": "#/components/schemas/StatsMetricPeriodEntity" }
+            "items": {
+              "$ref": "#/components/schemas/StatsMetricPeriodEntity"
+            }
           }
         },
         "required": ["totals"]
@@ -3520,7 +4677,11 @@
           },
           "usage": {
             "description": "Usage information for this call.",
-            "allOf": [{ "$ref": "#/components/schemas/UsageEntity" }]
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/UsageEntity"
+              }
+            ]
           }
         },
         "required": ["id", "object", "prompt", "decision", "usage"]
@@ -3561,7 +4722,10 @@
             "description": "Account ID",
             "example": "cca_abc123"
           },
-          "store_id": { "type": "string", "description": "Store ID" },
+          "store_id": {
+            "type": "string",
+            "description": "Store ID"
+          },
           "customer_id": {
             "type": "string",
             "description": "Owner ID",
@@ -3613,7 +4777,9 @@
           "data": {
             "description": "Array of accounts",
             "type": "array",
-            "items": { "$ref": "#/components/schemas/AccountResponseDto" }
+            "items": {
+              "$ref": "#/components/schemas/AccountResponseDto"
+            }
           },
           "has_more": {
             "type": "boolean",
@@ -3687,7 +4853,9 @@
           "data": {
             "description": "Array of entries",
             "type": "array",
-            "items": { "$ref": "#/components/schemas/EntryResponseDto" }
+            "items": {
+              "$ref": "#/components/schemas/EntryResponseDto"
+            }
           },
           "has_more": {
             "type": "boolean",
@@ -3740,7 +4908,11 @@
         "properties": {
           "error": {
             "description": "Error details",
-            "allOf": [{ "$ref": "#/components/schemas/CustomerCreditsErrorDetailDto" }]
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/CustomerCreditsErrorDetailDto"
+              }
+            ]
           }
         },
         "required": ["error"]
@@ -3774,7 +4946,10 @@
             "description": "Transaction ID",
             "example": "cct_abc123"
           },
-          "store_id": { "type": "string", "description": "Store ID" },
+          "store_id": {
+            "type": "string",
+            "description": "Store ID"
+          },
           "reference": {
             "type": "string",
             "description": "Reference string",
@@ -3792,7 +4967,9 @@
           "entries": {
             "description": "Transaction entries",
             "type": "array",
-            "items": { "$ref": "#/components/schemas/EntryResponseDto" }
+            "items": {
+              "$ref": "#/components/schemas/EntryResponseDto"
+            }
           },
           "created_at": {
             "type": "string",
@@ -3811,6 +4988,783 @@
           }
         },
         "required": ["transaction_id"]
+      },
+      "WebhookSubscriptionEntity": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "description": "Unique identifier for the object."
+          },
+          "mode": {
+            "$ref": "#/components/schemas/EnvironmentMode"
+          },
+          "object": {
+            "type": "string",
+            "description": "String representing the object's type. Objects of the same type share the same value.",
+            "example": "subscription"
+          },
+          "product": {
+            "description": "The product associated with the subscription.",
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/ProductEntity"
+              }
+            ]
+          },
+          "customer": {
+            "description": "The customer who owns the subscription.",
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/CustomerEntity"
+              }
+            ]
+          },
+          "items": {
+            "description": "Subscription items.",
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/SubscriptionItemEntity"
+            }
+          },
+          "collection_method": {
+            "example": "charge_automatically",
+            "$ref": "#/components/schemas/SubscriptionCollectionMethod"
+          },
+          "status": {
+            "example": "active",
+            "$ref": "#/components/schemas/SubscriptionStatus"
+          },
+          "last_transaction_id": {
+            "type": "string",
+            "description": "The ID of the last paid transaction.",
+            "example": "tran_3e6Z6TzvHKdsjEgXnGDEp0"
+          },
+          "last_transaction": {
+            "description": "The last paid transaction.",
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/TransactionEntity"
+              }
+            ]
+          },
+          "last_transaction_date": {
+            "format": "date-time",
+            "type": "string",
+            "description": "The date of the last paid transaction.",
+            "example": "2024-09-12T12:34:56Z"
+          },
+          "next_transaction_date": {
+            "format": "date-time",
+            "type": "string",
+            "description": "The date when the next subscription transaction will be charged.",
+            "example": "2024-09-12T12:34:56Z"
+          },
+          "current_period_start_date": {
+            "format": "date-time",
+            "type": "string",
+            "description": "The start date of the current subscription period.",
+            "example": "2024-09-12T12:34:56Z"
+          },
+          "current_period_end_date": {
+            "format": "date-time",
+            "type": "string",
+            "description": "The end date of the current subscription period.",
+            "example": "2024-09-12T12:34:56Z"
+          },
+          "canceled_at": {
+            "type": "string",
+            "description": "The date and time when the subscription was canceled, if applicable.",
+            "example": "2024-09-12T12:34:56Z",
+            "format": "date-time",
+            "nullable": true
+          },
+          "created_at": {
+            "format": "date-time",
+            "type": "string",
+            "description": "The date and time when the subscription was created.",
+            "example": "2024-01-01T00:00:00Z"
+          },
+          "updated_at": {
+            "type": "string",
+            "description": "The date and time when the subscription was last updated.",
+            "example": "2024-09-12T12:34:56Z",
+            "format": "date-time"
+          },
+          "discount": {
+            "type": "object",
+            "description": "The discount applied to the subscription, if any.",
+            "properties": {
+              "id": {
+                "type": "string",
+                "description": "The unique identifier of the discount (e.g. dis_...).",
+                "example": "dis_3e6Z6TzvHKdsjEgXnGDEp0"
+              },
+              "discountCode": {
+                "type": "string",
+                "description": "The discount code applied to the subscription.",
+                "example": "HOLIDAY2024"
+              },
+              "name": {
+                "type": "string"
+              },
+              "type": {
+                "type": "string",
+                "enum": ["percentage", "fixed"]
+              },
+              "amount": {
+                "type": "number"
+              },
+              "duration": {
+                "type": "string",
+                "enum": ["forever", "once", "repeating"]
+              },
+              "durationInMonths": {
+                "type": "number"
+              }
+            }
+          },
+          "metadata": {
+            "type": "object",
+            "description": "Metadata for the subscription in the form of key-value pairs.",
+            "example": {
+              "userId": "user_123",
+              "plan": "pro"
+            },
+            "additionalProperties": true
+          }
+        },
+        "required": [
+          "id",
+          "mode",
+          "object",
+          "product",
+          "customer",
+          "collection_method",
+          "status",
+          "created_at",
+          "updated_at"
+        ],
+        "x-speakeasy-include": true
+      },
+      "WebhookCheckoutCompletedEventEntity": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "description": "Unique identifier for the event."
+          },
+          "eventType": {
+            "type": "string",
+            "description": "The event name.",
+            "enum": ["checkout.completed"]
+          },
+          "created_at": {
+            "type": "number",
+            "description": "Creation date of the event."
+          },
+          "object": {
+            "description": "Object related to the event.",
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/CheckoutEntity"
+              }
+            ]
+          }
+        },
+        "required": ["id", "eventType", "created_at", "object"],
+        "x-speakeasy-include": true
+      },
+      "RefundStatus": {
+        "type": "string",
+        "description": "Status of the refund.",
+        "enum": ["pending", "succeeded", "canceled", "failed"]
+      },
+      "RefundReason": {
+        "type": "string",
+        "description": "Reason for the refund.",
+        "enum": ["duplicate", "fraudulent", "requested_by_customer", "other"]
+      },
+      "RefundEntity": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "description": "Unique identifier for the object."
+          },
+          "mode": {
+            "$ref": "#/components/schemas/EnvironmentMode"
+          },
+          "object": {
+            "type": "string",
+            "description": "String representing the object’s type. Objects of the same type share the same value."
+          },
+          "status": {
+            "$ref": "#/components/schemas/RefundStatus"
+          },
+          "refund_amount": {
+            "type": "number",
+            "description": "The refunded amount in cents. 1000 = $10.00",
+            "example": 1000
+          },
+          "refund_currency": {
+            "type": "string",
+            "description": "Three-letter ISO currency code, in uppercase. Must be a supported currency.",
+            "example": "USD"
+          },
+          "reason": {
+            "$ref": "#/components/schemas/RefundReason"
+          },
+          "transaction": {
+            "description": "The transaction associated with the refund.",
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/TransactionEntity"
+              }
+            ]
+          },
+          "checkout": {
+            "description": "The checkout associated with the refund.",
+            "oneOf": [
+              {
+                "type": "string"
+              },
+              {
+                "$ref": "#/components/schemas/CheckoutEntity"
+              }
+            ]
+          },
+          "order": {
+            "description": "The order associated with the refund.",
+            "oneOf": [
+              {
+                "type": "string"
+              },
+              {
+                "$ref": "#/components/schemas/OrderEntity"
+              }
+            ]
+          },
+          "subscription": {
+            "description": "The subscription associated with the refund.",
+            "oneOf": [
+              {
+                "type": "string"
+              },
+              {
+                "$ref": "#/components/schemas/SubscriptionEntity"
+              }
+            ]
+          },
+          "customer": {
+            "description": "The customer associated with the refund.",
+            "oneOf": [
+              {
+                "type": "string"
+              },
+              {
+                "$ref": "#/components/schemas/CustomerEntity"
+              }
+            ]
+          },
+          "created_at": {
+            "type": "number",
+            "description": "Creation date of the order as timestamp"
+          }
+        },
+        "required": [
+          "id",
+          "mode",
+          "object",
+          "status",
+          "refund_amount",
+          "refund_currency",
+          "reason",
+          "transaction",
+          "created_at"
+        ]
+      },
+      "WebhookRefundCreatedEventEntity": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "description": "Unique identifier for the event."
+          },
+          "eventType": {
+            "type": "string",
+            "description": "The event name.",
+            "enum": ["refund.created"]
+          },
+          "created_at": {
+            "type": "number",
+            "description": "Creation date of the event."
+          },
+          "object": {
+            "description": "Object related to the event.",
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/RefundEntity"
+              }
+            ]
+          }
+        },
+        "required": ["id", "eventType", "created_at", "object"],
+        "x-speakeasy-include": true
+      },
+      "DisputeEntity": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "description": "Unique identifier for the object."
+          },
+          "mode": {
+            "$ref": "#/components/schemas/EnvironmentMode"
+          },
+          "object": {
+            "type": "string",
+            "description": "String representing the object's type. Objects of the same type share the same value."
+          },
+          "amount": {
+            "type": "number",
+            "description": "The disputed amount in cents. 1000 = $10.00",
+            "example": 1000
+          },
+          "currency": {
+            "type": "string",
+            "description": "Three-letter ISO currency code, in uppercase. Must be a supported currency.",
+            "example": "USD"
+          },
+          "transaction": {
+            "description": "The transaction associated with the dispute.",
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/TransactionEntity"
+              }
+            ]
+          },
+          "checkout": {
+            "description": "The checkout associated with the dispute.",
+            "oneOf": [
+              {
+                "type": "string"
+              },
+              {
+                "$ref": "#/components/schemas/CheckoutEntity"
+              }
+            ]
+          },
+          "order": {
+            "description": "The order associated with the dispute.",
+            "oneOf": [
+              {
+                "type": "string"
+              },
+              {
+                "$ref": "#/components/schemas/OrderEntity"
+              }
+            ]
+          },
+          "subscription": {
+            "description": "The subscription associated with the dispute.",
+            "oneOf": [
+              {
+                "type": "string"
+              },
+              {
+                "$ref": "#/components/schemas/SubscriptionEntity"
+              }
+            ]
+          },
+          "customer": {
+            "description": "The customer associated with the dispute.",
+            "oneOf": [
+              {
+                "type": "string"
+              },
+              {
+                "$ref": "#/components/schemas/CustomerEntity"
+              }
+            ]
+          },
+          "created_at": {
+            "type": "number",
+            "description": "Creation date of the dispute as timestamp"
+          }
+        },
+        "required": ["id", "mode", "object", "amount", "currency", "transaction", "created_at"]
+      },
+      "WebhookDisputeCreatedEventEntity": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "description": "Unique identifier for the event."
+          },
+          "eventType": {
+            "type": "string",
+            "description": "The event name.",
+            "enum": ["dispute.created"]
+          },
+          "created_at": {
+            "type": "number",
+            "description": "Creation date of the event."
+          },
+          "object": {
+            "description": "Object related to the event.",
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/DisputeEntity"
+              }
+            ]
+          }
+        },
+        "required": ["id", "eventType", "created_at", "object"],
+        "x-speakeasy-include": true
+      },
+      "WebhookSubscriptionActiveEventEntity": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "description": "Unique identifier for the event."
+          },
+          "eventType": {
+            "type": "string",
+            "description": "The event name.",
+            "enum": ["subscription.active"]
+          },
+          "created_at": {
+            "type": "number",
+            "description": "Creation date of the event."
+          },
+          "object": {
+            "description": "Object related to the event.",
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/WebhookSubscriptionEntity"
+              }
+            ]
+          }
+        },
+        "required": ["id", "eventType", "created_at", "object"],
+        "x-speakeasy-include": true
+      },
+      "WebhookSubscriptionTrialingEventEntity": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "description": "Unique identifier for the event."
+          },
+          "eventType": {
+            "type": "string",
+            "description": "The event name.",
+            "enum": ["subscription.trialing"]
+          },
+          "created_at": {
+            "type": "number",
+            "description": "Creation date of the event."
+          },
+          "object": {
+            "description": "Object related to the event.",
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/WebhookSubscriptionEntity"
+              }
+            ]
+          }
+        },
+        "required": ["id", "eventType", "created_at", "object"],
+        "x-speakeasy-include": true
+      },
+      "WebhookSubscriptionCanceledEventEntity": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "description": "Unique identifier for the event."
+          },
+          "eventType": {
+            "type": "string",
+            "description": "The event name.",
+            "enum": ["subscription.canceled"]
+          },
+          "created_at": {
+            "type": "number",
+            "description": "Creation date of the event."
+          },
+          "object": {
+            "description": "Object related to the event.",
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/WebhookSubscriptionEntity"
+              }
+            ]
+          }
+        },
+        "required": ["id", "eventType", "created_at", "object"],
+        "x-speakeasy-include": true
+      },
+      "WebhookSubscriptionScheduledCancelEventEntity": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "description": "Unique identifier for the event."
+          },
+          "eventType": {
+            "type": "string",
+            "description": "The event name.",
+            "enum": ["subscription.scheduled_cancel"]
+          },
+          "created_at": {
+            "type": "number",
+            "description": "Creation date of the event."
+          },
+          "object": {
+            "description": "Object related to the event.",
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/WebhookSubscriptionEntity"
+              }
+            ]
+          }
+        },
+        "required": ["id", "eventType", "created_at", "object"],
+        "x-speakeasy-include": true
+      },
+      "WebhookSubscriptionPaidEventEntity": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "description": "Unique identifier for the event."
+          },
+          "eventType": {
+            "type": "string",
+            "description": "The event name.",
+            "enum": ["subscription.paid"]
+          },
+          "created_at": {
+            "type": "number",
+            "description": "Creation date of the event."
+          },
+          "object": {
+            "description": "Object related to the event.",
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/WebhookSubscriptionEntity"
+              }
+            ]
+          }
+        },
+        "required": ["id", "eventType", "created_at", "object"],
+        "x-speakeasy-include": true
+      },
+      "WebhookSubscriptionExpiredEventEntity": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "description": "Unique identifier for the event."
+          },
+          "eventType": {
+            "type": "string",
+            "description": "The event name.",
+            "enum": ["subscription.expired"]
+          },
+          "created_at": {
+            "type": "number",
+            "description": "Creation date of the event."
+          },
+          "object": {
+            "description": "Object related to the event.",
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/WebhookSubscriptionEntity"
+              }
+            ]
+          }
+        },
+        "required": ["id", "eventType", "created_at", "object"],
+        "x-speakeasy-include": true
+      },
+      "WebhookSubscriptionUnpaidEventEntity": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "description": "Unique identifier for the event."
+          },
+          "eventType": {
+            "type": "string",
+            "description": "The event name.",
+            "enum": ["subscription.unpaid"]
+          },
+          "created_at": {
+            "type": "number",
+            "description": "Creation date of the event."
+          },
+          "object": {
+            "description": "Object related to the event.",
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/WebhookSubscriptionEntity"
+              }
+            ]
+          }
+        },
+        "required": ["id", "eventType", "created_at", "object"],
+        "x-speakeasy-include": true
+      },
+      "WebhookSubscriptionUpdateEventEntity": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "description": "Unique identifier for the event."
+          },
+          "eventType": {
+            "type": "string",
+            "description": "The event name.",
+            "enum": ["subscription.update"]
+          },
+          "created_at": {
+            "type": "number",
+            "description": "Creation date of the event."
+          },
+          "object": {
+            "description": "Object related to the event.",
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/WebhookSubscriptionEntity"
+              }
+            ]
+          }
+        },
+        "required": ["id", "eventType", "created_at", "object"],
+        "x-speakeasy-include": true
+      },
+      "WebhookSubscriptionPastDueEventEntity": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "description": "Unique identifier for the event."
+          },
+          "eventType": {
+            "type": "string",
+            "description": "The event name.",
+            "enum": ["subscription.past_due"]
+          },
+          "created_at": {
+            "type": "number",
+            "description": "Creation date of the event."
+          },
+          "object": {
+            "description": "Object related to the event.",
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/WebhookSubscriptionEntity"
+              }
+            ]
+          }
+        },
+        "required": ["id", "eventType", "created_at", "object"],
+        "x-speakeasy-include": true
+      },
+      "WebhookSubscriptionPausedEventEntity": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "description": "Unique identifier for the event."
+          },
+          "eventType": {
+            "type": "string",
+            "description": "The event name.",
+            "enum": ["subscription.paused"]
+          },
+          "created_at": {
+            "type": "number",
+            "description": "Creation date of the event."
+          },
+          "object": {
+            "description": "Object related to the event.",
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/WebhookSubscriptionEntity"
+              }
+            ]
+          }
+        },
+        "required": ["id", "eventType", "created_at", "object"],
+        "x-speakeasy-include": true
+      },
+      "WebhookEventEntity": {
+        "description": "Webhook event delivered by Creem. The eventType property determines the shape of object.",
+        "oneOf": [
+          {
+            "$ref": "#/components/schemas/WebhookCheckoutCompletedEventEntity"
+          },
+          {
+            "$ref": "#/components/schemas/WebhookRefundCreatedEventEntity"
+          },
+          {
+            "$ref": "#/components/schemas/WebhookDisputeCreatedEventEntity"
+          },
+          {
+            "$ref": "#/components/schemas/WebhookSubscriptionActiveEventEntity"
+          },
+          {
+            "$ref": "#/components/schemas/WebhookSubscriptionTrialingEventEntity"
+          },
+          {
+            "$ref": "#/components/schemas/WebhookSubscriptionCanceledEventEntity"
+          },
+          {
+            "$ref": "#/components/schemas/WebhookSubscriptionScheduledCancelEventEntity"
+          },
+          {
+            "$ref": "#/components/schemas/WebhookSubscriptionPaidEventEntity"
+          },
+          {
+            "$ref": "#/components/schemas/WebhookSubscriptionExpiredEventEntity"
+          },
+          {
+            "$ref": "#/components/schemas/WebhookSubscriptionUnpaidEventEntity"
+          },
+          {
+            "$ref": "#/components/schemas/WebhookSubscriptionUpdateEventEntity"
+          },
+          {
+            "$ref": "#/components/schemas/WebhookSubscriptionPastDueEventEntity"
+          },
+          {
+            "$ref": "#/components/schemas/WebhookSubscriptionPausedEventEntity"
+          }
+        ],
+        "discriminator": {
+          "propertyName": "eventType",
+          "mapping": {
+            "checkout.completed": "#/components/schemas/WebhookCheckoutCompletedEventEntity",
+            "refund.created": "#/components/schemas/WebhookRefundCreatedEventEntity",
+            "dispute.created": "#/components/schemas/WebhookDisputeCreatedEventEntity",
+            "subscription.active": "#/components/schemas/WebhookSubscriptionActiveEventEntity",
+            "subscription.trialing": "#/components/schemas/WebhookSubscriptionTrialingEventEntity",
+            "subscription.canceled": "#/components/schemas/WebhookSubscriptionCanceledEventEntity",
+            "subscription.scheduled_cancel": "#/components/schemas/WebhookSubscriptionScheduledCancelEventEntity",
+            "subscription.paid": "#/components/schemas/WebhookSubscriptionPaidEventEntity",
+            "subscription.expired": "#/components/schemas/WebhookSubscriptionExpiredEventEntity",
+            "subscription.unpaid": "#/components/schemas/WebhookSubscriptionUnpaidEventEntity",
+            "subscription.update": "#/components/schemas/WebhookSubscriptionUpdateEventEntity",
+            "subscription.past_due": "#/components/schemas/WebhookSubscriptionPastDueEventEntity",
+            "subscription.paused": "#/components/schemas/WebhookSubscriptionPausedEventEntity"
+          }
+        },
+        "x-speakeasy-include": true
       }
     }
   },

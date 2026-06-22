@@ -1,7 +1,7 @@
 ---
-title: 'Ship Software. Get Paid Globally.'
-description: 'The most competitive Merchant of Record for SaaS, digital products, and AI tools. Payments, taxes, compliance, affiliates, and revenue splits. All handled.'
-keywords: 'creem, merchant of record, saas payments, getting started, stripe alternative, paddle alternative, gumroad alternative'
+title: "Ship Software. Get Paid Globally."
+description: "The most competitive Merchant of Record for SaaS, digital products, and AI tools. Payments, taxes, compliance, affiliates, and revenue splits. All handled."
+keywords: "creem, merchant of record, saas payments, getting started, stripe alternative, paddle alternative, gumroad alternative"
 ---
 
 > 3,000+ teams sell globally with Creem. 3.9% + 40¢ flat. No monthly fees. No tax headaches.
@@ -17,13 +17,15 @@ We are the legal seller of record. We collect and remit VAT, GST, and sales tax 
     3.9% + 40¢ flat. No monthly fees, no setup costs, no hidden charges. You only pay when you earn.
   </Card>
   <Card title="Global Tax Compliance" icon="globe">
-    VAT, GST, and sales tax across 190+ countries. 28+ US states, EU (Estonia OSS), UK, South Korea, and growing.
+    VAT, GST, and sales tax across 190+ countries. 28+ US states, EU (Estonia OSS), UK, South Korea,
+    and growing.
   </Card>
   <Card title="Built for Developers" icon="code">
     TypeScript SDK, Next.js adapter, CLI, and a clean API. Integrate in minutes.
   </Card>
   <Card title="AI-Native Platform" icon="robot">
-    First payment platform with agent onboarding. Your AI assistant can set up your entire store via SKILL.md.
+    First payment platform with agent onboarding. Your AI assistant can set up your entire store via
+    SKILL.md.
   </Card>
 </CardGroup>
 
@@ -34,24 +36,28 @@ We are the legal seller of record. We collect and remit VAT, GST, and sales tax 
     **The Problem**: Selling globally means VAT, GST, and sales tax across dozens of jurisdictions. Different rates, thresholds, filing requirements. Most founders ignore it (risky), hire expensive accountants, or avoid selling internationally.
 
     **Creem's Solution**: As your Merchant of Record, we are the legal seller. We calculate, collect, file, and remit all taxes worldwide. You never touch a tax form. This isn't a plugin. It's how Creem works by default.
+
   </Accordion>
 
   <Accordion title="You're Paying Too Much in Fees" icon="credit-card">
     **The Problem**: Most MoR solutions charge 5-8% per transaction plus monthly platform fees. On a \$49/mo SaaS, that's \$2-4 per transaction gone.
 
     **Creem's Solution**: 3.9% + 40¢ flat. No monthly fees. No minimums. No tiered pricing that punishes small volume. The most competitive MoR on the market.
+
   </Accordion>
 
   <Accordion title="Your Payment Provider Wasn't Built for Developers" icon="terminal">
     **The Problem**: Dashboard-first platforms force you into click-through wizards. That doesn't scale, and it doesn't work for teams that automate everything.
 
     **Creem's Solution**: Everything is API-first. The CLI lets you manage products, subscriptions, and transactions from the terminal. JSON output for scripting. Interactive TUI for browsing. SKILL.md lets AI agents onboard themselves autonomously.
+
   </Accordion>
 
   <Accordion title="You Need More Than Payments" icon="users">
     **The Problem**: Payments are just the start. You need affiliates, revenue splits, license keys, and subscription lifecycle handling. Cobbling together 5 tools is a nightmare.
 
     **Creem's Solution**: Creem includes affiliate programs, revenue splits, license keys, subscription management (trials, upgrades, downgrades, cancellations), webhooks, and a customer portal. One platform, one integration.
+
   </Accordion>
 </AccordionGroup>
 
@@ -81,7 +87,7 @@ We are the legal seller of record. We collect and remit VAT, GST, and sales tax 
 ## Developer Tools
 
 <CardGroup cols={3}>
-  <Card title="TypeScript SDK" icon="code" href="/code/sdks/typescript-core">
+  <Card title="TypeScript SDK" icon="code" href="/code/sdks/typescript">
     Type-safe SDK for Node.js, Deno, and Bun. Full API coverage with auto-generated types.
   </Card>
   <Card title="Next.js Adapter" icon="react" href="/code/sdks/nextjs">
@@ -101,6 +107,7 @@ Read https://creem.io/SKILL.md and set up Creem for me
 ```
 
 Give this prompt to any AI coding assistant (Claude, Cursor, Copilot, Windsurf) and it will:
+
 - Install the Creem CLI via Homebrew
 - Configure authentication
 - Create products, set up webhooks, and integrate into your codebase
@@ -168,7 +175,7 @@ Give this prompt to any AI coding assistant (Claude, Cursor, Copilot, Windsurf) 
 
         const creem = new Creem({
           apiKey: 'creem_test_...',
-          serverIdx: 1, // 0 = production, 1 = test
+          server: 'test',
         })
 
         const checkout = await creem.checkouts.create({
@@ -180,6 +187,7 @@ Give this prompt to any AI coding assistant (Claude, Cursor, Copilot, Windsurf) 
         ```
       </Tab>
     </Tabs>
+
   </Step>
   <Step title="Set Up Webhooks">
     Listen for payment events to sync your app. See the [Webhooks guide](/code/webhooks) for signature verification and event handling.
@@ -203,7 +211,7 @@ Creem has a one-command migration tool to bring your products over.
   <Card title="Checkout API" icon="code" href="/api-reference/introduction">
     Programmatically create checkout sessions for custom flows.
   </Card>
-  <Card title="TypeScript SDK" icon="code" href="/code/sdks/typescript-core">
+  <Card title="TypeScript SDK" icon="code" href="/code/sdks/typescript">
     Full API coverage with type safety and auto-generated types.
   </Card>
   <Card title="Next.js Adapter" icon="react" href="/code/sdks/nextjs">
@@ -222,10 +230,18 @@ Creem has a one-command migration tool to bring your products over.
 If you purchased a product through Creem's payment platform:
 
 <CardGroup cols={2}>
-  <Card title="Cancel Subscription" icon="circle-xmark" href="/for-customers/how-to-cancel-subscription">
+  <Card
+    title="Cancel Subscription"
+    icon="circle-xmark"
+    href="/for-customers/how-to-cancel-subscription"
+  >
     Guide for customers to cancel their subscriptions through the portal.
   </Card>
-  <Card title="Update Payment Method" icon="credit-card" href="/for-customers/how-to-update-payment-method">
+  <Card
+    title="Update Payment Method"
+    icon="credit-card"
+    href="/for-customers/how-to-update-payment-method"
+  >
     Instructions for updating payment information and billing details.
   </Card>
 </CardGroup>
@@ -234,21 +250,28 @@ If you purchased a product through Creem's payment platform:
 
 <AccordionGroup>
   <Accordion title="How fast can I start accepting payments?">
-    Once you have access, most developers go from zero to first payment in under 10 minutes. Set up a product, generate a checkout link. That's it.
+    Once you have access, most developers go from zero to first payment in under 10 minutes. Set up
+    a product, generate a checkout link. That's it.
   </Accordion>
   <Accordion title="What payment methods do you support?">
-    Cards (Visa, Mastercard, Amex), PayPal, Apple Pay, Google Pay, and local payment methods based on customer location. WeChat Pay and Alipay support coming soon.
+    Cards (Visa, Mastercard, Amex), PayPal, Apple Pay, Google Pay, and local payment methods based
+    on customer location. WeChat Pay and Alipay support coming soon.
   </Accordion>
   <Accordion title="How does pricing work?">
-    3.9% + 40¢ per successful transaction. No monthly fees, no setup costs, no hidden charges. You only pay when you earn.
+    3.9% + 40¢ per successful transaction. No monthly fees, no setup costs, no hidden charges. You
+    only pay when you earn.
   </Accordion>
   <Accordion title="What makes Creem different from Stripe?">
-    Stripe is a payment processor. You're still responsible for tax compliance, filing, and remittance. Creem is a Merchant of Record. We are the legal seller, handling all of that for you. Plus affiliates, revenue splits, and license keys out of the box.
+    Stripe is a payment processor. You're still responsible for tax compliance, filing, and
+    remittance. Creem is a Merchant of Record. We are the legal seller, handling all of that for
+    you. Plus affiliates, revenue splits, and license keys out of the box.
   </Accordion>
   <Accordion title="Can I migrate from LemonSqueezy?">
-    Yes. The CLI includes a `creem migrate lemon-squeezy` command that brings your products over automatically. See the [migration guide](/getting-started/migrate) for details.
+    Yes. The CLI includes a `creem migrate lemon-squeezy` command that brings your products over
+    automatically. See the [migration guide](/getting-started/migrate) for details.
   </Accordion>
   <Accordion title="Can my AI agent manage my Creem store?">
-    Yes. Point any AI coding assistant at creem.io/SKILL.md. It will install the CLI, configure auth, and help you integrate. The CLI also outputs JSON for automated scripting.
+    Yes. Point any AI coding assistant at creem.io/SKILL.md. It will install the CLI, configure
+    auth, and help you integrate. The CLI also outputs JSON for automated scripting.
   </Accordion>
 </AccordionGroup>

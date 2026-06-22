@@ -93,7 +93,9 @@ const creem = new Creem({
 async function run() {
   const result = await creem.transactions.search("cust_1234567890", "ord_1234567890", "prod_1234567890");
 
-  console.log(result);
+  for await (const page of result) {
+    console.log(page.result.items);
+  }
 }
 
 run();
@@ -117,7 +119,9 @@ async function run() {
   const res = await transactionsSearch(creem, "cust_1234567890", "ord_1234567890", "prod_1234567890");
   if (res.ok) {
     const { value: result } = res;
-    console.log(result);
+    for await (const page of result) {
+    console.log(page.result.items);
+  }
   } else {
     console.log("transactionsSearch failed:", res.error);
   }
@@ -141,7 +145,7 @@ run();
 
 ### Response
 
-**Promise\<[components.TransactionListEntity](../../models/components/transactionlistentity.md)\>**
+**Promise\<[operations.SearchTransactionsResponse](../../models/operations/searchtransactionsresponse.md)\>**
 
 ### Errors
 

@@ -3,14 +3,14 @@ import { describe, it, expect, beforeAll } from "vitest";
 import { APIError } from "../../src/models/errors/index.js";
 import { fail } from "../../src/lib/matchers.js";
 import * as components from "../../src/models/components/index.js";
-import { TEST_SERVER_IDX, TEST_MODE } from "../fixtures/testValues.js";
+import { TEST_SERVER, TEST_MODE } from "../fixtures/testValues.js";
 import { creem, getTestProduct } from "../fixtures/testData.js";
 import type { ProductEntity } from "../../src/models/components/index.js";
 
 // Create an instance with invalid API key for auth error tests
 const creemWithInvalidKey = new Creem({
   apiKey: "fail",
-  serverIdx: TEST_SERVER_IDX,
+  server: TEST_SERVER,
 });
 
 // Store created discount IDs and codes for use in retrieve tests
@@ -102,7 +102,7 @@ describe("createDiscount - Percentage Discounts", () => {
     // Create an instance with empty API key
     const creemWithEmptyKey = new Creem({
       apiKey: "",
-      serverIdx: TEST_SERVER_IDX,
+      server: TEST_SERVER,
     });
 
     try {

@@ -1,6 +1,6 @@
 ---
-title: 'Refunds and Cancellations'
-description: 'Handle subscription cancellations and process refunds with flexible options for immediate or end-of-period cancellation.'
+title: "Refunds and Cancellations"
+description: "Handle subscription cancellations and process refunds with flexible options for immediate or end-of-period cancellation."
 ---
 
 Creem provides flexible options for managing subscription cancellations and processing refunds. You can cancel subscriptions immediately or at the end of the billing period, and process full or partial refunds through the dashboard or API.
@@ -22,19 +22,19 @@ Cancel subscriptions programmatically using the API:
   <Tab title="TypeScript SDK">
 
 ```typescript
-import { createCreem } from 'creem_io';
+import { Creem } from "creem";
 
-const creem = createCreem({
+const creem = new Creem({
   apiKey: process.env.CREEM_API_KEY!,
-  testMode: process.env.NODE_ENV !== 'production',
+  server: process.env.NODE_ENV === "production" ? "prod" : "test",
 });
 
 // Cancel subscription
-const canceled = await creem.subscriptions.cancel({
-  subscriptionId: 'sub_YOUR_SUBSCRIPTION_ID',
+const canceled = await creem.subscriptions.cancel("sub_YOUR_SUBSCRIPTION_ID", {
+  mode: "immediate",
 });
 
-console.log('Subscription canceled:', canceled);
+console.log("Subscription canceled:", canceled);
 ```
 
   </Tab>
@@ -75,9 +75,8 @@ export function CancelSubscriptionButton() {
   <Tab title="REST API">
 
 <Warning>
-  If you're in test mode, use `https://test-api.creem.io` instead of
-  `https://api.creem.io`. Learn more about [Test
-  Mode](/getting-started/test-mode).
+  If you're in test mode, use `https://test-api.creem.io` instead of `https://api.creem.io`. Learn
+  more about [Test Mode](/getting-started/test-mode).
 </Warning>
 
 ```bash
@@ -116,13 +115,9 @@ Customers can cancel their own subscriptions through the Customer Portal:
   <Tab title="Next.js">
 
 ```tsx
-import { CreemPortal } from '@creem_io/nextjs';
+import { CreemPortal } from "@creem_io/nextjs";
 
-export function ManageSubscriptionButton({
-  customerId,
-}: {
-  customerId: string;
-}) {
+export function ManageSubscriptionButton({ customerId }: { customerId: string }) {
   return (
     <CreemPortal customerId={customerId}>
       <button>Manage Subscription</button>
@@ -137,8 +132,8 @@ export function ManageSubscriptionButton({
 
 ```typescript
 // Create customer portal link
-const portal = await creem.customers.createPortal({
-  customerId: 'cust_YOUR_CUSTOMER_ID',
+const portal = await creem.customers.generateBillingLinks({
+  customerId: "cust_YOUR_CUSTOMER_ID",
 });
 
 // Redirect customer to portal
@@ -174,11 +169,7 @@ export function ManageSubscriptionButton() {
   </Tab>
 </Tabs>
 
-<Card
-  title="Customer Portal"
-  icon="user-circle"
-  href="/features/customer-portal"
->
+<Card title="Customer Portal" icon="user-circle" href="/features/customer-portal">
   Learn more about enabling self-service subscription management.
 </Card>
 
@@ -219,8 +210,8 @@ When you process a refund:
 - **5-10 business days** - Funds typically appear in customer's account within 5-10 business days
 
 <Note>
-  Refund availability depends on the payment method and may vary by region.
-  Credit card refunds are generally processed within 5-10 business days.
+  Refund availability depends on the payment method and may vary by region. Credit card refunds are
+  generally processed within 5-10 business days.
 </Note>
 
 ---
@@ -247,9 +238,9 @@ When you process a refund:
 ### Cancellation Flow Example
 
 ```typescript
-import { createCreem } from 'creem_io';
+import { Creem } from "creem";
 
-const creem = createCreem({
+const creem = new Creem({
   apiKey: process.env.CREEM_API_KEY!,
 });
 
@@ -259,22 +250,24 @@ async function handleCancellation(subscriptionId: string, reason?: string) {
     console.log(`Canceling subscription: ${subscriptionId}`, { reason });
 
     // Cancel the subscription
-    const canceled = await creem.subscriptions.cancel({
-      subscriptionId,
+    const canceled = await creem.subscriptions.cancel(subscriptionId, {
+      mode: "immediate",
     });
 
-    // Send cancellation email to customer
-    await sendCancellationEmail(canceled.customer.email);
+    // Send cancellation email to customer when the response includes expanded customer data
+    if (typeof canceled.customer !== "string") {
+      await sendCancellationEmail(canceled.customer.email);
+    }
 
     // Update internal database
     await db.subscription.update({
       where: { id: subscriptionId },
-      data: { status: 'canceled', canceledAt: new Date() },
+      data: { status: "canceled", canceledAt: new Date() },
     });
 
     return { success: true, subscription: canceled };
   } catch (error) {
-    console.error('Cancellation failed:', error);
+    console.error("Cancellation failed:", error);
     throw error;
   }
 }
@@ -291,7 +284,7 @@ Use webhooks to automatically respond to cancellation events:
 
 ```typescript
 // app/api/webhook/creem/route.ts
-import { Webhook } from '@creem_io/nextjs';
+import { Webhook } from "@creem_io/nextjs";
 
 export const POST = Webhook({
   webhookSecret: process.env.CREEM_WEBHOOK_SECRET!,
@@ -304,8 +297,8 @@ export const POST = Webhook({
     // Send cancellation confirmation email
     await sendEmail({
       to: customer.email,
-      subject: 'Subscription Canceled',
-      body: 'Your subscription has been canceled...',
+      subject: "Subscription Canceled",
+      body: "Your subscription has been canceled...",
     });
   },
 });
@@ -316,37 +309,55 @@ export const POST = Webhook({
   <Tab title="TypeScript SDK">
 
 ```typescript
-import { createCreem } from 'creem_io';
-
-const creem = createCreem({
-  apiKey: process.env.CREEM_API_KEY!,
-  webhookSecret: process.env.CREEM_WEBHOOK_SECRET!,
-});
+import { constructWebhookEventEntity } from "creem/webhooks";
 
 // In your webhook endpoint
-await creem.webhooks.handleEvents(
-  request.body,
-  request.headers['creem-signature'],
-  {
-    onSubscriptionCanceled: async (data) => {
-      const { subscription, customer } = data;
+const rawBody = await request.text();
+const event = await constructWebhookEventEntity(rawBody, request.headers, {
+  secret: process.env.CREEM_WEBHOOK_SECRET!,
+});
 
-      console.log(`Subscription ${subscription.id} canceled`);
+switch (event.eventType) {
+  case "subscription.canceled": {
+    const subscription = event.object;
+    const customer = typeof subscription.customer === "string" ? undefined : subscription.customer;
 
-      // Revoke access
+    console.log(`Subscription ${subscription.id} canceled`);
+
+    if (customer) {
+      // Revoke access in your database
       await revokeAccess(customer.email);
-    },
 
-    onRevokeAccess: async (context) => {
-      // Simplified access management
-      const userId = context.metadata?.userId;
+      // Send cancellation confirmation email
+      await sendEmail({
+        to: customer.email,
+        subject: "Subscription Canceled",
+        body: "Your subscription has been canceled...",
+      });
+    }
+
+    const userId = subscription.metadata?.userId;
+    if (userId) {
       await db.user.update({
         where: { id: userId },
         data: { subscriptionActive: false },
       });
-    },
+    }
+    break;
   }
-);
+
+  case "subscription.paused":
+  case "subscription.expired": {
+    const userId = event.object.metadata?.userId;
+    if (userId) {
+      await db.user.update({
+        where: { id: userId },
+        data: { subscriptionActive: false },
+      });
+    }
+    break;
+  }
+}
 ```
 
   </Tab>
@@ -374,29 +385,36 @@ When a subscription payment fails:
 
 ```typescript
 // Handle failed payment webhook
-await creem.webhooks.handleEvents(
-  request.body,
-  request.headers['creem-signature'],
-  {
-    onSubscriptionPastDue: async (data) => {
-      const { subscription, customer } = data;
+import { constructWebhookEventEntity } from "creem/webhooks";
 
-      // Notify customer to update payment method
-      await sendPaymentFailedEmail(customer.email, {
-        portalLink: `https://yoursite.com/portal?customer=${customer.id}`,
-      });
+const rawBody = await request.text();
+const event = await constructWebhookEventEntity(rawBody, request.headers, {
+  secret: process.env.CREEM_WEBHOOK_SECRET!,
+});
 
-      // Optionally restrict access or show warning
-      await showPaymentWarning(customer.email);
-    },
+if (event.eventType === "subscription.past_due") {
+  const customer = typeof event.object.customer === "string" ? undefined : event.object.customer;
 
-    onSubscriptionCanceled: async (data) => {
-      // After all retries failed
-      await revokeAccess(data.customer.email);
-      await sendSubscriptionEndedEmail(data.customer.email);
-    },
+  // Notify customer to update payment method
+  if (customer) {
+    await sendPaymentFailedEmail(customer.email, {
+      portalLink: `https://yoursite.com/portal?customer=${customer.id}`,
+    });
+
+    // Optionally restrict access or show warning
+    await showPaymentWarning(customer.email);
   }
-);
+}
+
+if (event.eventType === "subscription.canceled") {
+  const customer = typeof event.object.customer === "string" ? undefined : event.object.customer;
+
+  // After all retries failed
+  if (customer) {
+    await revokeAccess(customer.email);
+    await sendSubscriptionEndedEmail(customer.email);
+  }
+}
 ```
 
 ---
@@ -404,28 +422,16 @@ await creem.webhooks.handleEvents(
 ## Next Steps
 
 <CardGroup cols={2}>
-  <Card
-    title="Customer Portal"
-    icon="user-circle"
-    href="/features/customer-portal"
-  >
+  <Card title="Customer Portal" icon="user-circle" href="/features/customer-portal">
     Enable self-service subscription management
   </Card>
   <Card title="Webhooks" icon="webhook" href="/code/webhooks">
     Handle subscription events automatically
   </Card>
-  <Card
-    title="Managing Subscriptions"
-    icon="gear"
-    href="/features/subscriptions/managing"
-  >
+  <Card title="Managing Subscriptions" icon="gear" href="/features/subscriptions/managing">
     Learn how to update and manage subscriptions
   </Card>
-  <Card
-    title="API Reference"
-    icon="book"
-    href="/api-reference/endpoint/cancel-subscription"
-  >
+  <Card title="API Reference" icon="book" href="/api-reference/endpoint/cancel-subscription">
     View the complete API documentation
   </Card>
 </CardGroup>

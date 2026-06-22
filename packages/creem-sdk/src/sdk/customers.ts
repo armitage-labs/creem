@@ -12,7 +12,9 @@ import { customersRetrieve } from "../funcs/customersRetrieve.js";
 import { customersUpdate } from "../funcs/customersUpdate.js";
 import { ClientSDK, RequestOptions } from "../lib/sdks.js";
 import * as components from "../models/components/index.js";
+import * as operations from "../models/operations/index.js";
 import { unwrapAsync } from "../types/fp.js";
+import { PageIterator, unwrapResultIterator } from "../types/operations.js";
 
 export class Customers extends ClientSDK {
   /**
@@ -25,8 +27,8 @@ export class Customers extends ClientSDK {
     pageNumber?: number | undefined,
     pageSize?: number | undefined,
     options?: RequestOptions,
-  ): Promise<components.CustomerListEntity> {
-    return unwrapAsync(customersList(
+  ): Promise<PageIterator<operations.ListCustomersResponse, { page: number }>> {
+    return unwrapResultIterator(customersList(
       this,
       pageNumber,
       pageSize,

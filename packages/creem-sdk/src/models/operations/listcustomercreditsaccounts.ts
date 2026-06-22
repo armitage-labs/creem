@@ -6,6 +6,7 @@ import * as z from "zod/v3";
 import { remap as remap$ } from "../../lib/primitives.js";
 import { safeParse } from "../../lib/schemas.js";
 import { Result as SafeParseResult } from "../../types/fp.js";
+import * as components from "../components/index.js";
 import { SDKValidationError } from "../errors/sdkvalidationerror.js";
 
 export type ListCustomerCreditsAccountsRequest = {
@@ -25,6 +26,10 @@ export type ListCustomerCreditsAccountsRequest = {
    * Cursor for backward pagination — account ID to end before
    */
   endingBefore?: string | undefined;
+};
+
+export type ListCustomerCreditsAccountsResponse = {
+  result: components.AccountListResponseDto;
 };
 
 /** @internal */
@@ -87,5 +92,55 @@ export function listCustomerCreditsAccountsRequestFromJSON(
     (x) =>
       ListCustomerCreditsAccountsRequest$inboundSchema.parse(JSON.parse(x)),
     `Failed to parse 'ListCustomerCreditsAccountsRequest' from JSON`,
+  );
+}
+
+/** @internal */
+export const ListCustomerCreditsAccountsResponse$inboundSchema: z.ZodType<
+  ListCustomerCreditsAccountsResponse,
+  z.ZodTypeDef,
+  unknown
+> = z.object({
+  Result: components.AccountListResponseDto$inboundSchema,
+}).transform((v) => {
+  return remap$(v, {
+    "Result": "result",
+  });
+});
+/** @internal */
+export type ListCustomerCreditsAccountsResponse$Outbound = {
+  Result: components.AccountListResponseDto$Outbound;
+};
+
+/** @internal */
+export const ListCustomerCreditsAccountsResponse$outboundSchema: z.ZodType<
+  ListCustomerCreditsAccountsResponse$Outbound,
+  z.ZodTypeDef,
+  ListCustomerCreditsAccountsResponse
+> = z.object({
+  result: components.AccountListResponseDto$outboundSchema,
+}).transform((v) => {
+  return remap$(v, {
+    result: "Result",
+  });
+});
+
+export function listCustomerCreditsAccountsResponseToJSON(
+  listCustomerCreditsAccountsResponse: ListCustomerCreditsAccountsResponse,
+): string {
+  return JSON.stringify(
+    ListCustomerCreditsAccountsResponse$outboundSchema.parse(
+      listCustomerCreditsAccountsResponse,
+    ),
+  );
+}
+export function listCustomerCreditsAccountsResponseFromJSON(
+  jsonString: string,
+): SafeParseResult<ListCustomerCreditsAccountsResponse, SDKValidationError> {
+  return safeParse(
+    jsonString,
+    (x) =>
+      ListCustomerCreditsAccountsResponse$inboundSchema.parse(JSON.parse(x)),
+    `Failed to parse 'ListCustomerCreditsAccountsResponse' from JSON`,
   );
 }

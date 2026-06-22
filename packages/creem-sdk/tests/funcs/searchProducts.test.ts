@@ -2,14 +2,14 @@ import { Creem } from "../../src/index.js";
 import { describe, it, expect, beforeAll } from "vitest";
 import { APIError } from "../../src/models/errors/index.js";
 import { fail } from "../../src/lib/matchers.js";
-import { TEST_SERVER_IDX, TEST_MODE } from "../fixtures/testValues.js";
+import { TEST_SERVER, TEST_MODE } from "../fixtures/testValues.js";
 import { creem, getTestProduct } from "../fixtures/testData.js";
 import { ProductBillingType } from "../../src/models/components/index.js";
 
 // Create an instance with invalid API key for auth error tests
 const creemWithInvalidKey = new Creem({
   apiKey: "fail",
-  serverIdx: TEST_SERVER_IDX,
+  server: TEST_SERVER,
 });
 
 describe("searchProducts", () => {
@@ -32,8 +32,8 @@ describe("searchProducts", () => {
   });
 
   it("should search products successfully", async () => {
-    // When using the SDK instance directly, it returns ProductEntity[]
-    const result = await creem.products.search();
+    const page = await creem.products.search();
+    const result = page.result;
 
     // Test direct SDK method
     expect(result).toHaveProperty("items");
@@ -60,7 +60,8 @@ describe("searchProducts", () => {
   it("should handle pagination parameters correctly", async () => {
     const pageSize = 2;
     // Note: search(pageNumber, pageSize) - pageNumber comes first
-    const result = await creem.products.search(1, pageSize);
+    const page = await creem.products.search(1, pageSize);
+    const result = page.result;
 
     expect(result.items.length).toBeLessThanOrEqual(pageSize);
     expect(result.pagination.currentPage).toBe(1);
@@ -74,7 +75,7 @@ describe("searchProducts", () => {
     // Create an instance with empty API key
     const creemWithEmptyKey = new Creem({
       apiKey: "",
-      serverIdx: TEST_SERVER_IDX,
+      server: TEST_SERVER,
     });
 
     try {

@@ -1,6 +1,6 @@
 ---
-title: 'Introduction'
-description: 'Everything you need to start integrating with the Creem API: endpoints, authentication, test mode, webhooks, and SDKs.'
+title: "Introduction"
+description: "Everything you need to start integrating with the Creem API: endpoints, authentication, test mode, webhooks, and SDKs."
 ---
 
 The Creem API is built on REST principles and uses HTTPS for all requests. It returns JSON-encoded responses and uses standard HTTP status codes.
@@ -15,9 +15,8 @@ All API requests are made to the following base URLs:
 </Tabs>
 
 <Warning>
-  The test and production environments are completely isolated. Data created in
-  test mode does not affect your production environment, and API keys are not
-  interchangeable between environments.
+  The test and production environments are completely isolated. Data created in test mode does not
+  affect your production environment, and API keys are not interchangeable between environments.
 </Warning>
 
 ## Authentication
@@ -32,8 +31,8 @@ curl -X GET https://api.creem.io/v1/products \
 You can find your API keys in the [Developers section](https://creem.io/dashboard/developers) of your dashboard.
 
 <Warning>
-  Never expose your API keys in client-side code, public repositories, or logs.
-  Keep them server-side only.
+  Never expose your API keys in client-side code, public repositories, or logs. Keep them
+  server-side only.
 </Warning>
 
 ## Test Mode
@@ -76,26 +75,26 @@ curl -X POST https://test-api.creem.io/v1/checkouts \
 ```
 
 ```typescript TypeScript SDK
-import { createCreem } from 'creem_io';
+import { Creem } from "creem";
 
-const creem = createCreem({
+const creem = new Creem({
   apiKey: process.env.CREEM_API_KEY!,
-  testMode: process.env.NODE_ENV !== 'production',
+  server: process.env.NODE_ENV === "production" ? "prod" : "test",
 });
 
 const checkout = await creem.checkouts.create({
-  productId: 'prod_abc123',
-  successUrl: 'https://yoursite.com/success',
+  productId: "prod_abc123",
+  successUrl: "https://yoursite.com/success",
 });
 ```
 
 ```typescript Next.js
-import { Checkout } from '@creem_io/nextjs';
+import { Checkout } from "@creem_io/nextjs";
 
 export const GET = Checkout({
   apiKey: process.env.CREEM_API_KEY!,
-  testMode: process.env.NODE_ENV !== 'production',
-  defaultSuccessUrl: '/success',
+  testMode: process.env.NODE_ENV !== "production",
+  defaultSuccessUrl: "/success",
 });
 ```
 
@@ -105,22 +104,14 @@ export const GET = Checkout({
 
 Creem sends real-time event notifications to your server via webhooks. Webhook payloads are signed using HMAC-SHA256 so you can verify their authenticity.
 
-**Signature verification:** Every webhook request includes a `creem-signature` header. Verify it using your webhook secret (found in [Developers > Webhook](https://creem.io/dashboard/developers)) and the HMAC-SHA256 algorithm:
+**Signature verification:** Every webhook request includes a `creem-signature` header. Verify it using your webhook secret (found in [Developers > Webhook](https://creem.io/dashboard/developers)) before processing the payload:
 
 ```typescript
-import * as crypto from 'crypto';
+import { verifyWebhookSignature } from "creem/webhooks";
 
-function verifySignature(
-  payload: string,
-  secret: string,
-  signature: string
-): boolean {
-  const computed = crypto
-    .createHmac('sha256', secret)
-    .update(payload)
-    .digest('hex');
-  return computed === signature;
-}
+await verifyWebhookSignature(rawBody, request.headers, {
+  secret: process.env.CREEM_WEBHOOK_SECRET!,
+});
 ```
 
 **Supported events:**
@@ -143,8 +134,7 @@ function verifySignature(
 **Retry policy:** If your endpoint doesn't respond with HTTP 200, Creem retries at 30 seconds, 1 minute, 5 minutes, and 1 hour. You can also resend events manually from the dashboard.
 
 <Card title="Full Webhooks Guide" icon="webhook" href="/code/webhooks">
-  Detailed setup instructions, signature verification, and event payload
-  examples.
+  Detailed setup instructions, signature verification, and event payload examples.
 </Card>
 
 ## Response Codes
@@ -164,7 +154,7 @@ Every error response includes a `trace_id` you can share with support for faster
 ## SDKs & Libraries
 
 <CardGroup cols={2}>
-  <Card title="TypeScript SDK" icon="js" href="/code/sdks/typescript-core">
+  <Card title="TypeScript SDK" icon="js" href="/code/sdks/typescript">
     Core SDK for Node.js and TypeScript projects
   </Card>
   <Card title="Next.js Adapter" icon="react" href="/code/sdks/nextjs">
