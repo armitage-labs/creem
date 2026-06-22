@@ -1,6 +1,6 @@
 {
   "name": "@creem_io/embed",
-  "version": "0.3.0",
+  "version": "0.3.1",
   "description": "Framework-agnostic core for embedding Creem checkout (modal & inline).",
   "main": "./dist/index.js",
   "module": "./dist/index.mjs",

@@ -99,6 +99,8 @@ async function run() {
     price: 400,
     currency: "USD",
     billingType: "recurring",
+    payWhatYouWant: false,
+    suggestedPrice: 1500,
     defaultSuccessUrl: "https://example.com/?status=successful",
     customFields: [
       {
@@ -144,6 +146,8 @@ async function run() {
     price: 400,
     currency: "USD",
     billingType: "recurring",
+    payWhatYouWant: false,
+    suggestedPrice: 1500,
     defaultSuccessUrl: "https://example.com/?status=successful",
     customFields: [
       {
