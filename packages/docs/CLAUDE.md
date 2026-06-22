@@ -259,7 +259,7 @@ Special scope: `*:*` grants full access to all resources.
 |------|---------|
 | `@creem/sdk` | Core TypeScript SDK |
 | `@creem/next` | Next.js adapter with server-side helpers |
-| `creem-cli` | CLI tool for managing products, customers, subscriptions |
+| `@creem_io/cli` | CLI tool for managing products, customers, subscriptions |
 | Webhooks | Event-driven notifications (checkout.completed, subscription.active, etc.) |
 
 ---

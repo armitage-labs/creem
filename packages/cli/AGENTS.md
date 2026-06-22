@@ -65,7 +65,7 @@ This guide equips agents with everything needed to help a human integrate Creem 
 
 ### Authentication
 
-All API calls require the `x-api-key` header. Keys are available at [Dashboard > API Keys](https://creem.io/dashboard/api-keys).
+All API calls require the `x-api-key` header. Keys are available at [Dashboard > API Keys](https://creem.io/dashboard/developers).
 
 | Environment           | Key prefix    | API base                    |
 | --------------------- | ------------- | --------------------------- |
@@ -818,7 +818,7 @@ The environment switches automatically based on the key prefix. For SDKs, change
 | ---------------------- | --------------------------------------------------- |
 | Creem                  | <https://creem.io>                                    |
 | Dashboard              | <https://creem.io/dashboard>                          |
-| API keys               | <https://creem.io/dashboard/api-keys>                 |
+| API keys               | <https://creem.io/dashboard/developers>               |
 | Documentation          | <https://docs.creem.io>                               |
 | API Reference          | <https://docs.creem.io/api-reference>                 |
 | Webhooks               | <https://docs.creem.io/code/webhooks>                 |

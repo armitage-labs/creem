@@ -1,0 +1,23 @@
+# @creem_io/embed
+
+## 0.3.0
+
+### Minor Changes
+
+- 6c10cae: Forward the `creem_ref` affiliate token from the merchant page into the checkout iframe URL. Embedded checkout (`openCheckout` / `mount`, and the React/Vue/Svelte wrappers) now attributes the affiliate in every browser — including Safari (ITP), Firefox (TCP), and Chrome incognito, where the third-party affiliate cookie is dropped inside the iframe. The token is read from the merchant page's `?creem_ref=` query param and appended to the checkout URL. No public API change.
+
+## 0.2.1
+
+### Patch Changes
+
+- 5360f99: Refresh the embedded checkout modal to match the hosted loader: cleaner surface (no coral edge/glow), the close button now sits above the modal (right-aligned), a slightly darker backdrop, and the merchant page's scroll is locked while the modal is open (with overscroll containment so wheel/trackpad never chains through to the page behind it). The framework wrappers (`@creem_io/react`, `/vue`, `/svelte`) pick this up through their `@creem_io/embed` dependency.
+
+## 0.2.0
+
+### Minor Changes
+
+- 8e30c8e: Initial release: embedded checkout SDKs. Framework-agnostic core (`@creem_io/embed`) plus React, Vue, and Svelte wrappers — first-class components for all three frameworks (Svelte also ships `{@attach}` attachments + `use:` actions), overlay + inline modes, `ready`/`completed` lifecycle events, and `theme`/`locale` options. On completion the page auto-navigates to the product's Return URL when one is set.
+
+### Patch Changes
+
+- 8e30c8e: Embedded checkout overlay now closes only via the explicit ✕ button — backdrop-click and Escape no longer dismiss it, so a customer can't accidentally lose an in-progress payment by clicking outside the modal.
