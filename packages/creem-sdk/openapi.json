@@ -2999,6 +2999,16 @@
             "example": "saas",
             "$ref": "#/components/schemas/TaxCategory"
           },
+          "pay_what_you_want": {
+            "type": "boolean",
+            "description": "Enable pay-what-you-want pricing: the customer chooses the amount at checkout. The `price` field acts as the minimum the customer must pay. Only supported for one-time payment products.",
+            "example": false
+          },
+          "suggested_price": {
+            "type": "integer",
+            "description": "Suggested amount in cents, pre-filled at checkout when pay_what_you_want is enabled. Must be greater than or equal to `price` (the minimum). Ignored when pay_what_you_want is disabled.",
+            "example": 1500
+          },
           "default_success_url": {
             "type": "string",
             "description": "The URL to which the user will be redirected after successfull payment.",
@@ -4050,6 +4060,11 @@
             "description": "The number of units for the of the product.",
             "default": 1
           },
+          "custom_price": {
+            "type": "integer",
+            "description": "The per-unit price override (in cents, product currency) this checkout was created with. Only present when the checkout was created with a custom_price. One-time payment products only.",
+            "example": 1500
+          },
           "order": {
             "description": "The order associated with the checkout session.",
             "allOf": [
@@ -4189,6 +4204,11 @@
             "type": "number",
             "description": "The number of units for the order.",
             "example": 1
+          },
+          "custom_price": {
+            "type": "integer",
+            "description": "Override the unit price of the product for this checkout session, in cents (e.g. 1500 = $15.00). The product currency is used, and the amount is per unit: with `units: 3` and `custom_price: 1500` the customer pays 4500. Must be between 100 (one whole unit of the currency) and 99999999. Only supported for one-time payment products. Use this for dynamic pricing models such as pay-what-you-want, donations, or amounts calculated by your application.",
+            "example": 1500
           },
           "discount_code": {
             "type": "string",
