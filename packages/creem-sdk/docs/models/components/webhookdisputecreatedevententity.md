@@ -62,6 +62,7 @@ let value: WebhookDisputeCreatedEventEntity = {
         updatedAt: new Date("2023-01-01T00:00:00Z"),
       },
       units: 1,
+      customPrice: 1500,
       order: {
         id: "<id>",
         mode: "prod",

@@ -40,6 +40,7 @@ let value: WebhookCheckoutCompletedEventEntity = {
       createdAt: new Date("2023-01-01T00:00:00Z"),
       updatedAt: new Date("2023-01-01T00:00:00Z"),
     },
+    customPrice: 1500,
     order: {
       id: "<id>",
       mode: "prod",

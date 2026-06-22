@@ -34,6 +34,10 @@ export type CreateCheckoutRequest = {
    */
   units?: number | undefined;
   /**
+   * Override the unit price of the product for this checkout session, in cents (e.g. 1500 = $15.00). The product currency is used, and the amount is per unit: with `units: 3` and `custom_price: 1500` the customer pays 4500. Must be between 100 (one whole unit of the currency) and 99999999. Only supported for one-time payment products. Use this for dynamic pricing models such as pay-what-you-want, donations, or amounts calculated by your application.
+   */
+  customPrice?: number | undefined;
+  /**
    * Prefill the checkout session with a discount code.
    */
   discountCode?: string | undefined;
@@ -70,6 +74,7 @@ export const CreateCheckoutRequest$inboundSchema: z.ZodType<
   request_id: z.string().optional(),
   product_id: z.string(),
   units: z.number().optional(),
+  custom_price: z.number().int().optional(),
   discount_code: z.string().optional(),
   customer: CustomerRequestEntity$inboundSchema.optional(),
   custom_fields: z.array(CustomFieldRequestEntity$inboundSchema).optional(),
@@ -80,6 +85,7 @@ export const CreateCheckoutRequest$inboundSchema: z.ZodType<
   return remap$(v, {
     "request_id": "requestId",
     "product_id": "productId",
+    "custom_price": "customPrice",
     "discount_code": "discountCode",
     "custom_fields": "customFields",
     "custom_field": "customField",
@@ -91,6 +97,7 @@ export type CreateCheckoutRequest$Outbound = {
   request_id?: string | undefined;
   product_id: string;
   units?: number | undefined;
+  custom_price?: number | undefined;
   discount_code?: string | undefined;
   customer?: CustomerRequestEntity$Outbound | undefined;
   custom_fields?: Array<CustomFieldRequestEntity$Outbound> | undefined;
@@ -108,6 +115,7 @@ export const CreateCheckoutRequest$outboundSchema: z.ZodType<
   requestId: z.string().optional(),
   productId: z.string(),
   units: z.number().optional(),
+  customPrice: z.number().int().optional(),
   discountCode: z.string().optional(),
   customer: CustomerRequestEntity$outboundSchema.optional(),
   customFields: z.array(CustomFieldRequestEntity$outboundSchema).optional(),
@@ -118,6 +126,7 @@ export const CreateCheckoutRequest$outboundSchema: z.ZodType<
   return remap$(v, {
     requestId: "request_id",
     productId: "product_id",
+    customPrice: "custom_price",
     discountCode: "discount_code",
     customFields: "custom_fields",
     customField: "custom_field",
