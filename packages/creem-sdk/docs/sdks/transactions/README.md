@@ -94,7 +94,7 @@ async function run() {
   const result = await creem.transactions.search("cust_1234567890", "ord_1234567890", "prod_1234567890");
 
   for await (const page of result) {
-    console.log(page.result.items);
+    console.log(page);
   }
 }
 
@@ -120,7 +120,7 @@ async function run() {
   if (res.ok) {
     const { value: result } = res;
     for await (const page of result) {
-    console.log(page.result.items);
+    console.log(page);
   }
   } else {
     console.log("transactionsSearch failed:", res.error);

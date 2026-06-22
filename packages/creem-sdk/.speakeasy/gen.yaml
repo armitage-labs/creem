@@ -33,7 +33,7 @@ generation:
     generateNewTests: false
     skipResponseBodyAssertions: false
 typescript:
-  version: 1.5.0
+  version: 1.5.1
   acceptHeaderEnum: true
   additionalDependencies:
     dependencies: {}
@@ -48,6 +48,7 @@ typescript:
     test: vitest run
     test:watch: vitest
   alwaysIncludeInboundAndOutbound: false
+  apiPromiseHelpers: false
   author: Speakeasy
   baseErrorName: CreemError
   clientServerStatusCodesAsErrors: true
@@ -58,6 +59,7 @@ typescript:
   enableReactQuery: false
   enumFormat: union
   envVarPrefix: CREEM
+  eventStreamClassName: EventStream
   exportZodModelNamespace: false
   fixEnumNameSanitization: false
   flatAdditionalProperties: false
@@ -90,6 +92,7 @@ typescript:
   preApplyUnionDiscriminators: true
   preserveModelFieldNames: false
   privateIdentifierPrefix: '#'
+  requestExtras: false
   responseFormat: flat
   sseFlatResponse: false
   templateVersion: v2

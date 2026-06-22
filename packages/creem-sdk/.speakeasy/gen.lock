@@ -1,11 +1,11 @@
 lockVersion: 2.0.0
 id: 091f072e-89b5-4c97-b605-63f1bf64ee97
 management:
-  docChecksum: ced660b9acef164ce26b46e7f3f77c22
+  docChecksum: 570ca766aaf4f7c25f23c846c6f927d5
   docVersion: v1
-  speakeasyVersion: 1.783.1
-  generationVersion: 2.910.1
-  releaseVersion: 1.5.0
+  speakeasyVersion: 1.784.0
+  generationVersion: 2.911.0
+  releaseVersion: 1.5.1
   configChecksum: c93e5667d0d7a8ed4c8d6229e9f7050e
   repoURL: https://github.com/armitage-labs/creem.git
   repoSubDirectory: packages/creem-sdk
@@ -654,7 +654,7 @@ trackedFiles:
     pristine_git_object: e5888a4c7af0aee5100b8d817f757e0d44eddad1
   package.json:
     id: 7030d0b2f71b
-    last_write_checksum: sha1:80d7e90ec6c0a6d999989d4c1b5063e6933e085d
+    last_write_checksum: sha1:2814b4db4ef7b3fcb9bf2a2b1c1d264a8692e970
     pristine_git_object: 4904751d275b1cbba4d414fee5ca96961af59a8c
   src/core.ts:
     id: f431fdbcd144
@@ -766,7 +766,7 @@ trackedFiles:
     pristine_git_object: 0aebd8b0a4867e35cb3348fc52921c3c0b4725b7
   src/lib/config.ts:
     id: 320761608fb3
-    last_write_checksum: sha1:eeb88bbe0e4ec419a6ec27bf279d88ee41a5ba40
+    last_write_checksum: sha1:531d2c80cbde7dc3152fd0e136a6139ab2a6d090
     pristine_git_object: 21c35be9d8c1ab94c37377361515b326d654872b
   src/lib/encodings.ts:
     id: 3bd8ead98afd

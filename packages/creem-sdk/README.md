@@ -378,12 +378,10 @@ const creem = new Creem({
 });
 
 async function run() {
-  const page = await creem.products.search();
+  const result = await creem.products.search();
 
-  console.log(page.result.items);
-
-  for await (const nextPage of page) {
-    console.log(nextPage.result.items);
+  for await (const page of result) {
+    console.log(page);
   }
 }
 
@@ -535,10 +533,10 @@ run();
 
 You can override the default server globally by passing a server name to the `server: keyof typeof ServerList` optional parameter when initializing the SDK client instance. The selected server will then be used as the default on the operations that use it. This table lists the names associated with the available servers:
 
-| Name   | Server                      | Description |
-| ------ | --------------------------- | ----------- |
-| `prod` | `https://api.creem.io`      | Production  |
-| `test` | `https://test-api.creem.io` | Test        |
+| Name   | Server                      | Description                                                          |
+| ------ | --------------------------- | -------------------------------------------------------------------- |
+| `prod` | `https://api.creem.io`      | Production — live API for processing real transactions and data.     |
+| `test` | `https://test-api.creem.io` | Test — sandbox API for development and testing with no real charges. |
 
 #### Example
 
@@ -546,7 +544,7 @@ You can override the default server globally by passing a server name to the `se
 import { Creem } from "creem";
 
 const creem = new Creem({
-  server: "test",
+  server: "prod",
   apiKey: process.env["CREEM_API_KEY"] ?? "",
 });
 
@@ -567,7 +565,7 @@ The default server can also be overridden globally by passing a URL to the `serv
 import { Creem } from "creem";
 
 const creem = new Creem({
-  serverURL: "https://test-api.creem.io",
+  serverURL: "https://api.creem.io",
   apiKey: process.env["CREEM_API_KEY"] ?? "",
 });
 
