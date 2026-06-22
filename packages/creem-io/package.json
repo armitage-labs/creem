@@ -71,10 +71,5 @@
   "deprecated": "This package is deprecated. Please use the 'creem' package instead: npm install creem",
   "engines": {
     "node": ">=16.0.0"
-  },
-  "pnpm": {
-    "onlyBuiltDependencies": [
-      "esbuild"
-    ]
   }
 }
