@@ -80,7 +80,7 @@
   },
   "dependencies": {
     "@creem_io/webhook-types": "workspace:^",
-    "creem": "^1.4.4"
+    "creem": "^1.5.1"
   },
   "peerDependencies": {
     "better-auth": "^1.3.34",

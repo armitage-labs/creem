@@ -180,7 +180,7 @@
   "dependencies": {
     "@fontsource/inter": "^5.2.8",
     "buffer": "^6.0.3",
-    "creem": "^1.4.4",
+    "creem": "^1.5.1",
     "convex-helpers": "^0.1.63",
     "marked": "^17.0.3",
     "remeda": "^2.20.2",
