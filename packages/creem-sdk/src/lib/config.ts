@@ -8,11 +8,11 @@ import { RetryConfig } from "./retries.js";
 import { Params, pathToFunc } from "./url.js";
 
 /**
- * Production
+ * Production — live API for processing real transactions and data.
  */
 export const ServerProd = "prod";
 /**
- * Test
+ * Test — sandbox API for development and testing with no real charges.
  */
 export const ServerTest = "test";
 /**
@@ -64,7 +64,7 @@ export function serverURLFromOptions(options: SDKOptions): URL | null {
 export const SDK_METADATA = {
   language: "typescript",
   openapiDocVersion: "v1",
-  sdkVersion: "1.5.0",
-  genVersion: "2.910.1",
-  userAgent: "speakeasy-sdk/typescript 1.5.0 2.910.1 v1 creem",
+  sdkVersion: "1.5.1",
+  genVersion: "2.911.0",
+  userAgent: "speakeasy-sdk/typescript 1.5.1 2.911.0 v1 creem",
 } as const;
