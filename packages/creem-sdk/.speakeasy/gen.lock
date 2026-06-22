@@ -1,12 +1,12 @@
 lockVersion: 2.0.0
 id: 091f072e-89b5-4c97-b605-63f1bf64ee97
 management:
-  docChecksum: 570ca766aaf4f7c25f23c846c6f927d5
+  docChecksum: 3ba4ffbdbca7415aaa17e7476c90051b
   docVersion: v1
   speakeasyVersion: 1.784.0
   generationVersion: 2.911.0
-  releaseVersion: 1.5.1
-  configChecksum: c93e5667d0d7a8ed4c8d6229e9f7050e
+  releaseVersion: 1.5.2
+  configChecksum: 48011688353e02d9fd3a66c9e4c45526
   repoURL: https://github.com/armitage-labs/creem.git
   repoSubDirectory: packages/creem-sdk
   installationURL: https://github.com/armitage-labs/creem
@@ -101,10 +101,10 @@ trackedFiles:
   docs/models/components/checkboxfieldconfig.md:
     last_write_checksum: sha1:9c75ad8bf74f5133574514adecbba17c7a738806
   docs/models/components/checkout.md:
-    last_write_checksum: sha1:af8bb0cc21d22c2120f2746ea21bf82f98740bd2
+    last_write_checksum: sha1:a126724db3034d2303bfa95f720f7ac03b17a3ab
   docs/models/components/checkoutentity.md:
     id: 67c12f078b56
-    last_write_checksum: sha1:01583ebb43e134b2051f6e6ed9f6d08ab0942ad5
+    last_write_checksum: sha1:d7a09945b6038061d0a6c7caedf6a8bfd35aee7a
     pristine_git_object: 76ae3c39c23dd3a963acc8cae8af7f16bee53a23
   docs/models/components/checkoutentitycustomer.md:
     last_write_checksum: sha1:44133d2b1fc45b0182cc8417c58d37472f71f033
@@ -124,7 +124,7 @@ trackedFiles:
     last_write_checksum: sha1:862ca655d02657b2da30ac63030a3173b2d7e132
   docs/models/components/createcheckoutrequest.md:
     id: 7557df49b680
-    last_write_checksum: sha1:16e352bc3631df47423d73bd5a4090839ab278cb
+    last_write_checksum: sha1:ef443f4c20dac43c5342fb307a1b1c32887e51fb
     pristine_git_object: bb8482df255701edcc1079c08c610b233ecdbbf1
   docs/models/components/createcustomerportallinkrequestentity.md:
     id: f493dd6265e5
@@ -138,7 +138,7 @@ trackedFiles:
     pristine_git_object: 9b48051f449ee9e7d0a4263354c3a113db0012a0
   docs/models/components/createproductrequestentity.md:
     id: 8257f878173d
-    last_write_checksum: sha1:62eb2ac8c4e74b1cc717fc56bf0ed4b08f6a0031
+    last_write_checksum: sha1:aa856ca32d918129ba585f06ee4d1e9df072ca6f
     pristine_git_object: 1a0798d76f055612a9f62df2a317829617cf3d11
   docs/models/components/creditdebitrequestdto.md:
     last_write_checksum: sha1:73b194bec6339ab4508e94ad73a09581c1b00fb5
@@ -203,9 +203,9 @@ trackedFiles:
   docs/models/components/discounttype.md:
     last_write_checksum: sha1:2e162973afe678e1e14418b8348bcb410913a880
   docs/models/components/disputeentity.md:
-    last_write_checksum: sha1:7d33f23c22c51b54aa3f068b2958a0e40df77298
+    last_write_checksum: sha1:fc54c4304415979ea6a53cc32d1497e4bb6e85e6
   docs/models/components/disputeentitycheckout.md:
-    last_write_checksum: sha1:83bbec289fb7284b85aa7138b7bdf52ecf91c57b
+    last_write_checksum: sha1:8ec3d47f82e6e9168536344f044ba056f24cb64b
   docs/models/components/disputeentitycustomer.md:
     last_write_checksum: sha1:133dc2eee0ef70e6a74c1a1cf72cb36ff6d7014f
   docs/models/components/disputeentityorder.md:
@@ -313,7 +313,7 @@ trackedFiles:
   docs/models/components/productstatus.md:
     last_write_checksum: sha1:040a457b714b1727e239bbd7cd8627578f9d5733
   docs/models/components/refundentity.md:
-    last_write_checksum: sha1:c9c5890f2f4915f0a4fecb2f85cb3cda53b0a763
+    last_write_checksum: sha1:12c5bc820894cedaaa68a4ab73a4f08f3f458f8a
   docs/models/components/refundentitycustomer.md:
     last_write_checksum: sha1:2ae29c595b34e02dd76c886f270286b6a4d128d7
   docs/models/components/refundentitysubscription.md:
@@ -421,13 +421,13 @@ trackedFiles:
     last_write_checksum: sha1:4abf7e6fa8315f107b0d401113693cf8b6e66371
     pristine_git_object: dc04743be5b60d9ec782327ae8488a79bbcb2257
   docs/models/components/webhookcheckoutcompletedevententity.md:
-    last_write_checksum: sha1:6a318cfb017d1dc47e27c73adc65504fd3904027
+    last_write_checksum: sha1:083a45f0bd895f388f2f2526043d2970858dd5a9
   docs/models/components/webhookdisputecreatedevententity.md:
-    last_write_checksum: sha1:ca95e2776c0dfb761706c917074abd8503d88cbd
+    last_write_checksum: sha1:fea341e5d9f17262fedfc47f84fdcbcc94c6bc46
   docs/models/components/webhookdisputecreatedevententityeventtype.md:
     last_write_checksum: sha1:56236d7d8526f78cfa2754aaa56c4c7b092dd81a
   docs/models/components/webhookevententity.md:
-    last_write_checksum: sha1:6c59f8845acbd481ff1e51f044a7297f75b99e9f
+    last_write_checksum: sha1:64674517ef47a0306bcc59f3d4723dd6e5df0b98
   docs/models/components/webhookrefundcreatedevententity.md:
     last_write_checksum: sha1:165d254495f20a3a536a5aa311505af9c9ff183d
   docs/models/components/webhookrefundcreatedevententityeventtype.md:
@@ -598,7 +598,7 @@ trackedFiles:
     pristine_git_object: 05718ded2b06e4de3e1722d41e4052c6a2f66ea3
   docs/sdks/checkouts/README.md:
     id: 4fb6631c9f7a
-    last_write_checksum: sha1:fbcfaaa6fbf9f1870cb394f73bfaa4f515313ef3
+    last_write_checksum: sha1:231e67666b4d6167ac0f10b3a738796b23b4e69c
     pristine_git_object: 576619253f2ac8dfc4b648dbd3c2bacd02c78618
   docs/sdks/customercredits/README.md:
     last_write_checksum: sha1:ee47a85fdefa9afc325b3354c3ac17d692deb3e7
@@ -618,7 +618,7 @@ trackedFiles:
     last_write_checksum: sha1:e21bbb0797f956cdb4019dff3f4fc697b2dd19a4
   docs/sdks/products/README.md:
     id: af06255e12ab
-    last_write_checksum: sha1:0d8f7f6b1e9aa2f99f89793df8cec561574d2225
+    last_write_checksum: sha1:1075c1d9459778dc3c06c95fbece40e5231822f2
     pristine_git_object: 380264dd8701ed10359bbde1079f8183b4fc0004
   docs/sdks/stats/README.md:
     last_write_checksum: sha1:f2bebf0d1ad47a4b3e7c8374fabd9204b9f7cde2
@@ -650,11 +650,11 @@ trackedFiles:
     last_write_checksum: sha1:f365e8683dec3c0eb457d1863badea30ebd4b76d
   jsr.json:
     id: 7f6ab7767282
-    last_write_checksum: sha1:6eeb167cc23a13e83d43a9355cf6d8163017a490
+    last_write_checksum: sha1:1c20e883f8070662a28304f51db2fb5a37a75d71
     pristine_git_object: e5888a4c7af0aee5100b8d817f757e0d44eddad1
   package.json:
     id: 7030d0b2f71b
-    last_write_checksum: sha1:2814b4db4ef7b3fcb9bf2a2b1c1d264a8692e970
+    last_write_checksum: sha1:e3f5ee750ce6773325b0c6f2f64c1c0c2dbd60dd
     pristine_git_object: 4904751d275b1cbba4d414fee5ca96961af59a8c
   src/core.ts:
     id: f431fdbcd144
@@ -766,7 +766,7 @@ trackedFiles:
     pristine_git_object: 0aebd8b0a4867e35cb3348fc52921c3c0b4725b7
   src/lib/config.ts:
     id: 320761608fb3
-    last_write_checksum: sha1:531d2c80cbde7dc3152fd0e136a6139ab2a6d090
+    last_write_checksum: sha1:5d0034c22aa5ff2e47207587b41fc91fd964be88
     pristine_git_object: 21c35be9d8c1ab94c37377361515b326d654872b
   src/lib/encodings.ts:
     id: 3bd8ead98afd
@@ -842,7 +842,7 @@ trackedFiles:
     pristine_git_object: 0955a573c2ce989d63c737410ab8cc28706d9f74
   src/mcp-server/mcp-server.ts:
     id: aabbc4ab07c1
-    last_write_checksum: sha1:d262d22f858c8542f12595c026284475a2257aaa
+    last_write_checksum: sha1:3e5dc8a95b0ee32d1a6b944230af0470be2a6074
     pristine_git_object: 4153fdc4ac7a39fd057e811c809b67b84b86cb9b
   src/mcp-server/prompts.ts:
     id: 26f3d73cbf31
@@ -858,7 +858,7 @@ trackedFiles:
     pristine_git_object: c25696d4c4f70e081fa5d87ad6891874c509a577
   src/mcp-server/server.ts:
     id: 2784dd48e82a
-    last_write_checksum: sha1:d539d077549842f79e29491c3dcb2f6df620f2e3
+    last_write_checksum: sha1:bfae08701447e77d9b2ca0ca604f206af1edddd4
     pristine_git_object: 93c59790bc4d517a18cdd7e83fe3a2dceffda1c5
   src/mcp-server/shared.ts:
     id: 074e80d4be1e
@@ -970,7 +970,7 @@ trackedFiles:
     last_write_checksum: sha1:0d2e7e301ffe8e889dd9c37c3ce480af4d980918
   src/models/components/checkoutentity.ts:
     id: 9375d8731949
-    last_write_checksum: sha1:4f64ae78d64872919deec4502e870eb1614a0db3
+    last_write_checksum: sha1:23af2c76188a1769b462eb4dfb15de656cb14d04
     pristine_git_object: dffb33e7306cb4455729933c528202db25b4067f
   src/models/components/coupondurationtype.ts:
     last_write_checksum: sha1:b157a60acf38784a432bcc548d1f539c89a67170
@@ -978,7 +978,7 @@ trackedFiles:
     last_write_checksum: sha1:98196e2880f82f42f3ea61511da7d436ac15eee6
   src/models/components/createcheckoutrequest.ts:
     id: 7b48e312d3c0
-    last_write_checksum: sha1:a397b3ca1e1b3e38c66d6f609715775551ed2f79
+    last_write_checksum: sha1:c8ac1b50d9e145745d6fa590f2315aefc6185c8a
     pristine_git_object: ee9527237bb65cee6b6934787e92ff42e4c91a37
   src/models/components/createcustomerportallinkrequestentity.ts:
     id: 62b7ec08eb9a
@@ -992,7 +992,7 @@ trackedFiles:
     pristine_git_object: 8ca5ea4adb2ad2285208dd928407c9e239973448
   src/models/components/createproductrequestentity.ts:
     id: 81f983fd0163
-    last_write_checksum: sha1:837892e5634946afac0f08c6ffbd5a5923b14545
+    last_write_checksum: sha1:8c387b25a8f4181dea4148037cf2c5f29bbcfdc2
     pristine_git_object: f903f420dbbf910473c8620607273dba93f0f14e
   src/models/components/creditdebitrequestdto.ts:
     last_write_checksum: sha1:fbfee1d1e604d2a4c34195665de53328441578bd
@@ -1433,7 +1433,7 @@ examples:
         header:
           x-api-key: "<value>"
       requestBody:
-        application/json: {"name": "<value>", "description": "at through very dishearten knife ashamed baa beret amongst", "image_url": "https://picsum.photos/200/300", "price": 400, "currency": "USD", "billing_type": "recurring", "default_success_url": "https://example.com/?status=successful", "custom_fields": [{"type": "checkbox", "key": "companyName", "label": "Company Name", "text": {"max_length": 200, "min_length": 1}, "checkbox": {"label": "I agree to the [terms and conditions](https://example.com/terms)"}}], "abandoned_cart_recovery_enabled": false}
+        application/json: {"name": "<value>", "description": "at through very dishearten knife ashamed baa beret amongst", "image_url": "https://picsum.photos/200/300", "price": 400, "currency": "USD", "billing_type": "recurring", "pay_what_you_want": false, "suggested_price": 1500, "default_success_url": "https://example.com/?status=successful", "custom_fields": [{"type": "checkbox", "key": "companyName", "label": "Company Name", "text": {"max_length": 200, "min_length": 1}, "checkbox": {"label": "I agree to the [terms and conditions](https://example.com/terms)"}}], "abandoned_cart_recovery_enabled": false}
       responses:
         "200":
           application/json: {"id": "<id>", "mode": "sandbox", "object": "{}", "name": "<value>", "description": "This is a sample product description.", "image_url": "https://example.com/image.jpg", "features": [{"id": "<id>", "type": "licenseKey", "description": "Get access to discord server."}], "price": 400, "currency": "USD", "billing_type": "recurring", "billing_period": "every-month", "status": "archived", "tax_mode": "inclusive", "tax_category": "ebooks", "product_url": "https://creem.io/product/prod_123123123123", "default_success_url": "https://example.com/?status=successful", "created_at": "2023-01-01T00:00:00Z", "updated_at": "2023-01-01T00:00:00Z"}
@@ -1535,17 +1535,17 @@ examples:
           x-api-key: "<value>"
       responses:
         "200":
-          application/json: {"id": "<id>", "mode": "test", "object": "{}", "status": "completed", "product": "{\"id\":\"<id>\",\"mode\":\"test\",\"object\":\"<value>\",\"name\":\"<value>\",\"description\":\"This is a sample product description.\",\"image_url\":\"https://example.com/image.jpg\",\"features\":[{\"id\":\"<id>\",\"type\":\"<value>\",\"description\":\"Get access to discord server.\"}],\"price\":400,\"currency\":\"EUR\",\"billing_type\":\"recurring\",\"billing_period\":\"every-month\",\"status\":\"<value>\",\"tax_mode\":\"inclusive\",\"tax_category\":\"saas\",\"product_url\":\"https://creem.io/product/prod_123123123123\",\"default_success_url\":\"https://example.com/?status=successful\",\"created_at\":\"2023-01-01T00:00:00Z\",\"updated_at\":\"2023-01-01T00:00:00Z\"}", "units": 1, "order": {"id": "<id>", "mode": "sandbox", "object": "{}", "product": "Unbranded Rubber Chair", "transaction": "tx_1234567890", "discount": "dis_1234567890", "amount": 2000, "sub_total": 1800, "tax_amount": 200, "discount_amount": 100, "amount_due": 1900, "amount_paid": 1900, "currency": "USD", "fx_amount": 15, "fx_currency": "EUR", "fx_rate": 1.2, "status": "pending", "type": "recurring", "created_at": "2023-09-13T00:00:00Z", "updated_at": "2023-09-13T00:00:00Z"}, "subscription": "{\"id\":\"<id>\",\"mode\":\"test\",\"object\":\"subscription\",\"product\":\"Handcrafted Metal Pizza\",\"customer\":{\"id\":\"<id>\",\"mode\":\"test\",\"object\":\"<value>\",\"email\":\"user@example.com\",\"name\":\"John Doe\",\"country\":\"US\",\"created_at\":\"2023-01-01T00:00:00Z\",\"updated_at\":\"2023-01-01T00:00:00Z\"},\"collection_method\":\"charge_automatically\",\"status\":\"active\",\"last_transaction_id\":\"tran_3e6Z6TzvHKdsjEgXnGDEp0\",\"last_transaction\":{\"id\":\"<id>\",\"mode\":\"test\",\"object\":\"transaction\",\"amount\":2000,\"amount_paid\":2000,\"discount_amount\":2000,\"currency\":\"EUR\",\"type\":\"<value>\",\"tax_country\":\"US\",\"tax_amount\":2000,\"status\":\"<value>\",\"refunded_amount\":2000,\"created_at\":8159.34},\"last_transaction_date\":\"2024-09-12T12:34:56Z\",\"next_transaction_date\":\"2024-09-12T12:34:56Z\",\"current_period_start_date\":\"2024-09-12T12:34:56Z\",\"current_period_end_date\":\"2024-09-12T12:34:56Z\",\"canceled_at\":\"2024-09-12T12:34:56Z\",\"created_at\":\"2024-01-01T00:00:00Z\",\"updated_at\":\"2024-09-12T12:34:56Z\"}", "customer": "<value>", "success_url": "https://example.com/return", "license_keys": [{"id": "<id>", "mode": "test", "object": "<value>", "product_id": "prod_abc123", "status": "expired", "key": "ABC123-XYZ456-XYZ456-XYZ456", "activation": 5, "activation_limit": 1, "expires_at": "2023-09-13T00:00:00Z", "created_at": "2023-09-13T00:00:00Z", "instance": {"id": "<id>", "mode": "sandbox", "object": "license-instance", "name": "My Customer License Instance", "status": "active", "created_at": "2023-09-13T00:00:00Z"}}], "metadata": {"userId": "user_123", "visitCount": 42, "lastVisit": "2023-04-01"}, "discount": {"id": "dis_3e6Z6TzvHKdsjEgXnGDEp0", "discountCode": "HOLIDAY2024"}}
+          application/json: {"id": "<id>", "mode": "test", "object": "{}", "status": "completed", "product": "{\"id\":\"<id>\",\"mode\":\"test\",\"object\":\"<value>\",\"name\":\"<value>\",\"description\":\"This is a sample product description.\",\"image_url\":\"https://example.com/image.jpg\",\"features\":[{\"id\":\"<id>\",\"type\":\"<value>\",\"description\":\"Get access to discord server.\"}],\"price\":400,\"currency\":\"EUR\",\"billing_type\":\"recurring\",\"billing_period\":\"every-month\",\"status\":\"<value>\",\"tax_mode\":\"inclusive\",\"tax_category\":\"saas\",\"product_url\":\"https://creem.io/product/prod_123123123123\",\"default_success_url\":\"https://example.com/?status=successful\",\"created_at\":\"2023-01-01T00:00:00Z\",\"updated_at\":\"2023-01-01T00:00:00Z\"}", "units": 1, "custom_price": 1500, "order": {"id": "<id>", "mode": "sandbox", "object": "{}", "product": "Unbranded Rubber Chair", "transaction": "tx_1234567890", "discount": "dis_1234567890", "amount": 2000, "sub_total": 1800, "tax_amount": 200, "discount_amount": 100, "amount_due": 1900, "amount_paid": 1900, "currency": "USD", "fx_amount": 15, "fx_currency": "EUR", "fx_rate": 1.2, "status": "pending", "type": "recurring", "created_at": "2023-09-13T00:00:00Z", "updated_at": "2023-09-13T00:00:00Z"}, "subscription": "{\"id\":\"<id>\",\"mode\":\"test\",\"object\":\"subscription\",\"product\":\"Handcrafted Metal Pizza\",\"customer\":{\"id\":\"<id>\",\"mode\":\"test\",\"object\":\"<value>\",\"email\":\"user@example.com\",\"name\":\"John Doe\",\"country\":\"US\",\"created_at\":\"2023-01-01T00:00:00Z\",\"updated_at\":\"2023-01-01T00:00:00Z\"},\"collection_method\":\"charge_automatically\",\"status\":\"active\",\"last_transaction_id\":\"tran_3e6Z6TzvHKdsjEgXnGDEp0\",\"last_transaction\":{\"id\":\"<id>\",\"mode\":\"test\",\"object\":\"transaction\",\"amount\":2000,\"amount_paid\":2000,\"discount_amount\":2000,\"currency\":\"EUR\",\"type\":\"<value>\",\"tax_country\":\"US\",\"tax_amount\":2000,\"status\":\"<value>\",\"refunded_amount\":2000,\"created_at\":8159.34},\"last_transaction_date\":\"2024-09-12T12:34:56Z\",\"next_transaction_date\":\"2024-09-12T12:34:56Z\",\"current_period_start_date\":\"2024-09-12T12:34:56Z\",\"current_period_end_date\":\"2024-09-12T12:34:56Z\",\"canceled_at\":\"2024-09-12T12:34:56Z\",\"created_at\":\"2024-01-01T00:00:00Z\",\"updated_at\":\"2024-09-12T12:34:56Z\"}", "customer": "<value>", "success_url": "https://example.com/return", "license_keys": [{"id": "<id>", "mode": "test", "object": "<value>", "product_id": "prod_abc123", "status": "expired", "key": "ABC123-XYZ456-XYZ456-XYZ456", "activation": 5, "activation_limit": 1, "expires_at": "2023-09-13T00:00:00Z", "created_at": "2023-09-13T00:00:00Z", "instance": {"id": "<id>", "mode": "sandbox", "object": "license-instance", "name": "My Customer License Instance", "status": "active", "created_at": "2023-09-13T00:00:00Z"}}], "metadata": {"userId": "user_123", "visitCount": 42, "lastVisit": "2023-04-01"}, "discount": {"id": "dis_3e6Z6TzvHKdsjEgXnGDEp0", "discountCode": "HOLIDAY2024"}}
   createCheckout:
     speakeasy-default-create-checkout:
       parameters:
         header:
           x-api-key: "<value>"
       requestBody:
-        application/json: {"product_id": "prod_1234567890", "units": 1, "discount_code": "SUMMER2024", "customer": {"id": "cust_1234567890", "email": "user@example.com"}, "custom_fields": [{"type": "text", "key": "companyName", "label": "Company Name", "text": {"max_length": 200, "min_length": 1}, "checkbox": {"label": "I agree to the [terms and conditions](https://example.com/terms)"}}], "metadata": {"userId": "user_123", "visitCount": 42, "lastVisit": "2023-04-01"}}
+        application/json: {"product_id": "prod_1234567890", "units": 1, "custom_price": 1500, "discount_code": "SUMMER2024", "customer": {"id": "cust_1234567890", "email": "user@example.com"}, "custom_fields": [{"type": "text", "key": "companyName", "label": "Company Name", "text": {"max_length": 200, "min_length": 1}, "checkbox": {"label": "I agree to the [terms and conditions](https://example.com/terms)"}}], "metadata": {"userId": "user_123", "visitCount": 42, "lastVisit": "2023-04-01"}}
       responses:
         "200":
-          application/json: {"id": "<id>", "mode": "prod", "object": "{}", "status": "completed", "product": "Generic Bronze Bike", "units": 1, "order": {"id": "<id>", "mode": "sandbox", "object": "{}", "product": "Recycled Frozen Keyboard", "transaction": "tx_1234567890", "discount": "dis_1234567890", "amount": 2000, "sub_total": 1800, "tax_amount": 200, "discount_amount": 100, "amount_due": 1900, "amount_paid": 1900, "currency": "USD", "fx_amount": 15, "fx_currency": "EUR", "fx_rate": 1.2, "status": "pending", "type": "recurring", "created_at": "2023-09-13T00:00:00Z", "updated_at": "2023-09-13T00:00:00Z"}, "subscription": "<value>", "customer": "<value>", "success_url": "https://example.com/return", "license_keys": [{"id": "<id>", "mode": "prod", "object": "<value>", "product_id": "prod_abc123", "status": "active", "key": "ABC123-XYZ456-XYZ456-XYZ456", "activation": 5, "activation_limit": 1, "expires_at": "2023-09-13T00:00:00Z", "created_at": "2023-09-13T00:00:00Z", "instance": {"id": "<id>", "mode": "test", "object": "license-instance", "name": "My Customer License Instance", "status": "active", "created_at": "2023-09-13T00:00:00Z"}}], "metadata": {"userId": "user_123", "visitCount": 42, "lastVisit": "2023-04-01"}, "discount": {"id": "dis_3e6Z6TzvHKdsjEgXnGDEp0", "discountCode": "HOLIDAY2024"}}
+          application/json: {"id": "<id>", "mode": "prod", "object": "{}", "status": "completed", "product": "Generic Bronze Bike", "units": 1, "custom_price": 1500, "order": {"id": "<id>", "mode": "sandbox", "object": "{}", "product": "Recycled Frozen Keyboard", "transaction": "tx_1234567890", "discount": "dis_1234567890", "amount": 2000, "sub_total": 1800, "tax_amount": 200, "discount_amount": 100, "amount_due": 1900, "amount_paid": 1900, "currency": "USD", "fx_amount": 15, "fx_currency": "EUR", "fx_rate": 1.2, "status": "pending", "type": "recurring", "created_at": "2023-09-13T00:00:00Z", "updated_at": "2023-09-13T00:00:00Z"}, "subscription": "<value>", "customer": "<value>", "success_url": "https://example.com/return", "license_keys": [{"id": "<id>", "mode": "prod", "object": "<value>", "product_id": "prod_abc123", "status": "active", "key": "ABC123-XYZ456-XYZ456-XYZ456", "activation": 5, "activation_limit": 1, "expires_at": "2023-09-13T00:00:00Z", "created_at": "2023-09-13T00:00:00Z", "instance": {"id": "<id>", "mode": "test", "object": "license-instance", "name": "My Customer License Instance", "status": "active", "created_at": "2023-09-13T00:00:00Z"}}], "metadata": {"userId": "user_123", "visitCount": 42, "lastVisit": "2023-04-01"}, "discount": {"id": "dis_3e6Z6TzvHKdsjEgXnGDEp0", "discountCode": "HOLIDAY2024"}}
   activateLicense:
     speakeasy-default-activate-license:
       parameters:
@@ -2058,6 +2058,7 @@ examples:
           application/json: {"error": {"type": "invalid_request_error", "code": {}, "message": "Total debits must equal total credits", "param": {}, "request_id": "req_abc123def456"}}
 examplesVersion: 1.0.2
 generatedTests: {}
+releaseNotes: "## Typescript SDK Changes:\n* `creem.products.create()`:  `request` **Changed**\n* `creem.checkouts.retrieve()`:  `response.customPrice` **Added**\n* `creem.checkouts.create()`: \n  *  `request.customPrice` **Added**\n  *  `response.customPrice` **Added**\n"
 generatedFiles:
   - .devcontainer/README.md
   - .devcontainer/devcontainer.json

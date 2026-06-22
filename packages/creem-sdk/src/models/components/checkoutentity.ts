@@ -147,6 +147,10 @@ export type CheckoutEntity = {
    */
   units?: number | undefined;
   /**
+   * The per-unit price override (in cents, product currency) this checkout was created with. Only present when the checkout was created with a custom_price. One-time payment products only.
+   */
+  customPrice?: number | undefined;
+  /**
    * The order associated with the checkout session.
    */
   order?: OrderEntity | undefined;
@@ -380,6 +384,7 @@ export const CheckoutEntity$inboundSchema: z.ZodType<
   request_id: z.string().optional(),
   product: z.union([ProductEntity$inboundSchema, z.string()]),
   units: z.number().default(1),
+  custom_price: z.number().int().optional(),
   order: OrderEntity$inboundSchema.optional(),
   subscription: z.union([SubscriptionEntity$inboundSchema, z.string()])
     .optional(),
@@ -394,6 +399,7 @@ export const CheckoutEntity$inboundSchema: z.ZodType<
 }).transform((v) => {
   return remap$(v, {
     "request_id": "requestId",
+    "custom_price": "customPrice",
     "custom_fields": "customFields",
     "checkout_url": "checkoutUrl",
     "success_url": "successUrl",
@@ -409,6 +415,7 @@ export type CheckoutEntity$Outbound = {
   request_id?: string | undefined;
   product: ProductEntity$Outbound | string;
   units: number;
+  custom_price?: number | undefined;
   order?: OrderEntity$Outbound | undefined;
   subscription?: SubscriptionEntity$Outbound | string | undefined;
   customer?: CustomerEntity$Outbound | string | undefined;
@@ -434,6 +441,7 @@ export const CheckoutEntity$outboundSchema: z.ZodType<
   requestId: z.string().optional(),
   product: z.union([ProductEntity$outboundSchema, z.string()]),
   units: z.number().default(1),
+  customPrice: z.number().int().optional(),
   order: OrderEntity$outboundSchema.optional(),
   subscription: z.union([SubscriptionEntity$outboundSchema, z.string()])
     .optional(),
@@ -448,6 +456,7 @@ export const CheckoutEntity$outboundSchema: z.ZodType<
 }).transform((v) => {
   return remap$(v, {
     requestId: "request_id",
+    customPrice: "custom_price",
     customFields: "custom_fields",
     checkoutUrl: "checkout_url",
     successUrl: "success_url",

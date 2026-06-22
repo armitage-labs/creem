@@ -13,10 +13,10 @@ export const Checkout = ({
   testMode = false,
   defaultSuccessUrl,
 }: CheckoutRouteInstance) => {
-  // serverIdx: 0 = production, 1 = test
+  // server: "prod" = production, "test" = test
   const creem = new Creem({
     apiKey,
-    serverIdx: testMode ? 1 : 0,
+    server: testMode ? "test" : "prod",
   });
 
   return async (req: NextRequest) => {
