@@ -156,10 +156,6 @@
               {
                 "group": "CMS",
                 "pages": ["integrations/strapi"]
-              },
-              {
-                "group": "AI Chatbot",
-                "pages": ["integrations/ai-negotiation-bot"]
               }
             ]
           },
