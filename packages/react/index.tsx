@@ -4,6 +4,7 @@ import * as React from "react";
 import {
   openCheckout,
   mount,
+  captureAffiliateRef,
   CreemEmbedCheckout,
   type CreemCheckoutCompleted,
   type CreemCheckoutOptions,
@@ -15,6 +16,7 @@ import {
 
 export {
   openCheckout,
+  captureAffiliateRef,
   CreemEmbedCheckout,
   type CreemCheckoutCompleted,
   type CreemCheckoutOptions,

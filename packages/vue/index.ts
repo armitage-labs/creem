@@ -2,6 +2,7 @@ import { defineComponent, h, onBeforeUnmount, onMounted, ref, type PropType } fr
 import {
   openCheckout,
   mount,
+  captureAffiliateRef,
   CreemEmbedCheckout,
   type CreemCheckoutCompleted,
   type CreemCheckoutOptions,
@@ -13,6 +14,7 @@ import {
 
 export {
   openCheckout,
+  captureAffiliateRef,
   CreemEmbedCheckout,
   type CreemCheckoutCompleted,
   type CreemCheckoutOptions,

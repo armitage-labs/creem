@@ -51,17 +51,69 @@ export interface CreemCheckoutInlineHandle {
   destroy: () => void;
 }
 
-// Read the affiliate ref token (`creem_ref`) from the MERCHANT page URL. The
-// /affiliate redirect lands the visitor on the merchant's own site with
-// `?creem_ref=<signed token>` — first-party to the visitor, so it's readable
-// here even in browsers that drop our third-party cookie (Safari ITP,
-// Firefox TCP). Returns null when absent or the URL can't be parsed.
-function readAffiliateRef(): string | null {
+// Storage key for the affiliate ref token, persisted first-party on the
+// merchant's own origin (not our partitioned third-party context) so it survives
+// internal navigation away from the /affiliate landing URL (e.g. `/` ->
+// `/pricing`) before the embed opens.
+const REF_STORAGE_KEY = "creem_ref";
+
+function readRefFromUrl(): string | null {
   try {
     return new URLSearchParams(window.location.search).get("creem_ref");
   } catch {
     return null;
   }
+}
+
+function storeRef(token: string): void {
+  try {
+    window.localStorage.setItem(REF_STORAGE_KEY, token);
+  } catch {
+    /* localStorage unavailable (private mode / disabled) — best-effort. */
+  }
+}
+
+function readStoredRef(): string | null {
+  try {
+    return window.localStorage.getItem(REF_STORAGE_KEY);
+  } catch {
+    return null;
+  }
+}
+
+// Read the affiliate ref token (`creem_ref`). The /affiliate redirect lands the
+// visitor on the merchant's own site with `?creem_ref=<signed token>` —
+// first-party to the visitor, so it's readable here even though the cross-site
+// checkout iframe receives no cookie in any browser. The URL wins (a fresh
+// affiliate link overwrites the stored value), and we persist it
+// to first-party storage so it survives internal navigation that drops the param
+// before the embed opens; we fall back to that stored value when the URL has none
+// (ENG-757). A stale/expired token is rejected server-side (HMAC + TTL) and the
+// cookie wins anyway, so a leftover stored value is inert.
+function readAffiliateRef(): string | null {
+  if (typeof window === "undefined") return null;
+  const fromUrl = readRefFromUrl();
+  if (fromUrl) {
+    storeRef(fromUrl);
+    return fromUrl;
+  }
+  return readStoredRef();
+}
+
+/**
+ * Capture the affiliate ref token (`creem_ref`) from the current URL into
+ * first-party storage. `openCheckout`/`mount` already do this, but only when the
+ * visitor opens the checkout — if your affiliate landing page and your checkout
+ * page differ (the visitor lands on `/?creem_ref=…`, then navigates to
+ * `/pricing` before buying), the param is gone from the URL by the time checkout
+ * opens, and since the embed relies on the token (the cross-site iframe gets no
+ * cookie in any browser), attribution is then lost. Call this once early in your app — e.g. a root
+ * layout effect — so the token is captured on the landing page and stays
+ * available later. Safe anywhere: a no-op on the server and when no token is
+ * present. Returns the active token (URL or previously stored), or null.
+ */
+export function captureAffiliateRef(): string | null {
+  return readAffiliateRef();
 }
 
 // Append the merchant-controlled presentation params (`theme`, `locale`) and the

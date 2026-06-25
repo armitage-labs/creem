@@ -1,6 +1,7 @@
 import {
   openCheckout,
   mount,
+  captureAffiliateRef,
   CreemEmbedCheckout,
   type CreemCheckoutCompleted,
   type CreemCheckoutOptions,
@@ -14,6 +15,7 @@ import {
 export {
   openCheckout,
   mount,
+  captureAffiliateRef,
   CreemEmbedCheckout,
   type CreemCheckoutCompleted,
   type CreemCheckoutOptions,
