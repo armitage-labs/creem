@@ -84,20 +84,37 @@ function readStoredRef(): string | null {
 // Read the affiliate ref token (`creem_ref`). The /affiliate redirect lands the
 // visitor on the merchant's own site with `?creem_ref=<signed token>` —
 // first-party to the visitor, so it's readable here even though the cross-site
-// checkout iframe receives no cookie in any browser. The URL wins (a fresh
-// affiliate link overwrites the stored value), and we persist it
-// to first-party storage so it survives internal navigation that drops the param
-// before the embed opens; we fall back to that stored value when the URL has none
-// (ENG-757). A stale/expired token is rejected server-side (HMAC + TTL) and the
-// cookie wins anyway, so a leftover stored value is inert.
+// checkout iframe receives no cookie in any browser. We persist it to first-party
+// storage so it survives internal navigation that drops the param before the embed
+// opens, and fall back to that stored value when the URL has none (ENG-757). See
+// readAffiliateRef below for the newer-token-wins ordering.
+// Mint time (`iat`, ms epoch) of a signed token, read from its base64url JSON
+// payload (no signature check — that's the server's job). Returns 0 when it can't
+// be parsed, so a malformed token always loses the freshness comparison.
+function tokenIat(token: string): number {
+  try {
+    let b64 = token.split(".")[0].replace(/-/g, "+").replace(/_/g, "/");
+    while (b64.length % 4) b64 += "=";
+    const payload = JSON.parse(atob(b64)) as { iat?: number };
+    return typeof payload.iat === "number" ? payload.iat : 0;
+  } catch {
+    return 0;
+  }
+}
+
 function readAffiliateRef(): string | null {
   if (typeof window === "undefined") return null;
   const fromUrl = readRefFromUrl();
-  if (fromUrl) {
+  const stored = readStoredRef();
+  // Keep the NEWER of the two by mint time (`iat`, server-stamped → immune to
+  // client clock skew): a fresh affiliate click wins and is persisted; a stale
+  // URL token (old bookmark / email link) can't clobber a newer stored ref. The
+  // server still enforces the signature + `exp`, so an expired token is rejected.
+  if (fromUrl && (!stored || tokenIat(fromUrl) >= tokenIat(stored))) {
     storeRef(fromUrl);
     return fromUrl;
   }
-  return readStoredRef();
+  return stored || fromUrl || null;
 }
 
 /**
