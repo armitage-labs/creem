@@ -224,18 +224,24 @@ function subscribe(checkoutUrl: string, options: CreemCheckoutOptions): () => vo
         redirect: data.redirect,
         redirectUrl: data.redirectUrl,
       };
-      options.onComplete?.(detail);
       // Single-event model: no separate "redirect" event. The checkout shows a
       // ~3s "Returning to merchant" confirmation in-iframe; we mirror that delay
       // here, then navigate the top window (a cross-origin iframe can't move it
-      // itself). Cancelled on close/unsubscribe below, so a checkout the
-      // customer closed never navigates the merchant.
+      // itself).
+      //
+      // Order matters: the timer is scheduled BEFORE onComplete. A merchant that
+      // calls handle.close() inside onComplete triggers unsubscribe() ->
+      // clearTimeout below, which must find a LIVE timer to cancel. If we
+      // scheduled after onComplete, close()'s clearTimeout would run against a
+      // still-null timer and the redirect would fire anyway — navigating a
+      // customer who explicitly closed the modal.
       if (detail.redirectUrl) {
         const url = detail.redirectUrl;
         redirectTimer = setTimeout(() => {
           window.location.href = url;
         }, 3000);
       }
+      options.onComplete?.(detail);
     }
   }
   window.addEventListener("message", handler);

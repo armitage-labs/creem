@@ -172,7 +172,30 @@ First-class packages for **React (≥18), Vue (≥3), and Svelte (≥4)** with t
   </Tab>
 </Tabs>
 
-Every SDK takes the same options as the loader below (`theme`, `locale`) and emits the same `ready` + `completed` events. On completion, if the product has a **Return URL**, the page navigates there automatically (after a short confirmation screen) — handle `onComplete` for custom behavior.
+Every SDK takes the same options as the loader below (`theme`, `locale`) and emits the same `ready` + `completed` events.
+
+On completion the embed behaves exactly like the hosted checkout's return page:
+
+- **Product has a Return URL** → a short confirmation screen, then the top window navigates there (~3s).
+- **No Return URL** → a "View order" button; the embed stays open until the customer closes it.
+
+To keep customers fully inline, call `close()` inside `onComplete` — it dismisses the embed **and cancels the pending redirect**. Cancelling the redirect from `close()` requires `@creem_io/embed` ≥ 0.3.3 (or `@creem_io/react` / `/vue` / `/svelte` ≥ 0.2.3); on older versions `close()` dismisses the modal but the redirect still fires.
+
+<Frame caption="Product has a Return URL — a confirmation screen with a 'Returning to Merchant' countdown, then the redirect.">
+  <img
+    style={{ borderRadius: '0.5rem' }}
+    src="https://nucn5fajkcc6sgrd.public.blob.vercel-storage.com/embed-completion-return-url.png"
+    alt="Embedded checkout success screen: 'Thank you for your payment' with a 'Returning to Merchant in 2s' countdown button"
+  />
+</Frame>
+
+<Frame caption="No Return URL — a 'View order' button; the embed stays open until the customer closes it (or you call close() in onComplete).">
+  <img
+    style={{ borderRadius: '0.5rem' }}
+    src="https://nucn5fajkcc6sgrd.public.blob.vercel-storage.com/embed-completion-view-order.png"
+    alt="Embedded checkout success screen: 'Thank you for your payment' with a 'View Order' button"
+  />
+</Frame>
 
 #### Open on click (dynamic sessions)
 
@@ -231,7 +254,7 @@ For non-framework apps, or when you want a global `Creem` object. No build step 
   </Step>
 </Steps>
 
-The overlay shows the confirmation screen on success; call `Creem.close()` from `onComplete` if you want it to dismiss automatically.
+The overlay shows the confirmation screen on success; call `Creem.close()` from `onComplete` to dismiss it — this also **cancels the pending redirect** to the Return URL, keeping the customer on your page.
 
 #### Inline
 
