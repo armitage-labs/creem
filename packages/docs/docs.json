@@ -85,6 +85,7 @@
                 ]
               },
               "features/one-time-payment",
+              "features/pay-what-you-want",
               {
                 "group": "Subscriptions",
                 "pages": [
