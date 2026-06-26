@@ -301,6 +301,58 @@ Creem.openCheckout({
 
 By default the checkout follows the customer's **browser language**. Pass `locale` to force a specific one (e.g. to match your own site's language). Unsupported locales fall back to English. See the [supported languages](/features/checkout/checkout-api) for the full list.
 
+## Affiliate attribution
+
+If you run the Creem [Affiliate Program](/features/affiliate-program), embedded checkout still credits referred sales to the right affiliate — and the SDKs and script loader handle it for you. Here's what happens, and the one edge case worth knowing.
+
+**How it works**
+
+- An affiliate link (`creem.io/affiliate?code=…`) sends the visitor to your site and appends a `creem_ref` token to the landing URL.
+- On the **hosted** checkout, attribution rides a first-party cookie on Creem's domain — nothing to do.
+- Inside the **embed**, the checkout runs in a cross-site iframe, so the browser doesn't send that cookie there — in any browser. Attribution instead rides the token: the SDK/loader reads `creem_ref` from your page, **persists it in your site's own first-party storage**, and forwards it into the checkout iframe, so it works uniformly everywhere. No code needed for the common case.
+
+<Note>
+  `creem_ref` is an **opaque, signed token** — it identifies the click, not the affiliate. Don't try to parse an affiliate code out of it, and you don't need to read or forward it yourself: the SDKs and loader do it automatically. (It mirrors `client_reference_id` in Stripe-based tools like Rewardful and Tolt.)
+</Note>
+
+**Edge case: separate landing and checkout pages**
+
+The token arrives on whatever page the affiliate link points to. The SDK captures it automatically when it runs on that page. But if a visitor lands on `/?creem_ref=…`, then **navigates** to another page (say `/pricing`) before opening checkout, and your app drops the query string on that navigation, the token is no longer on the URL. If it wasn't captured before that navigation, attribution is lost — in every browser, since the embed relies on the token, not the cookie.
+
+To cover this, call `captureAffiliateRef()` once early in your app (e.g. a root layout) so the token is captured on the landing page and stored for later:
+
+```tsx
+// Root layout / top-level component — runs on every page
+'use client';
+import { useEffect } from 'react';
+import { captureAffiliateRef } from '@creem_io/react'; // also in /vue, /svelte, /embed
+
+export function AffiliateRefCapture() {
+  useEffect(() => { captureAffiliateRef(); }, []);
+  return null;
+}
+```
+
+<Tip>
+  The **script loader** (`creem.io/embed.js`) captures the token automatically on every page it loads on — so if you include the `<script>` site-wide (not just on the checkout page), there's nothing to add.
+</Tip>
+
+**Manage it yourself (optional)**
+
+We persist `creem_ref` in `localStorage` by default. Prefer your own storage — `sessionStorage`, your own cookie, or server-side? Read the value off the landing URL, store it however you like, and append it to the `checkoutUrl` you pass to the SDK. The SDK **won't overwrite a `creem_ref` you've already set on the URL**, so your value wins:
+
+```ts
+// On your affiliate landing page — capture into your own store
+const ref = new URLSearchParams(location.search).get('creem_ref');
+if (ref) sessionStorage.setItem('creem_ref', ref);
+
+// When you open checkout — put it back on the checkout URL yourself
+const stored = sessionStorage.getItem('creem_ref');
+const url = new URL(checkoutUrl);
+if (stored) url.searchParams.set('creem_ref', stored);
+openCheckout({ checkoutUrl: url.toString() });
+```
+
 ## API reference
 
 The framework SDKs (`@creem_io/react`, `/vue`, `/svelte`) accept these same options — as props/args, with `onComplete`/`onClose` surfaced as the `complete`/`close` events where idiomatic.
@@ -343,6 +395,12 @@ Mounts checkout inline. Same options as `openCheckout`, plus:
 ### `Creem.close()`
 
 Programmatically closes the overlay.
+
+### `captureAffiliateRef()`
+
+An SDK export (`@creem_io/embed`, `/react`, `/vue`, `/svelte`) — not a method on the loader, which captures automatically. Reads the affiliate `creem_ref` token from the current URL, persists it to your site's first-party storage, and returns the active token (from the URL, or a previously stored one), or `null`. `openCheckout`/`mount` already do this; call it directly only to capture on a **landing page** the visitor reaches before opening checkout (see [Affiliate attribution](#affiliate-attribution)). Safe anywhere — a no-op during SSR and when no token is present.
+
+**Returns** `string | null`.
 
 ## Events
 

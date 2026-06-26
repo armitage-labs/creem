@@ -1,5 +1,13 @@
 # @creem_io/react
 
+## 0.2.2
+
+### Patch Changes
+
+- 65126ea: Persist the affiliate `creem_ref` token in first-party localStorage so embedded-checkout attribution survives internal navigation (e.g. `/` → `/pricing`) before checkout opens. Adds a `captureAffiliateRef()` helper to capture it on the landing page (re-exported from react/vue/svelte). The newer token by `iat` always wins, so a stale URL token can't clobber a fresher stored ref.
+- Updated dependencies [65126ea]
+  - @creem_io/embed@0.3.2
+
 ## 0.2.1
 
 ### Patch Changes

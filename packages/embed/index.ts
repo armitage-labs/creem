@@ -51,17 +51,86 @@ export interface CreemCheckoutInlineHandle {
   destroy: () => void;
 }
 
-// Read the affiliate ref token (`creem_ref`) from the MERCHANT page URL. The
-// /affiliate redirect lands the visitor on the merchant's own site with
-// `?creem_ref=<signed token>` — first-party to the visitor, so it's readable
-// here even in browsers that drop our third-party cookie (Safari ITP,
-// Firefox TCP). Returns null when absent or the URL can't be parsed.
-function readAffiliateRef(): string | null {
+// Storage key for the affiliate ref token, persisted first-party on the
+// merchant's own origin (not our partitioned third-party context) so it survives
+// internal navigation away from the /affiliate landing URL (e.g. `/` ->
+// `/pricing`) before the embed opens.
+const REF_STORAGE_KEY = "creem_ref";
+
+function readRefFromUrl(): string | null {
   try {
     return new URLSearchParams(window.location.search).get("creem_ref");
   } catch {
     return null;
   }
+}
+
+function storeRef(token: string): void {
+  try {
+    window.localStorage.setItem(REF_STORAGE_KEY, token);
+  } catch {
+    /* localStorage unavailable (private mode / disabled) — best-effort. */
+  }
+}
+
+function readStoredRef(): string | null {
+  try {
+    return window.localStorage.getItem(REF_STORAGE_KEY);
+  } catch {
+    return null;
+  }
+}
+
+// Read the affiliate ref token (`creem_ref`). The /affiliate redirect lands the
+// visitor on the merchant's own site with `?creem_ref=<signed token>` —
+// first-party to the visitor, so it's readable here even though the cross-site
+// checkout iframe receives no cookie in any browser. We persist it to first-party
+// storage so it survives internal navigation that drops the param before the embed
+// opens, and fall back to that stored value when the URL has none (ENG-757). See
+// readAffiliateRef below for the newer-token-wins ordering.
+// Mint time (`iat`, ms epoch) of a signed token, read from its base64url JSON
+// payload (no signature check — that's the server's job). Returns 0 when it can't
+// be parsed, so a malformed token always loses the freshness comparison.
+function tokenIat(token: string): number {
+  try {
+    let b64 = token.split(".")[0].replace(/-/g, "+").replace(/_/g, "/");
+    while (b64.length % 4) b64 += "=";
+    const payload = JSON.parse(atob(b64)) as { iat?: number };
+    return typeof payload.iat === "number" ? payload.iat : 0;
+  } catch {
+    return 0;
+  }
+}
+
+function readAffiliateRef(): string | null {
+  if (typeof window === "undefined") return null;
+  const fromUrl = readRefFromUrl();
+  const stored = readStoredRef();
+  // Keep the NEWER of the two by mint time (`iat`, server-stamped → immune to
+  // client clock skew): a fresh affiliate click wins and is persisted; a stale
+  // URL token (old bookmark / email link) can't clobber a newer stored ref. The
+  // server still enforces the signature + `exp`, so an expired token is rejected.
+  if (fromUrl && (!stored || tokenIat(fromUrl) >= tokenIat(stored))) {
+    storeRef(fromUrl);
+    return fromUrl;
+  }
+  return stored || fromUrl || null;
+}
+
+/**
+ * Capture the affiliate ref token (`creem_ref`) from the current URL into
+ * first-party storage. `openCheckout`/`mount` already do this, but only when the
+ * visitor opens the checkout — if your affiliate landing page and your checkout
+ * page differ (the visitor lands on `/?creem_ref=…`, then navigates to
+ * `/pricing` before buying), the param is gone from the URL by the time checkout
+ * opens, and since the embed relies on the token (the cross-site iframe gets no
+ * cookie in any browser), attribution is then lost. Call this once early in your app — e.g. a root
+ * layout effect — so the token is captured on the landing page and stays
+ * available later. Safe anywhere: a no-op on the server and when no token is
+ * present. Returns the active token (URL or previously stored), or null.
+ */
+export function captureAffiliateRef(): string | null {
+  return readAffiliateRef();
 }
 
 // Append the merchant-controlled presentation params (`theme`, `locale`) and the
