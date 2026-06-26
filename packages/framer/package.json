@@ -1,0 +1,65 @@
+{
+  "name": "@creem_io/framer",
+  "version": "0.0.1",
+  "description": "Framer plugin for Creem checkout buttons and pricing tables.",
+  "license": "MIT",
+  "type": "module",
+  "author": {
+    "name": "Creem",
+    "url": "https://creem.io"
+  },
+  "contributors": [
+    {
+      "name": "Heet Bhalodiya"
+    },
+    {
+      "name": "Rishi Raj Jain",
+      "url": "https://rishi.app"
+    }
+  ],
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/armitage-labs/creem.git",
+    "directory": "packages/framer"
+  },
+  "homepage": "https://github.com/armitage-labs/creem/tree/main/packages/framer",
+  "bugs": {
+    "url": "https://github.com/armitage-labs/creem/issues"
+  },
+  "keywords": [
+    "creem",
+    "framer",
+    "checkout",
+    "payments",
+    "pricing-table"
+  ],
+  "scripts": {
+    "dev": "vite",
+    "build": "vite build",
+    "typecheck": "tsc --noEmit",
+    "preview": "vite preview",
+    "pack": "npx framer-plugin-tools@latest pack"
+  },
+  "dependencies": {
+    "framer-plugin": "^3",
+    "lucide-react": "^1.21.0",
+    "react": "^18.3.1",
+    "react-dom": "^18.3.1",
+    "vite-plugin-mkcert": "^2.1.0"
+  },
+  "devDependencies": {
+    "@tailwindcss/postcss": "^4.2.0",
+    "@types/react": "18.3.28",
+    "@types/react-dom": "18.3.7",
+    "@vitejs/plugin-react-swc": "^4.3.1",
+    "autoprefixer": "^10.4.24",
+    "postcss": "^8.5.6",
+    "prettier": "3.7.4",
+    "prettier-plugin-tailwindcss": "^0.7.2",
+    "tailwindcss": "^4.2.0",
+    "typescript": "^5.3.3",
+    "vite": "^8.1.0",
+    "vite-plugin-framer": "^1.1.1",
+    "zip-a-folder": "^6.1.1"
+  }
+}

@@ -1,0 +1,38 @@
+/**
+ * Formatting Utilities
+ * Functions for formatting prices, currencies, and display values
+ */
+
+import type { BillingPeriod } from '@/types'
+import { getBillingPeriodSuffix } from '@/utils/productHelpers'
+
+function resolveLocale(): string {
+  if (typeof navigator !== 'undefined' && navigator.language) return navigator.language
+  return 'en-US'
+}
+
+/**
+ * Formats a price with currency and optional billing period.
+ * @param price - Price in minor units (cents). Null/invalid renders as unavailable.
+ */
+export function formatPrice(price: number | null | undefined, currency = 'USD', type?: 'one_time' | 'recurring', billingPeriod?: BillingPeriod, locale = resolveLocale()): string {
+  if (price === null || price === undefined) return 'Price unavailable'
+  if (price === 0) return 'Free'
+  let amount: string
+  try {
+    amount = new Intl.NumberFormat(locale, {
+      style: 'currency',
+      currency
+    }).format(price / 100)
+  } catch {
+    amount = `${(price / 100).toFixed(2)} ${currency}`
+  }
+  if (type === 'recurring' && billingPeriod) {
+    const period = getBillingPeriodSuffix(billingPeriod)
+    if (period === undefined) return `${amount} (${billingPeriod})`
+    return `${amount}${period}`
+  }
+  return amount
+}
+
+export { getBillingPeriodDisplayLabel } from '@/utils/productHelpers'
