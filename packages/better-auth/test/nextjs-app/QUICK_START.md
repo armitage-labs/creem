@@ -107,7 +107,7 @@ The app will start at http://localhost:3000
 2. **View Pricing**: Navigate to /pricing
 3. **Subscribe**: Click "Subscribe" (you'll be redirected to Creem)
 4. **Use Test Card**: 
-   - Card: `4242 4242 4242 4242`
+   - Card: `4111 1111 1111 1111`
    - Expiry: Any future date
    - CVC: `123`
 5. **Complete Payment**: You'll be redirected back
