@@ -94,6 +94,7 @@ async function run() {
   const result = await creem.checkouts.create({
     productId: "prod_1234567890",
     units: 1,
+    customPrice: 1500,
     discountCode: "SUMMER2024",
     customer: {
       id: "cust_1234567890",
@@ -144,6 +145,7 @@ async function run() {
   const res = await checkoutsCreate(creem, {
     productId: "prod_1234567890",
     units: 1,
+    customPrice: 1500,
     discountCode: "SUMMER2024",
     customer: {
       id: "cust_1234567890",

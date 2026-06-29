@@ -1,0 +1,63 @@
+{
+  "name": "@creem_io/svelte",
+  "version": "0.2.2",
+  "description": "Svelte components (+ attachment / action APIs) to embed Creem checkout (modal & inline).",
+  "main": "./dist/index.js",
+  "module": "./dist/index.mjs",
+  "types": "./dist/index.d.ts",
+  "svelte": "./svelte.mjs",
+  "exports": {
+    ".": {
+      "svelte": "./svelte.mjs",
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.mjs",
+      "require": "./dist/index.js"
+    }
+  },
+  "files": [
+    "dist",
+    "svelte.mjs",
+    "CreemCheckout.svelte",
+    "CreemCheckoutInline.svelte",
+    "README.md"
+  ],
+  "scripts": {
+    "build": "tsup",
+    "dev": "tsup --watch",
+    "typecheck": "tsc --noEmit"
+  },
+  "keywords": [
+    "creem",
+    "svelte",
+    "checkout",
+    "embed",
+    "payments"
+  ],
+  "author": "Creem",
+  "license": "MIT",
+  "peerDependencies": {
+    "svelte": ">=4.0.0"
+  },
+  "peerDependenciesMeta": {
+    "svelte": {
+      "optional": true
+    }
+  },
+  "dependencies": {
+    "@creem_io/embed": "workspace:^"
+  },
+  "devDependencies": {
+    "tsup": "^8.0.0",
+    "typescript": "^5.0.0"
+  },
+  "publishConfig": {
+    "access": "public",
+    "provenance": true
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/armitage-labs/creem.git",
+    "directory": "packages/svelte"
+  },
+  "homepage": "https://github.com/armitage-labs/creem/tree/main/packages/svelte"
+}

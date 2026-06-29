@@ -36,7 +36,7 @@ List accounts for the authenticated store with cursor pagination. System account
       };
     }
 
-    const value = result.value;
+    const value = result.value.result;
 
     return formatResult(value, apiCall);
   },

@@ -1,0 +1,10 @@
+admin/
+server/
+*.ts
+*.tsx
+!*.d.ts
+.editorconfig
+.eslintignore
+.prettierignore
+.prettierrc
+.gitignore

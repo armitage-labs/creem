@@ -1,30 +1,41 @@
 ---
-title: SDK Wrapper (creem_io)
-description: A convenience wrapper SDK with helper functions for webhooks, access management, and simplified API interactions. Ideal for quick integrations with less boilerplate.
+title: SDK Wrapper (creem_io, deprecated)
+description: Deprecated convenience wrapper SDK with helper functions for webhooks, access management, and simplified API interactions. Use the Core SDK (creem) for new integrations.
 ---
 
-<Info>
-  This is the **creem_io** wrapper package, which provides convenience methods and webhook helpers for common use cases.
+<Warning>
+**Deprecation Notice:** The `creem_io` wrapper package is deprecated. Existing integrations will continue to work, but new integrations should use the [TypeScript SDK (creem)](/code/sdks/typescript). To update an existing integration, follow the [migration guide](/code/sdks/migrate-from-creem-io).
+</Warning>
 
-  For full API access with all endpoints and maximum flexibility, see the [Core SDK (creem)](/code/sdks/typescript-core).
+<Info>
+  This page is kept as a reference for existing `creem_io` integrations.
 </Info>
+
+<Card
+  title="Migrate to the creem SDK"
+  icon="arrow-right"
+  href="/code/sdks/migrate-from-creem-io"
+>
+  Replace `creem_io` imports, update API calls, and move webhook handling to the
+  typed `creem` SDK helpers.
+</Card>
 
 ## Overview
 
-The `creem_io` package is a convenience wrapper around the Creem API that provides:
+The deprecated `creem_io` package is a convenience wrapper around the Creem API that provides:
 
 - **Simplified webhook handling** with `onGrantAccess` and `onRevokeAccess` callbacks
 - **Automatic signature verification** for webhook events
 - **Type-safe event handlers** for all webhook events
 - **Framework-agnostic** webhook processing
 
-This wrapper is ideal if you want to get started quickly with minimal configuration, especially for handling subscription access management.
+For new projects, use the [TypeScript SDK (creem)](/code/sdks/typescript), which is the recommended SDK with full API coverage and active support.
 
 ---
 
 ## Installation
 
-Install with your preferred package manager:
+For existing `creem_io` integrations, install with your preferred package manager:
 
 <CodeGroup>
 

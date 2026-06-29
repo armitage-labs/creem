@@ -1,6 +1,6 @@
 ---
-title: 'One Time Payments'
-description: 'One Time Payments in Creem allow you to accept single, non-recurring payments, including free products with a 0 price.'
+title: "One Time Payments"
+description: "One Time Payments in Creem allow you to accept single, non-recurring payments, including free products with a 0 price."
 ---
 
 ## Understanding One Time Payments
@@ -33,17 +33,17 @@ To create a one time payment:
   <Tab title="Next.js">
 
 ```tsx
-'use client'; // Optional: Works with server components
+"use client"; // Optional: Works with server components
 
-import { CreemCheckout } from '@creem_io/nextjs';
+import { CreemCheckout } from "@creem_io/nextjs";
 
 export function BuyButton() {
   return (
     <CreemCheckout
       productId="prod_YOUR_PRODUCT_ID"
       metadata={{
-        customerId: 'cust_123',
-        source: 'web',
+        customerId: "cust_123",
+        source: "web",
       }}
     >
       <button>Buy Now</button>
@@ -61,32 +61,28 @@ export function BuyButton() {
   <Tab title="TypeScript SDK">
 
 ```typescript
-import { createCreem } from 'creem_io';
+import { Creem } from "creem";
 
-const creem = createCreem({
+const creem = new Creem({
   apiKey: process.env.CREEM_API_KEY!,
-  testMode: process.env.NODE_ENV !== 'production',
+  server: process.env.NODE_ENV === "production" ? "prod" : "test",
 });
 
 // Create a one-time payment checkout session
 const checkout = await creem.checkouts.create({
-  productId: 'prod_YOUR_PRODUCT_ID',
-  successUrl: 'https://yoursite.com/success',
+  productId: "prod_YOUR_PRODUCT_ID",
+  successUrl: "https://yoursite.com/success",
   metadata: {
-    customerId: 'cust_123',
-    source: 'web',
+    customerId: "cust_123",
+    source: "web",
   },
 });
 
 // Redirect to the checkout URL
-console.log(checkout.checkout_url);
+console.log(checkout.checkoutUrl);
 ```
 
-<Card
-  title="TypeScript SDK Documentation"
-  icon="code"
-  href="/code/sdks/typescript-core"
->
+<Card title="TypeScript SDK Documentation" icon="code" href="/code/sdks/typescript-core">
   View the full SDK API reference and advanced usage examples.
 </Card>
 
@@ -131,9 +127,8 @@ export function BuyButton({ productId }: { productId: string }) {
   <Tab title="REST API">
 
 <Warning>
-  If you're in test mode, use `https://test-api.creem.io` instead of
-  `https://api.creem.io`. Learn more about [Test
-  Mode](/getting-started/test-mode).
+  If you're in test mode, use `https://test-api.creem.io` instead of `https://api.creem.io`. Learn
+  more about [Test Mode](/getting-started/test-mode).
 </Warning>
 
 ```bash
@@ -162,11 +157,7 @@ curl -X POST https://api.creem.io/v1/checkouts \
 }
 ```
 
-<Card
-  title="API Reference"
-  icon="book"
-  href="/api-reference/endpoint/create-checkout"
->
+<Card title="API Reference" icon="book" href="/api-reference/endpoint/create-checkout">
   View the complete endpoint documentation with all available parameters.
 </Card>
 
@@ -191,8 +182,8 @@ https://yoursite.com/success?checkout_id=ch_xxx&order_id=ord_xxx&customer_id=cus
 | `signature`     | All previous parameters signed by Creem using your API-key, verifiable by you. |
 
 <Warning>
-  For production applications, we recommend using [Webhooks](/code/webhooks) to
-  handle payment events.
+  For production applications, we recommend using [Webhooks](/code/webhooks) to handle payment
+  events.
 </Warning>
 
 ## Managing Payments

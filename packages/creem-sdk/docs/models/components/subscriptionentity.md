@@ -41,7 +41,9 @@ let value: SubscriptionEntity = {
     object: "<value>",
     email: "user@example.com",
     name: "John Doe",
-    metadata: {},
+    metadata: {
+      "key": "value",
+    },
     country: "US",
     createdAt: new Date("2023-01-01T00:00:00Z"),
     updatedAt: new Date("2023-01-01T00:00:00Z"),
@@ -71,6 +73,14 @@ let value: SubscriptionEntity = {
   canceledAt: new Date("2024-09-12T12:34:56Z"),
   createdAt: new Date("2024-01-01T00:00:00Z"),
   updatedAt: new Date("2024-09-12T12:34:56Z"),
+  discount: {
+    id: "dis_3e6Z6TzvHKdsjEgXnGDEp0",
+    discountCode: "HOLIDAY2024",
+  },
+  metadata: {
+    "userId": "user_123",
+    "plan": "pro",
+  },
 };
 ```
 
@@ -95,4 +105,5 @@ let value: SubscriptionEntity = {
 | `canceledAt`                                                                                       | [Date](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Date)      | :heavy_minus_sign:                                                                                 | The date and time when the subscription was canceled, if applicable.                               | 2024-09-12T12:34:56Z                                                                               |
 | `createdAt`                                                                                        | [Date](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Date)      | :heavy_check_mark:                                                                                 | The date and time when the subscription was created.                                               | 2024-01-01T00:00:00Z                                                                               |
 | `updatedAt`                                                                                        | [Date](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Date)      | :heavy_check_mark:                                                                                 | The date and time when the subscription was last updated.                                          | 2024-09-12T12:34:56Z                                                                               |
-| `discount`                                                                                         | [components.Discount](../../models/components/discount.md)                                         | :heavy_minus_sign:                                                                                 | The discount code applied to the subscription, if any.                                             |                                                                                                    |
+| `discount`                                                                                         | [components.Discount](../../models/components/discount.md)                                         | :heavy_minus_sign:                                                                                 | The discount applied to the subscription, if any.                                                  |                                                                                                    |
+| `metadata`                                                                                         | Record<string, *any*>                                                                              | :heavy_minus_sign:                                                                                 | Metadata for the subscription in the form of key-value pairs.                                      | {<br/>"userId": "user_123",<br/>"plan": "pro"<br/>}                                                |

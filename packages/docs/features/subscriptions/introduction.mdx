@@ -1,7 +1,7 @@
 ---
-title: 'Subscriptions'
-description: 'Create recurring payment plans for your products and services with flexible billing cycles and subscription management.'
-keywords: 'subscription billing, recurring payments, saas subscriptions'
+title: "Subscriptions"
+description: "Create recurring payment plans for your products and services with flexible billing cycles and subscription management."
+keywords: "subscription billing, recurring payments, saas subscriptions"
 ---
 
 Subscriptions in Creem allow you to create recurring payment agreements with your customers. When a customer subscribes to your product, they agree to be billed periodically (monthly, yearly, etc.) until they cancel their subscription.
@@ -63,17 +63,17 @@ To create a subscription:
   <Tab title="Next.js">
 
 ```tsx
-'use client'; // Optional: Works with server components
+"use client"; // Optional: Works with server components
 
-import { CreemCheckout } from '@creem_io/nextjs';
+import { CreemCheckout } from "@creem_io/nextjs";
 
 export function SubscribeButton() {
   return (
     <CreemCheckout
       productId="prod_YOUR_SUBSCRIPTION_ID"
       metadata={{
-        userId: 'user_123',
-        source: 'web',
+        userId: "user_123",
+        source: "web",
       }}
     >
       <button>Subscribe Now</button>
@@ -91,35 +91,31 @@ export function SubscribeButton() {
   <Tab title="TypeScript SDK">
 
 ```typescript
-import { createCreem } from 'creem_io';
+import { Creem } from "creem";
 
-const creem = createCreem({
+const creem = new Creem({
   apiKey: process.env.CREEM_API_KEY!,
-  testMode: process.env.NODE_ENV !== 'production',
+  server: process.env.NODE_ENV === "production" ? "prod" : "test",
 });
 
 // Create a subscription checkout session
 const checkout = await creem.checkouts.create({
-  productId: 'prod_YOUR_SUBSCRIPTION_ID',
-  successUrl: 'https://yoursite.com/success',
+  productId: "prod_YOUR_SUBSCRIPTION_ID",
+  successUrl: "https://yoursite.com/success",
   customer: {
-    email: 'customer@example.com', // Optional: Pre-fill email
+    email: "customer@example.com", // Optional: Pre-fill email
   },
   metadata: {
-    userId: 'user_123',
-    source: 'web',
+    userId: "user_123",
+    source: "web",
   },
 });
 
 // Redirect to the checkout URL
-console.log(checkout.checkout_url);
+console.log(checkout.checkoutUrl);
 ```
 
-<Card
-  title="TypeScript SDK Documentation"
-  icon="code"
-  href="/code/sdks/typescript-core"
->
+<Card title="TypeScript SDK Documentation" icon="code" href="/code/sdks/typescript-core">
   View the full SDK API reference and advanced usage examples.
 </Card>
 
@@ -153,8 +149,8 @@ export function SubscribeButton({ productId }: { productId: string }) {
 ```
 
 <Note>
-  The Better Auth integration automatically syncs the authenticated user's email
-  and tracks subscription status in your database.
+  The Better Auth integration automatically syncs the authenticated user's email and tracks
+  subscription status in your database.
 </Note>
 
 <Card title="Better Auth Integration" icon="lock" href="/code/sdks/better-auth">
@@ -166,9 +162,8 @@ export function SubscribeButton({ productId }: { productId: string }) {
   <Tab title="REST API">
 
 <Warning>
-  If you're in test mode, use `https://test-api.creem.io` instead of
-  `https://api.creem.io`. Learn more about [Test
-  Mode](/getting-started/test-mode).
+  If you're in test mode, use `https://test-api.creem.io` instead of `https://api.creem.io`. Learn
+  more about [Test Mode](/getting-started/test-mode).
 </Warning>
 
 ```bash
@@ -195,11 +190,7 @@ curl -X POST https://api.creem.io/v1/checkouts \
 }
 ```
 
-<Card
-  title="API Reference"
-  icon="book"
-  href="/api-reference/endpoint/create-checkout"
->
+<Card title="API Reference" icon="book" href="/api-reference/endpoint/create-checkout">
   View the complete endpoint documentation with all available parameters.
 </Card>
 
@@ -224,31 +215,33 @@ https://yoursite.com/success?checkout_id=ch_xxx&subscription_id=sub_xxx&customer
 | `signature`       | All previous parameters signed by Creem using your API-key, verifiable by you. |
 
 <Tip>
-  See [Verifying Redirect Signatures](/features/checkout/checkout-api#verifying-redirect-signatures) for code examples on how to validate the signature. Remember that null values (like `order_id` for subscription checkouts) are **excluded** from the signature string.
+  See [Verifying Redirect Signatures](/features/checkout/checkout-api#verifying-redirect-signatures)
+  for code examples on how to validate the signature. Remember that null values (like `order_id` for
+  subscription checkouts) are **excluded** from the signature string.
 </Tip>
 
 <Warning>
-  For production applications, we recommend using [Webhooks](/code/webhooks) to
-  handle subscription events like renewals, cancellations, and payment failures.
+  For production applications, we recommend using [Webhooks](/code/webhooks) to handle subscription
+  events like renewals, cancellations, and payment failures.
 </Warning>
 
 ## Managing Subscription Access
 
-Creem makes it incredibly simple to grant and revoke access based on subscription status. Instead of manually handling multiple webhook events, you can use the high-level `onGrantAccess` and `onRevokeAccess` callbacks that automatically fire at the right times in your subscription lifecycle.
+Use webhooks to grant and revoke access based on subscription status. The Next.js and Better Auth adapters provide high-level `onGrantAccess` and `onRevokeAccess` callbacks. With the TypeScript SDK, verify the webhook payload and handle the subscription event types directly.
 
 ### How It Works
 
-- **`onGrantAccess`** - Automatically called when a customer should have access (when subscription is `active`, `trialing`, or `paid`)
-- **`onRevokeAccess`** - Automatically called when a customer should lose access (when subscription is `paused` or `expired`)
+- **Grant access** when subscription events indicate the customer should have access, such as `subscription.active`, `subscription.trialing`, or `subscription.paid`.
+- **Revoke access** when subscription events indicate the customer should lose access, such as `subscription.paused` or `subscription.expired`.
 
-This abstraction means you don't need to track individual subscription events. Just implement these two callbacks to handle your entire access management flow.
+The adapters can group these events into callbacks for you. In a generic TypeScript endpoint, keep the event mapping explicit so your application owns the access policy.
 
 <Tabs>
   <Tab title="Next.js">
 
 ```typescript
 // app/api/webhook/creem/route.ts
-import { Webhook } from '@creem_io/nextjs';
+import { Webhook } from "@creem_io/nextjs";
 
 export const POST = Webhook({
   webhookSecret: process.env.CREEM_WEBHOOK_SECRET!,
@@ -282,11 +275,7 @@ export const POST = Webhook({
 });
 ```
 
-<Card
-  title="Next.js Adapter Documentation"
-  icon="react"
-  href="/code/sdks/nextjs"
->
+<Card title="Next.js Adapter Documentation" icon="react" href="/code/sdks/nextjs">
   Learn more about webhook handling and server functions.
 </Card>
 
@@ -295,61 +284,60 @@ export const POST = Webhook({
   <Tab title="TypeScript SDK">
 
 ```typescript
-// app/api/webhook/route.ts
-import { createCreem } from 'creem_io';
+import { constructWebhookEventEntity } from "creem/webhooks";
 
-const creem = createCreem({
-  apiKey: process.env.CREEM_API_KEY!,
-  webhookSecret: process.env.CREEM_WEBHOOK_SECRET!,
-});
-
-app.post('/webhook', async (req, res) => {
+// In your webhook endpoint
+export async function handleWebhook(request: Request) {
   try {
-    await creem.webhooks.handleEvents(
-      req.body,
-      req.headers['creem-signature'],
-      {
-        onGrantAccess: async ({ reason, customer, product, metadata }) => {
-          // Called for: subscription.active, subscription.trialing, subscription.paid
-          const userId = metadata?.userId as string;
+    const rawBody = await request.text();
+    const event = await constructWebhookEventEntity(rawBody, request.headers, {
+      secret: process.env.CREEM_WEBHOOK_SECRET!,
+    });
 
-          await db.user.update({
-            where: { id: userId },
-            data: {
-              subscriptionActive: true,
-              subscriptionTier: product.name,
-            },
-          });
+    switch (event.eventType) {
+      case "subscription.active":
+      case "subscription.trialing":
+      case "subscription.paid": {
+        const subscription = event.object;
+        const userId = subscription.metadata?.userId;
+        if (!userId) return new Response("No user metadata", { status: 200 });
 
-          console.log(`Granted ${reason} to ${customer.email}`);
-        },
+        await db.user.update({
+          where: { id: userId },
+          data: {
+            subscriptionActive: true,
+            subscriptionId: subscription.id,
+          },
+        });
 
-        onRevokeAccess: async ({ reason, customer, metadata }) => {
-          // Called for: subscription.paused, subscription.expired
-          const userId = metadata?.userId as string;
-
-          await db.user.update({
-            where: { id: userId },
-            data: { subscriptionActive: false },
-          });
-
-          console.log(`Revoked access (${reason}) from ${customer.email}`);
-        },
+        console.log(`Granted access for subscription ${subscription.id}`);
+        break;
       }
-    );
 
-    res.status(200).send('OK');
+      case "subscription.paused":
+      case "subscription.expired": {
+        const subscription = event.object;
+        const userId = subscription.metadata?.userId;
+        if (!userId) return new Response("No user metadata", { status: 200 });
+
+        await db.user.update({
+          where: { id: userId },
+          data: { subscriptionActive: false },
+        });
+
+        console.log(`Revoked access for subscription ${subscription.id}`);
+        break;
+      }
+    }
+
+    return new Response("OK", { status: 200 });
   } catch (error) {
-    res.status(400).send('Invalid signature');
+    return new Response("Invalid signature", { status: 400 });
   }
-});
+}
 ```
 
-<Card
-  title="TypeScript SDK Documentation"
-  icon="code"
-  href="/code/sdks/typescript-core"
->
+<Card title="TypeScript SDK Documentation" icon="code" href="/code/sdks/typescript-core">
   View the complete webhook API and all available events.
 </Card>
 
@@ -359,8 +347,8 @@ app.post('/webhook', async (req, res) => {
 
 ```typescript
 // lib/auth.ts
-import { betterAuth } from 'better-auth';
-import { creem } from '@creem_io/better-auth';
+import { betterAuth } from "better-auth";
+import { creem } from "@creem_io/better-auth";
 
 export const auth = betterAuth({
   database: {
@@ -405,8 +393,8 @@ export const auth = betterAuth({
 ```
 
 <Note>
-  With Better Auth, subscription data is automatically persisted to your
-  database and synced via webhooks.
+  With Better Auth, subscription data is automatically persisted to your database and synced via
+  webhooks.
 </Note>
 
 <Card title="Better Auth Integration" icon="lock" href="/code/sdks/better-auth">
@@ -421,34 +409,28 @@ If you're not using any of our SDKs, you can still implement the same logic by l
 
 ```typescript
 // app/api/webhook/route.ts
-import crypto from 'crypto';
+import crypto from "crypto";
 
 async function verifySignature(payload: string, signature: string) {
   const computed = crypto
-    .createHmac('sha256', process.env.CREEM_WEBHOOK_SECRET!)
+    .createHmac("sha256", process.env.CREEM_WEBHOOK_SECRET!)
     .update(payload)
-    .digest('hex');
+    .digest("hex");
   return computed === signature;
 }
 
-app.post('/webhook', async (req, res) => {
-  const signature = req.headers['creem-signature'];
+app.post("/webhook", async (req, res) => {
+  const signature = req.headers["creem-signature"];
   const payload = JSON.stringify(req.body);
 
   if (!verifySignature(payload, signature)) {
-    return res.status(401).send('Invalid signature');
+    return res.status(401).send("Invalid signature");
   }
 
   const { eventType, object } = req.body;
 
   // Grant access events
-  if (
-    [
-      'subscription.active',
-      'subscription.trialing',
-      'subscription.paid',
-    ].includes(eventType)
-  ) {
+  if (["subscription.active", "subscription.trialing", "subscription.paid"].includes(eventType)) {
     const userId = object.metadata?.referenceId;
     const customer = object.customer;
     const product = object.product;
@@ -465,7 +447,7 @@ app.post('/webhook', async (req, res) => {
   }
 
   // Revoke access events
-  if (['subscription.paused', 'subscription.expired'].includes(eventType)) {
+  if (["subscription.paused", "subscription.expired"].includes(eventType)) {
     const userId = object.metadata?.referenceId;
     const customer = object.customer;
 
@@ -477,7 +459,7 @@ app.post('/webhook', async (req, res) => {
     console.log(`Revoked access from ${customer.email}`);
   }
 
-  res.status(200).send('OK');
+  res.status(200).send("OK");
 });
 ```
 
@@ -489,9 +471,8 @@ app.post('/webhook', async (req, res) => {
 </Tabs>
 
 <Tip>
-  If you want to remove access when your customer cancels the subscription (even
-  though the billing period might still be active), you should listen to the
-  `subscription.canceled` event.
+  If you want to remove access when your customer cancels the subscription (even though the billing
+  period might still be active), you should listen to the `subscription.canceled` event.
 </Tip>
 
 ## Key Features
@@ -505,29 +486,17 @@ app.post('/webhook', async (req, res) => {
     Learn how to set up trial periods for your subscriptions.
   </Card>
 
-<Card
-  title="Seat-Based Billing"
-  icon="users"
-  href="/features/seat-based-billing"
->
+<Card title="Seat-Based Billing" icon="users" href="/features/seat-based-billing">
   Implement per-seat pricing for team-based products.
 </Card>
 
-<Card
-  title="Customer Portal"
-  icon="user-circle"
-  href="/features/customer-portal"
->
+<Card title="Customer Portal" icon="user-circle" href="/features/customer-portal">
   Enable self-service subscription management.
 </Card>
 <Card title="Discount Codes" icon="tag" href="/features/discounts">
   Create discount codes for subscriptions
 </Card>
-<Card
-  title="Managing Subscriptions"
-  icon="gear"
-  href="/features/subscriptions/managing"
->
+<Card title="Managing Subscriptions" icon="gear" href="/features/subscriptions/managing">
   Learn how to update, upgrade, and manage active subscriptions
 </Card>
 <Card

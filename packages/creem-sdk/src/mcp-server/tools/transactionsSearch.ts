@@ -38,7 +38,7 @@ Search and retrieve payment transactions. Filter by customer, product, date rang
       };
     }
 
-    const value = result.value;
+    const value = result.value.result;
 
     return formatResult(value, apiCall);
   },

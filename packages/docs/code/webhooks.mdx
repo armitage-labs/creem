@@ -139,7 +139,7 @@ Creem signature is sent in the `creem-signature` header of the webhook request. 
   </Accordion>
 </AccordionGroup>
 
-To verify the signature, you need to generate the signature using the same algorithm and compare it with the signature sent in the header. If the two signatures match, the request is authentic.
+Use the TypeScript SDK to verify the signature before processing the event payload.
 
 <Tip>
 You can find your webhook secret on the Developers>Webhook page.
@@ -150,7 +150,15 @@ You can find your webhook secret on the Developers>Webhook page.
   src="https://nucn5fajkcc6sgrd.public.blob.vercel-storage.com/Screenshot%202024-10-03%20at%2014.26.39-MtSMvooQi4OrZoh9eMyFZngfc0CrQn.png"
 />
 
-To generate the signature, you can use the following code snippet:
+```typescript
+import { verifyWebhookSignature } from 'creem/webhooks';
+
+await verifyWebhookSignature(rawBody, request.headers, {
+  secret: process.env.CREEM_WEBHOOK_SECRET!,
+});
+```
+
+If you are not using the SDK, generate the signature with HMAC-SHA256 using the raw request body and compare it with the `creem-signature` header.
 
 ```typescript
 import * as crypto from 'crypto';

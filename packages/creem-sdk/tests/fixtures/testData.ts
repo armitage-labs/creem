@@ -3,7 +3,7 @@
  * Resources are created once and cached for all tests.
  */
 import { Creem } from "../../src/index.js";
-import { TEST_API_KEY, TEST_SERVER_IDX } from "./testValues.js";
+import { TEST_API_KEY, TEST_SERVER } from "./testValues.js";
 import type { ProductEntity, DiscountEntity, CheckoutEntity } from "../../src/models/components/index.js";
 import {
   DiscountType,
@@ -18,7 +18,7 @@ import {
 // Shared Creem client instance
 export const creem = new Creem({
   apiKey: TEST_API_KEY,
-  serverIdx: TEST_SERVER_IDX,
+  server: TEST_SERVER,
 });
 
 // Cache for created test resources

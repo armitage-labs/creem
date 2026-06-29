@@ -128,9 +128,9 @@ Returned when trying to create a resource that already exists.
 ### TypeScript SDK
 
 ```typescript
-import { createCreem } from 'creem_io';
+import { Creem } from 'creem';
 
-const creem = createCreem({ apiKey: process.env.CREEM_API_KEY! });
+const creem = new Creem({ apiKey: process.env.CREEM_API_KEY! });
 
 try {
   const checkout = await creem.checkouts.create({

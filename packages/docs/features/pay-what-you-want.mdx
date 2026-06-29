@@ -1,0 +1,68 @@
+---
+title: "Pay What You Want"
+description: "Let customers choose how much they pay for a product at checkout, with a minimum price you control and an optional suggested amount."
+---
+
+Pay what you want (PWYW) lets your customers decide the amount they pay at checkout. You set a **minimum price** they must meet, and an optional **suggested price** that pre-fills the checkout to guide them. It's a great fit for donations, tip jars, "name your price" launches, and supporter pricing.
+
+<Note>
+  Pay what you want is only available for **one-time payment** products. It is not supported for
+  subscriptions.
+</Note>
+
+## How It Works
+
+- The product's **price** acts as the _minimum_ — customers can pay this amount or more, but never less.
+- The **suggested price** is pre-filled at checkout to nudge customers toward a higher amount. It must be greater than or equal to the minimum, and is optional.
+- At checkout, the customer opens **Choose price** and enters any amount that meets the minimum.
+
+## Enable in the Dashboard
+
+1. Go to **Products** and create or edit a one-time product.
+2. Under **Payment Details**, select **Single Payment**.
+3. Toggle on **Pay what you want**.
+4. Set the **Minimum price** (the lowest amount a customer can pay) and, optionally, a **Suggested price** to pre-fill at checkout.
+
+<Frame>
+  <img
+    style={{ borderRadius: "0.5rem" }}
+    src="https://nucn5fajkcc6sgrd.public.blob.vercel-storage.com/pay-what-you-want.png"
+    alt="Pay what you want toggle with minimum and suggested price fields in the Creem dashboard"
+  />
+</Frame>
+
+## The Checkout Experience
+
+When pay what you want is enabled, customers see a **Choose price** link on the checkout. Selecting it opens a dialog where they can set their own amount, as long as it meets the minimum. If you configured a suggested price, it's pre-filled here.
+
+<Frame>
+  <img
+    style={{ borderRadius: "0.5rem" }}
+    src="https://nucn5fajkcc6sgrd.public.blob.vercel-storage.com/choose-your-price.png"
+    alt="Choose your price dialog at the Creem checkout with a minimum price"
+  />
+</Frame>
+
+## Next Steps
+
+<CardGroup cols={2}>
+  <Card
+    title="API Reference"
+    icon="book"
+    href="/api-reference/endpoint/create-product#body-pay-what-you-want"
+  >
+    Enable pay what you want programmatically with the create product endpoint
+  </Card>
+  <Card title="One Time Payments" icon="credit-card" href="/features/one-time-payment">
+    Learn how single, non-recurring payments work in Creem
+  </Card>
+  <Card title="Checkout API" icon="code" href="/features/checkout/checkout-api">
+    Create dynamic checkout sessions programmatically
+  </Card>
+  <Card title="Discount Codes" icon="tag" href="/features/discounts">
+    Run promotions with percentage or fixed-amount discounts
+  </Card>
+  <Card title="Webhooks" icon="webhook" href="/code/webhooks">
+    Handle payment events and automate your workflow
+  </Card>
+</CardGroup>

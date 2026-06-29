@@ -10,6 +10,7 @@ import { ClosedEnum } from "../../types/enums.js";
  */
 export const ProductRequestBillingPeriod = {
   Once: "once",
+  EveryDay: "every-day",
   EveryMonth: "every-month",
   EveryThreeMonths: "every-three-months",
   EverySixMonths: "every-six-months",

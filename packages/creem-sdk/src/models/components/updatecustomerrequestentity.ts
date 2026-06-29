@@ -8,11 +8,6 @@ import { safeParse } from "../../lib/schemas.js";
 import { Result as SafeParseResult } from "../../types/fp.js";
 import { SDKValidationError } from "../errors/sdkvalidationerror.js";
 
-/**
- * Additional metadata for the customer.
- */
-export type UpdateCustomerRequestEntityMetadata = {};
-
 export type UpdateCustomerRequestEntity = {
   /**
    * The ID of the customer to update.
@@ -25,44 +20,8 @@ export type UpdateCustomerRequestEntity = {
   /**
    * Additional metadata for the customer.
    */
-  metadata?: UpdateCustomerRequestEntityMetadata | undefined;
+  metadata?: { [k: string]: any } | undefined;
 };
-
-/** @internal */
-export const UpdateCustomerRequestEntityMetadata$inboundSchema: z.ZodType<
-  UpdateCustomerRequestEntityMetadata,
-  z.ZodTypeDef,
-  unknown
-> = z.object({});
-/** @internal */
-export type UpdateCustomerRequestEntityMetadata$Outbound = {};
-
-/** @internal */
-export const UpdateCustomerRequestEntityMetadata$outboundSchema: z.ZodType<
-  UpdateCustomerRequestEntityMetadata$Outbound,
-  z.ZodTypeDef,
-  UpdateCustomerRequestEntityMetadata
-> = z.object({});
-
-export function updateCustomerRequestEntityMetadataToJSON(
-  updateCustomerRequestEntityMetadata: UpdateCustomerRequestEntityMetadata,
-): string {
-  return JSON.stringify(
-    UpdateCustomerRequestEntityMetadata$outboundSchema.parse(
-      updateCustomerRequestEntityMetadata,
-    ),
-  );
-}
-export function updateCustomerRequestEntityMetadataFromJSON(
-  jsonString: string,
-): SafeParseResult<UpdateCustomerRequestEntityMetadata, SDKValidationError> {
-  return safeParse(
-    jsonString,
-    (x) =>
-      UpdateCustomerRequestEntityMetadata$inboundSchema.parse(JSON.parse(x)),
-    `Failed to parse 'UpdateCustomerRequestEntityMetadata' from JSON`,
-  );
-}
 
 /** @internal */
 export const UpdateCustomerRequestEntity$inboundSchema: z.ZodType<
@@ -72,8 +31,7 @@ export const UpdateCustomerRequestEntity$inboundSchema: z.ZodType<
 > = z.object({
   customer_id: z.string(),
   name: z.string().optional(),
-  metadata: z.lazy(() => UpdateCustomerRequestEntityMetadata$inboundSchema)
-    .optional(),
+  metadata: z.record(z.any()).optional(),
 }).transform((v) => {
   return remap$(v, {
     "customer_id": "customerId",
@@ -83,7 +41,7 @@ export const UpdateCustomerRequestEntity$inboundSchema: z.ZodType<
 export type UpdateCustomerRequestEntity$Outbound = {
   customer_id: string;
   name?: string | undefined;
-  metadata?: UpdateCustomerRequestEntityMetadata$Outbound | undefined;
+  metadata?: { [k: string]: any } | undefined;
 };
 
 /** @internal */
@@ -94,8 +52,7 @@ export const UpdateCustomerRequestEntity$outboundSchema: z.ZodType<
 > = z.object({
   customerId: z.string(),
   name: z.string().optional(),
-  metadata: z.lazy(() => UpdateCustomerRequestEntityMetadata$outboundSchema)
-    .optional(),
+  metadata: z.record(z.any()).optional(),
 }).transform((v) => {
   return remap$(v, {
     customerId: "customer_id",

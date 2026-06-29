@@ -7,11 +7,11 @@ The current status of the subscription.
 ```typescript
 import { SubscriptionStatus } from "creem/models/components";
 
-let value: SubscriptionStatus = "trialing";
+let value: SubscriptionStatus = "scheduled_cancel";
 ```
 
 ## Values
 
 ```typescript
-"active" | "canceled" | "unpaid" | "paused" | "trialing" | "scheduled_cancel"
+"active" | "canceled" | "unpaid" | "paused" | "trialing" | "scheduled_cancel" | "past_due"
 ```

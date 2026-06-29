@@ -483,9 +483,10 @@ export const syncProducts = action({
       const products = await creem.products.search(pageNumber, 100);
       pageNumber += 1;
       isDone =
-        products.pagination.currentPage >= products.pagination.totalPages;
+        products.result.pagination.currentPage >=
+        products.result.pagination.totalPages;
       await ctx.runMutation(api.lib.updateProducts, {
-        products: products.items.map(convertToDatabaseProduct),
+        products: products.result.items.map(convertToDatabaseProduct),
       });
     } while (!isDone);
   },

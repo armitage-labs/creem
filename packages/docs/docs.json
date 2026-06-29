@@ -78,12 +78,14 @@
                 "pages": [
                   "features/checkout/checkout-api",
                   "features/checkout/checkout-link",
+                  "features/checkout/embedded-checkout",
                   "features/checkout/checkout-customization",
                   "features/checkout/checkout-custom-fields",
                   "features/checkout/checkout-localization"
                 ]
               },
               "features/one-time-payment",
+              "features/pay-what-you-want",
               {
                 "group": "Subscriptions",
                 "pages": [
@@ -127,13 +129,7 @@
               {
                 "group": "SDKs",
                 "pages": [
-                  {
-                    "group": "TypeScript",
-                    "pages": [
-                      "code/sdks/typescript-core",
-                      "code/sdks/typescript-wrapper"
-                    ]
-                  },
+                  "code/sdks/typescript",
                   "code/sdks/nextjs",
                   "code/sdks/better-auth",
                   "code/sdks/templates",
@@ -148,10 +144,13 @@
             "group": "Integrations",
             "icon": "link",
             "pages": [
-              "integrations/ai-negotiation-bot",
               {
                 "group": "Purchase Parity Platforms",
                 "pages": ["integrations/evendeals"]
+              },
+              {
+                "group": "CMS",
+                "pages": ["integrations/strapi"]
               }
             ]
           },
@@ -199,6 +198,7 @@
               "guides/introduction",
               "guides/create-your-first-product",
               "guides/create-checkout-session",
+              "guides/sell-canva-templates",
               "guides/sell-framer-templates-instant-remix-links",
               "guides/customer-credits-recipes",
               "guides/faq"

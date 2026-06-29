@@ -77,6 +77,14 @@ export type CreateProductRequestEntity = {
    */
   taxCategory?: TaxCategory | undefined;
   /**
+   * Enable pay-what-you-want pricing: the customer chooses the amount at checkout. The `price` field acts as the minimum the customer must pay. Only supported for one-time payment products.
+   */
+  payWhatYouWant?: boolean | undefined;
+  /**
+   * Suggested amount in cents, pre-filled at checkout when pay_what_you_want is enabled. Must be greater than or equal to `price` (the minimum). Ignored when pay_what_you_want is disabled.
+   */
+  suggestedPrice?: number | undefined;
+  /**
    * The URL to which the user will be redirected after successfull payment.
    */
   defaultSuccessUrl?: string | undefined;
@@ -111,6 +119,8 @@ export const CreateProductRequestEntity$inboundSchema: z.ZodType<
   billing_period: ProductRequestBillingPeriod$inboundSchema.optional(),
   tax_mode: TaxMode$inboundSchema.optional(),
   tax_category: TaxCategory$inboundSchema.optional(),
+  pay_what_you_want: z.boolean().optional(),
+  suggested_price: z.number().int().optional(),
   default_success_url: z.string().optional(),
   custom_fields: z.array(CustomFieldRequestEntity$inboundSchema).optional(),
   custom_field: z.array(CustomFieldRequestEntity$inboundSchema).optional(),
@@ -122,6 +132,8 @@ export const CreateProductRequestEntity$inboundSchema: z.ZodType<
     "billing_period": "billingPeriod",
     "tax_mode": "taxMode",
     "tax_category": "taxCategory",
+    "pay_what_you_want": "payWhatYouWant",
+    "suggested_price": "suggestedPrice",
     "default_success_url": "defaultSuccessUrl",
     "custom_fields": "customFields",
     "custom_field": "customField",
@@ -139,6 +151,8 @@ export type CreateProductRequestEntity$Outbound = {
   billing_period?: string | undefined;
   tax_mode?: string | undefined;
   tax_category?: string | undefined;
+  pay_what_you_want?: boolean | undefined;
+  suggested_price?: number | undefined;
   default_success_url?: string | undefined;
   custom_fields?: Array<CustomFieldRequestEntity$Outbound> | undefined;
   custom_field?: Array<CustomFieldRequestEntity$Outbound> | undefined;
@@ -160,6 +174,8 @@ export const CreateProductRequestEntity$outboundSchema: z.ZodType<
   billingPeriod: ProductRequestBillingPeriod$outboundSchema.optional(),
   taxMode: TaxMode$outboundSchema.optional(),
   taxCategory: TaxCategory$outboundSchema.optional(),
+  payWhatYouWant: z.boolean().optional(),
+  suggestedPrice: z.number().int().optional(),
   defaultSuccessUrl: z.string().optional(),
   customFields: z.array(CustomFieldRequestEntity$outboundSchema).optional(),
   customField: z.array(CustomFieldRequestEntity$outboundSchema).optional(),
@@ -171,6 +187,8 @@ export const CreateProductRequestEntity$outboundSchema: z.ZodType<
     billingPeriod: "billing_period",
     taxMode: "tax_mode",
     taxCategory: "tax_category",
+    payWhatYouWant: "pay_what_you_want",
+    suggestedPrice: "suggested_price",
     defaultSuccessUrl: "default_success_url",
     customFields: "custom_fields",
     customField: "custom_field",

@@ -85,6 +85,38 @@ export type Subscription = SubscriptionEntity | string;
  */
 export type CheckoutEntityCustomer = CustomerEntity | string;
 
+export const CheckoutEntityType = {
+  Percentage: "percentage",
+  Fixed: "fixed",
+} as const;
+export type CheckoutEntityType = ClosedEnum<typeof CheckoutEntityType>;
+
+export const CheckoutEntityDuration = {
+  Forever: "forever",
+  Once: "once",
+  Repeating: "repeating",
+} as const;
+export type CheckoutEntityDuration = ClosedEnum<typeof CheckoutEntityDuration>;
+
+/**
+ * The discount applied to the checkout, if any.
+ */
+export type CheckoutEntityDiscount = {
+  /**
+   * The unique identifier of the discount (e.g. dis_...).
+   */
+  id?: string | undefined;
+  /**
+   * The discount code applied to the checkout.
+   */
+  discountCode?: string | undefined;
+  name?: string | undefined;
+  type?: CheckoutEntityType | undefined;
+  amount?: number | undefined;
+  duration?: CheckoutEntityDuration | undefined;
+  durationInMonths?: number | undefined;
+};
+
 export type CheckoutEntity = {
   /**
    * Unique identifier for the object.
@@ -114,6 +146,10 @@ export type CheckoutEntity = {
    * The number of units for the of the product.
    */
   units?: number | undefined;
+  /**
+   * The per-unit price override (in cents, product currency) this checkout was created with. Only present when the checkout was created with a custom_price. One-time payment products only.
+   */
+  customPrice?: number | undefined;
   /**
    * The order associated with the checkout session.
    */
@@ -152,6 +188,10 @@ export type CheckoutEntity = {
    * Metadata for the checkout in the form of key-value pairs
    */
   metadata?: { [k: string]: any } | undefined;
+  /**
+   * The discount applied to the checkout, if any.
+   */
+  discount?: CheckoutEntityDiscount | undefined;
 };
 
 /** @internal */
@@ -257,6 +297,81 @@ export function checkoutEntityCustomerFromJSON(
 }
 
 /** @internal */
+export const CheckoutEntityType$inboundSchema: z.ZodNativeEnum<
+  typeof CheckoutEntityType
+> = z.nativeEnum(CheckoutEntityType);
+/** @internal */
+export const CheckoutEntityType$outboundSchema: z.ZodNativeEnum<
+  typeof CheckoutEntityType
+> = CheckoutEntityType$inboundSchema;
+
+/** @internal */
+export const CheckoutEntityDuration$inboundSchema: z.ZodNativeEnum<
+  typeof CheckoutEntityDuration
+> = z.nativeEnum(CheckoutEntityDuration);
+/** @internal */
+export const CheckoutEntityDuration$outboundSchema: z.ZodNativeEnum<
+  typeof CheckoutEntityDuration
+> = CheckoutEntityDuration$inboundSchema;
+
+/** @internal */
+export const CheckoutEntityDiscount$inboundSchema: z.ZodType<
+  CheckoutEntityDiscount,
+  z.ZodTypeDef,
+  unknown
+> = z.object({
+  id: z.string().optional(),
+  discountCode: z.string().optional(),
+  name: z.string().optional(),
+  type: CheckoutEntityType$inboundSchema.optional(),
+  amount: z.number().optional(),
+  duration: CheckoutEntityDuration$inboundSchema.optional(),
+  durationInMonths: z.number().optional(),
+});
+/** @internal */
+export type CheckoutEntityDiscount$Outbound = {
+  id?: string | undefined;
+  discountCode?: string | undefined;
+  name?: string | undefined;
+  type?: string | undefined;
+  amount?: number | undefined;
+  duration?: string | undefined;
+  durationInMonths?: number | undefined;
+};
+
+/** @internal */
+export const CheckoutEntityDiscount$outboundSchema: z.ZodType<
+  CheckoutEntityDiscount$Outbound,
+  z.ZodTypeDef,
+  CheckoutEntityDiscount
+> = z.object({
+  id: z.string().optional(),
+  discountCode: z.string().optional(),
+  name: z.string().optional(),
+  type: CheckoutEntityType$outboundSchema.optional(),
+  amount: z.number().optional(),
+  duration: CheckoutEntityDuration$outboundSchema.optional(),
+  durationInMonths: z.number().optional(),
+});
+
+export function checkoutEntityDiscountToJSON(
+  checkoutEntityDiscount: CheckoutEntityDiscount,
+): string {
+  return JSON.stringify(
+    CheckoutEntityDiscount$outboundSchema.parse(checkoutEntityDiscount),
+  );
+}
+export function checkoutEntityDiscountFromJSON(
+  jsonString: string,
+): SafeParseResult<CheckoutEntityDiscount, SDKValidationError> {
+  return safeParse(
+    jsonString,
+    (x) => CheckoutEntityDiscount$inboundSchema.parse(JSON.parse(x)),
+    `Failed to parse 'CheckoutEntityDiscount' from JSON`,
+  );
+}
+
+/** @internal */
 export const CheckoutEntity$inboundSchema: z.ZodType<
   CheckoutEntity,
   z.ZodTypeDef,
@@ -269,6 +384,7 @@ export const CheckoutEntity$inboundSchema: z.ZodType<
   request_id: z.string().optional(),
   product: z.union([ProductEntity$inboundSchema, z.string()]),
   units: z.number().default(1),
+  custom_price: z.number().int().optional(),
   order: OrderEntity$inboundSchema.optional(),
   subscription: z.union([SubscriptionEntity$inboundSchema, z.string()])
     .optional(),
@@ -279,9 +395,11 @@ export const CheckoutEntity$inboundSchema: z.ZodType<
   license_keys: z.array(LicenseEntity$inboundSchema).optional(),
   feature: z.array(ProductFeatureEntity$inboundSchema).optional(),
   metadata: z.record(z.any()).optional(),
+  discount: z.lazy(() => CheckoutEntityDiscount$inboundSchema).optional(),
 }).transform((v) => {
   return remap$(v, {
     "request_id": "requestId",
+    "custom_price": "customPrice",
     "custom_fields": "customFields",
     "checkout_url": "checkoutUrl",
     "success_url": "successUrl",
@@ -297,6 +415,7 @@ export type CheckoutEntity$Outbound = {
   request_id?: string | undefined;
   product: ProductEntity$Outbound | string;
   units: number;
+  custom_price?: number | undefined;
   order?: OrderEntity$Outbound | undefined;
   subscription?: SubscriptionEntity$Outbound | string | undefined;
   customer?: CustomerEntity$Outbound | string | undefined;
@@ -306,6 +425,7 @@ export type CheckoutEntity$Outbound = {
   license_keys?: Array<LicenseEntity$Outbound> | undefined;
   feature?: Array<ProductFeatureEntity$Outbound> | undefined;
   metadata?: { [k: string]: any } | undefined;
+  discount?: CheckoutEntityDiscount$Outbound | undefined;
 };
 
 /** @internal */
@@ -321,6 +441,7 @@ export const CheckoutEntity$outboundSchema: z.ZodType<
   requestId: z.string().optional(),
   product: z.union([ProductEntity$outboundSchema, z.string()]),
   units: z.number().default(1),
+  customPrice: z.number().int().optional(),
   order: OrderEntity$outboundSchema.optional(),
   subscription: z.union([SubscriptionEntity$outboundSchema, z.string()])
     .optional(),
@@ -331,9 +452,11 @@ export const CheckoutEntity$outboundSchema: z.ZodType<
   licenseKeys: z.array(LicenseEntity$outboundSchema).optional(),
   feature: z.array(ProductFeatureEntity$outboundSchema).optional(),
   metadata: z.record(z.any()).optional(),
+  discount: z.lazy(() => CheckoutEntityDiscount$outboundSchema).optional(),
 }).transform((v) => {
   return remap$(v, {
     requestId: "request_id",
+    customPrice: "custom_price",
     customFields: "custom_fields",
     checkoutUrl: "checkout_url",
     successUrl: "success_url",

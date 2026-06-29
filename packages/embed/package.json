@@ -1,0 +1,46 @@
+{
+  "name": "@creem_io/embed",
+  "version": "0.3.3",
+  "description": "Framework-agnostic core for embedding Creem checkout (modal & inline).",
+  "main": "./dist/index.js",
+  "module": "./dist/index.mjs",
+  "types": "./dist/index.d.ts",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.mjs",
+      "require": "./dist/index.js"
+    }
+  },
+  "files": [
+    "dist",
+    "README.md"
+  ],
+  "scripts": {
+    "build": "tsup",
+    "dev": "tsup --watch",
+    "typecheck": "tsc --noEmit"
+  },
+  "keywords": [
+    "creem",
+    "checkout",
+    "embed",
+    "payments"
+  ],
+  "author": "Creem",
+  "license": "MIT",
+  "devDependencies": {
+    "tsup": "^8.0.0",
+    "typescript": "^5.0.0"
+  },
+  "publishConfig": {
+    "access": "public",
+    "provenance": true
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/armitage-labs/creem.git",
+    "directory": "packages/embed"
+  },
+  "homepage": "https://github.com/armitage-labs/creem/tree/main/packages/embed"
+}

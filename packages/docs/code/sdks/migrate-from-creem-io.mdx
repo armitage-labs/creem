@@ -1,0 +1,258 @@
+---
+title: Migrate from creem_io
+description: Move an existing integration from the deprecated creem_io wrapper to the official creem TypeScript SDK.
+---
+
+The `creem_io` wrapper package is deprecated and no longer receives updates. Existing installations may keep working, but you should migrate maintained code to the official [`creem` TypeScript SDK](/code/sdks/typescript).
+
+This guide walks through the main code changes for moving an existing `creem_io` integration to `creem`.
+
+<Info>
+  If you are using the `@creem_io/nextjs` or `@creem_io/better-auth` packages, those are separate
+  adapter packages and are not the deprecated bare `creem_io` wrapper.
+</Info>
+
+## Install the SDK Alongside creem_io
+
+Install the core SDK first and keep `creem_io` installed while you migrate. Having both packages available makes it easier to compare the old wrapper behavior with the new SDK calls.
+
+<CodeGroup>
+
+```bash npm
+npm install creem
+```
+
+```bash pnpm
+pnpm add creem
+```
+
+```bash yarn
+yarn add creem
+```
+
+```bash bun
+bun add creem
+```
+
+</CodeGroup>
+
+Remove `creem_io` only after the migrated code compiles, tests pass, and no imports from `creem_io` remain.
+
+## Client Setup
+
+Replace `createCreem(...)` with the `Creem` client:
+
+```ts creem_io
+import { createCreem } from "creem_io";
+
+const creem = createCreem({
+  apiKey: process.env.CREEM_API_KEY!,
+  webhookSecret: process.env.CREEM_WEBHOOK_SECRET,
+  testMode: true,
+});
+```
+
+```ts creem
+import { Creem } from "creem";
+
+const creem = new Creem({
+  apiKey: process.env.CREEM_API_KEY!,
+  server: "test",
+});
+```
+
+<Warning>
+  Do not expose your API key in browser code. Initialize `Creem` only in trusted server-side code.
+</Warning>
+
+## API Call Changes
+
+The core SDK is generated from the public OpenAPI schema, so method names and argument shapes are closer to the API.
+
+| Area                | `creem_io` wrapper                            | `creem` SDK                                                                 |
+| ------------------- | --------------------------------------------- | --------------------------------------------------------------------------- |
+| Initialize client   | `createCreem({ apiKey, testMode })`           | `new Creem({ apiKey, server })`                                             |
+| Product get         | `creem.products.get({ productId })`           | `creem.products.get(productId)`                                             |
+| Product search      | `creem.products.list({ page, limit })`        | `creem.products.search(page, pageSize)`                                     |
+| Checkout create     | `creem.checkouts.create({ ... })`             | `creem.checkouts.create({ ... })`                                           |
+| Customer retrieve   | wrapper helper methods                        | `creem.customers.retrieve(customerId, email)`                               |
+| Subscription get    | `creem.subscriptions.get({ subscriptionId })` | `creem.subscriptions.get(subscriptionId)`                                   |
+| Subscription cancel | wrapper helper methods                        | `creem.subscriptions.cancel(subscriptionId, { mode })`                      |
+| Transactions search | wrapper helper methods                        | `creem.transactions.search(customerId, orderId, productId, page, pageSize)` |
+
+Example:
+
+```ts creem_io
+const product = await creem.products.get({
+  productId: "prod_123",
+});
+```
+
+```ts creem
+const product = await creem.products.get("prod_123");
+```
+
+## Search and Pagination
+
+Some search/list methods return a paginated result. For a single page, read `result`:
+
+```ts
+const page = await creem.products.search(1, 20);
+console.log(page.result.items);
+console.log(page.result.pagination);
+```
+
+To fetch across pages, iterate over the result:
+
+```ts
+const products = [];
+for await (const page of await creem.products.search(1, 20)) {
+  products.push(...page.result.items);
+}
+```
+
+## Webhooks
+
+The wrapper provided high-level callbacks such as `onGrantAccess` and `onRevokeAccess`. The core SDK verifies and parses webhook events, while your application decides which events grant or revoke access.
+
+### Verify and Parse Events
+
+```ts
+import { constructWebhookEventEntity } from "creem/webhooks";
+
+export async function POST(request: Request) {
+  const body = await request.text();
+  const event = await constructWebhookEventEntity(body, request.headers, {
+    secret: process.env.CREEM_WEBHOOK_SECRET!,
+  });
+
+  switch (event.eventType) {
+    case "checkout.completed":
+      await handleCheckoutCompleted(event.object);
+      break;
+    case "subscription.active":
+    case "subscription.trialing":
+    case "subscription.paid":
+      await grantAccess(event.object);
+      break;
+    case "subscription.paused":
+    case "subscription.expired":
+    case "subscription.canceled":
+      await revokeAccess(event.object);
+      break;
+  }
+
+  return new Response("OK", { status: 200 });
+}
+```
+
+`constructWebhookEventEntity(...)` verifies the signature and returns a generated webhook event type. After checking `event.eventType`, TypeScript narrows `event.object` to the matching payload type.
+
+### Replace Access Callbacks
+
+```ts creem_io
+const creem = createCreem({
+  apiKey: process.env.CREEM_API_KEY!,
+  webhookSecret: process.env.CREEM_WEBHOOK_SECRET!,
+  onGrantAccess: async ({ customer, metadata }) => {
+    await grantAccess(metadata?.userId, customer.email);
+  },
+  onRevokeAccess: async ({ customer, metadata }) => {
+    await revokeAccess(metadata?.userId, customer.email);
+  },
+});
+```
+
+```ts creem
+async function grantSubscriptionAccess(subscription: {
+  id: string;
+  customer: string | { email?: string };
+  metadata?: Record<string, unknown>;
+}) {
+  const userId = subscription.metadata?.userId;
+  if (!userId) return;
+
+  const customerEmail =
+    typeof subscription.customer === "string" ? undefined : subscription.customer.email;
+
+  await grantAccess(userId, customerEmail);
+}
+```
+
+If you already have separate grant and revoke functions, keep those functions and call them from the relevant `switch` cases.
+
+<Tip>
+  If you want adapter-style lifecycle callbacks in a Next.js app, use the
+  [`@creem_io/nextjs`](/code/sdks/nextjs) adapter. If you want full API access and generated webhook
+  payload types, use the core `creem` SDK directly.
+</Tip>
+
+## Metadata
+
+The core SDK exposes metadata on supported entities. Your metadata shape is application-defined, so narrow it in your own code when you need specific keys:
+
+```ts
+type BillingMetadata = {
+  userId?: string;
+  organizationId?: string;
+};
+
+const metadata = subscription.metadata as BillingMetadata | undefined;
+const userId = metadata?.userId;
+```
+
+## Final Cleanup
+
+After the migration is complete, remove the deprecated wrapper package:
+
+<CodeGroup>
+
+```bash npm
+npm uninstall creem_io
+```
+
+```bash pnpm
+pnpm remove creem_io
+```
+
+```bash yarn
+yarn remove creem_io
+```
+
+```bash bun
+bun remove creem_io
+```
+
+</CodeGroup>
+
+Then run your type checks and tests one more time.
+
+## Migration Checklist
+
+When migrating a codebase, use this checklist:
+
+- Install `creem` alongside `creem_io` until the migration is complete.
+- Replace imports from `creem_io` with imports from `creem`.
+- Replace `createCreem(...)` with `new Creem(...)`.
+- Convert `testMode: true` to `server: "test"`. Production is the SDK default, so no `server`
+  option is required.
+- Update resource method calls from object-wrapper arguments to the core SDK signatures.
+- Replace local webhook HMAC code with `constructWebhookEventEntity(...)` or `verifyWebhookSignature(...)`.
+- Replace `event.type` / `event.data` webhook usage with `event.eventType` / `event.object`.
+- Recreate `onGrantAccess` and `onRevokeAccess` behavior as explicit switch cases over subscription webhook events.
+- Review pagination responses and unwrap `page.result` where only one page is needed.
+- Run TypeScript after each migration step; generated SDK types should reveal most remaining shape mismatches.
+- Remove `creem_io` only after all imports are gone and tests pass.
+
+## Common Follow-ups
+
+- If a webhook payload fails validation, compare the raw payload with the generated webhook event type and confirm the public OpenAPI schema matches production webhook delivery.
+- If you return SDK pagination results from a framework action or RPC layer, return `page.result` rather than the iterator object.
+- If your integration relied heavily on wrapper convenience callbacks and you are using Next.js, consider whether the Next.js adapter is a better fit than the lower-level core SDK.
+
+## Related Docs
+
+- [TypeScript SDK](/code/sdks/typescript)
+- [Legacy creem_io wrapper reference](/code/sdks/typescript-wrapper)
+- [Webhooks](/code/webhooks)
+- [Next.js adapter](/code/sdks/nextjs)

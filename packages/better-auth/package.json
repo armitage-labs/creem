@@ -1,6 +1,6 @@
 {
   "name": "@creem_io/better-auth",
-  "version": "1.1.1",
+  "version": "1.1.2",
   "description": "Creem official Better-Auth plugin",
   "main": "./dist/index.js",
   "module": "./dist/index.mjs",
@@ -80,7 +80,7 @@
   },
   "dependencies": {
     "@creem_io/webhook-types": "workspace:^",
-    "creem": "^1.4.4"
+    "creem": "^1.5.1"
   },
   "peerDependencies": {
     "better-auth": "^1.3.34",

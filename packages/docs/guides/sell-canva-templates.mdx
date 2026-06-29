@@ -1,0 +1,173 @@
+---
+title: 'How to Sell Canva Templates'
+description: 'Sell Canva templates with Creem and automatically share a template link right after payment'
+---
+
+This guide shows you how to sell a Canva template with Creem so buyers get **instant access** to your **template link** as soon as payment completes.
+
+You’ll set up:
+
+- A finished Canva design and a [template link](https://www.canva.com/en_in/help/share-via-link-or-email/#share-your-design-using-a-link)
+- A Creem product with a **Private Note** that contains the link (Markdown supported)
+- A checkout flow (no-code payment link or API integration)
+- Automatic delivery on the post-purchase screen, email receipt, and customer portal
+
+<iframe
+  className="w-full aspect-video rounded-xl"
+  src="https://www.youtube-nocookie.com/embed/Y8XCzb5cakA"
+  title="Learn how to sell Canva templates through video"
+  allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+  allowFullScreen
+></iframe>
+
+## What buyers experience
+
+After a successful payment, the buyer sees your private note content immediately:
+
+- **Post-purchase confirmation screen** (when you don’t redirect away immediately)
+- **Purchase confirmation email**
+- **Customer portal** (so they can find it again later)
+
+When they open the template link, Canva prompts them to sign in (or create a free account), then adds an editable copy of your design to their workspace. Your original file stays unchanged.
+
+## Create your Canva template link
+
+<Steps>
+  <Step title="Finish your template in Canva">
+    Complete your design in Canva. Use a clear page structure and names if you’re selling a multi-page pack (for example, “Cover”, “Instagram post”, “Story”).
+  </Step>
+
+  <Step title="Generate a template link">
+    In the Canva editor:
+
+    1. Open your finished design.
+    2. Click **Share** in the top menu.
+    3. In **Access level**, change **Only you can access** to **Anyone with the link** and **Can edit** to **Can comment**.
+    4. Click **Copy link** and save the URL somewhere safe.
+    
+    ![Canva's interface with the Share menu open and the template link sharing options highlighted](/images/sell-canva-templates/canva-link.png)
+
+    Full steps are in [Canva’s template link help article](https://www.canva.com/help/share-template-link/).
+  </Step>
+</Steps>
+
+## Set up automated delivery with Private Notes
+
+<Steps>
+  <Step title="Create a product for your template">
+    Go to the [Products tab](https://creem.io/dashboard/products) and create a new product.
+
+    Use a clear name like “Canva Template: Social Media Kit” and a description that matches what the buyer gets.
+
+    <img src="/images/sell-canva-templates/create.png" />
+
+  </Step>
+
+  <Step title="Enable Private Notes and add your template link">
+    In the product settings under **Product Features**, add [Private Notes](/features/addons/private-notes) and paste a note that includes your Canva template link.
+
+    <img src="/images/sell-canva-templates/configure-private-notes.png" />
+
+    Private Notes support Markdown, so you can include a clickable link, short instructions, and support details.
+
+    Example:
+
+    ```md
+    ## Your Canva template is ready
+
+    Open this link to add the template to your Canva account:
+    - **Template link**: https://canva.link/...
+
+    Next steps:
+    1. Open the link (sign in or create a free Canva account)
+    2. Customize the copy in your own Canva workspace
+    ```
+
+    <img src="/images/sell-canva-templates/add-private-note.png" />
+
+    <Note>
+      Keep the Canva template link in the Private Note so it’s only revealed after payment.
+    </Note>
+  </Step>
+</Steps>
+
+## Create a checkout (no-code or API)
+
+You can sell the Canva template with either a shareable checkout link or a checkout session you create on demand.
+
+<CardGroup cols={2}>
+  <Card
+    title="No-code checkout link"
+    icon="link"
+    href="/features/checkout/checkout-link"
+  >
+    Copy a payment link from the product and share it anywhere.
+  </Card>
+  <Card
+    title="Programmatic checkout session"
+    icon="code"
+    href="/guides/create-checkout-session"
+  >
+    Create a checkout session via API/SDK for dynamic flows.
+  </Card>
+</CardGroup>
+
+### Option A: Share the product payment link (no code)
+
+After creating your product, click **Share** in the dashboard and use the payment link on:
+
+- Your landing page
+- A “Buy now” button
+- A newsletter or social post
+
+### Option B: Create a checkout session (API)
+
+If you want to attach internal tracking (template slug, campaign, user ID), create a checkout session and redirect the buyer to it.
+
+```typescript
+const checkout = await creem.checkouts.create({
+  productId: 'prod_YOUR_TEMPLATE_PRODUCT_ID',
+  requestId: 'order_12345',
+  metadata: {
+    productType: 'canva_template',
+    templateSlug: 'social-media-kit',
+    campaign: 'launch',
+  },
+});
+
+// Redirect the user to checkout.url (depending on your framework)
+```
+
+<Tip>
+  If you already know the buyer’s email (for example, they’re logged in),
+  pre-fill it to reduce checkout friction.
+</Tip>
+
+```typescript
+const checkout = await creem.checkouts.create({
+  productId: 'prod_YOUR_TEMPLATE_PRODUCT_ID',
+  customer: { email: 'buyer@example.com' },
+});
+```
+
+## Where the Canva template link appears to customers
+
+After setup, the Canva template link is delivered automatically in several places:
+
+### Order Confirmation Page
+
+If no custom redirect URL is specified, the note is shown on the order success page right after checkout.
+
+<img src="/images/sell-canva-templates/order-success.png" />
+
+### Email Receipt
+
+The private note with the Canva template link is included in the purchase confirmation email.
+
+<img src="/images/sell-canva-templates/email.png" />
+
+### Customer Portal
+
+Customers can open the note and copy the Canva template link again from their customer portal.
+
+<img src="/images/sell-canva-templates/portal.png" />

@@ -24,7 +24,7 @@ The Creem Affiliate Platform is a complete affiliate marketing solution that ena
     Join programs, get unique referral links, track earnings in real-time, and request payouts
   </Card>
   <Card title="Automated Tracking" icon="chart-line">
-    Cookie-based attribution automatically credits affiliates for referred sales
+    Attribution automatically credits affiliates for referred sales
   </Card>
   <Card title="Compliant Payouts" icon="building-columns">
     Built-in KYC verification and multiple payout methods (bank transfer, crypto)
@@ -281,8 +281,7 @@ If the payout date falls on a weekend or public holiday, the payout will be proc
 
 | Method | Provider | Fee |
 |--------|----------|-----|
-| **Bank Transfer (SEPA / EU)** | Paysway | No additional fee |
-| **Bank Transfer (International)** | Paysway | 7 USD/EUR or 1% of payout amount, whichever is higher |
+| **Bank Transfer** | Paysway | 7 USD/EUR or 1% of payout amount, whichever is higher |
 | **Cryptocurrency (USDC via Polygon)** | Mural | 2% of payout volume |
 
 <Info>
@@ -346,6 +345,9 @@ If you're an affiliate for multiple merchants, you can switch between programs u
   </Accordion>
   <Accordion title="How is my referral tracked?">
     When someone clicks your affiliate link, a cookie is stored in their browser. This cookie attributes any purchases to you within the cookie duration period.
+  </Accordion>
+  <Accordion title="Does attribution work with embedded checkout?">
+    Yes. When a merchant embeds the Creem checkout in their own site, the affiliate cookie isn't available inside the cross-site iframe (no browser sends it there) — so Creem carries attribution as a signed URL token (`creem_ref`) that the embed forwards automatically. Merchants don't need to wire anything for the common case. See [Embedded checkout → Affiliate attribution](/features/checkout/embedded-checkout#affiliate-attribution).
   </Accordion>
   <Accordion title="Can I see which products are selling?">
     Yes, your dashboard shows conversion data. Merchants may also provide additional reporting on which products drive the most affiliate sales.

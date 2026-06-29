@@ -913,6 +913,11 @@ export function UpgradePrompt({
 
 Track conversions from marketing campaigns or affiliates.
 
+**Two different things — pick the right one:**
+
+- **Creem Affiliate Program (managed).** If you use Creem's built-in [Affiliate Program](https://docs.creem.io/features/affiliate-program), tracking and attribution are automatic. An affiliate link (`creem.io/affiliate?code=…`) redirects the visitor to your site and appends an opaque, signed **`creem_ref`** token. Creem attributes the sale via its own cookie (hosted checkout) or by forwarding `creem_ref` into the iframe (embedded checkout). You do **not** parse `creem_ref` or pass it to the checkout API — it identifies the click, not the affiliate, and seeing `?creem_ref=` on your site after an affiliate link is expected. See [Embedded checkout → Affiliate attribution](https://docs.creem.io/features/checkout/embedded-checkout#affiliate-attribution).
+- **Custom tracking (the pattern below).** Use this only to roll your own campaign/affiliate tracking with your own `?ref=` / `?aff=` / `utm_*` params — stored in your own cookie and passed as checkout `metadata`. It's independent of the managed Affiliate Program above.
+
 ### Step 1: Pass Tracking Data
 
 ```typescript
