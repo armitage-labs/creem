@@ -39,8 +39,8 @@ importers:
         specifier: workspace:^
         version: link:../webhook-types
       creem:
-        specifier: ^1.5.1
-        version: 1.5.1
+        specifier: ^1.5.3
+        version: 1.5.3
     devDependencies:
       '@better-auth/core':
         specifier: ^1.5.6
@@ -116,8 +116,8 @@ importers:
         specifier: ^0.1.63
         version: 0.1.114(@standard-schema/spec@1.1.0)(convex@1.32.0(react@19.2.4))(hono@4.12.7)(react@19.2.4)(typescript@5.9.3)(zod@3.25.76)
       creem:
-        specifier: ^1.5.1
-        version: 1.5.1
+        specifier: ^1.5.3
+        version: 1.5.3
       marked:
         specifier: ^17.0.3
         version: 17.0.5
@@ -397,8 +397,8 @@ importers:
         specifier: workspace:^
         version: link:../webhook-types
       creem:
-        specifier: ^1.5.1
-        version: 1.5.1
+        specifier: ^1.5.3
+        version: 1.5.3
     devDependencies:
       '@types/node':
         specifier: ^20.0.0
@@ -6519,8 +6519,8 @@ packages:
     resolution: {integrity: sha512-hfnHOIqNERf783FMJOOpbmD701y4t6HuVKR8kIm16X3l5OK6yMM0ifd2zY8CbRqSLeqK/iQV1D8FLgZEVs7Alg==}
     hasBin: true
 
-  creem@1.5.1:
-    resolution: {integrity: sha512-Zlyjui0UWYoVGA34EF2rUILfAKHdwWVyYsXTGbvl5CpmyDLm50feiFHorylA931lkLnz8YTxKy408aGbAjxBcg==}
+  creem@1.5.3:
+    resolution: {integrity: sha512-GYd8QbG293fcjg6LkeRDpTam83xjjRjv/j/PeYOYwFhsc6zESZyq6SbV5yBnsBWJyjnzgSgA5bezedNnv+CMfw==}
     hasBin: true
 
   crelt@1.0.6:
@@ -20164,7 +20164,7 @@ snapshots:
       - '@cfworker/json-schema'
       - supports-color
 
-  creem@1.5.1:
+  creem@1.5.3:
     dependencies:
       '@modelcontextprotocol/sdk': 1.29.0(zod@3.25.76)
       jsonpath-rfc9535: 1.1.0
