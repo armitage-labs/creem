@@ -343,9 +343,9 @@ Always develop in test mode first:
 1. Use `https://test-api.creem.io` as base URL
 2. Use test API key from dashboard
 3. Test cards:
-   - `4242 4242 4242 4242` - Success
-   - `4000 0000 0000 0002` - Declined
-   - `4000 0000 0000 9995` - Insufficient funds
+   - `4111 1111 1111 1111` - Success
+   - `4507 9900 0000 0028` - Declined
+   - `4507 9900 0000 0010` - Insufficient funds
 
 ## Common Integration Checklist
 
