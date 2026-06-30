@@ -3075,7 +3075,8 @@
             "type": "string",
             "description": "The ISO alpha-2 country code for the customer.",
             "example": "US",
-            "pattern": "^[A-Z]{2}$"
+            "pattern": "^[A-Z]{2}$",
+            "nullable": true
           },
           "created_at": {
             "format": "date-time",
