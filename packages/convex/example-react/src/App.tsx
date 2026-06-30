@@ -157,7 +157,7 @@ export default function App() {
             Test card:
           </span>
           <code className="ml-1 rounded bg-surface-200-800 px-1.5 py-0.5 font-mono text-xs">
-            4242 4242 4242 4242
+            4111 1111 1111 1111
           </code>
           <span className="ml-2 text-foreground-placeholder">
             — any future expiry, any CVC, any cardholder name

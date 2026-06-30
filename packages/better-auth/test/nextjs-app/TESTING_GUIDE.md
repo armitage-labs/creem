@@ -51,7 +51,7 @@ This guide walks you through testing all features of the Creem Better-Auth plugi
 #### Test Completing Checkout
 
 1. On Creem checkout page, use test card:
-   - Card: `4242 4242 4242 4242`
+   - Card: `4111 1111 1111 1111`
    - Expiry: Any future date
    - CVC: Any 3 digits
 2. Complete payment
