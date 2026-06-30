@@ -1,9 +1,9 @@
-speakeasyVersion: 1.784.0
+speakeasyVersion: 1.786.1
 sources:
     Creem API:
         sourceNamespace: creem-api
-        sourceRevisionDigest: sha256:99816b7ddf58bd01ec4e52e76b8aa07b3b2a690aa1f7395176444e4116a5bcbc
-        sourceBlobDigest: sha256:dc266bf7f818c0a8aae6c571977b40c3cbad92b99bd759931f0a39ffc44486b1
+        sourceRevisionDigest: sha256:913830d75cedf7563e0be96bd7f205d2e346174fe06c0fa9bc1249f18b70be0f
+        sourceBlobDigest: sha256:e389dc97f24ad0110c884689b4ff51fd83f4d52a4124c23e25367fc6c505f138
         tags:
             - latest
             - v1
@@ -11,10 +11,10 @@ targets:
     creem:
         source: Creem API
         sourceNamespace: creem-api
-        sourceRevisionDigest: sha256:99816b7ddf58bd01ec4e52e76b8aa07b3b2a690aa1f7395176444e4116a5bcbc
-        sourceBlobDigest: sha256:dc266bf7f818c0a8aae6c571977b40c3cbad92b99bd759931f0a39ffc44486b1
+        sourceRevisionDigest: sha256:913830d75cedf7563e0be96bd7f205d2e346174fe06c0fa9bc1249f18b70be0f
+        sourceBlobDigest: sha256:e389dc97f24ad0110c884689b4ff51fd83f4d52a4124c23e25367fc6c505f138
         codeSamplesNamespace: creem-api-typescript-code-samples
-        codeSamplesRevisionDigest: sha256:56a5af02dadec1af087c953f3419647d8d0d2bf13fe5983865ac7bd0e8ed6307
+        codeSamplesRevisionDigest: sha256:e8e36bcbd62191c67f9ce5d4725d9e58489f04f87871b26a43249b37872907c9
 workflow:
     workflowVersion: 1.0.0
     speakeasyVersion: latest

@@ -41,7 +41,7 @@ export type CustomerEntity = {
   /**
    * The ISO alpha-2 country code for the customer.
    */
-  country: string;
+  country: string | null;
   /**
    * Creation date of the customer
    */
@@ -64,7 +64,7 @@ export const CustomerEntity$inboundSchema: z.ZodType<
   email: z.string(),
   name: z.nullable(z.string()).optional(),
   metadata: z.nullable(z.record(z.any())).optional(),
-  country: z.string(),
+  country: z.nullable(z.string()),
   created_at: z.string().datetime({ offset: true }).transform(v => new Date(v)),
   updated_at: z.string().datetime({ offset: true }).transform(v => new Date(v)),
 }).transform((v) => {
@@ -81,7 +81,7 @@ export type CustomerEntity$Outbound = {
   email: string;
   name?: string | null | undefined;
   metadata?: { [k: string]: any } | null | undefined;
-  country: string;
+  country: string | null;
   created_at: string;
   updated_at: string;
 };
@@ -98,7 +98,7 @@ export const CustomerEntity$outboundSchema: z.ZodType<
   email: z.string(),
   name: z.nullable(z.string()).optional(),
   metadata: z.nullable(z.record(z.any())).optional(),
-  country: z.string(),
+  country: z.nullable(z.string()),
   createdAt: z.date().transform(v => v.toISOString()),
   updatedAt: z.date().transform(v => v.toISOString()),
 }).transform((v) => {
