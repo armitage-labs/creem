@@ -1,5 +1,11 @@
 # Changelog
 
+## 0.5.2
+
+### Patch Changes
+
+- bb581ac: Bump creem SDK dependency to 1.5.3
+
 ## 0.5.1
 
 ### Patch Changes
@@ -11,9 +17,11 @@ All notable changes to this project will be documented in this file.
 ## [0.5.1] - 2026-06-04
 
 ### Added
+
 - Handle the `subscription.scheduled_cancel` webhook event with a new `onSubscriptionScheduledCancel` callback. Previously this event fell through to the default branch and the route responded with `400 Unknown event type`.
 
 ### Fixed
+
 - Clarified `onRevokeAccess` documentation: access is revoked for `paused` and `expired` subscriptions only.
 
 ## [0.5.0] - 2025-01-27
