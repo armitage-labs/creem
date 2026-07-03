@@ -3,6 +3,8 @@ title: "Test Mode"
 description: "Develop and test your integration safely without processing real payments or affecting production data"
 ---
 
+import { Copy } from "/snippets/copy.jsx";
+
 Test Mode allows you to build and test your Creem integration in a completely isolated environment. All API calls, payments, webhooks, and data are kept separate from your production environment, ensuring you can develop with confidence.
 
 <Tip>
@@ -161,12 +163,12 @@ Use these test card numbers to simulate different payment scenarios:
   All test card numbers work with any future expiration date, any CVV, and any billing information.
 </Note>
 
-| Card Number           | Behavior           |
-| --------------------- | ------------------ |
-| `4111 1111 1111 1111` | Successful payment |
-| `4507 9900 0000 0028` | Card declined      |
-| `4507 9900 0000 0010` | Insufficient funds |
-| `4507 9900 0000 0044` | Incorrect CVC      |
+| Card Number                        | Behavior           |
+| ---------------------------------- | ------------------ |
+| <Copy>`4111 1111 1111 1111`</Copy> | Successful payment |
+| <Copy>`4507 9900 0000 0028`</Copy> | Card declined      |
+| <Copy>`4507 9900 0000 0010`</Copy> | Insufficient funds |
+| <Copy>`4507 9900 0000 0044`</Copy> | Incorrect CVC      |
 
 ## Webhook Testing
 
