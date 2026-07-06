@@ -319,7 +319,7 @@ export class Creem {
           entityId,
           email: customerObj?.email,
           name: customerObj?.name ?? undefined,
-          country: customerObj?.country,
+          country: customerObj?.country ?? undefined,
           mode: customerObj?.mode,
         });
       }
@@ -510,7 +510,7 @@ export class Creem {
         entityId,
         email: customerEntity?.email,
         name: customerEntity?.name ?? undefined,
-        country: customerEntity?.country,
+        country: customerEntity?.country ?? undefined,
         mode: customerEntity?.mode,
         createdAt: customerEntity?.createdAt
           ? customerEntity.createdAt instanceof Date

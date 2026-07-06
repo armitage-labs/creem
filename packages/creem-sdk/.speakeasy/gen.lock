@@ -1,12 +1,12 @@
 lockVersion: 2.0.0
 id: 091f072e-89b5-4c97-b605-63f1bf64ee97
 management:
-  docChecksum: 3ba4ffbdbca7415aaa17e7476c90051b
+  docChecksum: ca00989da728e96993dcb8aca2bd5449
   docVersion: v1
-  speakeasyVersion: 1.784.0
-  generationVersion: 2.911.0
-  releaseVersion: 1.5.2
-  configChecksum: 48011688353e02d9fd3a66c9e4c45526
+  speakeasyVersion: 1.786.1
+  generationVersion: 2.913.3
+  releaseVersion: 1.5.3
+  configChecksum: 91a22ee6a85ed4208ce444433d452766
   repoURL: https://github.com/armitage-labs/creem.git
   repoSubDirectory: packages/creem-sdk
   installationURL: https://github.com/armitage-labs/creem
@@ -19,7 +19,7 @@ features:
   typescript:
     additionalDependencies: 0.1.0
     constsAndDefaults: 0.1.14
-    core: 3.31.1
+    core: 3.31.2
     defaultEnabledRetries: 0.1.0
     deprecations: 2.81.1
     devContainers: 2.90.1
@@ -650,11 +650,11 @@ trackedFiles:
     last_write_checksum: sha1:f365e8683dec3c0eb457d1863badea30ebd4b76d
   jsr.json:
     id: 7f6ab7767282
-    last_write_checksum: sha1:1c20e883f8070662a28304f51db2fb5a37a75d71
+    last_write_checksum: sha1:3b45d4e77061de7afed79cf1684526d2465be92d
     pristine_git_object: e5888a4c7af0aee5100b8d817f757e0d44eddad1
   package.json:
     id: 7030d0b2f71b
-    last_write_checksum: sha1:e3f5ee750ce6773325b0c6f2f64c1c0c2dbd60dd
+    last_write_checksum: sha1:dd777adb45e53bb1ea7e35ce2c4ea5030b846384
     pristine_git_object: 4904751d275b1cbba4d414fee5ca96961af59a8c
   src/core.ts:
     id: f431fdbcd144
@@ -766,7 +766,7 @@ trackedFiles:
     pristine_git_object: 0aebd8b0a4867e35cb3348fc52921c3c0b4725b7
   src/lib/config.ts:
     id: 320761608fb3
-    last_write_checksum: sha1:5d0034c22aa5ff2e47207587b41fc91fd964be88
+    last_write_checksum: sha1:6ca7712bd354d720128421c5e7a57d6c52906209
     pristine_git_object: 21c35be9d8c1ab94c37377361515b326d654872b
   src/lib/encodings.ts:
     id: 3bd8ead98afd
@@ -842,7 +842,7 @@ trackedFiles:
     pristine_git_object: 0955a573c2ce989d63c737410ab8cc28706d9f74
   src/mcp-server/mcp-server.ts:
     id: aabbc4ab07c1
-    last_write_checksum: sha1:3e5dc8a95b0ee32d1a6b944230af0470be2a6074
+    last_write_checksum: sha1:bbcec320601b4d20d4b047a656734c14dbf5350a
     pristine_git_object: 4153fdc4ac7a39fd057e811c809b67b84b86cb9b
   src/mcp-server/prompts.ts:
     id: 26f3d73cbf31
@@ -858,7 +858,7 @@ trackedFiles:
     pristine_git_object: c25696d4c4f70e081fa5d87ad6891874c509a577
   src/mcp-server/server.ts:
     id: 2784dd48e82a
-    last_write_checksum: sha1:bfae08701447e77d9b2ca0ca604f206af1edddd4
+    last_write_checksum: sha1:68ecefbcf443dbaec837f9859be72bb94d894ec3
     pristine_git_object: 93c59790bc4d517a18cdd7e83fe3a2dceffda1c5
   src/mcp-server/shared.ts:
     id: 074e80d4be1e
@@ -1000,7 +1000,7 @@ trackedFiles:
     last_write_checksum: sha1:ef5d65cd2d6c7246a41fed247c6917f58255420b
   src/models/components/customerentity.ts:
     id: 1a7de3219dab
-    last_write_checksum: sha1:3a97622b81357f9fdbab3e11a01c883e20c2b88a
+    last_write_checksum: sha1:5eb3ac82f7e32a5158237a74b62291472659dd94
     pristine_git_object: ad6b862892f24506ae9876896a336d38f6ac84b8
   src/models/components/customerlinksentity.ts:
     id: 4b68e006b20d
@@ -2058,7 +2058,22 @@ examples:
           application/json: {"error": {"type": "invalid_request_error", "code": {}, "message": "Total debits must equal total credits", "param": {}, "request_id": "req_abc123def456"}}
 examplesVersion: 1.0.2
 generatedTests: {}
-releaseNotes: "## Typescript SDK Changes:\n* `creem.products.create()`:  `request` **Changed**\n* `creem.checkouts.retrieve()`:  `response.customPrice` **Added**\n* `creem.checkouts.create()`: \n  *  `request.customPrice` **Added**\n  *  `response.customPrice` **Added**\n"
+releaseNotes: |
+  ## Typescript SDK Changes:
+  * `creem.customers.list()`:  `response.items[].country` **Changed** (Breaking ⚠️)
+  * `creem.customers.listSubscriptions()`:  `response.items[].customer.union(CustomerEntity).country` **Changed** (Breaking ⚠️)
+  * `creem.customers.retrieve()`:  `response.country` **Changed** (Breaking ⚠️)
+  * `creem.customers.create()`:  `response.country` **Changed** (Breaking ⚠️)
+  * `creem.customers.update()`:  `response.country` **Changed** (Breaking ⚠️)
+  * `creem.subscriptions.get()`:  `response.customer.union(CustomerEntity).country` **Changed** (Breaking ⚠️)
+  * `creem.subscriptions.search()`:  `response.items[].customer.union(CustomerEntity).country` **Changed** (Breaking ⚠️)
+  * `creem.subscriptions.cancel()`:  `response.customer.union(CustomerEntity).country` **Changed** (Breaking ⚠️)
+  * `creem.subscriptions.update()`:  `response.customer.union(CustomerEntity).country` **Changed** (Breaking ⚠️)
+  * `creem.subscriptions.upgrade()`:  `response.customer.union(CustomerEntity).country` **Changed** (Breaking ⚠️)
+  * `creem.subscriptions.pause()`:  `response.customer.union(CustomerEntity).country` **Changed** (Breaking ⚠️)
+  * `creem.subscriptions.resume()`:  `response.customer.union(CustomerEntity).country` **Changed** (Breaking ⚠️)
+  * `creem.checkouts.retrieve()`:  `response.subscription.union(SubscriptionEntity).customer.union(CustomerEntity).country` **Changed** (Breaking ⚠️)
+  * `creem.checkouts.create()`:  `response.subscription.union(SubscriptionEntity).customer.union(CustomerEntity).country` **Changed** (Breaking ⚠️)
 generatedFiles:
   - .devcontainer/README.md
   - .devcontainer/devcontainer.json
