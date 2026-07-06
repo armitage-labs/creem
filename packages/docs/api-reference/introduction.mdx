@@ -3,6 +3,8 @@ title: "Introduction"
 description: "Everything you need to start integrating with the Creem API: endpoints, authentication, test mode, webhooks, and SDKs."
 ---
 
+import { Copy } from "/snippets/copy.jsx";
+
 The Creem API is built on REST principles and uses HTTPS for all requests. It returns JSON-encoded responses and uses standard HTTP status codes.
 
 ## Base URL
@@ -50,14 +52,14 @@ To activate test mode, toggle **Test Mode** in the bottom of the left sidebar of
 
 ### Test Cards
 
-Use these card numbers to simulate different payment scenarios. All cards work with any future expiration date, any CVV, and any billing information.
+Use these card numbers to simulate different payment scenarios. All cards work with any future expiration date, any CVV, and any billing information. Click a card number to copy it.
 
-| Card Number           | Behavior           |
-| --------------------- | ------------------ |
-| `4111 1111 1111 1111` | Successful payment |
-| `4507 9900 0000 0028` | Card declined      |
-| `4507 9900 0000 0010` | Insufficient funds |
-| `4507 9900 0000 0044` | Incorrect CVC      |
+| Card Number                        | Behavior           |
+| ---------------------------------- | ------------------ |
+| <Copy>`4111 1111 1111 1111`</Copy> | Successful payment |
+| <Copy>`4507 9900 0000 0028`</Copy> | Card declined      |
+| <Copy>`4507 9900 0000 0010`</Copy> | Insufficient funds |
+| <Copy>`4507 9900 0000 0044`</Copy> | Incorrect CVC      |
 
 ### Using Test Mode in Code
 
