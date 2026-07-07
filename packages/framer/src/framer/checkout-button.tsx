@@ -143,6 +143,7 @@ export function CreemCheckoutButton({
   // States
   const [loading, setLoading] = useState(false)
   const [embedUrl, setEmbedUrl] = useState<string | null>(null)
+  const [errorMessage, setErrorMessage] = useState<string | null>(null)
   const [breakpoint, setBreakpoint] = useState<'mobile' | 'tablet' | 'desktop'>('desktop')
   const isCanvas = RenderTarget.current() === RenderTarget.canvas
 
@@ -170,17 +171,19 @@ export function CreemCheckoutButton({
       return
     }
 
+    setErrorMessage(null)
+
     // Only validate if it's still the exact default placeholder
     if (productId === 'prod_YOUR_PRODUCT_ID') {
       console.error('❌ Please insert this button through the Creem plugin and select a product')
-      alert('Please insert this button through the Creem plugin and select a product from the dropdown.')
+      setErrorMessage('Please insert this button through the Creem plugin and select a product from the dropdown.')
       return
     }
 
     // If productId exists and is not the default, trust it and open checkout
     if (!productId || productId.trim() === '') {
       console.error('❌ Product ID is empty')
-      alert('Product ID is missing. Please re-insert this button through the Creem plugin.')
+      setErrorMessage('Product ID is missing. Please re-insert this button through the Creem plugin.')
       return
     }
     console.log('🚀 Opening checkout for product:', productId)
@@ -403,6 +406,27 @@ export function CreemCheckoutButton({
       {isCanvas && (
         <div id='creem-canvas-msg' className='creem-sr-only'>
           Button is disabled in canvas edit mode. Preview or publish to test checkout.
+        </div>
+      )}
+      {errorMessage && (
+        <div
+          role='alert'
+          style={{
+            marginTop: 8,
+            maxWidth: '100%',
+            padding: '8px 12px',
+            borderRadius: 8,
+            background: 'rgba(220, 38, 38, 0.1)',
+            color: '#dc2626',
+            fontSize: 13,
+            fontWeight: 500,
+            lineHeight: 1.4,
+            fontFamily: 'inherit',
+            whiteSpace: 'normal',
+            boxSizing: 'border-box'
+          }}
+        >
+          {errorMessage}
         </div>
       )}
       {embedUrl && <CheckoutEmbedModal url={embedUrl} onClose={closeEmbed} />}
