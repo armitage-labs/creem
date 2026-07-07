@@ -11,6 +11,10 @@
   --color-accent: #b09cfb;
 }
 
+:root {
+  color-scheme: light;
+}
+
 body {
   margin: 0;
   padding: 0;
