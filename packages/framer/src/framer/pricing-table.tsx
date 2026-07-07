@@ -429,86 +429,146 @@ type Props = {
   testMode: boolean
 }
 
+const DEFAULT_TIERS: Props['tiers'] = [
+  {
+    name: 'Free',
+    monthlyPrice: 0,
+    yearlyPrice: 0,
+    description: 'Recommended for people with at least 1 year experience in crypto markets.',
+    features: [
+      'Access to real-time inventory tracking',
+      'Integration with Digital Marketing email',
+      'Basic analytics and email support',
+      'Custom dashboards and Phone support',
+      'Real-time data tracking and 24/7 support'
+    ],
+    featuresTitle: 'Features',
+    productId: 'prod_free',
+    ctaText: 'Free plan',
+    ctaVariant: 'default',
+    highlighted: false
+  },
+  {
+    name: 'Premium',
+    monthlyPrice: 99,
+    yearlyPrice: 950,
+    description: 'Everything in the Basic Plan plus advanced search, better analytics.',
+    features: [
+      'All Premium Plan features',
+      'Advanced data filtering search capabilities',
+      'Custom branding options',
+      'Extended API access for integrations',
+      'Real-time data tracking and 24/7 support',
+      'Dedicated account manager'
+    ],
+    featuresTitle: 'Features',
+    productId: 'prod_premium',
+    ctaText: 'Purchase plan',
+    ctaVariant: 'default',
+    highlighted: true
+  },
+  {
+    name: 'Enterprise',
+    monthlyPrice: 299,
+    yearlyPrice: 2990,
+    description: 'Includes all Professional Plan features plus full logistics automation etc.',
+    features: [
+      'Custom onboarding process',
+      'Priority support response',
+      'Access to exclusive webinars',
+      'Monthly performance reviews',
+      'Real-time data tracking and 24/7 support',
+      'Dedicated account manager',
+      'Tailored training sessions and resources'
+    ],
+    featuresTitle: 'Features',
+    productId: 'prod_enterprise',
+    ctaText: 'Purchase plan',
+    ctaVariant: 'default',
+    highlighted: false
+  }
+]
+
 export function CreemPricingTable({
-  tiers,
-  type,
+  tiers = DEFAULT_TIERS,
+  type = 'embed',
   layout = 'grid',
   gridColumns = 3,
-  accentColor,
+  accentColor = '#111111',
 
   // Header
-  showHeader,
-  headerTitle,
-  headerDescription,
-  headerTitleFontSize,
-  headerDescriptionFontSize,
-  headerTitleColor,
-  headerDescriptionColor,
-  headerAlignment,
+  showHeader = true,
+  headerTitle = 'Monetize Your Framer Projects',
+  headerDescription = 'Launch subscriptions, one-time payments, and billing portals in minutes - no backend needed.',
+  headerTitleFontSize = 48,
+  headerDescriptionFontSize = 18,
+  headerTitleColor = '#000000',
+  headerDescriptionColor = '#9CA3AF',
+  headerAlignment = 'center',
 
   // Toggle settings
-  showYearlyToggle,
-  toggleMonthlyLabel,
-  toggleYearlyLabel,
-  toggleStyle,
+  showYearlyToggle = true,
+  toggleMonthlyLabel = 'Monthly',
+  toggleYearlyLabel = 'Yearly',
+  toggleStyle = 'pill',
 
   // Colors - Background
-  pageBackground,
-  cardBackground,
+  pageBackground = 'transparent',
+  cardBackground = '#FFFFFF',
 
   // Colors - Borders
-  borderColor,
-  featuredBorderColor,
-  dividerColor,
+  borderColor = '#E6E6E6',
+  featuredBorderColor = '#111111',
+  dividerColor = '#EDEDED',
 
   // Colors - Text
-  textColor,
-  mutedTextColor,
+  textColor = '#000000',
+  mutedTextColor = '#7A7A7A',
 
   // Colors - Buttons
-  primaryButtonBackground,
-  primaryButtonTextColor,
-  secondaryButtonBackground,
-  secondaryButtonTextColor,
-  buttonBorderColor,
+  primaryButtonBackground = '#111111',
+  primaryButtonTextColor = '#FFFFFF',
+  secondaryButtonBackground = '#EDEDED',
+  secondaryButtonTextColor = '#000000',
+  buttonBorderColor = '#E1E1E1',
 
   // Colors - Toggle
-  toggleBackground,
-  toggleBorderColor,
-  toggleActiveBackground,
-  toggleActiveTextColor,
-  toggleTextColor,
+  toggleBackground = '#FFFFFF',
+  toggleBorderColor = '#E6E6E6',
+  toggleActiveBackground = '#111111',
+  toggleActiveTextColor = '#FFFFFF',
+  toggleTextColor = '#111111',
 
   // Colors - Features
-  bulletColor,
+  bulletColor = '#111111',
 
   // Typography
-  titleFontSize,
-  descriptionFontSize,
-  priceFontSize,
-  featuresTitleFontSize,
-  featureFontSize,
-  buttonFontSize,
+  titleFontSize = 28,
+  descriptionFontSize = 14,
+  priceFontSize = 56,
+  featuresTitleFontSize = 20,
+  featureFontSize = 15,
+  buttonFontSize = 15,
 
   // Spacing & Layout
-  cardRadius,
-  cardBorderWidth,
-  featuredCardBorderWidth,
-  cardPadding,
-  cardGap,
-  gridGap,
-  minCardWidth,
-  maxWidth,
+  cardRadius = 14,
+  cardBorderWidth = 2,
+  featuredCardBorderWidth = 2,
+  cardPadding = 26,
+  cardGap = 18,
+  gridGap = 22,
+  minCardWidth = 300,
+  maxWidth = 1200,
 
   // Button styling
-  buttonHeight,
-  buttonRadius,
+  buttonHeight = 44,
+  buttonRadius = 8,
 
   // Feature bullets
-  bulletSize,
+  bulletSize = 8,
 
   // Other
-  testMode
+  testMode = false
 }: Props) {
   const [yearly, setYearly] = useState(false)
   const [embedUrl, setEmbedUrl] = useState<string | null>(null)
@@ -1166,109 +1226,6 @@ export function CreemPricingTable({
 }
 
 // ─── Defaults & Controls ──────────────────────────────────────────────────────
-
-CreemPricingTable.defaultProps = {
-  type: 'embed',
-  layout: 'grid',
-  gridColumns: 3,
-  accentColor: '#111111',
-  tiers: [
-    {
-      name: 'Free',
-      monthlyPrice: 0,
-      yearlyPrice: 0,
-      description: 'Recommended for people with at least 1 year experience in crypto markets.',
-      features: [
-        'Access to real-time inventory tracking',
-        'Integration with Digital Marketing email',
-        'Basic analytics and email support',
-        'Custom dashboards and Phone support',
-        'Real-time data tracking and 24/7 support'
-      ],
-      featuresTitle: 'Features',
-      productId: 'prod_free',
-      ctaText: 'Free plan',
-      highlighted: false
-    },
-    {
-      name: 'Premium',
-      monthlyPrice: 99,
-      yearlyPrice: 950,
-      description: 'Everything in the Basic Plan plus advanced search, better analytics.',
-      features: [
-        'All Premium Plan features',
-        'Advanced data filtering search capabilities',
-        'Custom branding options',
-        'Extended API access for integrations',
-        'Real-time data tracking and 24/7 support',
-        'Dedicated account manager'
-      ],
-      featuresTitle: 'Features',
-      productId: 'prod_premium',
-      ctaText: 'Purchase plan',
-      highlighted: true
-    },
-    {
-      name: 'Enterprise',
-      monthlyPrice: 299,
-      yearlyPrice: 2990,
-      description: 'Includes all Professional Plan features plus full logistics automation etc.',
-      features: [
-        'Custom onboarding process',
-        'Priority support response',
-        'Access to exclusive webinars',
-        'Monthly performance reviews',
-        'Real-time data tracking and 24/7 support',
-        'Dedicated account manager',
-        'Tailored training sessions and resources'
-      ],
-      featuresTitle: 'Features',
-      productId: 'prod_enterprise',
-      ctaText: 'Purchase plan',
-      highlighted: false
-    }
-  ],
-  showYearlyToggle: true,
-  toggleMonthlyLabel: 'Monthly',
-  toggleYearlyLabel: 'Yearly',
-  toggleStyle: 'pill',
-  pageBackground: 'transparent',
-  cardBackground: '#FFFFFF',
-  borderColor: '#E6E6E6',
-  featuredBorderColor: '#111111',
-  dividerColor: '#EDEDED',
-  textColor: '#000000',
-  mutedTextColor: '#7A7A7A',
-  primaryButtonBackground: '#111111',
-  primaryButtonTextColor: '#FFFFFF',
-  secondaryButtonBackground: '#EDEDED',
-  secondaryButtonTextColor: '#000000',
-  buttonBorderColor: '#E1E1E1',
-  toggleBackground: '#FFFFFF',
-  toggleBorderColor: '#E6E6E6',
-  toggleActiveBackground: '#111111',
-  toggleActiveTextColor: '#FFFFFF',
-  toggleTextColor: '#111111',
-  bulletColor: '#111111',
-  titleFontSize: 28,
-  descriptionFontSize: 14,
-  priceFontSize: 56,
-  featuresTitleFontSize: 20,
-  featureFontSize: 15,
-  buttonFontSize: 15,
-  cardRadius: 14,
-  cardBorderWidth: 2,
-  featuredCardBorderWidth: 2,
-  cardPadding: 26,
-  cardGap: 18,
-  gridGap: 22,
-  minCardWidth: 300,
-  maxWidth: 1200,
-  buttonHeight: 44,
-  buttonRadius: 8,
-  bulletSize: 8,
-  testMode: false
-}
 
 addPropertyControls(CreemPricingTable, {
   type: {

@@ -126,18 +126,18 @@ type Props = {
 export function CreemCheckoutButton({
   variant = 'default',
   type = 'Embed',
-  productId,
-  buttonText,
-  backgroundColor,
-  textColor,
-  borderRadius,
-  fontSize,
-  paddingX,
-  paddingY,
-  discountCode,
-  successUrl,
-  testMode,
-  fullWidth,
+  productId = 'prod_YOUR_PRODUCT_ID',
+  buttonText = 'Buy Now',
+  backgroundColor = '#FFBE98',
+  textColor = '#FFFFFF',
+  borderRadius = 10,
+  fontSize = 15,
+  paddingX = 24,
+  paddingY = 12,
+  discountCode = '',
+  successUrl = '',
+  testMode = false,
+  fullWidth = false,
   linkTarget = '_blank'
 }: Props) {
   // States
@@ -432,24 +432,6 @@ export function CreemCheckoutButton({
       {embedUrl && <CheckoutEmbedModal url={embedUrl} onClose={closeEmbed} />}
     </>
   )
-}
-
-CreemCheckoutButton.defaultProps = {
-  variant: 'default',
-  type: 'Embed',
-  productId: 'prod_YOUR_PRODUCT_ID',
-  buttonText: 'Buy Now',
-  backgroundColor: '#FFBE98',
-  textColor: '#FFFFFF',
-  borderRadius: 10,
-  fontSize: 15,
-  paddingX: 24,
-  paddingY: 12,
-  discountCode: '',
-  successUrl: '',
-  testMode: false,
-  fullWidth: false,
-  linkTarget: '_blank'
 }
 
 addPropertyControls(CreemCheckoutButton, {
