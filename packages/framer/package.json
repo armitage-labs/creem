@@ -1,22 +1,14 @@
 {
   "name": "@creem_io/framer",
-  "version": "0.0.1",
+  "version": "0.1.0",
   "description": "Framer plugin for Creem checkout buttons and pricing tables.",
   "license": "MIT",
   "type": "module",
+  "private": true,
   "author": {
     "name": "Creem",
     "url": "https://creem.io"
   },
-  "contributors": [
-    {
-      "name": "Heet Bhalodiya"
-    },
-    {
-      "name": "Rishi Raj Jain",
-      "url": "https://rishi.app"
-    }
-  ],
   "repository": {
     "type": "git",
     "url": "https://github.com/armitage-labs/creem.git",
