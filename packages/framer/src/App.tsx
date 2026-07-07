@@ -14,7 +14,8 @@ const PLUGIN_CONFIG = {
 }
 
 const STORAGE_KEYS = {
-  API_KEY: 'creem_api_key'
+  API_KEY: 'creem_api_key',
+  TEST_MODE: 'creem_test_mode'
 }
 
 framer.showUI({
@@ -27,7 +28,7 @@ export function App() {
   const [apiKey, setApiKey] = useState(() => localStorage.getItem(STORAGE_KEYS.API_KEY) ?? '')
   const isKeyStored = !!localStorage.getItem(STORAGE_KEYS.API_KEY)
   const [screen, setScreen] = useState<Screen>(() => (isKeyStored ? 'products' : 'home'))
-  const [testMode, setTestMode] = useState(false)
+  const [testMode, setTestMode] = useState(() => localStorage.getItem(STORAGE_KEYS.TEST_MODE) === 'true')
   const [products, setProducts] = useState<Product[]>([])
   const [lastSyncedAt, setLastSyncedAt] = useState<number | null>(null)
   const [loading, setLoading] = useState(false)
@@ -39,13 +40,16 @@ export function App() {
   const [checkoutType, setCheckoutType] = useState<CheckoutType>('new-tab')
   const fetchAbortRef = useRef<AbortController | null>(null)
   const activeProducts = products.filter(product => product.status === 'active')
-  const saveKey = useCallback((key: string) => {
+  const saveKey = useCallback((key: string, mode: boolean) => {
     localStorage.setItem(STORAGE_KEYS.API_KEY, key)
+    localStorage.setItem(STORAGE_KEYS.TEST_MODE, String(mode))
     setApiKey(key)
   }, [])
   const clearKey = useCallback(() => {
     localStorage.removeItem(STORAGE_KEYS.API_KEY)
+    localStorage.removeItem(STORAGE_KEYS.TEST_MODE)
     setApiKey('')
+    setTestMode(false)
     setScreen('home')
     setProducts([])
     setLastSyncedAt(null)
@@ -106,7 +110,7 @@ export function App() {
           if (result.error) {
             setError(result.error)
           } else {
-            saveKey(key)
+            saveKey(key, testMode)
             setProducts(result.data ?? [])
             setLastSyncedAt(result.syncedAt ?? null)
             setScreen('products')
