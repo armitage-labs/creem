@@ -45,7 +45,11 @@ function getBaseUrl(testMode: boolean): string {
 
 async function fetchWithTimeout(url: string, init: RequestInit, timeoutMs: number): Promise<Response> {
   const controller = new AbortController()
-  const timeoutId = window.setTimeout(() => controller.abort(), timeoutMs)
+  let timedOut = false
+  const timeoutId = window.setTimeout(() => {
+    timedOut = true
+    controller.abort()
+  }, timeoutMs)
   const onAbort = () => controller.abort()
   if (init.signal) {
     if (init.signal.aborted) controller.abort()
@@ -56,6 +60,11 @@ async function fetchWithTimeout(url: string, init: RequestInit, timeoutMs: numbe
       ...init,
       signal: controller.signal
     })
+  } catch (err) {
+    // The timeout and the caller's cancellation share one controller, so an
+    // AbortError alone is ambiguous - the flag tells us the timeout fired.
+    if (timedOut) throw new DOMException('Request timed out', 'TimeoutError')
+    throw err
   } finally {
     window.clearTimeout(timeoutId)
     init.signal?.removeEventListener('abort', onAbort)
@@ -120,6 +129,7 @@ export async function fetchProducts(apiKey: string, testMode: boolean, options: 
       syncedAt: Date.now()
     }
   } catch (err) {
+    if (err instanceof DOMException && err.name === 'TimeoutError') return { error: 'Request timed out. Check your connection and try again.' }
     if (err instanceof DOMException && err.name === 'AbortError') return { error: 'Request cancelled' }
     console.error('Fetch error:', err)
     return { error: 'Network error. Check your connection.' }
