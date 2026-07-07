@@ -1,5 +1,5 @@
 import { useState, useCallback, useEffect, useRef } from 'react'
-import { framer } from 'framer-plugin'
+import { framer } from '@framer/plugin'
 import type { Product, Screen, InsertType, CheckoutType } from '@/types'
 import { fetchProducts } from '@/services/api'
 import { SetupScreen } from '@/components/SetupScreen'

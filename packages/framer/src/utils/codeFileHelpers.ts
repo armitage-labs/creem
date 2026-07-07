@@ -10,7 +10,7 @@
  * which fires once compilation finishes.
  */
 
-import { framer, type CodeFile } from 'framer-plugin'
+import { framer, type CodeFile } from '@framer/plugin'
 import FRAMER_ICONS_SOURCE from '@/framer/icons.tsx?raw'
 
 /** How long to wait for Framer to compile a freshly created/updated code file. */

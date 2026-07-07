@@ -1,5 +1,5 @@
 import { useState, useCallback, useMemo, useEffect } from 'react'
-import { framer } from 'framer-plugin'
+import { framer } from '@framer/plugin'
 import { ArrowDown, ArrowLeft, ArrowUp, Check, ChevronDown, ChevronUp, Info, Loader2, Plus, Trash2, iconClass } from '@/icons'
 import type { Product, InsertType, CheckoutType, PricingInterval, PricingLayout, GridColumns, TierConfig } from '@/types'
 import { formatPrice } from '@/utils/formatters'

@@ -38,10 +38,10 @@
     "build": "vite build",
     "typecheck": "tsc --noEmit",
     "preview": "vite preview",
-    "pack": "npx framer-plugin-tools@latest pack"
+    "pack": "framer-plugin-tools pack --output plugin.zip"
   },
   "dependencies": {
-    "framer-plugin": "^3",
+    "@framer/plugin": "^4.0.1",
     "lucide-react": "^1.21.0",
     "react": "^18.3.1",
     "react-dom": "^18.3.1",
@@ -53,13 +53,13 @@
     "@types/react-dom": "18.3.7",
     "@vitejs/plugin-react-swc": "^4.3.1",
     "autoprefixer": "^10.4.24",
+    "framer-plugin-tools": "^1.2.2",
     "postcss": "^8.5.6",
     "prettier": "3.7.4",
     "prettier-plugin-tailwindcss": "^0.7.2",
     "tailwindcss": "^4.2.0",
     "typescript": "^5.3.3",
     "vite": "^8.1.0",
-    "vite-plugin-framer": "^1.1.1",
-    "zip-a-folder": "^6.1.1"
+    "vite-plugin-framer": "^1.1.1"
   }
 }
