@@ -96,7 +96,9 @@ export function ProductsScreen({
                   </div>
                   <div className='flex min-w-0 flex-1 flex-col gap-0.5'>
                     <div className='flex min-w-0 items-center gap-1.5'>
-                      <div className='truncate text-sm leading-tight font-black'>{product.name}</div>
+                      <div className='truncate text-sm leading-tight font-black' title={product.name}>
+                        {product.name}
+                      </div>
                       {product.status === 'archived' && (
                         <span className='shrink-0 rounded border border-black bg-gray-200 px-1.5 py-0.5 text-[9px] font-black uppercase'>Archived</span>
                       )}
