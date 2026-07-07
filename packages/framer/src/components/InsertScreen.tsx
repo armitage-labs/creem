@@ -1,5 +1,5 @@
 import { useState, useCallback, useMemo, useEffect } from 'react'
-import { framer } from '@framer/plugin'
+import { framer, useIsAllowedTo } from '@framer/plugin'
 import { ArrowDown, ArrowLeft, ArrowUp, Check, ChevronDown, ChevronUp, Info, Loader2, Plus, Trash2, iconClass } from '@/icons'
 import type { Product, InsertType, CheckoutType, PricingInterval, PricingLayout, GridColumns, TierConfig } from '@/types'
 import { formatPrice } from '@/utils/formatters'
@@ -73,6 +73,10 @@ export function InsertScreen({ insertType, setInsertType, products, testMode, ch
   const [accentColor, setAccentColor] = useState<string>(DEFAULTS.ACCENT_COLOR)
   const [inserting, setInserting] = useState(false)
   const [success, setSuccess] = useState(false)
+  // Inserting a component both writes a code file and drops an instance on the
+  // canvas. Gate on both protected methods so we can disable the action (and
+  // explain why) instead of letting it fail mid-flow when access is missing.
+  const isAllowedToInsert = useIsAllowedTo('createCodeFile', 'addComponentInstance')
   const [selectedProducts, setSelectedProducts] = useState<string[]>([])
   const [pricingInterval, setPricingInterval] = useState<PricingInterval>(DEFAULTS.PRICING_INTERVAL)
   const [pricingLayout, setPricingLayout] = useState<PricingLayout>(DEFAULTS.PRICING_LAYOUT)
@@ -131,6 +135,10 @@ export function InsertScreen({ insertType, setInsertType, products, testMode, ch
     })
   }, [selectedProducts])
   const handleInsert = useCallback(async () => {
+    if (!isAllowedToInsert) {
+      framer.notify("You don't have permission to insert components into this project.", { variant: 'error' })
+      return
+    }
     if (insertType === 'button' && !selectedId) {
       framer.notify('Please select a product from the dropdown', { variant: 'error' })
       return
@@ -266,6 +274,7 @@ export function InsertScreen({ insertType, setInsertType, products, testMode, ch
       setInserting(false)
     }
   }, [
+    isAllowedToInsert,
     insertType,
     selectedId,
     buttonText,
@@ -351,10 +360,16 @@ export function InsertScreen({ insertType, setInsertType, products, testMode, ch
           updateTierConfig={updateTierConfig}
         />
       )}
+      {!isAllowedToInsert && (
+        <div className='flex shrink-0 items-start gap-2.5 rounded-lg border-2 border-yellow-500 bg-yellow-100 px-3 py-3 text-xs leading-relaxed font-bold text-yellow-900'>
+          <Info className={iconClass('sm', 'mt-0.5 shrink-0')} />
+          <p>You don&rsquo;t have permission to add code or components to this project. Ask the project owner for edit access to insert.</p>
+        </div>
+      )}
       <button
         className={cn(btn.cta, 'shrink-0 text-sm tracking-tight')}
         onClick={handleInsert}
-        disabled={inserting || success || (insertType === 'button' && !selectedId) || (insertType === 'pricing' && selectedProducts.length < 1)}
+        disabled={!isAllowedToInsert || inserting || success || (insertType === 'button' && !selectedId) || (insertType === 'pricing' && selectedProducts.length < 1)}
         aria-busy={inserting}
       >
         {success ? (
