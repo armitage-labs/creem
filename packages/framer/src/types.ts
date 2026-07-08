@@ -39,10 +39,6 @@ export type TierConfig = {
   features: string[]
   featuresTitle: string
   ctaText: string
-  /** Optional per-tier button background. Falls back to accent/highlight defaults when unset. */
-  ctaBackground?: string
-  /** Optional per-tier button text color. Falls back to theme defaults when unset. */
-  ctaTextColor?: string
   highlighted: boolean
 }
 

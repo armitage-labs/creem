@@ -29,11 +29,12 @@ function formatTierAmount(cents: number | null | undefined, currency = 'USD'): s
   if (cents === null || cents === undefined) return '—'
   if (cents === 0) return 'Free'
   try {
-    return new Intl.NumberFormat(undefined, {
+    const formatter = new Intl.NumberFormat(undefined, {
       style: 'currency',
-      currency,
-      maximumFractionDigits: 2
-    }).format(cents / 100)
+      currency
+    })
+    const exponent = formatter.resolvedOptions().maximumFractionDigits ?? 2
+    return formatter.format(cents / 10 ** exponent)
   } catch {
     return `${(cents / 100).toFixed(2)} ${currency}`
   }
@@ -348,88 +349,74 @@ function CheckoutEmbedModal({ url, onClose }: { url: string; onClose: () => void
 }
 
 type Props = {
-  tiers: Tier[]
-  type: 'embed' | 'new-tab'
-  layout: 'vertical' | 'grid' | 'horizontal'
-  gridColumns?: number
-  accentColor?: string
-
-  // Header
-  showHeader: boolean
-  headerTitle: string
-  headerDescription: string
-  headerTitleFontSize: number
-  headerDescriptionFontSize: number
-  headerTitleColor: string
-  headerDescriptionColor: string
-  headerAlignment: 'left' | 'center' | 'right'
-
-  // Toggle settings
-  showYearlyToggle: boolean
-  toggleMonthlyLabel: string
-  toggleYearlyLabel: string
-  toggleStyle: 'pill' | 'segmented'
-
-  // Colors - Background
-  pageBackground: string
-  cardBackground: string
-
-  // Colors - Borders
-  borderColor: string
-  featuredBorderColor: string
-  dividerColor: string
-
-  // Colors - Text
-  textColor: string
-  mutedTextColor: string
-
-  // Colors - Buttons
-  primaryButtonBackground: string
-  primaryButtonTextColor: string
-  secondaryButtonBackground: string
-  secondaryButtonTextColor: string
-  buttonBorderColor: string
-
-  // Colors - Toggle
-  toggleBackground: string
-  toggleBorderColor: string
-  toggleActiveBackground: string
-  toggleActiveTextColor: string
-  toggleTextColor: string
-
-  // Colors - Features
-  bulletColor: string
-
-  // Typography
-  titleFontSize: number
-  descriptionFontSize: number
-  priceFontSize: number
-  featuresTitleFontSize: number
-  featureFontSize: number
-  buttonFontSize: number
-
-  // Spacing & Layout
-  cardRadius: number
-  cardBorderWidth: number
-  featuredCardBorderWidth: number
-  cardPadding: number
-  cardGap: number
-  gridGap: number
-  minCardWidth: number
-  maxWidth: number
-
-  // Button styling
-  buttonHeight: number
-  buttonRadius: number
-
-  // Feature bullets
-  bulletSize: number
-
-  // Other
-  testMode: boolean
+  type?: 'embed' | 'new-tab'
+  testMode?: boolean
+  table?: {
+    pageBackground?: string
+    layout?: 'vertical' | 'grid' | 'horizontal'
+    gridColumns?: number
+    minCardWidth?: number
+    maxWidth?: number
+    gridGap?: number
+  }
+  header?: {
+    showHeader?: boolean
+    headerTitle?: string
+    headerDescription?: string
+    headerAlignment?: 'left' | 'center' | 'right'
+    headerTitleFontSize?: number
+    headerDescriptionFontSize?: number
+    headerTitleColor?: string
+    headerDescriptionColor?: string
+  }
+  tiers?: Tier[]
+  billingToggle?: {
+    showYearlyToggle?: boolean
+    toggleMonthlyLabel?: string
+    toggleYearlyLabel?: string
+    toggleStyle?: 'pill' | 'segmented'
+    toggleBackground?: string
+    toggleBorderColor?: string
+    toggleActiveBackground?: string
+    toggleActiveTextColor?: string
+    toggleTextColor?: string
+  }
+  card?: {
+    cardBackground?: string
+    borderColor?: string
+    dividerColor?: string
+    cardRadius?: number
+    cardBorderWidth?: number
+    cardPadding?: number
+    cardGap?: number
+    textColor?: string
+    mutedTextColor?: string
+    accentColor?: string
+    titleFontSize?: number
+    descriptionFontSize?: number
+    priceFontSize?: number
+    featuresTitleFontSize?: number
+    featureFontSize?: number
+    bulletColor?: string
+    bulletSize?: number
+  }
+  featured?: {
+    primaryButtonBackground?: string
+    primaryButtonTextColor?: string
+    featuredBorderColor?: string
+    featuredCardBorderWidth?: number
+  }
+  standardButton?: {
+    secondaryButtonBackground?: string
+    secondaryButtonTextColor?: string
+    buttonBorderColor?: string
+    buttonHeight?: number
+    buttonRadius?: number
+    buttonFontSize?: number
+  }
 }
 
-const DEFAULT_TIERS: Props['tiers'] = [
+const DEFAULT_TIERS: Tier[] = [
   {
     name: 'Free',
     monthlyPrice: 0,
@@ -490,85 +477,59 @@ const DEFAULT_TIERS: Props['tiers'] = [
 ]
 
 export function CreemPricingTable({
-  tiers = DEFAULT_TIERS,
   type = 'embed',
-  layout = 'grid',
-  gridColumns = 3,
-  accentColor = '#111111',
-
-  // Header
-  showHeader = true,
-  headerTitle = 'Monetize Your Framer Projects',
-  headerDescription = 'Launch subscriptions, one-time payments, and billing portals in minutes - no backend needed.',
-  headerTitleFontSize = 48,
-  headerDescriptionFontSize = 18,
-  headerTitleColor = '#000000',
-  headerDescriptionColor = '#9CA3AF',
-  headerAlignment = 'center',
-
-  // Toggle settings
-  showYearlyToggle = true,
-  toggleMonthlyLabel = 'Monthly',
-  toggleYearlyLabel = 'Yearly',
-  toggleStyle = 'pill',
-
-  // Colors - Background
-  pageBackground = 'transparent',
-  cardBackground = '#FFFFFF',
-
-  // Colors - Borders
-  borderColor = '#E6E6E6',
-  featuredBorderColor = '#111111',
-  dividerColor = '#EDEDED',
-
-  // Colors - Text
-  textColor = '#000000',
-  mutedTextColor = '#7A7A7A',
-
-  // Colors - Buttons
-  primaryButtonBackground = '#111111',
-  primaryButtonTextColor = '#FFFFFF',
-  secondaryButtonBackground = '#EDEDED',
-  secondaryButtonTextColor = '#000000',
-  buttonBorderColor = '#E1E1E1',
-
-  // Colors - Toggle
-  toggleBackground = '#FFFFFF',
-  toggleBorderColor = '#E6E6E6',
-  toggleActiveBackground = '#111111',
-  toggleActiveTextColor = '#FFFFFF',
-  toggleTextColor = '#111111',
-
-  // Colors - Features
-  bulletColor = '#111111',
-
-  // Typography
-  titleFontSize = 28,
-  descriptionFontSize = 14,
-  priceFontSize = 56,
-  featuresTitleFontSize = 20,
-  featureFontSize = 15,
-  buttonFontSize = 15,
-
-  // Spacing & Layout
-  cardRadius = 14,
-  cardBorderWidth = 2,
-  featuredCardBorderWidth = 2,
-  cardPadding = 26,
-  cardGap = 18,
-  gridGap = 22,
-  minCardWidth = 300,
-  maxWidth = 1200,
-
-  // Button styling
-  buttonHeight = 44,
-  buttonRadius = 8,
-
-  // Feature bullets
-  bulletSize = 8,
-
-  // Other
-  testMode = false
+  testMode = false,
+  table: { pageBackground = 'transparent', layout = 'grid', gridColumns = 3, minCardWidth = 300, maxWidth = 1200, gridGap = 22 } = {},
+  header: {
+    showHeader = true,
+    headerTitle = 'Monetize Your Framer Projects',
+    headerDescription = 'Launch subscriptions, one-time payments, and billing portals in minutes - no backend needed.',
+    headerAlignment = 'center',
+    headerTitleFontSize = 48,
+    headerDescriptionFontSize = 18,
+    headerTitleColor = '#000000',
+    headerDescriptionColor = '#9CA3AF'
+  } = {},
+  tiers = DEFAULT_TIERS,
+  billingToggle: {
+    showYearlyToggle = true,
+    toggleMonthlyLabel = 'Monthly',
+    toggleYearlyLabel = 'Yearly',
+    toggleStyle = 'pill',
+    toggleBackground = '#FFFFFF',
+    toggleBorderColor = '#E6E6E6',
+    toggleActiveBackground = '#111111',
+    toggleActiveTextColor = '#FFFFFF',
+    toggleTextColor = '#111111'
+  } = {},
+  card: {
+    cardBackground = '#FFFFFF',
+    borderColor = '#E6E6E6',
+    dividerColor = '#EDEDED',
+    cardRadius = 14,
+    cardBorderWidth = 2,
+    cardPadding = 26,
+    cardGap = 18,
+    textColor = '#000000',
+    mutedTextColor = '#7A7A7A',
+    accentColor = '#111111',
+    titleFontSize = 28,
+    descriptionFontSize = 14,
+    priceFontSize = 56,
+    featuresTitleFontSize = 20,
+    featureFontSize = 15,
+    bulletColor = '#111111',
+    bulletSize = 8
+  } = {},
+  featured: { primaryButtonBackground = '#111111', primaryButtonTextColor = '#FFFFFF', featuredBorderColor = '#111111', featuredCardBorderWidth = 2 } = {},
+  standardButton: {
+    secondaryButtonBackground = '#EDEDED',
+    secondaryButtonTextColor = '#000000',
+    buttonBorderColor = '#E1E1E1',
+    buttonHeight = 44,
+    buttonRadius = 8,
+    buttonFontSize = 15
+  } = {}
 }: Props) {
   const [yearly, setYearly] = useState(false)
   const [embedUrl, setEmbedUrl] = useState<string | null>(null)
@@ -689,15 +650,15 @@ export function CreemPricingTable({
           }
         : {
             display: 'grid',
-            gridTemplateColumns: breakpoint === 'mobile' ? 'minmax(0, 1fr)' : `repeat(${effectiveGridColumns}, minmax(${minCardWidth}px, 1fr))`,
+            gridTemplateColumns: breakpoint === 'mobile' ? 'minmax(0, 1fr)' : `repeat(auto-fit, minmax(${minCardWidth}px, 1fr))`,
             gap: spacing.gap,
             width: '100%',
-            maxWidth: '100%',
-            justifyItems: 'stretch',
-            overflowX: breakpoint === 'mobile' ? undefined : 'auto'
+            // Cap the grid width so the author's column count acts as a MAX: N columns of minCardWidth + (N-1) gaps.
+            maxWidth: breakpoint === 'mobile' ? '100%' : effectiveGridColumns * minCardWidth + (effectiveGridColumns - 1) * spacing.gap,
+            marginLeft: 'auto',
+            marginRight: 'auto',
+            justifyItems: 'stretch'
           }
-  const themeAccent = accentColor || primaryButtonBackground
-  const featuredAccent = accentColor || featuredBorderColor
   return (
     <div
       style={{
@@ -902,21 +863,8 @@ export function CreemPricingTable({
               priceCents = resolveTierPriceCents(tier, false)
             }
             const formattedPrice = formatTierAmount(priceCents, currency)
-            const buttonBg = resolveOptionalColor(tier.ctaBackground) ?? (tier.highlighted ? themeAccent : secondaryButtonBackground)
+            const buttonBg = resolveOptionalColor(tier.ctaBackground) ?? (tier.highlighted ? primaryButtonBackground : secondaryButtonBackground)
             const buttonColor = resolveOptionalColor(tier.ctaTextColor) ?? (tier.highlighted ? primaryButtonTextColor : secondaryButtonTextColor)
-
-            // Helper function to adjust color brightness for gradient/shimmer
-            const adjustColorBrightness = (color: string, percent: number): string => {
-              const num = parseInt(color.replace('#', ''), 16)
-              const amt = Math.round(2.55 * percent)
-              const R = (num >> 16) + amt
-              const G = ((num >> 8) & 0x00ff) + amt
-              const B = (num & 0x0000ff) + amt
-              return (
-                '#' +
-                (0x1000000 + (R < 255 ? (R < 1 ? 0 : R) : 255) * 0x10000 + (G < 255 ? (G < 1 ? 0 : G) : 255) * 0x100 + (B < 255 ? (B < 1 ? 0 : B) : 255)).toString(16).slice(1)
-              )
-            }
 
             // Get variant-specific button styles
             const getButtonVariantStyles = (): React.CSSProperties => {
@@ -956,7 +904,7 @@ export function CreemPricingTable({
                 case 'gradient':
                   return {
                     ...baseStyles,
-                    background: `linear-gradient(135deg, ${buttonBg} 0%, ${adjustColorBrightness(buttonBg, -20)} 100%)`,
+                    background: `linear-gradient(135deg, ${buttonBg} 0%, color-mix(in srgb, ${buttonBg}, black 20%) 100%)`,
                     color: buttonColor,
                     border: 'none'
                   }
@@ -966,12 +914,12 @@ export function CreemPricingTable({
                     background: buttonBg,
                     color: buttonColor,
                     border: 'none',
-                    boxShadow: `0 4px 14px 0 ${buttonBg}4d, 0 10px 20px 0 ${buttonBg}33`
+                    boxShadow: `0 4px 14px 0 color-mix(in srgb, ${buttonBg} 30%, transparent), 0 10px 20px 0 color-mix(in srgb, ${buttonBg} 20%, transparent)`
                   }
                 case 'shimmer':
                   return {
                     ...baseStyles,
-                    background: `linear-gradient(110deg, ${buttonBg} 0%, ${adjustColorBrightness(buttonBg, 20)} 50%, ${buttonBg} 100%)`,
+                    background: `linear-gradient(110deg, ${buttonBg} 0%, color-mix(in srgb, ${buttonBg}, white 20%) 50%, ${buttonBg} 100%)`,
                     backgroundSize: '200% 100%',
                     color: buttonColor,
                     border: 'none'
@@ -1002,11 +950,16 @@ export function CreemPricingTable({
             const cardStyle: React.CSSProperties = {
               position: 'relative',
               background: cardBackground,
-              border: tier.highlighted ? `${featuredCardBorderWidth}px solid ${featuredAccent}` : `${cardBorderWidth}px solid ${borderColor}`,
+              border: tier.highlighted ? `${featuredCardBorderWidth}px solid ${featuredBorderColor}` : `${cardBorderWidth}px solid ${borderColor}`,
               borderRadius: cardRadius,
               padding: spacing.cardPadding,
-              display: 'flex',
-              flexDirection: 'column',
+              // Grid layout: each card is a subgrid sharing the parent's row tracks, so every
+              // section (title, price, CTA, features) aligns across cards regardless of title length.
+              // Other layouts keep the simple flex column.
+              display: layout === 'grid' ? 'grid' : 'flex',
+              flexDirection: layout === 'grid' ? undefined : 'column',
+              gridTemplateRows: layout === 'grid' ? 'subgrid' : undefined,
+              gridRow: layout === 'grid' ? 'span 5' : undefined,
               gap: cardGap,
               boxShadow: tier.highlighted ? '0 8px 24px rgba(0,0,0,0.12)' : 'none',
               transition: prefersReducedMotion ? 'none' : 'all 0.3s ease',
@@ -1070,12 +1023,11 @@ export function CreemPricingTable({
                 <div
                   style={{
                     margin: '0 0 24px 0',
-                    minHeight: 42,
                     wordBreak: 'break-word',
                     overflowWrap: 'anywhere'
                   }}
                 >
-                  <TierDescriptionMarkdown text={tier.description} fontSize={fonts.description} color={mutedTextColor} headingColor={textColor} linkColor={themeAccent} />
+                  <TierDescriptionMarkdown text={tier.description} fontSize={fonts.description} color={mutedTextColor} headingColor={textColor} linkColor={accentColor} />
                 </div>
                 {/* Price */}
                 <div style={{ display: 'flex', alignItems: 'baseline', gap: 6, margin: '0 0 24px 0', flexWrap: 'wrap' }}>
@@ -1162,57 +1114,60 @@ export function CreemPricingTable({
                     </div>
                   )}
                 </button>
-                {/* Separator */}
-                <div
-                  style={{
-                    width: '100%',
-                    height: 1,
-                    background: dividerColor,
-                    margin: '0 0 24px 0'
-                  }}
-                />
-                {/* Features */}
-                <div style={{ flex: 1 }}>
-                  <h4
+                {/* Separator + Features grouped into one subgrid row so the Features block aligns across cards. */}
+                <div style={layout === 'grid' ? { display: 'flex', flexDirection: 'column', minHeight: 0 } : { display: 'contents' }}>
+                  {/* Separator */}
+                  <div
                     style={{
-                      fontSize: fonts.featuresTitle,
-                      fontWeight: 600,
-                      color: textColor,
-                      margin: '0 0 16px 0'
+                      width: '100%',
+                      height: 1,
+                      background: dividerColor,
+                      margin: '0 0 24px 0'
                     }}
-                  >
-                    {tier.featuresTitle || 'Features'}
-                  </h4>
-                  <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
-                    {tier.features.map((feature, fIdx) => (
-                      <div
-                        key={fIdx}
-                        style={{
-                          display: 'flex',
-                          alignItems: 'center',
-                          gap: 10
-                        }}
-                      >
+                  />
+                  {/* Features */}
+                  <div style={{ flex: 1 }}>
+                    <h4
+                      style={{
+                        fontSize: fonts.featuresTitle,
+                        fontWeight: 600,
+                        color: textColor,
+                        margin: '0 0 16px 0'
+                      }}
+                    >
+                      {tier.featuresTitle || 'Features'}
+                    </h4>
+                    <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
+                      {tier.features.map((feature, fIdx) => (
                         <div
+                          key={fIdx}
                           style={{
-                            width: bulletSize,
-                            height: bulletSize,
-                            borderRadius: '50%',
-                            background: bulletColor,
-                            flexShrink: 0
-                          }}
-                        />
-                        <span
-                          style={{
-                            fontSize: fonts.feature,
-                            color: mutedTextColor,
-                            lineHeight: 1.5
+                            display: 'flex',
+                            alignItems: 'center',
+                            gap: 10
                           }}
                         >
-                          {feature}
-                        </span>
-                      </div>
-                    ))}
+                          <div
+                            style={{
+                              width: bulletSize,
+                              height: bulletSize,
+                              borderRadius: '50%',
+                              background: bulletColor,
+                              flexShrink: 0
+                            }}
+                          />
+                          <span
+                            style={{
+                              fontSize: fonts.feature,
+                              color: mutedTextColor,
+                              lineHeight: 1.5
+                            }}
+                          >
+                            {feature}
+                          </span>
+                        </div>
+                      ))}
+                    </div>
                   </div>
                 </div>
               </div>
@@ -1236,92 +1191,146 @@ addPropertyControls(CreemPricingTable, {
     defaultValue: 'embed',
     description: 'How to open checkout'
   },
-  layout: {
-    type: ControlType.Enum,
-    title: 'Layout',
-    options: ['grid', 'horizontal', 'vertical'],
-    optionTitles: ['Grid', 'Horizontal', 'Vertical'],
-    defaultValue: 'grid'
-  },
-  gridColumns: {
-    type: ControlType.Number,
-    title: 'Grid Columns',
-    defaultValue: 3,
-    min: 1,
-    max: 5,
-    step: 1,
-    displayStepper: true,
-    hidden: (props: Props) => props.layout !== 'grid'
-  },
-  accentColor: {
-    type: ControlType.Color,
-    title: 'Accent Color',
-    defaultValue: '#111111'
+  testMode: {
+    type: ControlType.Boolean,
+    title: 'Test Mode',
+    defaultValue: false,
+    enabledTitle: 'On',
+    disabledTitle: 'Off',
+    // Set automatically at insert time to match the synced products' environment; hidden because
+    // flipping it can't remap product IDs between test/live (see tracker OSS-22).
+    hidden: () => true
   },
 
-  // Header
-  showHeader: {
-    type: ControlType.Boolean,
-    title: 'Show Header',
-    defaultValue: true,
-    enabledTitle: 'Yes',
-    disabledTitle: 'No'
+  table: {
+    type: ControlType.Object,
+    title: 'Table',
+    controls: {
+      pageBackground: {
+        type: ControlType.Color,
+        title: 'Page Background',
+        defaultValue: 'transparent'
+      },
+      layout: {
+        type: ControlType.Enum,
+        title: 'Layout',
+        options: ['grid', 'horizontal', 'vertical'],
+        optionTitles: ['Grid', 'Horizontal', 'Vertical'],
+        defaultValue: 'grid'
+      },
+      gridColumns: {
+        type: ControlType.Number,
+        title: 'Grid Columns',
+        defaultValue: 3,
+        min: 1,
+        max: 5,
+        step: 1,
+        displayStepper: true,
+        hidden: (props: any) => props.layout !== 'grid'
+      },
+      minCardWidth: {
+        type: ControlType.Number,
+        title: 'Min Card Width',
+        defaultValue: 300,
+        min: 200,
+        max: 520,
+        step: 10,
+        unit: 'px',
+        displayStepper: true
+      },
+      maxWidth: {
+        type: ControlType.Number,
+        title: 'Max Width',
+        min: 800,
+        max: 1600,
+        step: 50,
+        defaultValue: 1200,
+        unit: 'px',
+        displayStepper: true
+      },
+      gridGap: {
+        type: ControlType.Number,
+        title: 'Grid Gap',
+        defaultValue: 22,
+        min: 8,
+        max: 60,
+        step: 1,
+        unit: 'px',
+        displayStepper: true
+      }
+    }
   },
-  headerTitle: {
-    type: ControlType.String,
-    title: 'Title',
-    defaultValue: 'Monetize Your Framer Projects',
-    hidden: (props: Props) => !props.showHeader
+
+  header: {
+    type: ControlType.Object,
+    title: 'Header',
+    controls: {
+      showHeader: {
+        type: ControlType.Boolean,
+        title: 'Show',
+        defaultValue: true,
+        enabledTitle: 'Yes',
+        disabledTitle: 'No'
+      },
+      headerTitle: {
+        type: ControlType.String,
+        title: 'Title',
+        defaultValue: 'Monetize Your Framer Projects',
+        hidden: (props: any) => !props.showHeader
+      },
+      headerDescription: {
+        type: ControlType.String,
+        title: 'Description',
+        defaultValue: 'Launch subscriptions, one-time payments, and billing portals in minutes - no backend needed.',
+        displayTextArea: true,
+        hidden: (props: any) => !props.showHeader
+      },
+      headerAlignment: {
+        type: ControlType.Enum,
+        title: 'Alignment',
+        options: ['left', 'center', 'right'],
+        optionTitles: ['Left', 'Center', 'Right'],
+        defaultValue: 'center',
+        hidden: (props: any) => !props.showHeader
+      },
+      headerTitleFontSize: {
+        type: ControlType.Number,
+        title: 'Title Size',
+        defaultValue: 48,
+        min: 24,
+        max: 80,
+        step: 2,
+        unit: 'px',
+        displayStepper: true,
+        hidden: (props: any) => !props.showHeader
+      },
+      headerDescriptionFontSize: {
+        type: ControlType.Number,
+        title: 'Description Size',
+        defaultValue: 18,
+        min: 12,
+        max: 28,
+        step: 1,
+        unit: 'px',
+        displayStepper: true,
+        hidden: (props: any) => !props.showHeader
+      },
+      headerTitleColor: {
+        type: ControlType.Color,
+        title: 'Title Color',
+        defaultValue: '#000000',
+        hidden: (props: any) => !props.showHeader
+      },
+      headerDescriptionColor: {
+        type: ControlType.Color,
+        title: 'Description Color',
+        defaultValue: '#9CA3AF',
+        hidden: (props: any) => !props.showHeader
+      }
+    }
   },
-  headerDescription: {
-    type: ControlType.String,
-    title: 'Description',
-    defaultValue: 'Launch subscriptions, one-time payments, and billing portals in minutes - no backend needed.',
-    displayTextArea: true,
-    hidden: (props: Props) => !props.showHeader
-  },
-  headerAlignment: {
-    type: ControlType.Enum,
-    title: 'Alignment',
-    options: ['left', 'center', 'right'],
-    optionTitles: ['Left', 'Center', 'Right'],
-    defaultValue: 'center',
-    hidden: (props: Props) => !props.showHeader
-  },
-  headerTitleFontSize: {
-    type: ControlType.Number,
-    title: 'Title Font Size',
-    defaultValue: 48,
-    min: 24,
-    max: 80,
-    step: 2,
-    unit: 'px',
-    displayStepper: true,
-    hidden: (props: Props) => !props.showHeader
-  },
-  headerDescriptionFontSize: {
-    type: ControlType.Number,
-    title: 'Description Size',
-    defaultValue: 18,
-    min: 12,
-    max: 28,
-    step: 1,
-    unit: 'px',
-    displayStepper: true,
-    hidden: (props: Props) => !props.showHeader
-  },
-  headerTitleColor: {
-    type: ControlType.Color,
-    title: 'Title Color',
-    defaultValue: '#000000',
-    hidden: (props: Props) => !props.showHeader
-  },
-  headerDescriptionColor: {
-    type: ControlType.Color,
-    title: 'Description Color',
-    defaultValue: '#9CA3AF',
-    hidden: (props: Props) => !props.showHeader
-  },
+
+  // Pricing Tiers
   tiers: {
     type: ControlType.Array,
     title: 'Pricing Tiers',
@@ -1413,328 +1422,296 @@ addPropertyControls(CreemPricingTable, {
     }
   },
 
-  // Toggle Settings
-  showYearlyToggle: {
-    type: ControlType.Boolean,
+  billingToggle: {
+    type: ControlType.Object,
     title: 'Billing Toggle',
-    defaultValue: true,
-    enabledTitle: 'Show',
-    disabledTitle: 'Hide'
-  },
-  toggleMonthlyLabel: {
-    type: ControlType.String,
-    title: 'Monthly Label',
-    defaultValue: 'Monthly',
-    hidden: (props: Props) => !props.showYearlyToggle
-  },
-  toggleYearlyLabel: {
-    type: ControlType.String,
-    title: 'Yearly Label',
-    defaultValue: 'Yearly',
-    hidden: (props: Props) => !props.showYearlyToggle
-  },
-  toggleStyle: {
-    type: ControlType.Enum,
-    title: 'Toggle Style',
-    options: ['pill', 'segmented'],
-    optionTitles: ['Pill', 'Segmented'],
-    defaultValue: 'pill',
-    displaySegmentedControl: true,
-    hidden: (props: Props) => !props.showYearlyToggle
-  },
-
-  // Background Colors
-  pageBackground: {
-    type: ControlType.Color,
-    title: 'Page Background',
-    defaultValue: 'transparent'
-  },
-  cardBackground: {
-    type: ControlType.Color,
-    title: 'Card Background',
-    defaultValue: '#FFFFFF'
-  },
-
-  // Border Colors
-  borderColor: {
-    type: ControlType.Color,
-    title: 'Border Color',
-    defaultValue: '#E6E6E6'
-  },
-  featuredBorderColor: {
-    type: ControlType.Color,
-    title: 'Featured Border',
-    defaultValue: '#111111'
-  },
-  dividerColor: {
-    type: ControlType.Color,
-    title: 'Divider Color',
-    defaultValue: '#EDEDED'
-  },
-
-  // Text Colors
-  textColor: {
-    type: ControlType.Color,
-    title: 'Text Color',
-    defaultValue: '#000000'
-  },
-  mutedTextColor: {
-    type: ControlType.Color,
-    title: 'Muted Text',
-    defaultValue: '#7A7A7A'
+    controls: {
+      showYearlyToggle: {
+        type: ControlType.Boolean,
+        title: 'Show',
+        defaultValue: true,
+        enabledTitle: 'Show',
+        disabledTitle: 'Hide'
+      },
+      toggleMonthlyLabel: {
+        type: ControlType.String,
+        title: 'Monthly Label',
+        defaultValue: 'Monthly',
+        hidden: (props: any) => !props.showYearlyToggle
+      },
+      toggleYearlyLabel: {
+        type: ControlType.String,
+        title: 'Yearly Label',
+        defaultValue: 'Yearly',
+        hidden: (props: any) => !props.showYearlyToggle
+      },
+      toggleStyle: {
+        type: ControlType.Enum,
+        title: 'Style',
+        options: ['pill', 'segmented'],
+        optionTitles: ['Pill', 'Segmented'],
+        defaultValue: 'pill',
+        displaySegmentedControl: true,
+        hidden: (props: any) => !props.showYearlyToggle
+      },
+      toggleBackground: {
+        type: ControlType.Color,
+        title: 'Background',
+        defaultValue: '#FFFFFF',
+        hidden: (props: any) => !props.showYearlyToggle
+      },
+      toggleBorderColor: {
+        type: ControlType.Color,
+        title: 'Border',
+        defaultValue: '#E6E6E6',
+        hidden: (props: any) => !props.showYearlyToggle
+      },
+      toggleActiveBackground: {
+        type: ControlType.Color,
+        title: 'Active BG',
+        defaultValue: '#111111',
+        hidden: (props: any) => !props.showYearlyToggle
+      },
+      toggleActiveTextColor: {
+        type: ControlType.Color,
+        title: 'Active Text',
+        defaultValue: '#FFFFFF',
+        hidden: (props: any) => !props.showYearlyToggle
+      },
+      toggleTextColor: {
+        type: ControlType.Color,
+        title: 'Text',
+        defaultValue: '#111111',
+        hidden: (props: any) => !props.showYearlyToggle
+      }
+    }
   },
 
-  // Button Colors
-  primaryButtonBackground: {
-    type: ControlType.Color,
-    title: 'Primary Button BG',
-    defaultValue: '#111111'
-  },
-  primaryButtonTextColor: {
-    type: ControlType.Color,
-    title: 'Primary Button Text',
-    defaultValue: '#FFFFFF'
-  },
-  secondaryButtonBackground: {
-    type: ControlType.Color,
-    title: 'Secondary Button BG',
-    defaultValue: '#EDEDED'
-  },
-  secondaryButtonTextColor: {
-    type: ControlType.Color,
-    title: 'Secondary Button Text',
-    defaultValue: '#000000'
-  },
-  buttonBorderColor: {
-    type: ControlType.Color,
-    title: 'Button Border',
-    defaultValue: '#E1E1E1'
-  },
-
-  // Toggle Colors
-  toggleBackground: {
-    type: ControlType.Color,
-    title: 'Toggle BG',
-    defaultValue: '#FFFFFF',
-    hidden: (props: Props) => !props.showYearlyToggle
-  },
-  toggleBorderColor: {
-    type: ControlType.Color,
-    title: 'Toggle Border',
-    defaultValue: '#E6E6E6',
-    hidden: (props: Props) => !props.showYearlyToggle
-  },
-  toggleActiveBackground: {
-    type: ControlType.Color,
-    title: 'Toggle Active BG',
-    defaultValue: '#111111',
-    hidden: (props: Props) => !props.showYearlyToggle
-  },
-  toggleActiveTextColor: {
-    type: ControlType.Color,
-    title: 'Toggle Active Text',
-    defaultValue: '#FFFFFF',
-    hidden: (props: Props) => !props.showYearlyToggle
-  },
-  toggleTextColor: {
-    type: ControlType.Color,
-    title: 'Toggle Text',
-    defaultValue: '#111111',
-    hidden: (props: Props) => !props.showYearlyToggle
-  },
-
-  // Feature Bullets
-  bulletColor: {
-    type: ControlType.Color,
-    title: 'Bullet Color',
-    defaultValue: '#111111'
-  },
-  bulletSize: {
-    type: ControlType.Number,
-    title: 'Bullet Size',
-    defaultValue: 8,
-    min: 4,
-    max: 14,
-    step: 1,
-    unit: 'px',
-    displayStepper: true
-  },
-
-  // Typography
-  titleFontSize: {
-    type: ControlType.Number,
-    title: 'Title Font Size',
-    defaultValue: 28,
-    min: 16,
-    max: 48,
-    step: 1,
-    unit: 'px',
-    displayStepper: true
-  },
-  descriptionFontSize: {
-    type: ControlType.Number,
-    title: 'Description Size',
-    defaultValue: 14,
-    min: 10,
-    max: 20,
-    step: 1,
-    unit: 'px',
-    displayStepper: true
-  },
-  priceFontSize: {
-    type: ControlType.Number,
-    title: 'Price Font Size',
-    defaultValue: 56,
-    min: 24,
-    max: 80,
-    step: 2,
-    unit: 'px',
-    displayStepper: true
-  },
-  featuresTitleFontSize: {
-    type: ControlType.Number,
-    title: 'Features Title Size',
-    defaultValue: 20,
-    min: 14,
-    max: 32,
-    step: 1,
-    unit: 'px',
-    displayStepper: true
-  },
-  featureFontSize: {
-    type: ControlType.Number,
-    title: 'Feature Font Size',
-    defaultValue: 15,
-    min: 10,
-    max: 20,
-    step: 1,
-    unit: 'px',
-    displayStepper: true
-  },
-  buttonFontSize: {
-    type: ControlType.Number,
-    title: 'Button Font Size',
-    defaultValue: 15,
-    min: 10,
-    max: 20,
-    step: 1,
-    unit: 'px',
-    displayStepper: true
-  },
-
-  // Card Styling
-  cardRadius: {
-    type: ControlType.Number,
-    title: 'Card Radius',
-    defaultValue: 14,
-    min: 0,
-    max: 40,
-    step: 1,
-    unit: 'px',
-    displayStepper: true
-  },
-  cardBorderWidth: {
-    type: ControlType.Number,
-    title: 'Border Width',
-    defaultValue: 2,
-    min: 0,
-    max: 8,
-    step: 1,
-    unit: 'px',
-    displayStepper: true
-  },
-  featuredCardBorderWidth: {
-    type: ControlType.Number,
-    title: 'Featured Border Width',
-    defaultValue: 2,
-    min: 0,
-    max: 10,
-    step: 1,
-    unit: 'px',
-    displayStepper: true
-  },
-  cardPadding: {
-    type: ControlType.Number,
-    title: 'Card Padding',
-    defaultValue: 26,
-    min: 10,
-    max: 60,
-    step: 1,
-    unit: 'px',
-    displayStepper: true
-  },
-  cardGap: {
-    type: ControlType.Number,
-    title: 'Card Gap',
-    defaultValue: 18,
-    min: 8,
-    max: 40,
-    step: 1,
-    unit: 'px',
-    displayStepper: true
+  card: {
+    type: ControlType.Object,
+    title: 'Card',
+    controls: {
+      cardBackground: {
+        type: ControlType.Color,
+        title: 'Background',
+        defaultValue: '#FFFFFF'
+      },
+      borderColor: {
+        type: ControlType.Color,
+        title: 'Border Color',
+        defaultValue: '#E6E6E6'
+      },
+      dividerColor: {
+        type: ControlType.Color,
+        title: 'Divider Color',
+        defaultValue: '#EDEDED'
+      },
+      cardRadius: {
+        type: ControlType.Number,
+        title: 'Radius',
+        defaultValue: 14,
+        min: 0,
+        max: 40,
+        step: 1,
+        unit: 'px',
+        displayStepper: true
+      },
+      cardBorderWidth: {
+        type: ControlType.Number,
+        title: 'Border Width',
+        defaultValue: 2,
+        min: 0,
+        max: 8,
+        step: 1,
+        unit: 'px',
+        displayStepper: true
+      },
+      cardPadding: {
+        type: ControlType.Number,
+        title: 'Padding',
+        defaultValue: 26,
+        min: 10,
+        max: 60,
+        step: 1,
+        unit: 'px',
+        displayStepper: true
+      },
+      cardGap: {
+        type: ControlType.Number,
+        title: 'Gap',
+        defaultValue: 18,
+        min: 8,
+        max: 40,
+        step: 1,
+        unit: 'px',
+        displayStepper: true
+      },
+      textColor: {
+        type: ControlType.Color,
+        title: 'Text Color',
+        defaultValue: '#000000'
+      },
+      mutedTextColor: {
+        type: ControlType.Color,
+        title: 'Muted Text',
+        defaultValue: '#7A7A7A'
+      },
+      accentColor: {
+        type: ControlType.Color,
+        title: 'Link Color',
+        description: 'Color of links in tier descriptions',
+        defaultValue: '#111111'
+      },
+      titleFontSize: {
+        type: ControlType.Number,
+        title: 'Title Size',
+        defaultValue: 28,
+        min: 16,
+        max: 48,
+        step: 1,
+        unit: 'px',
+        displayStepper: true
+      },
+      descriptionFontSize: {
+        type: ControlType.Number,
+        title: 'Description Size',
+        defaultValue: 14,
+        min: 10,
+        max: 20,
+        step: 1,
+        unit: 'px',
+        displayStepper: true
+      },
+      priceFontSize: {
+        type: ControlType.Number,
+        title: 'Price Size',
+        defaultValue: 56,
+        min: 24,
+        max: 80,
+        step: 2,
+        unit: 'px',
+        displayStepper: true
+      },
+      featuresTitleFontSize: {
+        type: ControlType.Number,
+        title: 'Features Title Size',
+        defaultValue: 20,
+        min: 14,
+        max: 32,
+        step: 1,
+        unit: 'px',
+        displayStepper: true
+      },
+      featureFontSize: {
+        type: ControlType.Number,
+        title: 'Feature Size',
+        defaultValue: 15,
+        min: 10,
+        max: 20,
+        step: 1,
+        unit: 'px',
+        displayStepper: true
+      },
+      bulletColor: {
+        type: ControlType.Color,
+        title: 'Bullet Color',
+        defaultValue: '#111111'
+      },
+      bulletSize: {
+        type: ControlType.Number,
+        title: 'Bullet Size',
+        defaultValue: 8,
+        min: 4,
+        max: 14,
+        step: 1,
+        unit: 'px',
+        displayStepper: true
+      }
+    }
   },
 
-  // Layout
-  gridGap: {
-    type: ControlType.Number,
-    title: 'Grid Gap',
-    defaultValue: 22,
-    min: 8,
-    max: 60,
-    step: 1,
-    unit: 'px',
-    displayStepper: true
-  },
-  minCardWidth: {
-    type: ControlType.Number,
-    title: 'Min Card Width',
-    defaultValue: 300,
-    min: 200,
-    max: 520,
-    step: 10,
-    unit: 'px',
-    displayStepper: true
-  },
-  maxWidth: {
-    type: ControlType.Number,
-    title: 'Max Width',
-    min: 800,
-    max: 1600,
-    step: 50,
-    defaultValue: 1200,
-    unit: 'px',
-    displayStepper: true
-  },
-
-  // Button Styling
-  buttonHeight: {
-    type: ControlType.Number,
-    title: 'Button Height',
-    defaultValue: 44,
-    min: 34,
-    max: 72,
-    step: 1,
-    unit: 'px',
-    displayStepper: true
-  },
-  buttonRadius: {
-    type: ControlType.Number,
-    title: 'Button Radius',
-    defaultValue: 8,
-    min: 0,
-    max: 30,
-    step: 1,
-    unit: 'px',
-    displayStepper: true
+  featured: {
+    type: ControlType.Object,
+    title: 'Featured Tier',
+    controls: {
+      primaryButtonBackground: {
+        type: ControlType.Color,
+        title: 'Button BG',
+        defaultValue: '#111111'
+      },
+      primaryButtonTextColor: {
+        type: ControlType.Color,
+        title: 'Button Text',
+        defaultValue: '#FFFFFF'
+      },
+      featuredBorderColor: {
+        type: ControlType.Color,
+        title: 'Border',
+        defaultValue: '#111111'
+      },
+      featuredCardBorderWidth: {
+        type: ControlType.Number,
+        title: 'Border Width',
+        defaultValue: 2,
+        min: 0,
+        max: 10,
+        step: 1,
+        unit: 'px',
+        displayStepper: true
+      }
+    }
   },
 
-  // Other
-  testMode: {
-    type: ControlType.Boolean,
-    title: 'Test Mode',
-    defaultValue: false,
-    enabledTitle: 'On',
-    disabledTitle: 'Off'
+  standardButton: {
+    type: ControlType.Object,
+    title: 'Standard Buttons',
+    controls: {
+      secondaryButtonBackground: {
+        type: ControlType.Color,
+        title: 'Button BG',
+        defaultValue: '#EDEDED'
+      },
+      secondaryButtonTextColor: {
+        type: ControlType.Color,
+        title: 'Button Text',
+        defaultValue: '#000000'
+      },
+      buttonBorderColor: {
+        type: ControlType.Color,
+        title: 'Border',
+        defaultValue: '#E1E1E1'
+      },
+      buttonHeight: {
+        type: ControlType.Number,
+        title: 'Height',
+        defaultValue: 44,
+        min: 34,
+        max: 72,
+        step: 1,
+        unit: 'px',
+        displayStepper: true
+      },
+      buttonRadius: {
+        type: ControlType.Number,
+        title: 'Radius',
+        defaultValue: 8,
+        min: 0,
+        max: 30,
+        step: 1,
+        unit: 'px',
+        displayStepper: true
+      },
+      buttonFontSize: {
+        type: ControlType.Number,
+        title: 'Font Size',
+        defaultValue: 15,
+        min: 10,
+        max: 20,
+        step: 1,
+        unit: 'px',
+        displayStepper: true
+      }
+    }
   }
 })
 

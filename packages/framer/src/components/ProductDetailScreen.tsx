@@ -23,10 +23,12 @@ export function ProductDetailScreen({ product, onBack, onSelect }: ProductDetail
             <img src={product.image_url} className='h-full w-full object-cover' alt={product.name} />
           </div>
         )}
-        <div className='flex min-h-0 flex-1 flex-col gap-3 overflow-y-auto'>
+        <div className='flex min-h-0 flex-1 flex-col gap-3 overflow-y-auto' style={{ scrollbarGutter: 'stable' }}>
           <div className='flex items-start justify-between gap-2.5'>
             <div className='flex min-w-0 flex-1 flex-col gap-1'>
-              <h2 className='m-0 text-xl leading-tight font-black'>{product.name}</h2>
+              <h2 className='m-0 text-xl leading-tight font-black' title={product.name}>
+                {product.name}
+              </h2>
               {product.status === 'archived' && <span className='w-fit rounded border border-black bg-gray-200 px-1.5 py-0.5 text-[10px] font-black uppercase'>Archived</span>}
             </div>
             <div className='border-creem-ink bg-creem-ink shrink-0 rounded-lg border-2 px-2 py-1 text-sm font-black whitespace-nowrap text-white'>

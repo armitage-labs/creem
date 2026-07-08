@@ -258,7 +258,7 @@ export function CreemCheckoutButton({
       case 'gradient':
         return {
           ...baseStyles,
-          background: `linear-gradient(135deg, ${backgroundColor} 0%, ${adjustColorBrightness(backgroundColor, -20)} 100%)`,
+          background: `linear-gradient(135deg, ${backgroundColor} 0%, color-mix(in srgb, ${backgroundColor}, black 20%) 100%)`,
           color: textColor,
           border: 'none'
         }
@@ -268,7 +268,7 @@ export function CreemCheckoutButton({
           backgroundColor,
           color: textColor,
           border: 'none',
-          boxShadow: `0 4px 14px 0 ${backgroundColor}4d, 0 10px 20px 0 ${backgroundColor}33`
+          boxShadow: `0 4px 14px 0 color-mix(in srgb, ${backgroundColor} 30%, transparent), 0 10px 20px 0 color-mix(in srgb, ${backgroundColor} 20%, transparent)`
         }
       case 'shimmer':
         return {
@@ -276,7 +276,7 @@ export function CreemCheckoutButton({
           backgroundColor,
           color: textColor,
           border: 'none',
-          background: `linear-gradient(110deg, ${backgroundColor} 0%, ${adjustColorBrightness(backgroundColor, 20)} 50%, ${backgroundColor} 100%)`,
+          background: `linear-gradient(110deg, ${backgroundColor} 0%, color-mix(in srgb, ${backgroundColor}, white 20%) 50%, ${backgroundColor} 100%)`,
           backgroundSize: '200% 100%'
         }
       default:
@@ -289,15 +289,6 @@ export function CreemCheckoutButton({
     }
   }
 
-  // Helper function to adjust color brightness
-  const adjustColorBrightness = (color: string, percent: number): string => {
-    const num = parseInt(color.replace('#', ''), 16)
-    const amt = Math.round(2.55 * percent)
-    const R = (num >> 16) + amt
-    const G = ((num >> 8) & 0x00ff) + amt
-    const B = (num & 0x0000ff) + amt
-    return '#' + (0x1000000 + (R < 255 ? (R < 1 ? 0 : R) : 255) * 0x10000 + (G < 255 ? (G < 1 ? 0 : G) : 255) * 0x100 + (B < 255 ? (B < 1 ? 0 : B) : 255)).toString(16).slice(1)
-  }
   return (
     <>
       <style>{`
@@ -529,7 +520,10 @@ addPropertyControls(CreemCheckoutButton, {
     title: 'Test Mode',
     defaultValue: false,
     enabledTitle: 'On',
-    disabledTitle: 'Off'
+    disabledTitle: 'Off',
+    // Set automatically at insert time to match the synced products' environment; hidden because
+    // flipping it can't remap product IDs between test/live (see tracker OSS-22).
+    hidden: () => true
   }
 })
 

@@ -20,10 +20,13 @@ export function formatPrice(price: number | null | undefined, currency = 'USD', 
   if (price === 0) return 'Free'
   let amount: string
   try {
-    amount = new Intl.NumberFormat(locale, {
+    const formatter = new Intl.NumberFormat(locale, {
       style: 'currency',
       currency
-    }).format(price / 100)
+    })
+    // Currencies use different minor-unit exponents (0 for JPY/KRW, 2 for USD/EUR, 3 for BHD).
+    const exponent = formatter.resolvedOptions().maximumFractionDigits ?? 2
+    amount = formatter.format(price / 10 ** exponent)
   } catch {
     amount = `${(price / 100).toFixed(2)} ${currency}`
   }
