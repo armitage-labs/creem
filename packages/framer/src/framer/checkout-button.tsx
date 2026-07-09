@@ -1,7 +1,37 @@
 import { useState, useCallback, useEffect } from 'react'
 import { createPortal } from 'react-dom'
 import { addPropertyControls, ControlType, RenderTarget } from 'framer'
-import { ArrowUpRight, Loader2 } from './icons.tsx'
+import { ArrowUpRight, Loader2, FlaskConical } from './icons.tsx'
+
+// Compact icon-only mark for the (often small) button — a full "Test mode" pill
+// covered the button, and an outside chip risks clipping in Framer frames / on mobile.
+function TestModeWatermark() {
+  return (
+    <div
+      aria-hidden='true'
+      title='Test mode'
+      style={{
+        position: 'absolute',
+        top: 6,
+        right: 6,
+        pointerEvents: 'none',
+        zIndex: 2147483000,
+        display: 'inline-flex',
+        alignItems: 'center',
+        justifyContent: 'center',
+        width: 20,
+        height: 20,
+        borderRadius: 999,
+        background: '#FFE7D6',
+        border: '1px solid #FFBE98',
+        color: '#8A4A26',
+        lineHeight: 0
+      }}
+    >
+      <FlaskConical size={12} />
+    </div>
+  )
+}
 
 function buildCreemCheckoutUrl(productId: string, testMode: boolean, discountCode?: string, successUrl?: string): string {
   const base = testMode ? 'https://creem.io/test/payment' : 'https://creem.io/payment'
@@ -360,40 +390,50 @@ export function CreemCheckoutButton({
       <div role='status' aria-live='polite' aria-atomic='true' className='creem-sr-only'>
         {loading ? 'Processing checkout, please wait...' : ''}
       </div>
-      <button
-        className={`creem-checkout-btn ${variant === 'ghost' ? 'creem-ghost' : ''} ${variant === 'shimmer' ? 'creem-shimmer' : ''} ${variant === 'icon-slide' ? 'creem-icon-slide' : ''}`}
-        style={getVariantStyles()}
-        onClick={handleClick}
-        onKeyDown={e => {
-          if ((e.key === 'Enter' || e.key === ' ') && !loading && !isCanvas) {
-            e.preventDefault()
-            handleClick()
-          }
+      <div
+        style={{
+          position: 'relative',
+          display: fullWidth ? 'block' : 'inline-flex',
+          width: fullWidth ? '100%' : 'auto',
+          maxWidth: '100%'
         }}
-        disabled={loading || isCanvas}
-        aria-label={`${buttonText} - Opens Creem checkout${type === 'Embed' ? ' in page' : ' in new tab'}`}
-        aria-busy={loading}
-        aria-disabled={isCanvas}
-        aria-describedby={isCanvas ? 'creem-canvas-msg' : undefined}
-        type='button'
-        tabIndex={isCanvas ? -1 : 0}
       >
-        {loading ? (
-          <>
-            <Loader2 size={14} className='animate-spin' style={{ color: textColor }} />
-            Redirecting…
-          </>
-        ) : (
-          <>
-            {buttonText}
-            {variant === 'icon-slide' && (
-              <div className='creem-icon-circle' aria-hidden='true'>
-                <ArrowUpRight size={16} />
-              </div>
-            )}
-          </>
-        )}
-      </button>
+        <button
+          className={`creem-checkout-btn ${variant === 'ghost' ? 'creem-ghost' : ''} ${variant === 'shimmer' ? 'creem-shimmer' : ''} ${variant === 'icon-slide' ? 'creem-icon-slide' : ''}`}
+          style={getVariantStyles()}
+          onClick={handleClick}
+          onKeyDown={e => {
+            if ((e.key === 'Enter' || e.key === ' ') && !loading && !isCanvas) {
+              e.preventDefault()
+              handleClick()
+            }
+          }}
+          disabled={loading || isCanvas}
+          aria-label={`${buttonText} - Opens Creem checkout${type === 'Embed' ? ' in page' : ' in new tab'}`}
+          aria-busy={loading}
+          aria-disabled={isCanvas}
+          aria-describedby={isCanvas ? 'creem-canvas-msg' : undefined}
+          type='button'
+          tabIndex={isCanvas ? -1 : 0}
+        >
+          {loading ? (
+            <>
+              <Loader2 size={14} className='animate-spin' style={{ color: textColor }} />
+              Redirecting…
+            </>
+          ) : (
+            <>
+              {buttonText}
+              {variant === 'icon-slide' && (
+                <div className='creem-icon-circle' aria-hidden='true'>
+                  <ArrowUpRight size={16} />
+                </div>
+              )}
+            </>
+          )}
+        </button>
+        {testMode && <TestModeWatermark />}
+      </div>
       {isCanvas && (
         <div id='creem-canvas-msg' className='creem-sr-only'>
           Button is disabled in canvas edit mode. Preview or publish to test checkout.

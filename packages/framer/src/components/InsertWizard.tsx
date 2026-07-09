@@ -1,7 +1,7 @@
-import { useState, useCallback, useMemo, useEffect } from 'react'
+import { useState, useCallback, useMemo, useEffect, useRef } from 'react'
 import { framer, useIsAllowedTo } from '@framer/plugin'
 import { ArrowDown, ArrowLeft, ArrowRight, ArrowUp, Check, ChevronDown, ChevronUp, Image, Info, Loader2, RefreshCcw, iconClass } from '@/icons'
-import type { Product, InsertType, CheckoutType, PricingLayout, GridColumns, TierConfig } from '@/types'
+import type { Product, InsertType, CheckoutType, PricingLayout, GridColumns, TierConfig, StoreControls } from '@/types'
 import { getBillingPeriodLabel, matchesProductSearch } from '@/utils/productHelpers'
 import { ensureComponentInsertURL, withFramerIcons } from '@/utils/codeFileHelpers'
 import { badge, btn, card, cn, fitButton, screen, toggle } from '@/styles/ui'
@@ -9,6 +9,7 @@ import BUTTON_COMPONENT_SOURCE from '@/framer/checkout-button.tsx?raw'
 import PRICING_TABLE_COMPONENT_SOURCE from '@/framer/pricing-table.tsx?raw'
 import { ProductSearchInput } from '@/components/ProductSearchInput'
 import { ProductPicker, PLUGIN_ACCENT, type PickerItem } from '@/components/ProductPicker'
+import { StoreSwitcher } from '@/components/StoreSwitcher'
 
 const DEFAULTS = {
   BUTTON_TEXT: 'Buy Now',
@@ -23,6 +24,18 @@ const PRICING_LIMITS = {
   MIN_TIERS: 1
 }
 
+// Mirrors the inserted pricing-table: recurring intervals ordered shortest→longest,
+// with the tab wording the rendered component uses (Quarterly/Semi-annual, not "3 Months").
+// Kept here (not imported) because the frozen component can't share plugin modules.
+const INTERVAL_ORDER = ['every-day', 'every-month', 'every-three-months', 'every-six-months', 'every-year'] as const
+const INTERVAL_TAB_LABEL: Record<string, string> = {
+  'every-day': 'Daily',
+  'every-month': 'Monthly',
+  'every-three-months': 'Quarterly',
+  'every-six-months': 'Semi-annual',
+  'every-year': 'Yearly'
+}
+
 type WizardStep = 'chooseComponent' | 'selectProducts' | 'configure'
 
 type InsertWizardProps = {
@@ -34,7 +47,7 @@ type InsertWizardProps = {
   loading: boolean
   error?: string
   onRefresh: () => void
-  onLogout: () => void
+  storeControls: StoreControls
 }
 
 function createTierConfig(key: string, name: string, description: string): TierConfig {
@@ -52,7 +65,7 @@ function formatSyncedAt(timestamp: number | null): string | null {
   return new Date(timestamp).toLocaleTimeString([], { hour: 'numeric', minute: '2-digit' })
 }
 
-export function InsertWizard({ products, testMode, checkoutType, setCheckoutType, lastSyncedAt, loading, error, onRefresh, onLogout }: InsertWizardProps) {
+export function InsertWizard({ products, testMode, checkoutType, setCheckoutType, lastSyncedAt, loading, error, onRefresh, storeControls }: InsertWizardProps) {
   const [step, setStep] = useState<WizardStep>('chooseComponent')
   const [insertType, setInsertType] = useState<InsertType>('button')
   const [selectedId, setSelectedId] = useState<string>('')
@@ -109,11 +122,18 @@ export function InsertWizard({ products, testMode, checkoutType, setCheckoutType
       return next
     })
   }
+  const prevSelectedCount = useRef(0)
   useEffect(() => {
+    const wasEmpty = prevSelectedCount.current === 0
+    prevSelectedCount.current = selectedProducts.length
     setEditingTierKey(prev => {
-      if (selectedProducts.length === 0) return null
+      // Keep the currently-open tier open as long as it's still selected.
       if (prev && selectedProducts.includes(prev)) return prev
-      return selectedProducts[0]
+      // Auto-open the first tier ONLY on the initial 0 → N population, so that
+      // reordering (same keys, new order) or deselecting never yanks a tier
+      // back open — which made reordering painful.
+      if (wasEmpty && selectedProducts.length > 0) return selectedProducts[0]
+      return null
     })
   }, [selectedProducts])
   const handleInsert = useCallback(async () => {
@@ -123,6 +143,10 @@ export function InsertWizard({ products, testMode, checkoutType, setCheckoutType
     }
     if (insertType === 'button' && !selectedId) {
       framer.notify('Please select a product from the dropdown', { variant: 'error' })
+      return
+    }
+    if (insertType === 'button' && !buttonText.trim()) {
+      framer.notify('Please enter the button text', { variant: 'error' })
       return
     }
     if (insertType === 'pricing' && selectedProducts.length < PRICING_LIMITS.MIN_TIERS) {
@@ -234,7 +258,7 @@ export function InsertWizard({ products, testMode, checkoutType, setCheckoutType
   if (step === 'chooseComponent') {
     return (
       <ChooseComponentStep
-        onLogout={onLogout}
+        storeControls={storeControls}
         onChoose={type => {
           setInsertType(type)
           setStep('selectProducts')
@@ -287,6 +311,7 @@ export function InsertWizard({ products, testMode, checkoutType, setCheckoutType
           setHeaderDescription={setHeaderDescription}
           checkoutType={checkoutType}
           setCheckoutType={setCheckoutType}
+          products={products}
           selectedProducts={selectedProducts}
           moveProduct={moveProduct}
           tierConfigs={tierConfigs}
@@ -336,17 +361,15 @@ function WizardHeader({ title, onBack }: { title: string; onBack: () => void }) 
 
 type ChooseComponentStepProps = {
   onChoose: (type: InsertType) => void
-  onLogout: () => void
+  storeControls: StoreControls
 }
 
-function ChooseComponentStep({ onChoose, onLogout }: ChooseComponentStepProps) {
+function ChooseComponentStep({ onChoose, storeControls }: ChooseComponentStepProps) {
   return (
     <div className={screen}>
-      <div className={card.header}>
+      <div className={cn(card.header, 'justify-between')}>
         <img src='/creem.svg' alt='Creem Logo' className='block h-[18px]' />
-        <button onClick={onLogout} className={cn(btn.dark, btn.logout, 'py-2')}>
-          Log out
-        </button>
+        <StoreSwitcher controls={storeControls} />
       </div>
       <div className='flex flex-1 flex-col gap-3'>
         <p className='text-xs font-bold text-gray-600'>Choose a component to add to your canvas.</p>
@@ -574,7 +597,28 @@ function ButtonConfiguration({ buttonText, setButtonText, checkoutType, setCheck
       {/* Preview — the payoff, kept visible without scrolling. */}
       <div className='flex flex-col items-center gap-2 rounded-xl border-2 border-black bg-white p-3 shadow-[3px_3px_0px_0px_#000]'>
         <p className='self-start text-[10px] font-black tracking-wider text-gray-600 uppercase'>Preview</p>
-        <button className='cursor-default rounded-lg border-none px-6 py-3 text-sm font-semibold tracking-tight text-white' style={{ backgroundColor: PLUGIN_ACCENT }}>
+        {/* Mirrors the real checkout-button defaults (auto width, 12/24 padding, radius 10,
+            15px/600). `w-auto` is required — framer.css forces buttons to full width otherwise,
+            which made the preview look far wider than the rendered component. */}
+        <button
+          className={cn('w-auto cursor-default', fitButton)}
+          style={{
+            display: 'inline-flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            minHeight: 44,
+            padding: '12px 24px',
+            borderRadius: 10,
+            border: 'none',
+            fontSize: 15,
+            fontWeight: 600,
+            letterSpacing: '-0.01em',
+            lineHeight: 1.2,
+            whiteSpace: 'nowrap',
+            color: '#FFFFFF',
+            backgroundColor: PLUGIN_ACCENT
+          }}
+        >
           {buttonText || 'Buy Now'}
         </button>
       </div>
@@ -593,6 +637,7 @@ type PricingConfigurationProps = {
   setHeaderDescription: React.Dispatch<React.SetStateAction<string>>
   checkoutType: CheckoutType
   setCheckoutType: React.Dispatch<React.SetStateAction<CheckoutType>>
+  products: Product[]
   selectedProducts: string[]
   moveProduct: (from: number, to: number) => void
   tierConfigs: Record<string, TierConfig>
@@ -612,6 +657,7 @@ function PricingConfiguration({
   setHeaderDescription,
   checkoutType,
   setCheckoutType,
+  products,
   selectedProducts,
   moveProduct,
   tierConfigs,
@@ -623,12 +669,43 @@ function PricingConfiguration({
   const hasHeader = !!(headerTitle.trim() || headerDescription.trim())
   const multiTier = selectedProducts.length > 1
 
+  // Mirror the inserted table: when products span ≥2 recurring intervals it renders
+  // interval tabs and shows only ONE interval at a time (plus any one-time tiers) —
+  // so the preview must show a toggle + the visible subset, not all cards at once.
+  const tierIntervals = selectedProducts.map(id => {
+    const p = products.find(prod => prod.id === id)
+    return p && p.type !== 'one_time' ? p.billingPeriod || 'every-month' : 'once'
+  })
+  const intervalsPresent = INTERVAL_ORDER.filter(iv => tierIntervals.includes(iv))
+  const showTabs = intervalsPresent.length >= 2
+  // Default to the featured tier's interval (matches the runtime first-paint fix),
+  // else the first interval present.
+  const featuredTierInterval = featuredIndex >= 0 ? tierIntervals[featuredIndex] : undefined
+  const activeInterval = showTabs
+    ? featuredTierInterval && featuredTierInterval !== 'once' && intervalsPresent.includes(featuredTierInterval)
+      ? featuredTierInterval
+      : intervalsPresent[0]
+    : undefined
+  const visibleIndices = showTabs
+    ? selectedProducts.map((_, i) => i).filter(i => tierIntervals[i] === 'once' || tierIntervals[i] === activeInterval)
+    : selectedProducts.map((_, i) => i)
+  const previewTierCount = visibleIndices.length
+  const previewFeaturedIndex = visibleIndices.indexOf(featuredIndex)
+  const previewTabs = showTabs ? intervalsPresent.map(iv => ({ label: INTERVAL_TAB_LABEL[iv] ?? iv, active: iv === activeInterval })) : null
+
   return (
     <div className='flex min-h-0 w-full min-w-0 flex-1 flex-col gap-2.5 overflow-y-auto'>
       {/* Layout — live preview colocated so changes show immediately. */}
       <div className='flex w-full min-w-0 flex-col gap-2.5 rounded-xl border-2 border-black bg-white p-3 shadow-[3px_3px_0px_0px_#000]'>
         {selectedProducts.length > 0 && (
-          <PricingMiniPreview layout={pricingLayout} gridColumns={gridColumns} tierCount={selectedProducts.length} featuredIndex={featuredIndex} hasHeader={hasHeader} />
+          <PricingMiniPreview
+            layout={pricingLayout}
+            gridColumns={gridColumns}
+            tierCount={previewTierCount}
+            featuredIndex={previewFeaturedIndex}
+            hasHeader={hasHeader}
+            tabs={previewTabs}
+          />
         )}
         <div className='flex flex-col gap-1.5'>
           <label className='text-[10px] font-black tracking-wider text-gray-600 uppercase'>Layout</label>
@@ -782,13 +859,15 @@ function PricingMiniPreview({
   gridColumns,
   tierCount,
   featuredIndex,
-  hasHeader
+  hasHeader,
+  tabs
 }: {
   layout: PricingLayout
   gridColumns: GridColumns
   tierCount: number
   featuredIndex: number
   hasHeader: boolean
+  tabs: { label: string; active: boolean }[] | null
 }) {
   const cols = layout === 'grid' ? Math.min(gridColumns, Math.max(tierCount, 1)) : layout === 'vertical' ? 1 : tierCount
   const containerStyle: React.CSSProperties =
@@ -803,6 +882,15 @@ function PricingMiniPreview({
         <div className='mb-2.5 flex flex-col items-center gap-1'>
           <div className='h-2 w-20 rounded-full bg-gray-400' />
           <div className='h-1 w-28 rounded-full bg-gray-300' />
+        </div>
+      )}
+      {tabs && tabs.length > 0 && (
+        <div className='mb-2.5 flex items-center justify-center gap-1'>
+          {tabs.map(tab => (
+            <span key={tab.label} className={cn('rounded-full px-2 py-0.5 text-[8px] font-black', tab.active ? 'bg-gray-800 text-white' : 'bg-gray-200 text-gray-500')}>
+              {tab.label}
+            </span>
+          ))}
         </div>
       )}
       <div className='overflow-hidden' style={{ maxHeight: 168 }}>

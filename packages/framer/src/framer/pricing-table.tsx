@@ -1,7 +1,37 @@
 import { useState, useEffect, useCallback, type ReactNode } from 'react'
 import { createPortal } from 'react-dom'
 import { addPropertyControls, ControlType, RenderTarget } from 'framer'
-import { ArrowUpRight } from './icons.tsx'
+import { ArrowUpRight, FlaskConical } from './icons.tsx'
+
+function TestModeWatermark() {
+  return (
+    <div
+      aria-hidden='true'
+      style={{
+        position: 'absolute',
+        top: 8,
+        right: 8,
+        pointerEvents: 'none',
+        zIndex: 2147483000,
+        display: 'inline-flex',
+        alignItems: 'center',
+        gap: 5,
+        padding: '3px 8px',
+        borderRadius: 999,
+        background: '#FFE7D6',
+        border: '1px solid #FFBE98',
+        color: '#8A4A26',
+        fontSize: 11,
+        fontWeight: 600,
+        lineHeight: 1,
+        whiteSpace: 'nowrap'
+      }}
+    >
+      <FlaskConical size={12} />
+      Test mode
+    </div>
+  )
+}
 
 type Tier = {
   name: string
@@ -28,6 +58,11 @@ const INTERVAL_LABEL: Record<string, string> = {
   'every-six-months': 'Semi-annual',
   'every-year': 'Yearly'
 }
+
+// Demo/placeholder product ids that ship as control defaults (or the built-in
+// DEFAULT_TIERS). A CTA pointing at one of these would open a broken checkout,
+// so we block it and surface a message instead (see handleCheckout).
+const PLACEHOLDER_PRODUCT_IDS = new Set(['prod_abc123', 'prod_free', 'prod_premium', 'prod_enterprise', 'prod_YOUR_PRODUCT_ID'])
 
 function formatTierAmount(cents: number | null | undefined, currency = 'USD'): string {
   if (cents === null || cents === undefined) return '—'
@@ -487,10 +522,15 @@ export function CreemPricingTable({
 }: Props) {
   const intervalsPresent = INTERVAL_ORDER.filter(iv => tiers.some(t => !t.isOneTime && t.billingPeriod === iv))
   const [activeInterval, setActiveInterval] = useState('')
-  const effectiveInterval = intervalsPresent.includes(activeInterval) ? activeInterval : (intervalsPresent[0] ?? '')
+  // Default to the interval that holds the featured tier so the highlighted card
+  // is visible on first paint — otherwise it may live in a non-default tab and
+  // render hidden until the visitor switches intervals.
+  const featuredInterval = tiers.find(t => t.highlighted && !t.isOneTime && t.billingPeriod && intervalsPresent.includes(t.billingPeriod))?.billingPeriod
+  const effectiveInterval = intervalsPresent.includes(activeInterval) ? activeInterval : (featuredInterval ?? intervalsPresent[0] ?? '')
   const showTabs = showIntervalTabs && intervalsPresent.length >= 2
   const visibleTiers = showTabs ? tiers.filter(t => t.isOneTime || t.billingPeriod === 'once' || t.billingPeriod === effectiveInterval) : tiers
   const [embedUrl, setEmbedUrl] = useState<string | null>(null)
+  const [checkoutError, setCheckoutError] = useState<string | null>(null)
   const [breakpoint, setBreakpoint] = useState<'mobile' | 'tablet' | 'desktop'>('desktop')
   const isCanvas = RenderTarget.current() === RenderTarget.canvas
   const closeEmbed = useCallback(() => {
@@ -563,7 +603,16 @@ export function CreemPricingTable({
   const transitionDuration = prefersReducedMotion ? '0s' : '0.3s'
   const handleCheckout = (tier: Tier) => {
     if (isCanvas) return
-    const url = buildCreemCheckoutUrl(tier.productId, testMode)
+    const productId = tier.productId?.trim()
+    // Guard against unconfigured tiers — an empty or still-placeholder product id
+    // would open a broken Creem checkout. Surface a message instead of navigating.
+    if (!productId || PLACEHOLDER_PRODUCT_IDS.has(productId)) {
+      console.error('Creem pricing table: tier has no valid product id — re-insert this table through the Creem plugin and select a product.', tier)
+      setCheckoutError(`“${tier.name}” isn’t available yet — the site owner still needs to connect it to a Creem product.`)
+      return
+    }
+    setCheckoutError(null)
+    const url = buildCreemCheckoutUrl(productId, testMode)
     if (type === 'embed') {
       setEmbedUrl(url)
     } else {
@@ -606,6 +655,7 @@ export function CreemPricingTable({
   return (
     <div
       style={{
+        position: 'relative',
         width: '100%',
         minHeight: '100%',
         background: pageBackground,
@@ -616,6 +666,7 @@ export function CreemPricingTable({
         boxSizing: 'border-box'
       }}
     >
+      {testMode && <TestModeWatermark />}
       {/* ARIA live region for interval changes */}
       <div
         aria-live='polite'
@@ -708,10 +759,15 @@ export function CreemPricingTable({
               return (
                 <button
                   key={iv}
-                  onClick={() => !isCanvas && setActiveInterval(iv)}
+                  onClick={() => {
+                    if (isCanvas) return
+                    setCheckoutError(null)
+                    setActiveInterval(iv)
+                  }}
                   onKeyDown={e => {
                     if ((e.key === 'Enter' || e.key === ' ') && !isCanvas) {
                       e.preventDefault()
+                      setCheckoutError(null)
                       setActiveInterval(iv)
                     }
                   }}
@@ -749,6 +805,26 @@ export function CreemPricingTable({
                 </button>
               )
             })}
+          </div>
+        )}
+        {/* Checkout guard message — shown when a CTA points at an unconfigured tier. */}
+        {checkoutError && (
+          <div
+            role='alert'
+            style={{
+              alignSelf: 'stretch',
+              marginBottom: 24,
+              padding: '12px 16px',
+              borderRadius: 8,
+              border: '1px solid #F5C2C7',
+              background: '#FDECEE',
+              color: '#842029',
+              fontSize: 14,
+              lineHeight: 1.5,
+              textAlign: 'center'
+            }}
+          >
+            {checkoutError}
           </div>
         )}
         {/* Pricing Cards */}

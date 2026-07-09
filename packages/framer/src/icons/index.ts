@@ -7,14 +7,18 @@ export {
   Check,
   ChevronDown,
   ChevronUp,
+  FlaskConical,
   Image,
   Info,
   Loader2,
   LogOut,
+  Pencil,
   Plus,
   RefreshCcw,
   Search,
-  Trash2
+  Store,
+  Trash2,
+  X
 } from 'lucide-react'
 
 /** Tailwind size classes for the ~350px plugin panel. */

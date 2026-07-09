@@ -51,9 +51,15 @@ export async function ensureCodeFileExists(filename: string, source: string): Pr
   const codeFiles = await framer.getCodeFiles()
   const existing = codeFiles.find(f => f.name === filename)
   if (existing) {
-    if (readCodeFileVersion(existing.content) !== PLUGIN_VERSION && framer.isAllowedTo('CodeFile.setFileContent')) {
+    // In dev we always refresh so edits to the component source show up on the next
+    // insert without a version bump. In production we only refresh on a genuine
+    // version change, to preserve users' hand-edits between updates (see T-OVERWRITE).
+    const versionChanged = readCodeFileVersion(existing.content) !== PLUGIN_VERSION
+    if ((import.meta.env.DEV || versionChanged) && framer.isAllowedTo('CodeFile.setFileContent')) {
       const updated = await existing.setFileContent(source)
-      framer.notify(`Refreshed ${filename} to Creem plugin v${PLUGIN_VERSION}. Manual edits to this file are overwritten on plugin updates.`, { variant: 'warning' })
+      if (versionChanged) {
+        framer.notify(`Refreshed ${filename} to Creem plugin v${PLUGIN_VERSION}. Manual edits to this file are overwritten on plugin updates.`, { variant: 'warning' })
+      }
       return updated
     }
     return existing
