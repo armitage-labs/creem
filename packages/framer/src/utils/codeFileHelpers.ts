@@ -12,6 +12,11 @@
 
 import { framer, type CodeFile } from '@framer/plugin'
 import FRAMER_ICONS_SOURCE from '@/framer/icons.tsx?raw'
+import pkg from '../../package.json'
+
+/** Stamped into every generated code file; drives the "same version → don't overwrite" guard. */
+const PLUGIN_VERSION = pkg.version
+const VERSION_RE = /^\/\/ creem-plugin: (.+)$/m
 
 /** How long to wait for Framer to compile a freshly created/updated code file. */
 const COMPILE_TIMEOUT_MS = 20_000
@@ -22,13 +27,23 @@ const FRAMER_ICONS_IMPORT = /import\s+\{[^}]+\}\s+from\s+['"]\.\/icons(?:\.tsx)?
 export function withFramerIcons(componentSource: string): string {
   const iconsSource = FRAMER_ICONS_SOURCE.replace(/^export /gm, '')
   const componentWithoutIconImports = componentSource.replace(FRAMER_ICONS_IMPORT, '')
-  return `${iconsSource}\n${componentWithoutIconImports}`
+  // Stamp the plugin version at the top so a re-insert only refreshes the shared code
+  // file on a real version bump — not when the user has hand-edited it (see T-OVERWRITE).
+  return `// creem-plugin: ${PLUGIN_VERSION}\n${iconsSource}\n${componentWithoutIconImports}`
+}
+
+/** Reads the `// creem-plugin: <version>` stamp from a generated file, or null if unstamped. */
+function readCodeFileVersion(content: string): string | null {
+  const match = content.match(VERSION_RE)
+  return match ? match[1].trim() : null
 }
 
 /**
- * Ensures a code file exists in the project, creating it if necessary and
- * self-healing a stale one (e.g. left over from an older plugin version) by
- * refreshing its content to the current source.
+ * Ensures the component's code file exists, creating it if necessary. If it already
+ * exists, it is refreshed to the current source ONLY when it came from a different
+ * plugin version (a genuine upgrade, or an old unversioned file) — never merely because
+ * it differs from the bundled source. That keeps the auto-upgrade path while preserving
+ * hand-edits made in Framer's code editor for the same plugin version (see T-OVERWRITE).
  *
  * @throws if the user lacks permission to create the code file
  */
@@ -36,8 +51,11 @@ export async function ensureCodeFileExists(filename: string, source: string): Pr
   const codeFiles = await framer.getCodeFiles()
   const existing = codeFiles.find(f => f.name === filename)
   if (existing) {
-    // Refresh stale/broken content so a bad earlier version can't get stuck.
-    if (existing.content !== source && framer.isAllowedTo('CodeFile.setFileContent')) return existing.setFileContent(source)
+    if (readCodeFileVersion(existing.content) !== PLUGIN_VERSION && framer.isAllowedTo('CodeFile.setFileContent')) {
+      const updated = await existing.setFileContent(source)
+      framer.notify(`Refreshed ${filename} to Creem plugin v${PLUGIN_VERSION}. Manual edits to this file are overwritten on plugin updates.`, { variant: 'warning' })
+      return updated
+    }
     return existing
   }
   if (!framer.isAllowedTo('createCodeFile')) throw new Error("You don't have permission to create code files in this project")
