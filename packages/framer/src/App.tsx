@@ -1,11 +1,9 @@
 import { useState, useCallback, useEffect, useRef } from 'react'
 import { framer } from '@framer/plugin'
-import type { Product, Screen, InsertType, CheckoutType } from '@/types'
+import type { Product, Screen, CheckoutType } from '@/types'
 import { fetchProducts } from '@/services/api'
 import { SetupScreen } from '@/components/SetupScreen'
-import { ProductsScreen } from '@/components/ProductsScreen'
-import { InsertScreen } from '@/components/InsertScreen'
-import { ProductDetailScreen } from '@/components/ProductDetailScreen'
+import { InsertWizard } from '@/components/InsertWizard'
 
 const PLUGIN_CONFIG = {
   POSITION: 'top right' as const,
@@ -27,16 +25,12 @@ framer.showUI({
 export function App() {
   const [apiKey, setApiKey] = useState(() => localStorage.getItem(STORAGE_KEYS.API_KEY) ?? '')
   const isKeyStored = !!localStorage.getItem(STORAGE_KEYS.API_KEY)
-  const [screen, setScreen] = useState<Screen>(() => (isKeyStored ? 'products' : 'home'))
+  const [screen, setScreen] = useState<Screen>(() => (isKeyStored ? 'connected' : 'home'))
   const [testMode, setTestMode] = useState(() => localStorage.getItem(STORAGE_KEYS.TEST_MODE) === 'true')
   const [products, setProducts] = useState<Product[]>([])
   const [lastSyncedAt, setLastSyncedAt] = useState<number | null>(null)
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState('')
-  const [insertType, setInsertType] = useState<InsertType>('button')
-  const [selectedProduct, setSelectedProduct] = useState<Product | null>(null)
-  const [initialInsertProductId, setInitialInsertProductId] = useState<string | null>(null)
-  const [showArchived, setShowArchived] = useState(false)
   const [checkoutType, setCheckoutType] = useState<CheckoutType>('new-tab')
   const fetchAbortRef = useRef<AbortController | null>(null)
   const activeProducts = products.filter(product => product.status === 'active')
@@ -113,7 +107,7 @@ export function App() {
             saveKey(key, testMode)
             setProducts(result.data ?? [])
             setLastSyncedAt(result.syncedAt ?? null)
-            setScreen('products')
+            setScreen('connected')
           }
         }}
         testMode={testMode}
@@ -123,61 +117,17 @@ export function App() {
       />
     )
   }
-  if (screen === 'insert') {
-    return (
-      <InsertScreen
-        insertType={insertType}
-        setInsertType={setInsertType}
-        products={activeProducts}
-        testMode={testMode}
-        checkoutType={checkoutType}
-        setCheckoutType={setCheckoutType}
-        initialProductId={initialInsertProductId}
-        onBack={() => {
-          setInitialInsertProductId(null)
-          setScreen('products')
-        }}
-      />
-    )
-  }
-  if (screen === 'productDetail' && selectedProduct) {
-    return (
-      <ProductDetailScreen
-        product={selectedProduct}
-        onBack={() => {
-          setSelectedProduct(null)
-          setScreen('products')
-        }}
-        onSelect={() => {
-          setInitialInsertProductId(selectedProduct.id)
-          setInsertType('button')
-          setSelectedProduct(null)
-          setScreen('insert')
-        }}
-      />
-    )
-  }
   return (
-    <ProductsScreen
-      products={products}
-      showArchived={showArchived}
-      onShowArchivedChange={setShowArchived}
+    <InsertWizard
+      products={activeProducts}
       testMode={testMode}
-      apiKey={apiKey}
+      checkoutType={checkoutType}
+      setCheckoutType={setCheckoutType}
       lastSyncedAt={lastSyncedAt}
-      onClearKey={clearKey}
-      onInsert={type => {
-        setInitialInsertProductId(null)
-        setInsertType(type)
-        setScreen('insert')
-      }}
-      onProductClick={product => {
-        setSelectedProduct(product)
-        setScreen('productDetail')
-      }}
-      onRefresh={() => loadProducts(apiKey, testMode)}
       loading={loading}
       error={error}
+      onRefresh={() => loadProducts(apiKey, testMode)}
+      onLogout={clearKey}
     />
   )
 }

@@ -36,14 +36,12 @@ export type TierConfig = {
   key: string
   name: string
   description: string
-  features: string[]
-  featuresTitle: string
   ctaText: string
   highlighted: boolean
 }
 
 // Application Types
-export type Screen = 'home' | 'products' | 'insert' | 'productDetail'
+export type Screen = 'home' | 'connected'
 
 export type InsertType = 'button' | 'pricing'
 

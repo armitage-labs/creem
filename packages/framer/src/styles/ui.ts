@@ -43,6 +43,12 @@ export const selectRow = {
 
 export const badge = `inline-flex min-h-[26px] min-w-[26px] shrink-0 items-center justify-center px-1.5 ${border} bg-creem-purple text-creem-ink shadow-[2px_2px_0_0_#151617] ${roundedSm} text-[11px] leading-none font-black tabular-nums`
 
+// framer.css clamps every <button> to a fixed height and hides its overflow, which
+// clips content-sized buttons (product rows, component cards). Apply this to those
+// buttons so they grow to their content. Tailwind utilities are imported `!important`,
+// so this wins over framer.css.
+export const fitButton = 'h-auto overflow-visible'
+
 export const screen = 'bg-creem-cream flex h-full w-full flex-col gap-3 overflow-x-hidden overflow-y-auto p-3'
 
 export function cn(...classes: (string | false | null | undefined)[]) {

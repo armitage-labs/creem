@@ -12,8 +12,6 @@ type Tier = {
   currency?: string
   isOneTime?: boolean
   description: string
-  features: string[]
-  featuresTitle: string
   productId: string
   monthlyProductId?: string
   yearlyProductId?: string
@@ -395,10 +393,6 @@ type Props = {
     titleFontSize?: number
     descriptionFontSize?: number
     priceFontSize?: number
-    featuresTitleFontSize?: number
-    featureFontSize?: number
-    bulletColor?: string
-    bulletSize?: number
   }
   featured?: {
     primaryButtonBackground?: string
@@ -422,14 +416,6 @@ const DEFAULT_TIERS: Tier[] = [
     monthlyPrice: 0,
     yearlyPrice: 0,
     description: 'Recommended for people with at least 1 year experience in crypto markets.',
-    features: [
-      'Access to real-time inventory tracking',
-      'Integration with Digital Marketing email',
-      'Basic analytics and email support',
-      'Custom dashboards and Phone support',
-      'Real-time data tracking and 24/7 support'
-    ],
-    featuresTitle: 'Features',
     productId: 'prod_free',
     ctaText: 'Free plan',
     ctaVariant: 'default',
@@ -440,15 +426,6 @@ const DEFAULT_TIERS: Tier[] = [
     monthlyPrice: 99,
     yearlyPrice: 950,
     description: 'Everything in the Basic Plan plus advanced search, better analytics.',
-    features: [
-      'All Premium Plan features',
-      'Advanced data filtering search capabilities',
-      'Custom branding options',
-      'Extended API access for integrations',
-      'Real-time data tracking and 24/7 support',
-      'Dedicated account manager'
-    ],
-    featuresTitle: 'Features',
     productId: 'prod_premium',
     ctaText: 'Purchase plan',
     ctaVariant: 'default',
@@ -459,16 +436,6 @@ const DEFAULT_TIERS: Tier[] = [
     monthlyPrice: 299,
     yearlyPrice: 2990,
     description: 'Includes all Professional Plan features plus full logistics automation etc.',
-    features: [
-      'Custom onboarding process',
-      'Priority support response',
-      'Access to exclusive webinars',
-      'Monthly performance reviews',
-      'Real-time data tracking and 24/7 support',
-      'Dedicated account manager',
-      'Tailored training sessions and resources'
-    ],
-    featuresTitle: 'Features',
     productId: 'prod_enterprise',
     ctaText: 'Purchase plan',
     ctaVariant: 'default',
@@ -515,11 +482,7 @@ export function CreemPricingTable({
     accentColor = '#111111',
     titleFontSize = 28,
     descriptionFontSize = 14,
-    priceFontSize = 56,
-    featuresTitleFontSize = 20,
-    featureFontSize = 15,
-    bulletColor = '#111111',
-    bulletSize = 8
+    priceFontSize = 56
   } = {},
   featured: { primaryButtonBackground = '#111111', primaryButtonTextColor = '#FFFFFF', featuredBorderColor = '#111111', featuredCardBorderWidth = 2 } = {},
   standardButton: {
@@ -582,26 +545,20 @@ export function CreemPricingTable({
         title: Math.round(titleFontSize * 0.85),
         price: Math.round(priceFontSize * 0.85),
         description: Math.round(descriptionFontSize * 0.93),
-        cta: Math.round(buttonFontSize * 0.93),
-        featuresTitle: Math.round(featuresTitleFontSize * 0.85),
-        feature: Math.round(featureFontSize * 0.93)
+        cta: Math.round(buttonFontSize * 0.93)
       }
     if (breakpoint === 'tablet')
       return {
         title: Math.round(titleFontSize * 0.93),
         price: Math.round(priceFontSize * 0.93),
         description: Math.round(descriptionFontSize * 0.96),
-        cta: Math.round(buttonFontSize * 0.96),
-        featuresTitle: Math.round(featuresTitleFontSize * 0.93),
-        feature: Math.round(featureFontSize * 0.96)
+        cta: Math.round(buttonFontSize * 0.96)
       }
     return {
       title: titleFontSize,
       price: priceFontSize,
       description: descriptionFontSize,
-      cta: buttonFontSize,
-      featuresTitle: featuresTitleFontSize,
-      feature: featureFontSize
+      cta: buttonFontSize
     }
   }
   const fonts = getFontSizes()
@@ -954,12 +911,12 @@ export function CreemPricingTable({
               borderRadius: cardRadius,
               padding: spacing.cardPadding,
               // Grid layout: each card is a subgrid sharing the parent's row tracks, so every
-              // section (title, price, CTA, features) aligns across cards regardless of title length.
+              // section (title, price, CTA, description) aligns across cards regardless of title length.
               // Other layouts keep the simple flex column.
               display: layout === 'grid' ? 'grid' : 'flex',
               flexDirection: layout === 'grid' ? undefined : 'column',
               gridTemplateRows: layout === 'grid' ? 'subgrid' : undefined,
-              gridRow: layout === 'grid' ? 'span 5' : undefined,
+              gridRow: layout === 'grid' ? 'span 4' : undefined,
               gap: cardGap,
               boxShadow: tier.highlighted ? '0 8px 24px rgba(0,0,0,0.12)' : 'none',
               transition: prefersReducedMotion ? 'none' : 'all 0.3s ease',
@@ -1019,16 +976,6 @@ export function CreemPricingTable({
                 >
                   {tier.name}
                 </h3>
-                {/* Description */}
-                <div
-                  style={{
-                    margin: '0 0 24px 0',
-                    wordBreak: 'break-word',
-                    overflowWrap: 'anywhere'
-                  }}
-                >
-                  <TierDescriptionMarkdown text={tier.description} fontSize={fonts.description} color={mutedTextColor} headingColor={textColor} linkColor={accentColor} />
-                </div>
                 {/* Price */}
                 <div style={{ display: 'flex', alignItems: 'baseline', gap: 6, margin: '0 0 24px 0', flexWrap: 'wrap' }}>
                   <span
@@ -1114,7 +1061,7 @@ export function CreemPricingTable({
                     </div>
                   )}
                 </button>
-                {/* Separator + Features grouped into one subgrid row so the Features block aligns across cards. */}
+                {/* Separator + Description grouped into one subgrid row so the description aligns across cards. */}
                 <div style={layout === 'grid' ? { display: 'flex', flexDirection: 'column', minHeight: 0 } : { display: 'contents' }}>
                   {/* Separator */}
                   <div
@@ -1125,49 +1072,15 @@ export function CreemPricingTable({
                       margin: '0 0 24px 0'
                     }}
                   />
-                  {/* Features */}
-                  <div style={{ flex: 1 }}>
-                    <h4
-                      style={{
-                        fontSize: fonts.featuresTitle,
-                        fontWeight: 600,
-                        color: textColor,
-                        margin: '0 0 16px 0'
-                      }}
-                    >
-                      {tier.featuresTitle || 'Features'}
-                    </h4>
-                    <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
-                      {tier.features.map((feature, fIdx) => (
-                        <div
-                          key={fIdx}
-                          style={{
-                            display: 'flex',
-                            alignItems: 'center',
-                            gap: 10
-                          }}
-                        >
-                          <div
-                            style={{
-                              width: bulletSize,
-                              height: bulletSize,
-                              borderRadius: '50%',
-                              background: bulletColor,
-                              flexShrink: 0
-                            }}
-                          />
-                          <span
-                            style={{
-                              fontSize: fonts.feature,
-                              color: mutedTextColor,
-                              lineHeight: 1.5
-                            }}
-                          >
-                            {feature}
-                          </span>
-                        </div>
-                      ))}
-                    </div>
+                  {/* Description */}
+                  <div
+                    style={{
+                      flex: 1,
+                      wordBreak: 'break-word',
+                      overflowWrap: 'anywhere'
+                    }}
+                  >
+                    <TierDescriptionMarkdown text={tier.description} fontSize={fonts.description} color={mutedTextColor} headingColor={textColor} linkColor={accentColor} />
                   </div>
                 </div>
               </div>
@@ -1346,17 +1259,6 @@ addPropertyControls(CreemPricingTable, {
           title: 'Description',
           defaultValue: 'Perfect for growing teams',
           displayTextArea: true
-        },
-        featuresTitle: {
-          type: ControlType.String,
-          title: 'Features Title',
-          defaultValue: 'Features'
-        },
-        features: {
-          type: ControlType.Array,
-          title: 'Features',
-          control: { type: ControlType.String, title: 'Feature', defaultValue: 'Feature item' },
-          defaultValue: ['Feature 1', 'Feature 2', 'Feature 3']
         },
         productId: { type: ControlType.String, title: 'Product ID', defaultValue: 'prod_abc123' },
         isOneTime: {
@@ -1589,41 +1491,6 @@ addPropertyControls(CreemPricingTable, {
         min: 24,
         max: 80,
         step: 2,
-        unit: 'px',
-        displayStepper: true
-      },
-      featuresTitleFontSize: {
-        type: ControlType.Number,
-        title: 'Features Title Size',
-        defaultValue: 20,
-        min: 14,
-        max: 32,
-        step: 1,
-        unit: 'px',
-        displayStepper: true
-      },
-      featureFontSize: {
-        type: ControlType.Number,
-        title: 'Feature Size',
-        defaultValue: 15,
-        min: 10,
-        max: 20,
-        step: 1,
-        unit: 'px',
-        displayStepper: true
-      },
-      bulletColor: {
-        type: ControlType.Color,
-        title: 'Bullet Color',
-        defaultValue: '#111111'
-      },
-      bulletSize: {
-        type: ControlType.Number,
-        title: 'Bullet Size',
-        defaultValue: 8,
-        min: 4,
-        max: 14,
-        step: 1,
         unit: 'px',
         displayStepper: true
       }
