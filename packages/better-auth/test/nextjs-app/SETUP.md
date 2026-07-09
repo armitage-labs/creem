@@ -4,7 +4,7 @@ Follow these steps to get the test app running:
 
 ## Prerequisites
 
-- Node.js 18+ installed
+- Node.js 22+ installed
 - A Creem account with API credentials
 - Git (for cloning/managing the repo)
 

@@ -21,7 +21,7 @@ By participating in this project, you agree to maintain a respectful and inclusi
 
 ### Prerequisites
 
-- Node.js 20+ and pnpm
+- Node.js 22+ and pnpm
 - Git
 - A Better-Auth project for testing (optional but recommended)
 

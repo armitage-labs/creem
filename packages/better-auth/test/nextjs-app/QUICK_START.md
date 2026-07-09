@@ -26,7 +26,7 @@ Open http://localhost:3000 🚀
 ### Step 1: Prerequisites
 
 Make sure you have:
-- ✅ Node.js 18+ installed
+- ✅ Node.js 22+ installed
 - ✅ npm or yarn
 - ✅ A Creem account ([sign up here](https://creem.io))
 

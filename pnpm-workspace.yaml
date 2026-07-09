@@ -1,2 +1,38 @@
 packages:
   - "packages/*"
+
+autoInstallPeers: true
+publicHoistPattern:
+  - "!@types/react"
+  - "!@types/react-dom"
+
+overrides:
+  "@creem_io/strapi>@types/react": "18.3.28"
+  "@creem_io/strapi>@types/react-dom": "18.3.7"
+  "@strapi/design-system>@types/react": "18.3.28"
+  "@strapi/icons>@types/react": "18.3.28"
+
+allowBuilds:
+  "@prisma/engines": true
+  "@swc/core": false
+  better-sqlite3: true
+  bun: true
+  core-js-pure: false
+  esbuild: true
+  prisma: true
+  sharp: true
+  unrs-resolver: true
+  workerd: false
+
+# pnpm 11 defaults this to "install" (auto-install on every `pnpm run`), which
+# races when turbo spawns package scripts in parallel and misresolves
+# workspace: deps. CI installs explicitly with --frozen-lockfile instead.
+verifyDepsBeforeRun: false
+
+# Supply-chain protection: third-party packages must be at least 1 day old
+# (pnpm 11 default, stated explicitly). Our own packages are exempt so the
+# sdk-cascade bumps can install a just-published creem release immediately.
+minimumReleaseAge: 1440
+minimumReleaseAgeExclude:
+  - creem
+  - "@creem_io/*"
