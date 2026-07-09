@@ -73,7 +73,7 @@ export function parseApiProduct(raw: unknown): Product | null {
   if (typeof id !== 'string' || !id.trim()) return null
   return {
     id,
-    name: typeof raw.name === 'string' && raw.name.trim() ? raw.name : 'Unnamed',
+    name: typeof raw.name === 'string' && raw.name.trim() ? raw.name.trim() : 'Unnamed',
     description: typeof raw.description === 'string' ? raw.description : '',
     price: parsePrice(raw.price),
     currency: typeof raw.currency === 'string' && raw.currency.trim() ? raw.currency : 'USD',
