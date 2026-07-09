@@ -1,22 +1,19 @@
 # Creem Framer Plugin
 
-A Framer plugin to add Creem checkout buttons and pricing tables to your site. No custom code needed.
+`@creem_io/framer` &mdash; the source for the [Creem plugin for Framer](https://www.framer.com/community/marketplace/plugins/creem/). It adds Creem checkout buttons and pricing tables to a Framer site with no custom code.
 
-[Tutorial](https://dev.to/armitage-labs/how-to-add-payment-buttons-pricing-tables-to-your-framer-website-no-code-required-267) · [Creem docs](https://docs.creem.io) · [Report a bug](https://github.com/armitage-labs/creem/issues)
+> **Using the plugin?** This README is for developers working on the plugin itself. If you just want to add checkout to your Framer site, install it from the [Framer Marketplace](https://www.framer.com/community/marketplace/plugins/creem/) and follow the [user documentation](https://docs.creem.io/integrations/framer).
 
-<img src="./images/cover.png" alt="Creem Framer Plugin" />
+## What's inside
 
-## What it does
+The plugin is a Framer canvas plugin that inserts two code components:
 
-- Browse your Creem products and insert components into Framer
-- Add a **checkout button** for a single product
-- Add a **pricing table** with one-time and subscription products in the same table
-- Open checkout in an **embed modal** or a **new tab**
-- Use **test mode** before going live
+- **Checkout button** &mdash; a single-product buy button
+- **Pricing table** &mdash; a multi-product table that mixes one-time and subscription products, with an automatic billing-interval toggle
 
-## Setup
+The plugin UI walks the user through connecting one or more Creem **stores** (each holding a Live and/or Test API key), picking products, and configuring a component. A store/environment switcher in the header lets the user browse either catalog and flip between test and live. Insertion writes the component's code file into the Framer project and drops a component instance onto the canvas; from there, all styling is done through Framer property controls.
 
-### 1. Run the plugin locally
+## Local development
 
 From the monorepo root:
 
@@ -32,107 +29,70 @@ cd packages/framer
 pnpm dev
 ```
 
-### 2. Load it in Framer
+Then load it in Framer:
 
-1. Open Framer
-2. Open your project → **Canvas** → **Plugins**
-3. Click the **Open Development Plugin** button
+1. Open your project &rarr; **Canvas** &rarr; **Plugins**
+2. Click **Open Development Plugin**
 
-### 3. Connect Creem
+## Project structure
 
-1. Copy your API key from [Creem Dashboard](https://www.creem.io/dashboard/developers) → Developers → API Keys
-2. Open the plugin in Framer
-3. Paste the key and turn on **Use Test Mode** if you are testing
+```
+src/
+├── App.tsx                 # Root: store state, product fetching, screen routing
+├── main.tsx                # Entry point
+├── components/
+│   ├── SetupScreen.tsx     # Create a store (name + Live/Test API keys)
+│   ├── StoreSwitcher.tsx   # Header switcher: change store + environment, manage keys
+│   ├── TestModeChrome.tsx  # Peach frame + "Test mode on" bar when env is test
+│   ├── InsertWizard.tsx    # 3-step insert flow (choose → select → configure)
+│   ├── ProductPicker.tsx   # Product list, single/multi select
+│   ├── ProductSearchInput.tsx
+│   └── Markdown.tsx        # Renders Markdown in tier descriptions
+├── framer/                 # Code components inserted into the user's project
+│   ├── checkout-button.tsx # <CreemCheckoutButton> + property controls
+│   ├── pricing-table.tsx   # <CreemPricingTable> + property controls
+│   └── icons.tsx
+├── hooks/
+│   └── useStores.ts        # Multi-store state (add/switch/rename/remove, active env)
+├── services/
+│   ├── api.ts              # Creem API client (product fetching)
+│   └── stores.ts           # Store persistence, key-prefix env routing, legacy migration
+├── utils/                  # Formatters, product helpers, validation, code-file helpers
+├── styles/ui.ts            # Shared class strings
+└── types.ts
+```
 
-<img src="./images/connect-account.png" alt="Connect Creem account" width="300" />
+The files under `src/framer/` are the components that ship into the user's Framer project. They are imported `?raw` by `InsertWizard.tsx` and written into the project at insert time, so their `addPropertyControls` definitions are the source of truth for every on-canvas customization option.
 
-## How to use
+## Tech stack
 
-### Browse products
+- **React** + **Vite** &mdash; plugin UI
+- **Tailwind CSS** &mdash; styling
+- **Framer Plugin API** (`framer-plugin`) &mdash; canvas integration
+- **TypeScript**
 
-After connecting, you land on the **Products** screen. Search products, refresh the list, or toggle **Show archived products**. Use **Insert Button** or **Insert Pricing Table** at the bottom to start inserting.
+## Releasing a new version
 
-<img src="./images/products-screen.png" alt="Products screen" width="300" />
+Bump the version, build, and package the plugin for the Framer Marketplace in one step:
 
-<img src="./images/products-search.png" alt="Search products" width="300" />
+```bash
+pnpm release
+```
 
-### Checkout type
+This runs `npm version patch --no-git-tag-version`, `pnpm build`, and `pnpm pack`, producing a `plugin.zip` you upload to the [Framer Marketplace listing](https://www.framer.com/community/marketplace/plugins/creem/). Use `pnpm pack` on its own to repackage without bumping the version.
 
-Both the checkout button and pricing table let you choose how checkout opens:
+`pnpm release` only bumps the **patch** version. For a minor or major release, set the `version` in `package.json` manually first (or run `npm version minor|major --no-git-tag-version`), then `pnpm build && pnpm pack`.
 
-| Option      | What happens                                       |
-| ----------- | -------------------------------------------------- |
-| **Embed**   | Opens checkout on the same page in a modal overlay |
-| **New Tab** | Opens checkout in a new browser tab                |
+> **Always bump the version when you change a component.** The components inserted into a user's Framer project are stamped with the package version (`// creem-plugin: <version>`, see [`src/utils/codeFileHelpers.ts`](src/utils/codeFileHelpers.ts)). On re-insert, the shared code file is refreshed **only when that stamp differs** from the current version; otherwise it's left untouched to preserve any hand-edits made in Framer's code editor. So if you change anything under `src/framer/` without bumping the version, existing users will **not** receive the update when they re-insert.
 
-### Product types and billing
+## Documentation
 
-The plugin supports all Creem product types. Prices show the correct label for each (for example, one-time products have no billing suffix).
+End-user documentation lives in the docs site:
 
-**Product types**
+- Source: [`packages/docs/integrations/framer.mdx`](../docs/integrations/framer.mdx)
+- Published: [docs.creem.io/integrations/framer](https://docs.creem.io/integrations/framer)
 
-| Type             | Description                                 |
-| ---------------- | ------------------------------------------- |
-| **One-time**     | A single purchase with no recurring billing |
-| **Subscription** | Recurring billing on a set schedule         |
-
-**Subscription billing frequencies**
-
-| Frequency    | How it appears |
-| ------------ | -------------- |
-| **Monthly**  | `/month`       |
-| **3 Months** | `/3 months`    |
-| **6 Months** | `/6 months`    |
-| **Yearly**   | `/year`        |
-| **Daily**    | `/day`         |
-
-In a pricing table, you can mix one-time and subscription products in the same table. If you have monthly and yearly versions of the same plan (for example, "Pro - Monthly" and "Pro - Yearly"), the plugin pairs them and shows a monthly/yearly toggle on that tier.
-
-### Checkout button
-
-Choose **Button** at the top, then pick a product, checkout type, button text, and accent color.
-
-<img src="./images/insert-button-product.png" alt="Checkout button product picker" width="300" />
-
-<img src="./images/insert-button-settings.png" alt="Checkout button settings" width="300" />
-
-1. Pick a product (search supported)
-2. Choose **Embed** or **New Tab** for checkout
-3. Set **Button Text** and **Accent Color**
-4. Click **Insert Button**
-
-### Pricing table
-
-Choose **Pricing Table** at the top. Set the heading, subheading, layout, and columns, then select products. You can mix one-time and subscription products in the same table.
-
-<img src="./images/insert-pricing-table-heading.png" alt="Pricing table heading and subheading" width="300" />
-
-<img src="./images/insert-pricing-table-layout.png" alt="Pricing table layout and columns" width="300" />
-
-Select products (search supported). One-time, subscription, and monthly/yearly pairs can appear in the same list.
-
-<img src="./images/insert-pricing-table-products.png" alt="Pricing table product selection" width="300" />
-
-Expand **Edit Tiers** to customize each product. The first tier opens by default.
-
-<img src="./images/insert-pricing-table-tier-details.png" alt="Pricing table tier details" width="300" />
-
-<img src="./images/insert-pricing-table-tier-styling.png" alt="Pricing table tier description and CTA" width="300" />
-
-<img src="./images/insert-pricing-table-tier-colors.png" alt="Pricing table tier colors and features title" width="300" />
-
-<img src="./images/insert-pricing-table-tier-benefits.png" alt="Pricing table tier benefits" width="300" />
-
-Turn on **Highlight this tier** to feature a plan. It uses your accent color for the card border, button, and a stronger shadow so that tier stands out on the page.
-
-1. Set **Heading** and **Subheading**
-2. Pick a **Layout** (Grid, Horizontal, or Vertical) and number of **Columns** (if layout is **Grid**)
-3. Choose **Embed** or **New Tab**
-4. Select products and reorder them if needed
-5. Edit tier names, descriptions, CTA text, colors, and benefits
-6. Check **Highlight this tier** on the plan you want to feature
-7. Click **Insert Pricing Table**
-8. Tweak layout and fonts in Framer's property panel
+Keep the two in sync when you change the plugin's UI or the components' property controls.
 
 ## License
 

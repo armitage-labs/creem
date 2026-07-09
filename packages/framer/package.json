@@ -30,7 +30,8 @@
     "build": "vite build",
     "typecheck": "tsc --noEmit",
     "preview": "vite preview",
-    "pack": "framer-plugin-tools pack --output plugin.zip"
+    "pack": "framer-plugin-tools pack --output plugin.zip",
+    "release": "npm version patch --no-git-tag-version && pnpm run build && pnpm run pack"
   },
   "dependencies": {
     "@framer/plugin": "^4.0.1",

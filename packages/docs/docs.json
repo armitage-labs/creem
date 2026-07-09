@@ -151,6 +151,10 @@
               {
                 "group": "CMS",
                 "pages": ["integrations/strapi"]
+              },
+              {
+                "group": "No-Code Builders",
+                "pages": ["integrations/framer"]
               }
             ]
           },
