@@ -17,8 +17,8 @@ How to install the Creem plugin from the Framer Marketplace, connect your accoun
 
 <Card title="Requirements" icon="gears">
 
-- A [Creem account](https://creem.io/) with at least one product and an API key
-- A Framer project with edit access
+- A [Creem](https://creem.io/) account
+- A Framer project (with edit access)
 
 </Card>
 
@@ -49,6 +49,7 @@ Install Creem from the [Framer Marketplace](https://www.framer.com/community/mar
         alt="Select the Creem plugin in the modal"
       />
     </Frame>
+
   </Step>
 </Steps>
 
@@ -67,8 +68,8 @@ The first time you open the plugin, create a **store** from your Creem API keys.
 <Steps>
   <Step title="Copy your API keys">
     In the [Creem dashboard](https://www.creem.io/dashboard/developers), go to **Developers** &rarr;
-    **API Keys** and copy your keys. Live and test keys are separate; test keys are prefixed with
-    `creem_test_`.
+    **API Keys** and copy your keys. Live and test keys are separate (test keys are prefixed with
+    `creem_test_`).
   </Step>
   <Step title="Name your store">
     Enter a **Store name** so you can tell your stores apart later.
@@ -93,7 +94,7 @@ The first time you open the plugin, create a **store** from your Creem API keys.
 
 Once connected, the header shows a **store switcher** with the active store's name and a **Live** or **Test** badge. Open it to switch stores, switch environments, or manage your keys.
 
-<Frame caption="The store switcher: switch stores, toggle Live/Test, add or manage stores">
+<Frame caption="The store switcher lets you switch stores, toggle Live and Test, and add or manage stores">
   <img
     style={{ borderRadius: "0.5rem" }}
     src="/images/framer/test-mode.png"
@@ -117,13 +118,13 @@ From the switcher you can:
 
 ## Choose a component
 
-After connecting, choose what to add to your canvas: a **Checkout Button** for a single product, or a **Pricing Table** to compare several.
+After connecting, choose what to add to your canvas. Pick a **Checkout Button** for a single product, or a **Pricing Table** to compare several.
 
 <Frame caption="Pick a checkout button or a pricing table">
   <img
     style={{ borderRadius: "0.5rem" }}
     src="/images/framer/choose-component.png"
-    alt="Choose a component: Checkout Button or Pricing Table"
+    alt="Choosing between a Checkout Button and a Pricing Table"
   />
 </Frame>
 
@@ -280,12 +281,12 @@ The plugin inserts each component with sensible defaults, then hands the rest to
   />
 </Frame>
 
-The button is one group of controls. The plugin fills in the product and a starting style at insert time; everything below is yours to brand.
+The button is one group of controls. The plugin fills in the product and a starting style at insert time, and everything below is yours to brand.
 
 | Control                                                 | What it controls, and when to reach for it                                                                                                                                                                                                                                                  |
 | ------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | **Variant**                                             | The button's visual style. Seven presets ship: Default (solid fill), Outline, Ghost (text only), Gradient, Shadow, Shimmer (animated sheen), and Icon Slide (an arrow that slides across on hover). All of them use the colors you set below, so choose the shape first and brand it after. |
-| **Type**                                                | Whether checkout opens as an Embed (a modal over the current page) or in a New Tab. Embed keeps buyers on your site; New Tab is the safer choice when the button sits inside a restrictive embed or you want a full checkout window.                                                        |
+| **Type**                                                | Whether checkout opens as an Embed (a modal over the current page) or in a New Tab. Embed keeps buyers on your site, while New Tab is the safer choice when the button sits inside a restrictive embed or you want a full checkout window.                                                  |
 | **Product ID**                                          | The Creem product this button charges for. The plugin sets it at insert time, so you normally leave it untouched. Edit it only to repoint the button at a different product without re-inserting.                                                                                           |
 | **Button Text**                                         | The label on the button, such as "Buy now" or "Get the template". Keep it short and action-led.                                                                                                                                                                                             |
 | **Background** and **Text Color**                       | The fill and label colors. Defaults are Creem peach on white. Set both to match your brand or the section the button sits in.                                                                                                                                                               |
@@ -304,7 +305,7 @@ The button is one group of controls. The plugin fills in the product and a start
   />
 </Frame>
 
-The pricing table splits its controls into groups, one per area of the table, matching the rows in the panel. Work top down: get the **Table** shape right first, then style the **Card**, then set apart the **Featured Tier** and its buttons.
+The pricing table splits its controls into groups, one per area of the table, matching the rows in the panel. Work top down. Get the **Table** shape right first, then style the **Card**, then set apart the **Featured Tier** and its buttons.
 
 <AccordionGroup>
   <Accordion title="Table">
@@ -336,12 +337,12 @@ The pricing table splits its controls into groups, one per area of the table, ma
     The look every card shares: **Background**, **Border**, and **Divider** colors and widths,
     corner **Radius**, inner **Padding** and **Gap**, the text colors for headings, muted body copy,
     and links, and the **Title**, **Description**, and **Price** font sizes. Set your neutral card
-    style here; the featured card inherits it and overrides only its highlighted parts.
+    style here, and the featured card inherits it and overrides only its highlighted parts.
   </Accordion>
   <Accordion title="Featured Tier">
-    The extra styling for whichever tier you marked **Featured**: its button colors and a heavier
-    border. Use it to make your recommended plan stand out from the standard cards without restyling
-    every card.
+    The extra styling for whichever tier you marked **Featured**, covering its button colors and a
+    heavier border. Use it to make your recommended plan stand out from the standard cards without
+    restyling every card.
   </Accordion>
   <Accordion title="Standard Buttons">
     The default call-to-action style for non-featured tiers: button colors (fill, text, border),
@@ -374,9 +375,9 @@ Both components let you choose how checkout opens.
 
 ## Test mode and going live
 
-Test mode lets you build and preview without real charges. Switch a store to **Test** in the [store switcher](#manage-stores-and-switch-environments) to browse your test catalog; a peach frame and a **Test mode on** bar make it obvious you're in test.
+Test mode lets you build and preview without real charges. Switch a store to **Test** in the [store switcher](#manage-stores-and-switch-environments) to browse your test catalog. A peach frame and a **Test mode on** bar make it obvious you're in test.
 
-The environment is captured on each component **at insert time**: a component inserted while you're in Test opens test checkout, and one inserted in Live opens live checkout.
+The environment is captured on each component **at insert time**. A component inserted while you're in Test opens test checkout, and one inserted in Live opens live checkout.
 
 <Warning>
   Switching a store's environment does **not** retroactively change components you already inserted.
@@ -384,7 +385,7 @@ The environment is captured on each component **at insert time**: a component in
   buttons and tables so they point at your live products.
 </Warning>
 
-**Unconfigured products are blocked, not broken.** If a button or tier's **Product ID** is still the placeholder (`prod_abc123`) or left empty - most often after adding a tier by hand in the property panel instead of through the plugin - its checkout is blocked and the visitor sees an "isn't available yet" message rather than a broken checkout. Fix it by setting a real **Product ID** on that tier or button (copy the ID from your product in the Creem dashboard), or re-insert the component through the plugin to pull in a valid product.
+**Unconfigured products are blocked, not broken.** If a button or tier's **Product ID** is still the placeholder (`prod_abc123`) or left empty, most often after adding a tier by hand in the property panel instead of through the plugin, its checkout is blocked and the visitor sees an "isn't available yet" message rather than a broken checkout. Fix it by setting a real **Product ID** on that tier or button (copy the ID from your product in the Creem dashboard), or re-insert the component through the plugin to pull in a valid product.
 
 ## Troubleshooting
 
@@ -397,7 +398,7 @@ The environment is captured on each component **at insert time**: a component in
     Framer is still building the component's code file. Wait a moment and click Insert again.
   </Accordion>
   <Accordion title='A tier shows "isn&apos;t available yet"'>
-    That tier or button's **Product ID** is still the placeholder (`prod_abc123`) or empty — usually
+    That tier or button's **Product ID** is still the placeholder (`prod_abc123`) or empty, usually
     from adding a tier directly in the property panel. Set a valid **Product ID** on it (copy the ID
     from your product in the Creem dashboard), or re-insert the component through the plugin to
     select a product from your list.
