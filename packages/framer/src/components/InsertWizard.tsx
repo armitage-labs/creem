@@ -1,8 +1,8 @@
 import { useState, useCallback, useMemo, useEffect } from 'react'
 import { framer, useIsAllowedTo } from '@framer/plugin'
 import { ArrowDown, ArrowLeft, ArrowRight, ArrowUp, Check, ChevronDown, ChevronUp, Image, Info, Loader2, RefreshCcw, iconClass } from '@/icons'
-import type { Product, InsertType, CheckoutType, PricingInterval, PricingLayout, GridColumns, TierConfig } from '@/types'
-import { getProductPairs, getUnpairedProducts, getIndividualPricingProducts, getBillingPeriodPairSlot, matchesProductSearch } from '@/utils/productHelpers'
+import type { Product, InsertType, CheckoutType, PricingLayout, GridColumns, TierConfig } from '@/types'
+import { getBillingPeriodLabel, matchesProductSearch } from '@/utils/productHelpers'
 import { ensureComponentInsertURL, withFramerIcons } from '@/utils/codeFileHelpers'
 import { badge, btn, card, cn, fitButton, screen, toggle } from '@/styles/ui'
 import BUTTON_COMPONENT_SOURCE from '@/framer/checkout-button.tsx?raw'
@@ -12,7 +12,6 @@ import { ProductPicker, PLUGIN_ACCENT, type PickerItem } from '@/components/Prod
 
 const DEFAULTS = {
   BUTTON_TEXT: 'Buy Now',
-  PRICING_INTERVAL: 'monthly' as const,
   PRICING_LAYOUT: 'grid' as const,
   GRID_COLUMNS: 3 as const,
   CTA_TEXT: 'Get Started',
@@ -66,17 +65,12 @@ export function InsertWizard({ products, testMode, checkoutType, setCheckoutType
   const isAllowedToInsert = useIsAllowedTo('createCodeFile', 'addComponentInstance')
   const [search, setSearch] = useState('')
   const [selectedProducts, setSelectedProducts] = useState<string[]>([])
-  const [pricingInterval, setPricingInterval] = useState<PricingInterval>(DEFAULTS.PRICING_INTERVAL)
   const [pricingLayout, setPricingLayout] = useState<PricingLayout>(DEFAULTS.PRICING_LAYOUT)
   const [gridColumns, setGridColumns] = useState<GridColumns>(DEFAULTS.GRID_COLUMNS)
   const [headerTitle, setHeaderTitle] = useState(DEFAULTS.HEADER_TITLE)
   const [headerDescription, setHeaderDescription] = useState(DEFAULTS.HEADER_DESCRIPTION)
   const [tierConfigs, setTierConfigs] = useState<Record<string, TierConfig>>({})
   const [editingTierKey, setEditingTierKey] = useState<string | null>(null)
-  const productPairs = getProductPairs(products)
-  const unpairedProducts = getUnpairedProducts(products)
-  const individualProducts = getIndividualPricingProducts(products)
-  const hasPairSelections = selectedProducts.some(id => productPairs.some(pair => pair.baseName === id))
   const upsertTierConfig = useCallback((key: string, name: string, description: string) => {
     setTierConfigs(prev => {
       if (prev[key]) return prev
@@ -169,53 +163,21 @@ export function InsertWizard({ products, testMode, checkoutType, setCheckoutType
           return
         }
         const tiers = selectedProducts.map(selectionId => {
-          const pair = productPairs.find(p => p.baseName === selectionId)
-          if (pair) {
-            const monthlyProduct = pair.monthly
-            const yearlyProduct = pair.yearly
-            const baseProduct = monthlyProduct || yearlyProduct!
-            const config = tierConfigs[selectionId] ?? createTierConfig(selectionId, selectionId, baseProduct.description)
-            return {
-              name: config.name,
-              monthlyPriceCents: monthlyProduct?.price ?? null,
-              yearlyPriceCents: yearlyProduct?.price ?? null,
-              monthlyPrice: (monthlyProduct?.price ?? 0) / 100,
-              yearlyPrice: (yearlyProduct?.price ?? 0) / 100,
-              currency: baseProduct.currency,
-              description: config.description,
-              productId: baseProduct.id,
-              monthlyProductId: monthlyProduct?.id || '',
-              yearlyProductId: yearlyProduct?.id || '',
-              ctaText: config.ctaText,
-              highlighted: config.highlighted,
-              isOneTime: false
-            }
-          }
           const p = products.find(prod => prod.id === selectionId)!
           const config = tierConfigs[selectionId] ?? createTierConfig(selectionId, p.name, p.description)
           const isOneTime = p.type === 'one_time'
-          let monthlyProductId = ''
-          let yearlyProductId = ''
-          if (!isOneTime) {
-            const slot = getBillingPeriodPairSlot(p.billingPeriod)
-            if (slot === 'monthly') monthlyProductId = p.id
-            else if (slot === 'yearly') yearlyProductId = p.id
-          }
           return {
             name: config.name,
-            monthlyPriceCents: p.price,
-            yearlyPriceCents: p.price,
-            monthlyPrice: (p.price ?? 0) / 100,
-            yearlyPrice: (p.price ?? 0) / 100,
+            priceCents: p.price,
+            price: (p.price ?? 0) / 100,
             currency: p.currency,
+            isOneTime,
             billingPeriod: isOneTime ? 'once' : p.billingPeriod || 'every-month',
-            description: config.description,
             productId: p.id,
-            monthlyProductId,
-            yearlyProductId,
             ctaText: config.ctaText,
+            ctaVariant: 'default',
             highlighted: config.highlighted,
-            isOneTime
+            description: config.description
           }
         })
         await framer.addComponentInstance({
@@ -235,7 +197,7 @@ export function InsertWizard({ products, testMode, checkoutType, setCheckoutType
                 headerDescription: headerDescription.trim()
               },
               billingToggle: {
-                showYearlyToggle: hasPairSelections
+                showIntervalTabs: true
               }
             }
           }
@@ -261,8 +223,6 @@ export function InsertWizard({ products, testMode, checkoutType, setCheckoutType
     testMode,
     selectedProducts,
     products,
-    productPairs,
-    hasPairSelections,
     tierConfigs,
     pricingLayout,
     gridColumns,
@@ -288,13 +248,8 @@ export function InsertWizard({ products, testMode, checkoutType, setCheckoutType
       <SelectProductsStep
         insertType={insertType}
         products={products}
-        productPairs={productPairs}
-        unpairedProducts={unpairedProducts}
-        individualProducts={individualProducts}
         search={search}
         setSearch={setSearch}
-        pricingInterval={pricingInterval}
-        setPricingInterval={setPricingInterval}
         selectedId={selectedId}
         setSelectedId={setSelectedId}
         selectedProducts={selectedProducts}
@@ -440,13 +395,8 @@ function TableGlyph() {
 type SelectProductsStepProps = {
   insertType: InsertType
   products: Product[]
-  productPairs: ReturnType<typeof getProductPairs>
-  unpairedProducts: ReturnType<typeof getUnpairedProducts>
-  individualProducts: Product[]
   search: string
   setSearch: (value: string) => void
-  pricingInterval: PricingInterval
-  setPricingInterval: React.Dispatch<React.SetStateAction<PricingInterval>>
   selectedId: string
   setSelectedId: React.Dispatch<React.SetStateAction<string>>
   selectedProducts: string[]
@@ -462,13 +412,8 @@ type SelectProductsStepProps = {
 function SelectProductsStep({
   insertType,
   products,
-  productPairs,
-  unpairedProducts,
-  individualProducts,
   search,
   setSearch,
-  pricingInterval,
-  setPricingInterval,
   selectedId,
   setSelectedId,
   selectedProducts,
@@ -500,39 +445,10 @@ function SelectProductsStep({
     }))
   }, [products, search, selectedId])
 
-  const pairItems = useMemo<PickerItem[]>(() => {
-    const q = search.trim().toLowerCase()
-    return productPairs
-      .filter(pair => {
-        const product = pair.monthly ?? pair.yearly
-        if (!product) return false
-        if (!q) return true
-        return pair.baseName.toLowerCase().includes(q) || matchesProductSearch(product, search)
-      })
-      .map(pair => {
-        const displayProduct = pricingInterval === 'monthly' ? pair.monthly : pair.yearly
-        const product = displayProduct ?? pair.monthly ?? pair.yearly!
-        const hasInterval = pricingInterval === 'monthly' ? pair.hasMonthly : pair.hasYearly
-        return {
-          key: pair.baseName,
-          productId: product.id,
-          name: pair.baseName,
-          description: product.description,
-          price: product.price,
-          currency: product.currency,
-          type: product.type,
-          billingPeriod: product.billingPeriod,
-          image_url: product.image_url,
-          badge: 'Monthly + Yearly',
-          badgeTone: 'pair',
-          note: hasInterval ? undefined : `Only ${pricingInterval === 'monthly' ? 'yearly' : 'monthly'}`
-        }
-      })
-  }, [productPairs, search, pricingInterval])
-
-  const individualItems = useMemo<PickerItem[]>(
+  // Every product is its own tier — one multi-select row per product, keyed by product id.
+  const pricingItems = useMemo<PickerItem[]>(
     () =>
-      individualProducts
+      products
         .filter(p => matchesProductSearch(p, search))
         .map(p => ({
           key: p.id,
@@ -544,15 +460,13 @@ function SelectProductsStep({
           type: p.type,
           billingPeriod: p.billingPeriod,
           image_url: p.image_url,
-          badge: p.type === 'one_time' ? 'One-time' : 'Subscription'
+          badge: p.type === 'one_time' ? 'One-time' : getBillingPeriodLabel(p.billingPeriod)
         })),
-    [individualProducts, search]
+    [products, search]
   )
 
-  const pricingItems = useMemo(() => [...pairItems, ...individualItems], [pairItems, individualItems])
   const items = isButton ? buttonItems : pricingItems
   const canContinue = isButton ? !!selectedId : selectedProducts.length >= 1
-  const showUnpairedNotice = !isButton && unpairedProducts.length > 0 && productPairs.length > 0
 
   return (
     <div className={screen}>
@@ -570,26 +484,8 @@ function SelectProductsStep({
             <div className={badge}>{items.length}</div>
           </div>
         </div>
-        {!isButton && productPairs.length > 0 && (
-          <div className='flex items-center gap-2'>
-            <button className={cn('flex-1 rounded-lg px-3 py-2 text-xs font-black', toggle.segment(pricingInterval === 'monthly'))} onClick={() => setPricingInterval('monthly')}>
-              Monthly
-            </button>
-            <button className={cn('flex-1 rounded-lg px-3 py-2 text-xs font-black', toggle.segment(pricingInterval === 'yearly'))} onClick={() => setPricingInterval('yearly')}>
-              Yearly
-            </button>
-          </div>
-        )}
         <ProductSearchInput value={search} onChange={setSearch} />
         {error && <div className='rounded-lg border-2 border-red-400 bg-red-50 px-3 py-2 text-xs font-bold text-red-800'>{error}</div>}
-        {showUnpairedNotice && (
-          <div className='flex items-start gap-2 rounded-lg border-2 border-amber-500 bg-amber-50 p-3'>
-            <Info className={iconClass('xs', 'mt-0.5 shrink-0 text-amber-700')} />
-            <p className='text-[10px] leading-relaxed font-semibold text-amber-800'>
-              Some subscription products are missing a monthly or yearly pair and appear individually below.
-            </p>
-          </div>
-        )}
         <div className='-mx-1 flex flex-1 flex-col gap-2 overflow-x-hidden overflow-y-auto px-1 pt-1'>
           {items.length === 0 ? (
             <div className='py-8 text-center text-sm font-bold text-gray-500'>

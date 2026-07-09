@@ -5,22 +5,28 @@ import { ArrowUpRight } from './icons.tsx'
 
 type Tier = {
   name: string
-  monthlyPrice: number
-  yearlyPrice: number
-  monthlyPriceCents?: number | null
-  yearlyPriceCents?: number | null
+  price: number
+  priceCents?: number | null
   currency?: string
   isOneTime?: boolean
   description: string
   productId: string
-  monthlyProductId?: string
-  yearlyProductId?: string
   billingPeriod?: string
   ctaText: string
   ctaVariant: 'default' | 'outline' | 'ghost' | 'gradient' | 'shadow' | 'shimmer' | 'icon-slide'
   ctaBackground?: string
   ctaTextColor?: string
   highlighted: boolean
+}
+
+// Recurring billing intervals ordered shortest→longest, with tab labels.
+const INTERVAL_ORDER = ['every-day', 'every-month', 'every-three-months', 'every-six-months', 'every-year']
+const INTERVAL_LABEL: Record<string, string> = {
+  'every-day': 'Daily',
+  'every-month': 'Monthly',
+  'every-three-months': 'Quarterly',
+  'every-six-months': 'Semi-annual',
+  'every-year': 'Yearly'
 }
 
 function formatTierAmount(cents: number | null | undefined, currency = 'USD'): string {
@@ -38,11 +44,8 @@ function formatTierAmount(cents: number | null | undefined, currency = 'USD'): s
   }
 }
 
-function resolveTierPriceCents(tier: Tier, yearly: boolean): number | null {
-  const cents = yearly ? tier.yearlyPriceCents : tier.monthlyPriceCents
-  if (cents !== undefined && cents !== null) return cents
-  const fallback = yearly ? tier.yearlyPrice : tier.monthlyPrice
-  return Number.isFinite(fallback) ? Math.round(fallback * 100) : null
+function resolveTierPriceCents(tier: Tier): number | null {
+  return tier.priceCents ?? (Number.isFinite(tier.price) ? Math.round(tier.price * 100) : null)
 }
 
 function resolveBillingPeriodLabel(billingPeriod?: string): string | null {
@@ -62,17 +65,9 @@ function resolveBillingPeriodLabel(billingPeriod?: string): string | null {
   }
 }
 
-function resolveTierPeriod(tier: Tier, globalYearly: boolean): string | null {
+function resolveTierPeriod(tier: Tier): string | null {
   if (tier.isOneTime || tier.billingPeriod === 'once') return null
-  const hasMonthly = !!tier.monthlyProductId
-  const hasYearly = !!tier.yearlyProductId
-  if (hasMonthly && hasYearly) return globalYearly ? 'year' : 'month'
-  const fromBillingPeriod = resolveBillingPeriodLabel(tier.billingPeriod)
-  if (fromBillingPeriod) return fromBillingPeriod
-  if (hasYearly && !hasMonthly) return 'year'
-  if (hasMonthly && !hasYearly) return 'month'
-  if (!hasMonthly && !hasYearly) return null
-  return null
+  return resolveBillingPeriodLabel(tier.billingPeriod)
 }
 
 function buildCreemCheckoutUrl(productId: string, testMode: boolean): string {
@@ -369,9 +364,7 @@ type Props = {
   }
   tiers?: Tier[]
   billingToggle?: {
-    showYearlyToggle?: boolean
-    toggleMonthlyLabel?: string
-    toggleYearlyLabel?: string
+    showIntervalTabs?: boolean
     toggleStyle?: 'pill' | 'segmented'
     toggleBackground?: string
     toggleBorderColor?: string
@@ -413,8 +406,8 @@ type Props = {
 const DEFAULT_TIERS: Tier[] = [
   {
     name: 'Free',
-    monthlyPrice: 0,
-    yearlyPrice: 0,
+    price: 0,
+    billingPeriod: 'every-month',
     description: 'Recommended for people with at least 1 year experience in crypto markets.',
     productId: 'prod_free',
     ctaText: 'Free plan',
@@ -423,8 +416,8 @@ const DEFAULT_TIERS: Tier[] = [
   },
   {
     name: 'Premium',
-    monthlyPrice: 99,
-    yearlyPrice: 950,
+    price: 99,
+    billingPeriod: 'every-month',
     description: 'Everything in the Basic Plan plus advanced search, better analytics.',
     productId: 'prod_premium',
     ctaText: 'Purchase plan',
@@ -433,8 +426,8 @@ const DEFAULT_TIERS: Tier[] = [
   },
   {
     name: 'Enterprise',
-    monthlyPrice: 299,
-    yearlyPrice: 2990,
+    price: 299,
+    billingPeriod: 'every-month',
     description: 'Includes all Professional Plan features plus full logistics automation etc.',
     productId: 'prod_enterprise',
     ctaText: 'Purchase plan',
@@ -459,9 +452,7 @@ export function CreemPricingTable({
   } = {},
   tiers = DEFAULT_TIERS,
   billingToggle: {
-    showYearlyToggle = true,
-    toggleMonthlyLabel = 'Monthly',
-    toggleYearlyLabel = 'Yearly',
+    showIntervalTabs = true,
     toggleStyle = 'pill',
     toggleBackground = '#FFFFFF',
     toggleBorderColor = '#E6E6E6',
@@ -494,7 +485,11 @@ export function CreemPricingTable({
     buttonFontSize = 15
   } = {}
 }: Props) {
-  const [yearly, setYearly] = useState(false)
+  const intervalsPresent = INTERVAL_ORDER.filter(iv => tiers.some(t => !t.isOneTime && t.billingPeriod === iv))
+  const [activeInterval, setActiveInterval] = useState('')
+  const effectiveInterval = intervalsPresent.includes(activeInterval) ? activeInterval : (intervalsPresent[0] ?? '')
+  const showTabs = showIntervalTabs && intervalsPresent.length >= 2
+  const visibleTiers = showTabs ? tiers.filter(t => t.isOneTime || t.billingPeriod === 'once' || t.billingPeriod === effectiveInterval) : tiers
   const [embedUrl, setEmbedUrl] = useState<string | null>(null)
   const [breakpoint, setBreakpoint] = useState<'mobile' | 'tablet' | 'desktop'>('desktop')
   const isCanvas = RenderTarget.current() === RenderTarget.canvas
@@ -568,15 +563,7 @@ export function CreemPricingTable({
   const transitionDuration = prefersReducedMotion ? '0s' : '0.3s'
   const handleCheckout = (tier: Tier) => {
     if (isCanvas) return
-    let productId = tier.productId
-    if (tier.monthlyProductId && tier.yearlyProductId) {
-      productId = yearly ? tier.yearlyProductId : tier.monthlyProductId
-    } else if (tier.monthlyProductId) {
-      productId = tier.monthlyProductId
-    } else if (tier.yearlyProductId) {
-      productId = tier.yearlyProductId
-    }
-    const url = buildCreemCheckoutUrl(productId, testMode)
+    const url = buildCreemCheckoutUrl(tier.productId, testMode)
     if (type === 'embed') {
       setEmbedUrl(url)
     } else {
@@ -629,7 +616,7 @@ export function CreemPricingTable({
         boxSizing: 'border-box'
       }}
     >
-      {/* ARIA live region for toggle changes */}
+      {/* ARIA live region for interval changes */}
       <div
         aria-live='polite'
         aria-atomic='true'
@@ -645,7 +632,7 @@ export function CreemPricingTable({
           border: 0
         }}
       >
-        {showYearlyToggle && `Billing interval: ${yearly ? 'yearly' : 'monthly'}`}
+        {showTabs && `Billing interval: ${INTERVAL_LABEL[effectiveInterval] ?? ''}`}
       </div>
       <div
         style={{
@@ -698,8 +685,8 @@ export function CreemPricingTable({
             )}
           </div>
         )}
-        {/* Monthly/Yearly Toggle */}
-        {showYearlyToggle && (
+        {/* Interval Tabs */}
+        {showTabs && (
           <div
             style={{
               display: 'flex',
@@ -716,109 +703,60 @@ export function CreemPricingTable({
             role='group'
             aria-label='Billing interval selector'
           >
-            <button
-              onClick={() => !isCanvas && setYearly(false)}
-              onKeyDown={e => {
-                if ((e.key === 'Enter' || e.key === ' ') && !isCanvas) {
-                  e.preventDefault()
-                  setYearly(false)
-                }
-              }}
-              disabled={isCanvas}
-              aria-pressed={!yearly}
-              type='button'
-              role='button'
-              style={{
-                height: 38,
-                padding: '0 20px',
-                minWidth: 80,
-                borderRadius: toggleStyle === 'pill' ? 999 : 8,
-                fontSize: breakpoint === 'mobile' ? 13 : 14,
-                fontWeight: 600,
-                border: 'none',
-                cursor: isCanvas ? 'default' : 'pointer',
-                transition: `all ${transitionDuration}`,
-                background: !yearly ? toggleActiveBackground : 'transparent',
-                color: !yearly ? toggleActiveTextColor : toggleTextColor,
-                outline: 'none',
-                userSelect: 'none',
-                whiteSpace: 'nowrap'
-              }}
-              onFocus={e => {
-                if (!isCanvas) {
-                  e.currentTarget.style.outline = `2px solid ${toggleActiveBackground}`
-                  e.currentTarget.style.outlineOffset = '2px'
-                }
-              }}
-              onBlur={e => {
-                e.currentTarget.style.outline = 'none'
-              }}
-              id='billing-monthly-label'
-            >
-              {toggleMonthlyLabel}
-            </button>
-            <button
-              onClick={() => !isCanvas && setYearly(true)}
-              onKeyDown={e => {
-                if ((e.key === 'Enter' || e.key === ' ') && !isCanvas) {
-                  e.preventDefault()
-                  setYearly(true)
-                }
-              }}
-              disabled={isCanvas}
-              aria-pressed={yearly}
-              type='button'
-              role='button'
-              style={{
-                height: 38,
-                padding: '0 20px',
-                minWidth: 80,
-                borderRadius: toggleStyle === 'pill' ? 999 : 8,
-                fontSize: breakpoint === 'mobile' ? 13 : 14,
-                fontWeight: 600,
-                border: 'none',
-                cursor: isCanvas ? 'default' : 'pointer',
-                transition: `all ${transitionDuration}`,
-                background: yearly ? toggleActiveBackground : 'transparent',
-                color: yearly ? toggleActiveTextColor : toggleTextColor,
-                outline: 'none',
-                userSelect: 'none',
-                whiteSpace: 'nowrap'
-              }}
-              onFocus={e => {
-                if (!isCanvas) {
-                  e.currentTarget.style.outline = `2px solid ${toggleActiveBackground}`
-                  e.currentTarget.style.outlineOffset = '2px'
-                }
-              }}
-              onBlur={e => {
-                e.currentTarget.style.outline = 'none'
-              }}
-              id='billing-yearly-label'
-            >
-              {toggleYearlyLabel}
-            </button>
+            {intervalsPresent.map(iv => {
+              const active = iv === effectiveInterval
+              return (
+                <button
+                  key={iv}
+                  onClick={() => !isCanvas && setActiveInterval(iv)}
+                  onKeyDown={e => {
+                    if ((e.key === 'Enter' || e.key === ' ') && !isCanvas) {
+                      e.preventDefault()
+                      setActiveInterval(iv)
+                    }
+                  }}
+                  disabled={isCanvas}
+                  aria-pressed={active}
+                  type='button'
+                  role='button'
+                  style={{
+                    height: 38,
+                    padding: '0 20px',
+                    minWidth: 80,
+                    borderRadius: toggleStyle === 'pill' ? 999 : 8,
+                    fontSize: breakpoint === 'mobile' ? 13 : 14,
+                    fontWeight: 600,
+                    border: 'none',
+                    cursor: isCanvas ? 'default' : 'pointer',
+                    transition: `all ${transitionDuration}`,
+                    background: active ? toggleActiveBackground : 'transparent',
+                    color: active ? toggleActiveTextColor : toggleTextColor,
+                    outline: 'none',
+                    userSelect: 'none',
+                    whiteSpace: 'nowrap'
+                  }}
+                  onFocus={e => {
+                    if (!isCanvas) {
+                      e.currentTarget.style.outline = `2px solid ${toggleActiveBackground}`
+                      e.currentTarget.style.outlineOffset = '2px'
+                    }
+                  }}
+                  onBlur={e => {
+                    e.currentTarget.style.outline = 'none'
+                  }}
+                >
+                  {INTERVAL_LABEL[iv] ?? iv}
+                </button>
+              )
+            })}
           </div>
         )}
         {/* Pricing Cards */}
         <div style={{ ...cardsLayoutStyle, alignSelf: 'stretch' }}>
-          {tiers.map((tier, idx) => {
-            const hasMonthly = !!tier.monthlyProductId
-            const hasYearly = !!tier.yearlyProductId
-            const hasBoth = hasMonthly && hasYearly
+          {visibleTiers.map((tier, idx) => {
             const currency = tier.currency || 'USD'
-            const isOneTime = !!tier.isOneTime
-            const period = resolveTierPeriod(tier, yearly)
-            let priceCents: number | null
-            if (isOneTime) {
-              priceCents = resolveTierPriceCents(tier, false)
-            } else if (hasBoth) {
-              priceCents = resolveTierPriceCents(tier, yearly)
-            } else if (hasYearly && !hasMonthly) {
-              priceCents = resolveTierPriceCents(tier, true)
-            } else {
-              priceCents = resolveTierPriceCents(tier, false)
-            }
+            const period = resolveTierPeriod(tier)
+            const priceCents = resolveTierPriceCents(tier)
             const formattedPrice = formatTierAmount(priceCents, currency)
             const buttonBg = resolveOptionalColor(tier.ctaBackground) ?? (tier.highlighted ? primaryButtonBackground : secondaryButtonBackground)
             const buttonColor = resolveOptionalColor(tier.ctaTextColor) ?? (tier.highlighted ? primaryButtonTextColor : secondaryButtonTextColor)
@@ -902,8 +840,8 @@ export function CreemPricingTable({
 
             // Check if this is the last card and if it should take full width
             // Only apply full width on tablet when odd number of cards
-            const isLastCard = idx === tiers.length - 1
-            const shouldTakeFullWidth = layout !== 'grid' && isLastCard && breakpoint === 'tablet' && tiers.length % 2 !== 0
+            const isLastCard = idx === visibleTiers.length - 1
+            const shouldTakeFullWidth = layout !== 'grid' && isLastCard && breakpoint === 'tablet' && visibleTiers.length % 2 !== 0
             const cardStyle: React.CSSProperties = {
               position: 'relative',
               background: cardBackground,
@@ -1252,8 +1190,7 @@ addPropertyControls(CreemPricingTable, {
       title: 'Tier',
       controls: {
         name: { type: ControlType.String, title: 'Name', defaultValue: 'Premium' },
-        monthlyPrice: { type: ControlType.Number, title: 'Monthly Price', min: 0, defaultValue: 99, step: 1 },
-        yearlyPrice: { type: ControlType.Number, title: 'Yearly Price', min: 0, defaultValue: 950, step: 1 },
+        price: { type: ControlType.Number, title: 'Price', min: 0, defaultValue: 99, step: 1 },
         description: {
           type: ControlType.String,
           title: 'Description',
@@ -1279,18 +1216,6 @@ addPropertyControls(CreemPricingTable, {
           type: ControlType.String,
           title: 'Currency',
           defaultValue: 'USD'
-        },
-        monthlyProductId: {
-          type: ControlType.String,
-          title: 'Monthly ID (Optional)',
-          defaultValue: '',
-          description: 'For separate monthly/yearly products'
-        },
-        yearlyProductId: {
-          type: ControlType.String,
-          title: 'Yearly ID (Optional)',
-          defaultValue: '',
-          description: 'For separate monthly/yearly products'
         },
         ctaText: { type: ControlType.String, title: 'Button Text', defaultValue: 'Purchase plan' },
         ctaVariant: {
@@ -1328,24 +1253,12 @@ addPropertyControls(CreemPricingTable, {
     type: ControlType.Object,
     title: 'Billing Toggle',
     controls: {
-      showYearlyToggle: {
+      showIntervalTabs: {
         type: ControlType.Boolean,
-        title: 'Show',
+        title: 'Show Interval Tabs',
         defaultValue: true,
         enabledTitle: 'Show',
         disabledTitle: 'Hide'
-      },
-      toggleMonthlyLabel: {
-        type: ControlType.String,
-        title: 'Monthly Label',
-        defaultValue: 'Monthly',
-        hidden: (props: any) => !props.showYearlyToggle
-      },
-      toggleYearlyLabel: {
-        type: ControlType.String,
-        title: 'Yearly Label',
-        defaultValue: 'Yearly',
-        hidden: (props: any) => !props.showYearlyToggle
       },
       toggleStyle: {
         type: ControlType.Enum,
@@ -1354,37 +1267,37 @@ addPropertyControls(CreemPricingTable, {
         optionTitles: ['Pill', 'Segmented'],
         defaultValue: 'pill',
         displaySegmentedControl: true,
-        hidden: (props: any) => !props.showYearlyToggle
+        hidden: (props: any) => !props.showIntervalTabs
       },
       toggleBackground: {
         type: ControlType.Color,
         title: 'Background',
         defaultValue: '#FFFFFF',
-        hidden: (props: any) => !props.showYearlyToggle
+        hidden: (props: any) => !props.showIntervalTabs
       },
       toggleBorderColor: {
         type: ControlType.Color,
         title: 'Border',
         defaultValue: '#E6E6E6',
-        hidden: (props: any) => !props.showYearlyToggle
+        hidden: (props: any) => !props.showIntervalTabs
       },
       toggleActiveBackground: {
         type: ControlType.Color,
         title: 'Active BG',
         defaultValue: '#111111',
-        hidden: (props: any) => !props.showYearlyToggle
+        hidden: (props: any) => !props.showIntervalTabs
       },
       toggleActiveTextColor: {
         type: ControlType.Color,
         title: 'Active Text',
         defaultValue: '#FFFFFF',
-        hidden: (props: any) => !props.showYearlyToggle
+        hidden: (props: any) => !props.showIntervalTabs
       },
       toggleTextColor: {
         type: ControlType.Color,
         title: 'Text',
         defaultValue: '#111111',
-        hidden: (props: any) => !props.showYearlyToggle
+        hidden: (props: any) => !props.showIntervalTabs
       }
     }
   },

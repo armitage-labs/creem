@@ -17,21 +17,6 @@ export type Product = {
   features?: string[]
 }
 
-export type ProductPair = {
-  baseName: string
-  monthly: Product | null
-  yearly: Product | null
-  hasMonthly: boolean
-  hasYearly: boolean
-}
-
-export type UnpairedProduct = {
-  baseName: string
-  hasMonthly: boolean
-  hasYearly: boolean
-  product: Product
-}
-
 export type TierConfig = {
   key: string
   name: string
@@ -48,8 +33,6 @@ export type InsertType = 'button' | 'pricing'
 export type CheckoutType = 'new-tab' | 'embed'
 
 export type BillingType = 'one_time' | 'recurring'
-
-export type PricingInterval = 'monthly' | 'yearly'
 
 export type PricingLayout = 'vertical' | 'grid' | 'horizontal'
 
