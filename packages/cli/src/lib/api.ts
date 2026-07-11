@@ -34,10 +34,11 @@ export function getClient(): Creem {
 
   // Recreate client if API key or environment changed
   if (!clientInstance || apiKey !== cachedApiKey || environment !== cachedEnvironment) {
+    // serverURL is stable across creem SDK 1.4.x/1.5.x; the server-selection
+    // option was renamed (serverIdx -> server) in 1.5.0.
     clientInstance = new Creem({
       apiKey,
-      // 0 = live (api.creem.io), 1 = test (test-api.creem.io)
-      serverIdx: environment === "live" ? 0 : 1,
+      serverURL: API_URLS[environment] || API_URLS.test,
     });
     cachedApiKey = apiKey;
     cachedEnvironment = environment;
@@ -71,7 +72,7 @@ export async function validateApiKey(
   try {
     const testClient = new Creem({
       apiKey,
-      serverIdx: env === "live" ? 0 : 1,
+      serverURL: API_URLS[env] || API_URLS.test,
     });
 
     // Make a simple API call to validate the key

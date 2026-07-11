@@ -124,7 +124,9 @@ Include `trace_id` in support requests. The `message` array contains specific va
 import { Creem } from "creem";
 const creem = new Creem({
   apiKey: process.env.CREEM_API_KEY!,
-  serverIdx: 0, // 0 = production, 1 = test
+  // Use serverURL (stable across SDK versions); the server-selection option
+  // was renamed in creem 1.5.0 (serverIdx -> server).
+  serverURL: "https://api.creem.io", // test: https://test-api.creem.io
 });
 
 // Wrapper SDK
@@ -793,7 +795,7 @@ Verification is straightforward and typically fast. Once approved, switch to liv
 creem login --api-key creem_LIVE_KEY_HERE
 ```
 
-The environment switches automatically based on the key prefix. For SDKs, change `testMode: false` or `serverIdx: 0`.
+The environment switches automatically based on the key prefix. For SDKs, change `testMode: false` or `serverURL: "https://api.creem.io"`.
 
 ---
 
