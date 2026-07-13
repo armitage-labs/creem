@@ -196,30 +196,23 @@ export function CreemCheckoutButton({
   const responsivePaddingX = breakpoint === 'mobile' ? Math.max(paddingX - 4, 16) : paddingX
   const responsivePaddingY = breakpoint === 'mobile' ? Math.max(paddingY - 2, 10) : paddingY
   const handleClick = useCallback(() => {
-    if (isCanvas) {
-      console.log('⚠️ Button is disabled in Canvas edit mode. Click Preview to test.')
-      return
-    }
+    if (isCanvas) return
 
     setErrorMessage(null)
 
     // Only validate if it's still the exact default placeholder
     if (productId === 'prod_YOUR_PRODUCT_ID') {
-      console.error('❌ Please insert this button through the Creem plugin and select a product')
       setErrorMessage('Please insert this button through the Creem plugin and select a product from the dropdown.')
       return
     }
 
     // If productId exists and is not the default, trust it and open checkout
     if (!productId || productId.trim() === '') {
-      console.error('❌ Product ID is empty')
       setErrorMessage('Product ID is missing. Please re-insert this button through the Creem plugin.')
       return
     }
-    console.log('🚀 Opening checkout for product:', productId)
     setLoading(true)
     const url = buildCreemCheckoutUrl(productId, testMode, discountCode, successUrl)
-    console.log('📍 Checkout URL:', url)
     if (type === 'New Tab') {
       window.open(url, linkTarget, 'noopener,noreferrer')
       setTimeout(() => setLoading(false), 1500)

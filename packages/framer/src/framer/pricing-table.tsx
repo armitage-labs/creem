@@ -607,7 +607,6 @@ export function CreemPricingTable({
     // Guard against unconfigured tiers — an empty or still-placeholder product id
     // would open a broken Creem checkout. Surface a message instead of navigating.
     if (!productId || PLACEHOLDER_PRODUCT_IDS.has(productId)) {
-      console.error('Creem pricing table: tier has no valid product id — re-insert this table through the Creem plugin and select a product.', tier)
       setCheckoutError(`“${tier.name}” isn’t available yet — the site owner still needs to connect it to a Creem product.`)
       return
     }

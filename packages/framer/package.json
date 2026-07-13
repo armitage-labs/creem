@@ -1,6 +1,6 @@
 {
   "name": "@creem_io/framer",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "description": "Framer plugin for Creem checkout buttons and pricing tables.",
   "license": "MIT",
   "type": "module",
@@ -29,6 +29,7 @@
     "dev": "vite",
     "build": "vite build",
     "typecheck": "tsc --noEmit",
+    "test": "vitest run",
     "preview": "vite preview",
     "pack": "framer-plugin-tools pack --output plugin.zip",
     "release": "npm version patch --no-git-tag-version && pnpm run build && pnpm run pack"
@@ -53,6 +54,7 @@
     "tailwindcss": "^4.2.0",
     "typescript": "^5.3.3",
     "vite": "^8.1.0",
-    "vite-plugin-framer": "^1.1.1"
+    "vite-plugin-framer": "^1.1.1",
+    "vitest": "^4.1.1"
   }
 }

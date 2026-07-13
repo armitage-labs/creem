@@ -450,6 +450,9 @@ importers:
       vite-plugin-framer:
         specifier: ^1.1.1
         version: 1.1.1(vite@8.1.0(@types/node@25.9.3)(esbuild@0.28.1)(jiti@2.6.1)(terser@5.48.0)(yaml@2.8.3))
+      vitest:
+        specifier: ^4.1.1
+        version: 4.1.1(@edge-runtime/vm@5.0.0)(@opentelemetry/api@1.9.1)(@types/node@25.9.3)(jsdom@28.1.0(@noble/hashes@2.0.1))(vite@8.1.0(@types/node@25.9.3)(esbuild@0.28.1)(jiti@2.6.1)(terser@5.48.0)(yaml@2.8.3))
 
   packages/nextjs:
     dependencies:
@@ -18922,6 +18925,14 @@ snapshots:
     optionalDependencies:
       vite: 8.1.0(@types/node@20.19.37)(esbuild@0.27.3)(jiti@2.6.1)(terser@5.48.0)(yaml@2.8.3)
 
+  '@vitest/mocker@4.1.1(vite@8.1.0(@types/node@25.9.3)(esbuild@0.28.1)(jiti@2.6.1)(terser@5.48.0)(yaml@2.8.3))':
+    dependencies:
+      '@vitest/spy': 4.1.1
+      estree-walker: 3.0.3
+      magic-string: 0.30.21
+    optionalDependencies:
+      vite: 8.1.0(@types/node@25.9.3)(esbuild@0.28.1)(jiti@2.6.1)(terser@5.48.0)(yaml@2.8.3)
+
   '@vitest/pretty-format@3.2.4':
     dependencies:
       tinyrainbow: 2.0.0
@@ -27362,6 +27373,36 @@ snapshots:
       '@edge-runtime/vm': 5.0.0
       '@opentelemetry/api': 1.9.1
       '@types/node': 20.19.37
+      jsdom: 28.1.0(@noble/hashes@2.0.1)
+    transitivePeerDependencies:
+      - msw
+
+  vitest@4.1.1(@edge-runtime/vm@5.0.0)(@opentelemetry/api@1.9.1)(@types/node@25.9.3)(jsdom@28.1.0(@noble/hashes@2.0.1))(vite@8.1.0(@types/node@25.9.3)(esbuild@0.28.1)(jiti@2.6.1)(terser@5.48.0)(yaml@2.8.3)):
+    dependencies:
+      '@vitest/expect': 4.1.1
+      '@vitest/mocker': 4.1.1(vite@8.1.0(@types/node@25.9.3)(esbuild@0.28.1)(jiti@2.6.1)(terser@5.48.0)(yaml@2.8.3))
+      '@vitest/pretty-format': 4.1.1
+      '@vitest/runner': 4.1.1
+      '@vitest/snapshot': 4.1.1
+      '@vitest/spy': 4.1.1
+      '@vitest/utils': 4.1.1
+      es-module-lexer: 2.0.0
+      expect-type: 1.3.0
+      magic-string: 0.30.21
+      obug: 2.1.1
+      pathe: 2.0.3
+      picomatch: 4.0.3
+      std-env: 4.0.0
+      tinybench: 2.9.0
+      tinyexec: 1.0.2
+      tinyglobby: 0.2.15
+      tinyrainbow: 3.0.3
+      vite: 8.1.0(@types/node@25.9.3)(esbuild@0.28.1)(jiti@2.6.1)(terser@5.48.0)(yaml@2.8.3)
+      why-is-node-running: 2.3.0
+    optionalDependencies:
+      '@edge-runtime/vm': 5.0.0
+      '@opentelemetry/api': 1.9.1
+      '@types/node': 25.9.3
       jsdom: 28.1.0(@noble/hashes@2.0.1)
     transitivePeerDependencies:
       - msw

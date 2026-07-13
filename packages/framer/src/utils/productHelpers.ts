@@ -41,3 +41,24 @@ export function matchesProductSearch(product: Pick<Product, 'id' | 'name' | 'des
   if (!q) return true
   return product.name.toLowerCase().includes(q) || product.description.toLowerCase().includes(q) || product.id.toLowerCase().includes(q)
 }
+
+export type SelectedProductsResult = { products: Product[]; missingIds: [] } | { products: []; missingIds: string[] }
+
+/**
+ * Resolves a saved selection against the latest product snapshot without
+ * non-null assertions. The all-or-nothing result prevents Framer mutations when
+ * a refresh has made the wizard state stale.
+ */
+export function resolveSelectedProducts(selectedIds: readonly string[], products: readonly Product[]): SelectedProductsResult {
+  const productsById = new Map(products.map(product => [product.id, product]))
+  const resolved: Product[] = []
+  const missingIds: string[] = []
+
+  for (const id of selectedIds) {
+    const product = productsById.get(id)
+    if (product) resolved.push(product)
+    else missingIds.push(id)
+  }
+
+  return missingIds.length > 0 ? { products: [], missingIds } : { products: resolved, missingIds: [] }
+}

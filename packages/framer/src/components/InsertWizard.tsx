@@ -2,8 +2,9 @@ import { useState, useCallback, useMemo, useEffect, useRef } from 'react'
 import { framer, useIsAllowedTo } from '@framer/plugin'
 import { ArrowDown, ArrowLeft, ArrowRight, ArrowUp, Check, ChevronDown, ChevronUp, Image, Info, Loader2, RefreshCcw, iconClass } from '@/icons'
 import type { Product, InsertType, CheckoutType, PricingLayout, GridColumns, TierConfig, StoreControls } from '@/types'
-import { getBillingPeriodLabel, matchesProductSearch } from '@/utils/productHelpers'
-import { ensureComponentInsertURL, withFramerIcons } from '@/utils/codeFileHelpers'
+import { getBillingPeriodLabel, matchesProductSearch, resolveSelectedProducts } from '@/utils/productHelpers'
+import { componentInsertErrorMessage, ensureComponentInsertURL, insertComponentInstance, withFramerIcons } from '@/utils/codeFileHelpers'
+import { useCodeFileRequirement } from '@/hooks/useCodeFileRequirement'
 import { badge, btn, card, cn, fitButton, screen, toggle } from '@/styles/ui'
 import BUTTON_COMPONENT_SOURCE from '@/framer/checkout-button.tsx?raw'
 import PRICING_TABLE_COMPONENT_SOURCE from '@/framer/pricing-table.tsx?raw'
@@ -23,6 +24,11 @@ const DEFAULTS = {
 const PRICING_LIMITS = {
   MIN_TIERS: 1
 }
+
+const COMPONENT_FILE = {
+  button: 'CreemCheckoutButton.tsx',
+  pricing: 'CreemPricingTable.tsx'
+} satisfies Record<InsertType, string>
 
 // Mirrors the inserted pricing-table: recurring intervals ordered shortest→longest,
 // with the tab wording the rendered component uses (Quarterly/Semi-annual, not "3 Months").
@@ -72,10 +78,21 @@ export function InsertWizard({ products, testMode, checkoutType, setCheckoutType
   const [buttonText, setButtonText] = useState<string>(DEFAULTS.BUTTON_TEXT)
   const [inserting, setInserting] = useState(false)
   const [success, setSuccess] = useState(false)
-  // Inserting a component both writes a code file and drops an instance on the
-  // canvas. Gate on both protected methods so we can disable the action (and
-  // explain why) instead of letting it fail mid-flow when access is missing.
-  const isAllowedToInsert = useIsAllowedTo('createCodeFile', 'addComponentInstance')
+  const componentFilename = COMPONENT_FILE[insertType]
+  const codeFileState = useCodeFileRequirement(componentFilename)
+  const canCreateCodeFile = useIsAllowedTo('createCodeFile')
+  const canUpdateCodeFile = useIsAllowedTo('CodeFile.setFileContent')
+  const canAddComponentInstance = useIsAllowedTo('addComponentInstance')
+  const insertUnavailableMessage = useMemo(() => {
+    if (codeFileState.status === 'checking') return 'Checking project code access…'
+    if (codeFileState.status === 'error') return 'Framer could not inspect this project’s code files. Close and reopen the plugin, then try again.'
+    if (!canAddComponentInstance) return 'You don’t have permission to add components to this canvas. Ask the project owner for canvas editing access.'
+    if (codeFileState.requirement === 'create' && !canCreateCodeFile)
+      return `You don’t have permission to create ${componentFilename}. Ask the project owner for code editing access.`
+    if (codeFileState.requirement === 'update' && !canUpdateCodeFile)
+      return `You don’t have permission to update ${componentFilename}. Ask the project owner for code editing access.`
+    return null
+  }, [canAddComponentInstance, canCreateCodeFile, canUpdateCodeFile, codeFileState, componentFilename])
   const [search, setSearch] = useState('')
   const [selectedProducts, setSelectedProducts] = useState<string[]>([])
   const [pricingLayout, setPricingLayout] = useState<PricingLayout>(DEFAULTS.PRICING_LAYOUT)
@@ -84,6 +101,7 @@ export function InsertWizard({ products, testMode, checkoutType, setCheckoutType
   const [headerDescription, setHeaderDescription] = useState(DEFAULTS.HEADER_DESCRIPTION)
   const [tierConfigs, setTierConfigs] = useState<Record<string, TierConfig>>({})
   const [editingTierKey, setEditingTierKey] = useState<string | null>(null)
+  const successTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null)
   const upsertTierConfig = useCallback((key: string, name: string, description: string) => {
     setTierConfigs(prev => {
       if (prev[key]) return prev
@@ -136,9 +154,14 @@ export function InsertWizard({ products, testMode, checkoutType, setCheckoutType
       return null
     })
   }, [selectedProducts])
+  useEffect(() => {
+    return () => {
+      if (successTimeoutRef.current) clearTimeout(successTimeoutRef.current)
+    }
+  }, [])
   const handleInsert = useCallback(async () => {
-    if (!isAllowedToInsert) {
-      framer.notify("You don't have permission to insert components into this project.", { variant: 'error' })
+    if (insertUnavailableMessage) {
+      framer.notify(insertUnavailableMessage, { variant: 'error' })
       return
     }
     if (insertType === 'button' && !selectedId) {
@@ -153,18 +176,46 @@ export function InsertWizard({ products, testMode, checkoutType, setCheckoutType
       framer.notify('Please select at least 1 product for the pricing table', { variant: 'error' })
       return
     }
+
+    // Resolve every selected product before the first protected Framer write.
+    // A catalog refresh can otherwise leave stale ids in the wizard state.
+    let tiers: Array<Record<string, unknown>> = []
+    if (insertType === 'button') {
+      const resolved = resolveSelectedProducts([selectedId], products)
+      if (resolved.missingIds.length > 0) {
+        framer.notify('The selected product is no longer available. Go back, refresh the catalog, and select a product again.', { variant: 'error' })
+        return
+      }
+    } else {
+      const resolved = resolveSelectedProducts(selectedProducts, products)
+      if (resolved.missingIds.length > 0) {
+        framer.notify('Some selected products are no longer available. Go back, refresh the catalog, and select your products again.', { variant: 'error' })
+        return
+      }
+      tiers = resolved.products.map(product => {
+        const config = tierConfigs[product.id] ?? createTierConfig(product.id, product.name, product.description)
+        const isOneTime = product.type === 'one_time'
+        return {
+          name: config.name,
+          priceCents: product.price,
+          price: (product.price ?? 0) / 100,
+          currency: product.currency,
+          isOneTime,
+          billingPeriod: isOneTime ? 'once' : product.billingPeriod || 'every-month',
+          productId: product.id,
+          ctaText: config.ctaText,
+          ctaVariant: 'default',
+          highlighted: config.highlighted,
+          description: config.description
+        }
+      })
+    }
+
     setInserting(true)
     try {
       if (insertType === 'button') {
-        const insertURL = await ensureComponentInsertURL('CreemCheckoutButton.tsx', withFramerIcons(BUTTON_COMPONENT_SOURCE))
-        if (!insertURL) {
-          framer.notify('CreemCheckoutButton.tsx is still compiling. Try inserting again in a moment.', {
-            variant: 'error'
-          })
-          setInserting(false)
-          return
-        }
-        await framer.addComponentInstance({
+        const insertURL = await ensureComponentInsertURL(componentFilename, withFramerIcons(BUTTON_COMPONENT_SOURCE))
+        await insertComponentInstance({
           url: insertURL,
           attributes: {
             controls: {
@@ -178,33 +229,8 @@ export function InsertWizard({ products, testMode, checkoutType, setCheckoutType
         })
         framer.notify('Checkout button inserted!', { variant: 'success' })
       } else {
-        const insertURL = await ensureComponentInsertURL('CreemPricingTable.tsx', withFramerIcons(PRICING_TABLE_COMPONENT_SOURCE))
-        if (!insertURL) {
-          framer.notify('CreemPricingTable.tsx is still compiling. Try inserting again in a moment.', {
-            variant: 'error'
-          })
-          setInserting(false)
-          return
-        }
-        const tiers = selectedProducts.map(selectionId => {
-          const p = products.find(prod => prod.id === selectionId)!
-          const config = tierConfigs[selectionId] ?? createTierConfig(selectionId, p.name, p.description)
-          const isOneTime = p.type === 'one_time'
-          return {
-            name: config.name,
-            priceCents: p.price,
-            price: (p.price ?? 0) / 100,
-            currency: p.currency,
-            isOneTime,
-            billingPeriod: isOneTime ? 'once' : p.billingPeriod || 'every-month',
-            productId: p.id,
-            ctaText: config.ctaText,
-            ctaVariant: 'default',
-            highlighted: config.highlighted,
-            description: config.description
-          }
-        })
-        await framer.addComponentInstance({
+        const insertURL = await ensureComponentInsertURL(componentFilename, withFramerIcons(PRICING_TABLE_COMPONENT_SOURCE))
+        await insertComponentInstance({
           url: insertURL,
           attributes: {
             controls: {
@@ -229,18 +255,19 @@ export function InsertWizard({ products, testMode, checkoutType, setCheckoutType
         framer.notify('Pricing table inserted with your products!', { variant: 'success' })
       }
       setSuccess(true)
-      setTimeout(() => {
+      if (successTimeoutRef.current) clearTimeout(successTimeoutRef.current)
+      successTimeoutRef.current = setTimeout(() => {
         setSuccess(false)
-        setInserting(false)
       }, 2000)
-    } catch (err) {
-      console.error('Failed to insert:', err)
-      framer.notify(`Insert failed: ${(err as Error).message}`, { variant: 'error' })
+    } catch (error) {
+      framer.notify(componentInsertErrorMessage(error), { variant: 'error' })
+    } finally {
       setInserting(false)
     }
   }, [
-    isAllowedToInsert,
+    insertUnavailableMessage,
     insertType,
+    componentFilename,
     selectedId,
     buttonText,
     checkoutType,
@@ -320,16 +347,16 @@ export function InsertWizard({ products, testMode, checkoutType, setCheckoutType
           updateTierConfig={updateTierConfig}
         />
       )}
-      {!isAllowedToInsert && (
+      {insertUnavailableMessage && (
         <div className='flex shrink-0 items-start gap-2.5 rounded-lg border-2 border-yellow-500 bg-yellow-100 px-3 py-3 text-xs leading-relaxed font-bold text-yellow-900'>
           <Info className={iconClass('sm', 'mt-0.5 shrink-0')} />
-          <p>You don&rsquo;t have permission to add code or components to this project. Ask the project owner for edit access to insert.</p>
+          <p>{insertUnavailableMessage}</p>
         </div>
       )}
       <button
         className={cn(btn.cta, 'shrink-0 text-sm tracking-tight')}
         onClick={handleInsert}
-        disabled={!isAllowedToInsert || inserting || success || (insertType === 'button' && !selectedId) || (insertType === 'pricing' && selectedProducts.length < 1)}
+        disabled={!!insertUnavailableMessage || inserting || success || (insertType === 'button' && !selectedId) || (insertType === 'pricing' && selectedProducts.length < 1)}
         aria-busy={inserting}
       >
         {success ? (
