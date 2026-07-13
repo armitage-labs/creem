@@ -43,6 +43,10 @@ export function App() {
     }
     const controller = new AbortController()
     fetchAbortRef.current = controller
+    // Never expose products from the previous store/environment while the new
+    // catalog is loading. Product ids are scoped to their environment.
+    setProducts([])
+    setLastSyncedAt(null)
     void (async () => {
       setLoading(true)
       setError('')
@@ -129,6 +133,10 @@ export function App() {
   return (
     <TestModeChrome active={testMode}>
       <InsertWizard
+        // Wizard selections and tier configuration belong to one catalog. A
+        // new key forces an immediate remount when the store or stage changes,
+        // preventing test products from carrying over into live (and vice versa).
+        key={`${activeStoreId}:${testMode ? 'test' : 'live'}`}
         products={activeProducts}
         testMode={testMode}
         checkoutType={checkoutType}
