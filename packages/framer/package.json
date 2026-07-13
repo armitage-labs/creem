@@ -1,6 +1,6 @@
 {
   "name": "@creem_io/framer",
-  "version": "0.1.1",
+  "version": "0.1.2",
   "description": "Framer plugin for Creem checkout buttons and pricing tables.",
   "license": "MIT",
   "type": "module",
