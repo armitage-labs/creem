@@ -4,7 +4,6 @@ import { Check, ChevronDown, FlaskConical, LogOut, Pencil, Plus, Store as StoreI
 import { keyEnv, storeHasEnv } from '@/services/stores'
 import { cn, fitButton } from '@/styles/ui'
 
-const INK = '#151617'
 const ENV_LABEL: Record<StoreEnv, string> = { live: 'Live', test: 'Test' }
 
 // Env accents. Test uses Creem's brand peach; live a calm green.
@@ -17,6 +16,8 @@ const ENV_STYLE: Record<StoreEnv, { bg: string; fg: string; border: string }> = 
 export function StoreSwitcher({ controls }: { controls: StoreControls }) {
   const [open, setOpen] = useState(false)
   const rootRef = useRef<HTMLDivElement>(null)
+  const triggerRef = useRef<HTMLButtonElement>(null)
+  const panelRef = useRef<HTMLDivElement>(null)
   const { activeStore, activeEnv } = controls
 
   useEffect(() => {
@@ -24,13 +25,13 @@ export function StoreSwitcher({ controls }: { controls: StoreControls }) {
     const onDown = (e: MouseEvent) => {
       if (rootRef.current && !rootRef.current.contains(e.target as Node)) setOpen(false)
     }
-    const onKey = (e: KeyboardEvent) => e.key === 'Escape' && setOpen(false)
     document.addEventListener('mousedown', onDown)
-    document.addEventListener('keydown', onKey)
-    return () => {
-      document.removeEventListener('mousedown', onDown)
-      document.removeEventListener('keydown', onKey)
-    }
+    return () => document.removeEventListener('mousedown', onDown)
+  }, [open])
+
+  useEffect(() => {
+    if (!open) return
+    requestAnimationFrame(() => panelRef.current?.querySelector<HTMLElement>('button:not(:disabled), input:not(:disabled)')?.focus())
   }, [open])
 
   if (!activeStore) return null
@@ -38,21 +39,38 @@ export function StoreSwitcher({ controls }: { controls: StoreControls }) {
   return (
     <div ref={rootRef} className='relative'>
       <button
+        ref={triggerRef}
+        type='button'
         onClick={() => setOpen(o => !o)}
-        className={cn('flex max-w-[190px] items-center gap-1.5 rounded-lg border-2 border-black bg-white px-2 py-1.5 text-xs font-black shadow-[2px_2px_0px_0px_#000]', fitButton)}
-        style={{ color: INK }}
-        aria-haspopup='menu'
+        className={cn(
+          'border-ui-border bg-ui-surface text-ui-text flex max-w-[190px] items-center gap-1.5 rounded-lg border-2 px-2 py-1.5 text-xs font-black shadow-[2px_2px_0px_0px_var(--ui-shadow)]',
+          fitButton
+        )}
+        aria-haspopup='dialog'
         aria-expanded={open}
+        aria-controls='store-switcher-popover'
       >
-        <StoreIcon className={iconClass('xxs', 'shrink-0 text-gray-500')} />
+        <StoreIcon className={iconClass('xxs', 'text-ui-text-subtle shrink-0')} />
         <span className='truncate'>{activeStore.name}</span>
         <EnvBadge env={activeEnv} />
-        <ChevronDown className={iconClass('xxs', 'shrink-0 text-gray-500')} />
+        <ChevronDown className={iconClass('xxs', 'text-ui-text-subtle shrink-0')} />
       </button>
 
       {open && (
-        <div className='absolute right-0 z-50 mt-1.5 w-[252px] rounded-xl border-2 border-black bg-white p-2 shadow-[4px_4px_0px_0px_#000]' role='menu'>
-          <p className='px-1 pb-1 text-[10px] font-black tracking-wider text-gray-500 uppercase'>Stores</p>
+        <div
+          ref={panelRef}
+          id='store-switcher-popover'
+          className='border-ui-border bg-ui-surface text-ui-text absolute right-0 z-50 mt-1.5 w-[252px] rounded-xl border-2 p-2 shadow-[4px_4px_0px_0px_var(--ui-shadow)]'
+          role='dialog'
+          aria-label='Manage stores'
+          onKeyDown={event => {
+            if (event.key !== 'Escape') return
+            event.preventDefault()
+            setOpen(false)
+            triggerRef.current?.focus()
+          }}
+        >
+          <p className='text-ui-text-subtle px-1 pb-1 text-[10px] font-black tracking-wider uppercase'>Stores</p>
           <div className='flex flex-col gap-1'>
             {controls.stores.map(store => (
               <StoreItem key={store.id} store={store} active={store.id === activeStore.id} activeEnv={activeEnv} isOnlyStore={controls.stores.length === 1} controls={controls} />
@@ -64,21 +82,21 @@ export function StoreSwitcher({ controls }: { controls: StoreControls }) {
               controls.addStore()
             }}
             className={cn(
-              'mt-1.5 flex w-full items-center gap-1.5 rounded-lg border-2 border-dashed border-gray-300 bg-white px-2 py-2 text-xs font-black text-gray-600 hover:border-black hover:text-black',
+              'border-ui-border-subtle bg-ui-surface text-ui-text-muted hover:border-ui-border hover:text-ui-text mt-1.5 flex w-full items-center gap-1.5 rounded-lg border-2 border-dashed px-2 py-2 text-xs font-black',
               fitButton
             )}
           >
             <Plus className={iconClass('xxs')} />
             Add a new store
           </button>
-          <div className='my-2 border-t-2 border-gray-200' />
+          <div className='border-ui-border-subtle my-2 border-t-2' />
           <button
             onClick={() => {
               setOpen(false)
               controls.signOut()
             }}
             className={cn(
-              'flex w-full items-center gap-1.5 rounded-lg border-2 border-transparent bg-white px-2 py-2 text-xs font-black text-gray-600 hover:text-red-600',
+              'bg-ui-surface text-ui-text-muted hover:text-ui-danger flex w-full items-center gap-1.5 rounded-lg border-2 border-transparent px-2 py-2 text-xs font-black',
               fitButton
             )}
           >
@@ -142,7 +160,7 @@ function StoreItem({ store, active, activeEnv, isOnlyStore, controls }: { store:
   }
 
   return (
-    <div className={cn('rounded-lg border-2', active ? 'border-black bg-gray-50' : 'border-gray-200 bg-white')}>
+    <div className={cn('rounded-lg border-2', active ? 'border-ui-border bg-ui-surface-subtle' : 'border-ui-border-subtle bg-ui-surface')}>
       {editing ? (
         <div className='flex items-center gap-1 p-1.5'>
           <input
@@ -153,8 +171,7 @@ function StoreItem({ store, active, activeEnv, isOnlyStore, controls }: { store:
               if (e.key === 'Enter') saveName()
               if (e.key === 'Escape') cancelName()
             }}
-            className='min-w-0 flex-1 rounded-lg border-2 border-black bg-white px-2 py-1.5 text-xs font-bold outline-none'
-            style={{ color: INK }}
+            className='border-ui-border bg-ui-surface-elevated text-ui-text min-w-0 flex-1 rounded-lg border-2 px-2 py-1.5 text-xs font-bold outline-none'
             aria-label='Store name'
           />
           <EditAction kind='save' onClick={saveName} />
@@ -163,19 +180,19 @@ function StoreItem({ store, active, activeEnv, isOnlyStore, controls }: { store:
       ) : (
         <button
           onClick={() => setExpanded(x => !x)}
-          className={cn('flex w-full items-center gap-2 bg-transparent px-2 py-2 text-left text-xs font-black', fitButton)}
-          style={{ color: INK }}
+          className={cn('text-ui-text flex w-full items-center gap-2 bg-transparent px-2 py-2 text-left text-xs font-black', fitButton)}
           aria-expanded={expanded}
+          aria-controls={`store-${store.id}-details`}
         >
-          <ChevronDown className={iconClass('xxs', 'shrink-0 text-gray-400 transition-transform', !expanded && '-rotate-90')} />
-          <StoreIcon className={iconClass('xxs', 'shrink-0 text-gray-500')} />
+          <ChevronDown className={iconClass('xxs', 'text-ui-text-subtle shrink-0 transition-transform', !expanded && '-rotate-90')} />
+          <StoreIcon className={iconClass('xxs', 'text-ui-text-subtle shrink-0')} />
           <span className='min-w-0 flex-1 truncate'>{store.name}</span>
           {active && <EnvBadge env={activeEnv} />}
         </button>
       )}
 
       {expanded && !editing && (
-        <div className='flex flex-col gap-2 border-t-2 border-gray-200 px-2 py-2'>
+        <div id={`store-${store.id}-details`} className='border-ui-border-subtle flex flex-col gap-2 border-t-2 px-2 py-2'>
           <div className='flex gap-1.5'>
             {(['live', 'test'] as StoreEnv[]).map(env => {
               const has = storeHasEnv(store, env)
@@ -186,12 +203,13 @@ function StoreItem({ store, active, activeEnv, isOnlyStore, controls }: { store:
                   key={env}
                   onClick={() => (has ? controls.selectStoreEnv(store.id, env) : openAdd(env))}
                   className={cn(
-                    'flex flex-1 items-center justify-center gap-1 rounded-lg border-2 bg-white px-2 py-1.5 text-xs font-black',
-                    isActive ? 'border-black' : 'border-gray-300 text-gray-500',
+                    'bg-ui-surface flex flex-1 items-center justify-center gap-1 rounded-lg border-2 px-2 py-1.5 text-xs font-black',
+                    isActive ? 'border-ui-border' : 'border-ui-border-subtle text-ui-text-subtle',
                     !has && 'border-dashed',
                     fitButton
                   )}
-                  style={isActive ? { background: s.bg, color: s.fg, borderColor: INK } : undefined}
+                  style={isActive ? { background: s.bg, color: s.fg } : undefined}
+                  aria-pressed={isActive}
                 >
                   {env === 'test' && <FlaskConical className='h-3 w-3' />}
                   {has ? ENV_LABEL[env] : `Add ${ENV_LABEL[env].toLowerCase()}`}
@@ -213,21 +231,29 @@ function StoreItem({ store, active, activeEnv, isOnlyStore, controls }: { store:
                     if (e.key === 'Escape') cancelAdd()
                   }}
                   placeholder={addingEnv === 'test' ? 'creem_test_...' : 'creem_live_...'}
-                  className={cn('min-w-0 flex-1 rounded-lg border-2 bg-white px-2 py-1.5 text-xs font-bold outline-none', keyError ? 'border-red-500' : 'border-black')}
-                  style={{ color: INK }}
+                  className={cn(
+                    'bg-ui-surface-elevated text-ui-text min-w-0 flex-1 rounded-lg border-2 px-2 py-1.5 text-xs font-bold outline-none',
+                    keyError ? 'border-ui-danger' : 'border-ui-border'
+                  )}
                   aria-label={`${ENV_LABEL[addingEnv]} API key`}
+                  aria-invalid={!!keyError}
+                  aria-describedby={keyError ? `store-${store.id}-key-error` : undefined}
                 />
                 <EditAction kind='save' onClick={() => saveKey(addingEnv)} />
                 <EditAction kind='cancel' onClick={cancelAdd} />
               </div>
-              {keyError && <span className='text-[10px] font-bold text-red-600'>{keyError}</span>}
+              {keyError && (
+                <span id={`store-${store.id}-key-error`} className='text-ui-danger text-[10px] font-bold'>
+                  {keyError}
+                </span>
+              )}
             </div>
           )}
 
           <div className='flex items-center justify-end gap-1'>
             <button
               onClick={() => setEditing(true)}
-              className={cn('flex items-center gap-1 rounded-lg bg-transparent px-1.5 py-1 text-[11px] font-black text-gray-500 hover:text-black', fitButton)}
+              className={cn('text-ui-text-subtle hover:text-ui-text flex items-center gap-1 rounded-lg bg-transparent px-1.5 py-1 text-[11px] font-black', fitButton)}
             >
               <Pencil className={iconClass('xxs')} />
               Rename
@@ -235,7 +261,7 @@ function StoreItem({ store, active, activeEnv, isOnlyStore, controls }: { store:
             {!isOnlyStore && (
               <button
                 onClick={() => controls.removeStore(store.id)}
-                className={cn('flex items-center gap-1 rounded-lg bg-transparent px-1.5 py-1 text-[11px] font-black text-gray-500 hover:text-red-600', fitButton)}
+                className={cn('text-ui-text-subtle hover:text-ui-danger flex items-center gap-1 rounded-lg bg-transparent px-1.5 py-1 text-[11px] font-black', fitButton)}
               >
                 <Trash2 className={iconClass('xxs')} />
                 Remove
@@ -254,10 +280,10 @@ function EditAction({ kind, onClick }: { kind: 'save' | 'cancel'; onClick: () =>
   return (
     <button
       onClick={onClick}
-      className={cn('flex size-7 shrink-0 items-center justify-center rounded-lg border-2 border-black', isSave ? 'bg-creem-purple' : 'bg-white', fitButton)}
+      className={cn('border-ui-border flex size-7 shrink-0 items-center justify-center rounded-lg border-2', isSave ? 'bg-creem-purple' : 'bg-ui-surface', fitButton)}
       aria-label={isSave ? 'Save' : 'Cancel'}
     >
-      {isSave ? <Check className={iconClass('xxs')} style={{ color: INK }} /> : <X className={iconClass('xxs')} style={{ color: INK }} />}
+      {isSave ? <Check className={iconClass('xxs', 'text-creem-ink')} /> : <X className={iconClass('xxs', 'text-ui-text')} />}
     </button>
   )
 }

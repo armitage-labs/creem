@@ -1,4 +1,4 @@
-import { useState, useCallback, useEffect } from 'react'
+import { useState, useCallback, useEffect, useId, useRef } from 'react'
 import { createPortal } from 'react-dom'
 import { addPropertyControls, ControlType, RenderTarget } from 'framer'
 import { ArrowUpRight, Loader2, FlaskConical } from './icons.tsx'
@@ -60,16 +60,24 @@ function buildCreemCheckoutUrl(productId: string, testMode: boolean, discountCod
 }
 
 function CheckoutEmbedModal({ url, onClose }: { url: string; onClose: () => void }) {
+  const closeButtonRef = useRef<HTMLButtonElement>(null)
+  const iframeRef = useRef<HTMLIFrameElement>(null)
+  const titleId = useId()
+
   useEffect(() => {
     const handleKeyDown = (event: KeyboardEvent) => {
       if (event.key === 'Escape') onClose()
     }
     const previousOverflow = document.body.style.overflow
+    const previouslyFocused = document.activeElement instanceof HTMLElement ? document.activeElement : null
     document.body.style.overflow = 'hidden'
     window.addEventListener('keydown', handleKeyDown)
+    const focusFrame = requestAnimationFrame(() => closeButtonRef.current?.focus())
     return () => {
+      cancelAnimationFrame(focusFrame)
       document.body.style.overflow = previousOverflow
       window.removeEventListener('keydown', handleKeyDown)
+      previouslyFocused?.focus()
     }
   }, [onClose])
   if (typeof document === 'undefined') return null
@@ -77,7 +85,7 @@ function CheckoutEmbedModal({ url, onClose }: { url: string; onClose: () => void
     <div
       role='dialog'
       aria-modal='true'
-      aria-label='Creem checkout'
+      aria-labelledby={titleId}
       style={{
         position: 'fixed',
         inset: 0,
@@ -91,7 +99,8 @@ function CheckoutEmbedModal({ url, onClose }: { url: string; onClose: () => void
     >
       <button
         type='button'
-        aria-label='Close checkout'
+        aria-hidden='true'
+        tabIndex={-1}
         onClick={onClose}
         style={{
           position: 'absolute',
@@ -115,6 +124,7 @@ function CheckoutEmbedModal({ url, onClose }: { url: string; onClose: () => void
           flexDirection: 'column'
         }}
       >
+        <span tabIndex={0} onFocus={() => iframeRef.current?.focus()} style={{ position: 'absolute', width: 1, height: 1, overflow: 'hidden', clipPath: 'inset(50%)' }} />
         <div
           style={{
             display: 'flex',
@@ -126,8 +136,11 @@ function CheckoutEmbedModal({ url, onClose }: { url: string; onClose: () => void
             flexShrink: 0
           }}
         >
-          <span style={{ fontSize: 14, fontWeight: 600, color: '#111' }}>Checkout</span>
+          <span id={titleId} style={{ fontSize: 14, fontWeight: 600, color: '#111' }}>
+            Checkout
+          </span>
           <button
+            ref={closeButtonRef}
             type='button'
             onClick={onClose}
             aria-label='Close checkout'
@@ -146,7 +159,8 @@ function CheckoutEmbedModal({ url, onClose }: { url: string; onClose: () => void
             ×
           </button>
         </div>
-        <iframe src={url} title='Creem checkout' style={{ width: '100%', flex: 1, border: 'none', display: 'block' }} allow='payment *; clipboard-read; clipboard-write' />
+        <iframe ref={iframeRef} src={url} title='Creem checkout' style={{ width: '100%', flex: 1, border: 'none', display: 'block' }} allow='payment *' />
+        <span tabIndex={0} onFocus={() => closeButtonRef.current?.focus()} style={{ position: 'absolute', width: 1, height: 1, overflow: 'hidden', clipPath: 'inset(50%)' }} />
       </div>
     </div>,
     document.body

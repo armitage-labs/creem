@@ -47,79 +47,98 @@ export function SetupScreen({ mode, onConnect, onCancel, loading }: SetupScreenP
 
   return (
     <div className={screen}>
-      <div className={cn(card.header, 'relative', mode === 'add' && 'justify-center')}>
-        {mode === 'add' ? (
-          <>
-            <button onClick={onCancel} className={cn(btn.compact, btn.iconSize, 'absolute left-3')} aria-label='Cancel'>
-              <ArrowLeft className={iconClass('btn')} />
-            </button>
-            <span className='text-sm font-black tracking-tight'>Add a store</span>
-          </>
-        ) : (
-          <img src='/creem.svg' alt='Creem Logo' className='block h-[18px]' />
-        )}
-      </div>
+      {mode === 'add' && (
+        <div className={cn(card.header, 'relative justify-center')}>
+          <button onClick={onCancel} className={cn(btn.compact, btn.iconSize, 'absolute left-3')} aria-label='Cancel'>
+            <ArrowLeft className={iconClass('btn')} />
+          </button>
+          <span className='text-sm font-black tracking-tight'>Add a store</span>
+        </div>
+      )}
       <div className='flex flex-1 flex-col gap-3'>
         <div className={cn(card.panel, 'gap-3')}>
           <div>
             <h2 className='m-0 text-xl leading-tight font-black tracking-tight'>{mode === 'add' ? 'New store' : 'Connect Account'}</h2>
-            <p className='mt-1 text-xs font-semibold text-gray-600'>Paste your API keys from the dashboard.</p>
+            <p className='text-ui-text-muted mt-1 text-xs font-semibold'>Paste your API keys from the dashboard.</p>
           </div>
 
           <div className='flex flex-col gap-1.5'>
-            <label className='text-xs font-black'>Store name</label>
+            <label htmlFor='store-name' className='text-xs font-black'>
+              Store name
+            </label>
             <input
+              id='store-name'
               ref={firstFieldRef}
               value={name}
               onChange={e => setName(e.target.value)}
               placeholder='My store'
-              className='w-full rounded-lg border-2 border-black px-2.5 py-2 text-sm font-bold shadow-[inset_2px_2px_0px_rgba(0,0,0,0.05)] outline-none'
-              aria-label='Store name'
+              className='border-ui-border bg-ui-surface-elevated text-ui-text placeholder:text-ui-text-subtle w-full rounded-lg border-2 px-2.5 py-2 text-sm font-bold shadow-[inset_2px_2px_0px_rgba(0,0,0,0.08)] outline-none'
             />
           </div>
 
           <div className='flex flex-col gap-1.5'>
-            <label className='text-xs font-black'>Live API Key</label>
+            <label htmlFor='live-api-key' className='text-xs font-black'>
+              Live API Key
+            </label>
             <input
+              id='live-api-key'
               type='password'
               value={liveKey}
               onChange={e => setLiveKey(e.target.value)}
               onKeyDown={e => e.key === 'Enter' && submit()}
               placeholder='creem_...'
               className={cn(
-                'w-full rounded-lg border-2 px-2.5 py-2 text-sm font-bold shadow-[inset_2px_2px_0px_rgba(0,0,0,0.05)] outline-none',
-                liveErr ? 'border-red-500' : 'border-black'
+                'bg-ui-surface-elevated text-ui-text placeholder:text-ui-text-subtle w-full rounded-lg border-2 px-2.5 py-2 text-sm font-bold shadow-[inset_2px_2px_0px_rgba(0,0,0,0.08)] outline-none',
+                liveErr ? 'border-ui-danger' : 'border-ui-border'
               )}
-              aria-label='Live API Key'
+              aria-invalid={!!liveErr}
+              aria-describedby={liveErr ? 'live-api-key-error' : undefined}
             />
-            {liveErr && <span className='text-[11px] font-bold text-red-600'>{liveErr}</span>}
+            {liveErr && (
+              <span id='live-api-key-error' className='text-ui-danger text-[11px] font-bold'>
+                {liveErr}
+              </span>
+            )}
           </div>
 
           <div className='flex flex-col gap-1.5'>
-            <label className='text-xs font-black'>Test API Key</label>
+            <label htmlFor='test-api-key' className='text-xs font-black'>
+              Test API Key
+            </label>
             <input
+              id='test-api-key'
               type='password'
               value={testKey}
               onChange={e => setTestKey(e.target.value)}
               onKeyDown={e => e.key === 'Enter' && submit()}
               placeholder='creem_test_...'
               className={cn(
-                'w-full rounded-lg border-2 px-2.5 py-2 text-sm font-bold shadow-[inset_2px_2px_0px_rgba(0,0,0,0.05)] outline-none',
-                testErr ? 'border-red-500' : 'border-black'
+                'bg-ui-surface-elevated text-ui-text placeholder:text-ui-text-subtle w-full rounded-lg border-2 px-2.5 py-2 text-sm font-bold shadow-[inset_2px_2px_0px_rgba(0,0,0,0.08)] outline-none',
+                testErr ? 'border-ui-danger' : 'border-ui-border'
               )}
-              aria-label='Test API Key'
+              aria-invalid={!!testErr}
+              aria-describedby={testErr ? 'test-api-key-error' : undefined}
             />
-            {testErr && <span className='text-[11px] font-bold text-red-600'>{testErr}</span>}
+            {testErr && (
+              <span id='test-api-key-error' className='text-ui-danger text-[11px] font-bold'>
+                {testErr}
+              </span>
+            )}
           </div>
 
-          <p className='text-[11px] font-semibold text-gray-500'>Add at least one key. You can add the other environment later.</p>
+          <p className='text-ui-text-subtle text-[11px] font-semibold'>Add at least one key. You can add the other environment later.</p>
 
           <button onClick={submit} disabled={!canSubmit} className={cn(btn.cta, 'mt-1 text-sm')}>
             {loading ? 'Connecting...' : mode === 'add' ? 'Add store' : 'Connect'}
             {!loading && hasKey && <ArrowRight className={iconClass('md')} aria-hidden='true' />}
           </button>
           {error && (
-            <div className='rounded-lg border-2 border-black bg-red-300 px-3 py-2.5 text-xs font-extrabold text-black shadow-[2px_2px_0px_0px_#000]'>⚠️ ERROR: {error}</div>
+            <div
+              role='alert'
+              className='border-ui-border bg-ui-danger-bg text-ui-danger rounded-lg border-2 px-3 py-2.5 text-xs font-extrabold shadow-[2px_2px_0px_0px_var(--ui-shadow)]'
+            >
+              ⚠️ ERROR: {error}
+            </div>
           )}
           <div className='mt-auto flex justify-end'>
             <DocsBadge />

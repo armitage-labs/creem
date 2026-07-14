@@ -29,7 +29,7 @@ function renderInline(text: string, keyPrefix: string): ReactNode[] {
     if (linkText !== undefined) {
       nodes.push(
         SAFE_HREF.test(href) ? (
-          <a key={key} href={href} target='_blank' rel='noopener noreferrer' className='font-bold text-purple-700 underline'>
+          <a key={key} href={href} target='_blank' rel='noopener noreferrer' className='text-ui-link font-bold underline'>
             {linkText}
           </a>
         ) : (
@@ -38,7 +38,7 @@ function renderInline(text: string, keyPrefix: string): ReactNode[] {
       )
     } else if (boldA !== undefined || boldB !== undefined) {
       nodes.push(
-        <strong key={key} className='font-black text-black'>
+        <strong key={key} className='text-ui-text font-black'>
           {boldA ?? boldB}
         </strong>
       )
@@ -46,7 +46,7 @@ function renderInline(text: string, keyPrefix: string): ReactNode[] {
       nodes.push(<em key={key}>{italA ?? italB}</em>)
     } else if (code !== undefined) {
       nodes.push(
-        <code key={key} className='rounded bg-gray-100 px-1 py-0.5 font-mono text-[0.9em] text-black'>
+        <code key={key} className='bg-ui-surface-subtle text-ui-text rounded px-1 py-0.5 font-mono text-[0.9em]'>
           {code}
         </code>
       )
@@ -87,7 +87,7 @@ export function Markdown({ text, className = '' }: { text: string; className?: s
       flushParagraph()
       const level = heading[1].length
       blocks.push(
-        <p key={`h-${key++}`} className={`font-black text-black ${HEADING_SIZE[level - 1]}`}>
+        <p key={`h-${key++}`} className={`text-ui-text font-black ${HEADING_SIZE[level - 1]}`}>
           {renderInline(heading[2], `h${key}`)}
         </p>
       )

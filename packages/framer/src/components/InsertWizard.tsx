@@ -349,9 +349,9 @@ export function InsertWizard({ products, testMode, checkoutType, setCheckoutType
         />
       )}
       {insertUnavailableMessage && (
-        <div className='flex shrink-0 items-start gap-2.5 rounded-lg border-2 border-yellow-500 bg-yellow-100 px-3 py-3 text-xs leading-relaxed font-bold text-yellow-900'>
+        <div className='border-ui-warning bg-ui-warning-bg text-ui-warning flex shrink-0 items-start gap-2.5 rounded-lg border-2 px-3 py-3 text-xs leading-relaxed font-bold'>
           <Info className={iconClass('sm', 'mt-0.5 shrink-0')} />
-          <p>{insertUnavailableMessage}</p>
+          <p className='text-ui-warning'>{insertUnavailableMessage}</p>
         </div>
       )}
       <button
@@ -396,11 +396,11 @@ function ChooseComponentStep({ onChoose, storeControls }: ChooseComponentStepPro
   return (
     <div className={cn(screen, 'relative')}>
       <div className={cn(card.header, 'justify-between')}>
-        <img src='/creem.svg' alt='Creem Logo' className='block h-[18px]' />
+        <span className='text-sm font-black tracking-tight'>Add component</span>
         <StoreSwitcher controls={storeControls} />
       </div>
       <div className='flex flex-1 flex-col gap-3'>
-        <p className='text-xs font-bold text-gray-600'>Choose a component to add to your canvas.</p>
+        <p className='text-ui-text-muted text-xs font-bold'>Choose a component to add to your canvas.</p>
         <ComponentCard title='Checkout Button' subtitle='One product, one button.' glyph={<ButtonGlyph />} onClick={() => onChoose('button')} />
         <ComponentCard title='Pricing Table' subtitle='Compare several products in a grid.' glyph={<TableGlyph />} onClick={() => onChoose('pricing')} />
       </div>
@@ -416,10 +416,10 @@ function ComponentCard({ title, subtitle, glyph, onClick }: { title: string; sub
     <button onClick={onClick} className={cn(card.interactive, fitButton, 'w-full shrink-0 items-center gap-3.5 p-4 text-left')}>
       <div className='shrink-0'>{glyph}</div>
       <div className='flex min-w-0 flex-1 flex-col gap-1'>
-        <span className='text-sm leading-tight font-black tracking-tight text-black'>{title}</span>
-        <span className='text-xs leading-snug font-bold text-gray-500'>{subtitle}</span>
+        <span className='text-ui-text text-sm leading-tight font-black tracking-tight'>{title}</span>
+        <span className='text-ui-text-subtle text-xs leading-snug font-bold'>{subtitle}</span>
       </div>
-      <ArrowRight className={iconClass('md', 'shrink-0 text-gray-400')} aria-hidden='true' />
+      <ArrowRight className={iconClass('md', 'text-ui-text-subtle shrink-0')} aria-hidden='true' />
     </button>
   )
 }
@@ -427,8 +427,8 @@ function ComponentCard({ title, subtitle, glyph, onClick }: { title: string; sub
 /** Mini preview of a checkout button. */
 function ButtonGlyph() {
   return (
-    <div className='bg-creem-cream flex h-16 w-16 items-center justify-center rounded-lg border-2 border-black'>
-      <span className='bg-creem-peach rounded border-2 border-black px-2.5 py-1.5 text-[9px] font-black text-black shadow-[1.5px_1.5px_0_0_#151617]'>Buy</span>
+    <div className='border-ui-border bg-ui-bg flex h-16 w-16 items-center justify-center rounded-lg border-2'>
+      <span className='border-creem-ink bg-creem-peach text-creem-ink rounded border-2 px-2.5 py-1.5 text-[9px] font-black shadow-[1.5px_1.5px_0_0_var(--ui-shadow)]'>Buy</span>
     </div>
   )
 }
@@ -436,10 +436,10 @@ function ButtonGlyph() {
 /** Mini preview of a pricing table (three columns, middle one featured). */
 function TableGlyph() {
   return (
-    <div className='bg-creem-cream flex h-16 w-16 items-center justify-center gap-1 rounded-lg border-2 border-black'>
+    <div className='border-ui-border bg-ui-bg flex h-16 w-16 items-center justify-center gap-1 rounded-lg border-2'>
       {[0, 1, 2].map(i => (
-        <div key={i} className={cn('flex h-10 w-3 flex-col overflow-hidden rounded-sm border border-black', i === 1 ? 'bg-creem-peach' : 'bg-white')}>
-          <div className='bg-creem-purple h-3 w-full border-b border-black' />
+        <div key={i} className={cn('border-ui-border flex h-10 w-3 flex-col overflow-hidden rounded-sm border', i === 1 ? 'bg-creem-peach' : 'bg-ui-surface')}>
+          <div className='border-ui-border bg-creem-purple h-3 w-full border-b' />
         </div>
       ))}
     </div>
@@ -529,7 +529,7 @@ function SelectProductsStep({
         <div className='flex items-center justify-between'>
           <div>
             <h3 className='m-0 text-sm font-black tracking-tight'>Products</h3>
-            {syncedLabel && <p className='m-0 mt-0.5 text-[10px] font-bold text-gray-500'>Synced {syncedLabel}</p>}
+            {syncedLabel && <p className='text-ui-text-subtle m-0 mt-0.5 text-[10px] font-bold'>Synced {syncedLabel}</p>}
           </div>
           <div className='flex items-center gap-2'>
             <button onClick={onRefresh} disabled={loading} className={cn(btn.icon, 'rounded-md')} aria-label='Refresh products'>
@@ -539,10 +539,14 @@ function SelectProductsStep({
           </div>
         </div>
         <ProductSearchInput value={search} onChange={setSearch} />
-        {error && <div className='rounded-lg border-2 border-red-400 bg-red-50 px-3 py-2 text-xs font-bold text-red-800'>{error}</div>}
+        {error && (
+          <div role='alert' className='border-ui-danger bg-ui-danger-bg text-ui-danger rounded-lg border-2 px-3 py-2 text-xs font-bold'>
+            {error}
+          </div>
+        )}
         <div className='-mx-1 flex flex-1 flex-col gap-2 overflow-x-hidden overflow-y-auto px-1 pt-1'>
           {items.length === 0 ? (
-            <div className='py-8 text-center text-sm font-bold text-gray-500'>
+            <div className='text-ui-text-subtle py-8 text-center text-sm font-bold'>
               {loading ? 'Loading products…' : search.trim() ? `No products match "${search.trim()}".` : 'No active products found.'}
             </div>
           ) : isButton ? (
@@ -584,41 +588,54 @@ function ButtonConfiguration({ buttonText, setButtonText, checkoutType, setCheck
       {/* Product context — compact row (thumbnail matches the picker), kept separate
           from the Preview so the name/ID aren't mistaken for part of the button. */}
       {selectedProduct && (
-        <div className='flex items-center gap-2.5 rounded-xl border-2 border-black bg-white p-2.5 shadow-[3px_3px_0px_0px_#000]'>
-          <div className='flex h-10 w-10 shrink-0 items-center justify-center overflow-hidden rounded-lg border-2 border-black bg-gray-100'>
+        <div className='border-ui-border bg-ui-surface flex items-center gap-2.5 rounded-xl border-2 p-2.5 shadow-[3px_3px_0px_0px_var(--ui-shadow)]'>
+          <div className='border-ui-border bg-ui-surface-subtle flex h-10 w-10 shrink-0 items-center justify-center overflow-hidden rounded-lg border-2'>
             {selectedProduct.image_url ? (
               <img src={selectedProduct.image_url} className='h-full w-full object-cover' alt='' />
             ) : (
-              <Image className={iconClass('sm', 'text-gray-300')} aria-hidden='true' />
+              <Image className={iconClass('sm', 'text-ui-text-subtle')} aria-hidden='true' />
             )}
           </div>
           <div className='flex min-w-0 flex-1 flex-col'>
-            <span className='truncate text-sm font-black text-black' title={selectedProduct.name}>
+            <span className='text-ui-text truncate text-sm font-black' title={selectedProduct.name}>
               {selectedProduct.name}
             </span>
-            <span className='truncate text-[10px] font-bold text-gray-500' title={selectedProduct.id}>
-              ID: <code className='font-mono text-gray-600'>{selectedProduct.id}</code>
+            <span className='text-ui-text-subtle truncate text-[10px] font-bold' title={selectedProduct.id}>
+              ID: <code className='text-ui-text-muted font-mono'>{selectedProduct.id}</code>
             </span>
           </div>
         </div>
       )}
       {/* Settings — checkout type + button text grouped in one card. */}
-      <div className='flex flex-col gap-2.5 rounded-xl border-2 border-black bg-white p-3 shadow-[3px_3px_0px_0px_#000]'>
+      <div className='border-ui-border bg-ui-surface flex flex-col gap-2.5 rounded-xl border-2 p-3 shadow-[3px_3px_0px_0px_var(--ui-shadow)]'>
         <div className='flex flex-col gap-1.5'>
-          <label className='text-[10px] font-black tracking-wider text-gray-600 uppercase'>Checkout Type</label>
-          <div className='flex gap-2'>
-            <button className={cn('flex-1 rounded-lg px-3 py-2 text-xs font-black', toggle.segment(checkoutType === 'embed'))} onClick={() => setCheckoutType('embed')}>
+          <span id='button-checkout-type-label' className='text-ui-text-muted text-[10px] font-black tracking-wider uppercase'>
+            Checkout Type
+          </span>
+          <div className='flex gap-2' role='group' aria-labelledby='button-checkout-type-label'>
+            <button
+              className={cn('flex-1 rounded-lg px-3 py-2 text-xs font-black', toggle.segment(checkoutType === 'embed'))}
+              onClick={() => setCheckoutType('embed')}
+              aria-pressed={checkoutType === 'embed'}
+            >
               Embed
             </button>
-            <button className={cn('flex-1 rounded-lg px-3 py-2 text-xs font-black', toggle.segment(checkoutType === 'new-tab'))} onClick={() => setCheckoutType('new-tab')}>
+            <button
+              className={cn('flex-1 rounded-lg px-3 py-2 text-xs font-black', toggle.segment(checkoutType === 'new-tab'))}
+              onClick={() => setCheckoutType('new-tab')}
+              aria-pressed={checkoutType === 'new-tab'}
+            >
               New Tab
             </button>
           </div>
         </div>
         <div className='flex flex-col gap-1.5'>
-          <label className='text-[10px] font-black tracking-wider text-gray-600 uppercase'>Button Text</label>
+          <label htmlFor='checkout-button-text' className='text-ui-text-muted text-[10px] font-black tracking-wider uppercase'>
+            Button Text
+          </label>
           <input
-            className='w-full rounded-lg border border-black bg-white px-3 py-2 text-sm font-bold text-black outline-none placeholder:text-gray-400'
+            id='checkout-button-text'
+            className='border-ui-border bg-ui-surface-elevated text-ui-text placeholder:text-ui-text-subtle w-full rounded-lg border px-3 py-2 text-sm font-bold outline-none'
             value={buttonText}
             onChange={e => setButtonText(e.target.value)}
             placeholder='Buy Now'
@@ -626,8 +643,8 @@ function ButtonConfiguration({ buttonText, setButtonText, checkoutType, setCheck
         </div>
       </div>
       {/* Preview — the payoff, kept visible without scrolling. */}
-      <div className='flex flex-col items-center gap-2 rounded-xl border-2 border-black bg-white p-3 shadow-[3px_3px_0px_0px_#000]'>
-        <p className='self-start text-[10px] font-black tracking-wider text-gray-600 uppercase'>Preview</p>
+      <div className='border-ui-border bg-ui-surface flex flex-col items-center gap-2 rounded-xl border-2 p-3 shadow-[3px_3px_0px_0px_var(--ui-shadow)]'>
+        <p className='text-ui-text-muted self-start text-[10px] font-black tracking-wider uppercase'>Preview</p>
         {/* Mirrors the real checkout-button defaults (auto width, 12/24 padding, radius 10,
             15px/600). `w-auto` is required — framer.css forces buttons to full width otherwise,
             which made the preview look far wider than the rendered component. */}
@@ -727,7 +744,7 @@ function PricingConfiguration({
   return (
     <div className='flex min-h-0 w-full min-w-0 flex-1 flex-col gap-2.5 overflow-y-auto'>
       {/* Layout — live preview colocated so changes show immediately. */}
-      <div className='flex w-full min-w-0 flex-col gap-2.5 rounded-xl border-2 border-black bg-white p-3 shadow-[3px_3px_0px_0px_#000]'>
+      <div className='border-ui-border bg-ui-surface flex w-full min-w-0 flex-col gap-2.5 rounded-xl border-2 p-3 shadow-[3px_3px_0px_0px_var(--ui-shadow)]'>
         {selectedProducts.length > 0 && (
           <PricingMiniPreview
             layout={pricingLayout}
@@ -739,13 +756,16 @@ function PricingConfiguration({
           />
         )}
         <div className='flex flex-col gap-1.5'>
-          <label className='text-[10px] font-black tracking-wider text-gray-600 uppercase'>Layout</label>
-          <div className='flex gap-2'>
+          <span id='pricing-layout-label' className='text-ui-text-muted text-[10px] font-black tracking-wider uppercase'>
+            Layout
+          </span>
+          <div className='flex gap-2' role='group' aria-labelledby='pricing-layout-label'>
             {(['grid', 'horizontal', 'vertical'] as PricingLayout[]).map(layout => (
               <button
                 key={layout}
                 className={cn('flex-1 rounded-lg px-2 py-2 text-[10px] font-black capitalize', toggle.segment(pricingLayout === layout))}
                 onClick={() => setPricingLayout(layout)}
+                aria-pressed={pricingLayout === layout}
               >
                 {layout}
               </button>
@@ -754,13 +774,16 @@ function PricingConfiguration({
         </div>
         {pricingLayout === 'grid' && (
           <div className='flex flex-col gap-1.5'>
-            <label className='text-[10px] font-black tracking-wider text-gray-600 uppercase'>Columns</label>
-            <div className='flex gap-2'>
+            <span id='pricing-columns-label' className='text-ui-text-muted text-[10px] font-black tracking-wider uppercase'>
+              Columns
+            </span>
+            <div className='flex gap-2' role='group' aria-labelledby='pricing-columns-label'>
               {([1, 2, 3, 4, 5] as GridColumns[]).map(columns => (
                 <button
                   key={columns}
                   className={cn('flex-1 rounded-lg px-2 py-2 text-[10px] font-black', toggle.segment(gridColumns === columns))}
                   onClick={() => setGridColumns(columns)}
+                  aria-pressed={gridColumns === columns}
                 >
                   {columns}
                 </button>
@@ -770,17 +793,23 @@ function PricingConfiguration({
         )}
       </div>
       {/* Header — table-level text. */}
-      <div className='flex w-full min-w-0 flex-col gap-2 rounded-xl border-2 border-black bg-white p-3 shadow-[3px_3px_0px_0px_#000]'>
-        <label className='text-[10px] font-black tracking-wider text-gray-600 uppercase'>Heading</label>
+      <div className='border-ui-border bg-ui-surface flex w-full min-w-0 flex-col gap-2 rounded-xl border-2 p-3 shadow-[3px_3px_0px_0px_var(--ui-shadow)]'>
+        <label htmlFor='pricing-heading' className='text-ui-text-muted text-[10px] font-black tracking-wider uppercase'>
+          Heading
+        </label>
         <input
-          className='w-full rounded-lg border border-black bg-white px-3 py-2.5 text-sm font-bold text-black outline-none placeholder:text-gray-400'
+          id='pricing-heading'
+          className='border-ui-border bg-ui-surface-elevated text-ui-text placeholder:text-ui-text-subtle w-full rounded-lg border px-3 py-2.5 text-sm font-bold outline-none'
           value={headerTitle}
           onChange={e => setHeaderTitle(e.target.value)}
           placeholder='Choose your plan'
         />
-        <label className='text-[10px] font-black tracking-wider text-gray-600 uppercase'>Subheading</label>
+        <label htmlFor='pricing-subheading' className='text-ui-text-muted text-[10px] font-black tracking-wider uppercase'>
+          Subheading
+        </label>
         <textarea
-          className='min-h-[48px] w-full resize-y rounded-lg border border-black bg-white px-3 py-2.5 text-sm font-semibold text-black outline-none placeholder:text-gray-400'
+          id='pricing-subheading'
+          className='border-ui-border bg-ui-surface-elevated text-ui-text placeholder:text-ui-text-subtle min-h-[48px] w-full resize-y rounded-lg border px-3 py-2.5 text-sm font-semibold outline-none'
           rows={2}
           value={headerDescription}
           onChange={e => setHeaderDescription(e.target.value)}
@@ -789,25 +818,31 @@ function PricingConfiguration({
       </div>
       {/* Tiers — one list that both reorders and edits each tier (merged Order + Edit Tiers). */}
       {selectedProducts.length > 0 && (
-        <div className='flex w-full min-w-0 flex-col gap-2 rounded-xl border-2 border-black bg-white p-3 shadow-[3px_3px_0px_0px_#000]'>
-          <label className='text-[10px] font-black tracking-wider text-gray-600 uppercase'>Tiers</label>
+        <div className='border-ui-border bg-ui-surface flex w-full min-w-0 flex-col gap-2 rounded-xl border-2 p-3 shadow-[3px_3px_0px_0px_var(--ui-shadow)]'>
+          <span className='text-ui-text-muted text-[10px] font-black tracking-wider uppercase'>Tiers</span>
           <div className='flex w-full flex-col gap-2'>
             {selectedProducts.map((key, i) => {
               const config = tierConfigs[key]
               if (!config) return null
               const isOpen = editingTierKey === key
               return (
-                <div key={key} className='w-full rounded-lg border-2 border-gray-300 bg-gray-50'>
+                <div key={key} className='border-ui-border-subtle bg-ui-surface-subtle w-full rounded-lg border-2'>
                   <div className='flex items-center gap-1 px-2 py-1.5'>
-                    {multiTier && <span className='w-5 shrink-0 text-center text-xs font-black text-gray-500'>#{i + 1}</span>}
+                    {multiTier && <span className='text-ui-text-subtle w-5 shrink-0 text-center text-xs font-black'>#{i + 1}</span>}
                     <button
-                      className='text-creem-ink flex min-w-0 flex-1 cursor-pointer items-center justify-between gap-1 border-0 bg-transparent px-1 py-1 text-left text-sm font-black shadow-none'
+                      className='text-ui-text flex min-w-0 flex-1 cursor-pointer items-center justify-between gap-1 border-0 bg-transparent px-1 py-1 text-left text-sm font-black shadow-none'
                       onClick={() => setEditingTierKey(isOpen ? null : key)}
+                      aria-expanded={isOpen}
+                      aria-controls={`tier-${i}-settings`}
                     >
                       <span className='truncate' title={config.name}>
                         {config.name}
                       </span>
-                      {isOpen ? <ChevronUp className={iconClass('xs', 'shrink-0 text-gray-500')} /> : <ChevronDown className={iconClass('xs', 'shrink-0 text-gray-500')} />}
+                      {isOpen ? (
+                        <ChevronUp className={iconClass('xs', 'text-ui-text-subtle shrink-0')} />
+                      ) : (
+                        <ChevronDown className={iconClass('xs', 'text-ui-text-subtle shrink-0')} />
+                      )}
                     </button>
                     {multiTier && (
                       <div className='flex shrink-0 gap-1'>
@@ -826,28 +861,41 @@ function PricingConfiguration({
                     )}
                   </div>
                   {isOpen && (
-                    <div className='flex w-full flex-col gap-2 border-t border-gray-300 px-3 py-3'>
-                      <label className='text-[10px] font-black text-gray-600 uppercase'>Tier Name</label>
+                    <div id={`tier-${i}-settings`} className='border-ui-border-subtle flex w-full flex-col gap-2 border-t px-3 py-3'>
+                      <label htmlFor={`tier-${i}-name`} className='text-ui-text-muted text-[10px] font-black uppercase'>
+                        Tier Name
+                      </label>
                       <input
-                        className='text-creem-ink w-full rounded-lg border border-black bg-white px-3 py-2 text-sm font-bold'
+                        id={`tier-${i}-name`}
+                        className='border-ui-border bg-ui-surface-elevated text-ui-text w-full rounded-lg border px-3 py-2 text-sm font-bold'
                         value={config.name}
                         onChange={e => updateTierConfig(key, { name: e.target.value })}
                       />
-                      <label className='text-[10px] font-black text-gray-600 uppercase'>Description</label>
-                      <p className='text-[10px] font-semibold text-gray-500'>Supports markdown — use `- item` for a list.</p>
+                      <label htmlFor={`tier-${i}-description`} className='text-ui-text-muted text-[10px] font-black uppercase'>
+                        Description
+                      </label>
+                      <p id={`tier-${i}-description-help`} className='text-ui-text-subtle text-[10px] font-semibold'>
+                        Supports markdown — use `- item` for a list.
+                      </p>
                       <textarea
-                        className='text-creem-ink min-h-[72px] w-full resize-y rounded-lg border border-black bg-white px-3 py-2 text-sm font-semibold'
+                        id={`tier-${i}-description`}
+                        className='border-ui-border bg-ui-surface-elevated text-ui-text min-h-[72px] w-full resize-y rounded-lg border px-3 py-2 text-sm font-semibold'
                         value={config.description}
                         onChange={e => updateTierConfig(key, { description: e.target.value })}
+                        aria-describedby={`tier-${i}-description-help`}
                       />
-                      <label className='text-[10px] font-black text-gray-600 uppercase'>CTA Text</label>
+                      <label htmlFor={`tier-${i}-cta`} className='text-ui-text-muted text-[10px] font-black uppercase'>
+                        CTA Text
+                      </label>
                       <input
-                        className='text-creem-ink w-full rounded-lg border border-black bg-white px-3 py-2 text-sm font-bold'
+                        id={`tier-${i}-cta`}
+                        className='border-ui-border bg-ui-surface-elevated text-ui-text w-full rounded-lg border px-3 py-2 text-sm font-bold'
                         value={config.ctaText}
                         onChange={e => updateTierConfig(key, { ctaText: e.target.value })}
                       />
-                      <label className='text-md mt-2 flex items-center gap-2 font-bold'>
+                      <label htmlFor={`tier-${i}-featured`} className='text-md mt-2 flex items-center gap-2 font-bold'>
                         <input
+                          id={`tier-${i}-featured`}
                           type='checkbox'
                           className='size-[14px]'
                           style={{ accentColor: PLUGIN_ACCENT }}
@@ -865,13 +913,23 @@ function PricingConfiguration({
         </div>
       )}
       {/* Checkout Type — behavior. */}
-      <div className='flex flex-col gap-2 rounded-xl border-2 border-black bg-white p-3 shadow-[3px_3px_0px_0px_#000]'>
-        <label className='text-[10px] font-black tracking-wider text-gray-600 uppercase'>Checkout Type</label>
-        <div className='flex gap-2'>
-          <button className={cn('flex-1 rounded-lg px-3 py-2 text-xs font-black', toggle.segment(checkoutType === 'embed'))} onClick={() => setCheckoutType('embed')}>
+      <div className='border-ui-border bg-ui-surface flex flex-col gap-2 rounded-xl border-2 p-3 shadow-[3px_3px_0px_0px_var(--ui-shadow)]'>
+        <span id='pricing-checkout-type-label' className='text-ui-text-muted text-[10px] font-black tracking-wider uppercase'>
+          Checkout Type
+        </span>
+        <div className='flex gap-2' role='group' aria-labelledby='pricing-checkout-type-label'>
+          <button
+            className={cn('flex-1 rounded-lg px-3 py-2 text-xs font-black', toggle.segment(checkoutType === 'embed'))}
+            onClick={() => setCheckoutType('embed')}
+            aria-pressed={checkoutType === 'embed'}
+          >
             Embed
           </button>
-          <button className={cn('flex-1 rounded-lg px-3 py-2 text-xs font-black', toggle.segment(checkoutType === 'new-tab'))} onClick={() => setCheckoutType('new-tab')}>
+          <button
+            className={cn('flex-1 rounded-lg px-3 py-2 text-xs font-black', toggle.segment(checkoutType === 'new-tab'))}
+            onClick={() => setCheckoutType('new-tab')}
+            aria-pressed={checkoutType === 'new-tab'}
+          >
             New Tab
           </button>
         </div>
@@ -908,17 +966,20 @@ function PricingMiniPreview({
         ? { display: 'flex', flexDirection: 'row', gap: 6, overflow: 'hidden' }
         : { display: 'grid', gridTemplateColumns: `repeat(${cols}, minmax(0, 1fr))`, gap: 6 }
   return (
-    <div className='rounded-lg border-2 border-gray-300 bg-gray-50 p-3'>
+    <div className='border-ui-border-subtle bg-ui-surface-subtle rounded-lg border-2 p-3'>
       {hasHeader && (
         <div className='mb-2.5 flex flex-col items-center gap-1'>
-          <div className='h-2 w-20 rounded-full bg-gray-400' />
-          <div className='h-1 w-28 rounded-full bg-gray-300' />
+          <div className='bg-ui-text-subtle h-2 w-20 rounded-full' />
+          <div className='bg-ui-border-subtle h-1 w-28 rounded-full' />
         </div>
       )}
       {tabs && tabs.length > 0 && (
         <div className='mb-2.5 flex items-center justify-center gap-1'>
           {tabs.map(tab => (
-            <span key={tab.label} className={cn('rounded-full px-2 py-0.5 text-[8px] font-black', tab.active ? 'bg-gray-800 text-white' : 'bg-gray-200 text-gray-500')}>
+            <span
+              key={tab.label}
+              className={cn('rounded-full px-2 py-0.5 text-[8px] font-black', tab.active ? 'bg-ui-text text-ui-bg' : 'bg-ui-surface-elevated text-ui-text-subtle')}
+            >
               {tab.label}
             </span>
           ))}
@@ -939,18 +1000,18 @@ function MiniTierCard({ featured, fixedWidth }: { featured: boolean; fixedWidth:
   return (
     <div
       className={cn(
-        'flex flex-col items-center gap-1.5 rounded-md bg-white p-2',
-        featured ? 'border-creem-purple border-2' : 'border border-gray-300',
+        'bg-ui-surface flex flex-col items-center gap-1.5 rounded-md p-2',
+        featured ? 'border-creem-purple border-2' : 'border-ui-border-subtle border',
         fixedWidth ? 'w-14 shrink-0' : 'w-full'
       )}
     >
-      <div className='h-1 w-7 rounded-full bg-gray-400' />
-      <div className='h-2.5 w-9 rounded bg-gray-800' />
-      <div className='h-2 w-full rounded' style={{ background: featured ? PLUGIN_ACCENT : '#d1d5db' }} />
+      <div className='bg-ui-text-subtle h-1 w-7 rounded-full' />
+      <div className='bg-ui-text h-2.5 w-9 rounded' />
+      <div className={cn('h-2 w-full rounded', featured ? 'bg-creem-peach' : 'bg-ui-border-subtle')} />
       <div className='flex w-full flex-col items-center gap-1 pt-0.5'>
-        <div className='h-0.5 w-full rounded-full bg-gray-200' />
-        <div className='h-0.5 w-4/5 rounded-full bg-gray-200' />
-        <div className='h-0.5 w-3/5 rounded-full bg-gray-200' />
+        <div className='bg-ui-border-subtle h-0.5 w-full rounded-full' />
+        <div className='bg-ui-border-subtle h-0.5 w-4/5 rounded-full' />
+        <div className='bg-ui-border-subtle h-0.5 w-3/5 rounded-full' />
       </div>
     </div>
   )

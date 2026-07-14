@@ -16,4 +16,23 @@ describe('inserted component sources', () => {
     expect(checkoutButtonSource).toContain('successUrlValidation.valid')
     expect(checkoutButtonSource).toContain("searchParams.set('success_url', validatedSuccessUrl)")
   })
+
+  it.each([
+    ['checkout button', checkoutButtonSource],
+    ['pricing table', pricingTableSource]
+  ])('grants only the payment permission to the %s checkout iframe', (_name, source) => {
+    expect(source).toContain("allow='payment *'")
+    expect(source).not.toContain('clipboard-read')
+    expect(source).not.toContain('clipboard-write')
+  })
+
+  it.each([
+    ['checkout button', checkoutButtonSource],
+    ['pricing table', pricingTableSource]
+  ])('manages checkout dialog focus in the %s', (_name, source) => {
+    expect(source).toContain('closeButtonRef.current?.focus()')
+    expect(source).toContain('previouslyFocused?.focus()')
+    expect(source).toContain('aria-labelledby={titleId}')
+    expect(source).toContain('iframeRef.current?.focus()')
+  })
 })

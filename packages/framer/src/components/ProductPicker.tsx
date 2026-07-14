@@ -69,12 +69,16 @@ function ProductRow({ item, mode, selected, order, onSelect }: ProductRowProps) 
       aria-checked={selected}
       className={cn(selectRow.pick(selected), fitButton, 'flex w-full items-center gap-3 px-3 py-3 text-left')}
     >
-      <div className='flex h-11 w-11 shrink-0 items-center justify-center overflow-hidden rounded-lg border-2 border-black bg-gray-100'>
-        {item.image_url ? <img src={item.image_url} className='h-full w-full object-cover' alt='' /> : <Image className={iconClass('md', 'text-gray-300')} aria-hidden='true' />}
+      <div className='border-ui-border bg-ui-surface-subtle flex h-11 w-11 shrink-0 items-center justify-center overflow-hidden rounded-lg border-2'>
+        {item.image_url ? (
+          <img src={item.image_url} className='h-full w-full object-cover' alt='' />
+        ) : (
+          <Image className={iconClass('md', 'text-ui-text-subtle')} aria-hidden='true' />
+        )}
       </div>
       <div className='flex min-w-0 flex-1 flex-col gap-1'>
         <div className='flex min-w-0 items-center gap-1.5'>
-          <span className='truncate text-sm font-black text-black' title={item.name}>
+          <span className='text-ui-text truncate text-sm font-black' title={item.name}>
             {item.name}
           </span>
           {order !== null && (
@@ -84,18 +88,18 @@ function ProductRow({ item, mode, selected, order, onSelect }: ProductRowProps) 
           )}
         </div>
         <div className='flex min-w-0 items-center gap-1.5'>
-          <span className='shrink-0 text-xs font-extrabold text-gray-700'>{formatPrice(item.price, item.currency, item.type, item.billingPeriod)}</span>
+          <span className='text-ui-text-muted shrink-0 text-xs font-extrabold'>{formatPrice(item.price, item.currency, item.type, item.billingPeriod)}</span>
           {item.badge && (
             <span
               className={cn(
-                'truncate rounded border border-black px-1 py-0.5 text-[8px] font-black text-gray-700 uppercase',
-                item.badgeTone === 'pair' ? 'bg-purple-100' : 'bg-gray-100'
+                'border-ui-border text-ui-text-muted truncate rounded border px-1 py-0.5 text-[8px] font-black uppercase',
+                item.badgeTone === 'pair' ? 'bg-creem-purple/20' : 'bg-ui-surface-subtle'
               )}
             >
               {item.badge}
             </span>
           )}
-          {item.note && <span className='shrink-0 text-[9px] font-bold text-yellow-600'>{item.note}</span>}
+          {item.note && <span className='text-ui-warning shrink-0 text-[9px] font-bold'>{item.note}</span>}
         </div>
       </div>
     </button>
