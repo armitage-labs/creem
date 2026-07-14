@@ -11,6 +11,7 @@ import PRICING_TABLE_COMPONENT_SOURCE from '@/framer/pricing-table.tsx?raw'
 import { ProductSearchInput } from '@/components/ProductSearchInput'
 import { ProductPicker, PLUGIN_ACCENT, type PickerItem } from '@/components/ProductPicker'
 import { StoreSwitcher } from '@/components/StoreSwitcher'
+import { DocsBadge } from '@/components/DocsBadge'
 
 const DEFAULTS = {
   BUTTON_TEXT: 'Buy Now',
@@ -393,7 +394,7 @@ type ChooseComponentStepProps = {
 
 function ChooseComponentStep({ onChoose, storeControls }: ChooseComponentStepProps) {
   return (
-    <div className={screen}>
+    <div className={cn(screen, 'relative')}>
       <div className={cn(card.header, 'justify-between')}>
         <img src='/creem.svg' alt='Creem Logo' className='block h-[18px]' />
         <StoreSwitcher controls={storeControls} />
@@ -402,6 +403,9 @@ function ChooseComponentStep({ onChoose, storeControls }: ChooseComponentStepPro
         <p className='text-xs font-bold text-gray-600'>Choose a component to add to your canvas.</p>
         <ComponentCard title='Checkout Button' subtitle='One product, one button.' glyph={<ButtonGlyph />} onClick={() => onChoose('button')} />
         <ComponentCard title='Pricing Table' subtitle='Compare several products in a grid.' glyph={<TableGlyph />} onClick={() => onChoose('pricing')} />
+      </div>
+      <div className='absolute right-3 bottom-3'>
+        <DocsBadge />
       </div>
     </div>
   )

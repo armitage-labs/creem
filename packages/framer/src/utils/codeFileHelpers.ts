@@ -39,6 +39,17 @@ export class ComponentInsertError extends Error {
   }
 }
 
+type ProtectedInsertMethod = 'CodeFile.setFileContent' | 'createCodeFile' | 'addComponentInstance'
+
+/**
+ * Permissions can change after a preflight check (for example when collaboration
+ * access is revoked). Re-check after a protected call fails so the UI can tell a
+ * permission problem from a temporary Framer failure.
+ */
+function protectedActionError(method: ProtectedInsertMethod, step: ComponentInsertStep, permissionMessage: string, temporaryMessage: string, cause: unknown): ComponentInsertError {
+  return new ComponentInsertError(step, framer.isAllowedTo(method) ? temporaryMessage : permissionMessage, cause)
+}
+
 /** Inlines icon components and strips local imports — Framer code files cannot resolve sibling modules. */
 export function withFramerIcons(componentSource: string): string {
   const iconsSource = FRAMER_ICONS_SOURCE.replace(/^export /gm, '')
@@ -95,9 +106,11 @@ export async function ensureCodeFileExists(filename: string, source: string, ref
       }
       return updated
     } catch (error) {
-      throw new ComponentInsertError(
+      throw protectedActionError(
+        'CodeFile.setFileContent',
         'update-code-file',
-        `Framer could not update ${filename}. No component was inserted. Try again or ask the project owner to check code editing access.`,
+        `You no longer have permission to update ${filename}. Ask the project owner for code editing access, then try again.`,
+        `Framer could not update ${filename}. No component was inserted. This may be a temporary Framer issue; try again.`,
         error
       )
     }
@@ -110,9 +123,11 @@ export async function ensureCodeFileExists(filename: string, source: string, ref
   try {
     return await framer.createCodeFile(filename, source)
   } catch (error) {
-    throw new ComponentInsertError(
+    throw protectedActionError(
+      'createCodeFile',
       'create-code-file',
-      `Framer could not create ${filename}. No component was inserted. Try again or ask the project owner to check code editing access.`,
+      `You no longer have permission to create ${filename}. Ask the project owner for code editing access, then try again.`,
+      `Framer could not create ${filename}. No component was inserted. This may be a temporary Framer issue; try again.`,
       error
     )
   }
@@ -191,8 +206,10 @@ export async function insertComponentInstance(options: Parameters<typeof framer.
   try {
     return await framer.addComponentInstance(options)
   } catch (error) {
-    throw new ComponentInsertError(
+    throw protectedActionError(
+      'addComponentInstance',
       'insert-component',
+      'The component code is ready, but you no longer have permission to add it to the canvas. Ask the project owner for canvas editing access.',
       'The component code is ready, but Framer could not add it to the canvas. Try inserting again; the prepared code file will be reused.',
       error
     )

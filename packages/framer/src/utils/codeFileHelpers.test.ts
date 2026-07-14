@@ -63,19 +63,59 @@ describe('ensureCodeFileExists', () => {
     expect(existing.setFileContent).not.toHaveBeenCalled()
   })
 
+  it('blocks code-file creation when permission is unavailable', async () => {
+    framerMock.getCodeFiles.mockResolvedValue([])
+    framerMock.isAllowedTo.mockReturnValue(false)
+
+    await expect(ensureCodeFileExists(FILENAME, 'source', false)).rejects.toMatchObject({
+      step: 'create-code-file',
+      message: expect.stringContaining("don't have permission")
+    })
+    expect(framerMock.createCodeFile).not.toHaveBeenCalled()
+  })
+
   it('identifies code-file update failures', async () => {
     const existing = codeFile({ content: '// creem-plugin: 0.0.9' })
     framerMock.getCodeFiles.mockResolvedValue([existing])
     vi.mocked(existing.setFileContent).mockRejectedValue(new Error('Framer rejected the update'))
 
-    await expect(ensureCodeFileExists(FILENAME, 'new source', false)).rejects.toMatchObject({ step: 'update-code-file' })
+    await expect(ensureCodeFileExists(FILENAME, 'new source', false)).rejects.toMatchObject({
+      step: 'update-code-file',
+      message: expect.stringContaining('temporary Framer issue')
+    })
+  })
+
+  it('identifies permission loss during a code-file update', async () => {
+    const existing = codeFile({ content: '// creem-plugin: 0.0.9' })
+    framerMock.getCodeFiles.mockResolvedValue([existing])
+    framerMock.isAllowedTo.mockReturnValueOnce(true).mockReturnValueOnce(false)
+    vi.mocked(existing.setFileContent).mockRejectedValue(new Error('Permission changed'))
+
+    await expect(ensureCodeFileExists(FILENAME, 'new source', false)).rejects.toMatchObject({
+      step: 'update-code-file',
+      message: expect.stringContaining('no longer have permission')
+    })
   })
 
   it('identifies code-file creation failures', async () => {
     framerMock.getCodeFiles.mockResolvedValue([])
     framerMock.createCodeFile.mockRejectedValue(new Error('Framer rejected the write'))
 
-    await expect(ensureCodeFileExists(FILENAME, 'source', false)).rejects.toMatchObject({ step: 'create-code-file' })
+    await expect(ensureCodeFileExists(FILENAME, 'source', false)).rejects.toMatchObject({
+      step: 'create-code-file',
+      message: expect.stringContaining('temporary Framer issue')
+    })
+  })
+
+  it('identifies permission loss during code-file creation', async () => {
+    framerMock.getCodeFiles.mockResolvedValue([])
+    framerMock.isAllowedTo.mockReturnValueOnce(true).mockReturnValueOnce(false)
+    framerMock.createCodeFile.mockRejectedValue(new Error('Permission changed'))
+
+    await expect(ensureCodeFileExists(FILENAME, 'source', false)).rejects.toMatchObject({
+      step: 'create-code-file',
+      message: expect.stringContaining('no longer have permission')
+    })
   })
 })
 
@@ -94,11 +134,36 @@ describe('ensureComponentInsertURL', () => {
 })
 
 describe('insertComponentInstance', () => {
+  it('blocks canvas insertion when permission is unavailable', async () => {
+    framerMock.isAllowedTo.mockReturnValue(false)
+
+    await expect(insertComponentInstance({ url: 'https://framer.test/component' })).rejects.toMatchObject({
+      step: 'insert-component',
+      message: expect.stringContaining("don't have permission")
+    })
+    expect(framerMock.addComponentInstance).not.toHaveBeenCalled()
+  })
+
   it('identifies final canvas insertion failures', async () => {
     framerMock.addComponentInstance.mockRejectedValue(new Error('Canvas write failed'))
 
     const result = insertComponentInstance({ url: 'https://framer.test/component' })
 
-    await expect(result).rejects.toMatchObject({ step: 'insert-component' })
+    await expect(result).rejects.toMatchObject({
+      step: 'insert-component',
+      message: expect.stringContaining('could not add it to the canvas')
+    })
+  })
+
+  it('identifies permission loss during final canvas insertion', async () => {
+    framerMock.isAllowedTo.mockReturnValueOnce(true).mockReturnValueOnce(false)
+    framerMock.addComponentInstance.mockRejectedValue(new Error('Permission changed'))
+
+    const result = insertComponentInstance({ url: 'https://framer.test/component' })
+
+    await expect(result).rejects.toMatchObject({
+      step: 'insert-component',
+      message: expect.stringContaining('no longer have permission')
+    })
   })
 })

@@ -287,6 +287,11 @@ The button is one group of controls. The plugin fills in the product and a start
 | **Discount Code**                                       | A Creem discount code applied automatically when checkout opens, so buyers never type it. Handy for launch or campaign buttons that should always carry the offer.                                                                                                                          |
 | **Success URL**                                         | Where the buyer lands after paying. Point it at a thank-you or onboarding page to continue the flow, or leave it empty to use the product's default redirect.                                                                                                                               |
 
+<Note>
+  Success URLs are optional. When set, they must be valid HTTPS URLs; unsupported or malformed
+  redirect targets are blocked before checkout opens.
+</Note>
+
 ### Pricing table controls
 
 The pricing table splits its controls into groups (in the **CreemPricingTable** style), one per area of the table, matching the rows in the panel.
@@ -353,6 +358,12 @@ Both components let you choose how checkout opens.
 | ----------- | -------------------------------------------------- |
 | **Embed**   | Opens checkout in a modal overlay on the same page |
 | **New Tab** | Opens checkout in a new browser tab                |
+
+<Info>
+  Both options use Creem-hosted checkout at runtime. Test components open the test checkout URL and
+  Live components open the production checkout URL. If Creem or the visitor's network is temporarily
+  unavailable, checkout cannot open or complete until connectivity is restored.
+</Info>
 
 <Frame caption="Embed opens checkout in a modal over your page">
   <img

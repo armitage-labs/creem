@@ -9,4 +9,11 @@ describe('inserted component sources', () => {
   ])('does not ship console logging in the %s', (_name, source) => {
     expect(source).not.toMatch(/console\.(?:log|error|warn|debug)\s*\(/)
   })
+
+  it('validates optional success redirects before adding them to checkout URLs', () => {
+    expect(checkoutButtonSource).toContain("parsed.protocol !== 'https:'")
+    expect(checkoutButtonSource).toContain('parsed.username || parsed.password')
+    expect(checkoutButtonSource).toContain('successUrlValidation.valid')
+    expect(checkoutButtonSource).toContain("searchParams.set('success_url', validatedSuccessUrl)")
+  })
 })

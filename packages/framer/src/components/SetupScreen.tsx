@@ -2,6 +2,7 @@ import { useEffect, useRef, useState } from 'react'
 import { ArrowLeft, ArrowRight, iconClass } from '@/icons'
 import { btn, card, cn, screen } from '@/styles/ui'
 import { keyEnv, looksLikeKey } from '@/services/stores'
+import { DocsBadge } from '@/components/DocsBadge'
 
 type SetupScreenProps = {
   mode: 'first-run' | 'add'
@@ -120,6 +121,9 @@ export function SetupScreen({ mode, onConnect, onCancel, loading }: SetupScreenP
           {error && (
             <div className='rounded-lg border-2 border-black bg-red-300 px-3 py-2.5 text-xs font-extrabold text-black shadow-[2px_2px_0px_0px_#000]'>⚠️ ERROR: {error}</div>
           )}
+          <div className='mt-auto flex justify-end'>
+            <DocsBadge />
+          </div>
         </div>
       </div>
     </div>

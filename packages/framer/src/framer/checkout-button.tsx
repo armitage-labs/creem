@@ -33,11 +33,29 @@ function TestModeWatermark() {
   )
 }
 
-function buildCreemCheckoutUrl(productId: string, testMode: boolean, discountCode?: string, successUrl?: string): string {
+type SuccessUrlValidation = { valid: true; value?: string } | { valid: false; message: string }
+
+/** Accept only explicit HTTPS redirects; the destination remains the site owner's choice. */
+function validateSuccessUrl(value: string): SuccessUrlValidation {
+  const trimmed = value.trim()
+  if (!trimmed) return { valid: true }
+
+  try {
+    const parsed = new URL(trimmed)
+    if (parsed.protocol !== 'https:' || !parsed.hostname || parsed.username || parsed.password) {
+      return { valid: false, message: 'Success URL must be a valid HTTPS URL, or left empty.' }
+    }
+    return { valid: true, value: parsed.toString() }
+  } catch {
+    return { valid: false, message: 'Success URL must be a valid HTTPS URL, or left empty.' }
+  }
+}
+
+function buildCreemCheckoutUrl(productId: string, testMode: boolean, discountCode?: string, validatedSuccessUrl?: string): string {
   const base = testMode ? 'https://creem.io/test/payment' : 'https://creem.io/payment'
   const checkoutUrl = new URL(`${base}/${productId}`)
   if (discountCode) checkoutUrl.searchParams.set('discount_code', discountCode)
-  if (successUrl) checkoutUrl.searchParams.set('success_url', successUrl)
+  if (validatedSuccessUrl) checkoutUrl.searchParams.set('success_url', validatedSuccessUrl)
   return checkoutUrl.toString()
 }
 
@@ -211,8 +229,15 @@ export function CreemCheckoutButton({
       setErrorMessage('Product ID is missing. Please re-insert this button through the Creem plugin.')
       return
     }
+
+    const successUrlValidation = validateSuccessUrl(successUrl)
+    if (!successUrlValidation.valid) {
+      setErrorMessage(successUrlValidation.message)
+      return
+    }
+
     setLoading(true)
-    const url = buildCreemCheckoutUrl(productId, testMode, discountCode, successUrl)
+    const url = buildCreemCheckoutUrl(productId, testMode, discountCode, successUrlValidation.value)
     if (type === 'New Tab') {
       window.open(url, linkTarget, 'noopener,noreferrer')
       setTimeout(() => setLoading(false), 1500)
@@ -546,7 +571,8 @@ addPropertyControls(CreemCheckoutButton, {
   successUrl: {
     type: ControlType.String,
     title: 'Success URL',
-    placeholder: 'https://yoursite.com/thanks'
+    placeholder: 'https://yoursite.com/thanks',
+    description: 'Optional. Must be a valid HTTPS URL.'
   },
   testMode: {
     type: ControlType.Boolean,
