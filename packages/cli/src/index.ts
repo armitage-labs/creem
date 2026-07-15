@@ -2,6 +2,8 @@
 
 import { Command } from "commander";
 import chalk from "chalk";
+import { readFileSync } from "fs";
+import { join } from "path";
 import {
   createLoginCommand,
   createLogoutCommand,
@@ -16,7 +18,11 @@ import {
   createMigrateCommand,
 } from "./commands";
 
-const VERSION = "0.1.3";
+const VERSION = (
+  JSON.parse(readFileSync(join(__dirname, "../package.json"), "utf8")) as {
+    version: string;
+  }
+).version;
 
 const creem = chalk.hex("#ffbe98");
 

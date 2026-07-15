@@ -87,7 +87,9 @@ async function fetchSubscriptionsFromTransactions(
       transactionPage,
       50,
     );
-    const items = (transactions as { items?: Array<{ subscription?: string }> }).items || [];
+    const items =
+      (transactions as { result?: { items?: Array<{ subscription?: string }> } }).result?.items ||
+      [];
 
     if (items.length === 0) {
       noMoreTransactions = true;
