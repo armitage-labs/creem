@@ -78,6 +78,7 @@ export * from "./transactionresponsedto.js";
 export * from "./transactionstatus.js";
 export * from "./transactiontype.js";
 export * from "./updatecustomerrequestentity.js";
+export * from "./updateproductrequestentity.js";
 export * from "./updatesubscriptionrequestentity.js";
 export * from "./upgradesubscriptionrequestentity.js";
 export * from "./upsertsubscriptionitementity.js";
