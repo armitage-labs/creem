@@ -55,27 +55,35 @@ creem-docs/
 
 ## Development Commands
 
+Run these commands from the repository root.
+
 ```bash
 # Preview docs locally
-mintlify dev
+pnpm --dir packages/docs exec mint dev
 
 # Format all content files
-npm run format
+pnpm --dir packages/docs format
 
 # Check formatting without changes
-npm run format:check
+pnpm --dir packages/docs format:check
 
 # Generate API reference MDX from local openapi.json
-npm run generate:api
+pnpm --dir packages/docs generate:api
 
 # Generate from remote API, update local spec, and clean orphans
-npm run generate:api:remote -- https://api.creem.io/open-api/json
+pnpm --dir packages/docs generate:api:remote -- https://api.creem.io/open-api/json
 
 # Preview API doc generation without writing files
-npm run generate:api:dry-run
+pnpm --dir packages/docs generate:api:dry-run
 
 # Delete orphaned endpoint MDX files
-npm run generate:api:cleanup
+pnpm --dir packages/docs generate:api:cleanup
+
+# Validate the Mintlify build and referenced OpenAPI document
+pnpm --dir packages/docs validate
+
+# Check internal links, redirect destinations, and anchors
+pnpm --dir packages/docs check:links
 ```
 
 ---
@@ -163,7 +171,7 @@ The script has a `FILENAME_OVERRIDES` map for custom filenames. If an operationI
 When the backend API changes:
 
 1. Deploy or run the backend locally to expose the updated OpenAPI spec
-2. Run: `npm run generate:api:remote -- https://api.creem.io/open-api/json` (or sandbox URL)
+2. Run: `pnpm --dir packages/docs generate:api:remote -- https://api.creem.io/open-api/json` (or sandbox URL)
 3. Review the generated changes
 4. Add the new endpoint page path to `docs.json` navigation if it's a new endpoint
 5. Commit both the updated `openapi.json` and any new/changed MDX files
@@ -383,7 +391,7 @@ Before submitting documentation changes, verify:
 - [ ] Links to other docs use relative paths (e.g., `/getting-started/quickstart`)
 - [ ] Code examples are accurate and use current SDK/API patterns
 - [ ] API reference changes are generated via the script, not manually edited
-- [ ] Formatting passes (`npm run format:check`)
+- [ ] Formatting passes (`pnpm --dir packages/docs format:check`)
 - [ ] No broken internal links
 - [ ] Tone matches Creem voice (professional, friendly, developer-focused)
 - [ ] Business/legal terminology is accurate (MoR, VAT, compliance)

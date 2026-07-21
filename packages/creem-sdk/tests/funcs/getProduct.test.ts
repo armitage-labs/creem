@@ -12,7 +12,7 @@ const creemWithInvalidKey = new Creem({
   server: TEST_SERVER,
 });
 
-describe("retrieveProduct", () => {
+describe("getProduct", () => {
   let testProduct: ProductEntity;
 
   beforeAll(async () => {

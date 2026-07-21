@@ -1,98 +1,6 @@
 {
   "openapi": "3.0.0",
   "paths": {
-    "/v1/products": {
-      "get": {
-        "operationId": "retrieveProduct",
-        "x-speakeasy-name-override": "get",
-        "summary": "Retrieve a product",
-        "description": "Retrieve product details by ID. View pricing, billing type, status, and product configuration.",
-        "parameters": [
-          {
-            "name": "product_id",
-            "required": true,
-            "in": "query",
-            "description": "The unique identifier of the product.",
-            "schema": {
-              "example": "prod_1234567890",
-              "type": "string"
-            }
-          }
-        ],
-        "responses": {
-          "200": {
-            "description": "Successfully retrieved the product",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/ProductEntity"
-                }
-              }
-            }
-          },
-          "400": {
-            "description": "Bad Request - Invalid input parameters"
-          },
-          "401": {
-            "description": "Unauthorized - Invalid or missing API key"
-          },
-          "404": {
-            "description": "Not Found - Resource does not exist"
-          }
-        },
-        "tags": ["Products"],
-        "security": [
-          {
-            "ApiKey": []
-          }
-        ]
-      },
-      "post": {
-        "operationId": "createProduct",
-        "x-speakeasy-name-override": "create",
-        "summary": "Creates a new product.",
-        "description": "Create a new product for one-time payments, including free products with a 0 price, or subscriptions. Configure pricing, billing cycles, and features.",
-        "parameters": [],
-        "requestBody": {
-          "required": true,
-          "description": "Product creation payload",
-          "content": {
-            "application/json": {
-              "schema": {
-                "$ref": "#/components/schemas/CreateProductRequestEntity"
-              }
-            }
-          }
-        },
-        "responses": {
-          "200": {
-            "description": "Successfully created a product",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/ProductEntity"
-                }
-              }
-            }
-          },
-          "400": {
-            "description": "Bad Request - Invalid input parameters"
-          },
-          "401": {
-            "description": "Unauthorized - Invalid or missing API key"
-          },
-          "404": {
-            "description": "Not Found - Resource does not exist"
-          }
-        },
-        "tags": ["Products"],
-        "security": [
-          {
-            "ApiKey": []
-          }
-        ]
-      }
-    },
     "/v1/products/search": {
       "get": {
         "operationId": "searchProducts",
@@ -145,7 +53,7 @@
             "name": "status",
             "required": false,
             "in": "query",
-            "description": "Filter products by lifecycle status. Omit to return products of any status. `active` returns only non-archived products (the common case for catalogues and pricing pages); `archived` returns only archived products (useful for configuration synchronization).",
+            "description": "Lifecycle status of the product: `active` or `archived`.",
             "schema": {
               "$ref": "#/components/schemas/ProductStatus"
             }
@@ -158,6 +66,208 @@
               "application/json": {
                 "schema": {
                   "$ref": "#/components/schemas/ProductListEntity"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Bad Request - Invalid input parameters"
+          },
+          "401": {
+            "description": "Unauthorized - Invalid or missing API key"
+          },
+          "404": {
+            "description": "Not Found - Resource does not exist"
+          }
+        },
+        "tags": ["Products"],
+        "security": [
+          {
+            "ApiKey": []
+          }
+        ]
+      }
+    },
+    "/v1/products": {
+      "post": {
+        "operationId": "createProduct",
+        "x-speakeasy-name-override": "create",
+        "summary": "Creates a new product.",
+        "description": "Create a new product for one-time payments, including free products with a 0 price, or subscriptions. Configure pricing, billing cycles, and features.",
+        "parameters": [
+          {
+            "name": "Idempotency-Key",
+            "required": false,
+            "in": "header",
+            "description": "Optional key that makes retries return the originally created product instead of creating a duplicate.",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "description": "Product creation payload",
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CreateProductRequestEntity"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Successfully created a product",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProductEntity"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Bad Request - Invalid input parameters"
+          },
+          "401": {
+            "description": "Unauthorized - Invalid or missing API key"
+          },
+          "404": {
+            "description": "Not Found - Resource does not exist"
+          }
+        },
+        "tags": ["Products"],
+        "security": [
+          {
+            "ApiKey": []
+          }
+        ]
+      }
+    },
+    "/v1/products/{id}": {
+      "get": {
+        "operationId": "getProduct",
+        "x-speakeasy-name-override": "get",
+        "summary": "Get a product by ID",
+        "description": "Retrieve a single product by its unique identifier.",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "description": "The product ID",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successfully retrieved the product",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProductEntity"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Bad Request - Invalid input parameters"
+          },
+          "401": {
+            "description": "Unauthorized - Invalid or missing API key"
+          },
+          "404": {
+            "description": "Not Found - Resource does not exist"
+          }
+        },
+        "tags": ["Products"],
+        "security": [
+          {
+            "ApiKey": []
+          }
+        ]
+      },
+      "patch": {
+        "operationId": "updateProduct",
+        "x-speakeasy-name-override": "update",
+        "summary": "Update a product",
+        "description": "Update a product. Only supplied fields change; a price change mints a new default price.",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "description": "The product ID",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "description": "Product update payload",
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/UpdateProductRequestEntity"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Successfully updated the product",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProductEntity"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Bad Request - Invalid input parameters"
+          },
+          "401": {
+            "description": "Unauthorized - Invalid or missing API key"
+          },
+          "404": {
+            "description": "Not Found - Resource does not exist"
+          }
+        },
+        "tags": ["Products"],
+        "security": [
+          {
+            "ApiKey": []
+          }
+        ]
+      },
+      "delete": {
+        "operationId": "archiveProduct",
+        "x-speakeasy-name-override": "archive",
+        "summary": "Archive a product",
+        "description": "Archive a product (soft-delete). The product is retained for historical orders and subscriptions but can no longer be purchased.",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "description": "The product ID",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successfully archived the product",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProductEntity"
                 }
               }
             }
@@ -1276,6 +1386,93 @@
         ]
       }
     },
+    "/v1/licenses/{id}/instances": {
+      "get": {
+        "operationId": "listLicenseInstances",
+        "x-speakeasy-pagination": {
+          "type": "offsetLimit",
+          "inputs": [
+            {
+              "name": "page_number",
+              "in": "parameters",
+              "type": "page"
+            },
+            {
+              "name": "page_size",
+              "in": "parameters",
+              "type": "limit"
+            }
+          ],
+          "outputs": {
+            "numPages": "$.pagination.total_pages",
+            "results": "$.items"
+          }
+        },
+        "x-speakeasy-name-override": "listInstances",
+        "summary": "List license instances.",
+        "description": "Retrieve a paginated list of instances (activations) for a license key. Use an instance id from this list to deactivate it via the deactivate endpoint.",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "description": "The unique identifier of the license key",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "page_number",
+            "required": false,
+            "in": "query",
+            "description": "The page number for pagination.",
+            "schema": {
+              "default": 1,
+              "example": 1,
+              "type": "number"
+            }
+          },
+          {
+            "name": "page_size",
+            "required": false,
+            "in": "query",
+            "description": "The number of items per page.",
+            "schema": {
+              "default": 10,
+              "example": 10,
+              "type": "number"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successfully retrieved license instances",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/LicenseInstanceListEntity"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Bad Request - Invalid input parameters"
+          },
+          "401": {
+            "description": "Unauthorized - Invalid or missing API key"
+          },
+          "404": {
+            "description": "Not Found - Resource does not exist"
+          }
+        },
+        "tags": ["Licenses"],
+        "security": [
+          {
+            "ApiKey": []
+          }
+        ]
+      }
+    },
     "/v1/discounts/search": {
       "get": {
         "operationId": "searchDiscounts",
@@ -1821,6 +2018,54 @@
           }
         },
         "tags": ["Moderation"],
+        "security": [
+          {
+            "ApiKey": []
+          }
+        ]
+      }
+    },
+    "/v1/refunds": {
+      "post": {
+        "operationId": "refundPayment",
+        "x-speakeasy-name-override": "refund",
+        "x-speakeasy-group": "transactions",
+        "summary": "Refund a payment",
+        "description": "Issue a full refund for a payment, identified by its transaction ID. The full remaining refundable amount is resolved automatically. Returns `pending` when the payment provider confirms the refund asynchronously.",
+        "parameters": [],
+        "requestBody": {
+          "required": true,
+          "description": "The transaction to refund in full.",
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CreateRefundRequestEntity"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Successfully created the refund",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/RefundResponseEntity"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Bad Request - Invalid input parameters"
+          },
+          "401": {
+            "description": "Unauthorized - Invalid or missing API key"
+          },
+          "404": {
+            "description": "Not Found - Resource does not exist"
+          }
+        },
+        "tags": ["Refunds"],
         "security": [
           {
             "ApiKey": []
@@ -2523,30 +2768,62 @@
         ]
       }
     },
-    "/v1/products/{id}": {
+    "/v1/affiliates": {
       "get": {
-        "operationId": "getProduct",
-        "x-speakeasy-name-override": "getById",
-        "summary": "Retrieve a product",
-        "description": "Retrieve a single product by its ID.",
+        "operationId": "listAffiliates",
+        "x-speakeasy-pagination": {
+          "type": "offsetLimit",
+          "inputs": [
+            {
+              "name": "page_number",
+              "in": "parameters",
+              "type": "page"
+            },
+            {
+              "name": "page_size",
+              "in": "parameters",
+              "type": "limit"
+            }
+          ],
+          "outputs": {
+            "numPages": "$.pagination.total_pages",
+            "results": "$.items"
+          }
+        },
+        "x-speakeasy-name-override": "list",
+        "summary": "List all affiliates",
+        "description": "Retrieve a paginated list of your affiliates with their referral link, click and conversion counts, and lifetime commission. Affiliates who were invited but have not yet joined a program are not included.",
         "parameters": [
           {
-            "name": "id",
-            "required": true,
-            "in": "path",
-            "description": "The product ID",
+            "name": "page_number",
+            "required": false,
+            "in": "query",
+            "description": "The page number for pagination.",
             "schema": {
-              "type": "string"
+              "default": 1,
+              "example": 1,
+              "type": "number"
+            }
+          },
+          {
+            "name": "page_size",
+            "required": false,
+            "in": "query",
+            "description": "The number of items per page.",
+            "schema": {
+              "default": 50,
+              "example": 50,
+              "type": "number"
             }
           }
         ],
         "responses": {
           "200": {
-            "description": "Successfully retrieved the product",
+            "description": "Successfully retrieved affiliates",
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/ProductEntity"
+                  "$ref": "#/components/schemas/AffiliateListEntity"
                 }
               }
             }
@@ -2561,46 +2838,38 @@
             "description": "Not Found - Resource does not exist"
           }
         },
-        "tags": ["Products"],
+        "tags": ["Affiliates"],
         "security": [
           {
             "ApiKey": []
           }
         ]
-      },
-      "patch": {
-        "operationId": "updateProduct",
-        "x-speakeasy-name-override": "update",
-        "summary": "Update a product",
-        "description": "Update a product. Only supplied fields change. Changing a price field mints a new default price; existing subscriptions keep the price they were purchased under.",
+      }
+    },
+    "/v1/affiliates/{id}": {
+      "get": {
+        "operationId": "retrieveAffiliate",
+        "x-speakeasy-name-override": "retrieve",
+        "summary": "Retrieve an affiliate",
+        "description": "Retrieve a single affiliate by ID, including referral link, click and conversion counts, and lifetime commission.",
         "parameters": [
           {
             "name": "id",
             "required": true,
             "in": "path",
-            "description": "The product ID",
+            "description": "The unique identifier of the affiliate",
             "schema": {
               "type": "string"
             }
           }
         ],
-        "requestBody": {
-          "required": true,
-          "content": {
-            "application/json": {
-              "schema": {
-                "$ref": "#/components/schemas/UpdateProductRequestEntity"
-              }
-            }
-          }
-        },
         "responses": {
           "200": {
-            "description": "Successfully updated the product",
+            "description": "Successfully retrieved the affiliate",
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/ProductEntity"
+                  "$ref": "#/components/schemas/AffiliateEntity"
                 }
               }
             }
@@ -2615,36 +2884,88 @@
             "description": "Not Found - Resource does not exist"
           }
         },
-        "tags": ["Products"],
+        "tags": ["Affiliates"],
         "security": [
           {
             "ApiKey": []
           }
         ]
-      },
-      "delete": {
-        "operationId": "archiveProduct",
-        "x-speakeasy-name-override": "archive",
-        "summary": "Archive a product",
-        "description": "Archive a product (soft-delete). The product is retained for historical orders and subscriptions but can no longer be purchased. Archived products remain retrievable and appear in list results when filtering by `status=archived`.",
+      }
+    },
+    "/v1/affiliates/{id}/commissions": {
+      "get": {
+        "operationId": "listAffiliateCommissions",
+        "x-speakeasy-pagination": {
+          "type": "offsetLimit",
+          "inputs": [
+            {
+              "name": "page_number",
+              "in": "parameters",
+              "type": "page"
+            },
+            {
+              "name": "page_size",
+              "in": "parameters",
+              "type": "limit"
+            }
+          ],
+          "outputs": {
+            "numPages": "$.pagination.total_pages",
+            "results": "$.items"
+          }
+        },
+        "x-speakeasy-name-override": "listCommissions",
+        "summary": "List affiliate commissions",
+        "description": "Retrieve a paginated list of an affiliate’s commissions. Filter by settlement status (pending, approved, paid).",
         "parameters": [
           {
             "name": "id",
             "required": true,
             "in": "path",
-            "description": "The product ID",
+            "description": "The unique identifier of the affiliate",
             "schema": {
               "type": "string"
+            }
+          },
+          {
+            "name": "status",
+            "required": false,
+            "in": "query",
+            "description": "The settlement status of the commission. `pending` while on hold, `approved` once cleared and available, `paid` once settled by a payout.",
+            "schema": {
+              "$ref": "#/components/schemas/CommissionStatus"
+            }
+          },
+          {
+            "name": "page_number",
+            "required": false,
+            "in": "query",
+            "description": "The page number for pagination.",
+            "schema": {
+              "default": 1,
+              "example": 1,
+              "type": "number"
+            }
+          },
+          {
+            "name": "page_size",
+            "required": false,
+            "in": "query",
+            "description": "The number of items per page.",
+            "schema": {
+              "default": 10,
+              "example": 10,
+              "type": "number"
             }
           }
         ],
         "responses": {
           "200": {
-            "description": "Successfully archived the product",
+            "description": "Successfully retrieved affiliate commissions",
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/ProductEntity"
+                  "$ref": "#/components/schemas/CommissionListEntity"
                 }
               }
             }
@@ -2659,7 +2980,7 @@
             "description": "Not Found - Resource does not exist"
           }
         },
-        "tags": ["Products"],
+        "tags": ["Affiliates"],
         "security": [
           {
             "ApiKey": []
@@ -2706,6 +3027,11 @@
       }
     },
     "schemas": {
+      "ProductStatus": {
+        "type": "string",
+        "description": "Lifecycle status of the product: `active` or `archived`.",
+        "enum": ["active", "archived"]
+      },
       "EnvironmentMode": {
         "type": "string",
         "description": "String representing the environment.",
@@ -2713,7 +3039,7 @@
       },
       "ProductFeatureType": {
         "type": "string",
-        "description": "The type of the feature: privateNote (custom note), file (downloadable files), or licenseKey (license key).",
+        "description": "The type of the feature: `custom` (private note), `file` (downloadable files), `licenseKey` (license key), or `customerCredits` (customer credit grant).",
         "enum": ["custom", "file", "licenseKey", "customerCredits"]
       },
       "FeatureEntity": {
@@ -2752,11 +3078,6 @@
           "every-day",
           "once"
         ]
-      },
-      "ProductStatus": {
-        "type": "string",
-        "description": "Status of the product",
-        "enum": ["active", "archived"]
       },
       "TaxMode": {
         "type": "string",
@@ -2878,6 +3199,14 @@
             "description": "URL of the product image. Only png as jpg are supported",
             "example": "https://example.com/image.jpg"
           },
+          "image_urls": {
+            "description": "Ordered list of product image URLs. The first entry is the cover image (mirrored in image_url).",
+            "example": ["https://example.com/image.jpg"],
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
           "features": {
             "description": "Features of the product.",
             "type": "array",
@@ -2904,6 +3233,7 @@
             "$ref": "#/components/schemas/ProductBillingPeriod"
           },
           "status": {
+            "example": "active",
             "$ref": "#/components/schemas/ProductStatus"
           },
           "tax_mode": {
@@ -3019,17 +3349,17 @@
       },
       "ProductCurrency": {
         "type": "string",
-        "description": "Three-letter ISO currency code, in uppercase. Must be a supported currency.",
+        "description": "Three-letter uppercase ISO 4217 currency code. Must be one of Creem's supported currencies.",
         "enum": ["EUR", "USD"]
       },
       "ProductRequestBillingType": {
         "type": "string",
-        "description": "Indicates the billing method for the customer. It can either be a `recurring` billing cycle or a `onetime` payment.",
+        "description": "Billing method for the product: `recurring` subscription or `onetime` payment.",
         "enum": ["recurring", "onetime"]
       },
       "ProductRequestBillingPeriod": {
         "type": "string",
-        "description": "Billing period, required if billing_type is recurring",
+        "description": "Billing interval. Required when `billing_type` is `recurring`.",
         "enum": [
           "once",
           "every-day",
@@ -3127,6 +3457,14 @@
             "description": "URL of the product image",
             "example": "https://picsum.photos/200/300"
           },
+          "image_urls": {
+            "description": "Ordered list of product image URLs (max 8). The first entry is the cover image; when provided it takes precedence over image_url.",
+            "example": ["https://picsum.photos/200/300", "https://picsum.photos/200/301"],
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
           "price": {
             "type": "integer",
             "description": "The price of the product in cents. Must be 0 (free product) or at least 100 (one whole unit of the currency).",
@@ -3190,6 +3528,62 @@
         },
         "required": ["name", "description", "price", "currency", "billing_type"]
       },
+      "UpdateProductRequestEntity": {
+        "type": "object",
+        "properties": {
+          "name": {
+            "type": "string",
+            "description": "Name of the product"
+          },
+          "description": {
+            "type": "string",
+            "description": "Description of the product"
+          },
+          "image_url": {
+            "type": "string",
+            "description": "URL of the product image"
+          },
+          "image_urls": {
+            "description": "Ordered list of product image URLs (max 8). The first entry is the cover image; when provided it takes precedence over image_url. An empty list removes all images.",
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "default_success_url": {
+            "type": "string",
+            "description": "Redirect URL after successful payment."
+          },
+          "price": {
+            "type": "integer",
+            "description": "The price of the product in cents. Must be 0 (free product) or at least 100 (one whole unit of the currency)."
+          },
+          "currency": {
+            "example": "USD",
+            "$ref": "#/components/schemas/ProductCurrency"
+          },
+          "billing_type": {
+            "example": "recurring",
+            "$ref": "#/components/schemas/ProductRequestBillingType"
+          },
+          "billing_period": {
+            "example": "every-month",
+            "$ref": "#/components/schemas/ProductRequestBillingPeriod"
+          },
+          "tax_mode": {
+            "example": "inclusive",
+            "$ref": "#/components/schemas/TaxMode"
+          },
+          "pay_what_you_want": {
+            "type": "boolean",
+            "description": "Enable pay-what-you-want pricing (one-time only)."
+          },
+          "suggested_price": {
+            "type": "integer",
+            "description": "Suggested amount in cents when pay_what_you_want is enabled."
+          }
+        }
+      },
       "CustomerEntity": {
         "type": "object",
         "properties": {
@@ -3226,7 +3620,7 @@
           },
           "country": {
             "type": "string",
-            "description": "The ISO alpha-2 country code for the customer.",
+            "description": "The ISO 3166-1 alpha-2 country code for the customer.",
             "example": "US",
             "pattern": "^[A-Z]{2}$",
             "nullable": true
@@ -4101,7 +4495,7 @@
             "example": "100"
           },
           "unit_label": {
-            "type": "object",
+            "type": "string",
             "description": "Optional label for the credit unit (e.g. \"tokens\", \"credits\").",
             "example": "tokens",
             "nullable": true
@@ -4450,6 +4844,27 @@
           }
         },
         "required": ["key", "instance_id"]
+      },
+      "LicenseInstanceListEntity": {
+        "type": "object",
+        "properties": {
+          "items": {
+            "description": "List of license instance items",
+            "items": {
+              "$ref": "#/components/schemas/LicenseInstanceEntity"
+            },
+            "type": "array"
+          },
+          "pagination": {
+            "description": "Pagination details for the list",
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/PaginationEntity"
+              }
+            ]
+          }
+        },
+        "required": ["items", "pagination"]
       },
       "DiscountEntity": {
         "type": "object",
@@ -4860,6 +5275,32 @@
         },
         "required": ["id", "object", "prompt", "decision", "usage"]
       },
+      "CreateRefundRequestEntity": {
+        "type": "object",
+        "properties": {
+          "transaction_id": {
+            "type": "string",
+            "description": "The unique identifier of the transaction to refund in full.",
+            "example": "tran_1234567890"
+          }
+        },
+        "required": ["transaction_id"]
+      },
+      "RefundStatus": {
+        "type": "string",
+        "description": "Status of the refund. `pending` and `requiresAction` represent non-terminal provider processing states.",
+        "enum": ["pending", "requiresAction", "succeeded", "failed", "canceled"]
+      },
+      "RefundResponseEntity": {
+        "type": "object",
+        "properties": {
+          "status": {
+            "example": "succeeded",
+            "$ref": "#/components/schemas/RefundStatus"
+          }
+        },
+        "required": ["status"]
+      },
       "CreateAccountDto": {
         "type": "object",
         "properties": {
@@ -5053,7 +5494,7 @@
             "example": "invalid_request_error"
           },
           "code": {
-            "type": "object",
+            "type": "string",
             "description": "Machine-readable error code",
             "example": "unbalanced_transaction",
             "nullable": true
@@ -5064,7 +5505,7 @@
             "example": "Total debits must equal total credits"
           },
           "param": {
-            "type": "object",
+            "type": "string",
             "description": "The parameter related to the error, if applicable",
             "example": "entries",
             "nullable": true
@@ -5134,9 +5575,10 @@
             "description": "Idempotency key"
           },
           "reversal_of": {
-            "type": "object",
+            "type": "string",
             "description": "ID of the transaction this reverses, if applicable",
-            "example": "cct_abc123"
+            "example": "cct_abc123",
+            "nullable": true
           },
           "entries": {
             "description": "Transaction entries",
@@ -5162,6 +5604,185 @@
           }
         },
         "required": ["transaction_id"]
+      },
+      "AffiliateEntity": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "description": "Unique identifier for the object."
+          },
+          "mode": {
+            "$ref": "#/components/schemas/EnvironmentMode"
+          },
+          "object": {
+            "type": "string",
+            "description": "String representing the object's type. Objects of the same type share the same value.",
+            "example": "affiliate"
+          },
+          "email": {
+            "type": "string",
+            "description": "The email address the affiliate was invited with.",
+            "example": "partner@example.com"
+          },
+          "name": {
+            "type": "string",
+            "description": "The display name of the affiliate, if set.",
+            "example": "Jane Partner",
+            "nullable": true
+          },
+          "status": {
+            "type": "string",
+            "description": "The affiliate's status within your program, reflecting their membership standing: `active`, `pending` (awaiting approval), `rejected`, `suspended`, or `inactive` (left or removed). Invited-but-not-yet-joined affiliates are not returned by this endpoint.",
+            "example": "active"
+          },
+          "referral_code": {
+            "type": "string",
+            "description": "The affiliate's unique referral code.",
+            "example": "a1b2c3d4"
+          },
+          "referral_link": {
+            "type": "string",
+            "description": "The affiliate's shareable referral link. Traffic arriving through it is attributed to this affiliate.",
+            "example": "https://creem.io/affiliate?code=a1b2c3d4"
+          },
+          "clicks": {
+            "type": "number",
+            "description": "Total number of clicks recorded on the affiliate’s links.",
+            "example": 128
+          },
+          "conversions": {
+            "type": "number",
+            "description": "Total number of conversions attributed to the affiliate.",
+            "example": 12
+          },
+          "earnings": {
+            "type": "number",
+            "description": "Lifetime commission earned by the affiliate, in cents (1000 = $10.00), reported in a single primary currency (see `currency`). Affiliates earning in multiple currencies show only their highest-earning currency here; use the affiliate's commissions endpoint for the full per-currency breakdown.",
+            "example": 4200
+          },
+          "currency": {
+            "type": "string",
+            "description": "Three-letter ISO currency code, in uppercase, for the `earnings` amount. This is the affiliate's primary (highest-earning) currency; commissions in other currencies are listed individually on the commissions endpoint.",
+            "example": "USD"
+          }
+        },
+        "required": [
+          "id",
+          "mode",
+          "object",
+          "email",
+          "status",
+          "referral_code",
+          "referral_link",
+          "clicks",
+          "conversions",
+          "earnings",
+          "currency"
+        ]
+      },
+      "AffiliateListEntity": {
+        "type": "object",
+        "properties": {
+          "items": {
+            "description": "List of affiliate items",
+            "items": {
+              "$ref": "#/components/schemas/AffiliateEntity"
+            },
+            "type": "array"
+          },
+          "pagination": {
+            "description": "Pagination details for the list",
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/PaginationEntity"
+              }
+            ]
+          }
+        },
+        "required": ["items", "pagination"]
+      },
+      "CommissionStatus": {
+        "type": "string",
+        "description": "The settlement status of the commission. `pending` while on hold, `approved` once cleared and available, `paid` once settled by a payout.",
+        "enum": ["pending", "approved", "paid"]
+      },
+      "CommissionEntity": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "description": "Unique identifier for the object."
+          },
+          "mode": {
+            "$ref": "#/components/schemas/EnvironmentMode"
+          },
+          "object": {
+            "type": "string",
+            "description": "String representing the object's type. Objects of the same type share the same value.",
+            "example": "commission"
+          },
+          "affiliate": {
+            "type": "string",
+            "description": "The ID of the affiliate this commission belongs to.",
+            "example": "aff_1234567890"
+          },
+          "amount": {
+            "type": "number",
+            "description": "The commission amount in cents. 1000 = $10.00",
+            "example": 600
+          },
+          "currency": {
+            "type": "string",
+            "description": "Three-letter ISO currency code, in uppercase, for the commission amount.",
+            "example": "USD"
+          },
+          "status": {
+            "example": "pending",
+            "$ref": "#/components/schemas/CommissionStatus"
+          },
+          "sale": {
+            "type": "string",
+            "description": "The ID of the sale transaction that generated this commission, if available.",
+            "example": "tran_1234567890",
+            "nullable": true
+          },
+          "created_at": {
+            "type": "number",
+            "description": "Creation date of the commission as a timestamp."
+          }
+        },
+        "required": [
+          "id",
+          "mode",
+          "object",
+          "affiliate",
+          "amount",
+          "currency",
+          "status",
+          "created_at"
+        ]
+      },
+      "CommissionListEntity": {
+        "type": "object",
+        "properties": {
+          "items": {
+            "description": "List of commission items",
+            "items": {
+              "$ref": "#/components/schemas/CommissionEntity"
+            },
+            "type": "array"
+          },
+          "pagination": {
+            "description": "Pagination details for the list",
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/PaginationEntity"
+              }
+            ]
+          }
+        },
+        "required": ["items", "pagination"]
       },
       "WebhookSubscriptionEntity": {
         "type": "object",
@@ -5349,11 +5970,6 @@
         "required": ["id", "eventType", "created_at", "object"],
         "x-speakeasy-include": true
       },
-      "RefundStatus": {
-        "type": "string",
-        "description": "Status of the refund.",
-        "enum": ["pending", "succeeded", "canceled", "failed"]
-      },
       "RefundReason": {
         "type": "string",
         "description": "Reason for the refund.",
@@ -5374,6 +5990,7 @@
             "description": "String representing the object’s type. Objects of the same type share the same value."
           },
           "status": {
+            "example": "succeeded",
             "$ref": "#/components/schemas/RefundStatus"
           },
           "refund_amount": {
@@ -5939,61 +6556,6 @@
           }
         },
         "x-speakeasy-include": true
-      },
-      "UpdateProductRequestEntity": {
-        "type": "object",
-        "description": "Product update payload. Only supplied fields change. Changing a price field mints a new default price; existing subscriptions keep the price they were purchased under.",
-        "properties": {
-          "name": {
-            "type": "string",
-            "description": "Name of the product"
-          },
-          "description": {
-            "type": "string",
-            "description": "Description of the product"
-          },
-          "image_url": {
-            "type": "string",
-            "description": "URL of the product image",
-            "example": "https://picsum.photos/200/300"
-          },
-          "default_success_url": {
-            "type": "string",
-            "description": "The URL to which the user will be redirected after successfull payment.",
-            "example": "https://example.com/?status=successful"
-          },
-          "price": {
-            "type": "integer",
-            "description": "The price of the product in cents. Must be 0 (free product) or at least 100 (one whole unit of the currency).",
-            "example": 400
-          },
-          "currency": {
-            "example": "USD",
-            "$ref": "#/components/schemas/ProductCurrency"
-          },
-          "billing_type": {
-            "example": "recurring",
-            "$ref": "#/components/schemas/ProductRequestBillingType"
-          },
-          "billing_period": {
-            "example": "every-month",
-            "$ref": "#/components/schemas/ProductRequestBillingPeriod"
-          },
-          "tax_mode": {
-            "example": "inclusive",
-            "$ref": "#/components/schemas/TaxMode"
-          },
-          "pay_what_you_want": {
-            "type": "boolean",
-            "description": "Enable pay-what-you-want pricing: the customer chooses the amount at checkout. The `price` field acts as the minimum the customer must pay. Only supported for one-time payment products.",
-            "example": false
-          },
-          "suggested_price": {
-            "type": "integer",
-            "description": "Suggested amount in cents, pre-filled at checkout when pay_what_you_want is enabled. Must be greater than or equal to `price` (the minimum). Ignored when pay_what_you_want is disabled.",
-            "example": 1500
-          }
-        }
       }
     }
   },

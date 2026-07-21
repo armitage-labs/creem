@@ -48,7 +48,7 @@ const headers = {
 | Method | Endpoint | Description |
 |--------|----------|-------------|
 | POST | `/v1/products` | Create product |
-| GET | `/v1/products?product_id={id}` | Retrieve product |
+| GET | `/v1/products/{id}` | Retrieve product |
 | GET | `/v1/products/search` | List all products |
 
 ### Customers

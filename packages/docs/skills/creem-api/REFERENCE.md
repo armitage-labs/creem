@@ -166,7 +166,7 @@ POST /v1/products
 ### Retrieve Product
 
 ```http
-GET /v1/products?product_id={id}
+GET /v1/products/{id}
 ```
 
 ### List Products

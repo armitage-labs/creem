@@ -19,10 +19,11 @@
 const fs = require("fs");
 const path = require("path");
 
-// Filename overrides: operationId -> custom filename
-// Only needed when the auto-generated filename isn't what you want
+// Exception-only mapping: OpenAPI operationId -> stable MDX slug (without .mdx).
+// Add an entry only when the desired public docs filename differs from the
+// automatic camelCase-to-kebab-case filename. Do not add no-op mappings such
+// as `createProduct: "create-product"`.
 const FILENAME_OVERRIDES = {
-  retrieveProduct: "get-product",
   retrieveCustomer: "get-customer",
   retrieveSubscription: "get-subscription",
   retrieveCheckout: "get-checkout",
@@ -30,24 +31,34 @@ const FILENAME_OVERRIDES = {
   generateCustomerLinks: "create-customer-billing",
   getTransactionById: "get-transaction",
   searchTransactions: "get-transactions",
-  searchProducts: "search-products",
-  listCustomers: "list-customers",
   createDiscount: "create-discount-code",
   deleteDiscount: "delete-discount-code",
-  activateLicense: "activate-license",
-  deactivateLicense: "deactivate-license",
-  validateLicense: "validate-license",
-  cancelSubscription: "cancel-subscription",
-  updateSubscription: "update-subscription",
-  upgradeSubscription: "upgrade-subscription",
-  pauseSubscription: "pause-subscription",
-  resumeSubscription: "resume-subscription",
-  createCheckout: "create-checkout",
-  createProduct: "create-product",
+  getMetricsSummary: "get-stats-summary",
+  createCustomerCreditsAccount: "create-credits-account",
+  listCustomerCreditsAccounts: "list-credits-accounts",
+  getCustomerCreditsAccount: "get-credits-account",
+  getCustomerCreditsAccountBalance: "get-credits-account-balance",
+  listCustomerCreditsAccountEntries: "list-credits-entries",
+  freezeCustomerCreditsAccount: "freeze-credits-account",
+  unfreezeCustomerCreditsAccount: "unfreeze-credits-account",
+  creditCustomerCreditsAccount: "credit-account",
+  debitCustomerCreditsAccount: "debit-account",
+  reverseCustomerCreditsAccountTransaction: "reverse-credits-transaction",
+  closeCustomerCreditsAccount: "close-credits-account",
 };
 
 // Fallback descriptions when not provided in OpenAPI spec
 const DESCRIPTION_FALLBACKS = {};
+
+// Endpoint pages intentionally kept public but omitted from the curated API
+// reference navigation. Every other generated endpoint must be navigable.
+const HIDDEN_ENDPOINT_ALLOWLIST = new Set([
+  "create-customer.mdx",
+  "update-customer.mdx",
+  "list-customer-licenses.mdx",
+  "list-customer-orders.mdx",
+  "list-customer-subscriptions.mdx",
+]);
 
 // Parse command line arguments
 function parseArgs() {
@@ -135,6 +146,49 @@ function operationIdToFilename(operationId) {
   return operationId.replace(/([a-z])([A-Z])/g, "$1-$2").toLowerCase() + ".mdx";
 }
 
+function collectNavigationPages(value, pages = new Set()) {
+  if (typeof value === "string") {
+    pages.add(value);
+    return pages;
+  }
+
+  if (Array.isArray(value)) {
+    for (const item of value) {
+      collectNavigationPages(item, pages);
+    }
+    return pages;
+  }
+
+  if (value && typeof value === "object") {
+    for (const child of Object.values(value)) {
+      collectNavigationPages(child, pages);
+    }
+  }
+
+  return pages;
+}
+
+function validateNavigationCoverage(generatedFiles) {
+  const docsConfigPath = path.join(process.cwd(), "docs.json");
+  const docsConfig = JSON.parse(fs.readFileSync(docsConfigPath, "utf-8"));
+  const navigationPages = collectNavigationPages(docsConfig.navigation);
+  const missingFromNavigation = [...generatedFiles]
+    .filter((filename) => !HIDDEN_ENDPOINT_ALLOWLIST.has(filename))
+    .filter(
+      (filename) =>
+        !navigationPages.has(`api-reference/endpoint/${filename.replace(/\.mdx$/, "")}`),
+    )
+    .sort();
+
+  if (missingFromNavigation.length > 0) {
+    throw new Error(
+      `Generated endpoint pages are missing from docs.json navigation: ${missingFromNavigation.join(
+        ", ",
+      )}. Add them to navigation or explicitly document them in HIDDEN_ENDPOINT_ALLOWLIST.`,
+    );
+  }
+}
+
 // Get description from OpenAPI or fallback
 function getDescription(operationId, operation) {
   // Use OpenAPI description if available
@@ -156,6 +210,10 @@ function getTitle(operationId, operation) {
 
   // Fallback: generate from operationId
   return operationId.replace(/([a-z])([A-Z])/g, "$1 $2").replace(/^./, (str) => str.toUpperCase());
+}
+
+function quoteYamlString(value) {
+  return `'${value.replace(/'/g, "''")}'`;
 }
 
 // Parse existing MDX file to extract frontmatter and content
@@ -186,8 +244,8 @@ function generateFrontmatter(operationId, method, apiPath, operation) {
   const description = getDescription(operationId, operation);
   const openApiRef = `${method} ${apiPath}`;
 
-  return `title: '${title}'
-description: '${description}'
+  return `title: ${quoteYamlString(title)}
+description: ${quoteYamlString(description)}
 openapi: ${openApiRef}`;
 }
 
@@ -251,6 +309,23 @@ async function main() {
   }
 
   console.log(`\nFound ${operations.length} operations in OpenAPI spec\n`);
+
+  // Fail before writing if two operations resolve to the same public docs
+  // filename. Without this check, the later operation silently overwrites the
+  // earlier operation's MDX frontmatter.
+  const operationsByFilename = new Map();
+  for (const operation of operations) {
+    const filename = operationIdToFilename(operation.operationId);
+    const existingOperation = operationsByFilename.get(filename);
+    if (existingOperation) {
+      throw new Error(
+        `Filename collision: ${existingOperation.operationId} (${existingOperation.method} ${existingOperation.path}) and ${operation.operationId} (${operation.method} ${operation.path}) both resolve to ${filename}. Add or correct a FILENAME_OVERRIDES exception.`,
+      );
+    }
+    operationsByFilename.set(filename, operation);
+  }
+
+  validateNavigationCoverage(new Set(operationsByFilename.keys()));
 
   // Check for operations without descriptions
   const missingDescriptions = operations.filter(
