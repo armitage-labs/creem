@@ -11,6 +11,7 @@ import { safeParse } from "../lib/schemas.js";
 import { RequestOptions } from "../lib/sdks.js";
 import { extractSecurity, resolveGlobalSecurity } from "../lib/security.js";
 import { pathToFunc } from "../lib/url.js";
+import * as components from "../models/components/index.js";
 import { CreemError } from "../models/errors/creemerror.js";
 import {
   ConnectionError,
@@ -41,6 +42,7 @@ export function productsSearch(
   client: CreemCore,
   pageNumber?: number | undefined,
   pageSize?: number | undefined,
+  status?: components.ProductStatus | undefined,
   options?: RequestOptions,
 ): APIPromise<
   PageIterator<
@@ -62,6 +64,7 @@ export function productsSearch(
     client,
     pageNumber,
     pageSize,
+    status,
     options,
   ));
 }
@@ -70,6 +73,7 @@ async function $do(
   client: CreemCore,
   pageNumber?: number | undefined,
   pageSize?: number | undefined,
+  status?: components.ProductStatus | undefined,
   options?: RequestOptions,
 ): Promise<
   [
@@ -93,6 +97,7 @@ async function $do(
   const input: operations.SearchProductsRequest = {
     pageNumber: pageNumber,
     pageSize: pageSize,
+    status: status,
   };
 
   const parsed = safeParse(
@@ -111,6 +116,7 @@ async function $do(
   const query = encodeFormQuery({
     "page_number": payload.page_number,
     "page_size": payload.page_size,
+    "status": payload.status,
   });
 
   const headers = new Headers(compactMap({
@@ -237,6 +243,7 @@ async function $do(
         client,
         nextPage,
         pageSize,
+        status,
         options,
       );
 

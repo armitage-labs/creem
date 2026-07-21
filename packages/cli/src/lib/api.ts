@@ -36,8 +36,7 @@ export function getClient(): Creem {
   if (!clientInstance || apiKey !== cachedApiKey || environment !== cachedEnvironment) {
     clientInstance = new Creem({
       apiKey,
-      // 0 = live (api.creem.io), 1 = test (test-api.creem.io)
-      serverIdx: environment === "live" ? 0 : 1,
+      server: environment === "live" ? "prod" : "test",
     });
     cachedApiKey = apiKey;
     cachedEnvironment = environment;
@@ -71,7 +70,7 @@ export async function validateApiKey(
   try {
     const testClient = new Creem({
       apiKey,
-      serverIdx: env === "live" ? 0 : 1,
+      server: env === "live" ? "prod" : "test",
     });
 
     // Make a simple API call to validate the key

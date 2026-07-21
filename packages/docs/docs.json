@@ -1,6 +1,5 @@
 {
   "$schema": "https://mintlify.com/docs.json",
-
   "seo": {
     "indexing": "all",
     "metatags": {
@@ -232,7 +231,10 @@
             "pages": [
               "api-reference/endpoint/create-product",
               "api-reference/endpoint/get-product",
-              "api-reference/endpoint/search-products"
+              "api-reference/endpoint/get-product-by-id",
+              "api-reference/endpoint/search-products",
+              "api-reference/endpoint/update-product",
+              "api-reference/endpoint/archive-product"
             ]
           },
           {
