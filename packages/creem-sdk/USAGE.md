@@ -7,9 +7,11 @@ const creem = new Creem({
 });
 
 async function run() {
-  const result = await creem.products.get("prod_1234567890");
+  const result = await creem.products.search();
 
-  console.log(result);
+  for await (const page of result) {
+    console.log(page);
+  }
 }
 
 run();

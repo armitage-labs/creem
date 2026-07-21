@@ -8,7 +8,7 @@ dotenv.config();
  * Example usage of the creem SDK
  *
  * To run this example from the examples directory:
- * npm run build && npx tsx productsGet.example.ts
+ * npm run build && npx tsx productsSearch.example.ts
  */
 
 import { Creem } from "creem";
@@ -18,9 +18,11 @@ const creem = new Creem({
 });
 
 async function main() {
-  const result = await creem.products.get("prod_1234567890");
+  const result = await creem.products.search();
 
-  console.log(result);
+  for await (const page of result) {
+    console.log(page);
+  }
 }
 
 main().catch(console.error);

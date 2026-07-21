@@ -176,9 +176,11 @@ const creem = new Creem({
 });
 
 async function run() {
-  const result = await creem.products.get("prod_1234567890");
+  const result = await creem.products.search();
 
-  console.log(result);
+  for await (const page of result) {
+    console.log(page);
+  }
 }
 
 run();
@@ -206,9 +208,11 @@ const creem = new Creem({
 });
 
 async function run() {
-  const result = await creem.products.get("prod_1234567890");
+  const result = await creem.products.search();
 
-  console.log(result);
+  for await (const page of result) {
+    console.log(page);
+  }
 }
 
 run();
@@ -221,6 +225,12 @@ run();
 
 <details open>
 <summary>Available methods</summary>
+
+### [Affiliates](docs/sdks/affiliates/README.md)
+
+* [list](docs/sdks/affiliates/README.md#list) - List all affiliates
+* [retrieve](docs/sdks/affiliates/README.md#retrieve) - Retrieve an affiliate
+* [listCommissions](docs/sdks/affiliates/README.md#listcommissions) - List affiliate commissions
 
 ### [Checkouts](docs/sdks/checkouts/README.md)
 
@@ -264,6 +274,7 @@ run();
 * [activate](docs/sdks/licenses/README.md#activate) - Activates a license key.
 * [deactivate](docs/sdks/licenses/README.md#deactivate) - Deactivate a license key instance.
 * [validate](docs/sdks/licenses/README.md#validate) - Validates a license key or instance.
+* [listInstances](docs/sdks/licenses/README.md#listinstances) - List license instances.
 
 ### [Moderation](docs/sdks/moderation/README.md)
 
@@ -271,10 +282,9 @@ run();
 
 ### [Products](docs/sdks/products/README.md)
 
-* [get](docs/sdks/products/README.md#get) - Retrieve a product
-* [create](docs/sdks/products/README.md#create) - Creates a new product.
 * [search](docs/sdks/products/README.md#search) - List all products
-* [getById](docs/sdks/products/README.md#getbyid) - Retrieve a product
+* [create](docs/sdks/products/README.md#create) - Creates a new product.
+* [get](docs/sdks/products/README.md#get) - Get a product by ID
 * [update](docs/sdks/products/README.md#update) - Update a product
 * [archive](docs/sdks/products/README.md#archive) - Archive a product
 
@@ -296,6 +306,7 @@ run();
 
 * [getById](docs/sdks/transactions/README.md#getbyid) - Get a transaction by ID
 * [search](docs/sdks/transactions/README.md#search) - List all transactions
+* [refund](docs/sdks/transactions/README.md#refund) - Refund a payment
 
 </details>
 <!-- End Available Resources and Operations [operations] -->
@@ -315,6 +326,9 @@ To read more about standalone functions, check [FUNCTIONS.md](./FUNCTIONS.md).
 
 <summary>Available standalone functions</summary>
 
+- [`affiliatesList`](docs/sdks/affiliates/README.md#list) - List all affiliates
+- [`affiliatesListCommissions`](docs/sdks/affiliates/README.md#listcommissions) - List affiliate commissions
+- [`affiliatesRetrieve`](docs/sdks/affiliates/README.md#retrieve) - Retrieve an affiliate
 - [`checkoutsCreate`](docs/sdks/checkouts/README.md#create) - Creates a new checkout session.
 - [`checkoutsRetrieve`](docs/sdks/checkouts/README.md#retrieve) - Retrieve a checkout session.
 - [`customerCreditsCloseAccount`](docs/sdks/customercredits/README.md#closeaccount) - Close an account
@@ -342,12 +356,12 @@ To read more about standalone functions, check [FUNCTIONS.md](./FUNCTIONS.md).
 - [`discountsSearch`](docs/sdks/discounts/README.md#search) - Search discounts
 - [`licensesActivate`](docs/sdks/licenses/README.md#activate) - Activates a license key.
 - [`licensesDeactivate`](docs/sdks/licenses/README.md#deactivate) - Deactivate a license key instance.
+- [`licensesListInstances`](docs/sdks/licenses/README.md#listinstances) - List license instances.
 - [`licensesValidate`](docs/sdks/licenses/README.md#validate) - Validates a license key or instance.
 - [`moderationScreenPrompt`](docs/sdks/moderation/README.md#screenprompt) - Screen a prompt
 - [`productsArchive`](docs/sdks/products/README.md#archive) - Archive a product
 - [`productsCreate`](docs/sdks/products/README.md#create) - Creates a new product.
-- [`productsGet`](docs/sdks/products/README.md#get) - Retrieve a product
-- [`productsGetById`](docs/sdks/products/README.md#getbyid) - Retrieve a product
+- [`productsGet`](docs/sdks/products/README.md#get) - Get a product by ID
 - [`productsSearch`](docs/sdks/products/README.md#search) - List all products
 - [`productsUpdate`](docs/sdks/products/README.md#update) - Update a product
 - [`statsGetSummary`](docs/sdks/stats/README.md#getsummary) - Get store metrics summary
@@ -359,6 +373,7 @@ To read more about standalone functions, check [FUNCTIONS.md](./FUNCTIONS.md).
 - [`subscriptionsUpdate`](docs/sdks/subscriptions/README.md#update) - Update a subscription.
 - [`subscriptionsUpgrade`](docs/sdks/subscriptions/README.md#upgrade) - Upgrade a subscription to a different product
 - [`transactionsGetById`](docs/sdks/transactions/README.md#getbyid) - Get a transaction by ID
+- [`transactionsRefund`](docs/sdks/transactions/README.md#refund) - Refund a payment
 - [`transactionsSearch`](docs/sdks/transactions/README.md#search) - List all transactions
 
 </details>
@@ -410,7 +425,7 @@ const creem = new Creem({
 });
 
 async function run() {
-  const result = await creem.products.get("prod_1234567890", {
+  const result = await creem.products.search(undefined, undefined, undefined, {
     retries: {
       strategy: "backoff",
       backoff: {
@@ -423,7 +438,9 @@ async function run() {
     },
   });
 
-  console.log(result);
+  for await (const page of result) {
+    console.log(page);
+  }
 }
 
 run();
@@ -449,9 +466,11 @@ const creem = new Creem({
 });
 
 async function run() {
-  const result = await creem.products.get("prod_1234567890");
+  const result = await creem.products.search();
 
-  console.log(result);
+  for await (const page of result) {
+    console.log(page);
+  }
 }
 
 run();
@@ -524,7 +543,7 @@ run();
 
 
 **Inherit from [`CreemError`](./src/models/errors/creemerror.ts)**:
-* [`CustomerCreditsErrorResponseDto`](./src/models/errors/customercreditserrorresponsedto.ts): Status code `409`. Applicable to 5 of 45 methods.*
+* [`CustomerCreditsErrorResponseDto`](./src/models/errors/customercreditserrorresponsedto.ts): Status code `409`. Applicable to 5 of 49 methods.*
 * [`ResponseValidationError`](./src/models/errors/responsevalidationerror.ts): Type mismatch between the data returned from the server and the structure expected by the SDK. See `error.rawValue` for the raw value and `error.pretty()` for a nicely formatted multi-line string.
 
 </details>
@@ -555,9 +574,11 @@ const creem = new Creem({
 });
 
 async function run() {
-  const result = await creem.products.get("prod_1234567890");
+  const result = await creem.products.search();
 
-  console.log(result);
+  for await (const page of result) {
+    console.log(page);
+  }
 }
 
 run();
@@ -576,9 +597,11 @@ const creem = new Creem({
 });
 
 async function run() {
-  const result = await creem.products.get("prod_1234567890");
+  const result = await creem.products.search();
 
-  console.log(result);
+  for await (const page of result) {
+    console.log(page);
+  }
 }
 
 run();

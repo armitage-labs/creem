@@ -1,6 +1,6 @@
 # ProductStatus
 
-Status of the product
+Lifecycle status of the product: `active` or `archived`.
 
 ## Example Usage
 

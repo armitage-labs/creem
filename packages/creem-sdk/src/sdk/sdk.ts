@@ -3,6 +3,7 @@
  */
 
 import { ClientSDK } from "../lib/sdks.js";
+import { Affiliates } from "./affiliates.js";
 import { Checkouts } from "./checkouts.js";
 import { CustomerCredits } from "./customercredits.js";
 import { Customers } from "./customers.js";
@@ -63,5 +64,10 @@ export class Creem extends ClientSDK {
   private _customerCredits?: CustomerCredits;
   get customerCredits(): CustomerCredits {
     return (this._customerCredits ??= new CustomerCredits(this._options));
+  }
+
+  private _affiliates?: Affiliates;
+  get affiliates(): Affiliates {
+    return (this._affiliates ??= new Affiliates(this._options));
   }
 }

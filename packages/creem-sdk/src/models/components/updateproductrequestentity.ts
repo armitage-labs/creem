@@ -28,9 +28,6 @@ import {
   TaxMode$outboundSchema,
 } from "./taxmode.js";
 
-/**
- * Product update payload. Only supplied fields change. Changing a price field mints a new default price; existing subscriptions keep the price they were purchased under.
- */
 export type UpdateProductRequestEntity = {
   /**
    * Name of the product
@@ -45,7 +42,11 @@ export type UpdateProductRequestEntity = {
    */
   imageUrl?: string | undefined;
   /**
-   * The URL to which the user will be redirected after successfull payment.
+   * Ordered list of product image URLs (max 8). The first entry is the cover image; when provided it takes precedence over image_url. An empty list removes all images.
+   */
+  imageUrls?: Array<string> | undefined;
+  /**
+   * Redirect URL after successful payment.
    */
   defaultSuccessUrl?: string | undefined;
   /**
@@ -53,15 +54,15 @@ export type UpdateProductRequestEntity = {
    */
   price?: number | undefined;
   /**
-   * Three-letter ISO currency code, in uppercase. Must be a supported currency.
+   * Three-letter uppercase ISO 4217 currency code. Must be one of Creem's supported currencies.
    */
   currency?: ProductCurrency | undefined;
   /**
-   * Indicates the billing method for the customer. It can either be a `recurring` billing cycle or a `onetime` payment.
+   * Billing method for the product: `recurring` subscription or `onetime` payment.
    */
   billingType?: ProductRequestBillingType | undefined;
   /**
-   * Billing period, required if billing_type is recurring
+   * Billing interval. Required when `billing_type` is `recurring`.
    */
   billingPeriod?: ProductRequestBillingPeriod | undefined;
   /**
@@ -69,11 +70,11 @@ export type UpdateProductRequestEntity = {
    */
   taxMode?: TaxMode | undefined;
   /**
-   * Enable pay-what-you-want pricing: the customer chooses the amount at checkout. The `price` field acts as the minimum the customer must pay. Only supported for one-time payment products.
+   * Enable pay-what-you-want pricing (one-time only).
    */
   payWhatYouWant?: boolean | undefined;
   /**
-   * Suggested amount in cents, pre-filled at checkout when pay_what_you_want is enabled. Must be greater than or equal to `price` (the minimum). Ignored when pay_what_you_want is disabled.
+   * Suggested amount in cents when pay_what_you_want is enabled.
    */
   suggestedPrice?: number | undefined;
 };
@@ -87,6 +88,7 @@ export const UpdateProductRequestEntity$inboundSchema: z.ZodType<
   name: z.string().optional(),
   description: z.string().optional(),
   image_url: z.string().optional(),
+  image_urls: z.array(z.string()).optional(),
   default_success_url: z.string().optional(),
   price: z.number().int().optional(),
   currency: ProductCurrency$inboundSchema.optional(),
@@ -98,6 +100,7 @@ export const UpdateProductRequestEntity$inboundSchema: z.ZodType<
 }).transform((v) => {
   return remap$(v, {
     "image_url": "imageUrl",
+    "image_urls": "imageUrls",
     "default_success_url": "defaultSuccessUrl",
     "billing_type": "billingType",
     "billing_period": "billingPeriod",
@@ -111,6 +114,7 @@ export type UpdateProductRequestEntity$Outbound = {
   name?: string | undefined;
   description?: string | undefined;
   image_url?: string | undefined;
+  image_urls?: Array<string> | undefined;
   default_success_url?: string | undefined;
   price?: number | undefined;
   currency?: string | undefined;
@@ -130,6 +134,7 @@ export const UpdateProductRequestEntity$outboundSchema: z.ZodType<
   name: z.string().optional(),
   description: z.string().optional(),
   imageUrl: z.string().optional(),
+  imageUrls: z.array(z.string()).optional(),
   defaultSuccessUrl: z.string().optional(),
   price: z.number().int().optional(),
   currency: ProductCurrency$outboundSchema.optional(),
@@ -141,6 +146,7 @@ export const UpdateProductRequestEntity$outboundSchema: z.ZodType<
 }).transform((v) => {
   return remap$(v, {
     imageUrl: "image_url",
+    imageUrls: "image_urls",
     defaultSuccessUrl: "default_success_url",
     billingType: "billing_type",
     billingPeriod: "billing_period",

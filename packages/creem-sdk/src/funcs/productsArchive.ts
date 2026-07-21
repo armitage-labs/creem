@@ -30,7 +30,7 @@ import { Result } from "../types/fp.js";
  * Archive a product
  *
  * @remarks
- * Archive a product (soft-delete). The product is retained for historical orders and subscriptions but can no longer be purchased. Archived products remain retrievable and appear in list results when filtering by `status=archived`.
+ * Archive a product (soft-delete). The product is retained for historical orders and subscriptions but can no longer be purchased.
  */
 export function productsArchive(
   client: CreemCore,

@@ -1,6 +1,6 @@
 # ProductCurrency
 
-Three-letter ISO currency code, in uppercase. Must be a supported currency.
+Three-letter uppercase ISO 4217 currency code. Must be one of Creem's supported currencies.
 
 ## Example Usage
 

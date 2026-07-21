@@ -3,21 +3,21 @@
  */
 
 import * as z from "zod/v3";
-import { productsGetById } from "../../funcs/productsGetById.js";
+import { affiliatesRetrieve } from "../../funcs/affiliatesRetrieve.js";
 import { formatResult, ToolDefinition } from "../tools.js";
 
 const args = {
   id: z.string(),
 };
 
-export const tool$productsGetById: ToolDefinition<typeof args> = {
-  name: "products-get-by-id",
-  description: `Retrieve a product
+export const tool$affiliatesRetrieve: ToolDefinition<typeof args> = {
+  name: "affiliates-retrieve",
+  description: `Retrieve an affiliate
 
-Retrieve a single product by its ID.`,
+Retrieve a single affiliate by ID, including referral link, click and conversion counts, and lifetime commission.`,
   args,
   tool: async (client, args, ctx) => {
-    const [result, apiCall] = await productsGetById(
+    const [result, apiCall] = await affiliatesRetrieve(
       client,
       args.id,
       { fetchOptions: { signal: ctx.signal } },

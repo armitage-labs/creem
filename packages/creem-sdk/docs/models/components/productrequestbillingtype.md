@@ -1,6 +1,6 @@
 # ProductRequestBillingType
 
-Indicates the billing method for the customer. It can either be a `recurring` billing cycle or a `onetime` payment.
+Billing method for the product: `recurring` subscription or `onetime` payment.
 
 ## Example Usage
 

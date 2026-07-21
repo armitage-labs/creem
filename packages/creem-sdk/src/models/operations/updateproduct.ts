@@ -14,6 +14,9 @@ export type UpdateProductRequest = {
    * The product ID
    */
   id: string;
+  /**
+   * Product update payload
+   */
   updateProductRequestEntity: components.UpdateProductRequestEntity;
 };
 

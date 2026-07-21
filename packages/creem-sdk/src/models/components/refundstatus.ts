@@ -6,16 +6,17 @@ import * as z from "zod/v3";
 import { ClosedEnum } from "../../types/enums.js";
 
 /**
- * Status of the refund.
+ * Status of the refund. `pending` and `requiresAction` represent non-terminal provider processing states.
  */
 export const RefundStatus = {
   Pending: "pending",
+  RequiresAction: "requiresAction",
   Succeeded: "succeeded",
-  Canceled: "canceled",
   Failed: "failed",
+  Canceled: "canceled",
 } as const;
 /**
- * Status of the refund.
+ * Status of the refund. `pending` and `requiresAction` represent non-terminal provider processing states.
  */
 export type RefundStatus = ClosedEnum<typeof RefundStatus>;
 

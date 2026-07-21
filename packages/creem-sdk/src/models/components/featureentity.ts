@@ -18,7 +18,7 @@ export type FeatureEntity = {
    */
   id: string;
   /**
-   * The type of the feature: privateNote (custom note), file (downloadable files), or licenseKey (license key).
+   * The type of the feature: `custom` (private note), `file` (downloadable files), `licenseKey` (license key), or `customerCredits` (customer credit grant).
    */
   type: ProductFeatureType;
   /**

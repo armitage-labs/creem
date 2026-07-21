@@ -19,7 +19,7 @@ export type SearchProductsRequest = {
    */
   pageSize?: number | undefined;
   /**
-   * Filter products by lifecycle status. Omit to return products of any status. `active` returns only non-archived products (the common case for catalogues and pricing pages); `archived` returns only archived products (useful for configuration synchronization).
+   * Lifecycle status of the product: `active` or `archived`.
    */
   status?: components.ProductStatus | undefined;
 };

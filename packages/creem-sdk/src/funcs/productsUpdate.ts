@@ -30,7 +30,7 @@ import { Result } from "../types/fp.js";
  * Update a product
  *
  * @remarks
- * Update a product. Only supplied fields change. Changing a price field mints a new default price; existing subscriptions keep the price they were purchased under.
+ * Update a product. Only supplied fields change; a price change mints a new default price.
  */
 export function productsUpdate(
   client: CreemCore,

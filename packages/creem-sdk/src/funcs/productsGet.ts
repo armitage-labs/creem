@@ -3,7 +3,7 @@
  */
 
 import { CreemCore } from "../core.js";
-import { encodeFormQuery } from "../lib/encodings.js";
+import { encodeSimple } from "../lib/encodings.js";
 import { matchStatusCode } from "../lib/http.js";
 import * as M from "../lib/matchers.js";
 import { compactMap } from "../lib/primitives.js";
@@ -27,14 +27,14 @@ import { APICall, APIPromise } from "../types/async.js";
 import { Result } from "../types/fp.js";
 
 /**
- * Retrieve a product
+ * Get a product by ID
  *
  * @remarks
- * Retrieve product details by ID. View pricing, billing type, status, and product configuration.
+ * Retrieve a single product by its unique identifier.
  */
 export function productsGet(
   client: CreemCore,
-  productId: string,
+  id: string,
   options?: RequestOptions,
 ): APIPromise<
   Result<
@@ -51,14 +51,14 @@ export function productsGet(
 > {
   return new APIPromise($do(
     client,
-    productId,
+    id,
     options,
   ));
 }
 
 async function $do(
   client: CreemCore,
-  productId: string,
+  id: string,
   options?: RequestOptions,
 ): Promise<
   [
@@ -76,13 +76,13 @@ async function $do(
     APICall,
   ]
 > {
-  const input: operations.RetrieveProductRequest = {
-    productId: productId,
+  const input: operations.GetProductRequest = {
+    id: id,
   };
 
   const parsed = safeParse(
     input,
-    (value) => operations.RetrieveProductRequest$outboundSchema.parse(value),
+    (value) => operations.GetProductRequest$outboundSchema.parse(value),
     "Input validation failed",
   );
   if (!parsed.ok) {
@@ -91,11 +91,13 @@ async function $do(
   const payload = parsed.value;
   const body = null;
 
-  const path = pathToFunc("/v1/products")();
-
-  const query = encodeFormQuery({
-    "product_id": payload.product_id,
-  });
+  const pathParams = {
+    id: encodeSimple("id", payload.id, {
+      explode: false,
+      charEncoding: "percent",
+    }),
+  };
+  const path = pathToFunc("/v1/products/{id}")(pathParams);
 
   const headers = new Headers(compactMap({
     Accept: "application/json",
@@ -108,7 +110,7 @@ async function $do(
   const context = {
     options: client._options,
     baseURL: options?.serverURL ?? client._baseURL ?? "",
-    operationID: "retrieveProduct",
+    operationID: "getProduct",
     oAuth2Scopes: null,
 
     resolvedSecurity: requestSecurity,
@@ -126,7 +128,6 @@ async function $do(
     baseURL: options?.serverURL,
     path: path,
     headers: headers,
-    query: query,
     body: body,
     userAgent: client._options.userAgent,
     timeoutMs: options?.timeoutMs || client._options.timeoutMs || -1,

@@ -3,7 +3,7 @@
  */
 
 import { CreemCore } from "../core.js";
-import { encodeSimple } from "../lib/encodings.js";
+import { encodeJSON } from "../lib/encodings.js";
 import { matchStatusCode } from "../lib/http.js";
 import * as M from "../lib/matchers.js";
 import { compactMap } from "../lib/primitives.js";
@@ -22,23 +22,22 @@ import {
 } from "../models/errors/httpclienterrors.js";
 import { ResponseValidationError } from "../models/errors/responsevalidationerror.js";
 import { SDKValidationError } from "../models/errors/sdkvalidationerror.js";
-import * as operations from "../models/operations/index.js";
 import { APICall, APIPromise } from "../types/async.js";
 import { Result } from "../types/fp.js";
 
 /**
- * Retrieve a product
+ * Refund a payment
  *
  * @remarks
- * Retrieve a single product by its ID.
+ * Issue a full refund for a payment, identified by its transaction ID. The full remaining refundable amount is resolved automatically. Returns `pending` when the payment provider confirms the refund asynchronously.
  */
-export function productsGetById(
+export function transactionsRefund(
   client: CreemCore,
-  id: string,
+  request: components.CreateRefundRequestEntity,
   options?: RequestOptions,
 ): APIPromise<
   Result<
-    components.ProductEntity,
+    components.RefundResponseEntity,
     | CreemError
     | ResponseValidationError
     | ConnectionError
@@ -51,19 +50,19 @@ export function productsGetById(
 > {
   return new APIPromise($do(
     client,
-    id,
+    request,
     options,
   ));
 }
 
 async function $do(
   client: CreemCore,
-  id: string,
+  request: components.CreateRefundRequestEntity,
   options?: RequestOptions,
 ): Promise<
   [
     Result<
-      components.ProductEntity,
+      components.RefundResponseEntity,
       | CreemError
       | ResponseValidationError
       | ConnectionError
@@ -76,30 +75,21 @@ async function $do(
     APICall,
   ]
 > {
-  const input: operations.GetProductRequest = {
-    id: id,
-  };
-
   const parsed = safeParse(
-    input,
-    (value) => operations.GetProductRequest$outboundSchema.parse(value),
+    request,
+    (value) => components.CreateRefundRequestEntity$outboundSchema.parse(value),
     "Input validation failed",
   );
   if (!parsed.ok) {
     return [parsed, { status: "invalid" }];
   }
   const payload = parsed.value;
-  const body = null;
+  const body = encodeJSON("body", payload, { explode: true });
 
-  const pathParams = {
-    id: encodeSimple("id", payload.id, {
-      explode: false,
-      charEncoding: "percent",
-    }),
-  };
-  const path = pathToFunc("/v1/products/{id}")(pathParams);
+  const path = pathToFunc("/v1/refunds")();
 
   const headers = new Headers(compactMap({
+    "Content-Type": "application/json",
     Accept: "application/json",
   }));
 
@@ -110,7 +100,7 @@ async function $do(
   const context = {
     options: client._options,
     baseURL: options?.serverURL ?? client._baseURL ?? "",
-    operationID: "getProduct",
+    operationID: "refundPayment",
     oAuth2Scopes: null,
 
     resolvedSecurity: requestSecurity,
@@ -124,7 +114,7 @@ async function $do(
 
   const requestRes = client._createRequest(context, {
     security: requestSecurity,
-    method: "GET",
+    method: "POST",
     baseURL: options?.serverURL,
     path: path,
     headers: headers,
@@ -150,7 +140,7 @@ async function $do(
   const response = doResult.value;
 
   const [result] = await M.match<
-    components.ProductEntity,
+    components.RefundResponseEntity,
     | CreemError
     | ResponseValidationError
     | ConnectionError
@@ -160,7 +150,7 @@ async function $do(
     | UnexpectedClientError
     | SDKValidationError
   >(
-    M.json(200, components.ProductEntity$inboundSchema),
+    M.json(200, components.RefundResponseEntity$inboundSchema),
     M.fail([400, 401, 404, "4XX"]),
     M.fail("5XX"),
   )(response, req);

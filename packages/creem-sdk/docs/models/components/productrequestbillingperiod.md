@@ -1,6 +1,6 @@
 # ProductRequestBillingPeriod
 
-Billing period, required if billing_type is recurring
+Billing interval. Required when `billing_type` is `recurring`.
 
 ## Example Usage
 
