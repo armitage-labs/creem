@@ -1,0 +1,49 @@
+name: Submit new docs pages to Google
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - "packages/docs/**/*.mdx"
+      - "packages/docs/*.mdx"
+  workflow_dispatch:
+    inputs:
+      files:
+        description: "Space-separated repo-relative .mdx paths to submit"
+        required: true
+
+# Only one run at a time. Every run spends from the same daily Google quota.
+concurrency:
+  group: docs-google-indexing
+  cancel-in-progress: false
+
+# The job only reads the checkout, so give the token nothing else.
+permissions:
+  contents: read
+
+jobs:
+  submit:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          # The script compares two commits, so it needs the older one as well.
+          fetch-depth: 0
+
+      - uses: actions/setup-node@v4
+        with:
+          # 22.18+ runs TypeScript on its own, so the script needs no build step.
+          node-version: "22.18"
+
+      - name: Submit newly added docs pages
+        env:
+          GOOGLE_CLIENT_EMAIL: ${{ secrets.GOOGLE_CLIENT_EMAIL }}
+          GOOGLE_PRIVATE_KEY: ${{ secrets.GOOGLE_PRIVATE_KEY }}
+          DOCS_BASE_URL: https://docs.creem.io
+          BASE_SHA: ${{ github.event.before }}
+          HEAD_SHA: ${{ github.sha }}
+          # Sent as an env var, not pasted into `run:`. The shell then reads the
+          # value as text and never runs it as a command.
+          MANUAL_FILES: ${{ inputs.files }}
+        run: node .github/scripts/submit-google-indexing.ts ${MANUAL_FILES:-}
