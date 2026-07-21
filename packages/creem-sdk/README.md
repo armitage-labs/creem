@@ -274,6 +274,9 @@ run();
 * [get](docs/sdks/products/README.md#get) - Retrieve a product
 * [create](docs/sdks/products/README.md#create) - Creates a new product.
 * [search](docs/sdks/products/README.md#search) - List all products
+* [getById](docs/sdks/products/README.md#getbyid) - Retrieve a product
+* [update](docs/sdks/products/README.md#update) - Update a product
+* [archive](docs/sdks/products/README.md#archive) - Archive a product
 
 ### [Stats](docs/sdks/stats/README.md)
 
@@ -341,9 +344,12 @@ To read more about standalone functions, check [FUNCTIONS.md](./FUNCTIONS.md).
 - [`licensesDeactivate`](docs/sdks/licenses/README.md#deactivate) - Deactivate a license key instance.
 - [`licensesValidate`](docs/sdks/licenses/README.md#validate) - Validates a license key or instance.
 - [`moderationScreenPrompt`](docs/sdks/moderation/README.md#screenprompt) - Screen a prompt
+- [`productsArchive`](docs/sdks/products/README.md#archive) - Archive a product
 - [`productsCreate`](docs/sdks/products/README.md#create) - Creates a new product.
 - [`productsGet`](docs/sdks/products/README.md#get) - Retrieve a product
+- [`productsGetById`](docs/sdks/products/README.md#getbyid) - Retrieve a product
 - [`productsSearch`](docs/sdks/products/README.md#search) - List all products
+- [`productsUpdate`](docs/sdks/products/README.md#update) - Update a product
 - [`statsGetSummary`](docs/sdks/stats/README.md#getsummary) - Get store metrics summary
 - [`subscriptionsCancel`](docs/sdks/subscriptions/README.md#cancel) - Cancel a subscription.
 - [`subscriptionsGet`](docs/sdks/subscriptions/README.md#get) - Retrieve a subscription
@@ -518,7 +524,7 @@ run();
 
 
 **Inherit from [`CreemError`](./src/models/errors/creemerror.ts)**:
-* [`CustomerCreditsErrorResponseDto`](./src/models/errors/customercreditserrorresponsedto.ts): Status code `409`. Applicable to 5 of 42 methods.*
+* [`CustomerCreditsErrorResponseDto`](./src/models/errors/customercreditserrorresponsedto.ts): Status code `409`. Applicable to 5 of 45 methods.*
 * [`ResponseValidationError`](./src/models/errors/responsevalidationerror.ts): Type mismatch between the data returned from the server and the structure expected by the SDK. See `error.rawValue` for the raw value and `error.pretty()` for a nicely formatted multi-line string.
 
 </details>

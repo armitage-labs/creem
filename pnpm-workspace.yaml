@@ -9,6 +9,8 @@ publicHoistPattern:
 overrides:
   "@creem_io/strapi>@types/react": "18.3.28"
   "@creem_io/strapi>@types/react-dom": "18.3.7"
+  "@creem_io/framer>@types/react": "18.3.28"
+  "@creem_io/framer>@types/react-dom": "18.3.7"
   "@strapi/design-system>@types/react": "18.3.28"
   "@strapi/icons>@types/react": "18.3.28"
 

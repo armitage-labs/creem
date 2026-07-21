@@ -42,9 +42,12 @@ import { tool$licensesActivate } from "./tools/licensesActivate.js";
 import { tool$licensesDeactivate } from "./tools/licensesDeactivate.js";
 import { tool$licensesValidate } from "./tools/licensesValidate.js";
 import { tool$moderationScreenPrompt } from "./tools/moderationScreenPrompt.js";
+import { tool$productsArchive } from "./tools/productsArchive.js";
 import { tool$productsCreate } from "./tools/productsCreate.js";
 import { tool$productsGet } from "./tools/productsGet.js";
+import { tool$productsGetById } from "./tools/productsGetById.js";
 import { tool$productsSearch } from "./tools/productsSearch.js";
+import { tool$productsUpdate } from "./tools/productsUpdate.js";
 import { tool$statsGetSummary } from "./tools/statsGetSummary.js";
 import { tool$subscriptionsCancel } from "./tools/subscriptionsCancel.js";
 import { tool$subscriptionsGet } from "./tools/subscriptionsGet.js";
@@ -66,7 +69,7 @@ export function createMCPServer(deps: {
 }) {
   const server = new McpServer({
     name: "Creem",
-    version: "1.5.3",
+    version: "1.5.4",
   });
 
   const client = new CreemCore({
@@ -99,6 +102,9 @@ export function createMCPServer(deps: {
   tool(tool$productsGet);
   tool(tool$productsCreate);
   tool(tool$productsSearch);
+  tool(tool$productsGetById);
+  tool(tool$productsUpdate);
+  tool(tool$productsArchive);
   tool(tool$customersList);
   tool(tool$customersGetOrders);
   tool(tool$customersListSubscriptions);

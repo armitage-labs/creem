@@ -18,6 +18,10 @@ export type SearchProductsRequest = {
    * The number of items per page.
    */
   pageSize?: number | undefined;
+  /**
+   * Filter products by lifecycle status. Omit to return products of any status. `active` returns only non-archived products (the common case for catalogues and pricing pages); `archived` returns only archived products (useful for configuration synchronization).
+   */
+  status?: components.ProductStatus | undefined;
 };
 
 export type SearchProductsResponse = {
@@ -32,6 +36,7 @@ export const SearchProductsRequest$inboundSchema: z.ZodType<
 > = z.object({
   page_number: z.number().default(1),
   page_size: z.number().default(10),
+  status: components.ProductStatus$inboundSchema.optional(),
 }).transform((v) => {
   return remap$(v, {
     "page_number": "pageNumber",
@@ -42,6 +47,7 @@ export const SearchProductsRequest$inboundSchema: z.ZodType<
 export type SearchProductsRequest$Outbound = {
   page_number: number;
   page_size: number;
+  status?: string | undefined;
 };
 
 /** @internal */
@@ -52,6 +58,7 @@ export const SearchProductsRequest$outboundSchema: z.ZodType<
 > = z.object({
   pageNumber: z.number().default(1),
   pageSize: z.number().default(10),
+  status: components.ProductStatus$outboundSchema.optional(),
 }).transform((v) => {
   return remap$(v, {
     pageNumber: "page_number",

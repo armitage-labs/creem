@@ -140,6 +140,15 @@
               "example": 10,
               "type": "number"
             }
+          },
+          {
+            "name": "status",
+            "required": false,
+            "in": "query",
+            "description": "Filter products by lifecycle status. Omit to return products of any status. `active` returns only non-archived products (the common case for catalogues and pricing pages); `archived` returns only archived products (useful for configuration synchronization).",
+            "schema": {
+              "$ref": "#/components/schemas/ProductStatus"
+            }
           }
         ],
         "responses": {
@@ -2507,6 +2516,150 @@
           }
         },
         "tags": ["Customer Credits - Accounts (Experimental)"],
+        "security": [
+          {
+            "ApiKey": []
+          }
+        ]
+      }
+    },
+    "/v1/products/{id}": {
+      "get": {
+        "operationId": "getProduct",
+        "x-speakeasy-name-override": "getById",
+        "summary": "Retrieve a product",
+        "description": "Retrieve a single product by its ID.",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "description": "The product ID",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successfully retrieved the product",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProductEntity"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Bad Request - Invalid input parameters"
+          },
+          "401": {
+            "description": "Unauthorized - Invalid or missing API key"
+          },
+          "404": {
+            "description": "Not Found - Resource does not exist"
+          }
+        },
+        "tags": ["Products"],
+        "security": [
+          {
+            "ApiKey": []
+          }
+        ]
+      },
+      "patch": {
+        "operationId": "updateProduct",
+        "x-speakeasy-name-override": "update",
+        "summary": "Update a product",
+        "description": "Update a product. Only supplied fields change. Changing a price field mints a new default price; existing subscriptions keep the price they were purchased under.",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "description": "The product ID",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/UpdateProductRequestEntity"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Successfully updated the product",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProductEntity"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Bad Request - Invalid input parameters"
+          },
+          "401": {
+            "description": "Unauthorized - Invalid or missing API key"
+          },
+          "404": {
+            "description": "Not Found - Resource does not exist"
+          }
+        },
+        "tags": ["Products"],
+        "security": [
+          {
+            "ApiKey": []
+          }
+        ]
+      },
+      "delete": {
+        "operationId": "archiveProduct",
+        "x-speakeasy-name-override": "archive",
+        "summary": "Archive a product",
+        "description": "Archive a product (soft-delete). The product is retained for historical orders and subscriptions but can no longer be purchased. Archived products remain retrievable and appear in list results when filtering by `status=archived`.",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "description": "The product ID",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successfully archived the product",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProductEntity"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Bad Request - Invalid input parameters"
+          },
+          "401": {
+            "description": "Unauthorized - Invalid or missing API key"
+          },
+          "404": {
+            "description": "Not Found - Resource does not exist"
+          }
+        },
+        "tags": ["Products"],
         "security": [
           {
             "ApiKey": []
@@ -5786,6 +5939,61 @@
           }
         },
         "x-speakeasy-include": true
+      },
+      "UpdateProductRequestEntity": {
+        "type": "object",
+        "description": "Product update payload. Only supplied fields change. Changing a price field mints a new default price; existing subscriptions keep the price they were purchased under.",
+        "properties": {
+          "name": {
+            "type": "string",
+            "description": "Name of the product"
+          },
+          "description": {
+            "type": "string",
+            "description": "Description of the product"
+          },
+          "image_url": {
+            "type": "string",
+            "description": "URL of the product image",
+            "example": "https://picsum.photos/200/300"
+          },
+          "default_success_url": {
+            "type": "string",
+            "description": "The URL to which the user will be redirected after successfull payment.",
+            "example": "https://example.com/?status=successful"
+          },
+          "price": {
+            "type": "integer",
+            "description": "The price of the product in cents. Must be 0 (free product) or at least 100 (one whole unit of the currency).",
+            "example": 400
+          },
+          "currency": {
+            "example": "USD",
+            "$ref": "#/components/schemas/ProductCurrency"
+          },
+          "billing_type": {
+            "example": "recurring",
+            "$ref": "#/components/schemas/ProductRequestBillingType"
+          },
+          "billing_period": {
+            "example": "every-month",
+            "$ref": "#/components/schemas/ProductRequestBillingPeriod"
+          },
+          "tax_mode": {
+            "example": "inclusive",
+            "$ref": "#/components/schemas/TaxMode"
+          },
+          "pay_what_you_want": {
+            "type": "boolean",
+            "description": "Enable pay-what-you-want pricing: the customer chooses the amount at checkout. The `price` field acts as the minimum the customer must pay. Only supported for one-time payment products.",
+            "example": false
+          },
+          "suggested_price": {
+            "type": "integer",
+            "description": "Suggested amount in cents, pre-filled at checkout when pay_what_you_want is enabled. Must be greater than or equal to `price` (the minimum). Ignored when pay_what_you_want is disabled.",
+            "example": 1500
+          }
+        }
       }
     }
   },

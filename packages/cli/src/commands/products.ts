@@ -127,11 +127,10 @@ function getProductsTuiDescriptor(): TuiModuleDescriptor<Product> {
     ],
     fetchPage: async (page: number, pageSize: number) => {
       const client = getClient();
-      const response = (await client.products.search(
-        page,
-        pageSize,
-      )) as unknown as ProductListResponse;
-      const { items, pagination } = response;
+      const response = (await client.products.search(page, pageSize)) as unknown as {
+        result: ProductListResponse;
+      };
+      const { items, pagination } = response.result;
       return {
         items,
         hasMore: pagination.nextPage !== undefined,
@@ -392,14 +391,14 @@ ${chalk.dim("Examples:")}
         const response = (await client.products.search(
           parseInt(options.page, 10),
           parseInt(options.limit, 10),
-        )) as unknown as ProductListResponse;
+        )) as unknown as { result: ProductListResponse };
 
         spinner.stop();
 
-        const { items, pagination } = response;
+        const { items, pagination } = response.result;
 
         if (shouldOutputJson(options.json)) {
-          output.outputJson(response);
+          output.outputJson(response.result);
           return;
         }
 
