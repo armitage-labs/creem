@@ -8,7 +8,8 @@
     "generate:api": "node scripts/generate-api-docs.js",
     "generate:api:remote": "node scripts/generate-api-docs.js --update-spec --cleanup --url",
     "generate:api:dry-run": "node scripts/generate-api-docs.js --dry-run",
-    "generate:api:cleanup": "node scripts/generate-api-docs.js --cleanup"
+    "generate:api:cleanup": "node scripts/generate-api-docs.js --cleanup",
+    "generate:sdk-samples": "node scripts/inject-sdk-code-samples.js"
   },
   "devDependencies": {
     "prettier": "^3.1.0"

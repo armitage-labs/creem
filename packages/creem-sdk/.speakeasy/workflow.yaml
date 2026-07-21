@@ -19,5 +19,5 @@ targets:
             registry:
                 location: registry.speakeasyapi.dev/creem/engineering/creem-api-typescript-code-samples
             labelOverride:
-                fixedValue: Typescript (SDK)
+                fixedValue: TypeScript SDK
             blocking: false

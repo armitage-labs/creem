@@ -45,6 +45,13 @@
           {
             "ApiKey": []
           }
+        ],
+        "x-codeSamples": [
+          {
+            "lang": "typescript",
+            "label": "TypeScript SDK",
+            "source": "import { Creem } from \"creem\";\n\nconst creem = new Creem({\n  apiKey: process.env[\"CREEM_API_KEY\"] ?? \"\",\n});\n\nasync function run() {\n  const result = await creem.products.get(\"prod_1234567890\");\n\n  console.log(result);\n}\n\nrun();"
+          }
         ]
       },
       "post": {
@@ -89,6 +96,13 @@
         "security": [
           {
             "ApiKey": []
+          }
+        ],
+        "x-codeSamples": [
+          {
+            "lang": "typescript",
+            "label": "TypeScript SDK",
+            "source": "import { Creem } from \"creem\";\n\nconst creem = new Creem({\n  apiKey: process.env[\"CREEM_API_KEY\"] ?? \"\",\n});\n\nasync function run() {\n  const result = await creem.products.create({\n    name: \"<value>\",\n    description: \"at through very dishearten knife ashamed baa beret amongst\",\n    imageUrl: \"https://picsum.photos/200/300\",\n    price: 400,\n    currency: \"USD\",\n    billingType: \"recurring\",\n    defaultSuccessUrl: \"https://example.com/?status=successful\",\n    customFields: [\n      {\n        type: \"checkbox\",\n        key: \"companyName\",\n        label: \"Company Name\",\n        text: {\n          maxLength: 200,\n          minLength: 1,\n        },\n        checkbox: {\n          label: \"I agree to the [terms and conditions](https://example.com/terms)\",\n        },\n      },\n    ],\n  });\n\n  console.log(result);\n}\n\nrun();"
           }
         ]
       }
@@ -177,6 +191,13 @@
           {
             "ApiKey": []
           }
+        ],
+        "x-codeSamples": [
+          {
+            "lang": "typescript",
+            "label": "TypeScript SDK",
+            "source": "import { Creem } from \"creem\";\n\nconst creem = new Creem({\n  apiKey: process.env[\"CREEM_API_KEY\"] ?? \"\",\n});\n\nasync function run() {\n  const result = await creem.products.search();\n\n  console.log(result);\n}\n\nrun();"
+          }
         ]
       }
     },
@@ -255,6 +276,13 @@
           {
             "ApiKey": []
           }
+        ],
+        "x-codeSamples": [
+          {
+            "lang": "typescript",
+            "label": "TypeScript SDK",
+            "source": "import { Creem } from \"creem\";\n\nconst creem = new Creem({\n  apiKey: process.env[\"CREEM_API_KEY\"] ?? \"\",\n});\n\nasync function run() {\n  const result = await creem.customers.list();\n\n  console.log(result);\n}\n\nrun();"
+          }
         ]
       }
     },
@@ -322,6 +350,13 @@
         "security": [
           {
             "ApiKey": []
+          }
+        ],
+        "x-codeSamples": [
+          {
+            "lang": "typescript",
+            "label": "TypeScript SDK",
+            "source": "import { Creem } from \"creem\";\n\nconst creem = new Creem({\n  apiKey: process.env[\"CREEM_API_KEY\"] ?? \"\",\n});\n\nasync function run() {\n  const result = await creem.customers.getOrders(\"<id>\");\n\n  console.log(result);\n}\n\nrun();"
           }
         ]
       }
@@ -391,6 +426,13 @@
           {
             "ApiKey": []
           }
+        ],
+        "x-codeSamples": [
+          {
+            "lang": "typescript",
+            "label": "TypeScript SDK",
+            "source": "import { Creem } from \"creem\";\n\nconst creem = new Creem({\n  apiKey: process.env[\"CREEM_API_KEY\"] ?? \"\",\n});\n\nasync function run() {\n  const result = await creem.customers.listSubscriptions(\"<id>\");\n\n  console.log(result);\n}\n\nrun();"
+          }
         ]
       }
     },
@@ -459,6 +501,13 @@
           {
             "ApiKey": []
           }
+        ],
+        "x-codeSamples": [
+          {
+            "lang": "typescript",
+            "label": "TypeScript SDK",
+            "source": "import { Creem } from \"creem\";\n\nconst creem = new Creem({\n  apiKey: process.env[\"CREEM_API_KEY\"] ?? \"\",\n});\n\nasync function run() {\n  const result = await creem.customers.listLicenses(\"<id>\");\n\n  console.log(result);\n}\n\nrun();"
+          }
         ]
       }
     },
@@ -516,6 +565,13 @@
           {
             "ApiKey": []
           }
+        ],
+        "x-codeSamples": [
+          {
+            "lang": "typescript",
+            "label": "TypeScript SDK",
+            "source": "import { Creem } from \"creem\";\n\nconst creem = new Creem({\n  apiKey: process.env[\"CREEM_API_KEY\"] ?? \"\",\n});\n\nasync function run() {\n  const result = await creem.customers.retrieve(\"cust_1234567890\", \"customer@example.com\");\n\n  console.log(result);\n}\n\nrun();"
+          }
         ]
       },
       "post": {
@@ -561,6 +617,13 @@
           {
             "ApiKey": []
           }
+        ],
+        "x-codeSamples": [
+          {
+            "lang": "typescript",
+            "label": "TypeScript SDK",
+            "source": "import { Creem } from \"creem\";\n\nconst creem = new Creem({\n  apiKey: process.env[\"CREEM_API_KEY\"] ?? \"\",\n});\n\nasync function run() {\n  const result = await creem.customers.create({\n    email: \"john@example.com\",\n    name: \"John Doe\",\n    metadata: {},\n  });\n\n  console.log(result);\n}\n\nrun();"
+          }
         ]
       },
       "patch": {
@@ -604,6 +667,13 @@
         "security": [
           {
             "ApiKey": []
+          }
+        ],
+        "x-codeSamples": [
+          {
+            "lang": "typescript",
+            "label": "TypeScript SDK",
+            "source": "import { Creem } from \"creem\";\n\nconst creem = new Creem({\n  apiKey: process.env[\"CREEM_API_KEY\"] ?? \"\",\n});\n\nasync function run() {\n  const result = await creem.customers.update({\n    customerId: \"cust_abc123\",\n    name: \"John Doe\",\n    metadata: {},\n  });\n\n  console.log(result);\n}\n\nrun();"
           }
         ]
       }
@@ -652,6 +722,13 @@
           {
             "ApiKey": []
           }
+        ],
+        "x-codeSamples": [
+          {
+            "lang": "typescript",
+            "label": "TypeScript SDK",
+            "source": "import { Creem } from \"creem\";\n\nconst creem = new Creem({\n  apiKey: process.env[\"CREEM_API_KEY\"] ?? \"\",\n});\n\nasync function run() {\n  const result = await creem.customers.generateBillingLinks({\n    customerId: \"<id>\",\n  });\n\n  console.log(result);\n}\n\nrun();"
+          }
         ]
       }
     },
@@ -698,6 +775,13 @@
         "security": [
           {
             "ApiKey": []
+          }
+        ],
+        "x-codeSamples": [
+          {
+            "lang": "typescript",
+            "label": "TypeScript SDK",
+            "source": "import { Creem } from \"creem\";\n\nconst creem = new Creem({\n  apiKey: process.env[\"CREEM_API_KEY\"] ?? \"\",\n});\n\nasync function run() {\n  const result = await creem.subscriptions.get(\"sub_1234567890\");\n\n  console.log(result);\n}\n\nrun();"
           }
         ]
       }
@@ -777,6 +861,13 @@
           {
             "ApiKey": []
           }
+        ],
+        "x-codeSamples": [
+          {
+            "lang": "typescript",
+            "label": "TypeScript SDK",
+            "source": "import { Creem } from \"creem\";\n\nconst creem = new Creem({\n  apiKey: process.env[\"CREEM_API_KEY\"] ?? \"\",\n});\n\nasync function run() {\n  const result = await creem.subscriptions.search();\n\n  console.log(result);\n}\n\nrun();"
+          }
         ]
       }
     },
@@ -833,6 +924,13 @@
         "security": [
           {
             "ApiKey": []
+          }
+        ],
+        "x-codeSamples": [
+          {
+            "lang": "typescript",
+            "label": "TypeScript SDK",
+            "source": "import { Creem } from \"creem\";\n\nconst creem = new Creem({\n  apiKey: process.env[\"CREEM_API_KEY\"] ?? \"\",\n});\n\nasync function run() {\n  const result = await creem.subscriptions.cancel(\"<id>\", {\n    mode: \"immediate\",\n    onExecute: \"cancel\",\n  });\n\n  console.log(result);\n}\n\nrun();"
           }
         ]
       }
@@ -891,6 +989,13 @@
           {
             "ApiKey": []
           }
+        ],
+        "x-codeSamples": [
+          {
+            "lang": "typescript",
+            "label": "TypeScript SDK",
+            "source": "import { Creem } from \"creem\";\n\nconst creem = new Creem({\n  apiKey: process.env[\"CREEM_API_KEY\"] ?? \"\",\n});\n\nasync function run() {\n  const result = await creem.subscriptions.update(\"sub_1234567890\", {\n    items: [\n      {\n        id: \"sitem_1234567890\",\n        priceId: \"pprice_1234567890\",\n        units: 15,\n      },\n    ],\n    updateBehavior: \"proration-charge-immediately\",\n  });\n\n  console.log(result);\n}\n\nrun();"
+          }
         ]
       }
     },
@@ -948,6 +1053,13 @@
           {
             "ApiKey": []
           }
+        ],
+        "x-codeSamples": [
+          {
+            "lang": "typescript",
+            "label": "TypeScript SDK",
+            "source": "import { Creem } from \"creem\";\n\nconst creem = new Creem({\n  apiKey: process.env[\"CREEM_API_KEY\"] ?? \"\",\n});\n\nasync function run() {\n  const result = await creem.subscriptions.upgrade(\"<id>\", {\n    productId: \"prod_123\",\n  });\n\n  console.log(result);\n}\n\nrun();"
+          }
         ]
       }
     },
@@ -994,6 +1106,13 @@
           {
             "ApiKey": []
           }
+        ],
+        "x-codeSamples": [
+          {
+            "lang": "typescript",
+            "label": "TypeScript SDK",
+            "source": "import { Creem } from \"creem\";\n\nconst creem = new Creem({\n  apiKey: process.env[\"CREEM_API_KEY\"] ?? \"\",\n});\n\nasync function run() {\n  const result = await creem.subscriptions.pause(\"<id>\");\n\n  console.log(result);\n}\n\nrun();"
+          }
         ]
       }
     },
@@ -1039,6 +1158,13 @@
         "security": [
           {
             "ApiKey": []
+          }
+        ],
+        "x-codeSamples": [
+          {
+            "lang": "typescript",
+            "label": "TypeScript SDK",
+            "source": "import { Creem } from \"creem\";\n\nconst creem = new Creem({\n  apiKey: process.env[\"CREEM_API_KEY\"] ?? \"\",\n});\n\nasync function run() {\n  const result = await creem.subscriptions.resume(\"<id>\");\n\n  console.log(result);\n}\n\nrun();"
           }
         ]
       }
@@ -1087,6 +1213,13 @@
           {
             "ApiKey": []
           }
+        ],
+        "x-codeSamples": [
+          {
+            "lang": "typescript",
+            "label": "TypeScript SDK",
+            "source": "import { Creem } from \"creem\";\n\nconst creem = new Creem({\n  apiKey: process.env[\"CREEM_API_KEY\"] ?? \"\",\n});\n\nasync function run() {\n  const result = await creem.checkouts.retrieve(\"chk_1234567890\");\n\n  console.log(result);\n}\n\nrun();"
+          }
         ]
       },
       "post": {
@@ -1131,6 +1264,13 @@
         "security": [
           {
             "ApiKey": []
+          }
+        ],
+        "x-codeSamples": [
+          {
+            "lang": "typescript",
+            "label": "TypeScript SDK",
+            "source": "import { Creem } from \"creem\";\n\nconst creem = new Creem({\n  apiKey: process.env[\"CREEM_API_KEY\"] ?? \"\",\n});\n\nasync function run() {\n  const result = await creem.checkouts.create({\n    productId: \"prod_1234567890\",\n    units: 1,\n    discountCode: \"SUMMER2024\",\n    customer: {\n      id: \"cust_1234567890\",\n      email: \"user@example.com\",\n    },\n    customFields: [\n      {\n        type: \"text\",\n        key: \"companyName\",\n        label: \"Company Name\",\n        text: {\n          maxLength: 200,\n          minLength: 1,\n        },\n        checkbox: {\n          label: \"I agree to the [terms and conditions](https://example.com/terms)\",\n        },\n      },\n    ],\n    metadata: {\n      \"userId\": \"user_123\",\n      \"visitCount\": 42,\n      \"lastVisit\": \"2023-04-01\",\n    },\n  });\n\n  console.log(result);\n}\n\nrun();"
           }
         ]
       }
@@ -1179,6 +1319,13 @@
           {
             "ApiKey": []
           }
+        ],
+        "x-codeSamples": [
+          {
+            "lang": "typescript",
+            "label": "TypeScript SDK",
+            "source": "import { Creem } from \"creem\";\n\nconst creem = new Creem({\n  apiKey: process.env[\"CREEM_API_KEY\"] ?? \"\",\n});\n\nasync function run() {\n  const result = await creem.licenses.activate({\n    key: \"<key>\",\n    instanceName: \"<value>\",\n  });\n\n  console.log(result);\n}\n\nrun();"
+          }
         ]
       }
     },
@@ -1226,6 +1373,13 @@
           {
             "ApiKey": []
           }
+        ],
+        "x-codeSamples": [
+          {
+            "lang": "typescript",
+            "label": "TypeScript SDK",
+            "source": "import { Creem } from \"creem\";\n\nconst creem = new Creem({\n  apiKey: process.env[\"CREEM_API_KEY\"] ?? \"\",\n});\n\nasync function run() {\n  const result = await creem.licenses.deactivate({\n    key: \"<key>\",\n    instanceId: \"<id>\",\n  });\n\n  console.log(result);\n}\n\nrun();"
+          }
         ]
       }
     },
@@ -1272,6 +1426,13 @@
         "security": [
           {
             "ApiKey": []
+          }
+        ],
+        "x-codeSamples": [
+          {
+            "lang": "typescript",
+            "label": "TypeScript SDK",
+            "source": "import { Creem } from \"creem\";\n\nconst creem = new Creem({\n  apiKey: process.env[\"CREEM_API_KEY\"] ?? \"\",\n});\n\nasync function run() {\n  const result = await creem.licenses.validate({\n    key: \"<key>\",\n    instanceId: \"<id>\",\n  });\n\n  console.log(result);\n}\n\nrun();"
           }
         ]
       }
@@ -1401,6 +1562,13 @@
           {
             "ApiKey": []
           }
+        ],
+        "x-codeSamples": [
+          {
+            "lang": "typescript",
+            "label": "TypeScript SDK",
+            "source": "import { Creem } from \"creem\";\n\nconst creem = new Creem({\n  apiKey: process.env[\"CREEM_API_KEY\"] ?? \"\",\n});\n\nasync function run() {\n  const result = await creem.discounts.search(1, 10, \"prod_1234567890\", undefined, undefined, \"2024-01-01T00:00:00Z\", \"2024-12-31T23:59:59Z\");\n\n  console.log(result);\n}\n\nrun();"
+          }
         ]
       }
     },
@@ -1458,6 +1626,13 @@
           {
             "ApiKey": []
           }
+        ],
+        "x-codeSamples": [
+          {
+            "lang": "typescript",
+            "label": "TypeScript SDK",
+            "source": "import { Creem } from \"creem\";\n\nconst creem = new Creem({\n  apiKey: process.env[\"CREEM_API_KEY\"] ?? \"\",\n});\n\nasync function run() {\n  const result = await creem.discounts.get(\"disc_1234567890\", \"SAVE20\");\n\n  console.log(result);\n}\n\nrun();"
+          }
         ]
       },
       "post": {
@@ -1502,6 +1677,13 @@
         "security": [
           {
             "ApiKey": []
+          }
+        ],
+        "x-codeSamples": [
+          {
+            "lang": "typescript",
+            "label": "TypeScript SDK",
+            "source": "import { Creem } from \"creem\";\n\nconst creem = new Creem({\n  apiKey: process.env[\"CREEM_API_KEY\"] ?? \"\",\n});\n\nasync function run() {\n  const result = await creem.discounts.create({\n    name: \"Holiday Sale\",\n    code: \"HOLIDAY2024\",\n    type: \"percentage\",\n    amount: 20,\n    currency: \"USD\",\n    percentage: 15,\n    expiryDate: new Date(\"2024-12-31T23:59:59Z\"),\n    maxRedemptions: 100,\n    duration: \"repeating\",\n    durationInMonths: 6,\n    appliesToProducts: [\n      \"prod_123\",\n      \"prod_456\",\n    ],\n  });\n\n  console.log(result);\n}\n\nrun();"
           }
         ]
       }
@@ -1549,6 +1731,13 @@
           {
             "ApiKey": []
           }
+        ],
+        "x-codeSamples": [
+          {
+            "lang": "typescript",
+            "label": "TypeScript SDK",
+            "source": "import { Creem } from \"creem\";\n\nconst creem = new Creem({\n  apiKey: process.env[\"CREEM_API_KEY\"] ?? \"\",\n});\n\nasync function run() {\n  const result = await creem.discounts.delete(\"<id>\");\n\n  console.log(result);\n}\n\nrun();"
+          }
         ]
       }
     },
@@ -1595,6 +1784,13 @@
         "security": [
           {
             "ApiKey": []
+          }
+        ],
+        "x-codeSamples": [
+          {
+            "lang": "typescript",
+            "label": "TypeScript SDK",
+            "source": "import { Creem } from \"creem\";\n\nconst creem = new Creem({\n  apiKey: process.env[\"CREEM_API_KEY\"] ?? \"\",\n});\n\nasync function run() {\n  const result = await creem.transactions.getById(\"txn_1234567890\");\n\n  console.log(result);\n}\n\nrun();"
           }
         ]
       }
@@ -1704,6 +1900,13 @@
           {
             "ApiKey": []
           }
+        ],
+        "x-codeSamples": [
+          {
+            "lang": "typescript",
+            "label": "TypeScript SDK",
+            "source": "import { Creem } from \"creem\";\n\nconst creem = new Creem({\n  apiKey: process.env[\"CREEM_API_KEY\"] ?? \"\",\n});\n\nasync function run() {\n  const result = await creem.transactions.search(\"cust_1234567890\", \"ord_1234567890\", \"prod_1234567890\");\n\n  console.log(result);\n}\n\nrun();"
+          }
         ]
       }
     },
@@ -1778,6 +1981,13 @@
           {
             "ApiKey": []
           }
+        ],
+        "x-codeSamples": [
+          {
+            "lang": "typescript",
+            "label": "TypeScript SDK",
+            "source": "import { Creem } from \"creem\";\n\nconst creem = new Creem({\n  apiKey: process.env[\"CREEM_API_KEY\"] ?? \"\",\n});\n\nasync function run() {\n  const result = await creem.stats.getSummary(\"USD\");\n\n  console.log(result);\n}\n\nrun();"
+          }
         ]
       }
     },
@@ -1825,6 +2035,13 @@
           {
             "ApiKey": []
           }
+        ],
+        "x-codeSamples": [
+          {
+            "lang": "typescript",
+            "label": "TypeScript SDK",
+            "source": "import { Creem } from \"creem\";\n\nconst creem = new Creem({\n  apiKey: process.env[\"CREEM_API_KEY\"] ?? \"\",\n});\n\nasync function run() {\n  const result = await creem.moderation.screenPrompt({\n    prompt: \"<value>\",\n  });\n\n  console.log(result);\n}\n\nrun();"
+          }
         ]
       }
     },
@@ -1871,6 +2088,13 @@
         "security": [
           {
             "ApiKey": []
+          }
+        ],
+        "x-codeSamples": [
+          {
+            "lang": "typescript",
+            "label": "TypeScript SDK",
+            "source": "import { Creem } from \"creem\";\n\nconst creem = new Creem({\n  apiKey: process.env[\"CREEM_API_KEY\"] ?? \"\",\n});\n\nasync function run() {\n  const result = await creem.customerCredits.createAccount({\n    customerId: \"cust_abc123\",\n    initialBalance: \"300\",\n  });\n\n  console.log(result);\n}\n\nrun();"
           }
         ]
       },
@@ -1967,6 +2191,13 @@
           {
             "ApiKey": []
           }
+        ],
+        "x-codeSamples": [
+          {
+            "lang": "typescript",
+            "label": "TypeScript SDK",
+            "source": "import { Creem } from \"creem\";\n\nconst creem = new Creem({\n  apiKey: process.env[\"CREEM_API_KEY\"] ?? \"\",\n});\n\nasync function run() {\n  const result = await creem.customerCredits.listAccounts(10, \"cust_abc123\");\n\n  console.log(result);\n}\n\nrun();"
+          }
         ]
       }
     },
@@ -2012,6 +2243,13 @@
         "security": [
           {
             "ApiKey": []
+          }
+        ],
+        "x-codeSamples": [
+          {
+            "lang": "typescript",
+            "label": "TypeScript SDK",
+            "source": "import { Creem } from \"creem\";\n\nconst creem = new Creem({\n  apiKey: process.env[\"CREEM_API_KEY\"] ?? \"\",\n});\n\nasync function run() {\n  const result = await creem.customerCredits.getAccount(\"<id>\");\n\n  console.log(result);\n}\n\nrun();"
           }
         ]
       }
@@ -2068,6 +2306,13 @@
         "security": [
           {
             "ApiKey": []
+          }
+        ],
+        "x-codeSamples": [
+          {
+            "lang": "typescript",
+            "label": "TypeScript SDK",
+            "source": "import { Creem } from \"creem\";\n\nconst creem = new Creem({\n  apiKey: process.env[\"CREEM_API_KEY\"] ?? \"\",\n});\n\nasync function run() {\n  const result = await creem.customerCredits.getAccountBalance(\"<id>\", \"2024-01-15T00:00:00.000Z\");\n\n  console.log(result);\n}\n\nrun();"
           }
         ]
       }
@@ -2164,6 +2409,13 @@
           {
             "ApiKey": []
           }
+        ],
+        "x-codeSamples": [
+          {
+            "lang": "typescript",
+            "label": "TypeScript SDK",
+            "source": "import { Creem } from \"creem\";\n\nconst creem = new Creem({\n  apiKey: process.env[\"CREEM_API_KEY\"] ?? \"\",\n});\n\nasync function run() {\n  const result = await creem.customerCredits.listEntries(\"<id>\");\n\n  console.log(result);\n}\n\nrun();"
+          }
         ]
       }
     },
@@ -2220,6 +2472,13 @@
           {
             "ApiKey": []
           }
+        ],
+        "x-codeSamples": [
+          {
+            "lang": "typescript",
+            "label": "TypeScript SDK",
+            "source": "import { Creem } from \"creem\";\n\nconst creem = new Creem({\n  apiKey: process.env[\"CREEM_API_KEY\"] ?? \"\",\n});\n\nasync function run() {\n  const result = await creem.customerCredits.freezeAccount(\"<id>\");\n\n  console.log(result);\n}\n\nrun();"
+          }
         ]
       }
     },
@@ -2275,6 +2534,13 @@
         "security": [
           {
             "ApiKey": []
+          }
+        ],
+        "x-codeSamples": [
+          {
+            "lang": "typescript",
+            "label": "TypeScript SDK",
+            "source": "import { Creem } from \"creem\";\n\nconst creem = new Creem({\n  apiKey: process.env[\"CREEM_API_KEY\"] ?? \"\",\n});\n\nasync function run() {\n  const result = await creem.customerCredits.unfreezeAccount(\"<id>\");\n\n  console.log(result);\n}\n\nrun();"
           }
         ]
       }
@@ -2342,6 +2608,13 @@
           {
             "ApiKey": []
           }
+        ],
+        "x-codeSamples": [
+          {
+            "lang": "typescript",
+            "label": "TypeScript SDK",
+            "source": "import { Creem } from \"creem\";\n\nconst creem = new Creem({\n  apiKey: process.env[\"CREEM_API_KEY\"] ?? \"\",\n});\n\nasync function run() {\n  const result = await creem.customerCredits.creditAccount(\"<id>\", {\n    amount: \"1000\",\n    reference: \"signup_bonus\",\n    idempotencyKey: \"idem_abc123\",\n  });\n\n  console.log(result);\n}\n\nrun();"
+          }
         ]
       }
     },
@@ -2408,6 +2681,13 @@
           {
             "ApiKey": []
           }
+        ],
+        "x-codeSamples": [
+          {
+            "lang": "typescript",
+            "label": "TypeScript SDK",
+            "source": "import { Creem } from \"creem\";\n\nconst creem = new Creem({\n  apiKey: process.env[\"CREEM_API_KEY\"] ?? \"\",\n});\n\nasync function run() {\n  const result = await creem.customerCredits.debitAccount(\"<id>\", {\n    amount: \"1000\",\n    reference: \"signup_bonus\",\n    idempotencyKey: \"idem_abc123\",\n  });\n\n  console.log(result);\n}\n\nrun();"
+          }
         ]
       }
     },
@@ -2464,6 +2744,13 @@
           {
             "ApiKey": []
           }
+        ],
+        "x-codeSamples": [
+          {
+            "lang": "typescript",
+            "label": "TypeScript SDK",
+            "source": "import { Creem } from \"creem\";\n\nconst creem = new Creem({\n  apiKey: process.env[\"CREEM_API_KEY\"] ?? \"\",\n});\n\nasync function run() {\n  const result = await creem.customerCredits.reverseTransaction(\"<id>\", {\n    transactionId: \"cct_abc123\",\n  });\n\n  console.log(result);\n}\n\nrun();"
+          }
         ]
       }
     },
@@ -2519,6 +2806,13 @@
         "security": [
           {
             "ApiKey": []
+          }
+        ],
+        "x-codeSamples": [
+          {
+            "lang": "typescript",
+            "label": "TypeScript SDK",
+            "source": "import { Creem } from \"creem\";\n\nconst creem = new Creem({\n  apiKey: process.env[\"CREEM_API_KEY\"] ?? \"\",\n});\n\nasync function run() {\n  const result = await creem.customerCredits.closeAccount(\"<id>\");\n\n  console.log(result);\n}\n\nrun();"
           }
         ]
       }
@@ -2994,7 +3288,13 @@
             "nullable": true
           }
         },
-        "required": ["total_records", "total_pages", "current_page", "next_page", "prev_page"]
+        "required": [
+          "total_records",
+          "total_pages",
+          "current_page",
+          "next_page",
+          "prev_page"
+        ]
       },
       "ProductListEntity": {
         "type": "object",
@@ -3244,7 +3544,15 @@
             "example": "2023-01-01T00:00:00Z"
           }
         },
-        "required": ["id", "mode", "object", "email", "country", "created_at", "updated_at"]
+        "required": [
+          "id",
+          "mode",
+          "object",
+          "email",
+          "country",
+          "created_at",
+          "updated_at"
+        ]
       },
       "CustomerListEntity": {
         "type": "object",
@@ -3587,7 +3895,16 @@
             "description": "Creation date of the order as timestamp"
           }
         },
-        "required": ["id", "mode", "object", "amount", "currency", "type", "status", "created_at"]
+        "required": [
+          "id",
+          "mode",
+          "object",
+          "amount",
+          "currency",
+          "type",
+          "status",
+          "created_at"
+        ]
       },
       "SubscriptionEntity": {
         "type": "object",
@@ -4026,7 +4343,11 @@
           "update_behavior": {
             "type": "string",
             "description": "The update behavior for the subscription (defaults to proration)",
-            "enum": ["proration-charge-immediately", "proration-charge", "proration-none"],
+            "enum": [
+              "proration-charge-immediately",
+              "proration-charge",
+              "proration-none"
+            ],
             "default": "proration-charge"
           }
         }
@@ -4042,7 +4363,11 @@
           "update_behavior": {
             "type": "string",
             "description": "The update behavior for the subscription (defaults to proration-charge-immediately)",
-            "enum": ["proration-charge-immediately", "proration-charge", "proration-none"],
+            "enum": [
+              "proration-charge-immediately",
+              "proration-charge",
+              "proration-none"
+            ],
             "default": "proration-charge-immediately"
           }
         },
@@ -5014,7 +5339,14 @@
             "description": "Creation timestamp"
           }
         },
-        "required": ["id", "transaction_id", "account_id", "side", "amount", "created_at"]
+        "required": [
+          "id",
+          "transaction_id",
+          "account_id",
+          "side",
+          "amount",
+          "created_at"
+        ]
       },
       "EntryListResponseDto": {
         "type": "object",
@@ -5150,7 +5482,14 @@
             "description": "Creation timestamp"
           }
         },
-        "required": ["id", "store_id", "reference", "idempotency_key", "entries", "created_at"]
+        "required": [
+          "id",
+          "store_id",
+          "reference",
+          "idempotency_key",
+          "entries",
+          "created_at"
+        ]
       },
       "ReverseTransactionRequestDto": {
         "type": "object",
