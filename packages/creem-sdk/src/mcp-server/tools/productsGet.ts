@@ -7,19 +7,19 @@ import { productsGet } from "../../funcs/productsGet.js";
 import { formatResult, ToolDefinition } from "../tools.js";
 
 const args = {
-  productId: z.string(),
+  id: z.string(),
 };
 
 export const tool$productsGet: ToolDefinition<typeof args> = {
   name: "products-get",
-  description: `Retrieve a product
+  description: `Get a product by ID
 
-Retrieve product details by ID. View pricing, billing type, status, and product configuration.`,
+Retrieve a single product by its unique identifier.`,
   args,
   tool: async (client, args, ctx) => {
     const [result, apiCall] = await productsGet(
       client,
-      args.productId,
+      args.id,
       { fetchOptions: { signal: ctx.signal } },
     ).$inspect();
 

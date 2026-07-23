@@ -17,10 +17,13 @@ let value: CheckoutEntity = {
     name: "<value>",
     description: "This is a sample product description.",
     imageUrl: "https://example.com/image.jpg",
+    imageUrls: [
+      "https://example.com/image.jpg",
+    ],
     features: [
       {
         id: "feat_abc123",
-        type: "licenseKey",
+        type: "customerCredits",
         description: "Access to premium course materials.",
       },
     ],

@@ -5,7 +5,6 @@
 import { productsArchive } from "../funcs/productsArchive.js";
 import { productsCreate } from "../funcs/productsCreate.js";
 import { productsGet } from "../funcs/productsGet.js";
-import { productsGetById } from "../funcs/productsGetById.js";
 import { productsSearch } from "../funcs/productsSearch.js";
 import { productsUpdate } from "../funcs/productsUpdate.js";
 import { ClientSDK, RequestOptions } from "../lib/sdks.js";
@@ -15,40 +14,6 @@ import { unwrapAsync } from "../types/fp.js";
 import { PageIterator, unwrapResultIterator } from "../types/operations.js";
 
 export class Products extends ClientSDK {
-  /**
-   * Retrieve a product
-   *
-   * @remarks
-   * Retrieve product details by ID. View pricing, billing type, status, and product configuration.
-   */
-  async get(
-    productId: string,
-    options?: RequestOptions,
-  ): Promise<components.ProductEntity> {
-    return unwrapAsync(productsGet(
-      this,
-      productId,
-      options,
-    ));
-  }
-
-  /**
-   * Creates a new product.
-   *
-   * @remarks
-   * Create a new product for one-time payments, including free products with a 0 price, or subscriptions. Configure pricing, billing cycles, and features.
-   */
-  async create(
-    request: components.CreateProductRequestEntity,
-    options?: RequestOptions,
-  ): Promise<components.ProductEntity> {
-    return unwrapAsync(productsCreate(
-      this,
-      request,
-      options,
-    ));
-  }
-
   /**
    * List all products
    *
@@ -73,16 +38,35 @@ export class Products extends ClientSDK {
   }
 
   /**
-   * Retrieve a product
+   * Creates a new product.
    *
    * @remarks
-   * Retrieve a single product by its ID.
+   * Create a new product for one-time payments, including free products with a 0 price, or subscriptions. Configure pricing, billing cycles, and features.
    */
-  async getById(
+  async create(
+    createProductRequestEntity: components.CreateProductRequestEntity,
+    idempotencyKey?: string | undefined,
+    options?: RequestOptions,
+  ): Promise<components.ProductEntity> {
+    return unwrapAsync(productsCreate(
+      this,
+      createProductRequestEntity,
+      idempotencyKey,
+      options,
+    ));
+  }
+
+  /**
+   * Get a product by ID
+   *
+   * @remarks
+   * Retrieve a single product by its unique identifier.
+   */
+  async get(
     id: string,
     options?: RequestOptions,
   ): Promise<components.ProductEntity> {
-    return unwrapAsync(productsGetById(
+    return unwrapAsync(productsGet(
       this,
       id,
       options,
@@ -93,7 +77,7 @@ export class Products extends ClientSDK {
    * Update a product
    *
    * @remarks
-   * Update a product. Only supplied fields change. Changing a price field mints a new default price; existing subscriptions keep the price they were purchased under.
+   * Update a product. Only supplied fields change; a price change mints a new default price.
    */
   async update(
     id: string,
@@ -112,7 +96,7 @@ export class Products extends ClientSDK {
    * Archive a product
    *
    * @remarks
-   * Archive a product (soft-delete). The product is retained for historical orders and subscriptions but can no longer be purchased. Archived products remain retrievable and appear in list results when filtering by `status=archived`.
+   * Archive a product (soft-delete). The product is retained for historical orders and subscriptions but can no longer be purchased.
    */
   async archive(
     id: string,

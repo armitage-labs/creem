@@ -6,7 +6,7 @@ import * as z from "zod/v3";
 import { ClosedEnum } from "../../types/enums.js";
 
 /**
- * The type of the feature: privateNote (custom note), file (downloadable files), or licenseKey (license key).
+ * The type of the feature: `custom` (private note), `file` (downloadable files), `licenseKey` (license key), or `customerCredits` (customer credit grant).
  */
 export const ProductFeatureType = {
   Custom: "custom",
@@ -15,7 +15,7 @@ export const ProductFeatureType = {
   CustomerCredits: "customerCredits",
 } as const;
 /**
- * The type of the feature: privateNote (custom note), file (downloadable files), or licenseKey (license key).
+ * The type of the feature: `custom` (private note), `file` (downloadable files), `licenseKey` (license key), or `customerCredits` (customer credit grant).
  */
 export type ProductFeatureType = ClosedEnum<typeof ProductFeatureType>;
 

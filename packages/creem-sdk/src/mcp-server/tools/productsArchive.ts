@@ -14,7 +14,7 @@ export const tool$productsArchive: ToolDefinition<typeof args> = {
   name: "products-archive",
   description: `Archive a product
 
-Archive a product (soft-delete). The product is retained for historical orders and subscriptions but can no longer be purchased. Archived products remain retrievable and appear in list results when filtering by \`status=archived\`.`,
+Archive a product (soft-delete). The product is retained for historical orders and subscriptions but can no longer be purchased.`,
   args,
   tool: async (client, args, ctx) => {
     const [result, apiCall] = await productsArchive(

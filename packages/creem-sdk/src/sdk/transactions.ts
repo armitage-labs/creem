@@ -3,6 +3,7 @@
  */
 
 import { transactionsGetById } from "../funcs/transactionsGetById.js";
+import { transactionsRefund } from "../funcs/transactionsRefund.js";
 import { transactionsSearch } from "../funcs/transactionsSearch.js";
 import { ClientSDK, RequestOptions } from "../lib/sdks.js";
 import * as components from "../models/components/index.js";
@@ -51,6 +52,23 @@ export class Transactions extends ClientSDK {
       productId,
       pageNumber,
       pageSize,
+      options,
+    ));
+  }
+
+  /**
+   * Refund a payment
+   *
+   * @remarks
+   * Issue a full refund for a payment, identified by its transaction ID. The full remaining refundable amount is resolved automatically. Returns `pending` when the payment provider confirms the refund asynchronously.
+   */
+  async refund(
+    request: components.CreateRefundRequestEntity,
+    options?: RequestOptions,
+  ): Promise<components.RefundResponseEntity> {
+    return unwrapAsync(transactionsRefund(
+      this,
+      request,
       options,
     ));
   }

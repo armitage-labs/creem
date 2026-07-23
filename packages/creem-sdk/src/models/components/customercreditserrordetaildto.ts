@@ -25,16 +25,6 @@ export type CustomerCreditsErrorDetailDtoType = ClosedEnum<
   typeof CustomerCreditsErrorDetailDtoType
 >;
 
-/**
- * Machine-readable error code
- */
-export type Code = {};
-
-/**
- * The parameter related to the error, if applicable
- */
-export type Param = {};
-
 export type CustomerCreditsErrorDetailDto = {
   /**
    * Error category
@@ -43,7 +33,7 @@ export type CustomerCreditsErrorDetailDto = {
   /**
    * Machine-readable error code
    */
-  code: Code | null;
+  code: string | null;
   /**
    * Human-readable error message
    */
@@ -51,7 +41,7 @@ export type CustomerCreditsErrorDetailDto = {
   /**
    * The parameter related to the error, if applicable
    */
-  param?: Param | null | undefined;
+  param?: string | null | undefined;
   /**
    * Unique request identifier for support
    */
@@ -68,64 +58,15 @@ export const CustomerCreditsErrorDetailDtoType$outboundSchema: z.ZodNativeEnum<
 > = CustomerCreditsErrorDetailDtoType$inboundSchema;
 
 /** @internal */
-export const Code$inboundSchema: z.ZodType<Code, z.ZodTypeDef, unknown> = z
-  .object({});
-/** @internal */
-export type Code$Outbound = {};
-
-/** @internal */
-export const Code$outboundSchema: z.ZodType<Code$Outbound, z.ZodTypeDef, Code> =
-  z.object({});
-
-export function codeToJSON(code: Code): string {
-  return JSON.stringify(Code$outboundSchema.parse(code));
-}
-export function codeFromJSON(
-  jsonString: string,
-): SafeParseResult<Code, SDKValidationError> {
-  return safeParse(
-    jsonString,
-    (x) => Code$inboundSchema.parse(JSON.parse(x)),
-    `Failed to parse 'Code' from JSON`,
-  );
-}
-
-/** @internal */
-export const Param$inboundSchema: z.ZodType<Param, z.ZodTypeDef, unknown> = z
-  .object({});
-/** @internal */
-export type Param$Outbound = {};
-
-/** @internal */
-export const Param$outboundSchema: z.ZodType<
-  Param$Outbound,
-  z.ZodTypeDef,
-  Param
-> = z.object({});
-
-export function paramToJSON(param: Param): string {
-  return JSON.stringify(Param$outboundSchema.parse(param));
-}
-export function paramFromJSON(
-  jsonString: string,
-): SafeParseResult<Param, SDKValidationError> {
-  return safeParse(
-    jsonString,
-    (x) => Param$inboundSchema.parse(JSON.parse(x)),
-    `Failed to parse 'Param' from JSON`,
-  );
-}
-
-/** @internal */
 export const CustomerCreditsErrorDetailDto$inboundSchema: z.ZodType<
   CustomerCreditsErrorDetailDto,
   z.ZodTypeDef,
   unknown
 > = z.object({
   type: CustomerCreditsErrorDetailDtoType$inboundSchema,
-  code: z.nullable(z.lazy(() => Code$inboundSchema)),
+  code: z.nullable(z.string()),
   message: z.string(),
-  param: z.nullable(z.lazy(() => Param$inboundSchema)).optional(),
+  param: z.nullable(z.string()).optional(),
   request_id: z.string(),
 }).transform((v) => {
   return remap$(v, {
@@ -135,9 +76,9 @@ export const CustomerCreditsErrorDetailDto$inboundSchema: z.ZodType<
 /** @internal */
 export type CustomerCreditsErrorDetailDto$Outbound = {
   type: string;
-  code: Code$Outbound | null;
+  code: string | null;
   message: string;
-  param?: Param$Outbound | null | undefined;
+  param?: string | null | undefined;
   request_id: string;
 };
 
@@ -148,9 +89,9 @@ export const CustomerCreditsErrorDetailDto$outboundSchema: z.ZodType<
   CustomerCreditsErrorDetailDto
 > = z.object({
   type: CustomerCreditsErrorDetailDtoType$outboundSchema,
-  code: z.nullable(z.lazy(() => Code$outboundSchema)),
+  code: z.nullable(z.string()),
   message: z.string(),
-  param: z.nullable(z.lazy(() => Param$outboundSchema)).optional(),
+  param: z.nullable(z.string()).optional(),
   requestId: z.string(),
 }).transform((v) => {
   return remap$(v, {

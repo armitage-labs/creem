@@ -9,7 +9,7 @@ let value: CustomerListEntity = {
   items: [
     {
       id: "<id>",
-      mode: "test",
+      mode: "sandbox",
       object: "<value>",
       email: "user@example.com",
       name: "John Doe",

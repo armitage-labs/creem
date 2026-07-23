@@ -20,7 +20,7 @@ specific category of applications.
 
 ```typescript
 import { CreemCore } from "creem/core.js";
-import { productsGet } from "creem/funcs/productsGet.js";
+import { productsSearch } from "creem/funcs/productsSearch.js";
 
 // Use `CreemCore` for best tree-shaking performance.
 // You can create one instance of it to use across an application.
@@ -29,12 +29,14 @@ const creem = new CreemCore({
 });
 
 async function run() {
-  const res = await productsGet(creem, "prod_1234567890");
+  const res = await productsSearch(creem);
   if (res.ok) {
     const { value: result } = res;
-    console.log(result);
+    for await (const page of result) {
+    console.log(page);
+  }
   } else {
-    console.log("productsGet failed:", res.error);
+    console.log("productsSearch failed:", res.error);
   }
 }
 

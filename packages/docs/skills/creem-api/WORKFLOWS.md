@@ -14,7 +14,7 @@ Step-by-step guides for common integration patterns.
 3. [License Key System for Desktop Apps](#3-license-key-system-for-desktop-apps)
 4. [Seat-Based Team Billing](#4-seat-based-team-billing)
 5. [Freemium with Upgrade Flow](#5-freemium-with-upgrade-flow)
-6. [Affiliate/Referral Tracking](#6-affiliatereferral-tracking)
+6. [Affiliate and Referral Tracking](#6-affiliate-and-referral-tracking)
 
 ---
 
@@ -909,7 +909,7 @@ export function UpgradePrompt({
 
 ---
 
-## 6. Affiliate/Referral Tracking
+## 6. Affiliate and Referral Tracking
 
 Track conversions from marketing campaigns or affiliates.
 

@@ -6,7 +6,7 @@ import * as z from "zod/v3";
 import { ClosedEnum } from "../../types/enums.js";
 
 /**
- * Billing period, required if billing_type is recurring
+ * Billing interval. Required when `billing_type` is `recurring`.
  */
 export const ProductRequestBillingPeriod = {
   Once: "once",
@@ -17,7 +17,7 @@ export const ProductRequestBillingPeriod = {
   EveryYear: "every-year",
 } as const;
 /**
- * Billing period, required if billing_type is recurring
+ * Billing interval. Required when `billing_type` is `recurring`.
  */
 export type ProductRequestBillingPeriod = ClosedEnum<
   typeof ProductRequestBillingPeriod

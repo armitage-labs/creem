@@ -1,12 +1,12 @@
 lockVersion: 2.0.0
 id: 091f072e-89b5-4c97-b605-63f1bf64ee97
 management:
-  docChecksum: 76d797723ef8b5d9ea670a45e98c519f
+  docChecksum: c89f66ac09477cc6a6c627572ba89e90
   docVersion: v1
-  speakeasyVersion: 1.790.1
-  generationVersion: 2.918.1
-  releaseVersion: 1.5.4
-  configChecksum: bab86d25f1d0f996fff881c3c9d4e775
+  speakeasyVersion: 1.790.3
+  generationVersion: 2.918.4
+  releaseVersion: 1.6.0
+  configChecksum: ddcb80ae71a288c2ff5d98849babbbf0
   repoURL: https://github.com/armitage-labs/creem.git
   repoSubDirectory: packages/creem-sdk
   installationURL: https://github.com/armitage-labs/creem
@@ -75,6 +75,8 @@ trackedFiles:
   docs/models/components/activatelicenserequestentity.md:
     id: 3dc1cb0e852e
     pristine_git_object: 634cbc45074962fdbda3c112c4a3ba2a1b429754
+  docs/models/components/affiliateentity.md: {}
+  docs/models/components/affiliatelistentity.md: {}
   docs/models/components/balanceresponsedto.md: {}
   docs/models/components/cancelsubscriptionrequestentity.md:
     id: 058fefa14fc4
@@ -92,7 +94,9 @@ trackedFiles:
   docs/models/components/checkoutentityduration.md: {}
   docs/models/components/checkoutentityproduct.md: {}
   docs/models/components/checkoutentitytype.md: {}
-  docs/models/components/code.md: {}
+  docs/models/components/commissionentity.md: {}
+  docs/models/components/commissionlistentity.md: {}
+  docs/models/components/commissionstatus.md: {}
   docs/models/components/coupondurationtype.md: {}
   docs/models/components/createaccountdto.md: {}
   docs/models/components/createcheckoutrequest.md:
@@ -108,6 +112,7 @@ trackedFiles:
   docs/models/components/createproductrequestentity.md:
     id: 8257f878173d
     pristine_git_object: 1a0798d76f055612a9f62df2a317829617cf3d11
+  docs/models/components/createrefundrequestentity.md: {}
   docs/models/components/creditdebitrequestdto.md: {}
   docs/models/components/customer.md:
     id: c4a50385ed0c
@@ -173,6 +178,9 @@ trackedFiles:
     id: 2d0cf735e53f
     pristine_git_object: 26599d872e2051eba024640bf7000dd8420e8bc8
   docs/models/components/licenseentitystatus.md: {}
+  docs/models/components/licenseinstanceentity.md: {}
+  docs/models/components/licenseinstanceentitystatus.md: {}
+  docs/models/components/licenseinstancelistentity.md: {}
   docs/models/components/licensekey.md: {}
   docs/models/components/licenselistentity.md: {}
   docs/models/components/licensestatus.md: {}
@@ -192,7 +200,6 @@ trackedFiles:
   docs/models/components/paginationentity.md:
     id: 9473e5fff17d
     pristine_git_object: 111a8b029c00eba4f26c5b660d8cdd43e2fdac36
-  docs/models/components/param.md: {}
   docs/models/components/product.md:
     id: ba34ccd38ab6
     pristine_git_object: 709453d1ecb4d6a24bffc77ced210daf47d8b709
@@ -220,8 +227,8 @@ trackedFiles:
   docs/models/components/refundentitycustomer.md: {}
   docs/models/components/refundentitysubscription.md: {}
   docs/models/components/refundreason.md: {}
+  docs/models/components/refundresponseentity.md: {}
   docs/models/components/refundstatus.md: {}
-  docs/models/components/reversalof.md: {}
   docs/models/components/reversetransactionrequestdto.md: {}
   docs/models/components/screenpromptrequest.md: {}
   docs/models/components/screenpromptresponse.md: {}
@@ -261,7 +268,6 @@ trackedFiles:
   docs/models/components/transactionstatus.md: {}
   docs/models/components/transactiontype.md: {}
   docs/models/components/type.md: {}
-  docs/models/components/unitlabel.md: {}
   docs/models/components/updatebehavior.md:
     id: 2bbf9ee35707
     pristine_git_object: 13e4d6b4004b5c7b69287e17d07375883709d365
@@ -319,6 +325,7 @@ trackedFiles:
     id: 838f185094b0
     pristine_git_object: 13ced3d7d373f88b0c13145ce7f7bc656725084e
   docs/models/operations/closecustomercreditsaccountrequest.md: {}
+  docs/models/operations/createproductrequest.md: {}
   docs/models/operations/creditcustomercreditsaccountrequest.md: {}
   docs/models/operations/currency.md: {}
   docs/models/operations/debitcustomercreditsaccountrequest.md: {}
@@ -334,6 +341,10 @@ trackedFiles:
     id: 0e4013c65303
     pristine_git_object: 35e14c16281dbd4f6b58863ab29a1160b8b55181
   docs/models/operations/interval.md: {}
+  docs/models/operations/listaffiliatecommissionsrequest.md: {}
+  docs/models/operations/listaffiliatecommissionsresponse.md: {}
+  docs/models/operations/listaffiliatesrequest.md: {}
+  docs/models/operations/listaffiliatesresponse.md: {}
   docs/models/operations/listcustomercreditsaccountentriesrequest.md: {}
   docs/models/operations/listcustomercreditsaccountentriesresponse.md: {}
   docs/models/operations/listcustomercreditsaccountsrequest.md: {}
@@ -345,12 +356,15 @@ trackedFiles:
     pristine_git_object: 0ca867d8074f7212a50f8d5b4cfafdcbbaba37c0
   docs/models/operations/listcustomersresponse.md: {}
   docs/models/operations/listcustomersubscriptionsrequest.md: {}
+  docs/models/operations/listlicenseinstancesrequest.md: {}
+  docs/models/operations/listlicenseinstancesresponse.md: {}
   docs/models/operations/pausesubscriptionrequest.md:
     id: 13bd0ce6ef15
     pristine_git_object: 63eed0f107e278a6b36b89fde63be52336ef6a6c
   docs/models/operations/resumesubscriptionrequest.md:
     id: 4fd3f138a941
     pristine_git_object: 1e1b6c3fdd9c300afce5e2c177fc1d7abb4d9420
+  docs/models/operations/retrieveaffiliaterequest.md: {}
   docs/models/operations/retrievecheckoutrequest.md:
     id: f436086bf58f
     pristine_git_object: f864a607b87fb2038b1250281427a28325d27d69
@@ -360,9 +374,6 @@ trackedFiles:
   docs/models/operations/retrievediscountrequest.md:
     id: 656f87ce242c
     pristine_git_object: 89f1a2328d188f765b9d1990258b9c37cc1494a4
-  docs/models/operations/retrieveproductrequest.md:
-    id: 88aae4a36275
-    pristine_git_object: 7f593bafffc437f57b740e4e784b20275247bdc8
   docs/models/operations/retrievesubscriptionrequest.md:
     id: 609d4d39c68f
     pristine_git_object: 84912b498ab54a11cac4e7d21916a8c9573bc1d2
@@ -389,6 +400,7 @@ trackedFiles:
   docs/models/operations/upgradesubscriptionrequest.md:
     id: 345ea726fc03
     pristine_git_object: 05718ded2b06e4de3e1722d41e4052c6a2f66ea3
+  docs/sdks/affiliates/README.md: {}
   docs/sdks/checkouts/README.md:
     id: 4fb6631c9f7a
     pristine_git_object: 576619253f2ac8dfc4b648dbd3c2bacd02c78618
@@ -425,7 +437,7 @@ trackedFiles:
   examples/package.json:
     id: c1d7b0ec8e7e
     pristine_git_object: b06f1288c75ea845f541ce3b9a32141eae3d015c
-  examples/productsGet.example.ts: {}
+  examples/productsSearch.example.ts: {}
   jsr.json:
     id: 7f6ab7767282
     pristine_git_object: e5888a4c7af0aee5100b8d817f757e0d44eddad1
@@ -435,6 +447,9 @@ trackedFiles:
   src/core.ts:
     id: f431fdbcd144
     pristine_git_object: 9720cacca56b86669855b5e92956a5e2a3ee77c1
+  src/funcs/affiliatesList.ts: {}
+  src/funcs/affiliatesListCommissions.ts: {}
+  src/funcs/affiliatesRetrieve.ts: {}
   src/funcs/checkoutsCreate.ts: {}
   src/funcs/checkoutsRetrieve.ts: {}
   src/funcs/customerCreditsCloseAccount.ts: {}
@@ -462,12 +477,12 @@ trackedFiles:
   src/funcs/discountsSearch.ts: {}
   src/funcs/licensesActivate.ts: {}
   src/funcs/licensesDeactivate.ts: {}
+  src/funcs/licensesListInstances.ts: {}
   src/funcs/licensesValidate.ts: {}
   src/funcs/moderationScreenPrompt.ts: {}
   src/funcs/productsArchive.ts: {}
   src/funcs/productsCreate.ts: {}
   src/funcs/productsGet.ts: {}
-  src/funcs/productsGetById.ts: {}
   src/funcs/productsSearch.ts: {}
   src/funcs/productsUpdate.ts: {}
   src/funcs/statsGetSummary.ts: {}
@@ -479,6 +494,7 @@ trackedFiles:
   src/funcs/subscriptionsUpdate.ts: {}
   src/funcs/subscriptionsUpgrade.ts: {}
   src/funcs/transactionsGetById.ts: {}
+  src/funcs/transactionsRefund.ts: {}
   src/funcs/transactionsSearch.ts: {}
   src/hooks/hooks.ts:
     id: a2463fc6f69b
@@ -573,6 +589,9 @@ trackedFiles:
   src/mcp-server/tools.ts:
     id: 654d5d1f2062
     pristine_git_object: 3d4e01e8d0b0fe6426461cd11dbef0a7f0c30774
+  src/mcp-server/tools/affiliatesList.ts: {}
+  src/mcp-server/tools/affiliatesListCommissions.ts: {}
+  src/mcp-server/tools/affiliatesRetrieve.ts: {}
   src/mcp-server/tools/checkoutsCreate.ts: {}
   src/mcp-server/tools/checkoutsRetrieve.ts: {}
   src/mcp-server/tools/customerCreditsCloseAccount.ts: {}
@@ -600,12 +619,12 @@ trackedFiles:
   src/mcp-server/tools/discountsSearch.ts: {}
   src/mcp-server/tools/licensesActivate.ts: {}
   src/mcp-server/tools/licensesDeactivate.ts: {}
+  src/mcp-server/tools/licensesListInstances.ts: {}
   src/mcp-server/tools/licensesValidate.ts: {}
   src/mcp-server/tools/moderationScreenPrompt.ts: {}
   src/mcp-server/tools/productsArchive.ts: {}
   src/mcp-server/tools/productsCreate.ts: {}
   src/mcp-server/tools/productsGet.ts: {}
-  src/mcp-server/tools/productsGetById.ts: {}
   src/mcp-server/tools/productsSearch.ts: {}
   src/mcp-server/tools/productsUpdate.ts: {}
   src/mcp-server/tools/statsGetSummary.ts: {}
@@ -617,12 +636,15 @@ trackedFiles:
   src/mcp-server/tools/subscriptionsUpdate.ts: {}
   src/mcp-server/tools/subscriptionsUpgrade.ts: {}
   src/mcp-server/tools/transactionsGetById.ts: {}
+  src/mcp-server/tools/transactionsRefund.ts: {}
   src/mcp-server/tools/transactionsSearch.ts: {}
   src/models/components/accountlistresponsedto.ts: {}
   src/models/components/accountresponsedto.ts: {}
   src/models/components/activatelicenserequestentity.ts:
     id: 26d50dbe81c8
     pristine_git_object: 5818ab94ac9ae349a458051e22fc2abd99ed4d0e
+  src/models/components/affiliateentity.ts: {}
+  src/models/components/affiliatelistentity.ts: {}
   src/models/components/balanceresponsedto.ts: {}
   src/models/components/cancelsubscriptionrequestentity.ts:
     id: 9774bfe34c00
@@ -631,6 +653,9 @@ trackedFiles:
   src/models/components/checkoutentity.ts:
     id: 9375d8731949
     pristine_git_object: dffb33e7306cb4455729933c528202db25b4067f
+  src/models/components/commissionentity.ts: {}
+  src/models/components/commissionlistentity.ts: {}
+  src/models/components/commissionstatus.ts: {}
   src/models/components/coupondurationtype.ts: {}
   src/models/components/createaccountdto.ts: {}
   src/models/components/createcheckoutrequest.ts:
@@ -646,6 +671,7 @@ trackedFiles:
   src/models/components/createproductrequestentity.ts:
     id: 81f983fd0163
     pristine_git_object: f903f420dbbf910473c8620607273dba93f0f14e
+  src/models/components/createrefundrequestentity.ts: {}
   src/models/components/creditdebitrequestdto.ts: {}
   src/models/components/customercreditserrordetaildto.ts: {}
   src/models/components/customerentity.ts:
@@ -690,6 +716,8 @@ trackedFiles:
   src/models/components/licenseentity.ts:
     id: 233af4f00429
     pristine_git_object: 3feea4852df433f51d8095c2e9c1c761c7fd1d44
+  src/models/components/licenseinstanceentity.ts: {}
+  src/models/components/licenseinstancelistentity.ts: {}
   src/models/components/licenselistentity.ts: {}
   src/models/components/licensestatus.ts: {}
   src/models/components/orderentity.ts:
@@ -719,6 +747,7 @@ trackedFiles:
   src/models/components/productstatus.ts: {}
   src/models/components/refundentity.ts: {}
   src/models/components/refundreason.ts: {}
+  src/models/components/refundresponseentity.ts: {}
   src/models/components/refundstatus.ts: {}
   src/models/components/reversetransactionrequestdto.ts: {}
   src/models/components/screenpromptrequest.ts: {}
@@ -802,6 +831,7 @@ trackedFiles:
     id: 69393943824c
     pristine_git_object: 2782cba715628f5dd71e890d65206e2e77901242
   src/models/operations/closecustomercreditsaccount.ts: {}
+  src/models/operations/createproduct.ts: {}
   src/models/operations/creditcustomercreditsaccount.ts: {}
   src/models/operations/debitcustomercreditsaccount.ts: {}
   src/models/operations/deletediscount.ts:
@@ -818,6 +848,8 @@ trackedFiles:
   src/models/operations/index.ts:
     id: 0d9ffaf774d2
     pristine_git_object: b913dce8f9e69774c040f831d83754a78616264a
+  src/models/operations/listaffiliatecommissions.ts: {}
+  src/models/operations/listaffiliates.ts: {}
   src/models/operations/listcustomercreditsaccountentries.ts: {}
   src/models/operations/listcustomercreditsaccounts.ts: {}
   src/models/operations/listcustomerlicenses.ts: {}
@@ -826,12 +858,14 @@ trackedFiles:
     id: fa5992922803
     pristine_git_object: a171343908626c6c0eee4bdec87a2c1ad3d1f84f
   src/models/operations/listcustomersubscriptions.ts: {}
+  src/models/operations/listlicenseinstances.ts: {}
   src/models/operations/pausesubscription.ts:
     id: 1871e521cda7
     pristine_git_object: b93939a0edf1833aab660ec16f5e7fb3f83a375a
   src/models/operations/resumesubscription.ts:
     id: fc2ed54145d3
     pristine_git_object: 68570c31ad240c6bda3f597935ba79211f6eb9ab
+  src/models/operations/retrieveaffiliate.ts: {}
   src/models/operations/retrievecheckout.ts:
     id: 8628878a8b0f
     pristine_git_object: 3ba24d9f67d9210234e7b1af4543b490a4f60148
@@ -841,9 +875,6 @@ trackedFiles:
   src/models/operations/retrievediscount.ts:
     id: 7a527a0557fe
     pristine_git_object: bfbc799778ca43d3f45ea4ed91abd6dc0b9428f1
-  src/models/operations/retrieveproduct.ts:
-    id: 7c5b4052ba76
-    pristine_git_object: 3e588e96f7a0b349b0c7e53953c0b25c70d52459
   src/models/operations/retrievesubscription.ts:
     id: a0fcf4ad186d
     pristine_git_object: bf2b8dc16c3db64ad05685d5147ed790857791b4
@@ -864,6 +895,7 @@ trackedFiles:
   src/models/operations/upgradesubscription.ts:
     id: e806bbbebb75
     pristine_git_object: ce7cec3529f6961a54c8aec665dc504749feea68
+  src/sdk/affiliates.ts: {}
   src/sdk/checkouts.ts:
     id: cd7ce1658f32
     pristine_git_object: 370e322a6e6d1432ef69474203fccc0cdffa716a
@@ -944,10 +976,10 @@ examples:
         header:
           x-api-key: "<value>"
       requestBody:
-        application/json: {"name": "<value>", "description": "at through very dishearten knife ashamed baa beret amongst", "image_url": "https://picsum.photos/200/300", "price": 400, "currency": "USD", "billing_type": "recurring", "pay_what_you_want": false, "suggested_price": 1500, "default_success_url": "https://example.com/?status=successful", "custom_fields": [{"type": "checkbox", "key": "companyName", "label": "Company Name", "text": {"max_length": 200, "min_length": 1}, "checkbox": {"label": "I agree to the [terms and conditions](https://example.com/terms)"}}], "abandoned_cart_recovery_enabled": false}
+        application/json: {"name": "<value>", "description": "at through very dishearten knife ashamed baa beret amongst", "image_url": "https://picsum.photos/200/300", "image_urls": ["https://picsum.photos/200/300", "https://picsum.photos/200/301"], "price": 400, "currency": "USD", "billing_type": "recurring", "pay_what_you_want": false, "suggested_price": 1500, "default_success_url": "https://example.com/?status=successful", "custom_fields": [{"type": "checkbox", "key": "companyName", "label": "Company Name", "text": {"max_length": 200, "min_length": 1}, "checkbox": {"label": "I agree to the [terms and conditions](https://example.com/terms)"}}], "abandoned_cart_recovery_enabled": false}
       responses:
         "200":
-          application/json: {"id": "<id>", "mode": "sandbox", "object": "{}", "name": "<value>", "description": "This is a sample product description.", "image_url": "https://example.com/image.jpg", "features": [{"id": "<id>", "type": "licenseKey", "description": "Get access to discord server."}], "price": 400, "currency": "USD", "billing_type": "recurring", "billing_period": "every-month", "status": "archived", "tax_mode": "inclusive", "tax_category": "ebooks", "product_url": "https://creem.io/product/prod_123123123123", "default_success_url": "https://example.com/?status=successful", "created_at": "2023-01-01T00:00:00Z", "updated_at": "2023-01-01T00:00:00Z"}
+          application/json: {"id": "<id>", "mode": "sandbox", "object": "{}", "name": "<value>", "description": "This is a sample product description.", "image_url": "https://example.com/image.jpg", "image_urls": ["https://example.com/image.jpg"], "features": [{"id": "<id>", "type": "licenseKey", "description": "Get access to discord server."}], "price": 400, "currency": "USD", "billing_type": "recurring", "billing_period": "every-month", "status": "archived", "tax_mode": "inclusive", "tax_category": "ebooks", "product_url": "https://creem.io/product/prod_123123123123", "default_success_url": "https://example.com/?status=successful", "created_at": "2023-01-01T00:00:00Z", "updated_at": "2023-01-01T00:00:00Z"}
   searchProducts:
     speakeasy-default-search-products:
       parameters:
@@ -1512,7 +1544,7 @@ examples:
         "200":
           application/json: {"id": "cca_abc123", "store_id": "<id>", "customer_id": "cust_abc123", "name": "default", "unit_label": "credits", "status": "frozen", "created_at": "1728689035823", "updated_at": "1735648440259"}
         "409":
-          application/json: {"error": {"type": "invalid_request_error", "code": {}, "message": "Total debits must equal total credits", "param": {}, "request_id": "req_abc123def456"}}
+          application/json: {"error": {"type": "invalid_request_error", "code": "{}", "message": "Total debits must equal total credits", "param": "{}", "request_id": "req_abc123def456"}}
   unfreezeCustomerCreditsAccount:
     speakeasy-default-unfreeze-customer-credits-account:
       parameters:
@@ -1522,7 +1554,7 @@ examples:
         "200":
           application/json: {"id": "cca_abc123", "store_id": "<id>", "customer_id": "cust_abc123", "name": "default", "unit_label": "credits", "status": "frozen", "created_at": "1733583367559", "updated_at": "1735675011055"}
         "409":
-          application/json: {"error": {"type": "invalid_request_error", "code": {}, "message": "Total debits must equal total credits", "param": {}, "request_id": "req_abc123def456"}}
+          application/json: {"error": {"type": "invalid_request_error", "code": "{}", "message": "Total debits must equal total credits", "param": "{}", "request_id": "req_abc123def456"}}
   creditCustomerCreditsAccount:
     speakeasy-default-credit-customer-credits-account:
       parameters:
@@ -1532,9 +1564,9 @@ examples:
         application/json: {"amount": "1000", "reference": "signup_bonus", "idempotency_key": "idem_abc123"}
       responses:
         "201":
-          application/json: {"id": "cct_abc123", "store_id": "<id>", "reference": "order_xyz", "idempotency_key": "<value>", "reversal_of": {}, "entries": [{"id": "cce_abc123", "transaction_id": "cct_abc123", "account_id": "cca_abc123", "side": "debit", "amount": "1000", "created_at": "1709237874487"}], "created_at": "1724504322214"}
+          application/json: {"id": "cct_abc123", "store_id": "<id>", "reference": "order_xyz", "idempotency_key": "<value>", "reversal_of": "{}", "entries": [{"id": "cce_abc123", "transaction_id": "cct_abc123", "account_id": "cca_abc123", "side": "debit", "amount": "1000", "created_at": "1709237874487"}], "created_at": "1724504322214"}
         "409":
-          application/json: {"error": {"type": "invalid_request_error", "code": {}, "message": "Total debits must equal total credits", "param": {}, "request_id": "req_abc123def456"}}
+          application/json: {"error": {"type": "invalid_request_error", "code": "{}", "message": "Total debits must equal total credits", "param": "{}", "request_id": "req_abc123def456"}}
   debitCustomerCreditsAccount:
     speakeasy-default-debit-customer-credits-account:
       parameters:
@@ -1544,9 +1576,9 @@ examples:
         application/json: {"amount": "1000", "reference": "signup_bonus", "idempotency_key": "idem_abc123"}
       responses:
         "201":
-          application/json: {"id": "cct_abc123", "store_id": "<id>", "reference": "order_xyz", "idempotency_key": "<value>", "reversal_of": {}, "entries": [], "created_at": "1725719636034"}
+          application/json: {"id": "cct_abc123", "store_id": "<id>", "reference": "order_xyz", "idempotency_key": "<value>", "reversal_of": "{}", "entries": [], "created_at": "1725719636034"}
         "409":
-          application/json: {"error": {"type": "invalid_request_error", "code": {}, "message": "Total debits must equal total credits", "param": {}, "request_id": "req_abc123def456"}}
+          application/json: {"error": {"type": "invalid_request_error", "code": "{}", "message": "Total debits must equal total credits", "param": "{}", "request_id": "req_abc123def456"}}
   reverseCustomerCreditsAccountTransaction:
     speakeasy-default-reverse-customer-credits-account-transaction:
       parameters:
@@ -1556,7 +1588,7 @@ examples:
         application/json: {"transaction_id": "cct_abc123"}
       responses:
         "201":
-          application/json: {"id": "cct_abc123", "store_id": "<id>", "reference": "order_xyz", "idempotency_key": "<value>", "reversal_of": {}, "entries": [], "created_at": "1716740707727"}
+          application/json: {"id": "cct_abc123", "store_id": "<id>", "reference": "order_xyz", "idempotency_key": "<value>", "reversal_of": "{}", "entries": [], "created_at": "1716740707727"}
   closeCustomerCreditsAccount:
     speakeasy-default-close-customer-credits-account:
       parameters:
@@ -1566,7 +1598,7 @@ examples:
         "200":
           application/json: {"id": "cca_abc123", "store_id": "<id>", "customer_id": "cust_abc123", "name": "default", "unit_label": "credits", "status": "frozen", "created_at": "1720589047332", "updated_at": "1735616393285"}
         "409":
-          application/json: {"error": {"type": "invalid_request_error", "code": {}, "message": "Total debits must equal total credits", "param": {}, "request_id": "req_abc123def456"}}
+          application/json: {"error": {"type": "invalid_request_error", "code": "{}", "message": "Total debits must equal total credits", "param": "{}", "request_id": "req_abc123def456"}}
   getProduct:
     speakeasy-default-get-product:
       parameters:
@@ -1574,17 +1606,17 @@ examples:
           id: "<id>"
       responses:
         "200":
-          application/json: {"id": "<id>", "mode": "sandbox", "object": "<value>", "name": "<value>", "description": "This is a sample product description.", "image_url": "https://example.com/image.jpg", "features": [{"id": "feat_abc123", "type": "file", "description": "Access to premium course materials."}], "price": 400, "currency": "USD", "billing_type": "recurring", "billing_period": "every-year", "status": "archived", "tax_mode": "exclusive", "tax_category": "saas", "product_url": "https://creem.io/product/prod_123123123123", "default_success_url": "https://example.com/?status=successful", "created_at": "2023-01-01T00:00:00Z", "updated_at": "2023-01-01T00:00:00Z"}
+          application/json: {"id": "<id>", "mode": "sandbox", "object": "<value>", "name": "<value>", "description": "This is a sample product description.", "image_url": "https://example.com/image.jpg", "image_urls": ["https://example.com/image.jpg"], "features": [{"id": "feat_abc123", "type": "file", "description": "Access to premium course materials."}], "price": 400, "currency": "USD", "billing_type": "recurring", "billing_period": "every-year", "status": "archived", "tax_mode": "exclusive", "tax_category": "saas", "product_url": "https://creem.io/product/prod_123123123123", "default_success_url": "https://example.com/?status=successful", "created_at": "2023-01-01T00:00:00Z", "updated_at": "2023-01-01T00:00:00Z"}
   updateProduct:
     speakeasy-default-update-product:
       parameters:
         path:
           id: "<id>"
       requestBody:
-        application/json: {"image_url": "https://picsum.photos/200/300", "default_success_url": "https://example.com/?status=successful", "price": 400, "pay_what_you_want": false, "suggested_price": 1500}
+        application/json: {}
       responses:
         "200":
-          application/json: {"id": "<id>", "mode": "test", "object": "<value>", "name": "<value>", "description": "This is a sample product description.", "image_url": "https://example.com/image.jpg", "features": [{"id": "feat_abc123", "type": "file", "description": "Access to premium course materials."}], "price": 400, "currency": "USD", "billing_type": "recurring", "billing_period": "every-six-months", "status": "archived", "tax_mode": "inclusive", "tax_category": "ebooks", "product_url": "https://creem.io/product/prod_123123123123", "default_success_url": "https://example.com/?status=successful", "created_at": "2023-01-01T00:00:00Z", "updated_at": "2023-01-01T00:00:00Z"}
+          application/json: {"id": "<id>", "mode": "test", "object": "<value>", "name": "<value>", "description": "This is a sample product description.", "image_url": "https://example.com/image.jpg", "image_urls": ["https://example.com/image.jpg"], "features": [{"id": "feat_abc123", "type": "file", "description": "Access to premium course materials."}], "price": 400, "currency": "USD", "billing_type": "recurring", "billing_period": "every-six-months", "status": "archived", "tax_mode": "inclusive", "tax_category": "ebooks", "product_url": "https://creem.io/product/prod_123123123123", "default_success_url": "https://example.com/?status=successful", "created_at": "2023-01-01T00:00:00Z", "updated_at": "2023-01-01T00:00:00Z"}
   archiveProduct:
     speakeasy-default-archive-product:
       parameters:
@@ -1592,15 +1624,56 @@ examples:
           id: "<id>"
       responses:
         "200":
-          application/json: {"id": "<id>", "mode": "prod", "object": "<value>", "name": "<value>", "description": "This is a sample product description.", "image_url": "https://example.com/image.jpg", "features": [{"id": "feat_abc123", "type": "custom", "description": "Access to premium course materials."}], "price": 400, "currency": "USD", "billing_type": "onetime", "billing_period": "every-six-months", "status": "active", "tax_mode": "inclusive", "tax_category": "saas", "product_url": "https://creem.io/product/prod_123123123123", "default_success_url": "https://example.com/?status=successful", "created_at": "2023-01-01T00:00:00Z", "updated_at": "2023-01-01T00:00:00Z"}
+          application/json: {"id": "<id>", "mode": "prod", "object": "<value>", "name": "<value>", "description": "This is a sample product description.", "image_url": "https://example.com/image.jpg", "image_urls": ["https://example.com/image.jpg"], "features": [{"id": "feat_abc123", "type": "custom", "description": "Access to premium course materials."}], "price": 400, "currency": "USD", "billing_type": "onetime", "billing_period": "every-six-months", "status": "active", "tax_mode": "inclusive", "tax_category": "saas", "product_url": "https://creem.io/product/prod_123123123123", "default_success_url": "https://example.com/?status=successful", "created_at": "2023-01-01T00:00:00Z", "updated_at": "2023-01-01T00:00:00Z"}
+  listLicenseInstances:
+    speakeasy-default-list-license-instances:
+      parameters:
+        path:
+          id: "<id>"
+        query:
+          page_number: 1
+          page_size: 10
+      responses:
+        "200":
+          application/json: {"items": [{"id": "<id>", "mode": "prod", "object": "license-instance", "name": "My Customer License Instance", "status": "active", "created_at": "2023-09-13T00:00:00Z"}], "pagination": {"total_records": 0, "total_pages": 0, "current_page": 1, "next_page": 2, "prev_page": null}}
+  refundPayment:
+    speakeasy-default-refund-payment:
+      requestBody:
+        application/json: {"transaction_id": "tran_1234567890"}
+      responses:
+        "200":
+          application/json: {"status": "failed"}
+  listAffiliates:
+    speakeasy-default-list-affiliates:
+      parameters:
+        query:
+          page_number: 1
+          page_size: 50
+      responses:
+        "200":
+          application/json: {"items": [{"id": "<id>", "mode": "test", "object": "affiliate", "email": "partner@example.com", "name": "Jane Partner", "status": "active", "referral_code": "a1b2c3d4", "referral_link": "https://creem.io/affiliate?code=a1b2c3d4", "clicks": 128, "conversions": 12, "earnings": 4200, "currency": "USD"}], "pagination": {"total_records": 0, "total_pages": 0, "current_page": 1, "next_page": 2, "prev_page": null}}
+  retrieveAffiliate:
+    speakeasy-default-retrieve-affiliate:
+      parameters:
+        path:
+          id: "<id>"
+      responses:
+        "200":
+          application/json: {"id": "<id>", "mode": "sandbox", "object": "affiliate", "email": "partner@example.com", "name": "Jane Partner", "status": "active", "referral_code": "a1b2c3d4", "referral_link": "https://creem.io/affiliate?code=a1b2c3d4", "clicks": 128, "conversions": 12, "earnings": 4200, "currency": "USD"}
+  listAffiliateCommissions:
+    speakeasy-default-list-affiliate-commissions:
+      parameters:
+        path:
+          id: "<id>"
+        query:
+          page_number: 1
+          page_size: 10
+      responses:
+        "200":
+          application/json: {"items": [{"id": "<id>", "mode": "test", "object": "commission", "affiliate": "aff_1234567890", "amount": 600, "currency": "USD", "status": "paid", "sale": "tran_1234567890", "created_at": 44.95}], "pagination": {"total_records": 0, "total_pages": 0, "current_page": 1, "next_page": 2, "prev_page": null}}
 examplesVersion: 1.0.2
 generatedTests: {}
-releaseNotes: |
-  ## Typescript SDK Changes:
-  * `creem.products.getById()`: **Added**
-  * `creem.products.update()`: **Added**
-  * `creem.products.archive()`: **Added**
-  * `creem.products.search()`:  `request.status` **Added**
+releaseNotes: "## Typescript SDK Changes:\n* `creem.customerCredits.freezeAccount()`:  `error` **Changed** (Breaking ⚠️)\n* `creem.customerCredits.unfreezeAccount()`:  `error` **Changed** (Breaking ⚠️)\n* `creem.customerCredits.creditAccount()`: \n  *  `response.reversalOf` **Changed** (Breaking ⚠️)\n  *  `error` **Changed** (Breaking ⚠️)\n* `creem.customerCredits.debitAccount()`: \n  *  `response.reversalOf` **Changed** (Breaking ⚠️)\n  *  `error` **Changed** (Breaking ⚠️)\n* `creem.customerCredits.reverseTransaction()`:  `response.reversalOf` **Changed** (Breaking ⚠️)\n* `creem.customerCredits.closeAccount()`:  `error` **Changed** (Breaking ⚠️)\n* `creem.stats.getSummary()`: **Added**\n* `creem.products.get()`: **Removed** (Breaking ⚠️)\n* `creem.products.update()`: **Added**\n* `creem.products.archive()`: **Added**\n* `creem.customers.list()`: **Added**\n* `creem.customers.getOrders()`: **Added**\n* `creem.customers.listSubscriptions()`: **Added**\n* `creem.customers.listLicenses()`: **Added**\n* `creem.affiliates.list()`: **Added**\n* `creem.customers.create()`: **Added**\n* `creem.customers.update()`: **Added**\n* `creem.customers.generateBillingLinks()`: **Added**\n* `creem.subscriptions.get()`: **Added**\n* `creem.subscriptions.search()`: **Added**\n* `creem.subscriptions.cancel()`: **Added**\n* `creem.subscriptions.update()`: **Added**\n* `creem.subscriptions.upgrade()`: **Added**\n* `creem.subscriptions.pause()`: **Added**\n* `creem.subscriptions.resume()`: **Added**\n* `creem.checkouts.retrieve()`: **Added**\n* `creem.checkouts.create()`: **Added**\n* `creem.licenses.activate()`: **Added**\n* `creem.licenses.deactivate()`: **Added**\n* `creem.licenses.validate()`: **Added**\n* `creem.licenses.listInstances()`: **Added**\n* `creem.affiliates.listCommissions()`: **Added**\n* `creem.discounts.get()`: **Added**\n* `creem.discounts.create()`: **Added**\n* `creem.discounts.delete()`: **Added**\n* `creem.transactions.getById()`: **Added**\n* `creem.transactions.search()`: **Added**\n* `creem.transactions.refund()`: **Added**\n* `creem.products.create()`: **Added**\n* `creem.moderation.screenPrompt()`: **Added**\n* `creem.customers.retrieve()`: **Added**\n* `creem.products.get()`: **Added**\n* `creem.discounts.search()`: **Added**\n* `creem.affiliates.retrieve()`: **Added**\n* `creem.products.create()`: **Removed** (Breaking ⚠️)\n* `creem.products.search()`: **Removed** (Breaking ⚠️)\n* `creem.products.getById()`: **Removed** (Breaking ⚠️)\n* `creem.products.update()`: **Removed** (Breaking ⚠️)\n* `creem.products.archive()`: **Removed** (Breaking ⚠️)\n* `creem.customers.list()`: **Removed** (Breaking ⚠️)\n* `creem.customers.getOrders()`: **Removed** (Breaking ⚠️)\n* `creem.customers.listSubscriptions()`: **Removed** (Breaking ⚠️)\n* `creem.customers.listLicenses()`: **Removed** (Breaking ⚠️)\n* `creem.customers.retrieve()`: **Removed** (Breaking ⚠️)\n* `creem.customers.create()`: **Removed** (Breaking ⚠️)\n* `creem.customers.update()`: **Removed** (Breaking ⚠️)\n* `creem.customers.generateBillingLinks()`: **Removed** (Breaking ⚠️)\n* `creem.subscriptions.get()`: **Removed** (Breaking ⚠️)\n* `creem.subscriptions.search()`: **Removed** (Breaking ⚠️)\n* `creem.subscriptions.cancel()`: **Removed** (Breaking ⚠️)\n* `creem.subscriptions.update()`: **Removed** (Breaking ⚠️)\n* `creem.subscriptions.upgrade()`: **Removed** (Breaking ⚠️)\n* `creem.subscriptions.pause()`: **Removed** (Breaking ⚠️)\n* `creem.subscriptions.resume()`: **Removed** (Breaking ⚠️)\n* `creem.checkouts.retrieve()`: **Removed** (Breaking ⚠️)\n* `creem.checkouts.create()`: **Removed** (Breaking ⚠️)\n* `creem.licenses.activate()`: **Removed** (Breaking ⚠️)\n* `creem.licenses.deactivate()`: **Removed** (Breaking ⚠️)\n* `creem.licenses.validate()`: **Removed** (Breaking ⚠️)\n* `creem.discounts.search()`: **Removed** (Breaking ⚠️)\n* `creem.discounts.get()`: **Removed** (Breaking ⚠️)\n* `creem.discounts.create()`: **Removed** (Breaking ⚠️)\n* `creem.products.search()`: **Added**\n* `creem.discounts.delete()`: **Removed** (Breaking ⚠️)\n* `creem.transactions.getById()`: **Removed** (Breaking ⚠️)\n* `creem.transactions.search()`: **Removed** (Breaking ⚠️)\n* `creem.stats.getSummary()`: **Removed** (Breaking ⚠️)\n* `creem.moderation.screenPrompt()`: **Removed** (Breaking ⚠️)\n"
 generatedFiles:
   - .devcontainer/README.md
   - .devcontainer/devcontainer.json

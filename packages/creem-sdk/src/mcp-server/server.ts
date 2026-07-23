@@ -13,6 +13,9 @@ import {
 } from "./resources.js";
 import { MCPScope } from "./scopes.js";
 import { createRegisterTool } from "./tools.js";
+import { tool$affiliatesList } from "./tools/affiliatesList.js";
+import { tool$affiliatesListCommissions } from "./tools/affiliatesListCommissions.js";
+import { tool$affiliatesRetrieve } from "./tools/affiliatesRetrieve.js";
 import { tool$checkoutsCreate } from "./tools/checkoutsCreate.js";
 import { tool$checkoutsRetrieve } from "./tools/checkoutsRetrieve.js";
 import { tool$customerCreditsCloseAccount } from "./tools/customerCreditsCloseAccount.js";
@@ -40,12 +43,12 @@ import { tool$discountsGet } from "./tools/discountsGet.js";
 import { tool$discountsSearch } from "./tools/discountsSearch.js";
 import { tool$licensesActivate } from "./tools/licensesActivate.js";
 import { tool$licensesDeactivate } from "./tools/licensesDeactivate.js";
+import { tool$licensesListInstances } from "./tools/licensesListInstances.js";
 import { tool$licensesValidate } from "./tools/licensesValidate.js";
 import { tool$moderationScreenPrompt } from "./tools/moderationScreenPrompt.js";
 import { tool$productsArchive } from "./tools/productsArchive.js";
 import { tool$productsCreate } from "./tools/productsCreate.js";
 import { tool$productsGet } from "./tools/productsGet.js";
-import { tool$productsGetById } from "./tools/productsGetById.js";
 import { tool$productsSearch } from "./tools/productsSearch.js";
 import { tool$productsUpdate } from "./tools/productsUpdate.js";
 import { tool$statsGetSummary } from "./tools/statsGetSummary.js";
@@ -57,6 +60,7 @@ import { tool$subscriptionsSearch } from "./tools/subscriptionsSearch.js";
 import { tool$subscriptionsUpdate } from "./tools/subscriptionsUpdate.js";
 import { tool$subscriptionsUpgrade } from "./tools/subscriptionsUpgrade.js";
 import { tool$transactionsGetById } from "./tools/transactionsGetById.js";
+import { tool$transactionsRefund } from "./tools/transactionsRefund.js";
 import { tool$transactionsSearch } from "./tools/transactionsSearch.js";
 
 export function createMCPServer(deps: {
@@ -69,7 +73,7 @@ export function createMCPServer(deps: {
 }) {
   const server = new McpServer({
     name: "Creem",
-    version: "1.5.4",
+    version: "1.6.0",
   });
 
   const client = new CreemCore({
@@ -99,10 +103,9 @@ export function createMCPServer(deps: {
   const register = { tool, resource, resourceTemplate, prompt };
   void register; // suppress unused warnings
 
-  tool(tool$productsGet);
-  tool(tool$productsCreate);
   tool(tool$productsSearch);
-  tool(tool$productsGetById);
+  tool(tool$productsCreate);
+  tool(tool$productsGet);
   tool(tool$productsUpdate);
   tool(tool$productsArchive);
   tool(tool$customersList);
@@ -125,12 +128,14 @@ export function createMCPServer(deps: {
   tool(tool$licensesActivate);
   tool(tool$licensesDeactivate);
   tool(tool$licensesValidate);
+  tool(tool$licensesListInstances);
   tool(tool$discountsSearch);
   tool(tool$discountsGet);
   tool(tool$discountsCreate);
   tool(tool$discountsDelete);
   tool(tool$transactionsGetById);
   tool(tool$transactionsSearch);
+  tool(tool$transactionsRefund);
   tool(tool$statsGetSummary);
   tool(tool$moderationScreenPrompt);
   tool(tool$customerCreditsCreateAccount);
@@ -144,6 +149,9 @@ export function createMCPServer(deps: {
   tool(tool$customerCreditsDebitAccount);
   tool(tool$customerCreditsReverseTransaction);
   tool(tool$customerCreditsCloseAccount);
+  tool(tool$affiliatesList);
+  tool(tool$affiliatesRetrieve);
+  tool(tool$affiliatesListCommissions);
 
   return server;
 }

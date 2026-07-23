@@ -76,6 +76,10 @@ export type ProductEntity = {
    */
   imageUrl?: string | undefined;
   /**
+   * Ordered list of product image URLs. The first entry is the cover image (mirrored in image_url).
+   */
+  imageUrls?: Array<string> | undefined;
+  /**
    * Features of the product.
    */
   features?: Array<FeatureEntity> | undefined;
@@ -96,7 +100,7 @@ export type ProductEntity = {
    */
   billingPeriod: ProductBillingPeriod;
   /**
-   * Status of the product
+   * Lifecycle status of the product: `active` or `archived`.
    */
   status: ProductStatus;
   /**
@@ -141,6 +145,7 @@ export const ProductEntity$inboundSchema: z.ZodType<
   name: z.string(),
   description: z.string(),
   image_url: z.string().optional(),
+  image_urls: z.array(z.string()).optional(),
   features: z.array(FeatureEntity$inboundSchema).optional(),
   price: z.number(),
   currency: z.string(),
@@ -157,6 +162,7 @@ export const ProductEntity$inboundSchema: z.ZodType<
 }).transform((v) => {
   return remap$(v, {
     "image_url": "imageUrl",
+    "image_urls": "imageUrls",
     "billing_type": "billingType",
     "billing_period": "billingPeriod",
     "tax_mode": "taxMode",
@@ -176,6 +182,7 @@ export type ProductEntity$Outbound = {
   name: string;
   description: string;
   image_url?: string | undefined;
+  image_urls?: Array<string> | undefined;
   features?: Array<FeatureEntity$Outbound> | undefined;
   price: number;
   currency: string;
@@ -203,6 +210,7 @@ export const ProductEntity$outboundSchema: z.ZodType<
   name: z.string(),
   description: z.string(),
   imageUrl: z.string().optional(),
+  imageUrls: z.array(z.string()).optional(),
   features: z.array(FeatureEntity$outboundSchema).optional(),
   price: z.number(),
   currency: z.string(),
@@ -219,6 +227,7 @@ export const ProductEntity$outboundSchema: z.ZodType<
 }).transform((v) => {
   return remap$(v, {
     imageUrl: "image_url",
+    imageUrls: "image_urls",
     billingType: "billing_type",
     billingPeriod: "billing_period",
     taxMode: "tax_mode",

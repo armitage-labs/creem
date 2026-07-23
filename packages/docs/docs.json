@@ -17,6 +17,64 @@
   "contextual": {
     "options": ["copy", "view", "chatgpt", "claude", "perplexity"]
   },
+  "redirects": [
+    {
+      "source": "/code/sdks/typescript-core",
+      "destination": "/code/sdks/typescript"
+    },
+    {
+      "source": "/api-reference/endpoint/get-product-by-id",
+      "destination": "/api-reference/endpoint/get-product"
+    },
+    {
+      "source": "/api-reference/endpoint/get-metrics-summary",
+      "destination": "/api-reference/endpoint/get-stats-summary"
+    },
+    {
+      "source": "/api-reference/endpoint/create-customer-credits-account",
+      "destination": "/api-reference/endpoint/create-credits-account"
+    },
+    {
+      "source": "/api-reference/endpoint/list-customer-credits-accounts",
+      "destination": "/api-reference/endpoint/list-credits-accounts"
+    },
+    {
+      "source": "/api-reference/endpoint/get-customer-credits-account",
+      "destination": "/api-reference/endpoint/get-credits-account"
+    },
+    {
+      "source": "/api-reference/endpoint/get-customer-credits-account-balance",
+      "destination": "/api-reference/endpoint/get-credits-account-balance"
+    },
+    {
+      "source": "/api-reference/endpoint/list-customer-credits-account-entries",
+      "destination": "/api-reference/endpoint/list-credits-entries"
+    },
+    {
+      "source": "/api-reference/endpoint/freeze-customer-credits-account",
+      "destination": "/api-reference/endpoint/freeze-credits-account"
+    },
+    {
+      "source": "/api-reference/endpoint/unfreeze-customer-credits-account",
+      "destination": "/api-reference/endpoint/unfreeze-credits-account"
+    },
+    {
+      "source": "/api-reference/endpoint/credit-customer-credits-account",
+      "destination": "/api-reference/endpoint/credit-account"
+    },
+    {
+      "source": "/api-reference/endpoint/debit-customer-credits-account",
+      "destination": "/api-reference/endpoint/debit-account"
+    },
+    {
+      "source": "/api-reference/endpoint/reverse-customer-credits-account-transaction",
+      "destination": "/api-reference/endpoint/reverse-credits-transaction"
+    },
+    {
+      "source": "/api-reference/endpoint/close-customer-credits-account",
+      "destination": "/api-reference/endpoint/close-credits-account"
+    }
+  ],
   "theme": "mint",
   "name": "Creem",
   "colors": {
@@ -231,7 +289,6 @@
             "pages": [
               "api-reference/endpoint/create-product",
               "api-reference/endpoint/get-product",
-              "api-reference/endpoint/get-product-by-id",
               "api-reference/endpoint/search-products",
               "api-reference/endpoint/update-product",
               "api-reference/endpoint/archive-product"
@@ -251,7 +308,17 @@
             "icon": "receipt",
             "pages": [
               "api-reference/endpoint/get-transaction",
-              "api-reference/endpoint/get-transactions"
+              "api-reference/endpoint/get-transactions",
+              "api-reference/endpoint/refund-payment"
+            ]
+          },
+          {
+            "group": "Affiliate",
+            "icon": "users",
+            "pages": [
+              "api-reference/endpoint/list-affiliates",
+              "api-reference/endpoint/retrieve-affiliate",
+              "api-reference/endpoint/list-affiliate-commissions"
             ]
           },
           {
@@ -260,7 +327,8 @@
             "pages": [
               "api-reference/endpoint/validate-license",
               "api-reference/endpoint/activate-license",
-              "api-reference/endpoint/deactivate-license"
+              "api-reference/endpoint/deactivate-license",
+              "api-reference/endpoint/list-license-instances"
             ]
           },
           {

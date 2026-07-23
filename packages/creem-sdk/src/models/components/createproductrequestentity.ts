@@ -53,19 +53,23 @@ export type CreateProductRequestEntity = {
    */
   imageUrl?: string | undefined;
   /**
+   * Ordered list of product image URLs (max 8). The first entry is the cover image; when provided it takes precedence over image_url.
+   */
+  imageUrls?: Array<string> | undefined;
+  /**
    * The price of the product in cents. Must be 0 (free product) or at least 100 (one whole unit of the currency).
    */
   price: number;
   /**
-   * Three-letter ISO currency code, in uppercase. Must be a supported currency.
+   * Three-letter uppercase ISO 4217 currency code. Must be one of Creem's supported currencies.
    */
   currency: ProductCurrency;
   /**
-   * Indicates the billing method for the customer. It can either be a `recurring` billing cycle or a `onetime` payment.
+   * Billing method for the product: `recurring` subscription or `onetime` payment.
    */
   billingType: ProductRequestBillingType;
   /**
-   * Billing period, required if billing_type is recurring
+   * Billing interval. Required when `billing_type` is `recurring`.
    */
   billingPeriod?: ProductRequestBillingPeriod | undefined;
   /**
@@ -113,6 +117,7 @@ export const CreateProductRequestEntity$inboundSchema: z.ZodType<
   name: z.string(),
   description: z.string(),
   image_url: z.string().optional(),
+  image_urls: z.array(z.string()).optional(),
   price: z.number().int(),
   currency: ProductCurrency$inboundSchema,
   billing_type: ProductRequestBillingType$inboundSchema,
@@ -128,6 +133,7 @@ export const CreateProductRequestEntity$inboundSchema: z.ZodType<
 }).transform((v) => {
   return remap$(v, {
     "image_url": "imageUrl",
+    "image_urls": "imageUrls",
     "billing_type": "billingType",
     "billing_period": "billingPeriod",
     "tax_mode": "taxMode",
@@ -145,6 +151,7 @@ export type CreateProductRequestEntity$Outbound = {
   name: string;
   description: string;
   image_url?: string | undefined;
+  image_urls?: Array<string> | undefined;
   price: number;
   currency: string;
   billing_type: string;
@@ -168,6 +175,7 @@ export const CreateProductRequestEntity$outboundSchema: z.ZodType<
   name: z.string(),
   description: z.string(),
   imageUrl: z.string().optional(),
+  imageUrls: z.array(z.string()).optional(),
   price: z.number().int(),
   currency: ProductCurrency$outboundSchema,
   billingType: ProductRequestBillingType$outboundSchema,
@@ -183,6 +191,7 @@ export const CreateProductRequestEntity$outboundSchema: z.ZodType<
 }).transform((v) => {
   return remap$(v, {
     imageUrl: "image_url",
+    imageUrls: "image_urls",
     billingType: "billing_type",
     billingPeriod: "billing_period",
     taxMode: "tax_mode",

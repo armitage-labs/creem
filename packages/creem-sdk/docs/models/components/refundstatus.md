@@ -1,6 +1,6 @@
 # RefundStatus
 
-Status of the refund.
+Status of the refund. `pending` and `requiresAction` represent non-terminal provider processing states.
 
 ## Example Usage
 
@@ -13,5 +13,5 @@ let value: RefundStatus = "pending";
 ## Values
 
 ```typescript
-"pending" | "succeeded" | "canceled" | "failed"
+"pending" | "requiresAction" | "succeeded" | "failed" | "canceled"
 ```

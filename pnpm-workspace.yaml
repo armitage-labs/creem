@@ -16,12 +16,15 @@ overrides:
 
 allowBuilds:
   "@prisma/engines": true
+  "@scarf/scarf": false
   "@swc/core": false
   better-sqlite3: true
   bun: true
   core-js-pure: false
   esbuild: true
+  keytar: false
   prisma: true
+  puppeteer: false
   sharp: true
   unrs-resolver: true
   workerd: false

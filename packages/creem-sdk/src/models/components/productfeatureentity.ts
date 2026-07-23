@@ -135,11 +135,6 @@ export type LicenseKey = {
 };
 
 /**
- * Optional label for the credit unit (e.g. "tokens", "credits").
- */
-export type UnitLabel = {};
-
-/**
  * Customer credits feature data.
  */
 export type CustomerCredits = {
@@ -150,7 +145,7 @@ export type CustomerCredits = {
   /**
    * Optional label for the credit unit (e.g. "tokens", "credits").
    */
-  unitLabel?: UnitLabel | null | undefined;
+  unitLabel?: string | null | undefined;
 };
 
 /**
@@ -259,7 +254,7 @@ export type ProductFeatureEntity = {
    */
   description?: string | null | undefined;
   /**
-   * The type of the feature: privateNote (custom note), file (downloadable files), or licenseKey (license key).
+   * The type of the feature: `custom` (private note), `file` (downloadable files), `licenseKey` (license key), or `customerCredits` (customer credit grant).
    */
   type?: ProductFeatureType | undefined;
   /**
@@ -476,42 +471,13 @@ export function licenseKeyFromJSON(
 }
 
 /** @internal */
-export const UnitLabel$inboundSchema: z.ZodType<
-  UnitLabel,
-  z.ZodTypeDef,
-  unknown
-> = z.object({});
-/** @internal */
-export type UnitLabel$Outbound = {};
-
-/** @internal */
-export const UnitLabel$outboundSchema: z.ZodType<
-  UnitLabel$Outbound,
-  z.ZodTypeDef,
-  UnitLabel
-> = z.object({});
-
-export function unitLabelToJSON(unitLabel: UnitLabel): string {
-  return JSON.stringify(UnitLabel$outboundSchema.parse(unitLabel));
-}
-export function unitLabelFromJSON(
-  jsonString: string,
-): SafeParseResult<UnitLabel, SDKValidationError> {
-  return safeParse(
-    jsonString,
-    (x) => UnitLabel$inboundSchema.parse(JSON.parse(x)),
-    `Failed to parse 'UnitLabel' from JSON`,
-  );
-}
-
-/** @internal */
 export const CustomerCredits$inboundSchema: z.ZodType<
   CustomerCredits,
   z.ZodTypeDef,
   unknown
 > = z.object({
   amount: z.string(),
-  unit_label: z.nullable(z.lazy(() => UnitLabel$inboundSchema)).optional(),
+  unit_label: z.nullable(z.string()).optional(),
 }).transform((v) => {
   return remap$(v, {
     "unit_label": "unitLabel",
@@ -520,7 +486,7 @@ export const CustomerCredits$inboundSchema: z.ZodType<
 /** @internal */
 export type CustomerCredits$Outbound = {
   amount: string;
-  unit_label?: UnitLabel$Outbound | null | undefined;
+  unit_label?: string | null | undefined;
 };
 
 /** @internal */
@@ -530,7 +496,7 @@ export const CustomerCredits$outboundSchema: z.ZodType<
   CustomerCredits
 > = z.object({
   amount: z.string(),
-  unitLabel: z.nullable(z.lazy(() => UnitLabel$outboundSchema)).optional(),
+  unitLabel: z.nullable(z.string()).optional(),
 }).transform((v) => {
   return remap$(v, {
     unitLabel: "unit_label",

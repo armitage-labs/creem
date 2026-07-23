@@ -19,9 +19,9 @@ let value: SearchTransactionsResponse = {
         type: "invoice",
         taxCountry: "US",
         taxAmount: 2000,
-        status: "uncollectible",
+        status: "canceled",
         refundedAmount: 2000,
-        createdAt: 2926.3,
+        createdAt: 8206.71,
       },
     ],
     pagination: {

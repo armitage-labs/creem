@@ -39,7 +39,7 @@ export type CustomerEntity = {
    */
   metadata?: { [k: string]: any } | null | undefined;
   /**
-   * The ISO alpha-2 country code for the customer.
+   * The ISO 3166-1 alpha-2 country code for the customer.
    */
   country: string | null;
   /**
