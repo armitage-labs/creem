@@ -1,0 +1,40 @@
+name: Docs CI
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - "packages/docs/**"
+      # Validate changes to this workflow itself.
+      - ".github/workflows/docs-ci.yml"
+  pull_request:
+    branches: [main]
+    paths:
+      - "packages/docs/**"
+      # Validate changes to this workflow itself.
+      - ".github/workflows/docs-ci.yml"
+  workflow_dispatch: {}
+
+jobs:
+  validate:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: pnpm/action-setup@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: "pnpm"
+
+      - run: pnpm install --frozen-lockfile
+
+      - name: Validate generated API reference structure
+        run: pnpm --dir packages/docs generate:api:dry-run
+
+      - name: Validate Mintlify build
+        run: pnpm --dir packages/docs validate
+
+      - name: Check links, redirects, and anchors
+        run: pnpm --dir packages/docs check:links

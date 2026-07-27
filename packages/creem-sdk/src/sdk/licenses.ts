@@ -4,10 +4,13 @@
 
 import { licensesActivate } from "../funcs/licensesActivate.js";
 import { licensesDeactivate } from "../funcs/licensesDeactivate.js";
+import { licensesListInstances } from "../funcs/licensesListInstances.js";
 import { licensesValidate } from "../funcs/licensesValidate.js";
 import { ClientSDK, RequestOptions } from "../lib/sdks.js";
 import * as components from "../models/components/index.js";
+import * as operations from "../models/operations/index.js";
 import { unwrapAsync } from "../types/fp.js";
+import { PageIterator, unwrapResultIterator } from "../types/operations.js";
 
 export class Licenses extends ClientSDK {
   /**
@@ -57,6 +60,29 @@ export class Licenses extends ClientSDK {
     return unwrapAsync(licensesValidate(
       this,
       request,
+      options,
+    ));
+  }
+
+  /**
+   * List license instances.
+   *
+   * @remarks
+   * Retrieve a paginated list of instances (activations) for a license key. Use an instance id from this list to deactivate it via the deactivate endpoint.
+   */
+  async listInstances(
+    id: string,
+    pageNumber?: number | undefined,
+    pageSize?: number | undefined,
+    options?: RequestOptions,
+  ): Promise<
+    PageIterator<operations.ListLicenseInstancesResponse, { page: number }>
+  > {
+    return unwrapResultIterator(licensesListInstances(
+      this,
+      id,
+      pageNumber,
+      pageSize,
       options,
     ));
   }

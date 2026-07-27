@@ -1,0 +1,99 @@
+@import 'tailwindcss/theme';
+@import 'tailwindcss/utilities' important;
+
+@source '../src/**/*.{tsx,ts}';
+
+@theme inline {
+  --color-creem-ink: #151617;
+  --color-creem-cream: #f5f2f0;
+  --color-creem-purple: #b09cfb;
+  --color-creem-peach: #ffbe98;
+  --color-creem-green: #4ecb71;
+  --color-accent: #b09cfb;
+
+  --color-ui-bg: var(--ui-bg);
+  --color-ui-surface: var(--ui-surface);
+  --color-ui-surface-subtle: var(--ui-surface-subtle);
+  --color-ui-surface-elevated: var(--ui-surface-elevated);
+  --color-ui-text: var(--ui-text);
+  --color-ui-text-muted: var(--ui-text-muted);
+  --color-ui-text-subtle: var(--ui-text-subtle);
+  --color-ui-border: var(--ui-border);
+  --color-ui-border-subtle: var(--ui-border-subtle);
+  --color-ui-focus: var(--ui-focus);
+  --color-ui-link: var(--ui-link);
+  --color-ui-danger: var(--ui-danger);
+  --color-ui-danger-bg: var(--ui-danger-bg);
+  --color-ui-warning: var(--ui-warning);
+  --color-ui-warning-bg: var(--ui-warning-bg);
+}
+
+:root {
+  color-scheme: light dark;
+  --ui-bg: light-dark(#f5f2f0, #121314);
+  --ui-surface: light-dark(#ffffff, #1a1b1d);
+  --ui-surface-subtle: light-dark(#f3f4f6, #242528);
+  --ui-surface-elevated: light-dark(#ffffff, #2e3033);
+  --ui-text: light-dark(#151617, #f5f2f0);
+  --ui-text-muted: light-dark(#4b5563, #b4b4b7);
+  --ui-text-subtle: light-dark(#6b7280, #96979b);
+  --ui-border: light-dark(#151617, #6b6c71);
+  --ui-border-subtle: light-dark(#d1d5db, #34363a);
+  --ui-shadow: light-dark(#151617, #050505);
+  --ui-focus: light-dark(#6d28d9, #b09cfb);
+  --ui-link: light-dark(#6d28d9, #c4b5fd);
+  --ui-danger: light-dark(#b91c1c, #ff8a8a);
+  --ui-danger-bg: light-dark(#fef2f2, #36191b);
+  --ui-warning: light-dark(#854d0e, #ffd28a);
+  --ui-warning-bg: light-dark(#fef9c3, #382b16);
+}
+
+body {
+  margin: 0;
+  padding: 0;
+  font-family: -apple-system, BlinkMacSystemFont, 'Inter', 'Segoe UI', sans-serif;
+  font-size: 13px;
+  -webkit-font-smoothing: antialiased;
+  background: var(--ui-bg);
+  color: var(--ui-text);
+}
+
+#root {
+  width: 100%;
+  height: 100%;
+  overflow: hidden;
+}
+
+/* framer.css sets fixed dimensions and overflow on form controls */
+#root button svg,
+#root svg {
+  max-width: none;
+  max-height: none;
+  flex-shrink: 0;
+}
+
+#root input[type='checkbox'] {
+  width: auto;
+  height: auto;
+  flex-shrink: 0;
+  padding: 0;
+}
+
+#root input:not([type='checkbox']):not([type='range']),
+#root select,
+#root textarea {
+  width: 100%;
+  height: auto;
+  overflow: visible;
+}
+
+select {
+  min-height: 44px;
+  line-height: 1.4;
+}
+
+/* Tailwind's outline-none utilities must never erase keyboard focus. */
+#root :where(a, button, input, textarea, select, [tabindex]):focus-visible {
+  outline: 3px solid var(--ui-focus) !important;
+  outline-offset: 2px !important;
+}

@@ -40,10 +40,13 @@ let value: RefundEntity = {
       name: "<value>",
       description: "This is a sample product description.",
       imageUrl: "https://example.com/image.jpg",
+      imageUrls: [
+        "https://example.com/image.jpg",
+      ],
       features: [
         {
           id: "feat_abc123",
-          type: "licenseKey",
+          type: "customerCredits",
           description: "Access to premium course materials.",
         },
       ],
@@ -147,7 +150,7 @@ let value: RefundEntity = {
     product: "Modern Bronze Towels",
     customer: {
       id: "<id>",
-      mode: "test",
+      mode: "sandbox",
       object: "<value>",
       email: "user@example.com",
       name: "John Doe",
@@ -163,18 +166,18 @@ let value: RefundEntity = {
     lastTransactionId: "tran_3e6Z6TzvHKdsjEgXnGDEp0",
     lastTransaction: {
       id: "<id>",
-      mode: "prod",
+      mode: "test",
       object: "transaction",
       amount: 2000,
       amountPaid: 2000,
       discountAmount: 2000,
       currency: "USD",
-      type: "payment",
+      type: "invoice",
       taxCountry: "US",
       taxAmount: 2000,
-      status: "declined",
+      status: "uncollectible",
       refundedAmount: 2000,
-      createdAt: 298.46,
+      createdAt: 6896.2,
     },
     lastTransactionDate: new Date("2024-09-12T12:34:56Z"),
     nextTransactionDate: new Date("2024-09-12T12:34:56Z"),
@@ -199,18 +202,18 @@ let value: RefundEntity = {
 
 ## Fields
 
-| Field                                                                                 | Type                                                                                  | Required                                                                              | Description                                                                           | Example                                                                               |
-| ------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------- |
-| `id`                                                                                  | *string*                                                                              | :heavy_check_mark:                                                                    | Unique identifier for the object.                                                     |                                                                                       |
-| `mode`                                                                                | [components.EnvironmentMode](../../models/components/environmentmode.md)              | :heavy_check_mark:                                                                    | String representing the environment.                                                  |                                                                                       |
-| `object`                                                                              | *string*                                                                              | :heavy_check_mark:                                                                    | String representing the object’s type. Objects of the same type share the same value. |                                                                                       |
-| `status`                                                                              | [components.RefundStatus](../../models/components/refundstatus.md)                    | :heavy_check_mark:                                                                    | Status of the refund.                                                                 |                                                                                       |
-| `refundAmount`                                                                        | *number*                                                                              | :heavy_check_mark:                                                                    | The refunded amount in cents. 1000 = $10.00                                           | 1000                                                                                  |
-| `refundCurrency`                                                                      | *string*                                                                              | :heavy_check_mark:                                                                    | Three-letter ISO currency code, in uppercase. Must be a supported currency.           | USD                                                                                   |
-| `reason`                                                                              | [components.RefundReason](../../models/components/refundreason.md)                    | :heavy_check_mark:                                                                    | Reason for the refund.                                                                |                                                                                       |
-| `transaction`                                                                         | [components.TransactionEntity](../../models/components/transactionentity.md)          | :heavy_check_mark:                                                                    | The transaction associated with the refund.                                           |                                                                                       |
-| `checkout`                                                                            | *components.Checkout*                                                                 | :heavy_minus_sign:                                                                    | The checkout associated with the refund.                                              |                                                                                       |
-| `order`                                                                               | *components.Order*                                                                    | :heavy_minus_sign:                                                                    | The order associated with the refund.                                                 |                                                                                       |
-| `subscription`                                                                        | *components.RefundEntitySubscription*                                                 | :heavy_minus_sign:                                                                    | The subscription associated with the refund.                                          |                                                                                       |
-| `customer`                                                                            | *components.RefundEntityCustomer*                                                     | :heavy_minus_sign:                                                                    | The customer associated with the refund.                                              |                                                                                       |
-| `createdAt`                                                                           | *number*                                                                              | :heavy_check_mark:                                                                    | Creation date of the order as timestamp                                               |                                                                                       |
+| Field                                                                                                   | Type                                                                                                    | Required                                                                                                | Description                                                                                             | Example                                                                                                 |
+| ------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------- |
+| `id`                                                                                                    | *string*                                                                                                | :heavy_check_mark:                                                                                      | Unique identifier for the object.                                                                       |                                                                                                         |
+| `mode`                                                                                                  | [components.EnvironmentMode](../../models/components/environmentmode.md)                                | :heavy_check_mark:                                                                                      | String representing the environment.                                                                    |                                                                                                         |
+| `object`                                                                                                | *string*                                                                                                | :heavy_check_mark:                                                                                      | String representing the object’s type. Objects of the same type share the same value.                   |                                                                                                         |
+| `status`                                                                                                | [components.RefundStatus](../../models/components/refundstatus.md)                                      | :heavy_check_mark:                                                                                      | Status of the refund. `pending` and `requiresAction` represent non-terminal provider processing states. |                                                                                                         |
+| `refundAmount`                                                                                          | *number*                                                                                                | :heavy_check_mark:                                                                                      | The refunded amount in cents. 1000 = $10.00                                                             | 1000                                                                                                    |
+| `refundCurrency`                                                                                        | *string*                                                                                                | :heavy_check_mark:                                                                                      | Three-letter ISO currency code, in uppercase. Must be a supported currency.                             | USD                                                                                                     |
+| `reason`                                                                                                | [components.RefundReason](../../models/components/refundreason.md)                                      | :heavy_check_mark:                                                                                      | Reason for the refund.                                                                                  |                                                                                                         |
+| `transaction`                                                                                           | [components.TransactionEntity](../../models/components/transactionentity.md)                            | :heavy_check_mark:                                                                                      | The transaction associated with the refund.                                                             |                                                                                                         |
+| `checkout`                                                                                              | *components.Checkout*                                                                                   | :heavy_minus_sign:                                                                                      | The checkout associated with the refund.                                                                |                                                                                                         |
+| `order`                                                                                                 | *components.Order*                                                                                      | :heavy_minus_sign:                                                                                      | The order associated with the refund.                                                                   |                                                                                                         |
+| `subscription`                                                                                          | *components.RefundEntitySubscription*                                                                   | :heavy_minus_sign:                                                                                      | The subscription associated with the refund.                                                            |                                                                                                         |
+| `customer`                                                                                              | *components.RefundEntityCustomer*                                                                       | :heavy_minus_sign:                                                                                      | The customer associated with the refund.                                                                |                                                                                                         |
+| `createdAt`                                                                                             | *number*                                                                                                | :heavy_check_mark:                                                                                      | Creation date of the order as timestamp                                                                 |                                                                                                         |

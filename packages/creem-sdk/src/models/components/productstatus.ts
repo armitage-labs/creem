@@ -6,14 +6,14 @@ import * as z from "zod/v3";
 import { ClosedEnum } from "../../types/enums.js";
 
 /**
- * Status of the product
+ * Lifecycle status of the product: `active` or `archived`.
  */
 export const ProductStatus = {
   Active: "active",
   Archived: "archived",
 } as const;
 /**
- * Status of the product
+ * Lifecycle status of the product: `active` or `archived`.
  */
 export type ProductStatus = ClosedEnum<typeof ProductStatus>;
 

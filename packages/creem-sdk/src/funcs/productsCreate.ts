@@ -3,7 +3,7 @@
  */
 
 import { CreemCore } from "../core.js";
-import { encodeJSON } from "../lib/encodings.js";
+import { encodeJSON, encodeSimple } from "../lib/encodings.js";
 import { matchStatusCode } from "../lib/http.js";
 import * as M from "../lib/matchers.js";
 import { compactMap } from "../lib/primitives.js";
@@ -22,6 +22,7 @@ import {
 } from "../models/errors/httpclienterrors.js";
 import { ResponseValidationError } from "../models/errors/responsevalidationerror.js";
 import { SDKValidationError } from "../models/errors/sdkvalidationerror.js";
+import * as operations from "../models/operations/index.js";
 import { APICall, APIPromise } from "../types/async.js";
 import { Result } from "../types/fp.js";
 
@@ -33,7 +34,8 @@ import { Result } from "../types/fp.js";
  */
 export function productsCreate(
   client: CreemCore,
-  request: components.CreateProductRequestEntity,
+  createProductRequestEntity: components.CreateProductRequestEntity,
+  idempotencyKey?: string | undefined,
   options?: RequestOptions,
 ): APIPromise<
   Result<
@@ -50,14 +52,16 @@ export function productsCreate(
 > {
   return new APIPromise($do(
     client,
-    request,
+    createProductRequestEntity,
+    idempotencyKey,
     options,
   ));
 }
 
 async function $do(
   client: CreemCore,
-  request: components.CreateProductRequestEntity,
+  createProductRequestEntity: components.CreateProductRequestEntity,
+  idempotencyKey?: string | undefined,
   options?: RequestOptions,
 ): Promise<
   [
@@ -75,23 +79,34 @@ async function $do(
     APICall,
   ]
 > {
+  const input: operations.CreateProductRequest = {
+    createProductRequestEntity: createProductRequestEntity,
+    idempotencyKey: idempotencyKey,
+  };
+
   const parsed = safeParse(
-    request,
-    (value) =>
-      components.CreateProductRequestEntity$outboundSchema.parse(value),
+    input,
+    (value) => operations.CreateProductRequest$outboundSchema.parse(value),
     "Input validation failed",
   );
   if (!parsed.ok) {
     return [parsed, { status: "invalid" }];
   }
   const payload = parsed.value;
-  const body = encodeJSON("body", payload, { explode: true });
+  const body = encodeJSON("body", payload.CreateProductRequestEntity, {
+    explode: true,
+  });
 
   const path = pathToFunc("/v1/products")();
 
   const headers = new Headers(compactMap({
     "Content-Type": "application/json",
     Accept: "application/json",
+    "Idempotency-Key": encodeSimple(
+      "Idempotency-Key",
+      payload["Idempotency-Key"],
+      { explode: false, charEncoding: "none" },
+    ),
   }));
 
   const secConfig = await extractSecurity(client._options.apiKey);

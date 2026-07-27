@@ -87,7 +87,7 @@ export type RefundEntity = {
    */
   object: string;
   /**
-   * Status of the refund.
+   * Status of the refund. `pending` and `requiresAction` represent non-terminal provider processing states.
    */
   status: RefundStatus;
   /**

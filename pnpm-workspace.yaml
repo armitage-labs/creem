@@ -9,17 +9,22 @@ publicHoistPattern:
 overrides:
   "@creem_io/strapi>@types/react": "18.3.28"
   "@creem_io/strapi>@types/react-dom": "18.3.7"
+  "@creem_io/framer>@types/react": "18.3.28"
+  "@creem_io/framer>@types/react-dom": "18.3.7"
   "@strapi/design-system>@types/react": "18.3.28"
   "@strapi/icons>@types/react": "18.3.28"
 
 allowBuilds:
   "@prisma/engines": true
+  "@scarf/scarf": false
   "@swc/core": false
   better-sqlite3: true
   bun: true
   core-js-pure: false
   esbuild: true
+  keytar: false
   prisma: true
+  puppeteer: false
   sharp: true
   unrs-resolver: true
   workerd: false

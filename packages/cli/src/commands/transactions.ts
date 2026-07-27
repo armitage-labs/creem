@@ -226,8 +226,8 @@ function getTransactionsTuiDescriptor(): TuiModuleDescriptor<Transaction> {
         undefined,
         page,
         pageSize,
-      )) as unknown as TransactionListResponse;
-      const { items, pagination } = result;
+      )) as unknown as { result: TransactionListResponse };
+      const { items, pagination } = result.result;
       return {
         items,
         hasMore: pagination.nextPage !== undefined,
@@ -295,14 +295,14 @@ export function createTransactionsCommand(): Command {
             options.product,
             parseInt(options.page, 10),
             parseInt(options.limit, 10),
-          )) as unknown as TransactionListResponse;
+          )) as unknown as { result: TransactionListResponse };
 
           spinner.stop();
 
-          const { items, pagination } = result;
+          const { items, pagination } = result.result;
 
           if (shouldOutputJson(options.json)) {
-            output.outputJson(result);
+            output.outputJson(result.result);
             return;
           }
 

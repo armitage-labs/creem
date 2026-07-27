@@ -6,14 +6,14 @@ import * as z from "zod/v3";
 import { ClosedEnum } from "../../types/enums.js";
 
 /**
- * Three-letter ISO currency code, in uppercase. Must be a supported currency.
+ * Three-letter uppercase ISO 4217 currency code. Must be one of Creem's supported currencies.
  */
 export const ProductCurrency = {
   Eur: "EUR",
   Usd: "USD",
 } as const;
 /**
- * Three-letter ISO currency code, in uppercase. Must be a supported currency.
+ * Three-letter uppercase ISO 4217 currency code. Must be one of Creem's supported currencies.
  */
 export type ProductCurrency = ClosedEnum<typeof ProductCurrency>;
 

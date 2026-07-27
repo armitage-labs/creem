@@ -4,11 +4,13 @@
 
 import * as z from "zod/v3";
 import { productsSearch } from "../../funcs/productsSearch.js";
+import * as components from "../../models/components/index.js";
 import { formatResult, ToolDefinition } from "../tools.js";
 
 const args = {
   pageNumber: z.number().default(1),
   pageSize: z.number().default(10),
+  status: components.ProductStatus$inboundSchema.optional(),
 };
 
 export const tool$productsSearch: ToolDefinition<typeof args> = {
@@ -22,6 +24,7 @@ Search and retrieve a paginated list of products. Filter by status, billing type
       client,
       args.pageNumber,
       args.pageSize,
+      args.status,
       { fetchOptions: { signal: ctx.signal } },
     ).$inspect();
 

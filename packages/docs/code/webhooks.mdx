@@ -448,7 +448,7 @@ The subscription was canceled by the merchant or by the customer.
 The subscription was scheduled for cancellation at the end of the current billing period. The subscription remains active until `current_period_end_date`, after which it transitions to `canceled`.
 This event is triggered when a customer or merchant requests cancellation but opts to cancel at the end of the period rather than immediately. You can use this event to notify the customer about the upcoming cancellation or to offer retention incentives.
 
-The subscription can be resumed before the period ends using the [Resume Subscription](/api-reference/endpoint/subscriptions/resume-subscription) endpoint, which will change the status back to `active` and prevent the cancellation.
+The subscription can be resumed before the period ends using the [Resume Subscription](/api-reference/endpoint/resume-subscription) endpoint, which will change the status back to `active` and prevent the cancellation.
 
 <AccordionGroup>
   <Accordion title="Sample Request Body">

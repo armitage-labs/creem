@@ -6,14 +6,14 @@ import * as z from "zod/v3";
 import { ClosedEnum } from "../../types/enums.js";
 
 /**
- * Indicates the billing method for the customer. It can either be a `recurring` billing cycle or a `onetime` payment.
+ * Billing method for the product: `recurring` subscription or `onetime` payment.
  */
 export const ProductRequestBillingType = {
   Recurring: "recurring",
   Onetime: "onetime",
 } as const;
 /**
- * Indicates the billing method for the customer. It can either be a `recurring` billing cycle or a `onetime` payment.
+ * Billing method for the product: `recurring` subscription or `onetime` payment.
  */
 export type ProductRequestBillingType = ClosedEnum<
   typeof ProductRequestBillingType

@@ -90,11 +90,10 @@ function getCustomersTuiDescriptor(): TuiModuleDescriptor<Customer> {
     ],
     fetchPage: async (page: number, pageSize: number) => {
       const client = getClient();
-      const result = (await client.customers.list(
-        page,
-        pageSize,
-      )) as unknown as CustomerListResponse;
-      const { items, pagination } = result;
+      const result = (await client.customers.list(page, pageSize)) as unknown as {
+        result: CustomerListResponse;
+      };
+      const { items, pagination } = result.result;
       return {
         items,
         hasMore: pagination.nextPage !== undefined,
@@ -159,14 +158,14 @@ export function createCustomersCommand(): Command {
         const result = (await client.customers.list(
           parseInt(options.page, 10),
           parseInt(options.limit, 10),
-        )) as unknown as CustomerListResponse;
+        )) as unknown as { result: CustomerListResponse };
 
         spinner.stop();
 
-        const { items, pagination } = result;
+        const { items, pagination } = result.result;
 
         if (shouldOutputJson(options.json)) {
-          output.outputJson(result);
+          output.outputJson(result.result);
           return;
         }
 

@@ -14,11 +14,6 @@ import {
   EntryResponseDto$outboundSchema,
 } from "./entryresponsedto.js";
 
-/**
- * ID of the transaction this reverses, if applicable
- */
-export type ReversalOf = {};
-
 export type TransactionResponseDto = {
   /**
    * Transaction ID
@@ -39,7 +34,7 @@ export type TransactionResponseDto = {
   /**
    * ID of the transaction this reverses, if applicable
    */
-  reversalOf?: ReversalOf | undefined;
+  reversalOf?: string | null | undefined;
   /**
    * Transaction entries
    */
@@ -51,35 +46,6 @@ export type TransactionResponseDto = {
 };
 
 /** @internal */
-export const ReversalOf$inboundSchema: z.ZodType<
-  ReversalOf,
-  z.ZodTypeDef,
-  unknown
-> = z.object({});
-/** @internal */
-export type ReversalOf$Outbound = {};
-
-/** @internal */
-export const ReversalOf$outboundSchema: z.ZodType<
-  ReversalOf$Outbound,
-  z.ZodTypeDef,
-  ReversalOf
-> = z.object({});
-
-export function reversalOfToJSON(reversalOf: ReversalOf): string {
-  return JSON.stringify(ReversalOf$outboundSchema.parse(reversalOf));
-}
-export function reversalOfFromJSON(
-  jsonString: string,
-): SafeParseResult<ReversalOf, SDKValidationError> {
-  return safeParse(
-    jsonString,
-    (x) => ReversalOf$inboundSchema.parse(JSON.parse(x)),
-    `Failed to parse 'ReversalOf' from JSON`,
-  );
-}
-
-/** @internal */
 export const TransactionResponseDto$inboundSchema: z.ZodType<
   TransactionResponseDto,
   z.ZodTypeDef,
@@ -89,7 +55,7 @@ export const TransactionResponseDto$inboundSchema: z.ZodType<
   store_id: z.string(),
   reference: z.string(),
   idempotency_key: z.string(),
-  reversal_of: z.lazy(() => ReversalOf$inboundSchema).optional(),
+  reversal_of: z.nullable(z.string()).optional(),
   entries: z.array(EntryResponseDto$inboundSchema),
   created_at: z.string(),
 }).transform((v) => {
@@ -106,7 +72,7 @@ export type TransactionResponseDto$Outbound = {
   store_id: string;
   reference: string;
   idempotency_key: string;
-  reversal_of?: ReversalOf$Outbound | undefined;
+  reversal_of?: string | null | undefined;
   entries: Array<EntryResponseDto$Outbound>;
   created_at: string;
 };
@@ -121,7 +87,7 @@ export const TransactionResponseDto$outboundSchema: z.ZodType<
   storeId: z.string(),
   reference: z.string(),
   idempotencyKey: z.string(),
-  reversalOf: z.lazy(() => ReversalOf$outboundSchema).optional(),
+  reversalOf: z.nullable(z.string()).optional(),
   entries: z.array(EntryResponseDto$outboundSchema),
   createdAt: z.string(),
 }).transform((v) => {
