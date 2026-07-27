@@ -26,7 +26,14 @@ export { default as BillingHistory } from "./BillingHistory.svelte";
 export { getSubscriptionItemContext } from "./subscriptionItemContext.js";
 export { getCreditsContext } from "./creditsContext.js";
 
-export const Subscription: typeof SubscriptionItemComponent & {
+/**
+ * Compound subscription namespace.
+ *
+ * A plain namespace object, not a callable component: `<Subscription.Root>` and
+ * `<Subscription.Item>` do different things, so rendering a bare
+ * `<Subscription>` is a type error rather than a silently empty card.
+ */
+export const Subscription: {
   Root: typeof SubscriptionRootComponent;
   Item: typeof SubscriptionItemComponent;
   Grid: typeof SubscriptionGridComponent;
@@ -41,7 +48,7 @@ export const Subscription: typeof SubscriptionItemComponent & {
   ItemBadge: typeof SubscriptionItemBadgeComponent;
   UnitPicker: typeof SubscriptionUnitPickerComponent;
   Cancel: typeof SubscriptionCancelComponent;
-} = Object.assign(SubscriptionItemComponent, {
+} = {
   Root: SubscriptionRootComponent,
   Item: SubscriptionItemComponent,
   Grid: SubscriptionGridComponent,
@@ -56,31 +63,33 @@ export const Subscription: typeof SubscriptionItemComponent & {
   ItemBadge: SubscriptionItemBadgeComponent,
   UnitPicker: SubscriptionUnitPickerComponent,
   Cancel: SubscriptionCancelComponent,
-});
+};
 
-export const Product: typeof ProductItemComponent & {
+/** Compound one-time product namespace. */
+export const Product: {
   Root: typeof ProductRootComponent;
   Item: typeof ProductItemComponent;
-} = Object.assign(ProductItemComponent, {
+} = {
   Root: ProductRootComponent,
   Item: ProductItemComponent,
-});
+};
 
-export const Credits: typeof CreditsRootComponent & {
+/** Compound customer-credits namespace. */
+export const Credits: {
   Root: typeof CreditsRootComponent;
   Title: typeof CreditsTitleComponent;
   Amount: typeof CreditsAmountComponent;
   Refresh: typeof CreditsRefreshComponent;
   Error: typeof CreditsErrorComponent;
   Status: typeof CreditsStatusComponent;
-} = Object.assign(CreditsRootComponent, {
+} = {
   Root: CreditsRootComponent,
   Title: CreditsTitleComponent,
   Amount: CreditsAmountComponent,
   Refresh: CreditsRefreshComponent,
   Error: CreditsErrorComponent,
   Status: CreditsStatusComponent,
-});
+};
 
 export type { CreditsContextValue } from "./creditsContext.js";
 

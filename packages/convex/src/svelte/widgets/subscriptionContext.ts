@@ -34,6 +34,8 @@ export type SubscriptionContextValue = {
   getDisableSwitch: () => boolean;
   getDisableUnits: () => boolean;
   getUnstyled: () => boolean;
+  /** Preferred pricing column count resolved by the root. */
+  getColumns: () => "auto" | 1 | 2 | 3 | 4;
   getLabels: () => BillingLabels;
   getCycleBadge: (cycle: SupportedRecurringCycle) => string | undefined;
   formatCurrency: (input: BillingCurrencyFormatInput) => string;

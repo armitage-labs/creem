@@ -4,6 +4,7 @@
     SUBSCRIPTION_CONTEXT_KEY,
     type SubscriptionContextValue,
   } from "./subscriptionContext.js";
+  import { subscriptionGridClasses } from "../../core/gridColumns.js";
 
   interface Props {
     class?: string;
@@ -17,7 +18,7 @@
   const resolvedClass = $derived(
     rootContext?.getUnstyled()
       ? className
-      : `creem-base:grid creem-base:grid-cols-1 creem-base:gap-4 sm:creem-base:grid-cols-2 lg:creem-base:grid-cols-3 ${className}`,
+      : `${subscriptionGridClasses(rootContext?.getColumns() ?? "auto")} ${className}`,
   );
 </script>
 

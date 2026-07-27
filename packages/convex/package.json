@@ -46,6 +46,7 @@
     "check": "pnpm lint && pnpm typecheck",
     "format": "prettier --write .",
     "pack:package": "pnpm build && pnpm pack --pack-destination /tmp/convex-creem-pack",
+    "check:package": "attw --pack .",
     "lint": "eslint .",
     "all": "concurrently --kill-others --prefix-colors 'blue,yellow,magenta,cyan' --names 'frontend,backend,build,test' 'pnpm dev:frontend:react' 'pnpm dev:backend' 'pnpm dev:build' 'pnpm test:watch'",
     "test": "TMPDIR=/tmp TEMP=/tmp TMP=/tmp vitest run --typecheck",

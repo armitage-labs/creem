@@ -30,22 +30,14 @@ export { BillingHistory } from "./BillingHistory.js";
 export { useSubscriptionItem } from "./subscriptionItemContext.js";
 export { useCredits } from "./creditsContext.js";
 
-export const Subscription: typeof SubscriptionItem & {
-  Root: typeof SubscriptionRoot;
-  Item: typeof SubscriptionItem;
-  Grid: typeof SubscriptionGrid;
-  Group: typeof SubscriptionGroup;
-  GroupSelector: typeof SubscriptionGroupSelector;
-  IntervalSelector: typeof SubscriptionIntervalSelector;
-  ItemTitle: typeof SubscriptionItemTitle;
-  ItemPrice: typeof SubscriptionItemPrice;
-  ItemPriceCaption: typeof SubscriptionItemPriceCaption;
-  ItemDescription: typeof SubscriptionItemDescription;
-  ItemCTA: typeof SubscriptionItemCTA;
-  ItemBadge: typeof SubscriptionItemBadge;
-  UnitPicker: typeof SubscriptionUnitPicker;
-  Cancel: typeof SubscriptionCancel;
-} = Object.assign(SubscriptionItem, {
+/**
+ * Compound subscription namespace.
+ *
+ * A plain namespace object, not a callable component: `<Subscription.Root>` and
+ * `<Subscription.Item>` do different things, so rendering a bare
+ * `<Subscription>` is a type error rather than a silently empty card.
+ */
+export const Subscription = {
   Root: SubscriptionRoot,
   Item: SubscriptionItem,
   Grid: SubscriptionGrid,
@@ -60,31 +52,23 @@ export const Subscription: typeof SubscriptionItem & {
   ItemBadge: SubscriptionItemBadge,
   UnitPicker: SubscriptionUnitPicker,
   Cancel: SubscriptionCancel,
-});
+} as const;
 
-export const Product: typeof ProductItem & {
-  Root: typeof ProductRoot;
-  Item: typeof ProductItem;
-} = Object.assign(ProductItem, {
+/** Compound one-time product namespace. */
+export const Product = {
   Root: ProductRoot,
   Item: ProductItem,
-});
+} as const;
 
-export const Credits: typeof CreditsRoot & {
-  Root: typeof CreditsRoot;
-  Title: typeof CreditsTitle;
-  Amount: typeof CreditsAmount;
-  Refresh: typeof CreditsRefresh;
-  Error: typeof CreditsError;
-  Status: typeof CreditsStatus;
-} = Object.assign(CreditsRoot, {
+/** Compound customer-credits namespace. */
+export const Credits = {
   Root: CreditsRoot,
   Title: CreditsTitle,
   Amount: CreditsAmount,
   Refresh: CreditsRefresh,
   Error: CreditsError,
   Status: CreditsStatus,
-});
+} as const;
 
 export type {
   ConnectedBillingApi,

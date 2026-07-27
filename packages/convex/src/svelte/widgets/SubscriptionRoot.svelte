@@ -1,6 +1,6 @@
 <script lang="ts">
   import { getContext, setContext, untrack } from "svelte";
-  import { SvelteMap, SvelteSet } from "svelte/reactivity";
+  import { SvelteMap } from "svelte/reactivity";
 
   import { Dialog } from "@ark-ui/svelte/dialog";
   import { Portal } from "@ark-ui/svelte/portal";
@@ -27,7 +27,10 @@
     PlanCatalogEntry,
     UIPlanEntry,
     RecurringCycle,
+    FreePlanUpdateBehavior,
     FreePlanUpdateBehaviorIntent,
+    PaidSubscriptionUpdateBehavior,
+    SubscriptionUpdateArgs,
     FreePlanUpdateBehaviorSetting,
     ResolvedUpdateBehavior,
     SupportedRecurringCycle,
@@ -41,11 +44,22 @@
     type BillingI18n,
     type BillingLabelOverrides,
   } from "../../core/i18n.js";
+  import { normalizePlanCatalog } from "../../core/catalog.js";
   import {
-    findPlanById,
-    normalizePlanCatalog,
-    shouldShowPlan,
-  } from "../../core/catalog.js";
+    buildCatalogRegistrations,
+    cyclesForGroup,
+    deriveAvailableCycles,
+    deriveGroupItems,
+    deriveOwnProductIds,
+    filterPlansByGroup,
+    filterVisiblePlans,
+    resolveActiveGroupId,
+    resolveActiveOrScheduledPlanIds,
+    resolveActivePlanId,
+    resolveEffectiveCycle,
+    resolveMatchedSubscription,
+    resolveUIPlans,
+  } from "../../core/subscriptionModel.js";
   import {
     buildUpdateSummary,
     resolveFreePlanUpdateBehavior,
@@ -268,6 +282,7 @@
     getDisableSwitch: () => !canChange,
     getDisableUnits: () => !canUpdateUnits,
     getUnstyled: () => unstyled,
+    getColumns: () => columns,
     getLabels: () => resolvedI18n.labels,
     getCycleBadge: (cycle) => cycleBadges?.[cycle],
     formatCurrency: (input) => resolvedI18n.formatCurrency(input),
@@ -331,121 +346,37 @@
   const allProducts = $derived(model?.allProducts ?? []);
   const normalizedCatalog = $derived(normalizePlanCatalog(resolvedCatalog));
 
-  const catalogRegistrations = $derived.by<SubscriptionPlanRegistration[]>(() => {
-    const ids = explicitGroups && explicitGroups.length > 0
-      ? explicitGroups.flatMap((entry) => entry.plans)
-      : (planIds ?? []);
+  const catalogRegistrations = $derived(
+    buildCatalogRegistrations({ groups: explicitGroups, planIds }),
+  );
 
-    return ids.map((planId) => {
-      const groupEntry = explicitGroups?.find((entry) => entry.plans.includes(planId));
-      return {
-        planId,
-        groupId: groupEntry?.value,
-        groupTitle: groupEntry?.label,
-      };
-    });
-  });
+  const plans = $derived(
+    resolveUIPlans({
+      registrations: [...catalogRegistrations, ...registeredPlans],
+      catalog: normalizedCatalog,
+      products: allProducts,
+    }),
+  );
 
-  const plansFromRegistered = $derived.by<UIPlanEntry[]>(() => {
-    return [...catalogRegistrations, ...registeredPlans].map((plan) => {
-      const catalogEntry = normalizedCatalog
-        ? findPlanById(normalizedCatalog, plan.planId)
-        : undefined;
-      const productIds = plan.productIds ?? catalogEntry?.creemProductIds ?? {};
-      const firstProductId = Object.values(productIds)[0];
-      const firstProduct = firstProductId
-        ? allProducts.find((p) => p.id === firstProductId)
-        : undefined;
-
-      const cycleKeys = Object.keys(productIds).filter(
-        (k): k is RecurringCycle => k !== "custom",
-      );
-
-      const entry: UIPlanEntry = {
-        planId: plan.planId,
-        category: planTypeToCategory(plan.type, catalogEntry),
-        billingType: planTypeToBillingType(plan.type, catalogEntry),
-        pricingModel: plan.type === "unit-based" ? "unit" : (catalogEntry?.pricingModel ?? "flat"),
-        groupId: plan.groupId ?? catalogEntry?.groupId,
-        groupTitle: plan.groupTitle ?? catalogEntry?.groupTitle,
-        eligibilityScopeId: catalogEntry?.eligibilityScopeId,
-        title:
-          plan.title ??
-          catalogEntry?.title ??
-          firstProduct?.name ??
-          plan.planId.charAt(0).toUpperCase() + plan.planId.slice(1),
-        description: plan.description ?? catalogEntry?.description ?? firstProduct?.description ?? undefined,
-        contactUrl: plan.contactUrl ?? catalogEntry?.contactUrl,
-        recommended: plan.recommended ?? catalogEntry?.recommended,
-        limits: catalogEntry?.limits,
-        creditGrant: catalogEntry?.creditGrant,
-        eligibility: catalogEntry?.eligibility,
-        metadata: catalogEntry?.metadata,
-        creemProductIds:
-          Object.keys(productIds).length > 0
-            ? (productIds as Record<string, string>)
-            : undefined,
-      };
-      if (cycleKeys.length > 0) {
-        entry.billingCycles = cycleKeys;
-      }
-      return entry;
-    });
-  });
-
-  const plans = $derived(plansFromRegistered);
-
-  const groupItems = $derived.by(() => {
-    if (explicitGroups && explicitGroups.length > 0) {
-      return explicitGroups.map((entry) => ({
-        value: entry.value,
-        label: entry.label,
-      }));
-    }
-    const groups = new SvelteMap<string, string>();
-    for (const plan of plans) {
-      if (!plan.groupId) continue;
-      if (!groups.has(plan.groupId)) {
-        groups.set(plan.groupId, plan.groupTitle ?? formatGroupTitle(plan.groupId));
-      }
-    }
-    return Array.from(groups, ([value, label]) => ({ value, label }));
-  });
+  const groupItems = $derived(
+    deriveGroupItems({ groups: explicitGroups, plans }),
+  );
 
   const requestedGroupId = $derived(group ?? selectedGroupId ?? defaultGroup ?? null);
   const activeGroupId = $derived(
-    groupItems.length > 1 &&
-    requestedGroupId &&
-    groupItems.some((item) => item.value === requestedGroupId)
-      ? requestedGroupId
-      : (groupItems[0]?.value ?? null),
+    resolveActiveGroupId({ groupItems, requestedGroupId }),
   );
 
   const groupedPlans = $derived(
-    groupItems.length > 1 && activeGroupId
-      ? plans.filter((plan) => plan.groupId === activeGroupId)
-      : plans,
+    filterPlansByGroup({ plans, groupItems, activeGroupId }),
   );
 
-  // Collect all product IDs that belong to plans in THIS component instance.
-  const ownProductIds = $derived.by<Set<string>>(() => {
-    const ids = new SvelteSet<string>();
-    for (const plan of plans) {
-      if (plan.creemProductIds) {
-        for (const pid of Object.values(plan.creemProductIds)) {
-          if (pid) ids.add(pid);
-        }
-      }
-    }
-    return ids;
-  });
+  // Product IDs owned by this root's plans, and the subscription that matches.
+  const ownProductIds = $derived(deriveOwnProductIds(plans));
 
-  // Find the subscription from activeSubscriptions that belongs to THIS component.
-  const matchedSubscription = $derived.by(() => {
-    const subs = model?.activeSubscriptions;
-    if (!subs || ownProductIds.size === 0) return null;
-    return subs.find((s) => ownProductIds.has(s.productId)) ?? null;
-  });
+  const matchedSubscription = $derived(
+    resolveMatchedSubscription({ model, ownProductIds }),
+  );
 
   const ownsActiveSubscription = $derived(matchedSubscription != null);
   const localSubscriptionProductId = $derived(
@@ -482,108 +413,40 @@
     return resolvedI18n.formatDate({ date });
   });
 
-  const activePlanId = $derived.by<string | null>(() => {
-    if (!model) return null;
-    // Use this component's matched subscription product ID, not the global one.
-    const subProductId = localSubscriptionProductId;
-    if (subProductId) {
-      const matchedPlan = plans.find((plan) => {
-        const values = Object.values(plan.creemProductIds ?? {}).filter(
-          Boolean,
-        ) as string[];
-        return values.includes(subProductId);
-      });
-      return matchedPlan?.planId ?? null;
-    }
-    // No active subscription: use explicit app-owned plan state when the app provides it.
-    if (model.activePlanId !== undefined) {
-      return model.activePlanId;
-    }
-    const assignedPlanId =
-      model.appPlanAssignments?.find(
-        (assignment) =>
-          assignment.status === "active" &&
-          plans.some((plan) => plan.planId === assignment.planId),
-      )?.planId ?? null;
-    if (assignedPlanId) {
-      return assignedPlanId;
-    }
-    if (model.activeFreePlanId !== undefined) {
-      return model.activeFreePlanId;
-    }
-    // Backwards-compatible default: signed-in users without a subscription are on the first free plan.
-    if (model.user) {
-      const freePlan = plans.find((p) => p.category === "free");
-      if (freePlan) return freePlan.planId;
-    }
-    return null;
-  });
-
-  const activeOrScheduledPlanIds = $derived.by<string[]>(() => {
-    if (!model) return [];
-    const planIds = new SvelteSet<string>();
-    const addPlanId = (planId: string | null | undefined) => {
-      if (planId && plans.some((plan) => plan.planId === planId)) {
-        planIds.add(planId);
-      }
-    };
-    const addProductId = (productId: string | null | undefined) => {
-      const plan = getPlanForProduct(productId);
-      if (plan) {
-        planIds.add(plan.planId);
-      }
-    };
-
-    addProductId(localSubscriptionProductId);
-    addPlanId(model.activePlanId);
-    addPlanId(model.activeFreePlanId);
-
-    for (const subscription of model.activeSubscriptions ?? []) {
-      addProductId(subscription.productId);
-    }
-    for (const assignment of model.appPlanAssignments ?? []) {
-      if (assignment.status === "active" || assignment.status === "scheduled") {
-        addPlanId(assignment.planId);
-      }
-    }
-    for (const update of model.scheduledSubscriptionUpdates ?? []) {
-      addProductId(update.targetProductId);
-      addPlanId(update.targetPlanId);
-    }
-
-    return Array.from(planIds);
-  });
-
-  const visiblePlans = $derived(
-    groupedPlans.filter((plan) =>
-      shouldShowPlan(plan, model?.appPlanActivations, {
-        activePlanId,
-        activeOrScheduledPlanIds,
-        catalogPlans: plans,
-      }),
-    ),
+  const activePlanId = $derived(
+    resolveActivePlanId({
+      model,
+      plans,
+      subscriptionProductId: localSubscriptionProductId,
+    }),
   );
 
-  const availableCycles = $derived.by<RecurringCycle[]>(() => {
-    const cycles = new SvelteSet<RecurringCycle>();
-    for (const plan of visiblePlans) {
-      for (const cycle of plan.billingCycles ?? []) {
-        cycles.add(cycle);
-      }
-    }
-    return Array.from(cycles);
-  });
+  const activeOrScheduledPlanIds = $derived(
+    resolveActiveOrScheduledPlanIds({
+      model,
+      plans,
+      subscriptionProductId: localSubscriptionProductId,
+    }),
+  );
 
-  const effectiveCycle = $derived.by<RecurringCycle>(() => {
-    const requestedCycle = cycle ?? selectedCycle;
-    if (
-      availableCycles.length === 0 ||
-      availableCycles.includes(requestedCycle)
-    ) {
-      return requestedCycle;
-    }
-    return availableCycles[0] ?? requestedCycle;
-  });
+  const visiblePlans = $derived(
+    filterVisiblePlans({
+      groupedPlans,
+      allPlans: plans,
+      model,
+      activePlanId,
+      activeOrScheduledPlanIds,
+    }),
+  );
+
+  const availableCycles = $derived(deriveAvailableCycles(visiblePlans));
+
+  const effectiveCycle = $derived(
+    resolveEffectiveCycle({
+      availableCycles,
+      requestedCycle: cycle ?? selectedCycle,
+    }),
+  );
 
   function getProductPrice(productId?: string | null) {
     return productId
@@ -741,26 +604,15 @@
       : "light";
   };
 
-  function formatGroupTitle(value: string) {
-    return value
-      .split(/[-_\s]+/)
-      .filter(Boolean)
-      .map((part) => part.charAt(0).toUpperCase() + part.slice(1))
-      .join(" ");
-  }
-
   function getCyclesForGroup(groupId: string | null) {
-    const targetPlans =
-      groupItems.length > 1 && groupId
-        ? plans.filter((plan) => plan.groupId === groupId)
-        : plans;
-    const cycles = new SvelteSet<RecurringCycle>();
-    for (const plan of targetPlans) {
-      for (const planCycle of plan.billingCycles ?? []) {
-        cycles.add(planCycle);
-      }
-    }
-    return Array.from(cycles);
+    return cyclesForGroup({
+      plans,
+      groupItems,
+      groupId,
+      model,
+      activePlanId,
+      activeOrScheduledPlanIds,
+    });
   }
 
   function clampCycleForGroup(groupId: string | null) {
@@ -778,23 +630,6 @@
       selectedCycle = nextCycle;
     }
     onCycleChange?.(nextCycle);
-  }
-
-  function planTypeToCategory(
-    type: SubscriptionPlanRegistration["type"],
-    fallback?: PlanCatalogEntry,
-  ) {
-    if (type === "free") return "free";
-    if (type === "enterprise") return "enterprise";
-    return fallback?.category ?? "paid";
-  }
-
-  function planTypeToBillingType(
-    type: SubscriptionPlanRegistration["type"],
-    fallback?: PlanCatalogEntry,
-  ) {
-    if (type === "free" || type === "enterprise") return "custom";
-    return fallback?.billingType ?? "recurring";
   }
 
   const startCheckout = async (productId: string, checkoutUnits?: number) => {
@@ -913,12 +748,20 @@
         if (!updateRef) return;
         await client.mutation(
           updateRef,
-          {
-            ...(update.productId ? { productId: update.productId } : {}),
-            ...(update.freePlanId ? { freePlanId: update.freePlanId } : {}),
-            ...(subId ? { subscriptionId: subId } : {}),
-            updateBehavior: selectedUpdateBehavior,
-          },
+          update.freePlanId
+            ? ({
+                kind: "app-plan",
+                freePlanId: update.freePlanId,
+                ...(subId ? { subscriptionId: subId } : {}),
+                updateBehavior: selectedUpdateBehavior as FreePlanUpdateBehavior,
+              } satisfies SubscriptionUpdateArgs)
+            : ({
+                kind: "plan",
+                productId: update.productId!,
+                ...(subId ? { subscriptionId: subId } : {}),
+                updateBehavior:
+                  selectedUpdateBehavior as PaidSubscriptionUpdateBehavior,
+              } satisfies SubscriptionUpdateArgs),
           {
             optimisticUpdate: (store) => {
               const current = store.getQuery(billingUiModelRef, {});
@@ -966,10 +809,12 @@
         await client.mutation(
           updateRef,
           {
+            kind: "units",
             units: update.units,
             ...(subId ? { subscriptionId: subId } : {}),
-            updateBehavior: selectedUpdateBehavior,
-          },
+            updateBehavior:
+              selectedUpdateBehavior as PaidSubscriptionUpdateBehavior,
+          } satisfies SubscriptionUpdateArgs,
           {
             optimisticUpdate: (store) => {
               const current = store.getQuery(billingUiModelRef, {});

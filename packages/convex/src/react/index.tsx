@@ -41,6 +41,8 @@ export type {
   RecurringCycle,
 } from "../core/types.js";
 export { defineBillingCatalog, plansOf } from "../core/catalog.js";
+export { connectCreemApi } from "../core/connectedApi.js";
+export type { CreemBillingModule } from "../core/connectedApi.js";
 export {
   hasBillingAction,
   isEmptyBilling,
@@ -97,8 +99,5 @@ export type {
   BillingCurrencyFormatInput,
   BillingDateFormatInput,
 } from "../core/i18n.js";
-export type {
-  BillingContextValue,
-  BillingProviderConfig,
-} from "../core/context.js";
+export type { BillingContextValue } from "../core/context.js";
 export type { BillingSnapshotResolverInput } from "../core/resolver.js";

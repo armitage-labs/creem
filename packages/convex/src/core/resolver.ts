@@ -67,7 +67,13 @@ export const resolveBillingSnapshot = (
       subscriptionId: sub.id ?? "",
       status: sub.status ?? "unknown",
       recurringCycle: normalizeRecurringCycle(sub.recurringInterval) ?? null,
-      kind: plan?.metadata?.kind as string | undefined,
+      // `metadata` is app-authored `Record<string, unknown>`, so only surface
+      // `kind` when it really is a string — the snapshot validator rejects
+      // anything else, and one odd catalog entry must not fail the whole query.
+      kind:
+        typeof plan?.metadata?.kind === "string"
+          ? plan.metadata.kind
+          : undefined,
       units: sub.units,
       cancelAtPeriodEnd: sub.cancelAtPeriodEnd,
       currentPeriodEnd: sub.currentPeriodEnd,

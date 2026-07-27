@@ -94,16 +94,16 @@ describe("Subscription unstyled mode", () => {
 });
 
 describe("Subscription catalog plan mapping", () => {
-  it("preserves app-plan eligibility metadata for Svelte and React default pricing", () => {
-    expect(svelteRootSource).toContain(
-      "eligibility: catalogEntry?.eligibility",
-    );
-    expect(svelteRootSource).toContain(
-      "eligibilityScopeId: catalogEntry?.eligibilityScopeId",
-    );
-    expect(reactRootSource).toContain("eligibility: catalogEntry?.eligibility");
-    expect(reactRootSource).toContain(
-      "eligibilityScopeId: catalogEntry?.eligibilityScopeId",
-    );
+  it("derives plans from the shared core module in both frameworks", () => {
+    // Plan resolution used to be duplicated in both roots and was asserted
+    // here by source text. It now lives in `core/subscriptionModel.ts` and is
+    // covered behaviourally by `core/subscriptionModel.test.ts`; this only
+    // guards against a root re-inlining its own copy.
+    for (const source of [svelteRootSource, reactRootSource]) {
+      expect(source).toContain('from "../../core/subscriptionModel.js"');
+      expect(source).toContain("resolveUIPlans");
+      expect(source).toContain("filterVisiblePlans");
+      expect(source).not.toContain("eligibility: catalogEntry?.eligibility");
+    }
   });
 });

@@ -1,8 +1,13 @@
 import { describe, it, expect, vi, beforeEach } from "vitest";
 import { ConvexError } from "convex/values";
-import { Creem } from "./index.js";
+import { Creem, CreemNotAuthenticatedError } from "./index.js";
 import { defineBillingCatalog } from "../core/catalog.js";
 import type { ComponentApi } from "../component/_generated/component.js";
+import type {
+  SubscriptionUpdateArgs,
+  SubscriptionUpdateWireArgs,
+} from "../core/types.js";
+import { parseSubscriptionUpdateArgs } from "../core/validators.js";
 
 type AnyFn = (...args: any[]) => any;
 
@@ -88,6 +93,7 @@ function createMockCtx(queryMap: Record<symbol, unknown> = {}) {
 
 const ACTIVE_SUB = {
   id: "sub_1",
+  customerId: "cust_1",
   productId: "prod_1",
   status: "active" as const,
   cancelAtPeriodEnd: false,
@@ -129,6 +135,31 @@ const TEST_BILLING_CATALOG = defineBillingCatalog({
       planId: "pro",
       category: "paid",
       billingType: "recurring",
+      creemProductIds: {
+        "every-month": "prod_1",
+      },
+    },
+  ],
+});
+
+const ELIGIBILITY_BILLING_CATALOG = defineBillingCatalog({
+  version: "eligibility-test",
+  plans: [
+    {
+      planId: "trial",
+      category: "trial",
+      billingType: "custom",
+      eligibilityScopeId: "base",
+      eligibility: {
+        oncePerEntity: true,
+        expiresWhenScopeHasNonTrialPlan: true,
+      },
+    },
+    {
+      planId: "pro",
+      category: "paid",
+      billingType: "recurring",
+      eligibilityScopeId: "base",
       creemProductIds: {
         "every-month": "prod_1",
       },
@@ -195,6 +226,62 @@ describe("Creem constructor", () => {
         delete process.env["CREEM_SERVER"];
       }
     }
+  });
+});
+
+describe("appPlans namespace", () => {
+  it("enforces once-per-entity eligibility before writing", async () => {
+    const creem = new Creem(mockComponent, {
+      apiKey: "k",
+      webhookSecret: "s",
+      billingCatalog: ELIGIBILITY_BILLING_CATALOG,
+    });
+    const ctx = createMockCtx({
+      [REFS.listAppPlanActivations]: [
+        {
+          entityId: "user_1",
+          planId: "trial",
+          firstActivatedAt: 1,
+          lastActivatedAt: 1,
+          activationCount: 1,
+        },
+      ],
+      [REFS.listAppPlanAssignments]: [],
+      [REFS.listUserSubscriptions]: [],
+      [REFS.listPendingScheduledSubscriptionUpdates]: [],
+    });
+
+    await expect(
+      creem.appPlans.activate(ctx as never, {
+        entityId: "user_1",
+        planId: "trial",
+        activatedByUserId: "user_1",
+      }),
+    ).rejects.toThrow('Plan "trial" is not eligible');
+    expect(ctx.runMutation).not.toHaveBeenCalled();
+  });
+
+  it("rejects a scoped trial when a paid plan in that scope is active", async () => {
+    const creem = new Creem(mockComponent, {
+      apiKey: "k",
+      webhookSecret: "s",
+      billingCatalog: ELIGIBILITY_BILLING_CATALOG,
+    });
+    const ctx = createMockCtx({
+      [REFS.listAppPlanActivations]: [],
+      [REFS.listAppPlanAssignments]: [],
+      [REFS.listUserSubscriptions]: [ACTIVE_SUB],
+      [REFS.listPendingScheduledSubscriptionUpdates]: [],
+    });
+
+    await expect(
+      creem.appPlans.activate(ctx as never, {
+        entityId: "user_1",
+        planId: "trial",
+        activatedByUserId: "user_1",
+      }),
+    ).rejects.toThrow('Plan "trial" is not eligible');
+    expect(ctx.runMutation).not.toHaveBeenCalled();
   });
 });
 
@@ -318,57 +405,110 @@ describe("subscriptions namespace", () => {
   });
 
   describe("update", () => {
-    it("throws when both productId and units provided", async () => {
-      const ctx = createMockCtx();
-      await expect(
-        creem.subscriptions.update(ctx as never, {
-          entityId: "user_1",
-          productId: "prod_2",
-          units: 5,
-        }),
-      ).rejects.toThrow(
-        "Provide exactly one update target: productId, freePlanId, or units",
-      );
+    it("makes invalid update combinations unrepresentable", () => {
+      // The discriminated union replaces the runtime guards that used to reject
+      // multiple targets, a missing target, or "immediate" on a paid switch.
+      const bothTargets: SubscriptionUpdateArgs = {
+        kind: "plan",
+        productId: "prod_2",
+        // @ts-expect-error - a plan switch cannot also carry freePlanId
+        freePlanId: "free",
+      };
+      const planWithUnits: SubscriptionUpdateArgs = {
+        kind: "plan",
+        productId: "prod_2",
+        // @ts-expect-error - a plan switch keeps the current quantity
+        units: 5,
+      };
+      // @ts-expect-error - every variant requires a target
+      const noTarget: SubscriptionUpdateArgs = { kind: "plan" };
+      // @ts-expect-error - "immediate" is only valid for app-plan switches
+      const immediatePaid: SubscriptionUpdateArgs = {
+        kind: "plan",
+        productId: "prod_2",
+        updateBehavior: "immediate",
+      };
+      // @ts-expect-error - proration behaviors are not valid for app-plan switches
+      const proratedAppPlan: SubscriptionUpdateArgs = {
+        kind: "app-plan",
+        freePlanId: "free",
+        updateBehavior: "proration-charge",
+      };
+      expect([
+        bothTargets,
+        planWithUnits,
+        noTarget,
+        immediatePaid,
+        proratedAppPlan,
+      ]).toHaveLength(5);
     });
 
-    it("throws when neither productId nor units provided", async () => {
-      const ctx = createMockCtx();
-      await expect(
-        creem.subscriptions.update(ctx as never, { entityId: "user_1" }),
-      ).rejects.toThrow(
-        "Provide exactly one update target: productId, freePlanId, or units",
-      );
-    });
-
-    it("rejects proration behavior for free plan updates", async () => {
-      const ctx = createMockCtx({
-        [REFS.getCurrentSubscription]: ACTIVE_SUB,
-      });
-      await expect(
-        creem.subscriptions.update(ctx as never, {
-          entityId: "user_1",
+    it.each([
+      [{ kind: "plan" as const }, 'kind: "plan" requires productId'],
+      [
+        { kind: "plan" as const, productId: "p", freePlanId: "free" },
+        'kind: "plan" cannot also set freePlanId',
+      ],
+      [
+        { kind: "plan" as const, productId: "p", units: 5 },
+        'kind: "plan" cannot also set units',
+      ],
+      [
+        {
+          kind: "plan" as const,
+          productId: "p",
+          updateBehavior: "immediate" as const,
+        },
+        'updateBehavior: "immediate" is not valid for a paid plan switch',
+      ],
+      [{ kind: "units" as const }, 'kind: "units" requires units'],
+      [
+        { kind: "units" as const, units: 3, productId: "p" },
+        'kind: "units" cannot also set productId',
+      ],
+      [{ kind: "app-plan" as const }, 'kind: "app-plan" requires freePlanId'],
+      [
+        { kind: "app-plan" as const, freePlanId: "free", productId: "p" },
+        'kind: "app-plan" cannot also set productId or units',
+      ],
+      [
+        { kind: "app-plan" as const, freePlanId: "free", units: 5 },
+        'kind: "app-plan" cannot also set productId or units',
+      ],
+      [
+        {
+          kind: "app-plan" as const,
           freePlanId: "free",
-          updateBehavior: "proration-charge",
-        }),
-      ).rejects.toThrow(
-        'freePlanId updates support updateBehavior: "period-end" or "immediate"',
-      );
-    });
+          updateBehavior: "proration-charge" as const,
+        },
+        'updateBehavior: "proration-charge" is not valid for an app-plan switch',
+      ],
+    ])(
+      "rejects wire args that the flat Convex validator cannot express: %j",
+      (args, message) => {
+        // Convex requires flat object args, so these combinations are only
+        // unrepresentable in TypeScript — the wire path re-checks them.
+        expect(() =>
+          parseSubscriptionUpdateArgs(args as SubscriptionUpdateWireArgs),
+        ).toThrow(message);
+      },
+    );
 
-    it("rejects immediate behavior for paid plan and unit updates", async () => {
-      const ctx = createMockCtx({
-        [REFS.getCurrentSubscription]: ACTIVE_SUB,
-      });
-      await expect(
-        creem.subscriptions.update(ctx as never, {
-          entityId: "user_1",
-          productId: "prod_2",
-          updateBehavior: "immediate",
-        }),
-      ).rejects.toThrow(
-        'updateBehavior: "immediate" is only supported for freePlanId updates',
-      );
-    });
+    it.each([0, -1, 1.5, Number.NaN, 2_000_000])(
+      "rejects invalid unit count %p",
+      async (units) => {
+        const ctx = createMockCtx({
+          [REFS.getCurrentSubscription]: ACTIVE_SUB,
+        });
+        await expect(
+          creem.subscriptions.update(ctx as never, {
+            entityId: "user_1",
+            kind: "units",
+            units,
+          }),
+        ).rejects.toThrow("units must be an integer between 1 and 1000000");
+      },
+    );
 
     it("throws when subscription not found", async () => {
       const ctx = createMockCtx({
@@ -376,6 +516,7 @@ describe("subscriptions namespace", () => {
       });
       await expect(
         creem.subscriptions.update(ctx as never, {
+          kind: "units" as const,
           entityId: "user_1",
           units: 5,
         }),
@@ -387,6 +528,7 @@ describe("subscriptions namespace", () => {
         [REFS.getCurrentSubscription]: ACTIVE_SUB,
       });
       await creem.subscriptions.update(ctx as never, {
+        kind: "units" as const,
         entityId: "user_1",
         units: 10,
       });
@@ -409,6 +551,7 @@ describe("subscriptions namespace", () => {
         [REFS.getCurrentSubscription]: ACTIVE_SUB,
       });
       await creem.subscriptions.update(ctx as never, {
+        kind: "plan" as const,
         entityId: "user_1",
         productId: "prod_new",
       });
@@ -433,6 +576,7 @@ describe("subscriptions namespace", () => {
         [REFS.getCurrentSubscription]: ACTIVE_SUB,
       });
       await creem.subscriptions.update(ctx as never, {
+        kind: "plan" as const,
         entityId: "user_1",
         productId: "prod_basic",
         updateBehavior: "period-end",
@@ -477,6 +621,7 @@ describe("subscriptions namespace", () => {
         [REFS.getCurrentSubscription]: ACTIVE_SUB,
       });
       await creem.subscriptions.update(ctx as never, {
+        kind: "app-plan" as const,
         entityId: "user_1",
         freePlanId: "free",
         updateBehavior: "period-end",
@@ -544,6 +689,7 @@ describe("subscriptions namespace", () => {
       });
 
       await creem.subscriptions.update(ctx as never, {
+        kind: "plan" as const,
         entityId: "user_1",
         productId: "prod_new",
         updateBehavior: "period-end",
@@ -612,6 +758,7 @@ describe("subscriptions namespace", () => {
       });
 
       await creem.subscriptions.update(ctx as never, {
+        kind: "plan" as const,
         entityId: "user_1",
         productId: "prod_new",
       });
@@ -632,6 +779,7 @@ describe("subscriptions namespace", () => {
         [REFS.getCurrentSubscription]: ACTIVE_SUB,
       });
       await creem.subscriptions.update(ctx as never, {
+        kind: "app-plan" as const,
         entityId: "user_1",
         freePlanId: "free",
         updateBehavior: "immediate",
@@ -715,8 +863,13 @@ describe("subscriptions namespace", () => {
     it("resolves by subscriptionId when provided", async () => {
       const ctx = createMockCtx({
         [REFS.getSubscription]: ACTIVE_SUB,
+        [REFS.getCustomerByEntityId]: {
+          id: "cust_1",
+          entityId: "user_1",
+        },
       });
       await creem.subscriptions.update(ctx as never, {
+        kind: "units" as const,
         entityId: "user_1",
         subscriptionId: "sub_1",
         units: 3,
@@ -724,6 +877,30 @@ describe("subscriptions namespace", () => {
       expect(ctx.runQuery).toHaveBeenCalledWith(REFS.getSubscription, {
         id: "sub_1",
       });
+    });
+
+    it("rejects an explicit subscription owned by another entity", async () => {
+      const ctx = createMockCtx({
+        [REFS.getSubscription]: {
+          ...ACTIVE_SUB,
+          customerId: "cust_other",
+        },
+        [REFS.getCustomerByEntityId]: {
+          id: "cust_1",
+          entityId: "user_1",
+        },
+      });
+
+      await expect(
+        creem.subscriptions.update(ctx as never, {
+          kind: "units" as const,
+          entityId: "user_1",
+          subscriptionId: "sub_other",
+          units: 3,
+        }),
+      ).rejects.toThrow("Subscription not found");
+      expect(ctx.runMutation).not.toHaveBeenCalled();
+      expect(ctx.scheduler.runAfter).not.toHaveBeenCalled();
     });
   });
 
@@ -962,9 +1139,9 @@ describe("getBillingModel", () => {
     });
     const result = await creem.getBillingModel(ctx as never, {
       entityId: null,
-      user: { _id: "user_1", email: "a@b.com" },
+      user: { id: "user_1", email: "a@b.com" },
     });
-    expect(result.user).toEqual({ _id: "user_1", email: "a@b.com" });
+    expect(result.user).toEqual({ id: "user_1", email: "a@b.com" });
   });
 
   it("returns full model for authenticated user", async () => {
@@ -982,7 +1159,7 @@ describe("getBillingModel", () => {
     });
     const result = await creem.getBillingModel(ctx as never, {
       entityId: "user_1",
-      user: { _id: "user_1", email: "a@b.com" },
+      user: { id: "user_1", email: "a@b.com" },
     });
     expect(result.snapshot).toBeDefined();
     expect(result.snapshot?.subscriptions).toHaveLength(1);
@@ -1899,15 +2076,40 @@ describe("api() convenience exports", () => {
   });
 
   describe("uiModel", () => {
-    it("returns unauthenticated model when resolve throws", async () => {
-      resolve.mockRejectedValue(new Error("Not authenticated"));
+    it("returns unauthenticated model when resolve returns null", async () => {
+      resolve.mockResolvedValue(null);
       const ctx = createMockCtx({
         [REFS.listProducts]: [PRODUCT_1],
       });
       const handler = extractHandler(apiExports.uiModel as never);
       const result = await handler(ctx, {});
       expect(result.snapshot).toBeNull();
+      expect(result.user).toBeNull();
       expect(result.allProducts).toEqual([PRODUCT_1]);
+    });
+
+    it("treats CreemNotAuthenticatedError as unauthenticated", async () => {
+      resolve.mockRejectedValue(new CreemNotAuthenticatedError());
+      const ctx = createMockCtx({
+        [REFS.listProducts]: [PRODUCT_1],
+      });
+      const handler = extractHandler(apiExports.uiModel as never);
+      const result = await handler(ctx, {});
+      expect(result.snapshot).toBeNull();
+      expect(result.user).toBeNull();
+    });
+
+    it("rethrows unexpected resolver failures instead of degrading", async () => {
+      const failure = new Error("database is down");
+      resolve.mockRejectedValue(failure);
+      const consoleError = vi
+        .spyOn(console, "error")
+        .mockImplementation(() => {});
+      const ctx = createMockCtx({ [REFS.listProducts]: [PRODUCT_1] });
+      const handler = extractHandler(apiExports.uiModel as never);
+      await expect(handler(ctx, {})).rejects.toThrow("database is down");
+      expect(consoleError).toHaveBeenCalled();
+      consoleError.mockRestore();
     });
 
     it("returns authenticated model when resolve succeeds", async () => {
@@ -1926,7 +2128,7 @@ describe("api() convenience exports", () => {
       });
       const handler = extractHandler(apiExports.uiModel as never);
       const result = await handler(ctx, {});
-      expect(result.user).toEqual({ _id: "user_1", email: "a@b.com" });
+      expect(result.user).toEqual({ id: "user_1", email: "a@b.com" });
       expect(result.allProducts).toEqual([PRODUCT_1]);
     });
   });
@@ -1979,14 +2181,64 @@ describe("api() convenience exports", () => {
         1,
         10,
       );
-      expect(result).toEqual(transactionList);
+      expect(result.pagination).toEqual(transactionList.pagination);
+      expect(result.items).toHaveLength(1);
+      // Projected into the validated widget shape: SDK-only fields are dropped.
+      expect(result.items[0]).toMatchObject({
+        id: "tran_1",
+        amount: 2999,
+        currency: "USD",
+        status: "paid",
+        type: "payment",
+        createdAt: 1780135200,
+      });
+      expect(result.items[0]).not.toHaveProperty("mode");
+      expect(result.items[0]).not.toHaveProperty("object");
       expect(result).not.toHaveProperty("next");
+    });
+
+    it("always searches the customer resolved from the authenticated entity", async () => {
+      resolve.mockResolvedValue({
+        userId: "user_1",
+        email: "a@b.com",
+        entityId: "user_1",
+      });
+      const ctx = createMockCtx({
+        [REFS.getCustomerByEntityId]: { id: "cust_1" },
+      });
+      const search = vi.fn(async () => ({
+        result: {
+          items: [],
+          pagination: {
+            totalRecords: 0,
+            totalPages: 0,
+            currentPage: 1,
+            nextPage: null,
+            prevPage: null,
+          },
+        },
+      }));
+      creem.sdk.transactions.search = search as never;
+
+      const handler = extractHandler(apiExports.transactions.search as never);
+      await handler(ctx, {
+        customerId: "cust_other",
+        pageNumber: 1,
+      });
+
+      expect(search).toHaveBeenCalledWith(
+        "cust_1",
+        undefined,
+        undefined,
+        1,
+        undefined,
+      );
     });
   });
 
   describe("snapshot", () => {
-    it("returns null when resolve throws", async () => {
-      resolve.mockRejectedValue(new Error("Not authenticated"));
+    it("returns null when resolve returns null", async () => {
+      resolve.mockResolvedValue(null);
       const ctx = createMockCtx();
       const handler = extractHandler(apiExports.snapshot as never);
       const result = await handler(ctx, {});
@@ -2034,7 +2286,7 @@ describe("api() convenience exports", () => {
         [REFS.getCurrentSubscription]: ACTIVE_SUB,
       });
       const handler = extractHandler(apiExports.subscriptions.update as never);
-      await handler(ctx, { units: 5 });
+      await handler(ctx, { kind: "units", units: 5 });
       expect(ctx.runMutation).toHaveBeenCalledWith(
         REFS.patchSubscription,
         expect.objectContaining({ subscriptionId: "sub_1", seats: 5 }),
@@ -2048,6 +2300,7 @@ describe("api() convenience exports", () => {
       });
       const handler = extractHandler(apiExports.subscriptions.update as never);
       await handler(ctx, {
+        kind: "plan",
         productId: "prod_basic",
         updateBehavior: "period-end",
       });
@@ -2074,6 +2327,7 @@ describe("api() convenience exports", () => {
       });
       const handler = extractHandler(apiExports.subscriptions.update as never);
       await handler(ctx, {
+        kind: "app-plan",
         freePlanId: "free",
         updateBehavior: "period-end",
       });
@@ -2116,6 +2370,7 @@ describe("api() convenience exports", () => {
       });
       const handler = extractHandler(apiExports.subscriptions.update as never);
       await handler(ctx, {
+        kind: "app-plan",
         freePlanId: "free",
         updateBehavior: "immediate",
       });
@@ -2285,6 +2540,41 @@ describe("api() convenience exports", () => {
     });
   });
 
+  describe("subscription ownership", () => {
+    it.each([
+      ["update", { subscriptionId: "sub_other", units: 2 }],
+      ["cancel", { subscriptionId: "sub_other" }],
+      ["resume", { subscriptionId: "sub_other" }],
+      ["pause", { subscriptionId: "sub_other" }],
+      ["cancelScheduledUpdate", { subscriptionId: "sub_other" }],
+    ] as const)(
+      "rejects foreign subscription IDs for subscriptions.%s",
+      async (operation, args) => {
+        resolve.mockResolvedValue({ entityId: "user_1" });
+        const ctx = createMockCtx({
+          [REFS.getCustomerByEntityId]: {
+            id: "cust_1",
+            entityId: "user_1",
+          },
+          [REFS.getSubscription]: {
+            ...ACTIVE_SUB,
+            id: "sub_other",
+            customerId: "cust_other",
+          },
+        });
+        const handler = extractHandler(
+          apiExports.subscriptions[operation] as never,
+        );
+
+        await expect(handler(ctx, args)).rejects.toThrow(
+          "Subscription not found",
+        );
+        expect(ctx.runMutation).not.toHaveBeenCalled();
+        expect(ctx.scheduler.runAfter).not.toHaveBeenCalled();
+      },
+    );
+  });
+
   describe("subscriptions.list", () => {
     it("delegates to subscriptions.list", async () => {
       resolve.mockResolvedValue({ entityId: "user_1" });
@@ -2358,6 +2648,16 @@ describe("api() convenience exports", () => {
   });
 
   describe("credits.getBalance", () => {
+    it("does not generate public credit minting or arbitrary debit actions", () => {
+      expect(apiExports.credits).toEqual({
+        getBalance: expect.anything(),
+        listEntries: expect.anything(),
+      });
+      expect(apiExports.credits).not.toHaveProperty("createAccount");
+      expect(apiExports.credits).not.toHaveProperty("credit");
+      expect(apiExports.credits).not.toHaveProperty("debit");
+    });
+
     it("throws a ConvexError with user-facing data when checkout is required", async () => {
       resolve.mockResolvedValue({ entityId: "user_1" });
       const ctx = createMockCtx({
@@ -2371,6 +2671,42 @@ describe("api() convenience exports", () => {
         },
       });
       await expect(handler(ctx, {})).rejects.toBeInstanceOf(ConvexError);
+    });
+  });
+
+  describe("plans.activate", () => {
+    it("enforces catalog eligibility in the generated public mutation", async () => {
+      creem = new Creem(mockComponent, {
+        apiKey: "k",
+        webhookSecret: "s",
+        billingCatalog: ELIGIBILITY_BILLING_CATALOG,
+      });
+      apiExports = creem.api({ resolve });
+      resolve.mockResolvedValue({
+        entityId: "user_1",
+        userId: "user_1",
+        email: "a@b.com",
+      });
+      const ctx = createMockCtx({
+        [REFS.listAppPlanActivations]: [
+          {
+            entityId: "user_1",
+            planId: "trial",
+            firstActivatedAt: 1,
+            lastActivatedAt: 1,
+            activationCount: 1,
+          },
+        ],
+        [REFS.listAppPlanAssignments]: [],
+        [REFS.listUserSubscriptions]: [],
+        [REFS.listPendingScheduledSubscriptionUpdates]: [],
+      });
+      const handler = extractHandler(apiExports.plans.activate as never);
+
+      await expect(handler(ctx, { planId: "trial" })).rejects.toThrow(
+        'Plan "trial" is not eligible',
+      );
+      expect(ctx.runMutation).not.toHaveBeenCalled();
     });
   });
 });

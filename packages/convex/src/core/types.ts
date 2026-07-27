@@ -1,3 +1,44 @@
+import type {
+  AvailableActionFromValidator,
+  PaymentRecoveryStateFromValidator,
+  RecurringCycleFromValidator,
+} from "./validators.js";
+
+/**
+ * Structural billing types are derived from the Convex validators in
+ * `validators.ts` so the wire format and the TypeScript contract cannot drift.
+ * The simple string unions below stay hand-written for readable docs and are
+ * asserted against their validators at the bottom of this file.
+ */
+export type {
+  AppPlanActivation,
+  AppPlanAssignment,
+  BillingAccessItem,
+  BillingSnapshot,
+  BillingSnapshotOrder,
+  BillingSnapshotSubscription,
+  ConnectedActiveSubscription,
+  ConnectedBillingUser,
+  ConnectedPagination,
+  ConnectedProduct,
+  ConnectedTransaction,
+  ConnectedTransactionList,
+  ScheduledSubscriptionUpdate,
+  CreditBalance,
+  CreditEntry,
+  CreditEntryList,
+  CheckoutCreateArgs,
+  SubscriptionUpdateArgs,
+  SubscriptionUpdateWireArgs,
+  SubscriptionCancelArgs,
+  SubscriptionResumeArgs,
+  SubscriptionCancelScheduledUpdateArgs,
+  SubscriptionPauseArgs,
+  AppPlanActivateArgs,
+  TransactionsSearchArgs,
+  CreditsListEntriesArgs,
+} from "./validators.js";
+
 /** Category of a billing plan. Determines default UI behavior and available actions. */
 export type PlanCategory = "free" | "trial" | "paid" | "enterprise" | "custom";
 
@@ -341,21 +382,6 @@ export const getSwitchPlanDescription = (
   }
 };
 
-/** App-side scheduled subscription update stored until the current period ends. */
-export type ScheduledSubscriptionUpdate = {
-  entityId: string;
-  subscriptionId: string;
-  targetProductId?: string;
-  targetPlanId?: string;
-  targetUnits?: number;
-  effectiveAt: string;
-  status: "pending" | "applying" | "applied" | "superseded" | "failed";
-  scheduledFunctionId?: string;
-  error?: string;
-  createdAt: string;
-  updatedAt: string;
-};
-
 /** A single evaluated usage-limit check result. */
 export type UsageLimitEntry = {
   /** Current usage count provided by the app. */
@@ -368,128 +394,6 @@ export type UsageLimitEntry = {
 
 /** Result of `evaluateUsageLimits`. Keys match the limit keys defined in the catalog plan. */
 export type UsageLimitResult = Record<string, UsageLimitEntry>;
-
-// ── Billing snapshot types ──────────────────────────
-
-/** A single subscription row in the billing snapshot. */
-export type BillingSnapshotSubscription = {
-  /** Stable plan ID from the catalog (if resolved). */
-  planId: string | null;
-  /** Creem product ID. */
-  productId: string;
-  /** Creem subscription ID. */
-  subscriptionId: string;
-  /** Subscription status (e.g. `"active"`, `"trialing"`, `"canceled"`). */
-  status: string;
-  /** Billing interval. */
-  recurringCycle: RecurringCycle | null;
-  /** Optional kind tag from the catalog (e.g. `"base"`, `"addon"`). */
-  kind?: string;
-  /** Current unit count for unit-based subscriptions. */
-  units?: number | null;
-  /** Whether the subscription is set to cancel at period end. */
-  cancelAtPeriodEnd?: boolean;
-  /** ISO timestamp of the current period end. */
-  currentPeriodEnd?: string | null;
-  /** ISO timestamp when the trial expires. */
-  trialEnd?: string | null;
-};
-
-/** A single order row in the billing snapshot. */
-export type BillingSnapshotOrder = {
-  /** Stable plan ID from the catalog (if resolved). */
-  planId: string | null;
-  /** Creem order ID. */
-  orderId: string;
-  /** Creem product ID. */
-  productId: string;
-  /** Order status. */
-  status: string;
-};
-
-/** Current or scheduled assignment for an app-owned catalog plan. */
-export type AppPlanAssignment = {
-  entityId: string;
-  planId: string;
-  status: "active" | "scheduled" | "ended";
-  startsAt: string;
-  endsAt?: string | null;
-  source?: string;
-  subscriptionId?: string;
-  assignedByUserId?: string;
-  createdAt: string;
-  updatedAt: string;
-};
-
-/** Derived unified access row across Creem subscriptions, Creem orders, and app-owned plans. */
-export type BillingAccessItem =
-  | {
-      source: "creem_subscription";
-      kind: "subscription";
-      planId: string | null;
-      productId: string;
-      subscriptionId: string;
-      status: string;
-      recurringCycle: RecurringCycle | null;
-      units?: number | null;
-      currentPeriodEnd?: string | null;
-      trialEnd?: string | null;
-    }
-  | {
-      source: "creem_order";
-      kind: "one_time";
-      planId: string | null;
-      productId: string;
-      orderId: string;
-      status: string;
-    }
-  | {
-      source: "app_plan_assignment";
-      kind: "app_plan";
-      planId: string;
-      status: AppPlanAssignment["status"];
-      startsAt: string;
-      endsAt?: string | null;
-      assignmentSource?: string;
-      subscriptionId?: string;
-    };
-
-/**
- * Billing snapshot with explicit subscription and order arrays.
- * This supports multiple subscriptions (base + add-ons) and one-time orders as
- * first-class citizens. `access` is a derived read model, not another source
- * of truth.
- */
-export type BillingSnapshot = {
-  /** Billing entity ID. */
-  entityId: string;
-  /** Version of the plan catalog used for resolution. */
-  catalogVersion?: string;
-  /** All active/relevant subscriptions. */
-  subscriptions: BillingSnapshotSubscription[];
-  /** All one-time orders. */
-  orders: BillingSnapshotOrder[];
-  /** App-owned plan assignments such as no-card trials or free plans. */
-  appPlanAssignments: AppPlanAssignment[];
-  /** Unified current access projection across subscriptions, orders, and app-owned plans. */
-  access: BillingAccessItem[];
-  /** Derived payment recovery state from subscription statuses. */
-  paymentRecoveryState: PaymentRecoveryState;
-  /** Actions the billing entity is allowed to perform. */
-  availableBillingActions: AvailableAction[];
-  /** ISO timestamp when this snapshot was resolved. */
-  resolvedAt: string;
-};
-
-/** Activation history for an app-owned catalog plan. */
-export type AppPlanActivation = {
-  entityId: string;
-  planId: string;
-  firstActivatedAt: number;
-  lastActivatedAt: number;
-  activationCount: number;
-  activatedByUserId?: string;
-};
 
 /**
  * Intent object passed to `onBeforePlanChange`.
@@ -509,3 +413,21 @@ export type PlanChangeIntent = {
   /** Number of units (for unit-based plans). */
   units?: number;
 };
+
+// ── Validator/type parity assertions ────────────────────────
+// The string unions above are hand-written for readable documentation.
+// These assertions fail to compile if they ever drift from the validators
+// in `validators.ts`, which define the wire format.
+
+type Exact<A, B> = [A] extends [B] ? ([B] extends [A] ? true : false) : false;
+type Assert<T extends true> = T;
+
+export type _RecurringCycleMatchesValidator = Assert<
+  Exact<RecurringCycle, RecurringCycleFromValidator>
+>;
+export type _PaymentRecoveryStateMatchesValidator = Assert<
+  Exact<PaymentRecoveryState, PaymentRecoveryStateFromValidator>
+>;
+export type _AvailableActionMatchesValidator = Assert<
+  Exact<AvailableAction, AvailableActionFromValidator>
+>;

@@ -233,4 +233,27 @@ describe("resolveBillingSnapshot", () => {
     expect(result.subscriptions[0].planId).toBeNull();
     expect(result.subscriptions[0].productId).toBe("prod_unknown");
   });
+
+  it("ignores a non-string catalog metadata.kind", () => {
+    // `metadata` is app-authored `Record<string, unknown>`. A non-string `kind`
+    // must not reach the snapshot, which validates it as an optional string.
+    const snapshot = resolveBillingSnapshot({
+      entityId: "e1",
+      catalog: {
+        version: "1",
+        plans: [
+          {
+            planId: "weird",
+            category: "paid",
+            creemProductIds: { "every-month": "prod_weird" },
+            metadata: { kind: 42 },
+          },
+        ],
+      },
+      subscriptions: [
+        { id: "sub_1", productId: "prod_weird", status: "active" },
+      ],
+    });
+    expect(snapshot.subscriptions[0].kind).toBeUndefined();
+  });
 });

@@ -62,19 +62,21 @@ describe("createCreemReact", () => {
     expect(binding.defaultCycle).toBe("every-year");
   });
 
-  it("passes catalog to config", () => {
+  it("passes the catalog and api through unchanged", () => {
     const binding = createCreemReact({ catalog, api: fakeApi });
-    expect(binding.config.catalog).toBe(catalog);
+    expect(binding.catalog).toBe(catalog);
+    expect(binding.api).toBe(fakeApi);
   });
 
-  it("merges custom config", () => {
-    const gate = async () => true;
-    const binding = createCreemReact({
-      catalog,
-      api: fakeApi,
-      config: { onBeforeCheckout: gate },
-    });
-    expect(binding.config.onBeforeCheckout).toBe(gate);
+  it("is spreadable onto the provider", () => {
+    const binding = createCreemReact({ catalog, api: fakeApi });
+    expect(Object.keys({ ...binding }).sort()).toEqual([
+      "api",
+      "catalog",
+      "defaultCycle",
+      "isPlanId",
+      "planIds",
+    ]);
   });
 });
 

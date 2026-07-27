@@ -1,13 +1,12 @@
 import {
-  appPlanActivateArgs,
   Creem,
   defineBillingCatalog,
   type ApiResolver,
 } from "@creem_io/convex";
-import { api, components } from "./_generated/api";
-import { action, internalAction, mutation, query } from "./_generated/server";
-import { Id } from "./_generated/dataModel";
-import { ConvexError } from "convex/values";
+import { components, internal } from "./_generated/api";
+import { action, internalAction, internalQuery } from "./_generated/server";
+import type { Id } from "./_generated/dataModel";
+import { ConvexError, v } from "convex/values";
 
 const demoCreditsProductId =
   process.env.CREEM_ONETIME_CREDITS ?? "prod_73CnZ794MaJ1DUn8MU0O5f";
@@ -63,11 +62,16 @@ export const creem = new Creem(components.creem, {
 // ── Auth resolver ───────────────────────────────────────────────
 // Replace with your own auth logic (e.g. ctx.auth.getUserIdentity()).
 // This example uses a demo user from the "users" table.
+//
+// Return `null` for an unauthenticated caller — that is what keeps public
+// pricing pages working. Anything thrown here is treated as a real failure and
+// propagates instead of silently rendering the logged-out state.
 const resolve: ApiResolver = async (ctx) => {
   const user: {
     _id: Id<"users">;
     email: string;
-  } = await ctx.runQuery(api.billing.getUserInfo);
+  } | null = await ctx.runQuery(internal.billing.getUserInfo);
+  if (!user) return null;
   return {
     userId: user._id as string,
     email: user.email,
@@ -76,28 +80,18 @@ const resolve: ApiResolver = async (ctx) => {
     // entityId: user.activeOrgId ?? user._id,
   };
 };
-export const getUserInfo = query({
+export const getUserInfo = internalQuery({
   args: {},
+  returns: v.union(
+    v.object({
+      _id: v.id("users"),
+      _creationTime: v.number(),
+      email: v.string(),
+    }),
+    v.null(),
+  ),
   handler: async (ctx) => {
-    const user = await ctx.db.query("users").first();
-    if (!user) throw new ConvexError("User not found");
-    return user;
-  },
-});
-
-export const plansActivate = mutation({
-  args: appPlanActivateArgs,
-  handler: async (ctx, args) => {
-    const user = await ctx.db.query("users").first();
-    if (!user) throw new ConvexError("User not found");
-
-    await creem.appPlans.activate(ctx, {
-      entityId: user._id as string,
-      planId: args.planId,
-      activatedByUserId: user._id as string,
-    });
-
-    return { success: true };
+    return await ctx.db.query("users").first();
   },
 });
 
@@ -115,6 +109,7 @@ const {
   products,
   customers,
   transactions,
+  plans,
   orders,
   credits,
 } = creem.api({ resolve });
@@ -137,18 +132,24 @@ export const productsGet = products.get;
 export const customersRetrieve = customers.retrieve;
 export const customersPortalUrl = customers.portalUrl;
 export const transactionsSearch = transactions.search;
+export const plansActivate = plans.activate;
 export const ordersList = orders.list;
-export const creditsCreateAccount = credits.createAccount;
 export const creditsGetBalance = credits.getBalance;
-export const creditsCredit = credits.credit;
-export const creditsDebit = credits.debit;
 export const creditsListEntries = credits.listEntries;
 
 export const generateDemoImage = action({
   args: {},
+  returns: v.object({
+    id: v.string(),
+    creditsConsumed: v.string(),
+  }),
   handler: async (ctx) => {
+    const identity = await resolve(ctx);
+    if (!identity) throw new ConvexError("Not authenticated");
+    const { entityId } = identity;
     const idempotencyKey = `demo_generate_image_${Date.now()}`;
-    await ctx.runAction(api.billing.creditsDebit, {
+    await creem.credits.debitForEntity(ctx, {
+      entityId,
       amount: "10",
       reference: "demo_generate_image",
       idempotencyKey,
@@ -162,6 +163,7 @@ export const generateDemoImage = action({
 
 export const syncBillingProducts = internalAction({
   args: {},
+  returns: v.object({ synced: v.boolean() }),
   handler: async (ctx) => {
     await creem.syncProducts(ctx);
     return { synced: true };

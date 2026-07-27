@@ -1,4 +1,7 @@
 export * from "./types.js";
+export * from "./model.js";
+export * from "./validators.js";
+export * from "./connectedApi.js";
 export * from "./catalog.js";
 export * from "./resolver.js";
 export * from "./selectors.js";

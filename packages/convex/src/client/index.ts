@@ -43,18 +43,25 @@ import { resolveBillingSnapshot } from "../core/resolver.js";
 import {
   findCreditGrantByProductId,
   findPlanById,
+  findPlanByProductId,
   isAppOwnedPlan,
+  isAppPlanEligible,
   normalizePlanCatalog,
 } from "../core/catalog.js";
 import type {
-  AppPlanActivation,
   AppPlanAssignment,
+  CreditBalance,
+  CreditEntryList,
   CreditGrant,
   BillingSnapshot,
+  ConnectedTransactionList,
   PlanCatalog,
+  ResolvedUpdateBehavior,
   ScheduledSubscriptionUpdate,
   SubscriptionSnapshot,
+  SubscriptionUpdateArgs,
 } from "../core/types.js";
+import type { ConnectedBillingModel } from "../core/model.js";
 
 export * from "../core/index.js";
 export type { RunSchedulerMutationCtx } from "../component/util.js";
@@ -104,144 +111,32 @@ export const subscriptionValidator = schema.tables.subscriptions.validator;
 export type Subscription = Infer<typeof subscriptionValidator>;
 
 // ── Shared arg validators for custom actions / mutations ──────────────
-// Use these when writing your own Convex functions that wrap creem methods
-// (e.g. for RBAC). They match exactly what the connected widgets send.
+// Defined in `core/validators.ts` and re-exported here so custom Convex
+// functions and the connected widgets stay on one definition.
 
-/**
- * Convex arg validator for checkout creation.
- * Matches the args sent by `<Subscription.Root>` and `<Product.Root>` widgets.
- * Use in your own `action()` definitions for custom RBAC wrappers.
- */
-export const checkoutCreateArgs = {
-  productId: v.string(),
-  successUrl: v.optional(v.string()),
-  fallbackSuccessUrl: v.optional(v.string()),
-  units: v.optional(v.number()),
-  metadata: v.optional(v.record(v.string(), v.string())),
-  discountCode: v.optional(v.string()),
-  theme: v.optional(v.union(v.literal("light"), v.literal("dark"))),
-};
+import {
+  appPlanActivateArgs,
+  billingSnapshotValidator,
+  checkoutCreateArgs,
+  connectedBillingModelValidator,
+  connectedTransactionListValidator,
+  creditBalanceValidator,
+  creditEntryListValidator,
+  creditsListEntriesArgs,
+  parseSubscriptionUpdateArgs,
+  subscriptionCancelArgs,
+  subscriptionCancelScheduledUpdateArgs,
+  subscriptionPauseArgs,
+  subscriptionResumeArgs,
+  subscriptionUpdateArgs,
+  transactionsSearchArgs,
+} from "../core/validators.js";
 
-/**
- * Convex arg validator for subscription updates (plan switch or unit change).
- * Matches the args sent by `<Subscription.Root>` widgets.
- */
-export const subscriptionUpdateArgs = {
-  subscriptionId: v.optional(v.string()),
-  productId: v.optional(v.string()),
-  freePlanId: v.optional(v.string()),
-  units: v.optional(v.number()),
-  updateBehavior: v.optional(
-    v.union(
-      v.literal("proration-charge-immediately"),
-      v.literal("proration-charge"),
-      v.literal("proration-none"),
-      v.literal("period-end"),
-      v.literal("immediate"),
-    ),
-  ),
-};
+// The validators themselves are re-exported through `export * from "../core/index.js"`.
 
-/**
- * Convex arg validator for subscription cancellation.
- * Matches the args sent by `<Subscription.Root>` cancel button.
- */
-export const subscriptionCancelArgs = {
-  subscriptionId: v.optional(v.string()),
-  revokeImmediately: v.optional(v.boolean()),
-};
-
-/**
- * Convex arg validator for subscription resume.
- * Matches the args sent by `<Subscription.Root>` resume button.
- */
-export const subscriptionResumeArgs = {
-  subscriptionId: v.optional(v.string()),
-};
-
-export const subscriptionCancelScheduledUpdateArgs = {
-  subscriptionId: v.optional(v.string()),
-};
-
-/**
- * Convex arg validator for subscription pause.
- * Matches the args sent by `<Subscription.Root>` pause button.
- */
-export const subscriptionPauseArgs = {
-  subscriptionId: v.optional(v.string()),
-};
-
-/**
- * Convex arg validator for app-owned plan activation.
- * Matches the args sent by `<Subscription.Root>` for `category: "free"`,
- * `category: "trial"`, and other custom app-owned plans.
- */
-export const appPlanActivateArgs = {
-  planId: v.string(),
-};
-
-/**
- * Convex arg validator for transaction history search.
- * Matches the args sent by `<BillingHistory>` widgets.
- */
-export const transactionsSearchArgs = {
-  customerId: v.optional(v.string()),
-  orderId: v.optional(v.string()),
-  productId: v.optional(v.string()),
-  pageNumber: v.optional(v.number()),
-  pageSize: v.optional(v.number()),
-};
-
-// ── Credits arg validators ────────────────────────────────────────────
-
-/**
- * Convex arg validator for creating a credits account.
- * Matches the args sent by credits widgets or custom functions.
- */
-export const creditsCreateAccountArgs = {
-  name: v.optional(v.string()),
-  unitLabel: v.optional(v.string()),
-  initialBalance: v.optional(v.string()),
-};
-
-/**
- * Convex arg validator for getting credits balance.
- */
-export const creditsGetBalanceArgs = {
-  accountId: v.optional(v.string()),
-};
 const CUSTOMER_CHECKOUT_REQUIRED_ERROR = {
   message: "Customer not found — complete a checkout first",
 } as const;
-
-/**
- * Convex arg validator for crediting an account.
- */
-export const creditsCreditArgs = {
-  accountId: v.optional(v.string()),
-  amount: v.string(),
-  reference: v.string(),
-  idempotencyKey: v.string(),
-};
-
-/**
- * Convex arg validator for debiting an account.
- */
-export const creditsDebitArgs = {
-  accountId: v.optional(v.string()),
-  amount: v.string(),
-  reference: v.string(),
-  idempotencyKey: v.string(),
-};
-
-/**
- * Convex arg validator for listing credit entries (history).
- */
-export const creditsListEntriesArgs = {
-  accountId: v.optional(v.string()),
-  limit: v.optional(v.number()),
-  startingAfter: v.optional(v.string()),
-};
 
 /** Function reference type for internal mutations that receive a subscription document. */
 export type SubscriptionHandler = FunctionReference<
@@ -293,29 +188,151 @@ const supportedWebhookEvents = new Set([
 ]);
 
 /**
- * Callback that resolves the authenticated user for `creem.api({ resolve })`.
- * Called on every generated Convex function to determine the billing entity.
+ * Billing identity returned by an {@link ApiResolver}.
+ */
+export type ResolvedBillingIdentity = {
+  /** Your app's user ID. Stored in checkout metadata as `convexUserId`. */
+  userId: string;
+  /** User's email. Passed to Creem when creating the customer. */
+  email: string;
+  /**
+   * Billing entity ID — the owner of every subscription, order, and credit
+   * balance. For personal billing this is the user ID; for organization billing
+   * return the org ID. Verify membership and any required billing role before
+   * returning an org ID.
+   */
+  entityId: string;
+  /**
+   * Optional override for the entity's currently active app-owned catalog plan
+   * (free, trial, or custom).
+   *
+   * Only needed when your app — not this component — owns that assignment. When
+   * omitted, the active plan is read from the component's own app-plan
+   * assignment rows. It feeds `uiModel.activePlanId` and app-plan eligibility
+   * checks in `plans.activate`.
+   */
+  activePlanId?: string | null;
+  /**
+   * Optional override for the entity's active free plan.
+   *
+   * Prefer {@link ResolvedBillingIdentity.activePlanId}, which covers free,
+   * trial, and custom plans. `undefined` keeps the default widget behavior of
+   * treating the first catalog free plan as active for signed-in users without
+   * a paid subscription; `null` states explicitly that there is no free plan.
+   */
+  activeFreePlanId?: string | null;
+};
+
+/**
+ * Callback that resolves the billing identity for `creem.api({ resolve })`.
+ * Called on every generated Convex function.
  *
- * - `userId` — your app's user ID (stored in checkout metadata as `convexUserId`)
- * - `email` — user's email (passed to Creem for customer creation)
- * - `entityId` — billing entity ID. For personal billing, same as `userId`.
- *   For org billing, return the org ID so all billing scopes to the organization.
+ * **Return `null` for an unauthenticated caller.** Public pricing pages rely on
+ * this: `uiModel` then returns the catalog-only model and `snapshot` returns
+ * `null`, while every other generated function rejects the call.
+ *
+ * Any error thrown from the resolver is treated as a real failure — it is
+ * logged and rethrown rather than silently degrading to the logged-out view.
+ * A resolver that throws {@link CreemNotAuthenticatedError} is treated the same
+ * as returning `null`, so resolvers written against earlier versions keep
+ * working.
  *
  * @example
  * ```ts
  * const resolve: ApiResolver = async (ctx) => {
- *   const user = await ctx.runQuery(api.users.currentUser);
- *   return { userId: user._id, email: user.email, entityId: user._id };
+ *   const identity = await ctx.auth.getUserIdentity();
+ *   if (!identity) return null;
+ *   return {
+ *     userId: identity.subject,
+ *     email: identity.email!,
+ *     entityId: identity.subject,
+ *   };
  * };
  * ```
  */
-export type ApiResolver = (ctx: RunQueryCtx) => Promise<{
-  userId: string;
-  email: string;
-  entityId: string;
-  activePlanId?: string | null;
-  activeFreePlanId?: string | null;
-}>;
+export type ApiResolver = (
+  ctx: RunQueryCtx,
+) => Promise<ResolvedBillingIdentity | null>;
+
+/**
+ * Throw from an {@link ApiResolver} to signal "no authenticated caller".
+ *
+ * Equivalent to returning `null`. Prefer returning `null`; this exists so
+ * resolvers that already signalled anonymity by throwing keep working.
+ */
+export class CreemNotAuthenticatedError extends Error {
+  readonly isCreemNotAuthenticated = true;
+
+  constructor(message = "Not authenticated") {
+    super(message);
+    this.name = "CreemNotAuthenticatedError";
+  }
+}
+
+/** Largest quantity Creem accepts for a unit-based subscription. */
+const MAX_SUBSCRIPTION_UNITS = 1_000_000;
+
+/**
+ * Reject unit counts that a validator cannot express.
+ *
+ * `units` is client-supplied and is written straight onto the subscription
+ * quantity, so a non-integer, negative, or absurdly large value must not reach
+ * Creem or the optimistic patch.
+ */
+const assertValidUnitCount = (units: number): void => {
+  if (!Number.isInteger(units) || units < 1 || units > MAX_SUBSCRIPTION_UNITS) {
+    throw new ConvexError(
+      `units must be an integer between 1 and ${MAX_SUBSCRIPTION_UNITS}`,
+    );
+  }
+};
+
+const isNotAuthenticatedError = (error: unknown): boolean =>
+  error instanceof CreemNotAuthenticatedError ||
+  (typeof error === "object" &&
+    error !== null &&
+    (error as { isCreemNotAuthenticated?: boolean }).isCreemNotAuthenticated ===
+      true);
+
+/**
+ * Run a resolver for a read that is allowed to serve anonymous callers.
+ *
+ * Returns `null` only for a genuine "no authenticated caller" signal. Every
+ * other error is logged with a `[creem]` prefix and rethrown, so a broken
+ * resolver surfaces as a failing query instead of a silently logged-out UI.
+ */
+const resolveOptionalIdentity = async (
+  resolve: ApiResolver,
+  ctx: RunQueryCtx,
+): Promise<ResolvedBillingIdentity | null> => {
+  try {
+    return await resolve(ctx);
+  } catch (error) {
+    if (isNotAuthenticatedError(error)) {
+      return null;
+    }
+    console.error(
+      "[creem] billing resolver failed. Return `null` for unauthenticated callers; " +
+        "any other error is treated as a failure.",
+      error,
+    );
+    throw error;
+  }
+};
+
+/**
+ * Run a resolver for an operation that requires an authenticated caller.
+ */
+const requireIdentity = async (
+  resolve: ApiResolver,
+  ctx: RunQueryCtx,
+): Promise<ResolvedBillingIdentity> => {
+  const resolved = await resolve(ctx);
+  if (!resolved) {
+    throw new ConvexError("Not authenticated");
+  }
+  return resolved;
+};
 
 /**
  * Configuration for the Creem Convex component.
@@ -397,6 +414,46 @@ export class Creem {
   }
   private getCustomerByEntityId(ctx: RunQueryCtx, entityId: string) {
     return ctx.runQuery(this.component.lib.getCustomerByEntityId, { entityId });
+  }
+
+  /**
+   * Resolve a subscription inside an entity's billing scope.
+   *
+   * Explicit resource IDs are always checked against the customer mapped to
+   * `entityId`. Returning the same error for missing and foreign resources
+   * avoids exposing whether another customer's subscription exists.
+   */
+  private async getOwnedSubscription(
+    ctx: RunQueryCtx,
+    {
+      entityId,
+      subscriptionId,
+    }: {
+      entityId: string;
+      subscriptionId?: string;
+    },
+  ): Promise<Subscription> {
+    if (!subscriptionId) {
+      const subscription = await ctx.runQuery(
+        this.component.lib.getCurrentSubscription,
+        { entityId },
+      );
+      if (!subscription) {
+        throw new ConvexError("Subscription not found");
+      }
+      return subscription;
+    }
+
+    const [customer, subscription] = await Promise.all([
+      this.getCustomerByEntityId(ctx, entityId),
+      ctx.runQuery(this.component.lib.getSubscription, {
+        id: subscriptionId,
+      }),
+    ]);
+    if (!customer || !subscription || subscription.customerId !== customer.id) {
+      throw new ConvexError("Subscription not found");
+    }
+    return subscription;
   }
 
   /** Pull all products from the Creem API into the Convex database. Typically called once via `internalAction` or the CLI. */
@@ -575,6 +632,86 @@ export class Creem {
     };
   }
 
+  private async assertAppPlanEligible(
+    ctx: RunQueryCtx,
+    {
+      entityId,
+      planId,
+      activePlanId,
+      activeFreePlanId,
+    }: {
+      entityId: string;
+      planId: string;
+      activePlanId?: string | null;
+      activeFreePlanId?: string | null;
+    },
+  ) {
+    const plan = findPlanById(this.billingCatalog, planId);
+    if (!plan || !this.billingCatalog) {
+      return;
+    }
+
+    const [activations, assignments, subscriptions, scheduledUpdates] =
+      await Promise.all([
+        this.listAppPlanActivations(ctx, { entityId }),
+        this.listAppPlanAssignments(ctx, { entityId }),
+        this.listUserSubscriptions(ctx, { entityId }),
+        ctx.runQuery(
+          this.component.lib.listPendingScheduledSubscriptionUpdates,
+          { entityId },
+        ),
+      ]);
+
+    const activeOrScheduledPlanIds = new Set<string>();
+    const addPlanId = (candidate: string | null | undefined) => {
+      if (candidate) {
+        activeOrScheduledPlanIds.add(candidate);
+      }
+    };
+    const addProductId = (productId: string | null | undefined) => {
+      addPlanId(
+        findPlanByProductId(this.billingCatalog, productId ?? undefined)
+          ?.planId,
+      );
+    };
+
+    addPlanId(activePlanId);
+    addPlanId(activeFreePlanId);
+    for (const subscription of subscriptions ?? []) {
+      addProductId(subscription.productId);
+    }
+    for (const assignment of assignments ?? []) {
+      if (assignment.status === "active" || assignment.status === "scheduled") {
+        addPlanId(assignment.planId);
+      }
+    }
+    for (const update of scheduledUpdates ?? []) {
+      addProductId(update.targetProductId);
+      addPlanId(update.targetPlanId);
+    }
+
+    const resolvedActivePlanId =
+      activePlanId ??
+      activeFreePlanId ??
+      (assignments ?? []).find((assignment) => assignment.status === "active")
+        ?.planId ??
+      findPlanByProductId(
+        this.billingCatalog,
+        (subscriptions ?? [])[0]?.productId,
+      )?.planId ??
+      null;
+
+    if (
+      !isAppPlanEligible(plan, activations, {
+        activePlanId: resolvedActivePlanId,
+        activeOrScheduledPlanIds: Array.from(activeOrScheduledPlanIds),
+        catalogPlans: this.billingCatalog.plans,
+      })
+    ) {
+      throw new ConvexError(`Plan "${planId}" is not eligible`);
+    }
+  }
+
   /**
    * App-owned plan activation namespace.
    *
@@ -612,11 +749,15 @@ export class Creem {
           planId,
           activatedByUserId,
           oncePerEntity,
+          activePlanId,
+          activeFreePlanId,
         }: {
           entityId: string;
           planId: string;
           activatedByUserId?: string;
           oncePerEntity?: boolean;
+          activePlanId?: string | null;
+          activeFreePlanId?: string | null;
         },
       ): Promise<AppPlanAssignment> => {
         const plan = findPlanById(this.billingCatalog, planId);
@@ -626,6 +767,13 @@ export class Creem {
         if (plan && !isAppOwnedPlan(plan)) {
           throw new ConvexError(`Plan "${planId}" is not an app-owned plan`);
         }
+
+        await this.assertAppPlanEligible(ctx, {
+          entityId,
+          planId,
+          activePlanId,
+          activeFreePlanId,
+        });
 
         await ctx.runMutation(this.component.lib.recordAppPlanActivation, {
           entityId,
@@ -1095,12 +1243,6 @@ export class Creem {
    * - `.resume()` — resume a paused or scheduled-cancel subscription (Creem API, optimistic)
    */
   get subscriptions() {
-    type UpdateBehavior =
-      | "proration-charge-immediately"
-      | "proration-charge"
-      | "proration-none"
-      | "period-end"
-      | "immediate";
     return {
       getCurrent: (ctx: RunQueryCtx, { entityId }: { entityId: string }) =>
         this.getCurrentSubscription(ctx, { entityId }),
@@ -1110,57 +1252,31 @@ export class Creem {
         this.listAllUserSubscriptions(ctx, { entityId }),
       update: async (
         ctx: RunSchedulerMutationCtx,
-        args: {
-          entityId: string;
-          subscriptionId?: string;
-          productId?: string;
-          freePlanId?: string;
-          units?: number;
-          updateBehavior?: UpdateBehavior;
-        },
+        args: { entityId: string } & SubscriptionUpdateArgs,
       ) => {
-        const targetCount =
-          (args.productId ? 1 : 0) +
-          (args.freePlanId ? 1 : 0) +
-          (args.units !== undefined ? 1 : 0);
-        if (targetCount !== 1) {
-          throw new ConvexError(
-            "Provide exactly one update target: productId, freePlanId, or units",
-          );
-        }
-        const updateBehavior =
-          args.updateBehavior ?? (args.freePlanId ? "period-end" : undefined);
-        if (
-          args.freePlanId &&
-          updateBehavior !== "period-end" &&
-          updateBehavior !== "immediate"
-        ) {
-          throw new ConvexError(
-            'freePlanId updates support updateBehavior: "period-end" or "immediate"',
-          );
-        }
-        if (!args.freePlanId && updateBehavior === "immediate") {
-          throw new ConvexError(
-            'updateBehavior: "immediate" is only supported for freePlanId updates',
-          );
+        const productId = args.kind === "plan" ? args.productId : undefined;
+        const freePlanId =
+          args.kind === "app-plan" ? args.freePlanId : undefined;
+        // Only a `"units"` update changes the quantity: the Creem executors
+        // branch on `productId` first, so a quantity sent alongside a plan
+        // switch would never reach Creem while still being patched locally.
+        const units = args.kind === "units" ? args.units : undefined;
+
+        if (units !== undefined) {
+          assertValidUnitCount(units);
         }
 
-        // Resolve current subscription
-        const subscription = args.subscriptionId
-          ? await ctx.runQuery(this.component.lib.getSubscription, {
-              id: args.subscriptionId,
-            })
-          : await ctx.runQuery(this.component.lib.getCurrentSubscription, {
-              entityId: args.entityId,
-            });
-        if (!subscription) throw new ConvexError("Subscription not found");
+        const updateBehavior: ResolvedUpdateBehavior | undefined =
+          args.updateBehavior ?? (freePlanId ? "period-end" : undefined);
+
+        const subscription = await this.getOwnedSubscription(ctx, args);
 
         const resumeScheduledCancellation =
-          updateBehavior !== "period-end" || !args.freePlanId
+          updateBehavior !== "period-end" || !freePlanId
             ? await this.cancelPendingScheduledUpdateSideEffects(ctx, {
                 entityId: args.entityId,
                 subscription,
-                keepScheduledCancellation: Boolean(args.freePlanId),
+                keepScheduledCancellation: Boolean(freePlanId),
               })
             : false;
 
@@ -1168,14 +1284,14 @@ export class Creem {
           await this.schedulePeriodEndSubscriptionUpdate(ctx, {
             entityId: args.entityId,
             subscription,
-            productId: args.productId,
-            freePlanId: args.freePlanId,
-            units: args.units,
+            productId,
+            freePlanId,
+            units,
           });
           return;
         }
 
-        if (args.freePlanId && updateBehavior === "immediate") {
+        if (freePlanId && updateBehavior === "immediate") {
           await ctx.runMutation(this.component.lib.patchSubscription, {
             subscriptionId: subscription.id,
             status: "canceled",
@@ -1183,7 +1299,7 @@ export class Creem {
           });
           await ctx.runMutation(this.component.lib.assignAppPlan, {
             entityId: args.entityId,
-            planId: args.freePlanId,
+            planId: freePlanId,
             status: "active",
             source: "paid_to_free",
             subscriptionId: subscription.id,
@@ -1208,9 +1324,9 @@ export class Creem {
         // Write optimistic state
         await ctx.runMutation(this.component.lib.patchSubscription, {
           subscriptionId: subscription.id,
-          ...(args.units != null ? { seats: args.units } : {}),
-          ...(args.productId ? { productId: args.productId } : {}),
-          ...(args.productId && args.units == null
+          ...(units != null ? { seats: units } : {}),
+          ...(productId ? { productId } : {}),
+          ...(productId && units == null
             ? { seats: subscription.seats ?? null }
             : {}),
         });
@@ -1224,8 +1340,8 @@ export class Creem {
             server: this.server,
             serverURL: this.serverURL,
             subscriptionId: subscription.id,
-            productId: args.productId,
-            units: args.units,
+            productId,
+            units,
             updateBehavior,
             resumeScheduledCancellation,
             previousSeats: subscription.seats ?? undefined,
@@ -1241,14 +1357,7 @@ export class Creem {
           revokeImmediately?: boolean;
         },
       ) => {
-        const subscription = args.subscriptionId
-          ? await ctx.runQuery(this.component.lib.getSubscription, {
-              id: args.subscriptionId,
-            })
-          : await ctx.runQuery(this.component.lib.getCurrentSubscription, {
-              entityId: args.entityId,
-            });
-        if (!subscription) throw new ConvexError("Subscription not found");
+        const subscription = await this.getOwnedSubscription(ctx, args);
         if (
           subscription.status !== "active" &&
           subscription.status !== "trialing"
@@ -1297,14 +1406,7 @@ export class Creem {
         ctx: RunSchedulerMutationCtx,
         args: { entityId: string; subscriptionId?: string },
       ) => {
-        const subscription = args.subscriptionId
-          ? await ctx.runQuery(this.component.lib.getSubscription, {
-              id: args.subscriptionId,
-            })
-          : await ctx.runQuery(this.component.lib.getCurrentSubscription, {
-              entityId: args.entityId,
-            });
-        if (!subscription) throw new ConvexError("Subscription not found");
+        const subscription = await this.getOwnedSubscription(ctx, args);
         if (
           subscription.status !== "active" &&
           subscription.status !== "trialing"
@@ -1336,14 +1438,7 @@ export class Creem {
         ctx: RunSchedulerMutationCtx,
         args: { entityId: string; subscriptionId?: string },
       ) => {
-        const subscription = args.subscriptionId
-          ? await ctx.runQuery(this.component.lib.getSubscription, {
-              id: args.subscriptionId,
-            })
-          : await ctx.runQuery(this.component.lib.getCurrentSubscription, {
-              entityId: args.entityId,
-            });
-        if (!subscription) throw new ConvexError("Subscription not found");
+        const subscription = await this.getOwnedSubscription(ctx, args);
         if (
           subscription.status !== "scheduled_cancel" &&
           subscription.status !== "paused"
@@ -1377,14 +1472,7 @@ export class Creem {
         ctx: RunSchedulerMutationCtx,
         args: { entityId: string; subscriptionId?: string },
       ): Promise<{ canceled: boolean }> => {
-        const subscription = args.subscriptionId
-          ? await ctx.runQuery(this.component.lib.getSubscription, {
-              id: args.subscriptionId,
-            })
-          : await ctx.runQuery(this.component.lib.getCurrentSubscription, {
-              entityId: args.entityId,
-            });
-        if (!subscription) throw new ConvexError("Subscription not found");
+        const subscription = await this.getOwnedSubscription(ctx, args);
 
         const canceledUpdate = await ctx.runMutation(
           this.component.lib.cancelScheduledSubscriptionUpdate,
@@ -1453,14 +1541,7 @@ export class Creem {
           freePlanId: string;
         },
       ): Promise<{ freePlanId: string }> => {
-        const subscription = args.subscriptionId
-          ? await ctx.runQuery(this.component.lib.getSubscription, {
-              id: args.subscriptionId,
-            })
-          : await ctx.runQuery(this.component.lib.getCurrentSubscription, {
-              entityId: args.entityId,
-            });
-        if (!subscription) throw new ConvexError("Subscription not found");
+        const subscription = await this.getOwnedSubscription(ctx, args);
         if (
           subscription.status !== "active" &&
           subscription.status !== "trialing"
@@ -1579,15 +1660,201 @@ export class Creem {
   /**
    * Credits namespace. Wraps Creem Customer Credits API.
    *
-   * - `.createAccount()` — create a credits account for a customer
-   * - `.getBalance()` — get current balance
-   * - `.credit()` — add credits
-   * - `.debit()` — consume/spend credits
-   * - `.listEntries()` — paginated transaction history
+   * Entity-scoped methods resolve the default account from a trusted
+   * `entityId`. Use these in app functions so account IDs never cross the
+   * client boundary.
+   *
+   * Raw account methods are intentionally server-only building blocks. Never
+   * export `createAccount`, `credit`, or `debit` directly as public Convex
+   * functions with caller-controlled amounts or account IDs.
+   *
+   * - `.getBalanceForEntity()` — get the entity's default balance
+   * - `.listEntriesForEntity()` — list the entity's default account entries
+   * - `.creditForEntity()` — trusted backend credit grant
+   * - `.debitForEntity()` — trusted backend credit consumption
+   * - `.createAccount()` — raw account creation
+   * - `.getBalance()` — raw balance lookup
+   * - `.credit()` — raw credit operation
+   * - `.debit()` — raw debit operation
+   * - `.listEntries()` — raw account entry listing
    * - `.listAccounts()` — list all accounts for a customer
    */
+  /**
+   * Creem transaction reads scoped to a billing entity.
+   *
+   * Transactions have no webhook, so this reads through to the Creem API and
+   * projects the response into the plain, validated shape `<BillingHistory>`
+   * renders.
+   */
+  get transactions() {
+    return {
+      search: async (
+        ctx: RunQueryCtx,
+        {
+          entityId,
+          orderId,
+          productId,
+          pageNumber,
+          pageSize,
+        }: {
+          entityId: string;
+          orderId?: string;
+          productId?: string;
+          pageNumber?: number;
+          pageSize?: number;
+        },
+      ): Promise<ConnectedTransactionList> => {
+        const emptyPage: ConnectedTransactionList = {
+          items: [],
+          pagination: {
+            totalRecords: 0,
+            totalPages: 0,
+            currentPage: pageNumber ?? 1,
+            nextPage: null,
+            prevPage: null,
+          },
+        };
+
+        const customer = await this.getCustomerByEntityId(ctx, entityId);
+        if (!customer) {
+          return emptyPage;
+        }
+
+        const page = await this.sdk.transactions.search(
+          customer.id,
+          orderId,
+          productId,
+          pageNumber,
+          pageSize,
+        );
+        const result = unwrapTransactionSearchPage(page);
+        return {
+          items: (result.items ?? []).map((transaction) => ({
+            id: transaction.id,
+            amount: transaction.amount,
+            amountPaid: transaction.amountPaid,
+            discountAmount: transaction.discountAmount,
+            currency: transaction.currency,
+            type: transaction.type,
+            taxCountry: transaction.taxCountry,
+            taxAmount: transaction.taxAmount,
+            status: transaction.status,
+            refundedAmount: transaction.refundedAmount,
+            order: transaction.order,
+            subscription: transaction.subscription,
+            customer: transaction.customer,
+            description: transaction.description,
+            periodStart: transaction.periodStart,
+            periodEnd: transaction.periodEnd,
+            createdAt: transaction.createdAt,
+          })),
+          pagination: result.pagination ?? emptyPage.pagination,
+        };
+      },
+    };
+  }
+
   get credits() {
     return {
+      getBalanceForEntity: async (
+        ctx: RunActionCtx,
+        { entityId }: { entityId: string },
+      ): Promise<CreditBalance> => {
+        const accountId = await this.resolveDefaultCreditAccountId(
+          ctx,
+          entityId,
+        );
+        const balance = await this.credits.getBalance(accountId);
+        return {
+          balance: balance.balance,
+          ...(balance.updatedAt ? { updatedAt: balance.updatedAt } : {}),
+          ...(balance.asOf ? { asOf: balance.asOf } : {}),
+        };
+      },
+      listEntriesForEntity: async (
+        ctx: RunActionCtx,
+        {
+          entityId,
+          limit,
+          startingAfter,
+        }: {
+          entityId: string;
+          limit?: number;
+          startingAfter?: string;
+        },
+      ): Promise<CreditEntryList> => {
+        const accountId = await this.resolveDefaultCreditAccountId(
+          ctx,
+          entityId,
+        );
+        // The SDK returns a page iterator, which is not serializable across the
+        // Convex boundary. Project the first page into a plain object.
+        const page = await this.credits.listEntries(
+          accountId,
+          limit,
+          startingAfter,
+        );
+        const result = page.result;
+        return {
+          entries: (result?.data ?? []).map((entry) => ({
+            id: entry.id,
+            transactionId: entry.transactionId,
+            accountId: entry.accountId,
+            side: entry.side,
+            amount: entry.amount,
+            createdAt: entry.createdAt,
+          })),
+          hasMore: result?.hasMore ?? false,
+        };
+      },
+      creditForEntity: async (
+        ctx: RunActionCtx,
+        {
+          entityId,
+          amount,
+          reference,
+          idempotencyKey,
+        }: {
+          entityId: string;
+          amount: string;
+          reference: string;
+          idempotencyKey: string;
+        },
+      ) => {
+        const accountId = await this.resolveDefaultCreditAccountId(
+          ctx,
+          entityId,
+        );
+        return await this.credits.credit(accountId, {
+          amount,
+          reference,
+          idempotencyKey,
+        });
+      },
+      debitForEntity: async (
+        ctx: RunActionCtx,
+        {
+          entityId,
+          amount,
+          reference,
+          idempotencyKey,
+        }: {
+          entityId: string;
+          amount: string;
+          reference: string;
+          idempotencyKey: string;
+        },
+      ) => {
+        const accountId = await this.resolveDefaultCreditAccountId(
+          ctx,
+          entityId,
+        );
+        return await this.credits.debit(accountId, {
+          amount,
+          reference,
+          idempotencyKey,
+        });
+      },
       createAccount: async (args: {
         customerId: string;
         name?: string;
@@ -1661,38 +1928,26 @@ export class Creem {
       activeFreePlanId,
     }: {
       entityId: string | null;
-      user?: { _id: string; email: string } | null;
+      user?: { id: string; email: string } | null;
       activePlanId?: string | null;
       activeFreePlanId?: string | null;
     },
-  ) {
+  ): Promise<ConnectedBillingModel> {
     const products = await this.listProducts(ctx);
     if (!entityId) {
       return {
         user: user ?? null,
         catalog: this.billingCatalog ?? null,
-        snapshot: null as BillingSnapshot | null,
+        snapshot: null,
         allProducts: products,
-        ownedProductIds: [] as string[],
-        subscriptionProductId: null as string | null,
+        ownedProductIds: [],
+        subscriptionProductId: null,
         activePlanId: activePlanId ?? activeFreePlanId ?? null,
         activeFreePlanId: activeFreePlanId ?? null,
-        appPlanActivations: [] as AppPlanActivation[],
-        appPlanAssignments: [] as AppPlanAssignment[],
-        activeSubscriptions: [] as Array<{
-          id: string;
-          productId: string;
-          status: string;
-          cancelAtPeriodEnd: boolean;
-          currentPeriodEnd: string | null;
-          currentPeriodStart: string;
-          units: number | null;
-          recurringInterval: string | null;
-          trialEnd: string | null;
-        }>,
-        scheduledSubscriptionUpdates: [] as Array<
-          Infer<typeof schema.tables.scheduledSubscriptionUpdates.validator>
-        >,
+        appPlanActivations: [],
+        appPlanAssignments: [],
+        activeSubscriptions: [],
+        scheduledSubscriptionUpdates: [],
         hasCreemCustomer: false,
       };
     }
@@ -1744,7 +1999,7 @@ export class Creem {
         cancelAtPeriodEnd: s.cancelAtPeriodEnd,
         currentPeriodEnd: s.currentPeriodEnd,
         currentPeriodStart: s.currentPeriodStart,
-        units: s.seats,
+        units: s.seats ?? null,
         recurringInterval: s.recurringInterval,
         trialEnd: s.trialEnd ?? null,
       })),
@@ -1766,7 +2021,8 @@ export class Creem {
    * (e.g. `creem.subscriptions.cancel(ctx, { entityId })`).
    *
    * @param options.resolve - Auth callback that returns `{ userId, email, entityId }`
-   * @returns Object with `uiModel`, `snapshot`, `checkouts`, `subscriptions`, `products`, `customers`, `orders`
+   * @returns Entity-scoped UI, checkout, subscription, customer, transaction,
+   * plan, order, and credit-read function definitions plus public product reads.
    *
    * @example
    * ```ts
@@ -1779,24 +2035,13 @@ export class Creem {
     return {
       uiModel: queryGeneric({
         args: {},
-        returns: v.any(),
-        handler: async (ctx) => {
-          let resolved: {
-            userId: string;
-            email: string;
-            entityId: string;
-            activePlanId?: string | null;
-            activeFreePlanId?: string | null;
-          } | null = null;
-          try {
-            resolved = await resolve(ctx);
-          } catch {
-            // No authenticated user — return unauthenticated model
-          }
+        returns: connectedBillingModelValidator,
+        handler: async (ctx): Promise<ConnectedBillingModel> => {
+          const resolved = await resolveOptionalIdentity(resolve, ctx);
           return await this.getBillingModel(ctx, {
             entityId: resolved?.entityId ?? null,
             user: resolved
-              ? { _id: resolved.userId, email: resolved.email }
+              ? { id: resolved.userId, email: resolved.email }
               : null,
             activeFreePlanId: resolved?.activeFreePlanId,
             activePlanId: resolved?.activePlanId,
@@ -1805,14 +2050,9 @@ export class Creem {
       }),
       snapshot: queryGeneric({
         args: {},
-        returns: v.any(),
-        handler: async (ctx) => {
-          let resolved: { entityId: string } | null;
-          try {
-            resolved = await resolve(ctx);
-          } catch {
-            return null;
-          }
+        returns: v.union(billingSnapshotValidator, v.null()),
+        handler: async (ctx): Promise<BillingSnapshot | null> => {
+          const resolved = await resolveOptionalIdentity(resolve, ctx);
           if (!resolved) return null;
           return await this.getBillingSnapshot(ctx, {
             entityId: resolved.entityId,
@@ -1823,8 +2063,11 @@ export class Creem {
         create: actionGeneric({
           args: checkoutCreateArgs,
           returns: v.object({ url: v.string() }),
-          handler: async (ctx, args) => {
-            const { entityId, userId, email } = await resolve(ctx);
+          handler: async (ctx, args): Promise<{ url: string }> => {
+            const { entityId, userId, email } = await requireIdentity(
+              resolve,
+              ctx,
+            );
             return await this.checkouts.create(ctx, {
               entityId,
               userId,
@@ -1837,326 +2080,71 @@ export class Creem {
       subscriptions: {
         update: mutationGeneric({
           args: subscriptionUpdateArgs,
-          handler: async (ctx, args) => {
-            const { entityId } = await resolve(ctx);
-            const targetCount =
-              (args.productId ? 1 : 0) +
-              (args.freePlanId ? 1 : 0) +
-              (args.units !== undefined ? 1 : 0);
-            if (targetCount !== 1) {
+          returns: v.null(),
+          handler: async (ctx, args): Promise<null> => {
+            const { entityId } = await requireIdentity(resolve, ctx);
+            // Convex args must be a flat object, so narrow the permissive wire
+            // shape into the discriminated union the namespace method takes.
+            let update: SubscriptionUpdateArgs;
+            try {
+              update = parseSubscriptionUpdateArgs(args);
+            } catch (error) {
               throw new ConvexError(
-                "Provide exactly one update target: productId, freePlanId, or units",
+                error instanceof Error ? error.message : "Invalid update args",
               );
             }
-            const updateBehavior =
-              args.updateBehavior ??
-              (args.freePlanId ? "period-end" : undefined);
-            if (
-              args.freePlanId &&
-              updateBehavior !== "period-end" &&
-              updateBehavior !== "immediate"
-            ) {
-              throw new ConvexError(
-                'freePlanId updates support updateBehavior: "period-end" or "immediate"',
-              );
-            }
-            if (!args.freePlanId && updateBehavior === "immediate") {
-              throw new ConvexError(
-                'updateBehavior: "immediate" is only supported for freePlanId updates',
-              );
-            }
-
-            // Resolve current subscription
-            const subscription = args.subscriptionId
-              ? await ctx.runQuery(this.component.lib.getSubscription, {
-                  id: args.subscriptionId,
-                })
-              : await ctx.runQuery(this.component.lib.getCurrentSubscription, {
-                  entityId,
-                });
-            if (!subscription) throw new ConvexError("Subscription not found");
-
-            const resumeScheduledCancellation =
-              updateBehavior !== "period-end" || !args.freePlanId
-                ? await this.cancelPendingScheduledUpdateSideEffects(ctx, {
-                    entityId,
-                    subscription,
-                    keepScheduledCancellation: Boolean(args.freePlanId),
-                  })
-                : false;
-
-            if (updateBehavior === "period-end") {
-              await this.schedulePeriodEndSubscriptionUpdate(ctx, {
-                entityId,
-                subscription,
-                productId: args.productId,
-                freePlanId: args.freePlanId,
-                units: args.units,
-              });
-              return;
-            }
-
-            if (args.freePlanId && updateBehavior === "immediate") {
-              await ctx.runMutation(this.component.lib.patchSubscription, {
-                subscriptionId: subscription.id,
-                status: "canceled",
-                cancelAtPeriodEnd: false,
-              });
-              await ctx.runMutation(this.component.lib.assignAppPlan, {
-                entityId,
-                planId: args.freePlanId,
-                status: "active",
-                source: "paid_to_free",
-                subscriptionId: subscription.id,
-              });
-              await ctx.scheduler.runAfter(
-                0,
-                this.component.lib.executeSubscriptionLifecycle,
-                {
-                  apiKey: this.apiKey,
-                  server: this.server,
-                  serverURL: this.serverURL,
-                  subscriptionId: subscription.id,
-                  operation: "cancel",
-                  cancelMode: "immediate",
-                  previousStatus: subscription.status,
-                  previousCancelAtPeriodEnd: subscription.cancelAtPeriodEnd,
-                },
-              );
-              return;
-            }
-
-            // Write optimistic state
-            // For plan switches, also protect current units from stale webhook data
-            await ctx.runMutation(this.component.lib.patchSubscription, {
-              subscriptionId: subscription.id,
-              ...(args.units != null ? { seats: args.units } : {}),
-              ...(args.productId ? { productId: args.productId } : {}),
-              ...(args.productId && args.units == null
-                ? { seats: subscription.seats ?? null }
-                : {}),
-            });
-
-            // Schedule the Creem API call (runs async, reverts on error)
-            await ctx.scheduler.runAfter(
-              0,
-              this.component.lib.executeSubscriptionUpdate,
-              {
-                apiKey: this.apiKey,
-                server: this.server,
-                serverURL: this.serverURL,
-                subscriptionId: subscription.id,
-                productId: args.productId,
-                units: args.units,
-                updateBehavior,
-                resumeScheduledCancellation,
-                previousSeats: subscription.seats ?? undefined,
-                previousProductId: subscription.productId,
-              },
-            );
+            await this.subscriptions.update(ctx, { entityId, ...update });
+            return null;
           },
         }),
         cancel: mutationGeneric({
           args: subscriptionCancelArgs,
-          handler: async (ctx, args) => {
-            const { entityId } = await resolve(ctx);
-            const subscription = args.subscriptionId
-              ? await ctx.runQuery(this.component.lib.getSubscription, {
-                  id: args.subscriptionId,
-                })
-              : await ctx.runQuery(this.component.lib.getCurrentSubscription, {
-                  entityId,
-                });
-            if (!subscription) throw new ConvexError("Subscription not found");
-            if (
-              subscription.status !== "active" &&
-              subscription.status !== "trialing"
-            ) {
-              throw new ConvexError("Subscription is not active");
-            }
-
-            // Resolve cancel mode: explicit arg > config default > omit (Creem decides)
-            const immediate =
-              args.revokeImmediately ??
-              (this.config.cancelMode === "immediate" ? true : undefined);
-            const isImmediate = immediate === true;
-
-            // Write optimistic state
-            await ctx.runMutation(this.component.lib.patchSubscription, {
-              subscriptionId: subscription.id,
-              ...(isImmediate
-                ? { status: "canceled", cancelAtPeriodEnd: false }
-                : { cancelAtPeriodEnd: true }),
-            });
-
-            // Resolve cancel mode string for the action
-            const cancelMode = isImmediate
-              ? "immediate"
-              : immediate === false || this.config.cancelMode === "scheduled"
-                ? "scheduled"
-                : undefined;
-
-            // Schedule the Creem API call
-            await ctx.scheduler.runAfter(
-              0,
-              this.component.lib.executeSubscriptionLifecycle,
-              {
-                apiKey: this.apiKey,
-                server: this.server,
-                serverURL: this.serverURL,
-                subscriptionId: subscription.id,
-                operation: "cancel",
-                cancelMode,
-                previousStatus: subscription.status,
-                previousCancelAtPeriodEnd: subscription.cancelAtPeriodEnd,
-              },
-            );
+          returns: v.null(),
+          handler: async (ctx, args): Promise<null> => {
+            const { entityId } = await requireIdentity(resolve, ctx);
+            await this.subscriptions.cancel(ctx, { entityId, ...args });
+            return null;
           },
         }),
         resume: mutationGeneric({
           args: subscriptionResumeArgs,
-          handler: async (ctx, args) => {
-            const { entityId } = await resolve(ctx);
-            const subscription = args.subscriptionId
-              ? await ctx.runQuery(this.component.lib.getSubscription, {
-                  id: args.subscriptionId,
-                })
-              : await ctx.runQuery(this.component.lib.getCurrentSubscription, {
-                  entityId,
-                });
-            if (!subscription) throw new ConvexError("Subscription not found");
-            if (
-              subscription.status !== "scheduled_cancel" &&
-              subscription.status !== "paused"
-            ) {
-              throw new ConvexError("Subscription is not in a resumable state");
-            }
-
-            // Write optimistic state
-            await ctx.runMutation(this.component.lib.patchSubscription, {
-              subscriptionId: subscription.id,
-              status: "active",
-              cancelAtPeriodEnd: false,
-            });
-
-            // Schedule the Creem API call
-            await ctx.scheduler.runAfter(
-              0,
-              this.component.lib.executeSubscriptionLifecycle,
-              {
-                apiKey: this.apiKey,
-                server: this.server,
-                serverURL: this.serverURL,
-                subscriptionId: subscription.id,
-                operation: "resume",
-                previousStatus: subscription.status,
-                previousCancelAtPeriodEnd: subscription.cancelAtPeriodEnd,
-              },
-            );
+          returns: v.null(),
+          handler: async (ctx, args): Promise<null> => {
+            const { entityId } = await requireIdentity(resolve, ctx);
+            await this.subscriptions.resume(ctx, { entityId, ...args });
+            return null;
           },
         }),
         cancelScheduledUpdate: mutationGeneric({
           args: subscriptionCancelScheduledUpdateArgs,
           returns: v.object({ canceled: v.boolean() }),
-          handler: async (ctx, args) => {
-            const { entityId } = await resolve(ctx);
-            const subscription = args.subscriptionId
-              ? await ctx.runQuery(this.component.lib.getSubscription, {
-                  id: args.subscriptionId,
-                })
-              : await ctx.runQuery(this.component.lib.getCurrentSubscription, {
-                  entityId,
-                });
-            if (!subscription) throw new ConvexError("Subscription not found");
-
-            const canceledUpdate = await ctx.runMutation(
-              this.component.lib.cancelScheduledSubscriptionUpdate,
-              {
-                entityId,
-                subscriptionId: subscription.id,
-              },
-            );
-            if (!canceledUpdate) return { canceled: false };
-
-            if (canceledUpdate.targetPlanId) {
-              await ctx.runMutation(
-                this.component.lib.cancelScheduledAppPlanAssignment,
-                {
-                  subscriptionId: subscription.id,
-                  planId: canceledUpdate.targetPlanId,
-                },
-              );
-              await ctx.runMutation(this.component.lib.patchSubscription, {
-                subscriptionId: subscription.id,
-                status:
-                  subscription.status === "scheduled_cancel"
-                    ? "active"
-                    : subscription.status,
-                cancelAtPeriodEnd: false,
-              });
-              await ctx.scheduler.runAfter(
-                0,
-                this.component.lib.executeSubscriptionLifecycle,
-                {
-                  apiKey: this.apiKey,
-                  server: this.server,
-                  serverURL: this.serverURL,
-                  subscriptionId: subscription.id,
-                  operation: "resume",
-                  previousStatus: subscription.status,
-                  previousCancelAtPeriodEnd: subscription.cancelAtPeriodEnd,
-                },
-              );
-            }
-
-            return { canceled: true };
+          handler: async (ctx, args): Promise<{ canceled: boolean }> => {
+            const { entityId } = await requireIdentity(resolve, ctx);
+            return await this.subscriptions.cancelScheduledUpdate(ctx, {
+              entityId,
+              ...args,
+            });
           },
         }),
         pause: mutationGeneric({
           args: subscriptionPauseArgs,
-          handler: async (ctx, args) => {
-            const { entityId } = await resolve(ctx);
-            const subscription = args.subscriptionId
-              ? await ctx.runQuery(this.component.lib.getSubscription, {
-                  id: args.subscriptionId,
-                })
-              : await ctx.runQuery(this.component.lib.getCurrentSubscription, {
-                  entityId,
-                });
-            if (!subscription) throw new ConvexError("Subscription not found");
-            if (
-              subscription.status !== "active" &&
-              subscription.status !== "trialing"
-            ) {
-              throw new ConvexError("Subscription is not active");
-            }
-
-            // Write optimistic state
-            await ctx.runMutation(this.component.lib.patchSubscription, {
-              subscriptionId: subscription.id,
-              status: "paused",
-            });
-
-            // Schedule the Creem API call
-            await ctx.scheduler.runAfter(
-              0,
-              this.component.lib.executeSubscriptionLifecycle,
-              {
-                apiKey: this.apiKey,
-                server: this.server,
-                serverURL: this.serverURL,
-                subscriptionId: subscription.id,
-                operation: "pause",
-                previousStatus: subscription.status,
-              },
-            );
+          returns: v.null(),
+          handler: async (ctx, args): Promise<null> => {
+            const { entityId } = await requireIdentity(resolve, ctx);
+            await this.subscriptions.pause(ctx, { entityId, ...args });
+            return null;
           },
         }),
         list: queryGeneric({
           args: {},
-          returns: v.any(),
+          returns: v.array(
+            v.object({
+              ...schema.tables.subscriptions.validator.fields,
+              product: v.union(schema.tables.products.validator, v.null()),
+            }),
+          ),
           handler: async (ctx) => {
-            const { entityId } = await resolve(ctx);
+            const { entityId } = await requireIdentity(resolve, ctx);
             return await this.subscriptions.list(ctx, { entityId });
           },
         }),
@@ -2169,7 +2157,7 @@ export class Creem {
             }),
           ),
           handler: async (ctx) => {
-            const { entityId } = await resolve(ctx);
+            const { entityId } = await requireIdentity(resolve, ctx);
             return await this.subscriptions.listAll(ctx, { entityId });
           },
         }),
@@ -2177,6 +2165,7 @@ export class Creem {
       products: {
         list: queryGeneric({
           args: {},
+          returns: v.array(schema.tables.products.validator),
           handler: async (ctx) => {
             return await this.products.list(ctx);
           },
@@ -2194,15 +2183,15 @@ export class Creem {
           args: {},
           returns: v.union(schema.tables.customers.validator, v.null()),
           handler: async (ctx) => {
-            const { entityId } = await resolve(ctx);
+            const { entityId } = await requireIdentity(resolve, ctx);
             return await this.customers.retrieve(ctx, { entityId });
           },
         }),
         portalUrl: actionGeneric({
           args: {},
           returns: v.object({ url: v.string() }),
-          handler: async (ctx) => {
-            const { entityId } = await resolve(ctx);
+          handler: async (ctx): Promise<{ url: string }> => {
+            const { entityId } = await requireIdentity(resolve, ctx);
             return await this.customers.portalUrl(ctx, { entityId });
           },
         }),
@@ -2210,36 +2199,10 @@ export class Creem {
       transactions: {
         search: actionGeneric({
           args: transactionsSearchArgs,
-          returns: v.any(),
-          handler: async (ctx, args) => {
-            const { entityId } = await resolve(ctx);
-            const customer = await ctx.runQuery(
-              this.component.lib.getCustomerByEntityId,
-              { entityId },
-            );
-            const customerId = args.customerId ?? customer?.id;
-
-            if (!customerId) {
-              return {
-                items: [],
-                pagination: {
-                  totalRecords: 0,
-                  totalPages: 0,
-                  currentPage: args.pageNumber ?? 1,
-                  nextPage: null,
-                  prevPage: null,
-                },
-              };
-            }
-
-            const page = await this.sdk.transactions.search(
-              customerId,
-              args.orderId,
-              args.productId,
-              args.pageNumber,
-              args.pageSize,
-            );
-            return unwrapTransactionSearchPage(page);
+          returns: connectedTransactionListValidator,
+          handler: async (ctx, args): Promise<ConnectedTransactionList> => {
+            const { entityId } = await requireIdentity(resolve, ctx);
+            return await this.transactions.search(ctx, { entityId, ...args });
           },
         }),
       },
@@ -2247,12 +2210,15 @@ export class Creem {
         activate: mutationGeneric({
           args: appPlanActivateArgs,
           returns: v.object({ success: v.boolean() }),
-          handler: async (ctx, args) => {
-            const { entityId, userId } = await resolve(ctx);
+          handler: async (ctx, args): Promise<{ success: boolean }> => {
+            const { entityId, userId, activePlanId, activeFreePlanId } =
+              await requireIdentity(resolve, ctx);
             await this.appPlans.activate(ctx, {
               entityId,
               planId: args.planId,
               activatedByUserId: userId,
+              activePlanId,
+              activeFreePlanId,
             });
             return { success: true };
           },
@@ -2263,86 +2229,30 @@ export class Creem {
           args: {},
           returns: v.array(schema.tables.orders.validator),
           handler: async (ctx) => {
-            const { entityId } = await resolve(ctx);
+            const { entityId } = await requireIdentity(resolve, ctx);
             return await this.orders.list(ctx, { entityId });
           },
         }),
       },
       credits: {
-        createAccount: actionGeneric({
-          args: creditsCreateAccountArgs,
-          returns: v.any(),
-          handler: async (ctx, args) => {
-            const { entityId } = await resolve(ctx);
-            const customer = await ctx.runQuery(
-              this.component.lib.getCustomerByEntityId,
-              { entityId },
-            );
-            if (!customer) {
-              throw new ConvexError(CUSTOMER_CHECKOUT_REQUIRED_ERROR);
-            }
-            return await this.credits.createAccount({
-              customerId: customer.id,
-              name: args.name,
-              unitLabel: args.unitLabel,
-              initialBalance: args.initialBalance,
-            });
-          },
-        }),
         getBalance: actionGeneric({
-          args: creditsGetBalanceArgs,
-          returns: v.any(),
-          handler: async (ctx, args) => {
-            const { entityId } = await resolve(ctx);
-            const accountId =
-              args.accountId ??
-              (await this.resolveDefaultCreditAccountId(ctx, entityId));
-            return await this.credits.getBalance(accountId);
-          },
-        }),
-        credit: actionGeneric({
-          args: creditsCreditArgs,
-          returns: v.any(),
-          handler: async (ctx, args) => {
-            const { entityId } = await resolve(ctx);
-            const accountId =
-              args.accountId ??
-              (await this.resolveDefaultCreditAccountId(ctx, entityId));
-            return await this.credits.credit(accountId, {
-              amount: args.amount,
-              reference: args.reference,
-              idempotencyKey: args.idempotencyKey,
-            });
-          },
-        }),
-        debit: actionGeneric({
-          args: creditsDebitArgs,
-          returns: v.any(),
-          handler: async (ctx, args) => {
-            const { entityId } = await resolve(ctx);
-            const accountId =
-              args.accountId ??
-              (await this.resolveDefaultCreditAccountId(ctx, entityId));
-            return await this.credits.debit(accountId, {
-              amount: args.amount,
-              reference: args.reference,
-              idempotencyKey: args.idempotencyKey,
-            });
+          args: {},
+          returns: creditBalanceValidator,
+          handler: async (ctx): Promise<CreditBalance> => {
+            const { entityId } = await requireIdentity(resolve, ctx);
+            return await this.credits.getBalanceForEntity(ctx, { entityId });
           },
         }),
         listEntries: actionGeneric({
           args: creditsListEntriesArgs,
-          returns: v.any(),
-          handler: async (ctx, args) => {
-            const { entityId } = await resolve(ctx);
-            const accountId =
-              args.accountId ??
-              (await this.resolveDefaultCreditAccountId(ctx, entityId));
-            return await this.credits.listEntries(
-              accountId,
-              args.limit,
-              args.startingAfter,
-            );
+          returns: creditEntryListValidator,
+          handler: async (ctx, args): Promise<CreditEntryList> => {
+            const { entityId } = await requireIdentity(resolve, ctx);
+            return await this.credits.listEntriesForEntity(ctx, {
+              entityId,
+              limit: args.limit,
+              startingAfter: args.startingAfter,
+            });
           },
         }),
       },

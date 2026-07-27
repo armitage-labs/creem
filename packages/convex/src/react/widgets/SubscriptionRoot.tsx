@@ -21,10 +21,12 @@ import { getConvexErrorMessage } from "../../core/convexError.js";
 
 import type {
   PlanCatalog,
-  PlanCatalogEntry,
   UIPlanEntry,
   RecurringCycle,
+  FreePlanUpdateBehavior,
   FreePlanUpdateBehaviorIntent,
+  PaidSubscriptionUpdateBehavior,
+  SubscriptionUpdateArgs,
   FreePlanUpdateBehaviorSetting,
   ResolvedUpdateBehavior,
   SupportedRecurringCycle,
@@ -38,11 +40,22 @@ import {
   type BillingI18n,
   type BillingLabelOverrides,
 } from "../../core/i18n.js";
+import { normalizePlanCatalog } from "../../core/catalog.js";
 import {
-  findPlanById,
-  normalizePlanCatalog,
-  shouldShowPlan,
-} from "../../core/catalog.js";
+  buildCatalogRegistrations,
+  cyclesForGroup,
+  deriveAvailableCycles,
+  deriveGroupItems,
+  deriveOwnProductIds,
+  filterPlansByGroup,
+  filterVisiblePlans,
+  resolveActiveGroupId,
+  resolveActiveOrScheduledPlanIds,
+  resolveActivePlanId,
+  resolveEffectiveCycle,
+  resolveMatchedSubscription,
+  resolveUIPlans,
+} from "../../core/subscriptionModel.js";
 import {
   buildUpdateSummary,
   resolveFreePlanUpdateBehavior,
@@ -76,30 +89,6 @@ const getPreferredTheme = (): "light" | "dark" => {
   return window.matchMedia("(prefers-color-scheme: dark)").matches
     ? "dark"
     : "light";
-};
-
-const formatGroupTitle = (value: string) =>
-  value
-    .split(/[-_\s]+/)
-    .filter(Boolean)
-    .map((part) => part.charAt(0).toUpperCase() + part.slice(1))
-    .join(" ");
-
-const planTypeToCategory = (
-  type: SubscriptionPlanRegistration["type"],
-  fallback?: PlanCatalogEntry,
-) => {
-  if (type === "free") return "free";
-  if (type === "enterprise") return "enterprise";
-  return fallback?.category ?? "paid";
-};
-
-const planTypeToBillingType = (
-  type: SubscriptionPlanRegistration["type"],
-  fallback?: PlanCatalogEntry,
-) => {
-  if (type === "free" || type === "enterprise") return "custom";
-  return fallback?.billingType ?? "recurring";
 };
 
 export const SubscriptionRoot = ({
@@ -253,205 +242,44 @@ export const SubscriptionRoot = ({
     [resolvedCatalog],
   );
 
-  const catalogRegistrations = useMemo<SubscriptionPlanRegistration[]>(() => {
-    const ids =
-      groups && groups.length > 0
-        ? groups.flatMap((entry) => entry.plans)
-        : (planIds ?? []);
-    return ids.flatMap((planId) => {
-      const groupEntry = groups?.find((entry) => entry.plans.includes(planId));
-      return [
-        {
-          planId,
-          groupId: groupEntry?.value,
-          groupTitle: groupEntry?.label,
-        },
-      ];
-    });
-  }, [groups, planIds]);
+  const catalogRegistrations = useMemo(
+    () => buildCatalogRegistrations({ groups, planIds }),
+    [groups, planIds],
+  );
 
-  const plans = useMemo<UIPlanEntry[]>(() => {
-    const registrations = [...catalogRegistrations, ...registeredPlans];
-    return registrations.map((plan) => {
-      const catalogEntry = normalizedCatalog
-        ? findPlanById(normalizedCatalog, plan.planId)
-        : undefined;
-      const productIds = plan.productIds ?? catalogEntry?.creemProductIds ?? {};
-      const firstProductId = Object.values(productIds)[0];
-      const firstProduct = firstProductId
-        ? allProducts.find((p) => p.id === firstProductId)
-        : undefined;
+  const plans = useMemo<UIPlanEntry[]>(
+    () =>
+      resolveUIPlans({
+        registrations: [...catalogRegistrations, ...registeredPlans],
+        catalog: normalizedCatalog,
+        products: allProducts,
+      }),
+    [allProducts, catalogRegistrations, normalizedCatalog, registeredPlans],
+  );
 
-      const cycleKeys = Object.keys(productIds).filter(
-        (k): k is RecurringCycle => k !== "custom",
-      );
-
-      const entry: UIPlanEntry = {
-        planId: plan.planId,
-        category: planTypeToCategory(plan.type, catalogEntry),
-        billingType: planTypeToBillingType(plan.type, catalogEntry),
-        pricingModel:
-          plan.type === "unit-based"
-            ? "unit"
-            : (catalogEntry?.pricingModel ?? "flat"),
-        groupId: plan.groupId ?? catalogEntry?.groupId,
-        groupTitle: plan.groupTitle ?? catalogEntry?.groupTitle,
-        eligibilityScopeId: catalogEntry?.eligibilityScopeId,
-        title:
-          plan.title ??
-          catalogEntry?.title ??
-          firstProduct?.name ??
-          plan.planId.charAt(0).toUpperCase() + plan.planId.slice(1),
-        description:
-          plan.description ??
-          catalogEntry?.description ??
-          firstProduct?.description ??
-          undefined,
-        contactUrl: plan.contactUrl ?? catalogEntry?.contactUrl,
-        recommended: plan.recommended ?? catalogEntry?.recommended,
-        limits: catalogEntry?.limits,
-        creditGrant: catalogEntry?.creditGrant,
-        eligibility: catalogEntry?.eligibility,
-        metadata: catalogEntry?.metadata,
-        creemProductIds:
-          Object.keys(productIds).length > 0
-            ? (productIds as Record<string, string>)
-            : undefined,
-      };
-      if (cycleKeys.length > 0) {
-        entry.billingCycles = cycleKeys;
-      }
-      return entry;
-    });
-  }, [allProducts, catalogRegistrations, normalizedCatalog, registeredPlans]);
-
-  const groupItems = useMemo(() => {
-    if (groups && groups.length > 0) {
-      return groups.map((entry) => ({
-        value: entry.value,
-        label: entry.label,
-      }));
-    }
-    const inferredGroups = new Map<string, string>();
-    for (const plan of plans) {
-      if (!plan.groupId) continue;
-      if (!inferredGroups.has(plan.groupId)) {
-        inferredGroups.set(
-          plan.groupId,
-          plan.groupTitle ?? formatGroupTitle(plan.groupId),
-        );
-      }
-    }
-    return Array.from(inferredGroups, ([value, label]) => ({ value, label }));
-  }, [groups, plans]);
+  const groupItems = useMemo(
+    () => deriveGroupItems({ groups, plans }),
+    [groups, plans],
+  );
 
   const requestedGroupId = group ?? selectedGroupId ?? defaultGroup ?? null;
-  const activeGroupId =
-    groupItems.length > 1 &&
-    requestedGroupId &&
-    groupItems.some((item) => item.value === requestedGroupId)
-      ? requestedGroupId
-      : (groupItems[0]?.value ?? null);
+  const activeGroupId = resolveActiveGroupId({
+    groupItems,
+    requestedGroupId,
+  });
 
-  const groupedPlans = useMemo(() => {
-    if (groupItems.length <= 1 || !activeGroupId) return plans;
-    return plans.filter((plan) => plan.groupId === activeGroupId);
-  }, [activeGroupId, groupItems.length, plans]);
-
-  const availableCycles = useMemo(() => {
-    const cycles = new Set<RecurringCycle>();
-    for (const plan of groupedPlans) {
-      for (const planCycle of plan.billingCycles ?? []) {
-        cycles.add(planCycle);
-      }
-    }
-    return Array.from(cycles);
-  }, [groupedPlans]);
-  const effectiveCycle = useMemo(() => {
-    const requestedCycle = cycle ?? selectedCycle;
-    if (
-      availableCycles.length === 0 ||
-      availableCycles.includes(requestedCycle)
-    ) {
-      return requestedCycle;
-    }
-    return availableCycles[0] ?? requestedCycle;
-  }, [availableCycles, cycle, selectedCycle]);
-
-  const getCyclesForGroup = useCallback(
-    (groupId: string | null) => {
-      const targetPlans =
-        groupItems.length > 1 && groupId
-          ? plans.filter((plan) => plan.groupId === groupId)
-          : plans;
-      const cycles = new Set<RecurringCycle>();
-      for (const plan of targetPlans) {
-        for (const planCycle of plan.billingCycles ?? []) {
-          cycles.add(planCycle);
-        }
-      }
-      return Array.from(cycles);
-    },
-    [groupItems.length, plans],
+  const groupedPlans = useMemo(
+    () => filterPlansByGroup({ plans, groupItems, activeGroupId }),
+    [activeGroupId, groupItems, plans],
   );
 
-  const clampCycleForGroup = useCallback(
-    (groupId: string | null) => {
-      const targetCycles = getCyclesForGroup(groupId);
-      const requestedCycle = cycle ?? selectedCycle;
-      if (targetCycles.length === 0 || targetCycles.includes(requestedCycle)) {
-        return;
-      }
-      const nextCycle = targetCycles[0];
-      if (!nextCycle) return;
-      if (cycle == null) {
-        setSelectedCycle(nextCycle);
-      }
-      onCycleChange?.(nextCycle);
-    },
-    [cycle, getCyclesForGroup, onCycleChange, selectedCycle],
+  // Product IDs owned by this root's plans, and the subscription that matches.
+  const ownProductIds = useMemo(() => deriveOwnProductIds(plans), [plans]);
+
+  const matchedSubscription = useMemo(
+    () => resolveMatchedSubscription({ model, ownProductIds }),
+    [model, ownProductIds],
   );
-
-  const handleCycleChange = useCallback(
-    (next: RecurringCycle) => {
-      const nextEffectiveCycle =
-        availableCycles.length === 0 || availableCycles.includes(next)
-          ? next
-          : (availableCycles[0] ?? next);
-      setSelectedCycle(nextEffectiveCycle);
-      onCycleChange?.(nextEffectiveCycle);
-    },
-    [availableCycles, onCycleChange],
-  );
-
-  const handleGroupChange = useCallback(
-    (next: string) => {
-      clampCycleForGroup(next);
-      setSelectedGroupId(next);
-      onGroupChange?.(next);
-    },
-    [clampCycleForGroup, onGroupChange],
-  );
-
-  // Collect all product IDs that belong to plans in THIS component instance
-  const ownProductIds = useMemo(() => {
-    const ids = new Set<string>();
-    for (const plan of plans) {
-      if (plan.creemProductIds) {
-        for (const pid of Object.values(plan.creemProductIds)) {
-          if (pid) ids.add(pid);
-        }
-      }
-    }
-    return ids;
-  }, [plans]);
-
-  // Find the subscription from activeSubscriptions that belongs to THIS component
-  const matchedSubscription = useMemo(() => {
-    const subs = model?.activeSubscriptions;
-    if (!subs || ownProductIds.size === 0) return null;
-    return subs.find((s) => ownProductIds.has(s.productId)) ?? null;
-  }, [model?.activeSubscriptions, ownProductIds]);
 
   const ownsActiveSubscription = matchedSubscription != null;
   const localSubscriptionProductId = matchedSubscription?.productId ?? null;
@@ -496,97 +324,102 @@ export const SubscriptionRoot = ({
       ? true
       : resolvedPermissions?.canUpdateUnits !== false;
 
-  const activePlanId = useMemo(() => {
-    if (!model) return null;
-    const subProductId = localSubscriptionProductId;
-    if (subProductId) {
-      const matchedPlan = plans.find((plan) => {
-        const values = Object.values(plan.creemProductIds ?? {}).filter(
-          Boolean,
-        ) as string[];
-        return values.includes(subProductId);
-      });
-      return matchedPlan?.planId ?? null;
-    }
-    if (model.activePlanId !== undefined) {
-      return model.activePlanId;
-    }
-    const assignedPlanId =
-      model.appPlanAssignments?.find(
-        (assignment) =>
-          assignment.status === "active" &&
-          plans.some((plan) => plan.planId === assignment.planId),
-      )?.planId ?? null;
-    if (assignedPlanId) {
-      return assignedPlanId;
-    }
-    if (model.activeFreePlanId !== undefined) {
-      return model.activeFreePlanId;
-    }
-    if (model.user) {
-      const freePlan = plans.find((p) => p.category === "free");
-      if (freePlan) return freePlan.planId;
-    }
-    return null;
-  }, [model, localSubscriptionProductId, plans]);
+  const activePlanId = useMemo(
+    () =>
+      resolveActivePlanId({
+        model,
+        plans,
+        subscriptionProductId: localSubscriptionProductId,
+      }),
+    [localSubscriptionProductId, model, plans],
+  );
 
-  const activeOrScheduledPlanIds = useMemo(() => {
-    if (!model) return [];
-    const planIds = new Set<string>();
-    const addPlanId = (planId: string | null | undefined) => {
-      if (planId && plans.some((plan) => plan.planId === planId)) {
-        planIds.add(planId);
-      }
-    };
-    const addProductId = (productId: string | null | undefined) => {
-      const plan = productId
-        ? plans.find((candidate) =>
-            Object.values(candidate.creemProductIds ?? {})
-              .filter(Boolean)
-              .includes(productId),
-          )
-        : null;
-      if (plan) {
-        planIds.add(plan.planId);
-      }
-    };
-
-    addProductId(localSubscriptionProductId);
-    addPlanId(model.activePlanId);
-    addPlanId(model.activeFreePlanId);
-
-    for (const subscription of model.activeSubscriptions ?? []) {
-      addProductId(subscription.productId);
-    }
-    for (const assignment of model.appPlanAssignments ?? []) {
-      if (assignment.status === "active" || assignment.status === "scheduled") {
-        addPlanId(assignment.planId);
-      }
-    }
-    for (const update of model.scheduledSubscriptionUpdates ?? []) {
-      addProductId(update.targetProductId);
-      addPlanId(update.targetPlanId);
-    }
-
-    return Array.from(planIds);
-  }, [localSubscriptionProductId, model, plans]);
+  const activeOrScheduledPlanIds = useMemo(
+    () =>
+      resolveActiveOrScheduledPlanIds({
+        model,
+        plans,
+        subscriptionProductId: localSubscriptionProductId,
+      }),
+    [localSubscriptionProductId, model, plans],
+  );
 
   const visiblePlans = useMemo(
     () =>
-      groupedPlans.filter((plan) =>
-        shouldShowPlan(plan, model?.appPlanActivations, {
-          activePlanId,
-          activeOrScheduledPlanIds,
-          catalogPlans: plans,
-        }),
-      ),
-    [
-      activeOrScheduledPlanIds,
-      activePlanId,
-      groupedPlans,
-      model?.appPlanActivations,
-      plans,
-    ],
+      filterVisiblePlans({
+        groupedPlans,
+        allPlans: plans,
+        model,
+        activePlanId,
+        activeOrScheduledPlanIds,
+      }),
+    [activeOrScheduledPlanIds, activePlanId, groupedPlans, model, plans],
+  );
+
+  // Cycles come from the plans that actually render, so a plan hidden by
+  // eligibility never contributes an interval to the selector.
+  const availableCycles = useMemo(
+    () => deriveAvailableCycles(visiblePlans),
+    [visiblePlans],
+  );
+  const effectiveCycle = useMemo(
+    () =>
+      resolveEffectiveCycle({
+        availableCycles,
+        requestedCycle: cycle ?? selectedCycle,
+      }),
+    [availableCycles, cycle, selectedCycle],
+  );
+
+  const handleCycleChange = useCallback(
+    (next: RecurringCycle) => {
+      const nextEffectiveCycle =
+        availableCycles.length === 0 || availableCycles.includes(next)
+          ? next
+          : (availableCycles[0] ?? next);
+      setSelectedCycle(nextEffectiveCycle);
+      onCycleChange?.(nextEffectiveCycle);
+    },
+    [availableCycles, onCycleChange],
+  );
+
+  const getCyclesForGroup = useCallback(
+    (groupId: string | null) =>
+      cyclesForGroup({
+        plans,
+        groupItems,
+        groupId,
+        model,
+        activePlanId,
+        activeOrScheduledPlanIds,
+      }),
+    [activeOrScheduledPlanIds, activePlanId, groupItems, model, plans],
+  );
+
+  const clampCycleForGroup = useCallback(
+    (groupId: string | null) => {
+      const targetCycles = getCyclesForGroup(groupId);
+      const requestedCycle = cycle ?? selectedCycle;
+      if (targetCycles.length === 0 || targetCycles.includes(requestedCycle)) {
+        return;
+      }
+      const nextCycle = targetCycles[0];
+      if (!nextCycle) return;
+      if (cycle == null) {
+        setSelectedCycle(nextCycle);
+      }
+      onCycleChange?.(nextCycle);
+    },
+    [cycle, getCyclesForGroup, onCycleChange, selectedCycle],
+  );
+
+  const handleGroupChange = useCallback(
+    (next: string) => {
+      clampCycleForGroup(next);
+      setSelectedGroupId(next);
+      onGroupChange?.(next);
+    },
+    [clampCycleForGroup, onGroupChange],
   );
 
   const getProductPrice = useCallback(
@@ -857,12 +690,21 @@ export const SubscriptionRoot = ({
         if (!updateRef) return;
         await client.mutation(
           updateRef,
-          {
-            ...(update.productId ? { productId: update.productId } : {}),
-            ...(update.freePlanId ? { freePlanId: update.freePlanId } : {}),
-            ...(subId ? { subscriptionId: subId } : {}),
-            updateBehavior: selectedUpdateBehavior,
-          },
+          update.freePlanId
+            ? ({
+                kind: "app-plan",
+                freePlanId: update.freePlanId,
+                ...(subId ? { subscriptionId: subId } : {}),
+                updateBehavior:
+                  selectedUpdateBehavior as FreePlanUpdateBehavior,
+              } satisfies SubscriptionUpdateArgs)
+            : ({
+                kind: "plan",
+                productId: update.productId!,
+                ...(subId ? { subscriptionId: subId } : {}),
+                updateBehavior:
+                  selectedUpdateBehavior as PaidSubscriptionUpdateBehavior,
+              } satisfies SubscriptionUpdateArgs),
           {
             optimisticUpdate: (store) => {
               const current = store.getQuery(billingUiModelRef, {});
@@ -916,10 +758,12 @@ export const SubscriptionRoot = ({
         await client.mutation(
           updateRef,
           {
+            kind: "units",
             units: update.units,
             ...(subId ? { subscriptionId: subId } : {}),
-            updateBehavior: selectedUpdateBehavior,
-          },
+            updateBehavior:
+              selectedUpdateBehavior as PaidSubscriptionUpdateBehavior,
+          } satisfies SubscriptionUpdateArgs,
           {
             optimisticUpdate: (store) => {
               const current = store.getQuery(billingUiModelRef, {});
@@ -1342,6 +1186,7 @@ export const SubscriptionRoot = ({
       disableSwitch: !canChange,
       disableUnits: !canUpdateUnits,
       unstyled,
+      columns,
       labels: resolvedI18n.labels,
       cycleBadges,
       formatCurrency: resolvedI18n.formatCurrency,
@@ -1385,6 +1230,7 @@ export const SubscriptionRoot = ({
       canChange,
       canUpdateUnits,
       unstyled,
+      columns,
       resolvedI18n,
       cycleBadges,
       handlePricingCheckout,

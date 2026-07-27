@@ -12,6 +12,7 @@ import {
   plansOf,
   selectBaseSubscription,
   getConvexErrorMessage,
+  connectCreemApi,
   type ConnectedBillingApi,
   type ConnectedBillingModel,
   type Transition,
@@ -62,34 +63,10 @@ function TestCardChip({
   );
 }
 
-const connectedApi: ConnectedBillingApi = {
-  uiModel: api.billing.uiModel,
-  checkouts: {
-    create: api.billing.checkoutsCreate,
-  },
-  subscriptions: {
-    update: api.billing.subscriptionsUpdate,
-    cancel: api.billing.subscriptionsCancel,
-    resume: api.billing.subscriptionsResume,
-    cancelScheduledUpdate: api.billing.subscriptionsCancelScheduledUpdate,
-  },
-  customers: {
-    portalUrl: api.billing.customersPortalUrl,
-  },
-  transactions: {
-    search: api.billing.transactionsSearch,
-  },
-  credits: {
-    createAccount: api.billing.creditsCreateAccount,
-    getBalance: api.billing.creditsGetBalance,
-    credit: api.billing.creditsCredit,
-    debit: api.billing.creditsDebit,
-    listEntries: api.billing.creditsListEntries,
-  },
-  plans: {
-    activate: api.billing.plansActivate,
-  },
-};
+// One call maps every generated `convex/billing.ts` export onto the widget API.
+// Exports you leave out simply hide the matching controls, and a wrong or
+// missing export is a compile error rather than a runtime surprise.
+const connectedApi: ConnectedBillingApi = connectCreemApi(api.billing);
 
 const billingCatalog = defineBillingCatalog({
   version: "example",

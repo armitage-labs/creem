@@ -1,5 +1,5 @@
+import type { ConnectedBillingModel } from "./model.js";
 import type {
-  BillingSnapshot,
   PlanCatalog,
   PlanChangeIntent,
   RecurringCycle,
@@ -8,84 +8,90 @@ import type {
 import type { BillingI18n } from "./i18n.js";
 
 /**
- * Framework-agnostic billing context contract.
+ * Integration-agnostic billing contract consumed by the UI widgets.
  *
- * Implemented by integration providers (e.g. Convex React/Svelte providers) and consumed
- * by UI widgets. This decouples widgets from any specific backend — widgets only depend on
- * this contract, not on Convex, Supabase, or any other backend SDK.
+ * This is the seam that decouples widgets from any particular backend. An
+ * integration package supplies it through a framework-specific provider —
+ * `CreemConvexProvider` populates it from Convex queries, actions, and
+ * mutations — and the widgets only ever depend on this shape.
+ *
+ * Actions take a **stable catalog plan ID plus billing cycle**, never a remote
+ * Creem product ID. The provider resolves those to the environment-specific
+ * product ID, so the same UI code works against test and live deployments where
+ * the same plan has different remote IDs.
  */
 export type BillingContextValue = {
   // ── State ──────────────────────────────────────────────────
 
-  /** Billing snapshot with subscriptions[] and orders[]. */
-  snapshot: BillingSnapshot | null;
+  /** Reactive billing model. `null` while loading or when unavailable. */
+  model: ConnectedBillingModel | null;
 
-  /** Plan catalog (for product resolution and plan metadata). */
-  catalog: PlanCatalog | null;
-
-  /** Whether the billing state is currently loading. */
+  /** Whether the billing model is currently loading. */
   isLoading: boolean;
 
-  /** Error message if the billing state failed to load. */
-  error: string | null;
-
-  /** Authenticated user info, or `null` when unauthenticated. */
-  user: {
-    id: string;
-    email: string;
-  } | null;
-
-  /** All synced products from the commerce platform. */
-  products: Array<{
-    id: string;
-    name?: string;
-    description?: string;
-    price?: number;
-    currency?: string;
-    billingType?: string;
-    billingPeriod?: string;
-    status?: string;
-    imageUrl?: string;
-  }>;
-
-  /** Product IDs the entity has purchased (one-time orders). */
-  ownedProductIds: string[];
-
-  /** Whether this entity has a customer record on the commerce platform. */
-  hasCustomer: boolean;
+  /** Error from the most recent load or action, or `null`. */
+  error: Error | null;
 
   // ── Actions ────────────────────────────────────────────────
 
-  /** Create a checkout session and redirect to the hosted checkout page. */
+  /**
+   * Create a checkout session and return the hosted checkout URL.
+   *
+   * `planId` is a catalog plan ID. The provider resolves it to a Creem product
+   * ID for the requested cycle.
+   */
   createCheckout: (args: {
-    productId: string;
+    planId: string;
+    cycle?: RecurringCycle;
     successUrl?: string;
     units?: number;
+    discountCode?: string;
+    metadata?: Record<string, string>;
   }) => Promise<{ url: string }>;
 
-  /** Update a subscription (plan switch or unit change). */
-  updateSubscription?: (args: {
+  /** Switch to another paid catalog plan. */
+  switchPlan?: (args: {
+    planId: string;
+    cycle?: RecurringCycle;
     subscriptionId?: string;
-    productId?: string;
     units?: number;
     updateBehavior?: UpdateBehavior;
   }) => Promise<void>;
 
+  /** Change the unit quantity on an active paid subscription. */
+  updateUnits?: (args: {
+    units: number;
+    subscriptionId?: string;
+    updateBehavior?: UpdateBehavior;
+  }) => Promise<void>;
+
+  /** Move from a paid subscription to an app-owned plan (free, trial, custom). */
+  switchToAppPlan?: (args: {
+    planId: string;
+    subscriptionId?: string;
+    updateBehavior?: "period-end" | "immediate";
+  }) => Promise<void>;
+
+  /** Activate an app-owned catalog plan for the current billing entity. */
+  activatePlan?: (args: { planId: string }) => Promise<void>;
+
   /** Cancel a subscription. */
-  cancelSubscription?: (args: {
+  cancelSubscription?: (args?: {
     subscriptionId?: string;
     revokeImmediately?: boolean;
   }) => Promise<void>;
 
   /** Resume a paused or scheduled-cancel subscription. */
-  resumeSubscription?: (args: { subscriptionId?: string }) => Promise<void>;
+  resumeSubscription?: (args?: { subscriptionId?: string }) => Promise<void>;
 
-  /** Get the URL for the customer billing portal. */
+  /** Undo a pending app-side period-end update. */
+  cancelScheduledUpdate?: (args?: { subscriptionId?: string }) => Promise<void>;
+
+  /** Get the customer billing portal URL. */
   getPortalUrl?: () => Promise<{ url: string }>;
 
   /** Search paginated transaction history. */
   searchTransactions?: (args: {
-    customerId?: string;
     orderId?: string;
     productId?: string;
     pageNumber?: number;
@@ -101,7 +107,7 @@ export type BillingContextValue = {
     };
   }>;
 
-  /** Force a refresh of the billing state. */
+  /** Trigger a refresh. No-op for reactive integrations such as Convex. */
   invalidate: () => void;
 
   // ── Consent gates ──────────────────────────────────────────
@@ -112,7 +118,7 @@ export type BillingContextValue = {
     units?: number;
   }) => Promise<boolean> | boolean;
 
-  /** Called before plan change — return `false` to block. */
+  /** Called before a paid plan change — return `false` to block. */
   onBeforePlanChange?: (intent: PlanChangeIntent) => Promise<boolean> | boolean;
 
   /** Called before app-owned plan activation — return `false` to block. */
@@ -120,36 +126,17 @@ export type BillingContextValue = {
     planId: string;
   }) => Promise<boolean> | boolean;
 
-  // ── Credits (optional capability) ──────────────────────────
+  // ── Optional capabilities ──────────────────────────────────
 
   /** Optional customer credits capability. */
   credits?: {
-    /** Get the current credit balance. */
+    /** Read the current entity's default credit balance. */
     getBalance: () => Promise<{ balance: string }>;
-    /** Debit credits from the account. */
-    debit: (args: {
-      amount: string;
-      reference: string;
-      idempotencyKey: string;
-    }) => Promise<void>;
   };
 
-  /** Optional UI label and formatting configuration. */
-  i18n?: BillingI18n;
-};
+  /** Plan catalog used for plan resolution and metadata. */
+  catalog?: PlanCatalog | null;
 
-/** Options for configuring a billing provider. */
-export type BillingProviderConfig = {
-  /** Plan catalog for type-safe plan resolution. */
-  catalog?: PlanCatalog;
-  /** Default billing cycle for new subscriptions. */
-  defaultCycle?: RecurringCycle;
-  /** Consent gate: called before checkout. */
-  onBeforeCheckout?: BillingContextValue["onBeforeCheckout"];
-  /** Consent gate: called before plan change. */
-  onBeforePlanChange?: BillingContextValue["onBeforePlanChange"];
-  /** Consent gate: called before app-owned plan activation. */
-  onBeforePlanActivation?: BillingContextValue["onBeforePlanActivation"];
   /** Optional UI label and formatting configuration. */
   i18n?: BillingI18n;
 };

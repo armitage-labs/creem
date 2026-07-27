@@ -35,6 +35,8 @@ export type SubscriptionContextValue = {
   disableSwitch: boolean;
   disableUnits: boolean;
   unstyled: boolean;
+  /** Preferred pricing column count resolved by the root. */
+  columns: "auto" | 1 | 2 | 3 | 4;
   labels: BillingLabels;
   cycleBadges?: Partial<Record<SupportedRecurringCycle, string>>;
   formatCurrency: (input: BillingCurrencyFormatInput) => string;
