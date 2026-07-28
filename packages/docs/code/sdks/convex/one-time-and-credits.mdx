@@ -1,15 +1,21 @@
 ---
 title: "One-Time Products & Credits"
-description: "Sell owned products, consumables, and credit packs with the Creem Convex component — including refund-safe credit grants."
+description: "Sell owned products, consumables, and credit packs with the Creem Convex component, including refund-safe credit grants."
 ---
 
-All examples assume the [Quickstart](/code/sdks/convex/quickstart) setup. Product widgets render inside `CreemConvexProvider`, and props are identical in React and Svelte.
+import SetupPrerequisites from "/snippets/convex-setup-prerequisites.mdx";
+
+One-time products, consumables, and credit packs.
+
+<Accordion title="Where this code goes, and what it assumes" icon="list-check">
+  <SetupPrerequisites />
+</Accordion>
 
 ## Single owned product
 
-A product purchased once — the card shows "Owned" after purchase and suppresses repeat checkout:
+A product purchased once. The card shows "Owned" afterwards and suppresses repeat checkout:
 
-```tsx
+```tsx title="Pricing page"
 <Product.Root layout="single" styleVariant="pricing">
   <Product.Item type="one-time" title="Lifetime Access" productId="prod_..." />
 </Product.Root>
@@ -17,9 +23,9 @@ A product purchased once — the card shows "Owned" after purchase and suppresse
 
 ## Repeating products (consumables)
 
-`type="recurring"` allows repeat purchases and never shows an "Owned" badge — the right shape for credit packs and other consumables:
+`type="recurring"` allows repeat purchases and never shows an "Owned" badge. Use it for credit packs and other consumables:
 
-```tsx
+```tsx title="Pricing page"
 <Product.Root layout="single" styleVariant="pricing">
   <Product.Item type="recurring" title="100 AI Credits" productId="prod_..." />
 </Product.Root>
@@ -27,10 +33,9 @@ A product purchased once — the card shows "Owned" after purchase and suppresse
 
 ## Credit grants
 
-Credit fulfillment happens in the **webhook**, on the server — so the purchase-to-credit mapping must live in a server-owned catalog, not in client code. Pass it to the `Creem` constructor in `convex/billing.ts`:
+Credit fulfillment happens in the webhook, on the server. The purchase-to-credit mapping therefore has to live in a server-owned catalog, not in client code. Pass it to the `Creem` constructor in `convex/billing.ts`:
 
-```ts
-// convex/billing.ts
+```ts title="convex/billing.ts"
 const serverBillingCatalog = defineBillingCatalog({
   version: "server",
   plans: [
@@ -60,11 +65,11 @@ Set the trusted product ID in Convex env (never read it from a browser-exposed v
 npx convex env set CREEM_ONETIME_CREDITS prod_...
 ```
 
-When a `checkout.completed` webhook arrives for that product, the component grants the credits automatically.
+When a `checkout.completed` webhook arrives for that product, the component grants the credits.
 
 ### Refund behavior
 
-`creditGrant.refundBehavior` answers one question: what happens to granted credits when the product is refunded?
+`creditGrant.refundBehavior` answers one question. What happens to granted credits when the product is refunded?
 
 | Value                               | Full refund  | Partial refund             | Use when                                        |
 | ----------------------------------- | ------------ | -------------------------- | ----------------------------------------------- |
@@ -75,14 +80,17 @@ When a `checkout.completed` webhook arrives for that product, the component gran
 
 ## Displaying and spending credits
 
-`Credits.Root` renders a default balance card, or you can compose the slots. Credit **spending** belongs in your own Convex action — the widget only displays and refreshes balance state:
+`Credits.Root` renders a default balance card, or you can compose the slots yourself. Spending credits belongs in your own Convex action. The widget only displays and refreshes the balance:
 
-```ts
-// convex/billing.ts — app-owned spend action
+```ts title="convex/billing.ts"
+// App-owned spend action
 export const generateImage = action({
   args: {},
+  returns: v.object({ creditsConsumed: v.string() }),
   handler: async (ctx) => {
-    await ctx.runAction(api.billing.creditsDebit, {
+    const { entityId } = await resolve(ctx);
+    await creem.credits.debitForEntity(ctx, {
+      entityId,
       amount: "10",
       reference: "generate_image",
       idempotencyKey: `generate_image_${Date.now()}`,
@@ -95,7 +103,7 @@ export const generateImage = action({
 <Tabs>
   <Tab title="React">
 
-```tsx
+```tsx title="src/CreditsPanel.tsx"
 <Credits.Root unitLabel="credits">
   {(credits) => (
     <>
@@ -118,7 +126,7 @@ export const generateImage = action({
   </Tab>
   <Tab title="Svelte">
 
-```svelte
+```svelte title="src/routes/+page.svelte"
 <Credits.Root unitLabel="credits">
   {#snippet children(credits)}
     <Credits.Title />
@@ -139,18 +147,25 @@ export const generateImage = action({
   </Tab>
 </Tabs>
 
-The widget needs the `credits.*` functions in your connected API (`createAccount`, `getBalance`, `credit`, `debit`, `listEntries` — all generated by `creem.api({ resolve })`).
+The widget needs only `credits.getBalance` in your connected API:
+
+```ts
+const connectedApi: ConnectedBillingApi = {
+  // Other widget capabilities...
+  credits: { getBalance: api.billing.creditsGetBalance },
+};
+```
 
 <Warning>
-  Keep the spend amount in the backend action, not in the widget. UI code can be manipulated; your
-  Convex action is the enforcement point.
+  Keep the spend amount, reference, and idempotency policy in the app-owned backend action. UI code
+  can be manipulated; the action is the enforcement point.
 </Warning>
 
 ## Mutually exclusive products & upgrade paths
 
 When one-time products supersede each other (Basic license → Premium license), declare `transition` rules on the root. Once the user owns a lower tier, only valid upgrade paths render:
 
-```tsx
+```tsx title="Pricing page"
 <Product.Root
   transition={[
     {
@@ -168,11 +183,19 @@ When one-time products supersede each other (Basic license → Premium license),
 
 Two transition kinds:
 
-- **`via_product`** — checkout uses a dedicated upgrade product (delta pricing: the customer pays only the difference)
-- **`direct`** — checkout uses the target product at full price
+- **`via_product`** checks out a dedicated upgrade product, so the customer pays only the difference.
+- **`direct`** checks out the target product at full price.
+
+<Note>
+  **Handled in your frontend today.** Transition rules are declared on `Product.Root` and applied by
+  the widget. One effect worth knowing: a checkout started outside the widget sells the target
+  product at full price, since the grouping lives in your app rather than in Creem. Prefer this
+  handled by Creem directly? Vote for [grouping non-subscription
+  products](https://creem.featurebase.app/p/group-non-subscription-products-and-expose-via-creem-api).
+</Note>
 
 ## What to keep in mind
 
-- `type="one-time"` = ownable, `type="recurring"` = repeatable. Choose per product; both can live in the same `Product.Root`.
-- Subscription checkouts also create Creem orders, but the billing snapshot only exposes one-time orders as owned access — see [Entitlements](/code/sdks/convex/entitlements#the-billing-snapshot).
+- `type="one-time"` is ownable, `type="recurring"` is repeatable. Choose per product. Both can live in the same `Product.Root`.
+- Subscription checkouts also create Creem orders, but the billing snapshot only exposes one-time orders as owned access. See [Concepts](/code/sdks/convex/concepts#the-billing-state-model).
 - Full `Product.Root` / `Product.Item` prop tables live in the [package README](https://github.com/armitage-labs/creem/tree/main/packages/convex#component-reference).

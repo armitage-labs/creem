@@ -3,21 +3,34 @@ title: "Subscriptions"
 description: "Subscription plans, billing cycles, trials, unit-based pricing, and scheduled changes with the Creem Convex component."
 ---
 
-All examples assume the [Quickstart](/code/sdks/convex/quickstart) setup: a configured `convex/billing.ts`, a billing catalog, and widgets rendered inside `CreemConvexProvider`. Svelte and React widgets share identical props — where markup is identical, examples are shown once (`class` in Svelte, `className` in React).
+import SetupPrerequisites from "/snippets/convex-setup-prerequisites.mdx";
+
+Plans, billing cycles, trials, unit-based pricing, and scheduled changes.
+
+<Accordion title="Where this code goes, and what it assumes" icon="list-check">
+  <SetupPrerequisites />
+</Accordion>
 
 ## Standard plans
 
 Render catalog plans by ID. Titles, descriptions (Markdown), and prices resolve from synced Creem product data:
 
-```tsx
+```tsx title="Pricing page"
 <Subscription.Root plans={plansOf(billingCatalog, ["free", "basic", "premium"])} />
 ```
 
-You get pricing cards, a billing-cycle toggle (hidden when all plans share one cycle), a "Current plan" badge, plan switching with a confirmation dialog, a trial countdown badge, cancel/resume with confirmation, and a scheduled-cancellation banner with undo.
+That renders:
 
-You can also register plans inline without a catalog — useful when migrating incrementally:
+- Pricing cards, with a billing-cycle toggle that stays hidden when all plans share one cycle
+- A "Current plan" badge on the active plan
+- Plan switching, behind a confirmation dialog
+- A trial countdown badge
+- Cancel and resume, also behind confirmation
+- A scheduled-cancellation banner with an undo button
 
-```tsx
+You can also register plans inline, without a catalog. This helps when migrating incrementally:
+
+```tsx title="Pricing page"
 <Subscription.Root>
   <Subscription.Item type="free" title="Free" description="Up to 3 users" />
   <Subscription.Item
@@ -37,7 +50,7 @@ You can also register plans inline without a catalog — useful when migrating i
 
 `creemProductIds` maps cycles to Creem products. Supported cycles: `every-month`, `every-three-months`, `every-six-months`, `every-year`. The interval selector appears automatically when plans expose more than one cycle. Add badges to promote longer cycles:
 
-```tsx
+```tsx title="Pricing page"
 <Subscription.Root
   plans={plansOf(billingCatalog, ["basic", "premium"])}
   cycleBadges={{ "every-year": "-20%" }}
@@ -46,14 +59,14 @@ You can also register plans inline without a catalog — useful when migrating i
 
 ## Trials
 
-The component distinguishes two trial paths:
+The component supports two trial paths:
 
 - **Creem-managed trials** are configured on paid Creem products. In the catalog they stay `category: "paid"` recurring plans; Creem owns checkout, card collection, and the `subscription.trialing` state. Nothing extra to wire.
-- **App-owned no-card trials** use `category: "trial"` with `billingType: "custom"`. No Creem subscription is created — the component records activation history and the current app-plan assignment so the billing UI can show, activate, and hide the offer.
+- **App-owned no-card trials** use `category: "trial"` with `billingType: "custom"`. No Creem subscription is created. The component records activation history and the current app-plan assignment, which is what lets the billing UI show, activate, and hide the offer.
 
 An app-owned trial that can only be used once per billing entity, and disappears once the entity picks a real plan in the same product line:
 
-```ts
+```ts title="src/billingCatalog.ts"
 export const billingCatalog = defineBillingCatalog({
   plans: [
     {
@@ -87,7 +100,7 @@ export const billingCatalog = defineBillingCatalog({
 
 To let users activate the trial (or any app-owned plan), expose `plans.activate` in your connected API with an app mutation that calls:
 
-```ts
+```ts title="convex/billing.ts"
 await creem.appPlans.activate(ctx, {
   entityId,
   planId: "trial",
@@ -100,7 +113,7 @@ The component enforces the once-per-entity rule and hides ineligible trial cards
 <Tip>
   `eligibilityScopeId` and `groupId` are different axes: use `groupId` for pricing layout/audience
   tabs, and `eligibilityScopeId` for mutually exclusive entitlement alternatives. Scoped expiry only
-  looks at active or scheduled non-trial plans in the *same* scope — so an add-on trial in an
+  looks at active or scheduled non-trial plans in the *same* scope, so an add-on trial in an
   `"analytics-addon"` scope stays available after the customer picks a base plan.
 </Tip>
 
@@ -110,15 +123,15 @@ Use `onBeforePlanActivation` (provider- or widget-level) for sign-in or consent 
 
 Two workflows for quantity-based plans (seats are one kind of unit):
 
-**User-selectable units** — the customer picks a quantity before checkout:
+**User-selectable units.** The customer picks a quantity before checkout:
 
-```tsx
+```tsx title="Pricing page"
 <Subscription.Root plans={plansOf(billingCatalog, ["team", "business"])} showUnitPicker />
 ```
 
-**Auto-derived units** — pass a fixed count from app state (e.g. org member count):
+**Auto-derived units.** Pass a fixed count from app state, such as an org member count:
 
-```tsx
+```tsx title="Pricing page"
 <Subscription.Root plans={plansOf(billingCatalog, ["team"])} units={orgMemberCount} />
 ```
 
@@ -133,7 +146,7 @@ When `subscriptions.update` is in the connected API, active unit-based plans sho
 
 Split plans by audience (e.g. Individual vs Teams). The root renders a group selector and derives billing cycles from the active group only:
 
-```tsx
+```tsx title="Pricing page"
 <Subscription.Root
   showUnitPicker
   groups={[
@@ -157,14 +170,14 @@ Control placement with `groupSelector="auto" | "hidden" | "external"` (use `<Sub
 
 `updateBehavior` controls paid-to-paid switches and unit changes:
 
-- `"proration-charge-immediately"` — prorate and charge now (default)
-- `"proration-charge"` — prorate, charge on next invoice
-- `"proration-none"` — no proration, applies next billing cycle
-- `"period-end"` — keep the current subscription until `currentPeriodEnd`, then apply the change from a scheduled Convex job
+- `"proration-charge-immediately"` prorates and charges now. This is the default.
+- `"proration-charge"` prorates and puts the difference on the next invoice.
+- `"proration-none"` skips proration; the change applies next billing cycle.
+- `"period-end"` keeps the current subscription until `currentPeriodEnd`, then applies the change from a scheduled Convex job.
 
 Pass a resolver to treat upgrades and downgrades differently:
 
-```tsx
+```tsx title="Pricing page"
 <Subscription.Root
   plans={plansOf(billingCatalog, ["free", "basic", "premium"])}
   updateBehavior={(intent) => {
@@ -177,36 +190,49 @@ Pass a resolver to treat upgrades and downgrades differently:
 />
 ```
 
-**Paid-to-free is a cancellation flow**, not a Creem proration (Creem has no native free subscriptions). It's controlled separately by `freePlanUpdateBehavior`:
+Paid-to-free is a cancellation flow rather than a Creem proration, because Creem has no native free subscriptions. It has its own setting, `freePlanUpdateBehavior`:
 
-- `"period-end"` (default) — schedule Creem cancellation for the period boundary, then activate the app-owned free plan at that time
-- `"immediate"` — cancel immediately and assign the free plan now
+- `"period-end"` schedules Creem cancellation for the period boundary, then activates the app-owned free plan at that time. This is the default.
+- `"immediate"` cancels straight away and assigns the free plan now.
 
 Export `subscriptions.cancelScheduledUpdate` in your connected API to give users an "Undo" for pending period-end changes; if the pending change was paid-to-free, undoing also resumes the Creem scheduled cancellation.
 
 <Note>
-  Until Creem supports native scheduled subscription updates, the Creem customer portal shows the
-  current subscription as active and doesn't know about a pending app-side paid-to-free assignment.
+  **Handled in Convex today.** Free plans and period-end changes are tracked by this component, so
+  both work without extra wiring. One effect worth knowing: the Creem portal only knows the current
+  subscription, so surface pending changes yourself with `ScheduledChangeBanner`. Prefer this
+  handled by Creem directly? Vote for [free subscription
+  tiers](https://creem.featurebase.app/p/free-subscription-tiers) and [scheduled subscription
+  updates](https://creem.featurebase.app/p/scheduled-subscription-updates).
 </Note>
 
 ## Custom card composition
 
-When your design needs its own markup, keep the root (it still owns checkout, switching, cancel, units, and active state) and compose the pieces with `unstyled`:
+When your design needs its own markup, keep the root and compose the pieces with `unstyled`. The root still owns checkout, switching, cancel, units, and active state:
 
 <Tabs>
   <Tab title="React">
 
-```tsx
+```tsx title="src/PricingPage.tsx"
 <Subscription.Root unstyled plans={plansOf(billingCatalog, ["basic", "premium"])}>
   <Subscription.Grid className="grid grid-cols-2 gap-6">
-    <Subscription.ItemBadge />
-    <Subscription.ItemTitle className="text-xl font-semibold" />
-    <Subscription.ItemPrice />
-    <Subscription.ItemPriceCaption />
-    <Subscription.ItemDescription />
-    <Subscription.UnitPicker />
-    <Subscription.ItemCTA />
-    <Subscription.Cancel />
+    <Subscription.Item planId="basic" className="rounded-lg border p-6">
+      <Subscription.ItemBadge />
+      <Subscription.ItemTitle className="text-xl font-semibold" />
+      <Subscription.ItemPrice />
+      <Subscription.ItemPriceCaption />
+      <Subscription.ItemDescription />
+      <Subscription.UnitPicker />
+      <Subscription.ItemCTA />
+      <Subscription.Cancel />
+    </Subscription.Item>
+
+    <Subscription.Item planId="premium" className="rounded-lg border-2 p-6">
+      <Subscription.ItemBadge />
+      <Subscription.ItemTitle className="text-xl font-semibold" />
+      <Subscription.ItemPrice />
+      <Subscription.ItemCTA />
+    </Subscription.Item>
   </Subscription.Grid>
 </Subscription.Root>
 ```
@@ -214,17 +240,26 @@ When your design needs its own markup, keep the root (it still owns checkout, sw
   </Tab>
   <Tab title="Svelte">
 
-```svelte
+```svelte title="src/routes/+page.svelte"
 <Subscription.Root unstyled plans={plansOf(billingCatalog, ["basic", "premium"])}>
   <Subscription.Grid class="grid grid-cols-2 gap-6">
-    <Subscription.ItemBadge />
-    <Subscription.ItemTitle class="text-xl font-semibold" />
-    <Subscription.ItemPrice />
-    <Subscription.ItemPriceCaption />
-    <Subscription.ItemDescription />
-    <Subscription.UnitPicker />
-    <Subscription.ItemCTA />
-    <Subscription.Cancel />
+    <Subscription.Item planId="basic" class="rounded-lg border p-6">
+      <Subscription.ItemBadge />
+      <Subscription.ItemTitle class="text-xl font-semibold" />
+      <Subscription.ItemPrice />
+      <Subscription.ItemPriceCaption />
+      <Subscription.ItemDescription />
+      <Subscription.UnitPicker />
+      <Subscription.ItemCTA />
+      <Subscription.Cancel />
+    </Subscription.Item>
+
+    <Subscription.Item planId="premium" class="rounded-lg border-2 p-6">
+      <Subscription.ItemBadge />
+      <Subscription.ItemTitle class="text-xl font-semibold" />
+      <Subscription.ItemPrice />
+      <Subscription.ItemCTA />
+    </Subscription.Item>
   </Subscription.Grid>
 </Subscription.Root>
 ```
@@ -232,13 +267,19 @@ When your design needs its own markup, keep the root (it still owns checkout, sw
   </Tab>
 </Tabs>
 
-Each slot resolves its content from the current item context. In styled mode, the library's defaults live in the base cascade layer, so your `class`/`className` utilities override them without `tailwind-merge`.
+<Warning>
+  Every slot resolves its content from the surrounding `<Subscription.Item>` context. Slots placed
+  directly inside `<Subscription.Grid>` have no item to read from, so they throw at render time.
+  Wrap each card in a `<Subscription.Item planId="…">`.
+</Warning>
+
+In styled mode, the library's defaults live in the base cascade layer, so your `class`/`className` utilities override them without `tailwind-merge`. `<Subscription.Grid>` reads the root's `columns` prop, so a composed layout and the default cards resolve their column count the same way.
 
 ## Typed bindings
 
-For production apps, `createCreemReact` / `createCreemSvelte` bundle catalog, API, and defaults into one typed object — plan IDs autocomplete and stay checked:
+For production apps, `createCreemReact` and `createCreemSvelte` bundle catalog, API, and defaults into one typed object. Plan IDs then autocomplete and stay checked:
 
-```ts
+```ts title="src/billingCatalog.ts"
 const billing = createCreemReact({
   catalog: billingCatalog,
   api: connectedApi,
@@ -250,5 +291,5 @@ const billing = createCreemReact({
 ## What to keep in mind
 
 - `subscriptions.update`, `cancel`, `resume`, and `cancelScheduledUpdate` in the connected API each unlock their controls; omit what you don't want users doing.
-- UI permissions are cosmetic — server functions must still check real access. See [Advanced → Custom auth and RBAC](/code/sdks/convex/advanced#custom-auth-and-rbac).
+- UI permissions are cosmetic. Server functions must still check real access. See [Advanced → Custom auth and RBAC](/code/sdks/convex/advanced#custom-auth-and-rbac).
 - The full prop reference for `Subscription.Root`, `Subscription.Item`, and every slot component lives in the [package README](https://github.com/armitage-labs/creem/tree/main/packages/convex#component-reference).

@@ -1,7 +1,10 @@
 # Convex Backend - `convex-creem`
 
-This directory contains the Convex app used by the examples and by the Creem
-billing component integration.
+This file documents only the repository's example Convex backend: its files,
+environment, demo exports, and local operational commands. It is not the
+consumer integration guide or package API reference. Use
+[the Integration Guide](https://docs.creem.io/code/sdks/convex/integration) for
+setup steps and [`../README.md`](../README.md) for the package entry point.
 
 ## Files
 
@@ -45,6 +48,7 @@ const {
   products,
   customers,
   transactions,
+  plans,
   orders,
   credits,
 } = creem.api({ resolve });
@@ -61,14 +65,13 @@ The public exports are then passed to frontend `ConnectedBillingApi` objects:
 - `plansActivate`
 - `customersPortalUrl`
 - `transactionsSearch`
-- `creditsCreateAccount`
 - `creditsGetBalance`
-- `creditsCredit`
-- `creditsDebit`
-- `creditsListEntries`
 
-Additional SDK-mirrored exports such as product, customer, order, pause, and
-list functions are available for app-specific admin or backend flows.
+The connected credits widget only receives `creditsGetBalance`. Privileged
+credit creation, grants, and spending stay in app-owned backend functions. The
+entity-scoped `creditsListEntries` export exists for an app-specific history
+view; it is not wired into the generic widgets. Additional SDK-mirrored reads
+and subscription operations are available for app-specific backend flows.
 
 ## Product Sync
 
@@ -99,15 +102,14 @@ side effects such as analytics, email, or audit logging.
 
 ## Auth Resolver
 
-The example resolver calls `api.billing.getUserInfo`, which reads the first row
-from the demo `users` table. Replace this with production auth:
+The example resolver calls the internal `billing.getUserInfo` query, which reads
+the first row from the demo `users` table. Replace this with production auth:
 
 ```ts
-import { ConvexError } from "convex/values";
-
 const resolve: ApiResolver = async (ctx) => {
   const identity = await ctx.auth.getUserIdentity();
-  if (!identity) throw new ConvexError("Not authenticated");
+  // `null` means "no authenticated caller". Public pricing pages depend on it.
+  if (!identity) return null;
 
   return {
     userId: identity.subject,
@@ -117,11 +119,17 @@ const resolve: ApiResolver = async (ctx) => {
 };
 ```
 
-Use `entityId` for the billing owner. For team billing, resolve the active org
-ID instead of the user ID.
+Return `null` for an anonymous caller. Anything thrown here counts as a real
+failure. It is logged and rethrown rather than silently degrading a signed-in
+user to the logged-out pricing page.
+
+Use `entityId` for the billing owner. For team billing, verify that the
+authenticated user belongs to the selected organization, and has the required
+billing role, before returning the org ID.
 
 ## Demo Credit Spending
 
 `generateDemoImage` demonstrates the right shape for app-owned credit spending:
-the backend action calls `creditsDebit`; the frontend `Credits.Root` only
+the backend action resolves the entity and calls `creem.credits.debitForEntity`
+with a server-controlled amount and reference. The frontend `Credits.Root` only
 refreshes and displays the balance.
