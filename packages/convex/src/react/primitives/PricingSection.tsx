@@ -1,5 +1,5 @@
 import { useMemo } from "react";
-import { BillingToggle } from "./BillingToggle.js";
+import { IntervalSelector } from "./IntervalSelector.js";
 import { PricingCard } from "./PricingCard.js";
 import type {
   UIPlanEntry,
@@ -145,15 +145,14 @@ export const PricingSection = ({
   return (
     <section className={className}>
       {showToggle && (
-        <div className="mb-6 flex justify-center">
-          <BillingToggle
-            cycles={availableCycles}
-            value={effectiveCycle}
-            cycleBadges={cycleBadges}
-            onValueChange={onCycleChange}
-            labels={labels}
-          />
-        </div>
+        <IntervalSelector
+          cycles={availableCycles}
+          value={effectiveCycle}
+          cycleBadges={cycleBadges}
+          onValueChange={onCycleChange}
+          labels={labels}
+          className="mb-6"
+        />
       )}
 
       <div className={`grid gap-1 ${gridColumnsClass}`}>

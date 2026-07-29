@@ -7,7 +7,7 @@
   directly. For custom cards prefer `unstyled` mode on `Subscription.Root`.
 -->
 <script lang="ts">
-  import BillingToggle from "./BillingToggle.svelte";
+  import IntervalSelector from "./IntervalSelector.svelte";
   import PricingCard from "./PricingCard.svelte";
   import type {
     UIPlanEntry,
@@ -142,15 +142,14 @@
 
 <section class={className}>
   {#if showToggle}
-    <div class="mb-6 flex justify-center">
-      <BillingToggle
+      <IntervalSelector
         cycles={availableCycles}
         value={effectiveCycle}
         {cycleBadges}
         onValueChange={onCycleChange}
         {labels}
+        class="mb-6"
       />
-    </div>
   {/if}
 
   <div class={`grid gap-1 ${gridColumnsClass}`}>

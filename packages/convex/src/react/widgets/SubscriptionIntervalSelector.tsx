@@ -1,5 +1,5 @@
 import { useContext } from "react";
-import { SegmentGroup } from "../primitives/SegmentGroup.js";
+import { IntervalSelector } from "../primitives/IntervalSelector.js";
 import type {
   RecurringCycle,
   SupportedRecurringCycle,
@@ -40,35 +40,16 @@ export const SubscriptionIntervalSelector = ({
     requestedValue && resolvedCycles.includes(requestedValue)
       ? requestedValue
       : resolvedCycles[0];
-  const handleValueChange = onValueChange ?? rootContext?.setCycle;
-  const unstyled = rootContext?.unstyled ?? false;
-  const labels = rootContext?.labels;
-  const resolvedCycleBadges = cycleBadges ?? rootContext?.cycleBadges;
-
-  if (resolvedCycles.length <= 1 || !resolvedValue || !handleValueChange) {
-    return null;
-  }
-
-  const items = resolvedCycles.map((cycle) => ({
-    value: cycle,
-    label: labels?.billingCycle[cycle] ?? cycle,
-    badge: cycle === "custom" ? undefined : resolvedCycleBadges?.[cycle],
-  }));
 
   return (
-    <div
-      className={
-        unstyled
-          ? className
-          : `creem-base:flex creem-base:justify-center ${className}`
-      }
-    >
-      <SegmentGroup
-        items={items}
-        value={resolvedValue}
-        unstyled={unstyled}
-        onValueChange={(v) => handleValueChange(v as RecurringCycle)}
-      />
-    </div>
+    <IntervalSelector
+      cycles={resolvedCycles}
+      value={resolvedValue}
+      onValueChange={onValueChange ?? rootContext?.setCycle}
+      cycleBadges={cycleBadges ?? rootContext?.cycleBadges}
+      unstyled={rootContext?.unstyled ?? false}
+      labels={rootContext?.labels}
+      className={className}
+    />
   );
 };

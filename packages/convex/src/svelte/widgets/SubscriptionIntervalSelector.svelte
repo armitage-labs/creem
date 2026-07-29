@@ -1,6 +1,13 @@
+<!--
+  @component
+  Renders the billing interval selector control.
+
+  Automatically hides when only one interval is available for the active group.
+  Typically placed inside `Subscription.Root` with `intervalSelector="external"`.
+-->
 <script lang="ts">
   import { getContext } from "svelte";
-  import SegmentGroup from "../primitives/SegmentGroup.svelte";
+  import IntervalSelector from "../primitives/IntervalSelector.svelte";
   import type { RecurringCycle, SupportedRecurringCycle } from "../../core/types.js";
   import {
     SUBSCRIPTION_CONTEXT_KEY,
@@ -27,6 +34,7 @@
     cycleBadges,
     class: className = "",
   }: Props = $props();
+
   const rootContext = getContext<SubscriptionContextValue | undefined>(
     SUBSCRIPTION_CONTEXT_KEY,
   );
@@ -39,22 +47,18 @@
       ? requestedValue
       : resolvedCycles[0],
   );
-  const unstyled = $derived(rootContext?.getUnstyled() ?? false);
-  const resolvedClass = $derived(
-    unstyled ? className : `creem-base:flex creem-base:justify-center ${className}`,
-  );
-
-  const items = $derived(
-    resolvedCycles.map((cycle) => ({
-      value: cycle,
-      label: rootContext?.getLabels().billingCycle[cycle] ?? cycle,
-      badge:
-        (cycle === "custom" ? undefined : cycleBadges?.[cycle]) ??
-        (cycle === "custom" ? undefined : rootContext?.getCycleBadge(cycle)),
-    })),
-  );
-  const handleValueChange = (next: string) => {
-    const cycle = next as RecurringCycle;
+  // Root badges merge per cycle rather than being replaced wholesale, matching
+  // this component's behaviour before the selector implementations were merged.
+  const resolvedBadges = $derived.by(() => {
+    const merged: Partial<Record<SupportedRecurringCycle, string>> = {};
+    for (const cycle of resolvedCycles) {
+      if (cycle === "custom") continue;
+      const badge = cycleBadges?.[cycle] ?? rootContext?.getCycleBadge(cycle);
+      if (badge) merged[cycle] = badge;
+    }
+    return merged;
+  });
+  const handleValueChange = (cycle: RecurringCycle) => {
     if (onValueChange) {
       onValueChange(cycle);
       return;
@@ -63,13 +67,12 @@
   };
 </script>
 
-{#if resolvedCycles.length > 1 && resolvedValue}
-  <div class={resolvedClass}>
-    <SegmentGroup
-      {items}
-      value={resolvedValue}
-      {unstyled}
-      onValueChange={handleValueChange}
-    />
-  </div>
-{/if}
+<IntervalSelector
+  cycles={resolvedCycles}
+  value={resolvedValue}
+  onValueChange={handleValueChange}
+  cycleBadges={resolvedBadges}
+  unstyled={rootContext?.getUnstyled() ?? false}
+  labels={rootContext?.getLabels() ?? undefined}
+  class={className}
+/>

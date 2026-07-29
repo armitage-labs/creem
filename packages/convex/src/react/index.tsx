@@ -5,7 +5,6 @@ export {
 } from "../core/payments.js";
 export { pendingCheckout } from "../core/pendingCheckout.js";
 export { useCheckoutSuccessParams } from "./hooks/useCheckoutSuccessParams.js";
-export { BillingToggle } from "./primitives/BillingToggle.js";
 export { SegmentGroup } from "./primitives/SegmentGroup.js";
 export type { SegmentGroupItem } from "./primitives/SegmentGroup.js";
 export { NumberInput } from "./primitives/NumberInput.js";

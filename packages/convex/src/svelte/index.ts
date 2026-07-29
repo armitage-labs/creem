@@ -3,7 +3,6 @@ export {
   hasCheckoutSuccessParams,
 } from "../core/payments.js";
 export { pendingCheckout } from "../core/pendingCheckout.js";
-export { default as BillingToggle } from "./primitives/BillingToggle.svelte";
 export { default as SegmentGroup } from "./primitives/SegmentGroup.svelte";
 export { default as NumberInput } from "./primitives/NumberInput.svelte";
 export { default as CheckoutButton } from "./primitives/CheckoutButton.svelte";

@@ -78,10 +78,10 @@ The component supports two trial paths:
   `trialDays` is display only. Creem still runs the trial, and once the subscription exists the card switches to a live countdown from `trialEnd` and stops reading the field.
 
   <Note>
-    Creem's product API doesn't carry trial length yet, so the
-    catalog is where the card learns it. One effect worth knowing: the length lives in two places,
-    so update the catalog whenever you change the trial on the product. Prefer it to come from Creem
-    instead? Two requests would get it there: [trial information and duration in
+    Creem's product API doesn't carry trial length yet, so the catalog is where the card learns it.
+    One effect worth knowing: the length lives in two places, so update the catalog whenever you
+    change the trial on the product. Prefer it to come from Creem instead? Two requests would get it
+    there: [trial information and duration in
     `/v1/products`](https://creem.featurebase.app/p/expose-trial-information-and-duration-in-v1products),
     so the component syncs it alongside price and title, or [Creem as
     Code](https://creem.featurebase.app/p/creem-as-code-cli-based-product-and-billing-configuration),
@@ -318,4 +318,4 @@ const billing = createCreemReact({
 
 - `subscriptions.update`, `cancel`, `resume`, and `cancelScheduledUpdate` in the connected API each unlock their controls; omit what you don't want users doing.
 - UI permissions are cosmetic. Server functions must still check real access. See [Advanced → Custom auth and RBAC](/code/sdks/convex/advanced#custom-auth-and-rbac).
-- The full prop reference for `Subscription.Root`, `Subscription.Item`, and every slot component lives in the [package README](https://github.com/armitage-labs/creem/tree/main/packages/convex#component-reference).
+- The full prop reference for `Subscription.Root`, `Subscription.Item`, and every slot component lives in the [Reference](/code/sdks/convex/reference#component-reference).
