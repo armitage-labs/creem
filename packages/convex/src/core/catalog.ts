@@ -11,6 +11,10 @@ import type {
   AppPlanActivation,
 } from "./types.js";
 
+/**
+ * The state an eligibility rule is evaluated against: prior activations and the
+ * entity's current plans.
+ */
 export type AppPlanEligibilityContext = {
   /**
    * Currently active catalog plan ID.
@@ -45,10 +49,24 @@ const PLAN_CATEGORY_SET = new Set(PLAN_CATEGORIES);
 const BILLING_TYPE_SET = new Set(BILLING_TYPES);
 const RECURRING_CYCLE_SET = new Set(SUPPORTED_RECURRING_CYCLES);
 
+/**
+ * Defines the app-owned billing catalog: the plan IDs your UI renders and the
+ * Creem product IDs behind them.
+ *
+ * Pass the literal with `as const` so plan IDs stay literal types and `plansOf`
+ * can reject a typo at compile time. The same catalog is used on the client for
+ * rendering and on the server for fulfillment and eligibility.
+ */
 export const defineBillingCatalog = <const TCatalog extends PlanCatalog>(
   catalog: TCatalog,
 ): TCatalog => catalog;
 
+/**
+ * Selects plans from a catalog by ID, preserving their order.
+ *
+ * Plan IDs are checked against the catalog, so a renamed or misspelled plan is a
+ * compile error rather than a card that silently fails to render.
+ */
 export const plansOf = <
   const TCatalog extends PlanCatalog,
   const TPlanIds extends readonly PlanId<TCatalog>[],

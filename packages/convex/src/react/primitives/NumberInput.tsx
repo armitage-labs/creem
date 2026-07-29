@@ -1,6 +1,11 @@
 import type { ChangeEvent } from "react";
 import { defaultBillingLabels } from "../../core/i18n.js";
 
+/**
+ * Stepper input used by `Subscription.UnitPicker`.
+ *
+ * Exported so a replacement unit control can match the built-in styling.
+ */
 export const NumberInput = ({
   value = 1,
   min = Number.NEGATIVE_INFINITY,

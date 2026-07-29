@@ -1,3 +1,9 @@
+<!--
+  @component
+  Stepper input used by `Subscription.UnitPicker`.
+
+  Exported so a replacement unit control can match the built-in styling.
+-->
 <script lang="ts">
   import { defaultBillingLabels } from "../../core/i18n.js";
 

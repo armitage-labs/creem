@@ -4,6 +4,12 @@ type ConvexErrorData = {
   message?: unknown;
 };
 
+/**
+ * Extracts the human-readable message from a thrown Convex error, falling back
+ * to a generic string for non-Convex errors.
+ *
+ * Use it when surfacing billing failures in your own UI.
+ */
 export const getConvexErrorMessage = (
   error: unknown,
   fallback: string,

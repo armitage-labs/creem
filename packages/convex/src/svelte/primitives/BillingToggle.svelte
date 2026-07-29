@@ -1,3 +1,10 @@
+<!--
+  @component
+  Billing-cycle segment control, such as Monthly and Yearly.
+
+  Rendered internally by `PricingSection`. Inside a `Subscription.Root`, use
+  `Subscription.IntervalSelector`, which is wired to the root's cycle state.
+-->
 <script lang="ts">
   /* global $props */
   import type { RecurringCycle, SupportedRecurringCycle } from "../../core/types.js";

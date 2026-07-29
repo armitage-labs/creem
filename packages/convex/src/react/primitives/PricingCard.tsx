@@ -26,6 +26,13 @@ const computeTrialDays = (trialEnd: string): number => {
   return Math.max(0, Math.ceil((end - now) / (1000 * 60 * 60 * 24)));
 };
 
+/**
+ * A single plan card: badge, title, price, description, and action button.
+ *
+ * Rendered by `PricingSection` and `Subscription.Item`. It takes plain props and
+ * calls nothing, so reach for it only when replacing the card entirely rather
+ * than composing one.
+ */
 export const PricingCard = ({
   plan,
   selectedCycle,

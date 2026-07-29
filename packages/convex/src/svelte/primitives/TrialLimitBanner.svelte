@@ -1,3 +1,11 @@
+<!--
+  @component
+  Page-level notice that the entity is on a trial.
+
+  `Subscription.Root` already shows a countdown badge on the active plan card, so
+  reach for this banner where no pricing card renders, such as an app shell or
+  dashboard header. Renders nothing when no subscription is trialing.
+-->
 <script lang="ts">
   import type { BillingSnapshot } from "../../core/types.js";
   import {
@@ -7,11 +15,25 @@
   } from "../../core/i18n.js";
 
   interface Props {
+    /**
+     * Billing state to read the trialing subscription from; the banner renders
+     * nothing when none is trialing.
+     */
     snapshot?: BillingSnapshot | null;
     /** Override the trial end date resolved from the snapshot. */
     trialEndsAt?: string | null;
+    /**
+     * CSS class for the wrapper element.
+     */
     class?: string;
+    /**
+     * Text overrides, read from `labels.trialBanner`.
+     */
     labels?: BillingLabels;
+    /**
+     * Date formatter for the trial end date; pass the provider's formatter to
+     * keep formatting consistent.
+     */
     formatDate?: (input: BillingDateFormatInput) => string;
   }
 

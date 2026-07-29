@@ -9,6 +9,9 @@ import type {
 
 export const CREEM_CONVEX_CONTEXT_KEY = Symbol("creem-convex-context");
 
+/**
+ * The value `CreemConvexProvider` accepts and every connected widget reads.
+ */
 export interface CreemConvexContextValue {
   readonly api: ConnectedBillingApi;
   readonly catalog?: PlanCatalog;

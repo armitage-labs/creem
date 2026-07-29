@@ -1,3 +1,14 @@
+<!--
+  @component
+  Context boundary every connected widget reads.
+
+  Render it around any `Subscription`, `Product`, `BillingPortal`,
+  `BillingHistory`, or `Credits` widget and pass the connected API once; widgets
+  no longer take `api` props themselves.
+
+  `createCreemReact` / `createCreemSvelte` return a spreadable binding, so
+  `<CreemConvexProvider {...billing}>` wires catalog, API, and defaults together.
+-->
 <script lang="ts">
   import { setContext, type Snippet } from "svelte";
   import type { PlanCatalog, RecurringCycle } from "../core/types.js";

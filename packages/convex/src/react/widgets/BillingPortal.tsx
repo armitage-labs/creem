@@ -8,13 +8,29 @@ import {
 import type { BillingPermissions, ConnectedBillingModel } from "./types.js";
 import { resolveBillingI18n } from "../../core/i18n.js";
 
+/**
+ * Button that opens the Creem customer billing portal.
+ *
+ * Renders nothing when the billing entity has no Creem customer record yet
+ * (customers are created on first checkout) or when `canAccessPortal` is false.
+ */
 export const BillingPortal = ({
   permissions,
   className = "",
   children,
 }: PropsWithChildren<{
+  /**
+   * Local permission override such as `{ canAccessPortal: false }`; it hides
+   * the button rather than enforcing access.
+   */
   permissions?: BillingPermissions;
+  /**
+   * CSS class for the wrapper element.
+   */
   class?: string;
+  /**
+   * CSS class for the wrapper element.
+   */
   className?: string;
 }>) => {
   const provider = useCreemConvex();

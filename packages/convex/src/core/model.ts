@@ -93,10 +93,10 @@ export type ConnectedBillingModel = {
 
 /**
  * Plan type for `<Subscription.Item>`.
- * - `"free"` — free tier, no checkout
- * - `"single"` — standard paid plan (flat pricing)
- * - `"unit-based"` — per-unit pricing with optional unit picker
- * - `"enterprise"` — "Contact sales" CTA, no checkout
+ *
+ * - `"free"` — free tier, no checkout - `"single"` — standard paid plan (flat
+ * pricing) - `"unit-based"` — per-unit pricing with optional unit picker -
+ * `"enterprise"` — "Contact sales" CTA, no checkout
  */
 export type SubscriptionPlanType =
   | "free"
@@ -104,6 +104,10 @@ export type SubscriptionPlanType =
   | "unit-based"
   | "enterprise";
 
+/**
+ * A plan registered on `Subscription.Root`, either from the catalog or inline via
+ * `Subscription.Item`.
+ */
 export type SubscriptionPlanRegistration = {
   planId: string;
   type?: SubscriptionPlanType;
@@ -116,6 +120,10 @@ export type SubscriptionPlanRegistration = {
   productIds?: Partial<Record<RecurringCycle, string>>;
 };
 
+/**
+ * One audience group on `Subscription.Root`, such as Individual or Teams, with
+ * the plans it contains.
+ */
 export type SubscriptionGroupRegistration = {
   value: string;
   label: string;
@@ -125,15 +133,18 @@ export type SubscriptionGroupRegistration = {
 
 /**
  * Product type for `<Product.Item>`.
- * - `"one-time"` — purchased once, shows "Owned" badge after purchase
- * - `"recurring"` — can be purchased multiple times (consumable), no "Owned" badge
+ *
+ * - `"one-time"` — purchased once, shows "Owned" badge after purchase -
+ * `"recurring"` — can be purchased multiple times (consumable), no "Owned"
+ * badge
  */
 export type ProductType = "one-time" | "recurring";
 
 /**
  * Upgrade path rule for `<Product.Root transition={[...]}>`.
- * - `"direct"` — checkout uses the target product directly
- * - `"via_product"` — checkout uses a dedicated upgrade product (delta pricing)
+ *
+ * - `"direct"` — checkout uses the target product directly - `"via_product"` —
+ * checkout uses a dedicated upgrade product (delta pricing)
  */
 export type Transition =
   | { from: string; to: string; kind: "direct" }
@@ -145,6 +156,9 @@ export type Transition =
       viaProductId: string;
     };
 
+/**
+ * A product registered on `Product.Root` via `Product.Item`.
+ */
 export type ProductItemRegistration = {
   productId: string;
   type: ProductType;

@@ -1,3 +1,8 @@
+<!--
+  @component
+  Banner shown while a subscription is in a recoverable failed-payment state,
+  prompting the customer to update their payment method.
+-->
 <script lang="ts">
   import type {
     BillingSnapshotSubscription,

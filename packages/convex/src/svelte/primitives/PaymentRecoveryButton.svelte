@@ -1,3 +1,9 @@
+<!--
+  @component
+  Button that sends the customer to the portal to fix a failed payment.
+
+  Pair it with `PaymentRecoveryBanner` or render it on its own.
+-->
 <script lang="ts">
   import { getContext } from "svelte";
   import { useConvexClient } from "convex-svelte";

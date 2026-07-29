@@ -1,3 +1,10 @@
+<!--
+  @component
+  Styled button for opening the customer billing portal.
+
+  A low-level primitive that calls nothing on its own. `BillingPortal` is the
+  connected widget that resolves the portal URL for you.
+-->
 <script lang="ts">
   /* global $props, $state */
   import type { Snippet } from "svelte";

@@ -14,6 +14,13 @@ import {
 } from "../../core/i18n.js";
 import type { ConnectedProduct } from "../widgets/types.js";
 
+/**
+ * Grid of pricing cards with an optional billing-cycle toggle.
+ *
+ * This is what `Subscription.Root` renders when you pass it no children, and it
+ * takes plain props rather than reading the provider, so you rarely need it
+ * directly. For custom cards prefer `unstyled` mode on `Subscription.Root`.
+ */
 export const PricingSection = ({
   plans = [],
   activePlanId,

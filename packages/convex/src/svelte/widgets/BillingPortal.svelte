@@ -1,3 +1,10 @@
+<!--
+  @component
+  Button that opens the Creem customer billing portal.
+
+  Renders nothing when the billing entity has no Creem customer record yet
+  (customers are created on first checkout) or when `canAccessPortal` is false.
+-->
 <script lang="ts">
   import { getContext } from "svelte";
   import { useConvexClient, useQuery } from "convex-svelte";

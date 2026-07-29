@@ -7,6 +7,7 @@ import type {
 /**
  * Structural billing types are derived from the Convex validators in
  * `validators.ts` so the wire format and the TypeScript contract cannot drift.
+ *
  * The simple string unions below stay hand-written for readable docs and are
  * asserted against their validators at the bottom of this file.
  */
@@ -64,8 +65,9 @@ export type OneTimePaymentStatus =
 
 /**
  * Actions the current billing entity is allowed to perform.
- * Resolved by `resolveBillingSnapshot` based on subscription state.
- * Use with `<BillingGate requiredActions="...">` for conditional UI rendering.
+ *
+ * Resolved by `resolveBillingSnapshot` based on subscription state. Use with
+ * `<BillingGate requiredActions="...">` for conditional UI rendering.
  */
 export type AvailableAction =
   | "checkout"
@@ -78,12 +80,16 @@ export type AvailableAction =
 
 /**
  * Payment recovery state derived from subscription status.
- * - `"none"` — all subscriptions healthy
- * - `"warning"` — a subscription is past due but still active
- * - `"blocked"` — a subscription is unpaid or expired
+ *
+ * - `"none"` — all subscriptions healthy - `"warning"` — a subscription is past
+ * due but still active - `"blocked"` — a subscription is unpaid or expired
  */
 export type PaymentRecoveryState = "none" | "warning" | "blocked";
 
+/**
+ * A Creem product reference on a catalog plan: either a bare product ID or an
+ * object carrying extra per-cycle detail.
+ */
 export type CatalogProductRef =
   | string
   | {
@@ -91,6 +97,10 @@ export type CatalogProductRef =
       productSlug?: string;
     };
 
+/**
+ * What happens to granted credits when the purchase is refunded:
+ * `"revoke_on_full_refund"`, `"prorate"`, `"debit"`, or `"none"`.
+ */
 export type CreditGrantRefundBehavior =
   | "revoke_on_full_refund"
   | "prorate"
@@ -222,6 +232,12 @@ export type PlanCatalog = {
   defaultPlanId?: string;
 };
 
+/**
+ * Extracts the literal union of plan IDs from a catalog defined with `as
+ * const`.
+ *
+ * Use it to type app code that must accept only real plans.
+ */
 export type PlanId<TCatalog extends { plans: readonly { planId: string }[] }> =
   TCatalog["plans"][number]["planId"];
 
@@ -279,6 +295,7 @@ export type CheckoutSuccessParams = {
 
 /**
  * Intent object passed to `onBeforeCheckout` and stored by `pendingCheckout`.
+ *
  * Represents the product and optional unit count the user wants to purchase.
  */
 export type CheckoutIntent = {
@@ -348,6 +365,10 @@ export type UnitUpdateBehaviorIntent = BaseUpdateBehaviorIntent & {
   target: "units";
 };
 
+/**
+ * Details of a pending paid-to-free switch, passed to a `freePlanUpdateBehavior`
+ * resolver so it can choose per transition.
+ */
 export type FreePlanUpdateBehaviorIntent = BaseUpdateBehaviorIntent & {
   /** Paid subscription to app-owned target plan. `freePlanUpdateBehavior` may return only `"period-end"` or `"immediate"`. */
   kind: "plan-switch";
@@ -365,12 +386,19 @@ export type UpdateBehaviorResolver = (
   intent: UpdateBehaviorIntent,
 ) => UpdateBehavior;
 
+/**
+ * An `UpdateBehavior` value, or a resolver that returns one per intent, for
+ * example to prorate upgrades but defer downgrades to period end.
+ */
 export type UpdateBehaviorSetting = UpdateBehavior | UpdateBehaviorResolver;
 
 export type FreePlanUpdateBehaviorResolver = (
   intent: FreePlanUpdateBehaviorIntent,
 ) => FreePlanUpdateBehavior;
 
+/**
+ * A `FreePlanUpdateBehavior` value, or a resolver that returns one per intent.
+ */
 export type FreePlanUpdateBehaviorSetting =
   | FreePlanUpdateBehavior
   | FreePlanUpdateBehaviorResolver;
@@ -413,6 +441,7 @@ export type UsageLimitResult = Record<string, UsageLimitEntry>;
 
 /**
  * Intent object passed to `onBeforePlanChange`.
+ *
  * Describes the plan change the user is about to make.
  */
 export type PlanChangeIntent = {

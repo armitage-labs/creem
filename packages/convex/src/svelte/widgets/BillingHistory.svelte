@@ -1,3 +1,10 @@
+<!--
+  @component
+  Paginated transaction history backed by Creem's transaction search endpoint.
+
+  Renders transaction rows only; invoice and receipt documents are not included.
+  Requires `transactions.search` in the connected API.
+-->
 <script lang="ts">
   import { getContext } from "svelte";
   import { useConvexClient } from "convex-svelte";

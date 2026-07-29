@@ -2,6 +2,9 @@ import { useMemo } from "react";
 import type { PaymentSnapshot } from "../../core/types.js";
 import { defaultBillingLabels, type BillingLabels } from "../../core/i18n.js";
 
+/**
+ * Warning banner for a pending, refunded, or partially refunded payment.
+ */
 export const PaymentWarningBanner = ({
   payment,
   className = "",

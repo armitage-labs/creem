@@ -4,7 +4,9 @@ import { useSubscriptionItem } from "./subscriptionItemContext.js";
 
 /**
  * Renders the plan title from item context.
- * Must be used inside a `<Subscription.Item>` with children (styled composition mode).
+ *
+ * Must be used inside a `<Subscription.Item>` with children (styled composition
+ * mode).
  */
 export const SubscriptionItemTitle = ({
   className = "",
@@ -23,7 +25,9 @@ export const SubscriptionItemTitle = ({
 
 /**
  * Renders the plan price from item context.
- * Must be used inside a `<Subscription.Item>` with children (styled composition mode).
+ *
+ * Must be used inside a `<Subscription.Item>` with children (styled composition
+ * mode).
  */
 export const SubscriptionItemPrice = ({
   className = "",
@@ -47,6 +51,7 @@ export const SubscriptionItemPrice = ({
 
 /**
  * Renders the secondary unit-price calculation from item context.
+ *
  * Must be used inside a `<Subscription.Item>` with children.
  */
 export const SubscriptionItemPriceCaption = ({
@@ -71,7 +76,9 @@ export const SubscriptionItemPriceCaption = ({
 
 /**
  * Renders the plan description from item context.
- * Must be used inside a `<Subscription.Item>` with children (styled composition mode).
+ *
+ * Must be used inside a `<Subscription.Item>` with children (styled composition
+ * mode).
  */
 export const SubscriptionItemDescription = ({
   className = "",
@@ -95,8 +102,10 @@ export const SubscriptionItemDescription = ({
 
 /**
  * Renders the plan CTA button from item context.
- * Shows different labels/states based on whether the plan is active, available for checkout, or switchable.
- * Must be used inside a `<Subscription.Item>` with children (styled composition mode).
+ *
+ * Shows different labels/states based on whether the plan is active, available
+ * for checkout, or switchable. Must be used inside a `<Subscription.Item>` with
+ * children (styled composition mode).
  */
 export const SubscriptionItemCTA = ({
   className = "",
@@ -164,6 +173,7 @@ export const SubscriptionItemCTA = ({
 
 /**
  * Renders the active subscription cancel action from item context.
+ *
  * Must be used inside a `<Subscription.Item>` with children.
  */
 export const SubscriptionCancel = ({
@@ -194,6 +204,7 @@ export const SubscriptionCancel = ({
 
 /**
  * Renders a unit picker for unit-based plans from item context.
+ *
  * Must be used inside a `<Subscription.Item>` with children.
  */
 export const SubscriptionUnitPicker = ({
@@ -359,8 +370,11 @@ export const SubscriptionUnitPicker = ({
 };
 
 /**
- * Renders a badge on a plan card (e.g. "Popular", "Recommended", "Best for teams").
- * Must be used inside a `<Subscription.Item>` with children (styled composition mode).
+ * Renders a badge on a plan card (e.g. "Popular", "Recommended", "Best for
+ * teams").
+ *
+ * Must be used inside a `<Subscription.Item>` with children (styled composition
+ * mode).
  */
 export const SubscriptionItemBadge = ({
   label,

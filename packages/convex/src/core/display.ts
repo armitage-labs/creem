@@ -11,6 +11,9 @@ import {
   type BillingLabels,
 } from "./i18n.js";
 
+/**
+ * The subset of a synced product needed to format a price.
+ */
 export type PricedProduct = {
   id: string;
   price?: number;

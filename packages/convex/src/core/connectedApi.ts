@@ -37,8 +37,10 @@ export type CheckoutCreateFunction = FunctionReference<
 
 /**
  * Convex requires flat object args, so the reference's arg type is the
- * permissive wire shape. Author payloads as {@link SubscriptionUpdateArgs} —
- * the discriminated union — and the mutation re-checks them server-side.
+ * permissive wire shape.
+ *
+ * Author payloads as {@link SubscriptionUpdateArgs} — the discriminated union —
+ * and the mutation re-checks them server-side.
  */
 export type SubscriptionUpdateFunction = FunctionReference<
   "mutation",

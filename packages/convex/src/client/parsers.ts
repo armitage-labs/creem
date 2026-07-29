@@ -57,6 +57,7 @@ export const getCustomerId = (
 
 /**
  * Extract billing entity ID from webhook metadata.
+ *
  * Prefers convexBillingEntityId, falls back to convexUserId.
  */
 export const getConvexEntityId = (metadata: unknown): string | null => {

@@ -1,5 +1,6 @@
 /**
  * Widget types live in `core/` so React and Svelte share one definition.
+ *
  * This module re-exports them for the React entry point.
  */
 export type {

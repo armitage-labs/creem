@@ -1,6 +1,13 @@
 import { useState, type PropsWithChildren } from "react";
 import { defaultBillingLabels, type BillingLabels } from "../../core/i18n.js";
 
+/**
+ * Styled checkout button.
+ *
+ * Works in callback mode via `onCheckout` or link mode via `href`. A low-level
+ * primitive: inside a `Subscription.Root`, use `Subscription.ItemCTA`, which is
+ * wired to the root's checkout flow.
+ */
 export const CheckoutButton = ({
   productId,
   href,
@@ -10,11 +17,29 @@ export const CheckoutButton = ({
   labels = defaultBillingLabels,
   children,
 }: PropsWithChildren<{
+  /**
+   * Creem product to check out, passed back to `onCheckout`.
+   */
   productId: string;
+  /**
+   * Link mode: navigate straight to this URL instead of calling `onCheckout`.
+   */
   href?: string;
+  /**
+   * Disable the button, for example while a checkout is already in flight.
+   */
   disabled?: boolean;
+  /**
+   * CSS class for the wrapper element.
+   */
   className?: string;
+  /**
+   * Callback mode: receives `{ productId }` when the button is pressed.
+   */
   onCheckout?: (payload: { productId: string }) => Promise<void> | void;
+  /**
+   * Label overrides for the default button text.
+   */
   labels?: BillingLabels;
 }>) => {
   const [isLoading, setIsLoading] = useState(false);

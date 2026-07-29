@@ -60,9 +60,9 @@ export const isTerminalPaymentStatus = (status: OneTimePaymentStatus) =>
 
 /**
  * Derive payment recovery state from one or more subscriptions.
- * - `"none"` — no payment issues
- * - `"warning"` — at least one subscription is `past_due`
- * - `"blocked"` — at least one subscription is `unpaid` or `expired`
+ *
+ * - `"none"` — no payment issues - `"warning"` — at least one subscription is
+ * `past_due` - `"blocked"` — at least one subscription is `unpaid` or `expired`
  */
 export const derivePaymentRecoveryState = (
   subscriptions:
@@ -92,8 +92,9 @@ export const derivePaymentRecoveryState = (
 
 /**
  * Extract owned product IDs from paid orders.
- * Accepts the `ownedProductIds` array from `ConnectedBillingModel` or
- * an array of order-like objects with a `productId` and `status` field.
+ *
+ * Accepts the `ownedProductIds` array from `ConnectedBillingModel` or an array
+ * of order-like objects with a `productId` and `status` field.
  */
 export const selectOwnedProductIds = (
   orders:

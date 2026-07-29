@@ -1,3 +1,10 @@
+<!--
+  @component
+  Success banner for the post-checkout return page.
+
+  Parses Creem's query parameters from the URL unless you pass `params` or
+  `search` explicitly.
+-->
 <script lang="ts">
   /* global $props, $derived */
   import {

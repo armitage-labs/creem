@@ -155,8 +155,10 @@ export const connectedBillingUserValidator = v.object({
 
 /**
  * `catalog` is app-authored data round-tripping through the query, so it is
- * intentionally unvalidated. The `PlanCatalog` TypeScript type is the contract;
- * a strict validator here would reject catalogs carrying app-specific metadata.
+ * intentionally unvalidated.
+ *
+ * The `PlanCatalog` TypeScript type is the contract; a strict validator here
+ * would reject catalogs carrying app-specific metadata.
  */
 export const connectedBillingModelValidator = v.object({
   user: v.union(connectedBillingUserValidator, v.null()),
@@ -238,6 +240,7 @@ export const creditEntryListValidator = v.object({
 
 /**
  * Convex arg validator for checkout creation.
+ *
  * Matches the args sent by `<Subscription.Root>` and `<Product.Root>` widgets.
  * Use in your own `action()` definitions for custom RBAC wrappers.
  */
@@ -449,6 +452,7 @@ export const parseSubscriptionUpdateArgs = (
 
 /**
  * Convex arg validator for subscription cancellation.
+ *
  * Matches the args sent by `<Subscription.Root>` cancel button.
  */
 export const subscriptionCancelArgs = {
@@ -458,6 +462,7 @@ export const subscriptionCancelArgs = {
 
 /**
  * Convex arg validator for subscription resume.
+ *
  * Matches the args sent by `<Subscription.Root>` resume button.
  */
 export const subscriptionResumeArgs = {
@@ -470,6 +475,7 @@ export const subscriptionCancelScheduledUpdateArgs = {
 
 /**
  * Convex arg validator for subscription pause.
+ *
  * Matches the args sent by `<Subscription.Root>` pause button.
  */
 export const subscriptionPauseArgs = {
@@ -478,6 +484,7 @@ export const subscriptionPauseArgs = {
 
 /**
  * Convex arg validator for app-owned plan activation.
+ *
  * Matches the args sent by `<Subscription.Root>` for `category: "free"`,
  * `category: "trial"`, and other custom app-owned plans.
  */
@@ -487,6 +494,7 @@ export const appPlanActivateArgs = {
 
 /**
  * Convex arg validator for transaction history search.
+ *
  * Matches the args sent by `<BillingHistory>` widgets.
  */
 export const transactionsSearchArgs = {
@@ -498,6 +506,7 @@ export const transactionsSearchArgs = {
 
 /**
  * Convex arg validator for listing the current entity's default credit entries.
+ *
  * The account is resolved server-side and cannot be selected by the client.
  */
 export const creditsListEntriesArgs = {
@@ -525,27 +534,98 @@ export type PaymentRecoveryStateFromValidator = Infer<
 export type AvailableActionFromValidator = Infer<
   typeof availableActionValidator
 >;
+/**
+ * One Creem recurring subscription in the billing snapshot.
+ *
+ * An entity can hold several at once, such as a base plan plus add-ons.
+ */
 export type BillingSnapshotSubscription = Infer<
   typeof billingSnapshotSubscriptionValidator
 >;
+/**
+ * One Creem order in the billing snapshot.
+ *
+ * Subscription checkouts create orders too, but only one-time orders surface as
+ * owned access.
+ */
 export type BillingSnapshotOrder = Infer<typeof billingSnapshotOrderValidator>;
+/**
+ * A current or scheduled app-owned plan (free, no-card trial, custom) recorded
+ * by the component.
+ *
+ * These have no Creem subscription behind them.
+ */
 export type AppPlanAssignment = Infer<typeof appPlanAssignmentValidator>;
+/**
+ * A historical record that an entity activated an app-owned plan.
+ *
+ * Backs the once-per-entity eligibility rule.
+ */
 export type AppPlanActivation = Infer<typeof appPlanActivationValidator>;
+/**
+ * A pending app-side period-end change: the target plan or unit count and when
+ * it applies.
+ *
+ * Undo it with `subscriptions.cancelScheduledUpdate`.
+ */
 export type ScheduledSubscriptionUpdate = Infer<
   typeof scheduledSubscriptionUpdateValidator
 >;
+/**
+ * One derived entry in `snapshot.access`, flattening a subscription, a paid
+ * one-time order, or an app-plan assignment into a single shape.
+ */
 export type BillingAccessItem = Infer<typeof billingAccessItemValidator>;
+/**
+ * The complete billing state for one entity: Creem subscriptions and orders, the
+ * component's own app-plan assignments, and the derived `access` list.
+ *
+ * `access` is recomputed on every read from the other three, so treat it as a
+ * read model rather than a source of truth.
+ */
 export type BillingSnapshot = Infer<typeof billingSnapshotValidator>;
+/**
+ * A Creem product as synced into Convex: price, currency, interval, and display
+ * fields.
+ *
+ * Widgets resolve card prices from these rows rather than calling Creem.
+ */
 export type ConnectedProduct = Infer<typeof connectedProductValidator>;
+/**
+ * The entity's active subscription as the widget model sees it, including the
+ * resolved plan, unit count, and scheduled-change state.
+ */
 export type ConnectedActiveSubscription = Infer<
   typeof connectedActiveSubscriptionValidator
 >;
+/**
+ * The signed-in user as passed to `getBillingModel`, used for checkout
+ * prefill.
+ */
 export type ConnectedBillingUser = Infer<typeof connectedBillingUserValidator>;
+/**
+ * A single row of Creem transaction history as returned by `transactions.search`.
+ */
 export type ConnectedTransaction = Infer<typeof connectedTransactionValidator>;
+/**
+ * Cursor state for a paginated Creem list response.
+ */
 export type ConnectedPagination = Infer<typeof connectedPaginationValidator>;
+/**
+ * One page of transaction history, plus the cursor state for the next page.
+ */
 export type ConnectedTransactionList = Infer<
   typeof connectedTransactionListValidator
 >;
+/**
+ * An entity's Customer Credits balance for one account.
+ */
 export type CreditBalance = Infer<typeof creditBalanceValidator>;
+/**
+ * A single credit ledger entry: the amount, its reference, and when it landed.
+ */
 export type CreditEntry = Infer<typeof creditEntryValidator>;
+/**
+ * One page of credit ledger entries plus whether more remain.
+ */
 export type CreditEntryList = Infer<typeof creditEntryListValidator>;

@@ -5,6 +5,12 @@ import {
 import type { CheckoutSuccessParams } from "../../core/types.js";
 import { defaultBillingLabels, type BillingLabels } from "../../core/i18n.js";
 
+/**
+ * Success banner for the post-checkout return page.
+ *
+ * Parses Creem's query parameters from the URL unless you pass `params` or
+ * `search` explicitly.
+ */
 export const CheckoutSuccessSummary = ({
   params,
   search = "",

@@ -1,3 +1,7 @@
+<!--
+  @component
+  Warning banner for a pending, refunded, or partially refunded payment.
+-->
 <script lang="ts">
   /* global $props, $derived */
   import type { PaymentSnapshot } from "../../core/types.js";

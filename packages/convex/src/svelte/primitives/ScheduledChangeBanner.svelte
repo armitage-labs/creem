@@ -1,3 +1,11 @@
+<!--
+  @component
+  Notice for a scheduled cancellation or an app-side period-end update.
+
+  Inside a connected provider, pass `subscriptionId` and the widget derives the
+  period, the pending update, its label, and the undo/resume handlers from the
+  billing model. The remaining props are overrides for unconnected use.
+-->
 <script lang="ts">
   /* global $props, $derived */
   import { getContext } from "svelte";

@@ -13,17 +13,30 @@ export type PartialDeep<T> = {
       : T[K];
 };
 
+/**
+ * Input handed to a custom `formatCurrency` implementation: the amount in minor
+ * units plus its currency.
+ */
 export type BillingCurrencyFormatInput = {
   amount: number;
   currency: string;
   locale?: string;
 };
 
+/**
+ * Input handed to a custom `formatDate` implementation.
+ */
 export type BillingDateFormatInput = {
   date: Date;
   locale?: string;
 };
 
+/**
+ * The complete, resolved set of UI strings.
+ *
+ * Widgets read this shape; pass `BillingLabelOverrides` to change only some of
+ * it.
+ */
 export type BillingLabels = {
   common: {
     loading: string;
@@ -173,8 +186,19 @@ export type BillingLabels = {
   oneTimePaymentStatus: Record<OneTimePaymentStatus, string>;
 };
 
+/**
+ * Partial `BillingLabels`.
+ *
+ * Any key you leave out keeps its default string.
+ */
 export type BillingLabelOverrides = PartialDeep<BillingLabels>;
 
+/**
+ * Locale, label, and formatter overrides accepted by the provider and by
+ * individual widgets.
+ *
+ * Every field is optional and falls back to the defaults.
+ */
 export type BillingI18n = {
   locale?: string;
   labels?: BillingLabelOverrides;

@@ -26,11 +26,25 @@ export const TrialLimitBanner = ({
   labels = defaultBillingLabels,
   formatDate,
 }: {
+  /**
+   * Billing state to read the trialing subscription from; the banner renders
+   * nothing when none is trialing.
+   */
   snapshot?: BillingSnapshot | null;
   /** Override the trial end date resolved from the snapshot. */
   trialEndsAt?: string | null;
+  /**
+   * CSS class for the wrapper element.
+   */
   className?: string;
+  /**
+   * Text overrides, read from `labels.trialBanner`.
+   */
   labels?: BillingLabels;
+  /**
+   * Date formatter for the trial end date; pass the provider's formatter to
+   * keep formatting consistent.
+   */
   formatDate?: (input: BillingDateFormatInput) => string;
 }) => {
   const trialSubscription = snapshot?.subscriptions.find(

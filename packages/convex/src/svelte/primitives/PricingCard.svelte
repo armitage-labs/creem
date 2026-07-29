@@ -1,3 +1,11 @@
+<!--
+  @component
+  A single plan card: badge, title, price, description, and action button.
+
+  Rendered by `PricingSection` and `Subscription.Item`. It takes plain props and
+  calls nothing, so reach for it only when replacing the card entirely rather
+  than composing one.
+-->
 <script lang="ts">
   import CheckoutButton from "./CheckoutButton.svelte";
   import NumberInput from "./NumberInput.svelte";

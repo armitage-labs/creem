@@ -1,3 +1,11 @@
+<!--
+  @component
+  Styled checkout button.
+
+  Works in callback mode via `onCheckout` or link mode via `href`. A low-level
+  primitive: inside a `Subscription.Root`, use `Subscription.ItemCTA`, which is
+  wired to the root's checkout flow.
+-->
 <script lang="ts">
   /* global $props, $state */
   import type { Snippet } from "svelte";
@@ -7,12 +15,33 @@
   } from "../../core/i18n.js";
 
   interface Props {
+    /**
+     * Creem product to check out, passed back to `onCheckout`.
+     */
     productId: string;
+    /**
+     * Link mode: navigate straight to this URL instead of calling `onCheckout`.
+     */
     href?: string;
+    /**
+     * Disable the button, for example while a checkout is already in flight.
+     */
     disabled?: boolean;
+    /**
+     * CSS class for the wrapper element.
+     */
     className?: string;
+    /**
+     * Callback mode: receives `{ productId }` when the button is pressed.
+     */
     onCheckout?: (payload: { productId: string }) => Promise<void> | void;
+    /**
+     * Label overrides for the default button text.
+     */
     labels?: BillingLabels;
+    /**
+     * Custom button label.
+     */
     children?: Snippet;
   }
 

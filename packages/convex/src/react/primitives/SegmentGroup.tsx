@@ -1,5 +1,8 @@
 import { SegmentGroup as ArkSegmentGroup } from "@ark-ui/react/segment-group";
 
+/**
+ * A single option inside `SegmentGroup`.
+ */
 export type SegmentGroupItem = {
   label: string;
   value: string;
@@ -7,6 +10,11 @@ export type SegmentGroupItem = {
   disabled?: boolean;
 };
 
+/**
+ * Segmented control used by the interval and group selectors.
+ *
+ * Exported so a replacement selector can match the built-in styling.
+ */
 export const SegmentGroup = ({
   items = [],
   value,

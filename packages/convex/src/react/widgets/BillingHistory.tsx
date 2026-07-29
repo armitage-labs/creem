@@ -44,16 +44,37 @@ const getAmount = (transaction: ConnectedTransaction) =>
 const paginationItemClassName = (isCurrentPage: boolean) =>
   `${isCurrentPage ? "button-filled" : "button-faded"} h-8 min-w-8 px-2`;
 
+/**
+ * Paginated transaction history backed by Creem's transaction search endpoint.
+ *
+ * Renders transaction rows only; invoice and receipt documents are not included.
+ * Requires `transactions.search` in the connected API.
+ */
 export const BillingHistory = ({
   pageSize = 10,
   productId,
   orderId,
   className = "",
 }: {
+  /**
+   * Transactions per page.
+   */
   pageSize?: number;
+  /**
+   * Show only transactions for this Creem product.
+   */
   productId?: string;
+  /**
+   * Show only transactions for this Creem order.
+   */
   orderId?: string;
+  /**
+   * CSS class for the wrapper element.
+   */
   class?: string;
+  /**
+   * CSS class for the wrapper element.
+   */
   className?: string;
 }) => {
   const provider = useCreemConvex();

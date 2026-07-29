@@ -1,3 +1,9 @@
+<!--
+  @component
+  Segmented control used by the interval and group selectors.
+
+  Exported so a replacement selector can match the built-in styling.
+-->
 <script lang="ts">
   import {
     SegmentGroup as ArkSegmentGroup,
