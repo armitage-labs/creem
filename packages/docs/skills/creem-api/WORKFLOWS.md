@@ -33,6 +33,7 @@ User's subscription status ← Check status ← Webhook renews/cancels
 ### Step 1: Create Products in Dashboard
 
 Create products in the CREEM dashboard:
+
 - Monthly Plan: $29/month, billing_type: recurring, billing_period: every-month
 - Yearly Plan: $290/year, billing_type: recurring, billing_period: every-year
 
@@ -40,21 +41,20 @@ Create products in the CREEM dashboard:
 
 ```typescript
 // app/api/checkout/route.ts (Next.js)
-import { NextRequest, NextResponse } from 'next/server';
+import { NextRequest, NextResponse } from "next/server";
 
 const CREEM_API_KEY = process.env.CREEM_API_KEY!;
-const BASE_URL = process.env.NODE_ENV === 'production'
-  ? 'https://api.creem.io'
-  : 'https://test-api.creem.io';
+const BASE_URL =
+  process.env.NODE_ENV === "production" ? "https://api.creem.io" : "https://test-api.creem.io";
 
 export async function POST(req: NextRequest) {
   const { productId, userId, email } = await req.json();
 
   const response = await fetch(`${BASE_URL}/v1/checkouts`, {
-    method: 'POST',
+    method: "POST",
     headers: {
-      'x-api-key': CREEM_API_KEY,
-      'Content-Type': 'application/json',
+      "x-api-key": CREEM_API_KEY,
+      "Content-Type": "application/json",
     },
     body: JSON.stringify({
       product_id: productId,
@@ -63,8 +63,8 @@ export async function POST(req: NextRequest) {
       customer: { email },
       metadata: {
         userId,
-        source: 'webapp'
-      }
+        source: "webapp",
+      },
     }),
   });
 
@@ -82,9 +82,9 @@ export async function POST(req: NextRequest) {
 
 ```tsx
 // components/CheckoutButton.tsx
-'use client';
+"use client";
 
-import { useState } from 'react';
+import { useState } from "react";
 
 interface CheckoutButtonProps {
   productId: string;
@@ -99,23 +99,23 @@ export function CheckoutButton({ productId, userId, email, children }: CheckoutB
   const handleCheckout = async () => {
     setLoading(true);
     try {
-      const response = await fetch('/api/checkout', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+      const response = await fetch("/api/checkout", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ productId, userId, email }),
       });
 
       const { checkoutUrl, error } = await response.json();
 
       if (error) {
-        console.error('Checkout error:', error);
+        console.error("Checkout error:", error);
         return;
       }
 
       // Redirect to CREEM checkout
       window.location.href = checkoutUrl;
     } catch (error) {
-      console.error('Failed to create checkout:', error);
+      console.error("Failed to create checkout:", error);
     } finally {
       setLoading(false);
     }
@@ -123,7 +123,7 @@ export function CheckoutButton({ productId, userId, email, children }: CheckoutB
 
   return (
     <button onClick={handleCheckout} disabled={loading}>
-      {loading ? 'Loading...' : children}
+      {loading ? "Loading..." : children}
     </button>
   );
 }
@@ -133,28 +133,28 @@ export function CheckoutButton({ productId, userId, email, children }: CheckoutB
 
 ```typescript
 // app/api/webhooks/creem/route.ts
-import { NextRequest, NextResponse } from 'next/server';
-import crypto from 'crypto';
-import { db } from '@/lib/db';
+import { NextRequest, NextResponse } from "next/server";
+import crypto from "crypto";
+import { db } from "@/lib/db";
 
 export async function POST(req: NextRequest) {
-  const signature = req.headers.get('creem-signature');
+  const signature = req.headers.get("creem-signature");
   const rawBody = await req.text();
 
   // Verify signature
   const computed = crypto
-    .createHmac('sha256', process.env.CREEM_WEBHOOK_SECRET!)
+    .createHmac("sha256", process.env.CREEM_WEBHOOK_SECRET!)
     .update(rawBody)
-    .digest('hex');
+    .digest("hex");
 
   if (computed !== signature) {
-    return NextResponse.json({ error: 'Invalid signature' }, { status: 401 });
+    return NextResponse.json({ error: "Invalid signature" }, { status: 401 });
   }
 
   const event = JSON.parse(rawBody);
 
   switch (event.eventType) {
-    case 'checkout.completed': {
+    case "checkout.completed": {
       const { customer, subscription, metadata, product } = event.object;
 
       // Find user by metadata or email
@@ -164,7 +164,7 @@ export async function POST(req: NextRequest) {
         : await db.user.findUnique({ where: { email: customer.email } });
 
       if (!user) {
-        console.error('User not found:', customer.email);
+        console.error("User not found:", customer.email);
         break;
       }
 
@@ -177,14 +177,14 @@ export async function POST(req: NextRequest) {
           creemCustomerId: customer.id,
           productId: product.id,
           plan: product.name,
-          status: 'active',
+          status: "active",
           currentPeriodEnd: new Date(subscription.current_period_end_date),
         },
         update: {
           creemSubscriptionId: subscription.id,
           productId: product.id,
           plan: product.name,
-          status: 'active',
+          status: "active",
           currentPeriodEnd: new Date(subscription.current_period_end_date),
         },
       });
@@ -192,31 +192,31 @@ export async function POST(req: NextRequest) {
       // Update user role
       await db.user.update({
         where: { id: user.id },
-        data: { role: 'pro' },
+        data: { role: "pro" },
       });
       break;
     }
 
-    case 'subscription.paid': {
+    case "subscription.paid": {
       const { id, current_period_end_date } = event.object;
 
       await db.subscription.update({
         where: { creemSubscriptionId: id },
         data: {
-          status: 'active',
+          status: "active",
           currentPeriodEnd: new Date(current_period_end_date),
         },
       });
       break;
     }
 
-    case 'subscription.canceled': {
+    case "subscription.canceled": {
       const { id, current_period_end_date } = event.object;
 
       await db.subscription.update({
         where: { creemSubscriptionId: id },
         data: {
-          status: 'canceled',
+          status: "canceled",
           currentPeriodEnd: new Date(current_period_end_date),
         },
       });
@@ -232,7 +232,7 @@ export async function POST(req: NextRequest) {
 
 ```typescript
 // lib/subscription.ts
-import { db } from './db';
+import { db } from "./db";
 
 export async function checkSubscription(userId: string): Promise<{
   isActive: boolean;
@@ -249,9 +249,8 @@ export async function checkSubscription(userId: string): Promise<{
 
   // Active if status is 'active' OR canceled but still within period
   const isActive =
-    subscription.status === 'active' ||
-    (subscription.status === 'canceled' &&
-      subscription.currentPeriodEnd > new Date());
+    subscription.status === "active" ||
+    (subscription.status === "canceled" && subscription.currentPeriodEnd > new Date());
 
   return {
     isActive,
@@ -268,7 +267,7 @@ export async function checkSubscription(userId: string): Promise<{
 export async function POST(req: NextRequest) {
   const session = await getSession(req);
   if (!session) {
-    return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+    return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
 
   const subscription = await db.subscription.findUnique({
@@ -276,14 +275,14 @@ export async function POST(req: NextRequest) {
   });
 
   if (!subscription?.creemCustomerId) {
-    return NextResponse.json({ error: 'No subscription found' }, { status: 404 });
+    return NextResponse.json({ error: "No subscription found" }, { status: 404 });
   }
 
   const response = await fetch(`${BASE_URL}/v1/customers/billing`, {
-    method: 'POST',
+    method: "POST",
     headers: {
-      'x-api-key': CREEM_API_KEY,
-      'Content-Type': 'application/json',
+      "x-api-key": CREEM_API_KEY,
+      "Content-Type": "application/json",
     },
     body: JSON.stringify({
       customer_id: subscription.creemCustomerId,
@@ -313,6 +312,7 @@ User purchases → Checkout completes → Webhook triggers → Generate download
 ### Step 1: Product Setup
 
 Create a one-time product in the dashboard with:
+
 - billing_type: `onetime`
 - Enable "File Downloads" feature with your digital files
 
@@ -321,10 +321,10 @@ Create a one-time product in the dashboard with:
 ```typescript
 const createCheckout = async (productId: string, customerEmail: string) => {
   const response = await fetch(`${BASE_URL}/v1/checkouts`, {
-    method: 'POST',
+    method: "POST",
     headers: {
-      'x-api-key': CREEM_API_KEY,
-      'Content-Type': 'application/json',
+      "x-api-key": CREEM_API_KEY,
+      "Content-Type": "application/json",
     },
     body: JSON.stringify({
       product_id: productId,
@@ -332,21 +332,21 @@ const createCheckout = async (productId: string, customerEmail: string) => {
       success_url: `${APP_URL}/download?session={checkout_id}`,
       custom_fields: [
         {
-          type: 'text',
-          key: 'companyName',
-          label: 'Company Name (for license)',
+          type: "text",
+          key: "companyName",
+          label: "Company Name (for license)",
           optional: true,
         },
         {
-          type: 'checkbox',
-          key: 'newsletter',
-          label: 'Subscribe to newsletter',
+          type: "checkbox",
+          key: "newsletter",
+          label: "Subscribe to newsletter",
           optional: true,
           checkbox: {
-            label: 'Send me updates about new products'
-          }
-        }
-      ]
+            label: "Send me updates about new products",
+          },
+        },
+      ],
     }),
   });
 
@@ -449,6 +449,7 @@ User purchases → License key generated → User enters in app → Activation
 ### Step 1: Product Setup
 
 Create a product in the dashboard with:
+
 - Enable "License Key" feature
 - Set activation limit (e.g., 3 devices)
 - Set expiration (or unlimited)
@@ -457,7 +458,7 @@ Create a product in the dashboard with:
 
 ```typescript
 // Desktop app - activation.ts
-import Store from 'electron-store';
+import Store from "electron-store";
 
 interface LicenseState {
   key: string;
@@ -468,7 +469,7 @@ interface LicenseState {
 
 const store = new Store<{ license: LicenseState }>();
 
-const CREEM_API = 'https://api.creem.io';
+const CREEM_API = "https://api.creem.io";
 const API_KEY = process.env.CREEM_API_KEY;
 
 export async function activateLicense(licenseKey: string): Promise<boolean> {
@@ -476,10 +477,10 @@ export async function activateLicense(licenseKey: string): Promise<boolean> {
   const instanceName = await getMachineId(); // Use machine-id package
 
   const response = await fetch(`${CREEM_API}/v1/licenses/activate`, {
-    method: 'POST',
+    method: "POST",
     headers: {
-      'x-api-key': API_KEY,
-      'Content-Type': 'application/json',
+      "x-api-key": API_KEY,
+      "Content-Type": "application/json",
     },
     body: JSON.stringify({
       key: licenseKey,
@@ -490,15 +491,15 @@ export async function activateLicense(licenseKey: string): Promise<boolean> {
   if (!response.ok) {
     const error = await response.json();
     if (response.status === 403) {
-      throw new Error('Activation limit reached. Deactivate another device first.');
+      throw new Error("Activation limit reached. Deactivate another device first.");
     }
-    throw new Error(error.message || 'Activation failed');
+    throw new Error(error.message || "Activation failed");
   }
 
   const license = await response.json();
 
   // Store license locally
-  store.set('license', {
+  store.set("license", {
     key: licenseKey,
     instanceId: license.instance.id,
     expiresAt: license.expires_at,
@@ -513,17 +514,17 @@ export async function validateLicense(): Promise<{
   status: string;
   expiresAt: string | null;
 }> {
-  const storedLicense = store.get('license');
+  const storedLicense = store.get("license");
 
   if (!storedLicense) {
-    return { valid: false, status: 'not_activated', expiresAt: null };
+    return { valid: false, status: "not_activated", expiresAt: null };
   }
 
   const response = await fetch(`${CREEM_API}/v1/licenses/validate`, {
-    method: 'POST',
+    method: "POST",
     headers: {
-      'x-api-key': API_KEY,
-      'Content-Type': 'application/json',
+      "x-api-key": API_KEY,
+      "Content-Type": "application/json",
     },
     body: JSON.stringify({
       key: storedLicense.key,
@@ -533,31 +534,31 @@ export async function validateLicense(): Promise<{
 
   if (!response.ok) {
     // Clear invalid license
-    store.delete('license');
-    return { valid: false, status: 'invalid', expiresAt: null };
+    store.delete("license");
+    return { valid: false, status: "invalid", expiresAt: null };
   }
 
   const license = await response.json();
 
   return {
-    valid: license.status === 'active',
+    valid: license.status === "active",
     status: license.status,
     expiresAt: license.expires_at,
   };
 }
 
 export async function deactivateLicense(): Promise<boolean> {
-  const storedLicense = store.get('license');
+  const storedLicense = store.get("license");
 
   if (!storedLicense) {
     return false;
   }
 
   const response = await fetch(`${CREEM_API}/v1/licenses/deactivate`, {
-    method: 'POST',
+    method: "POST",
     headers: {
-      'x-api-key': API_KEY,
-      'Content-Type': 'application/json',
+      "x-api-key": API_KEY,
+      "Content-Type": "application/json",
     },
     body: JSON.stringify({
       key: storedLicense.key,
@@ -566,7 +567,7 @@ export async function deactivateLicense(): Promise<boolean> {
   });
 
   if (response.ok) {
-    store.delete('license');
+    store.delete("license");
     return true;
   }
 
@@ -578,8 +579,8 @@ export async function deactivateLicense(): Promise<boolean> {
 
 ```typescript
 // main.ts (Electron)
-import { app, BrowserWindow, dialog } from 'electron';
-import { validateLicense } from './activation';
+import { app, BrowserWindow, dialog } from "electron";
+import { validateLicense } from "./activation";
 
 async function createWindow() {
   // Validate license on startup
@@ -592,21 +593,19 @@ async function createWindow() {
       height: 300,
       modal: true,
     });
-    activationWindow.loadFile('activation.html');
+    activationWindow.loadFile("activation.html");
     return;
   }
 
   // Check if expiring soon
   if (licenseStatus.expiresAt) {
     const expiresAt = new Date(licenseStatus.expiresAt);
-    const daysUntilExpiry = Math.ceil(
-      (expiresAt.getTime() - Date.now()) / (1000 * 60 * 60 * 24)
-    );
+    const daysUntilExpiry = Math.ceil((expiresAt.getTime() - Date.now()) / (1000 * 60 * 60 * 24));
 
     if (daysUntilExpiry <= 7) {
       dialog.showMessageBox({
-        type: 'warning',
-        title: 'License Expiring',
+        type: "warning",
+        title: "License Expiring",
         message: `Your license expires in ${daysUntilExpiry} days. Please renew.`,
       });
     }
@@ -614,7 +613,7 @@ async function createWindow() {
 
   // Normal app startup
   const mainWindow = new BrowserWindow({ width: 1200, height: 800 });
-  mainWindow.loadFile('index.html');
+  mainWindow.loadFile("index.html");
 }
 
 app.whenReady().then(createWindow);
@@ -640,13 +639,13 @@ Admin purchases seats → Members invited → Seat count tracked
 // Create checkout with seat count
 const createTeamCheckout = async (seats: number, adminEmail: string) => {
   const response = await fetch(`${BASE_URL}/v1/checkouts`, {
-    method: 'POST',
+    method: "POST",
     headers: {
-      'x-api-key': CREEM_API_KEY,
-      'Content-Type': 'application/json',
+      "x-api-key": CREEM_API_KEY,
+      "Content-Type": "application/json",
     },
     body: JSON.stringify({
-      product_id: 'prod_team_plan', // Per-seat product
+      product_id: "prod_team_plan", // Per-seat product
       units: seats,
       customer: { email: adminEmail },
       success_url: `${APP_URL}/team/setup`,
@@ -706,7 +705,7 @@ export async function updateTeamSeats(teamId: string) {
     include: { members: true },
   });
 
-  if (!team) throw new Error('Team not found');
+  if (!team) throw new Error("Team not found");
 
   const currentMembers = team.members.length;
 
@@ -718,31 +717,28 @@ export async function updateTeamSeats(teamId: string) {
   const subResponse = await fetch(
     `${BASE_URL}/v1/subscriptions?subscription_id=${team.creemSubscriptionId}`,
     {
-      headers: { 'x-api-key': CREEM_API_KEY },
-    }
+      headers: { "x-api-key": CREEM_API_KEY },
+    },
   );
 
   const subscription = await subResponse.json();
   const itemId = subscription.items[0].id;
 
   // Update seat count in CREEM
-  const response = await fetch(
-    `${BASE_URL}/v1/subscriptions/${team.creemSubscriptionId}`,
-    {
-      method: 'POST',
-      headers: {
-        'x-api-key': CREEM_API_KEY,
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify({
-        items: [{ id: itemId, units: currentMembers }],
-        update_behavior: 'proration-charge-immediately',
-      }),
-    }
-  );
+  const response = await fetch(`${BASE_URL}/v1/subscriptions/${team.creemSubscriptionId}`, {
+    method: "POST",
+    headers: {
+      "x-api-key": CREEM_API_KEY,
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify({
+      items: [{ id: itemId, units: currentMembers }],
+      update_behavior: "proration-charge-immediately",
+    }),
+  });
 
   if (!response.ok) {
-    throw new Error('Failed to update seats');
+    throw new Error("Failed to update seats");
   }
 
   // Update local record
@@ -767,10 +763,13 @@ export async function POST(req: NextRequest) {
 
   if (team.members.length >= team.totalSeats) {
     // Need to add more seats first
-    return NextResponse.json({
-      error: 'No seats available. Upgrade your plan to add more members.',
-      requiresUpgrade: true,
-    }, { status: 400 });
+    return NextResponse.json(
+      {
+        error: "No seats available. Upgrade your plan to add more members.",
+        requiresUpgrade: true,
+      },
+      { status: 400 },
+    );
   }
 
   // Create invitation
@@ -800,13 +799,9 @@ Free tier with premium features unlocked via subscription.
 
 ```typescript
 // middleware/subscription.ts
-import { NextRequest, NextResponse } from 'next/server';
+import { NextRequest, NextResponse } from "next/server";
 
-const PREMIUM_ROUTES = [
-  '/api/export',
-  '/api/integrations',
-  '/api/advanced',
-];
+const PREMIUM_ROUTES = ["/api/export", "/api/integrations", "/api/advanced"];
 
 const PREMIUM_LIMITS = {
   free: {
@@ -830,12 +825,10 @@ export async function subscriptionMiddleware(req: NextRequest) {
   const session = await getSession(req);
 
   if (!session) {
-    return NextResponse.redirect('/login');
+    return NextResponse.redirect("/login");
   }
 
-  const isPremiumRoute = PREMIUM_ROUTES.some(route =>
-    req.nextUrl.pathname.startsWith(route)
-  );
+  const isPremiumRoute = PREMIUM_ROUTES.some((route) => req.nextUrl.pathname.startsWith(route));
 
   if (!isPremiumRoute) {
     return NextResponse.next();
@@ -846,10 +839,10 @@ export async function subscriptionMiddleware(req: NextRequest) {
   if (!subscription?.isActive) {
     return NextResponse.json(
       {
-        error: 'Premium subscription required',
-        upgrade_url: '/pricing',
+        error: "Premium subscription required",
+        upgrade_url: "/pricing",
       },
-      { status: 403 }
+      { status: 403 },
     );
   }
 
@@ -865,25 +858,19 @@ export function getLimits(plan: string) {
 
 ```tsx
 // components/UpgradePrompt.tsx
-'use client';
+"use client";
 
-import { useState } from 'react';
+import { useState } from "react";
 
-export function UpgradePrompt({
-  feature,
-  currentPlan,
-}: {
-  feature: string;
-  currentPlan: string;
-}) {
+export function UpgradePrompt({ feature, currentPlan }: { feature: string; currentPlan: string }) {
   const [loading, setLoading] = useState(false);
 
   const handleUpgrade = async () => {
     setLoading(true);
-    const response = await fetch('/api/checkout', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ productId: 'prod_pro_plan' }),
+    const response = await fetch("/api/checkout", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ productId: "prod_pro_plan" }),
     });
     const { checkoutUrl } = await response.json();
     window.location.href = checkoutUrl;
@@ -900,7 +887,7 @@ export function UpgradePrompt({
         <li>Priority support</li>
       </ul>
       <button onClick={handleUpgrade} disabled={loading}>
-        {loading ? 'Redirecting...' : 'Upgrade to Pro - $29/mo'}
+        {loading ? "Redirecting..." : "Upgrade to Pro - $29/mo"}
       </button>
     </div>
   );
@@ -929,13 +916,13 @@ const createTrackedCheckout = async (
     utm_source?: string;
     utm_campaign?: string;
     affiliateId?: string;
-  }
+  },
 ) => {
   const response = await fetch(`${BASE_URL}/v1/checkouts`, {
-    method: 'POST',
+    method: "POST",
     headers: {
-      'x-api-key': CREEM_API_KEY,
-      'Content-Type': 'application/json',
+      "x-api-key": CREEM_API_KEY,
+      "Content-Type": "application/json",
     },
     body: JSON.stringify({
       product_id: productId,
@@ -996,7 +983,7 @@ case 'checkout.completed': {
 
 ```tsx
 // app/page.tsx
-import { cookies } from 'next/headers';
+import { cookies } from "next/headers";
 
 export default function LandingPage({ searchParams }) {
   // Store tracking params in cookie
@@ -1007,7 +994,7 @@ export default function LandingPage({ searchParams }) {
     aff: searchParams.aff, // affiliate ID
   };
 
-  cookies().set('tracking', JSON.stringify(trackingData), {
+  cookies().set("tracking", JSON.stringify(trackingData), {
     maxAge: 30 * 24 * 60 * 60, // 30 days
   });
 
@@ -1018,7 +1005,7 @@ export default function LandingPage({ searchParams }) {
 ```typescript
 // API route reads tracking from cookie
 export async function POST(req: NextRequest) {
-  const trackingCookie = req.cookies.get('tracking');
+  const trackingCookie = req.cookies.get("tracking");
   const tracking = trackingCookie ? JSON.parse(trackingCookie.value) : {};
 
   const checkout = await createTrackedCheckout(productId, {

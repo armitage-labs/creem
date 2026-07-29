@@ -21,9 +21,5 @@
     "creem",
     "api",
     "integration"
-  ],
-  "category": "integrations",
-  "agents": [
-    "./Skill.md"
   ]
 }

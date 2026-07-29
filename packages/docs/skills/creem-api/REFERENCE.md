@@ -7,6 +7,17 @@ noindex: true
 
 Complete API reference with all endpoints, request/response schemas, and field descriptions.
 
+## Contents
+
+- Base Configuration and Authentication
+- Checkouts API: create and retrieve checkout sessions
+- Products API: create, retrieve, and list products
+- Customers API: retrieve, list, and generate portal links
+- Subscriptions API: retrieve, update, upgrade, cancel, pause, resume
+- Licenses API: activate, validate, deactivate
+- Discounts API: create, retrieve, delete
+- Transactions API: get and search transactions
+
 ## Base Configuration
 
 ```
@@ -39,18 +50,18 @@ POST /v1/checkouts
 
 **Request Body:**
 
-| Field | Type | Required | Description |
-|-------|------|----------|-------------|
-| `product_id` | string | Yes | Product ID to purchase (e.g., `prod_abc123`) |
-| `request_id` | string | No | Your tracking ID for this checkout |
-| `units` | number | No | Number of units/seats (default: 1) |
-| `discount_code` | string | No | Pre-fill discount code |
-| `customer` | object | No | Pre-fill customer data |
-| `customer.email` | string | No | Customer's email address |
-| `customer.id` | string | No | Existing customer ID |
-| `success_url` | string | No | Redirect URL after payment |
-| `metadata` | object | No | Key-value pairs for tracking |
-| `custom_fields` | array | No | Additional fields to collect (max 3) |
+| Field            | Type   | Required | Description                                  |
+| ---------------- | ------ | -------- | -------------------------------------------- |
+| `product_id`     | string | Yes      | Product ID to purchase (e.g., `prod_abc123`) |
+| `request_id`     | string | No       | Your tracking ID for this checkout           |
+| `units`          | number | No       | Number of units/seats (default: 1)           |
+| `discount_code`  | string | No       | Pre-fill discount code                       |
+| `customer`       | object | No       | Pre-fill customer data                       |
+| `customer.email` | string | No       | Customer's email address                     |
+| `customer.id`    | string | No       | Existing customer ID                         |
+| `success_url`    | string | No       | Redirect URL after payment                   |
+| `metadata`       | object | No       | Key-value pairs for tracking                 |
+| `custom_fields`  | array  | No       | Additional fields to collect (max 3)         |
 
 **Custom Fields Schema:**
 
@@ -105,9 +116,9 @@ GET /v1/checkouts?checkout_id={id}
 
 **Query Parameters:**
 
-| Field | Type | Required | Description |
-|-------|------|----------|-------------|
-| `checkout_id` | string | Yes | Checkout session ID |
+| Field         | Type   | Required | Description         |
+| ------------- | ------ | -------- | ------------------- |
+| `checkout_id` | string | Yes      | Checkout session ID |
 
 **Response:** Full `CheckoutEntity` with expanded `product`, `customer`, `order`, `subscription`, and `feature` objects if checkout is completed.
 
@@ -123,20 +134,20 @@ POST /v1/products
 
 **Request Body:**
 
-| Field | Type | Required | Description |
-|-------|------|----------|-------------|
-| `name` | string | Yes | Product name |
-| `description` | string | No | Product description |
-| `image_url` | string | No | Product image URL (PNG/JPG) |
-| `price` | integer | Yes | Price in cents. Use `0` for free products; paid products must be at least 100 cents. |
-| `currency` | string | Yes | ISO currency code (USD, EUR, etc.) |
-| `billing_type` | string | Yes | `recurring` or `onetime` |
-| `billing_period` | string | If recurring | `every-month`, `every-year`, etc. |
-| `tax_mode` | string | No | `inclusive` or `exclusive` |
-| `tax_category` | string | No | `saas`, `digital-goods-service`, `ebooks` |
-| `default_success_url` | string | No | Default redirect after payment |
-| `custom_fields` | array | No | Fields to collect at checkout |
-| `abandoned_cart_recovery_enabled` | boolean | No | Enable cart recovery emails |
+| Field                             | Type    | Required     | Description                                                                          |
+| --------------------------------- | ------- | ------------ | ------------------------------------------------------------------------------------ |
+| `name`                            | string  | Yes          | Product name                                                                         |
+| `description`                     | string  | No           | Product description                                                                  |
+| `image_url`                       | string  | No           | Product image URL (PNG/JPG)                                                          |
+| `price`                           | integer | Yes          | Price in cents. Use `0` for free products; paid products must be at least 100 cents. |
+| `currency`                        | string  | Yes          | ISO currency code (USD, EUR, etc.)                                                   |
+| `billing_type`                    | string  | Yes          | `recurring` or `onetime`                                                             |
+| `billing_period`                  | string  | If recurring | `every-month`, `every-year`, etc.                                                    |
+| `tax_mode`                        | string  | No           | `inclusive` or `exclusive`                                                           |
+| `tax_category`                    | string  | No           | `saas`, `digital-goods-service`, `ebooks`                                            |
+| `default_success_url`             | string  | No           | Default redirect after payment                                                       |
+| `custom_fields`                   | array   | No           | Fields to collect at checkout                                                        |
+| `abandoned_cart_recovery_enabled` | boolean | No           | Enable cart recovery emails                                                          |
 
 **Response: ProductEntity**
 
@@ -177,16 +188,18 @@ GET /v1/products/search?page_number={n}&page_size={size}
 
 **Query Parameters:**
 
-| Field | Type | Required | Description |
-|-------|------|----------|-------------|
-| `page_number` | number | No | Page number (default: 1) |
-| `page_size` | number | No | Items per page |
+| Field         | Type   | Required | Description              |
+| ------------- | ------ | -------- | ------------------------ |
+| `page_number` | number | No       | Page number (default: 1) |
+| `page_size`   | number | No       | Items per page           |
 
 **Response: ProductListEntity**
 
 ```json
 {
-  "items": [ /* ProductEntity[] */ ],
+  "items": [
+    /* ProductEntity[] */
+  ],
   "pagination": {
     "total_records": 25,
     "total_pages": 3,
@@ -271,8 +284,12 @@ GET /v1/subscriptions?subscription_id={id}
   "mode": "test",
   "object": "subscription",
   "status": "active",
-  "product": { /* ProductEntity */ },
-  "customer": { /* CustomerEntity */ },
+  "product": {
+    /* ProductEntity */
+  },
+  "customer": {
+    /* CustomerEntity */
+  },
   "items": [
     {
       "id": "sitem_xyz789",
@@ -296,6 +313,7 @@ GET /v1/subscriptions?subscription_id={id}
 ```
 
 **Subscription Statuses:**
+
 - `active` - Currently active and paid
 - `trialing` - In trial period
 - `paused` - Temporarily paused
@@ -324,6 +342,7 @@ POST /v1/subscriptions/{id}
 ```
 
 **Update Behaviors:**
+
 - `proration-charge-immediately` - Charge prorated amount now, new billing cycle starts
 - `proration-charge` - Credit added to next invoice, same billing cycle
 - `proration-none` - No proration, change at next cycle
@@ -359,6 +378,7 @@ POST /v1/subscriptions/{id}/cancel
 ```
 
 **Options:**
+
 - `mode`: `immediate` (cancel now) or `scheduled` (at period end)
 - `onExecute`: `cancel` or `pause` (only for scheduled mode)
 
@@ -422,6 +442,7 @@ POST /v1/licenses/activate
 ```
 
 **License Statuses:**
+
 - `active` - Valid and usable
 - `inactive` - No activations yet
 - `expired` - Past expiration date
@@ -485,19 +506,19 @@ POST /v1/discounts
 
 **Fields:**
 
-| Field | Type | Required | Description |
-|-------|------|----------|-------------|
-| `name` | string | Yes | Display name |
-| `code` | string | No | Discount code (auto-generated if empty) |
-| `type` | string | Yes | `percentage` or `fixed` |
-| `percentage` | number | If type=percentage | Discount percentage (e.g., 20 for 20%) |
-| `amount` | number | If type=fixed | Fixed amount in cents |
-| `currency` | string | If type=fixed | Currency for fixed discount |
-| `duration` | string | Yes | `forever`, `once`, or `repeating` |
-| `duration_in_months` | number | If duration=repeating | Months to apply |
-| `max_redemptions` | number | No | Usage limit |
-| `expiry_date` | string | No | ISO date when code expires |
-| `applies_to_products` | array | Yes | Product IDs this applies to |
+| Field                 | Type   | Required              | Description                             |
+| --------------------- | ------ | --------------------- | --------------------------------------- |
+| `name`                | string | Yes                   | Display name                            |
+| `code`                | string | No                    | Discount code (auto-generated if empty) |
+| `type`                | string | Yes                   | `percentage` or `fixed`                 |
+| `percentage`          | number | If type=percentage    | Discount percentage (e.g., 20 for 20%)  |
+| `amount`              | number | If type=fixed         | Fixed amount in cents                   |
+| `currency`            | string | If type=fixed         | Currency for fixed discount             |
+| `duration`            | string | Yes                   | `forever`, `once`, or `repeating`       |
+| `duration_in_months`  | number | If duration=repeating | Months to apply                         |
+| `max_redemptions`     | number | No                    | Usage limit                             |
+| `expiry_date`         | string | No                    | ISO date when code expires              |
+| `applies_to_products` | array  | Yes                   | Product IDs this applies to             |
 
 **Response: DiscountEntity**
 
@@ -570,10 +591,12 @@ GET /v1/transactions?transaction_id={id}
 ```
 
 **Transaction Types:**
+
 - `payment` - One-time payment
 - `invoice` - Subscription payment
 
 **Transaction Statuses:**
+
 - `paid` - Successfully paid
 - `refunded` - Fully refunded
 - `partially_refunded` - Partially refunded
@@ -587,13 +610,13 @@ GET /v1/transactions/search
 
 **Query Parameters:**
 
-| Field | Type | Required | Description |
-|-------|------|----------|-------------|
-| `customer_id` | string | No | Filter by customer |
-| `order_id` | string | No | Filter by order |
-| `product_id` | string | No | Filter by product |
-| `page_number` | number | No | Page number |
-| `page_size` | number | No | Items per page |
+| Field         | Type   | Required | Description        |
+| ------------- | ------ | -------- | ------------------ |
+| `customer_id` | string | No       | Filter by customer |
+| `order_id`    | string | No       | Filter by order    |
+| `product_id`  | string | No       | Filter by product  |
+| `page_number` | number | No       | Page number        |
+| `page_size`   | number | No       | Items per page     |
 
 ---
 
@@ -644,15 +667,15 @@ Values: `test`, `prod`, `sandbox`
 
 ## HTTP Response Codes
 
-| Code | Description |
-|------|-------------|
-| 200 | Success |
-| 400 | Bad Request - Invalid parameters |
-| 401 | Unauthorized - Missing API key |
-| 403 | Forbidden - Invalid API key or limit reached |
-| 404 | Not Found - Resource doesn't exist |
-| 429 | Rate Limited |
-| 500 | Server Error |
+| Code | Description                                  |
+| ---- | -------------------------------------------- |
+| 200  | Success                                      |
+| 400  | Bad Request - Invalid parameters             |
+| 401  | Unauthorized - Missing API key               |
+| 403  | Forbidden - Invalid API key or limit reached |
+| 404  | Not Found - Resource doesn't exist           |
+| 429  | Rate Limited                                 |
+| 500  | Server Error                                 |
 
 ---
 
