@@ -305,6 +305,7 @@ export const SubscriptionItem = ({
       products={rootContext.products}
       units={rootContext.units}
       showUnitPicker={rootContext.showUnitPicker}
+      reserveTrialCaption={rootContext.reserveTrialCaption}
       subscribedUnits={rootContext.subscribedUnits}
       isGroupSubscribed={rootContext.isGroupSubscribed}
       disableCheckout={rootContext.disableCheckout}

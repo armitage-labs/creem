@@ -1,0 +1,224 @@
+---
+title: "Migration"
+description: "Upgrade the Creem Convex component from 0.3.x, and retire a previous billing provider safely."
+---
+
+Two one-time jobs. Neither is needed for a new integration.
+
+## Upgrading from 0.3.x
+
+v2 (0.4.0) is a breaking release. The tables below map every removed or changed API to its replacement.
+
+#### Typed connected API and `connectCreemApi`
+
+`ConnectedBillingApi` fields are now typed by function kind, args, **and**
+return type, so wiring the wrong generated export fails to compile. Build the
+object with `connectCreemApi(api.billing)` instead of by hand.
+
+| Previous API                                         | New API                        |
+| ---------------------------------------------------- | ------------------------------ |
+| Hand-written `{ uiModel, checkouts: { create }, … }` | `connectCreemApi(api.billing)` |
+| `FunctionReference<"query">` (untyped)               | `UiModelFunction` and friends  |
+
+#### Resolver returns `null` for anonymous callers
+
+`ApiResolver` now returns `ResolvedBillingIdentity | null`. Returning `null` is
+the anonymous signal; a thrown error is a real failure that is logged and
+rethrown instead of silently degrading a signed-in user to the logged-out view.
+
+| Previous API                                | New API                                                               |
+| ------------------------------------------- | --------------------------------------------------------------------- |
+| `throw new Error("Not authenticated")`      | `return null`                                                         |
+| Every resolver error swallowed by `uiModel` | Only `null` (or `CreemNotAuthenticatedError`) means "unauthenticated" |
+
+#### `subscriptions.update` is a discriminated union
+
+| Previous API                      | New API                                             |
+| --------------------------------- | --------------------------------------------------- |
+| `{ productId, updateBehavior? }`  | `{ kind: "plan", productId, updateBehavior? }`      |
+| `{ units, updateBehavior? }`      | `{ kind: "units", units, updateBehavior? }`         |
+| `{ freePlanId, updateBehavior? }` | `{ kind: "app-plan", freePlanId, updateBehavior? }` |
+
+Those combinations no longer typecheck, and `parseSubscriptionUpdateArgs`
+re-checks them for calls arriving over the wire. A plan switch no longer accepts
+`units`: Creem applies a product upgrade and a quantity change as separate
+operations, so send a second `kind: "units"` update instead. Unit counts are
+validated server-side (integer, 1 – 1,000,000).
+
+#### Widget namespaces are plain objects
+
+`<Subscription>`, `<Product>`, and `<Credits>` are no longer callable
+components. `Subscription` and `Product` used to alias their `Item`, while
+`Credits` aliased its `Root`. Rendering the bare namespace silently produced
+the wrong element.
+
+| Previous API     | New API               |
+| ---------------- | --------------------- |
+| `<Subscription>` | `<Subscription.Item>` |
+| `<Product>`      | `<Product.Item>`      |
+| `<Credits>`      | `<Credits.Root>`      |
+
+#### Binding and provider props
+
+`createCreemReact` and `createCreemSvelte` no longer return `config`, which the
+provider never accepted. The binding is spreadable:
+
+| Previous API                                              | New API                               |
+| --------------------------------------------------------- | ------------------------------------- |
+| `<CreemConvexProvider api={b.api} catalog={b.catalog} …>` | `<CreemConvexProvider {...b}>`        |
+| `createCreemReact({ …, config: { onBeforeCheckout } })`   | `onBeforeCheckout` as a provider prop |
+| `BillingProviderConfig`                                   | removed                               |
+
+`PaymentRecoveryButton` now reads `customers.portalUrl` from the provider;
+`portalUrl` is an optional override rather than a required prop.
+
+#### Model and return shapes
+
+| Previous                                            | Now                                                 |
+| --------------------------------------------------- | --------------------------------------------------- |
+| `ConnectedBillingModel.user._id`                    | `user.id` (generic across integrations)             |
+| `uiModel` / `snapshot` returned `any`               | Real Convex `returns` validators and inferred types |
+| `credits.listEntries` returned an SDK page iterator | `{ entries[], hasMore }`                            |
+| `transactions.search` returned raw SDK rows         | Projected `ConnectedTransactionList`                |
+| `BillingContextValue` (flat, unimplemented)         | Nested `{ model, isLoading, error, … }` contract    |
+
+#### Provider-based widget API
+
+Connected widgets no longer accept direct `api={billingApi}` props. Wrap the
+area that renders billing UI with `CreemConvexProvider` and pass the API,
+catalog, permissions, and consent hooks there.
+
+| Previous API                                      | New API                                                             |
+| ------------------------------------------------- | ------------------------------------------------------------------- |
+| `<Subscription.Root api={billingApi} ... />`      | `<CreemConvexProvider api={billingApi}><Subscription.Root ... />`   |
+| `<Product.Root api={billingApi} ... />`           | `<CreemConvexProvider api={billingApi}><Product.Root ... />`        |
+| `<BillingPortal api={billingApi} />`              | `<CreemConvexProvider api={billingApi}><BillingPortal />`           |
+| `<BillingHistory api={billingApi} />`             | `<CreemConvexProvider api={billingApi}><BillingHistory />`          |
+| Widget-level `catalog`, `permissions`, gate hooks | Provider-level defaults, with widget props only for local overrides |
+
+This is intentionally breaking so apps have one billing integration boundary
+instead of repeating Convex function references throughout the UI.
+
+#### Unit-based billing rename
+
+The UI widget API now follows Creem's unit-based pricing language. There are no
+backward-compatible aliases for the previous seat-specific names.
+
+| Previous API                              | New API                                   |
+| ----------------------------------------- | ----------------------------------------- |
+| `<Subscription.Item type="seat-based" />` | `<Subscription.Item type="unit-based" />` |
+| `<Subscription.Root showSeatPicker />`    | `<Subscription.Root showUnitPicker />`    |
+| `BillingPermissions.canUpdateSeats`       | `BillingPermissions.canUpdateUnits`       |
+| `AvailableAction` value `"update_seats"`  | `AvailableAction` value `"update_units"`  |
+| `subscribedSeats`                         | `subscribedUnits`                         |
+| `disableSeats`                            | `disableUnits`                            |
+| `onUpdateSeats`                           | `onUpdateUnits`                           |
+
+The `units` prop remains the quantity passed to checkout and subscription
+updates. A unit can still represent a seat, but the public API no longer assumes
+that seats are the only unit-based pricing use case.
+
+#### Pricing columns
+
+`twoColumnLayout` was removed. Use `columns={2}` for a fixed two-column pricing
+grid, or omit it for automatic layout.
+
+#### Product namespace cleanup
+
+`Product.Group` was removed. It was only a compatibility alias for
+`Product.Root`, not a real grouping primitive. Render `Product.Root` directly.
+`Subscription.Group` remains because it is a distinct component for grouping
+subscription plans.
+
+| Previous API      | New API          |
+| ----------------- | ---------------- |
+| `<Product.Group>` | `<Product.Root>` |
+
+#### App-owned plans and i18n
+
+`freePlans.activate` and `onBeforeFreePlanActivation` were removed:
+
+| Previous API                                 | New API                                 |
+| -------------------------------------------- | --------------------------------------- |
+| `freePlans.activate({ freePlanId })`         | `plans.activate({ planId })`            |
+| `onBeforeFreePlanActivation({ freePlanId })` | `onBeforePlanActivation({ planId })`    |
+| `api.freePlans.activate` in provider config  | `api.plans.activate` in provider config |
+
+Use the new plan-based API for free, trial, or other app-owned catalog plans.
+Convex-Creem writes `snapshot.appPlanAssignments` for the current app-owned
+plan; host apps only need a custom `activePlanId` projection when they
+intentionally want to override the component-managed assignment. Price interval
+suffixes now come from `labels.priceInterval`, so override those labels instead
+of formatting `/mo` or `/yr` in application code.
+
+#### App-plan eligibility helpers
+
+`isAppPlanEligible` and `shouldShowPlan` now take an eligibility context object
+as their third argument. Pass `activePlanId`, `activeOrScheduledPlanIds`, and
+`catalogPlans` explicitly so once-per-entity and scoped trial rules evaluate
+against the same billing state as the widgets.
+
+| Previous helper call                              | Current helper call                                              |
+| ------------------------------------------------- | ---------------------------------------------------------------- |
+| `shouldShowPlan(plan, activations, activePlanId)` | `shouldShowPlan(plan, activations, { activePlanId })`            |
+| `isAppPlanEligible(plan, activations, planId)`    | `isAppPlanEligible(plan, activations, { activePlanId: planId })` |
+
+For scoped trials, include `activeOrScheduledPlanIds` and `catalogPlans`:
+
+```ts
+shouldShowPlan(trialPlan, activations, {
+  activePlanId,
+  activeOrScheduledPlanIds,
+  catalogPlans,
+});
+```
+
+#### Billing Snapshot Contract
+
+`creem.getBillingSnapshot(...)` and the generated
+`creem.api({ resolve }).snapshot` query return the canonical `BillingSnapshot`
+shape with explicit arrays for subscriptions, one-time orders, and app-owned
+plan assignments, plus a derived `access` projection.
+
+| Previous flat field         | Current source                                                                                                |
+| --------------------------- | ------------------------------------------------------------------------------------------------------------- |
+| `activePlanId`              | Derive from `snapshot.access` or the relevant row in `snapshot.subscriptions` / `snapshot.appPlanAssignments` |
+| `subscriptionProductId`     | `snapshot.subscriptions[n].productId`                                                                         |
+| `subscriptionState`         | `snapshot.subscriptions[n].status`                                                                            |
+| `recurringCycle`            | `snapshot.subscriptions[n].recurringCycle`                                                                    |
+| `availableActions`          | `snapshot.availableBillingActions`                                                                            |
+| `payment`                   | Use payment/order-specific queries or `snapshot.orders` for paid orders                                       |
+| `ownedProductIds`           | Derive from paid rows in `snapshot.orders`                                                                    |
+| primary subscription fields | Derive from the relevant `snapshot.subscriptions` row                                                         |
+
+The generated `uiModel` used by connected widgets exposes the same canonical
+snapshot as `uiModel.snapshot`.
+
+#### Product credit grants
+
+`Product.Item` no longer accepts checkout metadata for credit grants. Put
+purchase-to-credit mappings in the server-owned billing catalog with
+`creditGrant` so webhook fulfillment derives the amount from trusted app code.
+
+| Previous API                                                              | New API                                                 |
+| ------------------------------------------------------------------------- | ------------------------------------------------------- |
+| `<Product.Item checkoutMetadata={{ convexCreemCreditsAmount: "100" }} />` | Catalog entry with `creditGrant: { amount: "100" }`     |
+| Client-supplied metadata deciding the credits granted after checkout      | Server-side `billingCatalog` passed to `new Creem(...)` |
+| App code manually deciding whether refunds should reverse granted credits | `creditGrant.refundBehavior` on the catalog entry       |
+
+By default, catalog-granted credits are reversed only on full refunds. Configure
+`refundBehavior` per product when your app needs proportional (`"prorate"`),
+eager (`"debit"`), or manual (`"none"`) refund handling.
+
+---
+
+## Retiring a previous billing provider
+
+Moving from another billing integration (Stripe, LemonSqueezy, a custom setup)? The component's setup is additive, but removing the old system safely needs a manual inventory:
+
+1. **Old webhook endpoints**, both in your app and in the old provider's dashboard (`/api/stripe/webhook`, `/webhooks/lemonsqueezy`, and so on). Keep them only while another live flow depends on them.
+2. **Client env vars**: old product, price, plan, and publishable-key variables in the `VITE_*`, `NEXT_PUBLIC_*`, and `PUBLIC_*` namespaces.
+3. **Server env vars**: old API keys, webhook secrets, portal config, and price IDs. These hide in several places at once, including local `.env*` files, hosting provider settings, CI secrets, and the old dashboard.
+4. **Background jobs**: scheduled syncs or functions still reading old billing env vars or processing old webhook events.
+
+Switch traffic only after the Creem webhook is verifiably receiving events, and don't delete old secrets before rollback and data-retention requirements are clear. The [Integration Guide](/code/sdks/convex/integration) includes this checklist in an agent-executable form.

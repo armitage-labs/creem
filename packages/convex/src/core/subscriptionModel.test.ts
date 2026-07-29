@@ -448,3 +448,32 @@ describe("cyclesForGroup", () => {
     ).toEqual(["every-month"]);
   });
 });
+
+describe("catalog-declared Creem trials", () => {
+  const trialCatalog = defineBillingCatalog({
+    version: "test",
+    plans: [
+      {
+        planId: "basic",
+        category: "paid",
+        billingType: "recurring",
+        trialDays: 14,
+        creemProductIds: { "every-month": "prod_basic_m" },
+      },
+    ],
+  } as const);
+
+  it("carries trialDays from the catalog onto the resolved plan", () => {
+    const [plan] = resolveUIPlans({
+      registrations: buildCatalogRegistrations({ planIds: ["basic"] }),
+      catalog: trialCatalog,
+      products: [],
+    });
+    expect(plan.trialDays).toBe(14);
+  });
+
+  it("leaves trialDays undefined when the catalog does not declare one", () => {
+    const [plan] = plansFor(["basic"]);
+    expect(plan.trialDays).toBeUndefined();
+  });
+});

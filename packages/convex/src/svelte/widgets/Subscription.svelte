@@ -319,6 +319,7 @@
       products={rootContext.getProducts()}
       units={rootContext.getUnits()}
       showUnitPicker={rootContext.getShowUnitPicker()}
+      reserveTrialCaption={rootContext.getReserveTrialCaption()}
       subscribedUnits={rootContext.getSubscribedUnits()}
       isGroupSubscribed={rootContext.getIsGroupSubscribed()}
       disableCheckout={rootContext.getDisableCheckout()}

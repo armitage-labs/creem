@@ -1,47 +1,24 @@
 ---
 title: "Advanced"
-description: "Custom auth and RBAC, webhook middleware, checkout gates, i18n, custom UI models, and brownfield migration for the Creem Convex component."
+description: "Custom auth and RBAC, webhook middleware, checkout gates, internationalization, and custom billing models for the Creem Convex component."
 ---
 
-## The connected API contract
+import SetupPrerequisites from "/snippets/convex-setup-prerequisites.mdx";
 
-The fields you pass in `ConnectedBillingApi` decide which capabilities the widgets offer — export and wire only what your product should allow:
+Task guides for the parts you reach for once the basics work. For the ideas
+behind them, see [Concepts](/code/sdks/convex/concepts).
 
-| API field                             | Used by                                  | If omitted                            |
-| ------------------------------------- | ---------------------------------------- | ------------------------------------- |
-| `uiModel`                             | All connected widgets                    | Widgets cannot load billing state     |
-| `checkouts.create`                    | `Subscription.Root`, `Product.Root`      | Subscribe/buy buttons can't check out |
-| `subscriptions.update`                | Plan switches, unit changes              | Switch and unit controls hidden       |
-| `subscriptions.cancel`                | Cancel buttons                           | Cancel controls hidden                |
-| `subscriptions.resume`                | Undo scheduled cancellation              | Resume controls hidden                |
-| `subscriptions.cancelScheduledUpdate` | App-side period-end update undo          | Pending update undo hidden            |
-| `customers.portalUrl`                 | `BillingPortal`, payment recovery button | Portal buttons hidden                 |
-| `transactions.search`                 | `BillingHistory`                         | Billing history can't render          |
-| `credits.*`                           | `Credits.Root` and app credit actions    | Credit balance UI can't work          |
-
-## Entity model
-
-Billing scopes to the `entityId` your resolver returns. For personal billing, return the user ID. For organization or team billing, return the org ID — checkout metadata and webhook resolution follow automatically, with no other code changes:
-
-```ts
-const resolve: ApiResolver = async (ctx) => {
-  const user = await ctx.runQuery(api.users.currentUser);
-  const org = await ctx.runQuery(api.orgs.getActiveOrg);
-  return {
-    userId: user._id,
-    email: user.email,
-    entityId: org?._id ?? user._id,
-  };
-};
-```
+<Accordion title="Where this code goes, and what it assumes" icon="list-check">
+  <SetupPrerequisites />
+</Accordion>
 
 ## Custom auth and RBAC
 
-The component is a sync engine with no hidden auth layer — every method takes explicit arguments. You choose the auth architecture:
+Authentication and application roles remain your responsibility. The generated API provides the billing authorization baseline: it derives the billing entity from `resolve`, scopes customer data to that entity, and verifies explicitly selected subscriptions before reading or changing them.
 
-**Quick start** — `creem.api({ resolve })` generates ready-to-export Convex functions. Each one calls your `resolve` callback to authenticate and determine the `entityId`; the billing entity is derived from the session, never from client input. This is what the [Quickstart](/code/sdks/convex/quickstart) uses.
+**Quick start.** `creem.api({ resolve })` generates ready-to-export Convex functions. Each one calls your `resolve` callback to authenticate and determine the `entityId`; the billing entity is derived from the session, never from client input. For team billing, verify membership and the required billing role before returning an organization ID. This is what the [Quickstart](/code/sdks/convex/quickstart) uses.
 
-**Full control** — call the resource namespaces (`creem.subscriptions.*`, `creem.checkouts.*`, `creem.customers.*`, `creem.orders.*`, `creem.products.*`) inside your own Convex functions and handle auth, entity resolution, and permission checks yourself. The library exports **shared arg validators** matching exactly what the widgets send, so your custom functions stay drop-in compatible:
+**Full control.** Call the resource namespaces (`creem.subscriptions.*`, `creem.checkouts.*`, `creem.customers.*`, `creem.orders.*`, `creem.products.*`) inside your own Convex functions and handle auth, entity resolution, and permission checks yourself. The library exports **shared arg validators** matching exactly what the widgets send, so your custom functions stay drop-in compatible:
 
 | Export                   | Used by                                          |
 | ------------------------ | ------------------------------------------------ |
@@ -50,12 +27,37 @@ The component is a sync engine with no hidden auth layer — every method takes 
 | `subscriptionCancelArgs` | `<Subscription.Root>` (cancel button)            |
 | `subscriptionResumeArgs` | `<Subscription.Root>` (resume button)            |
 | `subscriptionPauseArgs`  | `<Subscription.Root>` (pause button)             |
+| `appPlanActivateArgs`    | `<Subscription.Root>` (app-owned plan cards)     |
 | `transactionsSearchArgs` | `<BillingHistory>`                               |
+
+`subscriptionUpdateArgs` carries a `kind` discriminator for the three mutually exclusive update targets. The exported `SubscriptionUpdateArgs` **type** is a true discriminated union:
+
+```ts
+{ kind: "plan",     productId,          updateBehavior?: "proration-…" | "period-end" }
+{ kind: "units",    units,              updateBehavior?: "proration-…" | "period-end" }
+{ kind: "app-plan", freePlanId,         updateBehavior?: "period-end" | "immediate"   }
+```
+
+So `"immediate"` on a paid switch, or two targets at once, does not compile.
+
+Convex requires top-level args to be a flat object, which means the wire validator itself is permissive. The generated mutation calls `parseSubscriptionUpdateArgs` to re-check the same rules for calls arriving over the wire. Use it in your own wrappers too:
+
+```ts
+export const subscriptionsUpdate = mutation({
+  args: subscriptionUpdateArgs,
+  handler: async (ctx, args) => {
+    const auth = await resolveAuth(ctx);
+    await creem.subscriptions.update(ctx, {
+      entityId: auth.entityId,
+      ...parseSubscriptionUpdateArgs(args),
+    });
+  },
+});
+```
 
 Admin-only billing, for example:
 
-```ts
-// convex/billing.ts
+```ts title="convex/billing.ts"
 import { Creem, checkoutCreateArgs, subscriptionCancelArgs } from "@creem_io/convex";
 import { ConvexError } from "convex/values";
 import { action, mutation } from "./_generated/server";
@@ -99,11 +101,19 @@ export const subscriptionsCancel = mutation({
 });
 ```
 
-Pair this with provider-level `permissions` so non-admins see disabled buttons instead of server errors — but the server check above is the enforcement.
+Pair this with provider-level `permissions` so non-admins see disabled buttons instead of server errors. The server check above is what actually enforces the rule.
+
+Credit grants and spending are deliberately not part of `ConnectedBillingApi`.
+Expose an app-specific backend action for a business operation such as
+`generateImage`, and let that action call `creem.credits.creditForEntity` or
+`creem.credits.debitForEntity` with server-controlled amounts, references, and
+idempotency keys.
 
 ## Webhook event middleware
 
-`registerRoutes` accepts an `events` map for app-specific logic that runs **after** the component's built-in processing (customer/subscription/order upserts). The `ctx` is a Convex mutation context — read and write your own tables:
+`registerRoutes` accepts an `events` map for app-specific logic. Your handlers run after the component's built-in processing, which upserts customers, subscriptions, and orders.
+
+The `ctx` is a Convex **action** context. It has no `ctx.db`, so reach your own tables through `ctx.runQuery` and `ctx.runMutation`, and use `ctx.runAction` for third-party calls:
 
 ```ts
 creem.registerRoutes(http, {
@@ -111,6 +121,9 @@ creem.registerRoutes(http, {
   events: {
     "checkout.completed": async (ctx, event) => {
       // send confirmation email, grant entitlements, log analytics
+      await ctx.runMutation(internal.onboarding.markPurchased, {
+        checkoutId: event.object.id,
+      });
     },
     "subscription.update": async (ctx, event) => {
       console.log("Subscription updated:", event.object.id);
@@ -123,7 +136,7 @@ Dispatched events: `checkout.completed`, `subscription.active`, `subscription.pa
 
 ## Checkout gates and auto-resume
 
-`onBeforeCheckout` (provider- or widget-level) fires before the widget calls `checkouts.create`. Return `false` to abort — for auth gates, terms acceptance, confirmation dialogs, or analytics:
+`onBeforeCheckout` fires before the widget calls `checkouts.create`, at either the provider or the widget level. Return `false` to abort. Use it for auth gates, terms acceptance, confirmation dialogs, or analytics:
 
 ```tsx
 <CreemConvexProvider
@@ -141,13 +154,15 @@ Dispatched events: `checkout.completed`, `subscription.active`, `subscription.pa
 </CreemConvexProvider>
 ```
 
-**Auto-resume after sign-in:** when your callback saved the intent with `pendingCheckout.save(intent)`, the widget detects authentication (the Convex query re-fires) and automatically re-triggers checkout — works for both modal auth (Clerk, Auth0 popup) and redirect auth (OAuth), with no manual resume code. The widget skips auto-resume if the user already has an active subscription or owns the product, preventing duplicate purchases.
+**Auto-resume after sign-in.** If your callback saved the intent with `pendingCheckout.save(intent)`, the widget notices when the Convex query re-fires with an authenticated user and re-triggers checkout itself. This works for modal auth such as Clerk or an Auth0 popup, and for redirect auth such as OAuth, with no manual resume code.
+
+Auto-resume is skipped when the user already has an active subscription or owns the product, so a sign-in cannot produce a duplicate purchase.
 
 Sibling guards for the other flows: `onBeforePlanChange` (paid switches and unit updates) and `onBeforePlanActivation` (app-owned plans like trials).
 
 ## Internationalization
 
-Pass `i18n` at the provider (or per widget) to replace default UI labels and format dates/currency. It covers cards, dialogs, billing history, portal buttons, recovery banners, credits, and accessibility labels:
+Pass `i18n` at the provider, or per widget, to replace default UI labels and format dates and currency. It covers cards, dialogs, billing history, portal buttons, recovery banners, credits, and accessibility labels:
 
 ```tsx
 <CreemConvexProvider
@@ -173,7 +188,7 @@ Pass `i18n` at the provider (or per widget) to replace default UI labels and for
 </CreemConvexProvider>
 ```
 
-Product names and descriptions are merchant-owned content — localize them in your catalog or with composition slots.
+Product names and descriptions are merchant-owned content. Localize them in your catalog or with composition slots.
 
 ## Custom billing UI model
 
@@ -186,7 +201,7 @@ export const getCustomBillingModel = query({
     const user = await currentUser(ctx);
     const billingData = await creem.getBillingModel(ctx, {
       entityId: user?._id ?? null,
-      user: user ? { _id: user._id, email: user.email } : null,
+      user: user ? { id: user._id, email: user.email } : null,
     });
     return {
       ...billingData,
@@ -197,22 +212,7 @@ export const getCustomBillingModel = query({
 });
 ```
 
-It's graceful when `entityId` is null — public pricing pages get the catalog without auth.
-
-## Direct SDK access
-
-Resources without webhook support can't be mirrored into Convex; call them through `creem.sdk.*` (the same Creem SDK client, already configured) inside your own actions:
-
-| Resource         | Synced to Convex?    | Access                     |
-| ---------------- | -------------------- | -------------------------- |
-| Subscriptions    | Yes (webhook)        | `creem.subscriptions.*`    |
-| Checkouts        | Yes (webhook)        | `creem.checkouts.*`        |
-| Products         | Yes (webhook + sync) | `creem.products.*`         |
-| Customers        | Yes (webhook)        | `creem.customers.*`        |
-| Orders           | Yes (webhook)        | `creem.orders.*`           |
-| **Licenses**     | No webhook           | `creem.sdk.licenses.*`     |
-| **Discounts**    | No webhook           | `creem.sdk.discounts.*`    |
-| **Transactions** | No webhook           | `creem.sdk.transactions.*` |
+A null `entityId` is handled gracefully, so public pricing pages get the catalog without auth.
 
 ## Creem server selection
 
@@ -225,28 +225,8 @@ npx convex env set CREEM_SERVER prod   # production (or omit)
 
 See [Test Mode](/getting-started/test-mode) for the full test-environment workflow and test cards.
 
-## Brownfield migration
+## Related
 
-Moving from another billing integration (Stripe, LemonSqueezy, a custom setup)? The component's setup is additive, but removing the old system safely needs a manual inventory:
-
-1. **Old webhook endpoints** — in your app _and_ the old provider's dashboard (`/api/stripe/webhook`, `/webhooks/lemonsqueezy`, …). Keep them only while another live flow depends on them.
-2. **Client env vars** — old product/price/plan/publishable-key variables in `VITE_*`, `NEXT_PUBLIC_*`, `PUBLIC_*` namespaces.
-3. **Server env vars** — old API keys, webhook secrets, portal config, price IDs. They typically hide in several places: local `.env*` files, hosting provider settings, CI secrets, and the old dashboard.
-4. **Background jobs** — scheduled syncs or functions still reading old billing env vars or processing old webhook events.
-
-Switch traffic only after the Creem webhook is verifiably receiving events, and don't delete old secrets before rollback and data-retention requirements are clear. The package's [INTEGRATION.md](https://github.com/armitage-labs/creem/blob/main/packages/convex/INTEGRATION.md) includes this checklist in an agent-executable form.
-
-## Migrating from 0.3.x
-
-v2 (0.4.0) is a breaking release. The biggest changes: widgets read the API from `CreemConvexProvider` instead of per-widget `api` props, seat-specific names became unit-based (`showSeatPicker` → `showUnitPicker`), `Product.Group` was removed in favor of `Product.Root`, credit grants moved from checkout metadata to the server catalog's `creditGrant`, and the billing snapshot became a canonical multi-row shape. The full old-API → new-API tables are in the [package README's migration guide](https://github.com/armitage-labs/creem/tree/main/packages/convex#migration-030-to-040).
-
-## Troubleshooting
-
-| Symptom                        | Check                                                                                                                  |
-| ------------------------------ | ---------------------------------------------------------------------------------------------------------------------- |
-| Webhooks not receiving events  | Dashboard webhook URL matches `<CONVEX_SITE_URL>/creem/events`; `CREEM_WEBHOOK_SECRET` matches; Convex logs for errors |
-| Products not syncing           | Run `npx convex run billing:syncBillingProducts`; `CREEM_API_KEY` set with product read access                         |
-| Widgets rendering unstyled     | Tailwind v4 installed and `@import "@creem_io/convex/styles"` placed **after** the Tailwind import                     |
-| Checkout URL missing           | Product ID exists and is active in the dashboard; Convex logs for the full error                                       |
-| Org billing not scoping        | Resolver returns the org ID as `entityId`; webhook logs show `convexBillingEntityId` in checkout metadata              |
-| "Customer not found" on portal | Customer records are created on first checkout — no checkout yet means no portal                                       |
+- Why the entity model and API contract look the way they do: [Concepts](/code/sdks/convex/concepts)
+- Upgrading from 0.3.x, or retiring another provider: [Migration](/code/sdks/convex/migration)
+- Direct SDK access and troubleshooting: [Reference](/code/sdks/convex/reference)

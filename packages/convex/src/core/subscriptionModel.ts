@@ -112,6 +112,7 @@ export const resolveUIPlans = ({
         plan.type === "unit-based"
           ? "unit"
           : (catalogEntry?.pricingModel ?? "flat"),
+      trialDays: catalogEntry?.trialDays,
       groupId: plan.groupId ?? catalogEntry?.groupId,
       groupTitle: plan.groupTitle ?? catalogEntry?.groupTitle,
       eligibilityScopeId: catalogEntry?.eligibilityScopeId,

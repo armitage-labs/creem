@@ -5,7 +5,6 @@ export {
 export { pendingCheckout } from "../core/pendingCheckout.js";
 export { default as BillingToggle } from "./primitives/BillingToggle.svelte";
 export { default as SegmentGroup } from "./primitives/SegmentGroup.svelte";
-export { default as SegmentControl } from "./primitives/SegmentControl.svelte";
 export { default as NumberInput } from "./primitives/NumberInput.svelte";
 export { default as CheckoutButton } from "./primitives/CheckoutButton.svelte";
 export { default as CustomerPortalButton } from "./primitives/CustomerPortalButton.svelte";
@@ -17,8 +16,6 @@ export { default as PaymentWarningBanner } from "./primitives/PaymentWarningBann
 export { default as PaymentRecoveryBanner } from "./primitives/PaymentRecoveryBanner.svelte";
 export { default as PaymentRecoveryButton } from "./primitives/PaymentRecoveryButton.svelte";
 export { default as TrialLimitBanner } from "./primitives/TrialLimitBanner.svelte";
-export { default as OneTimeCheckoutButton } from "./primitives/OneTimeCheckoutButton.svelte";
-export { default as OneTimePaymentStatusBadge } from "./primitives/OneTimePaymentStatusBadge.svelte";
 export { default as CheckoutSuccessSummary } from "./primitives/CheckoutSuccessSummary.svelte";
 export { default as CreemConvexProvider } from "./CreemConvexProvider.svelte";
 export type { CreemConvexContextValue } from "./creemConvexContext.js";

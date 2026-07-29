@@ -1181,6 +1181,9 @@ export const SubscriptionRoot = ({
       subscribedUnits: localSubscribedUnits,
       units,
       showUnitPicker,
+      reserveTrialCaption: visiblePlans.some(
+        (candidate) => (candidate.trialDays ?? 0) > 0,
+      ),
       isGroupSubscribed: ownsActiveSubscription,
       disableCheckout: !canCheckout,
       disableSwitch: !canChange,

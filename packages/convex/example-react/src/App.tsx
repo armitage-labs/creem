@@ -7,22 +7,112 @@ import {
   Credits,
   Product,
   Subscription,
-  defineBillingCatalog,
+  TrialLimitBanner,
   evaluateUsageLimits,
   plansOf,
   selectBaseSubscription,
   getConvexErrorMessage,
   connectCreemApi,
+  createCreemReact,
+  PaymentRecoveryBanner,
+  PaymentRecoveryButton,
   type ConnectedBillingApi,
+  type PlanChangeIntent,
   type ConnectedBillingModel,
   type Transition,
 } from "@creem_io/convex/react";
 import { useAction, useQuery } from "convex/react";
 import { useState } from "react";
 import { api } from "../../convex/_generated/api";
+import { billingCatalog, env } from "../../example-shared/billingCatalog";
 import creemLogoUrl from "./assets/creem.svg";
 import convexLogoUrl from "./assets/convex.svg";
 import { CheckIcon, CopyIcon, GithubIcon } from "lucide-react";
+
+const TOC = [
+  {
+    title: "SUBSCRIPTION VARIANTS",
+    items: [
+      { n: "01", href: "#sub-one-plan", label: "Minimal One Plan" },
+      { n: "02", href: "#sub-two-plans", label: "Minimal Two Plans" },
+      { n: "03", href: "#subscription-app-trial", label: "App Trial" },
+      {
+        n: "04",
+        href: "#subscription-with-trial",
+        label: "Creem Trial + Multi-Cycle",
+      },
+      {
+        n: "05",
+        href: "#subscription-unit-selectable",
+        label: "Individual / Teams",
+      },
+      { n: "06", href: "#subscription-unit-auto", label: "Unit-Based" },
+      { n: "07", href: "#sub-grouped-cycles", label: "Grouped Multi-Cycle" },
+      { n: "08", href: "#sub-consent-gates", label: "Consent Gates" },
+      {
+        n: "09",
+        href: "#subscription-custom-composition",
+        label: "Custom Composition",
+      },
+      { n: "10", href: "#sub-typed-binding", label: "Typed Binding API" },
+      { n: "11", href: "#subscription-period-end", label: "Period-End Change" },
+    ],
+  },
+  {
+    title: "ONE TIME PURCHASE",
+    items: [
+      { n: "12", href: "#onetime-single", label: "Single Product" },
+      { n: "13", href: "#onetime-group", label: "Product Group + Upgrade" },
+      { n: "14", href: "#onetime-repeat", label: "Consumable (Repeating)" },
+    ],
+  },
+  {
+    title: "ACCOUNT",
+    items: [
+      { n: "15", href: "#payment-recovery", label: "Payment Recovery" },
+      { n: "16", href: "#billing-history", label: "Billing History" },
+      { n: "17", href: "#feature-usage-gate", label: "Feature / Usage Gate" },
+    ],
+  },
+];
+
+const TOC_TITLE =
+  "hidden group-hover:block group-focus-within:block [@media(min-width:1820px)]:block";
+
+const TocGroups = () => (
+  <>
+    {TOC.map((group) => (
+      <div key={group.title} className="space-y-4">
+        <p className={`label-m text-foreground-placeholder ${TOC_TITLE}`}>
+          {group.title}
+        </p>
+        <div className="space-y-1">
+          {group.items.map((item) => (
+            <div key={item.href} className="flex items-center gap-3">
+              <span className="label-m text-foreground-placeholder inline-block w-6 shrink-0">
+                {item.n}
+              </span>
+              <a href={item.href} className="link-inline whitespace-nowrap">
+                {item.label}
+              </a>
+            </div>
+          ))}
+        </div>
+      </div>
+    ))}
+  </>
+);
+
+function FloatingToc() {
+  return (
+    <nav
+      aria-label="Examples"
+      className="group fixed right-2 top-1/2 z-40 hidden w-12 max-h-[80vh] -translate-y-1/2 space-y-8 overflow-x-hidden overflow-y-auto radius-m border border-border-subtle bg-surface-elevated p-3 shadow-md hover:w-auto focus-within:w-auto xl:block [@media(min-width:1820px)]:right-4 [@media(min-width:1820px)]:w-auto [@media(min-width:1820px)]:p-4"
+    >
+      <TocGroups />
+    </nav>
+  );
+}
 
 const TEST_CARDS = [
   { number: "4111 1111 1111 1111", behavior: "Successful payment" },
@@ -40,26 +130,30 @@ function TestCardChip({
 }) {
   const [copied, setCopied] = useState(false);
   return (
-    <span className="inline-flex items-center gap-1.5">
-      <button
-        type="button"
-        title={`Copy card number (${behavior.toLowerCase()})`}
-        onClick={() => {
-          void navigator.clipboard.writeText(number);
-          setCopied(true);
-          window.setTimeout(() => setCopied(false), 1500);
-        }}
-        className="inline-flex items-center gap-1.5 rounded bg-surface-200-800 px-1.5 py-0.5 font-mono text-xs hover:bg-surface-300-700"
-      >
-        <span>{number}</span>
-        {copied ? (
-          <CheckIcon className="size-3 text-emerald-600" />
-        ) : (
-          <CopyIcon className="size-3 opacity-60" />
-        )}
-      </button>
-      <span className="text-foreground-placeholder">{behavior}</span>
-    </span>
+    <button
+      type="button"
+      title={`Copy ${number}`}
+      onClick={() => {
+        void navigator.clipboard.writeText(number);
+        setCopied(true);
+        window.setTimeout(() => setCopied(false), 1500);
+      }}
+      className="group flex items-center justify-between gap-4 rounded-lg border border-border-subtle bg-surface-base px-3 py-2.5 text-left transition-colors hover:border-primary-border-default"
+    >
+      <span className="min-w-0">
+        <span className="block font-mono text-sm text-foreground-default tabular-nums">
+          {number}
+        </span>
+        <span className="block body-s text-foreground-placeholder">
+          {behavior}
+        </span>
+      </span>
+      {copied ? (
+        <CheckIcon className="size-4 shrink-0 text-emerald-600" />
+      ) : (
+        <CopyIcon className="size-4 shrink-0 text-foreground-placeholder opacity-0 transition-opacity group-hover:opacity-100" />
+      )}
+    </button>
   );
 }
 
@@ -68,166 +162,19 @@ function TestCardChip({
 // missing export is a compile error rather than a runtime surprise.
 const connectedApi: ConnectedBillingApi = connectCreemApi(api.billing);
 
-const billingCatalog = defineBillingCatalog({
-  version: "example",
-  defaultPlanId: "free",
-  plans: [
-    {
-      planId: "trial",
-      category: "trial",
-      billingType: "custom",
-      eligibilityScopeId: "base",
-      title: "Starter Trial",
-      description:
-        "No-card app trial. Hidden after it has been used once or a base plan is chosen.",
-      eligibility: {
-        oncePerEntity: true,
-        hideWhenIneligible: true,
-        expiresWhenScopeHasNonTrialPlan: true,
-      },
-      limits: { aiMessages: 5, projects: 1 },
-    },
-    {
-      planId: "free",
-      category: "free",
-      billingType: "custom",
-      eligibilityScopeId: "base",
-      title: "Free",
-      description: "For individuals getting started",
-      limits: { aiMessages: 50, projects: 1 },
-    },
-    {
-      planId: "basic-individual",
-      category: "paid",
-      billingType: "recurring",
-      title: "Basic",
-      description: "Personal workspace and basic support",
-      limits: { aiMessages: 250, projects: 5 },
-      products: {
-        "every-month":
-          import.meta.env.VITE_CREEM_BASIC_INDIVIDUAL_MONTHLY_PRODUCT_ID ??
-          "prod_1c6ZGcxekHKrVYuWriHs68",
-      },
-    },
-    {
-      planId: "premium-individual",
-      category: "paid",
-      billingType: "recurring",
-      title: "Premium",
-      description: "Unlimited personal projects and priority support",
-      recommended: true,
-      limits: { aiMessages: 2500, projects: 100 },
-      products: {
-        "every-month":
-          import.meta.env.VITE_CREEM_PREMIUM_INDIVIDUAL_MONTHLY_PRODUCT_ID ??
-          "prod_3861b06bJDnvpEBcs2uxYv",
-      },
-    },
-    {
-      planId: "basic-team",
-      category: "paid",
-      billingType: "recurring",
-      pricingModel: "unit",
-      title: "Team Basic",
-      description: "Shared team workspace with unit-based billing",
-      products: {
-        "every-month":
-          import.meta.env.VITE_CREEM_BASIC_TEAM_MONTHLY_PRODUCT_ID ??
-          "prod_1c6ZGcxekHKrVYuWriHs68",
-      },
-    },
-    {
-      planId: "premium-team",
-      category: "paid",
-      billingType: "recurring",
-      pricingModel: "unit",
-      title: "Team Premium",
-      description: "Advanced team controls with unit-based billing",
-      recommended: true,
-      products: {
-        "every-month":
-          import.meta.env.VITE_CREEM_PREMIUM_TEAM_MONTHLY_PRODUCT_ID ??
-          "prod_3861b06bJDnvpEBcs2uxYv",
-      },
-    },
-    {
-      planId: "basic-unit-auto",
-      category: "paid",
-      billingType: "recurring",
-      pricingModel: "unit",
-      products: {
-        "every-month":
-          import.meta.env.VITE_CREEM_BASIC_UNIT_AUTO_MONTHLY_PRODUCT_ID ??
-          "prod_1c6ZGcxekHKrVYuWriHs68",
-      },
-    },
-    {
-      planId: "premium-unit-auto",
-      category: "paid",
-      billingType: "recurring",
-      pricingModel: "unit",
-      products: {
-        "every-month":
-          import.meta.env.VITE_CREEM_PREMIUM_UNIT_AUTO_MONTHLY_PRODUCT_ID ??
-          "prod_3861b06bJDnvpEBcs2uxYv",
-      },
-    },
-    {
-      planId: "period-end-free",
-      category: "free",
-      title: "Free",
-      description: "App-owned free plan for period-end downgrade testing",
-    },
-    {
-      planId: "period-end-basic",
-      category: "paid",
-      billingType: "recurring",
-      title: "Period Basic",
-      description: "Dedicated basic plan for scheduled update testing",
-      products: {
-        "every-month":
-          import.meta.env.VITE_CREEM_SUB_PERIOD_END_BASIC_MONTHLY ?? "",
-      },
-    },
-    {
-      planId: "period-end-premium",
-      category: "paid",
-      billingType: "recurring",
-      title: "Period Premium",
-      description: "Dedicated premium plan for scheduled update testing",
-      recommended: true,
-      products: {
-        "every-month":
-          import.meta.env.VITE_CREEM_SUB_PERIOD_END_PREMIUM_MONTHLY ?? "",
-      },
-    },
-    {
-      planId: "ai-credits-100",
-      category: "paid",
-      billingType: "onetime",
-      title: "100 AI Credits",
-      description: "Repeatable prepaid credit pack",
-      products: {
-        custom:
-          import.meta.env.VITE_CREEM_ONETIME_CREDITS ??
-          "prod_73CnZ794MaJ1DUn8MU0O5f",
-      },
-      creditGrant: {
-        amount: "100",
-        accountName: "credits",
-        unitLabel: "credits",
-        refundBehavior: "prorate",
-      },
-    },
-  ],
-} as const);
+// Typed binding: catalog + API refs in one object with typed plan IDs.
+const billing = createCreemReact({
+  catalog: billingCatalog,
+  api: connectedApi,
+  defaultCycle: "every-month",
+});
 
 const upgradeTransitions: Transition[] = [
   {
-    from: "prod_4Di7Lkhf3TXy4UOKsUrGw0",
-    to: "prod_56sJIyL7piLCVv270n4KBz",
+    from: env.onetimeBasic,
+    to: env.onetimePremium,
     kind: "via_product",
-    viaProductId: "prod_5LApsYRX8dHbx8QuLJgJ3j",
+    viaProductId: env.onetimeUpgradeDelta,
   },
 ];
 
@@ -235,6 +182,30 @@ export default function App() {
   const billingModel = useQuery(api.billing.uiModel, {}) as
     | ConnectedBillingModel
     | undefined;
+  // ──────────────────────────────────────────────────────────────────────────
+  // Consent gate handlers (demo)
+  // ──────────────────────────────────────────────────────────────────────────
+  const [consentAccepted, setConsentAccepted] = useState(false);
+  const [consentError, setConsentError] = useState("");
+
+  const ensureConsentAccepted = () => {
+    if (consentAccepted) {
+      setConsentError("");
+      return true;
+    }
+    setConsentError("Please accept the billing policy before continuing.");
+    return false;
+  };
+
+  const onBeforeCheckout = async (_intent: {
+    productId: string;
+    units?: number;
+  }) => ensureConsentAccepted();
+  const onBeforePlanChange = async (_intent: PlanChangeIntent) =>
+    ensureConsentAccepted();
+  const onBeforePlanActivation = async (_intent: { planId: string }) =>
+    ensureConsentAccepted();
+
   const snapshot = billingModel?.snapshot ?? null;
   const generateDemoImageAction = useAction(api.billing.generateDemoImage);
   const [demoImageLoading, setDemoImageLoading] = useState(false);
@@ -271,14 +242,14 @@ export default function App() {
 
   return (
     <CreemConvexProvider api={connectedApi} catalog={billingCatalog}>
-      <main className="w-full py-10 lg:pt-16">
-        <header className="border-b border-border-subtle pb-16 lg:pb-[104px]">
-          <div className="mx-auto w-full max-w-[1280px] px-6 lg:px-16 grid grid-cols-1 gap-12 lg:grid-cols-12 lg:gap-2">
+      <main className="w-full py-8 lg:pt-12">
+        <header className="border-b border-border-subtle pb-12 lg:pb-20">
+          <div className="mx-auto w-full max-w-7xl px-6 lg:px-16 grid grid-cols-1 gap-12 lg:grid-cols-12 lg:gap-2">
             <div className="lg:col-span-7 space-y-6">
-              <h1 className="display-m max-w-[720px] text-foreground-default">
+              <h1 className="display-m max-w-180 text-foreground-default">
                 Drop-in Billing for Convex Apps
               </h1>
-              <p className="subtitle-m max-w-[720px] text-foreground-default">
+              <p className="subtitle-m max-w-180 text-foreground-default">
                 Subscriptions, one-time purchases, unit-based pricing, and a
                 customer portal — all powered by Creem and wired to your Convex
                 backend. Available for React and Svelte.
@@ -299,133 +270,7 @@ export default function App() {
               </div>
             </div>
 
-            <nav className="lg:col-start-10 lg:col-span-3 space-y-10 lg:pt-2">
-              <div className="space-y-4">
-                <p className="label-m text-foreground-placeholder">
-                  SUBSCRIPTIONS WIDGETS
-                </p>
-                <div className="space-y-1">
-                  <div className="flex items-center gap-3">
-                    <span className="label-m text-foreground-placeholder inline-block w-6 shrink-0">
-                      01
-                    </span>
-                    <a href="#subscription-app-trial" className="link-inline">
-                      App Trial
-                    </a>
-                  </div>
-                  <div className="flex items-center gap-3">
-                    <span className="label-m text-foreground-placeholder inline-block w-6 shrink-0">
-                      02
-                    </span>
-                    <a href="#subscription-with-trial" className="link-inline">
-                      With Trial (4 Cycles)
-                    </a>
-                  </div>
-                  <div className="flex items-center gap-3">
-                    <span className="label-m text-foreground-placeholder inline-block w-6 shrink-0">
-                      03
-                    </span>
-                    <a
-                      href="#subscription-without-trial"
-                      className="link-inline"
-                    >
-                      Without Trial (Monthly Only)
-                    </a>
-                  </div>
-                  <div className="flex items-center gap-3">
-                    <span className="label-m text-foreground-placeholder inline-block w-6 shrink-0">
-                      04
-                    </span>
-                    <a
-                      href="#subscription-unit-selectable"
-                      className="link-inline"
-                    >
-                      Individual vs Teams
-                    </a>
-                  </div>
-                  <div className="flex items-center gap-3">
-                    <span className="label-m text-foreground-placeholder inline-block w-6 shrink-0">
-                      05
-                    </span>
-                    <a href="#subscription-unit-auto" className="link-inline">
-                      Unit-Based (Auto-Derived)
-                    </a>
-                  </div>
-                  <div className="flex items-center gap-3">
-                    <span className="label-m text-foreground-placeholder inline-block w-6 shrink-0">
-                      06
-                    </span>
-                    <a
-                      href="#subscription-custom-composition"
-                      className="link-inline"
-                    >
-                      Custom Composition
-                    </a>
-                  </div>
-                  <div className="flex items-center gap-3">
-                    <span className="label-m text-foreground-placeholder inline-block w-6 shrink-0">
-                      07
-                    </span>
-                    <a href="#subscription-period-end" className="link-inline">
-                      Period-End Change
-                    </a>
-                  </div>
-                </div>
-              </div>
-              <div className="space-y-4">
-                <p className="label-m text-foreground-placeholder">
-                  ONE TIME PURCHASE WIDGETS
-                </p>
-                <div className="space-y-1">
-                  <div className="flex items-center gap-3">
-                    <span className="label-m text-foreground-placeholder inline-block w-6 shrink-0">
-                      08
-                    </span>
-                    <a href="#onetime-single" className="link-inline">
-                      Single One-Time Product
-                    </a>
-                  </div>
-                  <div className="flex items-center gap-3">
-                    <span className="label-m text-foreground-placeholder inline-block w-6 shrink-0">
-                      09
-                    </span>
-                    <a href="#onetime-group" className="link-inline">
-                      Mutually Exclusive Product Group
-                    </a>
-                  </div>
-                  <div className="flex items-center gap-3">
-                    <span className="label-m text-foreground-placeholder inline-block w-6 shrink-0">
-                      10
-                    </span>
-                    <a href="#onetime-repeat" className="link-inline">
-                      Repeating Product (Consumable)
-                    </a>
-                  </div>
-                </div>
-              </div>
-              <div className="space-y-4">
-                <p className="label-m text-foreground-placeholder">
-                  ACCOUNT WIDGETS
-                </p>
-                <div className="space-y-1">
-                  <div className="flex items-center gap-3">
-                    <span className="label-m text-foreground-placeholder inline-block w-6 shrink-0">
-                      11
-                    </span>
-                    <a href="#billing-history" className="link-inline">
-                      Billing History
-                    </a>
-                  </div>
-                  <div className="flex items-center gap-3">
-                    <span className="label-m text-foreground-placeholder inline-block w-6 shrink-0">
-                      12
-                    </span>
-                    <a href="#feature-usage-gate" className="link-inline">
-                      Feature / Usage Gate
-                    </a>
-                  </div>
-                </div>
-              </div>
+            <div className="lg:col-start-10 lg:col-span-3 lg:pt-2">
               <a
                 href="https://github.com/armitage-labs/creem/tree/main/packages/convex"
                 target="_blank"
@@ -435,19 +280,25 @@ export default function App() {
                 <GithubIcon className="size-4" />
                 <span>Github</span>
               </a>
-            </nav>
+            </div>
           </div>
         </header>
 
-        <div className="mx-auto w-full max-w-[1280px] px-4 lg:px-16 space-y-14 pt-14">
+        <FloatingToc />
+
+        <div className="mx-auto w-full max-w-7xl px-4 lg:px-16 space-y-12 pt-12">
           <CheckoutSuccessSummary className="rounded-lg border border-emerald-300 bg-emerald-50 p-4 text-sm text-emerald-900" />
 
           {/* Test card info */}
-          <div className="rounded-lg border border-surface-300-700 bg-surface-100-900 px-4 py-3 text-sm text-foreground-muted">
-            <div className="flex flex-wrap items-center gap-x-4 gap-y-2">
-              <span className="font-medium text-foreground-default">
-                Test cards:
-              </span>
+          <div className="radius-m border border-border-subtle bg-surface-subtle p-5">
+            <div className="flex flex-wrap items-baseline justify-between gap-2">
+              <p className="label-m text-foreground-default">Test cards</p>
+              <p className="body-s text-foreground-placeholder">
+                Any future expiry, any CVC, any cardholder name.
+              </p>
+            </div>
+
+            <div className="mt-4 grid gap-2 sm:grid-cols-2">
               {TEST_CARDS.map((card) => (
                 <TestCardChip
                   key={card.number}
@@ -456,21 +307,71 @@ export default function App() {
                 />
               ))}
             </div>
-            <div className="mt-1 text-foreground-placeholder">
-              Any future expiry, any CVC, any cardholder name.
-            </div>
           </div>
+
+          {/* ─── 02: Minimal One Plan ─── */}
+          <section
+            id="sub-one-plan"
+            className="relative left-1/2 -translate-x-1/2 w-screen border-b border-border-subtle pb-20"
+          >
+            <div className="mx-auto w-full max-w-7xl px-4 lg:px-16 pt-20">
+              <div className="mx-auto grid grid-cols-12">
+                <h2 className="heading-l col-span-12 text-center text-foreground-default lg:col-start-4 lg:col-span-6">
+                  <span className="text-foreground-placeholder">
+                    01 — Subscription
+                  </span>
+                  <br />
+                  Minimal One Plan
+                </h2>
+                <p className="body-l col-span-12 mt-6 text-center text-foreground-muted lg:col-start-4 lg:col-span-6">
+                  The smallest catalog-driven subscription widget: one root, one
+                  plan slug, default UI. Product IDs stay in the catalog so this
+                  markup is stable across test and production.
+                </p>
+              </div>
+              <div className="mt-12">
+                <Subscription.Root plans={plansOf(billingCatalog, ["pro"])} />
+              </div>
+            </div>
+          </section>
+
+          {/* ─── 03: Minimal Two Plans ─── */}
+          <section
+            id="sub-two-plans"
+            className="relative left-1/2 -translate-x-1/2 w-screen border-b border-border-subtle pb-20"
+          >
+            <div className="mx-auto w-full max-w-7xl px-4 lg:px-16 pt-20">
+              <div className="mx-auto grid grid-cols-12">
+                <h2 className="heading-l col-span-12 text-center text-foreground-default lg:col-start-4 lg:col-span-6">
+                  <span className="text-foreground-placeholder">
+                    02 — Subscription
+                  </span>
+                  <br />
+                  Minimal Two Plans
+                </h2>
+                <p className="body-l col-span-12 mt-6 text-center text-foreground-muted lg:col-start-4 lg:col-span-6">
+                  A compact default pricing section with two paid plan slugs
+                  from the catalog.
+                </p>
+              </div>
+              <div className="mt-12">
+                <Subscription.Root
+                  plans={plansOf(billingCatalog, ["basic", "premium"])}
+                />
+              </div>
+            </div>
+          </section>
 
           {/* ─── Section 1: App-owned no-card trial ─── */}
           <section
             id="subscription-app-trial"
-            className="relative left-1/2 -translate-x-1/2 w-screen border-b border-border-subtle pb-[104px]"
+            className="relative left-1/2 -translate-x-1/2 w-screen border-b border-border-subtle pb-20"
           >
-            <div className="mx-auto w-full max-w-[1280px] px-4 lg:px-16 pt-[104px]">
+            <div className="mx-auto w-full max-w-7xl px-4 lg:px-16 pt-20">
               <div className="mx-auto grid grid-cols-12">
                 <h2 className="heading-l col-span-12 text-center text-foreground-default lg:col-start-4 lg:col-span-6">
                   <span className="text-foreground-placeholder">
-                    Subscription
+                    03 — Subscription
                   </span>
                   <br />
                   App Trial + Free + Paid
@@ -482,7 +383,7 @@ export default function App() {
                 </p>
               </div>
 
-              <div className="mt-10">
+              <div className="mt-12">
                 <Subscription.Root
                   plans={plansOf(billingCatalog, [
                     "trial",
@@ -497,114 +398,42 @@ export default function App() {
           {/* ─── Section 2: Subscriptions with trial (all 4 billing cycles) ─── */}
           <section
             id="subscription-with-trial"
-            className="relative left-1/2 -translate-x-1/2 w-screen border-b border-border-subtle pb-[104px]"
+            className="relative left-1/2 -translate-x-1/2 w-screen border-b border-border-subtle pb-20"
           >
-            <div className="mx-auto w-full max-w-[1280px] px-4 lg:px-16 pt-[104px]">
+            <div className="mx-auto w-full max-w-7xl px-4 lg:px-16 pt-20">
               <div className="mx-auto grid grid-cols-12">
                 <h2 className="heading-l col-span-12 text-center text-foreground-default lg:col-start-4 lg:col-span-6">
                   <span className="text-foreground-placeholder">
-                    Subscription
+                    04 — Subscription
                   </span>
                   <br />
-                  With Trial (4 Cycles)
+                  Creem Trial + 4 Cycles
                 </h2>
                 <p className="body-l col-span-12 mt-6 text-center text-foreground-muted lg:col-start-4 lg:col-span-6">
-                  Subscription plans with a free trial. Monthly, quarterly,
-                  semi-annual, and annual billing cycles — the cycle toggle
-                  appears automatically from the registered plans.
+                  These Creem products carry a trial, so checkout starts one.
+                  Creem has no product API for trial length, so the card reads
+                  it from <code>trialDays</code> in the catalog. Monthly,
+                  quarterly, semi-annual, and annual cycles; the toggle appears
+                  automatically from the registered plans.
                 </p>
               </div>
 
-              <div className="mt-10">
-                <Subscription.Root className="">
-                  <Subscription.Item
-                    type="free"
-                    title="Free"
-                    description={`✔️ Up to 3 projects\n✔️ Basic task boards\n✔️ 500 MB storage\n✔️ Community support`}
-                  />
-                  <Subscription.Item
-                    planId="basic"
-                    type="single"
-                    title="Basic"
-                    productIds={{
-                      "every-month": "prod_4if4apw1SzOXSUAfGL0Jp9",
-                      "every-three-months": "prod_5SxwV6WbbluzUQ2FmZ4trD",
-                      "every-six-months": "prod_7Lhs8en6kiBONIywQUlaQC",
-                      "every-year": "prod_KE9mMfH58482NIbKgK4nF",
-                    }}
-                  />
-                  <Subscription.Item
-                    planId="premium"
-                    type="single"
-                    title="Premium"
-                    recommended
-                    productIds={{
-                      "every-month": "prod_7Cukw2hVIT5DvozmomK67A",
-                      "every-three-months": "prod_7V5gRIqWgui5wQflemUBOF",
-                      "every-six-months": "prod_4JN9cHsEto3dr0CQpgCxn4",
-                      "every-year": "prod_6ytx0cFhBvgXLp1jA6CQqH",
-                    }}
-                  />
-                  <Subscription.Item
-                    type="enterprise"
-                    title="Enterprise"
-                    description={`✔️ Everything in Premium\n✔️ Unlimited storage\n✔️ SSO & SAML\n✔️ Dedicated account manager\n✔️ Custom integrations\n✔️ 99.9% SLA`}
-                    contactUrl="https://creem.io"
-                  />
-                </Subscription.Root>
+              {/* TrialLimitBanner reads snapshot.subscriptions for status
+                  "trialing", so it only fires for a Creem-managed trial like the
+                  products below. An app-owned trial writes an appPlanAssignment
+                  instead and never reaches this banner. */}
+              <div className="mx-auto mt-12 max-w-180">
+                <TrialLimitBanner snapshot={snapshot} />
               </div>
 
-              <div className="flex justify-center pt-16">
-                <BillingPortal className="button-faded" />
-              </div>
-            </div>
-          </section>
-
-          {/* ─── Section 3: Subscriptions without trial (monthly only) ─── */}
-          <section
-            id="subscription-without-trial"
-            className="relative left-1/2 -translate-x-1/2 w-screen border-b border-border-subtle pb-[6.5rem]"
-          >
-            <div className="mx-auto w-full max-w-[1280px] px-4 lg:px-16 pt-[6.5rem]">
-              <div className="mx-auto grid grid-cols-12">
-                <h2 className="heading-l col-span-12 text-center text-foreground-default lg:col-start-4 lg:col-span-6">
-                  <span className="text-foreground-placeholder">
-                    Subscription
-                  </span>
-                  <br />
-                  Without Trial (Monthly Only)
-                </h2>
-                <p className="body-l col-span-12 mt-6 text-center text-foreground-muted lg:col-start-4 lg:col-span-6">
-                  Monthly-only plans with no trial period. Since only one
-                  billing cycle is registered, the cycle toggle is hidden
-                  automatically.
-                </p>
-              </div>
-
-              <div className="mt-[6.5rem]">
-                <Subscription.Root>
-                  <Subscription.Item
-                    type="free"
-                    title="Free"
-                    description={`✔️ 1 user included\n✔️ Basic email support\n✔️ 1 GB storage\n✔️ Standard templates`}
-                  />
-                  <Subscription.Item
-                    planId="basic-monthly"
-                    type="single"
-                    title="Basic"
-                    productIds={{
-                      "every-month": "prod_53CU7duHB58lGTUqKlRroI",
-                    }}
-                  />
-                  <Subscription.Item
-                    planId="professional-monthly"
-                    type="single"
-                    title="Professional"
-                    productIds={{
-                      "every-month": "prod_3ymOe55fDzKgmPoZnPEOBq",
-                    }}
-                  />
-                </Subscription.Root>
+              <div className="mt-12">
+                <Subscription.Root
+                  plans={plansOf(billingCatalog, [
+                    "free",
+                    "basic-multi-cycle",
+                    "premium-multi-cycle",
+                  ])}
+                />
               </div>
 
               <div className="flex justify-center pt-16">
@@ -616,13 +445,13 @@ export default function App() {
           {/* ─── Section 4: Unit-based subscriptions ─── */}
           <section
             id="subscription-unit-selectable"
-            className="relative left-1/2 -translate-x-1/2 w-screen border-b border-border-subtle pb-[6.5rem]"
+            className="relative left-1/2 -translate-x-1/2 w-screen border-b border-border-subtle pb-20"
           >
-            <div className="mx-auto w-full max-w-[1280px] px-4 lg:px-16 pt-[6.5rem]">
+            <div className="mx-auto w-full max-w-7xl px-4 lg:px-16 pt-20">
               <div className="mx-auto grid grid-cols-12">
                 <h2 className="heading-l col-span-12 text-center text-foreground-default lg:col-start-4 lg:col-span-6">
                   <span className="text-foreground-placeholder">
-                    Subscription
+                    05 — Subscription
                   </span>
                   <br />
                   Individual vs Teams
@@ -635,7 +464,7 @@ export default function App() {
                 </p>
               </div>
 
-              <div className="mt-[6.5rem]">
+              <div className="mt-12">
                 <Subscription.Root
                   showUnitPicker
                   groups={[
@@ -668,13 +497,13 @@ export default function App() {
           {/* ─── Section 5: Unit-based with auto-derived units ─── */}
           <section
             id="subscription-unit-auto"
-            className="relative left-1/2 -translate-x-1/2 w-screen border-b border-border-subtle pb-[6.5rem]"
+            className="relative left-1/2 -translate-x-1/2 w-screen border-b border-border-subtle pb-20"
           >
-            <div className="mx-auto w-full max-w-[1280px] px-4 lg:px-16 pt-[6.5rem]">
+            <div className="mx-auto w-full max-w-7xl px-4 lg:px-16 pt-20">
               <div className="mx-auto grid grid-cols-12">
                 <h2 className="heading-l col-span-12 text-center text-foreground-default lg:col-start-4 lg:col-span-6">
                   <span className="text-foreground-placeholder">
-                    Subscription
+                    06 — Subscription
                   </span>
                   <br />
                   Unit-Based (Auto-Derived)
@@ -686,7 +515,7 @@ export default function App() {
                 </p>
               </div>
 
-              <div className="mt-[6.5rem]">
+              <div className="mt-12">
                 <Subscription.Root
                   plans={plansOf(billingCatalog, [
                     "basic-unit-auto",
@@ -699,16 +528,112 @@ export default function App() {
             </div>
           </section>
 
-          {/* ─── Section 6: Custom subscription composition ─── */}
+          {/* ─── 07: Grouped Multi-Cycle ─── */}
           <section
-            id="subscription-custom-composition"
-            className="relative left-1/2 -translate-x-1/2 w-screen border-b border-border-subtle pb-[6.5rem]"
+            id="sub-grouped-cycles"
+            className="relative left-1/2 -translate-x-1/2 w-screen border-b border-border-subtle pb-20"
           >
-            <div className="mx-auto w-full max-w-[1280px] px-4 lg:px-16 pt-[6.5rem]">
+            <div className="mx-auto w-full max-w-7xl px-4 lg:px-16 pt-20">
               <div className="mx-auto grid grid-cols-12">
                 <h2 className="heading-l col-span-12 text-center text-foreground-default lg:col-start-4 lg:col-span-6">
                   <span className="text-foreground-placeholder">
-                    Subscription
+                    07 — Subscription
+                  </span>
+                  <br />
+                  Grouped Multi-Cycle
+                </h2>
+                <p className="body-l col-span-12 mt-6 text-center text-foreground-muted lg:col-start-4 lg:col-span-6">
+                  Audience groups where each group carries its own billing
+                  cycles. The active group decides which intervals the toggle
+                  offers.
+                </p>
+              </div>
+              <div className="mt-12">
+                <Subscription.Root
+                  showUnitPicker
+                  groups={[
+                    {
+                      value: "individual-cycle",
+                      label: "Individual",
+                      plans: plansOf(billingCatalog, [
+                        "basic-individual-cycle",
+                        "premium-individual-cycle",
+                      ]),
+                    },
+                    {
+                      value: "teams-cycle",
+                      label: "Teams",
+                      plans: plansOf(billingCatalog, [
+                        "basic-team-cycle",
+                        "premium-team-cycle",
+                      ]),
+                    },
+                  ]}
+                />
+              </div>
+            </div>
+          </section>
+
+          {/* ─── 08: Consent Gates ─── */}
+          <section
+            id="sub-consent-gates"
+            className="relative left-1/2 -translate-x-1/2 w-screen border-b border-border-subtle pb-20"
+          >
+            <div className="mx-auto w-full max-w-7xl px-4 lg:px-16 pt-20">
+              <div className="mx-auto grid grid-cols-12">
+                <h2 className="heading-l col-span-12 text-center text-foreground-default lg:col-start-4 lg:col-span-6">
+                  <span className="text-foreground-placeholder">
+                    08 — Subscription
+                  </span>
+                  <br />
+                  Consent Gates
+                </h2>
+                <p className="body-l col-span-12 mt-6 text-center text-foreground-muted lg:col-start-4 lg:col-span-6">
+                  Demonstrates onBeforeCheckout, onBeforePlanChange, and
+                  onBeforePlanActivation with an app-owned policy checkbox.
+                  Checkout and plan changes continue only after consent is
+                  accepted.
+                </p>
+              </div>
+              <div className="mt-12 flex flex-col items-center gap-2">
+                <label className="body-m flex items-center gap-3 text-foreground-default">
+                  <input
+                    type="checkbox"
+                    className="h-4 w-4"
+                    checked={consentAccepted}
+                    onChange={(e) => {
+                      setConsentAccepted(e.target.checked);
+                      if (e.target.checked) setConsentError("");
+                    }}
+                  />
+                  <span>I accept the billing policy for this demo.</span>
+                </label>
+                {consentError && (
+                  <p className="body-s text-red-500">{consentError}</p>
+                )}
+              </div>
+
+              <div className="mt-12">
+                <Subscription.Root
+                  plans={plansOf(billingCatalog, ["free", "basic", "premium"])}
+                  onBeforeCheckout={onBeforeCheckout}
+                  onBeforePlanChange={onBeforePlanChange}
+                  onBeforePlanActivation={onBeforePlanActivation}
+                />
+              </div>
+            </div>
+          </section>
+
+          {/* ─── Section 6: Custom subscription composition ─── */}
+          <section
+            id="subscription-custom-composition"
+            className="relative left-1/2 -translate-x-1/2 w-screen border-b border-border-subtle pb-20"
+          >
+            <div className="mx-auto w-full max-w-7xl px-4 lg:px-16 pt-20">
+              <div className="mx-auto grid grid-cols-12">
+                <h2 className="heading-l col-span-12 text-center text-foreground-default lg:col-start-4 lg:col-span-6">
+                  <span className="text-foreground-placeholder">
+                    09 — Subscription
                   </span>
                   <br />
                   Custom Composition
@@ -720,7 +645,7 @@ export default function App() {
                 </p>
               </div>
 
-              <div className="mt-[6.5rem]">
+              <div className="mt-12">
                 <Subscription.Root
                   groupSelector="external"
                   groups={[
@@ -868,16 +793,49 @@ export default function App() {
             </div>
           </section>
 
-          {/* ─── Section 7: Period-end scheduled subscription update ─── */}
+          {/* ─── 10: Typed Binding API ─── */}
           <section
-            id="subscription-period-end"
-            className="relative left-1/2 -translate-x-1/2 w-screen border-b border-border-subtle pb-[6.5rem]"
+            id="sub-typed-binding"
+            className="relative left-1/2 -translate-x-1/2 w-screen border-b border-border-subtle pb-20"
           >
-            <div className="mx-auto w-full max-w-[1280px] px-4 lg:px-16 pt-[6.5rem]">
+            <div className="mx-auto w-full max-w-7xl px-4 lg:px-16 pt-20">
               <div className="mx-auto grid grid-cols-12">
                 <h2 className="heading-l col-span-12 text-center text-foreground-default lg:col-start-4 lg:col-span-6">
                   <span className="text-foreground-placeholder">
-                    Subscription
+                    10 — Subscription
+                  </span>
+                  <br />
+                  Typed Binding API
+                </h2>
+                <p className="body-l col-span-12 mt-6 text-center text-foreground-muted lg:col-start-4 lg:col-span-6">
+                  Uses createCreemReact to bind catalog and API refs into a
+                  single typed object. The binding spreads onto
+                  CreemConvexProvider, and the widget receives typed plan IDs
+                  without direct API props.
+                </p>
+              </div>
+              <CreemConvexProvider {...billing}>
+                <div className="mt-12">
+                  <Subscription.Root plans={billing.planIds} />
+                </div>
+
+                <div className="flex justify-center pt-16">
+                  <BillingPortal className="button-faded" />
+                </div>
+              </CreemConvexProvider>
+            </div>
+          </section>
+
+          {/* ─── Section 7: Period-end scheduled subscription update ─── */}
+          <section
+            id="subscription-period-end"
+            className="relative left-1/2 -translate-x-1/2 w-screen border-b border-border-subtle pb-20"
+          >
+            <div className="mx-auto w-full max-w-7xl px-4 lg:px-16 pt-20">
+              <div className="mx-auto grid grid-cols-12">
+                <h2 className="heading-l col-span-12 text-center text-foreground-default lg:col-start-4 lg:col-span-6">
+                  <span className="text-foreground-placeholder">
+                    11 — Subscription
                   </span>
                   <br />
                   Period-End Plan Change
@@ -890,7 +848,7 @@ export default function App() {
                 </p>
               </div>
 
-              <div className="mt-[6.5rem]">
+              <div className="mt-12">
                 <Subscription.Root
                   updateBehavior={(intent) => {
                     if (
@@ -920,13 +878,13 @@ export default function App() {
           {/* ─── Section 8: Standalone one-time product ─── */}
           <section
             id="onetime-single"
-            className="relative left-1/2 -translate-x-1/2 w-screen border-b border-border-subtle pb-[6.5rem]"
+            className="relative left-1/2 -translate-x-1/2 w-screen border-b border-border-subtle pb-20"
           >
-            <div className="mx-auto w-full max-w-[1280px] px-4 lg:px-16 pt-[6.5rem]">
+            <div className="mx-auto w-full max-w-7xl px-4 lg:px-16 pt-20">
               <div className="mx-auto grid grid-cols-12">
                 <h2 className="heading-l col-span-12 text-center text-foreground-default lg:col-start-4 lg:col-span-6">
                   <span className="text-foreground-placeholder">
-                    One Time Purchase
+                    12 — One Time Purchase
                   </span>
                   <br />
                   Single One-Time Product
@@ -938,12 +896,12 @@ export default function App() {
                 </p>
               </div>
 
-              <div className="mt-[6.5rem]">
+              <div className="mt-12">
                 <Product.Root layout="single" styleVariant="pricing">
                   <Product.Item
                     type="one-time"
                     title="One-time purchase"
-                    productId="prod_6npEfkzgtr9hSqdWd7fqKG"
+                    productId={env.onetimeSingle}
                   />
                 </Product.Root>
               </div>
@@ -953,13 +911,13 @@ export default function App() {
           {/* ─── Section 9: Mutually exclusive product group with upgrade ─── */}
           <section
             id="onetime-group"
-            className="relative left-1/2 -translate-x-1/2 w-screen border-b border-border-subtle pb-[6.5rem]"
+            className="relative left-1/2 -translate-x-1/2 w-screen border-b border-border-subtle pb-20"
           >
-            <div className="mx-auto w-full max-w-[1280px] px-4 lg:px-16 pt-[6.5rem]">
+            <div className="mx-auto w-full max-w-7xl px-4 lg:px-16 pt-20">
               <div className="mx-auto grid grid-cols-12">
                 <h2 className="heading-l col-span-12 text-center text-foreground-default lg:col-start-4 lg:col-span-6">
                   <span className="text-foreground-placeholder">
-                    One Time Purchase
+                    13 — One Time Purchase
                   </span>
                   <br />
                   Mutually Exclusive Product Group
@@ -975,7 +933,7 @@ export default function App() {
                 </p>
               </div>
 
-              <div className="mt-[6.5rem]">
+              <div className="mt-12">
                 <Product.Root
                   transition={upgradeTransitions}
                   styleVariant="pricing"
@@ -984,12 +942,12 @@ export default function App() {
                   <Product.Item
                     type="one-time"
                     title="Basic"
-                    productId="prod_4Di7Lkhf3TXy4UOKsUrGw0"
+                    productId={env.onetimeBasic}
                   />
                   <Product.Item
                     type="one-time"
                     title="Premium"
-                    productId="prod_56sJIyL7piLCVv270n4KBz"
+                    productId={env.onetimePremium}
                   />
                 </Product.Root>
               </div>
@@ -999,13 +957,13 @@ export default function App() {
           {/* ─── Section 10: Repeating (consumable) product ─── */}
           <section
             id="onetime-repeat"
-            className="relative left-1/2 -translate-x-1/2 w-screen border-b border-border-subtle pb-[6.5rem]"
+            className="relative left-1/2 -translate-x-1/2 w-screen border-b border-border-subtle pb-20"
           >
-            <div className="mx-auto w-full max-w-[1280px] px-4 lg:px-16 pt-[6.5rem]">
+            <div className="mx-auto w-full max-w-7xl px-4 lg:px-16 pt-20">
               <div className="mx-auto grid grid-cols-12">
                 <h2 className="heading-l col-span-12 text-center text-foreground-default lg:col-start-4 lg:col-span-6">
                   <span className="text-foreground-placeholder">
-                    One Time Purchase
+                    14 — One Time Purchase
                   </span>
                   <br />
                   Repeating Product (Consumable)
@@ -1018,7 +976,7 @@ export default function App() {
                 </p>
               </div>
 
-              <div className="mt-[6.5rem]">
+              <div className="mt-12">
                 <Product.Root
                   layout="single"
                   styleVariant="pricing"
@@ -1028,7 +986,7 @@ export default function App() {
                   <Product.Item
                     type="recurring"
                     title="100 AI Credits"
-                    productId="prod_73CnZ794MaJ1DUn8MU0O5f"
+                    productId={env.onetimeCredits}
                   />
                 </Product.Root>
               </div>
@@ -1071,15 +1029,47 @@ export default function App() {
             </div>
           </section>
 
+          {/* ─── 15: Payment Recovery ─── */}
+          <section
+            id="payment-recovery"
+            className="relative left-1/2 -translate-x-1/2 w-screen border-b border-border-subtle pb-20"
+          >
+            <div className="mx-auto w-full max-w-7xl px-4 lg:px-16 pt-20">
+              <div className="mx-auto grid grid-cols-12">
+                <h2 className="heading-l col-span-12 text-center text-foreground-default lg:col-start-4 lg:col-span-6">
+                  <span className="text-foreground-placeholder">
+                    15 — Account
+                  </span>
+                  <br />
+                  Payment Recovery
+                </h2>
+                <p className="body-l col-span-12 mt-6 text-center text-foreground-muted lg:col-start-4 lg:col-span-6">
+                  <code>PaymentRecoveryBanner</code> auto-detects payment issues
+                  from subscription state. <code>PaymentRecoveryButton</code>{" "}
+                  opens the customer portal for payment method updates. Shown
+                  here with forced states for demo purposes.
+                </p>
+              </div>
+
+              <div className="mx-auto mt-12 max-w-xl space-y-4">
+                <PaymentRecoveryBanner recoveryState="warning" />
+                <PaymentRecoveryBanner recoveryState="blocked" />
+                <PaymentRecoveryButton />
+              </div>
+            </div>
+          </section>
+
           {/* ─── Section 11: Billing history ─── */}
           <section
             id="billing-history"
-            className="relative left-1/2 -translate-x-1/2 w-screen border-b border-border-subtle pb-[6.5rem]"
+            className="relative left-1/2 -translate-x-1/2 w-screen border-b border-border-subtle pb-20"
           >
-            <div className="mx-auto w-full max-w-[1280px] px-4 lg:px-16 pt-[6.5rem]">
+            <div className="mx-auto w-full max-w-7xl px-4 lg:px-16 pt-20">
               <div className="mx-auto grid grid-cols-12">
                 <h2 className="heading-l col-span-12 text-center text-foreground-default lg:col-start-4 lg:col-span-6">
-                  <span className="text-foreground-placeholder">Account</span>
+                  <span className="text-foreground-placeholder">
+                    16 — Account
+                  </span>
                   <br />
                   Billing History
                 </h2>
@@ -1090,7 +1080,7 @@ export default function App() {
                 </p>
               </div>
 
-              <div className="mt-[6.5rem]">
+              <div className="mt-12">
                 <BillingHistory pageSize={5} />
               </div>
             </div>
@@ -1099,12 +1089,14 @@ export default function App() {
           {/* ─── Section 12: Feature and usage gate ─── */}
           <section
             id="feature-usage-gate"
-            className="relative left-1/2 -translate-x-1/2 w-screen pb-[6.5rem]"
+            className="relative left-1/2 -translate-x-1/2 w-screen pb-20"
           >
-            <div className="mx-auto w-full max-w-[1280px] px-4 lg:px-16 pt-[6.5rem]">
+            <div className="mx-auto w-full max-w-7xl px-4 lg:px-16 pt-20">
               <div className="mx-auto grid grid-cols-12">
                 <h2 className="heading-l col-span-12 text-center text-foreground-default lg:col-start-4 lg:col-span-6">
-                  <span className="text-foreground-placeholder">Account</span>
+                  <span className="text-foreground-placeholder">
+                    17 — Account
+                  </span>
                   <br />
                   Feature / Usage Gate
                 </h2>
@@ -1115,7 +1107,7 @@ export default function App() {
                 </p>
               </div>
 
-              <div className="mx-auto mt-[6.5rem] grid max-w-3xl gap-4 md:grid-cols-2">
+              <div className="mx-auto mt-12 grid max-w-3xl gap-4 md:grid-cols-2">
                 <div className="rounded-lg border border-border-subtle bg-surface-base p-5">
                   <p className="label-m text-foreground-placeholder">
                     Current usage

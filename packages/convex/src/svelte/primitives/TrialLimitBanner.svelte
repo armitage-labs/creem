@@ -1,32 +1,51 @@
 <script lang="ts">
   import type { BillingSnapshot } from "../../core/types.js";
+  import {
+    defaultBillingLabels,
+    type BillingDateFormatInput,
+    type BillingLabels,
+  } from "../../core/i18n.js";
 
   interface Props {
     snapshot?: BillingSnapshot | null;
+    /** Override the trial end date resolved from the snapshot. */
     trialEndsAt?: string | null;
-    className?: string;
+    class?: string;
+    labels?: BillingLabels;
+    formatDate?: (input: BillingDateFormatInput) => string;
   }
 
-  let { snapshot, trialEndsAt = null, className = "" }: Props = $props();
+  let {
+    snapshot,
+    trialEndsAt = null,
+    class: className = "",
+    labels = defaultBillingLabels,
+    formatDate = undefined,
+  }: Props = $props();
 
   const trialSubscription = $derived(
-    snapshot?.subscriptions.find((subscription) => subscription.status === "trialing") ?? null,
+    snapshot?.subscriptions.find(
+      (subscription) => subscription.status === "trialing",
+    ) ?? null,
   );
-  const show = $derived(trialSubscription != null);
   const resolvedTrialEnd = $derived(
     trialEndsAt ?? trialSubscription?.trialEnd ?? null,
   );
+  const formattedTrialEnd = $derived.by(() => {
+    if (!resolvedTrialEnd) return null;
+    const date = new Date(resolvedTrialEnd);
+    if (Number.isNaN(date.getTime())) return null;
+    return (formatDate ?? (({ date: d }) => d.toLocaleDateString()))({ date });
+  });
 </script>
 
-{#if show}
+{#if trialSubscription}
   <div
-    class={`rounded-lg border border-sky-300 bg-sky-50 px-4 py-3 text-sm text-sky-900 dark:border-sky-800 dark:bg-sky-950/40 dark:text-sky-200 ${className}`}
+    role="status"
+    class={`body-m radius-m border border-border-subtle bg-surface-subtle px-4 py-3 text-foreground-default ${className}`}
   >
-    Trial plan active
-    {#if resolvedTrialEnd}
-      until {new Date(resolvedTrialEnd).toLocaleDateString()}.
-    {:else}
-      . Upgrade before your trial ends to avoid interruptions.
-    {/if}
+    {formattedTrialEnd
+      ? labels.trialBanner.activeUntil(formattedTrialEnd)
+      : labels.trialBanner.active}
   </div>
 {/if}

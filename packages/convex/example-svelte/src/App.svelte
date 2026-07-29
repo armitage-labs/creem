@@ -14,8 +14,8 @@
     Product,
     Subscription,
     PaymentRecoveryBanner,
+    TrialLimitBanner,
     PaymentRecoveryButton,
-    defineBillingCatalog,
     createCreemSvelte,
     evaluateUsageLimits,
     getConvexErrorMessage,
@@ -29,9 +29,22 @@
     type UpdateBehaviorIntent,
   } from "@creem_io/convex/svelte";
   import { api } from "../../convex/_generated/api.js";
+  import {
+    billingCatalog,
+    env,
+  } from "../../example-shared/billingCatalog.js";
   import creemLogoUrl from "./assets/creem.svg";
   import convexLogoUrl from "./assets/convex.svg";
   import { CheckIcon, CopyIcon, GithubIcon } from "@lucide/svelte";
+
+  // ────────────────────────────────────────────────────────────────────────────
+  // Connected API — Convex function references
+  // ────────────────────────────────────────────────────────────────────────────
+
+  // One call maps every generated `convex/billing.ts` export onto the widget
+  // API. Exports you leave out simply hide the matching controls, and a wrong
+  // or missing export is a compile error rather than a runtime surprise.
+  const connectedApi: ConnectedBillingApi = connectCreemApi(api.billing);
 
   const TEST_CARDS = [
     { number: "4111 1111 1111 1111", behavior: "Successful payment" },
@@ -70,310 +83,6 @@
     "[&_[data-part=item-control]]:absolute [&_[data-part=item-control]]:inset-0 [&_[data-part=item-control]]:opacity-0",
   ].join(" ");
 
-  // ────────────────────────────────────────────────────────────────────────────
-  // Product IDs — all from env vars, NO hardcoded fallbacks
-  // ────────────────────────────────────────────────────────────────────────────
-
-  const env = {
-    // Subscription products — multi-cycle
-    subBasicMonthly: import.meta.env.VITE_CREEM_SUB_BASIC_MONTHLY as string,
-    subBasicQuarterly: import.meta.env.VITE_CREEM_SUB_BASIC_QUARTERLY as string,
-    subBasicSemiAnnual: import.meta.env
-      .VITE_CREEM_SUB_BASIC_SEMI_ANNUAL as string,
-    subBasicAnnual: import.meta.env.VITE_CREEM_SUB_BASIC_ANNUAL as string,
-    subPremiumMonthly: import.meta.env.VITE_CREEM_SUB_PREMIUM_MONTHLY as string,
-    subPremiumQuarterly: import.meta.env
-      .VITE_CREEM_SUB_PREMIUM_QUARTERLY as string,
-    subPremiumSemiAnnual: import.meta.env
-      .VITE_CREEM_SUB_PREMIUM_SEMI_ANNUAL as string,
-    subPremiumAnnual: import.meta.env.VITE_CREEM_SUB_PREMIUM_ANNUAL as string,
-    // Subscription products — monthly only (simple variant)
-    subSimpleBasicMonthly: import.meta.env
-      .VITE_CREEM_SUB_SIMPLE_BASIC_MONTHLY as string,
-    subSimpleProMonthly: import.meta.env
-      .VITE_CREEM_SUB_SIMPLE_PRO_MONTHLY as string,
-    // Unit-based subscription products
-    subUnitBasicMonthly: import.meta.env
-      .VITE_CREEM_SUB_UNIT_BASIC_MONTHLY as string,
-    subUnitPremiumMonthly: import.meta.env
-      .VITE_CREEM_SUB_UNIT_PREMIUM_MONTHLY as string,
-    // Subscription products — monthly only (period-end scheduled update demo)
-    subPeriodEndBasicMonthly: import.meta.env
-      .VITE_CREEM_SUB_PERIOD_END_BASIC_MONTHLY as string,
-    subPeriodEndPremiumMonthly: import.meta.env
-      .VITE_CREEM_SUB_PERIOD_END_PREMIUM_MONTHLY as string,
-    // One-time product IDs
-    onetimeSingle: import.meta.env.VITE_CREEM_ONETIME_SINGLE as string,
-    onetimeBasic: import.meta.env.VITE_CREEM_ONETIME_BASIC as string,
-    onetimePremium: import.meta.env.VITE_CREEM_ONETIME_PREMIUM as string,
-    onetimeUpgradeDelta: import.meta.env
-      .VITE_CREEM_ONETIME_UPGRADE_DELTA as string,
-    onetimeCredits: import.meta.env.VITE_CREEM_ONETIME_CREDITS as string,
-  };
-
-  // ────────────────────────────────────────────────────────────────────────────
-  // Connected API — Convex function references
-  // ────────────────────────────────────────────────────────────────────────────
-
-  // One call maps every generated `convex/billing.ts` export onto the widget
-  // API. Exports you leave out simply hide the matching controls, and a wrong
-  // or missing export is a compile error rather than a runtime surprise.
-  const connectedApi: ConnectedBillingApi = connectCreemApi(api.billing);
-
-  // ────────────────────────────────────────────────────────────────────────────
-  // Billing catalog — used by catalog-driven variants
-  // ────────────────────────────────────────────────────────────────────────────
-
-  const billingCatalog = defineBillingCatalog({
-    version: "example",
-    defaultPlanId: "free",
-    plans: [
-      {
-        planId: "trial",
-        category: "trial",
-        billingType: "custom",
-        eligibilityScopeId: "base",
-        title: "Starter Trial",
-        description:
-          "No-card app trial. Hidden after it has been used once or a base plan is chosen.",
-        eligibility: {
-          oncePerEntity: true,
-          hideWhenIneligible: true,
-          expiresWhenScopeHasNonTrialPlan: true,
-        },
-        limits: { aiMessages: 5, projects: 1 },
-      },
-      {
-        planId: "free",
-        category: "free",
-        eligibilityScopeId: "base",
-        title: "Free",
-        description: "For individuals getting started",
-        limits: { aiMessages: 50, projects: 1 },
-      },
-      {
-        planId: "pro",
-        category: "paid",
-        billingType: "recurring",
-        title: "Pro",
-        description: "One paid subscription with the default card UI",
-        recommended: true,
-        limits: { aiMessages: 1000, projects: 25 },
-        creemProductIds: {
-          "every-month": env.subSimpleProMonthly,
-        },
-      },
-      {
-        planId: "basic",
-        category: "paid",
-        billingType: "recurring",
-        title: "Basic",
-        description: "Core subscription features for small projects",
-        limits: { aiMessages: 250, projects: 5 },
-        creemProductIds: {
-          "every-month": env.subSimpleBasicMonthly,
-        },
-      },
-      {
-        planId: "premium",
-        category: "paid",
-        billingType: "recurring",
-        title: "Premium",
-        description: "Advanced subscription features with priority support",
-        recommended: true,
-        limits: { aiMessages: 2500, projects: 100 },
-        creemProductIds: {
-          "every-month": env.subSimpleProMonthly,
-        },
-      },
-      {
-        planId: "basic-multi-cycle",
-        category: "paid",
-        billingType: "recurring",
-        title: "Basic",
-        description: "✔ Up to 10 projects\n✔ 5 GB storage\n✔ Email support",
-        creemProductIds: {
-          "every-month": env.subBasicMonthly,
-          "every-three-months": env.subBasicQuarterly,
-          "every-six-months": env.subBasicSemiAnnual,
-          "every-year": env.subBasicAnnual,
-        },
-      },
-      {
-        planId: "premium-multi-cycle",
-        category: "paid",
-        billingType: "recurring",
-        title: "Premium",
-        description:
-          "✔ Unlimited projects\n✔ 100 GB storage\n✔ Priority support",
-        recommended: true,
-        creemProductIds: {
-          "every-month": env.subPremiumMonthly,
-          "every-three-months": env.subPremiumQuarterly,
-          "every-six-months": env.subPremiumSemiAnnual,
-          "every-year": env.subPremiumAnnual,
-        },
-      },
-      {
-        planId: "enterprise",
-        category: "enterprise",
-        title: "Enterprise",
-        description: "✔ SSO & SAML\n✔ Dedicated account manager\n✔ 99.9% SLA",
-        contactUrl: "https://creem.io",
-      },
-      {
-        planId: "basic-individual",
-        category: "paid",
-        billingType: "recurring",
-        title: "Basic",
-        description: "Personal workspace and basic support",
-        groupId: "individual",
-        groupTitle: "Individual",
-        creemProductIds: {
-          "every-month": env.subSimpleBasicMonthly,
-        },
-      },
-      {
-        planId: "premium-individual",
-        category: "paid",
-        billingType: "recurring",
-        title: "Premium",
-        description: "Unlimited personal projects and priority support",
-        groupId: "individual",
-        groupTitle: "Individual",
-        recommended: true,
-        creemProductIds: {
-          "every-month": env.subSimpleProMonthly,
-        },
-      },
-      {
-        planId: "basic-team",
-        category: "paid",
-        billingType: "recurring",
-        pricingModel: "unit",
-        title: "Team Basic",
-        description: "Shared team workspace with unit-based billing",
-        groupId: "teams",
-        groupTitle: "Teams",
-        creemProductIds: {
-          "every-month": env.subUnitBasicMonthly,
-        },
-      },
-      {
-        planId: "premium-team",
-        category: "paid",
-        billingType: "recurring",
-        pricingModel: "unit",
-        title: "Team Premium",
-        description: "Advanced team controls with unit-based billing",
-        groupId: "teams",
-        groupTitle: "Teams",
-        recommended: true,
-        creemProductIds: {
-          "every-month": env.subUnitPremiumMonthly,
-        },
-      },
-      {
-        planId: "basic-individual-cycle",
-        category: "paid",
-        billingType: "recurring",
-        title: "Basic Individual",
-        groupId: "individual-cycle",
-        groupTitle: "Individual",
-        creemProductIds: {
-          "every-month": env.subBasicMonthly,
-          "every-three-months": env.subBasicQuarterly,
-          "every-six-months": env.subBasicSemiAnnual,
-          "every-year": env.subBasicAnnual,
-        },
-      },
-      {
-        planId: "premium-individual-cycle",
-        category: "paid",
-        billingType: "recurring",
-        title: "Premium Individual",
-        groupId: "individual-cycle",
-        groupTitle: "Individual",
-        recommended: true,
-        creemProductIds: {
-          "every-month": env.subPremiumMonthly,
-          "every-three-months": env.subPremiumQuarterly,
-          "every-six-months": env.subPremiumSemiAnnual,
-          "every-year": env.subPremiumAnnual,
-        },
-      },
-      {
-        planId: "basic-team-cycle",
-        category: "paid",
-        billingType: "recurring",
-        pricingModel: "unit",
-        title: "Team Basic",
-        groupId: "teams-cycle",
-        groupTitle: "Teams",
-        creemProductIds: {
-          "every-month": env.subUnitBasicMonthly,
-          "every-year": env.subUnitBasicMonthly,
-        },
-      },
-      {
-        planId: "premium-team-cycle",
-        category: "paid",
-        billingType: "recurring",
-        pricingModel: "unit",
-        title: "Team Premium",
-        groupId: "teams-cycle",
-        groupTitle: "Teams",
-        recommended: true,
-        creemProductIds: {
-          "every-month": env.subUnitPremiumMonthly,
-          "every-year": env.subUnitPremiumMonthly,
-        },
-      },
-      {
-        planId: "period-end-free",
-        category: "free",
-        title: "Free",
-        description: "App-owned free plan for period-end downgrade testing",
-      },
-      {
-        planId: "period-end-basic",
-        category: "paid",
-        billingType: "recurring",
-        title: "Period Basic",
-        description: "Dedicated basic plan for scheduled update testing",
-        creemProductIds: {
-          "every-month": env.subPeriodEndBasicMonthly,
-        },
-      },
-      {
-        planId: "period-end-premium",
-        category: "paid",
-        billingType: "recurring",
-        title: "Period Premium",
-        description: "Dedicated premium plan for scheduled update testing",
-        recommended: true,
-        creemProductIds: {
-          "every-month": env.subPeriodEndPremiumMonthly,
-        },
-      },
-      {
-        planId: "ai-credits-100",
-        category: "paid",
-        billingType: "onetime",
-        title: "100 AI Credits",
-        description: "Repeatable prepaid credit pack",
-        creemProductIds: {
-          custom: env.onetimeCredits,
-        },
-        creditGrant: {
-          amount: "100",
-          accountName: "credits",
-          unitLabel: "credits",
-          refundBehavior: "revoke_on_full_refund",
-        },
-      },
-    ],
-  } as const);
 
   // ────────────────────────────────────────────────────────────────────────────
   // Typed binding API — binds catalog + api into one typed object
@@ -473,19 +182,81 @@
       usage,
     }),
   );
+
+  const TOC = [
+  {
+    title: "SUBSCRIPTION VARIANTS",
+    items: [
+      { n: "01", href: "#sub-one-plan", label: "Minimal One Plan" },
+      { n: "02", href: "#sub-two-plans", label: "Minimal Two Plans" },
+      { n: "03", href: "#sub-app-trial", label: "App Trial" },
+      { n: "04", href: "#sub-multi-cycle", label: "Creem Trial + Multi-Cycle" },
+      { n: "05", href: "#sub-catalog-driven", label: "Individual / Teams" },
+      { n: "06", href: "#sub-unit-auto", label: "Unit-Based" },
+      { n: "07", href: "#sub-grouped-cycles", label: "Grouped Multi-Cycle" },
+      { n: "08", href: "#sub-consent-gates", label: "Consent Gates" },
+      { n: "09", href: "#sub-custom-composition", label: "Custom Composition" },
+      { n: "10", href: "#sub-typed-binding", label: "Typed Binding API" },
+      { n: "11", href: "#sub-period-end", label: "Period-End Change" },
+    ],
+  },
+  {
+    title: "ONE TIME PURCHASE",
+    items: [
+      { n: "12", href: "#onetime-single", label: "Single Product" },
+      { n: "13", href: "#onetime-group", label: "Product Group + Upgrade" },
+      { n: "14", href: "#onetime-repeat", label: "Consumable (Repeating)" },
+    ],
+  },
+  {
+    title: "ACCOUNT",
+    items: [
+      { n: "15", href: "#payment-recovery", label: "Payment Recovery" },
+      { n: "16", href: "#billing-history", label: "Billing History" },
+      { n: "17", href: "#feature-usage-gate", label: "Feature / Usage Gate" },
+    ],
+  },
+];
+
+  const TOC_TITLE =
+    "hidden group-hover:block group-focus-within:block [@media(min-width:1820px)]:block";
+
 </script>
 
+{#snippet tocGroups()}
+  {#each TOC as group (group.title)}
+    <div class="space-y-4">
+      <p class="label-m text-foreground-placeholder {TOC_TITLE}">
+        {group.title}
+      </p>
+      <div class="space-y-1">
+        {#each group.items as item (item.href)}
+          <div class="flex items-center gap-3">
+            <span
+              class="label-m text-foreground-placeholder inline-block w-6 shrink-0"
+              >{item.n}</span
+            >
+            <a href={item.href} class="link-inline whitespace-nowrap"
+              >{item.label}</a
+            >
+          </div>
+        {/each}
+      </div>
+    </div>
+  {/each}
+{/snippet}
+
 <CreemConvexProvider api={connectedApi} catalog={billingCatalog}>
-  <main class="w-full py-10 lg:pt-16">
-    <header class="border-b border-border-subtle pb-16 lg:pb-[104px]">
+  <main class="w-full py-8 lg:pt-12">
+    <header class="border-b border-border-subtle pb-12 lg:pb-20">
       <div
-        class="mx-auto w-full max-w-[1280px] px-6 lg:px-16 grid grid-cols-1 gap-12 lg:grid-cols-12 lg:gap-2"
+        class="mx-auto w-full max-w-7xl px-6 lg:px-16 grid grid-cols-1 gap-12 lg:grid-cols-12 lg:gap-2"
       >
         <div class="lg:col-span-7 space-y-6">
-          <h1 class="display-m max-w-[720px] text-foreground-default">
+          <h1 class="display-m max-w-180 text-foreground-default">
             Drop-in Billing for Convex Apps
           </h1>
-          <p class="subtitle-m max-w-[720px] text-foreground-default">
+          <p class="subtitle-m max-w-180 text-foreground-default">
             Subscriptions, one-time purchases, unit-based pricing, and a
             customer portal — all powered by Creem and wired to your Convex
             backend. Available for React and Svelte.
@@ -506,167 +277,7 @@
           </div>
         </div>
 
-        <nav class="lg:col-start-10 lg:col-span-3 space-y-10 lg:pt-2">
-          <div class="space-y-4">
-            <p class="label-m text-foreground-placeholder">
-              SUBSCRIPTION VARIANTS
-            </p>
-            <div class="space-y-1">
-              <div class="flex items-center gap-3">
-                <span
-                  class="label-m text-foreground-placeholder inline-block w-6 shrink-0"
-                  >01</span
-                >
-                <a href="#sub-app-trial" class="link-inline">App Trial</a>
-              </div>
-              <div class="flex items-center gap-3">
-                <span
-                  class="label-m text-foreground-placeholder inline-block w-6 shrink-0"
-                  >02</span
-                >
-                <a href="#sub-one-plan" class="link-inline">Minimal One Plan</a>
-              </div>
-              <div class="flex items-center gap-3">
-                <span
-                  class="label-m text-foreground-placeholder inline-block w-6 shrink-0"
-                  >03</span
-                >
-                <a href="#sub-two-plans" class="link-inline"
-                  >Minimal Two Plans</a
-                >
-              </div>
-              <div class="flex items-center gap-3">
-                <span
-                  class="label-m text-foreground-placeholder inline-block w-6 shrink-0"
-                  >04</span
-                >
-                <a href="#sub-multi-cycle" class="link-inline">Multi-Cycle</a>
-              </div>
-              <div class="flex items-center gap-3">
-                <span
-                  class="label-m text-foreground-placeholder inline-block w-6 shrink-0"
-                  >05</span
-                >
-                <a href="#sub-catalog-driven" class="link-inline"
-                  >Individual / Teams</a
-                >
-              </div>
-              <div class="flex items-center gap-3">
-                <span
-                  class="label-m text-foreground-placeholder inline-block w-6 shrink-0"
-                  >06</span
-                >
-                <a href="#sub-unit-auto" class="link-inline">Unit-Based</a>
-              </div>
-              <div class="flex items-center gap-3">
-                <span
-                  class="label-m text-foreground-placeholder inline-block w-6 shrink-0"
-                  >07</span
-                >
-                <a href="#sub-grouped-cycles" class="link-inline"
-                  >Grouped Multi-Cycle</a
-                >
-              </div>
-              <div class="flex items-center gap-3">
-                <span
-                  class="label-m text-foreground-placeholder inline-block w-6 shrink-0"
-                  >08</span
-                >
-                <a href="#sub-consent-gates" class="link-inline"
-                  >Consent Gates</a
-                >
-              </div>
-              <div class="flex items-center gap-3">
-                <span
-                  class="label-m text-foreground-placeholder inline-block w-6 shrink-0"
-                  >09</span
-                >
-                <a href="#sub-custom-composition" class="link-inline"
-                  >Custom Composition</a
-                >
-              </div>
-              <div class="flex items-center gap-3">
-                <span
-                  class="label-m text-foreground-placeholder inline-block w-6 shrink-0"
-                  >10</span
-                >
-                <a href="#sub-typed-binding" class="link-inline"
-                  >Typed Binding API</a
-                >
-              </div>
-              <div class="flex items-center gap-3">
-                <span
-                  class="label-m text-foreground-placeholder inline-block w-6 shrink-0"
-                  >11</span
-                >
-                <a href="#sub-period-end" class="link-inline"
-                  >Period-End Change</a
-                >
-              </div>
-            </div>
-          </div>
-          <div class="space-y-4">
-            <p class="label-m text-foreground-placeholder">ONE TIME PURCHASE</p>
-            <div class="space-y-1">
-              <div class="flex items-center gap-3">
-                <span
-                  class="label-m text-foreground-placeholder inline-block w-6 shrink-0"
-                  >12</span
-                >
-                <a href="#onetime-single" class="link-inline">Single Product</a>
-              </div>
-              <div class="flex items-center gap-3">
-                <span
-                  class="label-m text-foreground-placeholder inline-block w-6 shrink-0"
-                  >13</span
-                >
-                <a href="#onetime-group" class="link-inline"
-                  >Product Group + Upgrade</a
-                >
-              </div>
-              <div class="flex items-center gap-3">
-                <span
-                  class="label-m text-foreground-placeholder inline-block w-6 shrink-0"
-                  >14</span
-                >
-                <a href="#onetime-repeat" class="link-inline"
-                  >Consumable (Repeating)</a
-                >
-              </div>
-            </div>
-          </div>
-          <div class="space-y-4">
-            <p class="label-m text-foreground-placeholder">ACCOUNT</p>
-            <div class="space-y-1">
-              <div class="flex items-center gap-3">
-                <span
-                  class="label-m text-foreground-placeholder inline-block w-6 shrink-0"
-                  >15</span
-                >
-                <a href="#payment-recovery" class="link-inline"
-                  >Payment Recovery</a
-                >
-              </div>
-              <div class="flex items-center gap-3">
-                <span
-                  class="label-m text-foreground-placeholder inline-block w-6 shrink-0"
-                  >16</span
-                >
-                <a href="#billing-history" class="link-inline"
-                  >Billing History</a
-                >
-              </div>
-              <div class="flex items-center gap-3">
-                <span
-                  class="label-m text-foreground-placeholder inline-block w-6 shrink-0"
-                  >17</span
-                >
-                <a href="#feature-usage-gate" class="link-inline"
-                  >Feature / Usage Gate</a
-                >
-              </div>
-            </div>
-          </div>
+        <div class="lg:col-start-10 lg:col-span-3 lg:pt-2">
           <a
             href="https://github.com/armitage-labs/creem/tree/main/packages/convex"
             target="_blank"
@@ -676,91 +287,73 @@
             <GithubIcon class="size-4" />
             <span>Github</span>
           </a>
-        </nav>
+        </div>
       </div>
     </header>
 
-    <div class="mx-auto w-full max-w-[1280px] px-4 lg:px-16 space-y-14 pt-14">
+    <nav
+      aria-label="Examples"
+      class="group fixed right-2 top-1/2 z-40 hidden w-12 max-h-[80vh] -translate-y-1/2 space-y-8 overflow-x-hidden overflow-y-auto radius-m border border-border-subtle bg-surface-elevated p-3 shadow-md hover:w-auto focus-within:w-auto xl:block [@media(min-width:1820px)]:right-4 [@media(min-width:1820px)]:w-auto [@media(min-width:1820px)]:p-4"
+    >
+      {@render tocGroups()}
+    </nav>
+
+    <div class="mx-auto w-full max-w-7xl px-4 lg:px-16 space-y-12 pt-12">
       <CheckoutSuccessSummary
         class="rounded-lg border border-emerald-300 bg-emerald-50 p-4 text-sm text-emerald-900"
       />
 
       <!-- Test card info -->
-      <div
-        class="rounded-lg border border-surface-300-700 bg-surface-100-900 px-4 py-3 text-sm text-foreground-muted"
-      >
-        <div class="flex flex-wrap items-center gap-x-4 gap-y-2">
-          <span class="font-medium text-foreground-default">Test cards:</span>
+      <div class="radius-m border border-border-subtle bg-surface-subtle p-5">
+        <div class="flex flex-wrap items-baseline justify-between gap-2">
+          <p class="label-m text-foreground-default">Test cards</p>
+          <p class="body-s text-foreground-placeholder">
+            Any future expiry, any CVC, any cardholder name.
+          </p>
+        </div>
+
+        <div class="mt-4 grid gap-2 sm:grid-cols-2">
           {#each TEST_CARDS as card (card.number)}
-            <span class="inline-flex items-center gap-1.5">
-              <button
-                type="button"
-                title={`Copy card number (${card.behavior.toLowerCase()})`}
-                onclick={() => copyTestCard(card.number)}
-                class="inline-flex items-center gap-1.5 rounded bg-surface-200-800 px-1.5 py-0.5 font-mono text-xs hover:bg-surface-300-700"
-              >
-                <span>{card.number}</span>
-                {#if copiedCard === card.number}
-                  <CheckIcon class="size-3 text-emerald-600" />
-                {:else}
-                  <CopyIcon class="size-3 opacity-60" />
-                {/if}
-              </button>
-              <span class="text-foreground-placeholder">{card.behavior}</span>
-            </span>
+            <button
+              type="button"
+              title={`Copy ${card.number}`}
+              onclick={() => copyTestCard(card.number)}
+              class="group flex items-center justify-between gap-4 rounded-lg border border-border-subtle bg-surface-base px-3 py-2.5 text-left transition-colors hover:border-primary-border-default"
+            >
+              <span class="min-w-0">
+                <span
+                  class="block font-mono text-sm text-foreground-default tabular-nums"
+                  >{card.number}</span
+                >
+                <span class="block body-s text-foreground-placeholder"
+                  >{card.behavior}</span
+                >
+              </span>
+              {#if copiedCard === card.number}
+                <CheckIcon class="size-4 shrink-0 text-emerald-600" />
+              {:else}
+                <CopyIcon
+                  class="size-4 shrink-0 text-foreground-placeholder opacity-0 transition-opacity group-hover:opacity-100"
+                />
+              {/if}
+            </button>
           {/each}
         </div>
-        <div class="mt-1 text-foreground-placeholder">
-          Any future expiry, any CVC, any cardholder name.
-        </div>
       </div>
-
-      <!-- ═══════════════════════════════════════════════════════════════════════════
-       VARIANT 01: App-owned no-card trial with once-per-entity eligibility
-       ═══════════════════════════════════════════════════════════════════════════ -->
-      <section
-        id="sub-app-trial"
-        class="relative left-1/2 -translate-x-1/2 w-screen border-b border-border-subtle pb-[104px]"
-      >
-        <div class="mx-auto w-full max-w-[1280px] px-4 lg:px-16 pt-[104px]">
-          <div class="mx-auto grid grid-cols-12">
-            <h2
-              class="heading-l col-span-12 text-center text-foreground-default lg:col-start-4 lg:col-span-6"
-            >
-              <span class="text-foreground-placeholder">01 — Subscription</span
-              ><br />
-              App Trial + Free + Paid
-            </h2>
-            <p
-              class="body-l col-span-12 mt-6 text-center text-foreground-muted lg:col-start-4 lg:col-span-6"
-            >
-              A no-card trial is an app-owned plan. The widget activates it via
-              your Convex mutation, records once-per-entity history in the
-              component, and hides it after it has already been used.
-            </p>
-          </div>
-
-          <div class="mt-10">
-            <Subscription.Root
-              plans={plansOf(billingCatalog, ["trial", "free", "pro"])}
-            />
-          </div>
-        </div>
-      </section>
 
       <!-- ═══════════════════════════════════════════════════════════════════════════
        VARIANT 02: Minimal — one catalog plan
        ═══════════════════════════════════════════════════════════════════════════ -->
       <section
         id="sub-one-plan"
-        class="relative left-1/2 -translate-x-1/2 w-screen border-b border-border-subtle pb-[104px]"
+        class="relative left-1/2 -translate-x-1/2 w-screen border-b border-border-subtle pb-20"
       >
-        <div class="mx-auto w-full max-w-[1280px] px-4 lg:px-16 pt-[104px]">
+        <div class="mx-auto w-full max-w-7xl px-4 lg:px-16 pt-20">
           <div class="mx-auto grid grid-cols-12">
             <h2
               class="heading-l col-span-12 text-center text-foreground-default lg:col-start-4 lg:col-span-6"
             >
-              <span class="text-foreground-placeholder">02 — Subscription</span
+              <span class="text-foreground-placeholder">01 — Subscription</span
               ><br />
               Minimal One Plan
             </h2>
@@ -773,25 +366,25 @@
             </p>
           </div>
 
-          <div class="mt-10">
+          <div class="mt-12">
             <Subscription.Root plans={plansOf(billingCatalog, ["pro"])} />
           </div>
         </div>
       </section>
 
-      <!-- ═══════════════════════════════════════════════════════════════════════════
+<!-- ═══════════════════════════════════════════════════════════════════════════
        VARIANT 03: Minimal — two catalog plans
        ═══════════════════════════════════════════════════════════════════════════ -->
       <section
         id="sub-two-plans"
-        class="relative left-1/2 -translate-x-1/2 w-screen border-b border-border-subtle pb-[104px]"
+        class="relative left-1/2 -translate-x-1/2 w-screen border-b border-border-subtle pb-20"
       >
-        <div class="mx-auto w-full max-w-[1280px] px-4 lg:px-16 pt-[104px]">
+        <div class="mx-auto w-full max-w-7xl px-4 lg:px-16 pt-20">
           <div class="mx-auto grid grid-cols-12">
             <h2
               class="heading-l col-span-12 text-center text-foreground-default lg:col-start-4 lg:col-span-6"
             >
-              <span class="text-foreground-placeholder">03 — Subscription</span
+              <span class="text-foreground-placeholder">02 — Subscription</span
               ><br />
               Minimal Two Plans
             </h2>
@@ -804,7 +397,7 @@
             </p>
           </div>
 
-          <div class="mt-10">
+          <div class="mt-12">
             <Subscription.Root
               plans={plansOf(billingCatalog, ["basic", "premium"])}
             />
@@ -812,32 +405,74 @@
         </div>
       </section>
 
-      <!-- ═══════════════════════════════════════════════════════════════════════════
+<!-- ═══════════════════════════════════════════════════════════════════════════
+       VARIANT 01: App-owned no-card trial with once-per-entity eligibility
+       ═══════════════════════════════════════════════════════════════════════════ -->
+      <section
+        id="sub-app-trial"
+        class="relative left-1/2 -translate-x-1/2 w-screen border-b border-border-subtle pb-20"
+      >
+        <div class="mx-auto w-full max-w-7xl px-4 lg:px-16 pt-20">
+          <div class="mx-auto grid grid-cols-12">
+            <h2
+              class="heading-l col-span-12 text-center text-foreground-default lg:col-start-4 lg:col-span-6"
+            >
+              <span class="text-foreground-placeholder">03 — Subscription</span
+              ><br />
+              App Trial + Free + Paid
+            </h2>
+            <p
+              class="body-l col-span-12 mt-6 text-center text-foreground-muted lg:col-start-4 lg:col-span-6"
+            >
+              A no-card trial is an app-owned plan. The widget activates it via
+              your Convex mutation, records once-per-entity history in the
+              component, and hides it after it has already been used.
+            </p>
+          </div>
+
+          <div class="mt-12">
+            <Subscription.Root
+              plans={plansOf(billingCatalog, ["trial", "free", "pro"])}
+            />
+          </div>
+        </div>
+      </section>
+
+<!-- ═══════════════════════════════════════════════════════════════════════════
        VARIANT 04: Multi-Cycle — 4 billing intervals, free + enterprise tiers
        ═══════════════════════════════════════════════════════════════════════════ -->
       <section
         id="sub-multi-cycle"
-        class="relative left-1/2 -translate-x-1/2 w-screen border-b border-border-subtle pb-[104px]"
+        class="relative left-1/2 -translate-x-1/2 w-screen border-b border-border-subtle pb-20"
       >
-        <div class="mx-auto w-full max-w-[1280px] px-4 lg:px-16 pt-[104px]">
+        <div class="mx-auto w-full max-w-7xl px-4 lg:px-16 pt-20">
           <div class="mx-auto grid grid-cols-12">
             <h2
               class="heading-l col-span-12 text-center text-foreground-default lg:col-start-4 lg:col-span-6"
             >
               <span class="text-foreground-placeholder">04 — Subscription</span
               ><br />
-              Multi-Cycle (4 Intervals)
+              Creem Trial + Multi-Cycle
             </h2>
             <p
               class="body-l col-span-12 mt-6 text-center text-foreground-muted lg:col-start-4 lg:col-span-6"
             >
-              Plans with monthly, quarterly, semi-annual, and annual billing
-              cycles. The interval toggle appears automatically. Includes free
-              and enterprise tiers from the catalog.
+              These Creem products carry a trial, so checkout starts one. Creem
+              has no product API for trial length, so the card reads it from
+              <code>trialDays</code> in the catalog. Monthly, quarterly,
+              semi-annual, and annual cycles; the toggle appears automatically.
             </p>
           </div>
 
-          <div class="mt-10">
+          <!-- TrialLimitBanner reads snapshot.subscriptions for status
+               "trialing", so it only fires for a Creem-managed trial like the
+               products below. An app-owned trial writes an appPlanAssignment
+               instead and never reaches this banner. -->
+          <div class="mx-auto mt-10 max-w-180">
+            <TrialLimitBanner {snapshot} />
+          </div>
+
+          <div class="mt-12">
             <Subscription.Root
               plans={plansOf(billingCatalog, [
                 "free",
@@ -854,14 +489,14 @@
         </div>
       </section>
 
-      <!-- ═══════════════════════════════════════════════════════════════════════════
+<!-- ═══════════════════════════════════════════════════════════════════════════
        VARIANT 05: Catalog-Driven with Groups — individual vs teams
        ═══════════════════════════════════════════════════════════════════════════ -->
       <section
         id="sub-catalog-driven"
-        class="relative left-1/2 -translate-x-1/2 w-screen border-b border-border-subtle pb-[6.5rem]"
+        class="relative left-1/2 -translate-x-1/2 w-screen border-b border-border-subtle pb-20"
       >
-        <div class="mx-auto w-full max-w-[1280px] px-4 lg:px-16 pt-[6.5rem]">
+        <div class="mx-auto w-full max-w-7xl px-4 lg:px-16 pt-20">
           <div class="mx-auto grid grid-cols-12">
             <h2
               class="heading-l col-span-12 text-center text-foreground-default lg:col-start-4 lg:col-span-6"
@@ -879,7 +514,7 @@
             </p>
           </div>
 
-          <div class="mt-[6.5rem]">
+          <div class="mt-12">
             <Subscription.Root
               showUnitPicker
               groups={[
@@ -909,14 +544,14 @@
         </div>
       </section>
 
-      <!-- ═══════════════════════════════════════════════════════════════════════════
+<!-- ═══════════════════════════════════════════════════════════════════════════
        VARIANT 06: Unit-Based (Auto-Derived) — no unit picker, programmatic qty
        ═══════════════════════════════════════════════════════════════════════════ -->
       <section
         id="sub-unit-auto"
-        class="relative left-1/2 -translate-x-1/2 w-screen border-b border-border-subtle pb-[6.5rem]"
+        class="relative left-1/2 -translate-x-1/2 w-screen border-b border-border-subtle pb-20"
       >
-        <div class="mx-auto w-full max-w-[1280px] px-4 lg:px-16 pt-[6.5rem]">
+        <div class="mx-auto w-full max-w-7xl px-4 lg:px-16 pt-20">
           <div class="mx-auto grid grid-cols-12">
             <h2
               class="heading-l col-span-12 text-center text-foreground-default lg:col-start-4 lg:col-span-6"
@@ -935,7 +570,7 @@
             </p>
           </div>
 
-          <div class="mt-[6.5rem]">
+          <div class="mt-12">
             <Subscription.Root
               plans={plansOf(billingCatalog, ["basic-team", "premium-team"])}
               units={5}
@@ -945,14 +580,14 @@
         </div>
       </section>
 
-      <!-- ═══════════════════════════════════════════════════════════════════════════
+<!-- ═══════════════════════════════════════════════════════════════════════════
        VARIANT 07: Multi-cycle subscription plans with groups
        ═══════════════════════════════════════════════════════════════════════════ -->
       <section
         id="sub-grouped-cycles"
-        class="relative left-1/2 -translate-x-1/2 w-screen border-b border-border-subtle pb-[6.5rem]"
+        class="relative left-1/2 -translate-x-1/2 w-screen border-b border-border-subtle pb-20"
       >
-        <div class="mx-auto w-full max-w-[1280px] px-4 lg:px-16 pt-[6.5rem]">
+        <div class="mx-auto w-full max-w-7xl px-4 lg:px-16 pt-20">
           <div class="mx-auto grid grid-cols-12">
             <h2
               class="heading-l col-span-12 text-center text-foreground-default lg:col-start-4 lg:col-span-6"
@@ -970,7 +605,7 @@
             </p>
           </div>
 
-          <div class="mt-[6.5rem]">
+          <div class="mt-12">
             <Subscription.Root
               showUnitPicker
               groups={[
@@ -996,14 +631,14 @@
         </div>
       </section>
 
-      <!-- ═══════════════════════════════════════════════════════════════════════════
+<!-- ═══════════════════════════════════════════════════════════════════════════
        VARIANT 08: Consent Gates — checkbox policy gate before checkout or plan changes
        ═══════════════════════════════════════════════════════════════════════════ -->
       <section
         id="sub-consent-gates"
-        class="relative left-1/2 -translate-x-1/2 w-screen border-b border-border-subtle pb-[6.5rem]"
+        class="relative left-1/2 -translate-x-1/2 w-screen border-b border-border-subtle pb-20"
       >
-        <div class="mx-auto w-full max-w-[1280px] px-4 lg:px-16 pt-[6.5rem]">
+        <div class="mx-auto w-full max-w-7xl px-4 lg:px-16 pt-20">
           <div class="mx-auto grid grid-cols-12">
             <h2
               class="heading-l col-span-12 text-center text-foreground-default lg:col-start-4 lg:col-span-6"
@@ -1051,14 +686,14 @@
         </div>
       </section>
 
-      <!-- ═══════════════════════════════════════════════════════════════════════════
+<!-- ═══════════════════════════════════════════════════════════════════════════
        VARIANT 09: Custom composition — app-owned layout and copy
        ═══════════════════════════════════════════════════════════════════════════ -->
       <section
         id="sub-custom-composition"
-        class="relative left-1/2 -translate-x-1/2 w-screen border-b border-border-subtle pb-[6.5rem]"
+        class="relative left-1/2 -translate-x-1/2 w-screen border-b border-border-subtle pb-20"
       >
-        <div class="mx-auto w-full max-w-[1280px] px-4 lg:px-16 pt-[6.5rem]">
+        <div class="mx-auto w-full max-w-7xl px-4 lg:px-16 pt-20">
           <div class="mx-auto grid grid-cols-12">
             <h2
               class="heading-l col-span-12 text-center text-foreground-default lg:col-start-4 lg:col-span-6"
@@ -1076,7 +711,7 @@
             </p>
           </div>
 
-          <div class="mt-[6.5rem]">
+          <div class="mt-12">
             <Subscription.Root
               unstyled
               groupSelector="external"
@@ -1283,14 +918,14 @@
         </div>
       </section>
 
-      <!-- ═══════════════════════════════════════════════════════════════════════════
+<!-- ═══════════════════════════════════════════════════════════════════════════
        VARIANT 10: Typed Binding API — createCreemSvelte with typed planIds
        ═══════════════════════════════════════════════════════════════════════════ -->
       <section
         id="sub-typed-binding"
-        class="relative left-1/2 -translate-x-1/2 w-screen border-b border-border-subtle pb-[6.5rem]"
+        class="relative left-1/2 -translate-x-1/2 w-screen border-b border-border-subtle pb-20"
       >
-        <div class="mx-auto w-full max-w-[1280px] px-4 lg:px-16 pt-[6.5rem]">
+        <div class="mx-auto w-full max-w-7xl px-4 lg:px-16 pt-20">
           <div class="mx-auto grid grid-cols-12">
             <h2
               class="heading-l col-span-12 text-center text-foreground-default lg:col-start-4 lg:col-span-6"
@@ -1314,7 +949,7 @@
             catalog={billing.catalog}
             defaultCycle={billing.defaultCycle}
           >
-            <div class="mt-[6.5rem]">
+            <div class="mt-12">
               <Subscription.Root plans={billing.planIds} />
             </div>
 
@@ -1325,14 +960,14 @@
         </div>
       </section>
 
-      <!-- ═══════════════════════════════════════════════════════════════════════════
+<!-- ═══════════════════════════════════════════════════════════════════════════
        VARIANT 11: Subscription — period-end scheduled update
        ═══════════════════════════════════════════════════════════════════════════ -->
       <section
         id="sub-period-end"
-        class="relative left-1/2 -translate-x-1/2 w-screen border-b border-border-subtle pb-[6.5rem]"
+        class="relative left-1/2 -translate-x-1/2 w-screen border-b border-border-subtle pb-20"
       >
-        <div class="mx-auto w-full max-w-[1280px] px-4 lg:px-16 pt-[6.5rem]">
+        <div class="mx-auto w-full max-w-7xl px-4 lg:px-16 pt-20">
           <div class="mx-auto grid grid-cols-12">
             <h2
               class="heading-l col-span-12 text-center text-foreground-default lg:col-start-4 lg:col-span-6"
@@ -1351,7 +986,7 @@
             </p>
           </div>
 
-          <div class="mt-[6.5rem]">
+          <div class="mt-12">
             <Subscription.Root
               updateBehavior={(intent: UpdateBehaviorIntent) => {
                 if (
@@ -1378,14 +1013,14 @@
         </div>
       </section>
 
-      <!-- ═══════════════════════════════════════════════════════════════════════════
+<!-- ═══════════════════════════════════════════════════════════════════════════
        VARIANT 12: One-Time Purchase — single product
        ═══════════════════════════════════════════════════════════════════════════ -->
       <section
         id="onetime-single"
-        class="relative left-1/2 -translate-x-1/2 w-screen border-b border-border-subtle pb-[6.5rem]"
+        class="relative left-1/2 -translate-x-1/2 w-screen border-b border-border-subtle pb-20"
       >
-        <div class="mx-auto w-full max-w-[1280px] px-4 lg:px-16 pt-[6.5rem]">
+        <div class="mx-auto w-full max-w-7xl px-4 lg:px-16 pt-20">
           <div class="mx-auto grid grid-cols-12">
             <h2
               class="heading-l col-span-12 text-center text-foreground-default lg:col-start-4 lg:col-span-6"
@@ -1404,7 +1039,7 @@
           </div>
 
           {#if env.onetimeSingle}
-            <div class="mt-[6.5rem]">
+            <div class="mt-12">
               <Product.Root layout="single" styleVariant="pricing">
                 <Product.Item
                   type="one-time"
@@ -1414,21 +1049,21 @@
               </Product.Root>
             </div>
           {:else}
-            <p class="mt-10 text-center text-foreground-muted">
+            <p class="mt-12 text-center text-foreground-muted">
               Set <code>VITE_CREEM_ONETIME_SINGLE</code> to enable this demo.
             </p>
           {/if}
         </div>
       </section>
 
-      <!-- ═══════════════════════════════════════════════════════════════════════════
+<!-- ═══════════════════════════════════════════════════════════════════════════
        VARIANT 13: One-Time Purchase — mutually exclusive group with upgrade
        ═══════════════════════════════════════════════════════════════════════════ -->
       <section
         id="onetime-group"
-        class="relative left-1/2 -translate-x-1/2 w-screen border-b border-border-subtle pb-[6.5rem]"
+        class="relative left-1/2 -translate-x-1/2 w-screen border-b border-border-subtle pb-20"
       >
-        <div class="mx-auto w-full max-w-[1280px] px-4 lg:px-16 pt-[6.5rem]">
+        <div class="mx-auto w-full max-w-7xl px-4 lg:px-16 pt-20">
           <div class="mx-auto grid grid-cols-12">
             <h2
               class="heading-l col-span-12 text-center text-foreground-default lg:col-start-4 lg:col-span-6"
@@ -1448,7 +1083,7 @@
           </div>
 
           {#if env.onetimeBasic && env.onetimePremium}
-            <div class="mt-[6.5rem]">
+            <div class="mt-12">
               <Product.Root
                 transition={upgradeTransitions}
                 styleVariant="pricing"
@@ -1467,7 +1102,7 @@
               </Product.Root>
             </div>
           {:else}
-            <p class="mt-10 text-center text-foreground-muted">
+            <p class="mt-12 text-center text-foreground-muted">
               Set <code>VITE_CREEM_ONETIME_BASIC</code> and
               <code>VITE_CREEM_ONETIME_PREMIUM</code> to enable this demo.
             </p>
@@ -1475,14 +1110,14 @@
         </div>
       </section>
 
-      <!-- ═══════════════════════════════════════════════════════════════════════════
+<!-- ═══════════════════════════════════════════════════════════════════════════
        VARIANT 14: One-Time Purchase — repeating (consumable)
        ═══════════════════════════════════════════════════════════════════════════ -->
       <section
         id="onetime-repeat"
-        class="relative left-1/2 -translate-x-1/2 w-screen border-b border-border-subtle pb-[6.5rem]"
+        class="relative left-1/2 -translate-x-1/2 w-screen border-b border-border-subtle pb-20"
       >
-        <div class="mx-auto w-full max-w-[1280px] px-4 lg:px-16 pt-[6.5rem]">
+        <div class="mx-auto w-full max-w-7xl px-4 lg:px-16 pt-20">
           <div class="mx-auto grid grid-cols-12">
             <h2
               class="heading-l col-span-12 text-center text-foreground-default lg:col-start-4 lg:col-span-6"
@@ -1501,7 +1136,7 @@
           </div>
 
           {#if env.onetimeCredits}
-            <div class="mt-[6.5rem]">
+            <div class="mt-12">
               <Product.Root
                 layout="single"
                 styleVariant="pricing"
@@ -1552,21 +1187,21 @@
               </Credits.Root>
             </div>
           {:else}
-            <p class="mt-10 text-center text-foreground-muted">
+            <p class="mt-12 text-center text-foreground-muted">
               Set <code>VITE_CREEM_ONETIME_CREDITS</code> to enable this demo.
             </p>
           {/if}
         </div>
       </section>
 
-      <!-- ═══════════════════════════════════════════════════════════════════════════
+<!-- ═══════════════════════════════════════════════════════════════════════════
        VARIANT 15: Payment Recovery — banner + button
        ═══════════════════════════════════════════════════════════════════════════ -->
       <section
         id="payment-recovery"
-        class="relative left-1/2 -translate-x-1/2 w-screen border-b border-border-subtle pb-[6.5rem]"
+        class="relative left-1/2 -translate-x-1/2 w-screen border-b border-border-subtle pb-20"
       >
-        <div class="mx-auto w-full max-w-[1280px] px-4 lg:px-16 pt-[6.5rem]">
+        <div class="mx-auto w-full max-w-7xl px-4 lg:px-16 pt-20">
           <div class="mx-auto grid grid-cols-12">
             <h2
               class="heading-l col-span-12 text-center text-foreground-default lg:col-start-4 lg:col-span-6"
@@ -1588,7 +1223,7 @@
             </p>
           </div>
 
-          <div class="mt-[6.5rem] space-y-4 max-w-xl mx-auto">
+          <div class="mt-12 space-y-4 max-w-xl mx-auto">
             <PaymentRecoveryBanner recoveryState="warning" />
             <PaymentRecoveryBanner recoveryState="blocked" />
             <PaymentRecoveryButton
@@ -1598,14 +1233,14 @@
         </div>
       </section>
 
-      <!-- ═══════════════════════════════════════════════════════════════════════════
+<!-- ═══════════════════════════════════════════════════════════════════════════
        VARIANT 16: Billing History
        ═══════════════════════════════════════════════════════════════════════════ -->
       <section
         id="billing-history"
-        class="relative left-1/2 -translate-x-1/2 w-screen border-b border-border-subtle pb-[6.5rem]"
+        class="relative left-1/2 -translate-x-1/2 w-screen border-b border-border-subtle pb-20"
       >
-        <div class="mx-auto w-full max-w-[1280px] px-4 lg:px-16 pt-[6.5rem]">
+        <div class="mx-auto w-full max-w-7xl px-4 lg:px-16 pt-20">
           <div class="mx-auto grid grid-cols-12">
             <h2
               class="heading-l col-span-12 text-center text-foreground-default lg:col-start-4 lg:col-span-6"
@@ -1622,20 +1257,20 @@
             </p>
           </div>
 
-          <div class="mt-[6.5rem]">
+          <div class="mt-12">
             <BillingHistory pageSize={5} />
           </div>
         </div>
       </section>
 
-      <!-- ═══════════════════════════════════════════════════════════════════════════
+<!-- ═══════════════════════════════════════════════════════════════════════════
        VARIANT 17: Feature / Usage Gate
        ═══════════════════════════════════════════════════════════════════════════ -->
       <section
         id="feature-usage-gate"
-        class="relative left-1/2 -translate-x-1/2 w-screen pb-[6.5rem]"
+        class="relative left-1/2 -translate-x-1/2 w-screen pb-20"
       >
-        <div class="mx-auto w-full max-w-[1280px] px-4 lg:px-16 pt-[6.5rem]">
+        <div class="mx-auto w-full max-w-7xl px-4 lg:px-16 pt-20">
           <div class="mx-auto grid grid-cols-12">
             <h2
               class="heading-l col-span-12 text-center text-foreground-default lg:col-start-4 lg:col-span-6"
@@ -1653,7 +1288,7 @@
             </p>
           </div>
 
-          <div class="mx-auto mt-[6.5rem] grid max-w-3xl gap-4 md:grid-cols-2">
+          <div class="mx-auto mt-12 grid max-w-3xl gap-4 md:grid-cols-2">
             <div
               class="rounded-lg border border-border-subtle bg-surface-base p-5"
             >

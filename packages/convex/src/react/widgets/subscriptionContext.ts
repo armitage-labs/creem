@@ -30,6 +30,11 @@ export type SubscriptionContextValue = {
   subscribedUnits: number | null;
   units?: number;
   showUnitPicker: boolean;
+  /**
+   * True when any visible plan offers a Creem-managed trial, so every card
+   * reserves the caption row under its CTA and the grid rows stay aligned.
+   */
+  reserveTrialCaption: boolean;
   isGroupSubscribed: boolean;
   disableCheckout: boolean;
   disableSwitch: boolean;

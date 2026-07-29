@@ -103,6 +103,14 @@
   const hasEnterprisePlan = $derived(primaryPlans.some((plan) => plan.category === "enterprise"));
   const effectiveCycle = $derived(selectedCycle ?? availableCycles[0]);
   const showToggle = $derived(showCycleToggle && availableCycles.length > 1);
+  // Only the section knows whether a sibling plan offers a trial, so it decides
+  // whether every card reserves the caption row under its CTA. Each grid is its
+  // own alignment context, so the two grids are measured separately.
+  const reservesTrialCaption = (group: UIPlanEntry[]) =>
+    group.some((candidate) => (candidate.trialDays ?? 0) > 0);
+  const reserveTrialCaption = $derived(reservesTrialCaption(primaryPlans));
+  const reserveTrialCaptionForTrials = $derived(reservesTrialCaption(trialPlans));
+
   const gridColumnsClass = $derived.by(() => {
     switch (columns) {
       case 1:
@@ -151,6 +159,7 @@
         {products}
         {units}
         {showUnitPicker}
+        {reserveTrialCaption}
         {subscribedUnits}
         {isGroupSubscribed}
         {disableCheckout}
@@ -183,6 +192,7 @@
           {products}
           {units}
           {showUnitPicker}
+          reserveTrialCaption={reserveTrialCaptionForTrials}
           {subscribedUnits}
           {isGroupSubscribed}
           {disableCheckout}

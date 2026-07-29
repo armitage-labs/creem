@@ -170,6 +170,22 @@ export type PlanCatalogEntry = {
   description?: string;
   /** Pricing model — `"unit"` enables quantity/unit controls in widgets. */
   pricingModel?: "flat" | "unit";
+  /**
+   * Length of the Creem-managed trial on this plan's products, in days.
+   *
+   * Creem does not expose trial configuration on the product API, so the widgets
+   * cannot discover it. Mirror the value you configured in the Creem dashboard
+   * here and the pricing card will offer the trial before checkout instead of a
+   * plain "Subscribe".
+   *
+   * This is display only. Creem still owns the trial itself: it collects the
+   * card, starts the trial, and emits `subscription.trialing`. Once the
+   * subscription exists, the card switches to the live countdown derived from
+   * `trialEnd` and stops reading this field.
+   *
+   * Leave unset for app-owned no-card trials, which use `category: "trial"`.
+   */
+  trialDays?: number;
   /** Preferred recurring product map for catalog-backed widgets. */
   products?: Readonly<Record<string, CatalogProductRef>>;
   /** Map of billing cycle → Creem product ID (e.g. `{ "every-month": "prod_xxx" }`). */

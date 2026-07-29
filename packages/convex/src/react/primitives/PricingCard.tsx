@@ -38,6 +38,7 @@ export const PricingCard = ({
   products = [],
   units,
   showUnitPicker = false,
+  reserveTrialCaption = false,
   subscribedUnits,
   isGroupSubscribed = false,
   disableCheckout = false,
@@ -63,6 +64,12 @@ export const PricingCard = ({
   products?: ConnectedProduct[];
   units?: number;
   showUnitPicker?: boolean;
+  /**
+   * Reserve the trial caption line even when this plan has no trial, so every
+   * card in a grid keeps the same rows below the CTA. Set by the parent, which
+   * is the only place that knows whether a sibling plan offers a trial.
+   */
+  reserveTrialCaption?: boolean;
   subscribedUnits?: number | null;
   isGroupSubscribed?: boolean;
   disableCheckout?: boolean;
@@ -198,6 +205,16 @@ export const PricingCard = ({
     subscribedUnits != null &&
     unitAdjustCount !== subscribedUnits;
 
+  // A catalog-declared Creem trial is offered only before the subscription
+  // exists. Once it does, the live countdown from `trialEnd` takes over.
+  const offersCatalogTrial =
+    !isActiveProduct &&
+    !isActivePlanOtherCycle &&
+    !isSiblingPlan &&
+    !isGroupSubscribed &&
+    plan.billingType !== "onetime" &&
+    (plan.trialDays ?? 0) > 0;
+
   const checkoutLabel = isActivePlanOtherCycle
     ? labels.subscription.switchInterval
     : isSiblingPlan || isFreeDowngrade
@@ -208,7 +225,9 @@ export const PricingCard = ({
           : labels.subscription.getStarted
         : plan.billingType === "onetime"
           ? labels.subscription.buyNow
-          : labels.subscription.subscribe;
+          : offersCatalogTrial
+            ? labels.subscription.startFreeTrial
+            : labels.subscription.subscribe;
 
   const handleCheckout = (payload: { productId: string }) => {
     if ((isSiblingPlan || isActivePlanOtherCycle) && onSwitchPlan) {
@@ -316,9 +335,8 @@ export const PricingCard = ({
           {unitPriceBreakdown.calculation}
         </p>
       )}
-
       <div
-        className={`mb-4 mt-6 ${showUnitCheckoutControls ? "flex flex-col gap-2" : "flex min-h-8 items-start"}`}
+        className={`mb-4 mt-6 flex flex-col ${showUnitCheckoutControls ? "gap-2" : "min-h-8"}`}
       >
         {showUnitCheckoutControls && (
           <div className="flex w-full items-center justify-between rounded-xl bg-surface-subtle py-2 pl-4 pr-2">
@@ -483,6 +501,17 @@ export const PricingCard = ({
             </span>
           ) : null}
         </div>
+        {(offersCatalogTrial || reserveTrialCaption) && (
+          <p
+            aria-hidden={!offersCatalogTrial}
+            className="label-m mt-2 text-foreground-placeholder"
+          >
+            {offersCatalogTrial
+              ? labels.subscription.trialDaysFree(plan.trialDays ?? 0)
+              : /* Non-breaking space keeps the row height identical to a captioned card. */
+                "\u00A0"}
+          </p>
+        )}
       </div>
 
       {descriptionHtml && (

@@ -62,6 +62,10 @@ export type BillingLabels = {
     freeTrial: string;
     startTrial: string;
     trialDaysLeft: (days: number) => string;
+    /** Pre-checkout CTA for a plan with a Creem-managed trial. */
+    startFreeTrial: string;
+    /** Microcopy under that CTA, stating the trial length. */
+    trialDaysFree: (days: number) => string;
     free: string;
     custom: string;
     switchInterval: string;
@@ -123,6 +127,12 @@ export type BillingLabels = {
     warning: string;
     updatePaymentMethod: string;
     openingPortal: string;
+  };
+  trialBanner: {
+    /** Shown when the trial end date is unknown. */
+    active: string;
+    /** Shown when a trial end date is available. */
+    activeUntil: (formattedDate: string) => string;
   };
   paymentWarning: {
     pending: string;
@@ -249,6 +259,8 @@ export const defaultBillingLabels: BillingLabels = {
     freeTrial: "Free trial",
     startTrial: "Start trial",
     trialDaysLeft: (days) => `${days} day${days === 1 ? "" : "s"} left`,
+    startFreeTrial: "Start free trial",
+    trialDaysFree: (days) => `${days} days free`,
     free: "Free",
     custom: "Custom",
     switchInterval: "Switch interval",
@@ -319,6 +331,11 @@ export const defaultBillingLabels: BillingLabels = {
       "Your subscription payment is past due. Please update your payment method to avoid service interruption.",
     updatePaymentMethod: "Update payment method",
     openingPortal: "Opening portal...",
+  },
+  trialBanner: {
+    active:
+      "Trial plan active. Upgrade before your trial ends to avoid interruptions.",
+    activeUntil: (formattedDate) => `Trial plan active until ${formattedDate}.`,
   },
   paymentWarning: {
     pending:

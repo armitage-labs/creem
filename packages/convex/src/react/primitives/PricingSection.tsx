@@ -127,6 +127,14 @@ export const PricingSection = ({
     }
   })();
 
+  // Only the section knows whether a sibling plan offers a trial, so it decides
+  // whether every card reserves the caption row under its CTA. Each grid is its
+  // own alignment context, so the two grids are measured separately.
+  const reservesTrialCaption = (group: UIPlanEntry[]) =>
+    group.some((candidate) => (candidate.trialDays ?? 0) > 0);
+  const reserveTrialCaption = reservesTrialCaption(primaryPlans);
+  const reserveTrialCaptionForTrials = reservesTrialCaption(trialPlans);
+
   return (
     <section className={className}>
       {showToggle && (
@@ -156,6 +164,7 @@ export const PricingSection = ({
             products={products}
             units={units}
             showUnitPicker={showUnitPicker}
+            reserveTrialCaption={reserveTrialCaption}
             subscribedUnits={subscribedUnits}
             isGroupSubscribed={isGroupSubscribed}
             disableCheckout={disableCheckout}
@@ -188,6 +197,7 @@ export const PricingSection = ({
               products={products}
               units={units}
               showUnitPicker={showUnitPicker}
+              reserveTrialCaption={reserveTrialCaptionForTrials}
               subscribedUnits={subscribedUnits}
               isGroupSubscribed={isGroupSubscribed}
               disableCheckout={disableCheckout}

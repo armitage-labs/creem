@@ -277,6 +277,8 @@
     getSubscribedUnits: () => localSubscribedUnits,
     getUnits: () => units,
     getShowUnitPicker: () => showUnitPicker,
+    getReserveTrialCaption: () =>
+      visiblePlans.some((candidate) => (candidate.trialDays ?? 0) > 0),
     getIsGroupSubscribed: () => ownsActiveSubscription,
     getDisableCheckout: () => !canCheckout,
     getDisableSwitch: () => !canChange,
