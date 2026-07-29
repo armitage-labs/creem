@@ -14,11 +14,35 @@ behind them, see [Concepts](/code/sdks/convex/concepts).
 
 ## Custom auth and RBAC
 
-Authentication and application roles remain your responsibility. The generated API provides the billing authorization baseline: it derives the billing entity from `resolve`, scopes customer data to that entity, and verifies explicitly selected subscriptions before reading or changing them.
+Billing and identity are separate domains that meet in one place: the `resolve`
+callback. Your auth layer answers _who is calling and what may they act on_.
+This component answers _what that billing entity owns and may change_. `resolve`
+is the handover between the two.
 
-**Quick start.** `creem.api({ resolve })` generates ready-to-export Convex functions. Each one calls your `resolve` callback to authenticate and determine the `entityId`; the billing entity is derived from the session, never from client input. For team billing, verify membership and the required billing role before returning an organization ID. This is what the [Quickstart](/code/sdks/convex/quickstart) uses.
+On the billing side, the generated API enforces its own boundary: it derives the
+entity from `resolve`, scopes customer data to that entity, and verifies
+explicitly selected subscriptions before reading or changing them. It never
+takes an entity from client input.
 
-**Full control.** Call the resource namespaces (`creem.subscriptions.*`, `creem.checkouts.*`, `creem.customers.*`, `creem.orders.*`, `creem.products.*`) inside your own Convex functions and handle auth, entity resolution, and permission checks yourself. The library exports **shared arg validators** matching exactly what the widgets send, so your custom functions stay drop-in compatible:
+On the identity side, sessions, roles, and org membership stay with whatever auth
+you already use. Convex Auth, Clerk, WorkOS, or your own tables all work the
+same way here, because the component only ever sees the result.
+
+### Quick start
+
+`creem.api({ resolve })` generates ready-to-export Convex functions. Each one
+calls your `resolve` callback to authenticate and determine the `entityId`. For
+team billing, verify membership and the required billing role before returning
+an organization ID, since that check belongs to the identity domain. This is
+what the [Quickstart](/code/sdks/convex/quickstart) uses.
+
+### Full control
+
+Call the resource namespaces (`creem.subscriptions.*`, `creem.checkouts.*`,
+`creem.customers.*`, `creem.orders.*`, `creem.products.*`) inside your own Convex
+functions and handle auth, entity resolution, and permission checks there. The
+library exports **shared arg validators** matching exactly what the widgets send,
+so your custom functions stay drop-in compatible:
 
 | Export                   | Used by                                          |
 | ------------------------ | ------------------------------------------------ |
@@ -162,7 +186,9 @@ Sibling guards for the other flows: `onBeforePlanChange` (paid switches and unit
 
 ## Internationalization
 
-Pass `i18n` at the provider, or per widget, to replace default UI labels and format dates and currency. It covers cards, dialogs, billing history, portal buttons, recovery banners, credits, and accessibility labels:
+Set `i18n` once on the provider. Every connected widget inherits it, covering
+cards, dialogs, billing history, portal buttons, recovery banners, credits, and
+accessibility labels:
 
 ```tsx
 <CreemConvexProvider

@@ -61,7 +61,33 @@ You can also register plans inline, without a catalog. This helps when migrating
 
 The component supports two trial paths:
 
-- **Creem-managed trials** are configured on paid Creem products. In the catalog they stay `category: "paid"` recurring plans; Creem owns checkout, card collection, and the `subscription.trialing` state. Nothing extra to wire.
+- **Creem-managed trials** are configured on paid Creem products. In the catalog they stay `category: "paid"` recurring plans; Creem owns checkout, card collection, and the `subscription.trialing` state.
+
+  Declare the length with `trialDays`. The card then reads "Start free trial" instead of "Subscribe", with the length as microcopy beneath it:
+
+  ```ts title="src/billingCatalog.ts"
+  {
+    planId: "premium",
+    category: "paid",
+    billingType: "recurring",
+    trialDays: 14,
+    creemProductIds: { "every-month": "prod_..." },
+  }
+  ```
+
+  `trialDays` is display only. Creem still runs the trial, and once the subscription exists the card switches to a live countdown from `trialEnd` and stops reading the field.
+
+  <Note>
+    Creem's product API doesn't carry trial length yet, so the
+    catalog is where the card learns it. One effect worth knowing: the length lives in two places,
+    so update the catalog whenever you change the trial on the product. Prefer it to come from Creem
+    instead? Two requests would get it there: [trial information and duration in
+    `/v1/products`](https://creem.featurebase.app/p/expose-trial-information-and-duration-in-v1products),
+    so the component syncs it alongside price and title, or [Creem as
+    Code](https://creem.featurebase.app/p/creem-as-code-cli-based-product-and-billing-configuration),
+    so the product and its trial are defined together in your repo.
+  </Note>
+
 - **App-owned no-card trials** use `category: "trial"` with `billingType: "custom"`. No Creem subscription is created. The component records activation history and the current app-plan assignment, which is what lets the billing UI show, activate, and hide the offer.
 
 An app-owned trial that can only be used once per billing entity, and disappears once the entity picks a real plan in the same product line:

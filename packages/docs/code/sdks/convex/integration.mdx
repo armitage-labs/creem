@@ -88,8 +88,9 @@ Create `convex/billing.ts`. Replace the resolver with your real auth and entity 
 
 ```ts
 import { Creem, defineBillingCatalog, type ApiResolver } from "@creem_io/convex";
-import { api, components } from "./_generated/api";
-import { action, internalAction, query } from "./_generated/server";
+import { components } from "./_generated/api";
+import { action, internalAction } from "./_generated/server";
+import { ConvexError, v } from "convex/values";
 
 const creditsProductId = process.env.CREEM_ONETIME_CREDITS;
 const serverBillingCatalog = creditsProductId
@@ -119,24 +120,16 @@ export const creem = new Creem(components.creem, {
   cancelMode: "scheduled",
 });
 
-export const currentUser = query({
-  args: {},
-  handler: async (ctx) => {
-    const identity = await ctx.auth.getUserIdentity();
-    if (!identity) throw new Error("Not authenticated");
-    return {
-      id: identity.subject,
-      email: identity.email!,
-    };
-  },
-});
-
+// Return `null` for an unauthenticated caller. Public pricing pages depend on
+// that. Anything thrown here counts as a real failure: it is logged and
+// rethrown instead of silently rendering the logged-out state.
 const resolve: ApiResolver = async (ctx) => {
-  const user = await ctx.runQuery(api.billing.currentUser);
+  const identity = await ctx.auth.getUserIdentity();
+  if (!identity) return null;
   return {
-    userId: user.id,
-    email: user.email,
-    entityId: user.id,
+    userId: identity.subject,
+    email: identity.email!,
+    entityId: identity.subject, // for org billing, return the verified org ID
   };
 };
 
@@ -148,6 +141,7 @@ const {
   products,
   customers,
   transactions,
+  plans,
   orders,
   credits,
 } = creem.api({ resolve });
@@ -166,20 +160,24 @@ export const productsGet = products.get;
 export const customersRetrieve = customers.retrieve;
 export const customersPortalUrl = customers.portalUrl;
 export const transactionsSearch = transactions.search;
+export const plansActivate = plans.activate;
 export const ordersList = orders.list;
-export const creditsCreateAccount = credits.createAccount;
 export const creditsGetBalance = credits.getBalance;
-export const creditsCredit = credits.credit;
-export const creditsDebit = credits.debit;
 export const creditsListEntries = credits.listEntries;
 
 export const generateImage = action({
-  args: {},
-  handler: async (ctx) => {
-    await ctx.runAction(api.billing.creditsDebit, {
+  args: { requestId: v.string() },
+  returns: v.object({ creditsConsumed: v.string() }),
+  handler: async (ctx, args) => {
+    const identity = await resolve(ctx);
+    if (!identity) throw new ConvexError("Not authenticated");
+    await creem.credits.debitForEntity(ctx, {
+      entityId: identity.entityId,
       amount: "10",
       reference: "generate_image",
-      idempotencyKey: `generate_image_${Date.now()}`,
+      // A stable key per logical operation. A timestamp would make every
+      // retry a fresh debit, which is the opposite of idempotent.
+      idempotencyKey: `generate_image_${args.requestId}`,
     });
     return { creditsConsumed: "10" };
   },
@@ -187,6 +185,7 @@ export const generateImage = action({
 
 export const syncBillingProducts = internalAction({
   args: {},
+  returns: v.object({ synced: v.boolean() }),
   handler: async (ctx) => {
     await creem.syncProducts(ctx);
     return { synced: true };
@@ -194,13 +193,20 @@ export const syncBillingProducts = internalAction({
 });
 ```
 
+Security boundary:
+
+- `export const creem = new Creem(...)` exports a normal server-side object for other Convex modules such as `http.ts`; it does not register a client-callable Convex function.
+- Functions returned by `creem.api({ resolve })` become public when exported from `convex/billing.ts`.
+- `resolve` must authenticate the caller and authorize the selected user or organization. Generated functions then bind customers, subscriptions, transactions, and credit reads to that resolved `entityId`.
+- Privileged credit operations are intentionally absent from the generated public API. Put grants and spending behind app-owned actions whose amount, reference, and idempotency policy are controlled on the server.
+
 What to consider:
 
 - Export only capabilities your UI needs. If you omit `subscriptions.cancel`, cancel buttons disappear.
 - Use `cancelMode: "scheduled"` when canceling should keep access until the current period ends. Use `"immediate"` when cancellation should end access immediately.
 - Put credit grants in the server catalog because webhooks run on the server.
 - `syncBillingProducts` is intentionally an `internalAction`. Trigger it from the Convex CLI, dashboard, or another trusted internal function, not from browser UI.
-- App-owned credit spending, such as `generateImage`, should call `creditsDebit` on the server. The credits widget only displays and refreshes balance state.
+- App-owned credit spending, such as `generateImage`, should call `creem.credits.debitForEntity` with server-controlled business inputs. The credits widget only displays and refreshes balance state.
 
 ---
 
@@ -237,7 +243,31 @@ https://<your-convex-site-url>/creem/events
 
 The component stores customers, subscriptions, orders, refunds, disputes, and credit grants from supported Creem events.
 
-After products exist in Creem, sync them into Convex:
+### Create the products
+
+Every plan in your catalog maps to a Creem product. Create them in the dashboard, or with the [CLI](/ai/for-agents/cli). Running it through `npx` avoids installing anything globally on the developer's machine:
+
+```bash
+npx @creem_io/cli login --api-key creem_test_YOUR_KEY
+
+npx @creem_io/cli products create \
+  --name "Basic" \
+  --description "For small teams" \
+  --price 1900 \
+  --currency USD \
+  --billing-type recurring \
+  --billing-period every-month
+```
+
+Use the same Creem API key you set as `CREEM_API_KEY` in step 2. `brew` and global `npm` installs are also available; see the [CLI guide](/ai/for-humans/cli).
+
+Repeat for every plan and billing cycle you offer. A plan billed monthly and yearly needs two products. `creem products list --json` prints the IDs for scripting.
+
+`--billing-period` accepts `every-month`, `every-three-months`, `every-six-months`, or `every-year`, and is required when `--billing-type` is `recurring`. Use `--billing-type onetime` for one-time products and credit packs.
+
+### Sync them into Convex
+
+Once the products exist, pull their metadata into Convex:
 
 ```bash
 npx convex run billing:syncBillingProducts
@@ -328,8 +358,8 @@ In Svelte, initialize Convex once with `setupConvex`, create a `ConnectedBilling
     CreemConvexProvider,
     Subscription,
     BillingPortal,
+    connectCreemApi,
     plansOf,
-    type ConnectedBillingApi,
   } from "@creem_io/convex/svelte";
   import { api } from "../convex/_generated/api.js";
   import { billingCatalog } from "./billingCatalog";
@@ -338,25 +368,9 @@ In Svelte, initialize Convex once with `setupConvex`, create a `ConnectedBilling
   if (!convexUrl) throw new Error("VITE_CONVEX_URL is required");
   setupConvex(convexUrl);
 
-  const connectedApi: ConnectedBillingApi = {
-    uiModel: api.billing.uiModel,
-    checkouts: { create: api.billing.checkoutsCreate },
-    subscriptions: {
-      update: api.billing.subscriptionsUpdate,
-      cancel: api.billing.subscriptionsCancel,
-      resume: api.billing.subscriptionsResume,
-      cancelScheduledUpdate: api.billing.subscriptionsCancelScheduledUpdate,
-    },
-    customers: { portalUrl: api.billing.customersPortalUrl },
-    transactions: { search: api.billing.transactionsSearch },
-    credits: {
-      createAccount: api.billing.creditsCreateAccount,
-      getBalance: api.billing.creditsGetBalance,
-      credit: api.billing.creditsCredit,
-      debit: api.billing.creditsDebit,
-      listEntries: api.billing.creditsListEntries,
-    },
-  };
+  // Maps every generated `convex/billing.ts` export onto the widget API.
+  // A missing or mis-wired export is a compile error, not a blank widget.
+  const connectedApi = connectCreemApi(api.billing);
 </script>
 
 <CreemConvexProvider api={connectedApi} catalog={billingCatalog}>
@@ -377,9 +391,10 @@ The provider-level `ConnectedBillingApi` decides which paths are available:
 | `subscriptions.cancel`                | Subscription cancel buttons                     | Cancel controls are unavailable.                       |
 | `subscriptions.resume`                | Scheduled-cancel resume controls                | Resume/undo cancel controls are unavailable.           |
 | `subscriptions.cancelScheduledUpdate` | App-side period-end update undo                 | Pending period-end update undo is unavailable.         |
+| `plans.activate`                      | App-owned plans (free plans, no-card trials)    | Trial and free plan cards cannot be activated.         |
 | `customers.portalUrl`                 | `BillingPortal`, `PaymentRecoveryButton`        | Portal buttons cannot open the Creem customer portal.  |
 | `transactions.search`                 | `BillingHistory`                                | Billing history cannot render.                         |
-| `credits.*`                           | `Credits.Root` and app credit actions           | Credit balance and ledger UI cannot work.              |
+| `credits.getBalance`                  | `Credits.Root`                                  | Credit balance UI cannot load.                         |
 
 Use `createCreemSvelte` when you want one typed binding object:
 
@@ -399,11 +414,7 @@ Use `createCreemSvelte` when you want one typed binding object:
   });
 </script>
 
-<CreemConvexProvider
-  api={billing.api}
-  catalog={billing.catalog}
-  defaultCycle={billing.defaultCycle}
->
+<CreemConvexProvider {...billing}>
   <Subscription.Root plans={billing.planIds} />
   <BillingPortal />
 </CreemConvexProvider>
@@ -438,31 +449,13 @@ import {
   Subscription,
   BillingPortal,
   createCreemReact,
+  connectCreemApi,
   plansOf,
-  type ConnectedBillingApi,
 } from "@creem_io/convex/react";
 import { api } from "../convex/_generated/api";
 import { billingCatalog } from "./billingCatalog";
 
-const connectedApi: ConnectedBillingApi = {
-  uiModel: api.billing.uiModel,
-  checkouts: { create: api.billing.checkoutsCreate },
-  subscriptions: {
-    update: api.billing.subscriptionsUpdate,
-    cancel: api.billing.subscriptionsCancel,
-    resume: api.billing.subscriptionsResume,
-    cancelScheduledUpdate: api.billing.subscriptionsCancelScheduledUpdate,
-  },
-  customers: { portalUrl: api.billing.customersPortalUrl },
-  transactions: { search: api.billing.transactionsSearch },
-  credits: {
-    createAccount: api.billing.creditsCreateAccount,
-    getBalance: api.billing.creditsGetBalance,
-    credit: api.billing.creditsCredit,
-    debit: api.billing.creditsDebit,
-    listEntries: api.billing.creditsListEntries,
-  },
-};
+const connectedApi = connectCreemApi(api.billing);
 
 const billing = createCreemReact({
   catalog: billingCatalog,
@@ -472,11 +465,7 @@ const billing = createCreemReact({
 
 export function PricingPage() {
   return (
-    <CreemConvexProvider
-      api={billing.api}
-      catalog={billing.catalog}
-      defaultCycle={billing.defaultCycle}
-    >
+    <CreemConvexProvider {...billing}>
       <Subscription.Root plans={plansOf(billing.catalog, ["free", "premium"])} />
       <BillingPortal />
     </CreemConvexProvider>
@@ -550,5 +539,5 @@ Before shipping an integration:
 
 - Type-check and lint your app with your project's usual commands.
 - Run `timeout 30 npx convex dev --once` and confirm the deployment pushes without errors.
-- Complete a test-mode checkout with a [test card](/getting-started/test-mode#test-cards) and confirm the webhook writes billing state (check the Convex dashboard data browser and logs).
+- Complete a test-mode checkout with a [test card](/getting-started/test-mode#testing-payments) and confirm the webhook writes billing state (check the Convex dashboard data browser and logs).
 - Confirm the widgets reflect the new subscription without a page reload.
