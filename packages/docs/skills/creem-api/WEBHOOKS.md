@@ -61,6 +61,9 @@ import crypto from "crypto";
 function verifySignature(rawBody: string, signature: string, secret: string): boolean {
   const computed = crypto.createHmac("sha256", secret).update(rawBody).digest("hex");
 
+  // timingSafeEqual throws on a length mismatch, so check that first.
+  if (signature.length !== computed.length) return false;
+
   // Use timing-safe comparison to prevent timing attacks
   return crypto.timingSafeEqual(Buffer.from(computed, "hex"), Buffer.from(signature, "hex"));
 }
@@ -437,6 +440,43 @@ async function handleSubscriptionPastDue(subscription: SubscriptionObject) {
 
 ---
 
+### subscription.unpaid
+
+Fired when a subscription moves to the `unpaid` status after failed payment collection. Treat it like `subscription.past_due` in payment-recovery UI, and suspend access according to your policy.
+
+```json
+{
+  "id": "evt_h9hBneNdvWvA8hQzIBzDx",
+  "eventType": "subscription.unpaid",
+  "created_at": 1772265400331,
+  "object": {
+    "id": "sub_3xx35QzxsnpFiJ3vRB9YKt",
+    "object": "subscription",
+    "status": "unpaid",
+    "product": {
+      "id": "prod_L8mMzoYLOOZpMpTBwGw0k",
+      "name": "Pro Plan",
+      "price": 2999,
+      "currency": "USD",
+      "billing_type": "recurring",
+      "billing_period": "every-month"
+    },
+    "customer": {
+      "id": "cust_ubD9UtnJpafXNKQ5UaV0H",
+      "email": "customer@example.com"
+    },
+    "collection_method": "charge_automatically",
+    "last_transaction_id": "tran_6uBkPewvO7KHjfvGmpin82",
+    "current_period_start_date": "2026-02-28T07:56:07.282Z",
+    "current_period_end_date": "2026-03-30T07:56:07.282Z",
+    "canceled_at": null,
+    "metadata": {}
+  }
+}
+```
+
+---
+
 ### subscription.expired
 
 Fired when the billing period ends without successful payment. Retries may still happen.
@@ -689,11 +729,14 @@ export async function handleCreemWebhook(req: Request): Promise<Response> {
     return new Response("Missing signature", { status: 401 });
   }
 
-  // 2. Verify signature
+  // 2. Verify signature (length check first: timingSafeEqual throws on mismatch)
   const secret = process.env.CREEM_WEBHOOK_SECRET!;
   const computed = crypto.createHmac("sha256", secret).update(rawBody).digest("hex");
 
-  if (!crypto.timingSafeEqual(Buffer.from(computed, "hex"), Buffer.from(signature, "hex"))) {
+  if (
+    signature.length !== computed.length ||
+    !crypto.timingSafeEqual(Buffer.from(computed, "hex"), Buffer.from(signature, "hex"))
+  ) {
     return new Response("Invalid signature", { status: 401 });
   }
 
@@ -725,6 +768,10 @@ export async function handleCreemWebhook(req: Request): Promise<Response> {
 
       case "subscription.past_due":
         await handleSubscriptionPastDue(event.object);
+        break;
+
+      case "subscription.unpaid":
+        await handleSubscriptionUnpaid(event.object);
         break;
 
       case "subscription.expired":

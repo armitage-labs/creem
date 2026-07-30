@@ -193,10 +193,13 @@
                     "group": "Convex",
                     "pages": [
                       "code/sdks/convex/quickstart",
+                      "code/sdks/convex/concepts",
                       "code/sdks/convex/subscriptions",
                       "code/sdks/convex/one-time-and-credits",
                       "code/sdks/convex/entitlements",
-                      "code/sdks/convex/advanced"
+                      "code/sdks/convex/advanced",
+                      "code/sdks/convex/migration",
+                      "code/sdks/convex/reference"
                     ]
                   },
                   "code/sdks/templates",

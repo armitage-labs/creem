@@ -60,9 +60,8 @@ if (!verifyWebhookSignature(rawBody, signature!, process.env.CREEM_WEBHOOK_SECRE
 }
 ```
 
-Events that drive access decisions. `WEBHOOKS.md` documents these plus the
-remaining lifecycle events with their payloads. Creem emits 13 event types in
-total; check the API reference if you need one that is not documented there:
+Events that drive access decisions. Creem emits 13 event types in total;
+`WEBHOOKS.md` documents all of them with their payloads:
 
 | Event                   | Action                                           |
 | ----------------------- | ------------------------------------------------ |
@@ -85,37 +84,36 @@ Develop against `https://test-api.creem.io` with a test API key.
 
 ## Error handling
 
-| Status | Meaning                                   |
-| ------ | ----------------------------------------- |
-| 400    | Bad request; check parameters             |
-| 401    | Invalid API key                           |
-| 403    | Insufficient permissions or limit reached |
-| 404    | Resource does not exist                   |
-| 429    | Rate limited                              |
-| 500    | Server error; contact support             |
+| Status | Meaning                                                                       |
+| ------ | ----------------------------------------------------------------------------- |
+| 400    | Bad request; check parameters                                                 |
+| 403    | Invalid or missing API key, or insufficient permissions (auth errors are 403) |
+| 404    | Resource does not exist                                                       |
+| 429    | Rate limited                                                                  |
+| 500    | Server error; contact support                                                 |
 
-## Common Integration Checklist
+## Integration checklist
 
 When implementing Creem:
 
-1. **Environment Setup**
+1. **Environment setup**
    - [ ] Store API key in environment variables
    - [ ] Configure base URL for test/production
    - [ ] Set up webhook endpoint
 
-2. **Checkout Flow**
+2. **Checkout flow**
    - [ ] Create checkout session with product_id
    - [ ] Include request_id for tracking
    - [ ] Set success_url with verification
    - [ ] Handle checkout.completed webhook
 
-3. **Subscription Handling**
+3. **Subscription handling**
    - [ ] Handle subscription.paid for renewals
    - [ ] Handle subscription.canceled for access revocation
    - [ ] Implement customer portal link
    - [ ] Store subscription_id for management
 
-4. **License Keys** (if applicable)
+4. **License keys** (if applicable)
    - [ ] Implement activate on first use
    - [ ] Validate on each app start
    - [ ] Handle deactivation for device transfer
@@ -158,7 +156,7 @@ Prefer an official SDK over raw `fetch` when one fits the stack:
 | Next.js                     | https://docs.creem.io/code/sdks/nextjs.md      |
 | Better Auth                 | https://docs.creem.io/code/sdks/better-auth.md |
 
-## Need Help?
+## Need help?
 
 - Documentation: https://docs.creem.io
 - Dashboard: https://creem.io/dashboard

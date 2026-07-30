@@ -133,6 +133,19 @@ Expose an app-specific backend action for a business operation such as
 `creem.credits.debitForEntity` with server-controlled amounts, references, and
 idempotency keys.
 
+### Resolver plan overrides
+
+The resolver may return two optional overrides, for apps that own their plan
+assignment rather than letting the component own it:
+
+| Field              | When to return it                                                                                                                                            |
+| ------------------ | ------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| `activePlanId`     | Your app, rather than the component, decides the entity's current app-owned plan (free, trial, custom). Feeds `uiModel.activePlanId` and eligibility checks. |
+| `activeFreePlanId` | Legacy narrower form of the same override. Prefer `activePlanId`. `undefined` keeps the default "first catalog free plan"; `null` means no free plan.        |
+
+Omit both and the component reads the active plan from its own app-plan
+assignment rows.
+
 ## Webhook event middleware
 
 `registerRoutes` accepts an `events` map for app-specific logic. Your handlers run after the component's built-in processing, which upserts customers, subscriptions, and orders.

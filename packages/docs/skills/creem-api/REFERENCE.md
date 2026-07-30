@@ -34,7 +34,7 @@ All requests require the `x-api-key` header:
 x-api-key: creem_your_api_key_here
 ```
 
-API keys are found in the dashboard under Settings > API Keys. Test and production use different keys.
+API keys are found in the dashboard under Developers > API & Webhooks. Test and production use different keys.
 
 ---
 
@@ -667,15 +667,14 @@ Values: `test`, `prod`, `sandbox`
 
 ## HTTP Response Codes
 
-| Code | Description                                  |
-| ---- | -------------------------------------------- |
-| 200  | Success                                      |
-| 400  | Bad Request - Invalid parameters             |
-| 401  | Unauthorized - Missing API key               |
-| 403  | Forbidden - Invalid API key or limit reached |
-| 404  | Not Found - Resource doesn't exist           |
-| 429  | Rate Limited                                 |
-| 500  | Server Error                                 |
+| Code | Description                                                         |
+| ---- | ------------------------------------------------------------------- |
+| 200  | Success                                                             |
+| 400  | Bad Request - Invalid parameters                                    |
+| 403  | Forbidden - Invalid or missing API key, or insufficient permissions |
+| 404  | Not Found - Resource doesn't exist                                  |
+| 429  | Rate Limited                                                        |
+| 500  | Server Error                                                        |
 
 ---
 

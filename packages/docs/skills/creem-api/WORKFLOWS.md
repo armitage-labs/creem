@@ -141,13 +141,18 @@ export async function POST(req: NextRequest) {
   const signature = req.headers.get("creem-signature");
   const rawBody = await req.text();
 
-  // Verify signature
+  // Verify signature. Timing-safe comparison, with a length check first
+  // because timingSafeEqual throws on a length mismatch.
   const computed = crypto
     .createHmac("sha256", process.env.CREEM_WEBHOOK_SECRET!)
     .update(rawBody)
     .digest("hex");
 
-  if (computed !== signature) {
+  if (
+    !signature ||
+    signature.length !== computed.length ||
+    !crypto.timingSafeEqual(Buffer.from(computed, "hex"), Buffer.from(signature, "hex"))
+  ) {
     return NextResponse.json({ error: "Invalid signature" }, { status: 401 });
   }
 
@@ -441,10 +446,16 @@ For software requiring activation and device management.
 ### Architecture
 
 ```
-User purchases → License key generated → User enters in app → Activation
-                                                              ↓
-                    App validates on startup ← Store instance ID locally
+User purchases → License key generated → User enters in app
+                                              ↓
+        Your backend (holds the API key) ← App calls your backend
+                    ↓
+        Creem licenses API (activate / validate / deactivate)
 ```
+
+The Creem API key is a merchant credential and must never ship inside the
+desktop binary — anyone can extract it from the app bundle. The desktop app
+calls your backend; only your backend calls Creem.
 
 ### Step 1: Product Setup
 
@@ -454,7 +465,41 @@ Create a product in the dashboard with:
 - Set activation limit (e.g., 3 devices)
 - Set expiration (or unlimited)
 
-### Step 2: Desktop App Activation Flow
+### Step 2: License Proxy on Your Backend
+
+```typescript
+// app/api/license/[action]/route.ts (Next.js) - the only place the key lives
+import { NextRequest, NextResponse } from "next/server";
+
+const BASE_URL =
+  process.env.NODE_ENV === "production" ? "https://api.creem.io" : "https://test-api.creem.io";
+const ACTIONS = new Set(["activate", "validate", "deactivate"]);
+
+export async function POST(req: NextRequest, { params }: { params: { action: string } }) {
+  if (!ACTIONS.has(params.action)) {
+    return NextResponse.json({ error: "Unknown action" }, { status: 404 });
+  }
+
+  // Forward only the license fields, never merchant credentials
+  const { key, instance_name, instance_id } = await req.json();
+
+  const response = await fetch(`${BASE_URL}/v1/licenses/${params.action}`, {
+    method: "POST",
+    headers: {
+      "x-api-key": process.env.CREEM_API_KEY!,
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify({ key, instance_name, instance_id }),
+  });
+
+  return NextResponse.json(await response.json(), { status: response.status });
+}
+```
+
+Consider rate limiting this route per license key so the proxy cannot be used
+to brute-force keys.
+
+### Step 3: Desktop App Activation Flow
 
 ```typescript
 // Desktop app - activation.ts
@@ -469,19 +514,16 @@ interface LicenseState {
 
 const store = new Store<{ license: LicenseState }>();
 
-const CREEM_API = "https://api.creem.io";
-const API_KEY = process.env.CREEM_API_KEY;
+// Your backend's license proxy from Step 2. No Creem API key in the app.
+const LICENSE_API = "https://yourapp.com/api/license";
 
 export async function activateLicense(licenseKey: string): Promise<boolean> {
   // Generate unique instance name from machine
   const instanceName = await getMachineId(); // Use machine-id package
 
-  const response = await fetch(`${CREEM_API}/v1/licenses/activate`, {
+  const response = await fetch(`${LICENSE_API}/activate`, {
     method: "POST",
-    headers: {
-      "x-api-key": API_KEY,
-      "Content-Type": "application/json",
-    },
+    headers: { "Content-Type": "application/json" },
     body: JSON.stringify({
       key: licenseKey,
       instance_name: instanceName,
@@ -520,12 +562,9 @@ export async function validateLicense(): Promise<{
     return { valid: false, status: "not_activated", expiresAt: null };
   }
 
-  const response = await fetch(`${CREEM_API}/v1/licenses/validate`, {
+  const response = await fetch(`${LICENSE_API}/validate`, {
     method: "POST",
-    headers: {
-      "x-api-key": API_KEY,
-      "Content-Type": "application/json",
-    },
+    headers: { "Content-Type": "application/json" },
     body: JSON.stringify({
       key: storedLicense.key,
       instance_id: storedLicense.instanceId,
@@ -554,12 +593,9 @@ export async function deactivateLicense(): Promise<boolean> {
     return false;
   }
 
-  const response = await fetch(`${CREEM_API}/v1/licenses/deactivate`, {
+  const response = await fetch(`${LICENSE_API}/deactivate`, {
     method: "POST",
-    headers: {
-      "x-api-key": API_KEY,
-      "Content-Type": "application/json",
-    },
+    headers: { "Content-Type": "application/json" },
     body: JSON.stringify({
       key: storedLicense.key,
       instance_id: storedLicense.instanceId,
@@ -575,7 +611,7 @@ export async function deactivateLicense(): Promise<boolean> {
 }
 ```
 
-### Step 3: App Startup Check
+### Step 4: App Startup Check
 
 ```typescript
 // main.ts (Electron)
@@ -668,7 +704,7 @@ case 'checkout.completed': {
   const seats = event.object.units || 1;
 
   // Create team
-  await db.team.create({
+  const team = await db.team.create({
     data: {
       creemSubscriptionId: subscription.id,
       creemCustomerId: customer.id,

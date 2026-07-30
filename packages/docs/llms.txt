@@ -22,7 +22,8 @@ Append `.md` to any documentation URL to fetch it as raw markdown.
 - [TypeScript SDK](https://docs.creem.io/code/sdks/typescript.md): the core client for server-side JavaScript; the API key must stay on your backend
 - [Next.js adapter](https://docs.creem.io/code/sdks/nextjs.md): route handlers and server-side helpers for Next.js apps
 - [Better Auth plugin](https://docs.creem.io/code/sdks/better-auth.md): billing wired into Better Auth sessions and organizations
-- [Convex component](https://docs.creem.io/code/sdks/convex/quickstart.md): webhook sync into the Convex database plus connected React and Svelte widgets
+- [Convex component](https://docs.creem.io/code/sdks/convex/integration.md): complete setup sequence with validation steps — webhook sync into the Convex database plus connected React and Svelte widgets
+- [Convex concepts](https://docs.creem.io/code/sdks/convex/concepts.md): the billing entity, the sources of billing state, and the connected API contract behind the Convex component
 - [CLI](https://docs.creem.io/code/cli.md): manage products, customers, and subscriptions from the terminal
 - [Webhooks](https://docs.creem.io/code/webhooks.md): event list, payload shapes, and signature verification
 
@@ -44,7 +45,11 @@ Append `.md` to any documentation URL to fetch it as raw markdown.
 
 ## Integrations
 
-- [Integrations](https://docs.creem.io/integrations/affiliates.md): guides for connecting third-party platforms and tools
+- [Affiliates](https://docs.creem.io/integrations/affiliates.md): create affiliate programs while processing transactions through Creem
+- [Rekomi](https://docs.creem.io/integrations/rekomi.md): affiliate program with payouts in 150+ countries, connected by one webhook
+- [Evendeals](https://docs.creem.io/integrations/evendeals.md): purchase parity pricing to boost international conversions
+- [Strapi](https://docs.creem.io/integrations/strapi.md): manage Creem products and checkout from the Strapi 5 admin panel
+- [Framer](https://docs.creem.io/integrations/framer.md): no-code checkout buttons and pricing tables for Framer sites
 
 ## Background
 

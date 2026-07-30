@@ -72,7 +72,10 @@ Set Creem secrets in Convex:
 ```bash
 npx convex env set CREEM_API_KEY <your_creem_api_key>
 npx convex env set CREEM_WEBHOOK_SECRET <your_creem_webhook_signing_secret>
+npx convex env set CREEM_SERVER test
 ```
+
+`CREEM_SERVER=test` points the component at the Creem test API, matching a test-mode API key. Set it to `prod` (or omit it) when deploying with a production key.
 
 If you use credit packs, also set a server-side product ID. Do not trust a browser-exposed product ID for webhook fulfillment:
 
