@@ -980,7 +980,7 @@
               class="body-l col-span-12 mt-6 text-center text-foreground-muted lg:col-start-4 lg:col-span-6"
             >
               Uses dedicated products and an <code>updateBehavior</code> resolver.
-              Paid downgrades stay active until period end, free-plan switches
+              Paid downgrades stay active until period end, app-plan switches
               use the dedicated cancellation behavior, and upgrades use Creem
               proration on the next invoice.
             </p>
@@ -998,7 +998,7 @@
                 }
                 return "proration-charge";
               }}
-              freePlanUpdateBehavior="period-end"
+              appPlanUpdateBehavior="period-end"
               plans={plansOf(billingCatalog, [
                 "period-end-free",
                 "period-end-basic",

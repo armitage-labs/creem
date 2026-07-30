@@ -19,6 +19,7 @@ import {
   splitPriceLabel,
 } from "../../core/display.js";
 import { renderMarkdown } from "../../core/markdown.js";
+import { resolvePlanTarget } from "../../core/planTarget.js";
 
 const computeTrialDays = (trialEnd: string): number => {
   const end = new Date(trialEnd).getTime();
@@ -92,7 +93,6 @@ export const PricingCard = ({
     plan: UIPlanEntry;
     productId?: string;
     appPlanId?: string;
-    freePlanId?: string;
     units?: number;
   }) => Promise<void> | void;
   onUpdateUnits?: (payload: { units: number }) => Promise<void> | void;
@@ -129,6 +129,7 @@ export const PricingCard = ({
     : undefined;
 
   const productId = resolveProductIdForPlan(plan, selectedCycle);
+  const planTarget = resolvePlanTarget(plan, productId);
   const priceLabel = formatPriceWithInterval(
     productId,
     products,
@@ -150,26 +151,21 @@ export const PricingCard = ({
   // Same plan but different billing cycle — offer to switch interval
   const isActivePlanOtherCycle =
     !isActiveProduct && activePlanId === plan.planId && productId != null;
-  // Free plan is active when activePlanId matches and the plan has no product
-  const isActiveFreePlan =
+  // App-owned plans are active through the app-plan assignment contract.
+  const isActiveAppPlan =
     !isActiveProduct &&
-    (plan.category === "free" || plan.category === "trial") &&
+    planTarget.kind === "app-plan" &&
     activePlanId === plan.planId;
   // Sibling plan in the same <Subscription> group that already has a subscription
   const isSiblingPlan =
     !isActiveProduct &&
     !isActivePlanOtherCycle &&
     isGroupSubscribed &&
-    productId != null &&
-    plan.category !== "free" &&
-    plan.category !== "trial" &&
-    plan.category !== "enterprise";
-  const isFreeDowngrade =
-    !isActiveFreePlan && plan.category === "free" && isGroupSubscribed;
+    planTarget.kind === "creem-product";
+  const isAppPlanSwitch =
+    !isActiveAppPlan && planTarget.kind === "app-plan" && isGroupSubscribed;
   const isAppPlanActivation =
-    !isActiveFreePlan &&
-    (plan.category === "free" || plan.category === "trial") &&
-    !isGroupSubscribed;
+    !isActiveAppPlan && planTarget.kind === "app-plan" && !isGroupSubscribed;
   const isScheduledTarget =
     scheduledUpdate?.status === "pending" &&
     ((scheduledUpdate.targetProductId != null &&
@@ -224,7 +220,7 @@ export const PricingCard = ({
 
   const checkoutLabel = isActivePlanOtherCycle
     ? labels.subscription.switchInterval
-    : isSiblingPlan || isFreeDowngrade
+    : isSiblingPlan || isAppPlanSwitch
       ? labels.subscription.switchPlan
       : isAppPlanActivation
         ? plan.category === "trial"
@@ -255,10 +251,10 @@ export const PricingCard = ({
   };
 
   const handleAppPlanSwitch = () => {
+    if (planTarget.kind !== "app-plan") return;
     onSwitchPlan?.({
       plan,
-      appPlanId: plan.planId,
-      ...(plan.category === "free" ? { freePlanId: plan.planId } : {}),
+      appPlanId: planTarget.appPlanId,
     });
   };
 
@@ -279,7 +275,7 @@ export const PricingCard = ({
         <h3 className="title-s text-foreground-default">
           {plan.title ?? plan.planId}
         </h3>
-        {isActiveProduct || isActiveFreePlan ? (
+        {isActiveProduct || isActiveAppPlan ? (
           <span className="badge-faded-sm">
             {isTrialing ? (
               <>
@@ -315,7 +311,7 @@ export const PricingCard = ({
           <span className="heading-s text-foreground-default">
             {labels.subscription.freeTrial}
           </span>
-        ) : plan.category === "enterprise" ? (
+        ) : planTarget.kind === "app-plan" || plan.category === "enterprise" ? (
           <span className="heading-s text-foreground-default">
             {labels.subscription.custom}
           </span>
@@ -442,7 +438,7 @@ export const PricingCard = ({
               {labels.subscription.cancelSubscription}
             </button>
           ) : isActiveProduct ||
-            isActiveFreePlan /* Keep CTA row height but intentionally empty when current plan has no action */ ? null : isScheduledTarget ? (
+            isActiveAppPlan /* Keep CTA row height but intentionally empty when current plan has no action */ ? null : isScheduledTarget ? (
             <button
               type="button"
               disabled
@@ -460,7 +456,7 @@ export const PricingCard = ({
             >
               {checkoutLabel}
             </CheckoutButton>
-          ) : isFreeDowngrade ? (
+          ) : isAppPlanSwitch ? (
             <button
               type="button"
               disabled={disableSwitch}

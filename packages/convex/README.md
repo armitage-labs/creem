@@ -21,7 +21,7 @@ working example, and where to go next.
 | Gate features and render account UI               | [Entitlements & Account UI](https://docs.creem.io/code/sdks/convex/entitlements)           |
 | Understand the entity and state model             | [Concepts](https://docs.creem.io/code/sdks/convex/concepts)                                |
 | Do custom auth/RBAC, webhook middleware, i18n     | [Advanced](https://docs.creem.io/code/sdks/convex/advanced)                                |
-| Look up an API method or a widget prop            | [Component Reference](https://docs.creem.io/code/sdks/convex/reference)              |
+| Look up an API method or a widget prop            | [Component Reference](https://docs.creem.io/code/sdks/convex/reference)                    |
 
 Working integrations: [Svelte example](example-svelte),
 [React example](example-react). Repository-only demo backend notes:

@@ -54,7 +54,6 @@ export type SubscriptionContextValue = {
     plan: UIPlanEntry;
     productId?: string;
     appPlanId?: string;
-    freePlanId?: string;
     units?: number;
   }) => Promise<void> | void;
   updateUnits?: (payload: { units: number }) => Promise<void> | void;

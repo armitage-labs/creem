@@ -1502,6 +1502,186 @@ describe("app plan activation history", () => {
   });
 });
 
+describe("subscription lifecycle compensation", () => {
+  let t: TestConvex<typeof schema>;
+
+  beforeEach(() => {
+    t = convexTest(schema, modules);
+  });
+
+  it("restores subscription state and aborts an immediate app-plan assignment", async () => {
+    await t.mutation(api.lib.createSubscription, {
+      subscription: createTestSubscription({
+        id: "sub_1",
+        status: "canceled",
+      }),
+    });
+    const assignment = await t.mutation(api.lib.assignAppPlan, {
+      entityId: "user_456",
+      planId: "community",
+      source: "paid_to_app_plan",
+      subscriptionId: "sub_1",
+    });
+
+    await t.mutation(api.lib.compensateSubscriptionLifecycle, {
+      subscriptionId: "sub_1",
+      previousStatus: "active",
+      previousCancelAtPeriodEnd: false,
+      error: "Creem cancel failed",
+      rollback: {
+        abortAppPlanTransitions: [
+          {
+            planId: "community",
+            assignmentCreatedAt: assignment.createdAt,
+          },
+        ],
+      },
+    });
+
+    const subscription = await t.query(api.lib.getSubscription, {
+      id: "sub_1",
+    });
+    const assignments = await t.query(api.lib.listAppPlanAssignments, {
+      entityId: "user_456",
+    });
+    expect(subscription).toMatchObject({
+      status: "active",
+      cancelAtPeriodEnd: false,
+    });
+    expect(assignments[0]).toMatchObject({
+      planId: "community",
+      status: "ended",
+    });
+  });
+
+  it("fails a scheduled replacement and ends its app-plan assignment", async () => {
+    await t.mutation(api.lib.createSubscription, {
+      subscription: createTestSubscription({
+        id: "sub_1",
+        status: "scheduled_cancel",
+        cancelAtPeriodEnd: true,
+      }),
+    });
+    const scheduledUpdateId = await t.mutation(
+      api.lib.createScheduledSubscriptionUpdate,
+      {
+        entityId: "user_456",
+        subscriptionId: "sub_1",
+        targetPlanId: "community",
+        effectiveAt: "2026-08-30T12:00:00.000Z",
+      },
+    );
+    const assignment = await t.mutation(api.lib.assignAppPlan, {
+      entityId: "user_456",
+      planId: "community",
+      status: "scheduled",
+      startsAt: "2026-08-30T12:00:00.000Z",
+      source: "paid_to_app_plan",
+      subscriptionId: "sub_1",
+    });
+
+    await t.mutation(api.lib.compensateSubscriptionLifecycle, {
+      subscriptionId: "sub_1",
+      previousStatus: "active",
+      previousCancelAtPeriodEnd: false,
+      error: "Creem cancel failed",
+      rollback: {
+        abortAppPlanTransitions: [
+          {
+            planId: "community",
+            scheduledUpdateId,
+            assignmentCreatedAt: assignment.createdAt,
+          },
+        ],
+      },
+    });
+
+    const update = await t.query(api.lib.getScheduledSubscriptionUpdate, {
+      scheduledUpdateId,
+    });
+    const assignments = await t.query(api.lib.listAppPlanAssignments, {
+      entityId: "user_456",
+    });
+    expect(update).toMatchObject({
+      status: "failed",
+      error: "Creem cancel failed",
+    });
+    expect(assignments[0]?.status).toBe("ended");
+  });
+
+  it("restores a canceled scheduled transition when resume fails", async () => {
+    await t.mutation(api.lib.createSubscription, {
+      subscription: createTestSubscription({
+        id: "sub_1",
+        status: "active",
+        cancelAtPeriodEnd: false,
+      }),
+    });
+    const scheduledUpdateId = await t.mutation(
+      api.lib.createScheduledSubscriptionUpdate,
+      {
+        entityId: "user_456",
+        subscriptionId: "sub_1",
+        targetPlanId: "community",
+        effectiveAt: "2026-08-30T12:00:00.000Z",
+      },
+    );
+    const assignment = await t.mutation(api.lib.assignAppPlan, {
+      entityId: "user_456",
+      planId: "community",
+      status: "scheduled",
+      startsAt: "2026-08-30T12:00:00.000Z",
+      subscriptionId: "sub_1",
+    });
+    const canceledUpdate = await t.mutation(
+      api.lib.cancelScheduledSubscriptionUpdate,
+      {
+        entityId: "user_456",
+        subscriptionId: "sub_1",
+      },
+    );
+    await t.mutation(api.lib.cancelScheduledAppPlanAssignment, {
+      subscriptionId: "sub_1",
+      planId: "community",
+    });
+
+    await t.mutation(api.lib.compensateSubscriptionLifecycle, {
+      subscriptionId: "sub_1",
+      previousStatus: "scheduled_cancel",
+      previousCancelAtPeriodEnd: true,
+      error: "Creem resume failed",
+      rollback: {
+        restoreAppPlanTransitions: [
+          {
+            planId: "community",
+            scheduledUpdateCreatedAt: canceledUpdate?.createdAt,
+            assignmentCreatedAt: assignment.createdAt,
+          },
+        ],
+      },
+    });
+
+    const subscription = await t.query(api.lib.getSubscription, {
+      id: "sub_1",
+    });
+    const update = await t.query(api.lib.getScheduledSubscriptionUpdate, {
+      scheduledUpdateId,
+    });
+    const assignments = await t.query(api.lib.listAppPlanAssignments, {
+      entityId: "user_456",
+    });
+    expect(subscription).toMatchObject({
+      status: "scheduled_cancel",
+      cancelAtPeriodEnd: true,
+    });
+    expect(update?.status).toBe("pending");
+    expect(assignments[0]).toMatchObject({
+      status: "scheduled",
+      endsAt: null,
+    });
+  });
+});
+
 describe("updateSubscription optimistic guard", () => {
   let t: TestConvex<typeof schema>;
 

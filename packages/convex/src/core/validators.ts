@@ -262,8 +262,8 @@ export const paidSubscriptionUpdateBehaviorValidator = v.union(
   v.literal("period-end"),
 );
 
-/** Cancellation behaviors for paid-to-free / paid-to-app-owned switches. */
-export const freePlanUpdateBehaviorValidator = v.union(
+/** Cancellation behaviors for paid-to-app-owned switches. */
+export const appPlanUpdateBehaviorValidator = v.union(
   v.literal("period-end"),
   v.literal("immediate"),
 );
@@ -289,17 +289,17 @@ export const subscriptionUpdateArgs = {
   /**
    * - `"plan"` — switch to another paid Creem product (`productId` required)
    * - `"units"` — change the quantity on the current paid subscription (`units` required)
-   * - `"app-plan"` — move to an app-owned plan (`freePlanId` required)
+   * - `"app-plan"` — move to an app-owned plan (`appPlanId` required)
    */
   kind: subscriptionUpdateKindValidator,
   subscriptionId: v.optional(v.string()),
   productId: v.optional(v.string()),
-  freePlanId: v.optional(v.string()),
+  appPlanId: v.optional(v.string()),
   units: v.optional(v.number()),
   updateBehavior: v.optional(
     v.union(
       paidSubscriptionUpdateBehaviorValidator,
-      freePlanUpdateBehaviorValidator,
+      appPlanUpdateBehaviorValidator,
     ),
   ),
 };
@@ -334,8 +334,8 @@ export type SubscriptionUpdateArgs =
       kind: "app-plan";
       subscriptionId?: string;
       /** Target app-owned catalog plan (free, trial, or custom). */
-      freePlanId: string;
-      updateBehavior?: Infer<typeof freePlanUpdateBehaviorValidator>;
+      appPlanId: string;
+      updateBehavior?: Infer<typeof appPlanUpdateBehaviorValidator>;
     };
 
 /** Permissive wire shape accepted by the generated `subscriptions.update` mutation. */
@@ -365,8 +365,8 @@ export const parseSubscriptionUpdateArgs = (
       if (!args.productId) {
         throw new Error('kind: "plan" requires productId');
       }
-      if (args.freePlanId) {
-        throw new Error('kind: "plan" cannot also set freePlanId');
+      if (args.appPlanId) {
+        throw new Error('kind: "plan" cannot also set appPlanId');
       }
       if (args.units !== undefined) {
         throw new Error(
@@ -395,10 +395,8 @@ export const parseSubscriptionUpdateArgs = (
       if (args.units === undefined) {
         throw new Error('kind: "units" requires units');
       }
-      if (args.productId || args.freePlanId) {
-        throw new Error(
-          'kind: "units" cannot also set productId or freePlanId',
-        );
+      if (args.productId || args.appPlanId) {
+        throw new Error('kind: "units" cannot also set productId or appPlanId');
       }
       if (args.updateBehavior && !paidBehaviors.has(args.updateBehavior)) {
         throw new Error(
@@ -419,8 +417,8 @@ export const parseSubscriptionUpdateArgs = (
       };
     }
     case "app-plan": {
-      if (!args.freePlanId) {
-        throw new Error('kind: "app-plan" requires freePlanId');
+      if (!args.appPlanId) {
+        throw new Error('kind: "app-plan" requires appPlanId');
       }
       if (args.productId || args.units !== undefined) {
         throw new Error('kind: "app-plan" cannot also set productId or units');
@@ -436,12 +434,12 @@ export const parseSubscriptionUpdateArgs = (
       }
       return {
         kind: "app-plan",
-        freePlanId: args.freePlanId,
+        appPlanId: args.appPlanId,
         ...(args.subscriptionId ? { subscriptionId: args.subscriptionId } : {}),
         ...(args.updateBehavior
           ? {
               updateBehavior: args.updateBehavior as Infer<
-                typeof freePlanUpdateBehaviorValidator
+                typeof appPlanUpdateBehaviorValidator
               >,
             }
           : {}),

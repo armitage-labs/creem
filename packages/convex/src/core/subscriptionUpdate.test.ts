@@ -205,7 +205,7 @@ describe("resolveTargetUpdateBehavior", () => {
   it("defaults paid-to-free switches to period-end", () => {
     expect(
       resolveTargetUpdateBehavior(undefined, {
-        freePlanId: "free",
+        appPlanId: "free",
       }),
     ).toBe("period-end");
   });
@@ -213,7 +213,7 @@ describe("resolveTargetUpdateBehavior", () => {
   it("keeps explicit immediate behavior for paid-to-free switches", () => {
     expect(
       resolveTargetUpdateBehavior("immediate", {
-        freePlanId: "free",
+        appPlanId: "free",
       }),
     ).toBe("immediate");
   });

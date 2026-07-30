@@ -186,10 +186,11 @@ export const findCreditGrantByProductId = (
 
 /** Whether a catalog plan is owned by the host app rather than a Creem checkout. */
 export const isAppOwnedPlan = (plan: PlanCatalogEntry): boolean =>
-  plan.billingType === "custom" ||
-  plan.category === "free" ||
-  plan.category === "trial" ||
-  plan.category === "custom";
+  plan.category !== "enterprise" &&
+  (plan.billingType === "custom" ||
+    plan.category === "free" ||
+    plan.category === "trial" ||
+    plan.category === "custom");
 
 /** Whether an app-owned plan has already been activated for this billing entity. */
 export const hasAppPlanActivation = (

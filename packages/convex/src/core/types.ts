@@ -314,11 +314,11 @@ export type ProrationChargeBehavior = "proration-charge";
 /** Apply the paid subscription update without proration. Creem paid subscription updates only. */
 export type ProrationNoneBehavior = "proration-none";
 
-/** Keep current paid access until the period boundary, then apply the update or free-plan assignment. */
+/** Keep current paid access until the period boundary, then apply the update or app-plan assignment. */
 export type PeriodEndUpdateBehavior = "period-end";
 
-/** Cancel the paid subscription immediately and activate the app-owned target plan now. Paid-to-free/app-plan switches only. */
-export type ImmediateFreePlanUpdateBehavior = "immediate";
+/** Cancel the paid subscription immediately and activate the app-owned target plan now. Paid-to-app-owned switches only. */
+export type ImmediateAppPlanUpdateBehavior = "immediate";
 
 /** Creem paid subscription update behavior for paid-to-paid plan switches and unit changes. */
 export type PaidSubscriptionUpdateBehavior =
@@ -327,10 +327,10 @@ export type PaidSubscriptionUpdateBehavior =
   | ProrationNoneBehavior
   | PeriodEndUpdateBehavior;
 
-/** Cancellation behavior for paid-to-free or paid-to-app-owned plan switches. */
-export type FreePlanUpdateBehavior =
+/** Cancellation behavior for paid-to-app-owned plan switches. */
+export type AppPlanUpdateBehavior =
   | PeriodEndUpdateBehavior
-  | ImmediateFreePlanUpdateBehavior;
+  | ImmediateAppPlanUpdateBehavior;
 
 /** Backwards-compatible name for paid subscription update behavior. */
 export type UpdateBehavior = PaidSubscriptionUpdateBehavior;
@@ -338,7 +338,7 @@ export type UpdateBehavior = PaidSubscriptionUpdateBehavior;
 /** Internal resolved behavior sent to the update mutation. */
 export type ResolvedUpdateBehavior =
   | PaidSubscriptionUpdateBehavior
-  | FreePlanUpdateBehavior;
+  | AppPlanUpdateBehavior;
 
 type BaseUpdateBehaviorIntent = {
   fromPlanId?: string | null;
@@ -366,15 +366,15 @@ export type UnitUpdateBehaviorIntent = BaseUpdateBehaviorIntent & {
 };
 
 /**
- * Details of a pending paid-to-free switch, passed to a `freePlanUpdateBehavior`
+ * Details of a pending paid-to-app-owned switch, passed to an
+ * `appPlanUpdateBehavior`
  * resolver so it can choose per transition.
  */
-export type FreePlanUpdateBehaviorIntent = BaseUpdateBehaviorIntent & {
-  /** Paid subscription to app-owned target plan. `freePlanUpdateBehavior` may return only `"period-end"` or `"immediate"`. */
+export type AppPlanUpdateBehaviorIntent = BaseUpdateBehaviorIntent & {
+  /** Paid subscription to app-owned target plan. `appPlanUpdateBehavior` may return only `"period-end"` or `"immediate"`. */
   kind: "plan-switch";
-  target: "free-plan";
-  freePlanId: string;
-  appPlanId?: string;
+  target: "app-plan";
+  appPlanId: string;
 };
 
 /** Intent passed to `updateBehavior` for paid subscription updates. */
@@ -392,16 +392,16 @@ export type UpdateBehaviorResolver = (
  */
 export type UpdateBehaviorSetting = UpdateBehavior | UpdateBehaviorResolver;
 
-export type FreePlanUpdateBehaviorResolver = (
-  intent: FreePlanUpdateBehaviorIntent,
-) => FreePlanUpdateBehavior;
+export type AppPlanUpdateBehaviorResolver = (
+  intent: AppPlanUpdateBehaviorIntent,
+) => AppPlanUpdateBehavior;
 
 /**
- * A `FreePlanUpdateBehavior` value, or a resolver that returns one per intent.
+ * An `AppPlanUpdateBehavior` value, or a resolver that returns one per intent.
  */
-export type FreePlanUpdateBehaviorSetting =
-  | FreePlanUpdateBehavior
-  | FreePlanUpdateBehaviorResolver;
+export type AppPlanUpdateBehaviorSetting =
+  | AppPlanUpdateBehavior
+  | AppPlanUpdateBehaviorResolver;
 
 /** Get a human-readable description for a plan switch based on the proration behavior. */
 export const getSwitchPlanDescription = (
@@ -449,12 +449,10 @@ export type PlanChangeIntent = {
   fromPlanId: string | null;
   /** Plan ID the user is switching to. */
   toPlanId: string;
-  /** Creem product ID of the target paid plan. Undefined for app-owned free plans. */
+  /** Creem product ID of the target paid plan. Undefined for app-owned plans. */
   productId?: string;
   /** Stable app plan ID of the target app-owned plan. */
   appPlanId?: string;
-  /** Stable app plan ID of the target free plan. */
-  freePlanId?: string;
   /** Number of units (for unit-based plans). */
   units?: number;
 };

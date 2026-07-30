@@ -33,11 +33,11 @@ rethrown instead of silently degrading a signed-in user to the logged-out view.
 
 #### `subscriptions.update` is a discriminated union
 
-| Previous API                      | New API                                             |
-| --------------------------------- | --------------------------------------------------- |
-| `{ productId, updateBehavior? }`  | `{ kind: "plan", productId, updateBehavior? }`      |
-| `{ units, updateBehavior? }`      | `{ kind: "units", units, updateBehavior? }`         |
-| `{ freePlanId, updateBehavior? }` | `{ kind: "app-plan", freePlanId, updateBehavior? }` |
+| Previous API                      | New API                                            |
+| --------------------------------- | -------------------------------------------------- |
+| `{ productId, updateBehavior? }`  | `{ kind: "plan", productId, updateBehavior? }`     |
+| `{ units, updateBehavior? }`      | `{ kind: "units", units, updateBehavior? }`        |
+| `{ freePlanId, updateBehavior? }` | `{ kind: "app-plan", appPlanId, updateBehavior? }` |
 
 Those combinations no longer typecheck, and `parseSubscriptionUpdateArgs`
 re-checks them for calls arriving over the wire. A plan switch no longer accepts

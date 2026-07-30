@@ -59,7 +59,7 @@ so your custom functions stay drop-in compatible:
 ```ts
 { kind: "plan",     productId,          updateBehavior?: "proration-…" | "period-end" }
 { kind: "units",    units,              updateBehavior?: "proration-…" | "period-end" }
-{ kind: "app-plan", freePlanId,         updateBehavior?: "period-end" | "immediate"   }
+{ kind: "app-plan", appPlanId,         updateBehavior?: "period-end" | "immediate"   }
 ```
 
 So `"immediate"` on a paid switch, or two targets at once, does not compile.

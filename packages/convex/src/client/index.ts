@@ -90,6 +90,18 @@ type GeneratedSubscriptionWebhookEvent = Extract<
   { eventType: `subscription.${string}` }
 >;
 
+type AppPlanTransitionRollback = {
+  planId: string;
+  scheduledUpdateId?: string;
+  scheduledUpdateCreatedAt?: string;
+  assignmentCreatedAt?: string;
+};
+
+type CanceledScheduledUpdateSideEffects = {
+  resumeScheduledCancellation: boolean;
+  restoreAppPlanTransitions: AppPlanTransitionRollback[];
+};
+
 const isGeneratedSubscriptionWebhookEvent = (
   event: WebhookEventEntity | null,
 ): event is GeneratedSubscriptionWebhookEvent =>
@@ -1070,7 +1082,7 @@ export class Creem {
       };
       keepScheduledCancellation: boolean;
     },
-  ): Promise<boolean> {
+  ): Promise<CanceledScheduledUpdateSideEffects> {
     const pendingUpdates = (await ctx.runMutation(
       this.component.lib.cancelPendingScheduledSubscriptionUpdates,
       {
@@ -1078,31 +1090,37 @@ export class Creem {
         subscriptionId: args.subscription.id,
       },
     )) as ScheduledSubscriptionUpdate[];
-    const targetPlanIds = Array.from(
-      new Set(
-        pendingUpdates
-          .map((update) => update.targetPlanId)
-          .filter((planId): planId is string => Boolean(planId)),
-      ),
-    );
-
-    for (const planId of targetPlanIds) {
-      await ctx.runMutation(
+    const restoreAppPlanTransitions: AppPlanTransitionRollback[] = [];
+    for (const update of pendingUpdates) {
+      if (!update.targetPlanId) continue;
+      const canceledAssignment = await ctx.runMutation(
         this.component.lib.cancelScheduledAppPlanAssignment,
         {
           subscriptionId: args.subscription.id,
-          planId,
+          planId: update.targetPlanId,
         },
       );
+      restoreAppPlanTransitions.push({
+        planId: update.targetPlanId,
+        scheduledUpdateCreatedAt: update.createdAt,
+        ...(canceledAssignment?.createdAt
+          ? { assignmentCreatedAt: canceledAssignment.createdAt }
+          : {}),
+      });
     }
 
     const shouldClearScheduledCancellation =
       !args.keepScheduledCancellation &&
-      (targetPlanIds.length > 0 ||
+      (restoreAppPlanTransitions.length > 0 ||
         args.subscription.cancelAtPeriodEnd === true ||
         args.subscription.status === "scheduled_cancel");
 
-    if (!shouldClearScheduledCancellation) return false;
+    if (!shouldClearScheduledCancellation) {
+      return {
+        resumeScheduledCancellation: false,
+        restoreAppPlanTransitions,
+      };
+    }
 
     await ctx.runMutation(this.component.lib.patchSubscription, {
       subscriptionId: args.subscription.id,
@@ -1116,24 +1134,10 @@ export class Creem {
         : {}),
       cancelAtPeriodEnd: false,
     });
-    await ctx.scheduler.runAfter(
-      0,
-      this.component.lib.executeSubscriptionLifecycle,
-      {
-        apiKey: this.apiKey,
-        server: this.server,
-        serverURL: this.serverURL,
-        subscriptionId: args.subscription.id,
-        operation: "resume",
-        ...(args.subscription.status
-          ? { previousStatus: args.subscription.status }
-          : {}),
-        ...(args.subscription.cancelAtPeriodEnd !== undefined
-          ? { previousCancelAtPeriodEnd: args.subscription.cancelAtPeriodEnd }
-          : {}),
-      },
-    );
-    return true;
+    return {
+      resumeScheduledCancellation: true,
+      restoreAppPlanTransitions,
+    };
   }
 
   private async schedulePeriodEndSubscriptionUpdate(
@@ -1147,10 +1151,11 @@ export class Creem {
         cancelAtPeriodEnd?: boolean;
       };
       productId?: string;
-      freePlanId?: string;
+      appPlanId?: string;
       units?: number;
+      restoreAppPlanTransitions?: AppPlanTransitionRollback[];
     },
-  ) {
+  ): Promise<string> {
     if (!args.subscription.currentPeriodEnd) {
       throw new ConvexError(
         "Cannot schedule period-end update without currentPeriodEnd",
@@ -1167,22 +1172,22 @@ export class Creem {
         entityId: args.entityId,
         subscriptionId: args.subscription.id,
         ...(args.productId ? { targetProductId: args.productId } : {}),
-        ...(args.freePlanId ? { targetPlanId: args.freePlanId } : {}),
+        ...(args.appPlanId ? { targetPlanId: args.appPlanId } : {}),
         ...(args.units !== undefined ? { targetUnits: args.units } : {}),
         effectiveAt: args.subscription.currentPeriodEnd,
       },
     );
 
-    if (args.freePlanId) {
-      await ctx.runMutation(this.component.lib.assignAppPlan, {
-        entityId: args.entityId,
-        planId: args.freePlanId,
-        status: "scheduled",
-        startsAt: args.subscription.currentPeriodEnd,
-        source: "paid_to_free",
-        subscriptionId: args.subscription.id,
-      });
-    }
+    const appPlanAssignment = args.appPlanId
+      ? await ctx.runMutation(this.component.lib.assignAppPlan, {
+          entityId: args.entityId,
+          planId: args.appPlanId,
+          status: "scheduled",
+          startsAt: args.subscription.currentPeriodEnd,
+          source: "paid_to_app_plan",
+          subscriptionId: args.subscription.id,
+        })
+      : null;
 
     const scheduledFunctionId = await ctx.scheduler.runAt(
       effectiveAt,
@@ -1203,7 +1208,7 @@ export class Creem {
       },
     );
 
-    if (args.freePlanId) {
+    if (args.appPlanId) {
       await ctx.runMutation(this.component.lib.patchSubscription, {
         subscriptionId: args.subscription.id,
         cancelAtPeriodEnd: true,
@@ -1221,9 +1226,28 @@ export class Creem {
           scheduledUpdateId,
           previousStatus: args.subscription.status,
           previousCancelAtPeriodEnd: args.subscription.cancelAtPeriodEnd,
+          rollback: {
+            abortAppPlanTransitions: [
+              {
+                planId: args.appPlanId,
+                scheduledUpdateId,
+                ...(appPlanAssignment?.createdAt
+                  ? {
+                      assignmentCreatedAt: appPlanAssignment.createdAt,
+                    }
+                  : {}),
+              },
+            ],
+            ...(args.restoreAppPlanTransitions?.length
+              ? {
+                  restoreAppPlanTransitions: args.restoreAppPlanTransitions,
+                }
+              : {}),
+          },
         },
       );
     }
+    return scheduledUpdateId;
   }
 
   // ── Namespace getters (public API) ─────────────────────────
@@ -1255,8 +1279,7 @@ export class Creem {
         args: { entityId: string } & SubscriptionUpdateArgs,
       ) => {
         const productId = args.kind === "plan" ? args.productId : undefined;
-        const freePlanId =
-          args.kind === "app-plan" ? args.freePlanId : undefined;
+        const appPlanId = args.kind === "app-plan" ? args.appPlanId : undefined;
         // Only a `"units"` update changes the quantity: the Creem executors
         // branch on `productId` first, so a quantity sent alongside a plan
         // switch would never reach Creem while still being patched locally.
@@ -1267,43 +1290,72 @@ export class Creem {
         }
 
         const updateBehavior: ResolvedUpdateBehavior | undefined =
-          args.updateBehavior ?? (freePlanId ? "period-end" : undefined);
+          args.updateBehavior ?? (appPlanId ? "period-end" : undefined);
 
         const subscription = await this.getOwnedSubscription(ctx, args);
 
-        const resumeScheduledCancellation =
-          updateBehavior !== "period-end" || !freePlanId
+        const canceledSideEffects =
+          updateBehavior !== "period-end" || !appPlanId
             ? await this.cancelPendingScheduledUpdateSideEffects(ctx, {
                 entityId: args.entityId,
                 subscription,
-                keepScheduledCancellation: Boolean(freePlanId),
+                keepScheduledCancellation: Boolean(appPlanId),
               })
-            : false;
+            : {
+                resumeScheduledCancellation: false,
+                restoreAppPlanTransitions: [],
+              };
 
         if (updateBehavior === "period-end") {
-          await this.schedulePeriodEndSubscriptionUpdate(ctx, {
-            entityId: args.entityId,
-            subscription,
-            productId,
-            freePlanId,
-            units,
-          });
+          const replacementScheduledUpdateId =
+            await this.schedulePeriodEndSubscriptionUpdate(ctx, {
+              entityId: args.entityId,
+              subscription,
+              productId,
+              appPlanId,
+              units,
+              restoreAppPlanTransitions:
+                canceledSideEffects.restoreAppPlanTransitions,
+            });
+          if (canceledSideEffects.resumeScheduledCancellation) {
+            await ctx.scheduler.runAfter(
+              0,
+              this.component.lib.executeSubscriptionLifecycle,
+              {
+                apiKey: this.apiKey,
+                server: this.server,
+                serverURL: this.serverURL,
+                subscriptionId: subscription.id,
+                operation: "resume",
+                previousStatus: subscription.status,
+                previousCancelAtPeriodEnd: subscription.cancelAtPeriodEnd,
+                rollback: {
+                  restoreAppPlanTransitions:
+                    canceledSideEffects.restoreAppPlanTransitions,
+                  replacementScheduledUpdateIds: [replacementScheduledUpdateId],
+                },
+              },
+            );
+          }
           return;
         }
 
-        if (freePlanId && updateBehavior === "immediate") {
+        if (appPlanId && updateBehavior === "immediate") {
           await ctx.runMutation(this.component.lib.patchSubscription, {
             subscriptionId: subscription.id,
             status: "canceled",
             cancelAtPeriodEnd: false,
           });
-          await ctx.runMutation(this.component.lib.assignAppPlan, {
-            entityId: args.entityId,
-            planId: freePlanId,
-            status: "active",
-            source: "paid_to_free",
-            subscriptionId: subscription.id,
-          });
+          const assignment = await ctx.runMutation(
+            this.component.lib.assignAppPlan,
+            {
+              entityId: args.entityId,
+              planId: appPlanId,
+              status: "active",
+              source: "paid_to_app_plan",
+              subscriptionId: subscription.id,
+            },
+          );
           await ctx.scheduler.runAfter(
             0,
             this.component.lib.executeSubscriptionLifecycle,
@@ -1316,6 +1368,20 @@ export class Creem {
               cancelMode: "immediate",
               previousStatus: subscription.status,
               previousCancelAtPeriodEnd: subscription.cancelAtPeriodEnd,
+              rollback: {
+                abortAppPlanTransitions: [
+                  {
+                    planId: appPlanId,
+                    assignmentCreatedAt: assignment.createdAt,
+                  },
+                ],
+                ...(canceledSideEffects.restoreAppPlanTransitions.length
+                  ? {
+                      restoreAppPlanTransitions:
+                        canceledSideEffects.restoreAppPlanTransitions,
+                    }
+                  : {}),
+              },
             },
           );
           return;
@@ -1343,9 +1409,24 @@ export class Creem {
             productId,
             units,
             updateBehavior,
-            resumeScheduledCancellation,
-            previousSeats: subscription.seats ?? undefined,
+            resumeScheduledCancellation:
+              canceledSideEffects.resumeScheduledCancellation,
+            previousSeats: subscription.seats ?? null,
             previousProductId: subscription.productId,
+            ...(canceledSideEffects.resumeScheduledCancellation
+              ? {
+                  previousStatus: subscription.status,
+                  previousCancelAtPeriodEnd: subscription.cancelAtPeriodEnd,
+                }
+              : {}),
+            ...(canceledSideEffects.restoreAppPlanTransitions.length
+              ? {
+                  rollback: {
+                    restoreAppPlanTransitions:
+                      canceledSideEffects.restoreAppPlanTransitions,
+                  },
+                }
+              : {}),
           },
         );
       },
@@ -1484,7 +1565,7 @@ export class Creem {
         if (!canceledUpdate) return { canceled: false };
 
         if (canceledUpdate.targetPlanId) {
-          await ctx.runMutation(
+          const canceledAssignment = await ctx.runMutation(
             this.component.lib.cancelScheduledAppPlanAssignment,
             {
               subscriptionId: subscription.id,
@@ -1510,6 +1591,19 @@ export class Creem {
               operation: "resume",
               previousStatus: subscription.status,
               previousCancelAtPeriodEnd: subscription.cancelAtPeriodEnd,
+              rollback: {
+                restoreAppPlanTransitions: [
+                  {
+                    planId: canceledUpdate.targetPlanId,
+                    scheduledUpdateCreatedAt: canceledUpdate.createdAt,
+                    ...(canceledAssignment?.createdAt
+                      ? {
+                          assignmentCreatedAt: canceledAssignment.createdAt,
+                        }
+                      : {}),
+                  },
+                ],
+              },
             },
           );
         }
@@ -1552,7 +1646,7 @@ export class Creem {
         await this.schedulePeriodEndSubscriptionUpdate(ctx, {
           entityId: args.entityId,
           subscription,
-          freePlanId: args.freePlanId,
+          appPlanId: args.freePlanId,
         });
 
         return { freePlanId: args.freePlanId };

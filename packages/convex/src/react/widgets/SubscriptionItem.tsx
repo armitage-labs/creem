@@ -16,6 +16,7 @@ import {
   formatUnitPriceBreakdown,
   resolveProductIdForPlan,
 } from "../../core/display.js";
+import { resolvePlanTarget } from "../../core/planTarget.js";
 
 type BaseProps = {
   planId?: string;
@@ -112,6 +113,7 @@ export const SubscriptionItem = ({
   const productId = plan
     ? resolveProductIdForPlan(plan, rootContext?.selectedCycle)
     : undefined;
+  const planTarget = plan ? resolvePlanTarget(plan, productId) : null;
   const isActiveProduct =
     rootContext?.subscriptionProductId != null &&
     productId != null &&
@@ -120,19 +122,16 @@ export const SubscriptionItem = ({
     !isActiveProduct &&
     rootContext?.activePlanId === plan?.planId &&
     productId != null;
-  const isActiveFreePlan =
+  const isActiveAppPlan =
     !isActiveProduct &&
-    (plan?.category === "free" || plan?.category === "trial") &&
-    rootContext?.activePlanId === plan.planId;
-  const isAppPlan = plan?.category === "free" || plan?.category === "trial";
+    planTarget?.kind === "app-plan" &&
+    rootContext?.activePlanId === plan?.planId;
+  const isAppPlan = planTarget?.kind === "app-plan";
   const isSiblingPlan =
     !isActiveProduct &&
     !isActivePlanOtherCycle &&
     rootContext?.isGroupSubscribed === true &&
-    productId != null &&
-    plan?.category !== "free" &&
-    plan?.category !== "trial" &&
-    plan?.category !== "enterprise";
+    planTarget?.kind === "creem-product";
   const isScheduledTarget =
     rootContext?.scheduledUpdate?.status === "pending" &&
     ((rootContext.scheduledUpdate.targetProductId != null &&
@@ -192,7 +191,7 @@ export const SubscriptionItem = ({
         : plan.category === "trial"
           ? (rootContext?.labels.subscription.freeTrial ??
             defaultBillingLabels.subscription.freeTrial)
-          : plan.category === "enterprise"
+          : planTarget?.kind === "app-plan" || plan.category === "enterprise"
             ? (rootContext?.labels.subscription.custom ??
               defaultBillingLabels.subscription.custom)
             : (unitPriceBreakdown?.total ??
@@ -205,7 +204,7 @@ export const SubscriptionItem = ({
 
     return {
       plan,
-      isActive: isActiveProduct || isActiveFreePlan,
+      isActive: isActiveProduct || isActiveAppPlan,
       isSwitchPlan: isSiblingPlan || isActivePlanOtherCycle,
       isScheduledTarget,
       scheduledEffectiveDate: rootContext?.scheduledEffectiveDate ?? null,
@@ -224,7 +223,7 @@ export const SubscriptionItem = ({
         rootContext &&
         productId &&
         !isActiveProduct &&
-        !isActiveFreePlan &&
+        !isActiveAppPlan &&
         !isSiblingPlan &&
         !isActivePlanOtherCycle &&
         !isScheduledTarget
@@ -235,15 +234,12 @@ export const SubscriptionItem = ({
         rootContext &&
         !isScheduledTarget &&
         isAppPlan &&
-        !isActiveFreePlan &&
+        !isActiveAppPlan &&
         !rootContext.isGroupSubscribed
           ? () =>
               rootContext.switchPlan?.({
                 plan,
-                appPlanId: plan.planId,
-                ...(plan.category === "free"
-                  ? { freePlanId: plan.planId }
-                  : {}),
+                appPlanId: planTarget.appPlanId,
               })
           : rootContext &&
               !isScheduledTarget &&
@@ -263,7 +259,7 @@ export const SubscriptionItem = ({
         ? (units: number) => rootContext.updateUnits?.({ units })
         : undefined,
       onCancelSubscription:
-        isActiveProduct || isActiveFreePlan
+        isActiveProduct || isActiveAppPlan
           ? rootContext?.cancelSubscription
           : undefined,
     };
@@ -272,11 +268,12 @@ export const SubscriptionItem = ({
     productId,
     rootContext,
     isActiveProduct,
-    isActiveFreePlan,
+    isActiveAppPlan,
     isAppPlan,
     isSiblingPlan,
     isActivePlanOtherCycle,
     isScheduledTarget,
+    planTarget,
     checkoutUnits,
     effectiveUnits,
     setItemCheckoutUnits,

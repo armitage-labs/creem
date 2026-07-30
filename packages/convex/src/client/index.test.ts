@@ -80,6 +80,9 @@ function createMockCtx(queryMap: Record<symbol, unknown> = {}) {
       if (ref === REFS.cancelPendingScheduledSubscriptionUpdates) {
         return [];
       }
+      if (ref === REFS.assignAppPlan) {
+        return { createdAt: "2026-02-01T00:00:00.000Z" };
+      }
     }),
     runAction: vi.fn(async () => {}),
     scheduler: {
@@ -411,8 +414,8 @@ describe("subscriptions namespace", () => {
       const bothTargets: SubscriptionUpdateArgs = {
         kind: "plan",
         productId: "prod_2",
-        // @ts-expect-error - a plan switch cannot also carry freePlanId
-        freePlanId: "free",
+        // @ts-expect-error - a plan switch cannot also carry appPlanId
+        appPlanId: "free",
       };
       const planWithUnits: SubscriptionUpdateArgs = {
         kind: "plan",
@@ -431,7 +434,7 @@ describe("subscriptions namespace", () => {
       // @ts-expect-error - proration behaviors are not valid for app-plan switches
       const proratedAppPlan: SubscriptionUpdateArgs = {
         kind: "app-plan",
-        freePlanId: "free",
+        appPlanId: "free",
         updateBehavior: "proration-charge",
       };
       expect([
@@ -446,8 +449,8 @@ describe("subscriptions namespace", () => {
     it.each([
       [{ kind: "plan" as const }, 'kind: "plan" requires productId'],
       [
-        { kind: "plan" as const, productId: "p", freePlanId: "free" },
-        'kind: "plan" cannot also set freePlanId',
+        { kind: "plan" as const, productId: "p", appPlanId: "free" },
+        'kind: "plan" cannot also set appPlanId',
       ],
       [
         { kind: "plan" as const, productId: "p", units: 5 },
@@ -466,19 +469,19 @@ describe("subscriptions namespace", () => {
         { kind: "units" as const, units: 3, productId: "p" },
         'kind: "units" cannot also set productId',
       ],
-      [{ kind: "app-plan" as const }, 'kind: "app-plan" requires freePlanId'],
+      [{ kind: "app-plan" as const }, 'kind: "app-plan" requires appPlanId'],
       [
-        { kind: "app-plan" as const, freePlanId: "free", productId: "p" },
+        { kind: "app-plan" as const, appPlanId: "free", productId: "p" },
         'kind: "app-plan" cannot also set productId or units',
       ],
       [
-        { kind: "app-plan" as const, freePlanId: "free", units: 5 },
+        { kind: "app-plan" as const, appPlanId: "free", units: 5 },
         'kind: "app-plan" cannot also set productId or units',
       ],
       [
         {
           kind: "app-plan" as const,
-          freePlanId: "free",
+          appPlanId: "free",
           updateBehavior: "proration-charge" as const,
         },
         'updateBehavior: "proration-charge" is not valid for an app-plan switch',
@@ -623,7 +626,7 @@ describe("subscriptions namespace", () => {
       await creem.subscriptions.update(ctx as never, {
         kind: "app-plan" as const,
         entityId: "user_1",
-        freePlanId: "free",
+        appPlanId: "free",
         updateBehavior: "period-end",
       });
 
@@ -641,7 +644,7 @@ describe("subscriptions namespace", () => {
         planId: "free",
         status: "scheduled",
         startsAt: "2026-03-01T00:00:00Z",
-        source: "paid_to_free",
+        source: "paid_to_app_plan",
         subscriptionId: "sub_1",
       });
       expect(ctx.runMutation).toHaveBeenCalledWith(REFS.patchSubscription, {
@@ -770,8 +773,22 @@ describe("subscriptions namespace", () => {
           subscriptionId: "sub_1",
           productId: "prod_new",
           resumeScheduledCancellation: true,
+          rollback: {
+            restoreAppPlanTransitions: [
+              expect.objectContaining({
+                planId: "free",
+                scheduledUpdateCreatedAt: "2026-02-01T00:00:00Z",
+              }),
+            ],
+          },
         }),
       );
+      expect(ctx.scheduler.runAfter).not.toHaveBeenCalledWith(
+        0,
+        REFS.executeSubscriptionLifecycle,
+        expect.objectContaining({ operation: "resume" }),
+      );
+      expect(ctx.scheduler.runAfter).toHaveBeenCalledTimes(1);
     });
 
     it("cancels paid subscription immediately when paid-to-free uses immediate", async () => {
@@ -781,7 +798,7 @@ describe("subscriptions namespace", () => {
       await creem.subscriptions.update(ctx as never, {
         kind: "app-plan" as const,
         entityId: "user_1",
-        freePlanId: "free",
+        appPlanId: "free",
         updateBehavior: "immediate",
       });
 
@@ -794,7 +811,7 @@ describe("subscriptions namespace", () => {
         entityId: "user_1",
         planId: "free",
         status: "active",
-        source: "paid_to_free",
+        source: "paid_to_app_plan",
         subscriptionId: "sub_1",
       });
       expect(ctx.scheduler.runAfter).toHaveBeenCalledWith(
@@ -2328,7 +2345,7 @@ describe("api() convenience exports", () => {
       const handler = extractHandler(apiExports.subscriptions.update as never);
       await handler(ctx, {
         kind: "app-plan",
-        freePlanId: "free",
+        appPlanId: "free",
         updateBehavior: "period-end",
       });
 
@@ -2345,7 +2362,7 @@ describe("api() convenience exports", () => {
         planId: "free",
         status: "scheduled",
         startsAt: "2026-03-01T00:00:00Z",
-        source: "paid_to_free",
+        source: "paid_to_app_plan",
         subscriptionId: "sub_1",
       });
       expect(ctx.runMutation).toHaveBeenCalledWith(REFS.patchSubscription, {
@@ -2371,7 +2388,7 @@ describe("api() convenience exports", () => {
       const handler = extractHandler(apiExports.subscriptions.update as never);
       await handler(ctx, {
         kind: "app-plan",
-        freePlanId: "free",
+        appPlanId: "free",
         updateBehavior: "immediate",
       });
 
@@ -2384,7 +2401,7 @@ describe("api() convenience exports", () => {
         entityId: "user_1",
         planId: "free",
         status: "active",
-        source: "paid_to_free",
+        source: "paid_to_app_plan",
         subscriptionId: "sub_1",
       });
       expect(ctx.scheduler.runAfter).toHaveBeenCalledWith(

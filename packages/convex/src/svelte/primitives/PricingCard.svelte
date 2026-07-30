@@ -27,6 +27,7 @@
     splitPriceLabel,
   } from "../../core/display.js";
   import { renderMarkdown } from "../../core/markdown.js";
+  import { resolvePlanTarget } from "../../core/planTarget.js";
 
   interface Props {
     plan: UIPlanEntry;
@@ -61,7 +62,6 @@
       plan: UIPlanEntry;
       productId?: string;
       appPlanId?: string;
-      freePlanId?: string;
       units?: number;
     }) => Promise<void> | void;
     onUpdateUnits?: (payload: { units: number }) => Promise<void> | void;
@@ -112,6 +112,7 @@
   );
 
   const productId = $derived(resolveProductIdForPlan(plan, selectedCycle));
+  const planTarget = $derived(resolvePlanTarget(plan, productId));
   const priceLabel = $derived(
     formatPriceWithInterval(productId, products, labels, formatCurrency),
   );
@@ -132,22 +133,27 @@
   const isActivePlanOtherCycle = $derived(
     !isActiveProduct && activePlanId === plan.planId && productId != null,
   );
-  // Free plan is active when activePlanId matches and the plan has no product (no subscription)
-  const isActiveFreePlan = $derived(
+  // App-owned plans are active through the app-plan assignment contract.
+  const isActiveAppPlan = $derived(
     !isActiveProduct &&
-      (plan.category === "free" || plan.category === "trial") &&
+      planTarget.kind === "app-plan" &&
       activePlanId === plan.planId,
   );
   // Sibling plan in the same <Subscription> group that already has a subscription
   const isSiblingPlan = $derived(
-    !isActiveProduct && !isActivePlanOtherCycle && isGroupSubscribed && productId != null && plan.category !== "free" && plan.category !== "trial" && plan.category !== "enterprise",
+    !isActiveProduct &&
+      !isActivePlanOtherCycle &&
+      isGroupSubscribed &&
+      planTarget.kind === "creem-product",
   );
-  const isFreeDowngrade = $derived(
-    !isActiveFreePlan && plan.category === "free" && isGroupSubscribed,
+  const isAppPlanSwitch = $derived(
+    !isActiveAppPlan &&
+      planTarget.kind === "app-plan" &&
+      isGroupSubscribed,
   );
   const isAppPlanActivation = $derived(
-    !isActiveFreePlan &&
-      (plan.category === "free" || plan.category === "trial") &&
+    !isActiveAppPlan &&
+      planTarget.kind === "app-plan" &&
       !isGroupSubscribed,
   );
   const isScheduledTarget = $derived(
@@ -203,7 +209,7 @@
   const checkoutLabel = $derived(
     isActivePlanOtherCycle
       ? labels.subscription.switchInterval
-      : isSiblingPlan || isFreeDowngrade
+      : isSiblingPlan || isAppPlanSwitch
         ? labels.subscription.switchPlan
         : isAppPlanActivation
           ? plan.category === "trial"
@@ -223,10 +229,10 @@
     }
   };
   const handleAppPlanSwitch = () => {
+    if (planTarget.kind !== "app-plan") return;
     onSwitchPlan?.({
       plan,
-      appPlanId: plan.planId,
-      ...(plan.category === "free" ? { freePlanId: plan.planId } : {}),
+      appPlanId: planTarget.appPlanId,
     });
   };
 
@@ -244,7 +250,7 @@
     <h3 class="title-s text-foreground-default">
       {plan.title ?? plan.planId}
     </h3>
-    {#if isActiveProduct || isActiveFreePlan}
+    {#if isActiveProduct || isActiveAppPlan}
       <span class="badge-faded-sm">
         {#if isTrialing}
           {labels.subscription.freeTrial}{#if trialDaysLeft != null}&ensp;·&ensp;{labels.subscription.trialDaysLeft(trialDaysLeft)}{/if}
@@ -268,7 +274,7 @@
       <span class="heading-s text-foreground-default">{labels.subscription.free}</span>
     {:else if plan.category === "trial"}
       <span class="heading-s text-foreground-default">{labels.subscription.freeTrial}</span>
-    {:else if plan.category === "enterprise"}
+    {:else if planTarget.kind === "app-plan" || plan.category === "enterprise"}
       <span class="heading-s text-foreground-default">{labels.subscription.custom}</span>
     {:else if splitPrice}
       <span class="heading-s text-foreground-default">{splitPrice.main}</span>
@@ -359,7 +365,7 @@
       <button type="button" class="button-outline w-full" onclick={onCancelSubscription}>
         {labels.subscription.cancelSubscription}
       </button>
-    {:else if isActiveProduct || isActiveFreePlan}
+    {:else if isActiveProduct || isActiveAppPlan}
       <!-- Keep CTA row height but intentionally empty when current plan has no action -->
     {:else if isScheduledTarget}
       <button
@@ -379,7 +385,7 @@
       >
         {checkoutLabel}
       </CheckoutButton>
-    {:else if isFreeDowngrade}
+    {:else if isAppPlanSwitch}
       <button
         type="button"
         disabled={disableSwitch}

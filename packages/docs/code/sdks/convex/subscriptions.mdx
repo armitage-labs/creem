@@ -233,7 +233,7 @@ Split plans by audience (e.g. Individual vs Teams). The root renders a group sel
 
 Control placement with `groupSelector="auto" | "hidden" | "external"` (use `<Subscription.GroupSelector>` for external composition), and `group`/`onGroupChange` for controlled state.
 
-## Scheduled changes: upgrades, downgrades, and paid-to-free
+## Scheduled changes: upgrades, downgrades, and paid-to-app-owned
 
 `updateBehavior` controls paid-to-paid switches and unit changes:
 
@@ -253,7 +253,7 @@ Pass a resolver to treat upgrades and downgrades differently:
     }
     return "proration-charge"; // upgrades prorate
   }}
-  freePlanUpdateBehavior="period-end"
+  appPlanUpdateBehavior="period-end"
 />
 ```
 
@@ -272,12 +272,14 @@ Switches are confirmed in a dialog that spells out the effect of the behaviour y
   />
 </Frame>
 
-Paid-to-free is a cancellation flow rather than a Creem proration, because Creem has no native free subscriptions. It has its own setting, `freePlanUpdateBehavior`:
+Paid-to-app-owned is a cancellation flow rather than a Creem proration. This
+includes free plans, no-card trials, and custom entitlements fulfilled by your
+app. It has its own setting, `appPlanUpdateBehavior`:
 
-- `"period-end"` schedules Creem cancellation for the period boundary, then activates the app-owned free plan at that time. This is the default.
-- `"immediate"` cancels straight away and assigns the free plan now.
+- `"period-end"` schedules Creem cancellation for the period boundary, then activates the app-owned target plan at that time. This is the default.
+- `"immediate"` cancels straight away and assigns the app-owned target plan now.
 
-Export `subscriptions.cancelScheduledUpdate` in your connected API to give users an "Undo" for pending period-end changes; if the pending change was paid-to-free, undoing also resumes the Creem scheduled cancellation.
+Export `subscriptions.cancelScheduledUpdate` in your connected API to give users an "Undo" for pending period-end changes; if the pending change was paid-to-app-owned, undoing also resumes the Creem scheduled cancellation.
 
 <Note>
   **Handled in Convex today.** Free plans and period-end changes are tracked by this component, so

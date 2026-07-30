@@ -27,11 +27,8 @@
     PlanCatalogEntry,
     UIPlanEntry,
     RecurringCycle,
-    FreePlanUpdateBehavior,
-    FreePlanUpdateBehaviorIntent,
-    PaidSubscriptionUpdateBehavior,
-    SubscriptionUpdateArgs,
-    FreePlanUpdateBehaviorSetting,
+    AppPlanUpdateBehaviorIntent,
+    AppPlanUpdateBehaviorSetting,
     ResolvedUpdateBehavior,
     SupportedRecurringCycle,
     UpdateBehavior,
@@ -62,9 +59,13 @@
   } from "../../core/subscriptionModel.js";
   import {
     buildUpdateSummary,
-    resolveFreePlanUpdateBehavior,
+    resolveAppPlanUpdateBehavior,
     resolveTargetUpdateBehavior,
   } from "../../core/subscriptionUpdate.js";
+  import {
+    applyOptimisticSubscriptionUpdate,
+    buildSubscriptionUpdateCommand,
+  } from "../../core/subscriptionCommands.js";
   import {
     formatPriceWithInterval,
     formatUnitPrice,
@@ -118,8 +119,8 @@
     columns?: "auto" | 1 | 2 | 3 | 4;
     /** Paid subscription update behavior for paid-to-paid plan switches and unit changes. */
     updateBehavior?: UpdateBehaviorSetting;
-    /** Cancellation behavior for paid-to-free or paid-to-app-owned plan switches. */
-    freePlanUpdateBehavior?: FreePlanUpdateBehaviorSetting;
+    /** Cancellation behavior for paid-to-app-owned plan switches. */
+    appPlanUpdateBehavior?: AppPlanUpdateBehaviorSetting;
     /** Remove built-in classes from compound subscription pieces. */
     unstyled?: boolean;
     /** Optional checkout guard for this root. Overrides provider guard. */
@@ -156,7 +157,7 @@
     showUnitPicker = false,
     columns = "auto",
     updateBehavior = undefined,
-    freePlanUpdateBehavior = undefined,
+    appPlanUpdateBehavior = undefined,
     unstyled = false,
     onBeforeCheckout = undefined,
     onBeforePlanChange = undefined,
@@ -240,7 +241,6 @@
         plan: UIPlanEntry;
         productId?: string;
         appPlanId?: string;
-        freePlanId?: string;
         units?: number;
       }
     | { kind: "unit-update"; units: number }
@@ -526,20 +526,19 @@
           plan: UIPlanEntry;
           productId?: string;
           appPlanId?: string;
-          freePlanId?: string;
           units?: number;
         }
       | { kind: "unit-update"; units: number },
   ): ResolvedUpdateBehavior {
     const currentPlan = getPlanForProduct(localSubscriptionProductId);
 
-    if (update.kind === "plan-switch" && update.freePlanId) {
-      if (typeof freePlanUpdateBehavior !== "function") {
-        return resolveFreePlanUpdateBehavior(freePlanUpdateBehavior);
+    if (update.kind === "plan-switch" && update.appPlanId) {
+      if (typeof appPlanUpdateBehavior !== "function") {
+        return resolveAppPlanUpdateBehavior(appPlanUpdateBehavior);
       }
-      const intent: FreePlanUpdateBehaviorIntent = {
+      const intent: AppPlanUpdateBehaviorIntent = {
         kind: "plan-switch",
-        target: "free-plan",
+        target: "app-plan",
         fromPlanId: activePlanId,
         toPlanId: update.plan.planId,
         fromPlan: currentPlan,
@@ -550,10 +549,9 @@
         toPrice: getProductPrice(update.productId),
         currentUnits: localSubscribedUnits,
         targetUnits: update.units,
-        freePlanId: update.freePlanId,
         appPlanId: update.appPlanId,
       };
-      return resolveFreePlanUpdateBehavior(freePlanUpdateBehavior(intent));
+      return resolveAppPlanUpdateBehavior(appPlanUpdateBehavior(intent));
     }
 
     const applyTargetRules = (behavior: UpdateBehavior | undefined) =>
@@ -701,7 +699,6 @@
     plan: UIPlanEntry;
     productId?: string;
     appPlanId?: string;
-    freePlanId?: string;
     units?: number;
   }) => {
     // Consent gate: onBeforePlanChange
@@ -711,12 +708,11 @@
         toPlanId: payload.plan.planId,
         productId: payload.productId,
         appPlanId: payload.appPlanId,
-        freePlanId: payload.freePlanId,
         units: payload.units,
       });
       if (!proceed) return;
     }
-    const appPlanId = payload.appPlanId ?? payload.freePlanId;
+    const appPlanId = payload.appPlanId;
     // Consent gate: onBeforePlanActivation
     if (resolvedOnBeforePlanActivation && appPlanId) {
       const proceed = await resolvedOnBeforePlanActivation({
@@ -741,122 +737,44 @@
     pendingUpdate = null;
     actionError = null;
     try {
-      if (update.kind === "plan-switch") {
-        const appPlanId = update.appPlanId ?? update.freePlanId;
-        if (appPlanId && !subId && activateAppPlanRef) {
-          await activateAppPlan(appPlanId);
-          return;
-        }
-        if (!updateRef) return;
-        await client.mutation(
-          updateRef,
-          update.freePlanId
-            ? ({
-                kind: "app-plan",
-                freePlanId: update.freePlanId,
-                ...(subId ? { subscriptionId: subId } : {}),
-                updateBehavior: selectedUpdateBehavior as FreePlanUpdateBehavior,
-              } satisfies SubscriptionUpdateArgs)
-            : ({
-                kind: "plan",
-                productId: update.productId!,
-                ...(subId ? { subscriptionId: subId } : {}),
-                updateBehavior:
-                  selectedUpdateBehavior as PaidSubscriptionUpdateBehavior,
-              } satisfies SubscriptionUpdateArgs),
-          {
-            optimisticUpdate: (store) => {
-              const current = store.getQuery(billingUiModelRef, {});
-              if (current) {
-                const m = current as ConnectedBillingModel;
-                if (selectedUpdateBehavior === "period-end") {
-                  store.setQuery(billingUiModelRef, {}, {
-                    ...m,
-                    scheduledSubscriptionUpdates: [
-                      ...(m.scheduledSubscriptionUpdates ?? []).filter(
-                        (scheduled) => scheduled.subscriptionId !== subId,
-                      ),
-                      {
-                        entityId: "",
-                        subscriptionId: subId ?? "",
-                        targetProductId: update.productId,
-                            targetPlanId: update.appPlanId ?? update.freePlanId,
-                        effectiveAt: matchedSubscription?.currentPeriodEnd ?? "",
-                        status: "pending",
-                        createdAt: new Date().toISOString(),
-                        updatedAt: new Date().toISOString(),
-                      },
-                    ],
-                  });
-                  return;
-                }
-                store.setQuery(
-                  billingUiModelRef,
-                  {},
-                  {
-                    ...m,
-                    activeSubscriptions: (m.activeSubscriptions ?? []).map((s) =>
-                      ownProductIds.has(s.productId)
-                        ? { ...s, productId: update.productId ?? s.productId }
-                        : s,
-                    ),
-                  },
-                );
-              }
-            },
-          },
-        );
-      } else {
-        if (!updateRef) return;
-        await client.mutation(
-          updateRef,
-          {
-            kind: "units",
-            units: update.units,
-            ...(subId ? { subscriptionId: subId } : {}),
-            updateBehavior:
-              selectedUpdateBehavior as PaidSubscriptionUpdateBehavior,
-          } satisfies SubscriptionUpdateArgs,
-          {
-            optimisticUpdate: (store) => {
-              const current = store.getQuery(billingUiModelRef, {});
-              if (current) {
-                const m = current as ConnectedBillingModel;
-                if (selectedUpdateBehavior === "period-end") {
-                  store.setQuery(billingUiModelRef, {}, {
-                    ...m,
-                    scheduledSubscriptionUpdates: [
-                      ...(m.scheduledSubscriptionUpdates ?? []).filter(
-                        (scheduled) => scheduled.subscriptionId !== subId,
-                      ),
-                      {
-                        entityId: "",
-                        subscriptionId: subId ?? "",
-                        targetUnits: update.units,
-                        effectiveAt: matchedSubscription?.currentPeriodEnd ?? "",
-                        status: "pending",
-                        createdAt: new Date().toISOString(),
-                        updatedAt: new Date().toISOString(),
-                      },
-                    ],
-                  });
-                  return;
-                }
-                store.setQuery(
-                  billingUiModelRef,
-                  {},
-                  {
-                    ...m,
-                    activeSubscriptions: (m.activeSubscriptions ?? []).map((s) =>
-                      s.id === subId ? { ...s, units: update.units } : s,
-                    ),
-                  },
-                );
-              }
-            },
-          },
-        );
+      if (
+        update.kind === "plan-switch" &&
+        update.appPlanId &&
+        !subId &&
+        activateAppPlanRef
+      ) {
+        await activateAppPlan(update.appPlanId);
+        return;
       }
+      if (!updateRef) return;
+      const command = buildSubscriptionUpdateCommand({
+        input:
+          update.kind === "unit-update"
+            ? { kind: "units", units: update.units }
+            : update.appPlanId
+              ? { kind: "app-plan", appPlanId: update.appPlanId }
+              : { kind: "plan", productId: update.productId! },
+        subscriptionId: subId,
+        updateBehavior: selectedUpdateBehavior,
+      });
+      await client.mutation(updateRef, command, {
+        optimisticUpdate: (store) => {
+          const current = store.getQuery(billingUiModelRef, {});
+          if (!current) return;
+          const now = new Date().toISOString();
+          store.setQuery(
+            billingUiModelRef,
+            {},
+            applyOptimisticSubscriptionUpdate({
+              model: current as ConnectedBillingModel,
+              command,
+              subscriptionId: subId,
+              currentPeriodEnd: matchedSubscription?.currentPeriodEnd,
+              now,
+            }),
+          );
+        },
+      });
     } catch (error) {
       actionError = getConvexErrorMessage(
         error,

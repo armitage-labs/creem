@@ -2,10 +2,15 @@ import { Creem } from "creem";
 
 import { ConvexError, v } from "convex/values";
 import { action, mutation, query } from "./_generated/server.js";
+import type { Doc } from "./_generated/dataModel.js";
 import schema from "./schema.js";
 import { asyncMap } from "convex-helpers";
 import { api } from "./_generated/api.js";
 import { convertToDatabaseProduct } from "./util.js";
+import {
+  resolveUpdateFailureAfterResume,
+  resumeSubscriptionIfNeeded,
+} from "./subscriptionLifecycle.js";
 
 export const getCustomerByEntityId = query({
   args: {
@@ -1107,6 +1112,188 @@ export const markScheduledSubscriptionUpdateFailed = mutation({
   },
 });
 
+const appPlanTransitionRollbackValidator = v.object({
+  planId: v.string(),
+  scheduledUpdateId: v.optional(v.id("scheduledSubscriptionUpdates")),
+  scheduledUpdateCreatedAt: v.optional(v.string()),
+  assignmentCreatedAt: v.optional(v.string()),
+});
+
+const lifecycleRollbackValidator = v.object({
+  abortAppPlanTransitions: v.optional(
+    v.array(appPlanTransitionRollbackValidator),
+  ),
+  restoreAppPlanTransitions: v.optional(
+    v.array(appPlanTransitionRollbackValidator),
+  ),
+  replacementScheduledUpdateIds: v.optional(
+    v.array(v.id("scheduledSubscriptionUpdates")),
+  ),
+});
+
+/**
+ * Reconcile all optimistic local state after a Creem lifecycle/update failure.
+ *
+ * Subscription fields, scheduled updates, and app-plan assignments are changed
+ * in one mutation so a failed external call cannot leave mixed entitlements.
+ */
+export const compensateSubscriptionLifecycle = mutation({
+  args: {
+    subscriptionId: v.string(),
+    previousStatus: v.optional(v.string()),
+    previousCancelAtPeriodEnd: v.optional(v.boolean()),
+    previousSeats: v.optional(v.union(v.number(), v.null())),
+    previousProductId: v.optional(v.string()),
+    clearOptimistic: v.optional(v.boolean()),
+    rollback: v.optional(lifecycleRollbackValidator),
+    error: v.optional(v.string()),
+  },
+  returns: v.null(),
+  handler: async (ctx, args) => {
+    const now = new Date().toISOString();
+    const subscription = await ctx.db
+      .query("subscriptions")
+      .withIndex("id", (q) => q.eq("id", args.subscriptionId))
+      .unique();
+    if (!subscription) {
+      throw new ConvexError(`Subscription not found: ${args.subscriptionId}`);
+    }
+
+    const subscriptionPatch: Record<string, unknown> = {};
+    if (args.previousStatus !== undefined) {
+      subscriptionPatch.status = args.previousStatus;
+    }
+    if (args.previousCancelAtPeriodEnd !== undefined) {
+      subscriptionPatch.cancelAtPeriodEnd = args.previousCancelAtPeriodEnd;
+    }
+    if (args.previousSeats !== undefined) {
+      subscriptionPatch.seats = args.previousSeats;
+    }
+    if (args.previousProductId !== undefined) {
+      subscriptionPatch.productId = args.previousProductId;
+    }
+    if (args.clearOptimistic) {
+      const {
+        _optimisticPendingAt: _,
+        _optimisticFields: __,
+        ...cleanMetadata
+      } = (subscription.metadata ?? {}) as Record<string, unknown>;
+      subscriptionPatch.metadata = cleanMetadata;
+    }
+    if (Object.keys(subscriptionPatch).length > 0) {
+      await ctx.db.patch(subscription._id, subscriptionPatch);
+    }
+
+    if (!args.rollback) return null;
+
+    for (const replacementId of args.rollback.replacementScheduledUpdateIds ??
+      []) {
+      const replacement = await ctx.db.get(replacementId);
+      if (
+        replacement &&
+        (replacement.status === "pending" || replacement.status === "applying")
+      ) {
+        await ctx.db.patch(replacementId, {
+          status: "failed",
+          error: args.error ?? "Subscription lifecycle operation failed",
+          updatedAt: now,
+        });
+      }
+    }
+
+    const reconcileAppPlanTransition = async (
+      transition: {
+        planId: string;
+        scheduledUpdateId?: Doc<"scheduledSubscriptionUpdates">["_id"];
+        scheduledUpdateCreatedAt?: string;
+        assignmentCreatedAt?: string;
+      },
+      mode: "abort" | "restore",
+    ) => {
+      let scheduledUpdate = transition.scheduledUpdateId
+        ? await ctx.db.get(transition.scheduledUpdateId)
+        : null;
+      if (!scheduledUpdate && transition.scheduledUpdateCreatedAt) {
+        const status = mode === "restore" ? "superseded" : "pending";
+        const candidates = await ctx.db
+          .query("scheduledSubscriptionUpdates")
+          .withIndex("subscriptionId_status", (q) =>
+            q.eq("subscriptionId", args.subscriptionId).eq("status", status),
+          )
+          .order("desc")
+          .take(20);
+        scheduledUpdate =
+          candidates.find(
+            (candidate) =>
+              candidate.createdAt === transition.scheduledUpdateCreatedAt &&
+              candidate.targetPlanId === transition.planId,
+          ) ?? null;
+      }
+
+      if (scheduledUpdate) {
+        await ctx.db.patch(scheduledUpdate._id, {
+          status:
+            mode === "restore" ? ("pending" as const) : ("failed" as const),
+          error:
+            mode === "restore"
+              ? undefined
+              : (args.error ?? "Subscription lifecycle operation failed"),
+          updatedAt: now,
+        });
+      }
+
+      const assignmentStatuses =
+        mode === "restore"
+          ? (["ended"] as const)
+          : (["active", "scheduled"] as const);
+      let assignment: Doc<"appPlanAssignments"> | null = null;
+      for (const status of assignmentStatuses) {
+        const candidates = await ctx.db
+          .query("appPlanAssignments")
+          .withIndex("subscriptionId_status", (q) =>
+            q.eq("subscriptionId", args.subscriptionId).eq("status", status),
+          )
+          .order("desc")
+          .take(20);
+        assignment =
+          candidates.find(
+            (candidate) =>
+              candidate.planId === transition.planId &&
+              (!transition.assignmentCreatedAt ||
+                candidate.createdAt === transition.assignmentCreatedAt),
+          ) ?? null;
+        if (assignment) break;
+      }
+
+      if (assignment) {
+        await ctx.db.patch(
+          assignment._id,
+          mode === "restore"
+            ? {
+                status: "scheduled",
+                startsAt: scheduledUpdate?.effectiveAt ?? assignment.startsAt,
+                endsAt: null,
+                updatedAt: now,
+              }
+            : {
+                status: "ended",
+                endsAt: now,
+                updatedAt: now,
+              },
+        );
+      }
+    };
+
+    for (const transition of args.rollback.abortAppPlanTransitions ?? []) {
+      await reconcileAppPlanTransition(transition, "abort");
+    }
+    for (const transition of args.rollback.restoreAppPlanTransitions ?? []) {
+      await reconcileAppPlanTransition(transition, "restore");
+    }
+    return null;
+  },
+});
+
 /** Action that calls Creem API and reverts on error. Scheduled by mutations.
  *  Public (not internal) so it's accessible via ComponentApi for scheduling from app-level mutations.
  *  Secured by requiring apiKey argument (same pattern as syncProducts). */
@@ -1122,6 +1309,9 @@ export const executeSubscriptionUpdate = action({
     resumeScheduledCancellation: v.optional(v.boolean()),
     previousSeats: v.optional(v.union(v.number(), v.null())),
     previousProductId: v.optional(v.string()),
+    previousStatus: v.optional(v.string()),
+    previousCancelAtPeriodEnd: v.optional(v.boolean()),
+    rollback: v.optional(lifecycleRollbackValidator),
   },
   handler: async (ctx, args) => {
     const sdk = new Creem({
@@ -1129,6 +1319,7 @@ export const executeSubscriptionUpdate = action({
       ...(args.server ? { server: args.server } : {}),
       ...(args.serverURL ? { serverURL: args.serverURL } : {}),
     });
+    let cancellationWasCleared = false;
     try {
       if (args.updateBehavior === "period-end") {
         throw new ConvexError(
@@ -1136,10 +1327,10 @@ export const executeSubscriptionUpdate = action({
         );
       }
       if (args.resumeScheduledCancellation) {
-        const live = await sdk.subscriptions.get(args.subscriptionId);
-        if (live.status === "scheduled_cancel" || live.status === "paused") {
-          await sdk.subscriptions.resume(args.subscriptionId);
-        }
+        cancellationWasCleared = await resumeSubscriptionIfNeeded(
+          sdk,
+          args.subscriptionId,
+        );
       }
       if (args.productId) {
         // Plan/interval switch
@@ -1180,16 +1371,53 @@ export const executeSubscriptionUpdate = action({
       }
     } catch (error) {
       console.error(`[creem] subscription update failed:`, error);
-      // Revert optimistic state and clear the optimistic guard so webhooks write normally
-      await ctx.runMutation(api.lib.patchSubscription, {
+      const message = error instanceof Error ? error.message : String(error);
+      const failureState = resolveUpdateFailureAfterResume({
+        cancellationWasCleared,
+        previousStatus: args.previousStatus,
+        previousCancelAtPeriodEnd: args.previousCancelAtPeriodEnd,
+      });
+      const remainingRollback =
+        !failureState.restoreAppPlanTransitions && args.rollback
+          ? {
+              ...(args.rollback.abortAppPlanTransitions?.length
+                ? {
+                    abortAppPlanTransitions:
+                      args.rollback.abortAppPlanTransitions,
+                  }
+                : {}),
+              ...(args.rollback.replacementScheduledUpdateIds?.length
+                ? {
+                    replacementScheduledUpdateIds:
+                      args.rollback.replacementScheduledUpdateIds,
+                  }
+                : {}),
+            }
+          : args.rollback;
+      const hasRemainingRollback =
+        remainingRollback &&
+        (remainingRollback.abortAppPlanTransitions?.length ||
+          remainingRollback.restoreAppPlanTransitions?.length ||
+          remainingRollback.replacementScheduledUpdateIds?.length);
+      await ctx.runMutation(api.lib.compensateSubscriptionLifecycle, {
         subscriptionId: args.subscriptionId,
         ...(args.previousSeats !== undefined
-          ? { seats: args.previousSeats }
+          ? { previousSeats: args.previousSeats }
           : {}),
-        ...(args.previousProductId
-          ? { productId: args.previousProductId }
+        ...(args.previousProductId !== undefined
+          ? { previousProductId: args.previousProductId }
+          : {}),
+        ...(failureState.previousStatus !== undefined
+          ? { previousStatus: failureState.previousStatus }
+          : {}),
+        ...(failureState.previousCancelAtPeriodEnd !== undefined
+          ? {
+              previousCancelAtPeriodEnd: failureState.previousCancelAtPeriodEnd,
+            }
           : {}),
         clearOptimistic: true,
+        ...(hasRemainingRollback ? { rollback: remainingRollback } : {}),
+        error: message,
       });
     }
   },
@@ -1296,6 +1524,7 @@ export const executeSubscriptionLifecycle = action({
     // For reverting on error:
     previousStatus: v.optional(v.string()),
     previousCancelAtPeriodEnd: v.optional(v.boolean()),
+    rollback: v.optional(lifecycleRollbackValidator),
   },
   handler: async (ctx, args) => {
     const sdk = new Creem({
@@ -1324,25 +1553,25 @@ export const executeSubscriptionLifecycle = action({
               : {};
         await sdk.subscriptions.cancel(args.subscriptionId, cancelParams);
       } else if (args.operation === "resume") {
-        const live = await sdk.subscriptions.get(args.subscriptionId);
-        if (live.status !== "scheduled_cancel" && live.status !== "paused") {
-          return;
-        }
-        await sdk.subscriptions.resume(args.subscriptionId);
+        await resumeSubscriptionIfNeeded(sdk, args.subscriptionId);
       } else if (args.operation === "pause") {
         await sdk.subscriptions.pause(args.subscriptionId);
       }
     } catch (error) {
       console.error(`[creem] subscription ${args.operation} failed:`, error);
-      // Revert optimistic state
-      await ctx.runMutation(api.lib.patchSubscription, {
+      const message = error instanceof Error ? error.message : String(error);
+      await ctx.runMutation(api.lib.compensateSubscriptionLifecycle, {
         subscriptionId: args.subscriptionId,
         ...(args.previousStatus !== undefined
-          ? { status: args.previousStatus }
+          ? { previousStatus: args.previousStatus }
           : {}),
         ...(args.previousCancelAtPeriodEnd !== undefined
-          ? { cancelAtPeriodEnd: args.previousCancelAtPeriodEnd }
+          ? {
+              previousCancelAtPeriodEnd: args.previousCancelAtPeriodEnd,
+            }
           : {}),
+        ...(args.rollback ? { rollback: args.rollback } : {}),
+        error: message,
       });
     }
   },

@@ -17,6 +17,7 @@
   } from "../../core/display.js";
   import type { UIPlanEntry } from "../../core/types.js";
   import { defaultBillingLabels } from "../../core/i18n.js";
+  import { resolvePlanTarget } from "../../core/planTarget.js";
 
   type BaseProps = {
     /** Unique plan ID. Defaults to first product ID or the plan type when omitted. */
@@ -99,6 +100,7 @@
   );
   const selectedCycle = $derived(rootContext?.getSelectedCycle());
   const productId = $derived(plan ? resolveProductIdForPlan(plan, selectedCycle) : undefined);
+  const planTarget = $derived(plan ? resolvePlanTarget(plan, productId) : null);
   const isActiveProduct = $derived(
     rootContext?.getSubscriptionProductId() != null &&
       productId != null &&
@@ -109,20 +111,16 @@
       rootContext?.getActivePlanId() === plan?.planId &&
       productId != null,
   );
-  const isActiveFreePlan = $derived(
-    !isActiveProduct &&
-      (plan?.category === "free" || plan?.category === "trial") &&
-      rootContext?.getActivePlanId() === plan.planId,
+  const isActiveAppPlan = $derived(
+      !isActiveProduct &&
+      planTarget?.kind === "app-plan" &&
+      rootContext?.getActivePlanId() === plan?.planId,
   );
-  const isAppPlan = $derived(plan?.category === "free" || plan?.category === "trial");
   const isSiblingPlan = $derived(
     !isActiveProduct &&
       !isActivePlanOtherCycle &&
       rootContext?.getIsGroupSubscribed() === true &&
-      productId != null &&
-      plan?.category !== "free" &&
-      plan?.category !== "trial" &&
-      plan?.category !== "enterprise",
+      planTarget?.kind === "creem-product",
   );
   const isScheduledTarget = $derived.by(() => {
     const scheduledUpdate = rootContext?.getScheduledUpdate();
@@ -152,7 +150,7 @@
     if (plan.category === "trial") {
       return rootContext?.getLabels().subscription.freeTrial ?? defaultBillingLabels.subscription.freeTrial;
     }
-    if (plan.category === "enterprise") {
+    if (planTarget?.kind === "app-plan" || plan.category === "enterprise") {
       return rootContext?.getLabels().subscription.custom ?? defaultBillingLabels.subscription.custom;
     }
     if (
@@ -198,7 +196,7 @@
     );
   });
   const onCheckout = $derived.by(() => {
-    if (!rootContext || !plan || !productId || isActiveProduct || isActiveFreePlan || isSiblingPlan || isActivePlanOtherCycle || isScheduledTarget) {
+    if (!rootContext || !plan || !productId || isActiveProduct || isActiveAppPlan || isSiblingPlan || isActivePlanOtherCycle || isScheduledTarget) {
       return undefined;
     }
     return () => rootContext.checkout({ plan, productId, units: effectiveUnits });
@@ -210,12 +208,15 @@
     if (isScheduledTarget) {
       return undefined;
     }
-    if (isAppPlan && !isActiveFreePlan && !rootContext.getIsGroupSubscribed()) {
+    if (
+      planTarget?.kind === "app-plan" &&
+      !isActiveAppPlan &&
+      !rootContext.getIsGroupSubscribed()
+    ) {
       return () =>
         rootContext.switchPlan?.({
           plan,
-          appPlanId: plan.planId,
-          ...(plan.category === "free" ? { freePlanId: plan.planId } : {}),
+          appPlanId: planTarget.appPlanId,
         });
     }
     if (!productId || !(isSiblingPlan || isActivePlanOtherCycle)) {
@@ -236,7 +237,7 @@
       return plan ?? fallbackPlan;
     },
     get isActive() {
-      return isActiveProduct || isActiveFreePlan;
+      return isActiveProduct || isActiveAppPlan;
     },
     get isSwitchPlan() {
       return isSiblingPlan || isActivePlanOtherCycle;
@@ -292,7 +293,7 @@
         : undefined;
     },
     get onCancelSubscription() {
-      return isActiveProduct || isActiveFreePlan
+      return isActiveProduct || isActiveAppPlan
         ? rootContext?.cancelSubscription
         : undefined;
     },

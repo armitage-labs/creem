@@ -54,7 +54,6 @@
       plan: UIPlanEntry;
       productId?: string;
       appPlanId?: string;
-      freePlanId?: string;
       units?: number;
     }) => Promise<void> | void;
     onUpdateUnits?: (payload: { units: number }) => Promise<void> | void;

@@ -10,6 +10,19 @@
 
 import type { FunctionReference } from "convex/server";
 
+type AppPlanTransitionRollback = {
+  planId: string;
+  scheduledUpdateId?: string;
+  scheduledUpdateCreatedAt?: string;
+  assignmentCreatedAt?: string;
+};
+
+type LifecycleRollback = {
+  abortAppPlanTransitions?: Array<AppPlanTransitionRollback>;
+  restoreAppPlanTransitions?: Array<AppPlanTransitionRollback>;
+  replacementScheduledUpdateIds?: Array<string>;
+};
+
 /**
  * A utility for referencing a Convex component's exposed API.
  *
@@ -137,6 +150,22 @@ export type ComponentApi<Name extends string | undefined = string | undefined> =
         } | null,
         Name
       >;
+      compensateSubscriptionLifecycle: FunctionReference<
+        "mutation",
+        "internal",
+        {
+          clearOptimistic?: boolean;
+          error?: string;
+          previousCancelAtPeriodEnd?: boolean;
+          previousProductId?: string;
+          previousSeats?: number | null;
+          previousStatus?: string;
+          rollback?: LifecycleRollback;
+          subscriptionId: string;
+        },
+        null,
+        Name
+      >;
       createOrder: FunctionReference<
         "mutation",
         "internal",
@@ -262,6 +291,7 @@ export type ComponentApi<Name extends string | undefined = string | undefined> =
           operation: "cancel" | "resume" | "pause";
           previousCancelAtPeriodEnd?: boolean;
           previousStatus?: string;
+          rollback?: LifecycleRollback;
           scheduledUpdateId?: string;
           server?: "test" | "prod";
           serverURL?: string;
@@ -277,7 +307,10 @@ export type ComponentApi<Name extends string | undefined = string | undefined> =
           apiKey: string;
           previousProductId?: string;
           previousSeats?: number | null;
+          previousCancelAtPeriodEnd?: boolean;
+          previousStatus?: string;
           productId?: string;
+          rollback?: LifecycleRollback;
           resumeScheduledCancellation?: boolean;
           server?: "test" | "prod";
           serverURL?: string;
