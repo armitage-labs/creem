@@ -112,6 +112,19 @@ Paginated transaction history, backed by Creem's transaction search. This render
 <BillingHistory pageSize={5} />
 ```
 
+<Frame>
+  <img
+    src="/images/convex/billing-history-light.webp"
+    alt="A billing history table with Date, Description, Type, Status, and Amount columns listing five paid transactions, above a pager running from page 1 to page 22"
+    className="block dark:hidden"
+  />
+  <img
+    src="/images/convex/billing-history-dark.webp"
+    alt="A billing history table with Date, Description, Type, Status, and Amount columns listing five paid transactions, above a pager running from page 1 to page 22"
+    className="hidden dark:block"
+  />
+</Frame>
+
 Requires `transactions.search` in the connected API. Export `transactionsSearch` from `convex/billing.ts` and `connectCreemApi` wires it automatically.
 
 <Note>
@@ -129,6 +142,19 @@ When a subscription is past due or a payment failed, surface it and route the us
 <PaymentRecoveryBanner snapshot={snapshot} />
 <PaymentRecoveryButton />
 ```
+
+<Frame>
+  <img
+    src="/images/convex/payment-recovery-light.webp"
+    alt="A yellow past-due banner above a red payment-failed banner, followed by an Update payment method button"
+    className="block dark:hidden"
+  />
+  <img
+    src="/images/convex/payment-recovery-dark.webp"
+    alt="A yellow past-due banner above a red payment-failed banner, followed by an Update payment method button"
+    className="hidden dark:block"
+  />
+</Frame>
 
 The banner derives its state from `snapshot.paymentRecoveryState` (or accepts an explicit state). The button reads `customers.portalUrl` from the provider like every other connected widget, and renders nothing when no portal action is wired.
 

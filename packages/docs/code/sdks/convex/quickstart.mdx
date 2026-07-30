@@ -7,6 +7,8 @@ description: "Set up Creem billing in your Convex app: backend sync, webhook, an
 
 This page gets you to a working two-plan pricing page.
 
+**Before you start**, you need an existing [Convex](https://docs.convex.dev/quickstarts) project with `npx convex dev` running, and [auth configured](https://docs.convex.dev/auth) so `ctx.auth.getUserIdentity()` returns your signed-in user. Without auth, the pricing page renders - but only in its public, logged-out state, and checkout stays unavailable.
+
 <Note>
   **Integrating with an AI agent, or migrating from another billing provider?** Point it at the
   [Integration Guide](/code/sdks/convex/integration). That page holds the whole setup sequence in
@@ -161,8 +163,8 @@ Put both IDs in your frontend env file. They are public values that the browser
 needs in order to start checkout:
 
 ```bash title=".env.local"
-VITE_CREEM_BASIC_MONTHLY=prod_...
-VITE_CREEM_PREMIUM_MONTHLY=prod_...
+VITE_CREEM_SUB_BASIC_MONTHLY=prod_...
+VITE_CREEM_SUB_PREMIUM_MONTHLY=prod_...
 ```
 
 <Note>
@@ -241,7 +243,7 @@ export const billingCatalog = defineBillingCatalog({
       category: "paid",
       billingType: "recurring",
       creemProductIds: {
-        "every-month": import.meta.env.VITE_CREEM_BASIC_MONTHLY,
+        "every-month": import.meta.env.VITE_CREEM_SUB_BASIC_MONTHLY,
       },
     },
     {
@@ -250,7 +252,7 @@ export const billingCatalog = defineBillingCatalog({
       billingType: "recurring",
       recommended: true,
       creemProductIds: {
-        "every-month": import.meta.env.VITE_CREEM_PREMIUM_MONTHLY,
+        "every-month": import.meta.env.VITE_CREEM_SUB_PREMIUM_MONTHLY,
       },
     },
   ],
@@ -271,7 +273,7 @@ export const billingCatalog = defineBillingCatalog({
       category: "paid",
       billingType: "recurring",
       creemProductIds: {
-        "every-month": import.meta.env.VITE_CREEM_BASIC_MONTHLY,
+        "every-month": import.meta.env.VITE_CREEM_SUB_BASIC_MONTHLY,
       },
     },
     {
@@ -280,7 +282,7 @@ export const billingCatalog = defineBillingCatalog({
       billingType: "recurring",
       recommended: true,
       creemProductIds: {
-        "every-month": import.meta.env.VITE_CREEM_PREMIUM_MONTHLY,
+        "every-month": import.meta.env.VITE_CREEM_SUB_PREMIUM_MONTHLY,
       },
     },
   ],
@@ -358,6 +360,19 @@ export function PricingPage() {
 </Tabs>
 
 You now have a pricing page with live prices and working checkout. It shows a "Current plan" badge, and handles plan switching, cancel, and resume. Convex keeps all of it in sync. Try it with a [test card](/getting-started/test-mode#testing-payments).
+
+<Frame>
+  <img
+    src="/images/convex/pricing-two-plans-light.webp"
+    alt="Two subscription plan cards, Basic at $50 per month and a recommended Premium at $100 per month, each with a Subscribe button"
+    className="block dark:hidden"
+  />
+  <img
+    src="/images/convex/pricing-two-plans-dark.webp"
+    alt="Two subscription plan cards, Basic at $50 per month and a recommended Premium at $100 per month, each with a Subscribe button"
+    className="hidden dark:block"
+  />
+</Frame>
 
   </Step>
 </Steps>

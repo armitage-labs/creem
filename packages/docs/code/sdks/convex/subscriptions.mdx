@@ -28,6 +28,19 @@ That renders:
 - Cancel and resume, also behind confirmation
 - A scheduled-cancellation banner with an undo button
 
+<Frame>
+  <img
+    src="/images/convex/subscription-default-render-light.webp"
+    alt="Four plan cards under a Monthly/Quarterly/Semi-annual/Yearly toggle: a Free plan, a Basic plan showing a trial countdown badge and Cancel subscription, a recommended Premium plan, and an Enterprise plan with Contact sales"
+    className="block dark:hidden"
+  />
+  <img
+    src="/images/convex/subscription-default-render-dark.webp"
+    alt="Four plan cards under a Monthly/Quarterly/Semi-annual/Yearly toggle: a Free plan, a Basic plan showing a trial countdown badge and Cancel subscription, a recommended Premium plan, and an Enterprise plan with Contact sales"
+    className="hidden dark:block"
+  />
+</Frame>
+
 You can also register plans inline, without a catalog. This helps when migrating incrementally:
 
 ```tsx title="Pricing page"
@@ -48,7 +61,22 @@ You can also register plans inline, without a catalog. This helps when migrating
 
 ## Billing cycles
 
-`creemProductIds` maps cycles to Creem products. Supported cycles: `every-month`, `every-three-months`, `every-six-months`, `every-year`. The interval selector appears automatically when plans expose more than one cycle. Add badges to promote longer cycles:
+`creemProductIds` maps cycles to Creem products. Supported cycles: `every-month`, `every-three-months`, `every-six-months`, `every-year`. The interval selector appears automatically when plans expose more than one cycle:
+
+<Frame>
+  <img
+    src="/images/convex/interval-selector-light.webp"
+    alt="A segmented control with Monthly selected, followed by Quarterly, Semi-annual, and Yearly"
+    className="block dark:hidden"
+  />
+  <img
+    src="/images/convex/interval-selector-dark.webp"
+    alt="A segmented control with Monthly selected, followed by Quarterly, Semi-annual, and Yearly"
+    className="hidden dark:block"
+  />
+</Frame>
+
+Add badges to promote longer cycles:
 
 ```tsx title="Pricing page"
 <Subscription.Root
@@ -190,6 +218,19 @@ Split plans by audience (e.g. Individual vs Teams). The root renders a group sel
 />
 ```
 
+<Frame>
+  <img
+    src="/images/convex/plan-groups-light.webp"
+    alt="An Individual/Teams group selector above a billing-cycle selector, with the Individual plans rendered beneath it"
+    className="block dark:hidden"
+  />
+  <img
+    src="/images/convex/plan-groups-dark.webp"
+    alt="An Individual/Teams group selector above a billing-cycle selector, with the Individual plans rendered beneath it"
+    className="hidden dark:block"
+  />
+</Frame>
+
 Control placement with `groupSelector="auto" | "hidden" | "external"` (use `<Subscription.GroupSelector>` for external composition), and `group`/`onGroupChange` for controlled state.
 
 ## Scheduled changes: upgrades, downgrades, and paid-to-free
@@ -215,6 +256,21 @@ Pass a resolver to treat upgrades and downgrades differently:
   freePlanUpdateBehavior="period-end"
 />
 ```
+
+Switches are confirmed in a dialog that spells out the effect of the behaviour you chose:
+
+<Frame>
+  <img
+    src="/images/convex/switch-plan-dialog-light.webp"
+    alt="A Switch plan? dialog showing Basic at $50 per month changing to Free, a note that the trial continues until August 5 2026, and Confirm switch and Cancel buttons"
+    className="block dark:hidden"
+  />
+  <img
+    src="/images/convex/switch-plan-dialog-dark.webp"
+    alt="A Switch plan? dialog showing Basic at $50 per month changing to Free, a note that the trial continues until August 5 2026, and Confirm switch and Cancel buttons"
+    className="hidden dark:block"
+  />
+</Frame>
 
 Paid-to-free is a cancellation flow rather than a Creem proration, because Creem has no native free subscriptions. It has its own setting, `freePlanUpdateBehavior`:
 

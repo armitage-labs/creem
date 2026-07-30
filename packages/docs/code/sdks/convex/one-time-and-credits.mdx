@@ -85,15 +85,17 @@ When a `checkout.completed` webhook arrives for that product, the component gran
 ```ts title="convex/billing.ts"
 // App-owned spend action
 export const generateImage = action({
-  args: {},
+  args: { requestId: v.string() },
   returns: v.object({ creditsConsumed: v.string() }),
-  handler: async (ctx) => {
-    const { entityId } = await resolve(ctx);
+  handler: async (ctx, args) => {
+    const identity = await resolve(ctx);
+    if (!identity) throw new ConvexError("Not authenticated");
     await creem.credits.debitForEntity(ctx, {
-      entityId,
+      entityId: identity.entityId,
       amount: "10",
       reference: "generate_image",
-      idempotencyKey: `generate_image_${Date.now()}`,
+      // A stable key per logical operation.
+      idempotencyKey: `generate_image_${args.requestId}`,
     });
     return { creditsConsumed: "10" };
   },
@@ -112,7 +114,9 @@ export const generateImage = action({
       <Credits.Error />
       <button
         onClick={async () => {
-          await convexClient.action(api.billing.generateImage, {});
+          await convexClient.action(api.billing.generateImage, {
+            requestId: crypto.randomUUID(),
+          });
           await credits.refresh();
         }}
       >
@@ -134,7 +138,9 @@ export const generateImage = action({
     <Credits.Error />
     <button
       onclick={async () => {
-        await convexClient.action(api.billing.generateImage, {});
+        await convexClient.action(api.billing.generateImage, {
+          requestId: crypto.randomUUID(),
+        });
         await credits.refresh();
       }}
     >
@@ -146,6 +152,19 @@ export const generateImage = action({
 
   </Tab>
 </Tabs>
+
+<Frame>
+  <img
+    src="/images/convex/credits-balance-light.webp"
+    alt="A Credit Balance card showing 490 credits with a refresh icon and a Generate image button costing 10 credits"
+    className="block dark:hidden"
+  />
+  <img
+    src="/images/convex/credits-balance-dark.webp"
+    alt="A Credit Balance card showing 490 credits with a refresh icon and a Generate image button costing 10 credits"
+    className="hidden dark:block"
+  />
+</Frame>
 
 The widget needs only `credits.getBalance` in your connected API:
 
@@ -180,6 +199,19 @@ When one-time products supersede each other (Basic license → Premium license),
   <Product.Item type="one-time" productId="prod_premium_license" />
 </Product.Root>
 ```
+
+<Frame>
+  <img
+    src="/images/convex/product-upgrade-path-light.webp"
+    alt="Two product cards side by side: Basic at $400 marked Owned with no buy button, and Premium at $700 offering an Upgrade button"
+    className="block dark:hidden"
+  />
+  <img
+    src="/images/convex/product-upgrade-path-dark.webp"
+    alt="Two product cards side by side: Basic at $400 marked Owned with no buy button, and Premium at $700 offering an Upgrade button"
+    className="hidden dark:block"
+  />
+</Frame>
 
 Two transition kinds:
 
