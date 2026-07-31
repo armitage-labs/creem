@@ -13,7 +13,7 @@ Gating features on billing state, evaluating usage limits, and the account-level
 
 ## Gating UI with BillingGate
 
-`BillingGate` conditionally renders based on which billing actions are available in the snapshot (`checkout`, `portal`, `cancel`, `reactivate`, `switch_interval`, `update_units`, `contact_sales`):
+`BillingGate` conditionally renders based on which billing actions are available in the snapshot (`checkout`, `portal`, `cancel`, `reactivate`):
 
 <Tabs>
   <Tab title="React">
@@ -194,9 +194,7 @@ export const createProject = mutation({
     // presence of a subscription item is the check. Do not add
     // `a.status === "active"`: that would deny users on a trial or in the
     // `past_due` dunning grace period, who should still have access.
-    const hasPaidAccess = snapshot.access.some(
-      (a) => a.kind === "subscription",
-    );
+    const hasPaidAccess = snapshot.access.some((a) => a.kind === "subscription");
     const projectCount = await countProjects(ctx, user.orgId ?? user._id);
     if (!hasPaidAccess && projectCount >= FREE_PROJECT_LIMIT) {
       throw new ConvexError("Upgrade to create more projects");

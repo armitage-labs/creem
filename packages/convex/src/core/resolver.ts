@@ -72,6 +72,7 @@ export const resolveBillingSnapshot = (
       cancelAtPeriodEnd: sub.cancelAtPeriodEnd,
       currentPeriodEnd: sub.currentPeriodEnd,
       trialEnd: sub.trialEnd,
+      endedAt: sub.endedAt ?? null,
     };
   });
 
@@ -86,6 +87,14 @@ export const resolveBillingSnapshot = (
     };
   });
 
+  // Subscriptions still in force. The snapshot carries the entity's full
+  // history, but payment-recovery state and available actions must reflect only
+  // what is live — otherwise a single subscription that lapsed years ago pins
+  // the account to "payment failed" and keeps offering "reactivate" forever.
+  const openSubscriptions = subscriptions.filter(
+    (subscription) => !subscription.endedAt,
+  );
+
   const appPlanAssignments = input.appPlanAssignments ?? [];
   const access = buildBillingAccess(
     subscriptions,
@@ -94,12 +103,12 @@ export const resolveBillingSnapshot = (
     now,
   );
 
-  // Derive payment recovery from all subscriptions
+  // Derive payment recovery from subscriptions that are still open
   const paymentRecoveryState: PaymentRecoveryState =
-    derivePaymentRecoveryState(subscriptions);
+    derivePaymentRecoveryState(openSubscriptions);
 
-  // Build available actions from active subscriptions
-  const actions = buildBillingActions(subscriptions, orders, now);
+  // Build available actions from subscriptions that are still open
+  const actions = buildBillingActions(openSubscriptions, orders, now);
 
   return {
     entityId: input.entityId,

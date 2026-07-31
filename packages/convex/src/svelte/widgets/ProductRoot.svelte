@@ -217,6 +217,10 @@
         checkoutError,
         i18n.labels.product.checkoutFailed,
       );
+    } finally {
+      // `finally`, matching the React root: on success the redirect normally
+      // takes over first, but if the browser blocks or delays it the card must
+      // not be left permanently stuck in its loading state with no way to retry.
       isLoading = false;
     }
   };

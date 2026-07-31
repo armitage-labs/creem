@@ -69,14 +69,17 @@ export type OneTimePaymentStatus =
  * Resolved by `resolveBillingSnapshot` based on subscription state. Use with
  * `<BillingGate requiredActions="...">` for conditional UI rendering.
  */
-export type AvailableAction =
-  | "checkout"
-  | "portal"
-  | "cancel"
-  | "reactivate"
-  | "switch_interval"
-  | "update_units"
-  | "contact_sales";
+/**
+ * Billing actions derivable from the entity's current billing STATE.
+ *
+ * Deliberately excludes affordances that depend on the plan's shape rather than
+ * on state — whether a plan offers several intervals, is unit-priced, or is an
+ * enterprise tier. Those are answered from the catalog entry
+ * (`billingCycles`, `pricingModel`, `category`) without consulting a snapshot,
+ * and mixing them in here would make `BillingSnapshot` — a serializable capture
+ * of state used for SSR and config-as-code diffs — depend on catalog shape.
+ */
+export type AvailableAction = "checkout" | "portal" | "cancel" | "reactivate";
 
 /**
  * Payment recovery state derived from subscription status.
@@ -259,6 +262,8 @@ export type SubscriptionSnapshot = {
   currentPeriodEnd?: string | null;
   /** ISO timestamp when the trial expires. */
   trialEnd?: string | null;
+  /** ISO timestamp when the subscription ended, or `null` while it is still open. */
+  endedAt?: string | null;
 };
 
 /** Snapshot of a one-time payment, parsed from checkout success query params. */

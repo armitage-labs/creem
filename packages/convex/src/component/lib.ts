@@ -46,7 +46,6 @@ export const insertCustomer = mutation({
       if (args.name && !existingCustomer.name) patch.name = args.name;
       if (args.country && !existingCustomer.country)
         patch.country = args.country;
-      if (args.mode) patch.mode = args.mode;
 
       // `updatedAt` is the watermark the re-point guard below trusts, so it must
       // only ever move forward. Writing it unconditionally would let a delayed
@@ -63,6 +62,11 @@ export const insertCustomer = mutation({
         (Number.isNaN(existingAt) || incomingAt >= existingAt);
 
       if (args.updatedAt && isNewer) patch.updatedAt = args.updatedAt;
+      // `mode` follows the same ordering as everything else in this block: a
+      // delayed webhook from the other Creem environment must not flip a live
+      // customer row to test mode (or back) when the same event is refused for
+      // the ID re-point.
+      if (args.mode && isNewer) patch.mode = args.mode;
 
       // The ID swap needs STRICTLY newer evidence. `isNewer` is `>=` so that an
       // idempotent replay of the same event still enriches fields, but an equal

@@ -629,6 +629,7 @@ export class Creem {
       cancelAtPeriodEnd: subscription.cancelAtPeriodEnd,
       currentPeriodEnd: subscription.currentPeriodEnd,
       trialEnd: subscription.trialEnd ?? null,
+      endedAt: subscription.endedAt ?? null,
     };
   }
 

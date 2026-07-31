@@ -75,6 +75,21 @@ export const buildCatalogRegistrations = ({
   });
 };
 
+const dedupeRegistrationsByPlanId = (
+  registrations: readonly SubscriptionPlanRegistration[],
+): SubscriptionPlanRegistration[] => {
+  const byPlanId = new Map<string, SubscriptionPlanRegistration>();
+  const order: string[] = [];
+  for (const registration of registrations) {
+    if (!byPlanId.has(registration.planId)) order.push(registration.planId);
+    byPlanId.set(registration.planId, registration);
+  }
+  return order.flatMap((planId) => {
+    const registration = byPlanId.get(planId);
+    return registration ? [registration] : [];
+  });
+};
+
 /**
  * Resolve registrations into display-ready plan entries.
  *
@@ -90,7 +105,12 @@ export const resolveUIPlans = ({
   catalog?: PlanCatalog;
   products: readonly ConnectedProduct[];
 }): UIPlanEntry[] =>
-  registrations.map((plan) => {
+  // A root can receive the same plan twice: once from its `plans`/`groups`
+  // props and again from an explicit `<Subscription.Item planId="...">` child.
+  // The plan ID is the stable identity, so collapse duplicates here — later
+  // registrations win, which lets a composed item refine what the catalog
+  // declared. Doing it in the shared resolver keeps React and Svelte identical.
+  dedupeRegistrationsByPlanId(registrations).map((plan) => {
     const catalogEntry = catalog
       ? findPlanById(catalog, plan.planId)
       : undefined;

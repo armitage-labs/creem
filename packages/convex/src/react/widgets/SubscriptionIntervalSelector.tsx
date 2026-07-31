@@ -41,12 +41,23 @@ export const SubscriptionIntervalSelector = ({
       ? requestedValue
       : resolvedCycles[0];
 
+  // Merge per cycle rather than replacing the root's map wholesale: supplying a
+  // badge for one interval must not silently drop the badges for the others.
+  // Matches the Svelte component so the same prop renders the same badges on
+  // both surfaces.
+  const resolvedBadges: Partial<Record<SupportedRecurringCycle, string>> = {};
+  for (const cycle of resolvedCycles) {
+    if (cycle === "custom") continue;
+    const badge = cycleBadges?.[cycle] ?? rootContext?.cycleBadges?.[cycle];
+    if (badge) resolvedBadges[cycle] = badge;
+  }
+
   return (
     <IntervalSelector
       cycles={resolvedCycles}
       value={resolvedValue}
       onValueChange={onValueChange ?? rootContext?.setCycle}
-      cycleBadges={cycleBadges ?? rootContext?.cycleBadges}
+      cycleBadges={resolvedBadges}
       unstyled={rootContext?.unstyled ?? false}
       labels={rootContext?.labels}
       className={className}

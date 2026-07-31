@@ -34,12 +34,12 @@ import { defineBillingCatalog } from "@creem_io/convex/core";
 
 These exports were deleted. Importing them is a build failure.
 
-| Removed                      | Replacement                                                                        |
-| ---------------------------- | ---------------------------------------------------------------------------------- |
-| `SegmentControl`             | `SegmentGroup` — same segmented control, renamed                                    |
-| `BillingToggle`              | `Subscription.IntervalSelector` inside a `Subscription.Root`, or `SegmentGroup` standalone |
-| `OneTimeCheckoutButton`      | `Product.Item` for a full card, or `CheckoutButton` for a bare button               |
-| `OneTimePaymentStatusBadge`  | `CheckoutSuccessSummary`, or render your own from `parseCheckoutSuccessParams`      |
+| Removed                     | Replacement                                                                                |
+| --------------------------- | ------------------------------------------------------------------------------------------ |
+| `SegmentControl`            | `SegmentGroup` — same segmented control, renamed                                           |
+| `BillingToggle`             | `Subscription.IntervalSelector` inside a `Subscription.Root`, or `SegmentGroup` standalone |
+| `OneTimeCheckoutButton`     | `Product.Item` for a full card, or `CheckoutButton` for a bare button                      |
+| `OneTimePaymentStatusBadge` | `CheckoutSuccessSummary`, or render your own from `parseCheckoutSuccessParams`             |
 
 `BillingToggle` was a thin wrapper that rendered cycle labels into a
 `SegmentGroup`. Inside a `Subscription.Root`, `Subscription.IntervalSelector`
@@ -111,14 +111,14 @@ provider never accepted. The binding is spreadable:
 
 #### Model and return shapes
 
-| Previous                                            | Now                                                 |
-| --------------------------------------------------- | --------------------------------------------------- |
-| `ConnectedBillingModel.user._id`                    | `user.id` (generic across integrations)             |
-| `uiModel` / `snapshot` returned `any`               | Real Convex `returns` validators and inferred types |
-| `credits.listEntries` returned an SDK page iterator | `{ entries[], hasMore }`                            |
-| `transactions.search` returned raw SDK rows         | Projected `ConnectedTransactionList`                |
-| `BillingContextValue` (flat, unimplemented)         | Nested `{ model, isLoading, error, … }` contract    |
-| `subscriptions.getCurrent` threw when the product was missing | Returns `product: null`                   |
+| Previous                                                      | Now                                                 |
+| ------------------------------------------------------------- | --------------------------------------------------- |
+| `ConnectedBillingModel.user._id`                              | `user.id` (generic across integrations)             |
+| `uiModel` / `snapshot` returned `any`                         | Real Convex `returns` validators and inferred types |
+| `credits.listEntries` returned an SDK page iterator           | `{ entries[], hasMore }`                            |
+| `transactions.search` returned raw SDK rows                   | Projected `ConnectedTransactionList`                |
+| `BillingContextValue` (flat, unimplemented)                   | Nested `{ model, isLoading, error, … }` contract    |
+| `subscriptions.getCurrent` threw when the product was missing | Returns `product: null`                             |
 
 `subscriptions.getCurrent` no longer throws `Product not found` when a
 subscription references a product this deployment has not synced yet - that
@@ -135,13 +135,13 @@ const planName = subscription?.product?.name ?? "Unknown plan";
 These are bug fixes rather than API changes, but they change what your app sees
 at runtime, so review any entitlement code you wrote against 0.3.x.
 
-| Behaviour in 0.3.x                                                        | Behaviour in 0.4.0                                                              |
-| ------------------------------------------------------------------------- | -------------------------------------------------------------------------------- |
-| Only `canceled` subscriptions were closed out with `endedAt`               | `expired` is closed out too, so it stops counting as the current subscription    |
-| An expired subscription was still returned by `getCurrent` indefinitely    | It is no longer returned once closed out                                          |
-| A lapsed trial stayed "active" until some unrelated write re-ran the query | A scheduled mutation closes it at `trialEnd`, so clients update on time           |
-| A changed Creem customer ID left the entity mapped to the old customer     | The mapping is re-pointed, so subscriptions and orders resolve again              |
-| Orders without a customer ID were stored unreachable                       | The webhook fails loudly and Creem retries                                        |
+| Behaviour in 0.3.x                                                         | Behaviour in 0.4.0                                                            |
+| -------------------------------------------------------------------------- | ----------------------------------------------------------------------------- |
+| Only `canceled` subscriptions were closed out with `endedAt`               | `expired` is closed out too, so it stops counting as the current subscription |
+| An expired subscription was still returned by `getCurrent` indefinitely    | It is no longer returned once closed out                                      |
+| A lapsed trial stayed "active" until some unrelated write re-ran the query | A scheduled mutation closes it at `trialEnd`, so clients update on time       |
+| A changed Creem customer ID left the entity mapped to the old customer     | The mapping is re-pointed, so subscriptions and orders resolve again          |
+| Orders without a customer ID were stored unreachable                       | The webhook fails loudly and Creem retries                                    |
 
 <Warning>
   If your app granted access by checking that a subscription merely **exists**,
@@ -156,8 +156,9 @@ const subscription = await creem.subscriptions.getCurrent(ctx, { entityId });
 const hasAccess = isActiveSubscriptionStatus(subscription?.status);
 ```
 
-  Tightening this may revoke access from users who should never have had it, so
-  check your own data before deploying.
+Tightening this may revoke access from users who should never have had it, so
+check your own data before deploying.
+
 </Warning>
 
 #### Provider-based widget API
@@ -205,12 +206,80 @@ grid, or omit it for automatic layout.
 
 `Product.Group` was removed. It was only a compatibility alias for
 `Product.Root`, not a real grouping primitive. Render `Product.Root` directly.
-`Subscription.Group` remains because it is a distinct component for grouping
-subscription plans.
 
 | Previous API      | New API          |
 | ----------------- | ---------------- |
 | `<Product.Group>` | `<Product.Root>` |
+
+#### `Subscription.Group` is no longer an alias for `Subscription.Root`
+
+<Warning>
+  This one fails silently. In 0.3.x `Subscription.Group` was a compatibility
+  alias for `Subscription.Root`. It is now a distinct component that renders its
+  children only while its `value` matches the root's active group.
+
+Used as a root, it provides no root context and no plans, so it renders
+**nothing at all** — no error, no warning, just an empty pricing section.
+
+</Warning>
+
+| Previous usage                     | New usage                                                          |
+| ---------------------------------- | ------------------------------------------------------------------ |
+| `<Subscription.Group>` as the root | `<Subscription.Root>`                                              |
+| —                                  | `<Subscription.Group value="teams">` inside a root, to scope plans |
+
+#### `PricingSection` props
+
+`PricingSection` is a public primitive, and its props changed beyond the
+seat→unit rename. (`PricingCard` already took `activePlanId` in 0.3.x and is
+unaffected.)
+
+| Previous API          | New API                       |
+| --------------------- | ----------------------------- |
+| `snapshot={snapshot}` | `activePlanId={activePlanId}` |
+| `twoColumnLayout`     | `columns={2}`                 |
+
+#### `AvailableAction` covers billing state only
+
+`switch_interval`, `update_units`, and `contact_sales` were removed from
+`AvailableAction` and from `snapshot.availableBillingActions`. They described
+the _shape of a plan_, not the entity's billing state, and the v2 resolver never
+emitted them — so a `BillingGate` requiring one already rendered only its
+fallback. Removing them turns that silent no-op into a compile error.
+
+Answer those questions from the catalog entry instead:
+
+| Previous action   | Ask instead                      |
+| ----------------- | -------------------------------- |
+| `switch_interval` | `plan.billingCycles.length > 1`  |
+| `update_units`    | `plan.pricingModel === "unit"`   |
+| `contact_sales`   | `plan.category === "enterprise"` |
+
+`checkout`, `portal`, `cancel`, and `reactivate` are unchanged.
+
+#### `cycleBadges` merges instead of replacing
+
+`<Subscription.IntervalSelector cycleBadges={...} />` in React used to replace
+the root's badge map wholesale, so setting one interval's badge silently dropped
+the rest. It now merges per interval, falling back to the root's badge for any
+interval the prop omits — matching Svelte, which already behaved this way.
+
+To keep the old "replace everything" behaviour, pass a badge for every interval
+you render.
+
+#### `orders.list` returns unpaid orders
+
+`orders.list` previously filtered to `status === "paid"`. It now returns every
+one-time order, including `pending`, `refunded`, and `partially_refunded` ones,
+so the caller decides what counts as owned. `snapshot.access` and
+`ownedProductIds` still apply the paid filter for you.
+
+If you treated everything `orders.list` returned as granting access, filter on
+status explicitly:
+
+```ts
+const owned = orders.filter((order) => order.status === "paid");
+```
 
 #### App-owned plans and i18n
 

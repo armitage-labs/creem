@@ -47,8 +47,12 @@ export const TrialLimitBanner = ({
    */
   formatDate?: (input: BillingDateFormatInput) => string;
 }) => {
+  // `endedAt` matters here: a trial that lapses without converting keeps
+  // `status: "trialing"` on the row, so matching on status alone would announce
+  // "Trial plan active until <past date>" forever.
   const trialSubscription = snapshot?.subscriptions.find(
-    (subscription) => subscription.status === "trialing",
+    (subscription) =>
+      subscription.status === "trialing" && !subscription.endedAt,
   );
 
   if (!trialSubscription) {

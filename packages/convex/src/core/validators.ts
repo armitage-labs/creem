@@ -34,9 +34,6 @@ export const availableActionValidator = v.union(
   v.literal("portal"),
   v.literal("cancel"),
   v.literal("reactivate"),
-  v.literal("switch_interval"),
-  v.literal("update_units"),
-  v.literal("contact_sales"),
 );
 
 const nullableString = v.union(v.string(), v.null());
@@ -54,6 +51,8 @@ export const billingSnapshotSubscriptionValidator = v.object({
   cancelAtPeriodEnd: v.optional(v.boolean()),
   currentPeriodEnd: v.optional(nullableString),
   trialEnd: v.optional(nullableString),
+  /** Set once the subscription is over, so consumers can ignore history. */
+  endedAt: v.optional(nullableString),
 });
 
 export const billingSnapshotOrderValidator = v.object({

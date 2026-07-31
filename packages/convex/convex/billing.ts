@@ -11,8 +11,11 @@ import { ConvexError, v } from "convex/values";
 const demoCreditsProductId =
   process.env.CREEM_ONETIME_CREDITS ?? "prod_73CnZ794MaJ1DUn8MU0O5f";
 
+// Defaults to the TEST server, matching `seed.ts` and this directory's README.
+// A demo that silently talks to production with a test key just fails
+// confusingly; opt in to production explicitly with CREEM_SERVER=prod.
 const creemServer =
-  process.env.CREEM_SERVER === "test" ? "test" : ("prod" as const);
+  process.env.CREEM_SERVER === "prod" ? "prod" : ("test" as const);
 
 const billingCatalog = defineBillingCatalog({
   version: "example-server",

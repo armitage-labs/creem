@@ -47,8 +47,9 @@
       ? requestedValue
       : resolvedCycles[0],
   );
-  // Root badges merge per cycle rather than being replaced wholesale, matching
-  // this component's behaviour before the selector implementations were merged.
+  // Merge per cycle rather than replacing the root's map wholesale: supplying a
+  // badge for one interval must not silently drop the badges for the others.
+  // The React component does the same, so the prop behaves identically on both.
   const resolvedBadges = $derived.by(() => {
     const merged: Partial<Record<SupportedRecurringCycle, string>> = {};
     for (const cycle of resolvedCycles) {

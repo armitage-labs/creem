@@ -80,8 +80,15 @@ export const SubscriptionItem = ({
   // re-rendering every consumer. Compare by value instead.
   const productIdsKey = JSON.stringify(productIds ?? null);
 
+  // Depend on the stable `registerPlan`, never on `rootContext` itself. The
+  // root memoizes its context value over derived state including `plans`, which
+  // is recomputed from `registeredPlans` — so registering here would change the
+  // context identity, re-run this effect, unregister/re-register, and spin
+  // forever. `registerPlan` is `useCallback(..., [])`, so it is safe to depend on.
+  const registerPlan = rootContext?.registerPlan;
+
   useEffect(() => {
-    if (!rootContext) return;
+    if (!registerPlan) return;
     if (!resolvedPlanId) return;
     const registration = {
       planId: resolvedPlanId,
@@ -96,10 +103,10 @@ export const SubscriptionItem = ({
         ? (JSON.parse(productIdsKey) as typeof productIds)
         : undefined,
     };
-    const unregister = rootContext.registerPlan(registration);
+    const unregister = registerPlan(registration);
     return unregister;
   }, [
-    rootContext,
+    registerPlan,
     planId,
     type,
     title,

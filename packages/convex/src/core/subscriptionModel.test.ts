@@ -268,6 +268,33 @@ describe("subscription matching", () => {
   });
 });
 
+describe("resolveUIPlans deduplication", () => {
+  it("collapses a plan registered by both the catalog props and a composed item", () => {
+    // A root given `plans={["basic"]}` AND an explicit
+    // <Subscription.Item planId="basic"> child registers the plan twice.
+    const result = resolveUIPlans({
+      registrations: [
+        { planId: "basic" },
+        { planId: "basic", title: "Basic (composed)" },
+        { planId: "pro" },
+      ],
+      products: [],
+    });
+
+    expect(result.map((plan) => plan.planId)).toEqual(["basic", "pro"]);
+    // Later registration wins, so a composed item can refine the catalog entry.
+    expect(result[0].title).toBe("Basic (composed)");
+  });
+
+  it("keeps first-appearance order when deduplicating", () => {
+    const result = resolveUIPlans({
+      registrations: [{ planId: "a" }, { planId: "b" }, { planId: "a" }],
+      products: [],
+    });
+    expect(result.map((plan) => plan.planId)).toEqual(["a", "b"]);
+  });
+});
+
 describe("resolveActivePlanId", () => {
   const plans = plansFor(["free", "basic", "premium"]);
 

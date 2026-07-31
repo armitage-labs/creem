@@ -44,6 +44,52 @@ describe("resolveBillingSnapshot", () => {
     expect(result.catalogVersion).toBe("1");
   });
 
+  it("does not report payment recovery from a subscription that already ended", () => {
+    // The snapshot carries the entity's whole history. Without scoping to open
+    // rows, one long-dead expired subscription pins the account to "blocked"
+    // forever — a red "payment failed" banner for a customer who is paid up.
+    const result = resolveBillingSnapshot({
+      entityId: "e1",
+      catalog,
+      now: "2026-01-01T00:00:00Z",
+      subscriptions: [
+        {
+          id: "sub_old",
+          productId: "prod_basic_m",
+          status: "expired",
+          endedAt: "2025-01-01T00:00:00Z",
+        },
+        {
+          id: "sub_current",
+          productId: "prod_basic_m",
+          status: "active",
+          endedAt: null,
+        },
+      ],
+    });
+
+    expect(result.paymentRecoveryState).toBe("none");
+    expect(result.availableBillingActions).not.toContain("reactivate");
+  });
+
+  it("still reports payment recovery for an open unpaid subscription", () => {
+    const result = resolveBillingSnapshot({
+      entityId: "e1",
+      catalog,
+      now: "2026-01-01T00:00:00Z",
+      subscriptions: [
+        {
+          id: "sub_1",
+          productId: "prod_basic_m",
+          status: "unpaid",
+          endedAt: null,
+        },
+      ],
+    });
+
+    expect(result.paymentRecoveryState).toBe("blocked");
+  });
+
   it("does not grant entitlements for a trial that has already lapsed", () => {
     // The snapshot is built from ALL subscriptions, including expired trials,
     // and Creem does not necessarily flip the status the moment a trial ends.
