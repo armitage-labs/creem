@@ -44,12 +44,14 @@ export const CreditsRoot = ({
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
-  // `isCurrent` lets the initial load bail out if the widget unmounted before
-  // the balance arrived. It defaults to "always current" so `refresh` keeps the
-  // plain `() => Promise<void>` signature the Credits context exposes; repeat
-  // presses are already blocked by the button's `disabled={loading}`.
-  const refresh = useCallback(
-    async (isCurrent: () => boolean = () => true) => {
+  // Internal loader. `isCurrent` lets the initial load bail out if the widget
+  // unmounted before the balance arrived. It is deliberately NOT exposed on the
+  // public `refresh`: that is typed `() => Promise<void>`, so a consumer writing
+  // `onClick={credits.refresh}` would pass a DOM event into this slot and every
+  // `isCurrent()` call — including the ones in `catch` and `finally` — would
+  // throw a TypeError, surfacing as an unhandled rejection with no error UI.
+  const loadBalance = useCallback(
+    async (isCurrent: () => boolean) => {
       if (!getBalanceRef) {
         setError(i18n.labels.credits.apiNotConfigured);
         return;
@@ -70,16 +72,18 @@ export const CreditsRoot = ({
     [client, getBalanceRef, i18n.labels.credits],
   );
 
+  const refresh = useCallback(() => loadBalance(() => true), [loadBalance]);
+
   useEffect(() => {
     let active = true;
     const timeout = setTimeout(() => {
-      void refresh(() => active);
+      void loadBalance(() => active);
     }, 0);
     return () => {
       active = false;
       clearTimeout(timeout);
     };
-  }, [refresh]);
+  }, [loadBalance]);
 
   const contextValue = useMemo(
     () => ({

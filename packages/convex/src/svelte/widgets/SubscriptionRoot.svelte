@@ -306,11 +306,7 @@
     },
     groupItems: () => groupItems,
     activeGroupId: () => activeGroupId,
-    setGroup: (nextGroup) => {
-      clampCycleForGroup(nextGroup);
-      selectedGroupId = nextGroup;
-      onGroupChange?.(nextGroup);
-    },
+    setGroup: (nextGroup) => handleGroupChange(nextGroup),
     availableCycles: () => availableCycles,
     setCycle: (nextCycle) => {
       const nextEffectiveCycle =
@@ -562,6 +558,16 @@
       activePlanId,
       activeOrScheduledPlanIds,
     });
+  }
+
+  // Both the built-in selector and `Subscription.GroupSelector` go through this,
+  // so a group change always clamps the cycle first. Skipping the clamp leaves a
+  // controlled parent believing the old interval is still selected when it is
+  // not available in the new group.
+  function handleGroupChange(nextGroup: string) {
+    clampCycleForGroup(nextGroup);
+    selectedGroupId = nextGroup;
+    onGroupChange?.(nextGroup);
   }
 
   function clampCycleForGroup(groupId: string | null) {
@@ -938,8 +944,10 @@
 
   const resumeSubscription = async () => {
     if (!resumeRef) return;
+    if (actionInFlight) return;
     const subId = matchedSubscription?.id;
     actionError = null;
+    actionInFlight = true;
     try {
       await client.mutation(
         resumeRef,
@@ -972,13 +980,17 @@
         error,
         resolvedI18n.labels.subscription.resumeFailed,
       );
+    } finally {
+      actionInFlight = false;
     }
   };
 
   const undoScheduledUpdate = async () => {
     if (!cancelScheduledUpdateRef) return;
+    if (actionInFlight) return;
     const subId = matchedSubscription?.id;
     actionError = null;
+    actionInFlight = true;
     try {
       await client.mutation(
         cancelScheduledUpdateRef,
@@ -1012,6 +1024,8 @@
         error,
         resolvedI18n.labels.subscription.resumeFailed,
       );
+    } finally {
+      actionInFlight = false;
     }
   };
 
@@ -1056,10 +1070,7 @@
           items={groupItems}
           value={activeGroupId}
           {unstyled}
-          onValueChange={(value) => {
-            selectedGroupId = value;
-            onGroupChange?.(value);
-          }}
+          onValueChange={(value) => handleGroupChange(value)}
         />
       </div>
     {/if}

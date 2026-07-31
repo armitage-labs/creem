@@ -212,7 +212,6 @@
         { capture: true, once: true },
       );
       window.location.href = url;
-      window.location.href = url;
     } catch (checkoutError) {
       error = getConvexErrorMessage(
         checkoutError,

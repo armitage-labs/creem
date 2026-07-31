@@ -70,3 +70,14 @@ describe("product checkout helpers", () => {
     ).toEqual(["prod_upgrade_delta", "prod_premium"]);
   });
 });
+
+describe("shouldSuppressPendingCheckout ownership requires item type", () => {
+  it("does not suppress on raw ownership alone", () => {
+    // Tempting shortcut: fall back to `effectiveOwnedProductIds` when items
+    // have not registered yet. It is wrong — repeatable products are in that
+    // list too, and suppressing them would block a legitimate re-purchase.
+    expect(
+      shouldSuppressPendingCheckout("prod_owned", [], ["prod_owned"]),
+    ).toBe(false);
+  });
+});

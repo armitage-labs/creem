@@ -1006,8 +1006,10 @@ export const SubscriptionRoot = ({
 
   const resumeSubscription = useCallback(async () => {
     if (!resumeRef) return;
+    if (actionInFlightRef.current) return;
     const subId = matchedSubscription?.id;
     setActionError(null);
+    actionInFlightRef.current = true;
     try {
       await client.mutation(
         resumeRef,
@@ -1042,6 +1044,8 @@ export const SubscriptionRoot = ({
           resolvedI18n.labels.subscription.resumeFailed,
         ),
       );
+    } finally {
+      actionInFlightRef.current = false;
     }
   }, [
     resumeRef,
@@ -1054,8 +1058,10 @@ export const SubscriptionRoot = ({
 
   const undoScheduledUpdate = useCallback(async () => {
     if (!cancelScheduledUpdateRef) return;
+    if (actionInFlightRef.current) return;
     const subId = matchedSubscription?.id;
     setActionError(null);
+    actionInFlightRef.current = true;
     try {
       await client.mutation(
         cancelScheduledUpdateRef,
@@ -1091,6 +1097,8 @@ export const SubscriptionRoot = ({
           resolvedI18n.labels.subscription.resumeFailed,
         ),
       );
+    } finally {
+      actionInFlightRef.current = false;
     }
   }, [
     billingUiModelRef,

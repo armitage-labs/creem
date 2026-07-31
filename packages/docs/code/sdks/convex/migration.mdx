@@ -9,6 +9,31 @@ Two one-time jobs. Neither is needed for a new integration.
 
 v2 (0.4.0) is a breaking release. The tables below map every removed or changed API to its replacement.
 
+#### `creem` is now a peer dependency
+
+`creem` moved out of this package's `dependencies`, so it is no longer installed
+for you. Add it to your app or the package will fail to resolve at runtime:
+
+```bash
+pnpm install @creem_io/convex convex creem
+```
+
+#### Removed primitives
+
+These exports were deleted. Importing them is a build failure.
+
+| Removed                      | Replacement                                                                        |
+| ---------------------------- | ---------------------------------------------------------------------------------- |
+| `SegmentControl`             | `SegmentGroup` — same segmented control, renamed                                    |
+| `BillingToggle`              | `Subscription.IntervalSelector` inside a `Subscription.Root`, or `SegmentGroup` standalone |
+| `OneTimeCheckoutButton`      | `Product.Item` for a full card, or `CheckoutButton` for a bare button               |
+| `OneTimePaymentStatusBadge`  | `CheckoutSuccessSummary`, or render your own from `parseCheckoutSuccessParams`      |
+
+`BillingToggle` was a thin wrapper that rendered cycle labels into a
+`SegmentGroup`. Inside a `Subscription.Root`, `Subscription.IntervalSelector`
+replaces it and is already wired to the root's cycles; outside one, compose
+`SegmentGroup` directly.
+
 #### Typed connected API and `connectCreemApi`
 
 `ConnectedBillingApi` fields are now typed by function kind, args, **and**

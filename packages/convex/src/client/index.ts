@@ -1052,6 +1052,11 @@ export class Creem {
       { createIfMissing: false },
     );
     if (!accountId) return;
+    // The key includes the amount so a prorated refund that Creem recalculates
+    // debits the corrected figure rather than being swallowed as a duplicate.
+    // The trade-off: if Creem ever redelivers the *same* refund ID with a larger
+    // `refundAmount`, the key changes and the credits are debited twice,
+    // cumulatively. This key is the only protection on this path.
     await this.credits.debit(accountId, {
       amount,
       reference: `refund:${refundId}`,
@@ -1292,6 +1297,13 @@ export class Creem {
 
         const subscription = await this.getOwnedSubscription(ctx, args);
 
+        // A period-end switch to an app-owned plan deliberately skips the
+        // side-effect cleanup: `createScheduledSubscriptionUpdate` already
+        // supersedes every pending row for this subscription, and
+        // `assignAppPlan({ status: "scheduled" })` ends other scheduled
+        // assignments for it, after which the branch re-asserts
+        // `cancelAtPeriodEnd: true`. Running the cleanup here would clear the
+        // scheduled cancellation this path depends on.
         const canceledSideEffects =
           updateBehavior !== "period-end" || !appPlanId
             ? await this.cancelPendingScheduledUpdateSideEffects(ctx, {

@@ -61,6 +61,18 @@ export const resolveProductCheckoutProductId = (
   return item.productId;
 };
 
+/**
+ * Whether a stored checkout intent should be dropped instead of resumed.
+ *
+ * Requires the registered items, not just `effectiveOwnedProductIds`: a
+ * repeatable product (a credits pack, say) appears in the owned list yet must
+ * stay purchasable, and only the item's `type` distinguishes it from a one-time
+ * purchase. That means suppression depends on child `Product.Item` components
+ * having registered. They register from their own effects, which React commits
+ * before the parent's, so by the time the billing model resolves the list is
+ * populated — but an intent could still slip through in the rare case where the
+ * model resolves in the very same commit that mounts the items.
+ */
 export const shouldSuppressPendingCheckout = (
   pendingProductId: string,
   items: readonly ProductItemLike[],

@@ -42,6 +42,12 @@ export const resolveProductIdForPlan = (
   if (!productIds) return undefined;
 
   const cycle = selectedCycle ?? "custom";
+  // Deliberate tail fallback (pinned by tests): a plan that does not offer the
+  // selected cycle still resolves to *some* product rather than rendering a
+  // priceless, un-checkoutable card. The trade-off is that such a card shows the
+  // other cycle's price and checks out into that product, so a catalog should
+  // either offer every advertised cycle for a plan or scope the plan to a group
+  // whose cycles it fully covers.
   return productIds[cycle] ?? Object.values(productIds)[0];
 };
 
