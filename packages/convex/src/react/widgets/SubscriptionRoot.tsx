@@ -36,7 +36,7 @@ import {
   type BillingI18n,
   type BillingLabelOverrides,
 } from "../../core/i18n.js";
-import { normalizePlanCatalog } from "../../core/catalog.js";
+import { mergePlanCatalogs, normalizePlanCatalog } from "../../core/catalog.js";
 import {
   buildCatalogRegistrations,
   cyclesForGroup,
@@ -155,7 +155,6 @@ export const SubscriptionRoot = ({
 }>) => {
   const provider = useCreemConvex();
   const resolvedApi = requireCreemConvexApi("Subscription.Root", provider);
-  const resolvedCatalog = catalog ?? provider?.catalog;
   const resolvedDefaultCycle =
     defaultCycle ?? provider?.defaultCycle ?? "every-month";
   const resolvedPermissions = permissions ?? provider?.permissions;
@@ -197,6 +196,14 @@ export const SubscriptionRoot = ({
 
   const modelRaw = useQuery(billingUiModelRef, {});
   const model = (modelRaw ?? null) as ConnectedBillingModel | null;
+
+  // Merge server → provider → local, most specific last. The server publishes
+  // its catalog on `model.catalog`; ignoring it leaves apps that configure
+  // plans only on the backend with cards that have no price and a dead CTA.
+  const resolvedCatalog = useMemo(
+    () => mergePlanCatalogs(model?.catalog, provider?.catalog, catalog),
+    [model?.catalog, provider?.catalog, catalog],
+  );
 
   const [selectedCycle, setSelectedCycle] =
     useState<RecurringCycle>(resolvedDefaultCycle);

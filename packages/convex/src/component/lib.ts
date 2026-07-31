@@ -47,7 +47,23 @@ export const insertCustomer = mutation({
       if (args.country && !existingCustomer.country)
         patch.country = args.country;
       if (args.mode) patch.mode = args.mode;
-      if (args.updatedAt) patch.updatedAt = args.updatedAt;
+
+      // `updatedAt` is the watermark the re-point guard below trusts, so it must
+      // only ever move forward. Writing it unconditionally would let a delayed
+      // webhook lower the watermark, after which a *second* delayed webhook —
+      // still older than the current mapping but newer than the lowered value —
+      // would satisfy the guard and flip the mapping back to the replaced
+      // customer. Every lookup for the entity would then miss.
+      const incomingAt = args.updatedAt ? Date.parse(args.updatedAt) : NaN;
+      const existingAt = existingCustomer.updatedAt
+        ? Date.parse(existingCustomer.updatedAt)
+        : NaN;
+      const isNewer =
+        !Number.isNaN(incomingAt) &&
+        (Number.isNaN(existingAt) || incomingAt >= existingAt);
+
+      if (args.updatedAt && isNewer) patch.updatedAt = args.updatedAt;
+
       // Re-point the mapping when Creem issues a new customer for this entity
       // (test/live mode switch, customer re-created in the dashboard).
       // Subscriptions and orders are keyed by the Creem customer ID, so keeping a
@@ -56,15 +72,8 @@ export const insertCustomer = mutation({
       //
       // Only move forward in time: a delayed webhook for the *previous* customer
       // must not drag the mapping back and hide the new customer's data. When
-      // either side has no timestamp there is no ordering to trust, so the
-      // mapping is left alone.
-      if (
-        args.id &&
-        args.id !== existingCustomer.id &&
-        args.updatedAt &&
-        (!existingCustomer.updatedAt ||
-          Date.parse(args.updatedAt) >= Date.parse(existingCustomer.updatedAt))
-      ) {
+      // there is no timestamp to order by, the mapping is left alone.
+      if (args.id && args.id !== existingCustomer.id && isNewer) {
         patch.id = args.id;
       }
       if (Object.keys(patch).length > 0) {

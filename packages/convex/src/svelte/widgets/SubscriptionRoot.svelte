@@ -1,6 +1,5 @@
 <script lang="ts">
   import { getContext, setContext, untrack } from "svelte";
-  import { SvelteMap } from "svelte/reactivity";
 
   import { Dialog } from "@ark-ui/svelte/dialog";
   import { Portal } from "@ark-ui/svelte/portal";
@@ -23,7 +22,6 @@
 
   import type {
     PlanCatalog,
-    PlanCatalogEntry,
     UIPlanEntry,
     RecurringCycle,
     AppPlanUpdateBehaviorIntent,
@@ -40,7 +38,10 @@
     type BillingI18n,
     type BillingLabelOverrides,
   } from "../../core/i18n.js";
-  import { normalizePlanCatalog } from "../../core/catalog.js";
+  import {
+    mergePlanCatalogs,
+    normalizePlanCatalog,
+  } from "../../core/catalog.js";
   import {
     buildCatalogRegistrations,
     cyclesForGroup,
@@ -457,61 +458,6 @@
     return productId
       ? (allProducts.find((product) => product.id === productId)?.price ?? null)
       : null;
-  }
-
-  function hasProductMappings(plan: PlanCatalogEntry | undefined) {
-    return Object.keys(plan?.creemProductIds ?? {}).length > 0 ||
-      Object.keys(plan?.products ?? {}).length > 0;
-  }
-
-  function mergePlanCatalogs(
-    ...catalogs: Array<PlanCatalog | null | undefined>
-  ): PlanCatalog | undefined {
-    const defined = catalogs.filter(
-      (entry): entry is PlanCatalog => entry != null,
-    );
-    if (defined.length === 0) return undefined;
-
-    const order: string[] = [];
-    const plansById = new SvelteMap<string, PlanCatalogEntry>();
-
-    for (const entry of defined) {
-      for (const plan of entry.plans) {
-        const existing = plansById.get(plan.planId);
-        if (!existing) {
-          order.push(plan.planId);
-          plansById.set(plan.planId, plan);
-          continue;
-        }
-
-        const merged: PlanCatalogEntry = {
-          ...existing,
-          ...plan,
-          creemProductIds:
-            Object.keys(plan.creemProductIds ?? {}).length > 0
-              ? plan.creemProductIds
-              : existing.creemProductIds,
-          products:
-            Object.keys(plan.products ?? {}).length > 0
-              ? plan.products
-              : existing.products,
-        };
-        if (!hasProductMappings(merged) && hasProductMappings(existing)) {
-          merged.creemProductIds = existing.creemProductIds;
-          merged.products = existing.products;
-        }
-        plansById.set(plan.planId, merged);
-      }
-    }
-
-    return {
-      version: defined.at(-1)?.version ?? defined[0].version,
-      defaultPlanId: defined.at(-1)?.defaultPlanId ?? defined[0].defaultPlanId,
-      plans: order.flatMap((planId) => {
-        const plan = plansById.get(planId);
-        return plan ? [plan] : [];
-      }),
-    };
   }
 
   function getPlanForProduct(productId?: string | null) {

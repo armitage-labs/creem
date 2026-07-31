@@ -5,6 +5,7 @@ import {
   normalizePlanCategory,
   normalizeBillingType,
   normalizePlanCatalog,
+  mergePlanCatalogs,
   defineBillingCatalog,
   plansOf,
   findPlanById,
@@ -474,5 +475,74 @@ describe("resolvePlanProductId", () => {
     expect(() => resolvePlanProductId(catalog, "pro", "every-year")).toThrow(
       'Billing plan "pro" has no product for "every-year"',
     );
+  });
+});
+
+describe("mergePlanCatalogs", () => {
+  const serverCatalog = {
+    version: "server",
+    plans: [
+      {
+        planId: "pro",
+        category: "paid" as const,
+        title: "Pro",
+        creemProductIds: { "every-month": "prod_pro_m" },
+      },
+    ],
+  };
+
+  it("returns undefined when nothing is provided", () => {
+    expect(mergePlanCatalogs(undefined, null)).toBeUndefined();
+  });
+
+  it("uses the server catalog when the app configures none", () => {
+    // The server publishes its catalog on `ConnectedBillingModel.catalog`.
+    // Dropping it leaves cards with no price and a dead CTA.
+    const merged = mergePlanCatalogs(serverCatalog, undefined, undefined);
+    expect(merged?.plans[0].creemProductIds).toEqual({
+      "every-month": "prod_pro_m",
+    });
+  });
+
+  it("lets a later catalog override fields without losing product mappings", () => {
+    const merged = mergePlanCatalogs(serverCatalog, undefined, {
+      version: "local",
+      plans: [
+        { planId: "pro", category: "paid" as const, title: "Pro (renamed)" },
+      ],
+    });
+    expect(merged?.plans[0].title).toBe("Pro (renamed)");
+    // The override only set a title; the server's product IDs must survive.
+    expect(merged?.plans[0].creemProductIds).toEqual({
+      "every-month": "prod_pro_m",
+    });
+    expect(merged?.version).toBe("local");
+  });
+
+  it("lets a later catalog replace product mappings when it supplies them", () => {
+    const merged = mergePlanCatalogs(serverCatalog, undefined, {
+      version: "local",
+      plans: [
+        {
+          planId: "pro",
+          category: "paid" as const,
+          creemProductIds: { "every-month": "prod_override" },
+        },
+      ],
+    });
+    expect(merged?.plans[0].creemProductIds).toEqual({
+      "every-month": "prod_override",
+    });
+  });
+
+  it("keeps first-appearance plan order and appends new plans", () => {
+    const merged = mergePlanCatalogs(serverCatalog, undefined, {
+      version: "local",
+      plans: [
+        { planId: "starter", category: "paid" as const },
+        { planId: "pro", category: "paid" as const },
+      ],
+    });
+    expect(merged?.plans.map((p) => p.planId)).toEqual(["pro", "starter"]);
   });
 });

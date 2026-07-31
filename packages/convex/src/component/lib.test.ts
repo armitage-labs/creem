@@ -509,6 +509,41 @@ describe("insertCustomer mutation", () => {
     expect(result?.id).toBe("cust_new");
   });
 
+  it("does not flip back after a stale event lowers the watermark", async () => {
+    await t.mutation(api.lib.insertCustomer, {
+      id: "cust_old",
+      entityId: "user_1",
+      updatedAt: "2025-01-01T00:00:00.000Z",
+    });
+    await t.mutation(api.lib.insertCustomer, {
+      id: "cust_new",
+      entityId: "user_1",
+      updatedAt: "2025-02-01T00:00:00.000Z",
+    });
+
+    // A delayed event for the OLD customer is correctly refused...
+    await t.mutation(api.lib.insertCustomer, {
+      id: "cust_old",
+      entityId: "user_1",
+      updatedAt: "2025-01-01T00:00:00.000Z",
+    });
+
+    // ...and must not have lowered the watermark, or this later event — still
+    // older than the re-point — would satisfy the guard and flip the mapping
+    // back to the replaced customer, hiding every subscription and order.
+    await t.mutation(api.lib.insertCustomer, {
+      id: "cust_old",
+      entityId: "user_1",
+      updatedAt: "2025-01-15T00:00:00.000Z",
+    });
+
+    const result = await t.query(api.lib.getCustomerByEntityId, {
+      entityId: "user_1",
+    });
+    expect(result?.id).toBe("cust_new");
+    expect(result?.updatedAt).toBe("2025-02-01T00:00:00.000Z");
+  });
+
   it("leaves the mapping alone when there is no ordering information", async () => {
     await t.mutation(api.lib.insertCustomer, createTestCustomer());
     // No `updatedAt` on either side: without an ordering we cannot tell a

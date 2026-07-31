@@ -61,6 +61,24 @@ a changeset.
 Do not edit `CHANGELOG.md` for unreleased changes. The release workflow updates
 it from merged changesets.
 
+## Packaging notes
+
+`pnpm check:package` runs
+[`arethetypeswrong`](https://arethetypeswrong.github.io/) against the built
+tarball. Two settings in `.attw.json` are deliberate:
+
+- `excludeEntrypoints: ["./styles"]` — that entry is CSS, not types.
+- `ignoreRules: ["internal-resolution-error"]` — the declarations emitted by
+  `svelte-package` for `dist/svelte` import `.svelte` files, which attw cannot
+  resolve. The rule is package-wide because attw has no per-entrypoint ignore,
+  so it also suppresses genuine internal resolution errors in `dist/client` and
+  `dist/react`. Those paths are covered instead by `pnpm typecheck`, which
+  compiles the same sources under `module: NodeNext` and therefore validates
+  import specifiers and extensions.
+
+`dist/svelte` is produced solely by `svelte-package`; `tsconfig.build.json`
+excludes `src/svelte` so tsc does not emit competing output there.
+
 ## Deploying
 
 ### Building a one-off package

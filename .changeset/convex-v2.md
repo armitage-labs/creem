@@ -21,6 +21,7 @@ Features:
 - `PlanCatalogEntry.trialDays` declares the length of a Creem-managed trial, so the pricing card can offer it before checkout instead of a plain "Subscribe". Creem's product API does not expose trial configuration, so this mirrors the dashboard until config-as-code can drive both. New `BillingLabels.subscription` keys: `startFreeTrial` and `trialDaysFree`.
 - `connectCreemApi(api.billing)` builds the connected widget API from the generated exports
 - `pendingCheckout.peek()` reads a stored checkout intent without consuming it, so a resume can survive React StrictMode's double-invoked effects
+- `mergePlanCatalogs(...)` merges server, provider, and widget catalogs least-to-most specific without dropping product mappings. Both `Subscription.Root` implementations use it, so an app that configures plans only on the backend renders identically in React and Svelte
 - Every generated function declares a real Convex `returns` validator, so clients infer concrete result types instead of `any`
 - Shared `BillingContextValue` contract in `core/` — the integration-agnostic seam the widgets will consume
 - Subscription plan/group/cycle derivation extracted to `core/subscriptionModel.ts` and shared by the React and Svelte roots
