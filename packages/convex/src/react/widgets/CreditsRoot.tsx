@@ -22,7 +22,8 @@ import { getConvexErrorMessage } from "../../core/convexError.js";
 
 export const CreditsRoot = ({
   unitLabel = "credits",
-  className = "",
+  className,
+  class: classProp,
   children,
 }: {
   unitLabel?: string;
@@ -43,28 +44,41 @@ export const CreditsRoot = ({
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
-  const refresh = useCallback(async () => {
-    if (!getBalanceRef) {
-      setError(i18n.labels.credits.apiNotConfigured);
-      return;
-    }
-    setLoading(true);
-    setError(null);
-    try {
-      const result = await client.action(getBalanceRef, {});
-      setBalance(result?.balance ?? "0");
-    } catch (cause) {
-      setError(getConvexErrorMessage(cause, i18n.labels.credits.loadFailed));
-    } finally {
-      setLoading(false);
-    }
-  }, [client, getBalanceRef, i18n.labels.credits]);
+  // `isCurrent` lets the initial load bail out if the widget unmounted before
+  // the balance arrived. It defaults to "always current" so `refresh` keeps the
+  // plain `() => Promise<void>` signature the Credits context exposes; repeat
+  // presses are already blocked by the button's `disabled={loading}`.
+  const refresh = useCallback(
+    async (isCurrent: () => boolean = () => true) => {
+      if (!getBalanceRef) {
+        setError(i18n.labels.credits.apiNotConfigured);
+        return;
+      }
+      setLoading(true);
+      setError(null);
+      try {
+        const result = await client.action(getBalanceRef, {});
+        if (!isCurrent()) return;
+        setBalance(result?.balance ?? "0");
+      } catch (cause) {
+        if (!isCurrent()) return;
+        setError(getConvexErrorMessage(cause, i18n.labels.credits.loadFailed));
+      } finally {
+        if (isCurrent()) setLoading(false);
+      }
+    },
+    [client, getBalanceRef, i18n.labels.credits],
+  );
 
   useEffect(() => {
+    let active = true;
     const timeout = setTimeout(() => {
-      void refresh();
+      void refresh(() => active);
     }, 0);
-    return () => clearTimeout(timeout);
+    return () => {
+      active = false;
+      clearTimeout(timeout);
+    };
   }, [refresh]);
 
   const contextValue = useMemo(
@@ -82,7 +96,7 @@ export const CreditsRoot = ({
   return (
     <CreditsContext.Provider value={contextValue}>
       <section
-        className={`w-full max-w-sm space-y-4 radius-xl border border-border-subtle bg-surface-base p-6 text-foreground-default ${className}`}
+        className={`w-full max-w-sm space-y-4 radius-xl border border-border-subtle bg-surface-base p-6 text-foreground-default ${className ?? classProp ?? ""}`}
       >
         {typeof children === "function"
           ? children(contextValue)

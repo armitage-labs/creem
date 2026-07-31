@@ -16,6 +16,7 @@
     type CreemConvexContextValue,
   } from "../creemConvexContext.js";
   import { resolveBillingI18n } from "../../core/i18n.js";
+  import { getConvexErrorMessage } from "../../core/convexError.js";
 
   interface Props {
     /** Local UI permission overrides. `canAccessPortal: false` hides the portal button. */
@@ -52,13 +53,19 @@
   const hasCreemCustomer = $derived(model?.hasCreemCustomer ?? false);
 
   let isLoading = $state(false);
+  let error = $state<string | null>(null);
 
   const openPortal = async () => {
     if (!portalUrlRef) return;
     isLoading = true;
+    error = null;
     try {
       const { url } = await client.action(portalUrlRef, {});
       window.open(url, "_blank", "noopener,noreferrer");
+    } catch (cause) {
+      // Without this the rejection is unhandled and the user gets no feedback
+      // at all — the button just stops spinning.
+      error = getConvexErrorMessage(cause, i18n.labels.portal.failedToOpen);
     } finally {
       isLoading = false;
     }
@@ -78,4 +85,7 @@
       {i18n.labels.portal.manageBilling}
     {/if}
   </CustomerPortalButton>
+  {#if error}
+    <p role="alert" class="text-error-foreground-default text-sm">{error}</p>
+  {/if}
 {/if}

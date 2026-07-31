@@ -1,8 +1,13 @@
 import { Creem } from "creem";
 
 import { ConvexError, v } from "convex/values";
-import { action, mutation, query } from "./_generated/server.js";
-import type { Doc } from "./_generated/dataModel.js";
+import {
+  action,
+  mutation,
+  query,
+  type MutationCtx,
+} from "./_generated/server.js";
+import type { Doc, Id } from "./_generated/dataModel.js";
 import schema from "./schema.js";
 import { asyncMap } from "convex-helpers";
 import { api } from "./_generated/api.js";
@@ -43,6 +48,25 @@ export const insertCustomer = mutation({
         patch.country = args.country;
       if (args.mode) patch.mode = args.mode;
       if (args.updatedAt) patch.updatedAt = args.updatedAt;
+      // Re-point the mapping when Creem issues a new customer for this entity
+      // (test/live mode switch, customer re-created in the dashboard).
+      // Subscriptions and orders are keyed by the Creem customer ID, so keeping a
+      // stale ID here makes every lookup for this entity miss — the user has paid
+      // but sees no subscription.
+      //
+      // Only move forward in time: a delayed webhook for the *previous* customer
+      // must not drag the mapping back and hide the new customer's data. When
+      // either side has no timestamp there is no ordering to trust, so the
+      // mapping is left alone.
+      if (
+        args.id &&
+        args.id !== existingCustomer.id &&
+        args.updatedAt &&
+        (!existingCustomer.updatedAt ||
+          Date.parse(args.updatedAt) >= Date.parse(existingCustomer.updatedAt))
+      ) {
+        patch.id = args.id;
+      }
       if (Object.keys(patch).length > 0) {
         await ctx.db.patch(existingCustomer._id, patch);
       }
@@ -88,7 +112,7 @@ export const getCurrentSubscription = query({
   returns: v.union(
     v.object({
       ...schema.tables.subscriptions.validator.fields,
-      product: schema.tables.products.validator,
+      product: v.union(schema.tables.products.validator, v.null()),
     }),
     v.null(),
   ),
@@ -116,13 +140,14 @@ export const getCurrentSubscription = query({
     ) {
       return null;
     }
+    // Products are only populated by `syncProducts`, so a subscription can
+    // legitimately reference a product this deployment has not synced yet.
+    // Degrade to `product: null` (as `listUserSubscriptions` does) rather than
+    // throwing, which would break every query composed on top of this one.
     const product = await ctx.db
       .query("products")
       .withIndex("id", (q) => q.eq("id", subscription.productId))
       .unique();
-    if (!product) {
-      throw new ConvexError(`Product not found: ${subscription.productId}`);
-    }
     return {
       ...omitSystemFields(subscription),
       product: omitSystemFields(product),
@@ -237,26 +262,109 @@ export const listProducts = query({
   },
 });
 
+/**
+ * Schedule the trial-expiry sweep for a trialing subscription.
+ *
+ * Queries are cached and only re-run when data changes, so a query that compares
+ * `trialEnd` against the wall clock never re-fires on its own — a subscribed
+ * client would keep seeing an active trial after it lapsed. Writing a row at
+ * `trialEnd` is what makes trial expiry reactive.
+ *
+ * Deduplicated on `trialExpiryScheduledFor`, the trial end a job was actually
+ * scheduled for. Comparing against the *previous* `trialEnd` instead would skip
+ * rows that were already trialing before this feature shipped: their `trialEnd`
+ * never changes, so they would never get a job. Duplicates would be harmless
+ * anyway — `expireTrialIfElapsed` is idempotent — but they cost scheduler rows.
+ */
+const scheduleTrialExpiry = async (
+  ctx: MutationCtx,
+  documentId: Id<"subscriptions">,
+  subscription: { id: string; status: string; trialEnd?: string | null },
+  scheduledFor?: string | null,
+) => {
+  if (subscription.status !== "trialing" || !subscription.trialEnd) {
+    return;
+  }
+  if (scheduledFor === subscription.trialEnd) {
+    return;
+  }
+  const expiresAt = Date.parse(subscription.trialEnd);
+  if (Number.isNaN(expiresAt)) {
+    return;
+  }
+  await ctx.scheduler.runAt(expiresAt, api.lib.expireTrialIfElapsed, {
+    subscriptionId: subscription.id,
+  });
+  await ctx.db.patch(documentId, {
+    trialExpiryScheduledFor: subscription.trialEnd,
+  });
+};
+
+/**
+ * Close out a subscription whose trial has lapsed without converting.
+ *
+ * Idempotent: does nothing unless the subscription is still `trialing` with a
+ * `trialEnd` in the past. If Creem converts the trial to a paid subscription,
+ * the incoming webhook clears `endedAt` again.
+ */
+export const expireTrialIfElapsed = mutation({
+  args: {
+    subscriptionId: v.string(),
+  },
+  returns: v.null(),
+  handler: async (ctx, args) => {
+    const subscription = await ctx.db
+      .query("subscriptions")
+      .withIndex("id", (q) => q.eq("id", args.subscriptionId))
+      .unique();
+    if (
+      !subscription ||
+      subscription.status !== "trialing" ||
+      !subscription.trialEnd ||
+      subscription.endedAt
+    ) {
+      return null;
+    }
+    if (subscription.trialEnd > new Date().toISOString()) {
+      return null;
+    }
+    await ctx.db.patch(subscription._id, { endedAt: subscription.trialEnd });
+    return null;
+  },
+});
+
 export const createSubscription = mutation({
   args: {
     subscription: schema.tables.subscriptions.validator,
   },
+  returns: v.null(),
   handler: async (ctx, args) => {
     const existingSubscription = await ctx.db
       .query("subscriptions")
       .withIndex("id", (q) => q.eq("id", args.subscription.id))
       .unique();
     if (!existingSubscription) {
-      await ctx.db.insert("subscriptions", args.subscription);
-      return;
+      const insertedId = await ctx.db.insert(
+        "subscriptions",
+        args.subscription,
+      );
+      await scheduleTrialExpiry(ctx, insertedId, args.subscription);
+      return null;
     }
     // Timestamp guard: skip if existing record is newer
     const incomingModifiedAt = args.subscription.modifiedAt ?? "";
     const existingModifiedAt = existingSubscription.modifiedAt ?? "";
     if (existingModifiedAt > incomingModifiedAt) {
-      return; // stale webhook, skip
+      return null; // stale webhook, skip
     }
     await ctx.db.patch(existingSubscription._id, args.subscription);
+    await scheduleTrialExpiry(
+      ctx,
+      existingSubscription._id,
+      args.subscription,
+      existingSubscription.trialExpiryScheduledFor,
+    );
+    return null;
   },
 });
 
@@ -264,6 +372,7 @@ export const updateSubscription = mutation({
   args: {
     subscription: schema.tables.subscriptions.validator,
   },
+  returns: v.null(),
   handler: async (ctx, args) => {
     const existingSubscription = await ctx.db
       .query("subscriptions")
@@ -271,14 +380,18 @@ export const updateSubscription = mutation({
       .unique();
     if (!existingSubscription) {
       // Subscription doesn't exist yet — insert instead of throwing
-      await ctx.db.insert("subscriptions", args.subscription);
-      return;
+      const insertedId = await ctx.db.insert(
+        "subscriptions",
+        args.subscription,
+      );
+      await scheduleTrialExpiry(ctx, insertedId, args.subscription);
+      return null;
     }
     // Timestamp guard: skip if existing record is newer
     const incomingModifiedAt = args.subscription.modifiedAt ?? "";
     const existingModifiedAt = existingSubscription.modifiedAt ?? "";
     if (existingModifiedAt > incomingModifiedAt) {
-      return; // stale webhook, skip
+      return null; // stale webhook, skip
     }
 
     // Optimistic-update guard: if a recent patchSubscription set optimistic
@@ -362,6 +475,13 @@ export const updateSubscription = mutation({
     }
 
     await ctx.db.patch(existingSubscription._id, subscriptionToWrite);
+    await scheduleTrialExpiry(
+      ctx,
+      existingSubscription._id,
+      subscriptionToWrite,
+      existingSubscription.trialExpiryScheduledFor,
+    );
+    return null;
   },
 });
 
@@ -369,6 +489,7 @@ export const createProduct = mutation({
   args: {
     product: schema.tables.products.validator,
   },
+  returns: v.null(),
   handler: async (ctx, args) => {
     const existingProduct = await ctx.db
       .query("products")
@@ -392,6 +513,7 @@ export const updateProduct = mutation({
   args: {
     product: schema.tables.products.validator,
   },
+  returns: v.null(),
   handler: async (ctx, args) => {
     const existingProduct = await ctx.db
       .query("products")
@@ -416,6 +538,7 @@ export const createOrder = mutation({
   args: {
     order: schema.tables.orders.validator,
   },
+  returns: v.null(),
   handler: async (ctx, args) => {
     const existing = await ctx.db
       .query("orders")
@@ -448,9 +571,11 @@ export const listUserOrders = query({
     }
     const orders = await ctx.db
       .query("orders")
-      .withIndex("customerId", (q) => q.eq("customerId", customer.id))
+      .withIndex("customerId_type", (q) =>
+        q.eq("customerId", customer.id).eq("type", "onetime"),
+      )
       .collect();
-    return orders.filter((o) => o.type === "onetime").map(omitSystemFields);
+    return orders.map(omitSystemFields);
   },
 });
 
@@ -474,6 +599,7 @@ export const syncProducts = action({
     server: v.optional(v.union(v.literal("test"), v.literal("prod"))),
     serverURL: v.optional(v.string()),
   },
+  returns: v.null(),
   handler: async (ctx, args) => {
     const creem = new Creem({
       apiKey: args.apiKey,
@@ -494,6 +620,7 @@ export const updateProducts = mutation({
   args: {
     products: v.array(schema.tables.products.validator),
   },
+  returns: v.null(),
   handler: async (ctx, args) => {
     await asyncMap(args.products, async (product) => {
       const existingProduct = await ctx.db
@@ -522,6 +649,7 @@ export const patchSubscription = mutation({
     cancelAtPeriodEnd: v.optional(v.boolean()),
     clearOptimistic: v.optional(v.boolean()),
   },
+  returns: v.null(),
   handler: async (ctx, args) => {
     const sub = await ctx.db
       .query("subscriptions")
@@ -994,13 +1122,17 @@ export const cancelScheduledSubscriptionUpdate = mutation({
     v.null(),
   ),
   handler: async (ctx, args) => {
-    const existing = await ctx.db
-      .query("scheduledSubscriptionUpdates")
-      .withIndex("subscriptionId_status", (q) =>
-        q.eq("subscriptionId", args.subscriptionId).eq("status", "pending"),
-      )
-      .filter((q) => q.eq(q.field("entityId"), args.entityId))
-      .first();
+    // The index narrows to the pending updates of a single subscription (a
+    // handful of rows at most). The entityId comparison is an ownership check on
+    // that already-bounded set, so it runs in JS rather than as a table filter.
+    const existing = (
+      await ctx.db
+        .query("scheduledSubscriptionUpdates")
+        .withIndex("subscriptionId_status", (q) =>
+          q.eq("subscriptionId", args.subscriptionId).eq("status", "pending"),
+        )
+        .collect()
+    ).find((update) => update.entityId === args.entityId);
     if (!existing) return null;
 
     const now = new Date().toISOString();
@@ -1023,13 +1155,15 @@ export const cancelPendingScheduledSubscriptionUpdates = mutation({
   },
   returns: v.array(schema.tables.scheduledSubscriptionUpdates.validator),
   handler: async (ctx, args) => {
-    const existing = await ctx.db
-      .query("scheduledSubscriptionUpdates")
-      .withIndex("subscriptionId_status", (q) =>
-        q.eq("subscriptionId", args.subscriptionId).eq("status", "pending"),
-      )
-      .filter((q) => q.eq(q.field("entityId"), args.entityId))
-      .collect();
+    // Same bounded-set ownership check as `cancelScheduledSubscriptionUpdate`.
+    const existing = (
+      await ctx.db
+        .query("scheduledSubscriptionUpdates")
+        .withIndex("subscriptionId_status", (q) =>
+          q.eq("subscriptionId", args.subscriptionId).eq("status", "pending"),
+        )
+        .collect()
+    ).filter((update) => update.entityId === args.entityId);
     if (existing.length === 0) return [];
 
     const now = new Date().toISOString();
@@ -1054,6 +1188,7 @@ export const setScheduledSubscriptionUpdateJob = mutation({
     scheduledUpdateId: v.id("scheduledSubscriptionUpdates"),
     scheduledFunctionId: v.id("_scheduled_functions"),
   },
+  returns: v.null(),
   handler: async (ctx, args) => {
     const update = await ctx.db.get(args.scheduledUpdateId);
     if (!update) {
@@ -1066,6 +1201,19 @@ export const setScheduledSubscriptionUpdateJob = mutation({
   },
 });
 
+/**
+ * How long a scheduled update may sit in `applying` before another run may
+ * reclaim it. An action that dies mid-flight (deploy, timeout, OOM) leaves the
+ * row marked `applying` with no retry path, so the downgrade would silently
+ * never happen and the customer keeps being charged the old price.
+ *
+ * Deliberately longer than Convex's 10-minute action ceiling: a still-running
+ * claim can never go stale, so a reclaim only ever happens after the previous
+ * run is definitively dead. Otherwise two runs could both call Creem and apply
+ * the same upgrade twice.
+ */
+export const STALE_APPLYING_MS = 15 * 60 * 1000;
+
 export const markScheduledSubscriptionUpdateApplying = mutation({
   args: {
     scheduledUpdateId: v.id("scheduledSubscriptionUpdates"),
@@ -1073,7 +1221,12 @@ export const markScheduledSubscriptionUpdateApplying = mutation({
   returns: v.boolean(),
   handler: async (ctx, args) => {
     const update = await ctx.db.get(args.scheduledUpdateId);
-    if (!update || update.status !== "pending") return false;
+    if (!update) return false;
+    // Claim pending rows, and reclaim rows abandoned by a previous run.
+    const isStaleApplying =
+      update.status === "applying" &&
+      Date.now() - Date.parse(update.updatedAt) > STALE_APPLYING_MS;
+    if (update.status !== "pending" && !isStaleApplying) return false;
     await ctx.db.patch(args.scheduledUpdateId, {
       status: "applying",
       updatedAt: new Date().toISOString(),
@@ -1086,6 +1239,7 @@ export const markScheduledSubscriptionUpdateApplied = mutation({
   args: {
     scheduledUpdateId: v.id("scheduledSubscriptionUpdates"),
   },
+  returns: v.null(),
   handler: async (ctx, args) => {
     const update = await ctx.db.get(args.scheduledUpdateId);
     if (!update) return;
@@ -1101,6 +1255,7 @@ export const markScheduledSubscriptionUpdateFailed = mutation({
     scheduledUpdateId: v.id("scheduledSubscriptionUpdates"),
     error: v.string(),
   },
+  returns: v.null(),
   handler: async (ctx, args) => {
     const update = await ctx.db.get(args.scheduledUpdateId);
     if (!update) return;
@@ -1313,6 +1468,7 @@ export const executeSubscriptionUpdate = action({
     previousCancelAtPeriodEnd: v.optional(v.boolean()),
     rollback: v.optional(lifecycleRollbackValidator),
   },
+  returns: v.null(),
   handler: async (ctx, args) => {
     const sdk = new Creem({
       apiKey: args.apiKey,
@@ -1431,6 +1587,7 @@ export const applyScheduledSubscriptionUpdate = action({
     serverURL: v.optional(v.string()),
     scheduledUpdateId: v.id("scheduledSubscriptionUpdates"),
   },
+  returns: v.null(),
   handler: async (ctx, args) => {
     const scheduledUpdate = await ctx.runQuery(
       api.lib.getScheduledSubscriptionUpdate,
@@ -1438,7 +1595,16 @@ export const applyScheduledSubscriptionUpdate = action({
         scheduledUpdateId: args.scheduledUpdateId,
       },
     );
-    if (!scheduledUpdate || scheduledUpdate.status !== "pending") return;
+    if (!scheduledUpdate) return null;
+    // `applying` rows are normally owned by a live run, but one abandoned by a
+    // crashed run must be recoverable — `markScheduledSubscriptionUpdateApplying`
+    // decides, so it stays a single atomic claim.
+    if (
+      scheduledUpdate.status !== "pending" &&
+      scheduledUpdate.status !== "applying"
+    ) {
+      return null;
+    }
 
     const marked = await ctx.runMutation(
       api.lib.markScheduledSubscriptionUpdateApplying,
@@ -1446,7 +1612,7 @@ export const applyScheduledSubscriptionUpdate = action({
         scheduledUpdateId: args.scheduledUpdateId,
       },
     );
-    if (!marked) return;
+    if (!marked) return null;
 
     const sdk = new Creem({
       apiKey: args.apiKey,
@@ -1526,6 +1692,7 @@ export const executeSubscriptionLifecycle = action({
     previousCancelAtPeriodEnd: v.optional(v.boolean()),
     rollback: v.optional(lifecycleRollbackValidator),
   },
+  returns: v.null(),
   handler: async (ctx, args) => {
     const sdk = new Creem({
       apiKey: args.apiKey,

@@ -6,6 +6,7 @@ import type {
   PaymentRecoveryState,
   SubscriptionSnapshot,
 } from "./types.js";
+import { isActiveSubscriptionStatus } from "./subscriptionStatus.js";
 
 const TERMINAL_PAYMENT_STATUSES = new Set<OneTimePaymentStatus>([
   "paid",
@@ -34,7 +35,7 @@ export const selectBaseSubscription = (
   snapshot: Pick<BillingSnapshot, "subscriptions">,
 ) => {
   const active = snapshot.subscriptions.filter((subscription) =>
-    ACTIVE_SUBSCRIPTION_STATUSES.has(subscription.status),
+    isActiveSubscriptionStatus(subscription.status),
   );
   return (
     active.find((subscription) => subscription.kind === "base") ??
@@ -51,7 +52,7 @@ export const selectActiveAddOns = (
   snapshot.subscriptions.filter(
     (subscription) =>
       subscription.kind === "addon" &&
-      ACTIVE_SUBSCRIPTION_STATUSES.has(subscription.status),
+      isActiveSubscriptionStatus(subscription.status),
   );
 
 /** Whether the payment status is terminal (paid, refunded, or partially refunded). */
@@ -126,8 +127,8 @@ export const resolveBasePlanId = (
   findPlan: (productId: string) => { planId: string } | undefined,
 ): string | null => {
   if (!subscriptions || subscriptions.length === 0) return null;
-  const activeSubscriptions = subscriptions.filter(
-    (sub) => sub.status && ACTIVE_SUBSCRIPTION_STATUSES.has(sub.status),
+  const activeSubscriptions = subscriptions.filter((sub) =>
+    isActiveSubscriptionStatus(sub.status),
   );
   const ordered = [
     ...activeSubscriptions.filter((sub) => sub.kind === "base"),
@@ -144,10 +145,3 @@ export const resolveBasePlanId = (
   }
   return null;
 };
-
-const ACTIVE_SUBSCRIPTION_STATUSES = new Set([
-  "active",
-  "trialing",
-  "past_due",
-  "scheduled_cancel",
-]);

@@ -35,7 +35,11 @@ export const SegmentGroup = ({
   if (items.length <= 1) return null;
 
   const resolvedValue = value ?? undefined;
-  const controlKey = `${items.map((item) => item.value).join("|")}::${resolvedValue ?? ""}`;
+  // Keyed on the item set only, NOT on the selected value: `value` is a
+  // controlled prop, so including it would remount the whole group on every
+  // selection — focus would drop to <body> mid-keyboard-navigation and the
+  // sliding indicator could never animate.
+  const controlKey = items.map((item) => item.value).join("|");
 
   return (
     <ArkSegmentGroup.Root

@@ -16,6 +16,7 @@ export const NumberInput = ({
   className = "",
   decreaseLabel = defaultBillingLabels.accessibility.decreaseValue,
   increaseLabel = defaultBillingLabels.accessibility.increaseValue,
+  valueLabel = defaultBillingLabels.accessibility.valueInput,
   onValueChange,
 }: {
   value?: number;
@@ -27,6 +28,8 @@ export const NumberInput = ({
   className?: string;
   decreaseLabel?: string;
   increaseLabel?: string;
+  /** Accessible name for the value input. The visible "Units" text is a sibling, not a <label>. */
+  valueLabel?: string;
   onValueChange?: (value: number) => void;
 }) => {
   const clamp = (candidate: number) => Math.min(max, Math.max(min, candidate));
@@ -66,6 +69,10 @@ export const NumberInput = ({
 
       <input
         type="number"
+        aria-label={valueLabel}
+        {...(Number.isFinite(min) ? { min } : {})}
+        {...(Number.isFinite(max) ? { max } : {})}
+        step={step}
         className={`input-ghost ${compact ? "number-input-value-compact" : "number-input-value"} max-w-12 input-no-spinner`}
         value={value}
         disabled={disabled}

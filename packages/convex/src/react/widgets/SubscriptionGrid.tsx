@@ -20,13 +20,15 @@ import { subscriptionGridClasses } from "../../core/gridColumns.js";
  * ```
  */
 export const SubscriptionGrid = ({
-  className = "",
+  className,
+  class: classProp,
   children,
 }: PropsWithChildren<{ className?: string; class?: string }>) => {
   const rootContext = useContext(SubscriptionContext);
+  const incomingClassName = className ?? classProp ?? "";
   const resolvedClassName = rootContext?.unstyled
-    ? className
-    : `${subscriptionGridClasses(rootContext?.columns ?? "auto")} ${className}`;
+    ? incomingClassName
+    : `${subscriptionGridClasses(rootContext?.columns ?? "auto")} ${incomingClassName}`;
 
   return <div className={resolvedClassName}>{children}</div>;
 };

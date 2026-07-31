@@ -190,8 +190,12 @@ export const createProject = mutation({
     const snapshot = await creem.getBillingSnapshot(ctx, {
       entityId: user.orgId ?? user._id,
     });
+    // `access` only contains entitlements that are currently valid, so the
+    // presence of a subscription item is the check. Do not add
+    // `a.status === "active"`: that would deny users on a trial or in the
+    // `past_due` dunning grace period, who should still have access.
     const hasPaidAccess = snapshot.access.some(
-      (a) => a.kind === "subscription" && a.status === "active",
+      (a) => a.kind === "subscription",
     );
     const projectCount = await countProjects(ctx, user.orgId ?? user._id);
     if (!hasPaidAccess && projectCount >= FREE_PROJECT_LIMIT) {
@@ -203,3 +207,22 @@ export const createProject = mutation({
 ```
 
 Widget gates keep the UI honest. This check is what actually protects the feature.
+
+### Checking a single subscription
+
+When you gate on `subscriptions.getCurrent` rather than the snapshot, test the
+**status** - never the mere existence of a subscription. A returned
+subscription may be `unpaid` or `paused`, in which case it must not grant
+access:
+
+```ts
+import { isActiveSubscriptionStatus } from "@creem_io/convex";
+
+const subscription = await creem.subscriptions.getCurrent(ctx, { entityId });
+const hasAccess = isActiveSubscriptionStatus(subscription?.status);
+```
+
+`isActiveSubscriptionStatus` treats `active`, `trialing`, `scheduled_cancel`,
+and `past_due` as entitling. `past_due` is a payment-retry window rather than a
+loss of access - surface it with
+[`PaymentRecoveryBanner`](#payment-recovery) instead of cutting the user off.

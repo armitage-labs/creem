@@ -15,9 +15,7 @@ export default defineSchema(
       metadata: v.optional(v.record(v.string(), v.any())),
       createdAt: v.optional(v.string()),
       updatedAt: v.optional(v.string()),
-    })
-      .index("entityId", ["entityId"])
-      .index("id", ["id"]),
+    }).index("entityId", ["entityId"]),
     products: defineTable({
       id: v.string(),
       name: v.string(),
@@ -75,10 +73,14 @@ export default defineSchema(
       mode: v.optional(v.string()),
       createdAt: v.string(),
       modifiedAt: v.union(v.string(), v.null()),
+      // The `trialEnd` a trial-expiry job was actually scheduled for. Tracked
+      // rather than inferred from a change in `trialEnd`, so that a row that
+      // was already trialing before this field existed still gets a job, and
+      // repeated webhooks for an unchanged trial do not pile up duplicates.
+      trialExpiryScheduledFor: v.optional(v.string()),
     })
       .index("id", ["id"])
       .index("customerId", ["customerId"])
-      .index("customerId_status", ["customerId", "status"])
       .index("customerId_endedAt", ["customerId", "endedAt"]),
     orders: defineTable({
       id: v.string(),
@@ -104,7 +106,10 @@ export default defineSchema(
     })
       .index("id", ["id"])
       .index("customerId", ["customerId"])
-      .index("customerId_productId", ["customerId", "productId"]),
+      // `listUserOrders` only ever wants one-time orders. Without this index it
+      // would scan every renewal order the customer has ever had, which grows
+      // by one row per billing period forever.
+      .index("customerId_type", ["customerId", "type"]),
     scheduledSubscriptionUpdates: defineTable({
       entityId: v.string(),
       subscriptionId: v.string(),
@@ -154,7 +159,6 @@ export default defineSchema(
     })
       .index("entityId", ["entityId"])
       .index("entityId_status", ["entityId", "status"])
-      .index("entityId_planId_status", ["entityId", "planId", "status"])
       .index("subscriptionId_status", ["subscriptionId", "status"]),
   },
   {

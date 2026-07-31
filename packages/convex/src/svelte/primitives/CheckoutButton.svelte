@@ -69,10 +69,16 @@
 </script>
 
 {#if onCheckout}
+  <!--
+    Disabled while in flight, not just when the caller says so: every card passes
+    its own children, which hides the loading label, so without this the button
+    looks idle and invites a second checkout session.
+  -->
   <button
     type="button"
     class={`button-filled disabled:cursor-not-allowed disabled:opacity-60 ${className}`}
-    {disabled}
+    disabled={disabled || isLoading}
+    aria-busy={isLoading}
     onclick={handleClick}
   >
     {#if children}
@@ -81,7 +87,7 @@
       {isLoading ? labels.checkout.loading : labels.checkout.checkout}
     {/if}
   </button>
-{:else}
+{:else if href}
   <a
     href={href}
     class={`button-filled ${className}`}

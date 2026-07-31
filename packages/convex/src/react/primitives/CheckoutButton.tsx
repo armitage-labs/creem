@@ -59,7 +59,11 @@ export const CheckoutButton = ({
       <button
         type="button"
         className={`button-filled disabled:cursor-not-allowed disabled:opacity-60 ${className}`}
-        disabled={disabled}
+        // Disable while in flight, not just when the caller says so: every card
+        // passes its own `children`, which hides the loading label, so without
+        // this the button looks idle and invites a second checkout session.
+        disabled={disabled || isLoading}
+        aria-busy={isLoading}
         onClick={handleClick}
       >
         {children ??
@@ -67,6 +71,10 @@ export const CheckoutButton = ({
       </button>
     );
   }
+
+  // No handler and no href would render an unfocusable fake button, so render
+  // nothing rather than something that looks clickable but is not.
+  if (!href) return null;
 
   return (
     <a href={href} className={`button-filled ${className}`}>

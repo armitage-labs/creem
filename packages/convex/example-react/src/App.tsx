@@ -226,7 +226,11 @@ export default function App() {
     setDemoImageMessage(null);
     setDemoImageError(null);
     try {
-      const result = await generateDemoImageAction({});
+      // One stable ID per user action: a retry of this same click must not
+      // debit credits twice. Generate it here, not inside the action.
+      const result = await generateDemoImageAction({
+        requestId: crypto.randomUUID(),
+      });
       await refreshCredits?.();
       setDemoImageMessage(
         `Generated demo image and consumed ${result.creditsConsumed} credits.`,

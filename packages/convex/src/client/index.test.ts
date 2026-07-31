@@ -376,9 +376,9 @@ describe("subscriptions namespace", () => {
 
   describe("getCurrent", () => {
     it("returns subscription with product when found", async () => {
+      // The component query already joins the product — no second round-trip.
       const ctx = createMockCtx({
-        [REFS.getCurrentSubscription]: ACTIVE_SUB,
-        [REFS.getProduct]: PRODUCT_1,
+        [REFS.getCurrentSubscription]: { ...ACTIVE_SUB, product: PRODUCT_1 },
       });
       const result = await creem.subscriptions.getCurrent(ctx as never, {
         entityId: "user_1",
@@ -396,14 +396,14 @@ describe("subscriptions namespace", () => {
       expect(result).toBeNull();
     });
 
-    it("throws when product not found for subscription", async () => {
+    it("returns a null product when the product is not synced", async () => {
       const ctx = createMockCtx({
-        [REFS.getCurrentSubscription]: ACTIVE_SUB,
-        [REFS.getProduct]: null,
+        [REFS.getCurrentSubscription]: { ...ACTIVE_SUB, product: null },
       });
-      await expect(
-        creem.subscriptions.getCurrent(ctx as never, { entityId: "user_1" }),
-      ).rejects.toThrow("Product not found");
+      const result = await creem.subscriptions.getCurrent(ctx as never, {
+        entityId: "user_1",
+      });
+      expect(result).toEqual({ ...ACTIVE_SUB, product: null });
     });
   });
 

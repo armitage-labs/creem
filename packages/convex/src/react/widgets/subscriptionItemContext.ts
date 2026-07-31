@@ -17,6 +17,10 @@ export type SubscriptionItemContextValue = {
   checkoutUnits: number;
   subscribedUnits: number | null;
   disableUnits: boolean;
+  /** Checkout is not permitted (`permissions.canCheckout === false`). */
+  disableCheckout: boolean;
+  /** Plan changes are not permitted (`permissions.canChangeSubscription === false`). */
+  disableSwitch: boolean;
   unstyled: boolean;
   labels: BillingLabels;
   setCheckoutUnits: (units: number) => void;

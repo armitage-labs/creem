@@ -54,7 +54,8 @@ export const BillingHistory = ({
   pageSize = 10,
   productId,
   orderId,
-  className = "",
+  className,
+  class: classProp,
 }: {
   /**
    * Transactions per page.
@@ -100,36 +101,49 @@ export const BillingHistory = ({
     [orderId, pageNumber, pageSize, productId],
   );
 
-  const loadTransactions = useCallback(async () => {
-    if (!searchRef) return;
-    setIsLoading(true);
-    setError(null);
-    try {
-      const next = await client.action(searchRef, searchArgs);
-      setResult(next as ConnectedTransactionList);
-    } catch (cause) {
-      setError(
-        getConvexErrorMessage(cause, i18n.labels.billingHistory.loadError),
-      );
-    } finally {
-      setIsLoading(false);
-    }
-  }, [client, i18n.labels.billingHistory.loadError, searchArgs, searchRef]);
+  // `isCurrent` guards against two hazards: clicking through pages faster than
+  // the responses arrive (the last response to land wins, which can be a stale
+  // page), and settling state after the widget unmounted.
+  const loadTransactions = useCallback(
+    async (isCurrent: () => boolean) => {
+      if (!searchRef) return;
+      setIsLoading(true);
+      setError(null);
+      try {
+        const next = await client.action(searchRef, searchArgs);
+        if (!isCurrent()) return;
+        setResult(next as ConnectedTransactionList);
+      } catch (cause) {
+        if (!isCurrent()) return;
+        setError(
+          getConvexErrorMessage(cause, i18n.labels.billingHistory.loadError),
+        );
+      } finally {
+        if (isCurrent()) setIsLoading(false);
+      }
+    },
+    [client, i18n.labels.billingHistory.loadError, searchArgs, searchRef],
+  );
 
   useEffect(() => {
+    let active = true;
     const timeout = setTimeout(() => {
-      void loadTransactions();
+      void loadTransactions(() => active);
     }, 0);
-    return () => clearTimeout(timeout);
+    return () => {
+      active = false;
+      clearTimeout(timeout);
+    };
   }, [loadTransactions]);
 
   if (!searchRef) return null;
 
+  const resolvedClassName = className ?? classProp ?? "";
   const transactions = result?.items ?? [];
   const pagination = result?.pagination;
 
   return (
-    <section className={`space-y-3 ${className}`}>
+    <section className={`space-y-3 ${resolvedClassName}`}>
       <div className="flex items-center justify-between gap-3">
         <h2 className="title-m text-foreground-default">
           {i18n.labels.billingHistory.title}

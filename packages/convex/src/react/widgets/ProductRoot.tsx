@@ -53,7 +53,8 @@ const getPreferredTheme = (): "light" | "dark" => {
 export const ProductRoot = ({
   permissions,
   transition = [],
-  className = "",
+  className,
+  class: classProp,
   layout = "default",
   styleVariant = "legacy",
   showImages = false,
@@ -183,13 +184,17 @@ export const ProductRoot = ({
     ],
   );
 
-  // Pending checkout resume after auth
+  // Pending checkout resume after auth.
+  // Reads without consuming and clears only once the checkout is actually
+  // started: under StrictMode the effect runs twice, and a consuming read on the
+  // first run would throw the intent away before anything could resume it.
   const pendingCheckoutHandled = useRef(false);
   useEffect(() => {
     if (!model?.user || pendingCheckoutHandled.current) return;
-    pendingCheckoutHandled.current = true;
-    const pending = pendingCheckout.load();
+    const pending = pendingCheckout.peek();
     if (!pending) return;
+    pendingCheckoutHandled.current = true;
+    pendingCheckout.clear();
     if (
       shouldSuppressPendingCheckout(
         pending.productId,
@@ -197,13 +202,14 @@ export const ProductRoot = ({
         effectiveOwnedProductIds,
       )
     ) {
-      pendingCheckout.clear();
       return;
     }
-    const resumeCheckout = setTimeout(() => {
+    // Deferred so the effect body does not update state synchronously, and
+    // deliberately NOT cleared on cleanup: StrictMode's simulated unmount would
+    // cancel the resume, and the ref guard above already prevents a duplicate.
+    setTimeout(() => {
       void startCheckout(pending.productId);
     }, 0);
-    return () => clearTimeout(resumeCheckout);
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [model?.user]);
 
@@ -234,7 +240,7 @@ export const ProductRoot = ({
       </div>
 
       <section
-        className={`${styleVariant === "pricing" ? "space-y-0" : "space-y-3"} ${className}`}
+        className={`${styleVariant === "pricing" ? "space-y-0" : "space-y-3"} ${className ?? classProp ?? ""}`}
       >
         {error && <p className="text-sm text-red-600">{error}</p>}
 

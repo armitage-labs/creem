@@ -30,7 +30,8 @@
   "type": "module",
   "sideEffects": [
     "./src/client/polyfill.ts",
-    "./dist/client/polyfill.js"
+    "./dist/client/polyfill.js",
+    "**/*.css"
   ],
   "scripts": {
     "dev:react": "concurrently --kill-others --prefix-colors 'blue,yellow,magenta' --names 'frontend,backend,build' 'pnpm dev:frontend:react' 'pnpm dev:backend' 'pnpm dev:build'",
@@ -98,7 +99,7 @@
     "@ark-ui/react": "^5.31.0",
     "@ark-ui/svelte": "^5.16.0",
     "convex": "^1.29.0",
-    "convex-svelte": ">=0.14.0",
+    "convex-svelte": ">=0.14.0 <1",
     "creem": "^1.6.0",
     "react": "^18 || ^19",
     "react-dom": "^18 || ^19",
@@ -149,7 +150,6 @@
     "clsx": "2.1.1",
     "concurrently": "^10.0.3",
     "convex": "^1.41.0",
-    "convex-helpers": "0.1.119",
     "convex-svelte": "^0.14.0",
     "convex-test": "0.0.53",
     "cpy-cli": "7.0.0",
@@ -169,7 +169,6 @@
     "prettier": "3.8.4",
     "react": "19.2.7",
     "react-dom": "19.2.7",
-    "remeda": "2.39.0",
     "svelte-check": "^4.6.0",
     "svelte-eslint-parser": "^1.8.0",
     "tailwind-merge": "3.6.0",

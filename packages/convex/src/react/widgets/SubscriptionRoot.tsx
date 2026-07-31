@@ -12,7 +12,6 @@ import { Portal } from "@ark-ui/react/portal";
 
 import { PricingSection } from "../primitives/PricingSection.js";
 import { SegmentGroup } from "../primitives/SegmentGroup.js";
-import { PaymentWarningBanner } from "../primitives/PaymentWarningBanner.js";
 import { ScheduledChangeBanner } from "../primitives/ScheduledChangeBanner.js";
 
 import { SubscriptionContext } from "./subscriptionContext.js";
@@ -106,7 +105,8 @@ export const SubscriptionRoot = ({
   intervalSelector = "auto",
   cycleBadges,
   permissions,
-  className = "",
+  className,
+  class: classProp,
   successUrl,
   units,
   showUnitPicker = false,
@@ -178,6 +178,8 @@ export const SubscriptionRoot = ({
     };
   }, [provider?.i18n, i18n, labelOverrides]);
 
+  const resolvedClassName = className ?? classProp ?? "";
+
   const canChange = resolvedPermissions?.canChangeSubscription !== false;
   const canCancel = resolvedPermissions?.canCancelSubscription !== false;
   const canResume = resolvedPermissions?.canResumeSubscription !== false;
@@ -202,6 +204,10 @@ export const SubscriptionRoot = ({
     defaultGroup ?? null,
   );
   const [isActionLoading, setIsActionLoading] = useState(false);
+  // Guards the billing mutations against double submission. A ref, not state:
+  // two clicks landing in the same React batch both read the same rendered
+  // state, so only a synchronously-updated ref can reject the second one.
+  const actionInFlightRef = useRef(false);
   const [actionError, setActionError] = useState<string | null>(null);
   const [updateDialogOpen, setUpdateDialogOpen] = useState(false);
   const [pendingUpdate, setPendingUpdate] = useState<
@@ -221,10 +227,16 @@ export const SubscriptionRoot = ({
   >([]);
 
   const registerPlan = useCallback((plan: SubscriptionPlanRegistration) => {
-    setRegisteredPlans((prev) => [
-      ...prev.filter((c) => c.planId !== plan.planId),
-      plan,
-    ]);
+    setRegisteredPlans((prev) => {
+      // Card order is derived from registration order, so a re-registration
+      // must keep its original slot — otherwise re-rendering one
+      // <Subscription.Item> makes its card jump to the end of the grid.
+      const index = prev.findIndex((c) => c.planId === plan.planId);
+      if (index === -1) return [...prev, plan];
+      const next = [...prev];
+      next[index] = plan;
+      return next;
+    });
     return () => {
       setRegisteredPlans((prev) =>
         prev.filter((c) => c.planId !== plan.planId),
@@ -527,6 +539,7 @@ export const SubscriptionRoot = ({
 
   const startCheckout = useCallback(
     async (productId: string, checkoutUnits?: number) => {
+      if (actionInFlightRef.current) return;
       if (resolvedOnBeforeCheckout) {
         const proceed = await resolvedOnBeforeCheckout({
           productId,
@@ -534,6 +547,8 @@ export const SubscriptionRoot = ({
         });
         if (!proceed) return;
       }
+      if (actionInFlightRef.current) return;
+      actionInFlightRef.current = true;
       setIsActionLoading(true);
       setActionError(null);
       try {
@@ -564,6 +579,7 @@ export const SubscriptionRoot = ({
           ),
         );
       } finally {
+        actionInFlightRef.current = false;
         setIsActionLoading(false);
       }
     },
@@ -576,21 +592,24 @@ export const SubscriptionRoot = ({
     ],
   );
 
-  // Pending checkout resume after auth
+  // Pending checkout resume after auth.
+  // Reads without consuming and clears only once the checkout is actually
+  // started: under StrictMode the effect runs twice, and a consuming read on the
+  // first run would throw the intent away before anything could resume it.
   const pendingCheckoutHandled = useRef(false);
   useEffect(() => {
     if (!model?.user || pendingCheckoutHandled.current) return;
-    pendingCheckoutHandled.current = true;
-    const pending = pendingCheckout.load();
+    const pending = pendingCheckout.peek();
     if (!pending) return;
-    if ((model.activeSubscriptions ?? []).length > 0) {
-      pendingCheckout.clear();
-      return;
-    }
-    const resumeCheckout = setTimeout(() => {
+    pendingCheckoutHandled.current = true;
+    pendingCheckout.clear();
+    if ((model.activeSubscriptions ?? []).length > 0) return;
+    // Deferred so the effect body does not update state synchronously, and
+    // deliberately NOT cleared on cleanup: StrictMode's simulated unmount would
+    // cancel the resume, and the ref guard above already prevents a duplicate.
+    setTimeout(() => {
       void startCheckout(pending.productId, pending.units);
     }, 0);
-    return () => clearTimeout(resumeCheckout);
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [model?.user]);
 
@@ -670,12 +689,17 @@ export const SubscriptionRoot = ({
 
   const confirmUpdate = useCallback(async () => {
     if (!pendingUpdate) return;
+    if (actionInFlightRef.current) return;
     const update = pendingUpdate;
     const selectedUpdateBehavior = resolveUpdateBehavior(update);
     const subId = matchedSubscription?.id;
     setUpdateDialogOpen(false);
     setPendingUpdate(null);
     setActionError(null);
+    // Claimed immediately before the try so a throw above cannot strand the
+    // flag and deadlock every later billing action. No await separates this
+    // from the guard above, so no second click can interleave.
+    actionInFlightRef.current = true;
     try {
       if (
         update.kind === "plan-switch" &&
@@ -724,6 +748,8 @@ export const SubscriptionRoot = ({
             : resolvedI18n.labels.subscription.unitUpdateFailed,
         ),
       );
+    } finally {
+      actionInFlightRef.current = false;
     }
   }, [
     updateRef,
@@ -920,6 +946,8 @@ export const SubscriptionRoot = ({
 
   const confirmCancelSubscription = useCallback(async () => {
     if (!cancelRef) return;
+    if (actionInFlightRef.current) return;
+    actionInFlightRef.current = true;
     const subId = matchedSubscription?.id;
     setCancelDialogOpen(false);
     setActionError(null);
@@ -957,6 +985,8 @@ export const SubscriptionRoot = ({
           resolvedI18n.labels.subscription.cancelFailed,
         ),
       );
+    } finally {
+      actionInFlightRef.current = false;
     }
   }, [
     cancelRef,
@@ -1160,7 +1190,11 @@ export const SubscriptionRoot = ({
   return (
     <SubscriptionContext.Provider value={contextValue}>
       <section
-        className={unstyled ? className : `creem-base:space-y-4 ${className}`}
+        className={
+          unstyled
+            ? resolvedClassName
+            : `creem-base:space-y-4 ${resolvedClassName}`
+        }
       >
         {actionError && (
           <div
@@ -1203,7 +1237,6 @@ export const SubscriptionRoot = ({
                 formatDate={resolvedI18n.formatDate}
               />
             )}
-            <PaymentWarningBanner labels={resolvedI18n.labels} />
 
             {groupSelector === "auto" && groupItems.length > 1 && (
               <div

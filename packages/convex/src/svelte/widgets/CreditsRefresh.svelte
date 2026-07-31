@@ -16,6 +16,7 @@
 </script>
 
 <button
+  type="button"
   class={className}
   onclick={() => void credits.refresh()}
   disabled={credits.loading}

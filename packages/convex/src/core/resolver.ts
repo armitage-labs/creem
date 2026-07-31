@@ -4,6 +4,7 @@ import {
   normalizeRecurringCycle,
 } from "./catalog.js";
 import { derivePaymentRecoveryState } from "./selectors.js";
+import { isEntitlingSubscription } from "./subscriptionStatus.js";
 import type {
   AppPlanAssignment,
   AvailableAction,
@@ -35,13 +36,6 @@ export type BillingSnapshotResolverInput = {
   /** Override for the current timestamp (ISO string). */
   now?: string;
 };
-
-const ACTIVE_STATUSES = new Set([
-  "active",
-  "trialing",
-  "past_due",
-  "scheduled_cancel",
-]);
 
 /**
  * Resolve a `BillingSnapshot` from subscriptions, orders, and catalog.
@@ -93,14 +87,19 @@ export const resolveBillingSnapshot = (
   });
 
   const appPlanAssignments = input.appPlanAssignments ?? [];
-  const access = buildBillingAccess(subscriptions, orders, appPlanAssignments);
+  const access = buildBillingAccess(
+    subscriptions,
+    orders,
+    appPlanAssignments,
+    now,
+  );
 
   // Derive payment recovery from all subscriptions
   const paymentRecoveryState: PaymentRecoveryState =
     derivePaymentRecoveryState(subscriptions);
 
   // Build available actions from active subscriptions
-  const actions = buildBillingActions(subscriptions, orders);
+  const actions = buildBillingActions(subscriptions, orders, now);
 
   return {
     entityId: input.entityId,
@@ -119,9 +118,12 @@ const buildBillingAccess = (
   subscriptions: BillingSnapshotSubscription[],
   orders: BillingSnapshotOrder[],
   appPlanAssignments: AppPlanAssignment[],
+  now: string,
 ): BillingAccessItem[] => [
   ...subscriptions
-    .filter((subscription) => ACTIVE_STATUSES.has(subscription.status))
+    // The snapshot is built from ALL subscriptions, so a lapsed trial is still
+    // in this list with status `trialing` — it must not grant entitlements.
+    .filter((subscription) => isEntitlingSubscription(subscription, now))
     .map(
       (subscription): BillingAccessItem => ({
         source: "creem_subscription",
@@ -167,9 +169,12 @@ const buildBillingAccess = (
 const buildBillingActions = (
   subscriptions: BillingSnapshotSubscription[],
   orders: BillingSnapshotOrder[],
+  now: string,
 ): AvailableAction[] => {
   const actions = new Set<AvailableAction>();
-  const activeSubs = subscriptions.filter((s) => ACTIVE_STATUSES.has(s.status));
+  const activeSubs = subscriptions.filter((s) =>
+    isEntitlingSubscription(s, now),
+  );
   const hasReactivatable = subscriptions.some(
     (s) => s.status === "canceled" || s.status === "scheduled_cancel",
   );

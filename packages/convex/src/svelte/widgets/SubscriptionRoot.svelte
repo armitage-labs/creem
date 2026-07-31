@@ -7,7 +7,6 @@
 
   import PricingSection from "../primitives/PricingSection.svelte";
   import SegmentGroup from "../primitives/SegmentGroup.svelte";
-  import PaymentWarningBanner from "../primitives/PaymentWarningBanner.svelte";
   import ScheduledChangeBanner from "../primitives/ScheduledChangeBanner.svelte";
 
   import { useConvexClient, useQuery } from "convex-svelte";
@@ -233,6 +232,10 @@
     untrack(() => defaultGroup ?? null),
   );
   let isActionLoading = $state(false);
+  // Guards the billing mutations against double submission. Plain variable, not
+  // $state: it must update synchronously so a second click landing before the
+  // next render is rejected.
+  let actionInFlight = false;
   let actionError = $state<string | null>(null);
   let updateDialogOpen = $state(false);
   let pendingUpdate = $state<
@@ -633,6 +636,7 @@
   }
 
   const startCheckout = async (productId: string, checkoutUnits?: number) => {
+    if (actionInFlight) return;
     if (resolvedOnBeforeCheckout) {
       const proceed = await resolvedOnBeforeCheckout({
         productId,
@@ -640,6 +644,8 @@
       });
       if (!proceed) return;
     }
+    if (actionInFlight) return;
+    actionInFlight = true;
     isActionLoading = true;
     actionError = null;
     try {
@@ -668,6 +674,7 @@
         resolvedI18n.labels.subscription.checkoutFailed,
       );
     } finally {
+      actionInFlight = false;
       isActionLoading = false;
     }
   };
@@ -730,12 +737,17 @@
 
   const confirmUpdate = async () => {
     if (!pendingUpdate) return;
+    if (actionInFlight) return;
     const update = pendingUpdate;
     const selectedUpdateBehavior = resolveUpdateBehavior(update);
     const subId = matchedSubscription?.id;
     updateDialogOpen = false;
     pendingUpdate = null;
     actionError = null;
+    // Claimed immediately before the try so a throw above cannot strand the
+    // flag and deadlock every later billing action. No await separates this
+    // from the guard above, so no second click can interleave.
+    actionInFlight = true;
     try {
       if (
         update.kind === "plan-switch" &&
@@ -782,6 +794,8 @@
           ? resolvedI18n.labels.subscription.switchFailed
           : resolvedI18n.labels.subscription.unitUpdateFailed,
       );
+    } finally {
+      actionInFlight = false;
     }
   };
 
@@ -934,6 +948,8 @@
 
   const confirmCancelSubscription = async () => {
     if (!cancelRef) return;
+    if (actionInFlight) return;
+    actionInFlight = true;
     const subId = matchedSubscription?.id;
     cancelDialogOpen = false;
     actionError = null;
@@ -969,6 +985,8 @@
         error,
         resolvedI18n.labels.subscription.cancelFailed,
       );
+    } finally {
+      actionInFlight = false;
     }
   };
 
@@ -1085,7 +1103,6 @@
         formatDate={resolvedI18n.formatDate}
       />
     {/if}
-    <PaymentWarningBanner labels={resolvedI18n.labels} />
 
     {#if groupSelector === "auto" && groupItems.length > 1}
       <div class={unstyled ? "" : "creem-base:flex creem-base:justify-center"}>

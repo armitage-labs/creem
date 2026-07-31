@@ -1,7 +1,10 @@
 {
   "extends": "./tsconfig.json",
   "include": ["src/**/*"],
-  "exclude": ["src/**/*.test.*", "./src/test.ts"],
+  // `src/svelte` is excluded because `svelte-package` owns `dist/svelte`. Letting
+  // tsc emit there too means every file is compiled twice and the outputs are
+  // only correct because svelte-package happens to run last.
+  "exclude": ["src/**/*.test.*", "./src/test.ts", "src/svelte/**/*"],
   "compilerOptions": {
     "module": "ESNext",
     "moduleResolution": "Bundler"

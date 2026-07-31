@@ -566,25 +566,13 @@ export class Creem {
     ctx: RunQueryCtx,
     { entityId }: { entityId: string },
   ) {
-    const subscription = await ctx.runQuery(
-      this.component.lib.getCurrentSubscription,
-      {
-        entityId,
-      },
-    );
-    if (!subscription) {
-      return null;
-    }
-    const product = await ctx.runQuery(this.component.lib.getProduct, {
-      id: subscription.productId,
+    // `getCurrentSubscription` already joins the product, so there is no second
+    // round-trip here. `product` is null when the subscription references a
+    // product this deployment has not synced yet — callers must handle that
+    // rather than have the whole query throw.
+    return ctx.runQuery(this.component.lib.getCurrentSubscription, {
+      entityId,
     });
-    if (!product) {
-      throw new ConvexError("Product not found");
-    }
-    return {
-      ...subscription,
-      product,
-    };
   }
   /** Return active subscriptions for an entity, excluding ended and expired trials. */
   private listUserSubscriptions(
@@ -1140,6 +1128,16 @@ export class Creem {
     };
   }
 
+  /**
+   * Schedule a plan/seat change to take effect at the end of the current period.
+   *
+   * Note: the job carries the API key it was scheduled with, because a Convex
+   * component cannot read the host app's environment variables. If you rotate
+   * `CREEM_API_KEY`, already-scheduled period-end updates will fail
+   * authentication when they run and land in `status: "failed"` with the error
+   * recorded on the row — re-schedule them after a rotation. Runs abandoned
+   * mid-flight are reclaimed automatically (see `STALE_APPLYING_MS`).
+   */
   private async schedulePeriodEndSubscriptionUpdate(
     ctx: RunSchedulerMutationCtx,
     args: {
@@ -2416,10 +2414,21 @@ export class Creem {
         const eventType = getEventType(event);
         const eventData = event.object;
 
-        console.log(
-          `[creem-webhook] eventType=${eventType}`,
-          `body=${JSON.stringify(event)}`,
-        );
+        // Log identifiers only. The full event carries customer PII (email,
+        // name, country) and would otherwise land in every deployment's logs
+        // with no way to opt out. Set CREEM_WEBHOOK_DEBUG=true to log the raw
+        // body while debugging an integration.
+        if (process.env.CREEM_WEBHOOK_DEBUG === "true") {
+          console.log(
+            `[creem-webhook] eventType=${eventType}`,
+            `body=${JSON.stringify(event)}`,
+          );
+        } else {
+          console.log(
+            `[creem-webhook] eventType=${eventType}`,
+            `id=${event.id ?? "unknown"}`,
+          );
+        }
 
         if (
           eventData &&
@@ -2434,7 +2443,11 @@ export class Creem {
               typeof checkout.customer === "object"
                 ? checkout.customer
                 : undefined;
-            const customerId = getCustomerId(customerObj);
+            // Resolve from the raw field, not `customerObj`: Creem sends
+            // `customer` either expanded or as a bare ID string, and only the
+            // expanded form carries the profile fields used for enrichment.
+            // Reading the narrowed object would drop the ID in the string case.
+            const customerId = getCustomerId(checkout.customer);
             const entityId = getConvexEntityId(checkout.metadata);
             await this.upsertCustomerFromWebhook(
               ctx,
@@ -2514,6 +2527,7 @@ export class Creem {
                 },
                 {
                   checkoutId: checkout.id,
+                  customerId,
                   metadata: checkout.metadata as
                     | Record<string, unknown>
                     | undefined,

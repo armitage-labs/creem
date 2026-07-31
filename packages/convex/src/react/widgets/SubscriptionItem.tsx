@@ -74,6 +74,12 @@ export const SubscriptionItem = ({
   const resolvedClassName = className ?? classProp ?? "";
   const resolvedPlanId = planId ?? Object.values(productIds ?? {})[0] ?? type;
 
+  // `productIds` is written inline (`productIds={{ "every-month": "prod_x" }}`),
+  // so its identity changes on every parent render. Depending on the object
+  // itself would re-register this plan on every render, churning root state and
+  // re-rendering every consumer. Compare by value instead.
+  const productIdsKey = JSON.stringify(productIds ?? null);
+
   useEffect(() => {
     if (!rootContext) return;
     if (!resolvedPlanId) return;
@@ -86,7 +92,9 @@ export const SubscriptionItem = ({
       groupTitle,
       contactUrl,
       recommended,
-      productIds,
+      productIds: productIdsKey
+        ? (JSON.parse(productIdsKey) as typeof productIds)
+        : undefined,
     };
     const unregister = rootContext.registerPlan(registration);
     return unregister;
@@ -100,7 +108,7 @@ export const SubscriptionItem = ({
     groupTitle,
     contactUrl,
     recommended,
-    productIds,
+    productIdsKey,
     resolvedPlanId,
   ]);
 
@@ -216,11 +224,19 @@ export const SubscriptionItem = ({
       checkoutUnits,
       subscribedUnits: rootContext?.subscribedUnits ?? null,
       disableUnits: rootContext?.disableUnits ?? false,
+      disableCheckout: rootContext?.disableCheckout ?? false,
+      disableSwitch: rootContext?.disableSwitch ?? false,
       unstyled: rootContext?.unstyled ?? false,
       labels: rootContext?.labels ?? defaultBillingLabels,
       setCheckoutUnits: setItemCheckoutUnits,
+      // Composed slots must resolve the SAME action the default card would.
+      // `undefined` means "no action available", so slot CTAs can render
+      // nothing rather than an enabled button that silently does nothing —
+      // and permission flags must gate here too, otherwise a composed card
+      // would offer checkout that `permissions.canCheckout: false` forbids.
       onCheckout:
         rootContext &&
+        !rootContext.disableCheckout &&
         productId &&
         !isActiveProduct &&
         !isActiveAppPlan &&
@@ -232,16 +248,22 @@ export const SubscriptionItem = ({
           : undefined,
       onSwitch:
         rootContext &&
+        rootContext.switchPlan &&
+        !rootContext.disableSwitch &&
         !isScheduledTarget &&
         isAppPlan &&
-        !isActiveAppPlan &&
-        !rootContext.isGroupSubscribed
-          ? () =>
+        !isActiveAppPlan
+          ? // App plans (free/custom tiers) have no productId. This covers both
+            // activation and downgrading to a free plan while subscribed —
+            // without the latter, composed cards lose the downgrade path.
+            () =>
               rootContext.switchPlan?.({
                 plan,
                 appPlanId: planTarget.appPlanId,
               })
           : rootContext &&
+              rootContext.switchPlan &&
+              !rootContext.disableSwitch &&
               !isScheduledTarget &&
               productId &&
               (isSiblingPlan || isActivePlanOtherCycle)

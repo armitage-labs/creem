@@ -195,24 +195,31 @@
       )?.calculation ?? null
     );
   });
+  // Composed slots must resolve the SAME action the default card would.
+  // `undefined` means "no action available", so slot CTAs render nothing rather
+  // than an enabled button that silently does nothing — and the permission flags
+  // must gate here too, otherwise a composed card would offer a checkout that
+  // `permissions.canCheckout: false` forbids.
   const onCheckout = $derived.by(() => {
     if (!rootContext || !plan || !productId || isActiveProduct || isActiveAppPlan || isSiblingPlan || isActivePlanOtherCycle || isScheduledTarget) {
+      return undefined;
+    }
+    if (rootContext.getDisableCheckout()) {
       return undefined;
     }
     return () => rootContext.checkout({ plan, productId, units: effectiveUnits });
   });
   const onSwitch = $derived.by(() => {
-    if (!rootContext || !plan) {
+    if (!rootContext || !plan || !rootContext.switchPlan) {
       return undefined;
     }
-    if (isScheduledTarget) {
+    if (isScheduledTarget || rootContext.getDisableSwitch()) {
       return undefined;
     }
-    if (
-      planTarget?.kind === "app-plan" &&
-      !isActiveAppPlan &&
-      !rootContext.getIsGroupSubscribed()
-    ) {
+    // App plans (free/custom tiers) have no productId. This covers both
+    // activation and downgrading to a free plan while subscribed — without the
+    // latter, composed cards lose the downgrade path entirely.
+    if (planTarget?.kind === "app-plan" && !isActiveAppPlan) {
       return () =>
         rootContext.switchPlan?.({
           plan,
@@ -271,6 +278,12 @@
     },
     get disableUnits() {
       return rootContext?.getDisableUnits() ?? false;
+    },
+    get disableCheckout() {
+      return rootContext?.getDisableCheckout() ?? false;
+    },
+    get disableSwitch() {
+      return rootContext?.getDisableSwitch() ?? false;
     },
     get unstyled() {
       return rootContext?.getUnstyled() ?? false;

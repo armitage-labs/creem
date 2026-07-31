@@ -1,5 +1,6 @@
 import { QueryCtx, mutation, query } from "./_generated/server";
 import { ConvexError, v } from "convex/values";
+import { isActiveSubscriptionStatus } from "@creem_io/convex";
 import { Id } from "./_generated/dataModel";
 import { creem } from "./billing";
 
@@ -16,7 +17,14 @@ const currentUser = async (ctx: QueryCtx) => {
   const subscription = await creem.subscriptions.getCurrent(ctx, {
     entityId: user._id,
   });
-  const productName = subscription?.product?.name?.toLowerCase() ?? "";
+  // Gate on the subscription STATUS, never on its mere existence: a returned
+  // subscription may be `unpaid` or `paused`, in which case it must not grant
+  // access. `isActiveSubscriptionStatus` also covers `past_due`, which is a
+  // dunning grace period rather than a loss of access.
+  const hasAccess = isActiveSubscriptionStatus(subscription?.status);
+  const productName = hasAccess
+    ? (subscription?.product?.name?.toLowerCase() ?? "")
+    : "";
   const isPremium = productName.includes("premium");
   const isBasic = productName.includes("basic") && !isPremium;
   return {
@@ -24,9 +32,10 @@ const currentUser = async (ctx: QueryCtx) => {
     isFree: !isPremium && !isBasic,
     isPremium,
     isBasic,
-    isTrialing: subscription?.status === "trialing",
+    isTrialing: hasAccess && subscription?.status === "trialing",
     trialEnd: subscription?.trialEnd ?? null,
     subscription,
+    hasAccess,
     maxTodos: isPremium
       ? undefined
       : isBasic
@@ -104,7 +113,7 @@ export const insertTodo = mutation({
         .withIndex("userId", (q) => q.eq("userId", user._id))
         .collect()
     ).length;
-    if (!user.subscription && todoCount >= MAX_FREE_TODOS) {
+    if (!user.hasAccess && todoCount >= MAX_FREE_TODOS) {
       throw new ConvexError("Reached maximum number of todos for free plan");
     }
     if (user.isBasic && todoCount >= MAX_PREMIUM_TODOS) {

@@ -264,6 +264,19 @@ npx convex env set CREEM_SERVER prod   # production (or omit)
 
 See [Test Mode](/getting-started/test-mode) for the full test-environment workflow and test cards.
 
+## Webhook debug logging
+
+The webhook handler logs the event type and event ID. It deliberately does not
+log the payload, which carries customer names and email addresses. When
+debugging an integration, opt in to the full body:
+
+```bash
+npx convex env set CREEM_WEBHOOK_DEBUG true
+```
+
+Unset it again once you are done - the verbose output puts customer PII in your
+deployment logs.
+
 ## Related
 
 - Why the entity model and API contract look the way they do: [Concepts](/code/sdks/convex/concepts)

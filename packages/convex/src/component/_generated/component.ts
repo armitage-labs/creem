@@ -10,19 +10,6 @@
 
 import type { FunctionReference } from "convex/server";
 
-type AppPlanTransitionRollback = {
-  planId: string;
-  scheduledUpdateId?: string;
-  scheduledUpdateCreatedAt?: string;
-  assignmentCreatedAt?: string;
-};
-
-type LifecycleRollback = {
-  abortAppPlanTransitions?: Array<AppPlanTransitionRollback>;
-  restoreAppPlanTransitions?: Array<AppPlanTransitionRollback>;
-  replacementScheduledUpdateIds?: Array<string>;
-};
-
 /**
  * A utility for referencing a Convex component's exposed API.
  *
@@ -64,7 +51,7 @@ export type ComponentApi<Name extends string | undefined = string | undefined> =
           server?: "test" | "prod";
           serverURL?: string;
         },
-        any,
+        null,
         Name
       >;
       assignAppPlan: FunctionReference<
@@ -160,7 +147,21 @@ export type ComponentApi<Name extends string | undefined = string | undefined> =
           previousProductId?: string;
           previousSeats?: number | null;
           previousStatus?: string;
-          rollback?: LifecycleRollback;
+          rollback?: {
+            abortAppPlanTransitions?: Array<{
+              assignmentCreatedAt?: string;
+              planId: string;
+              scheduledUpdateCreatedAt?: string;
+              scheduledUpdateId?: string;
+            }>;
+            replacementScheduledUpdateIds?: Array<string>;
+            restoreAppPlanTransitions?: Array<{
+              assignmentCreatedAt?: string;
+              planId: string;
+              scheduledUpdateCreatedAt?: string;
+              scheduledUpdateId?: string;
+            }>;
+          };
           subscriptionId: string;
         },
         null,
@@ -193,7 +194,7 @@ export type ComponentApi<Name extends string | undefined = string | undefined> =
             updatedAt: string;
           };
         },
-        any,
+        null,
         Name
       >;
       createProduct: FunctionReference<
@@ -221,7 +222,7 @@ export type ComponentApi<Name extends string | undefined = string | undefined> =
             taxMode?: string;
           };
         },
-        any,
+        null,
         Name
       >;
       createScheduledSubscriptionUpdate: FunctionReference<
@@ -269,10 +270,11 @@ export type ComponentApi<Name extends string | undefined = string | undefined> =
             startedAt: string | null;
             status: string;
             trialEnd?: string | null;
+            trialExpiryScheduledFor?: string;
             trialStart?: string | null;
           };
         },
-        any,
+        null,
         Name
       >;
       endActiveAppPlanAssignments: FunctionReference<
@@ -291,13 +293,27 @@ export type ComponentApi<Name extends string | undefined = string | undefined> =
           operation: "cancel" | "resume" | "pause";
           previousCancelAtPeriodEnd?: boolean;
           previousStatus?: string;
-          rollback?: LifecycleRollback;
+          rollback?: {
+            abortAppPlanTransitions?: Array<{
+              assignmentCreatedAt?: string;
+              planId: string;
+              scheduledUpdateCreatedAt?: string;
+              scheduledUpdateId?: string;
+            }>;
+            replacementScheduledUpdateIds?: Array<string>;
+            restoreAppPlanTransitions?: Array<{
+              assignmentCreatedAt?: string;
+              planId: string;
+              scheduledUpdateCreatedAt?: string;
+              scheduledUpdateId?: string;
+            }>;
+          };
           scheduledUpdateId?: string;
           server?: "test" | "prod";
           serverURL?: string;
           subscriptionId: string;
         },
-        any,
+        null,
         Name
       >;
       executeSubscriptionUpdate: FunctionReference<
@@ -305,20 +321,41 @@ export type ComponentApi<Name extends string | undefined = string | undefined> =
         "internal",
         {
           apiKey: string;
+          previousCancelAtPeriodEnd?: boolean;
           previousProductId?: string;
           previousSeats?: number | null;
-          previousCancelAtPeriodEnd?: boolean;
           previousStatus?: string;
           productId?: string;
-          rollback?: LifecycleRollback;
           resumeScheduledCancellation?: boolean;
+          rollback?: {
+            abortAppPlanTransitions?: Array<{
+              assignmentCreatedAt?: string;
+              planId: string;
+              scheduledUpdateCreatedAt?: string;
+              scheduledUpdateId?: string;
+            }>;
+            replacementScheduledUpdateIds?: Array<string>;
+            restoreAppPlanTransitions?: Array<{
+              assignmentCreatedAt?: string;
+              planId: string;
+              scheduledUpdateCreatedAt?: string;
+              scheduledUpdateId?: string;
+            }>;
+          };
           server?: "test" | "prod";
           serverURL?: string;
           subscriptionId: string;
           units?: number;
           updateBehavior?: string;
         },
-        any,
+        null,
+        Name
+      >;
+      expireTrialIfElapsed: FunctionReference<
+        "mutation",
+        "internal",
+        { subscriptionId: string },
+        null,
         Name
       >;
       getAppPlanActivation: FunctionReference<
@@ -379,13 +416,14 @@ export type ComponentApi<Name extends string | undefined = string | undefined> =
             status: string;
             taxCategory?: string;
             taxMode?: string;
-          };
+          } | null;
           productId: string;
           recurringInterval: string | null;
           seats?: number | null;
           startedAt: string | null;
           status: string;
           trialEnd?: string | null;
+          trialExpiryScheduledFor?: string;
           trialStart?: string | null;
         } | null,
         Name
@@ -483,6 +521,7 @@ export type ComponentApi<Name extends string | undefined = string | undefined> =
           startedAt: string | null;
           status: string;
           trialEnd?: string | null;
+          trialExpiryScheduledFor?: string;
           trialStart?: string | null;
         } | null,
         Name
@@ -555,6 +594,7 @@ export type ComponentApi<Name extends string | undefined = string | undefined> =
           startedAt: string | null;
           status: string;
           trialEnd?: string | null;
+          trialExpiryScheduledFor?: string;
           trialStart?: string | null;
         }>,
         Name
@@ -622,6 +662,7 @@ export type ComponentApi<Name extends string | undefined = string | undefined> =
           startedAt: string | null;
           status: string;
           trialEnd?: string | null;
+          trialExpiryScheduledFor?: string;
           trialStart?: string | null;
         }>,
         Name
@@ -750,6 +791,7 @@ export type ComponentApi<Name extends string | undefined = string | undefined> =
           startedAt: string | null;
           status: string;
           trialEnd?: string | null;
+          trialExpiryScheduledFor?: string;
           trialStart?: string | null;
         }>,
         Name
@@ -758,7 +800,7 @@ export type ComponentApi<Name extends string | undefined = string | undefined> =
         "mutation",
         "internal",
         { scheduledUpdateId: string },
-        any,
+        null,
         Name
       >;
       markScheduledSubscriptionUpdateApplying: FunctionReference<
@@ -772,7 +814,7 @@ export type ComponentApi<Name extends string | undefined = string | undefined> =
         "mutation",
         "internal",
         { error: string; scheduledUpdateId: string },
-        any,
+        null,
         Name
       >;
       patchSubscription: FunctionReference<
@@ -786,7 +828,7 @@ export type ComponentApi<Name extends string | undefined = string | undefined> =
           status?: string;
           subscriptionId: string;
         },
-        any,
+        null,
         Name
       >;
       recordAppPlanActivation: FunctionReference<
@@ -812,14 +854,14 @@ export type ComponentApi<Name extends string | undefined = string | undefined> =
         "mutation",
         "internal",
         { scheduledFunctionId: string; scheduledUpdateId: string },
-        any,
+        null,
         Name
       >;
       syncProducts: FunctionReference<
         "action",
         "internal",
         { apiKey: string; server?: "test" | "prod"; serverURL?: string },
-        any,
+        null,
         Name
       >;
       updateProduct: FunctionReference<
@@ -847,7 +889,7 @@ export type ComponentApi<Name extends string | undefined = string | undefined> =
             taxMode?: string;
           };
         },
-        any,
+        null,
         Name
       >;
       updateProducts: FunctionReference<
@@ -875,7 +917,7 @@ export type ComponentApi<Name extends string | undefined = string | undefined> =
             taxMode?: string;
           }>;
         },
-        any,
+        null,
         Name
       >;
       updateSubscription: FunctionReference<
@@ -909,10 +951,11 @@ export type ComponentApi<Name extends string | undefined = string | undefined> =
             startedAt: string | null;
             status: string;
             trialEnd?: string | null;
+            trialExpiryScheduledFor?: string;
             trialStart?: string | null;
           };
         },
-        any,
+        null,
         Name
       >;
     };

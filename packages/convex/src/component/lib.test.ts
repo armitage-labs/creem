@@ -6,6 +6,7 @@ import type { Infer } from "convex/values";
 import schema from "./schema.js";
 import { api } from "./_generated/api.js";
 import { convertToDatabaseProduct } from "./util.js";
+import { STALE_APPLYING_MS } from "./lib.js";
 import type { ProductEntity } from "creem/models/components";
 
 const modules = import.meta.glob("./**/*.ts");
@@ -467,10 +468,55 @@ describe("insertCustomer mutation", () => {
 
     const customer2 = createTestCustomer({
       id: "cust_different",
+      updatedAt: "2025-02-01T00:00:00.000Z",
     });
     const id2 = await t.mutation(api.lib.insertCustomer, customer2);
 
     expect(id1).toBe(id2);
+
+    // The entity keeps one row, but the Creem customer ID is re-pointed:
+    // subscriptions and orders are keyed by it, so a stale ID would make every
+    // lookup for this entity miss after a mode switch or customer re-creation.
+    const result = await t.query(api.lib.getCustomerByEntityId, {
+      entityId: "user_456",
+    });
+    expect(result?.id).toBe("cust_different");
+  });
+
+  it("does not re-point the mapping backwards for a delayed webhook", async () => {
+    await t.mutation(api.lib.insertCustomer, createTestCustomer());
+    await t.mutation(
+      api.lib.insertCustomer,
+      createTestCustomer({
+        id: "cust_new",
+        updatedAt: "2025-02-01T00:00:00.000Z",
+      }),
+    );
+
+    // A retry for the OLD customer arrives after the re-point. Applying it
+    // would hide every subscription and order belonging to the new customer.
+    await t.mutation(
+      api.lib.insertCustomer,
+      createTestCustomer({
+        id: "cust_123",
+        updatedAt: "2025-01-01T00:00:00.000Z",
+      }),
+    );
+
+    const result = await t.query(api.lib.getCustomerByEntityId, {
+      entityId: "user_456",
+    });
+    expect(result?.id).toBe("cust_new");
+  });
+
+  it("leaves the mapping alone when there is no ordering information", async () => {
+    await t.mutation(api.lib.insertCustomer, createTestCustomer());
+    // No `updatedAt` on either side: without an ordering we cannot tell a
+    // re-point from a stale replay, so the safe move is to keep the mapping.
+    await t.mutation(
+      api.lib.insertCustomer,
+      createTestCustomer({ id: "cust_unknown_order" }),
+    );
 
     const result = await t.query(api.lib.getCustomerByEntityId, {
       entityId: "user_456",
@@ -567,8 +613,8 @@ describe("getCurrentSubscription query", () => {
 
     expect(result).not.toBeNull();
     expect(result?.id).toBe("sub_123");
-    expect(result?.product.id).toBe("prod_789");
-    expect(result?.product.name).toBe("Test Product");
+    expect(result?.product?.id).toBe("prod_789");
+    expect(result?.product?.name).toBe("Test Product");
   });
 
   it("returns null when trial has expired", async () => {
@@ -1218,6 +1264,65 @@ describe("scheduled subscription update mutations", () => {
     t = convexTest(schema, modules);
   });
 
+  it("reclaims a scheduled update abandoned mid-flight", async () => {
+    const id = await t.mutation(api.lib.createScheduledSubscriptionUpdate, {
+      entityId: "user_456",
+      subscriptionId: "sub_1",
+      targetProductId: "prod_basic",
+      effectiveAt: "2026-03-01T00:00:00.000Z",
+    });
+
+    // First run claims it, then dies before finishing (deploy, timeout, OOM).
+    expect(
+      await t.mutation(api.lib.markScheduledSubscriptionUpdateApplying, {
+        scheduledUpdateId: id,
+      }),
+    ).toBe(true);
+
+    // A second run must not steal it while the first may still be alive.
+    expect(
+      await t.mutation(api.lib.markScheduledSubscriptionUpdateApplying, {
+        scheduledUpdateId: id,
+      }),
+    ).toBe(false);
+
+    // Once the claim goes stale it becomes recoverable — otherwise the
+    // downgrade never happens and the customer keeps paying the old price.
+    await t.run(async (ctx) => {
+      const doc = await ctx.db.get(id);
+      await ctx.db.patch(id, {
+        updatedAt: new Date(
+          Date.now() - (STALE_APPLYING_MS + 60_000),
+        ).toISOString(),
+      });
+      expect(doc?.status).toBe("applying");
+    });
+
+    expect(
+      await t.mutation(api.lib.markScheduledSubscriptionUpdateApplying, {
+        scheduledUpdateId: id,
+      }),
+    ).toBe(true);
+  });
+
+  it("does not reclaim an update that already finished", async () => {
+    const id = await t.mutation(api.lib.createScheduledSubscriptionUpdate, {
+      entityId: "user_456",
+      subscriptionId: "sub_1",
+      targetProductId: "prod_basic",
+      effectiveAt: "2026-03-01T00:00:00.000Z",
+    });
+    await t.mutation(api.lib.markScheduledSubscriptionUpdateApplied, {
+      scheduledUpdateId: id,
+    });
+
+    expect(
+      await t.mutation(api.lib.markScheduledSubscriptionUpdateApplying, {
+        scheduledUpdateId: id,
+      }),
+    ).toBe(false);
+  });
+
   it("creates and lists pending scheduled updates", async () => {
     const id = await t.mutation(api.lib.createScheduledSubscriptionUpdate, {
       entityId: "user_456",
@@ -1813,7 +1918,7 @@ describe("getCurrentSubscription query edge cases", () => {
     t = convexTest(schema, modules);
   });
 
-  it("throws when product is missing for subscription", async () => {
+  it("returns the subscription with a null product when the product is not synced", async () => {
     await t.mutation(api.lib.insertCustomer, createTestCustomer());
     await t.mutation(api.lib.createSubscription, {
       subscription: createTestSubscription({
@@ -1824,8 +1929,137 @@ describe("getCurrentSubscription query edge cases", () => {
         status: "active",
       }),
     });
-    await expect(
-      t.query(api.lib.getCurrentSubscription, { entityId: "user_456" }),
-    ).rejects.toThrow("Product not found");
+    // Products only land via `syncProducts`, so an unsynced product must not
+    // take down this query and everything composed on top of it.
+    const result = await t.query(api.lib.getCurrentSubscription, {
+      entityId: "user_456",
+    });
+    expect(result?.id).toBe("sub_no_product");
+    expect(result?.product).toBeNull();
+  });
+});
+
+describe("trial expiry", () => {
+  let t: TestConvex<typeof schema>;
+
+  beforeEach(() => {
+    t = convexTest(schema, modules);
+  });
+
+  it("closes out a trial that lapsed without converting", async () => {
+    await t.mutation(api.lib.insertCustomer, createTestCustomer());
+    await t.mutation(api.lib.createSubscription, {
+      subscription: createTestSubscription({
+        id: "sub_trial",
+        customerId: "cust_123",
+        endedAt: null,
+        status: "trialing",
+        trialEnd: "2020-01-01T00:00:00.000Z",
+      }),
+    });
+
+    await t.mutation(api.lib.expireTrialIfElapsed, {
+      subscriptionId: "sub_trial",
+    });
+
+    const subscription = await t.query(api.lib.getSubscription, {
+      id: "sub_trial",
+    });
+    expect(subscription?.endedAt).toBe("2020-01-01T00:00:00.000Z");
+    expect(
+      await t.query(api.lib.getCurrentSubscription, { entityId: "user_456" }),
+    ).toBeNull();
+  });
+
+  it("leaves a trial that has not lapsed yet untouched", async () => {
+    await t.mutation(api.lib.insertCustomer, createTestCustomer());
+    await t.mutation(api.lib.createSubscription, {
+      subscription: createTestSubscription({
+        id: "sub_trial",
+        customerId: "cust_123",
+        endedAt: null,
+        status: "trialing",
+        trialEnd: "2999-01-01T00:00:00.000Z",
+      }),
+    });
+
+    await t.mutation(api.lib.expireTrialIfElapsed, {
+      subscriptionId: "sub_trial",
+    });
+
+    const subscription = await t.query(api.lib.getSubscription, {
+      id: "sub_trial",
+    });
+    expect(subscription?.endedAt).toBeNull();
+  });
+
+  it("is a no-op once the trial converted to a paid subscription", async () => {
+    await t.mutation(api.lib.insertCustomer, createTestCustomer());
+    await t.mutation(api.lib.createSubscription, {
+      subscription: createTestSubscription({
+        id: "sub_trial",
+        customerId: "cust_123",
+        endedAt: null,
+        status: "active",
+        trialEnd: "2020-01-01T00:00:00.000Z",
+      }),
+    });
+
+    await t.mutation(api.lib.expireTrialIfElapsed, {
+      subscriptionId: "sub_trial",
+    });
+
+    const subscription = await t.query(api.lib.getSubscription, {
+      id: "sub_trial",
+    });
+    expect(subscription?.endedAt).toBeNull();
+  });
+});
+
+describe("trial conversion after expiry sweep", () => {
+  let t: TestConvex<typeof schema>;
+
+  beforeEach(() => {
+    t = convexTest(schema, modules);
+  });
+
+  it("reopens the subscription when Creem converts the trial to paid", async () => {
+    await t.mutation(api.lib.insertCustomer, createTestCustomer());
+    await t.mutation(api.lib.createSubscription, {
+      subscription: createTestSubscription({
+        id: "sub_trial",
+        customerId: "cust_123",
+        endedAt: null,
+        status: "trialing",
+        trialEnd: "2020-01-01T00:00:00.000Z",
+        modifiedAt: "2020-01-01T00:00:00.000Z",
+      }),
+    });
+    await t.mutation(api.lib.expireTrialIfElapsed, {
+      subscriptionId: "sub_trial",
+    });
+    expect(
+      (await t.query(api.lib.getSubscription, { id: "sub_trial" }))?.endedAt,
+    ).toBe("2020-01-01T00:00:00.000Z");
+
+    // The conversion webhook arrives with status active and endedAt null; the
+    // row must come back to life rather than stay closed by the sweep.
+    await t.mutation(api.lib.updateSubscription, {
+      subscription: createTestSubscription({
+        id: "sub_trial",
+        customerId: "cust_123",
+        endedAt: null,
+        status: "active",
+        trialEnd: null,
+        modifiedAt: "2020-01-02T00:00:00.000Z",
+      }),
+    });
+
+    const current = await t.query(api.lib.getCurrentSubscription, {
+      entityId: "user_456",
+    });
+    expect(current?.id).toBe("sub_trial");
+    expect(current?.status).toBe("active");
+    expect(current?.endedAt).toBeNull();
   });
 });

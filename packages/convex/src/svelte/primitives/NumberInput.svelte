@@ -17,6 +17,8 @@
     className?: string;
     decreaseLabel?: string;
     increaseLabel?: string;
+    /** Accessible name for the value input. The visible "Units" text is a sibling, not a <label>. */
+    valueLabel?: string;
     onValueChange?: (value: number) => void | Promise<void>;
   }
 
@@ -30,6 +32,7 @@
     className = "",
     decreaseLabel = defaultBillingLabels.accessibility.decreaseValue,
     increaseLabel = defaultBillingLabels.accessibility.increaseValue,
+    valueLabel = defaultBillingLabels.accessibility.valueInput,
     onValueChange,
   }: Props = $props();
 
@@ -59,6 +62,10 @@
 
   <input
     type="number"
+    aria-label={valueLabel}
+    min={Number.isFinite(min) ? min : undefined}
+    max={Number.isFinite(max) ? max : undefined}
+    {step}
     class={`input-ghost ${compact ? "number-input-value-compact" : "number-input-value"} max-w-12 input-no-spinner`}
     value={value}
     {disabled}

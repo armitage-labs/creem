@@ -38,9 +38,11 @@
   }: Props = $props();
 
   const resolvedValue = $derived(value ?? undefined);
-  const controlKey = $derived(
-    `${items.map((item) => item.value).join("|")}::${resolvedValue ?? ""}`,
-  );
+  // Keyed on the item set only, NOT on the selected value: `value` is a
+  // controlled prop, so including it would re-create the whole group on every
+  // selection — focus would be lost mid-keyboard-navigation and the sliding
+  // indicator could never animate.
+  const controlKey = $derived(items.map((item) => item.value).join("|"));
 </script>
 
 {#if items.length > 1}

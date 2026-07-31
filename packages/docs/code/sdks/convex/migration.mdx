@@ -81,6 +81,47 @@ provider never accepted. The binding is spreadable:
 | `credits.listEntries` returned an SDK page iterator | `{ entries[], hasMore }`                            |
 | `transactions.search` returned raw SDK rows         | Projected `ConnectedTransactionList`                |
 | `BillingContextValue` (flat, unimplemented)         | Nested `{ model, isLoading, error, … }` contract    |
+| `subscriptions.getCurrent` threw when the product was missing | Returns `product: null`                   |
+
+`subscriptions.getCurrent` no longer throws `Product not found` when a
+subscription references a product this deployment has not synced yet - that
+failure took down every query composed on top of it. `product` is now nullable,
+so narrow it before use:
+
+```ts
+const subscription = await creem.subscriptions.getCurrent(ctx, { entityId });
+const planName = subscription?.product?.name ?? "Unknown plan";
+```
+
+#### Subscription lifecycle behaviour
+
+These are bug fixes rather than API changes, but they change what your app sees
+at runtime, so review any entitlement code you wrote against 0.3.x.
+
+| Behaviour in 0.3.x                                                        | Behaviour in 0.4.0                                                              |
+| ------------------------------------------------------------------------- | -------------------------------------------------------------------------------- |
+| Only `canceled` subscriptions were closed out with `endedAt`               | `expired` is closed out too, so it stops counting as the current subscription    |
+| An expired subscription was still returned by `getCurrent` indefinitely    | It is no longer returned once closed out                                          |
+| A lapsed trial stayed "active" until some unrelated write re-ran the query | A scheduled mutation closes it at `trialEnd`, so clients update on time           |
+| A changed Creem customer ID left the entity mapped to the old customer     | The mapping is re-pointed, so subscriptions and orders resolve again              |
+| Orders without a customer ID were stored unreachable                       | The webhook fails loudly and Creem retries                                        |
+
+<Warning>
+  If your app granted access by checking that a subscription merely **exists**,
+  users on `expired` or `unpaid` subscriptions were silently keeping paid
+  access. Gate on the status instead - `isActiveSubscriptionStatus` covers the
+  active-like statuses, including the `past_due` dunning grace period:
+
+```ts
+import { isActiveSubscriptionStatus } from "@creem_io/convex";
+
+const subscription = await creem.subscriptions.getCurrent(ctx, { entityId });
+const hasAccess = isActiveSubscriptionStatus(subscription?.status);
+```
+
+  Tightening this may revoke access from users who should never have had it, so
+  check your own data before deploying.
+</Warning>
 
 #### Provider-based widget API
 

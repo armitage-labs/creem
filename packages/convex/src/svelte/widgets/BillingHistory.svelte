@@ -85,6 +85,11 @@
   const paginationItemClassName = (isCurrentPage: boolean) =>
     `${isCurrentPage ? "button-filled" : "button-faded"} h-8 min-w-8 px-2`;
 
+  // Clicking through pages faster than the responses arrive would otherwise let
+  // whichever response lands last win — which can be a stale page, displayed as
+  // if it were the current one. Only the newest request may settle state.
+  let requestId = 0;
+
   const loadTransactions = async (args: {
     pageNumber: number;
     pageSize: number;
@@ -92,20 +97,24 @@
     orderId?: string;
   }) => {
     if (!searchRef) return;
+    const currentRequest = ++requestId;
     isLoading = true;
     error = null;
     try {
-      result = (await client.action(
+      const next = (await client.action(
         searchRef,
         args,
       )) as ConnectedTransactionList;
+      if (currentRequest !== requestId) return;
+      result = next;
     } catch (cause) {
+      if (currentRequest !== requestId) return;
       error = getConvexErrorMessage(
         cause,
         i18n.labels.billingHistory.loadError,
       );
     } finally {
-      isLoading = false;
+      if (currentRequest === requestId) isLoading = false;
     }
   };
 

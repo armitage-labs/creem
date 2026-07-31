@@ -6,6 +6,7 @@ export * from "./catalog.js";
 export * from "./planTarget.js";
 export * from "./resolver.js";
 export * from "./selectors.js";
+export * from "./subscriptionStatus.js";
 export * from "./payments.js";
 export * from "./display.js";
 export * from "./markdown.js";

@@ -154,10 +154,11 @@
     demoImageMessage = null;
     demoImageError = null;
     try {
-      const result = await convexClient.action(
-        api.billing.generateDemoImage,
-        {},
-      );
+      // One stable ID per user action: a retry of this same click must not
+      // debit credits twice. Generate it here, not inside the action.
+      const result = await convexClient.action(api.billing.generateDemoImage, {
+        requestId: crypto.randomUUID(),
+      });
       await refreshCredits?.();
       demoImageMessage = `Generated demo image and consumed ${result.creditsConsumed} credits.`;
     } catch (cause) {

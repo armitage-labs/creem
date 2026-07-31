@@ -60,9 +60,16 @@ export const creem = new Creem(components.creem, {
 });
 
 // ── Auth resolver ───────────────────────────────────────────────
-// Replace with your own auth logic (e.g. ctx.auth.getUserIdentity()).
-// This example uses a demo user from the "users" table.
+// ⚠️ DEMO ONLY — DO NOT COPY THIS RESOLVER INTO A REAL APP. ⚠️
+// It returns the first row of the "users" table, so every caller is treated as
+// that same user. In a real app this would let anyone cancel or change anyone
+// else's subscription. Replace the body with your own auth lookup, e.g.:
 //
+//   const identity = await ctx.auth.getUserIdentity();
+//   if (!identity) return null;
+//   return { userId: identity.subject, email: identity.email, entityId: identity.subject };
+//
+
 // Return `null` for an unauthenticated caller — that is what keeps public
 // pricing pages working. Anything thrown here is treated as a real failure and
 // propagates instead of silently rendering the logged-out state.
@@ -138,16 +145,21 @@ export const creditsGetBalance = credits.getBalance;
 export const creditsListEntries = credits.listEntries;
 
 export const generateDemoImage = action({
-  args: {},
+  args: {
+    // The caller generates this once per user action and reuses it on retry.
+    // A key derived from `Date.now()` would be unique per attempt and would
+    // therefore debit credits again for every retry of the same request.
+    requestId: v.string(),
+  },
   returns: v.object({
     id: v.string(),
     creditsConsumed: v.string(),
   }),
-  handler: async (ctx) => {
+  handler: async (ctx, args) => {
     const identity = await resolve(ctx);
     if (!identity) throw new ConvexError("Not authenticated");
     const { entityId } = identity;
-    const idempotencyKey = `demo_generate_image_${Date.now()}`;
+    const idempotencyKey = `demo_generate_image_${entityId}_${args.requestId}`;
     await creem.credits.debitForEntity(ctx, {
       entityId,
       amount: "10",

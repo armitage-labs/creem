@@ -49,6 +49,8 @@ export type BillingLabels = {
   accessibility: {
     decreaseValue: string;
     increaseValue: string;
+    /** Accessible name for the unit/quantity number input. */
+    valueInput: string;
     previousPage: string;
     nextPage: string;
     closeDialog: string;
@@ -257,6 +259,7 @@ export const defaultBillingLabels: BillingLabels = {
   accessibility: {
     decreaseValue: "Decrease value",
     increaseValue: "Increase value",
+    valueInput: "Value",
     previousPage: "Previous page",
     nextPage: "Next page",
     closeDialog: "Close dialog",

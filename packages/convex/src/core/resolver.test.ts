@@ -44,6 +44,53 @@ describe("resolveBillingSnapshot", () => {
     expect(result.catalogVersion).toBe("1");
   });
 
+  it("does not grant entitlements for a trial that has already lapsed", () => {
+    // The snapshot is built from ALL subscriptions, including expired trials,
+    // and Creem does not necessarily flip the status the moment a trial ends.
+    // Gating on status alone would keep a lapsed trial entitled indefinitely.
+    const result = resolveBillingSnapshot({
+      entityId: "e1",
+      catalog,
+      now: "2025-01-02T00:00:00Z",
+      subscriptions: [
+        {
+          id: "sub_1",
+          productId: "prod_basic_m",
+          status: "trialing",
+          trialEnd: "2025-01-01T00:00:00Z",
+        },
+      ],
+    });
+
+    expect(result.access).toHaveLength(0);
+    expect(result.availableBillingActions).toContain("checkout");
+    expect(result.availableBillingActions).not.toContain("cancel");
+  });
+
+  it("grants entitlements for a trial that is still running", () => {
+    const result = resolveBillingSnapshot({
+      entityId: "e1",
+      catalog,
+      now: "2025-01-02T00:00:00Z",
+      subscriptions: [
+        {
+          id: "sub_1",
+          productId: "prod_basic_m",
+          status: "trialing",
+          trialEnd: "2025-02-01T00:00:00Z",
+        },
+      ],
+    });
+
+    expect(result.access).toHaveLength(1);
+    expect(result.access[0]).toMatchObject({
+      kind: "subscription",
+      subscriptionId: "sub_1",
+      status: "trialing",
+    });
+    expect(result.availableBillingActions).toContain("cancel");
+  });
+
   it("maps subscriptions with plan IDs from catalog", () => {
     const subs: SubscriptionSnapshot[] = [
       {

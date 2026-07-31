@@ -7,6 +7,7 @@ import {
 } from "../CreemConvexProvider.js";
 import type { BillingPermissions, ConnectedBillingModel } from "./types.js";
 import { resolveBillingI18n } from "../../core/i18n.js";
+import { getConvexErrorMessage } from "../../core/convexError.js";
 
 /**
  * Button that opens the Creem customer billing portal.
@@ -16,7 +17,8 @@ import { resolveBillingI18n } from "../../core/i18n.js";
  */
 export const BillingPortal = ({
   permissions,
-  className = "",
+  className,
+  class: classProp,
   children,
 }: PropsWithChildren<{
   /**
@@ -52,13 +54,19 @@ export const BillingPortal = ({
   const hasCreemCustomer = model?.hasCreemCustomer ?? false;
 
   const [isLoading, setIsLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
 
   const openPortal = async () => {
     if (!portalUrlRef) return;
     setIsLoading(true);
+    setError(null);
     try {
       const { url } = await client.action(portalUrlRef, {});
       window.open(url, "_blank", "noopener,noreferrer");
+    } catch (cause) {
+      // Without this the rejection is unhandled and the user gets no feedback
+      // at all — the button just stops spinning.
+      setError(getConvexErrorMessage(cause, i18n.labels.portal.failedToOpen));
     } finally {
       setIsLoading(false);
     }
@@ -66,14 +74,23 @@ export const BillingPortal = ({
 
   if (!portalUrlRef || !hasCreemCustomer || !canAccess) return null;
 
+  const resolvedClassName = className ?? classProp ?? "";
+
   return (
-    <CustomerPortalButton
-      disabled={isLoading}
-      onOpenPortal={openPortal}
-      className={className}
-      labels={i18n.labels}
-    >
-      {children ?? i18n.labels.portal.manageBilling}
-    </CustomerPortalButton>
+    <>
+      <CustomerPortalButton
+        disabled={isLoading}
+        onOpenPortal={openPortal}
+        className={resolvedClassName}
+        labels={i18n.labels}
+      >
+        {children ?? i18n.labels.portal.manageBilling}
+      </CustomerPortalButton>
+      {error ? (
+        <p role="alert" className="text-error-foreground-default text-sm">
+          {error}
+        </p>
+      ) : null}
+    </>
   );
 };
