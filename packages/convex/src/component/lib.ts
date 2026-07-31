@@ -64,6 +64,14 @@ export const insertCustomer = mutation({
 
       if (args.updatedAt && isNewer) patch.updatedAt = args.updatedAt;
 
+      // The ID swap needs STRICTLY newer evidence. `isNewer` is `>=` so that an
+      // idempotent replay of the same event still enriches fields, but an equal
+      // timestamp is not evidence that a *different* customer supersedes the
+      // current mapping — two events can share an `updatedAt` to the second.
+      const isStrictlyNewer =
+        !Number.isNaN(incomingAt) &&
+        (Number.isNaN(existingAt) || incomingAt > existingAt);
+
       // Re-point the mapping when Creem issues a new customer for this entity
       // (test/live mode switch, customer re-created in the dashboard).
       // Subscriptions and orders are keyed by the Creem customer ID, so keeping a
@@ -73,7 +81,7 @@ export const insertCustomer = mutation({
       // Only move forward in time: a delayed webhook for the *previous* customer
       // must not drag the mapping back and hide the new customer's data. When
       // there is no timestamp to order by, the mapping is left alone.
-      if (args.id && args.id !== existingCustomer.id && isNewer) {
+      if (args.id && args.id !== existingCustomer.id && isStrictlyNewer) {
         patch.id = args.id;
       }
       if (Object.keys(patch).length > 0) {
@@ -1729,7 +1737,21 @@ export const executeSubscriptionLifecycle = action({
               : {};
         await sdk.subscriptions.cancel(args.subscriptionId, cancelParams);
       } else if (args.operation === "resume") {
-        await resumeSubscriptionIfNeeded(sdk, args.subscriptionId);
+        // A `false` return means Creem reports a status this helper cannot
+        // resume (canceled/expired), so it made no API call and threw nothing.
+        // Swallowing that would leave the optimistic local patch claiming
+        // `status: "active"` for a subscription that no longer exists, until
+        // some later webhook happened to heal it. Fail into the compensation
+        // path below instead.
+        const resumed = await resumeSubscriptionIfNeeded(
+          sdk,
+          args.subscriptionId,
+        );
+        if (!resumed) {
+          throw new ConvexError(
+            `Subscription ${args.subscriptionId} cannot be resumed in its current state`,
+          );
+        }
       } else if (args.operation === "pause") {
         await sdk.subscriptions.pause(args.subscriptionId);
       }

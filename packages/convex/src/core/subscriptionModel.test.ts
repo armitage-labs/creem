@@ -319,6 +319,31 @@ describe("resolveActivePlanId", () => {
     ).toBe("free");
   });
 
+  it("falls back to the free plan when the model sends activePlanId: null", () => {
+    // The shipped model ALWAYS sets this field — `getBillingModel` resolves
+    // `activePlanId ?? activeFreePlanId ?? activeAssignedPlanId`, which is null
+    // for a free-tier user with no assignment. Testing `!== undefined` here made
+    // every later fallback unreachable in production while this suite passed,
+    // because the fixture omitted the field entirely.
+    expect(
+      resolveActivePlanId({
+        model: emptyModel({ activePlanId: null }),
+        plans,
+        subscriptionProductId: null,
+      }),
+    ).toBe("free");
+  });
+
+  it("still prefers an explicit activePlanId from the resolver", () => {
+    expect(
+      resolveActivePlanId({
+        model: emptyModel({ activePlanId: "pro" }),
+        plans,
+        subscriptionProductId: null,
+      }),
+    ).toBe("pro");
+  });
+
   it("returns null for an anonymous visitor", () => {
     expect(
       resolveActivePlanId({

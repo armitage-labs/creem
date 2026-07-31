@@ -509,6 +509,25 @@ describe("insertCustomer mutation", () => {
     expect(result?.id).toBe("cust_new");
   });
 
+  it("does not re-point on an equal timestamp from a different customer", async () => {
+    await t.mutation(api.lib.insertCustomer, {
+      id: "cust_a",
+      entityId: "user_1",
+      updatedAt: "2025-01-01T00:00:00.000Z",
+    });
+    // Same second, different customer: not evidence that this one supersedes.
+    await t.mutation(api.lib.insertCustomer, {
+      id: "cust_b",
+      entityId: "user_1",
+      updatedAt: "2025-01-01T00:00:00.000Z",
+    });
+
+    const result = await t.query(api.lib.getCustomerByEntityId, {
+      entityId: "user_1",
+    });
+    expect(result?.id).toBe("cust_a");
+  });
+
   it("does not flip back after a stale event lowers the watermark", async () => {
     await t.mutation(api.lib.insertCustomer, {
       id: "cust_old",

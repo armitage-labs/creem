@@ -63,10 +63,16 @@ export interface CreemConvexContextValue {
 const CreemConvexContext = createContext<CreemConvexContextValue | null>(null);
 
 /**
- * Reads the `CreemConvexProvider` context: billing model, loading and error
- * state, and the checkout, plan, and cancellation actions.
+ * Read the `CreemConvexProvider` configuration: the connected `api`, catalog,
+ * default cycle, permissions, consent gates, and i18n overrides.
  *
- * @throws When called outside a `CreemConvexProvider`.
+ * This is configuration only — it does not return billing data. Widgets fetch
+ * the model themselves from `api.uiModel`. (The reactive
+ * model/loading/error/actions shape is `BillingContextValue` in `core/context`,
+ * the integration-agnostic seam widgets will consume once they are extracted.)
+ *
+ * Returns `null` outside a provider rather than throwing; use
+ * `requireCreemConvexApi` when a missing provider should be a hard error.
  */
 export const useCreemConvex = () => useContext(CreemConvexContext);
 

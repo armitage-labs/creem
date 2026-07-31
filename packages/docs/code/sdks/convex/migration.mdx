@@ -18,6 +18,18 @@ for you. Add it to your app or the package will fail to resolve at runtime:
 pnpm install @creem_io/convex convex creem
 ```
 
+Svelte apps also need **Svelte 5.25 or newer**. The widgets ship as uncompiled
+`.svelte` source and reassign `$derived` state, which earlier 5.x releases
+reject at compile time.
+
+If you share a billing catalog between server and browser code, import the
+helpers from `@creem_io/convex/core` rather than the root entry — the root is
+the server client and pulls the Creem Node SDK into your browser bundle:
+
+```ts
+import { defineBillingCatalog } from "@creem_io/convex/core";
+```
+
 #### Removed primitives
 
 These exports were deleted. Importing them is a build failure.

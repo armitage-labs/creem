@@ -5,10 +5,12 @@
  * so they read one catalog. A real app defines this once in
  * `src/billingCatalog.ts` and imports it from its pages; see the quickstart.
  *
- * `defineBillingCatalog` comes from the framework-neutral root entry point, so
- * this file pulls in neither React nor Svelte.
+ * Imported from `@creem_io/convex/core`: the framework-neutral entry that also
+ * stays out of the browser bundle. The root entry is the *server* client — it
+ * pulls in the Creem Node SDK and the whole webhook/API surface, which both
+ * Vite apps would otherwise ship to the browser just to get this one helper.
  */
-import { defineBillingCatalog } from "@creem_io/convex";
+import { defineBillingCatalog } from "@creem_io/convex/core";
 
 /** Product IDs live in `packages/convex/.env.local`, read by both Vite apps. */
 export const env = {

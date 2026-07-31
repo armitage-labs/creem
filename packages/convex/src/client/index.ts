@@ -1001,6 +1001,18 @@ export class Creem {
     const amount = grant.amount.trim();
     const refundBehavior = grant.refundBehavior ?? "revoke_on_full_refund";
     if (!amount || refundBehavior === "none") return null;
+    // Credit amounts are integer strings (the Credits API uses strings to avoid
+    // overflow). A malformed catalog value such as "100.5" or "1e3" would make
+    // the `BigInt(amount)` below throw inside the webhook handler, turning a
+    // refund into a 5xx and putting Creem into a retry loop for that event.
+    // Skip the debit and log instead — a misconfigured grant must not wedge
+    // webhook delivery for everything else.
+    if (!/^\d+$/.test(amount)) {
+      console.error(
+        `[creem] credit grant has a non-integer amount "${grant.amount}"; skipping refund debit`,
+      );
+      return null;
+    }
     if (refundBehavior === "debit") return amount;
 
     const hasRefundAmounts =

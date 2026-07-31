@@ -293,7 +293,12 @@ export const resolveActivePlanId = ({
   if (subscriptionProductId) {
     return findPlanIdByProductId(plans, subscriptionProductId);
   }
-  if (model.activePlanId !== undefined) {
+  // `!= null`, not `!== undefined`: the server always sets this field, using
+  // `null` to mean "nothing resolved" rather than "explicitly no plan". Testing
+  // for `undefined` made every later step unreachable, so a signed-in customer
+  // on the free tier got no current plan at all — no "Current plan" badge, and
+  // the free card offering "Get started" as if they were not already on it.
+  if (model.activePlanId != null) {
     return model.activePlanId;
   }
   const assignedPlanId =

@@ -72,6 +72,10 @@
       "types": "./dist/client/index.d.ts",
       "default": "./dist/client/index.js"
     },
+    "./core": {
+      "types": "./dist/core/index.d.ts",
+      "default": "./dist/core/index.js"
+    },
     "./react": {
       "types": "./dist/react/index.d.ts",
       "default": "./dist/react/index.js"
@@ -103,7 +107,7 @@
     "creem": "^1.6.0",
     "react": "^18 || ^19",
     "react-dom": "^18 || ^19",
-    "svelte": "^5"
+    "svelte": "^5.25.0"
   },
   "peerDependenciesMeta": {
     "@ark-ui/react": {

@@ -20,27 +20,27 @@ Features:
 - Packed-package compatibility audit for the intentional ESM/bundler support contract
 - `PlanCatalogEntry.trialDays` declares the length of a Creem-managed trial, so the pricing card can offer it before checkout instead of a plain "Subscribe". Creem's product API does not expose trial configuration, so this mirrors the dashboard until config-as-code can drive both. New `BillingLabels.subscription` keys: `startFreeTrial` and `trialDaysFree`.
 - `connectCreemApi(api.billing)` builds the connected widget API from the generated exports
-- `pendingCheckout.peek()` reads a stored checkout intent without consuming it, so a resume can survive React StrictMode's double-invoked effects
-- `mergePlanCatalogs(...)` merges server, provider, and widget catalogs least-to-most specific without dropping product mappings. Both `Subscription.Root` implementations use it, so an app that configures plans only on the backend renders identically in React and Svelte
+- `@creem_io/convex/core` — a browser-safe, framework-neutral entry for catalog and snapshot helpers, so sharing a catalog between server and browser code no longer pulls the Creem Node SDK into your bundle
 - Every generated function declares a real Convex `returns` validator, so clients infer concrete result types instead of `any`
 - Shared `BillingContextValue` contract in `core/` — the integration-agnostic seam the widgets will consume
 - Subscription plan/group/cycle derivation extracted to `core/subscriptionModel.ts` and shared by the React and Svelte roots
 - `Subscription.Grid` honours the root's `columns` prop, so composed and default layouts agree
 - React and Svelte subscription widgets now share one plan-target resolver, update-command builder, and optimistic state projector, with lifecycle compensation that restores subscription, scheduled-update, and app-plan state together after failed Creem calls
 
-Fixes (behaviour that was wrong in 0.3.x):
+Fixes:
 
-- Subscriptions that reach a terminal status (`canceled`, `expired`) are now closed out with `endedAt`, so they stop counting as the entity's current subscription. In 0.3.x only `canceled` did, so an `expired` subscription kept granting access indefinitely. `unpaid` and `paused` deliberately stay open so payment-recovery UI can still act on them
-- Trial expiry is now driven by a scheduled mutation. A Convex query only re-runs when data changes, so the previous wall-clock comparison never re-fired on its own and a subscribed client kept seeing an active trial after it lapsed
-- Timestamps from Creem are normalized to UTC on write. Every comparison in the component is a lexicographic string compare, so an offset-form timestamp stored verbatim (`2026-08-01T00:00:00+02:00`) sorted incorrectly against UTC values and could misclassify trial expiry and webhook staleness
-- `insertCustomer` re-points the entity's Creem customer ID when it changes (test/live switch, customer re-created in the dashboard). In 0.3.x the stale ID was kept, so every subscription and order lookup for that entity missed and a paying user saw nothing. The mapping only ever moves forward in time, so a delayed webhook for the previous customer cannot drag it back
-- `subscriptions.getCurrent` returns `product: null` when the subscription references a product that has not been synced yet, instead of throwing and taking down every query composed on top of it. **Breaking** — see the migration guide
-- Orders arriving without a customer ID now fail loudly and let Creem retry, instead of being stored under an empty customer ID where no query could ever reach them
-- `BillingPortal` surfaces portal errors instead of leaving an unhandled promise rejection with no user feedback
-- `CheckoutButton` disables itself while a checkout is in flight and reports `aria-busy`. Cards pass their own `children`, which hid the loading label, so the button looked idle and a second click could open a second checkout session
-- The unit `NumberInput` has an accessible name, and its `min`/`max`/`step` are exposed to assistive technology
+- Expired subscriptions kept granting access indefinitely. Terminal statuses are now closed out, so access ends when the subscription does. `unpaid` and `paused` stay open so payment-recovery UI can still act on them
+- A lapsed trial stayed "active" until some unrelated write happened to re-run the query. Trial expiry is now driven by a scheduled mutation, so it reaches subscribed clients on time
+- A signed-in customer on the free tier was shown no current plan, and the free card offered "Get started" to someone already on it
+- When Creem issued a new customer ID for an entity (test/live switch, customer re-created), the stale mapping made every subscription and order lookup miss — a paying user saw nothing
+- `subscriptions.getCurrent` threw when a subscription referenced a product that had not been synced yet, taking down every query composed on top of it
+- Timestamps from Creem are normalized to UTC on write. Offset-form timestamps sorted incorrectly against UTC values, which could misclassify trial expiry and webhook staleness
+- Orders arriving without a customer ID were stored where no query could reach them; the webhook now fails loudly and Creem retries
+- Resuming a subscription Creem had already ended silently left the UI showing an active subscription that did not exist
+- A credit grant with a non-integer amount crashed the refund webhook, returning 5xx and putting Creem into a retry loop
+- Checkout buttons stayed enabled while a checkout was in flight, so a second click could open a second checkout session
 
-Breaking changes:
-
-See the [0.3.x migration guide](http://docs.creem.io/code/sdks/convex/migration#upgrading-from-0-3-x) for the complete list of breaking changes and upgrade instructions.
-
+Upgrading from 0.3.x? Read the
+[migration guide](http://docs.creem.io/code/sdks/convex/migration#upgrading-from-0-3-x)
+— it covers every breaking change, including new required peer dependencies,
+removed primitives, and changed return shapes.
