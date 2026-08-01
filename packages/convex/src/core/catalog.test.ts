@@ -535,6 +535,17 @@ describe("mergePlanCatalogs", () => {
     });
   });
 
+  it("takes the default plan from the most specific catalog that sets it", () => {
+    // Widgets merge (server, provider, widget). A provider-level default must
+    // not lose to the server's just because the widget catalog omits the field.
+    const merged = mergePlanCatalogs(
+      { ...serverCatalog, defaultPlanId: "server-free" },
+      { version: "provider", plans: [], defaultPlanId: "provider-free" },
+      { version: "local", plans: [] },
+    );
+    expect(merged?.defaultPlanId).toBe("provider-free");
+  });
+
   it("keeps first-appearance plan order and appends new plans", () => {
     const merged = mergePlanCatalogs(serverCatalog, undefined, {
       version: "local",

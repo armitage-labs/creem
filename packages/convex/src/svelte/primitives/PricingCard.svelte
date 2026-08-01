@@ -385,7 +385,7 @@
       >
         {checkoutLabel}
       </CheckoutButton>
-    {:else if isAppPlanSwitch}
+    {:else if isAppPlanSwitch && onSwitchPlan}
       <button
         type="button"
         disabled={disableSwitch}

@@ -12,6 +12,7 @@ import { Portal } from "@ark-ui/react/portal";
 
 import { PricingSection } from "../primitives/PricingSection.js";
 import { SegmentGroup } from "../primitives/SegmentGroup.js";
+import { IntervalSelector } from "../primitives/IntervalSelector.js";
 import { ScheduledChangeBanner } from "../primitives/ScheduledChangeBanner.js";
 
 import { SubscriptionContext } from "./subscriptionContext.js";
@@ -1266,6 +1267,25 @@ export const SubscriptionRoot = ({
                   onValueChange={handleGroupChange}
                 />
               </div>
+            )}
+
+            {/*
+              In composition mode `PricingSection` is skipped, and with it the
+              cycle toggle it would have rendered. Render it here so
+              `intervalSelector="auto"` means the same thing as
+              `groupSelector="auto"` above — otherwise composing a layout
+              silently loses the billing-cycle control. Set
+              `intervalSelector="external"` to place it yourself.
+            */}
+            {children && intervalSelector === "auto" && (
+              <IntervalSelector
+                cycles={availableCycles}
+                value={effectiveCycle}
+                cycleBadges={cycleBadges}
+                onValueChange={handleCycleChange}
+                unstyled={unstyled}
+                labels={resolvedI18n.labels}
+              />
             )}
 
             {children ? (

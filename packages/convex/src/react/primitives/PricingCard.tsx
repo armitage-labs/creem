@@ -456,7 +456,7 @@ export const PricingCard = ({
             >
               {checkoutLabel}
             </CheckoutButton>
-          ) : isAppPlanSwitch ? (
+          ) : isAppPlanSwitch && onSwitchPlan ? (
             <button
               type="button"
               disabled={disableSwitch}

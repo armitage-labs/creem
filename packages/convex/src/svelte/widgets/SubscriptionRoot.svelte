@@ -6,6 +6,7 @@
 
   import PricingSection from "../primitives/PricingSection.svelte";
   import SegmentGroup from "../primitives/SegmentGroup.svelte";
+  import IntervalSelector from "../primitives/IntervalSelector.svelte";
   import ScheduledChangeBanner from "../primitives/ScheduledChangeBanner.svelte";
 
   import { useConvexClient, useQuery } from "convex-svelte";
@@ -1073,6 +1074,24 @@
           onValueChange={(value) => handleGroupChange(value)}
         />
       </div>
+    {/if}
+
+    <!--
+      In composition mode PricingSection is skipped, and with it the cycle
+      toggle it would have rendered. Render it here so intervalSelector="auto"
+      means the same thing as groupSelector="auto" above — otherwise composing a
+      layout silently loses the billing-cycle control. Set
+      intervalSelector="external" to place it yourself.
+    -->
+    {#if children && intervalSelector === "auto"}
+      <IntervalSelector
+        cycles={availableCycles}
+        value={effectiveCycle}
+        {cycleBadges}
+        onValueChange={(cycle) => contextValue.setCycle(cycle)}
+        {unstyled}
+        labels={resolvedI18n.labels}
+      />
     {/if}
 
     {#if children}

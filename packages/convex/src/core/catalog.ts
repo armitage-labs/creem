@@ -318,9 +318,24 @@ export const mergePlanCatalogs = (
     }
   }
 
+  // Scalars follow the same "later wins" rule as plan fields: scan backwards for
+  // the most specific catalog that actually supplies the field. Reading only the
+  // last entry with a fallback to the first would skip a middle catalog — the
+  // provider's `defaultPlanId` would lose to the server's whenever the widget's
+  // own catalog omits it.
+  const lastDefined = <TKey extends keyof PlanCatalog>(
+    key: TKey,
+  ): PlanCatalog[TKey] | undefined => {
+    for (let index = defined.length - 1; index >= 0; index -= 1) {
+      const value = defined[index][key];
+      if (value !== undefined) return value;
+    }
+    return undefined;
+  };
+
   return {
-    version: defined.at(-1)?.version ?? defined[0].version,
-    defaultPlanId: defined.at(-1)?.defaultPlanId ?? defined[0].defaultPlanId,
+    version: lastDefined("version") ?? defined[0].version,
+    defaultPlanId: lastDefined("defaultPlanId"),
     plans: order.flatMap((planId) => {
       const plan = plansById.get(planId);
       return plan ? [plan] : [];
