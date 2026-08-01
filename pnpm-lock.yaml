@@ -124,7 +124,7 @@ importers:
         specifier: ^2.39.0
         version: 2.39.0
       svelte:
-        specifier: ^5
+        specifier: ^5.25.0
         version: 5.55.0
     devDependencies:
       '@arethetypeswrong/cli':
