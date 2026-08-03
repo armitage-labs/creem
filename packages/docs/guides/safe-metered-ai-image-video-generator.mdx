@@ -11,22 +11,13 @@ In this guide you build [Aperture](https://github.com/rishi-raj-jain/aperture), 
 
 Aperture implements the following four-step order for every generation:
 
-```
-MODERATE
-[screen the prompt first]
-  │
-  ▼
-DEBIT
-[charge credits up front (idempotent)]
-  │
-  ▼
-GENERATE
-[call the model (black box)]
-  │
-  ▼
-RETURN / REVERSE
-[return the asset. if the model failed after the
-debit, reverse it so the customer keeps their credits]
+```mermaid
+flowchart TD
+    A["MODERATE<br/><br/>screen the prompt first"]
+    B["DEBIT<br/><br/>charge credits up front (idempotent)"]
+    C["GENERATE<br/><br/>call the model (black box)"]
+    D["RETURN / REVERSE<br/><br/>return the asset. if the model failed<br/>after the debit, reverse it so the<br/>customer keeps their credits"]
+    A --> B --> C --> D
 ```
 
 Try it at [aperture-creem.vercel.app](https://aperture-creem.vercel.app). The tabs below show the possible prompt moderation results in the application:
