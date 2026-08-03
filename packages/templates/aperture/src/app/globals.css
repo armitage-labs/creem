@@ -1,0 +1,179 @@
+@import 'tailwindcss';
+
+/* Hallmark · macrostructure: Marquee Hero · genre: atmospheric · tone: technical
+ * theme: Midnight-Coral (dark paper · peach accent · grotesk display) · anchor hue: 40 (peach)
+ * pre-emit critique: P5 H4 E4 S4 R5 V4
+ */
+
+:root {
+  /* --- paper + ink (dark atmospheric) --- */
+  --color-paper: oklch(16% 0.012 265);
+  --color-paper-2: oklch(20% 0.014 265);
+  --color-paper-3: oklch(25% 0.016 265);
+  --color-ink: oklch(97% 0.006 265);
+  --color-ink-2: oklch(78% 0.012 265);
+  --color-ink-3: oklch(60% 0.014 265);
+
+  /* --- accent (peach / coral, Creem hue) --- */
+  --color-accent: oklch(80% 0.13 55);
+  --color-accent-2: oklch(72% 0.15 40);
+  --color-accent-ink: oklch(20% 0.05 45);
+
+  /* --- semantic --- */
+  --color-good: oklch(78% 0.15 155);
+  --color-warn: oklch(80% 0.15 85);
+  --color-bad: oklch(70% 0.18 25);
+  --color-focus: oklch(80% 0.13 55);
+
+  --rule: color-mix(in oklch, var(--color-ink) 12%, transparent);
+  --rule-strong: color-mix(in oklch, var(--color-ink) 22%, transparent);
+
+  /* --- spacing (4pt) --- */
+  --space-2xs: 0.25rem;
+  --space-xs: 0.5rem;
+  --space-sm: 0.75rem;
+  --space-md: 1rem;
+  --space-lg: 1.5rem;
+  --space-xl: 2.5rem;
+  --space-2xl: 4rem;
+  --space-3xl: 6.5rem;
+
+  /* --- radius --- */
+  --radius-sm: 0.5rem;
+  --radius-md: 0.875rem;
+  --radius-lg: 1.25rem;
+  --radius-full: 999px;
+
+  /* --- motion --- */
+  --ease-out: cubic-bezier(0.22, 1, 0.36, 1);
+  --ease-in-out: cubic-bezier(0.65, 0, 0.35, 1);
+  --dur-fast: 140ms;
+  --dur-mid: 240ms;
+}
+
+@theme inline {
+  --color-paper: var(--color-paper);
+  --color-paper-2: var(--color-paper-2);
+  --color-paper-3: var(--color-paper-3);
+  --color-ink: var(--color-ink);
+  --color-ink-2: var(--color-ink-2);
+  --color-ink-3: var(--color-ink-3);
+  --color-accent: var(--color-accent);
+  --color-accent-2: var(--color-accent-2);
+  --font-display: var(--font-space-grotesk), ui-sans-serif, system-ui, sans-serif;
+  --font-body: var(--font-inter), ui-sans-serif, system-ui, sans-serif;
+  --font-mono: var(--font-mono), ui-monospace, monospace;
+}
+
+html,
+body {
+  overflow-x: clip;
+}
+
+body {
+  background-color: var(--color-paper);
+  color: var(--color-ink);
+  font-family: var(--font-inter), ui-sans-serif, system-ui, sans-serif;
+  -webkit-font-smoothing: antialiased;
+  text-rendering: optimizeLegibility;
+}
+
+/* Atmospheric background wash - soft peach aurora, fixed behind content. */
+body::before {
+  content: '';
+  position: fixed;
+  inset: 0;
+  z-index: -1;
+  pointer-events: none;
+  background:
+    radial-gradient(60% 45% at 78% -5%, color-mix(in oklch, var(--color-accent-2) 22%, transparent), transparent 70%),
+    radial-gradient(50% 40% at 8% 8%, color-mix(in oklch, oklch(60% 0.14 285) 14%, transparent), transparent 70%);
+}
+
+h1,
+h2,
+h3,
+h4 {
+  font-family: var(--font-space-grotesk), ui-sans-serif, system-ui, sans-serif;
+  font-style: normal;
+  letter-spacing: -0.02em;
+  overflow-wrap: anywhere;
+  min-width: 0;
+}
+
+.font-mono,
+.mono {
+  font-family: var(--font-mono, ui-monospace), monospace;
+}
+
+::selection {
+  background: color-mix(in oklch, var(--color-accent) 35%, transparent);
+  color: var(--color-ink);
+}
+
+*:focus-visible {
+  outline: 2px solid var(--color-focus);
+  outline-offset: 2px;
+  border-radius: 3px;
+}
+
+/* Shared surface + control primitives */
+.card {
+  background: color-mix(in oklch, var(--color-paper-2) 82%, transparent);
+  border: 1px solid var(--rule);
+  border-radius: var(--radius-lg);
+  backdrop-filter: blur(8px);
+}
+
+.btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  font-weight: 600;
+  border-radius: var(--radius-full);
+  padding: 0.6rem 1.15rem;
+  transition:
+    transform var(--dur-fast) var(--ease-out),
+    background-color var(--dur-fast) var(--ease-out),
+    border-color var(--dur-fast) var(--ease-out);
+  cursor: pointer;
+  white-space: nowrap;
+}
+.btn:active {
+  transform: translateY(1px);
+}
+.btn-primary {
+  background: var(--color-accent);
+  color: var(--color-accent-ink);
+}
+.btn-primary:hover {
+  background: var(--color-accent-2);
+}
+.btn-ghost {
+  background: transparent;
+  color: var(--color-ink);
+  border: 1px solid var(--rule-strong);
+}
+.btn-ghost:hover {
+  background: var(--color-paper-3);
+}
+.btn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.tag {
+  font-family: var(--font-mono, ui-monospace), monospace;
+  font-size: 0.72rem;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--color-ink-3);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  * {
+    animation-duration: 0.001ms !important;
+    transition-duration: 0.001ms !important;
+  }
+}
