@@ -1,0 +1,21 @@
+Examples on this page are fragments. They render inside the provider you mounted
+in the [Quickstart](/code/sdks/convex/quickstart):
+
+```svelte
+<CreemConvexProvider api={connectedApi} catalog={billingCatalog}>
+  <!-- examples from this page go here -->
+</CreemConvexProvider>
+```
+
+If something below does not work, one of these is usually missing. Each links
+straight to the step that sets it up.
+
+- [Component registered](/code/sdks/convex/quickstart#register-component) — `app.use(creem)` in `convex/convex.config.ts`
+- [Secrets set](/code/sdks/convex/quickstart#set-secrets) — `CREEM_API_KEY` and `CREEM_WEBHOOK_SECRET` in Convex env
+- [Billing API exported](/code/sdks/convex/quickstart#export-billing-api) — `convex/billing.ts` calling `creem.api({ resolve })`
+- [Webhook registered](/code/sdks/convex/quickstart#register-webhook) — `creem.registerRoutes(http)` in `convex/http.ts`
+- [Products created](/code/sdks/convex/quickstart#create-products) — one Creem product per plan and billing cycle
+- [Products synced](/code/sdks/convex/quickstart#sync-products) — `npx convex run billing:syncBillingProducts`
+- [Styles imported](/code/sdks/convex/quickstart#import-styles) — `@creem_io/convex/styles` after the Tailwind import
+- [Catalog defined](/code/sdks/convex/quickstart#define-plans) — `billingCatalog` mapping plan IDs to product IDs
+- [Provider mounted](/code/sdks/convex/quickstart#render-pricing-page) — `<CreemConvexProvider>` around your billing UI

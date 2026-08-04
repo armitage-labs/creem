@@ -1,23 +1,35 @@
+<!--
+  @component
+  Warning banner for a pending, refunded, or partially refunded payment.
+-->
 <script lang="ts">
   /* global $props, $derived */
-  import type { BillingSnapshot, PaymentSnapshot } from "../../core/types.js";
+  import type { PaymentSnapshot } from "../../core/types.js";
+  import {
+    defaultBillingLabels,
+    type BillingLabels,
+  } from "../../core/i18n.js";
 
   interface Props {
-    snapshot?: BillingSnapshot | null;
     payment?: PaymentSnapshot | null;
     className?: string;
+    labels?: BillingLabels;
   }
 
-  let { snapshot = null, payment = null, className = "" }: Props = $props();
+  let {
+    payment = null,
+    className = "",
+    labels = defaultBillingLabels,
+  }: Props = $props();
 
-  const activePayment = $derived(payment ?? snapshot?.payment ?? null);
+  const activePayment = $derived(payment ?? null);
   const show = $derived(activePayment != null && activePayment.status !== "paid");
   const message = $derived(
     activePayment?.status === "pending"
-      ? "Your payment is pending confirmation. Wait for webhook confirmation before granting permanent access."
+      ? labels.paymentWarning.pending
       : activePayment?.status === "partially_refunded"
-        ? "This payment was partially refunded. Review entitlements that depend on purchase amount."
-        : "This payment was refunded. Access should generally be revoked or downgraded.",
+        ? labels.paymentWarning.partiallyRefunded
+        : labels.paymentWarning.refunded,
   );
 </script>
 

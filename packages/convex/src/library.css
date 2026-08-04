@@ -16,5 +16,11 @@
 
 @import "./design-system/index.css";
 
+@custom-variant creem-base {
+  @layer base {
+    @slot;
+  }
+}
+
 @source "./svelte/**/*.{svelte,ts}";
 @source "./react/**/*.{tsx,ts}";

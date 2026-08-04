@@ -1,21 +1,29 @@
 {
-  "extends": "../../tsconfig.base.json",
   "compilerOptions": {
     "allowJs": true,
     "checkJs": true,
+    "strict": true,
+
     "target": "ESNext",
     "lib": ["ES2022", "dom", "DOM.Iterable"],
     "jsx": "react-jsx",
+    "forceConsistentCasingInFileNames": true,
     "allowSyntheticDefaultImports": true,
-    "customConditions": ["creem/source"],
     "noErrorTruncation": true,
-    // We enforce stricter module resolution for Node16 compatibility
-    // But when building we use Bundler & ESNext for ESM
-    "module": "Node16",
+    // Validate the Node ESM semantics used by the published package.
+    "module": "NodeNext",
     "moduleResolution": "NodeNext",
+    "types": ["node"],
+
     "composite": true,
+    "isolatedModules": true,
+    "declaration": true,
+    "declarationMap": true,
+    "sourceMap": true,
     "rootDir": "./src",
-    "outDir": "./dist"
+    "outDir": "./dist",
+    "verbatimModuleSyntax": true,
+    "skipLibCheck": true
   },
   "include": ["./src/**/*"]
 }

@@ -1,13 +1,24 @@
-import type { UpdateBehavior } from "./types.js";
+import type { AppPlanUpdateBehavior, ResolvedUpdateBehavior } from "./types.js";
+import {
+  defaultBillingLabels,
+  type BillingLabels,
+  type BillingDateFormatInput,
+} from "./i18n.js";
 
 export type UpdateSummaryInput = {
-  kind: "plan-switch" | "seat-update";
-  updateBehavior: UpdateBehavior;
+  kind: "plan-switch" | "unit-update";
+  updateBehavior: ResolvedUpdateBehavior;
   currentLabel: string;
   newLabel: string;
+  currentPrice?: number | null;
+  newPrice?: number | null;
+  currentCaption?: string | null;
+  newCaption?: string | null;
   currentPeriodEnd?: string | null;
   isTrialing?: boolean;
   trialEnd?: string | null;
+  labels?: BillingLabels;
+  formatDate?: (input: BillingDateFormatInput) => string;
 };
 
 export type UpdateSummary = {
@@ -15,50 +26,61 @@ export type UpdateSummary = {
   description: string;
   currentLabel: string;
   newLabel: string;
+  currentCaption: string | null;
+  newCaption: string | null;
   dateNote: string | null;
   confirmLabel: string;
 };
 
-const getBehaviorDescription = (updateBehavior: UpdateBehavior): string => {
-  switch (updateBehavior) {
-    case "proration-charge-immediately":
-      return "The price difference will be prorated and charged immediately.";
-    case "proration-charge":
-      return "The price difference will be prorated and applied to your next invoice.";
-    case "proration-none":
-      return "The new price will take effect at your next billing cycle.";
-  }
+export const resolveTargetUpdateBehavior = (
+  updateBehavior: ResolvedUpdateBehavior | undefined,
+  target: { appPlanId?: string | null },
+): ResolvedUpdateBehavior => {
+  return (
+    updateBehavior ??
+    (target.appPlanId ? "period-end" : "proration-charge-immediately")
+  );
 };
+
+export const resolveAppPlanUpdateBehavior = (
+  updateBehavior: AppPlanUpdateBehavior | undefined,
+): AppPlanUpdateBehavior => updateBehavior ?? "period-end";
 
 const formatPeriodEnd = (
   iso: string,
-  updateBehavior: UpdateBehavior,
+  updateBehavior: ResolvedUpdateBehavior,
+  labels: BillingLabels,
+  formatDate?: (input: BillingDateFormatInput) => string,
 ): string | null => {
   const date = new Date(iso);
   if (isNaN(date.getTime())) return null;
-  const formatted = date.toLocaleDateString(undefined, {
-    month: "short",
-    day: "numeric",
-    year: "numeric",
+  const formatted = (formatDate ?? defaultBillingDateFormatter)({
+    date,
   });
-  if (updateBehavior === "proration-charge") {
-    return `Your next invoice is on ${formatted}.`;
-  }
-  if (updateBehavior === "proration-none") {
-    return `Your next billing cycle starts on ${formatted}.`;
-  }
-  return null;
+  return labels.subscription.dialogs.periodEndNote({
+    behavior: updateBehavior,
+    formattedDate: formatted,
+  });
 };
 
-const formatTrialEnd = (iso: string): string | null => {
-  const date = new Date(iso);
-  if (isNaN(date.getTime())) return null;
-  const formatted = date.toLocaleDateString(undefined, {
+const defaultBillingDateFormatter = ({ date }: BillingDateFormatInput) =>
+  date.toLocaleDateString(undefined, {
     month: "short",
     day: "numeric",
     year: "numeric",
   });
-  return `Your trial continues until ${formatted}. The new price will apply once the trial ends.`;
+
+const formatTrialEnd = (
+  iso: string,
+  labels: BillingLabels,
+  formatDate?: (input: BillingDateFormatInput) => string,
+): string | null => {
+  const date = new Date(iso);
+  if (isNaN(date.getTime())) return null;
+  const formatted = (formatDate ?? defaultBillingDateFormatter)({
+    date,
+  });
+  return labels.subscription.dialogs.trialEndNote(formatted);
 };
 
 export const buildUpdateSummary = (
@@ -69,34 +91,61 @@ export const buildUpdateSummary = (
     updateBehavior,
     currentLabel,
     newLabel,
+    currentPrice,
+    newPrice,
+    currentCaption = null,
+    newCaption = null,
     currentPeriodEnd,
     isTrialing,
     trialEnd,
+    labels = defaultBillingLabels,
+    formatDate,
   } = input;
 
   if (isTrialing) {
-    const trialNote = trialEnd ? formatTrialEnd(trialEnd) : null;
+    const trialNote = trialEnd
+      ? formatTrialEnd(trialEnd, labels, formatDate)
+      : null;
     return {
-      title: kind === "plan-switch" ? "Switch plan?" : "Update seats?",
-      description:
-        trialNote ??
-        "Your free trial will continue. The new price will take effect once the trial ends.",
+      title:
+        kind === "plan-switch"
+          ? labels.subscription.dialogs.switchPlanTitle
+          : labels.subscription.dialogs.updateUnitsTitle,
+      description: trialNote ?? labels.subscription.dialogs.trialContinues,
       currentLabel,
       newLabel,
+      currentCaption,
+      newCaption,
       dateNote: null,
       confirmLabel:
-        kind === "plan-switch" ? "Confirm switch" : "Confirm update",
+        kind === "plan-switch"
+          ? labels.subscription.dialogs.confirmSwitch
+          : labels.subscription.dialogs.confirmUpdate,
     };
   }
 
   return {
-    title: kind === "plan-switch" ? "Switch plan?" : "Update seats?",
-    description: getBehaviorDescription(updateBehavior),
+    title:
+      kind === "plan-switch"
+        ? labels.subscription.dialogs.switchPlanTitle
+        : labels.subscription.dialogs.updateUnitsTitle,
+    description: labels.subscription.dialogs.behaviorDescription(
+      updateBehavior,
+      {
+        isDowngrade:
+          currentPrice != null && newPrice != null && newPrice < currentPrice,
+      },
+    ),
     currentLabel,
     newLabel,
+    currentCaption,
+    newCaption,
     dateNote: currentPeriodEnd
-      ? formatPeriodEnd(currentPeriodEnd, updateBehavior)
+      ? formatPeriodEnd(currentPeriodEnd, updateBehavior, labels, formatDate)
       : null,
-    confirmLabel: kind === "plan-switch" ? "Confirm switch" : "Confirm update",
+    confirmLabel:
+      kind === "plan-switch"
+        ? labels.subscription.dialogs.confirmSwitch
+        : labels.subscription.dialogs.confirmUpdate,
   };
 };

@@ -52,6 +52,22 @@
     margin-bottom: 0.25em;
   }
 
+  blockquote {
+    margin-top: 0.75em;
+    margin-bottom: 0.75em;
+    padding-left: 0.875em;
+    border-left: 3px solid rgb(0 0 0 / 0.18);
+    color: rgb(0 0 0 / 0.68);
+  }
+
+  blockquote > :first-child {
+    margin-top: 0;
+  }
+
+  blockquote > :last-child {
+    margin-bottom: 0;
+  }
+
   table {
     width: 100%;
     border-collapse: collapse;
@@ -72,6 +88,11 @@
   }
 
   @media (prefers-color-scheme: dark) {
+    blockquote {
+      border-color: rgb(255 255 255 / 0.22);
+      color: rgb(255 255 255 / 0.72);
+    }
+
     th,
     td {
       border-color: rgb(255 255 255 / 0.1);

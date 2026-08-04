@@ -6,26 +6,43 @@ import type {
   CheckoutEntity,
   CustomerEntity,
   ProductEntity,
+  RefundEntity,
   SubscriptionEntity,
+  WebhookEventEntity,
 } from "creem/models/components";
 import {
   subscriptionEntityFromJSON,
   checkoutEntityFromJSON,
   productEntityFromJSON,
+  refundEntityFromJSON,
+  webhookEventEntityFromJSON,
 } from "creem/models/components";
 
-export type CreemWebhookEvent = {
-  type?: string;
-  eventType?: string;
-  data?: unknown;
+export type CreemWebhookEvent = WebhookEventEntity;
+
+type WebhookLikeEvent = {
+  eventType?: unknown;
   object?: unknown;
 };
 
-export const getEventType = (event: CreemWebhookEvent): string =>
-  event.type ?? event.eventType ?? "";
+export const parseGeneratedWebhookEvent = (
+  body: string,
+): WebhookEventEntity => {
+  const result = webhookEventEntityFromJSON(body);
+  if (!result.ok) throw result.error;
+  return result.value;
+};
 
-export const getEventData = (event: CreemWebhookEvent): unknown =>
-  event.data ?? event.object;
+const asWebhookLikeEvent = (event: unknown): WebhookLikeEvent =>
+  event && typeof event === "object" ? (event as WebhookLikeEvent) : {};
+
+export const getEventType = (event: unknown): string => {
+  const eventType = asWebhookLikeEvent(event).eventType;
+  return typeof eventType === "string" ? eventType : "";
+};
+
+export const getEventData = (event: unknown): unknown =>
+  asWebhookLikeEvent(event).object;
 
 /**
  * Extract customer ID from a CustomerEntity | string union.
@@ -40,6 +57,7 @@ export const getCustomerId = (
 
 /**
  * Extract billing entity ID from webhook metadata.
+ *
  * Prefers convexBillingEntityId, falls back to convexUserId.
  */
 export const getConvexEntityId = (metadata: unknown): string | null => {
@@ -53,74 +71,8 @@ export const getConvexEntityId = (metadata: unknown): string | null => {
 };
 
 /**
- * Manual fallback parser for when the SDK rejects a subscription
- * (e.g. unknown status like `incomplete`). Converts snake_case keys
- * to the camelCase SubscriptionEntity shape that convertToDatabaseSubscription expects.
- */
-export const manualParseSubscription = (
-  raw: Record<string, unknown>,
-): SubscriptionEntity | null => {
-  try {
-    const parseDate = (v: unknown): Date | undefined =>
-      typeof v === "string" ? new Date(v) : undefined;
-
-    // Parse embedded product (can be string ID or object)
-    let product: SubscriptionEntity["product"] = raw.product as string;
-    if (typeof raw.product === "object" && raw.product !== null) {
-      const p = raw.product as Record<string, unknown>;
-      const prodResult = productEntityFromJSON(JSON.stringify(p));
-      product = prodResult.ok ? prodResult.value : (p.id as string);
-    }
-
-    // Parse embedded customer (can be string ID or object)
-    let customer: SubscriptionEntity["customer"] = raw.customer as string;
-    if (typeof raw.customer === "object" && raw.customer !== null) {
-      const c = raw.customer as Record<string, unknown>;
-      customer = (c.id as string) ?? (raw.customer as unknown as string);
-    }
-
-    return {
-      id: raw.id as string,
-      mode: (raw.mode as SubscriptionEntity["mode"]) ?? "test",
-      object: (raw.object as string) ?? "subscription",
-      product,
-      customer,
-      items: Array.isArray(raw.items)
-        ? raw.items.map((item: Record<string, unknown>) => ({
-            object: (item.object as string) ?? "subscription_item",
-            id: item.id as string,
-            productId: (item.product_id as string) ?? "",
-            priceId: (item.price_id as string) ?? "",
-            units: (item.units as number) ?? 1,
-            createdAt: parseDate(item.created_at) ?? new Date(),
-            updatedAt: parseDate(item.updated_at) ?? new Date(),
-            mode: (item.mode as "test" | "live") ?? "test",
-          }))
-        : undefined,
-      collectionMethod:
-        (raw.collection_method as SubscriptionEntity["collectionMethod"]) ??
-        "charge_automatically",
-      // Pass through the raw status even if the SDK doesn't know it
-      status: raw.status as SubscriptionEntity["status"],
-      currentPeriodStartDate: parseDate(raw.current_period_start_date),
-      currentPeriodEndDate: parseDate(raw.current_period_end_date),
-      canceledAt:
-        raw.canceled_at != null
-          ? (parseDate(raw.canceled_at as string) ?? null)
-          : null,
-      createdAt: parseDate(raw.created_at) ?? new Date(),
-      updatedAt: parseDate(raw.updated_at) ?? new Date(),
-    } as SubscriptionEntity;
-  } catch (e) {
-    console.error("Manual subscription fallback parsing failed:", e);
-    return null;
-  }
-};
-
-/**
- * Parse raw snake_case webhook object into a typed SubscriptionEntity
- * using the SDK's built-in parser (handles snake_case → camelCase + date parsing).
- * Falls back to manual conversion if SDK parsing fails (e.g. unknown status like `incomplete`).
+ * Parse a raw webhook subscription object into a typed SubscriptionEntity
+ * using the SDK's generated parser.
  */
 export const parseSubscription = (
   obj: Record<string, unknown>,
@@ -130,22 +82,16 @@ export const parseSubscription = (
     if (result.ok) {
       return result.value;
     }
-    console.warn(
-      "SDK subscription parsing failed, attempting manual fallback:",
-      result.error,
-    );
+    console.warn("SDK subscription parsing failed:", result.error);
   } catch (e) {
-    console.warn(
-      "SDK subscription parsing threw, attempting manual fallback:",
-      e,
-    );
+    console.warn("SDK subscription parsing threw:", e);
   }
-  return manualParseSubscription(obj);
+  return null;
 };
 
 /**
- * Parse raw snake_case webhook object into a typed CheckoutEntity
- * using the SDK's built-in parser.
+ * Parse a raw webhook checkout object into a typed CheckoutEntity
+ * using the SDK's generated parser.
  */
 export const parseCheckout = (
   obj: Record<string, unknown>,
@@ -163,8 +109,8 @@ export const parseCheckout = (
 };
 
 /**
- * Parse raw snake_case webhook object into a typed ProductEntity
- * using the SDK's built-in parser.
+ * Parse a raw webhook product object into a typed ProductEntity
+ * using the SDK's generated parser.
  */
 export const parseProduct = (
   obj: Record<string, unknown>,
@@ -177,6 +123,25 @@ export const parseProduct = (
     console.warn("SDK product parsing failed:", result.error);
   } catch (e) {
     console.warn("SDK product parsing threw:", e);
+  }
+  return null;
+};
+
+/**
+ * Parse a raw webhook refund object into a typed RefundEntity
+ * using the SDK's generated parser.
+ */
+export const parseRefund = (
+  obj: Record<string, unknown>,
+): RefundEntity | null => {
+  try {
+    const result = refundEntityFromJSON(JSON.stringify(obj));
+    if (result.ok) {
+      return result.value;
+    }
+    console.warn("SDK refund parsing failed:", result.error);
+  } catch (e) {
+    console.warn("SDK refund parsing threw:", e);
   }
   return null;
 };

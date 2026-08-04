@@ -225,6 +225,69 @@ const { data, error } = await authClient.creem.createCheckout({
 
   </Tab>
 
+  <Tab title="Convex">
+    Building on [Convex](https://convex.dev)? The Creem Convex component syncs billing state into your Convex database and ships React and Svelte widgets.
+
+```bash
+npm install @creem_io/convex convex creem
+```
+
+Register the component and set your secrets:
+
+```ts
+// convex/convex.config.ts
+import { defineApp } from "convex/server";
+import creem from "@creem_io/convex/convex.config";
+
+const app = defineApp();
+app.use(creem);
+
+export default app;
+```
+
+```bash
+npx convex env set CREEM_API_KEY your_api_key_here
+npx convex env set CREEM_WEBHOOK_SECRET your_webhook_secret_here
+npx convex env set CREEM_SERVER test
+```
+
+Export the billing API and register the webhook route:
+
+```ts
+// convex/billing.ts
+import { Creem, type ApiResolver } from "@creem_io/convex";
+import { api, components } from "./_generated/api";
+
+export const creem = new Creem(components.creem);
+
+const resolve: ApiResolver = async (ctx) => {
+  const user = await ctx.runQuery(api.users.currentUser);
+  return { userId: user._id, email: user.email, entityId: user._id };
+};
+
+const { uiModel, checkouts } = creem.api({ resolve });
+export { uiModel };
+export const checkoutsCreate = checkouts.create;
+```
+
+```ts
+// convex/http.ts
+import { httpRouter } from "convex/server";
+import { creem } from "./billing";
+
+const http = httpRouter();
+creem.registerRoutes(http);
+export default http;
+```
+
+Then render a pricing page with the pre-built widgets — checkout, plan switching, and cancellation included.
+
+<Card title="Convex Component Docs" icon="database" href="/code/sdks/convex/quickstart">
+  Full quickstart, subscriptions, credits, entitlements, and React/Svelte widgets.
+</Card>
+
+  </Tab>
+
   <Tab title="REST API">
     Use our REST API directly from any language or framework.
 

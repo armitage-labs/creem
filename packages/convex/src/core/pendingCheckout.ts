@@ -19,6 +19,24 @@ export const pendingCheckout = {
     }
   },
 
+  /**
+   * Read the stored intent WITHOUT clearing it.
+   *
+   * Prefer this over `load()` inside a React effect: React StrictMode invokes
+   * effects twice (mount → cleanup → mount), so a consuming read on the first
+   * invocation destroys the intent before the second one can act on it. Peek,
+   * then `clear()` once you actually commit to resuming the checkout.
+   */
+  peek(): CheckoutIntent | null {
+    try {
+      const raw = sessionStorage.getItem(STORAGE_KEY);
+      if (!raw) return null;
+      return JSON.parse(raw) as CheckoutIntent;
+    } catch {
+      return null;
+    }
+  },
+
   load(): CheckoutIntent | null {
     try {
       const raw = sessionStorage.getItem(STORAGE_KEY);

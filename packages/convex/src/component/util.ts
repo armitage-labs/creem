@@ -1,7 +1,6 @@
 import type {
   GenericMutationCtx,
   GenericActionCtx,
-  GenericQueryCtx,
   GenericDataModel,
 } from "convex/server";
 import type {
@@ -11,14 +10,21 @@ import type {
 import { ConvexError, type Infer } from "convex/values";
 import type schema from "./schema.js";
 
+// NOTE: `runQuery`/`runMutation` are intentionally typed via `GenericActionCtx`,
+// not `GenericQueryCtx`/`GenericMutationCtx`. As of Convex 1.41, the query/mutation
+// flavors accept an extra transaction-scoped `transactionLimits` option, while the
+// action flavor does not (actions aren't transactional). These helper ctx types are
+// passed action ctxs at call sites, so they must use the action signature. A
+// query/mutation ctx (whose `runQuery` accepts an optional extra options arg) is
+// still assignable to the action signature, so every ctx kind satisfies these.
 /** Minimal context type for Convex functions that only need `runQuery`. */
 export type RunQueryCtx = {
-  runQuery: GenericQueryCtx<GenericDataModel>["runQuery"];
+  runQuery: GenericActionCtx<GenericDataModel>["runQuery"];
 };
 /** Minimal context type for Convex functions that need `runQuery` + `runMutation`. */
 export type RunMutationCtx = {
-  runQuery: GenericQueryCtx<GenericDataModel>["runQuery"];
-  runMutation: GenericMutationCtx<GenericDataModel>["runMutation"];
+  runQuery: GenericActionCtx<GenericDataModel>["runQuery"];
+  runMutation: GenericActionCtx<GenericDataModel>["runMutation"];
 };
 /** Mutation context that also includes `scheduler` for scheduling async follow-up actions. */
 export type RunSchedulerMutationCtx = RunMutationCtx & {
@@ -26,11 +32,34 @@ export type RunSchedulerMutationCtx = RunMutationCtx & {
 };
 /** Minimal context type for Convex actions that need `runQuery` + `runMutation` + `runAction`. */
 export type RunActionCtx = {
-  runQuery: GenericQueryCtx<GenericDataModel>["runQuery"];
-  runMutation: GenericMutationCtx<GenericDataModel>["runMutation"];
+  runQuery: GenericActionCtx<GenericDataModel>["runQuery"];
+  runMutation: GenericActionCtx<GenericDataModel>["runMutation"];
   runAction: GenericActionCtx<GenericDataModel>["runAction"];
 };
 
+// Terminal statuses end the subscription for good. They are closed out with an
+// `endedAt` timestamp so `getCurrentSubscription`/`listUserSubscriptions` stop
+// returning them as live rows. Kept in sync with `isTerminalSubscriptionStatus`
+// in `src/core/subscriptionStatus.ts` — the component is deliberately
+// self-contained (it is bundled and pushed to Convex on its own) so it does not
+// import from `src/core`.
+//
+// `unpaid` and `paused` are NOT terminal: access is suspended but the row stays
+// open so the payment-recovery UI can still act on it.
+const TERMINAL_SUBSCRIPTION_STATUSES = new Set(["canceled", "expired"]);
+
+/**
+ * Normalize a timestamp to a UTC ISO string.
+ *
+ * Every timestamp comparison in the component is a lexicographic string
+ * compare (`trialEnd <= now`, the `modifiedAt` webhook staleness guard,
+ * `endedAt` filtering). That is only sound when all values share one
+ * normalized representation, so an offset-form timestamp such as
+ * `2026-08-01T00:00:00+02:00` must not be stored verbatim — it would sort
+ * against UTC `Z` values incorrectly and misclassify trial expiry.
+ *
+ * Unparseable strings are passed through unchanged rather than dropped.
+ */
 const toIsoString = (value: unknown): string | null => {
   if (!value) {
     return null;
@@ -39,7 +68,8 @@ const toIsoString = (value: unknown): string | null => {
     return value.toISOString();
   }
   if (typeof value === "string") {
-    return value;
+    const parsed = Date.parse(value);
+    return Number.isNaN(parsed) ? value : new Date(parsed).toISOString();
   }
   return null;
 };
@@ -111,10 +141,11 @@ export const convertToDatabaseSubscription = (
     currentPeriodEnd: periodEndStr,
     cancelAtPeriodEnd: isScheduledCancel,
     startedAt: periodStartStr ?? toIsoString(subscription.createdAt),
-    endedAt:
-      subscription.status === "canceled"
-        ? (toIsoString(subscription.canceledAt) ?? now)
-        : null,
+    endedAt: TERMINAL_SUBSCRIPTION_STATUSES.has(subscription.status)
+      ? (toIsoString(subscription.canceledAt) ??
+        toIsoString(subscription.updatedAt) ??
+        now)
+      : null,
     checkoutId: null,
     metadata,
     collectionMethod:
@@ -169,12 +200,21 @@ export const convertToOrder = (
   options?: {
     checkoutId?: string | null;
     metadata?: Record<string, unknown>;
+    /** Customer ID resolved from the enclosing checkout, used when the order payload omits it. */
+    customerId?: string | null;
   },
 ): Infer<typeof schema.tables.orders.validator> => {
   const now = new Date().toISOString();
+  const customerId = order.customer ?? options?.customerId;
+  // Without a customer ID the row is unreachable — `listUserOrders` looks orders
+  // up by customer, so an empty-string fallback would silently store an orphan
+  // the user can never see. Fail loudly instead and let Creem retry the webhook.
+  if (!customerId) {
+    throw new ConvexError(`Creem order ${order.id} is missing customer id`);
+  }
   return {
     id: order.id,
-    customerId: order.customer ?? "",
+    customerId,
     productId: order.product,
     amount: order.amount,
     currency: order.currency,

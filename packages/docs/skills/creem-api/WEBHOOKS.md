@@ -7,6 +7,18 @@ noindex: true
 
 Comprehensive guide to implementing webhook handlers for CREEM events.
 
+## Contents
+
+- Overview and Setup
+- Network and WAF Configuration
+- Signature Verification
+- Retry Policy
+- Event Structure
+- Event Types: payloads for the events listed below
+- Complete Webhook Handler
+- Next.js Adapter
+- Best Practices
+
 ## Overview
 
 Webhooks push real-time notifications about payments, subscriptions, and other events to your application. They are essential for:
@@ -44,19 +56,16 @@ use Super Bot Fight Mode or Bot Management with a skip rule.
 The signature is sent in the `creem-signature` header as a HMAC-SHA256 hex digest.
 
 ```typescript
-import crypto from 'crypto';
+import crypto from "crypto";
 
 function verifySignature(rawBody: string, signature: string, secret: string): boolean {
-  const computed = crypto
-    .createHmac('sha256', secret)
-    .update(rawBody)
-    .digest('hex');
+  const computed = crypto.createHmac("sha256", secret).update(rawBody).digest("hex");
+
+  // timingSafeEqual throws on a length mismatch, so check that first.
+  if (signature.length !== computed.length) return false;
 
   // Use timing-safe comparison to prevent timing attacks
-  return crypto.timingSafeEqual(
-    Buffer.from(computed, 'hex'),
-    Buffer.from(signature, 'hex')
-  );
+  return crypto.timingSafeEqual(Buffer.from(computed, "hex"), Buffer.from(signature, "hex"));
 }
 ```
 
@@ -169,7 +178,7 @@ async function handleCheckoutCompleted(checkout: CheckoutObject) {
     user = await db.users.create({
       email: customer.email,
       name: customer.name,
-      creemCustomerId: customer.id
+      creemCustomerId: customer.id,
     });
   }
 
@@ -178,8 +187,8 @@ async function handleCheckoutCompleted(checkout: CheckoutObject) {
     userId: user.id,
     creemSubscriptionId: subscription?.id,
     productId: product.id,
-    status: 'active',
-    metadata: metadata
+    status: "active",
+    metadata: metadata,
   });
 
   // 3. Send welcome email
@@ -274,10 +283,10 @@ async function handleSubscriptionPaid(subscription: SubscriptionObject) {
   await db.subscriptions.update({
     where: { creemSubscriptionId: subscription.id },
     data: {
-      status: 'active',
+      status: "active",
       currentPeriodEnd: new Date(subscription.current_period_end_date),
-      nextPaymentDate: new Date(subscription.next_transaction_date)
-    }
+      nextPaymentDate: new Date(subscription.next_transaction_date),
+    },
   });
 }
 ```
@@ -321,11 +330,11 @@ async function handleSubscriptionCanceled(subscription: SubscriptionObject) {
   await db.subscriptions.update({
     where: { creemSubscriptionId: subscription.id },
     data: {
-      status: 'canceled',
+      status: "canceled",
       canceledAt: new Date(subscription.canceled_at),
       // Keep access until period ends
-      accessUntil: new Date(subscription.current_period_end_date)
-    }
+      accessUntil: new Date(subscription.current_period_end_date),
+    },
   });
 
   // Send cancellation confirmation
@@ -374,9 +383,9 @@ async function handleSubscriptionScheduledCancel(subscription: SubscriptionObjec
   await db.subscriptions.update({
     where: { creemSubscriptionId: subscription.id },
     data: {
-      status: 'scheduled_cancel',
-      accessUntil: new Date(subscription.current_period_end_date)
-    }
+      status: "scheduled_cancel",
+      accessUntil: new Date(subscription.current_period_end_date),
+    },
   });
 }
 ```
@@ -422,10 +431,47 @@ async function handleSubscriptionPastDue(subscription: SubscriptionObject) {
   await db.subscriptions.update({
     where: { creemSubscriptionId: subscription.id },
     data: {
-      status: 'past_due',
-      pastDueAt: new Date()
-    }
+      status: "past_due",
+      pastDueAt: new Date(),
+    },
   });
+}
+```
+
+---
+
+### subscription.unpaid
+
+Fired when a subscription moves to the `unpaid` status after failed payment collection. Treat it like `subscription.past_due` in payment-recovery UI, and suspend access according to your policy.
+
+```json
+{
+  "id": "evt_h9hBneNdvWvA8hQzIBzDx",
+  "eventType": "subscription.unpaid",
+  "created_at": 1772265400331,
+  "object": {
+    "id": "sub_3xx35QzxsnpFiJ3vRB9YKt",
+    "object": "subscription",
+    "status": "unpaid",
+    "product": {
+      "id": "prod_L8mMzoYLOOZpMpTBwGw0k",
+      "name": "Pro Plan",
+      "price": 2999,
+      "currency": "USD",
+      "billing_type": "recurring",
+      "billing_period": "every-month"
+    },
+    "customer": {
+      "id": "cust_ubD9UtnJpafXNKQ5UaV0H",
+      "email": "customer@example.com"
+    },
+    "collection_method": "charge_automatically",
+    "last_transaction_id": "tran_6uBkPewvO7KHjfvGmpin82",
+    "current_period_start_date": "2026-02-28T07:56:07.282Z",
+    "current_period_end_date": "2026-03-30T07:56:07.282Z",
+    "canceled_at": null,
+    "metadata": {}
+  }
 }
 ```
 
@@ -503,13 +549,13 @@ Fired when a refund is processed.
 ```typescript
 async function handleRefund(refund: RefundObject) {
   // Check if this requires access revocation
-  if (refund.subscription?.status === 'canceled') {
+  if (refund.subscription?.status === "canceled") {
     await db.subscriptions.update({
       where: { creemSubscriptionId: refund.subscription.id },
       data: {
-        status: 'refunded',
-        accessUntil: new Date() // Immediate revocation
-      }
+        status: "refunded",
+        accessUntil: new Date(), // Immediate revocation
+      },
     });
   }
 
@@ -518,7 +564,7 @@ async function handleRefund(refund: RefundObject) {
     transactionId: refund.transaction.id,
     amount: refund.refund_amount,
     currency: refund.refund_currency,
-    reason: refund.reason
+    reason: refund.reason,
   });
 }
 ```
@@ -665,7 +711,7 @@ Fired when a subscription is paused.
 Here's a complete TypeScript webhook handler with all event types:
 
 ```typescript
-import crypto from 'crypto';
+import crypto from "crypto";
 
 interface WebhookEvent {
   id: string;
@@ -676,19 +722,22 @@ interface WebhookEvent {
 
 export async function handleCreemWebhook(req: Request): Promise<Response> {
   // 1. Get signature and raw body
-  const signature = req.headers.get('creem-signature');
+  const signature = req.headers.get("creem-signature");
   const rawBody = await req.text();
 
   if (!signature) {
-    return new Response('Missing signature', { status: 401 });
+    return new Response("Missing signature", { status: 401 });
   }
 
-  // 2. Verify signature
+  // 2. Verify signature (length check first: timingSafeEqual throws on mismatch)
   const secret = process.env.CREEM_WEBHOOK_SECRET!;
-  const computed = crypto.createHmac('sha256', secret).update(rawBody).digest('hex');
+  const computed = crypto.createHmac("sha256", secret).update(rawBody).digest("hex");
 
-  if (!crypto.timingSafeEqual(Buffer.from(computed, 'hex'), Buffer.from(signature, 'hex'))) {
-    return new Response('Invalid signature', { status: 401 });
+  if (
+    signature.length !== computed.length ||
+    !crypto.timingSafeEqual(Buffer.from(computed, "hex"), Buffer.from(signature, "hex"))
+  ) {
+    return new Response("Invalid signature", { status: 401 });
   }
 
   // 3. Parse event
@@ -697,51 +746,55 @@ export async function handleCreemWebhook(req: Request): Promise<Response> {
   try {
     // 4. Handle event
     switch (event.eventType) {
-      case 'checkout.completed':
+      case "checkout.completed":
         await handleCheckoutCompleted(event.object);
         break;
 
-      case 'subscription.active':
+      case "subscription.active":
         await handleSubscriptionActive(event.object);
         break;
 
-      case 'subscription.paid':
+      case "subscription.paid":
         await handleSubscriptionPaid(event.object);
         break;
 
-      case 'subscription.canceled':
+      case "subscription.canceled":
         await handleSubscriptionCanceled(event.object);
         break;
 
-      case 'subscription.scheduled_cancel':
+      case "subscription.scheduled_cancel":
         await handleSubscriptionScheduledCancel(event.object);
         break;
 
-      case 'subscription.past_due':
+      case "subscription.past_due":
         await handleSubscriptionPastDue(event.object);
         break;
 
-      case 'subscription.expired':
+      case "subscription.unpaid":
+        await handleSubscriptionUnpaid(event.object);
+        break;
+
+      case "subscription.expired":
         await handleSubscriptionExpired(event.object);
         break;
 
-      case 'refund.created':
+      case "refund.created":
         await handleRefundCreated(event.object);
         break;
 
-      case 'dispute.created':
+      case "dispute.created":
         await handleDisputeCreated(event.object);
         break;
 
-      case 'subscription.update':
+      case "subscription.update":
         await handleSubscriptionUpdate(event.object);
         break;
 
-      case 'subscription.trialing':
+      case "subscription.trialing":
         await handleSubscriptionTrialing(event.object);
         break;
 
-      case 'subscription.paused':
+      case "subscription.paused":
         await handleSubscriptionPaused(event.object);
         break;
 
@@ -749,11 +802,11 @@ export async function handleCreemWebhook(req: Request): Promise<Response> {
         console.log(`Unhandled event type: ${event.eventType}`);
     }
 
-    return new Response('OK', { status: 200 });
+    return new Response("OK", { status: 200 });
   } catch (error) {
-    console.error('Webhook handler error:', error);
+    console.error("Webhook handler error:", error);
     // Return 500 to trigger retry
-    return new Response('Internal error', { status: 500 });
+    return new Response("Internal error", { status: 500 });
   }
 }
 ```
@@ -764,7 +817,7 @@ If using the `@creem_io/nextjs` package:
 
 ```typescript
 // app/api/webhook/creem/route.ts
-import { Webhook } from '@creem_io/nextjs';
+import { Webhook } from "@creem_io/nextjs";
 
 export const POST = Webhook({
   webhookSecret: process.env.CREEM_WEBHOOK_SECRET!,

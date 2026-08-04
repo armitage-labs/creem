@@ -1,5 +1,11 @@
 import type { ChangeEvent } from "react";
+import { defaultBillingLabels } from "../../core/i18n.js";
 
+/**
+ * Stepper input used by `Subscription.UnitPicker`.
+ *
+ * Exported so a replacement unit control can match the built-in styling.
+ */
 export const NumberInput = ({
   value = 1,
   min = Number.NEGATIVE_INFINITY,
@@ -8,6 +14,9 @@ export const NumberInput = ({
   compact = false,
   disabled = false,
   className = "",
+  decreaseLabel = defaultBillingLabels.accessibility.decreaseValue,
+  increaseLabel = defaultBillingLabels.accessibility.increaseValue,
+  valueLabel = defaultBillingLabels.accessibility.valueInput,
   onValueChange,
 }: {
   value?: number;
@@ -17,6 +26,10 @@ export const NumberInput = ({
   compact?: boolean;
   disabled?: boolean;
   className?: string;
+  decreaseLabel?: string;
+  increaseLabel?: string;
+  /** Accessible name for the value input. The visible "Units" text is a sibling, not a <label>. */
+  valueLabel?: string;
   onValueChange?: (value: number) => void;
 }) => {
   const clamp = (candidate: number) => Math.min(max, Math.max(min, candidate));
@@ -39,7 +52,7 @@ export const NumberInput = ({
     <div className={`number-input ${className}`}>
       <button
         type="button"
-        aria-label="Decrease value"
+        aria-label={decreaseLabel}
         disabled={disabled}
         className="icon-button-sm"
         onClick={decrement}
@@ -56,6 +69,10 @@ export const NumberInput = ({
 
       <input
         type="number"
+        aria-label={valueLabel}
+        {...(Number.isFinite(min) ? { min } : {})}
+        {...(Number.isFinite(max) ? { max } : {})}
+        step={step}
         className={`input-ghost ${compact ? "number-input-value-compact" : "number-input-value"} max-w-12 input-no-spinner`}
         value={value}
         disabled={disabled}
@@ -64,7 +81,7 @@ export const NumberInput = ({
 
       <button
         type="button"
-        aria-label="Increase value"
+        aria-label={increaseLabel}
         disabled={disabled}
         className="icon-button-sm"
         onClick={increment}

@@ -7,9 +7,13 @@
   import type { ProductType } from "./types.js";
 
   interface Props {
+    /** Creem product ID represented by this product item. */
     productId: string;
+    /** One-time products become owned after purchase; recurring products can be purchased repeatedly. */
     type: ProductType;
+    /** Display title. Defaults to synced Creem product name. */
     title?: string;
+    /** Display description. Defaults to synced Creem product description. */
     description?: string;
   }
 
@@ -27,7 +31,12 @@
 
   if (rootContext) {
     $effect(() => {
-      const registration = { productId, type, title, description };
+      const registration = {
+        productId,
+        type,
+        title,
+        description,
+      };
       const unregister = untrack(() => rootContext.registerItem(registration));
       return () => untrack(unregister);
     });

@@ -1,25 +1,29 @@
 import { useMemo } from "react";
-import type { BillingSnapshot, PaymentSnapshot } from "../../core/types.js";
+import type { PaymentSnapshot } from "../../core/types.js";
+import { defaultBillingLabels, type BillingLabels } from "../../core/i18n.js";
 
+/**
+ * Warning banner for a pending, refunded, or partially refunded payment.
+ */
 export const PaymentWarningBanner = ({
-  snapshot,
   payment,
   className = "",
+  labels = defaultBillingLabels,
 }: {
-  snapshot?: BillingSnapshot | null;
   payment?: PaymentSnapshot | null;
   className?: string;
+  labels?: BillingLabels;
 }) => {
-  const activePayment = payment ?? snapshot?.payment ?? null;
+  const activePayment = payment ?? null;
 
   const message = useMemo(() => {
     if (!activePayment || activePayment.status === "paid") return null;
     if (activePayment.status === "pending")
-      return "Your payment is pending confirmation. Wait for webhook confirmation before granting permanent access.";
+      return labels.paymentWarning.pending;
     if (activePayment.status === "partially_refunded")
-      return "This payment was partially refunded. Review entitlements that depend on purchase amount.";
-    return "This payment was refunded. Access should generally be revoked or downgraded.";
-  }, [activePayment]);
+      return labels.paymentWarning.partiallyRefunded;
+    return labels.paymentWarning.refunded;
+  }, [activePayment, labels]);
 
   if (!message) return null;
 

@@ -17,7 +17,12 @@ export const ProductItem = ({
 
   useEffect(() => {
     if (!rootContext) return;
-    const registration = { productId, type, title, description };
+    const registration = {
+      productId,
+      type,
+      title,
+      description,
+    };
     const unregister = rootContext.registerItem(registration);
     return unregister;
   }, [rootContext, productId, type, title, description]);

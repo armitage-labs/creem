@@ -70,6 +70,50 @@ describe("convertToDatabaseSubscription", () => {
     expect(result.endsAt).toBeNull();
   });
 
+  it("normalizes offset-form timestamps to UTC", () => {
+    // Every comparison in the component is a lexicographic string compare, so
+    // an offset-form timestamp stored verbatim would sort wrongly against UTC
+    // values: "2026-08-01T00:00:00+02:00" > "2026-07-31T23:00:00.000Z" as
+    // strings, even though they are the same instant.
+    const sub = {
+      ...baseSubscription,
+      status: "trialing" as const,
+      currentPeriodStartDate: "2026-07-01T00:00:00+02:00",
+      currentPeriodEndDate: "2026-08-01T00:00:00+02:00",
+    };
+    const result = convertToDatabaseSubscription(sub as any);
+    expect(result.trialEnd).toBe("2026-07-31T22:00:00.000Z");
+    expect(result.currentPeriodStart).toBe("2026-06-30T22:00:00.000Z");
+  });
+
+  it("passes through a timestamp it cannot parse", () => {
+    const sub = { ...baseSubscription, canceledAt: "not-a-date" };
+    const result = convertToDatabaseSubscription(sub as any);
+    expect(result.canceledAt).toBe("not-a-date");
+  });
+
+  it("closes out an expired subscription so it stops granting access", () => {
+    // Without endedAt this row keeps satisfying the "current subscription"
+    // lookup forever, so a lapsed subscriber never loses paid access.
+    const sub = {
+      ...baseSubscription,
+      status: "expired" as const,
+      canceledAt: null,
+      updatedAt: "2026-02-01T00:00:00.000Z",
+    };
+    const result = convertToDatabaseSubscription(sub as any);
+    expect(result.endedAt).toBe("2026-02-01T00:00:00.000Z");
+  });
+
+  it.each(["unpaid", "past_due", "paused"])(
+    "leaves a %s subscription open for payment recovery",
+    (status) => {
+      const sub = { ...baseSubscription, status: status as never };
+      const result = convertToDatabaseSubscription(sub as any);
+      expect(result.endedAt).toBeNull();
+    },
+  );
+
   it("throws ConvexError when customer id is missing", () => {
     const sub = { ...baseSubscription, customer: null };
     expect(() => convertToDatabaseSubscription(sub as any)).toThrow(
@@ -198,10 +242,17 @@ describe("convertToOrder", () => {
     expect(result.metadata).toEqual({ source: "test" });
   });
 
-  it("defaults customerId to empty string when customer is null", () => {
+  it("falls back to the checkout customer id when the order omits it", () => {
     const order = { ...baseOrder, customer: null };
-    const result = convertToOrder(order);
-    expect(result.customerId).toBe("");
+    const result = convertToOrder(order, { customerId: "cust_from_checkout" });
+    expect(result.customerId).toBe("cust_from_checkout");
+  });
+
+  it("throws when no customer id is available", () => {
+    // An order with no customer would be unreachable — `listUserOrders` looks
+    // orders up by customer — so it must fail loudly and let Creem retry.
+    const order = { ...baseOrder, customer: null };
+    expect(() => convertToOrder(order)).toThrow("missing customer id");
   });
 
   it("handles optional fields as null/undefined", () => {

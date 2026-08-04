@@ -1,51 +1,97 @@
-import type { BillingSnapshot } from "../../core/types.js";
+import {
+  defaultBillingLabels,
+  type BillingDateFormatInput,
+  type BillingLabels,
+} from "../../core/i18n.js";
 
+/**
+ * Notice for a scheduled cancellation or an app-side period-end update.
+ *
+ * Inside a connected provider, pass `subscriptionId` and the widget derives the
+ * period, the pending update, its label, and the undo/resume handlers from the
+ * billing model. The remaining props are overrides for unconnected use.
+ */
 export const ScheduledChangeBanner = ({
-  snapshot,
+  cancelAtPeriodEnd = false,
+  currentPeriodEnd = null,
+  scheduledUpdate = null,
   className = "",
   isLoading = false,
   onResume,
+  onUndoUpdate,
+  scheduledUpdateLabel,
+  labels = defaultBillingLabels,
+  formatDate,
 }: {
-  snapshot?: BillingSnapshot | null;
+  cancelAtPeriodEnd?: boolean;
+  currentPeriodEnd?: string | null;
+  scheduledUpdate?: { effectiveAt?: unknown } | null;
   className?: string;
   isLoading?: boolean;
   onResume?: () => void;
+  onUndoUpdate?: () => void;
+  scheduledUpdateLabel?: string | null;
+  labels?: BillingLabels;
+  formatDate?: (input: BillingDateFormatInput) => string;
 }) => {
-  if (!snapshot?.metadata || snapshot.metadata.cancelAtPeriodEnd !== true) {
+  const hasScheduledUpdate = scheduledUpdate != null;
+  if (!cancelAtPeriodEnd && !hasScheduledUpdate) {
     return null;
   }
 
-  const currentPeriodEnd =
-    typeof snapshot.metadata.currentPeriodEnd === "string"
-      ? snapshot.metadata.currentPeriodEnd
-      : undefined;
+  const resolvedPeriodEnd =
+    hasScheduledUpdate && typeof scheduledUpdate.effectiveAt === "string"
+      ? scheduledUpdate.effectiveAt
+      : currentPeriodEnd;
+  const formattedPeriodEnd = resolvedPeriodEnd
+    ? (formatDate ?? (({ date }) => date.toLocaleDateString()))({
+        date: new Date(resolvedPeriodEnd),
+      })
+    : undefined;
 
   return (
     <div className={`rounded-xl bg-surface-base p-6 ${className}`}>
       <div className="flex flex-col gap-6 md:flex-row md:items-start md:justify-between md:gap-4">
         <div className="space-y-2">
           <p className="title-s text-foreground-default">
-            Cancellation scheduled
+            {hasScheduledUpdate
+              ? labels.scheduledChange.updateScheduled
+              : labels.scheduledChange.cancellationScheduled}
           </p>
           <p className="body-m text-foreground-muted">
-            You will continue to have access until the end of your current
-            billing period
-            {currentPeriodEnd
-              ? ` (${new Date(currentPeriodEnd).toLocaleDateString()})`
-              : ""}
-            .
+            {hasScheduledUpdate
+              ? labels.scheduledChange.updateAtPeriodEnd(formattedPeriodEnd)
+              : labels.scheduledChange.accessUntilPeriodEnd(formattedPeriodEnd)}
           </p>
+          {hasScheduledUpdate && scheduledUpdateLabel && (
+            <p className="label-m text-foreground-default">
+              {labels.scheduledChange.targetUpdate(scheduledUpdateLabel)}
+            </p>
+          )}
         </div>
-        {onResume && (
+        {hasScheduledUpdate && onUndoUpdate ? (
+          <button
+            type="button"
+            className="button-faded h-8 shrink-0 disabled:cursor-not-allowed disabled:opacity-50"
+            disabled={isLoading}
+            onClick={onUndoUpdate}
+          >
+            {isLoading
+              ? labels.scheduledChange.resuming
+              : labels.scheduledChange.undoUpdate}
+          </button>
+        ) : !hasScheduledUpdate && onResume ? (
           <button
             type="button"
             className="button-faded h-8 shrink-0 disabled:cursor-not-allowed disabled:opacity-50"
             disabled={isLoading}
             onClick={onResume}
           >
-            {isLoading ? "Resuming…" : "Undo cancellation"}
+            {isLoading
+              ? labels.scheduledChange.resuming
+              : labels.scheduledChange.undoCancellation}
           </button>
-        )}
+        ) : null}
       </div>
     </div>
   );

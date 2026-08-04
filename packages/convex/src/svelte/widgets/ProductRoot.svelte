@@ -1,16 +1,22 @@
 <script lang="ts">
-  import { setContext, untrack } from "svelte";
-  import { useConvexClient, useQuery } from "@mmailaender/convex-svelte";
-  import CheckoutButton from "../primitives/CheckoutButton.svelte";
-  import { formatPriceWithInterval } from "../primitives/shared.js";
+  import { getContext, setContext, untrack } from "svelte";
+  import { useConvexClient, useQuery } from "convex-svelte";
+  import {
+    formatPriceWithInterval,
+    splitPriceLabel,
+  } from "../../core/display.js";
+  import { resolveBillingI18n } from "../../core/i18n.js";
   import {
     PRODUCT_GROUP_CONTEXT_KEY,
     type ProductGroupContextValue,
   } from "./productGroupContext.js";
+  import {
+    CREEM_CONVEX_CONTEXT_KEY,
+    type CreemConvexContextValue,
+  } from "../creemConvexContext.js";
   import type {
     BillingPermissions,
     CheckoutIntent,
-    ConnectedBillingApi,
     ConnectedBillingModel,
     ProductItemRegistration,
     Transition,
@@ -18,23 +24,39 @@
   import { SvelteSet } from "svelte/reactivity";
   import { renderMarkdown } from "../../core/markdown.js";
   import { pendingCheckout } from "../../core/pendingCheckout.js";
+  import { getConvexErrorMessage } from "../../core/convexError.js";
+  import {
+    getActiveOwnedProductId,
+    getEffectiveOwnedProductIds,
+    isOwnedProduct,
+    resolveProductCheckoutProductId,
+    shouldSuppressPendingCheckout,
+  } from "../../core/productCheckout.js";
 
   interface Props {
-    api: ConnectedBillingApi;
+    /** Local UI permission overrides for this product root. */
     permissions?: BillingPermissions;
+    /** Upgrade path rules for mutually exclusive one-time products. */
     transition?: Transition[];
+    /** Wrapper CSS class. */
     class?: string;
+    /** Product card layout mode. */
     layout?: "default" | "single";
+    /** Visual style variant for product cards. */
     styleVariant?: "legacy" | "pricing";
+    /** Show synced Creem product images when available. */
     showImages?: boolean;
+    /** CTA style used by the pricing visual variant. */
     pricingCtaVariant?: "filled" | "faded";
+    /** Checkout success URL override. Defaults to Creem product success URL, then the current page. */
     successUrl?: string;
+    /** Optional checkout guard for this product root. Overrides provider guard. */
     onBeforeCheckout?: (intent: CheckoutIntent) => Promise<boolean> | boolean;
+    /** Product items registered inside this root. */
     children?: import("svelte").Snippet;
   }
 
   let {
-    api,
     permissions = undefined,
     transition = [],
     class: className = "",
@@ -47,12 +69,25 @@
     children,
   }: Props = $props();
 
+  const provider = getContext<CreemConvexContextValue | undefined>(
+    CREEM_CONVEX_CONTEXT_KEY,
+  );
+  const resolvedApi = provider?.api;
+  if (!resolvedApi) {
+    throw new Error(
+      "Product.Root must be rendered inside <CreemConvexProvider>.",
+    );
+  }
+  const resolvedPermissions = $derived(permissions ?? provider?.permissions);
+  const resolvedOnBeforeCheckout = $derived(
+    onBeforeCheckout ?? provider?.onBeforeCheckout,
+  );
+  const i18n = $derived(resolveBillingI18n(provider?.i18n));
+
   const client = useConvexClient();
 
-  // svelte-ignore state_referenced_locally
-  const billingUiModelRef = api.uiModel;
-  // svelte-ignore state_referenced_locally
-  const checkoutLinkRef = api.checkouts.create;
+  const billingUiModelRef = resolvedApi.uiModel;
+  const checkoutLinkRef = resolvedApi.checkouts.create;
 
   const billingModelQuery = useQuery(billingUiModelRef, {});
 
@@ -82,9 +117,9 @@
     (billingModelQuery.data ?? null) as ConnectedBillingModel | null,
   );
   const canCheckout = $derived(
-    !model?.user && onBeforeCheckout != null
+    !model?.user && resolvedOnBeforeCheckout != null
       ? true
-      : permissions?.canCheckout !== false,
+      : resolvedPermissions?.canCheckout !== false,
   );
   const allProducts = $derived(model?.allProducts ?? []);
   const rawOwnedProductIds = $derived(model?.ownedProductIds ?? []);
@@ -94,7 +129,13 @@
     untrack(() => {
       const pending = pendingCheckout.load();
       if (!pending) return;
-      if ((model!.ownedProductIds ?? []).includes(pending.productId)) {
+      if (
+        shouldSuppressPendingCheckout(
+          pending.productId,
+          registeredItems,
+          effectiveOwnedProductIds,
+        )
+      ) {
         pendingCheckout.clear();
         return;
       }
@@ -105,21 +146,12 @@
   // Resolve effective ownership by applying transition rules.
   // If the user purchased a "via_product" (upgrade delta), they effectively
   // own the transition target ('to') and no longer just the source ('from').
-  const effectiveOwnedProductIds = $derived.by<string[]>(() => {
-    const effective = new SvelteSet(rawOwnedProductIds);
-    for (const rule of transition) {
-      if (rule.kind === "via_product" && effective.has(rule.viaProductId)) {
-        effective.add(rule.to);
-        effective.delete(rule.from);
-      }
-    }
-    return [...effective];
-  });
+  const effectiveOwnedProductIds = $derived(
+    getEffectiveOwnedProductIds(rawOwnedProductIds, transition),
+  );
 
   const activeOwnedProductId = $derived(
-    registeredItems.find((item) =>
-      effectiveOwnedProductIds.includes(item.productId),
-    )?.productId ?? null,
+    getActiveOwnedProductId(registeredItems, effectiveOwnedProductIds),
   );
 
   // Determine if a product is a lower tier than the target by traversing the
@@ -142,28 +174,6 @@
     return false;
   };
 
-  const resolveTransitionTarget = (
-    fromProductId: string,
-    toProductId: string,
-  ) =>
-    transition.find(
-      (rule) => rule.from === fromProductId && rule.to === toProductId,
-    );
-
-  const resolveCheckoutProductId = (toProductId: string) => {
-    if (!activeOwnedProductId) {
-      return toProductId;
-    }
-    const rule = resolveTransitionTarget(activeOwnedProductId, toProductId);
-    if (!rule) {
-      return null;
-    }
-    if (rule.kind === "via_product") {
-      return rule.viaProductId;
-    }
-    return toProductId;
-  };
-
   const getFallbackSuccessUrl = (): string | undefined => {
     if (typeof window === "undefined") return undefined;
     return `${window.location.origin}${window.location.pathname}`;
@@ -177,8 +187,8 @@
   };
 
   const startCheckout = async (checkoutProductId: string) => {
-    if (onBeforeCheckout) {
-      const proceed = await onBeforeCheckout({ productId: checkoutProductId });
+    if (resolvedOnBeforeCheckout) {
+      const proceed = await resolvedOnBeforeCheckout({ productId: checkoutProductId });
       if (!proceed) return;
     }
     isLoading = true;
@@ -203,27 +213,24 @@
       );
       window.location.href = url;
     } catch (checkoutError) {
-      error =
-        checkoutError instanceof Error
-          ? checkoutError.message
-          : "Checkout failed";
+      error = getConvexErrorMessage(
+        checkoutError,
+        i18n.labels.product.checkoutFailed,
+      );
     } finally {
+      // `finally`, matching the React root: on success the redirect normally
+      // takes over first, but if the browser blocks or delays it the card must
+      // not be left permanently stuck in its loading state with no way to retry.
       isLoading = false;
     }
   };
 
-  const splitPriceLabel = (
-    value: string | null,
-  ): { main: string; suffix: string | null; tail: string } | null => {
-    if (!value) return null;
-    const match = value.match(/^(.*?)(\/[a-z0-9]+)(.*)$/i);
-    if (!match) return { main: value, suffix: null, tail: "" };
-    return {
-      main: match[1]?.trim() ?? value,
-      suffix: match[2] ?? null,
-      tail: match[3]?.trim() ?? "",
-    };
+  const handleCheckoutClick = (event: MouseEvent, productId: string) => {
+    event.preventDefault();
+    event.stopPropagation();
+    void startCheckout(productId);
   };
+
 </script>
 
 <div class="hidden" aria-hidden="true">
@@ -245,12 +252,16 @@
       : `flex gap-3 ${layout === "single" ? "justify-center" : "flex-wrap items-center"}`}
   >
     {#each registeredItems as item (item.productId)}
-      {@const isOwned = effectiveOwnedProductIds.includes(item.productId)}
+      {@const isOwned = isOwnedProduct(item, effectiveOwnedProductIds)}
       {@const isIncluded =
         !isOwned &&
         activeOwnedProductId != null &&
         isLowerTierThan(item.productId, activeOwnedProductId)}
-      {@const checkoutProductId = resolveCheckoutProductId(item.productId)}
+      {@const checkoutProductId = resolveProductCheckoutProductId(
+        item,
+        activeOwnedProductId,
+        transition,
+      )}
       {@const matchedProduct = allProducts.find((p) => p.id === item.productId)}
       {@const resolvedTitle =
         item.title ?? matchedProduct?.name ?? item.productId}
@@ -260,6 +271,8 @@
       {@const resolvedPrice = formatPriceWithInterval(
         item.productId,
         allProducts,
+        i18n.labels,
+        i18n.formatCurrency,
       )}
       {@const splitPrice = splitPriceLabel(resolvedPrice)}
       {@const descriptionHtml = renderMarkdown(resolvedDescription)}
@@ -284,9 +297,9 @@
             <div class="mb-3 flex min-h-6 items-center justify-between gap-2">
               <h3 class="title-s text-foreground-default">{resolvedTitle}</h3>
               {#if isOwned}
-                <span class="badge-faded-sm">Owned</span>
+                <span class="badge-faded-sm">{i18n.labels.product.owned}</span>
               {:else if isIncluded}
-                <span class="badge-faded-sm">Included</span>
+                <span class="badge-faded-sm">{i18n.labels.product.included}</span>
               {/if}
             </div>
 
@@ -310,23 +323,25 @@
 
             <div class="mb-4 mt-6 flex min-h-8 items-start">
               {#if checkoutProductId && !isOwned && !isIncluded}
-                <CheckoutButton
-                  productId={checkoutProductId}
+                <button
+                  type="button"
                   disabled={isLoading || !canCheckout}
-                  onCheckout={() => startCheckout(checkoutProductId)}
-                  className={`${pricingCtaVariant === "filled" ? "button-filled" : "button-faded"} w-full`}
+                  class={`${pricingCtaVariant === "filled" ? "button-filled" : "button-faded"} w-full disabled:cursor-not-allowed disabled:opacity-60`}
+                  onclick={(event) =>
+                    handleCheckoutClick(event, checkoutProductId)}
                 >
-                  {activeOwnedProductId ? "Upgrade" : "Buy now"}
-                </CheckoutButton>
+                  {item.type === "one-time" && activeOwnedProductId ? i18n.labels.product.upgrade : i18n.labels.product.buyNow}
+                </button>
               {:else if !isOwned && !isIncluded}
-                <CheckoutButton
-                  productId={item.productId}
+                <button
+                  type="button"
                   disabled={isLoading || !canCheckout}
-                  onCheckout={() => startCheckout(item.productId)}
-                  className={`${pricingCtaVariant === "filled" ? "button-filled" : "button-faded"} w-full`}
+                  class={`${pricingCtaVariant === "filled" ? "button-filled" : "button-faded"} w-full disabled:cursor-not-allowed disabled:opacity-60`}
+                  onclick={(event) =>
+                    handleCheckoutClick(event, item.productId)}
                 >
-                  Buy now
-                </CheckoutButton>
+                  {i18n.labels.product.buyNow}
+                </button>
               {/if}
             </div>
 
@@ -355,30 +370,34 @@
               <span
                 class="inline-flex rounded-md bg-emerald-100 px-3 py-2 text-sm font-medium text-emerald-700"
               >
-                Owned
+                {i18n.labels.product.owned}
               </span>
             {:else if isIncluded}
               <span
                 class="inline-flex rounded-md bg-zinc-100 px-3 py-2 text-sm font-medium text-zinc-500 dark:bg-zinc-800 dark:text-zinc-400"
               >
-                Included
+                {i18n.labels.product.included}
               </span>
             {:else if checkoutProductId}
-              <CheckoutButton
-                productId={checkoutProductId}
+              <button
+                type="button"
                 disabled={isLoading || !canCheckout}
-                onCheckout={() => startCheckout(checkoutProductId)}
+                class="button-filled disabled:cursor-not-allowed disabled:opacity-60"
+                onclick={(event) =>
+                  handleCheckoutClick(event, checkoutProductId)}
               >
-                {activeOwnedProductId ? "Upgrade" : "Buy now"}
-              </CheckoutButton>
+                {item.type === "one-time" && activeOwnedProductId ? i18n.labels.product.upgrade : i18n.labels.product.buyNow}
+              </button>
             {:else}
-              <CheckoutButton
-                productId={item.productId}
+              <button
+                type="button"
                 disabled={isLoading || !canCheckout}
-                onCheckout={() => startCheckout(item.productId)}
+                class="button-filled disabled:cursor-not-allowed disabled:opacity-60"
+                onclick={(event) =>
+                  handleCheckoutClick(event, item.productId)}
               >
-                Buy now
-              </CheckoutButton>
+                {i18n.labels.product.buyNow}
+              </button>
             {/if}
           </div>
 

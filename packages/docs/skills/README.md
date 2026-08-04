@@ -32,7 +32,8 @@ A comprehensive skill for integrating the CREEM REST API. Covers:
 - **Transactions** - Query payment history and details
 
 **Contents:**
-- `Skill.md` - Main skill file with quick reference and implementation patterns
+
+- `SKILL.md` - Main skill file with quick reference and implementation patterns
 - `REFERENCE.md` - Complete API reference with all endpoints and schemas
 - `WEBHOOKS.md` - Webhook events documentation with payload examples
 - `WORKFLOWS.md` - Step-by-step integration guides for common use cases
@@ -81,18 +82,20 @@ Help me integrate Creem payments. Use the skill at https://github.com/armitage-l
 ### Cursor
 
 1. Clone the skill repository into your project:
+
    ```bash
    git clone https://github.com/armitage-labs/creem-skills.git .cursor/skills
    ```
 
 2. Reference the skill files in your conversations using `@` mentions:
    ```
-   @.cursor/skills/creem-api/Skill.md Help me create a checkout flow
+   @.cursor/skills/creem-api/SKILL.md Help me create a checkout flow
    ```
 
 ### Windsurf
 
 1. Clone the skill repository:
+
    ```bash
    git clone https://github.com/armitage-labs/creem-skills.git .windsurf/creem
    ```
@@ -114,8 +117,9 @@ skills/
 ├── .claude-plugin/
 │   └── marketplace.json    # Plugin marketplace configuration
 ├── creem-api/
-│   ├── plugin.json         # Plugin metadata
-│   ├── Skill.md            # Core skill instructions
+│   ├── .claude-plugin/
+│   │   └── plugin.json     # Claude Code plugin manifest
+│   ├── SKILL.md            # Core skill instructions
 │   ├── REFERENCE.md        # Detailed API reference
 │   ├── WEBHOOKS.md         # Webhook documentation
 │   └── WORKFLOWS.md        # Integration patterns
@@ -125,6 +129,7 @@ skills/
 ## What This Skill Covers
 
 ### API Endpoints
+
 - Products: Create, retrieve, list products
 - Checkouts: Create and retrieve checkout sessions
 - Customers: Manage customers and portal links
@@ -134,6 +139,7 @@ skills/
 - Transactions: Query payment history
 
 ### Integration Patterns
+
 - Basic SaaS subscription flows
 - One-time purchases with digital delivery
 - License key systems for desktop apps
@@ -142,6 +148,7 @@ skills/
 - Affiliate/referral tracking
 
 ### Best Practices
+
 - Webhook signature verification
 - Error handling patterns
 - Test mode development
