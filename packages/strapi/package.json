@@ -69,7 +69,7 @@
     "@strapi/sdk-plugin": "^6.1.0",
     "@strapi/strapi": "^5.44.0",
     "@strapi/typescript-utils": "^5.44.0",
-    "@types/node": "^25.9.3",
+    "@types/node": "^22.0.0",
     "@types/react": "18.3.28",
     "@types/react-dom": "18.3.7",
     "react": "^18.3.1",

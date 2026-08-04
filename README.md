@@ -193,7 +193,7 @@ CREEM provides [`llms.txt`](https://docs.creem.io/llms.txt) and [`llms-full.txt`
 
 ### Prerequisites
 
-- [Node.js](https://nodejs.org/) v22+
+- [Node.js](https://nodejs.org/) v24+
 - [pnpm](https://pnpm.io/) v11+
 
 ### Setup
