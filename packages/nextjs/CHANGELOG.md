@@ -1,5 +1,11 @@
 # Changelog
 
+## 0.5.3
+
+### Patch Changes
+
+- c3be179: Bump creem SDK dependency to 1.6.0
+
 ## 0.5.2
 
 ### Patch Changes
