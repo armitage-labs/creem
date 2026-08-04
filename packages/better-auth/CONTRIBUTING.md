@@ -21,7 +21,7 @@ By participating in this project, you agree to maintain a respectful and inclusi
 
 ### Prerequisites
 
-- Node.js 22+ and pnpm
+- Node.js 24+ and pnpm
 - Git
 - A Better-Auth project for testing (optional but recommended)
 
@@ -303,4 +303,3 @@ Thank you for contributing to @creem_io/better-auth! Your efforts help make paym
 - Open a [Discussion](https://github.com/armitage-labs/creem-betterauth/discussions)
 - File an [Issue](https://github.com/armitage-labs/creem-betterauth/issues)
 - Contact us at support@creem.io
-

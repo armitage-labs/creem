@@ -78,7 +78,7 @@ yarn add creem
 This SDK is also an installable MCP server where the various SDK methods are
 exposed as tools that can be invoked by AI applications.
 
-> Node.js v20 or greater is required to run the MCP server from npm.
+> Node.js v22 or greater is required to run the MCP server from npm.
 
 <details>
 <summary>Claude installation steps</summary>
