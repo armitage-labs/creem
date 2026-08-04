@@ -8,8 +8,6 @@ the Moderation API. It is built on Next.js 16 with auth, checkout, a studio UI,
 and transaction history. Every Creem call uses the official
 [`creem`](https://www.npmjs.com/package/creem) SDK.
 
-Built for [issue #155](https://github.com/armitage-labs/creem/issues/155).
-
 > **Note:** This is not a real service. There is no model behind the generator by
 > default; it ships a deterministic placeholder ("stub") so the billing and
 > moderation flow runs without model credentials or cost. To use a real model,
