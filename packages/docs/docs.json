@@ -154,6 +154,7 @@
               "features/seat-based-billing",
               "features/split-payments",
               "features/affiliate-program",
+              "features/referral-program",
               "features/storefronts",
               "features/discounts",
               "features/trials",
