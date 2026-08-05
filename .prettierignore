@@ -23,4 +23,4 @@ packages/docs/api-reference/openapi.json
 # Standalone templates (e.g. aperture) — they live here for a stable clone/deploy
 # URL but ship their own tooling (.prettierrc, lockfile). Keep root formatting,
 # lint-staged, and CI out of them so the template stays self-contained.
-packages/templates/
+packages/examples/
