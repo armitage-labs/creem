@@ -19,24 +19,24 @@ const Body = z.object({
     .string()
     .regex(/^data:image\/[a-z0-9.+-]+;base64,/i, 'must be a base64 image data URL')
     .optional(),
-  options: z.record(z.string()).optional(),
+  options: z.record(z.string(), z.string()).optional(),
   // Client-supplied idempotency key so retries don't double-charge/generate.
   idempotencyKey: z.string().min(8).max(120).optional(),
 })
 
 /**
  * The metered generation endpoint. The ordering is deliberate and must not be
- * reordered - it is the whole point of the app:
+ * reordered. It is the whole point of the app:
  *
- *   1. MODERATE  - screen the prompt first; block on deny/flag; fail closed.
- *   2. DEBIT     - charge credits up front (idempotent); reject if insufficient.
- *   3. GENERATE  - call the (swappable) model.
- *   4. RETURN    - on success return the asset; on model failure REVERSE the
- *                  debit so the user isn't charged for a failed generation.
+ *   1. MODERATE: screen the prompt first; block on deny/flag; fail closed.
+ *   2. DEBIT: charge credits up front (idempotent); reject if insufficient.
+ *   3. GENERATE: call the (swappable) model.
+ *   4. RETURN: on success return the asset; on model failure REVERSE the debit
+ *              so the user isn't charged for a failed generation.
  */
 export const POST = withUser(async (req, user) => {
   const parsed = Body.safeParse(await req.json().catch(() => null))
-  if (!parsed.success) return NextResponse.json({ error: 'invalid_request', details: parsed.error.flatten() }, { status: 400 })
+  if (!parsed.success) return NextResponse.json({ error: 'invalid_request', details: z.flattenError(parsed.error) }, { status: 400 })
   const { prompt, mediaType, imageDataUrl, options } = parsed.data
   // Enforce the reference-image cap server-side too (the client checks it, but
   // the client can't be trusted): a base64 data URL over ~2.5 MB of image would
@@ -106,13 +106,13 @@ export const POST = withUser(async (req, user) => {
       return NextResponse.json({ id: genId, status: 'completed', url: result.url, mediaType: result.mediaType, cost, meta: result.meta })
     } catch (err) {
       // Model failed AFTER we charged. Reverse the debit so the user keeps their
-      // credits - but only report 'refunded' once the reversal actually lands.
+      // credits, but only report 'refunded' once the reversal actually lands.
       console.error('[generate] model failed, reversing debit:', err)
       try {
         await refundDebit({ userId: user.id, accountId: account.accountId, transactionId: debitTxnId, amount: cost, reference: `refund:${genId}` })
       } catch (refundErr) {
         // Reversal failed: the user is still charged. Don't claim a refund that
-        // never happened - mark it failed for reconciliation and say so.
+        // never happened. Mark it failed for reconciliation and say so.
         console.error('[generate] REFUND FAILED - manual reconciliation needed for', genId, refundErr)
         await query(`UPDATE generation SET status='failed', error=$2 WHERE id=$1`, [genId, 'generation+refund failed'])
         return NextResponse.json(
@@ -125,7 +125,7 @@ export const POST = withUser(async (req, user) => {
           { status: 502 },
         )
       }
-      // Reversal succeeded - now it's safe to record and report the refund.
+      // Reversal succeeded, so now it's safe to record and report the refund.
       await query(`UPDATE generation SET status='refunded', error=$2 WHERE id=$1`, [genId, String((err as Error).message).slice(0, 500)])
       return NextResponse.json({ id: genId, status: 'refunded', error: 'generation_failed', message: 'Generation failed - your credits were refunded.' }, { status: 502 })
     }

@@ -5,7 +5,7 @@ import { z } from 'zod'
 
 export const runtime = 'nodejs'
 
-const Query = z.object({ at: z.string().datetime({ message: 'at must be an ISO 8601 timestamp' }).optional() })
+const Query = z.object({ at: z.iso.datetime({ error: 'at must be an ISO 8601 timestamp' }).optional() })
 
 /**
  * Current (or point-in-time) balance for the signed-in user.

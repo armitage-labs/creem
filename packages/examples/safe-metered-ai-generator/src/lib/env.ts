@@ -3,24 +3,24 @@ import { z } from 'zod'
 /**
  * Centralised, typed access to environment configuration, validated with zod.
  *
- * Every external service this app depends on - Postgres, Better Auth, and Creem
- * (API + webhook + products) - must be fully configured. Missing or invalid
- * keys/secrets are a hard error at startup: the app never silently degrades to a
+ * Every external service this app depends on (Postgres, Better Auth, and Creem's
+ * API, webhook, and products) must be fully configured. Missing or invalid keys
+ * or secrets are a hard error at startup: the app never silently degrades to a
  * local or offline stand-in. zod's `safeParse` collects every problem at once,
  * so they can be fixed in a single pass.
  */
 
-/** In env files an unset var and `FOO=""` are equivalent - treat blanks as missing. */
+/** In env files an unset var and `FOO=""` are equivalent, so treat blanks as missing. */
 const emptyToUndefined = (v: unknown) => (typeof v === 'string' && v.trim() === '' ? undefined : v)
-const requiredString = z.preprocess(emptyToUndefined, z.string({ required_error: 'missing - set it in .env.local' }))
-const optionalUrl = z.preprocess(emptyToUndefined, z.string().url('must be a valid URL').optional())
+const requiredString = z.preprocess(emptyToUndefined, z.string({ error: 'missing - set it in .env.local' }))
+const optionalUrl = z.preprocess(emptyToUndefined, z.url('must be a valid URL').optional())
 
 const EnvSchema = z.object({
   DATABASE_URL: requiredString,
   BETTER_AUTH_SECRET: requiredString,
   CREEM_API_KEY: z.preprocess(
     emptyToUndefined,
-    z.string({ required_error: 'missing - set it in .env.local' }).startsWith('creem_', 'must start with "creem_" (use a "creem_test_…" key for test mode)'),
+    z.string({ error: 'missing - set it in .env.local' }).startsWith('creem_', 'must start with "creem_" (use a "creem_test_…" key for test mode)'),
   ),
   CREEM_WEBHOOK_SECRET: requiredString,
   CREEM_PRODUCT_STARTER: requiredString,

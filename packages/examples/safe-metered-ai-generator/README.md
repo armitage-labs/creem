@@ -96,7 +96,7 @@ wallets for users who sign up but never buy.
 
 ### Prerequisites
 
-- Node.js 22+, pnpm 10+
+- Node.js 22+, pnpm 11+
 - A Neon (or any) Postgres database
 - A Creem account with an API key, a webhook signing secret, and three one-time
   products (Starter / Pro / Studio). All are required.

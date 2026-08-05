@@ -95,11 +95,19 @@ Use this connection string as an environment variable designated as `DATABASE_UR
 ## Configure Creem credentials
 
 <Steps>
-<Step title="Create the three credit packs">
-In the [products tab](https://creem.io/dashboard/products) of your dashboard, create one product per pack: Starter, Pro, and Studio. Copy each product ID (it starts with `prod_`) into `CREEM_PRODUCT_STARTER`, `CREEM_PRODUCT_PRO`, and `CREEM_PRODUCT_STUDIO`.
-</Step>
 <Step title="Copy your API key">
-Grab your API key from the [Developers section](https://creem.io/dashboard/developers) of the dashboard and set it as `CREEM_API_KEY`.
+Grab your API key from the [Developers section](https://creem.io/dashboard/developers) of the dashboard and set it as `CREEM_API_KEY`. The app picks test vs production mode from the key prefix (`creem_test_` is test mode).
+</Step>
+<Step title="Create the three credit packs">
+Each pack (Starter, Pro, and Studio) maps to a one-time Creem product. With `CREEM_API_KEY` set, run the setup script to create all three at once:
+
+```bash
+pnpm products:setup
+```
+
+It prints the three `CREEM_PRODUCT_*` lines to paste into `.env.local`. Re-running in the same mode returns the existing products instead of creating duplicates.
+
+Prefer the dashboard? In the [products tab](https://creem.io/dashboard/products), create one product per pack and copy each product ID (it starts with `prod_`) into `CREEM_PRODUCT_STARTER`, `CREEM_PRODUCT_PRO`, and `CREEM_PRODUCT_STUDIO`.
 </Step>
 <Step title="Set the webhook signing secret">
 In the **Developers > Webhooks** section of the dashboard, create a webhook endpoint and subscribe it to `checkout.completed`. You don't have your local tunnel URL yet, so use any placeholder for now such as `https://example.com/api/auth/creem/webhook`. Then, copy the endpoint's signing secret into `CREEM_WEBHOOK_SECRET`.

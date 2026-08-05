@@ -18,3 +18,5 @@ next-env.d.ts
 npm-debug.log*
 
 BLOG.md
+
+.vercel/
