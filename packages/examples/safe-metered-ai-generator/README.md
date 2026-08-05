@@ -1,6 +1,6 @@
 # Aperture - a safe, metered AI image & video generator
 
-[![Deploy with Vercel](https://vercel.com/button)](https://vercel.com/new/clone?repository-url=https://github.com/armitage-labs/creem/tree/main/packages/templates/aperture&env=DATABASE_URL,BETTER_AUTH_SECRET,CREEM_API_KEY,CREEM_WEBHOOK_SECRET,CREEM_PRODUCT_STARTER,CREEM_PRODUCT_PRO,CREEM_PRODUCT_STUDIO)
+[![Deploy with Vercel](https://vercel.com/button)](https://vercel.com/new/clone?repository-url=https://github.com/armitage-labs/creem/tree/main/packages/examples/safe-metered-ai-generator&env=DATABASE_URL,BETTER_AUTH_SECRET,CREEM_API_KEY,CREEM_WEBHOOK_SECRET,CREEM_PRODUCT_STARTER,CREEM_PRODUCT_PRO,CREEM_PRODUCT_STUDIO)
 
 A reference app for running a generative-AI product on [Creem](https://creem.io):
 prepaid credit billing with the Customer Credits API and prompt moderation with
@@ -283,7 +283,7 @@ Then add a `case 'fal'` in [`getGenerator()`](src/lib/generator/index.ts) and se
 
 ## The technical guide
 
-A walkthrough of each module is in [`BLOG.md`](BLOG.md).
+A walkthrough of each module is in the [safe, metered AI generator guide](../../docs/guides/safe-metered-ai-image-video-generator.mdx).
 
 ## License
 

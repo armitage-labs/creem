@@ -5,7 +5,7 @@ description: "Moderate every prompt, charge prepaid credits per generation, and 
 
 Charging for AI generations in a way that meets [MoR or PSP guidelines](/merchant-of-record/account-reviews/ai-wrapper-compliance) is hard with unmoderated prompts, failed generations and incorrect customer credits deduction. For e.g., Adobe Firefly users [report failed video jobs that produce nothing yet still deduct credits](https://community.adobe.com/t5/adobe-firefly-bugs/credits-are-being-deducted-even-when-video-generation-fails/idi-p/15659871), with one person losing 680 credits across 17 error-filled attempts. Users are bound to get frustrated if charges are made before the provider is sure that the model worked, or before the prompt has been screened. The fix is in the order of generation steps: moderate the prompt, charge the credits, generate, and refund automatically if the model fails.
 
-In this guide you build [Aperture](https://github.com/armitage-labs/creem/tree/main/packages/templates/aperture), a reference image and video generator that uses Creem for billing and moderation. Credits are managed by the [Customer Credits API](/features/customer-credits/introduction#quick-start), and every prompt is validated through the [Moderation API](/features/moderation).
+In this guide you build [Aperture](https://github.com/armitage-labs/creem/tree/main/packages/examples/safe-metered-ai-generator), a reference image and video generator that uses Creem for billing and moderation. Credits are managed by the [Customer Credits API](/features/customer-credits/introduction#quick-start), and every prompt is validated through the [Moderation API](/features/moderation).
 
 ## Demo
 
@@ -63,7 +63,7 @@ Run the following commands to clone and install the project:
 
 ```bash
 git clone https://github.com/armitage-labs/creem
-cd creem/packages/templates/aperture
+cd creem/packages/examples/safe-metered-ai-generator
 pnpm install
 ```
 
@@ -127,7 +127,7 @@ Press `CTRL-C` to stop the server and now let's move to understanding the codeba
 
 ## Initialize the Creem SDK client
 
-Every call in the app reuses a single SDK instance from [`src/lib/creem/client.ts`](https://github.com/armitage-labs/creem/blob/main/packages/templates/aperture/src/lib/creem/client.ts):
+Every call in the app reuses a single SDK instance from [`src/lib/creem/client.ts`](https://github.com/armitage-labs/creem/blob/main/packages/examples/safe-metered-ai-generator/src/lib/creem/client.ts):
 
 ```ts
 import { Creem } from "creem";
@@ -143,7 +143,7 @@ The SDK picks the host from the `server` option (`api.creem.io` for production, 
 
 ## Set up the database schema
 
-Creem is the source of truth for balances, so the schema in [`db/schema.sql`](https://github.com/armitage-labs/creem/blob/main/packages/templates/aperture/db/schema.sql) only has the Better Auth tables and a few application tables. Two of them related to billing are as follows:
+Creem is the source of truth for balances, so the schema in [`db/schema.sql`](https://github.com/armitage-labs/creem/blob/main/packages/examples/safe-metered-ai-generator/db/schema.sql) only has the Better Auth tables and a few application tables. Two of them related to billing are as follows:
 
 ```sql
 -- maps one app user to one Creem credit wallet.
@@ -206,7 +206,7 @@ Keep `NEXT_PUBLIC_APP_URL` and `BETTER_AUTH_URL` as `http://localhost:3000` so y
 
 ## Screen the prompt before generation
 
-Creem [requires moderation on AI generation products](/features/moderation#why-moderation-matters), so the wrapper in [`src/lib/creem/moderation.ts`](https://github.com/armitage-labs/creem/blob/main/packages/templates/aperture/src/lib/creem/moderation.ts) follows three rules:
+Creem [requires moderation on AI generation products](/features/moderation#why-moderation-matters), so the wrapper in [`src/lib/creem/moderation.ts`](https://github.com/armitage-labs/creem/blob/main/packages/examples/safe-metered-ai-generator/src/lib/creem/moderation.ts) follows three rules:
 
 1. Screen the prompt before anything else.
 2. Block on both `deny` and `flag`.
@@ -240,12 +240,12 @@ export async function screenPrompt(prompt: string, externalId?: string): Promise
 
 ## Implement the wallet layer
 
-Every balance change goes through one module, [`src/lib/wallet.ts`](https://github.com/armitage-labs/creem/blob/main/packages/templates/aperture/src/lib/wallet.ts) and is used by routes and the webhook. It calls the Creem API on every generation, and then it mirrors the actions into Postgres for history and auditing.
+Every balance change goes through one module, [`src/lib/wallet.ts`](https://github.com/armitage-labs/creem/blob/main/packages/examples/safe-metered-ai-generator/src/lib/wallet.ts) and is used by routes and the webhook. It calls the Creem API on every generation, and then it mirrors the actions into Postgres for history and auditing.
 
 The wallet layer is comprised of two files:
 
-- [`src/lib/wallet.ts`](https://github.com/armitage-labs/creem/blob/main/packages/templates/aperture/src/lib/wallet.ts): exposes wallet controls, such as `creditPack`, `debitForGeneration`, `refundDebit`, `getBalance`, `listHistory`, and the account controls (`freeze`, `unfreeze`, `close`).
-- [`src/lib/creem/credits-creem.ts`](https://github.com/armitage-labs/creem/blob/main/packages/templates/aperture/src/lib/creem/credits-creem.ts): adapter over `creemClient.customerCredits.*`. It makes the Creem calls and maps the camelCase responses onto the application's snake_case types.
+- [`src/lib/wallet.ts`](https://github.com/armitage-labs/creem/blob/main/packages/examples/safe-metered-ai-generator/src/lib/wallet.ts): exposes wallet controls, such as `creditPack`, `debitForGeneration`, `refundDebit`, `getBalance`, `listHistory`, and the account controls (`freeze`, `unfreeze`, `close`).
+- [`src/lib/creem/credits-creem.ts`](https://github.com/armitage-labs/creem/blob/main/packages/examples/safe-metered-ai-generator/src/lib/creem/credits-creem.ts): adapter over `creemClient.customerCredits.*`. It makes the Creem calls and maps the camelCase responses onto the application's snake_case types.
 
 ### Use idempotency keys on every step
 
@@ -333,11 +333,11 @@ A reversal adds a compensating entry, which shows both the charge and the refund
 
 ## Implement the generation route
 
-When a generation is requested via [`src/app/api/generate/route.ts`](https://github.com/armitage-labs/creem/blob/main/packages/templates/aperture/src/app/api/generate/route.ts), it goes through the four steps shared earlier in-order. In this section, we cover each step in detail. Let's start with how requests are validated.
+When a generation is requested via [`src/app/api/generate/route.ts`](https://github.com/armitage-labs/creem/blob/main/packages/examples/safe-metered-ai-generator/src/app/api/generate/route.ts), it goes through the four steps shared earlier in-order. In this section, we cover each step in detail. Let's start with how requests are validated.
 
 ### Validate the request
 
-The route uses a [withUser](https://github.com/armitage-labs/creem/blob/main/packages/templates/aperture/src/lib/session.ts#L37) re-usable function to allow only authenticated user to request generations. It parses the body with [Zod](https://zod.dev/), sets the cost from the media type (an image is 5 credits, a video is 40), and accepts an optional client-supplied idempotency key so a retry from the browser doesn't double-charge or double-generate.
+The route uses a [withUser](https://github.com/armitage-labs/creem/blob/main/packages/examples/safe-metered-ai-generator/src/lib/session.ts#L37) re-usable function to allow only authenticated user to request generations. It parses the body with [Zod](https://zod.dev/), sets the cost from the media type (an image is 5 credits, a video is 40), and accepts an optional client-supplied idempotency key so a retry from the browser doesn't double-charge or double-generate.
 
 It also validates the optional reference image. The `imageDataUrl` has to be a base64 image data URL, and the route rejects anything over 2.5 MB (as a demonstration of enforcing limits).
 
@@ -525,7 +525,7 @@ In the code above:
 
 ## Sell credit packs
 
-The pricing page lists three packs, defined in [`src/lib/packs.ts`](https://github.com/armitage-labs/creem/blob/main/packages/templates/aperture/src/lib/packs.ts), and each one maps to a Creem product through the env vars you set earlier:
+The pricing page lists three packs, defined in [`src/lib/packs.ts`](https://github.com/armitage-labs/creem/blob/main/packages/examples/safe-metered-ai-generator/src/lib/packs.ts), and each one maps to a Creem product through the env vars you set earlier:
 
 ```ts
 export const PACKS: Pack[] = [
@@ -542,7 +542,7 @@ export const PACKS: Pack[] = [
 ];
 ```
 
-Clicking "Buy" calls [`src/app/api/checkout/route.ts`](https://github.com/armitage-labs/creem/blob/main/packages/templates/aperture/src/app/api/checkout/route.ts), which opens a Creem checkout for that product and returns the URL. The important line is `metadata.referenceId`, which passes the app user id into the checkout so the webhook can credit the right wallet.
+Clicking "Buy" calls [`src/app/api/checkout/route.ts`](https://github.com/armitage-labs/creem/blob/main/packages/examples/safe-metered-ai-generator/src/app/api/checkout/route.ts), which opens a Creem checkout for that product and returns the URL. The important line is `metadata.referenceId`, which passes the app user id into the checkout so the webhook can credit the right wallet.
 
 ```ts
 const { url } = await createCheckout(
@@ -559,7 +559,7 @@ const { url } = await createCheckout(
 
 ## Credit the wallet from the webhook
 
-The Creem plugin in [`src/lib/auth.ts`](https://github.com/armitage-labs/creem/blob/main/packages/templates/aperture/src/lib/auth.ts) verifies the webhook signature for you and serves the endpoint at `/api/auth/creem/webhook`. Your job is the `onCheckoutCompleted` hook, which runs after a confirmed payment:
+The Creem plugin in [`src/lib/auth.ts`](https://github.com/armitage-labs/creem/blob/main/packages/examples/safe-metered-ai-generator/src/lib/auth.ts) verifies the webhook signature for you and serves the endpoint at `/api/auth/creem/webhook`. Your job is the `onCheckoutCompleted` hook, which runs after a confirmed payment:
 
 ```ts
 onCheckoutCompleted: async ({ customer, product, order, metadata }) => {
@@ -592,7 +592,7 @@ In the code above:
 
 The application dashboard and API routes are protected by two checks:
 
-- [`src/proxy.ts`](https://github.com/armitage-labs/creem/blob/main/packages/templates/aperture/src/proxy.ts) that denies any request to a protected route with no session cookie:
+- [`src/proxy.ts`](https://github.com/armitage-labs/creem/blob/main/packages/examples/safe-metered-ai-generator/src/proxy.ts) that denies any request to a protected route with no session cookie:
 
   ```ts
   export function proxy(request: NextRequest) {
@@ -608,13 +608,13 @@ The application dashboard and API routes are protected by two checks:
 
   Note that the cookie check doesn't prove the session is valid. It only rejects requests that carry no session cookie at all.
 
-- Every route re-checks the session server-side with `withUser` in [`src/lib/session.ts`](https://github.com/armitage-labs/creem/blob/main/packages/templates/aperture/src/lib/session.ts), which calls Better Auth's `getSession`.
+- Every route re-checks the session server-side with `withUser` in [`src/lib/session.ts`](https://github.com/armitage-labs/creem/blob/main/packages/examples/safe-metered-ai-generator/src/lib/session.ts), which calls Better Auth's `getSession`.
 
 ## Freeze, unfreeze, and close accounts
 
 Running a credits product means you eventually have to freeze a suspicious account, unfreeze it after review, or close one.
 
-Those functionalities are available in the wallet layer of the application, and are exposed through [`src/app/api/credits/account/route.ts`](https://github.com/armitage-labs/creem/blob/main/packages/templates/aperture/src/app/api/credits/account/route.ts):
+Those functionalities are available in the wallet layer of the application, and are exposed through [`src/app/api/credits/account/route.ts`](https://github.com/armitage-labs/creem/blob/main/packages/examples/safe-metered-ai-generator/src/app/api/credits/account/route.ts):
 
 ```ts
 try {
@@ -632,11 +632,11 @@ try {
 
 While freeze operations are reversible, closing an account can not be reversed. Closing an account, though, preserves its ledger with the `credit_ledger_cache` table in the database.
 
-The transaction history itself comes from [`src/app/api/credits/history/route.ts`](https://github.com/armitage-labs/creem/blob/main/packages/templates/aperture/src/app/api/credits/history/route.ts) where the wallet reads the live entries from Creem and populates each one with the `reference` and `kind` from the cache (database) mirror, because Creem's `/entries` endpoint leaves the reference off.
+The transaction history itself comes from [`src/app/api/credits/history/route.ts`](https://github.com/armitage-labs/creem/blob/main/packages/examples/safe-metered-ai-generator/src/app/api/credits/history/route.ts) where the wallet reads the live entries from Creem and populates each one with the `reference` and `kind` from the cache (database) mirror, because Creem's `/entries` endpoint leaves the reference off.
 
 ## Swap in a real model
 
-In Aperture's code, the AI-powered generator is a black box in an interface in [`src/lib/generator/index.ts`](https://github.com/armitage-labs/creem/blob/main/packages/templates/aperture/src/lib/generator/index.ts). The default is a `StubGenerator` that renders a gradient poster from the prompt, to demonstrate the billing and moderation flow runs with no model credentials and at no cost. To use a real model, implement the interface and register it like following:
+In Aperture's code, the AI-powered generator is a black box in an interface in [`src/lib/generator/index.ts`](https://github.com/armitage-labs/creem/blob/main/packages/examples/safe-metered-ai-generator/src/lib/generator/index.ts). The default is a `StubGenerator` that renders a gradient poster from the prompt, to demonstrate the billing and moderation flow runs with no model credentials and at no cost. To use a real model, implement the interface and register it like following:
 
 ```ts
 // src/lib/generator/fal.ts
@@ -657,7 +657,7 @@ Then, add a `case 'fal'` in `getGenerator()` and set `GENERATOR=fal` as the envi
 
 ## Deploy to Vercel
 
-<a href="https://vercel.com/new/clone?repository-url=https://github.com/armitage-labs/creem/tree/main/packages/templates/aperture&env=DATABASE_URL,BETTER_AUTH_SECRET,CREEM_API_KEY,CREEM_WEBHOOK_SECRET,CREEM_PRODUCT_STARTER,CREEM_PRODUCT_PRO,CREEM_PRODUCT_STUDIO">
+<a href="https://vercel.com/new/clone?repository-url=https://github.com/armitage-labs/creem/tree/main/packages/examples/safe-metered-ai-generator&env=DATABASE_URL,BETTER_AUTH_SECRET,CREEM_API_KEY,CREEM_WEBHOOK_SECRET,CREEM_PRODUCT_STARTER,CREEM_PRODUCT_PRO,CREEM_PRODUCT_STUDIO">
   <img src="https://vercel.com/button" alt="Deploy with Vercel" />
 </a>
 
