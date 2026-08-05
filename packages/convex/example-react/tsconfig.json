@@ -4,7 +4,6 @@
     "lib": ["DOM", "DOM.Iterable", "ESNext"],
     "skipLibCheck": true,
     "allowSyntheticDefaultImports": true,
-    "customConditions": ["creem/source"],
     "strict": true,
     "forceConsistentCasingInFileNames": true,
     "module": "ESNext",
@@ -16,14 +15,12 @@
       "@/*": ["./src/*"],
       "@creem_io/convex": ["../src/client/index.ts"],
       "@creem_io/convex/react": ["../src/react/index.tsx"],
-      "@creem_io/convex/convex.config": [
-        "../src/component/convex.config.ts"
-      ],
+      "@creem_io/convex/convex.config": ["../src/component/convex.config.ts"],
       "@creem_io/convex/_generated/component.js": [
         "../src/component/_generated/component.ts"
       ]
     },
     "noEmit": true
   },
-  "include": ["./src", "vite.config.ts"]
+  "include": ["./src", "../example-shared", "vite.config.ts"]
 }

@@ -8,8 +8,9 @@ const marked = new Marked({
 
 /**
  * Render a markdown string to HTML.
- * Intended for short product/plan descriptions synced from Creem.
- * Returns an empty string for nullish input.
+ *
+ * Intended for short product/plan descriptions synced from Creem. Returns an
+ * empty string for nullish input.
  */
 export function renderMarkdown(md: string | undefined | null): string {
   if (!md) return "";
@@ -18,6 +19,7 @@ export function renderMarkdown(md: string | undefined | null): string {
 
 /**
  * Render a markdown string to inline HTML (no wrapping `<p>` tags).
+ *
  * Useful for single-line titles or short labels.
  */
 export function renderMarkdownInline(md: string | undefined | null): string {

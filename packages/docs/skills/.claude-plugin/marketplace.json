@@ -33,8 +33,7 @@
         "merchant-of-record",
         "creem"
       ],
-      "category": "integrations",
-      "strict": false
+      "category": "integrations"
     }
   ]
 }

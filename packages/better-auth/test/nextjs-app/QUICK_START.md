@@ -26,7 +26,7 @@ Open http://localhost:3000 🚀
 ### Step 1: Prerequisites
 
 Make sure you have:
-- ✅ Node.js 22+ installed
+- ✅ Node.js 24+ installed
 - ✅ npm or yarn
 - ✅ A Creem account ([sign up here](https://creem.io))
 
@@ -191,4 +191,3 @@ Start testing the Creem Better-Auth integration and explore all the features.
 **Need more details?** See [README.md](./README.md)  
 **Found a bug?** Please report it on GitHub  
 **Have a question?** Check the documentation or ask for help
-

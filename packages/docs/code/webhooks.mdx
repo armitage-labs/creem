@@ -1,7 +1,7 @@
 ---
-title: 'Webhooks'
-description: 'Creem webhooks guide: receive real-time payment notifications, handle subscription lifecycle events, and verify webhook signatures securely.'
-keywords: 'webhooks, payment notifications, subscription events, webhook verification, webhook IP allowlist, webhook source IPs'
+title: "Webhooks"
+description: "Creem webhooks guide: receive real-time payment notifications, handle subscription lifecycle events, and verify webhook signatures securely."
+keywords: "webhooks, payment notifications, subscription events, webhook verification, webhook IP allowlist, webhook source IPs"
 ---
 
 ## What is a webhook?
@@ -25,10 +25,9 @@ You can start receiving real-time events in your app using the steps:
 - Register your production webhook endpoint on Creem live dashboard
 
 <Info>
-  On Next.js projects, the{' '}
-  <a href="/code/sdks/nextjs">@creem_io/nextjs adapter</a> exports a `Webhook`
-  helper that verifies signatures and surfaces typed lifecycle callbacks. Use it
-  as your default implementation before falling back to manual parsing.
+  On Next.js projects, the <a href="/code/sdks/nextjs">@creem_io/nextjs adapter</a> exports a
+  `Webhook` helper that verifies signatures and surfaces typed lifecycle callbacks. Use it as your
+  default implementation before falling back to manual parsing.
 </Info>
 
 ### 1. Create a local endpoint to receive requests
@@ -39,7 +38,7 @@ In your local application, create a new route that can accept POST requests.
 
 ```ts Next.js
 // app/api/webhook/creem/route.ts
-import { Webhook } from '@creem_io/nextjs';
+import { Webhook } from "@creem_io/nextjs";
 
 export const POST = Webhook({
   webhookSecret: process.env.CREEM_WEBHOOK_SECRET!,
@@ -58,13 +57,10 @@ export const POST = Webhook({
 ```
 
 ```ts Node.js
-import type { NextApiRequest, NextApiResponse } from 'next';
+import type { NextApiRequest, NextApiResponse } from "next";
 
-export default async function handler(
-  req: NextApiRequest,
-  res: NextApiResponse
-) {
-  if (req.method !== 'POST') {
+export default async function handler(req: NextApiRequest, res: NextApiResponse) {
+  if (req.method !== "POST") {
     return res.status(405).end();
   }
 
@@ -83,12 +79,12 @@ On receiving an event, you should respond with an HTTP 200 OK to signal to Creem
 Register your publicly accessible HTTPS URL in the Creem dashboard.
 
 <Tip>
-  You can create a tunnel to your localhost server using a tool like ngrok. For
-  example: https://8733-191-204-177-89.sa.ngrok.io/api/webhooks
+  You can create a tunnel to your localhost server using a tool like ngrok. For example:
+  https://8733-191-204-177-89.sa.ngrok.io/api/webhooks
 </Tip>
 
 <img
-  style={{ borderRadius: '0.5rem' }}
+  style={{ borderRadius: "0.5rem" }}
   src="https://nucn5fajkcc6sgrd.public.blob.vercel-storage.com/test-webhook-yBodvIWasxCmgr4bYqZJBlWg8qbUD2.png"
 />
 
@@ -107,19 +103,17 @@ Once your webhook endpoint is deployed to production, you can register it in the
 ## Network Configuration
 
 <Info>
-  Creem does not provide static source IP addresses for outbound webhooks in
-  either Test Mode or production. If your firewall or WAF protects the webhook
-  endpoint, do not rely on source-IP allowlists as the authentication mechanism.
-  Keep the endpoint reachable over HTTPS and verify every request with the
-  `creem-signature` header.
+  Creem does not provide static source IP addresses for outbound webhooks in either Test Mode or
+  production. If your firewall or WAF protects the webhook endpoint, do not rely on source-IP
+  allowlists as the authentication mechanism. Keep the endpoint reachable over HTTPS and verify
+  every request with the `creem-signature` header.
 </Info>
 
 <Tip>
-  Bot protection and WAF products can challenge webhook deliveries because
-  webhooks are automated server-to-server requests. If this happens, add a
-  route-level exception or skip rule for your webhook endpoint. On Cloudflare
-  specifically, Bot Fight Mode cannot be skipped with custom rules; disable it
-  or use Super Bot Fight Mode or Bot Management with a skip rule.
+  Bot protection and WAF products can challenge webhook deliveries because webhooks are automated
+  server-to-server requests. If this happens, add a route-level exception or skip rule for your
+  webhook endpoint. On Cloudflare specifically, Bot Fight Mode cannot be skipped with custom rules;
+  disable it or use Super Bot Fight Mode or Bot Management with a skip rule.
 </Tip>
 
 ## Webhook Signatures
@@ -146,12 +140,12 @@ You can find your webhook secret on the Developers>Webhook page.
 </Tip>
 
 <img
-  style={{ borderRadius: '0.5rem' }}
+  style={{ borderRadius: "0.5rem" }}
   src="https://nucn5fajkcc6sgrd.public.blob.vercel-storage.com/Screenshot%202024-10-03%20at%2014.26.39-MtSMvooQi4OrZoh9eMyFZngfc0CrQn.png"
 />
 
 ```typescript
-import { verifyWebhookSignature } from 'creem/webhooks';
+import { verifyWebhookSignature } from "creem/webhooks";
 
 await verifyWebhookSignature(rawBody, request.headers, {
   secret: process.env.CREEM_WEBHOOK_SECRET!,
@@ -567,6 +561,55 @@ The subscription payment has failed and the subscription is now past due. This o
 }
   ```
     
+  </Accordion>
+</AccordionGroup>
+
+### subscription.unpaid
+
+The subscription moved to the `unpaid` status after failed payment collection. Treat it like `subscription.past_due` in payment-recovery UI, and suspend access according to your policy.
+
+<AccordionGroup>
+  <Accordion title="Sample Request Body">
+  ```json
+{
+    "id": "evt_h9hBneNdvWvA8hQzIBzDx",
+    "eventType": "subscription.unpaid",
+    "created_at": 1772265400331,
+    "object": {
+        "id": "sub_3xx35QzxsnpFiJ3vRB9YKt",
+        "object": "subscription",
+        "status": "unpaid",
+        "product": {
+            "id": "prod_L8mMzoYLOOZpMpTBwGw0k",
+            "name": "Pro Plan",
+            "price": 2999,
+            "currency": "USD",
+            "billing_type": "recurring",
+            "billing_period": "every-month",
+            "status": "active",
+            "tax_mode": "exclusive",
+            "tax_category": "saas",
+            "mode": "test"
+        },
+        "customer": {
+            "id": "cust_ubD9UtnJpafXNKQ5UaV0H",
+            "object": "customer",
+            "email": "customer@example.com",
+            "name": "Test Customer",
+            "country": "US",
+            "mode": "test"
+        },
+        "collection_method": "charge_automatically",
+        "last_transaction_id": "tran_6uBkPewvO7KHjfvGmpin82",
+        "current_period_start_date": "2026-02-28T07:56:07.282Z",
+        "current_period_end_date": "2026-03-30T07:56:07.282Z",
+        "canceled_at": null,
+        "metadata": {},
+        "mode": "test"
+    }
+}
+  ```
+
   </Accordion>
 </AccordionGroup>
 

@@ -41,4 +41,24 @@ describe("pendingCheckout", () => {
   it("clear is safe when nothing is saved", () => {
     expect(() => pendingCheckout.clear()).not.toThrow();
   });
+
+  it("peek returns the saved intent without consuming it", () => {
+    pendingCheckout.save({ productId: "prod_peek", units: 2 });
+
+    // React StrictMode invokes effects twice; the first read must not destroy
+    // the intent before the second invocation can act on it.
+    expect(pendingCheckout.peek()).toEqual({
+      productId: "prod_peek",
+      units: 2,
+    });
+    expect(pendingCheckout.peek()).toEqual({
+      productId: "prod_peek",
+      units: 2,
+    });
+    expect(sessionStorage.getItem("creem:pending-checkout")).not.toBeNull();
+  });
+
+  it("peek returns null when nothing is saved", () => {
+    expect(pendingCheckout.peek()).toBeNull();
+  });
 });

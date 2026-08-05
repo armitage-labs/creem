@@ -4,7 +4,7 @@ Follow these steps to get the test app running:
 
 ## Prerequisites
 
-- Node.js 22+ installed
+- Node.js 24+ installed
 - A Creem account with API credentials
 - Git (for cloning/managing the repo)
 
@@ -208,4 +208,3 @@ For issues with:
 - **This Plugin**: https://github.com/armitage-labs/creem-betterauth/issues
 
 Happy testing! 🚀
-

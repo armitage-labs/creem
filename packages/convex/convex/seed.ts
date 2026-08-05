@@ -4,14 +4,12 @@ import { internalAction, internalMutation } from "./_generated/server";
 import { internal } from "./_generated/api";
 
 const apiKey = process.env.CREEM_API_KEY ?? "";
-const serverIdx = process.env.CREEM_SERVER_IDX
-  ? Number(process.env.CREEM_SERVER_IDX)
-  : undefined;
+const server = process.env.CREEM_SERVER === "prod" ? "prod" : "test";
 const serverURL = process.env.CREEM_SERVER_URL;
 
 const creem = new Creem({
   apiKey,
-  ...(serverIdx !== undefined ? { serverIdx } : {}),
+  server,
   ...(serverURL ? { serverURL } : {}),
 });
 
@@ -43,7 +41,9 @@ export const insertFakeUser = internalMutation({
       console.log("User already exists");
       return;
     }
-    await ctx.db.insert("users", { email: "user@example.com" });
+    await ctx.db.insert("users", {
+      email: "user@example.com",
+    });
   },
 });
 

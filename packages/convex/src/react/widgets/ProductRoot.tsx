@@ -9,25 +9,52 @@ import {
 import { useQuery, useConvex } from "convex/react";
 
 import { CheckoutButton } from "../primitives/CheckoutButton.js";
-import { formatPriceWithInterval, splitPriceLabel } from "../shared.js";
+import {
+  formatPriceWithInterval,
+  splitPriceLabel,
+} from "../../core/display.js";
 import { ProductGroupContext } from "./productGroupContext.js";
 import { renderMarkdown } from "../../core/markdown.js";
 import { pendingCheckout } from "../../core/pendingCheckout.js";
+import { resolveBillingI18n } from "../../core/i18n.js";
+import { getConvexErrorMessage } from "../../core/convexError.js";
+import {
+  getActiveOwnedProductId,
+  getEffectiveOwnedProductIds,
+  isOwnedProduct,
+  resolveProductCheckoutProductId,
+  shouldSuppressPendingCheckout,
+} from "../../core/productCheckout.js";
+import {
+  requireCreemConvexApi,
+  useCreemConvex,
+} from "../CreemConvexProvider.js";
 
 import type {
   BillingPermissions,
   CheckoutIntent,
-  ConnectedBillingApi,
   ConnectedBillingModel,
   ProductItemRegistration,
   Transition,
 } from "./types.js";
 
+const getFallbackSuccessUrl = (): string | undefined => {
+  if (typeof window === "undefined") return undefined;
+  return `${window.location.origin}${window.location.pathname}`;
+};
+
+const getPreferredTheme = (): "light" | "dark" => {
+  if (typeof window === "undefined") return "light";
+  return window.matchMedia("(prefers-color-scheme: dark)").matches
+    ? "dark"
+    : "light";
+};
+
 export const ProductRoot = ({
-  api,
   permissions,
   transition = [],
-  className = "",
+  className,
+  class: classProp,
   layout = "default",
   styleVariant = "legacy",
   showImages = false,
@@ -36,7 +63,6 @@ export const ProductRoot = ({
   onBeforeCheckout,
   children,
 }: PropsWithChildren<{
-  api: ConnectedBillingApi;
   permissions?: BillingPermissions;
   transition?: Transition[];
   class?: string;
@@ -48,10 +74,20 @@ export const ProductRoot = ({
   successUrl?: string;
   onBeforeCheckout?: (intent: CheckoutIntent) => Promise<boolean> | boolean;
 }>) => {
+  const provider = useCreemConvex();
+  const resolvedApi = requireCreemConvexApi("Product.Root", provider);
+  const resolvedPermissions = permissions ?? provider?.permissions;
+  const resolvedOnBeforeCheckout =
+    onBeforeCheckout ?? provider?.onBeforeCheckout;
+  const i18n = useMemo(
+    () => resolveBillingI18n(provider?.i18n),
+    [provider?.i18n],
+  );
+
   const client = useConvex();
 
-  const billingUiModelRef = api.uiModel;
-  const checkoutLinkRef = api.checkouts.create;
+  const billingUiModelRef = resolvedApi.uiModel;
+  const checkoutLinkRef = resolvedApi.checkouts.create;
 
   const modelRaw = useQuery(billingUiModelRef, {});
   const model = (modelRaw ?? null) as ConnectedBillingModel | null;
@@ -80,9 +116,9 @@ export const ProductRoot = ({
   );
 
   const canCheckout =
-    !model?.user && onBeforeCheckout != null
+    !model?.user && resolvedOnBeforeCheckout != null
       ? true
-      : permissions?.canCheckout !== false;
+      : resolvedPermissions?.canCheckout !== false;
   const allProducts = useMemo(
     () => model?.allProducts ?? [],
     [model?.allProducts],
@@ -92,93 +128,21 @@ export const ProductRoot = ({
     [model?.ownedProductIds],
   );
 
-  // Pending checkout resume after auth
-  const pendingCheckoutHandled = useRef(false);
-  useEffect(() => {
-    if (!model?.user || pendingCheckoutHandled.current) return;
-    pendingCheckoutHandled.current = true;
-    const pending = pendingCheckout.load();
-    if (!pending) return;
-    if ((model.ownedProductIds ?? []).includes(pending.productId)) {
-      pendingCheckout.clear();
-      return;
-    }
-    startCheckout(pending.productId);
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [model?.user]);
-
   // Resolve effective ownership by applying transition rules
-  const effectiveOwnedProductIds = useMemo(() => {
-    const effective = new Set(rawOwnedProductIds);
-    for (const rule of transition) {
-      if (rule.kind === "via_product" && effective.has(rule.viaProductId)) {
-        effective.add(rule.to);
-        effective.delete(rule.from);
-      }
-    }
-    return [...effective];
-  }, [rawOwnedProductIds, transition]);
-
-  const activeOwnedProductId =
-    registeredItems.find((item) =>
-      effectiveOwnedProductIds.includes(item.productId),
-    )?.productId ?? null;
-
-  const isLowerTierThan = useCallback(
-    (productId: string, targetId: string): boolean => {
-      const visited = new Set<string>();
-      const queue = [productId];
-      while (queue.length > 0) {
-        const current = queue.shift()!;
-        if (visited.has(current)) continue;
-        visited.add(current);
-        for (const rule of transition) {
-          if (rule.from === current) {
-            if (rule.to === targetId) return true;
-            queue.push(rule.to);
-          }
-        }
-      }
-      return false;
-    },
-    [transition],
+  const effectiveOwnedProductIds = useMemo(
+    () => getEffectiveOwnedProductIds(rawOwnedProductIds, transition),
+    [rawOwnedProductIds, transition],
   );
 
-  const resolveCheckoutProductId = useCallback(
-    (toProductId: string) => {
-      if (!activeOwnedProductId) {
-        return toProductId;
-      }
-      const rule = transition.find(
-        (r) => r.from === activeOwnedProductId && r.to === toProductId,
-      );
-      if (!rule) {
-        return null;
-      }
-      if (rule.kind === "via_product") {
-        return rule.viaProductId;
-      }
-      return toProductId;
-    },
-    [activeOwnedProductId, transition],
+  const activeOwnedProductId = getActiveOwnedProductId(
+    registeredItems,
+    effectiveOwnedProductIds,
   );
-
-  const getFallbackSuccessUrl = (): string | undefined => {
-    if (typeof window === "undefined") return undefined;
-    return `${window.location.origin}${window.location.pathname}`;
-  };
-
-  const getPreferredTheme = (): "light" | "dark" => {
-    if (typeof window === "undefined") return "light";
-    return window.matchMedia("(prefers-color-scheme: dark)").matches
-      ? "dark"
-      : "light";
-  };
 
   const startCheckout = useCallback(
     async (checkoutProductId: string) => {
-      if (onBeforeCheckout) {
-        const proceed = await onBeforeCheckout({
+      if (resolvedOnBeforeCheckout) {
+        const proceed = await resolvedOnBeforeCheckout({
           productId: checkoutProductId,
         });
         if (!proceed) return;
@@ -202,15 +166,71 @@ export const ProductRoot = ({
         window.location.href = url;
       } catch (checkoutError) {
         setError(
-          checkoutError instanceof Error
-            ? checkoutError.message
-            : "Checkout failed",
+          getConvexErrorMessage(
+            checkoutError,
+            i18n.labels.product.checkoutFailed,
+          ),
         );
       } finally {
         setIsLoading(false);
       }
     },
-    [client, checkoutLinkRef, successUrl, onBeforeCheckout],
+    [
+      client,
+      checkoutLinkRef,
+      successUrl,
+      resolvedOnBeforeCheckout,
+      i18n.labels.product.checkoutFailed,
+    ],
+  );
+
+  // Pending checkout resume after auth.
+  // Reads without consuming and clears only once the checkout is actually
+  // started: under StrictMode the effect runs twice, and a consuming read on the
+  // first run would throw the intent away before anything could resume it.
+  const pendingCheckoutHandled = useRef(false);
+  useEffect(() => {
+    if (!model?.user || pendingCheckoutHandled.current) return;
+    const pending = pendingCheckout.peek();
+    if (!pending) return;
+    pendingCheckoutHandled.current = true;
+    pendingCheckout.clear();
+    if (
+      shouldSuppressPendingCheckout(
+        pending.productId,
+        registeredItems,
+        effectiveOwnedProductIds,
+      )
+    ) {
+      return;
+    }
+    // Deferred so the effect body does not update state synchronously, and
+    // deliberately NOT cleared on cleanup: StrictMode's simulated unmount would
+    // cancel the resume, and the ref guard above already prevents a duplicate.
+    setTimeout(() => {
+      void startCheckout(pending.productId);
+    }, 0);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [model?.user]);
+
+  const isLowerTierThan = useCallback(
+    (productId: string, targetId: string): boolean => {
+      const visited = new Set<string>();
+      const queue = [productId];
+      while (queue.length > 0) {
+        const current = queue.shift()!;
+        if (visited.has(current)) continue;
+        visited.add(current);
+        for (const rule of transition) {
+          if (rule.from === current) {
+            if (rule.to === targetId) return true;
+            queue.push(rule.to);
+          }
+        }
+      }
+      return false;
+    },
+    [transition],
   );
 
   return (
@@ -220,7 +240,7 @@ export const ProductRoot = ({
       </div>
 
       <section
-        className={`${styleVariant === "pricing" ? "space-y-0" : "space-y-3"} ${className}`}
+        className={`${styleVariant === "pricing" ? "space-y-0" : "space-y-3"} ${className ?? classProp ?? ""}`}
       >
         {error && <p className="text-sm text-red-600">{error}</p>}
 
@@ -234,12 +254,16 @@ export const ProductRoot = ({
           }
         >
           {registeredItems.map((item) => {
-            const isOwned = effectiveOwnedProductIds.includes(item.productId);
+            const isOwned = isOwnedProduct(item, effectiveOwnedProductIds);
             const isIncluded =
               !isOwned &&
               activeOwnedProductId != null &&
               isLowerTierThan(item.productId, activeOwnedProductId);
-            const checkoutProductId = resolveCheckoutProductId(item.productId);
+            const checkoutProductId = resolveProductCheckoutProductId(
+              item,
+              activeOwnedProductId,
+              transition,
+            );
             const matchedProduct = allProducts.find(
               (p) => p.id === item.productId,
             );
@@ -251,6 +275,8 @@ export const ProductRoot = ({
             const resolvedPrice = formatPriceWithInterval(
               item.productId,
               allProducts,
+              i18n.labels,
+              i18n.formatCurrency,
             );
             const splitPrice = splitPriceLabel(resolvedPrice);
             const descriptionHtml = renderMarkdown(resolvedDescription);
@@ -278,9 +304,13 @@ export const ProductRoot = ({
                         {resolvedTitle}
                       </h3>
                       {isOwned ? (
-                        <span className="badge-faded-sm">Owned</span>
+                        <span className="badge-faded-sm">
+                          {i18n.labels.product.owned}
+                        </span>
                       ) : isIncluded ? (
-                        <span className="badge-faded-sm">Included</span>
+                        <span className="badge-faded-sm">
+                          {i18n.labels.product.included}
+                        </span>
                       ) : null}
                     </div>
 
@@ -308,18 +338,22 @@ export const ProductRoot = ({
                           productId={checkoutProductId}
                           disabled={isLoading || !canCheckout}
                           onCheckout={() => startCheckout(checkoutProductId)}
+                          labels={i18n.labels}
                           className={`${pricingCtaVariant === "filled" ? "button-filled" : "button-faded"} w-full`}
                         >
-                          {activeOwnedProductId ? "Upgrade" : "Buy now"}
+                          {item.type === "one-time" && activeOwnedProductId
+                            ? i18n.labels.product.upgrade
+                            : i18n.labels.product.buyNow}
                         </CheckoutButton>
                       ) : !isOwned && !isIncluded ? (
                         <CheckoutButton
                           productId={item.productId}
                           disabled={isLoading || !canCheckout}
                           onCheckout={() => startCheckout(item.productId)}
+                          labels={i18n.labels}
                           className={`${pricingCtaVariant === "filled" ? "button-filled" : "button-faded"} w-full`}
                         >
-                          Buy now
+                          {i18n.labels.product.buyNow}
                         </CheckoutButton>
                       ) : null}
                     </div>
@@ -364,27 +398,31 @@ export const ProductRoot = ({
                 <div className="mt-4">
                   {isOwned ? (
                     <span className="inline-flex rounded-md bg-emerald-100 px-3 py-2 text-sm font-medium text-emerald-700">
-                      Owned
+                      {i18n.labels.product.owned}
                     </span>
                   ) : isIncluded ? (
                     <span className="inline-flex rounded-md bg-zinc-100 px-3 py-2 text-sm font-medium text-zinc-500 dark:bg-zinc-800 dark:text-zinc-400">
-                      Included
+                      {i18n.labels.product.included}
                     </span>
                   ) : checkoutProductId ? (
                     <CheckoutButton
                       productId={checkoutProductId}
                       disabled={isLoading || !canCheckout}
                       onCheckout={() => startCheckout(checkoutProductId)}
+                      labels={i18n.labels}
                     >
-                      {activeOwnedProductId ? "Upgrade" : "Buy now"}
+                      {item.type === "one-time" && activeOwnedProductId
+                        ? i18n.labels.product.upgrade
+                        : i18n.labels.product.buyNow}
                     </CheckoutButton>
                   ) : (
                     <CheckoutButton
                       productId={item.productId}
                       disabled={isLoading || !canCheckout}
                       onCheckout={() => startCheckout(item.productId)}
+                      labels={i18n.labels}
                     >
-                      Buy now
+                      {i18n.labels.product.buyNow}
                     </CheckoutButton>
                   )}
                 </div>

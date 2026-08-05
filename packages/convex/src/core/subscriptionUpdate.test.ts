@@ -1,6 +1,7 @@
 import { describe, expect, it } from "vitest";
 import {
   buildUpdateSummary,
+  resolveTargetUpdateBehavior,
   type UpdateSummaryInput,
 } from "./subscriptionUpdate.js";
 
@@ -24,6 +25,25 @@ describe("buildUpdateSummary", () => {
       expect(result.description).toContain("prorated and charged immediately");
     });
 
+    it("describes immediate proration as a refund for downgrades", () => {
+      const result = buildUpdateSummary({
+        ...base,
+        currentPrice: 10000,
+        newPrice: 5000,
+      });
+      expect(result.description).toContain("prorated and refunded immediately");
+      expect(result.description).not.toContain("charged immediately");
+    });
+
+    it("keeps immediate proration as a charge for upgrades", () => {
+      const result = buildUpdateSummary({
+        ...base,
+        currentPrice: 5000,
+        newPrice: 10000,
+      });
+      expect(result.description).toContain("prorated and charged immediately");
+    });
+
     it("describes proration-charge", () => {
       const result = buildUpdateSummary({
         ...base,
@@ -42,6 +62,14 @@ describe("buildUpdateSummary", () => {
       expect(result.description).toContain("next billing cycle");
     });
 
+    it("describes period-end", () => {
+      const result = buildUpdateSummary({
+        ...base,
+        updateBehavior: "period-end",
+      });
+      expect(result.description).toContain("current plan stays active");
+    });
+
     it("preserves labels", () => {
       const result = buildUpdateSummary(base);
       expect(result.currentLabel).toBe("Basic");
@@ -49,10 +77,10 @@ describe("buildUpdateSummary", () => {
     });
   });
 
-  describe("seat-update", () => {
-    it("returns correct title for seat-update", () => {
-      const result = buildUpdateSummary({ ...base, kind: "seat-update" });
-      expect(result.title).toBe("Update seats?");
+  describe("unit-update", () => {
+    it("returns correct title for unit-update", () => {
+      const result = buildUpdateSummary({ ...base, kind: "unit-update" });
+      expect(result.title).toBe("Update units?");
       expect(result.confirmLabel).toBe("Confirm update");
     });
   });
@@ -85,6 +113,16 @@ describe("buildUpdateSummary", () => {
         currentPeriodEnd: "2025-06-15T00:00:00Z",
       });
       expect(result.dateNote).toBeNull();
+    });
+
+    it("includes date note for period-end", () => {
+      const result = buildUpdateSummary({
+        ...base,
+        updateBehavior: "period-end",
+        currentPeriodEnd: "2025-06-15T00:00:00Z",
+      });
+      expect(result.dateNote).toContain("scheduled change");
+      expect(result.dateNote).toContain("2025");
     });
 
     it("returns null dateNote when no currentPeriodEnd", () => {
@@ -152,13 +190,43 @@ describe("buildUpdateSummary", () => {
       expect(result.confirmLabel).toBe("Confirm switch");
     });
 
-    it("returns correct confirm label for trial seat-update", () => {
+    it("returns correct confirm label for trial unit-update", () => {
       const result = buildUpdateSummary({
         ...base,
-        kind: "seat-update",
+        kind: "unit-update",
         isTrialing: true,
       });
       expect(result.confirmLabel).toBe("Confirm update");
     });
+  });
+});
+
+describe("resolveTargetUpdateBehavior", () => {
+  it("defaults paid-to-free switches to period-end", () => {
+    expect(
+      resolveTargetUpdateBehavior(undefined, {
+        appPlanId: "free",
+      }),
+    ).toBe("period-end");
+  });
+
+  it("keeps explicit immediate behavior for paid-to-free switches", () => {
+    expect(
+      resolveTargetUpdateBehavior("immediate", {
+        appPlanId: "free",
+      }),
+    ).toBe("immediate");
+  });
+
+  it("defaults paid targets and unit updates to immediate proration", () => {
+    expect(resolveTargetUpdateBehavior(undefined, {})).toBe(
+      "proration-charge-immediately",
+    );
+  });
+
+  it("keeps the requested behavior for paid targets and unit updates", () => {
+    expect(
+      resolveTargetUpdateBehavior("proration-charge-immediately", {}),
+    ).toBe("proration-charge-immediately");
   });
 });

@@ -1,160 +1,215 @@
 import {
-  findPlanById,
   findPlanByProductId,
   normalizePlanCatalog,
   normalizeRecurringCycle,
 } from "./catalog.js";
+import { derivePaymentRecoveryState } from "./selectors.js";
+import { isEntitlingSubscription } from "./subscriptionStatus.js";
 import type {
+  AppPlanAssignment,
   AvailableAction,
-  BillingResolverInput,
+  BillingAccessItem,
+  BillingSnapshotOrder,
+  BillingSnapshotSubscription,
   BillingSnapshot,
-  BillingType,
-  PlanCategory,
-  PlanCatalogEntry,
+  PlanCatalog,
+  PaymentRecoveryState,
   SubscriptionSnapshot,
 } from "./types.js";
 
-const toCategoryFromSubscription = (
-  subscription: SubscriptionSnapshot | null | undefined,
-): PlanCategory => {
-  const status = subscription?.status;
-  if (status === "trialing") {
-    return "trial";
-  }
-  if (
-    status === "active" ||
-    status === "scheduled_cancel" ||
-    status === "past_due" ||
-    status === "canceled"
-  ) {
-    return "paid";
-  }
-  return "custom";
-};
-
-const toBillingType = (
-  plan: PlanCatalogEntry | undefined,
-  input: BillingResolverInput,
-): BillingType => {
-  if (plan?.billingType) {
-    return plan.billingType;
-  }
-  if (input.payment) {
-    return "onetime";
-  }
-  if (input.currentSubscription) {
-    return "recurring";
-  }
-  return "custom";
-};
-
-const buildActions = (
-  input: BillingResolverInput,
-  plan: PlanCatalogEntry | undefined,
-  billingType: BillingType,
-): AvailableAction[] => {
-  const actions = new Set<AvailableAction>();
-  const subscription = input.currentSubscription;
-
-  if (plan?.category === "enterprise") {
-    actions.add("contact_sales");
-    return Array.from(actions);
-  }
-
-  if (billingType === "onetime") {
-    actions.add("checkout");
-    return Array.from(actions);
-  }
-
-  if (!subscription) {
-    actions.add("checkout");
-    return Array.from(actions);
-  }
-
-  actions.add("portal");
-
-  if (
-    subscription.status === "active" ||
-    subscription.status === "trialing" ||
-    subscription.status === "scheduled_cancel"
-  ) {
-    actions.add("cancel");
-  }
-
-  if (
-    subscription.status === "canceled" ||
-    subscription.status === "scheduled_cancel"
-  ) {
-    actions.add("reactivate");
-  }
-
-  if ((plan?.billingCycles?.length ?? 0) > 1) {
-    actions.add("switch_interval");
-  }
-
-  if (
-    (plan?.pricingModel === "seat" || subscription.seats != null) &&
-    billingType === "recurring"
-  ) {
-    actions.add("update_seats");
-  }
-
-  return Array.from(actions);
+/** Input for `resolveBillingSnapshot`. */
+export type BillingSnapshotResolverInput = {
+  /** Billing entity ID. */
+  entityId: string;
+  /** Plan catalog for plan-aware resolution. */
+  catalog?: PlanCatalog;
+  /** All subscriptions for the entity (active, ended, etc.). */
+  subscriptions?: SubscriptionSnapshot[];
+  /** One-time orders with basic metadata. */
+  orders?: Array<{
+    orderId: string;
+    productId: string;
+    status: string;
+  }>;
+  /** App-owned plan assignment rows for the entity. */
+  appPlanAssignments?: AppPlanAssignment[];
+  /** Override for the current timestamp (ISO string). */
+  now?: string;
 };
 
 /**
- * Resolve a `BillingSnapshot` from subscription, catalog, and payment data.
- * This is the core billing state resolver — determines the active plan, category,
- * available actions, and metadata based on the current subscription state.
+ * Resolve a `BillingSnapshot` from subscriptions, orders, and catalog.
  *
- * Used internally by `creem.getBillingSnapshot()`. Can also be called directly
- * for custom billing UIs that don't use the Creem class.
+ * The snapshot is array-based so it supports multiple simultaneous subscriptions
+ * (base + add-ons) and one-time orders as first-class citizens, with payment
+ * recovery state derived from all subscription statuses.
  */
 export const resolveBillingSnapshot = (
-  input: BillingResolverInput,
+  input: BillingSnapshotResolverInput,
 ): BillingSnapshot => {
   const catalog = normalizePlanCatalog(input.catalog);
-  const subscription = input.currentSubscription ?? null;
-  const planFromSubscription = findPlanByProductId(
-    catalog,
-    subscription?.productId,
-  );
-  const fallbackPlan = catalog?.defaultPlanId
-    ? findPlanById(catalog, catalog.defaultPlanId)
-    : undefined;
-  const activePlan = planFromSubscription ?? fallbackPlan;
+  const now = input.now ?? new Date().toISOString();
 
-  const billingType = toBillingType(activePlan, input);
-  const recurringCycle = normalizeRecurringCycle(
-    subscription?.recurringInterval,
+  // Map raw subscriptions to snapshot rows.
+  const subscriptions: BillingSnapshotSubscription[] = (
+    input.subscriptions ?? []
+  ).map((sub) => {
+    const plan = findPlanByProductId(catalog, sub.productId);
+    return {
+      planId: plan?.planId ?? null,
+      productId: sub.productId ?? "",
+      subscriptionId: sub.id ?? "",
+      status: sub.status ?? "unknown",
+      recurringCycle: normalizeRecurringCycle(sub.recurringInterval) ?? null,
+      // `metadata` is app-authored `Record<string, unknown>`, so only surface
+      // `kind` when it really is a string — the snapshot validator rejects
+      // anything else, and one odd catalog entry must not fail the whole query.
+      kind:
+        typeof plan?.metadata?.kind === "string"
+          ? plan.metadata.kind
+          : undefined,
+      units: sub.units,
+      cancelAtPeriodEnd: sub.cancelAtPeriodEnd,
+      currentPeriodEnd: sub.currentPeriodEnd,
+      trialEnd: sub.trialEnd,
+      endedAt: sub.endedAt ?? null,
+    };
+  });
+
+  // Map raw orders to snapshot rows.
+  const orders: BillingSnapshotOrder[] = (input.orders ?? []).map((order) => {
+    const plan = findPlanByProductId(catalog, order.productId);
+    return {
+      planId: plan?.planId ?? null,
+      orderId: order.orderId,
+      productId: order.productId,
+      status: order.status,
+    };
+  });
+
+  // Subscriptions still in force. The snapshot carries the entity's full
+  // history, but payment-recovery state and available actions must reflect only
+  // what is live — otherwise a single subscription that lapsed years ago pins
+  // the account to "payment failed" and keeps offering "reactivate" forever.
+  const openSubscriptions = subscriptions.filter(
+    (subscription) => !subscription.endedAt,
   );
-  const availableBillingCycles =
-    activePlan?.billingCycles && activePlan.billingCycles.length > 0
-      ? activePlan.billingCycles
-      : recurringCycle
-        ? [recurringCycle]
-        : [];
+
+  const appPlanAssignments = input.appPlanAssignments ?? [];
+  const access = buildBillingAccess(
+    subscriptions,
+    orders,
+    appPlanAssignments,
+    now,
+  );
+
+  // Derive payment recovery from subscriptions that are still open
+  const paymentRecoveryState: PaymentRecoveryState =
+    derivePaymentRecoveryState(openSubscriptions);
+
+  // Build available actions from subscriptions that are still open
+  const actions = buildBillingActions(openSubscriptions, orders, now);
 
   return {
-    resolvedAt: input.now ?? new Date().toISOString(),
+    entityId: input.entityId,
     catalogVersion: catalog?.version,
-    activePlanId: activePlan?.planId ?? null,
-    activeCategory:
-      subscription?.status === "trialing"
-        ? "trial"
-        : (activePlan?.category ?? toCategoryFromSubscription(subscription)),
-    billingType,
-    recurringCycle,
-    availableBillingCycles,
-    subscriptionState: subscription?.status,
-    seats: subscription?.seats ?? undefined,
-    payment: input.payment ?? null,
-    availableActions: buildActions(input, activePlan, billingType),
-    metadata: {
-      cancelAtPeriodEnd: subscription?.cancelAtPeriodEnd ?? false,
-      currentPeriodEnd: subscription?.currentPeriodEnd ?? null,
-      trialEnd: subscription?.trialEnd ?? null,
-      userContext: input.userContext ?? {},
-    },
+    subscriptions,
+    orders,
+    appPlanAssignments,
+    access,
+    paymentRecoveryState,
+    availableBillingActions: actions,
+    resolvedAt: now,
   };
+};
+
+const buildBillingAccess = (
+  subscriptions: BillingSnapshotSubscription[],
+  orders: BillingSnapshotOrder[],
+  appPlanAssignments: AppPlanAssignment[],
+  now: string,
+): BillingAccessItem[] => [
+  ...subscriptions
+    // The snapshot is built from ALL subscriptions, so a lapsed trial is still
+    // in this list with status `trialing` — it must not grant entitlements.
+    .filter((subscription) => isEntitlingSubscription(subscription, now))
+    .map(
+      (subscription): BillingAccessItem => ({
+        source: "creem_subscription",
+        kind: "subscription",
+        planId: subscription.planId,
+        productId: subscription.productId,
+        subscriptionId: subscription.subscriptionId,
+        status: subscription.status,
+        recurringCycle: subscription.recurringCycle,
+        units: subscription.units,
+        currentPeriodEnd: subscription.currentPeriodEnd,
+        trialEnd: subscription.trialEnd,
+      }),
+    ),
+  ...orders
+    .filter((order) => order.status === "paid")
+    .map(
+      (order): BillingAccessItem => ({
+        source: "creem_order",
+        kind: "one_time",
+        planId: order.planId,
+        productId: order.productId,
+        orderId: order.orderId,
+        status: order.status,
+      }),
+    ),
+  ...appPlanAssignments
+    .filter((assignment) => assignment.status === "active")
+    .map(
+      (assignment): BillingAccessItem => ({
+        source: "app_plan_assignment",
+        kind: "app_plan",
+        planId: assignment.planId,
+        status: assignment.status,
+        startsAt: assignment.startsAt,
+        endsAt: assignment.endsAt,
+        assignmentSource: assignment.source,
+        subscriptionId: assignment.subscriptionId,
+      }),
+    ),
+];
+
+const buildBillingActions = (
+  subscriptions: BillingSnapshotSubscription[],
+  orders: BillingSnapshotOrder[],
+  now: string,
+): AvailableAction[] => {
+  const actions = new Set<AvailableAction>();
+  const activeSubs = subscriptions.filter((s) =>
+    isEntitlingSubscription(s, now),
+  );
+  const hasReactivatable = subscriptions.some(
+    (s) => s.status === "canceled" || s.status === "scheduled_cancel",
+  );
+
+  if (activeSubs.length === 0 && !hasReactivatable && orders.length === 0) {
+    actions.add("checkout");
+    return Array.from(actions);
+  }
+
+  if (activeSubs.length > 0) {
+    actions.add("portal");
+    actions.add("cancel");
+  }
+
+  if (hasReactivatable) {
+    actions.add("reactivate");
+    // No active subs means the user can also start fresh
+    if (activeSubs.length === 0) {
+      actions.add("checkout");
+    }
+  }
+
+  // One-time orders can always add more
+  if (orders.length > 0) {
+    actions.add("checkout");
+  }
+
+  return Array.from(actions);
 };

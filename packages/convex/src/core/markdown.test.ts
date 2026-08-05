@@ -32,6 +32,12 @@ describe("renderMarkdown", () => {
     expect(result).toContain("<td>");
   });
 
+  it("renders blockquotes", () => {
+    const result = renderMarkdown("> Important note");
+    expect(result).toContain("<blockquote>");
+    expect(result).toContain("Important note");
+  });
+
   it("preserves emoji characters like checkmarks and crosses", () => {
     const result = renderMarkdown("\u2714\uFE0F feature A\n\u274C feature B");
     expect(result).toContain("\u2714");

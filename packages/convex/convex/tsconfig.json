@@ -11,24 +11,23 @@
     "jsx": "react-jsx",
     "skipLibCheck": true,
     "allowSyntheticDefaultImports": true,
-    "customConditions": ["creem/source"],
+    "types": ["node"],
 
     /* These compiler options are required by Convex */
     "target": "ESNext",
-    "lib": ["ES2022", "dom", "DOM.Iterable"],
+    "lib": ["ES2022", "dom"],
     "forceConsistentCasingInFileNames": true,
     "module": "ESNext",
     "isolatedModules": true,
     "noEmit": true,
-    "baseUrl": "..",
     "paths": {
-      "@creem_io/convex": ["src/client/index.ts"],
-      "@creem_io/convex/react": ["src/react/index.tsx"],
-      "@creem_io/convex/svelte": ["src/svelte/index.ts"],
-      "@creem_io/convex/convex.config": ["src/component/convex.config.ts"],
-      "@creem_io/convex/test": ["src/test.ts"],
+      "@creem_io/convex": ["../src/client/index.ts"],
+      "@creem_io/convex/react": ["../src/react/index.tsx"],
+      "@creem_io/convex/svelte": ["../src/svelte/index.ts"],
+      "@creem_io/convex/convex.config": ["../src/component/convex.config.ts"],
+      "@creem_io/convex/test": ["../src/test.ts"],
       "@creem_io/convex/_generated/component.js": [
-        "src/component/_generated/component.ts"
+        "../src/component/_generated/component.ts"
       ]
     }
   },

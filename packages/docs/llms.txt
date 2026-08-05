@@ -1,40 +1,57 @@
-# Creem API Documentation
+# Creem
 
 > Creem is a Merchant of Record (MoR) for SaaS and digital businesses. We handle global tax compliance, payment processing, and billing so you can focus on building your product.
 
-## Quick Facts
-- Website: https://creem.io
-- API Base: https://api.creem.io (production) | https://test-api.creem.io (sandbox)
-- Authentication: x-api-key header
-- SDKs: TypeScript, Next.js adapter
+A Merchant of Record is the legal entity that sells to the end customer. Creem takes on tax compliance, payment processing, chargebacks, and regulatory requirements in 190+ countries; you integrate over the API and receive payouts.
 
-## What is a Merchant of Record?
-A Merchant of Record is the legal entity that sells goods or services to end customers. Creem acts as the MoR, handling all tax compliance, payment processing, and regulatory requirements globally.
+Core capabilities: one-time payments and recurring subscriptions, automatic VAT/GST, license keys, revenue splits and affiliate programs, subscription lifecycle (trials, upgrades, pauses, cancellations), a hosted customer portal, and webhooks for every payment event.
 
-## Core Capabilities
-- One-time payments and recurring subscriptions
-- Global tax compliance (190+ countries, automatic VAT/GST)
-- License key management for software products
-- Revenue splits and affiliate programs
-- Subscription management (trials, upgrades, cancellations)
-- Webhook notifications for all payment events
+API base URLs are `https://api.creem.io` (production) and `https://test-api.creem.io` (sandbox). Authentication is an `x-api-key` header. Prices are integers in cents; currencies are uppercase ISO codes.
 
-## Popular Use Cases
-- SaaS subscription billing
-- Digital product sales
-- Software licensing
-- Indie hacker monetization
-- API/usage-based billing
+Append `.md` to any documentation URL to fetch it as raw markdown.
 
 ## Getting Started
-1. Create account at https://creem.io
-2. Get API keys from dashboard
-3. Install SDK: npm install @creem/sdk
-4. Create products and start accepting payments
 
-## Documentation Sections
-- Getting Started: /getting-started
-- API Reference: /api-reference
-- SDKs & Code: /code
-- Features: /features
-- Merchant of Record: /merchant-of-record
+- [Introduction](https://docs.creem.io/getting-started/introduction.md): what Creem is and how the MoR model changes your integration
+- [Quickstart](https://docs.creem.io/getting-started/quickstart.md): create a product and take a first payment
+- [Test mode](https://docs.creem.io/getting-started/test-mode.md): sandbox keys and test cards
+- [Migrate to Creem](https://docs.creem.io/getting-started/migrate.md): moving from another payment provider
+
+## SDKs
+
+- [TypeScript SDK](https://docs.creem.io/code/sdks/typescript.md): the core client for server-side JavaScript; the API key must stay on your backend
+- [Next.js adapter](https://docs.creem.io/code/sdks/nextjs.md): route handlers and server-side helpers for Next.js apps
+- [Better Auth plugin](https://docs.creem.io/code/sdks/better-auth.md): billing wired into Better Auth sessions and organizations
+- [Convex component](https://docs.creem.io/code/sdks/convex/integration.md): complete setup sequence with validation steps — webhook sync into the Convex database plus connected React and Svelte widgets
+- [Convex concepts](https://docs.creem.io/code/sdks/convex/concepts.md): the billing entity, the sources of billing state, and the connected API contract behind the Convex component
+- [CLI](https://docs.creem.io/code/cli.md): manage products, customers, and subscriptions from the terminal
+- [Webhooks](https://docs.creem.io/code/webhooks.md): event list, payload shapes, and signature verification
+
+## API Reference
+
+- [API introduction](https://docs.creem.io/api-reference/introduction.md): authentication, scopes, and conventions
+- [Error codes](https://docs.creem.io/api-reference/error-codes.md): status codes and their meanings
+
+## Features
+
+- [One-time payments](https://docs.creem.io/features/one-time-payment.md): single-purchase products
+- [Trials](https://docs.creem.io/features/trials.md): free trials on recurring products
+- [Seat-based billing](https://docs.creem.io/features/seat-based-billing.md): per-unit and per-seat pricing
+- [Discounts](https://docs.creem.io/features/discounts.md): coupon codes, percentage and fixed amount
+- [Customer portal](https://docs.creem.io/features/customer-portal.md): hosted self-service billing
+- [Split payments](https://docs.creem.io/features/split-payments.md): programmable revenue splits
+- [Affiliate program](https://docs.creem.io/features/affiliate-program.md): built-in referral and affiliate infrastructure
+- [Storefronts](https://docs.creem.io/features/storefronts.md): hosted product pages
+
+## Integrations
+
+- [Affiliates](https://docs.creem.io/integrations/affiliates.md): create affiliate programs while processing transactions through Creem
+- [Rekomi](https://docs.creem.io/integrations/rekomi.md): affiliate program with payouts in 150+ countries, connected by one webhook
+- [Evendeals](https://docs.creem.io/integrations/evendeals.md): purchase parity pricing to boost international conversions
+- [Strapi](https://docs.creem.io/integrations/strapi.md): manage Creem products and checkout from the Strapi 5 admin panel
+- [Framer](https://docs.creem.io/integrations/framer.md): no-code checkout buttons and pricing tables for Framer sites
+
+## Background
+
+- [Merchant of Record](https://docs.creem.io/merchant-of-record/what-is.md): what an MoR is and what Creem takes on for you
+- [For customers](https://docs.creem.io/for-customers/why-creem-charged-me.md): end-customer billing questions, for support pages
