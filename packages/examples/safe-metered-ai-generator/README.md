@@ -98,15 +98,16 @@ wallets for users who sign up but never buy.
 
 - Node.js 22+, pnpm 11+
 - A Neon (or any) Postgres database
-- A Creem account with an API key, a webhook signing secret, and three one-time
-  products (Starter / Pro / Studio). All are required.
+- A Creem account with an API key and a webhook signing secret
 
 ### 1. Install and configure
 
 ```bash
 pnpm install
 cp .env.example .env.local
-# Fill in every value. The app validates them at startup and lists any that are missing.
+# Set CREEM_API_KEY first, then create the three credit-pack products:
+pnpm products:setup
+# Paste the printed CREEM_PRODUCT_* values into .env.local and fill in the remaining variables.
 ```
 
 Generate a Better Auth secret: `openssl rand -base64 32`.
@@ -159,8 +160,10 @@ const DISCOUNT_CODE: string | null = 'APERTUREFREE'
 
 To run a checkout:
 
-1. Create three one-time products in the Creem dashboard (Starter / Pro / Studio)
-   and put their product ids in `CREEM_PRODUCT_STARTER/PRO/STUDIO`.
+1. Set `CREEM_API_KEY` and run `pnpm products:setup`. The script creates the
+   Starter, Pro, and Studio products in the mode selected by the key prefix and
+   prints the `CREEM_PRODUCT_STARTER/PRO/STUDIO` values for `.env.local`. You can
+   also create the three one-time products manually in the Creem dashboard.
 2. Create a 100%-off discount code (or reuse `APERTUREFREE`) that applies to all
    three products, then set `DISCOUNT_CODE` to match, or `null` to charge full price.
 3. Add a webhook in the dashboard pointing at
