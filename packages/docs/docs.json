@@ -275,6 +275,7 @@
             "icon": "book-open",
             "pages": [
               "guides/introduction",
+              "guides/safe-metered-ai-image-video-generator",
               "guides/create-your-first-product",
               "guides/create-checkout-session",
               "guides/sell-canva-templates",

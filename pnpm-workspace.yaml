@@ -1,5 +1,10 @@
 packages:
   - "packages/*"
+  # Standalone templates are not workspace members. They keep their own lockfile
+  # and tooling so they can be cloned/deployed on their own, so pnpm install,
+  # turbo, and changesets must never treat them as part of the monorepo.
+  - "!packages/examples"
+  - "!packages/examples/**"
 
 autoInstallPeers: true
 publicHoistPattern:

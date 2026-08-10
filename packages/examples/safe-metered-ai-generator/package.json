@@ -1,0 +1,38 @@
+{
+  "name": "aperture",
+  "description": "A safe, metered AI image & video generator built on Creem (credits + moderation).",
+  "scripts": {
+    "dev": "next dev",
+    "build": "next build",
+    "start": "next start",
+    "format": "prettier --write .",
+    "typecheck": "tsc --noEmit",
+    "db:migrate": "tsx --env-file=.env.local scripts/migrate.ts",
+    "products:setup": "tsx --env-file=.env.local scripts/create-products.ts",
+    "auth:generate": "better-auth generate",
+    "test": "node --import tsx --env-file=.env.local --test \"src/**/*.test.ts\""
+  },
+  "dependencies": {
+    "@creem_io/better-auth": "^1.1.4",
+    "@neondatabase/serverless": "^1.1.0",
+    "better-auth": "^1.6.26",
+    "creem": "^1.6.0",
+    "next": "^16.3.0",
+    "react": "^19.2.8",
+    "react-dom": "^19.2.8",
+    "zod": "^4.4.3"
+  },
+  "devDependencies": {
+    "@tailwindcss/postcss": "^4.3.3",
+    "@types/node": "^26.1.2",
+    "@types/react": "^19.2.18",
+    "@types/react-dom": "^19.2.4",
+    "prettier": "^3.9.6",
+    "prettier-plugin-organize-imports": "^4.3.0",
+    "prettier-plugin-tailwindcss": "^0.8.1",
+    "tailwindcss": "^4.3.3",
+    "tsx": "^4.23.8",
+    "typescript": "^6.0.3"
+  },
+  "packageManager": "pnpm@11.20.0"
+}
