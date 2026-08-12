@@ -1,0 +1,136 @@
+---
+title: MCP Server
+description: Give your AI agent 49 tools that call the Creem API directly, over the Model Context Protocol.
+---
+
+The Creem TypeScript SDK ships an [MCP](https://modelcontextprotocol.io) server. Point Claude Code, Claude Desktop, Cursor or any MCP client at it and your agent can create products, open checkouts, manage subscriptions, issue refunds and inspect your store — by calling the real API, with your key.
+
+<Tip>
+**Skill files vs MCP server.** [Skill files](/ai/for-agents/skill-files) are reference material your agent *reads* — they teach it how Creem works. The MCP server is a set of tools your agent *runs* — it changes live data. Most teams want both.
+</Tip>
+
+## Requirements
+
+- **Node.js v22 or newer**
+- A Creem API key ([test or live](/getting-started/test-mode))
+
+Nothing to install: `npx` fetches the `creem` package on demand.
+
+## Quickstart
+
+```bash
+npx -y --package creem -- mcp start --api-key creem_test_your_key --server test
+```
+
+The server speaks MCP over stdio and exits when the client disconnects.
+
+<Warning>
+**Test-mode keys require `--server test`.** Without it the SDK targets production, and every tool call fails with `401 Unauthorized — Invalid API Key`, even though your key is valid. This is the single most common setup problem.
+</Warning>
+
+## Claude Code
+
+```bash
+claude mcp add creem -- npx -y --package creem -- mcp start --api-key creem_test_your_key --server test
+```
+
+## Claude Desktop
+
+Add to `claude_desktop_config.json`:
+
+```json
+{
+  "mcpServers": {
+    "Creem": {
+      "command": "npx",
+      "args": [
+        "-y", "--package", "creem", "--",
+        "mcp", "start",
+        "--api-key", "creem_test_your_key",
+        "--server", "test"
+      ]
+    }
+  }
+}
+```
+
+## Cursor
+
+Add the same block to `.cursor/mcp.json` in your project, or to `~/.cursor/mcp.json` for every project.
+
+## Available tools
+
+49 tools, covering the API surface.
+
+| Group | Count | Tools |
+|-------|-------|-------|
+| **Products** | 5 | `products-create`, `products-get`, `products-update`, `products-search`, `products-archive` |
+| **Checkouts** | 2 | `checkouts-create`, `checkouts-retrieve` |
+| **Customers** | 8 | `customers-create`, `customers-retrieve`, `customers-update`, `customers-list`, `customers-get-orders`, `customers-list-subscriptions`, `customers-list-licenses`, `customers-generate-billing-links` |
+| **Subscriptions** | 7 | `subscriptions-get`, `subscriptions-search`, `subscriptions-update`, `subscriptions-upgrade`, `subscriptions-cancel`, `subscriptions-pause`, `subscriptions-resume` |
+| **Transactions** | 3 | `transactions-get-by-id`, `transactions-search`, `transactions-refund` |
+| **Discounts** | 4 | `discounts-create`, `discounts-get`, `discounts-search`, `discounts-delete` |
+| **Licenses** | 4 | `licenses-activate`, `licenses-deactivate`, `licenses-validate`, `licenses-list-instances` |
+| **Customer credits** | 11 | `customer-credits-create-account`, `-get-account`, `-get-account-balance`, `-list-accounts`, `-list-entries`, `-credit-account`, `-debit-account`, `-freeze-account`, `-unfreeze-account`, `-reverse-transaction`, `-close-account` |
+| **Affiliates** | 3 | `affiliates-list`, `affiliates-retrieve`, `affiliates-list-commissions` |
+| **Stats** | 1 | `stats-get-summary` |
+| **Moderation** | 1 | `moderation-screen-prompt` |
+
+## Security
+
+<Warning>
+An API key grants an agent **every** tool, including destructive ones — `transactions-refund`, `subscriptions-cancel`, `products-archive`, `discounts-delete` and `customer-credits-debit-account`. There are no read-only or scoped keys today.
+</Warning>
+
+Two things to do about that:
+
+**Develop against test mode.** Use a test key while you build. Nothing you break is real.
+
+**Mount only the tools you need.** `--tool` is repeatable and limits what the server exposes:
+
+```bash
+npx -y --package creem -- mcp start \
+  --api-key creem_test_your_key --server test \
+  --tool products-search --tool customers-list --tool stats-get-summary
+```
+
+This is a client-side allowlist, not a credential restriction — anyone who can edit the config can remove it. Treat the API key itself as the real boundary.
+
+## Options
+
+| Flag | Description | Default |
+|------|-------------|---------|
+| `--api-key` | Your Creem API key | — |
+| `--server` | `prod` or `test` — **use `test` for test keys** | `prod` |
+| `--server-url` | Override the API base URL entirely | — |
+| `--transport` | `stdio` or `sse` | `stdio` |
+| `--port` | Port, when `--transport sse` | `2718` |
+| `--tool` | Mount only this tool; repeatable | all 49 |
+| `--log-level` | `debug`, `info`, `warning`, `error` | `info` |
+| `--env` | Extra environment variables for the server | — |
+
+## Troubleshooting
+
+<AccordionGroup>
+  <Accordion title="Every call returns 401 Invalid API Key">
+    You're using a test key without `--server test`, so requests go to production. Add the flag and restart your MCP client.
+  </Accordion>
+
+  <Accordion title="The server doesn't start">
+    Check `node --version` — v22 or newer is required. Then run the command directly in a terminal; MCP clients often swallow startup errors.
+  </Accordion>
+
+  <Accordion title="My agent can't see the tools">
+    Restart the MCP client after editing its config — most read it only at launch. Then confirm the server is listed and connected in your client's MCP settings.
+  </Accordion>
+
+  <Accordion title="I want to see what the agent is doing">
+    Start with `--log-level debug` and check your client's MCP logs.
+  </Accordion>
+</AccordionGroup>
+
+## Related
+
+- [Skill files](/ai/for-agents/skill-files) — reference material your agent reads
+- [CLI for agents](/ai/for-agents/cli) — scriptable, `--json` output
+- [TypeScript SDK](/code/sdks/typescript) — the package this server ships in
