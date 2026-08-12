@@ -7,7 +7,7 @@
     "email": "support@creem.io"
   },
   "homepage": "https://docs.creem.io/code/sdks/ai-agents",
-  "repository": "https://github.com/armitage-labs/creem-skills",
+  "repository": "https://github.com/armitage-labs/creem",
   "license": "MIT",
   "keywords": [
     "payments",
