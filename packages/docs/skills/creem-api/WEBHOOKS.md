@@ -71,15 +71,22 @@ function verifySignature(rawBody: string, signature: string, secret: string): bo
 
 ## Retry Policy
 
-If your endpoint doesn't respond with HTTP 200, CREEM retries with exponential backoff:
+If your endpoint doesn't respond with HTTP 200, CREEM retries with progressive backoff. There are **5 attempts in total** — the initial delivery plus 4 retries:
 
-1. Initial attempt
-2. 30 seconds later
-3. 1 minute later
-4. 5 minutes later
-5. 1 hour later
+| Attempt | Sent after the previous one |
+| ------- | --------------------------- |
+| 1       | Initial delivery            |
+| 2       | 30 seconds                  |
+| 3       | 5 minutes                   |
+| 4       | 30 minutes                  |
+| 5       | 6 hours                     |
 
-After all retries fail, the event is marked as failed. You can manually resend from the dashboard.
+Events are **not retried after 24 hours**, even if attempts remain. Once retries are exhausted the event is marked failed, and you can resend it manually from the dashboard.
+
+Two things to design around:
+
+- Retries mean your handler **must be idempotent** — the same event `id` can arrive more than once.
+- The final retry can land roughly 6.5 hours after the event. Don't assume delivery within minutes, and anchor purchase time on `object.order.created_at` rather than when you received the event.
 
 ## Event Structure
 
