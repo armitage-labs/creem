@@ -58,3 +58,26 @@ jobs:
         run: |
           npx -y @anthropic-ai/claude-code@latest plugin validate .
           npx -y @anthropic-ai/claude-code@latest plugin validate ./packages/docs/skills/creem-api
+
+      # `plugin validate` checks manifest schema, not skill discovery — it passed
+      # on a layout that shipped zero skills. Claude Code only finds a plugin's
+      # skills at <plugin>/skills/<name>/SKILL.md, so assert that directly.
+      - name: Assert plugin skills are discoverable
+        run: |
+          plugin=packages/docs/skills/creem-api
+          shopt -s nullglob
+          found=("$plugin"/skills/*/SKILL.md)
+          if [ ${#found[@]} -eq 0 ]; then
+            echo "::error::No skills found under $plugin/skills/<name>/SKILL.md."
+            echo "Claude Code discovers skills only at that path. A SKILL.md at the"
+            echo "plugin root installs cleanly and contributes nothing."
+            find "$plugin" -name 'SKILL.md' -printf '  found instead: %p\n'
+            exit 1
+          fi
+          for f in "${found[@]}"; do
+            [ -s "$f" ] || { echo "::error::$f is empty"; exit 1; }
+            head -1 "$f" | grep -q '^---$' || { echo "::error::$f has no YAML frontmatter"; exit 1; }
+            grep -qE '^name:' "$f" || { echo "::error::$f frontmatter has no name:"; exit 1; }
+            grep -qE '^description:' "$f" || { echo "::error::$f frontmatter has no description:"; exit 1; }
+            echo "ok: $f"
+          done

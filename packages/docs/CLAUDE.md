@@ -350,10 +350,16 @@ Use Mintlify's built-in components in MDX:
 
 Creem has first-class support for AI agents. The `skills/` directory contains a Claude Code plugin:
 
-- `skills/creem-api/SKILL.md` — Core instructions for the Creem API skill
-- `skills/creem-api/REFERENCE.md` — API reference for agents
-- `skills/creem-api/WEBHOOKS.md` — Webhook documentation for agents
-- `skills/creem-api/WORKFLOWS.md` — Common integration patterns
+- `skills/creem-api/.claude-plugin/plugin.json` — plugin manifest, at the plugin root
+- `skills/creem-api/skills/creem-api/SKILL.md` — Core instructions for the Creem API skill
+- `skills/creem-api/skills/creem-api/REFERENCE.md` — API reference for agents
+- `skills/creem-api/skills/creem-api/WEBHOOKS.md` — Webhook documentation for agents
+- `skills/creem-api/skills/creem-api/WORKFLOWS.md` — Common integration patterns
+
+The doubled path is required: Claude Code discovers a plugin's skills only at
+`<plugin>/skills/<name>/SKILL.md`. A `SKILL.md` at the plugin root installs
+cleanly and contributes nothing. Keep the four `.md` files together — `SKILL.md`
+references the other three by bare filename.
 
 The `ai/` documentation directory covers:
 - **For Humans**: CLI usage, getting started guides

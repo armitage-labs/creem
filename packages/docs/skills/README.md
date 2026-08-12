@@ -84,7 +84,7 @@ Help me integrate Creem payments. Use the skill at https://github.com/armitage-l
 1. Pull just the skill directory into your project:
 
    ```bash
-   npx degit armitage-labs/creem/packages/docs/skills/creem-api .cursor/skills/creem-api
+   npx degit armitage-labs/creem/packages/docs/skills/creem-api/skills/creem-api .cursor/skills/creem-api
    ```
 
 2. Reference the skill files in your conversations using `@` mentions:
@@ -97,7 +97,7 @@ Help me integrate Creem payments. Use the skill at https://github.com/armitage-l
 1. Pull just the skill directory:
 
    ```bash
-   npx degit armitage-labs/creem/packages/docs/skills/creem-api .windsurf/creem
+   npx degit armitage-labs/creem/packages/docs/skills/creem-api/skills/creem-api .windsurf/creem
    ```
 
 2. Add to your project's knowledge base in Windsurf settings
@@ -108,7 +108,7 @@ Most AI coding assistants support adding custom context. You can:
 
 1. Pull the skill folder into your project:
    ```bash
-   npx degit armitage-labs/creem/packages/docs/skills/creem-api .ai/creem
+   npx degit armitage-labs/creem/packages/docs/skills/creem-api/skills/creem-api .ai/creem
    ```
 2. Add the files to your AI tool's context or knowledge base
 3. Reference the OpenAPI specification (`api-reference/openapi.json`) for structured API information
