@@ -73,6 +73,10 @@
     {
       "source": "/api-reference/endpoint/close-customer-credits-account",
       "destination": "/api-reference/endpoint/close-credits-account"
+    },
+    {
+      "source": "/code/mcp",
+      "destination": "/ai/for-agents/mcp-server"
     }
   ],
   "theme": "mint",
@@ -120,6 +124,7 @@
                 "group": "For Agents",
                 "pages": [
                   "ai/for-agents/skill-files",
+                  "ai/for-agents/mcp-server",
                   "ai/for-agents/cli",
                   "ai/for-agents/store-monitoring"
                 ]
