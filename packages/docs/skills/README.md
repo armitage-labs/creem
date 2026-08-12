@@ -7,7 +7,7 @@ Official Creem payment integration skills for AI coding assistants like Claude C
 Install the Creem skill with two simple commands:
 
 ```bash
-/plugin marketplace add armitage-labs/creem-skills
+/plugin marketplace add armitage-labs/creem
 /plugin install creem-api@creem-skills
 ```
 
@@ -46,7 +46,7 @@ A comprehensive skill for integrating the CREEM REST API. Covers:
 
 ```bash
 # Add the marketplace
-/plugin marketplace add armitage-labs/creem-skills
+/plugin marketplace add armitage-labs/creem
 
 # Install the skill
 /plugin install creem-api@creem-skills
@@ -76,15 +76,15 @@ A comprehensive skill for integrating the CREEM REST API. Covers:
 Reference the skill in any conversation:
 
 ```
-Help me integrate Creem payments. Use the skill at https://github.com/armitage-labs/creem-skills
+Help me integrate Creem payments. Use the skill at https://github.com/armitage-labs/creem
 ```
 
 ### Cursor
 
-1. Clone the skill repository into your project:
+1. Pull just the skill directory into your project:
 
    ```bash
-   git clone https://github.com/armitage-labs/creem-skills.git .cursor/skills
+   npx degit armitage-labs/creem/packages/docs/skills/creem-api .cursor/skills/creem-api
    ```
 
 2. Reference the skill files in your conversations using `@` mentions:
@@ -94,10 +94,10 @@ Help me integrate Creem payments. Use the skill at https://github.com/armitage-l
 
 ### Windsurf
 
-1. Clone the skill repository:
+1. Pull just the skill directory:
 
    ```bash
-   git clone https://github.com/armitage-labs/creem-skills.git .windsurf/creem
+   npx degit armitage-labs/creem/packages/docs/skills/creem-api .windsurf/creem
    ```
 
 2. Add to your project's knowledge base in Windsurf settings
@@ -106,7 +106,10 @@ Help me integrate Creem payments. Use the skill at https://github.com/armitage-l
 
 Most AI coding assistants support adding custom context. You can:
 
-1. Clone this repository into your project
+1. Pull the skill folder into your project:
+   ```bash
+   npx degit armitage-labs/creem/packages/docs/skills/creem-api .ai/creem
+   ```
 2. Add the files to your AI tool's context or knowledge base
 3. Reference the OpenAPI specification (`api-reference/openapi.json`) for structured API information
 
