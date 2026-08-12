@@ -52,22 +52,22 @@ A skill is a structured set of instructions and reference materials that AI assi
 
 <CardGroup cols={3}>
   <Card title="Claude Code (Recommended)" icon="terminal">
-    One-line install via the plugin marketplace: `/plugin marketplace add
-    armitage-labs/creem`
+    One-line install via the plugin marketplace: `/plugin marketplace add armitage-labs/creem`
   </Card>
   <Card
     title="GitHub Repository"
     icon="github"
-    href="https://github.com/armitage-labs/creem"
+    href="https://github.com/armitage-labs/creem/tree/main/packages/docs/skills/creem-api"
   >
-    Clone, fork, or download the skill files directly
+    Browse or fork the skill files directly
   </Card>
   <Card
-    title="Download ZIP"
+    title="Any Other Tool"
     icon="download"
-    href="https://github.com/armitage-labs/creem/archive/refs/heads/main.zip"
+    href="https://github.com/armitage-labs/creem/tree/main/packages/docs/skills/creem-api"
   >
-    Download as a ZIP file for manual setup
+    Copy the folder into your project: `npx degit armitage-labs/creem/packages/docs/skills/creem-api
+    creem-skill`
   </Card>
 </CardGroup>
 
@@ -210,10 +210,10 @@ Cursor supports adding context through multiple methods:
 
 **Option 1: Add to Project**
 
-1. Clone the skill repository into your project:
+1. Pull just the skill directory into your project:
 
    ```bash
-   git clone https://github.com/armitage-labs/creem.git .cursor/skills
+   npx degit armitage-labs/creem/packages/docs/skills/creem-api .cursor/skills/creem-api
    ```
 
 2. Reference the skill files in your conversations using `@` mentions:
@@ -249,10 +249,10 @@ Add the Creem documentation to Cursor's docs:
 
 Windsurf supports custom knowledge through its Cascade feature:
 
-1. Clone the skill repository:
+1. Pull just the skill directory:
 
    ```bash
-   git clone https://github.com/armitage-labs/creem.git .windsurf/creem
+   npx degit armitage-labs/creem/packages/docs/skills/creem-api .windsurf/creem
    ```
 
 2. Add to your project's knowledge base in Windsurf settings
@@ -269,8 +269,13 @@ Windsurf supports custom knowledge through its Cascade feature:
 
 For other AI coding assistants (GitHub Copilot Chat, Cody, Continue, etc.):
 
-1. **Download the skill files** from the GitHub repository
-2. **Add to your project** in a dedicated folder (e.g., `.ai/creem/`)
+1. **Pull the skill files** into a dedicated folder:
+
+   ```bash
+   npx degit armitage-labs/creem/packages/docs/skills/creem-api .ai/creem
+   ```
+
+2. **Add that folder** to your tool's context or knowledge base
 3. **Reference in context** when asking questions about Creem integration
 4. **Copy relevant sections** into your conversation when needed
 
@@ -482,11 +487,7 @@ The Creem skill is designed for **direct API integration** and complements our S
 Found an issue or want to improve the skill? We welcome contributions:
 
 <CardGroup cols={2}>
-  <Card
-    title="Report Issues"
-    icon="bug"
-    href="https://github.com/armitage-labs/creem/issues"
-  >
+  <Card title="Report Issues" icon="bug" href="https://github.com/armitage-labs/creem/issues">
     Found a bug or incorrect information? Let us know
   </Card>
   <Card
@@ -503,11 +504,7 @@ Found an issue or want to improve the skill? We welcome contributions:
 ## Next Steps
 
 <CardGroup cols={2}>
-  <Card
-    title="Install the Skill"
-    icon="terminal"
-    href="https://github.com/armitage-labs/creem"
-  >
+  <Card title="Install the Skill" icon="terminal" href="https://github.com/armitage-labs/creem">
     Run `/plugin marketplace add armitage-labs/creem` in Claude Code
   </Card>
   <Card title="API Reference" icon="book" href="/api-reference/introduction">
