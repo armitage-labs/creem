@@ -50,3 +50,11 @@ jobs:
 
       - name: Format check
         run: pnpm format:check
+
+      # The skill is distributed as a Claude Code plugin from this repo's root
+      # marketplace manifest. A broken manifest or a moved plugin path silently
+      # ships a skill nobody can install, so validate both on every PR.
+      - name: Validate plugin marketplace
+        run: |
+          npx -y @anthropic-ai/claude-code@latest plugin validate .
+          npx -y @anthropic-ai/claude-code@latest plugin validate ./packages/docs/skills/creem-api
