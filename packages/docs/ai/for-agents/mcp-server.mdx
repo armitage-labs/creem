@@ -109,11 +109,29 @@ This is a client-side allowlist, not a credential restriction — anyone who can
 | `--log-level` | `debug`, `info`, `warning`, `error` | `info` |
 | `--env` | Extra environment variables for the server | — |
 
+## Verifying it works
+
+<Warning>
+**A green "Connected" does not mean it's configured correctly.** `claude mcp list` — and the equivalent status in other clients — only confirms the server process started and completed the MCP handshake. It runs before any API call, so it passes even when the environment is wrong.
+
+A test key without `--server test` reports `✔ Connected` and then fails `401` on the first tool call.
+</Warning>
+
+Confirm with a real call instead. Ask your agent something harmless and read-only:
+
+```
+List my Creem products
+```
+
+If products come back, the key, environment and tools are all wired up. If you get a 401, see below.
+
 ## Troubleshooting
 
 <AccordionGroup>
   <Accordion title="Every call returns 401 Invalid API Key">
     You're using a test key without `--server test`, so requests go to production. Add the flag and restart your MCP client.
+
+    Note that your client will still have shown the server as connected — the health check can't see this.
   </Accordion>
 
   <Accordion title="The server doesn't start">
