@@ -345,24 +345,48 @@ If you see this error, the most likely causes are:
   </Step>
 </Steps>
 
+## Keep your usage efficient
+
+Billing is proportional to the text you send, so a few integration habits can
+cut your bill by half or more without weakening screening:
+
+- **Screen the user-supplied text, not your templates.** If your product wraps
+  user input in a reusable style or system template, screen only the part the
+  user controls — your own static boilerplate bills units on every call.
+- **Screen incrementally, not cumulatively.** For chat-style products, screen
+  each new user message as it arrives. Re-submitting the entire conversation
+  history on every turn re-bills everything you already screened.
+- **Don't add instructions for the moderator.** The Moderation API applies
+  Creem's content policies and does not accept custom policies or
+  instructions embedded in the prompt. A policy preamble inflates your bill
+  on every call, and explicit category language inside it can itself trigger
+  `deny` decisions on otherwise harmless requests.
+- **Avoid very large payloads.** Extremely large requests cannot be screened
+  reliably and may return `flag` rather than a real decision.
+
 ## Pricing
 
-The Moderation API is currently **free to use** while it is in its experimental
-phase. You don't need to worry about cost today — focus on integrating it
-correctly.
+Moderation API usage is billed at **$0.30 USD per 1,000 units** — the $30 per
+100,000 units we announced during the experimental phase. A unit covers up to
+1,000 characters of screened text, with a one-unit minimum per call. The
+`usage.units` field on every response tells you exactly what a call cost.
 
-When the product is officially released, the most likely launch price will be
-**$30 USD per 100,000 units**. Creem does not aim to make a profit margin on
-this product. We built the Moderation API because we want our merchants to
-succeed and because we are committed to a safe environment for everyone on the
-platform — pricing it is purely about covering the cost of running it.
+How billing works:
 
-<Note>
-  When official pricing rolls out, we **will not** retroactively charge for
-  usage that occurred during the experimental period. Anything you screen
-  today is on us. You can count on Creem's values of honest and fair pricing
-  — no surprise bills, no retroactive invoices.
-</Note>
+- **Fees are deducted from your payouts** as a separate line item
+  ("Moderation API usage fee") covering the units you screened since your
+  previous payout. There is no separate invoice and nothing is charged to a
+  card.
+- **Repeated prompts are free.** Screening results are cached — submitting a
+  prompt identical to a recently screened one returns the cached decision and
+  bills `0` units.
+- Usage from the experimental phase (before May 1, 2026) was never billed, as
+  promised.
+
+Creem does not aim to make a profit margin on this product. We built the
+Moderation API because we want our merchants to succeed and because we are
+committed to a safe environment for everyone on the platform — pricing covers
+the cost of running it.
 
 ## Related
 
