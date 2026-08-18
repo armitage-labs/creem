@@ -42,6 +42,10 @@ export type CreateCheckoutRequest = {
    */
   discountCode?: string | undefined;
   /**
+   * Attribute this checkout to an affiliate using the affiliate's referral code (the unique code from their referral link). Use this to manually credit a sale to a specific affiliate when you already hold their code on your backend, instead of relying on referral-link clicks/cookies. The code must belong to an active affiliate of this store; an invalid, inactive, or foreign-store code is rejected.
+   */
+  affiliateCode?: string | undefined;
+  /**
    * Customer data for checkout session. This will prefill the customer info on the checkout page.
    */
   customer?: CustomerRequestEntity | undefined;
@@ -76,6 +80,7 @@ export const CreateCheckoutRequest$inboundSchema: z.ZodType<
   units: z.number().optional(),
   custom_price: z.number().int().optional(),
   discount_code: z.string().optional(),
+  affiliate_code: z.string().optional(),
   customer: CustomerRequestEntity$inboundSchema.optional(),
   custom_fields: z.array(CustomFieldRequestEntity$inboundSchema).optional(),
   custom_field: z.array(CustomFieldRequestEntity$inboundSchema).optional(),
@@ -87,6 +92,7 @@ export const CreateCheckoutRequest$inboundSchema: z.ZodType<
     "product_id": "productId",
     "custom_price": "customPrice",
     "discount_code": "discountCode",
+    "affiliate_code": "affiliateCode",
     "custom_fields": "customFields",
     "custom_field": "customField",
     "success_url": "successUrl",
@@ -99,6 +105,7 @@ export type CreateCheckoutRequest$Outbound = {
   units?: number | undefined;
   custom_price?: number | undefined;
   discount_code?: string | undefined;
+  affiliate_code?: string | undefined;
   customer?: CustomerRequestEntity$Outbound | undefined;
   custom_fields?: Array<CustomFieldRequestEntity$Outbound> | undefined;
   custom_field?: Array<CustomFieldRequestEntity$Outbound> | undefined;
@@ -117,6 +124,7 @@ export const CreateCheckoutRequest$outboundSchema: z.ZodType<
   units: z.number().optional(),
   customPrice: z.number().int().optional(),
   discountCode: z.string().optional(),
+  affiliateCode: z.string().optional(),
   customer: CustomerRequestEntity$outboundSchema.optional(),
   customFields: z.array(CustomFieldRequestEntity$outboundSchema).optional(),
   customField: z.array(CustomFieldRequestEntity$outboundSchema).optional(),
@@ -128,6 +136,7 @@ export const CreateCheckoutRequest$outboundSchema: z.ZodType<
     productId: "product_id",
     customPrice: "custom_price",
     discountCode: "discount_code",
+    affiliateCode: "affiliate_code",
     customFields: "custom_fields",
     customField: "custom_field",
     successUrl: "success_url",

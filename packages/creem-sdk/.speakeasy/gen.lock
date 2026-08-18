@@ -1,12 +1,12 @@
 lockVersion: 2.0.0
 id: 091f072e-89b5-4c97-b605-63f1bf64ee97
 management:
-  docChecksum: c89f66ac09477cc6a6c627572ba89e90
+  docChecksum: 14b0493592c9c5293d2cc2c56992adf4
   docVersion: v1
-  speakeasyVersion: 1.790.3
-  generationVersion: 2.918.4
-  releaseVersion: 1.6.0
-  configChecksum: ddcb80ae71a288c2ff5d98849babbbf0
+  speakeasyVersion: 1.794.1
+  generationVersion: 2.931.0
+  releaseVersion: 1.6.1
+  configChecksum: d2ea7076e63efc1a9db4c16df586fa59
   repoURL: https://github.com/armitage-labs/creem.git
   repoSubDirectory: packages/creem-sdk
   installationURL: https://github.com/armitage-labs/creem
@@ -19,7 +19,7 @@ features:
   typescript:
     additionalDependencies: 0.1.0
     constsAndDefaults: 0.1.14
-    core: 3.31.4
+    core: 3.31.5
     defaultEnabledRetries: 0.1.0
     deprecations: 2.81.1
     devContainers: 2.90.1
@@ -40,7 +40,7 @@ features:
     retries: 2.83.1
     sdkHooks: 0.4.0
     serverIDs: 2.81.2
-    unions: 2.86.4
+    unions: 2.86.5
 trackedFiles:
   .devcontainer/README.md:
     id: b170c0f184ac
@@ -76,6 +76,8 @@ trackedFiles:
     id: 3dc1cb0e852e
     pristine_git_object: 634cbc45074962fdbda3c112c4a3ba2a1b429754
   docs/models/components/affiliateentity.md: {}
+  docs/models/components/affiliateinviteentity.md: {}
+  docs/models/components/affiliateinvitelistentity.md: {}
   docs/models/components/affiliatelistentity.md: {}
   docs/models/components/balanceresponsedto.md: {}
   docs/models/components/cancelsubscriptionrequestentity.md:
@@ -99,6 +101,7 @@ trackedFiles:
   docs/models/components/commissionstatus.md: {}
   docs/models/components/coupondurationtype.md: {}
   docs/models/components/createaccountdto.md: {}
+  docs/models/components/createaffiliateinviterequestentity.md: {}
   docs/models/components/createcheckoutrequest.md:
     id: 7557df49b680
     pristine_git_object: bb8482df255701edcc1079c08c610b233ecdbbf1
@@ -343,6 +346,8 @@ trackedFiles:
   docs/models/operations/interval.md: {}
   docs/models/operations/listaffiliatecommissionsrequest.md: {}
   docs/models/operations/listaffiliatecommissionsresponse.md: {}
+  docs/models/operations/listaffiliateinvitesrequest.md: {}
+  docs/models/operations/listaffiliateinvitesresponse.md: {}
   docs/models/operations/listaffiliatesrequest.md: {}
   docs/models/operations/listaffiliatesresponse.md: {}
   docs/models/operations/listcustomercreditsaccountentriesrequest.md: {}
@@ -447,8 +452,10 @@ trackedFiles:
   src/core.ts:
     id: f431fdbcd144
     pristine_git_object: 9720cacca56b86669855b5e92956a5e2a3ee77c1
+  src/funcs/affiliatesCreateInvite.ts: {}
   src/funcs/affiliatesList.ts: {}
   src/funcs/affiliatesListCommissions.ts: {}
+  src/funcs/affiliatesListInvites.ts: {}
   src/funcs/affiliatesRetrieve.ts: {}
   src/funcs/checkoutsCreate.ts: {}
   src/funcs/checkoutsRetrieve.ts: {}
@@ -589,8 +596,10 @@ trackedFiles:
   src/mcp-server/tools.ts:
     id: 654d5d1f2062
     pristine_git_object: 3d4e01e8d0b0fe6426461cd11dbef0a7f0c30774
+  src/mcp-server/tools/affiliatesCreateInvite.ts: {}
   src/mcp-server/tools/affiliatesList.ts: {}
   src/mcp-server/tools/affiliatesListCommissions.ts: {}
+  src/mcp-server/tools/affiliatesListInvites.ts: {}
   src/mcp-server/tools/affiliatesRetrieve.ts: {}
   src/mcp-server/tools/checkoutsCreate.ts: {}
   src/mcp-server/tools/checkoutsRetrieve.ts: {}
@@ -644,6 +653,8 @@ trackedFiles:
     id: 26d50dbe81c8
     pristine_git_object: 5818ab94ac9ae349a458051e22fc2abd99ed4d0e
   src/models/components/affiliateentity.ts: {}
+  src/models/components/affiliateinviteentity.ts: {}
+  src/models/components/affiliateinvitelistentity.ts: {}
   src/models/components/affiliatelistentity.ts: {}
   src/models/components/balanceresponsedto.ts: {}
   src/models/components/cancelsubscriptionrequestentity.ts:
@@ -658,6 +669,7 @@ trackedFiles:
   src/models/components/commissionstatus.ts: {}
   src/models/components/coupondurationtype.ts: {}
   src/models/components/createaccountdto.ts: {}
+  src/models/components/createaffiliateinviterequestentity.ts: {}
   src/models/components/createcheckoutrequest.ts:
     id: 7b48e312d3c0
     pristine_git_object: ee9527237bb65cee6b6934787e92ff42e4c91a37
@@ -849,6 +861,7 @@ trackedFiles:
     id: 0d9ffaf774d2
     pristine_git_object: b913dce8f9e69774c040f831d83754a78616264a
   src/models/operations/listaffiliatecommissions.ts: {}
+  src/models/operations/listaffiliateinvites.ts: {}
   src/models/operations/listaffiliates.ts: {}
   src/models/operations/listcustomercreditsaccountentries.ts: {}
   src/models/operations/listcustomercreditsaccounts.ts: {}
@@ -1085,7 +1098,7 @@ examples:
         header:
           x-api-key: "<value>"
       requestBody:
-        application/json: {"product_id": "prod_1234567890", "units": 1, "custom_price": 1500, "discount_code": "SUMMER2024", "customer": {"id": "cust_1234567890", "email": "user@example.com"}, "custom_fields": [{"type": "text", "key": "companyName", "label": "Company Name", "text": {"max_length": 200, "min_length": 1}, "checkbox": {"label": "I agree to the [terms and conditions](https://example.com/terms)"}}], "metadata": {"userId": "user_123", "visitCount": 42, "lastVisit": "2023-04-01"}}
+        application/json: {"product_id": "prod_1234567890", "units": 1, "custom_price": 1500, "discount_code": "SUMMER2024", "affiliate_code": "aff_abc123", "customer": {"id": "cust_1234567890", "email": "user@example.com", "name": "John Doe"}, "custom_fields": [{"type": "text", "key": "companyName", "label": "Company Name", "text": {"max_length": 200, "min_length": 1}, "checkbox": {"label": "I agree to the [terms and conditions](https://example.com/terms)"}}], "metadata": {"userId": "user_123", "visitCount": 42, "lastVisit": "2023-04-01"}}
       responses:
         "200":
           application/json: {"id": "<id>", "mode": "prod", "object": "{}", "status": "completed", "product": "Generic Bronze Bike", "units": 1, "custom_price": 1500, "order": {"id": "<id>", "mode": "sandbox", "object": "{}", "product": "Recycled Frozen Keyboard", "transaction": "tx_1234567890", "discount": "dis_1234567890", "amount": 2000, "sub_total": 1800, "tax_amount": 200, "discount_amount": 100, "amount_due": 1900, "amount_paid": 1900, "currency": "USD", "fx_amount": 15, "fx_currency": "EUR", "fx_rate": 1.2, "status": "pending", "type": "recurring", "created_at": "2023-09-13T00:00:00Z", "updated_at": "2023-09-13T00:00:00Z"}, "subscription": "<value>", "customer": "<value>", "success_url": "https://example.com/return", "license_keys": [{"id": "<id>", "mode": "prod", "object": "<value>", "product_id": "prod_abc123", "status": "active", "key": "ABC123-XYZ456-XYZ456-XYZ456", "activation": 5, "activation_limit": 1, "expires_at": "2023-09-13T00:00:00Z", "created_at": "2023-09-13T00:00:00Z", "instance": {"id": "<id>", "mode": "test", "object": "license-instance", "name": "My Customer License Instance", "status": "active", "created_at": "2023-09-13T00:00:00Z"}}], "metadata": {"userId": "user_123", "visitCount": 42, "lastVisit": "2023-04-01"}, "discount": {"id": "dis_3e6Z6TzvHKdsjEgXnGDEp0", "discountCode": "HOLIDAY2024"}}
@@ -1671,9 +1684,29 @@ examples:
       responses:
         "200":
           application/json: {"items": [{"id": "<id>", "mode": "test", "object": "commission", "affiliate": "aff_1234567890", "amount": 600, "currency": "USD", "status": "paid", "sale": "tran_1234567890", "created_at": 44.95}], "pagination": {"total_records": 0, "total_pages": 0, "current_page": 1, "next_page": 2, "prev_page": null}}
+  createAffiliateInvite:
+    speakeasy-default-create-affiliate-invite:
+      requestBody:
+        application/json: {"email": "partner@example.com", "name": "Jane Partner", "program_id": "prog_1234567890"}
+      responses:
+        "200":
+          application/json: {"id": "<id>", "mode": "sandbox", "object": "affiliate-invite", "email": "partner@example.com", "name": "Jane Partner", "status": "pending", "created_at": 3105.08}
+  listAffiliateInvites:
+    speakeasy-default-list-affiliate-invites:
+      parameters:
+        query:
+          page_number: 1
+          page_size: 50
+      responses:
+        "200":
+          application/json: {"items": [], "pagination": {"total_records": 0, "total_pages": 0, "current_page": 1, "next_page": 2, "prev_page": null}}
 examplesVersion: 1.0.2
 generatedTests: {}
-releaseNotes: "## Typescript SDK Changes:\n* `creem.customerCredits.freezeAccount()`:  `error` **Changed** (Breaking ⚠️)\n* `creem.customerCredits.unfreezeAccount()`:  `error` **Changed** (Breaking ⚠️)\n* `creem.customerCredits.creditAccount()`: \n  *  `response.reversalOf` **Changed** (Breaking ⚠️)\n  *  `error` **Changed** (Breaking ⚠️)\n* `creem.customerCredits.debitAccount()`: \n  *  `response.reversalOf` **Changed** (Breaking ⚠️)\n  *  `error` **Changed** (Breaking ⚠️)\n* `creem.customerCredits.reverseTransaction()`:  `response.reversalOf` **Changed** (Breaking ⚠️)\n* `creem.customerCredits.closeAccount()`:  `error` **Changed** (Breaking ⚠️)\n* `creem.stats.getSummary()`: **Added**\n* `creem.products.get()`: **Removed** (Breaking ⚠️)\n* `creem.products.update()`: **Added**\n* `creem.products.archive()`: **Added**\n* `creem.customers.list()`: **Added**\n* `creem.customers.getOrders()`: **Added**\n* `creem.customers.listSubscriptions()`: **Added**\n* `creem.customers.listLicenses()`: **Added**\n* `creem.affiliates.list()`: **Added**\n* `creem.customers.create()`: **Added**\n* `creem.customers.update()`: **Added**\n* `creem.customers.generateBillingLinks()`: **Added**\n* `creem.subscriptions.get()`: **Added**\n* `creem.subscriptions.search()`: **Added**\n* `creem.subscriptions.cancel()`: **Added**\n* `creem.subscriptions.update()`: **Added**\n* `creem.subscriptions.upgrade()`: **Added**\n* `creem.subscriptions.pause()`: **Added**\n* `creem.subscriptions.resume()`: **Added**\n* `creem.checkouts.retrieve()`: **Added**\n* `creem.checkouts.create()`: **Added**\n* `creem.licenses.activate()`: **Added**\n* `creem.licenses.deactivate()`: **Added**\n* `creem.licenses.validate()`: **Added**\n* `creem.licenses.listInstances()`: **Added**\n* `creem.affiliates.listCommissions()`: **Added**\n* `creem.discounts.get()`: **Added**\n* `creem.discounts.create()`: **Added**\n* `creem.discounts.delete()`: **Added**\n* `creem.transactions.getById()`: **Added**\n* `creem.transactions.search()`: **Added**\n* `creem.transactions.refund()`: **Added**\n* `creem.products.create()`: **Added**\n* `creem.moderation.screenPrompt()`: **Added**\n* `creem.customers.retrieve()`: **Added**\n* `creem.products.get()`: **Added**\n* `creem.discounts.search()`: **Added**\n* `creem.affiliates.retrieve()`: **Added**\n* `creem.products.create()`: **Removed** (Breaking ⚠️)\n* `creem.products.search()`: **Removed** (Breaking ⚠️)\n* `creem.products.getById()`: **Removed** (Breaking ⚠️)\n* `creem.products.update()`: **Removed** (Breaking ⚠️)\n* `creem.products.archive()`: **Removed** (Breaking ⚠️)\n* `creem.customers.list()`: **Removed** (Breaking ⚠️)\n* `creem.customers.getOrders()`: **Removed** (Breaking ⚠️)\n* `creem.customers.listSubscriptions()`: **Removed** (Breaking ⚠️)\n* `creem.customers.listLicenses()`: **Removed** (Breaking ⚠️)\n* `creem.customers.retrieve()`: **Removed** (Breaking ⚠️)\n* `creem.customers.create()`: **Removed** (Breaking ⚠️)\n* `creem.customers.update()`: **Removed** (Breaking ⚠️)\n* `creem.customers.generateBillingLinks()`: **Removed** (Breaking ⚠️)\n* `creem.subscriptions.get()`: **Removed** (Breaking ⚠️)\n* `creem.subscriptions.search()`: **Removed** (Breaking ⚠️)\n* `creem.subscriptions.cancel()`: **Removed** (Breaking ⚠️)\n* `creem.subscriptions.update()`: **Removed** (Breaking ⚠️)\n* `creem.subscriptions.upgrade()`: **Removed** (Breaking ⚠️)\n* `creem.subscriptions.pause()`: **Removed** (Breaking ⚠️)\n* `creem.subscriptions.resume()`: **Removed** (Breaking ⚠️)\n* `creem.checkouts.retrieve()`: **Removed** (Breaking ⚠️)\n* `creem.checkouts.create()`: **Removed** (Breaking ⚠️)\n* `creem.licenses.activate()`: **Removed** (Breaking ⚠️)\n* `creem.licenses.deactivate()`: **Removed** (Breaking ⚠️)\n* `creem.licenses.validate()`: **Removed** (Breaking ⚠️)\n* `creem.discounts.search()`: **Removed** (Breaking ⚠️)\n* `creem.discounts.get()`: **Removed** (Breaking ⚠️)\n* `creem.discounts.create()`: **Removed** (Breaking ⚠️)\n* `creem.products.search()`: **Added**\n* `creem.discounts.delete()`: **Removed** (Breaking ⚠️)\n* `creem.transactions.getById()`: **Removed** (Breaking ⚠️)\n* `creem.transactions.search()`: **Removed** (Breaking ⚠️)\n* `creem.stats.getSummary()`: **Removed** (Breaking ⚠️)\n* `creem.moderation.screenPrompt()`: **Removed** (Breaking ⚠️)\n"
+releaseNotes: |
+  ## Typescript SDK Changes:
+  * `creem.affiliates.createInvite()`: **Added**
+  * `creem.affiliates.listInvites()`: **Added**
+  * `creem.checkouts.create()`:  `request` **Changed**
 generatedFiles:
   - .devcontainer/README.md
   - .devcontainer/devcontainer.json

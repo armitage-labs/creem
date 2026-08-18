@@ -42,7 +42,7 @@ export type UpdateProductRequestEntity = {
    */
   imageUrl?: string | undefined;
   /**
-   * Ordered list of product image URLs (max 8). The first entry is the cover image; when provided it takes precedence over image_url. An empty list removes all images.
+   * Ordered list of product image URLs (max 8). The first entry is the cover image; when provided it takes precedence over image_url. An empty list — or an explicit `null` — removes all images. Omit to leave the gallery unchanged.
    */
   imageUrls?: Array<string> | undefined;
   /**
@@ -74,7 +74,7 @@ export type UpdateProductRequestEntity = {
    */
   payWhatYouWant?: boolean | undefined;
   /**
-   * Suggested amount in cents when pay_what_you_want is enabled.
+   * Suggested amount in cents when pay_what_you_want is enabled. Omit to leave unchanged; send `null` to clear it.
    */
   suggestedPrice?: number | undefined;
 };

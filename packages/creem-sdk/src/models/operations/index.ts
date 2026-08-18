@@ -16,6 +16,7 @@ export * from "./getmetricssummary.js";
 export * from "./getproduct.js";
 export * from "./gettransactionbyid.js";
 export * from "./listaffiliatecommissions.js";
+export * from "./listaffiliateinvites.js";
 export * from "./listaffiliates.js";
 export * from "./listcustomercreditsaccountentries.js";
 export * from "./listcustomercreditsaccounts.js";

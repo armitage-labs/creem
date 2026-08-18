@@ -16,6 +16,10 @@ export type CustomerRequestEntity = {
    * Customer email address. You may only specify one of these parameters: id, email.
    */
   email?: string | undefined;
+  /**
+   * Customer full name. Used to prefill the name field on the checkout page.
+   */
+  name?: string | undefined;
 };
 
 /** @internal */
@@ -26,11 +30,13 @@ export const CustomerRequestEntity$inboundSchema: z.ZodType<
 > = z.object({
   id: z.string().optional(),
   email: z.string().optional(),
+  name: z.string().optional(),
 });
 /** @internal */
 export type CustomerRequestEntity$Outbound = {
   id?: string | undefined;
   email?: string | undefined;
+  name?: string | undefined;
 };
 
 /** @internal */
@@ -41,6 +47,7 @@ export const CustomerRequestEntity$outboundSchema: z.ZodType<
 > = z.object({
   id: z.string().optional(),
   email: z.string().optional(),
+  name: z.string().optional(),
 });
 
 export function customerRequestEntityToJSON(

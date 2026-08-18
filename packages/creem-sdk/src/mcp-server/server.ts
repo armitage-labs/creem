@@ -13,8 +13,10 @@ import {
 } from "./resources.js";
 import { MCPScope } from "./scopes.js";
 import { createRegisterTool } from "./tools.js";
+import { tool$affiliatesCreateInvite } from "./tools/affiliatesCreateInvite.js";
 import { tool$affiliatesList } from "./tools/affiliatesList.js";
 import { tool$affiliatesListCommissions } from "./tools/affiliatesListCommissions.js";
+import { tool$affiliatesListInvites } from "./tools/affiliatesListInvites.js";
 import { tool$affiliatesRetrieve } from "./tools/affiliatesRetrieve.js";
 import { tool$checkoutsCreate } from "./tools/checkoutsCreate.js";
 import { tool$checkoutsRetrieve } from "./tools/checkoutsRetrieve.js";
@@ -73,7 +75,7 @@ export function createMCPServer(deps: {
 }) {
   const server = new McpServer({
     name: "Creem",
-    version: "1.6.0",
+    version: "1.6.1",
   });
 
   const client = new CreemCore({
@@ -149,6 +151,8 @@ export function createMCPServer(deps: {
   tool(tool$customerCreditsDebitAccount);
   tool(tool$customerCreditsReverseTransaction);
   tool(tool$customerCreditsCloseAccount);
+  tool(tool$affiliatesCreateInvite);
+  tool(tool$affiliatesListInvites);
   tool(tool$affiliatesList);
   tool(tool$affiliatesRetrieve);
   tool(tool$affiliatesListCommissions);

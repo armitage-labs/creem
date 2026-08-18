@@ -4,7 +4,7 @@ This directory contains example scripts demonstrating how to use the creem SDK.
 
 ## Prerequisites
 
-- Node.js (v22 or higher)
+- Node.js (v18 or higher)
 - npm
 
 ## Setup
@@ -27,3 +27,5 @@ npm run build && npx tsx example.ts
 ## Creating new examples
 
 Duplicate an existing example file, they won't be overwritten by the generation process.
+
+
