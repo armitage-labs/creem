@@ -286,7 +286,8 @@
               "guides/sell-canva-templates",
               "guides/sell-framer-templates-instant-remix-links",
               "guides/customer-credits-recipes",
-              "guides/faq"
+              "guides/faq",
+              "guides/affiliate-program-via-api"
             ]
           }
         ]
@@ -342,7 +343,9 @@
             "pages": [
               "api-reference/endpoint/list-affiliates",
               "api-reference/endpoint/retrieve-affiliate",
-              "api-reference/endpoint/list-affiliate-commissions"
+              "api-reference/endpoint/list-affiliate-commissions",
+              "api-reference/endpoint/create-affiliate-invite",
+              "api-reference/endpoint/list-affiliate-invites"
             ]
           },
           {
