@@ -795,40 +795,65 @@ interface CreemOptions {
   persistSubscriptions?: boolean;
 
   // Webhook Handlers
-  onCheckoutCompleted?: (data: FlatCheckoutCompleted) => void; // Great for One Time Payments
-  onRefundCreated?: (data: FlatRefundCreated) => void;
-  onDisputeCreated?: (data: FlatDisputeCreated) => void;
+  // Each callback receives the better-auth GenericEndpointContext as its second argument
+  onCheckoutCompleted?: (
+    data: FlatCheckoutCompleted,
+    betterAuthContext: GenericEndpointContext,
+  ) => void; // Great for One Time Payments
+  onRefundCreated?: (
+    data: FlatRefundCreated,
+    betterAuthContext: GenericEndpointContext,
+  ) => void;
+  onDisputeCreated?: (
+    data: FlatDisputeCreated,
+    betterAuthContext: GenericEndpointContext,
+  ) => void;
   onSubscriptionActive?: (
     data: FlatSubscriptionEvent<"subscription.active">,
+    betterAuthContext: GenericEndpointContext,
   ) => void;
   onSubscriptionTrialing?: (
     data: FlatSubscriptionEvent<"subscription.trialing">,
+    betterAuthContext: GenericEndpointContext,
   ) => void;
   onSubscriptionCanceled?: (
     data: FlatSubscriptionEvent<"subscription.canceled">,
+    betterAuthContext: GenericEndpointContext,
   ) => void;
   onSubscriptionPaid?: (
     data: FlatSubscriptionEvent<"subscription.paid">,
+    betterAuthContext: GenericEndpointContext,
   ) => void;
   onSubscriptionExpired?: (
     data: FlatSubscriptionEvent<"subscription.expired">,
+    betterAuthContext: GenericEndpointContext,
   ) => void;
   onSubscriptionUnpaid?: (
     data: FlatSubscriptionEvent<"subscription.unpaid">,
+    betterAuthContext: GenericEndpointContext,
   ) => void;
   onSubscriptionUpdate?: (
     data: FlatSubscriptionEvent<"subscription.update">,
+    betterAuthContext: GenericEndpointContext,
   ) => void;
   onSubscriptionPastDue?: (
     data: FlatSubscriptionEvent<"subscription.past_due">,
+    betterAuthContext: GenericEndpointContext,
   ) => void;
   onSubscriptionPaused?: (
     data: FlatSubscriptionEvent<"subscription.paused">,
+    betterAuthContext: GenericEndpointContext,
   ) => void;
 
   // Access Control (High-level)
-  onGrantAccess?: (context: GrantAccessContext) => void | Promise<void>;
-  onRevokeAccess?: (context: RevokeAccessContext) => void | Promise<void>;
+  onGrantAccess?: (
+    context: GrantAccessContext,
+    betterAuthContext: GenericEndpointContext,
+  ) => void | Promise<void>;
+  onRevokeAccess?: (
+    context: RevokeAccessContext,
+    betterAuthContext: GenericEndpointContext,
+  ) => void | Promise<void>;
 }
 ```
 

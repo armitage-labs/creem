@@ -141,6 +141,7 @@ describe("webhook handler", () => {
     expect(hooks.onSubscriptionActive).toHaveBeenCalled();
     expect(onGrantAccess).toHaveBeenCalledWith(
       expect.objectContaining({ reason: "subscription_active" }),
+      expect.anything(),
     );
     expect(onSubscriptionActive).toHaveBeenCalled();
   });
@@ -158,6 +159,7 @@ describe("webhook handler", () => {
     expect(hooks.onSubscriptionTrialing).toHaveBeenCalled();
     expect(onGrantAccess).toHaveBeenCalledWith(
       expect.objectContaining({ reason: "subscription_trialing" }),
+      expect.anything(),
     );
   });
 
@@ -174,6 +176,7 @@ describe("webhook handler", () => {
     expect(hooks.onSubscriptionPaid).toHaveBeenCalled();
     expect(onGrantAccess).toHaveBeenCalledWith(
       expect.objectContaining({ reason: "subscription_paid" }),
+      expect.anything(),
     );
   });
 
@@ -190,6 +193,7 @@ describe("webhook handler", () => {
     expect(hooks.onSubscriptionExpired).toHaveBeenCalled();
     expect(onRevokeAccess).toHaveBeenCalledWith(
       expect.objectContaining({ reason: "subscription_expired" }),
+      expect.anything(),
     );
   });
 
@@ -206,6 +210,7 @@ describe("webhook handler", () => {
     expect(hooks.onSubscriptionPaused).toHaveBeenCalled();
     expect(onRevokeAccess).toHaveBeenCalledWith(
       expect.objectContaining({ reason: "subscription_paused" }),
+      expect.anything(),
     );
   });
 
