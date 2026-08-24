@@ -110,10 +110,24 @@ describe("Checkout endpoint", () => {
     );
   });
 
-  it("returns checkout URL on success", async () => {
+  it("returns checkout URL without redirect on success", async () => {
     const creem = createMockCreem() as any;
     const handler = createCheckoutEndpoint(creem, defaultOptions);
     const ctx = createMockContext({ body: { productId: "prod_1" } });
+    mockGetSession.mockResolvedValue({ user: { id: "u1", email: "t@e.com" } });
+    await handler(ctx);
+    expect(ctx.json).toHaveBeenCalledWith(
+      expect.objectContaining({
+        url: "https://checkout.creem.io/test-session",
+        redirect: false,
+      }),
+    );
+  });
+
+  it("redirects when redirect is true", async () => {
+    const creem = createMockCreem() as any;
+    const handler = createCheckoutEndpoint(creem, defaultOptions);
+    const ctx = createMockContext({ body: { productId: "prod_1", redirect: true } });
     mockGetSession.mockResolvedValue({ user: { id: "u1", email: "t@e.com" } });
     await handler(ctx);
     expect(ctx.json).toHaveBeenCalledWith(
@@ -184,10 +198,26 @@ describe("Portal endpoint", () => {
     );
   });
 
-  it("returns portal URL on success", async () => {
+  it("returns portal URL without redirect on success", async () => {
     const creem = createMockCreem() as any;
     const handler = createPortalEndpoint(creem, defaultOptions);
     const ctx = createMockContext();
+    mockGetSession.mockResolvedValue({
+      user: { id: "u1", creemCustomerId: "cust_123" },
+    });
+    await handler(ctx);
+    expect(ctx.json).toHaveBeenCalledWith(
+      expect.objectContaining({
+        url: "https://portal.creem.io/test-portal",
+        redirect: false,
+      }),
+    );
+  });
+
+  it("redirects when redirect is true", async () => {
+    const creem = createMockCreem() as any;
+    const handler = createPortalEndpoint(creem, defaultOptions);
+    const ctx = createMockContext({ body: { redirect: true } });
     mockGetSession.mockResolvedValue({
       user: { id: "u1", creemCustomerId: "cust_123" },
     });

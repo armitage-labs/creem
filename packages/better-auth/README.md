@@ -175,7 +175,7 @@ export const auth = betterAuth({
 ```
 </details>
 
-### Client Setup (Option 1: Standard)
+### Client Setup
 
 ```typescript
 // lib/auth-client.ts
@@ -188,24 +188,14 @@ export const authClient = createAuthClient({
 });
 ```
 
-### Client Setup (Option 2: Improved TypeScript Support for React)
+Standard `createAuthClient` gives you full TypeScript support: endpoint parameters are inferred from the server plugin, and `session.user.creemCustomerId` is properly typed on the client.
 
-For even better TypeScript support with cleaner IntelliSense:
+<details>
+<summary>Deprecated: createCreemAuthClient wrapper</summary>
 
-```typescript
-// lib/auth-client.ts
-import { createCreemAuthClient } from "@creem_io/better-auth/create-creem-auth-client";
-import { creemClient } from "@creem_io/better-auth/client";
+The `createCreemAuthClient` wrapper (`@creem_io/better-auth/create-creem-auth-client`) is deprecated and no longer needed — the `creemClient()` plugin now provides full type inference through better-auth's server plugin inference. It is kept for backwards compatibility.
 
-export const authClient = createCreemAuthClient({
-  baseURL: process.env.NEXT_PUBLIC_APP_URL,
-  plugins: [creemClient()],
-});
-
-// Now you get the cleanest possible type hints!
-```
-
-The `createCreemAuthClient` wrapper improves TypeScript parameter types and autocomplete. Note: It is primarily designed for use with the Creem plugin and may not support all other better-auth plugins. If you encounter any issues, please open an issue or pull request at https://github.com/armitage-labs/creem-betterauth.
+</details>
 
 ### Migrate the Database
 
@@ -259,17 +249,16 @@ See the [example README](./examples/nextjs/README.md) for full setup instruction
 
 #### Create Checkout
 
-Create a checkout session for a product. The plugin automatically attaches the authenticated user's email.
+Create a checkout session for a product. The plugin automatically attaches the authenticated user's email. Navigation is not automatic (`redirect` defaults to `false`) — you handle it with the returned URL.
 
 ```typescript
 "use client";
 
 import { authClient } from "@/lib/auth-client";
-import type { CreateCheckoutInput } from "@creem_io/better-auth";
 
 export function SubscribeButton({ productId }: { productId: string }) {
   const handleCheckout = async () => {
-    const { data, error } = await authClient.creem.createCheckout({
+    const { data } = await authClient.creem.createCheckout({
       productId, // Required
     });
 
@@ -283,17 +272,22 @@ export function SubscribeButton({ productId }: { productId: string }) {
 }
 ```
 
+Or let better-auth redirect to the checkout URL automatically:
+
+```typescript
+await authClient.creem.createCheckout({ productId, redirect: true });
+```
+
 You can also access advanced checkout features directly through the endpoint:
 
 ```typescript
 "use client";
 
 import { authClient } from "@/lib/auth-client";
-import type { CreateCheckoutInput } from "@creem_io/better-auth";
 
 export function SubscribeButton({ productId }: { productId: string }) {
   const handleCheckout = async () => {
-    const { data, error } = await authClient.creem.createCheckout({
+    const { data } = await authClient.creem.createCheckout({
       productId, // Required
       units: 1, // Optional, defaults to 1
       successUrl: "/pro-plan/thank-you", // Optional
@@ -319,19 +313,26 @@ export function SubscribeButton({ productId }: { productId: string }) {
 - `customer` - Customer info (defaults to session user)
 - `metadata` - Additional metadata (auto-includes user ID as `referenceId`)
 - `requestId` - Idempotency key
+- `redirect` - Whether the client should redirect to the checkout URL automatically (default: `false`; set `true` to redirect automatically)
 
 #### Create Customer Portal
 
-Open the Creem customer portal where users can manage subscriptions (Uses logged-in user):
+Open the Creem customer portal where users can manage subscriptions. Uses the logged-in user; navigation is not automatic (`redirect` defaults to `false`):
 
 ```typescript
 const handlePortal = async () => {
-  const { data, error } = await authClient.creem.createPortal();
+  const { data } = await authClient.creem.createPortal();
 
   if (data?.url) {
     window.location.href = data.url;
   }
 };
+```
+
+Or let better-auth redirect automatically:
+
+```typescript
+await authClient.creem.createPortal({ redirect: true });
 ```
 
 #### Cancel Subscription

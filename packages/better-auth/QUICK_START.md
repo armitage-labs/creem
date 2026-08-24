@@ -37,7 +37,6 @@ export const auth = betterAuth({
 
 ### 2. Client Configuration
 
-**Option A: Standard (Good)**
 ```typescript
 // lib/auth-client.ts
 import { createAuthClient } from "better-auth/react";
@@ -49,17 +48,7 @@ export const authClient = createAuthClient({
 });
 ```
 
-**Option B: Enhanced TypeScript (Better)**
-```typescript
-// lib/auth-client.ts
-import { createCreemAuthClient } from "@creem_io/better-auth/create-creem-auth-client";
-import { creemClient } from "@creem_io/better-auth/client";
-
-export const authClient = createCreemAuthClient({
-  baseURL: process.env.NEXT_PUBLIC_APP_URL,
-  plugins: [creemClient()]
-});
-```
+Standard `createAuthClient` gives you full TypeScript support — endpoint parameters and `session.user.creemCustomerId` are inferred from the server plugin.
 
 ### 3. Usage in Components
 
@@ -70,16 +59,17 @@ import { authClient } from "@/lib/auth-client";
 
 export function SubscribeButton({ productId }: { productId: string }) {
   const handleSubscribe = async () => {
-    const { data, error } = await authClient.creem.createCheckout({
+    // Navigation is not automatic (redirect defaults to false)
+    const { data } = await authClient.creem.createCheckout({
       productId,
       successUrl: "/success"
     });
-    
+
     if (data?.url) {
       window.location.href = data.url;
     }
   };
-  
+
   return <button onClick={handleSubscribe}>Subscribe</button>;
 }
 ```

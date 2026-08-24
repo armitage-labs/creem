@@ -145,6 +145,14 @@ export interface CreateCheckoutInput {
    * @example { orderId: "12345", source: "web" }
    */
   metadata?: Record<string, unknown>;
+
+  /**
+   * Indicates whether the client should automatically redirect to the returned
+   * checkout URL. When false (default), the URL is returned for you to handle manually.
+   *
+   * @default false
+   */
+  redirect?: boolean;
 }
 
 /**

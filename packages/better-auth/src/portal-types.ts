@@ -16,6 +16,14 @@ export interface CreatePortalInput {
    * @example "cust_abc123"
    */
   customerId?: string;
+
+  /**
+   * Indicates whether the client should automatically redirect to the returned
+   * portal URL. When false (default), the URL is returned for you to handle manually.
+   *
+   * @default false
+   */
+  redirect?: boolean;
 }
 
 /**

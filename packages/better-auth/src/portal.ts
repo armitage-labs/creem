@@ -7,6 +7,7 @@ import type { CreatePortalInput, CreatePortalResponse } from "./portal-types.js"
 
 export const PortalParams = z.object({
   customerId: z.string().optional(),
+  redirect: z.boolean().optional().default(false),
 });
 
 export type PortalParams = z.infer<typeof PortalParams>;
@@ -49,7 +50,8 @@ const createPortalHandler = (creem: Creem, options: CreemOptions) => {
 
       return ctx.json({
         url: portal.customerPortalLink,
-        redirect: true,
+        // No redirect by default; opt in with { redirect: true }
+        redirect: !!body.redirect,
       });
     } catch (error) {
       const message = error instanceof Error ? error.message : String(error);
@@ -74,7 +76,7 @@ const createPortalHandler = (creem: Creem, options: CreemOptions) => {
  * @example
  * Client-side usage:
  * ```typescript
- * // Use default customer ID from session
+ * // Handle navigation yourself (redirect defaults to false)
  * const { data, error } = await authClient.creem.createPortal();
  *
  * // Or specify a custom customer ID
@@ -85,6 +87,9 @@ const createPortalHandler = (creem: Creem, options: CreemOptions) => {
  * if (data?.url) {
  *   window.location.href = data.url;
  * }
+ *
+ * // Or let better-auth redirect to the portal URL automatically
+ * const { data, error } = await authClient.creem.createPortal({ redirect: true });
  * ```
  */
 export const createPortalEndpoint = (creem: Creem, options: CreemOptions) => {

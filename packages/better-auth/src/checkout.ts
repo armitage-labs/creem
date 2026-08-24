@@ -29,6 +29,7 @@ export const CheckoutParams = z.object({
   customField: z.array(CustomFieldInputSchema).max(3).optional(),
   successUrl: z.string().optional(),
   metadata: z.record(z.string(), z.unknown()).optional(),
+  redirect: z.boolean().optional().default(false),
 });
 
 export type CheckoutParams = z.infer<typeof CheckoutParams>;
@@ -138,7 +139,8 @@ const createCheckoutHandler = (creem: Creem, options: CreemOptions) => {
 
       return ctx.json({
         url: checkout.checkoutUrl,
-        redirect: true,
+        // No redirect by default; opt in with { redirect: true }
+        redirect: !!body.redirect,
       });
     } catch (error) {
       const message = error instanceof Error ? error.message : String(error);
@@ -163,6 +165,7 @@ const createCheckoutHandler = (creem: Creem, options: CreemOptions) => {
  * @example
  * Client-side usage:
  * ```typescript
+ * // Handle navigation yourself (redirect defaults to false)
  * const { data, error } = await authClient.creem.createCheckout({
  *   productId: "prod_abc123",
  *   units: 1,
@@ -172,6 +175,12 @@ const createCheckoutHandler = (creem: Creem, options: CreemOptions) => {
  * if (data?.url) {
  *   window.location.href = data.url;
  * }
+ *
+ * // Or let better-auth redirect to the checkout URL automatically
+ * const { data, error } = await authClient.creem.createCheckout({
+ *   productId: "prod_abc123",
+ *   redirect: true,
+ * });
  * ```
  */
 export const createCheckoutEndpoint = (creem: Creem, options: CreemOptions) => {

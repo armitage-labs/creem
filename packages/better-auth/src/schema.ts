@@ -74,17 +74,20 @@ export const user = {
   },
 } satisfies BetterAuthPluginDBSchema;
 
-export const getSchema = (options: CreemOptions) => {
-  // Default persistSubscriptions to true if not specified
-  const shouldPersist = options.persistSubscriptions !== false;
+type GetSchemaResult<T extends CreemOptions> = T["persistSubscriptions"] extends false
+  ? typeof user
+  : typeof user & typeof subscriptions;
+
+export const getSchema = <T extends CreemOptions>(options: T): GetSchemaResult<T> => {
+  if (options.persistSubscriptions === false) {
+    return mergeSchema({ ...user }, options.schema) as GetSchemaResult<T>;
+  }
 
   // Only include schema if persistSubscriptions is enabled
-  const baseSchema = shouldPersist
-    ? {
-        ...subscriptions,
-        ...user,
-      }
-    : {};
+  const baseSchema = {
+    ...subscriptions,
+    ...user,
+  };
 
-  return mergeSchema(baseSchema, options.schema);
+  return mergeSchema(baseSchema, options.schema) as GetSchemaResult<T>;
 };

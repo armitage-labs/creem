@@ -78,8 +78,6 @@ export const auth = betterAuth({
 
 ### Client Configuration
 
-#### Standard Setup
-
 ```typescript
 import { createAuthClient } from "better-auth/react";
 import { creemClient } from "@creem_io/better-auth/client";
@@ -90,22 +88,8 @@ export const authClient = createAuthClient({
 });
 ```
 
-#### Enhanced TypeScript Support
-
-For improved TypeScript IntelliSense and autocomplete:
-
-```typescript
-import { createCreemAuthClient } from "@creem_io/better-auth/create-creem-auth-client";
-import { creemClient } from "@creem_io/better-auth/client";
-
-export const authClient = createCreemAuthClient({
-  baseURL: process.env.NEXT_PUBLIC_APP_URL,
-  plugins: [creemClient()],
-});
-```
-
 <Callout>
-  The `createCreemAuthClient` wrapper provides enhanced TypeScript support and cleaner parameter types. It's optimized for use with the Creem plugin.
+  Standard `createAuthClient` gives you full TypeScript support: endpoint parameters are inferred from the server plugin, and `session.user.creemCustomerId` is properly typed on the client.
 </Callout>
 
 ### Database Migration
@@ -207,6 +191,7 @@ import { authClient } from "@/lib/auth-client";
 
 export function SubscribeButton({ productId }: { productId: string }) {
   const handleCheckout = async () => {
+    // Navigation is not automatic (redirect defaults to false)
     const { data, error } = await authClient.creem.createCheckout({
       productId,
       successUrl: "/dashboard",
@@ -223,6 +208,12 @@ export function SubscribeButton({ productId }: { productId: string }) {
 }
 ```
 
+To let better-auth redirect to the checkout URL automatically, opt in with `redirect: true`:
+
+```typescript
+await authClient.creem.createCheckout({ productId, redirect: true });
+```
+
 #### Checkout Options
 
 - `productId` (required) - The Creem product ID
@@ -232,19 +223,27 @@ export function SubscribeButton({ productId }: { productId: string }) {
 - `customer` - Customer information (auto-populated from session)
 - `metadata` - Additional metadata (auto-includes user ID as `referenceId`)
 - `requestId` - Idempotency key for duplicate prevention
+- `redirect` - Whether the client should redirect to the checkout URL automatically (default: `false`; set `true` to redirect automatically)
 
 ### Customer Portal
 
 Redirect users to manage their subscriptions:
 
 ```typescript
+// Navigation is not automatic (redirect defaults to false)
 const handlePortal = async () => {
-  const { data, error } = await authClient.creem.createPortal();
+  const { data } = await authClient.creem.createPortal();
 
   if (data?.url) {
     window.location.href = data.url;
   }
 };
+```
+
+Or let better-auth redirect automatically:
+
+```typescript
+await authClient.creem.createPortal({ redirect: true });
 ```
 
 ### Subscription Management

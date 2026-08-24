@@ -15,13 +15,14 @@ import type { creem } from "./index.js";
  * @example
  * ```typescript
  * import { createAuthClient } from "better-auth/client";
- * import { creemClient } from "./lib/creem-betterauth/client";
+ * import { creemClient } from "@creem_io/better-auth/client";
  *
  * export const authClient = createAuthClient({
  *   plugins: [creemClient()]
  * });
  *
- * // Usage in components - hover over createCheckout to see clean parameter types!
+ * // Usage in components - endpoint and session.user.creemCustomerId
+ * // are fully typed via server plugin inference:
  * const { data, error } = await authClient.creem.createCheckout({
  *   productId: "prod_abc123",
  *   units: 1,
@@ -29,11 +30,23 @@ import type { creem } from "./index.js";
  * });
  * ```
  */
-export const creemClient = () => {
+export const creemClient = <
+  T extends { persistSubscriptions?: boolean } = {
+    persistSubscriptions?: boolean;
+  },
+>(
+  _options: T = {} as T,
+) => {
   return {
     id: "creem",
-    $InferServerPlugin: {} as ReturnType<typeof creem>,
+    $InferServerPlugin: {} as ReturnType<
+      typeof creem<{
+        apiKey: string;
+        persistSubscriptions: T["persistSubscriptions"];
+      }>
+    >,
     pathMethods: {
+      "/creem/create-checkout": "POST",
       "/creem/create-portal": "POST",
       "/creem/cancel-subscription": "POST",
       "/creem/retrieve-subscription": "POST",
