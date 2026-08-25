@@ -1,4 +1,5 @@
 import type { BetterAuthPluginDBSchema } from "@better-auth/core/db";
+import type { GenericEndpointContext } from "better-auth";
 import type {
   NormalizedCheckoutEntity,
   NormalizedRefundEntity,
@@ -153,19 +154,28 @@ export interface CreemOptions {
    *   console.log(`Checkout completed: ${customer?.email} purchased ${product.name}`);
    * }
    */
-  onCheckoutCompleted?: (data: FlatCheckoutCompleted) => void | Promise<void>;
+  onCheckoutCompleted?: (
+    data: FlatCheckoutCompleted,
+    betterAuthContext: GenericEndpointContext,
+  ) => void | Promise<void>;
 
   /**
    * Called when a refund is created.
    * All properties are flattened for easy destructuring.
    */
-  onRefundCreated?: (data: FlatRefundCreated) => void | Promise<void>;
+  onRefundCreated?: (
+    data: FlatRefundCreated,
+    betterAuthContext: GenericEndpointContext,
+  ) => void | Promise<void>;
 
   /**
    * Called when a dispute is created.
    * All properties are flattened for easy destructuring.
    */
-  onDisputeCreated?: (data: FlatDisputeCreated) => void | Promise<void>;
+  onDisputeCreated?: (
+    data: FlatDisputeCreated,
+    betterAuthContext: GenericEndpointContext,
+  ) => void | Promise<void>;
 
   /**
    * Called when a subscription becomes active.
@@ -179,6 +189,7 @@ export interface CreemOptions {
    */
   onSubscriptionActive?: (
     data: FlatSubscriptionEvent<"subscription.active">,
+    betterAuthContext: GenericEndpointContext,
   ) => void | Promise<void>;
 
   /**
@@ -187,6 +198,7 @@ export interface CreemOptions {
    */
   onSubscriptionTrialing?: (
     data: FlatSubscriptionEvent<"subscription.trialing">,
+    betterAuthContext: GenericEndpointContext,
   ) => void | Promise<void>;
 
   /**
@@ -195,13 +207,17 @@ export interface CreemOptions {
    */
   onSubscriptionCanceled?: (
     data: FlatSubscriptionEvent<"subscription.canceled">,
+    betterAuthContext: GenericEndpointContext,
   ) => void | Promise<void>;
 
   /**
    * Called when a subscription is paid.
    * All properties are flattened for easy destructuring.
    */
-  onSubscriptionPaid?: (data: FlatSubscriptionEvent<"subscription.paid">) => void | Promise<void>;
+  onSubscriptionPaid?: (
+    data: FlatSubscriptionEvent<"subscription.paid">,
+    betterAuthContext: GenericEndpointContext,
+  ) => void | Promise<void>;
 
   /**
    * Called when a subscription has expired.
@@ -209,6 +225,7 @@ export interface CreemOptions {
    */
   onSubscriptionExpired?: (
     data: FlatSubscriptionEvent<"subscription.expired">,
+    betterAuthContext: GenericEndpointContext,
   ) => void | Promise<void>;
 
   /**
@@ -217,6 +234,7 @@ export interface CreemOptions {
    */
   onSubscriptionUnpaid?: (
     data: FlatSubscriptionEvent<"subscription.unpaid">,
+    betterAuthContext: GenericEndpointContext,
   ) => void | Promise<void>;
 
   /**
@@ -225,6 +243,7 @@ export interface CreemOptions {
    */
   onSubscriptionUpdate?: (
     data: FlatSubscriptionEvent<"subscription.update">,
+    betterAuthContext: GenericEndpointContext,
   ) => void | Promise<void>;
 
   /**
@@ -233,6 +252,7 @@ export interface CreemOptions {
    */
   onSubscriptionPastDue?: (
     data: FlatSubscriptionEvent<"subscription.past_due">,
+    betterAuthContext: GenericEndpointContext,
   ) => void | Promise<void>;
 
   /**
@@ -241,6 +261,7 @@ export interface CreemOptions {
    */
   onSubscriptionPaused?: (
     data: FlatSubscriptionEvent<"subscription.paused">,
+    betterAuthContext: GenericEndpointContext,
   ) => void | Promise<void>;
 
   /**
@@ -260,7 +281,10 @@ export interface CreemOptions {
    *   // Your database logic here
    * }
    */
-  onGrantAccess?: (context: GrantAccessContext) => void | Promise<void>;
+  onGrantAccess?: (
+    context: GrantAccessContext,
+    betterAuthContext: GenericEndpointContext,
+  ) => void | Promise<void>;
 
   /**
    * Called when a user's access should be revoked.
@@ -279,5 +303,8 @@ export interface CreemOptions {
    *   // Your database logic here
    * }
    */
-  onRevokeAccess?: (context: RevokeAccessContext) => void | Promise<void>;
+  onRevokeAccess?: (
+    context: RevokeAccessContext,
+    betterAuthContext: GenericEndpointContext,
+  ) => void | Promise<void>;
 }

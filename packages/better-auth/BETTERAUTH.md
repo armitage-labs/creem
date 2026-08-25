@@ -635,22 +635,65 @@ interface CreemOptions {
   persistSubscriptions?: boolean;
 
   // Event-Specific Webhook Handlers
-  onCheckoutCompleted?: (data: FlatCheckoutCompleted) => void | Promise<void>;
-  onRefundCreated?: (data: FlatRefundCreated) => void | Promise<void>;
-  onDisputeCreated?: (data: FlatDisputeCreated) => void | Promise<void>;
-  onSubscriptionActive?: (data: FlatSubscriptionEvent) => void | Promise<void>;
-  onSubscriptionTrialing?: (data: FlatSubscriptionEvent) => void | Promise<void>;
-  onSubscriptionCanceled?: (data: FlatSubscriptionEvent) => void | Promise<void>;
-  onSubscriptionPaid?: (data: FlatSubscriptionEvent) => void | Promise<void>;
-  onSubscriptionExpired?: (data: FlatSubscriptionEvent) => void | Promise<void>;
-  onSubscriptionUnpaid?: (data: FlatSubscriptionEvent) => void | Promise<void>;
-  onSubscriptionUpdate?: (data: FlatSubscriptionEvent) => void | Promise<void>;
-  onSubscriptionPastDue?: (data: FlatSubscriptionEvent) => void | Promise<void>;
-  onSubscriptionPaused?: (data: FlatSubscriptionEvent) => void | Promise<void>;
+  // Each callback receives the better-auth GenericEndpointContext as its second argument
+  onCheckoutCompleted?: (
+    data: FlatCheckoutCompleted,
+    betterAuthContext: GenericEndpointContext,
+  ) => void | Promise<void>;
+  onRefundCreated?: (
+    data: FlatRefundCreated,
+    betterAuthContext: GenericEndpointContext,
+  ) => void | Promise<void>;
+  onDisputeCreated?: (
+    data: FlatDisputeCreated,
+    betterAuthContext: GenericEndpointContext,
+  ) => void | Promise<void>;
+  onSubscriptionActive?: (
+    data: FlatSubscriptionEvent,
+    betterAuthContext: GenericEndpointContext,
+  ) => void | Promise<void>;
+  onSubscriptionTrialing?: (
+    data: FlatSubscriptionEvent,
+    betterAuthContext: GenericEndpointContext,
+  ) => void | Promise<void>;
+  onSubscriptionCanceled?: (
+    data: FlatSubscriptionEvent,
+    betterAuthContext: GenericEndpointContext,
+  ) => void | Promise<void>;
+  onSubscriptionPaid?: (
+    data: FlatSubscriptionEvent,
+    betterAuthContext: GenericEndpointContext,
+  ) => void | Promise<void>;
+  onSubscriptionExpired?: (
+    data: FlatSubscriptionEvent,
+    betterAuthContext: GenericEndpointContext,
+  ) => void | Promise<void>;
+  onSubscriptionUnpaid?: (
+    data: FlatSubscriptionEvent,
+    betterAuthContext: GenericEndpointContext,
+  ) => void | Promise<void>;
+  onSubscriptionUpdate?: (
+    data: FlatSubscriptionEvent,
+    betterAuthContext: GenericEndpointContext,
+  ) => void | Promise<void>;
+  onSubscriptionPastDue?: (
+    data: FlatSubscriptionEvent,
+    betterAuthContext: GenericEndpointContext,
+  ) => void | Promise<void>;
+  onSubscriptionPaused?: (
+    data: FlatSubscriptionEvent,
+    betterAuthContext: GenericEndpointContext,
+  ) => void | Promise<void>;
 
   // Access Control Handlers (High-level)
-  onGrantAccess?: (context: GrantAccessContext) => void | Promise<void>;
-  onRevokeAccess?: (context: RevokeAccessContext) => void | Promise<void>;
+  onGrantAccess?: (
+    context: GrantAccessContext,
+    betterAuthContext: GenericEndpointContext,
+  ) => void | Promise<void>;
+  onRevokeAccess?: (
+    context: RevokeAccessContext,
+    betterAuthContext: GenericEndpointContext,
+  ) => void | Promise<void>;
 }
 ```
 

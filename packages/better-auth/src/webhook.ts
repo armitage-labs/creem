@@ -53,140 +53,191 @@ const createWebhookHandler = (options: CreemOptions) => {
       switch (event.eventType) {
         case "checkout.completed":
           await onCheckoutCompleted(ctx, event, options);
-          await options.onCheckoutCompleted?.({
-            webhookEventType: event.eventType,
-            webhookId: event.id,
-            webhookCreatedAt: event.created_at,
-            ...event.object,
-          });
+          await options.onCheckoutCompleted?.(
+            {
+              webhookEventType: event.eventType,
+              webhookId: event.id,
+              webhookCreatedAt: event.created_at,
+              ...event.object,
+            },
+            ctx,
+          );
           break;
 
         case "refund.created":
-          await options.onRefundCreated?.({
-            webhookEventType: event.eventType,
-            webhookId: event.id,
-            webhookCreatedAt: event.created_at,
-            ...event.object,
-          });
+          await options.onRefundCreated?.(
+            {
+              webhookEventType: event.eventType,
+              webhookId: event.id,
+              webhookCreatedAt: event.created_at,
+              ...event.object,
+            },
+            ctx,
+          );
           break;
 
         case "dispute.created":
-          await options.onDisputeCreated?.({
-            webhookEventType: event.eventType,
-            webhookId: event.id,
-            webhookCreatedAt: event.created_at,
-            ...event.object,
-          });
+          await options.onDisputeCreated?.(
+            {
+              webhookEventType: event.eventType,
+              webhookId: event.id,
+              webhookCreatedAt: event.created_at,
+              ...event.object,
+            },
+            ctx,
+          );
           break;
 
         case "subscription.active":
           await onSubscriptionActive(ctx, event, options);
-          await options.onGrantAccess?.({
-            reason: "subscription_active",
-            ...event.object,
-          });
-          await options.onSubscriptionActive?.({
-            webhookEventType: event.eventType,
-            webhookId: event.id,
-            webhookCreatedAt: event.created_at,
-            ...event.object,
-          });
+          await options.onGrantAccess?.(
+            {
+              reason: "subscription_active",
+              ...event.object,
+            },
+            ctx,
+          );
+          await options.onSubscriptionActive?.(
+            {
+              webhookEventType: event.eventType,
+              webhookId: event.id,
+              webhookCreatedAt: event.created_at,
+              ...event.object,
+            },
+            ctx,
+          );
           break;
 
         case "subscription.trialing":
           await onSubscriptionTrialing(ctx, event, options);
-          await options.onGrantAccess?.({
-            reason: "subscription_trialing",
-            ...event.object,
-          });
-          await options.onSubscriptionTrialing?.({
-            webhookEventType: event.eventType,
-            webhookId: event.id,
-            webhookCreatedAt: event.created_at,
-            ...event.object,
-          });
+          await options.onGrantAccess?.(
+            {
+              reason: "subscription_trialing",
+              ...event.object,
+            },
+            ctx,
+          );
+          await options.onSubscriptionTrialing?.(
+            {
+              webhookEventType: event.eventType,
+              webhookId: event.id,
+              webhookCreatedAt: event.created_at,
+              ...event.object,
+            },
+            ctx,
+          );
 
           break;
         case "subscription.canceled":
           await onSubscriptionCanceled(ctx, event, options);
-          await options.onSubscriptionCanceled?.({
-            webhookEventType: event.eventType,
-            webhookId: event.id,
-            webhookCreatedAt: event.created_at,
-            ...event.object,
-          });
+          await options.onSubscriptionCanceled?.(
+            {
+              webhookEventType: event.eventType,
+              webhookId: event.id,
+              webhookCreatedAt: event.created_at,
+              ...event.object,
+            },
+            ctx,
+          );
           break;
 
         case "subscription.paid":
           await onSubscriptionPaid(ctx, event, options);
-          await options.onGrantAccess?.({
-            reason: "subscription_paid",
-            ...event.object,
-          });
-          await options.onSubscriptionPaid?.({
-            webhookEventType: event.eventType,
-            webhookId: event.id,
-            webhookCreatedAt: event.created_at,
-            ...event.object,
-          });
+          await options.onGrantAccess?.(
+            {
+              reason: "subscription_paid",
+              ...event.object,
+            },
+            ctx,
+          );
+          await options.onSubscriptionPaid?.(
+            {
+              webhookEventType: event.eventType,
+              webhookId: event.id,
+              webhookCreatedAt: event.created_at,
+              ...event.object,
+            },
+            ctx,
+          );
           break;
 
         case "subscription.expired":
           await onSubscriptionExpired(ctx, event, options);
-          await options.onRevokeAccess?.({
-            reason: "subscription_expired",
-            ...event.object,
-          });
-          await options.onSubscriptionExpired?.({
-            webhookEventType: event.eventType,
-            webhookId: event.id,
-            webhookCreatedAt: event.created_at,
-            ...event.object,
-          });
+          await options.onRevokeAccess?.(
+            {
+              reason: "subscription_expired",
+              ...event.object,
+            },
+            ctx,
+          );
+          await options.onSubscriptionExpired?.(
+            {
+              webhookEventType: event.eventType,
+              webhookId: event.id,
+              webhookCreatedAt: event.created_at,
+              ...event.object,
+            },
+            ctx,
+          );
           break;
 
         case "subscription.unpaid":
           await onSubscriptionUnpaid(ctx, event, options);
-          await options.onSubscriptionUnpaid?.({
-            webhookEventType: event.eventType,
-            webhookId: event.id,
-            webhookCreatedAt: event.created_at,
-            ...event.object,
-          });
+          await options.onSubscriptionUnpaid?.(
+            {
+              webhookEventType: event.eventType,
+              webhookId: event.id,
+              webhookCreatedAt: event.created_at,
+              ...event.object,
+            },
+            ctx,
+          );
           break;
 
         case "subscription.update":
           await onSubscriptionUpdate(ctx, event, options);
-          await options.onSubscriptionUpdate?.({
-            webhookEventType: event.eventType,
-            webhookId: event.id,
-            webhookCreatedAt: event.created_at,
-            ...event.object,
-          });
+          await options.onSubscriptionUpdate?.(
+            {
+              webhookEventType: event.eventType,
+              webhookId: event.id,
+              webhookCreatedAt: event.created_at,
+              ...event.object,
+            },
+            ctx,
+          );
           break;
 
         case "subscription.past_due":
           await onSubscriptionPastDue(ctx, event, options);
-          await options.onSubscriptionPastDue?.({
-            webhookEventType: event.eventType,
-            webhookId: event.id,
-            webhookCreatedAt: event.created_at,
-            ...event.object,
-          });
+          await options.onSubscriptionPastDue?.(
+            {
+              webhookEventType: event.eventType,
+              webhookId: event.id,
+              webhookCreatedAt: event.created_at,
+              ...event.object,
+            },
+            ctx,
+          );
           break;
 
         case "subscription.paused":
           await onSubscriptionPaused(ctx, event, options);
-          await options.onRevokeAccess?.({
-            reason: "subscription_paused",
-            ...event.object,
-          });
-          await options.onSubscriptionPaused?.({
-            webhookEventType: event.eventType,
-            webhookId: event.id,
-            webhookCreatedAt: event.created_at,
-            ...event.object,
-          });
+          await options.onRevokeAccess?.(
+            {
+              reason: "subscription_paused",
+              ...event.object,
+            },
+            ctx,
+          );
+          await options.onSubscriptionPaused?.(
+            {
+              webhookEventType: event.eventType,
+              webhookId: event.id,
+              webhookCreatedAt: event.created_at,
+              ...event.object,
+            },
+            ctx,
+          );
           break;
 
         default:

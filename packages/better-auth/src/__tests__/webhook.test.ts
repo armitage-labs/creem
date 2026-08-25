@@ -137,10 +137,11 @@ describe("webhook handler", () => {
       created_at: 1234567890,
       object: mockSubscription,
     };
-    await callWebhook(options, event);
+    const ctx = await callWebhook(options, event);
     expect(hooks.onSubscriptionActive).toHaveBeenCalled();
     expect(onGrantAccess).toHaveBeenCalledWith(
       expect.objectContaining({ reason: "subscription_active" }),
+      ctx,
     );
     expect(onSubscriptionActive).toHaveBeenCalled();
   });
@@ -154,10 +155,11 @@ describe("webhook handler", () => {
       created_at: 1234567890,
       object: { ...mockSubscription, status: "trialing" },
     };
-    await callWebhook(options, event);
+    const ctx = await callWebhook(options, event);
     expect(hooks.onSubscriptionTrialing).toHaveBeenCalled();
     expect(onGrantAccess).toHaveBeenCalledWith(
       expect.objectContaining({ reason: "subscription_trialing" }),
+      ctx,
     );
   });
 
@@ -170,10 +172,11 @@ describe("webhook handler", () => {
       created_at: 1234567890,
       object: mockSubscription,
     };
-    await callWebhook(options, event);
+    const ctx = await callWebhook(options, event);
     expect(hooks.onSubscriptionPaid).toHaveBeenCalled();
     expect(onGrantAccess).toHaveBeenCalledWith(
       expect.objectContaining({ reason: "subscription_paid" }),
+      ctx,
     );
   });
 
@@ -186,10 +189,11 @@ describe("webhook handler", () => {
       created_at: 1234567890,
       object: mockSubscription,
     };
-    await callWebhook(options, event);
+    const ctx = await callWebhook(options, event);
     expect(hooks.onSubscriptionExpired).toHaveBeenCalled();
     expect(onRevokeAccess).toHaveBeenCalledWith(
       expect.objectContaining({ reason: "subscription_expired" }),
+      ctx,
     );
   });
 
@@ -202,10 +206,11 @@ describe("webhook handler", () => {
       created_at: 1234567890,
       object: { ...mockSubscription, status: "paused" },
     };
-    await callWebhook(options, event);
+    const ctx = await callWebhook(options, event);
     expect(hooks.onSubscriptionPaused).toHaveBeenCalled();
     expect(onRevokeAccess).toHaveBeenCalledWith(
       expect.objectContaining({ reason: "subscription_paused" }),
+      ctx,
     );
   });
 
@@ -280,6 +285,41 @@ describe("webhook handler", () => {
     };
     await callWebhook(options, event);
     expect(onDisputeCreated).toHaveBeenCalled();
+  });
+
+  it.each([
+    ["onCheckoutCompleted", "checkout.completed", mockCheckout],
+    ["onRefundCreated", "refund.created", mockRefund],
+    ["onDisputeCreated", "dispute.created", mockDispute],
+    ["onSubscriptionActive", "subscription.active", mockSubscription],
+    [
+      "onSubscriptionTrialing",
+      "subscription.trialing",
+      { ...mockSubscription, status: "trialing" },
+    ],
+    [
+      "onSubscriptionCanceled",
+      "subscription.canceled",
+      { ...mockSubscription, status: "canceled" },
+    ],
+    ["onSubscriptionPaid", "subscription.paid", mockSubscription],
+    ["onSubscriptionExpired", "subscription.expired", { ...mockSubscription, status: "expired" }],
+    ["onSubscriptionUnpaid", "subscription.unpaid", { ...mockSubscription, status: "unpaid" }],
+    ["onSubscriptionUpdate", "subscription.update", mockSubscription],
+    ["onSubscriptionPastDue", "subscription.past_due", { ...mockSubscription, status: "past_due" }],
+    ["onSubscriptionPaused", "subscription.paused", { ...mockSubscription, status: "paused" }],
+  ] as const)("passes the exact context to %s for %s", async (callbackName, eventType, object) => {
+    const callback = vi.fn();
+    const options = { ...defaultOptions, [callbackName]: callback } as CreemOptions;
+    const ctx = await callWebhook(options, {
+      eventType,
+      id: `context-${eventType}`,
+      created_at: 1234567890,
+      object,
+    });
+
+    expect(callback).toHaveBeenCalledTimes(1);
+    expect(callback.mock.calls[0]?.[1]).toBe(ctx);
   });
 
   it("returns 500 on processing error", async () => {
