@@ -243,6 +243,21 @@ A checkout session was completed, returning all the information about the paymen
         },
         "mode": "local"
       },
+      "license_keys": [
+        {
+          "id": "lk_2wMk1RtYqPnZ7bVxCdEfGh",
+          "object": "license",
+          "product_id": "prod_d1AY2Sadk9YAvLI0pj97f",
+          "key": "ABCDE-FGHIJ-KLMNO-PQRST-UVWXY",
+          "status": "inactive",
+          "activation": 0,
+          "activation_limit": 1,
+          "expires_at": null,
+          "created_at": "2024-10-12T11:58:33.097Z",
+          "instance": null,
+          "mode": "local"
+        }
+      ],
       "custom_fields": [],
       "status": "completed",
       "metadata": {
@@ -256,6 +271,44 @@ A checkout session was completed, returning all the information about the paymen
     
   </Accordion>
 </AccordionGroup>
+
+#### License keys
+
+If the purchased product issues license keys, the checkout object also carries a `license_keys` array, as shown in the sample above.
+
+<Info>
+  `license_keys` is only present when the order actually issued license keys.
+  For a product without a license key feature the field is **omitted
+  entirely** — check whether it is present rather than expecting an empty
+  array.
+</Info>
+
+Each entry is a license **object**, not a key string:
+
+| Field | Type | Description |
+| --- | --- | --- |
+| `id` | string | Unique identifier for the license, prefixed with `lk_`. |
+| `object` | string | Always `license`. |
+| `product_id` | string | The product the license was issued for. |
+| `key` | string | The license key itself: five groups of five uppercase alphanumeric characters, for example `ABCDE-FGHIJ-KLMNO-PQRST-UVWXY`. |
+| `status` | string | One of `inactive`, `active`, `expired`, or `disabled`. A key stays `inactive` until its first successful activation. |
+| `activation` | number | Number of times the key has been activated so far. |
+| `activation_limit` | number \| null | Maximum number of activations allowed. `null` means unlimited. |
+| `expires_at` | string \| null | ISO 8601 expiry date. `null` means the key does not expire. |
+| `created_at` | string | ISO 8601 date the license was created. |
+| `instance` | object \| null | The associated license instance, when one exists. |
+| `mode` | string | The environment the license belongs to. |
+
+<Tip>
+  You do not need a real purchase to see this shape. In the dashboard go to
+  **Settings → Webhooks**, open a webhook and use **Send test event** — the
+  `checkout.completed` payload it delivers includes a populated
+  `license_keys` array.
+</Tip>
+
+One key is issued per license key feature on the product, multiplied by the number of units purchased — a three-unit order of a keyed product delivers three entries. Always treat `license_keys` as a list, never as a single key.
+
+For issuing and managing keys, see [Licenses](/features/addons/licenses).
 
 ### subscription.active
 
