@@ -326,8 +326,9 @@ onGrantAccess: async ({ reason, customer, product, metadata }) => {
 
 Called when a user's access should be revoked. This happens when:
 
+- Subscription is **canceled** (after the billing period ends)
 - Subscription is **paused** (manually by user or admin)
-- Subscription is **expired** (trial ended or canceled subscription period ended)
+- Subscription is **expired** (trial ended or subscription period ended)
 
 ```typescript
 onRevokeAccess: async ({ reason, customer, product, metadata }) => {
@@ -495,6 +496,53 @@ Then use the ngrok URL in your Creem webhook settings:
 
 ```
 https://abc123.ngrok.io/api/webhook/creem
+```
+
+---
+
+## Common Gotchas
+
+### Event name spelling
+
+Creem uses American English: `subscription.canceled` (one L). Using `cancelled` (two L) will silently drop webhook events — no error is thrown, the handler simply never fires.
+
+### SDK vs webhook field casing
+
+The Creem SDK (`creem` package) returns **camelCase** fields (`currentPeriodEndDate`, `canceledAt`), but `@creem_io/nextjs` webhook callbacks use **snake_case** (`current_period_end_date`, `canceled_at`). Keep this in mind when sharing types or utility functions between SDK calls and webhook handlers.
+
+### Timestamp format
+
+The `created_at` field on webhook events and transactions is a **millisecond timestamp** (number), not an ISO 8601 string. Other date fields like `currentPeriodEndDate` are ISO strings. Parse accordingly:
+
+```typescript
+// Webhook created_at — millisecond timestamp
+const date = new Date(data.webhookCreatedAt); // number → Date
+
+// Subscription dates — ISO string
+const periodEnd = new Date(data.current_period_end_date); // string → Date
+```
+
+### Accessing transaction amount in checkouts
+
+The transaction amount is available on the `order` field, not at the top level:
+
+```typescript
+onCheckoutCompleted: async (data) => {
+  const amount = data.order?.amount;     // e.g. 2900 (cents)
+  const currency = data.order?.currency; // e.g. "USD"
+  console.log(`Payment: $${amount / 100} ${currency}`);
+};
+```
+
+### Metadata in access hooks
+
+Both `onGrantAccess` and `onRevokeAccess` receive subscription metadata via the spread `NormalizedSubscriptionEntity`. Access it via `metadata?.referenceId` or any custom keys you passed during checkout:
+
+```typescript
+onGrantAccess: async ({ reason, customer, metadata }) => {
+  const userId = metadata?.referenceId as string;
+  // metadata also includes any custom keys from checkout
+};
 ```
 
 ---
