@@ -161,7 +161,10 @@ export type GrantAccessReason =
 /**
  * Reasons for revoking access
  */
-export type RevokeAccessReason = "subscription_paused" | "subscription_expired";
+export type RevokeAccessReason =
+  | "subscription_paused"
+  | "subscription_expired"
+  | "subscription_canceled";
 
 /**
  * Context passed to onGrantAccess callback.
