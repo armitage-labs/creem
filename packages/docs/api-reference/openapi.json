@@ -3228,6 +3228,227 @@
           }
         ]
       }
+    },
+    "/v1/splits": {
+      "post": {
+        "operationId": "createSplit",
+        "x-speakeasy-name-override": "create",
+        "summary": "Create a split",
+        "description": "Create a revenue split for your store. The split applies either to your whole store (`type: store`) or to a single product (`type: product`). Recipients are existing stores (added directly) or email invitees; a split created with any email invitee starts disabled and activates once the first invitee accepts. The split is always created for the store the API key belongs to.",
+        "parameters": [],
+        "requestBody": {
+          "required": true,
+          "description": "Split creation payload",
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CreateSplitRequestEntity"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Successfully created the split",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SplitEntity"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Bad Request - Invalid input parameters"
+          },
+          "401": {
+            "description": "Unauthorized - Invalid or missing API key"
+          },
+          "404": {
+            "description": "Not Found - Resource does not exist"
+          }
+        },
+        "tags": [
+          "Splits"
+        ],
+        "security": [
+          {
+            "ApiKey": []
+          }
+        ]
+      },
+      "get": {
+        "operationId": "listSplits",
+        "x-speakeasy-pagination": {
+          "type": "offsetLimit",
+          "inputs": [
+            {
+              "name": "page_number",
+              "in": "parameters",
+              "type": "page"
+            },
+            {
+              "name": "page_size",
+              "in": "parameters",
+              "type": "limit"
+            }
+          ],
+          "outputs": {
+            "numPages": "$.pagination.total_pages",
+            "results": "$.items"
+          }
+        },
+        "x-speakeasy-name-override": "list",
+        "summary": "List all splits",
+        "description": "Retrieve a paginated list of the active splits configured for your store, each with its recipients and their shares. Email invitees who have not yet accepted are shown with a masked email address.",
+        "parameters": [
+          {
+            "name": "page_number",
+            "required": false,
+            "in": "query",
+            "description": "The page number for pagination.",
+            "schema": {
+              "default": 1,
+              "example": 1,
+              "type": "number"
+            }
+          },
+          {
+            "name": "page_size",
+            "required": false,
+            "in": "query",
+            "description": "The number of items per page.",
+            "schema": {
+              "default": 50,
+              "example": 50,
+              "type": "number"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successfully retrieved splits",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SplitListEntity"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Bad Request - Invalid input parameters"
+          },
+          "401": {
+            "description": "Unauthorized - Invalid or missing API key"
+          },
+          "404": {
+            "description": "Not Found - Resource does not exist"
+          }
+        },
+        "tags": [
+          "Splits"
+        ],
+        "security": [
+          {
+            "ApiKey": []
+          }
+        ]
+      }
+    },
+    "/v1/splits/{id}": {
+      "get": {
+        "operationId": "retrieveSplit",
+        "x-speakeasy-name-override": "retrieve",
+        "summary": "Retrieve a split",
+        "description": "Retrieve a single split by ID, including its recipients and their shares. Email invitees who have not yet accepted are shown with a masked email address and their invite status. Splits belonging to another store are not visible.",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "description": "The unique identifier of the split",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successfully retrieved the split",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SplitEntity"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Bad Request - Invalid input parameters"
+          },
+          "401": {
+            "description": "Unauthorized - Invalid or missing API key"
+          },
+          "404": {
+            "description": "Not Found - Resource does not exist"
+          }
+        },
+        "tags": [
+          "Splits"
+        ],
+        "security": [
+          {
+            "ApiKey": []
+          }
+        ]
+      },
+      "delete": {
+        "operationId": "deleteSplit",
+        "x-speakeasy-name-override": "delete",
+        "summary": "Delete a split",
+        "description": "Delete a split by ID. The split stops applying to future payments immediately. Splits belonging to another store cannot be deleted.",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "description": "The unique identifier of the split",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successfully deleted the split",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SplitEntity"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Bad Request - Invalid input parameters"
+          },
+          "401": {
+            "description": "Unauthorized - Invalid or missing API key"
+          },
+          "404": {
+            "description": "Not Found - Resource does not exist"
+          }
+        },
+        "tags": [
+          "Splits"
+        ],
+        "security": [
+          {
+            "ApiKey": []
+          }
+        ]
+      }
     }
   },
   "info": {
@@ -3336,7 +3557,8 @@
           "every-six-months",
           "every-year",
           "every-day",
-          "once"
+          "once",
+          "custom"
         ]
       },
       "TaxMode": {
@@ -3508,6 +3730,18 @@
             "example": "every-month",
             "$ref": "#/components/schemas/ProductBillingPeriod"
           },
+          "recurring_interval": {
+            "type": "object",
+            "description": "The unit of the recurring billing interval (`day`, `week`, `month`, or `year`). Together with `recurring_interval_count` this is authoritative for renewal timing — a `billing_period` of `custom` cannot be interpreted without it. For presets it is derived from the cadence (e.g. `every-three-months` → `month`). `null` for one-time products.",
+            "example": "month",
+            "nullable": true
+          },
+          "recurring_interval_count": {
+            "type": "object",
+            "description": "The number of `recurring_interval` units per billing cycle (e.g. `3` with a `month` interval bills every three months). Together with `recurring_interval` this is authoritative for renewal timing. For presets it is derived from the cadence. `null` for one-time products.",
+            "example": 3,
+            "nullable": true
+          },
           "status": {
             "example": "active",
             "$ref": "#/components/schemas/ProductStatus"
@@ -3650,14 +3884,25 @@
       },
       "ProductRequestBillingPeriod": {
         "type": "string",
-        "description": "Billing interval. Required when `billing_type` is `recurring`.",
+        "description": "Billing interval. Required when `billing_type` is `recurring`. Use a preset for the common cadences, or `custom` together with `recurring_interval` + `recurring_interval_count` for anything else (e.g. weekly).",
         "enum": [
           "once",
           "every-day",
           "every-month",
           "every-three-months",
           "every-six-months",
-          "every-year"
+          "every-year",
+          "custom"
+        ]
+      },
+      "ProductRequestRecurringInterval": {
+        "type": "string",
+        "description": "Unit of a custom billing period. Required when `billing_period` is `custom`; must be omitted for preset billing periods.",
+        "enum": [
+          "day",
+          "week",
+          "month",
+          "year"
         ]
       },
       "CustomFieldRequestType": {
@@ -3783,6 +4028,15 @@
             "example": "every-month",
             "$ref": "#/components/schemas/ProductRequestBillingPeriod"
           },
+          "recurring_interval": {
+            "example": "week",
+            "$ref": "#/components/schemas/ProductRequestRecurringInterval"
+          },
+          "recurring_interval_count": {
+            "type": "integer",
+            "description": "Number of `recurring_interval` units per billing cycle. Required when `billing_period` is `custom`. Bounds: day 1–365, week 1–52, month 1–24, year 1–3.",
+            "example": 1
+          },
           "tax_mode": {
             "example": "inclusive",
             "$ref": "#/components/schemas/TaxMode"
@@ -3876,6 +4130,14 @@
           "billing_period": {
             "example": "every-month",
             "$ref": "#/components/schemas/ProductRequestBillingPeriod"
+          },
+          "recurring_interval": {
+            "example": "week",
+            "$ref": "#/components/schemas/ProductRequestRecurringInterval"
+          },
+          "recurring_interval_count": {
+            "type": "integer",
+            "description": "Number of `recurring_interval` units per billing cycle. Required when `billing_period` is `custom`. Bounds: day 1–365, week 1–52, month 1–24, year 1–3."
           },
           "tax_mode": {
             "example": "inclusive",
@@ -4904,6 +5166,12 @@
             "type": "string",
             "description": "Optional label for the credit unit (e.g. \"tokens\", \"credits\").",
             "example": "tokens",
+            "nullable": true
+          },
+          "bucket_name": {
+            "type": "string",
+            "description": "The customer-credit bucket this grant funds — the `name` of the customer's credit account. Set it to a meter bucket (e.g. \"images\") so the credits fund a per-unit metered price; otherwise they land in `default` and metered usage cannot spend them. Distinct from `unit_label`, which is only a display label. On UPDATE the field is tri-state: OMIT it to leave the stored bucket unchanged, send `null` to clear it to the shared `default` wallet, or send a name to set it. On CREATE, omitted or null both mean `default`. A present-but-blank value is rejected.",
+            "example": "images",
             "nullable": true
           }
         },
@@ -6459,6 +6727,224 @@
           "pagination"
         ]
       },
+      "CreateSplitRecipientRequestEntity": {
+        "type": "object",
+        "properties": {
+          "recipient_type": {
+            "type": "string",
+            "description": "The kind of recipient: `store` for an existing store (add it directly), or `email` to invite someone by email (the split stays disabled until they accept).",
+            "enum": [
+              "store",
+              "email"
+            ],
+            "example": "store"
+          },
+          "recipient_reference": {
+            "type": "string",
+            "description": "The recipient reference: a store id when `recipient_type` is `store`, or an email address when `recipient_type` is `email`.",
+            "example": "store_1a2b3c4d"
+          },
+          "amount": {
+            "type": "number",
+            "description": "The recipient's share as a percentage of the split net, from 1 to 100. The sum of all recipient shares must not exceed 100.",
+            "example": 25,
+            "minimum": 1,
+            "maximum": 100
+          }
+        },
+        "required": [
+          "recipient_type",
+          "recipient_reference",
+          "amount"
+        ]
+      },
+      "CreateSplitRequestEntity": {
+        "type": "object",
+        "properties": {
+          "description": {
+            "type": "string",
+            "description": "An optional human-readable description of the split.",
+            "example": "Q3 revenue share",
+            "nullable": true
+          },
+          "type": {
+            "type": "string",
+            "description": "What the split applies to: `store` (every payment to your store) or `product` (payments for one product).",
+            "enum": [
+              "store",
+              "product"
+            ],
+            "example": "store"
+          },
+          "type_reference": {
+            "type": "string",
+            "description": "The id of the entity the split applies to: your store id when `type` is `store`, or the product id when `type` is `product`.",
+            "example": "prod_1a2b3c4d"
+          },
+          "recipients": {
+            "description": "The recipients of the split and their percentage shares. Between 1 and 10 recipients; shares must sum to at most 100.",
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/CreateSplitRecipientRequestEntity"
+            }
+          }
+        },
+        "required": [
+          "type",
+          "type_reference",
+          "recipients"
+        ]
+      },
+      "SplitRecipientEntity": {
+        "type": "object",
+        "properties": {
+          "type": {
+            "type": "string",
+            "description": "How the share is calculated. Currently always `percentage` — the recipient receives `amount` percent of the split net.",
+            "enum": [
+              "fixed",
+              "percentage"
+            ],
+            "example": "percentage"
+          },
+          "recipient_type": {
+            "type": "string",
+            "description": "The kind of recipient. `store` and `user` are resolved (active) recipients; `email` is an invitee who has not yet accepted (the split share is held until they do).",
+            "enum": [
+              "store",
+              "user",
+              "email"
+            ],
+            "example": "store"
+          },
+          "recipient_reference": {
+            "type": "string",
+            "description": "Reference to the recipient: a store id (`recipient_type: store`), a user id (`recipient_type: user`), or a masked email address (`recipient_type: email`). Raw invitee email addresses are never returned.",
+            "example": "store_1a2b3c4d"
+          },
+          "amount": {
+            "type": "number",
+            "description": "The recipient share, as a percentage of the split net (e.g. 25 = 25%).",
+            "example": 25
+          },
+          "enabled": {
+            "type": "boolean",
+            "description": "Whether this recipient is currently receiving its share. Email invitees start disabled until they accept.",
+            "example": true
+          },
+          "invite_status": {
+            "type": "string",
+            "description": "Invite lifecycle for email-type recipients that have not been accepted yet: `pending` (awaiting acceptance) or `declined`. Absent for resolved store/user recipients.",
+            "enum": [
+              "pending",
+              "declined"
+            ],
+            "example": "pending",
+            "nullable": true
+          }
+        },
+        "required": [
+          "type",
+          "recipient_type",
+          "recipient_reference",
+          "amount",
+          "enabled"
+        ]
+      },
+      "SplitEntity": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "description": "Unique identifier for the object."
+          },
+          "mode": {
+            "$ref": "#/components/schemas/EnvironmentMode"
+          },
+          "object": {
+            "type": "string",
+            "description": "String representing the object's type. Objects of the same type share the same value.",
+            "example": "split"
+          },
+          "store_id": {
+            "type": "string",
+            "description": "The id of the store that owns this split.",
+            "example": "store_1a2b3c4d"
+          },
+          "description": {
+            "type": "string",
+            "description": "A human-readable description of the split.",
+            "example": "Q3 revenue share",
+            "nullable": true
+          },
+          "type": {
+            "type": "string",
+            "description": "What the split applies to: `store` (every payment to the store) or `product` (payments for a specific product).",
+            "enum": [
+              "store",
+              "product"
+            ],
+            "example": "store"
+          },
+          "type_reference": {
+            "type": "string",
+            "description": "The id of the entity the split applies to: the store id when `type` is `store`, or the product id when `type` is `product`.",
+            "example": "prod_1a2b3c4d"
+          },
+          "enabled": {
+            "type": "boolean",
+            "description": "Whether the split is active. A split created with email invitees starts disabled and activates once the first invitee accepts.",
+            "example": true
+          },
+          "recipients": {
+            "description": "The recipients of the split and their shares.",
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/SplitRecipientEntity"
+            }
+          },
+          "created_at": {
+            "type": "number",
+            "description": "Creation date of the split as a timestamp.",
+            "example": 1735689600000
+          }
+        },
+        "required": [
+          "id",
+          "mode",
+          "object",
+          "store_id",
+          "type",
+          "type_reference",
+          "enabled",
+          "recipients",
+          "created_at"
+        ]
+      },
+      "SplitListEntity": {
+        "type": "object",
+        "properties": {
+          "items": {
+            "description": "List of split items",
+            "items": {
+              "$ref": "#/components/schemas/SplitEntity"
+            },
+            "type": "array"
+          },
+          "pagination": {
+            "description": "Pagination details for the list",
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/PaginationEntity"
+              }
+            ]
+          }
+        },
+        "required": [
+          "items",
+          "pagination"
+        ]
+      },
       "WebhookSubscriptionEntity": {
         "type": "object",
         "properties": {
@@ -6930,6 +7416,86 @@
         ],
         "x-speakeasy-include": true
       },
+      "CustomerCreditsExhaustionEntity": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "description": "Stable identity of this exhaustion episode. One episode spans from the first refused charge until credits are next added, so this value is the same across every signal about the same exhaustion."
+          },
+          "object": {
+            "type": "string",
+            "description": "String representing the object type.",
+            "enum": [
+              "customer_credits_exhaustion"
+            ]
+          },
+          "customer_id": {
+            "type": "string",
+            "description": "Identifier of the customer whose credits ran out."
+          },
+          "bucket_name": {
+            "type": "string",
+            "description": "Name of the credit bucket that ran dry. Buckets are per customer, and a store may run several (for example one per meter)."
+          },
+          "unit_label": {
+            "type": "string",
+            "description": "Display unit for the bucket, as configured on the meter (for example \"images\" or \"tokens\")."
+          },
+          "shortfall_minor_units": {
+            "type": "string",
+            "description": "The charge that could not be covered, in minor units, serialised as a string to preserve precision."
+          },
+          "occurred_at": {
+            "type": "string",
+            "description": "ISO-8601 instant at which the usage charge was refused for lack of credit."
+          }
+        },
+        "required": [
+          "id",
+          "object",
+          "customer_id",
+          "bucket_name",
+          "unit_label",
+          "shortfall_minor_units",
+          "occurred_at"
+        ]
+      },
+      "WebhookCustomerCreditsExhaustedEventEntity": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "description": "Unique identifier for the event."
+          },
+          "eventType": {
+            "type": "string",
+            "description": "The event name.",
+            "enum": [
+              "customer_credits.exhausted"
+            ]
+          },
+          "created_at": {
+            "type": "number",
+            "description": "Timestamp of when the event was created."
+          },
+          "object": {
+            "description": "Object related to the event.",
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/CustomerCreditsExhaustionEntity"
+              }
+            ]
+          }
+        },
+        "required": [
+          "id",
+          "eventType",
+          "created_at",
+          "object"
+        ],
+        "x-speakeasy-include": true
+      },
       "WebhookSubscriptionActiveEventEntity": {
         "type": "object",
         "properties": {
@@ -7293,6 +7859,9 @@
             "$ref": "#/components/schemas/WebhookDisputeCreatedEventEntity"
           },
           {
+            "$ref": "#/components/schemas/WebhookCustomerCreditsExhaustedEventEntity"
+          },
+          {
             "$ref": "#/components/schemas/WebhookSubscriptionActiveEventEntity"
           },
           {
@@ -7329,6 +7898,7 @@
             "checkout.completed": "#/components/schemas/WebhookCheckoutCompletedEventEntity",
             "refund.created": "#/components/schemas/WebhookRefundCreatedEventEntity",
             "dispute.created": "#/components/schemas/WebhookDisputeCreatedEventEntity",
+            "customer_credits.exhausted": "#/components/schemas/WebhookCustomerCreditsExhaustedEventEntity",
             "subscription.active": "#/components/schemas/WebhookSubscriptionActiveEventEntity",
             "subscription.trialing": "#/components/schemas/WebhookSubscriptionTrialingEventEntity",
             "subscription.canceled": "#/components/schemas/WebhookSubscriptionCanceledEventEntity",
