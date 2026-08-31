@@ -35,11 +35,11 @@ importers:
         specifier: ^5.8.3
         version: 5.8.3
 
-  packages/better-auth:
+  packages/integrations/better-auth:
     dependencies:
       '@creem_io/webhook-types':
         specifier: workspace:^
-        version: link:../webhook-types
+        version: link:../../webhook-types
       creem:
         specifier: ^1.6.1
         version: 1.6.1
@@ -106,7 +106,7 @@ importers:
         specifier: ^5.4.5
         version: 5.8.3
 
-  packages/convex:
+  packages/integrations/convex:
     dependencies:
       '@fontsource/inter':
         specifier: ^5.2.8
@@ -314,7 +314,7 @@ importers:
         specifier: ^3.1.1
         version: 3.2.4(@edge-runtime/vm@5.0.0)(@types/debug@4.1.13)(@types/node@20.19.37)(jiti@2.7.0)(jsdom@29.1.1(@noble/hashes@2.0.1))(lightningcss@1.32.0)(supports-color@5.5.0)(terser@5.48.0)(yaml@2.8.3)
 
-  packages/creem-sdk:
+  packages/sdk:
     dependencies:
       '@modelcontextprotocol/sdk':
         specifier: ^1.26.0
@@ -375,7 +375,7 @@ importers:
         specifier: ^3.1.0
         version: 3.8.1
 
-  packages/embed:
+  packages/ui/embed:
     devDependencies:
       tsup:
         specifier: ^8.0.0
@@ -384,7 +384,7 @@ importers:
         specifier: ^5.0.0
         version: 5.8.3
 
-  packages/framer:
+  packages/integrations/framer:
     dependencies:
       '@framer/plugin':
         specifier: ^4.0.1
@@ -445,11 +445,11 @@ importers:
         specifier: ^4.1.1
         version: 4.1.9(@edge-runtime/vm@5.0.0)(@opentelemetry/api@1.9.1)(@types/node@25.9.3)(@vitest/coverage-v8@4.1.9)(jsdom@29.1.1(@noble/hashes@2.0.1))(vite@8.1.5(@types/node@25.9.3)(esbuild@0.28.1)(jiti@2.7.0)(terser@5.48.0)(yaml@2.8.3))
 
-  packages/nextjs:
+  packages/integrations/nextjs:
     dependencies:
       '@creem_io/webhook-types':
         specifier: workspace:^
-        version: link:../webhook-types
+        version: link:../../webhook-types
       creem:
         specifier: ^1.6.1
         version: 1.6.1
@@ -473,7 +473,7 @@ importers:
         specifier: ^5.0.0
         version: 5.8.3
 
-  packages/react:
+  packages/ui/react:
     dependencies:
       '@creem_io/embed':
         specifier: workspace:^
@@ -492,7 +492,7 @@ importers:
         specifier: ^5.0.0
         version: 5.8.3
 
-  packages/strapi:
+  packages/integrations/strapi:
     dependencies:
       axios:
         specifier: ^1.16.0
@@ -541,7 +541,7 @@ importers:
         specifier: 5.3.3
         version: 5.3.3
 
-  packages/svelte:
+  packages/ui/svelte:
     dependencies:
       '@creem_io/embed':
         specifier: workspace:^
@@ -557,7 +557,7 @@ importers:
         specifier: ^5.0.0
         version: 5.8.3
 
-  packages/vue:
+  packages/ui/vue:
     dependencies:
       '@creem_io/embed':
         specifier: workspace:^

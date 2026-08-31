@@ -6,6 +6,10 @@ on:
     paths:
       - "packages/*/src/**"
       - "packages/*/package.json"
+      # Integration and UI packages do not share one source layout. Match the
+      # complete package trees so root-level and deeper sources stay covered.
+      - "packages/integrations/*/**"
+      - "packages/ui/*/**"
 
 jobs:
   changeset:
