@@ -24,6 +24,9 @@ jobs:
 
       - run: pnpm install --frozen-lockfile
 
+      - name: Test workflow path filters
+        run: pnpm test:workflow-paths
+
       - name: Determine turbo filter
         id: filter
         run: |
@@ -38,7 +41,7 @@ jobs:
         run: pnpm turbo build ${{ steps.filter.outputs.args }} --filter='!./packages/creem-io'
 
       - name: Typecheck
-        run: pnpm turbo typecheck ${{ steps.filter.outputs.args }} --filter='!./packages/creem-io' --filter='!./packages/creem-sdk'
+        run: pnpm turbo typecheck ${{ steps.filter.outputs.args }} --filter='!./packages/creem-io' --filter='!./packages/sdk'
 
       - name: Test
         env:
@@ -46,7 +49,7 @@ jobs:
         run: pnpm turbo test ${{ steps.filter.outputs.args }} --filter='!./packages/creem-io'
 
       - name: Lint
-        run: pnpm turbo lint ${{ steps.filter.outputs.args }} --filter='!./packages/creem-io' --filter='!./packages/creem-sdk'
+        run: pnpm turbo lint ${{ steps.filter.outputs.args }} --filter='!./packages/creem-io' --filter='!./packages/sdk'
 
       - name: Format check
         run: pnpm format:check

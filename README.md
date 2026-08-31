@@ -68,11 +68,11 @@ creem/
 
 | Package | npm | Description |
 |---------|-----|-------------|
-| [`creem`](./packages/creem-sdk) | [![npm](https://img.shields.io/npm/v/creem?style=flat-square&color=FFBE98)](https://www.npmjs.com/package/creem) | Official TypeScript SDK with full API coverage, MCP server, and standalone functions |
+| [`creem`](./packages/sdk) | [![npm](https://img.shields.io/npm/v/creem?style=flat-square&color=FFBE98)](https://www.npmjs.com/package/creem) | Official TypeScript SDK with full API coverage, MCP server, and standalone functions |
 | [`creem_io`](./packages/creem-io) | [![npm](https://img.shields.io/npm/v/creem_io?style=flat-square&color=FFBE98)](https://www.npmjs.com/package/creem_io) | Lightweight wrapper SDK, framework-agnostic, zero dependencies |
-| [`@creem_io/nextjs`](./packages/nextjs) | [![npm](https://img.shields.io/npm/v/@creem_io/nextjs?style=flat-square&color=FFBE98)](https://www.npmjs.com/package/@creem_io/nextjs) | Next.js integration with React components and webhook handlers |
-| [`@creem_io/better-auth`](./packages/better-auth) | [![npm](https://img.shields.io/npm/v/@creem_io/better-auth?style=flat-square&color=FFBE98)](https://www.npmjs.com/package/@creem_io/better-auth) | Better Auth plugin for payments and subscription management |
-| [`@creem_io/convex`](./packages/convex) | [![npm](https://img.shields.io/npm/v/@creem_io/convex?style=flat-square&color=FFBE98)](https://www.npmjs.com/package/@creem_io/convex) | Convex billing component with backend helpers and React/Svelte widgets |
+| [`@creem_io/nextjs`](./packages/integrations/nextjs) | [![npm](https://img.shields.io/npm/v/@creem_io/nextjs?style=flat-square&color=FFBE98)](https://www.npmjs.com/package/@creem_io/nextjs) | Next.js integration with React components and webhook handlers |
+| [`@creem_io/better-auth`](./packages/integrations/better-auth) | [![npm](https://img.shields.io/npm/v/@creem_io/better-auth?style=flat-square&color=FFBE98)](https://www.npmjs.com/package/@creem_io/better-auth) | Better Auth plugin for payments and subscription management |
+| [`@creem_io/convex`](./packages/integrations/convex) | [![npm](https://img.shields.io/npm/v/@creem_io/convex?style=flat-square&color=FFBE98)](https://www.npmjs.com/package/@creem_io/convex) | Convex billing component with backend helpers and React/Svelte widgets |
 | [`@creem_io/webhook-types`](./packages/webhook-types) | [![npm](https://img.shields.io/npm/v/@creem_io/webhook-types?style=flat-square&color=FFBE98)](https://www.npmjs.com/package/@creem_io/webhook-types) | Shared TypeScript types for webhook events |
 
 ## Quick Start
