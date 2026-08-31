@@ -18,7 +18,7 @@ export type UpdateCustomerRequestEntity = {
    */
   name?: string | undefined;
   /**
-   * Additional metadata for the customer.
+   * Additional metadata for the customer. Omit to leave unchanged; send `null` to clear it.
    */
   metadata?: { [k: string]: any } | undefined;
 };

@@ -78,7 +78,7 @@ yarn add creem
 This SDK is also an installable MCP server where the various SDK methods are
 exposed as tools that can be invoked by AI applications.
 
-> Node.js v22 or greater is required to run the MCP server from npm.
+> Node.js v20 or greater is required to run the MCP server from npm.
 
 <details>
 <summary>Claude installation steps</summary>
@@ -228,6 +228,8 @@ run();
 
 ### [Affiliates](docs/sdks/affiliates/README.md)
 
+* [createInvite](docs/sdks/affiliates/README.md#createinvite) - Create an affiliate invitation
+* [listInvites](docs/sdks/affiliates/README.md#listinvites) - List affiliate invitations
 * [list](docs/sdks/affiliates/README.md#list) - List all affiliates
 * [retrieve](docs/sdks/affiliates/README.md#retrieve) - Retrieve an affiliate
 * [listCommissions](docs/sdks/affiliates/README.md#listcommissions) - List affiliate commissions
@@ -326,8 +328,10 @@ To read more about standalone functions, check [FUNCTIONS.md](./FUNCTIONS.md).
 
 <summary>Available standalone functions</summary>
 
+- [`affiliatesCreateInvite`](docs/sdks/affiliates/README.md#createinvite) - Create an affiliate invitation
 - [`affiliatesList`](docs/sdks/affiliates/README.md#list) - List all affiliates
 - [`affiliatesListCommissions`](docs/sdks/affiliates/README.md#listcommissions) - List affiliate commissions
+- [`affiliatesListInvites`](docs/sdks/affiliates/README.md#listinvites) - List affiliate invitations
 - [`affiliatesRetrieve`](docs/sdks/affiliates/README.md#retrieve) - Retrieve an affiliate
 - [`checkoutsCreate`](docs/sdks/checkouts/README.md#create) - Creates a new checkout session.
 - [`checkoutsRetrieve`](docs/sdks/checkouts/README.md#retrieve) - Retrieve a checkout session.
@@ -543,7 +547,7 @@ run();
 
 
 **Inherit from [`CreemError`](./src/models/errors/creemerror.ts)**:
-* [`CustomerCreditsErrorResponseDto`](./src/models/errors/customercreditserrorresponsedto.ts): Status code `409`. Applicable to 5 of 49 methods.*
+* [`CustomerCreditsErrorResponseDto`](./src/models/errors/customercreditserrorresponsedto.ts): Status code `409`. Applicable to 5 of 51 methods.*
 * [`ResponseValidationError`](./src/models/errors/responsevalidationerror.ts): Type mismatch between the data returned from the server and the structure expected by the SDK. See `error.rawValue` for the raw value and `error.pretty()` for a nicely formatted multi-line string.
 
 </details>

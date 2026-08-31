@@ -96,9 +96,11 @@ async function run() {
     units: 1,
     customPrice: 1500,
     discountCode: "SUMMER2024",
+    affiliateCode: "aff_abc123",
     customer: {
       id: "cust_1234567890",
       email: "user@example.com",
+      name: "John Doe",
     },
     customFields: [
       {
@@ -147,9 +149,11 @@ async function run() {
     units: 1,
     customPrice: 1500,
     discountCode: "SUMMER2024",
+    affiliateCode: "aff_abc123",
     customer: {
       id: "cust_1234567890",
       email: "user@example.com",
+      name: "John Doe",
     },
     customFields: [
       {
