@@ -382,6 +382,16 @@
             ]
           },
           {
+            "group": "Splits",
+            "icon": "arrows-split-up-and-left",
+            "pages": [
+              "api-reference/endpoint/create-split",
+              "api-reference/endpoint/list-splits",
+              "api-reference/endpoint/retrieve-split",
+              "api-reference/endpoint/delete-split"
+            ]
+          },
+          {
             "group": "Stats",
             "icon": "chart-line",
             "pages": ["api-reference/endpoint/get-stats-summary"]

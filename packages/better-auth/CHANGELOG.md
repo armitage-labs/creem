@@ -1,5 +1,11 @@
 # [1.1.0](https://github.com/armitage-labs/creem-betterauth/compare/v1.0.2...v1.1.0) (2026-03-10)
 
+## 1.2.0
+
+### Minor Changes
+
+- 6ff2fb1: Pass the Better Auth endpoint context to webhook callbacks as their second argument.
+
 ## 1.1.4
 
 ### Patch Changes
