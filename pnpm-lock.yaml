@@ -41,8 +41,8 @@ importers:
         specifier: workspace:^
         version: link:../webhook-types
       creem:
-        specifier: ^1.6.0
-        version: 1.6.0
+        specifier: ^1.6.1
+        version: 1.6.1
     devDependencies:
       '@better-auth/core':
         specifier: ^1.5.6
@@ -209,8 +209,8 @@ importers:
         specifier: 7.0.0
         version: 7.0.0
       creem:
-        specifier: ^1.6.0
-        version: 1.6.0
+        specifier: ^1.6.1
+        version: 1.6.1
       eslint:
         specifier: 10.5.0
         version: 10.5.0(jiti@2.7.0)(supports-color@5.5.0)
@@ -451,8 +451,8 @@ importers:
         specifier: workspace:^
         version: link:../webhook-types
       creem:
-        specifier: ^1.6.0
-        version: 1.6.0
+        specifier: ^1.6.1
+        version: 1.6.1
     devDependencies:
       '@types/node':
         specifier: ^22.0.0
@@ -7044,8 +7044,8 @@ packages:
     resolution: {integrity: sha512-GYd8QbG293fcjg6LkeRDpTam83xjjRjv/j/PeYOYwFhsc6zESZyq6SbV5yBnsBWJyjnzgSgA5bezedNnv+CMfw==}
     hasBin: true
 
-  creem@1.6.0:
-    resolution: {integrity: sha512-1dwtrqJ5wWgBVL+0eIqHS4IN99tJeWHa1hbr4AQUNe3r/Zjo0W1/xXvZbhS9TwPNRgsP1gDIsTRQrRHRjG4wzw==}
+  creem@1.6.1:
+    resolution: {integrity: sha512-y8wzJjAjtges5eDG8iG/5b9MChCxXPB7otBprYtIIYuuba8Tzjvw8Fsx/jqxMmZdxw5K9loFUXGvVNh8aOz0tA==}
     hasBin: true
 
   crelt@1.0.6:
@@ -7054,6 +7054,7 @@ packages:
   cron-parser@4.9.0:
     resolution: {integrity: sha512-p0SaNjrHOnQeR8/VnfGbmg9te2kfyYSQ7Sc/j/6DtPL3JQvKxmjO9TSjNFpujqV3vEYYBvNNvXSxzyksBWAx1Q==}
     engines: {node: '>=12.0.0'}
+    deprecated: v4 is no longer maintained, upgrade to v5
 
   cropperjs@1.6.1:
     resolution: {integrity: sha512-F4wsi+XkDHCOMrHMYjrTEE4QBOrsHHN5/2VsVAaRq8P7E5z7xQpT75S+f/9WikmBEailas3+yo+6zPIomW+NOA==}
@@ -7794,6 +7795,7 @@ packages:
   eslint@9.39.4:
     resolution: {integrity: sha512-XoMjdBOwe/esVgEvLmNsD3IRHkm7fbKIUGvrleloJXUZgDHig2IPWNniv+GwjyJXzuNqVjlr5+4yVUZjycJwfQ==}
     engines: {node: ^18.18.0 || ^20.9.0 || >=21.1.0}
+    deprecated: This version is no longer supported. Please see https://eslint.org/version-support for other options.
     hasBin: true
     peerDependencies:
       jiti: '*'
@@ -22950,7 +22952,7 @@ snapshots:
       - '@cfworker/json-schema'
       - supports-color
 
-  creem@1.6.0:
+  creem@1.6.1:
     dependencies:
       '@modelcontextprotocol/sdk': 1.29.0(zod@3.25.76)
       jsonpath-rfc9535: 1.1.0
