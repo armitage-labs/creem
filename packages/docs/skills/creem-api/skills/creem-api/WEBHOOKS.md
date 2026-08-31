@@ -164,6 +164,21 @@ Fired when a customer successfully completes a checkout. This is your primary tr
         "internal_customer_id": "internal_123"
       }
     },
+    "license_keys": [
+      {
+        "id": "lk_2wMk1RtYqPnZ7bVxCdEfGh",
+        "object": "license",
+        "product_id": "prod_d1AY2Sadk9YAvLI0pj97f",
+        "key": "ABCDE-FGHIJ-KLMNO-PQRST-UVWXY",
+        "status": "inactive",
+        "activation": 0,
+        "activation_limit": 1,
+        "expires_at": null,
+        "instance": null,
+        "created_at": "2024-10-12T11:58:33.097Z",
+        "mode": "test"
+      }
+    ],
     "custom_fields": [],
     "metadata": {
       "custom_data": "my custom data",
@@ -172,6 +187,28 @@ Fired when a customer successfully completes a checkout. This is your primary tr
   }
 }
 ```
+
+**License keys.** When the purchased product issues license keys, the checkout
+object carries a `license_keys` array. This is the delivery mechanism for keys —
+you do not need to call the Licenses API to find out what was issued.
+
+The field is **omitted entirely** when the order issued no keys, so test for its
+presence rather than for an empty array. Each entry is a license *object*, not a
+key string:
+
+- `id` — license id, prefixed `lk_`
+- `object` — always `license`
+- `product_id` — the product the key was issued for
+- `key` — the key itself: five groups of five uppercase alphanumerics, e.g. `ABCDE-FGHIJ-KLMNO-PQRST-UVWXY`
+- `status` — `inactive` | `active` | `expired` | `disabled`; a key stays `inactive` until its first activation
+- `activation` / `activation_limit` — activations used and allowed (`activation_limit: null` means unlimited)
+- `expires_at` — ISO 8601, or `null` when the key does not expire
+- `instance` — the associated license instance, or `null`
+- `mode` — the environment the license belongs to
+
+One key is issued per license-key feature on the product, multiplied by the
+number of units purchased — a 3-unit order of a keyed product delivers three
+entries. Always treat `license_keys` as a list, never as a single key.
 
 **Handler Example:**
 
