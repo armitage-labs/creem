@@ -1,27 +1,27 @@
 name: SDK Version Cascade
 
+# Runs AFTER the Release workflow completes, not on the push itself.
+# creem is published to npm by Release (`changeset publish`) on the same
+# push that bumps packages/creem-sdk/package.json, so triggering on push
+# raced the publish and `pnpm install` failed on the not-yet-published
+# version. Release can also defer publishing to a "version packages" PR
+# when other changesets are pending; the npm gate below exits cleanly in
+# that case and the cascade re-runs after the next Release.
 on:
-  push:
-    branches: [main]
-    paths:
-      - "packages/creem-sdk/package.json"
+  workflow_run:
+    workflows: [Release]
+    types: [completed]
   workflow_dispatch: {}
 
 jobs:
   cascade:
     runs-on: ubuntu-latest
+    if: github.event_name == 'workflow_dispatch' || github.event.workflow_run.conclusion == 'success'
     permissions:
       contents: write
       pull-requests: write
     steps:
       - uses: actions/checkout@v4
-
-      - uses: pnpm/action-setup@v4
-
-      - uses: actions/setup-node@v4
-        with:
-          node-version: 24
-          cache: "pnpm"
 
       - name: Get new SDK version
         id: sdk
@@ -47,8 +47,37 @@ jobs:
           done
           echo "needs_update=$NEEDS_UPDATE" >> $GITHUB_OUTPUT
 
-      - name: Update adaptor dependencies
+      # Release publishes creem, but when other changesets are pending it
+      # opens a version PR instead of publishing. Poll briefly to absorb
+      # registry read lag, then skip (green) if the version isn't out yet —
+      # merging the version PR triggers Release again, which re-runs this.
+      - name: Check SDK version is on npm
+        id: npm
         if: steps.check.outputs.needs_update == 'true'
+        run: |
+          SDK_VERSION="${{ steps.sdk.outputs.version }}"
+          for i in $(seq 1 10); do
+            if [ "$(npm view "creem@${SDK_VERSION}" version 2>/dev/null)" = "$SDK_VERSION" ]; then
+              echo "published=true" >> $GITHUB_OUTPUT
+              exit 0
+            fi
+            echo "creem@${SDK_VERSION} not on npm yet (attempt $i/10)"
+            sleep 15
+          done
+          echo "published=false" >> $GITHUB_OUTPUT
+          echo "::notice::creem@${SDK_VERSION} is not on npm yet (release likely deferred to a version PR); skipping — cascade re-runs after the next Release."
+
+      - uses: pnpm/action-setup@v4
+        if: steps.npm.outputs.published == 'true'
+
+      - uses: actions/setup-node@v4
+        if: steps.npm.outputs.published == 'true'
+        with:
+          node-version: 24
+          cache: "pnpm"
+
+      - name: Update adaptor dependencies
+        if: steps.npm.outputs.published == 'true'
         run: |
           SDK_VERSION="${{ steps.sdk.outputs.version }}"
           for pkg in packages/better-auth packages/nextjs packages/convex; do
@@ -58,7 +87,7 @@ jobs:
           done
 
       - name: Install dependencies
-        if: steps.check.outputs.needs_update == 'true'
+        if: steps.npm.outputs.published == 'true'
         run: pnpm install --no-frozen-lockfile
 
       # No changeset for @creem_io/convex: only its devDependency moves, which
@@ -66,7 +95,7 @@ jobs:
       # compatibility verification. Its peer range is raised manually (with a
       # changeset) when the package actually requires newer SDK behavior.
       - name: Create changeset
-        if: steps.check.outputs.needs_update == 'true'
+        if: steps.npm.outputs.published == 'true'
         run: |
           cat > ".changeset/sdk-cascade-$(date +%s).md" << EOF
           ---
@@ -78,7 +107,7 @@ jobs:
           EOF
 
       - name: Create PR
-        if: steps.check.outputs.needs_update == 'true'
+        if: steps.npm.outputs.published == 'true'
         uses: peter-evans/create-pull-request@v7
         with:
           token: ${{ secrets.GITHUB_TOKEN }}
