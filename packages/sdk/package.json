@@ -1,11 +1,30 @@
 {
   "name": "creem",
   "version": "1.6.1",
+  "description": "Official TypeScript SDK and MCP server for the Creem API",
   "author": "Speakeasy",
+  "license": "MIT",
   "repository": {
     "type": "git",
     "url": "https://github.com/armitage-labs/creem.git",
     "directory": "packages/sdk"
+  },
+  "homepage": "https://github.com/armitage-labs/creem/tree/main/packages/sdk",
+  "bugs": {
+    "url": "https://github.com/armitage-labs/creem/issues"
+  },
+  "files": [
+    "bin",
+    "dist",
+    "src",
+    "README.md",
+    "LICENSE",
+    "CHANGELOG.md",
+    "RELEASES.md"
+  ],
+  "publishConfig": {
+    "access": "public",
+    "provenance": true
   },
   "type": "module",
   "bin": {
@@ -31,6 +50,8 @@
     "lint": "eslint --cache --max-warnings=0 src",
     "build:mcp": "bun src/mcp-server/build.mts",
     "build": "npm run build:mcp && tshy",
+    "typecheck": "tsc --noEmit",
+    "check:package": "publint --strict --pack pnpm && attw --pack .",
     "prepublishOnly": "npm run build",
     "test": "vitest run",
     "test:watch": "vitest"

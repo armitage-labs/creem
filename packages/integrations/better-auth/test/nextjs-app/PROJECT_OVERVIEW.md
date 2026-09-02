@@ -477,7 +477,7 @@ This app tests:
 - [Better-Auth Docs](https://better-auth.com)
 - [Creem Docs](https://docs.creem.io)
 - [Next.js Docs](https://nextjs.org/docs)
-- [Plugin GitHub](https://github.com/armitage-labs/creem-betterauth)
+- [Plugin GitHub](https://github.com/armitage-labs/creem/tree/main/packages/integrations/better-auth)
 
 ## Support
 
@@ -493,4 +493,3 @@ For issues or questions:
 **Last Updated**: November 2024  
 **Version**: 0.1.0  
 **Status**: Active Development
-

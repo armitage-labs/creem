@@ -27,6 +27,15 @@ jobs:
       - name: Test workflow path filters
         run: pnpm test:workflow-paths
 
+      - name: Test repository contracts
+        run: pnpm test:repository-contracts
+
+      - name: Check package metadata
+        run: pnpm check:package-metadata
+
+      - name: Check repository contracts
+        run: pnpm check:repository-contracts
+
       - name: Determine turbo filter
         id: filter
         run: |
@@ -39,6 +48,13 @@ jobs:
 
       - name: Build
         run: pnpm turbo build ${{ steps.filter.outputs.args }} --filter='!./packages/creem-io'
+
+      # On pull requests, check changed published packages and affected
+      # dependents. Pushes to main and manual runs have no filter and therefore
+      # check every published package. The release command also checks all of
+      # them before publishing.
+      - name: Check published package artifacts
+        run: pnpm turbo check:package ${{ steps.filter.outputs.args }} --concurrency=2 --filter='!./packages/creem-io'
 
       - name: Typecheck
         run: pnpm turbo typecheck ${{ steps.filter.outputs.args }} --filter='!./packages/creem-io' --filter='!./packages/sdk'

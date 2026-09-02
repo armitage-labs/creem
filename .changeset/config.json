@@ -7,5 +7,5 @@
   "access": "public",
   "baseBranch": "main",
   "updateInternalDependencies": "patch",
-  "ignore": ["creem_io", "creem-docs"]
+  "ignore": ["creem_io", "creem-docs", "@creem_io/framer"]
 }

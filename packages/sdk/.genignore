@@ -1,0 +1,6 @@
+# Hand-authored repository governance files. Their generated package metadata is
+# defined in .speakeasy/gen.yaml; these files must remain byte-for-byte stable.
+LICENSE
+CHANGELOG.md
+CONTRIBUTING.md
+.attw.json

@@ -7,18 +7,26 @@
   "types": "./dist/index.d.ts",
   "exports": {
     ".": {
-      "types": "./dist/index.d.ts",
-      "import": "./dist/index.mjs",
-      "require": "./dist/index.js"
+      "import": {
+        "types": "./dist/index.d.mts",
+        "default": "./dist/index.mjs"
+      },
+      "require": {
+        "types": "./dist/index.d.ts",
+        "default": "./dist/index.js"
+      }
     }
   },
   "files": [
     "dist",
-    "README.md"
+    "README.md",
+    "LICENSE",
+    "CHANGELOG.md"
   ],
   "scripts": {
     "build": "tsup",
     "typecheck": "tsc --noEmit",
+    "check:package": "publint --strict --pack pnpm && attw --pack .",
     "prepublishOnly": "npm run build"
   },
   "publishConfig": {
@@ -37,6 +45,9 @@
     "directory": "packages/webhook-types"
   },
   "homepage": "https://github.com/armitage-labs/creem/tree/main/packages/webhook-types",
+  "bugs": {
+    "url": "https://github.com/armitage-labs/creem/issues"
+  },
   "author": "Creem",
   "license": "MIT",
   "devDependencies": {

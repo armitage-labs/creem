@@ -7,20 +7,28 @@
   "types": "./dist/index.d.ts",
   "exports": {
     ".": {
-      "types": "./dist/index.d.ts",
-      "import": "./dist/index.mjs",
-      "require": "./dist/index.js"
+      "import": {
+        "types": "./dist/index.d.mts",
+        "default": "./dist/index.mjs"
+      },
+      "require": {
+        "types": "./dist/index.d.ts",
+        "default": "./dist/index.js"
+      }
     }
   },
   "files": [
     "dist",
-    "README.md"
+    "README.md",
+    "LICENSE",
+    "CHANGELOG.md"
   ],
   "scripts": {
     "build": "tsup",
     "dev": "tsup --watch",
     "prepublishOnly": "npm run build",
-    "typecheck": "tsc --noEmit"
+    "typecheck": "tsc --noEmit",
+    "check:package": "publint --strict --pack pnpm && attw --pack ."
   },
   "keywords": [
     "creem",
@@ -37,7 +45,7 @@
   },
   "dependencies": {
     "@creem_io/webhook-types": "workspace:^",
-    "creem": "^1.6.1"
+    "creem": "workspace:^1.6.1"
   },
   "devDependencies": {
     "@types/node": "^22.0.0",
@@ -56,5 +64,8 @@
     "url": "https://github.com/armitage-labs/creem.git",
     "directory": "packages/integrations/nextjs"
   },
-  "homepage": "https://github.com/armitage-labs/creem/tree/main/packages/integrations/nextjs"
+  "homepage": "https://github.com/armitage-labs/creem/tree/main/packages/integrations/nextjs",
+  "bugs": {
+    "url": "https://github.com/armitage-labs/creem/issues"
+  }
 }

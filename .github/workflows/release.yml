@@ -33,6 +33,11 @@ jobs:
 
       - run: pnpm install --frozen-lockfile
 
+      - name: Check package metadata and repository contracts
+        run: |
+          pnpm check:package-metadata
+          pnpm check:repository-contracts
+
       - name: Create Release Pull Request or Publish
         id: changesets
         uses: changesets/action@v1
