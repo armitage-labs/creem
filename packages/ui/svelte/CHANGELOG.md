@@ -1,5 +1,14 @@
 # @creem_io/svelte
 
+## 0.2.3
+
+### Patch Changes
+
+- 3cf0b89: Include consistent MIT licensing, repository metadata, release documentation,
+  and explicit workspace dependency references in published package artifacts,
+  and make dual CommonJS/ESM type entrypoints resolve to their matching declaration
+  format.
+
 ## 0.2.2
 
 ### Patch Changes

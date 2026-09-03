@@ -1,6 +1,6 @@
 {
   "name": "@creem_io/strapi",
-  "version": "0.0.1",
+  "version": "0.0.2",
   "description": "Official Creem plugin for Strapi 5. Manage products, subscriptions, and checkout directly from the Strapi admin panel.",
   "keywords": [
     "strapi",
