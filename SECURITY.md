@@ -26,7 +26,7 @@ advisory. We do not publish response-time guarantees, but we will keep reporters
 informed as the investigation progresses.
 
 If GitHub private vulnerability reporting is temporarily unavailable, email
-[support@creem.io](mailto:support@creem.io) with the subject "Security
+[security@creem.io](mailto:security@creem.io) with the subject "Security
 vulnerability." Do not include secrets or sensitive exploit details in the
 initial email; ask for a secure reporting route.
 
