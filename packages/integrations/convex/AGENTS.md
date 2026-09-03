@@ -1,15 +1,22 @@
-## Testing and Validation
+# Convex-specific instructions
 
-Ensure new code is covered by meaningful tests.
+Read the repository-level [`AGENTS.md`](../../../AGENTS.md) first. These rules
+apply only to `@creem_io/convex`.
 
-Before finishing, evaluate if your changes require running:
+- Keep the core component API framework-neutral. React and Svelte exports must
+  remain in their respective entrypoints.
+- Changes to Convex functions, schemas, generated component bindings, or public
+  framework exports require matching tests and documentation.
+- Do not commit credentials, deployment URLs, or generated local Convex state.
+- `pnpm check` is a package-local alias for lint and typecheck; it is not a root
+  monorepo command.
+
+Validate from this package directory:
 
 ```bash
 pnpm test
-pnpm check 2>&1
+pnpm check
 pnpm format
 pnpm lint
-
-# Convex
 timeout 30 npx convex dev --once 2>&1 || true
 ```

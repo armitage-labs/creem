@@ -1,0 +1,51 @@
+{
+  "rules": {
+    "dependencies-type": "error",
+    "devDependencies-type": "error",
+    "files-type": "error",
+    "name-format": "error",
+    "name-type": "error",
+    "no-duplicate-properties": "error",
+    "peerDependencies-type": "error",
+    "private-type": "error",
+    "repository-type": "error",
+    "require-name": "error",
+    "scripts-type": "error",
+    "version-format": "error",
+    "version-type": "error"
+  },
+  "overrides": [
+    {
+      "patterns": [
+        "packages/sdk",
+        "packages/cli",
+        "packages/webhook-types",
+        "packages/integrations/{better-auth,convex,nextjs,strapi}",
+        "packages/ui/*"
+      ],
+      "rules": {
+        "prefer-provenance": "error",
+        "prefer-scripts": ["error", ["build", "typecheck", "check:package"]],
+        "require-author": "error",
+        "require-bugs": "error",
+        "require-description": "error",
+        "require-files": "error",
+        "require-homepage": "error",
+        "require-license": "error",
+        "require-publishConfig": "error",
+        "require-repository": "error",
+        "require-repository-directory": "error",
+        "require-scripts": "error",
+        "require-version": "error",
+        "valid-values-license": ["error", ["MIT"]],
+        "valid-values-publishConfig": ["error", [{ "access": "public", "provenance": true }]]
+      }
+    },
+    {
+      "patterns": ["packages/cli"],
+      "rules": {
+        "require-bin": "error"
+      }
+    }
+  ]
+}

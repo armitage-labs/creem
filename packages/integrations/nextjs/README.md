@@ -507,16 +507,17 @@ We welcome contributions! Please reach out on Discord for details.
 
 ```bash
 # Clone the repository
-git clone https://github.com/armitage-labs/creem-nextjs-adaptor.git
+git clone https://github.com/armitage-labs/creem.git
+cd creem
 
 # Install dependencies
-npm install
+pnpm install --frozen-lockfile
 
 # Build the library
-npm run build
+pnpm --filter @creem_io/nextjs build
 
 # Run example app
-cd example
+cd packages/integrations/nextjs/example
 npm install
 npm run dev
 ```

@@ -51,14 +51,18 @@
   },
   "files": [
     "dist",
-    "README.md"
+    "README.md",
+    "LICENSE",
+    "CHANGELOG.md"
   ],
   "scripts": {
     "build": "strapi-plugin build",
     "watch": "strapi-plugin watch",
     "watch:link": "strapi-plugin watch:link",
     "verify": "strapi-plugin verify",
-    "typecheck": "tsc -p admin/tsconfig.json --noEmit && tsc -p server/tsconfig.json --noEmit"
+    "test": "strapi-plugin verify",
+    "typecheck": "tsc -p admin/tsconfig.json --noEmit && tsc -p server/tsconfig.json --noEmit",
+    "check:package": "publint --strict --pack pnpm && attw --pack ."
   },
   "dependencies": {
     "axios": "^1.16.0"

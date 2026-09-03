@@ -205,6 +205,6 @@ Add console logs in:
 For issues with:
 - **Better-Auth**: https://github.com/better-auth/better-auth
 - **Creem**: https://docs.creem.io or support@creem.io
-- **This Plugin**: https://github.com/armitage-labs/creem-betterauth/issues
+- **This Plugin**: https://github.com/armitage-labs/creem/issues
 
 Happy testing! 🚀

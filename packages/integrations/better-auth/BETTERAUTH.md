@@ -871,14 +871,13 @@ To use these features, either enable database mode or implement custom logic usi
 - [Creem Documentation](https://docs.creem.io)
 - [Creem Dashboard](https://creem.io/dashboard)
 - [Better Auth Documentation](https://better-auth.com)
-- [Plugin GitHub Repository Additional Documentation](https://github.com/armitage-labs/creem-betterauth)
+- [Plugin GitHub Repository Additional Documentation](https://github.com/armitage-labs/creem/tree/main/packages/integrations/better-auth)
 
 ## Support
 
 For issues or questions:
 
-- Open an issue on [GitHub](https://github.com/armitage-labs/creem-betterauth/issues)
+- Open an issue on [GitHub](https://github.com/armitage-labs/creem/issues)
 - Contact Creem support at [support@creem.io](mailto:support@creem.io)
 - Join our [Discord community](https://discord.gg/q3GKZs92Av) for real-time support and discussion.
 - Chat with us directly using the in-app live chat on the [Creem dashboard](https://creem.io/dashboard).
-

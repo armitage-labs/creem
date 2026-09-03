@@ -205,7 +205,7 @@ export const authClient = createCreemAuthClient({
 // Now you get the cleanest possible type hints!
 ```
 
-The `createCreemAuthClient` wrapper improves TypeScript parameter types and autocomplete. Note: It is primarily designed for use with the Creem plugin and may not support all other better-auth plugins. If you encounter any issues, please open an issue or pull request at https://github.com/armitage-labs/creem-betterauth.
+The `createCreemAuthClient` wrapper improves TypeScript parameter types and autocomplete. Note: It is primarily designed for use with the Creem plugin and may not support all other better-auth plugins. If you encounter any issues, please open an issue or pull request at https://github.com/armitage-labs/creem.
 
 ### Migrate the Database
 
@@ -1004,7 +1004,7 @@ Either enable database mode or implement custom logic with the Creem SDK directl
 - [Next.js Example App](./examples/nextjs) — Runnable example with email/password auth, checkout, and portal
 - [Creem Documentation](https://docs.creem.io)
 - [Better-Auth Documentation](https://better-auth.com)
-- [GitHub Repository](https://github.com/armitage-labs/creem-betterauth)
+- [GitHub Repository](https://github.com/armitage-labs/creem/tree/main/packages/integrations/better-auth)
 
 ## 📄 License
 
@@ -1014,5 +1014,5 @@ MIT
 
 For issues or questions:
 
-- Open an issue on [GitHub](https://github.com/armitage-labs/creem-betterauth/issues)
+- Open an issue on [GitHub](https://github.com/armitage-labs/creem/issues)
 - Contact Creem support at [support@creem.io](mailto:support@creem.io)

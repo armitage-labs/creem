@@ -177,7 +177,7 @@ Then update `BETTER_AUTH_URL` to `http://localhost:3001`
 
 - 📖 Check [SETUP.md](./SETUP.md) for detailed setup
 - 🧪 Check [TESTING_GUIDE.md](./TESTING_GUIDE.md) for testing
-- 🐛 Open issue on [GitHub](https://github.com/armitage-labs/creem-betterauth/issues)
+- 🐛 Open issue on [GitHub](https://github.com/armitage-labs/creem/issues)
 - 💬 Contact [Creem Support](mailto:support@creem.io)
 
 ## Success!
