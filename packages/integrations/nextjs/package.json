@@ -26,6 +26,7 @@
   "scripts": {
     "build": "tsup",
     "dev": "tsup --watch",
+    "test": "vitest run",
     "prepublishOnly": "npm run build",
     "typecheck": "tsc --noEmit",
     "check:package": "publint --strict --pack pnpm && attw --pack ."
@@ -53,7 +54,8 @@
     "next": "^14.0.0",
     "react": "^18.0.0",
     "tsup": "^8.0.0",
-    "typescript": "^5.0.0"
+    "typescript": "^5.0.0",
+    "vitest": "^4.1.1"
   },
   "publishConfig": {
     "access": "public",
