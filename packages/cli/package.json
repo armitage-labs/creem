@@ -1,6 +1,6 @@
 {
   "name": "@creem_io/cli",
-  "version": "0.2.2",
+  "version": "0.2.3",
   "description": "Official CLI for Creem - the Stripe alternative for SaaS",
   "keywords": [
     "creem",

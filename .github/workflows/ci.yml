@@ -57,6 +57,28 @@ jobs:
             echo "changed=true" >> "$GITHUB_OUTPUT"
           fi
 
+      # Changesets rewrites package manifests before publishing. Simulate that
+      # generated state on pull requests that can affect a release so stale
+      # lockfiles or invalid generated dependency ranges fail before merge.
+      - name: Detect release changes
+        id: release
+        if: github.event_name == 'pull_request'
+        shell: bash
+        run: |
+          diff_range="origin/${{ github.base_ref }}...HEAD"
+          if git diff --quiet "$diff_range" -- \
+            .changeset \
+            package.json \
+            pnpm-workspace.yaml \
+            ':(glob)packages/**/package.json' \
+            .github/workflows/ci.yml \
+            .github/workflows/release.yml \
+            .github/workflows/sdk-cascade.yml; then
+            echo "changed=false" >> "$GITHUB_OUTPUT"
+          else
+            echo "changed=true" >> "$GITHUB_OUTPUT"
+          fi
+
       - name: Test workflow path filters
         run: pnpm test:workflow-paths
 
@@ -145,3 +167,11 @@ jobs:
             grep -qE '^description:' "$f" || { echo "::error::$f frontmatter has no description:"; exit 1; }
             echo "ok: $f"
           done
+
+      - name: Validate pending release generation
+        if: steps.release.outputs.changed == 'true'
+        run: |
+          pnpm version-packages
+          pnpm install --frozen-lockfile
+          pnpm check:package-metadata
+          pnpm check:repository-contracts

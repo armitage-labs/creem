@@ -1,7 +1,7 @@
 {
   "name": "creem-adapter",
   "private": true,
-  "packageManager": "pnpm@11.9.0",
+  "packageManager": "pnpm@11.25.0",
   "engines": {
     "node": ">=24.0.0"
   },
@@ -19,20 +19,20 @@
     "format:check": "prettier --check \"**/*.{ts,tsx,js,jsx,mjs,cjs}\" packages/sdk/openapi.json",
     "gen:sdk": "prettier --write packages/sdk/openapi.json && cd packages/sdk && speakeasy run --skip-compile && cp openapi.json ../docs/api-reference/openapi.json",
     "changeset": "changeset",
-    "version-packages": "changeset version",
+    "version-packages": "changeset version && pnpm install --lockfile-only",
     "release": "pnpm check:package-metadata && pnpm check:repository-contracts && pnpm check:package-artifacts && changeset publish",
     "prepare": "husky"
   },
   "devDependencies": {
-    "@arethetypeswrong/cli": "0.18.3",
-    "@changesets/cli": "^2.27.0",
+    "@arethetypeswrong/cli": "0.18.5",
+    "@changesets/cli": "^2.31.0",
     "@manypkg/cli": "^0.25.1",
     "husky": "^9.1.7",
     "lint-staged": "^16.1.0",
     "npm-package-json-lint": "^11.0.0",
     "prettier": "^3.8.1",
     "publint": "^0.3.24",
-    "turbo": "^2.10.2",
+    "turbo": "^2.10.12",
     "typescript": "^5.8.3"
   },
   "manypkg": {

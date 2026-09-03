@@ -1,5 +1,14 @@
 # Changelog
 
+## 1.6.2
+
+### Patch Changes
+
+- 3cf0b89: Include consistent MIT licensing, repository metadata, release documentation,
+  and explicit workspace dependency references in published package artifacts,
+  and make dual CommonJS/ESM type entrypoints resolve to their matching declaration
+  format.
+
 This changelog records user-facing changes to the `creem` TypeScript SDK. The
 generator and publication log remains in [RELEASES.md](./RELEASES.md).
 
