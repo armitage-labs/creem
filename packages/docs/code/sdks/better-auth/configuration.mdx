@@ -1,0 +1,140 @@
+---
+title: "Configuration"
+description: "Configure the Creem Better Auth server and client plugins, persistence, and database schema."
+---
+
+## Server options
+
+Pass these options to `creem()` in your Better Auth configuration:
+
+| Option                 | Type                       | Default  | Description                                                                                                      |
+| ---------------------- | -------------------------- | -------- | ---------------------------------------------------------------------------------------------------------------- |
+| `apiKey`               | `string`                   | Required | Creem API key for the selected environment. Keep it on the server.                                               |
+| `webhookSecret`        | `string`                   | —        | Signing secret used to verify Creem webhooks. The webhook endpoint is omitted when this is not set.              |
+| `testMode`             | `boolean`                  | `false`  | Uses `https://test-api.creem.io` instead of the production API.                                                  |
+| `defaultSuccessUrl`    | `string`                   | —        | Checkout return URL used when a request does not provide `successUrl`. Relative and absolute URLs are supported. |
+| `persistSubscriptions` | `boolean`                  | `true`   | Adds the plugin schema and synchronizes customer and subscription data from webhooks.                            |
+| `schema`               | `BetterAuthPluginDBSchema` | —        | Better Auth schema overrides merged into the plugin schema.                                                      |
+
+Webhook callback options are covered in [Webhooks and access](/code/sdks/better-auth/webhooks).
+
+```typescript lib/auth.ts
+import { creem } from "@creem_io/better-auth";
+import { betterAuth } from "better-auth";
+
+export const auth = betterAuth({
+  database: {
+    // Your database configuration
+  },
+  plugins: [
+    creem({
+      apiKey: process.env.CREEM_API_KEY!,
+      webhookSecret: process.env.CREEM_WEBHOOK_SECRET!,
+      testMode: process.env.NODE_ENV !== "production",
+      defaultSuccessUrl: "/billing/success",
+      persistSubscriptions: true,
+    }),
+  ],
+});
+```
+
+<Warning>
+  `testMode` defaults to `false`. Do not pair a test API key with production mode or a production
+  API key with test mode.
+</Warning>
+
+## Persistence mode
+
+Persistence is enabled unless you explicitly set `persistSubscriptions: false`. The plugin then:
+
+- adds its models and fields to the Better Auth schema;
+- associates a Creem customer ID with the signed-in user;
+- writes subscription state received through verified webhooks;
+- checks local subscription records in `hasAccessGranted()`;
+- records whether a user has already received a trial.
+
+After enabling persistence or upgrading to a version that changes the schema, use the command for
+your database workflow. The built-in Kysely adapter can apply the migration directly:
+
+```bash
+npx @better-auth/cli migrate
+```
+
+For Prisma, Drizzle, or another ORM-managed schema, generate the schema and then apply it with the
+ORM's migration tooling:
+
+```bash
+npx @better-auth/cli generate
+```
+
+### Added models and fields
+
+The `creem_subscription` model contains:
+
+| Field                 | Type              | Notes                                                |
+| --------------------- | ----------------- | ---------------------------------------------------- |
+| `productId`           | string            | Creem product ID                                     |
+| `referenceId`         | string            | Better Auth user ID or another application reference |
+| `creemCustomerId`     | string, optional  | Creem customer ID                                    |
+| `creemSubscriptionId` | string, optional  | Creem subscription ID                                |
+| `creemOrderId`        | string, optional  | Creem order ID                                       |
+| `status`              | string            | Defaults to `pending`                                |
+| `periodStart`         | date, optional    | Current billing period start                         |
+| `periodEnd`           | date, optional    | Current billing period end                           |
+| `cancelAtPeriodEnd`   | boolean, optional | Defaults to `false`                                  |
+
+The plugin extends the Better Auth `user` model with:
+
+| Field             | Type              | Notes                                                  |
+| ----------------- | ----------------- | ------------------------------------------------------ |
+| `creemCustomerId` | string, optional  | Customer used for portal and customer-scoped requests  |
+| `hadTrial`        | boolean, optional | Defaults to `false`; set after the user enters a trial |
+
+### Without persistence
+
+Set `persistSubscriptions: false` when your application owns subscription storage or does not need
+local billing state:
+
+```typescript
+creem({
+  apiKey: process.env.CREEM_API_KEY!,
+  webhookSecret: process.env.CREEM_WEBHOOK_SECRET!,
+  persistSubscriptions: false,
+});
+```
+
+No plugin schema is added and no subscription records are written. `hasAccessGranted()` cannot
+determine access in this mode, so implement access checks in your own data layer. Other endpoints
+can still call Creem, provided they receive or can resolve the required customer or subscription
+identifier.
+
+## Client options
+
+The standard Better Auth client infers the Creem endpoints from `creemClient()`:
+
+```typescript lib/auth-client.ts
+import { creemClient } from "@creem_io/better-auth/client";
+import { createAuthClient } from "better-auth/react";
+
+export const authClient = createAuthClient({
+  baseURL: process.env.NEXT_PUBLIC_APP_URL,
+  plugins: [creemClient()],
+});
+```
+
+`baseURL` is optional when the client calls the same origin. Use Better Auth's client import for
+your framework, such as `better-auth/react` for React.
+
+If TypeScript does not expose clean method signatures for an inferred client, use the typed wrapper:
+
+```typescript lib/auth-client.ts
+import { creemClient } from "@creem_io/better-auth/client";
+import { createCreemAuthClient } from "@creem_io/better-auth/create-creem-auth-client";
+
+export const authClient = createCreemAuthClient({
+  plugins: [creemClient()],
+});
+```
+
+The wrapper is optimized for the Creem plugin. Prefer the standard client when combining many
+Better Auth client plugins, and use the wrapper only when its improved Creem types are useful.

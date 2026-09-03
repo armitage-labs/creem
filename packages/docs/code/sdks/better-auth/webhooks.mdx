@@ -1,0 +1,147 @@
+---
+title: "Webhooks and access"
+description: "Verify Creem webhooks, synchronize subscription state, and provision application access."
+---
+
+When `webhookSecret` is configured, the plugin registers a verified webhook handler at:
+
+```text
+/api/auth/creem/webhook
+```
+
+`/api/auth` is Better Auth's default base path. The plugin route itself is `/creem/webhook`.
+
+Add the full public URL in the Creem dashboard. Test-mode webhooks and production webhooks have
+separate configuration and signing secrets.
+
+## Persist subscription state
+
+With `persistSubscriptions: true`, verified webhook events update the plugin's local customer and
+subscription fields. Your application can query that state through `hasAccessGranted()` without
+making a Creem API request on each page load.
+
+Webhook delivery is asynchronous. Treat the success redirect as confirmation that checkout
+completed in the browser, not as the source of truth for granting durable access.
+
+## Grant and revoke access
+
+Use the high-level callbacks for application-specific provisioning:
+
+```typescript lib/auth.ts
+creem({
+  apiKey: process.env.CREEM_API_KEY!,
+  webhookSecret: process.env.CREEM_WEBHOOK_SECRET!,
+  persistSubscriptions: true,
+
+  onGrantAccess: async ({ reason, customer, product, metadata }) => {
+    const userId = metadata?.referenceId;
+    if (typeof userId !== "string") return;
+
+    await setPlanAccess({
+      userId,
+      productId: product.id,
+      enabled: true,
+      reason,
+    });
+  },
+
+  onRevokeAccess: async ({ reason, product, metadata }) => {
+    const userId = metadata?.referenceId;
+    if (typeof userId !== "string") return;
+
+    await setPlanAccess({
+      userId,
+      productId: product.id,
+      enabled: false,
+      reason,
+    });
+  },
+});
+```
+
+`onGrantAccess` runs with one of these reasons:
+
+- `subscription_active`
+- `subscription_trialing`
+- `subscription_paid`
+
+`onRevokeAccess` runs with:
+
+- `subscription_paused`
+- `subscription_expired`
+
+Cancellation does not necessarily revoke access immediately. A subscription scheduled to cancel
+can remain usable until its paid period expires.
+
+<Warning>
+  Webhooks can be retried or delivered more than once. Make every callback idempotent: applying the
+  same event twice must produce the same final state.
+</Warning>
+
+## Event-specific callbacks
+
+Use event-specific callbacks when you need more than the high-level access decision:
+
+| Callback                 | Event                   |
+| ------------------------ | ----------------------- |
+| `onCheckoutCompleted`    | `checkout.completed`    |
+| `onRefundCreated`        | `refund.created`        |
+| `onDisputeCreated`       | `dispute.created`       |
+| `onSubscriptionActive`   | `subscription.active`   |
+| `onSubscriptionTrialing` | `subscription.trialing` |
+| `onSubscriptionCanceled` | `subscription.canceled` |
+| `onSubscriptionPaid`     | `subscription.paid`     |
+| `onSubscriptionExpired`  | `subscription.expired`  |
+| `onSubscriptionUnpaid`   | `subscription.unpaid`   |
+| `onSubscriptionUpdate`   | `subscription.update`   |
+| `onSubscriptionPastDue`  | `subscription.past_due` |
+| `onSubscriptionPaused`   | `subscription.paused`   |
+
+Each callback receives normalized event data followed by the Better Auth endpoint context:
+
+```typescript
+creem({
+  apiKey: process.env.CREEM_API_KEY!,
+  webhookSecret: process.env.CREEM_WEBHOOK_SECRET!,
+  onSubscriptionPastDue: async (subscription, betterAuthContext) => {
+    console.warn("Payment needs attention", subscription.id);
+  },
+});
+```
+
+## Trial tracking
+
+Persistence adds `hadTrial` to the user model. When a user enters a trial, the plugin records it and
+can tell Creem to skip later trials for that user. This protects the Better Auth account boundary;
+it is not a substitute for any additional identity or abuse controls your product requires.
+
+## Custom webhook handlers
+
+Most applications should use the plugin route. If you own a separate webhook route, verify the raw
+body before parsing it:
+
+```typescript
+import { validateWebhookSignature } from "@creem_io/better-auth/server";
+
+export async function POST(request: Request) {
+  const payload = await request.text();
+  const signature = request.headers.get("creem-signature");
+
+  const valid = await validateWebhookSignature(
+    payload,
+    signature,
+    process.env.CREEM_WEBHOOK_SECRET!,
+  );
+
+  if (!valid) {
+    return new Response("Invalid signature", { status: 401 });
+  }
+
+  const event = JSON.parse(payload);
+  // Process the verified event idempotently.
+  return new Response(null, { status: 204 });
+}
+```
+
+Do not configure both the plugin route and a custom route for the same webhook unless duplicate
+processing is intentional.

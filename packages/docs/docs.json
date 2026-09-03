@@ -194,7 +194,17 @@
                 "pages": [
                   "code/sdks/typescript",
                   "code/sdks/nextjs",
-                  "code/sdks/better-auth",
+                  {
+                    "group": "Better Auth",
+                    "pages": [
+                      "code/sdks/better-auth",
+                      "code/sdks/better-auth/quickstart",
+                      "code/sdks/better-auth/configuration",
+                      "code/sdks/better-auth/client",
+                      "code/sdks/better-auth/webhooks",
+                      "code/sdks/better-auth/server"
+                    ]
+                  },
                   {
                     "group": "Convex",
                     "pages": [
