@@ -27,20 +27,17 @@ jobs:
         id: sdk
         run: echo "version=$(jq -r .version packages/sdk/package.json)" >> $GITHUB_OUTPUT
 
-      # packages/integrations/convex ships creem as a peerDependency: the peer range is the
-      # compatibility floor and is only raised manually when the package needs
-      # newer SDK behavior. The cascade only bumps its devDependency so CI and
-      # tests run against the latest SDK.
+      # Convex uses workspace:^ only as a local devDependency. Its published peer
+      # range is a compatibility floor and is raised manually when the integration
+      # requires newer SDK behavior, so it is deliberately excluded here.
       - name: Check if adaptors need updating
         id: check
         run: |
           SDK_VERSION="${{ steps.sdk.outputs.version }}"
           NEEDS_UPDATE=false
-          for pkg in packages/integrations/better-auth packages/integrations/nextjs packages/integrations/convex; do
-            FIELD=dependencies
-            [ "$pkg" = "packages/integrations/convex" ] && FIELD=devDependencies
-            CURRENT=$(jq -r --arg f "$FIELD" '.[$f].creem // empty' "$pkg/package.json")
-            if [ "$CURRENT" != "^${SDK_VERSION}" ]; then
+          for pkg in packages/integrations/better-auth packages/integrations/nextjs; do
+            CURRENT=$(jq -r '.dependencies.creem // empty' "$pkg/package.json")
+            if [ "$CURRENT" != "workspace:^${SDK_VERSION}" ]; then
               NEEDS_UPDATE=true
               break
             fi
@@ -80,20 +77,21 @@ jobs:
         if: steps.npm.outputs.published == 'true'
         run: |
           SDK_VERSION="${{ steps.sdk.outputs.version }}"
-          for pkg in packages/integrations/better-auth packages/integrations/nextjs packages/integrations/convex; do
-            FIELD=dependencies
-            [ "$pkg" = "packages/integrations/convex" ] && FIELD=devDependencies
-            jq --arg f "$FIELD" --arg v "^${SDK_VERSION}" '.[$f].creem = $v' "$pkg/package.json" > tmp.json && mv tmp.json "$pkg/package.json"
+          for pkg in packages/integrations/better-auth packages/integrations/nextjs; do
+            jq --arg v "workspace:^${SDK_VERSION}" '.dependencies.creem = $v' "$pkg/package.json" > tmp.json && mv tmp.json "$pkg/package.json"
           done
 
       - name: Install dependencies
         if: steps.npm.outputs.published == 'true'
         run: pnpm install --no-frozen-lockfile
 
-      # No changeset for @creem_io/convex: only its devDependency moves, which
-      # doesn't change the published artifact — the cascade PR's CI run is the
-      # compatibility verification. Its peer range is raised manually (with a
-      # changeset) when the package actually requires newer SDK behavior.
+      - name: Validate generated changes
+        if: steps.npm.outputs.published == 'true'
+        run: |
+          pnpm install --frozen-lockfile
+          pnpm check:package-metadata
+          pnpm check:repository-contracts
+
       - name: Create changeset
         if: steps.npm.outputs.published == 'true'
         run: |
