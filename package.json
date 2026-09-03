@@ -8,11 +8,12 @@
   "scripts": {
     "build": "turbo run build",
     "test": "turbo run test",
+    "test:workflow-paths": "node --test tests/workflow-path-filters.test.mjs",
     "typecheck": "turbo run typecheck",
     "lint": "turbo run lint",
-    "format": "prettier --write \"**/*.{ts,tsx,js,jsx,mjs,cjs}\" packages/creem-sdk/openapi.json",
-    "format:check": "prettier --check \"**/*.{ts,tsx,js,jsx,mjs,cjs}\" packages/creem-sdk/openapi.json",
-    "gen:sdk": "prettier --write packages/creem-sdk/openapi.json && cd packages/creem-sdk && speakeasy run --skip-compile && cp openapi.json ../docs/api-reference/openapi.json",
+    "format": "prettier --write \"**/*.{ts,tsx,js,jsx,mjs,cjs}\" packages/sdk/openapi.json",
+    "format:check": "prettier --check \"**/*.{ts,tsx,js,jsx,mjs,cjs}\" packages/sdk/openapi.json",
+    "gen:sdk": "prettier --write packages/sdk/openapi.json && cd packages/sdk && speakeasy run --skip-compile && cp openapi.json ../docs/api-reference/openapi.json",
     "changeset": "changeset",
     "version-packages": "changeset version",
     "release": "turbo run build && changeset publish",
@@ -28,6 +29,6 @@
   },
   "lint-staged": {
     "*.{ts,tsx,js,jsx,mjs,cjs}": "prettier --write",
-    "packages/creem-sdk/openapi.json": "prettier --write"
+    "packages/sdk/openapi.json": "prettier --write"
   }
 }

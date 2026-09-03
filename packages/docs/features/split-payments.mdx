@@ -76,6 +76,20 @@ Creem provides comprehensive tools for managing your revenue splits:
 - **Recipient Management:** Add, remove, or modify recipients and their payout preferences
 - **Compliance Support:** All splits are handled with proper tax documentation and reporting
 
+## Refunds and chargebacks
+
+When you refund a split sale — or lose a chargeback on one — Creem can reverse each recipient's share alongside your own, so a reversal is shared the same way the sale was. This is controlled by a per-split **Split refunds** setting:
+
+- **New splits** have it **on** by default — if the sale was split, the refund is split.
+- **Existing splits** stay **off**, so nothing about your current payouts changes unless you opt in.
+- You can turn it on or off at any time from the split's detail page, next to **Share customer info**.
+
+The setting is applied as it stood **at the time of each sale**: changing it only affects how _future_ sales are reversed, never sales that already happened. Each recipient is clawed back only a proportional share of what they actually received, so a recipient who was never paid — for example, an invite still pending — is never affected.
+
+If you later **win** a disputed chargeback, any amount clawed back from your recipients is automatically put back, so everyone ends up where they started.
+
+> Note: As with any Creem refund, fees are not returned — this includes the 2% split fee. Only the distributed revenue is reversed.
+
 ## Managing Splits via API
 
 You can also create and manage revenue splits programmatically. A split applies either to your whole store (`type: store`) or to a single product (`type: product`), and can have up to 10 recipients with percentage shares summing to at most 100.
