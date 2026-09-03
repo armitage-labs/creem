@@ -1,6 +1,6 @@
 {
   "name": "creem",
-  "version": "1.6.1",
+  "version": "1.6.2",
   "description": "Official TypeScript SDK and MCP server for the Creem API",
   "author": "Speakeasy",
   "license": "MIT",

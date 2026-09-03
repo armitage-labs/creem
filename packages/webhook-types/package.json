@@ -1,6 +1,6 @@
 {
   "name": "@creem_io/webhook-types",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "description": "Shared webhook types and utilities for Creem adapters",
   "main": "./dist/index.js",
   "module": "./dist/index.mjs",
