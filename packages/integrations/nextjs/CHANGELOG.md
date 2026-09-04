@@ -1,5 +1,14 @@
 # Changelog
 
+## 0.5.5
+
+### Patch Changes
+
+- ccbf8a7: Make the central integration guides the source of truth, replace duplicated package documentation
+  with concise quickstarts, and correct stale Better Auth examples and webhook paths. Align Next.js
+  checkout custom fields with the SDK request type, forward checkout idempotency keys, and add
+  behavior coverage for both.
+
 ## 0.5.4
 
 ### Patch Changes
