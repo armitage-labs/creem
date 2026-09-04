@@ -117,7 +117,7 @@ importers:
         specifier: workspace:^
         version: link:../../webhook-types
       creem:
-        specifier: workspace:^1.6.1
+        specifier: workspace:^1.6.2
         version: link:../../sdk
     devDependencies:
       '@better-auth/core':
@@ -402,7 +402,7 @@ importers:
         specifier: workspace:^
         version: link:../../webhook-types
       creem:
-        specifier: workspace:^1.6.1
+        specifier: workspace:^1.6.2
         version: link:../../sdk
     devDependencies:
       '@types/node':
