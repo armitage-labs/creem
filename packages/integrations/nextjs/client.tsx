@@ -14,6 +14,7 @@ export interface CreemCheckoutProps extends CreateCheckoutInput {
 
 export const CreemCheckout = ({
   productId,
+  requestId,
   units,
   discountCode,
   customer,
@@ -27,6 +28,7 @@ export const CreemCheckout = ({
   // Build query params from checkout input
   const params = new URLSearchParams();
   if (productId) params.append("productId", productId);
+  if (requestId) params.append("requestId", requestId);
   if (units) params.append("units", units.toString());
   if (discountCode) params.append("discountCode", discountCode);
   if (customer) params.append("customer", JSON.stringify(customer));

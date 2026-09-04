@@ -12,6 +12,10 @@
     "typecheck": {
       "dependsOn": ["^build"]
     },
-    "lint": {}
+    "lint": {},
+    "check:package": {
+      "dependsOn": ["build"],
+      "outputs": []
+    }
   }
 }

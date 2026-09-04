@@ -1,0 +1,76 @@
+name: Bug report
+description: Report a reproducible problem in a maintained package
+title: "[Bug]: "
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Thank you for helping improve Creem.
+
+        - Request new capabilities and vote on existing ideas in [Featurebase](https://creem.featurebase.app/).
+        - Do not include secrets or security vulnerabilities here; use [private vulnerability reporting](https://github.com/armitage-labs/creem/security/advisories/new) instead.
+  - type: dropdown
+    id: package
+    attributes:
+      label: Affected package
+      options:
+        - creem SDK
+        - "@creem_io/cli"
+        - "@creem_io/better-auth"
+        - "@creem_io/convex"
+        - "@creem_io/nextjs"
+        - "@creem_io/strapi"
+        - "@creem_io/webhook-types"
+        - "@creem_io/embed"
+        - "@creem_io/react"
+        - "@creem_io/svelte"
+        - "@creem_io/vue"
+        - Documentation
+        - Other maintained package
+    validations:
+      required: true
+  - type: input
+    id: version
+    attributes:
+      label: Package version
+      description: Use the exact installed version when possible.
+      placeholder: 1.2.3
+    validations:
+      required: true
+  - type: textarea
+    id: description
+    attributes:
+      label: What happened?
+      description: Describe the observed behavior and what you expected instead.
+    validations:
+      required: true
+  - type: textarea
+    id: reproduction
+    attributes:
+      label: Minimal reproduction
+      description: Provide the smallest code sample, repository, or ordered steps that reproduce the problem.
+    validations:
+      required: true
+  - type: textarea
+    id: environment
+    attributes:
+      label: Environment
+      description: Include runtime, package manager, framework, operating system, and other relevant versions.
+      render: text
+    validations:
+      required: true
+  - type: textarea
+    id: logs
+    attributes:
+      label: Logs or additional context
+      description: Remove API keys, personal data, and other sensitive values before pasting output.
+      render: text
+  - type: checkboxes
+    id: checks
+    attributes:
+      label: Submission checks
+      options:
+        - label: I searched existing issues for this problem.
+          required: true
+        - label: This report does not disclose a security vulnerability or secret.
+          required: true

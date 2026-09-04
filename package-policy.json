@@ -1,0 +1,95 @@
+{
+  "$schemaVersion": 1,
+  "ignoredDirectories": [
+    ".git",
+    ".next",
+    ".turbo",
+    "build",
+    "coverage",
+    "dist",
+    "node_modules",
+    "out"
+  ],
+  "allowedNestedWorkflowDirectories": [
+    "packages/creem-io/.github/workflows",
+    "packages/sdk/.github/workflows"
+  ],
+  "packages": {
+    "packages/sdk": {
+      "type": "generated-sdk",
+      "category": "sdk"
+    },
+    "packages/cli": {
+      "type": "published-cli",
+      "category": "cli"
+    },
+    "packages/webhook-types": {
+      "type": "published",
+      "category": "shared"
+    },
+    "packages/integrations/better-auth": {
+      "type": "published",
+      "category": "integration"
+    },
+    "packages/integrations/convex": {
+      "type": "published",
+      "category": "integration"
+    },
+    "packages/integrations/nextjs": {
+      "type": "published",
+      "category": "integration"
+    },
+    "packages/integrations/strapi": {
+      "type": "published",
+      "category": "integration"
+    },
+    "packages/ui/embed": {
+      "type": "published",
+      "category": "ui"
+    },
+    "packages/ui/react": {
+      "type": "published",
+      "category": "ui"
+    },
+    "packages/ui/svelte": {
+      "type": "published",
+      "category": "ui"
+    },
+    "packages/ui/vue": {
+      "type": "published",
+      "category": "ui"
+    },
+    "packages/docs": {
+      "type": "private",
+      "category": "docs"
+    },
+    "packages/integrations/framer": {
+      "type": "private",
+      "category": "integration"
+    },
+    "packages/examples/safe-metered-ai-generator": {
+      "type": "example",
+      "category": "example"
+    },
+    "packages/integrations/better-auth/examples/nextjs": {
+      "type": "example",
+      "category": "example"
+    },
+    "packages/integrations/better-auth/test/nextjs-app": {
+      "type": "test-fixture",
+      "category": "test-fixture"
+    },
+    "packages/integrations/nextjs/example": {
+      "type": "example",
+      "category": "example"
+    },
+    "packages/sdk/examples": {
+      "type": "example",
+      "category": "example"
+    },
+    "packages/creem-io": {
+      "type": "deprecated",
+      "category": "deprecated"
+    }
+  }
+}

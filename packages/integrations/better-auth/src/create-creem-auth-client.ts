@@ -181,7 +181,7 @@ export interface CreemClient {
    * ```typescript
    * const { data } = await authClient.creem.hasAccessGranted();
    *
-   * if (data?.hasAccess) {
+   * if (data?.hasAccessGranted) {
    *   console.log("User has active subscription");
    * }
    * ```

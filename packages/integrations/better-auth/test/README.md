@@ -1,49 +1,31 @@
-# Test Directory
+# Better Auth package tests
 
-This directory contains test applications and scripts for the Creem Better-Auth plugin.
+There are two ways to test `@creem_io/better-auth` in this repository.
 
-## Contents
+## Automated tests
 
-### `/nextjs-app`
-
-A complete Next.js application that demonstrates the Creem Better-Auth plugin integration.
-
-**Features:**
-- Full authentication flow (sign up, sign in, sign out)
-- Subscription checkout with Creem
-- Customer portal integration
-- Transaction history
-- Subscription status checking
-- Webhook handling (onGrantAccess/onRevokeAccess)
-
-**Quick Start:**
+Unit and integration tests live beside the package source in `src/__tests__` and
+`src/__integration__`. Run them from the repository root:
 
 ```bash
-cd nextjs-app
-npm install
-cp .env.local.example .env.local
-# Edit .env.local with your credentials
-npm run dev
+pnpm --filter @creem_io/better-auth test
+pnpm --filter @creem_io/better-auth test:integration
 ```
 
-See the [nextjs-app/README.md](./nextjs-app/README.md) for detailed documentation.
+API-backed cases read optional Creem test credentials from `.env.test` and skip when no API key is
+configured. See the [package contributing guide](../CONTRIBUTING.md#focused-validation) for the
+supported variables and safety requirements.
 
-### `/script.ts`
+## Manual Next.js test app
 
-A simple test script for quick imports and testing.
+[`nextjs-app`](nextjs-app) is a repository-only application for maintainers who want to exercise
+the full Better Auth integration in a browser: sign-up, checkout, webhook synchronization, access
+checks, the customer portal, and transaction history.
 
-## Purpose
+It is deliberately separate from the published npm package. Follow its
+[`README.md`](nextjs-app/README.md) to install and run it.
 
-These test applications serve to:
-
-1. **Local Development**: Test the plugin locally without publishing to npm
-2. **Integration Testing**: Verify all plugin features work correctly
-3. **Example Code**: Provide reference implementations for users
-4. **Debugging**: Easier to debug issues with a full working example
-
-## Note
-
-The test applications are **not included** in the npm package. They are only for local development and testing purposes.
-
-The `.npmignore` file in the root directory excludes the entire `test/` folder from being published.
-
+The repository also contains [`examples/nextjs`](../examples/nextjs), a smaller Better Auth +
+Next.js example intended for package users. Use the
+[public Better Auth guide](https://docs.creem.io/code/sdks/better-auth) for the complete API
+documentation.
