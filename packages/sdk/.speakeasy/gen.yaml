@@ -1,5 +1,7 @@
 configVersion: 2.0.0
 generation:
+  repoUrl: https://github.com/armitage-labs/creem.git
+  repoSubDirectory: packages/sdk
   devContainers:
     enabled: true
     schemaPath: openapi.json
@@ -42,11 +44,31 @@ typescript:
       vitest: ^3.0.0
     peerDependencies: {}
   additionalPackageJSON:
+    description: Official TypeScript SDK and MCP server for the Creem API
+    license: MIT
     repository:
-      url: https://github.com/armitage-labs/creem-sdk
+      type: git
+      url: https://github.com/armitage-labs/creem.git
+      directory: packages/sdk
+    homepage: https://github.com/armitage-labs/creem/tree/main/packages/sdk
+    bugs:
+      url: https://github.com/armitage-labs/creem/issues
+    files:
+      - bin
+      - dist
+      - src
+      - README.md
+      - LICENSE
+      - CHANGELOG.md
+      - RELEASES.md
+    publishConfig:
+      access: public
+      provenance: true
   additionalScripts:
+    check:package: "publint --strict --pack pnpm && attw --pack ."
     test: vitest run
     test:watch: vitest
+    typecheck: tsc --noEmit
   alwaysIncludeInboundAndOutbound: false
   apiPromiseHelpers: false
   author: Speakeasy

@@ -1,31 +1,46 @@
 {
   "name": "creem-adapter",
   "private": true,
-  "packageManager": "pnpm@11.9.0",
+  "packageManager": "pnpm@11.25.0",
   "engines": {
     "node": ">=24.0.0"
   },
   "scripts": {
     "build": "turbo run build",
     "test": "turbo run test",
+    "test:repository-contracts": "node --test scripts/check-repository-contracts.test.mjs",
     "test:workflow-paths": "node --test tests/workflow-path-filters.test.mjs",
+    "check:package-metadata": "manypkg check && npmPkgJsonLint .",
+    "check:repository-contracts": "node scripts/check-repository-contracts.mjs",
+    "check:package-artifacts": "turbo run check:package --concurrency=2 --filter='!./packages/creem-io'",
     "typecheck": "turbo run typecheck",
     "lint": "turbo run lint",
     "format": "prettier --write \"**/*.{ts,tsx,js,jsx,mjs,cjs}\" packages/sdk/openapi.json",
     "format:check": "prettier --check \"**/*.{ts,tsx,js,jsx,mjs,cjs}\" packages/sdk/openapi.json",
     "gen:sdk": "prettier --write packages/sdk/openapi.json && cd packages/sdk && speakeasy run --skip-compile && cp openapi.json ../docs/api-reference/openapi.json",
     "changeset": "changeset",
-    "version-packages": "changeset version",
-    "release": "turbo run build && changeset publish",
+    "version-packages": "changeset version && pnpm install --lockfile-only",
+    "release": "pnpm check:package-metadata && pnpm check:repository-contracts && pnpm check:package-artifacts && changeset publish",
     "prepare": "husky"
   },
   "devDependencies": {
-    "@changesets/cli": "^2.27.0",
+    "@arethetypeswrong/cli": "0.18.5",
+    "@changesets/cli": "^2.31.0",
+    "@manypkg/cli": "^0.25.1",
     "husky": "^9.1.7",
     "lint-staged": "^16.1.0",
+    "npm-package-json-lint": "^11.0.0",
     "prettier": "^3.8.1",
-    "turbo": "^2.10.2",
+    "publint": "^0.3.24",
+    "turbo": "^2.10.12",
     "typescript": "^5.8.3"
+  },
+  "manypkg": {
+    "ignoredRules": [
+      "EXTERNAL_MISMATCH",
+      "INVALID_DEV_AND_PEER_DEPENDENCY_RELATIONSHIP"
+    ],
+    "workspaceProtocol": "require"
   },
   "lint-staged": {
     "*.{ts,tsx,js,jsx,mjs,cjs}": "prettier --write",

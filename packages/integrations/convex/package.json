@@ -11,7 +11,7 @@
   "bugs": {
     "url": "https://github.com/armitage-labs/creem/issues"
   },
-  "version": "0.4.0",
+  "version": "0.4.1",
   "license": "MIT",
   "publishConfig": {
     "access": "public",
@@ -47,7 +47,7 @@
     "check": "pnpm lint && pnpm typecheck",
     "format": "prettier --write .",
     "pack:package": "pnpm build && pnpm pack --pack-destination /tmp/convex-creem-pack",
-    "check:package": "attw --pack .",
+    "check:package": "publint --strict --pack pnpm && attw --pack .",
     "lint": "eslint .",
     "all": "concurrently --kill-others --prefix-colors 'blue,yellow,magenta,cyan' --names 'frontend,backend,build,test' 'pnpm dev:frontend:react' 'pnpm dev:backend' 'pnpm dev:build' 'pnpm test:watch'",
     "test": "TMPDIR=/tmp TEMP=/tmp TMP=/tmp vitest run --typecheck",
@@ -61,6 +61,7 @@
     "src",
     "README.md",
     "LICENSE",
+    "CHANGELOG.md",
     "!dist/**/*.test.*",
     "!dist/**/*.spec.*",
     "!src/**/*.test.*",
@@ -157,7 +158,7 @@
     "convex-svelte": "^0.14.0",
     "convex-test": "0.0.53",
     "cpy-cli": "7.0.0",
-    "creem": "^1.6.1",
+    "creem": "workspace:^",
     "eslint": "10.5.0",
     "eslint-plugin-react": "7.37.5",
     "eslint-plugin-react-hooks": "7.1.1",

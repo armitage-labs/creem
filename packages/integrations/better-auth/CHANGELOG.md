@@ -1,5 +1,15 @@
 # [1.1.0](https://github.com/armitage-labs/creem-betterauth/compare/v1.0.2...v1.1.0) (2026-03-10)
 
+## 1.2.1
+
+### Patch Changes
+
+- 3cf0b89: Include consistent MIT licensing, repository metadata, release documentation,
+  and explicit workspace dependency references in published package artifacts,
+  and make dual CommonJS/ESM type entrypoints resolve to their matching declaration
+  format.
+- 8e0f6af: Bump creem SDK dependency to 1.6.1
+
 ## 1.2.0
 
 ### Minor Changes

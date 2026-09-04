@@ -1,101 +1,65 @@
-# Developing guide
+# Contributing to `@creem_io/convex`
 
-## Running locally
+Read the repository [contribution guide](../../../CONTRIBUTING.md) first. This
+file contains only the development details specific to the Convex integration.
 
-```sh
-pnpm i
-pnpm dev:svelte
-pnpm dev:react
+## Run the examples locally
+
+Start either frontend together with the local Convex backend and package build:
+
+```bash
+pnpm --filter @creem_io/convex dev:react
+pnpm --filter @creem_io/convex dev:svelte
 ```
 
-## Development setup
+Create the example's demo user with a real address if you need to test email:
 
-Create a demo user (since this example doesn't have real auth) with a real email
-address to receive creems email:
-
-```sh
-npx convex env set TEST_USER_EMAIL="your@real.email"
+```bash
+pnpm --filter @creem_io/convex exec convex env set TEST_USER_EMAIL="your@real.email"
+pnpm --filter @creem_io/convex exec convex run example:createDemoUser
 ```
 
-```sh
-npx convex run example:createDemoUser
+Sync Creem products before testing pricing or checkout UI:
+
+```bash
+pnpm --filter @creem_io/convex exec convex run billing:syncBillingProducts
 ```
 
-Sync Creem products to the local Convex database:
+See [`convex/README.md`](./convex/README.md) for the example backend's required
+environment variables, exports, webhook route, and auth resolver. Use Creem
+test-mode resources during development and never commit credentials.
 
-```sh
-npx convex run billing:syncBillingProducts
+## Focused validation
+
+Run package commands from the monorepo root:
+
+```bash
+pnpm --filter @creem_io/convex build
+pnpm --filter @creem_io/convex typecheck
+pnpm --filter @creem_io/convex lint
+pnpm --filter @creem_io/convex test
+pnpm --filter @creem_io/convex check:package
 ```
 
-## Testing
+`check:package` runs Publint and Are The Types Wrong against the package that
+would be published. The settings in `.attw.json` are deliberate:
 
-```sh
-pnpm clean
-pnpm install --frozen-lockfile
-pnpm build
-pnpm pack:package
-pnpm typecheck
-pnpm lint
-pnpm test
+- `excludeEntrypoints: ["./styles"]` excludes the CSS-only entrypoint.
+- `ignoreRules: ["internal-resolution-error"]` accommodates declarations emitted
+  by `svelte-package`, which reference `.svelte` files that the checker cannot
+  resolve. Because the ignore is package-wide, `typecheck` remains required to
+  validate internal imports in the client and React outputs.
+
+`dist/svelte` is produced only by `svelte-package`; `tsconfig.build.json`
+excludes `src/svelte` so TypeScript does not emit competing output.
+
+The package is pre-1.0. Follow the root Changesets policy, using a patch for
+fixes and small improvements and a minor release for notable or breaking
+package changes before 1.0. Do not manually bump the package version or edit
+`CHANGELOG.md` in an ordinary feature pull request.
+
+To inspect a one-off tarball without publishing:
+
+```bash
+pnpm --filter @creem_io/convex pack:package
 ```
-
-## Changesets
-
-This project uses Changesets for versioning, changelogs, npm publishing, git
-tags, and GitHub Releases.
-
-For changes that affect the published package, add a changeset (run from the
-monorepo root):
-
-```sh
-pnpm changeset
-```
-
-This package is still pre-1.0, so version bumps do not promise strict semver
-compatibility yet. Use `patch` for fixes and small internal improvements, and
-`minor` for notable features or breaking package changes before 1.0.
-
-Documentation-only changes, tests, and internal maintenance usually do not need
-a changeset.
-
-Do not edit `CHANGELOG.md` for unreleased changes. The release workflow updates
-it from merged changesets.
-
-## Packaging notes
-
-`pnpm check:package` runs
-[`arethetypeswrong`](https://arethetypeswrong.github.io/) against the built
-tarball. Two settings in `.attw.json` are deliberate:
-
-- `excludeEntrypoints: ["./styles"]` — that entry is CSS, not types.
-- `ignoreRules: ["internal-resolution-error"]` — the declarations emitted by
-  `svelte-package` for `dist/svelte` import `.svelte` files, which attw cannot
-  resolve. The rule is package-wide because attw has no per-entrypoint ignore,
-  so it also suppresses genuine internal resolution errors in `dist/client` and
-  `dist/react`. Those paths are covered instead by `pnpm typecheck`, which
-  compiles the same sources under `module: NodeNext` and therefore validates
-  import specifiers and extensions.
-
-`dist/svelte` is produced solely by `svelte-package`; `tsconfig.build.json`
-excludes `src/svelte` so tsc does not emit competing output there.
-
-## Deploying
-
-### Building a one-off package
-
-```sh
-pnpm clean
-pnpm install --frozen-lockfile
-pnpm pack:package
-```
-
-### Deploying a new version
-
-Merging changesets to `main` triggers the release workflow. The workflow either
-opens or updates a version pull request. Merging that version pull request
-publishes the package to npm, pushes git tags, and creates GitHub Releases.
-
-The npm package should be configured for Trusted Publishing from the monorepo
-root `.github/workflows/release.yml`, using the `release` GitHub environment.
-This avoids long-lived npm publish tokens and lets npm create provenance for
-public releases.

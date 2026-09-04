@@ -3,7 +3,7 @@ import { NextRequest, NextResponse } from "next/server";
 /**
  * Webhook endpoint for Creem events
  *
- * Note: The Better-Auth plugin already handles webhooks at /api/auth/creem-webhook
+ * Note: The Better Auth plugin already handles webhooks at /api/auth/creem/webhook
  * This is just an example of how you could set up a custom webhook endpoint if needed.
  *
  * For production use, rely on the built-in webhook handler provided by the plugin.

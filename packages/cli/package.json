@@ -1,6 +1,6 @@
 {
   "name": "@creem_io/cli",
-  "version": "0.2.2",
+  "version": "0.2.3",
   "description": "Official CLI for Creem - the Stripe alternative for SaaS",
   "keywords": [
     "creem",
@@ -17,17 +17,25 @@
     "directory": "packages/cli"
   },
   "homepage": "https://github.com/armitage-labs/creem/tree/main/packages/cli",
-  "bugs": "https://github.com/armitage-labs/creem/issues",
+  "bugs": {
+    "url": "https://github.com/armitage-labs/creem/issues"
+  },
   "bin": {
     "creem": "./dist/index.js"
   },
   "main": "./dist/index.js",
   "types": "./dist/index.d.ts",
   "files": [
-    "dist"
+    "dist",
+    "README.md",
+    "LICENSE",
+    "CHANGELOG.md"
   ],
   "scripts": {
     "build": "tsc",
+    "typecheck": "tsc --noEmit",
+    "check:package": "publint --strict --pack pnpm && attw --pack .",
+    "test": "node dist/index.js --help",
     "dev": "tsc --watch",
     "start": "node dist/index.js",
     "format:check": "prettier --check \"src/**/*.ts\"",
@@ -39,7 +47,7 @@
     "chalk": "^4.1.2",
     "cli-table3": "^0.6.5",
     "commander": "^12.1.0",
-    "creem": "^1.5.3",
+    "creem": "workspace:^1.5.3",
     "ora": "^5.4.1"
   },
   "devDependencies": {
