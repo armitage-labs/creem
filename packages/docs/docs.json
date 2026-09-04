@@ -104,6 +104,7 @@
                 "pages": [
                   "merchant-of-record/account-reviews/account-reviews",
                   "merchant-of-record/account-reviews/re-review-guide",
+                  "merchant-of-record/account-reviews/rejected-accounts",
                   "merchant-of-record/account-reviews/ai-wrapper-compliance"
                 ]
               },
