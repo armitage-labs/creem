@@ -1,61 +1,58 @@
 ---
 title: "If your account was rejected"
-description: "What a rejection means, how it differs from a request for changes, and what can change the outcome. Also covers accounts described as failing verification."
+description: "What a rejection means, how it differs from a request for changes, and where to check your status. Also covers accounts described as failing verification."
 ---
 
-Most accounts that don't pass review the first time are asked to make changes, not rejected. The two look similar in your dashboard and need completely different things from you, so it's worth being certain which one you have.
+Most accounts that don't pass review the first time are asked to make changes, not rejected. These are different outcomes with different consequences. Check which one you have before doing anything else.
 
-You may see this described as your verification being rejected. This page covers the **account review** — the check on your business and website. If you're stuck at the identity or document step instead, that's a separate check with a different fix, and [support](mailto:support@creem.io) can tell you which one you're in.
+## Where to check your status
+
+Everything about your review sits on your [account page](https://www.creem.io/dashboard/balances/accounts). It shows your current status and the comments explaining what was requested, or why the account was rejected.
+
+The verification banner in your dashboard shows which step you're on and where it stands:
+
+| Banner status | What it means |
+| --- | --- |
+| **Waiting for Creem review** | We have what we need. Nothing for you to do. |
+| **Waiting for your input** | Something is needed from you. The account page says what. |
+| **Rejected** | This step is closed. |
 
 ## Which outcome do you have?
 
 | Outcome | What it means |
 | --- | --- |
-| **Changes requested** | We found something specific that needs fixing. This is not a rejection. Fix it and request a re-review yourself — see the [Re-Review Guide](/merchant-of-record/account-reviews/re-review-guide). |
-| **Rejected** | We aren't able to onboard the account as it stands. There's no re-review button for this, and the route is different. |
+| **Changes requested** | We found something specific that needs fixing. This is not a rejection. Fix it and request a re-review yourself. See the [Re-Review Guide](/merchant-of-record/account-reviews/re-review-guide). |
+| **Rejected** | We aren't able to support this business on Creem. Final decision for this store. |
 
 <Note>
-If you can use the **Request re-review** button on **Balance → Payout Account**, you have changes requested, not a rejection. Start with the [Re-Review Guide](/merchant-of-record/account-reviews/re-review-guide).
+If the **Request re-review** button is available on **Balance → Payout Account**, you have changes requested, not a rejection.
 </Note>
 
-## What changes a rejection
+## Identity verification is a separate check
 
-A rejection isn't always final, but it isn't reversed by asking again. What changes the answer is **new information** — something materially different from what we reviewed.
+Identity and business verification (KYC and KYB) runs separately from the account review. Passing one doesn't decide the other, and the two are easy to confuse.
 
-**These count:**
+Your verification status appears in the banner as soon as the check completes. Pending means we review within 48 business hours. Rejected means the decision is final, with no resubmission for that step.
 
-- **The business has changed.** A different product, a different business model, or a different registered entity.
-- **Your website now shows something it didn't.** The live product, your legal pages, real pricing — anything that wasn't visible at review.
-- **Documentation we didn't have.** Licences, registrations, or supplier and rights agreements relevant to what you sell.
-- **We got a fact wrong**, and you can show us the correct one.
+## If your account was rejected
 
-**These don't:**
+A rejection is a decision about what we're able to support. In almost every case it comes down to one of two things:
 
-- Asking again
-- Explaining what the product was always intended to do
-- Confirming you'll comply in future
+- **The product falls into a category we can't process for**, under our payment partners' requirements or card scheme rules.
+- **Risk signals** on the account, the website, or the business behind it.
+
+Neither of those changes by resubmitting, by attaching more documentation, or by describing the product differently. We don't re-review a rejected account for the same business.
+
+The comments on your account page explain which one applied to you.
+
+## If you want to sell something else
+
+Got a genuinely different product? Create a new store for it. It gets reviewed on its own merits, and a previous rejection doesn't rule you out.
 
 <Warning>
-A repeat request with nothing new attached will reach the same decision. If nothing has changed yet, change it first — then write to us.
+This means a different business, not the same one resubmitted. A rejected product under a new store reaches the same decision.
 </Warning>
 
-## What to send
+## Before you build
 
-Write to support with all of the following. A message with these can usually be answered on the first reply; one without them can't.
-
-- **Your store ID** — starts with `sto_`, found in your dashboard settings — and your account email
-- **Your website address**, reachable without a login or waitlist
-- **What is materially different now**, and when it changed
-- **Any supporting documentation**, attached rather than described
-
-Don't send identity documents or card numbers to support. If we need identity verification, we'll send you a secure link.
-
-## While you wait
-
-**Test Mode keeps working.** You can continue building and testing your integration during and after a review — you just can't take live payments until the account is approved.
-
-## What we can't reverse
-
-Some decisions aren't ours to make. Where a business type is prohibited by our payment partners or by card scheme rules, no amount of documentation changes the outcome. We'd rather tell you that plainly than leave you resubmitting — so if that's your situation, we'll say so and we'll say why.
-
-For what we can and can't support, see [Account Reviews](/merchant-of-record/account-reviews/account-reviews).
+Planning a new product and want to know whether we can support it? Check the acceptable, restricted and prohibited product lists in [Account Reviews](/merchant-of-record/account-reviews/account-reviews) before you integrate. Much cheaper to find out then than after.
