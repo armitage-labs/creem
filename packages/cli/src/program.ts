@@ -18,7 +18,7 @@ export function createProgram(context: CliContext = createContext()): Command {
     .version as string;
   const program = addGlobalOptions(
     new Command("creem")
-      .description("Official Creem CLI — complete generated TypeScript SDK operation coverage")
+      .description("Manage your Creem business from the terminal")
       .version(version, "-v, --version"),
   );
   program.configureOutput({ writeOut: context.stdout, writeErr: () => {} }).exitOverride();

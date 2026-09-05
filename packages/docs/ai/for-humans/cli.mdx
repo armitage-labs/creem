@@ -1,17 +1,30 @@
 ---
 title: Creem CLI
-description: Browse your Creem store interactively and discover every SDK operation from the terminal.
+description: Browse and manage your Creem store directly from the terminal with an interactive TUI.
 ---
 
-Install the CLI with Node.js 22 or newer and log in using the masked key prompt:
+import CliInstallation from "/snippets/cli-installation.mdx";
+
+The Creem CLI gives you full control of your store without leaving the terminal. Browse products, customers, subscriptions, and transactions through an interactive interface, or run quick commands for day-to-day operations.
+
+## Installation
+
+Choose Homebrew, npm, or npx. npm and npx require Node.js 22 or newer.
+
+<CliInstallation />
+
+After installing, run `creem --help` to explore commands. With npx, replace `creem` with `npx @creem_io/cli` in the examples below.
+
+## Login
+
+Run `creem login` and enter your API key in the masked prompt, then verify your session:
 
 ```sh
-npm install -g @creem_io/cli
 creem login
 creem whoami
 ```
 
-Homebrew users can run `brew tap armitage-labs/creem` and `brew install creem`. Verify the installed version with `creem --version`.
+The CLI detects test or live mode from your API key. Start with a test key while getting familiar with the CLI; log in with your live key when you're ready to manage real payments.
 
 ## Interactive browsing
 
@@ -24,11 +37,33 @@ creem subscriptions
 creem transactions
 ```
 
-Use arrows or `j`/`k` to move, Enter for details, `/` to search, and `q` to quit. The command bar supports customer billing links and subscription cancellation, pause, and resume. Destructive actions require confirmation. The TUI displays your test/live environment.
+Use arrows or `j`/`k` to move, Enter for details, `/` to search, `:` to open the command bar, and `q` to quit. The command bar supports customer billing links and subscription cancellation, pause, and resume. Destructive actions require confirmation. The TUI displays your test/live environment.
+
+### Browsing transactions
+
+Open `creem transactions` to browse amounts, types, and timestamps:
+
+<Frame caption="Interactive transaction browser.">
+  <img src="/images/cli/transactions.png" />
+</Frame>
+
+Press Enter on a row to see the transaction details:
+
+<Frame caption="Transaction details, including the linked order, subscription, and customer.">
+  <img src="/images/cli/transaction_details.png" />
+</Frame>
+
+### Managing subscriptions
+
+Open `creem subscriptions`, select a subscription, and use the command bar to cancel, pause, or resume it:
+
+<Frame caption="Subscription details with actions available from the command bar.">
+  <img src="/images/cli/subscriptions.png" />
+</Frame>
 
 ## Scriptable commands
 
-All 55 generated SDK operations are also available as terminal commands, including customer credits, licenses, affiliates and invitations, revenue splits, moderation, and refunds. Use the shared [command reference](/code/cli#command-reference) and append `--help` to discover flags.
+Create checkout links, issue refunds, manage customer credits and licenses, invite affiliates, and set up revenue splits with terminal commands. Use the shared [command reference](/code/cli#command-reference) and append `--help` to discover flags.
 
 ```sh
 creem products create --name Free --description 'Free download' --price 0 --currency USD --billing-type onetime
@@ -38,7 +73,7 @@ creem splits list
 creem stats summary --currency USD
 ```
 
-For complex bodies, use `--data @request.json` with SDK camelCase fields. Use `--json` for machine-readable results or `--all --output ndjson` to export every list item. See [request bodies and pagination](/code/cli#request-bodies).
+For complex bodies, use `--data @request.json` with camelCase fields. Use `--json` for machine-readable results or `--all --output ndjson` to export every list item. See [request bodies and pagination](/code/cli#request-bodies).
 
 ## Environments and errors
 
@@ -46,4 +81,4 @@ The API key determines test/live mode. `CREEM_API_KEY` takes precedence over loc
 
 Errors explain the problem, a repair step, and the trace ID when provided by the API. Interactive destructive actions show TEST or LIVE before confirmation; scripts and JSON output require `--yes`. Check write outcomes before retrying, because the CLI never retries writes automatically.
 
-Subscription and discount lists now use the SDK's authoritative search endpoints. SDK parity covers public generated operations; dashboard-only and ungenerated metering capabilities remain outside the current CLI baseline.
+See the [CLI reference](/code/cli) for authentication, configuration, pagination, and guidance on upgrading existing scripts.

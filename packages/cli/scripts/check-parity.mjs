@@ -173,7 +173,7 @@ if (process.argv[1] === fileURLToPath(import.meta.url)) {
   );
   const report = checkParity({
     strict: process.argv.includes("--strict"),
-    docs: readFileSync(resolve(root, "README.md"), "utf8"),
+    docs: readFileSync(resolve(root, "../docs/snippets/cli-reference.mdx"), "utf8"),
   });
   console.log(
     `CLI parity: ${report.implemented}/${report.operations} operations (100%); all parameters, request bodies, handlers and documented commands covered.`,

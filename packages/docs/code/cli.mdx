@@ -1,21 +1,20 @@
 ---
 title: Creem CLI
-description: Install the CLI and use every generated TypeScript SDK operation from your terminal.
+description: Install, configure, and use the Creem CLI to manage your business from the terminal. Browse interactively or automate your workflows.
 ---
 
-import CliReference from '/snippets/cli-reference.mdx';
+import CliReference from "/snippets/cli-reference.mdx";
+import CliInstallation from "/snippets/cli-installation.mdx";
 
-The CLI exposes all 55 operations in the current TypeScript SDK, with typed flags and complete JSON request bodies. It requires Node.js 22 or newer.
+The Creem CLI lets you manage products, customers, subscriptions, and transactions directly from the terminal. It's designed for both human developers and AI agents building automation workflows.
 
 ## Installation
 
-```sh
-npm install -g @creem_io/cli
-creem --version
-creem --help
-```
+Choose Homebrew, npm, or npx. npm and npx require Node.js 22 or newer.
 
-For Homebrew, use `brew tap armitage-labs/creem` followed by `brew install creem`. Check `creem --version` when comparing distribution channels.
+<CliInstallation />
+
+After installing, run `creem --version` to check your version and `creem --help` to explore commands. With npx, replace `creem` with `npx @creem_io/cli` in the examples below.
 
 ## Authentication
 
@@ -28,6 +27,31 @@ creem products list --json
 
 Environment keys take precedence over stored credentials and are never written to disk. The key determines test/live mode. `--environment test|live` must match it. Local login writes `~/.creem/config.json` with mode `0600` in a `0700` directory. `creem logout` clears stored credentials; an environment key remains active.
 
+## Configuration
+
+Inspect your saved settings or choose a default output format:
+
+```sh
+creem config show
+creem config set output_format json
+creem config set output_format table
+```
+
+Configuration output redacts the stored API key. Use `creem login` to change credentials; switching between test and live requires a matching API key. Pass `--json` or `--output table|json|ndjson` to override the saved output format for a command.
+
+## Interactive browsing
+
+Run a resource command without a subcommand to browse your store:
+
+```sh
+creem products
+creem customers
+creem subscriptions
+creem transactions
+```
+
+Search records, open details, and manage subscriptions from the terminal. See the [interactive guide](/ai/for-humans/cli#interactive-browsing) for navigation and examples.
+
 ## Command reference
 
 Use `--help` on any command to see its accepted flags. `credits`, `cust`, `subs`, and `txn` are aliases. IDs are positional where shown. Authentication, configuration, and `migrate lemon-squeezy` are also available.
@@ -36,7 +60,7 @@ Use `--help` on any command to see its accepted flags. `credits`, `cust`, `subs`
 
 ## Request bodies
 
-Every operation with a body supports `--data` with SDK camelCase field names. Choose body flags or `--data`; mixing them is rejected. Path IDs and header/query flags remain available with `--data`.
+Every operation with a body supports `--data` with camelCase field names. Choose body flags or `--data`; mixing them is rejected. Path IDs and header/query flags remain available with `--data`.
 
 ```sh
 creem checkouts create --product prod_123 --units 2 --customer-email person@example.com --json
@@ -55,16 +79,16 @@ creem subscriptions list --all --json
 creem credits entries acc_123 --limit 100 --all --output ndjson
 ```
 
-Single-page JSON returns the SDK result without transport fields. `--all --json` aggregates results and recomputes totals. The legacy subscription `--status` filter traverses every page, rejects `--page`/`--limit`, and labels the output with `filter.scope: "client"` and a recomputed `totalRecords`.
+Single-page JSON returns the result without transport fields. `--all --json` aggregates results and recomputes totals. The legacy subscription `--status` filter traverses every page, rejects `--page`/`--limit`, and labels the output with `filter.scope: "client"` and a recomputed `totalRecords`.
 
 ## Errors and safety
 
 Result data goes to stdout. JSON errors go to stderr as `{ "error": { "type", "message", "status", "traceId", "details", "cause", "suggestion", "retryAfter" } }`. Exit codes are 0 success, 1 unexpected, 2 usage/validation, 3 auth/config, 4 API response, and 5 network/timeout. A late NDJSON failure can leave earlier records on stdout; always check the exit code.
 
-Destructive operations require a TEST/LIVE confirmation in a terminal or `--yes` in noninteractive/JSON/NDJSON mode. This includes updates, upgrades, refunds, immediate/default cancellation, pause, archive/delete, license deactivation, and credit freeze/debit/reverse/close. Scheduled cancellation does not prompt. No writes are automatically retried; check ambiguous outcomes before retrying manually. Human output masks license keys; successful JSON retains the SDK response.
+Destructive operations require a TEST/LIVE confirmation in a terminal or `--yes` in noninteractive/JSON/NDJSON mode. This includes updates, upgrades, refunds, immediate/default cancellation, pause, archive/delete, license deactivation, and credit freeze/debit/reverse/close. Scheduled cancellation does not prompt. No writes are automatically retried; check ambiguous outcomes before retrying manually. Human output masks license keys; successful JSON retains the full response.
 
-## Compatibility and scope
+## Upgrading existing scripts
 
-`subscriptions list` now uses SDK search and removes the old transaction-derived `note` field. `discounts list` uses SDK search instead of the old raw HTTP route. Scripts invoking destructive actions must supply `--yes`.
+`subscriptions list` now lists subscriptions directly instead of deriving them from transactions; the old transaction-derived `note` field is removed. `discounts list` now supports search filters and pagination. Scripts invoking destructive actions must supply `--yes`.
 
-Parity covers the generated SDK, including affiliates, invitations, splits, credits, licenses, refunds, and moderation. Dashboard-only features and the 11 metering operations absent from the current SDK are outside this baseline. See the [agent workflow](/ai/for-agents/cli) or [interactive guide](/ai/for-humans/cli) for your preferred interface.
+See the [agent workflow](/ai/for-agents/cli) or [interactive guide](/ai/for-humans/cli) for your preferred interface.
