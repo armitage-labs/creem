@@ -53,6 +53,10 @@ import { tool$productsCreate } from "./tools/productsCreate.js";
 import { tool$productsGet } from "./tools/productsGet.js";
 import { tool$productsSearch } from "./tools/productsSearch.js";
 import { tool$productsUpdate } from "./tools/productsUpdate.js";
+import { tool$splitsCreate } from "./tools/splitsCreate.js";
+import { tool$splitsDelete } from "./tools/splitsDelete.js";
+import { tool$splitsList } from "./tools/splitsList.js";
+import { tool$splitsRetrieve } from "./tools/splitsRetrieve.js";
 import { tool$statsGetSummary } from "./tools/statsGetSummary.js";
 import { tool$subscriptionsCancel } from "./tools/subscriptionsCancel.js";
 import { tool$subscriptionsGet } from "./tools/subscriptionsGet.js";
@@ -75,7 +79,7 @@ export function createMCPServer(deps: {
 }) {
   const server = new McpServer({
     name: "Creem",
-    version: "1.6.1",
+    version: "1.6.2",
   });
 
   const client = new CreemCore({
@@ -156,6 +160,10 @@ export function createMCPServer(deps: {
   tool(tool$affiliatesList);
   tool(tool$affiliatesRetrieve);
   tool(tool$affiliatesListCommissions);
+  tool(tool$splitsCreate);
+  tool(tool$splitsList);
+  tool(tool$splitsRetrieve);
+  tool(tool$splitsDelete);
 
   return server;
 }

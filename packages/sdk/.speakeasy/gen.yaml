@@ -1,7 +1,5 @@
 configVersion: 2.0.0
 generation:
-  repoUrl: https://github.com/armitage-labs/creem.git
-  repoSubDirectory: packages/sdk
   devContainers:
     enabled: true
     schemaPath: openapi.json
@@ -27,15 +25,17 @@ generation:
   schemas:
     allOfMergeStrategy: shallowMerge
   requestBodyFieldName: ""
-  versioningStrategy: automatic
+  versioningStrategy: manual
   persistentEdits:
     enabled: never
   tests:
     generateTests: true
     generateNewTests: false
     skipResponseBodyAssertions: false
+  repoSubDirectory: packages/sdk
+  repoUrl: https://github.com/armitage-labs/creem.git
 typescript:
-  version: 1.6.1
+  version: 1.6.2
   acceptHeaderEnum: true
   additionalDependencies:
     dependencies: {}
@@ -44,15 +44,9 @@ typescript:
       vitest: ^3.0.0
     peerDependencies: {}
   additionalPackageJSON:
-    description: Official TypeScript SDK and MCP server for the Creem API
-    license: MIT
-    repository:
-      type: git
-      url: https://github.com/armitage-labs/creem.git
-      directory: packages/sdk
-    homepage: https://github.com/armitage-labs/creem/tree/main/packages/sdk
     bugs:
       url: https://github.com/armitage-labs/creem/issues
+    description: Official TypeScript SDK and MCP server for the Creem API
     files:
       - bin
       - dist
@@ -61,11 +55,17 @@ typescript:
       - LICENSE
       - CHANGELOG.md
       - RELEASES.md
+    homepage: https://github.com/armitage-labs/creem/tree/main/packages/sdk
+    license: MIT
     publishConfig:
       access: public
       provenance: true
+    repository:
+      directory: packages/sdk
+      type: git
+      url: https://github.com/armitage-labs/creem.git
   additionalScripts:
-    check:package: "publint --strict --pack pnpm && attw --pack ."
+    check:package: publint --strict --pack pnpm && attw --pack .
     test: vitest run
     test:watch: vitest
     typecheck: tsc --noEmit

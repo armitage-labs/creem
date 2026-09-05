@@ -43,6 +43,7 @@ let value: ProductFeatureEntity = {
   customerCredits: {
     amount: "100",
     unitLabel: "tokens",
+    bucketName: "images",
   },
 };
 ```

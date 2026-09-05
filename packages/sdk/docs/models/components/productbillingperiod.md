@@ -7,11 +7,11 @@ Billing period
 ```typescript
 import { ProductBillingPeriod } from "creem/models/components";
 
-let value: ProductBillingPeriod = "every-three-months";
+let value: ProductBillingPeriod = "every-six-months";
 ```
 
 ## Values
 
 ```typescript
-"every-month" | "every-three-months" | "every-six-months" | "every-year" | "every-day" | "once"
+"every-month" | "every-three-months" | "every-six-months" | "every-year" | "every-day" | "once" | "custom"
 ```

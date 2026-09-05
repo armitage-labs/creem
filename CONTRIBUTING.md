@@ -101,6 +101,17 @@ pnpm gen:sdk
 Hand-authored governance files and metadata must be represented in the generator
 configuration and must survive regeneration.
 
+Review the generated diff. If it changes the published SDK's API, behavior,
+types, or shipped documentation, add a changeset:
+
+```bash
+pnpm changeset
+```
+
+`pnpm gen:sdk` does not create a changeset or bump the package version.
+The release workflow applies Changesets and synchronizes SDK version metadata.
+Keep package versions unchanged in feature PRs.
+
 ## Pull requests
 
 - Keep a pull request focused on one coherent change.

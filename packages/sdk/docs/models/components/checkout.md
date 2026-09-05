@@ -40,6 +40,8 @@ const value: components.CheckoutEntity = {
     currency: "USD",
     billingType: "onetime",
     billingPeriod: "every-three-months",
+    recurringInterval: "month",
+    recurringIntervalCount: 3,
     status: "archived",
     taxMode: "exclusive",
     taxCategory: "saas",
