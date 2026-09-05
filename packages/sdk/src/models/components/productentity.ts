@@ -50,16 +50,6 @@ import {
   TaxMode$outboundSchema,
 } from "./taxmode.js";
 
-/**
- * The unit of the recurring billing interval (`day`, `week`, `month`, or `year`). Together with `recurring_interval_count` this is authoritative for renewal timing — a `billing_period` of `custom` cannot be interpreted without it. For presets it is derived from the cadence (e.g. `every-three-months` → `month`). `null` for one-time products.
- */
-export type RecurringInterval = {};
-
-/**
- * The number of `recurring_interval` units per billing cycle (e.g. `3` with a `month` interval bills every three months). Together with `recurring_interval` this is authoritative for renewal timing. For presets it is derived from the cadence. `null` for one-time products.
- */
-export type RecurringIntervalCount = {};
-
 export type ProductEntity = {
   /**
    * Unique identifier for the object.
@@ -112,11 +102,11 @@ export type ProductEntity = {
   /**
    * The unit of the recurring billing interval (`day`, `week`, `month`, or `year`). Together with `recurring_interval_count` this is authoritative for renewal timing — a `billing_period` of `custom` cannot be interpreted without it. For presets it is derived from the cadence (e.g. `every-three-months` → `month`). `null` for one-time products.
    */
-  recurringInterval?: RecurringInterval | null | undefined;
+  recurringInterval?: string | null | undefined;
   /**
    * The number of `recurring_interval` units per billing cycle (e.g. `3` with a `month` interval bills every three months). Together with `recurring_interval` this is authoritative for renewal timing. For presets it is derived from the cadence. `null` for one-time products.
    */
-  recurringIntervalCount?: RecurringIntervalCount | null | undefined;
+  recurringIntervalCount?: number | null | undefined;
   /**
    * Lifecycle status of the product: `active` or `archived`.
    */
@@ -152,72 +142,6 @@ export type ProductEntity = {
 };
 
 /** @internal */
-export const RecurringInterval$inboundSchema: z.ZodType<
-  RecurringInterval,
-  z.ZodTypeDef,
-  unknown
-> = z.object({});
-/** @internal */
-export type RecurringInterval$Outbound = {};
-
-/** @internal */
-export const RecurringInterval$outboundSchema: z.ZodType<
-  RecurringInterval$Outbound,
-  z.ZodTypeDef,
-  RecurringInterval
-> = z.object({});
-
-export function recurringIntervalToJSON(
-  recurringInterval: RecurringInterval,
-): string {
-  return JSON.stringify(
-    RecurringInterval$outboundSchema.parse(recurringInterval),
-  );
-}
-export function recurringIntervalFromJSON(
-  jsonString: string,
-): SafeParseResult<RecurringInterval, SDKValidationError> {
-  return safeParse(
-    jsonString,
-    (x) => RecurringInterval$inboundSchema.parse(JSON.parse(x)),
-    `Failed to parse 'RecurringInterval' from JSON`,
-  );
-}
-
-/** @internal */
-export const RecurringIntervalCount$inboundSchema: z.ZodType<
-  RecurringIntervalCount,
-  z.ZodTypeDef,
-  unknown
-> = z.object({});
-/** @internal */
-export type RecurringIntervalCount$Outbound = {};
-
-/** @internal */
-export const RecurringIntervalCount$outboundSchema: z.ZodType<
-  RecurringIntervalCount$Outbound,
-  z.ZodTypeDef,
-  RecurringIntervalCount
-> = z.object({});
-
-export function recurringIntervalCountToJSON(
-  recurringIntervalCount: RecurringIntervalCount,
-): string {
-  return JSON.stringify(
-    RecurringIntervalCount$outboundSchema.parse(recurringIntervalCount),
-  );
-}
-export function recurringIntervalCountFromJSON(
-  jsonString: string,
-): SafeParseResult<RecurringIntervalCount, SDKValidationError> {
-  return safeParse(
-    jsonString,
-    (x) => RecurringIntervalCount$inboundSchema.parse(JSON.parse(x)),
-    `Failed to parse 'RecurringIntervalCount' from JSON`,
-  );
-}
-
-/** @internal */
 export const ProductEntity$inboundSchema: z.ZodType<
   ProductEntity,
   z.ZodTypeDef,
@@ -235,11 +159,8 @@ export const ProductEntity$inboundSchema: z.ZodType<
   currency: z.string(),
   billing_type: ProductBillingType$inboundSchema,
   billing_period: ProductBillingPeriod$inboundSchema,
-  recurring_interval: z.nullable(z.lazy(() => RecurringInterval$inboundSchema))
-    .optional(),
-  recurring_interval_count: z.nullable(
-    z.lazy(() => RecurringIntervalCount$inboundSchema),
-  ).optional(),
+  recurring_interval: z.nullable(z.string()).optional(),
+  recurring_interval_count: z.nullable(z.number().int()).optional(),
   status: ProductStatus$inboundSchema,
   tax_mode: TaxMode$inboundSchema,
   tax_category: TaxCategory$inboundSchema,
@@ -279,8 +200,8 @@ export type ProductEntity$Outbound = {
   currency: string;
   billing_type: string;
   billing_period: string;
-  recurring_interval?: RecurringInterval$Outbound | null | undefined;
-  recurring_interval_count?: RecurringIntervalCount$Outbound | null | undefined;
+  recurring_interval?: string | null | undefined;
+  recurring_interval_count?: number | null | undefined;
   status: string;
   tax_mode: string;
   tax_category: string;
@@ -309,11 +230,8 @@ export const ProductEntity$outboundSchema: z.ZodType<
   currency: z.string(),
   billingType: ProductBillingType$outboundSchema,
   billingPeriod: ProductBillingPeriod$outboundSchema,
-  recurringInterval: z.nullable(z.lazy(() => RecurringInterval$outboundSchema))
-    .optional(),
-  recurringIntervalCount: z.nullable(
-    z.lazy(() => RecurringIntervalCount$outboundSchema),
-  ).optional(),
+  recurringInterval: z.nullable(z.string()).optional(),
+  recurringIntervalCount: z.nullable(z.number().int()).optional(),
   status: ProductStatus$outboundSchema,
   taxMode: TaxMode$outboundSchema,
   taxCategory: TaxCategory$outboundSchema,

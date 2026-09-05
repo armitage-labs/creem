@@ -2013,6 +2013,9 @@
           "401": {
             "description": "Unauthorized - Invalid or missing API key"
           },
+          "403": {
+            "description": "Moderation is disabled for this store (error code `moderation_disabled`)."
+          },
           "404": {
             "description": "Not Found - Resource does not exist"
           }
@@ -3573,13 +3576,13 @@
             "$ref": "#/components/schemas/ProductBillingPeriod"
           },
           "recurring_interval": {
-            "type": "object",
+            "type": "string",
             "description": "The unit of the recurring billing interval (`day`, `week`, `month`, or `year`). Together with `recurring_interval_count` this is authoritative for renewal timing — a `billing_period` of `custom` cannot be interpreted without it. For presets it is derived from the cadence (e.g. `every-three-months` → `month`). `null` for one-time products.",
             "example": "month",
             "nullable": true
           },
           "recurring_interval_count": {
-            "type": "object",
+            "type": "integer",
             "description": "The number of `recurring_interval` units per billing cycle (e.g. `3` with a `month` interval bills every three months). Together with `recurring_interval` this is authoritative for renewal timing. For presets it is derived from the cadence. `null` for one-time products.",
             "example": 3,
             "nullable": true
