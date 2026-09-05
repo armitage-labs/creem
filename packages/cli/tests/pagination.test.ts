@@ -47,6 +47,65 @@ it("legacy subscription status filters the complete endpoint, with accurate tota
   });
   expect(spy).toHaveBeenCalledTimes(2);
 });
+it("legacy list commands preserve their page and limit defaults", async () => {
+  const h = harness();
+  const products = vi
+    .spyOn(h.client.products, "search")
+    .mockRejectedValue(new Error("SDK_SENTINEL"));
+  const customers = vi
+    .spyOn(h.client.customers, "list")
+    .mockRejectedValue(new Error("SDK_SENTINEL"));
+  const subscriptions = vi
+    .spyOn(h.client.subscriptions, "search")
+    .mockRejectedValue(new Error("SDK_SENTINEL"));
+  const discounts = vi
+    .spyOn(h.client.discounts, "search")
+    .mockRejectedValue(new Error("SDK_SENTINEL"));
+  const transactions = vi
+    .spyOn(h.client.transactions, "search")
+    .mockRejectedValue(new Error("SDK_SENTINEL"));
+
+  await h.run(["products", "list", "--json"]);
+  await h.run(["customers", "list", "--json"]);
+  await h.run(["subscriptions", "list", "--json"]);
+  await h.run(["discounts", "list", "--json"]);
+  await h.run(["transactions", "list", "--json"]);
+
+  expect(products).toHaveBeenCalledWith(
+    1,
+    20,
+    undefined,
+    expect.objectContaining({ retries: { strategy: "none" } }),
+  );
+  expect(customers).toHaveBeenCalledWith(
+    1,
+    20,
+    expect.objectContaining({ retries: { strategy: "none" } }),
+  );
+  expect(subscriptions).toHaveBeenCalledWith(
+    1,
+    10,
+    expect.objectContaining({ retries: { strategy: "none" } }),
+  );
+  expect(discounts).toHaveBeenCalledWith(
+    1,
+    20,
+    undefined,
+    undefined,
+    undefined,
+    undefined,
+    undefined,
+    expect.objectContaining({ retries: { strategy: "none" } }),
+  );
+  expect(transactions).toHaveBeenCalledWith(
+    undefined,
+    undefined,
+    undefined,
+    1,
+    20,
+    expect.objectContaining({ retries: { strategy: "none" } }),
+  );
+});
 it("stuck cursors fail instead of looping", async () => {
   const row = operationManifest.find((r) => r.cliPath === "customer-credits list")!;
   const consume = async () => {

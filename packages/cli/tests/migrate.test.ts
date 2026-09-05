@@ -13,7 +13,10 @@ it("migration inherits global JSON and remains a read-only preview", async () =>
   });
   vi.stubGlobal("fetch", fetcher);
   try {
-    const h = harness();
+    const clientFactory = vi.fn(() => {
+      throw new Error("CREEM_CLIENT_MUST_NOT_BE_CREATED");
+    });
+    const h = harness(undefined, { client: clientFactory });
     const write = vi.spyOn(h.client.products, "create");
     const consoleLog = vi.spyOn(console, "log");
     const r = await h.run([
@@ -28,6 +31,7 @@ it("migration inherits global JSON and remains a read-only preview", async () =>
     expect(r.code, r.stderr).toBe(0);
     expect(JSON.parse(r.stdout)).toHaveProperty("products");
     expect(write).not.toHaveBeenCalled();
+    expect(clientFactory).not.toHaveBeenCalled();
     expect(consoleLog).not.toHaveBeenCalled();
   } finally {
     vi.unstubAllGlobals();

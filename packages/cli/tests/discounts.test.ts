@@ -79,6 +79,36 @@ it("discounts create sends the exact SDK arguments", async () => {
   expect(result.stderr).toContain("SDK_SENTINEL");
   expect(result.stdout).toBe("");
 });
+it("discounts create preserves the default and normalization for fixed currencies", async () => {
+  const h = harness();
+  const spy = vi.spyOn(h.client.discounts, "create").mockRejectedValue(new Error("SDK_SENTINEL"));
+  const baseArgs = [
+    "discounts",
+    "create",
+    "--name",
+    "Fixed",
+    "--type",
+    "fixed",
+    "--amount",
+    "100",
+    "--duration",
+    "once",
+    "--products",
+    "prod_1",
+  ];
+
+  await h.run([...baseArgs, "--json"]);
+  expect(spy).toHaveBeenLastCalledWith(
+    expect.objectContaining({ amount: 100, currency: "USD" }),
+    expect.objectContaining({ retries: { strategy: "none" } }),
+  );
+
+  await h.run([...baseArgs, "--currency", "eur", "--json"]);
+  expect(spy).toHaveBeenLastCalledWith(
+    expect.objectContaining({ amount: 100, currency: "EUR" }),
+    expect.objectContaining({ retries: { strategy: "none" } }),
+  );
+});
 it("discounts delete sends the exact SDK arguments", async () => {
   const h = harness();
   const spy = vi.spyOn(h.client.discounts, "delete").mockRejectedValue(new Error("SDK_SENTINEL"));

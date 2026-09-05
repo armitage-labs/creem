@@ -1003,11 +1003,6 @@ function createLemonSqueezyCommand(context: CliContext): Command {
       ) => {
         const globals = cmd.optsWithGlobals();
         const options = { ...localOptions, json: outputFormat(cmd) !== "table" };
-        const client = context.client({
-          environment: globals.environment,
-          timeout: globals.timeout,
-        });
-        const executionContext = { ...context, client: () => client };
         if (!context.isTTY && !options.dryRun && !options.json && !globals.yes)
           throw new CliError("Migration requires --yes in non-interactive mode.");
         if (options.lsStoreId) parseInteger("--ls-store-id", options.lsStoreId, { min: 1 });
@@ -1416,6 +1411,12 @@ function createLemonSqueezyCommand(context: CliContext): Command {
           console.log(chalk.dim("No changes were made. Remove --dry-run to execute migration."));
           return;
         }
+
+        const client = context.client({
+          environment: globals.environment,
+          timeout: globals.timeout,
+        });
+        const executionContext = { ...context, client: () => client };
 
         // Shared TEST/LIVE confirmation policy; JSON remains preview-only.
         if (

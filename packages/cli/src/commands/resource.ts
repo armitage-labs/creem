@@ -19,6 +19,14 @@ import { isRecord } from "../lib/operation";
 import { writeResult } from "../utils/results";
 import { shouldOutputJson } from "../lib/config";
 
+const legacyPaginationDefaults: Record<string, { pageNumber: number; pageSize: number }> = {
+  "products list": { pageNumber: 1, pageSize: 20 },
+  "customers list": { pageNumber: 1, pageSize: 20 },
+  "subscriptions list": { pageNumber: 1, pageSize: 10 },
+  "discounts list": { pageNumber: 1, pageSize: 20 },
+  "transactions list": { pageNumber: 1, pageSize: 20 },
+};
+
 export function addGlobalOptions(command: Command): Command {
   return command
     .option("--json", "Output JSON")
@@ -152,6 +160,11 @@ export async function executeOperation(
     if (param.required && value === undefined)
       throw new CliError(`${param.cliFlagOrArgument} is required.`);
   }
+  const paginationDefaults = legacyPaginationDefaults[row.cliPath];
+  if (paginationDefaults) {
+    p.pageNumber ??= paginationDefaults.pageNumber;
+    p.pageSize ??= paginationDefaults.pageSize;
+  }
   if (row.cliPath === "customers get" && opts.email === true) {
     p.email = id;
     delete p.customerId;
@@ -188,6 +201,8 @@ export async function executeOperation(
       }
     if (row.cliPath === "subscriptions cancel" && opts.data === undefined && b.mode === undefined)
       b.mode = "immediate";
+    if (row.cliPath === "discounts create" && opts.data === undefined && b.type === "fixed")
+      b.currency = typeof b.currency === "string" ? b.currency.toUpperCase() : "USD";
     if (row.body.positional && id) {
       const field = row.body.positional;
       if (b[field] !== undefined && b[field] !== id)
