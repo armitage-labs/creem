@@ -25,7 +25,7 @@ generation:
   schemas:
     allOfMergeStrategy: shallowMerge
   requestBodyFieldName: ""
-  versioningStrategy: automatic
+  versioningStrategy: manual
   persistentEdits:
     enabled: never
   tests:
