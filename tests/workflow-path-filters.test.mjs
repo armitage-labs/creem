@@ -4,6 +4,8 @@ import { matchesGlob } from "node:path";
 import test from "node:test";
 
 const workflow = readFileSync(".github/workflows/changeset-check.yml", "utf8");
+const ciWorkflow = readFileSync(".github/workflows/ci.yml", "utf8");
+const docsWorkflow = readFileSync(".github/workflows/docs-ci.yml", "utf8");
 
 function pullRequestPaths(source) {
   const lines = source.split("\n");
@@ -71,4 +73,33 @@ test("Changeset Check ignores files outside publishable package trees", () => {
   for (const file of ignoredMatrix) {
     assert.equal(isCovered(file), false, `${file} should not trigger Changeset Check`);
   }
+});
+
+test("CI exposes one stable merge gate for every pull request", () => {
+  assert.match(ciWorkflow, /^  pull_request:\n    branches: \[main\]$/m);
+  assert.match(ciWorkflow, /^  merge-gate:$/m);
+  assert.match(ciWorkflow, /^    name: merge-gate$/m);
+  assert.doesNotMatch(
+    ciWorkflow,
+    /^  pull_request:\n(?:    .+\n)*?    paths:/m,
+    "the required merge gate must not be skipped by workflow-level path filters",
+  );
+});
+
+test("documentation validation runs inside the merge gate", () => {
+  for (const command of [
+    "pnpm --dir packages/docs generate:api:dry-run",
+    "pnpm --dir packages/docs validate",
+    "pnpm --dir packages/docs check:links",
+  ]) {
+    assert.ok(ciWorkflow.includes(command), `${command} is missing from the merge gate`);
+  }
+
+  assert.match(ciWorkflow, /if: steps\.docs\.outputs\.changed == 'true'/);
+});
+
+test("the standalone Docs CI is post-merge or manually dispatched", () => {
+  assert.doesNotMatch(docsWorkflow, /^  pull_request:/m);
+  assert.match(docsWorkflow, /^  push:\n    branches: \[main\]\n    paths:$/m);
+  assert.match(docsWorkflow, /^  workflow_dispatch: \{\}$/m);
 });

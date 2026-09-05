@@ -1,5 +1,6 @@
 {
   "name": "aperture",
+  "private": true,
   "description": "A safe, metered AI image & video generator built on Creem (credits + moderation).",
   "scripts": {
     "dev": "next dev",

@@ -1,5 +1,5 @@
 import { betterAuth } from "better-auth";
-import { creem } from "../../../../dist/esm/index";
+import { creem } from "../../../../dist/index.mjs";
 import Database from "better-sqlite3";
 import { Kysely, SqliteDialect } from "kysely";
 import path from "path";

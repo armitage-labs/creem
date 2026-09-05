@@ -1,5 +1,16 @@
 # Changelog
 
+## 0.4.1
+
+### Patch Changes
+
+- 3cf0b89: Include consistent MIT licensing, repository metadata, release
+  documentation, and explicit workspace dependency references in published
+  package artifacts, and make dual CommonJS/ESM type entrypoints resolve to
+  their matching declaration format.
+- Updated dependencies [3cf0b89]
+  - creem@1.6.2
+
 ## 0.4.0
 
 ### Minor Changes

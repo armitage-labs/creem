@@ -4,6 +4,7 @@ import type {
   NormalizedDisputeEntity,
   NormalizedSubscriptionEntity,
 } from "@creem_io/webhook-types";
+import type { CustomFieldRequestEntity } from "creem/models/components";
 
 export interface CheckoutCustomer {
   /** Customer email address */
@@ -52,7 +53,8 @@ export interface CreateCheckoutInput {
 
   /**
    * Customer information for the checkout.
-   * If not provided, uses the authenticated user's email and name from the session.
+   * Passed to Creem to prefill the checkout. The adapter does not read an authenticated session;
+   * validate or replace client-provided customer data in your route when identity matters.
    *
    * @optional
    * @example { email: "user@example.com", name: "John Doe" }
@@ -60,17 +62,16 @@ export interface CreateCheckoutInput {
   customer?: CheckoutCustomer;
 
   /**
-   * Custom fields to include with the checkout.
-   * Useful for storing additional information about the purchase.
+   * Text or checkbox fields to collect during checkout.
    *
    * @optional
-   * @example { custom_field_1: "value1", custom_field_2: "value2" }
+   * @example [{ type: "text", key: "company", label: "Company name", optional: true }]
    */
-  customFields?: Record<string, unknown>;
+  customFields?: CustomFieldRequestEntity[];
 
   /**
    * URL to redirect to after successful checkout.
-   * If not provided, uses the defaultSuccessUrl from plugin options.
+   * If not provided, uses `defaultSuccessUrl` from the checkout route options.
    *
    * @optional
    * @example "/thank-you"
@@ -80,7 +81,8 @@ export interface CreateCheckoutInput {
 
   /**
    * Additional metadata to store with the checkout.
-   * Automatically includes the authenticated user's ID as `referenceId` if available.
+   * The adapter does not authenticate or validate these values. When the separate `referenceId`
+   * input is present, it is merged into this metadata under the `referenceId` key.
    *
    * @optional
    * @example { orderId: "12345", source: "web" }
@@ -89,7 +91,8 @@ export interface CreateCheckoutInput {
 
   /**
    * User ID to associate with the checkout.
-   * Automatically includes the authenticated user's ID as `referenceId` if available.
+   * Added to checkout metadata as `referenceId`. The adapter does not authenticate or resolve
+   * this value, so derive it from trusted server-side state for authenticated billing.
    *
    * @optional
    * @example "user123"

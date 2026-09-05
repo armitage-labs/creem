@@ -1,5 +1,30 @@
 # Changelog
 
+## 0.5.6
+
+### Patch Changes
+
+- a5b5cea: Bump creem SDK dependency to 1.6.2
+
+## 0.5.5
+
+### Patch Changes
+
+- ccbf8a7: Make the central integration guides the source of truth, replace duplicated package documentation
+  with concise quickstarts, and correct stale Better Auth examples and webhook paths. Align Next.js
+  checkout custom fields with the SDK request type, forward checkout idempotency keys, and add
+  behavior coverage for both.
+
+## 0.5.4
+
+### Patch Changes
+
+- 3cf0b89: Include consistent MIT licensing, repository metadata, release documentation,
+  and explicit workspace dependency references in published package artifacts,
+  and make dual CommonJS/ESM type entrypoints resolve to their matching declaration
+  format.
+- 8e0f6af: Bump creem SDK dependency to 1.6.1
+
 ## 0.5.3
 
 ### Patch Changes

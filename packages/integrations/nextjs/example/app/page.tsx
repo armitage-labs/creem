@@ -3,9 +3,6 @@
 import { CreemCheckout, CreemPortal } from "@creem_io/nextjs";
 
 export default function Home() {
-  const handleCreateCheckout = () => {
-    console.log("Create Checkout");
-  };
   return (
     <div className="p-[15vw]">
       {/* Checkout component - automatically redirects to /checkout route handler */}
@@ -25,9 +22,7 @@ export default function Home() {
           }}
           referenceId="user_1234567890"
         >
-          <button onClick={handleCreateCheckout} className="bg-amber-400">
-            Buy Now - Checkout
-          </button>
+          <span className="bg-amber-400">Buy Now - Checkout</span>
         </CreemCheckout>
       </div>
 

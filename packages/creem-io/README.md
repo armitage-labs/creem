@@ -759,7 +759,7 @@ We welcome contributions! Please open an issue or submit a pull request.
 - 📧 **Email**: support@creem.io
 - 💬 **Discord**: [Join our community](https://discord.gg/q3GKZs92Av)
 - 📚 **Documentation**: [docs.creem.io](https://docs.creem.io)
-- 🐛 **Issues**: [GitHub Issues](https://github.com/armitage-labs/creem_io/issues)
+- 🐛 **Migration questions**: [Monorepo issues](https://github.com/armitage-labs/creem/issues)
 
 ---
 
