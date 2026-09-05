@@ -3,6 +3,7 @@ import type { TuiModuleDescriptor, TuiState } from "./types";
 import { getCachedEnv, resetEnvCache } from "../lib/env-cache";
 
 // Regex matching all ANSI escape sequences (colors, cursor, etc.)
+// eslint-disable-next-line no-control-regex -- terminal ANSI escape matching is intentional
 const ANSI_RE = /\x1b\[[0-9;]*m/g;
 
 // Re-export for any existing consumers
@@ -335,7 +336,7 @@ function renderBottomBar<T>(
   }
 
   if (state.mode === "confirm" && state.pendingCommand) {
-    const msg = ` ${state.pendingCommand.name} selected item? (y/n)`;
+    const msg = ` ${getCachedEnv().toUpperCase()}: ${state.pendingCommand.name} selected item? (y/n)`;
     return chalk.yellow.inverse(msg.padEnd(cols));
   }
 

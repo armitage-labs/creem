@@ -23,6 +23,7 @@ function ensureConfigDir(): void {
   if (!fs.existsSync(CONFIG_DIR)) {
     fs.mkdirSync(CONFIG_DIR, { recursive: true, mode: 0o700 });
   }
+  fs.chmodSync(CONFIG_DIR, 0o700);
 }
 
 const VALID_ENVIRONMENTS = ["test", "live"] as const;
@@ -79,6 +80,7 @@ export function saveConfig(config: CreemConfig): void {
   fs.writeFileSync(CONFIG_FILE, JSON.stringify(config, null, 2), {
     mode: 0o600,
   });
+  fs.chmodSync(CONFIG_FILE, 0o600);
 }
 
 /**
@@ -120,5 +122,5 @@ export function getConfigPath(): string {
  */
 export function isAuthenticated(): boolean {
   const config = loadConfig();
-  return !!config.api_key;
+  return !!(process.env.CREEM_API_KEY?.trim() || config.api_key);
 }

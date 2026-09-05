@@ -1,162 +1,49 @@
 ---
 title: Creem CLI
-description: Browse and manage your Creem store directly from the terminal with an interactive TUI.
+description: Browse your Creem store interactively and discover every SDK operation from the terminal.
 ---
 
-The Creem CLI gives you full control of your store without leaving the terminal. Browse products, customers, subscriptions, and transactions through an interactive interface, or run quick commands for day-to-day operations.
+Install the CLI with Node.js 22 or newer and log in using the masked key prompt:
 
-## Installation
-
-<CodeGroup>
-
-```bash brew
-brew tap armitage-labs/creem
-brew install creem
-```
-
-```bash npm
+```sh
 npm install -g @creem_io/cli
+creem login
+creem whoami
 ```
 
-```bash npx
-npx @creem_io/cli <command>
-```
+Homebrew users can run `brew tap armitage-labs/creem` and `brew install creem`. Verify the installed version with `creem --version`.
 
-</CodeGroup>
+## Interactive browsing
 
-Once installed, run `creem` to see the full command reference:
+Open products, customers, subscriptions, or transactions without a subcommand:
 
-<Frame caption="The Creem CLI with all available commands.">
-  <img src="/images/cli/creem-cli.png" />
-</Frame>
-
-## Login
-
-```bash
-creem login --api-key creem_test_YOUR_KEY_HERE
-```
-
-The CLI auto-detects test vs live mode from your key prefix. You can verify your session at any time:
-
-```
-$ creem whoami
-
-✓ Logged in to Creem
-
-Environment  test
-API Key      creem_te...5mBJ
-API URL      https://test-api.creem.io
-```
-
-<Warning>
-**Start in test mode.** Use a `creem_test_` key while getting familiar with the CLI. Switch to live only when you're ready for real transactions.
-</Warning>
-
-## Interactive Mode
-
-This is where the CLI really shines. Run any resource command without a subcommand to launch an interactive browser:
-
-```bash
+```sh
 creem products
 creem customers
 creem subscriptions
 creem transactions
 ```
 
-You get a full TUI (terminal user interface) where you can browse, search, and drill into records without writing any commands.
+Use arrows or `j`/`k` to move, Enter for details, `/` to search, and `q` to quit. The command bar supports customer billing links and subscription cancellation, pause, and resume. Destructive actions require confirmation. The TUI displays your test/live environment.
 
-### Browsing Transactions
+## Scriptable commands
 
-<Frame caption="Interactive transaction browser with amounts, types, and timestamps.">
-  <img src="/images/cli/transactions.png" />
-</Frame>
+All 55 generated SDK operations are also available as terminal commands, including customer credits, licenses, affiliates and invitations, revenue splits, moderation, and refunds. Use the shared [command reference](/code/cli#command-reference) and append `--help` to discover flags.
 
-Press Enter on any row to drill into the full detail view:
-
-<Frame caption="Transaction detail view showing amount, tax, currency, linked order, subscription, and customer.">
-  <img src="/images/cli/transaction_details.png" />
-</Frame>
-
-### Managing Subscriptions
-
-Navigate into any subscription to see its full details and take actions directly from the status bar:
-
-<Frame caption="Subscription detail view with cancel, pause, and resume actions available from the command bar.">
-  <img src="/images/cli/subscriptions.png" />
-</Frame>
-
-**Navigation keys:**
-- `j`/`k` or arrow keys to move through the list
-- Enter to view details
-- `/` to search
-- `:` to open the command bar (cancel, pause, resume)
-- `q` to go back or exit
-
-## Quick Commands
-
-For when you need something specific without browsing:
-
-```bash
-# Products
-creem products list
-creem products get prod_XXXXX
-creem products create --name "Pro Plan" --price 1999 --currency USD --billing-type recurring --billing-period every-month
-
-# Customers
-creem customers list
-creem customers get cust_XXXXX
-creem customers billing cust_XXXXX   # generates a billing portal link
-
-# Subscriptions
-creem subscriptions list --status active
-creem subscriptions cancel sub_XXXXX --mode scheduled
-creem subscriptions pause sub_XXXXX
-creem subscriptions resume sub_XXXXX
-
-# Transactions
-creem transactions list --limit 50
-creem transactions get txn_XXXXX
-
-# Checkouts
-creem checkouts create --product prod_XXXXX --success-url https://app.com/welcome
+```sh
+creem products create --name Free --description 'Free download' --price 0 --currency USD --billing-type onetime
+creem checkouts create --product prod_123 --customer-email person@example.com
+creem affiliates list
+creem splits list
+creem stats summary --currency USD
 ```
 
-<Tip>
-Use `--mode scheduled` when cancelling subscriptions. This lets the customer keep access until their billing period ends instead of cutting them off immediately.
-</Tip>
+For complex bodies, use `--data @request.json` with SDK camelCase fields. Use `--json` for machine-readable results or `--all --output ndjson` to export every list item. See [request bodies and pagination](/code/cli#request-bodies).
 
-## Configuration
+## Environments and errors
 
-```bash
-creem config show                        # view all settings
-creem config set environment live        # switch to live mode
-creem config set output_format json      # default to JSON output
-```
+The API key determines test/live mode. `CREEM_API_KEY` takes precedence over local login and is not saved. A conflicting `--environment` fails before an API call. Local credentials use a protected configuration file; `creem logout` removes the stored key.
 
-Every command also supports `--json` for one-off JSON output, useful for piping into other tools:
+Errors explain the problem, a repair step, and the trace ID when provided by the API. Interactive destructive actions show TEST or LIVE before confirmation; scripts and JSON output require `--yes`. Check write outcomes before retrying, because the CLI never retries writes automatically.
 
-```bash
-creem products list --json | jq '.[].name'
-```
-
-## Going Live
-
-Before accepting real payments:
-
-1. Complete account verification in the [Dashboard](https://creem.io/dashboard) under Balances → Payout Account
-2. Switch to your live API key:
-
-```bash
-creem login --api-key creem_LIVE_KEY_HERE
-```
-
-## Next Steps
-
-<CardGroup cols={2}>
-  <Card title="Store Monitoring" icon="bell" href="/ai/for-agents/store-monitoring">
-    Set up automated monitoring so your AI agent notifies you about sales and issues
-  </Card>
-  <Card title="Webhooks" icon="webhook" href="/code/webhooks">
-    Handle real-time payment events in your application
-  </Card>
-</CardGroup>
+Subscription and discount lists now use the SDK's authoritative search endpoints. SDK parity covers public generated operations; dashboard-only and ungenerated metering capabilities remain outside the current CLI baseline.

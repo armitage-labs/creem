@@ -1,0 +1,46 @@
+name: CLI parity
+
+on:
+  pull_request: {}
+  push:
+    branches: [main]
+  workflow_dispatch: {}
+
+permissions:
+  contents: read
+
+jobs:
+  cli-parity:
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        node: [22, 24]
+    steps:
+      - uses: actions/checkout@v4
+      - uses: pnpm/action-setup@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24
+          cache: pnpm
+      - run: pnpm install --frozen-lockfile
+      - run: pnpm --filter creem build
+      - run: pnpm --filter @creem_io/cli build
+      - run: pnpm --filter @creem_io/cli typecheck
+      - run: pnpm --filter @creem_io/cli lint
+      - run: pnpm --filter @creem_io/cli parity:check --strict
+      - run: node packages/cli/scripts/sync-reference.mjs --check
+      - run: pnpm --filter @creem_io/cli format:check
+      - name: Prepare SDK and CLI tarballs
+        run: |
+          mkdir -p "$RUNNER_TEMP/cli-pack"
+          CLI_PACK_DIR="$RUNNER_TEMP/cli-pack" node packages/cli/scripts/test-packed.mjs --pack-only
+      - uses: actions/setup-node@v4
+        with:
+          node-version: ${{ matrix.node }}
+      - name: Test CLI on supported Node version
+        working-directory: packages/cli
+        run: |
+          node node_modules/vitest/vitest.mjs run
+          node dist/index.js --help
+      - name: Install tarballs and verify executable
+        run: CLI_PACK_DIR="$RUNNER_TEMP/cli-pack" node packages/cli/scripts/test-packed.mjs --install-only

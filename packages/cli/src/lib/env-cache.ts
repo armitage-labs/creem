@@ -11,7 +11,12 @@ let cachedEnv: string | null = null;
  */
 export function getCachedEnv(): string {
   if (cachedEnv === null) {
-    cachedEnv = getConfigValue("environment") || "test";
+    const key = process.env.CREEM_API_KEY?.trim();
+    cachedEnv = key
+      ? key.startsWith("creem_test_")
+        ? "test"
+        : "live"
+      : getConfigValue("environment") || "test";
   }
   return cachedEnv;
 }

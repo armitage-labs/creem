@@ -1,8 +1,12 @@
 import { Command } from "commander";
 import ora from "ora";
 import chalk from "chalk";
-import { password, confirm, select } from "@inquirer/prompts";
-import { getClient } from "../lib/api";
+import { password, select } from "@inquirer/prompts";
+import { createContext, type CliContext } from "../lib/context";
+import { CliError, redact } from "../lib/errors";
+import { parseInteger } from "../lib/input";
+import { addGlobalOptions, outputFormat } from "./resource";
+import { writeResult } from "../utils/results";
 import * as output from "../utils/output";
 
 // ============================================================================
@@ -289,6 +293,7 @@ async function withRetry<T>(
   label: string,
   maxAttempts = 3,
   baseDelayMs = 1000,
+  silent = false,
 ): Promise<T> {
   if (maxAttempts < 1) {
     throw new Error("maxAttempts must be at least 1");
@@ -301,9 +306,10 @@ async function withRetry<T>(
       lastError = error instanceof Error ? error : new Error(String(error));
       if (attempt < maxAttempts && isRetryableError(error)) {
         const delayMs = baseDelayMs * Math.pow(2, attempt - 1);
-        console.error(
-          chalk.dim(`  ↻ Attempt ${attempt + 1}/${maxAttempts} for ${label} in ${delayMs}ms...`),
-        );
+        if (!silent)
+          console.error(
+            chalk.dim(`  ↻ Attempt ${attempt + 1}/${maxAttempts} for ${label} in ${delayMs}ms...`),
+          );
         await new Promise((resolve) => setTimeout(resolve, delayMs));
       } else {
         break;
@@ -322,7 +328,10 @@ class LemonSqueezyClient {
   private baseUrl = "https://api.lemonsqueezy.com/v1";
   private storeId?: number;
 
-  constructor(apiKey: string) {
+  constructor(
+    apiKey: string,
+    private readonly silent = false,
+  ) {
     this.apiKey = apiKey;
   }
 
@@ -336,30 +345,38 @@ class LemonSqueezyClient {
     perPage = 100,
     filterByStore = false,
   ): Promise<LSApiResponse<T>> {
-    return withRetry(async () => {
-      const url = new URL(`${this.baseUrl}${endpoint}`);
-      url.searchParams.set("page[number]", page.toString());
-      url.searchParams.set("page[size]", perPage.toString());
-      // Filter by store_id to only fetch data from the validated store
-      if (filterByStore && this.storeId) {
-        url.searchParams.set("filter[store_id]", this.storeId.toString());
-      }
+    return withRetry(
+      async () => {
+        const url = new URL(`${this.baseUrl}${endpoint}`);
+        url.searchParams.set("page[number]", page.toString());
+        url.searchParams.set("page[size]", perPage.toString());
+        // Filter by store_id to only fetch data from the validated store
+        if (filterByStore && this.storeId) {
+          url.searchParams.set("filter[store_id]", this.storeId.toString());
+        }
 
-      const response = await fetch(url.toString(), {
-        headers: {
-          Accept: "application/vnd.api+json",
-          "Content-Type": "application/vnd.api+json",
-          Authorization: `Bearer ${this.apiKey}`,
-        },
-      });
+        const response = await fetch(url.toString(), {
+          headers: {
+            Accept: "application/vnd.api+json",
+            "Content-Type": "application/vnd.api+json",
+            Authorization: `Bearer ${this.apiKey}`,
+          },
+        });
 
-      if (!response.ok) {
-        const errorText = await response.text();
-        throw new Error(`Lemon Squeezy API error (${response.status}): ${errorText}`);
-      }
+        if (!response.ok) {
+          const errorText = await response.text();
+          throw new Error(
+            `Lemon Squeezy API error (${response.status}): ${redact(errorText, [this.apiKey])}`,
+          );
+        }
 
-      return response.json() as Promise<LSApiResponse<T>>;
-    }, `${endpoint} (page ${page})`);
+        return response.json() as Promise<LSApiResponse<T>>;
+      },
+      `${endpoint} (page ${page})`,
+      3,
+      1000,
+      this.silent,
+    );
   }
 
   async *paginate<T>(endpoint: string, filterByStore = false): AsyncGenerator<T[], void, unknown> {
@@ -758,6 +775,7 @@ function buildMigrationPlan(
 async function executeMigration(
   plan: MigrationPlan,
   options: { dryRun: boolean },
+  context: CliContext,
 ): Promise<MigrationResult> {
   const result: MigrationResult = {
     success: true,
@@ -773,7 +791,7 @@ async function executeMigration(
     return result;
   }
 
-  const client = getClient();
+  const client = context.client({});
 
   // Migrate Products (skip products with unsupported billing intervals)
   const migrateableProducts = plan.products.filter((p) => !p.skipped);
@@ -816,17 +834,13 @@ async function executeMigration(
           | "every-year";
       }
 
-      // NOTE: Retrying a POST create is not idempotent — a transient failure after the server
-      // processes the request could lead to a duplicate product. This is an acceptable tradeoff:
-      // duplicates can be cleaned up manually, whereas failing the entire migration is worse.
-      const created = (await withRetry(
-        () => client.products.create(params),
-        `product "${item.creemProduct.name}"`,
-      )) as unknown as { id: string };
+      const created = await client.products.create(params);
       result.created.products.push(created.id);
       spinner.succeed(`${progress} Created: ${item.creemProduct.name}`);
     } catch (error) {
-      const errorMsg = error instanceof Error ? error.message : "Unknown error";
+      const errorMsg = redact(error instanceof Error ? error.message : "Unknown error", [
+        ...context.secrets,
+      ]);
       result.failed.products.push({
         name: item.creemProduct.name,
         error: errorMsg,
@@ -918,17 +932,13 @@ async function executeMigration(
           params.durationInMonths = item.creemDiscount.durationInMonths;
         }
 
-        // NOTE: Retrying a POST create is not idempotent — see product create comment above.
-        // Discount codes are unique, so duplicates will fail with a conflict error rather than
-        // silently creating duplicates.
-        const created = (await withRetry(
-          () => client.discounts.create(params),
-          `discount "${item.creemDiscount.code}"`,
-        )) as unknown as { id: string; code: string };
+        const created = await client.discounts.create(params);
         result.created.discounts.push(created.id);
         spinner.succeed(`${progress} Created: ${item.creemDiscount.code}`);
       } catch (error) {
-        const errorMsg = error instanceof Error ? error.message : "Unknown error";
+        const errorMsg = redact(error instanceof Error ? error.message : "Unknown error", [
+          ...context.secrets,
+        ]);
         result.failed.discounts.push({
           code: item.creemDiscount.code,
           error: errorMsg,
@@ -942,8 +952,8 @@ async function executeMigration(
     }
   }
 
-  // Note: Customer and File migration require additional CREEM API endpoints
-  // that are not yet available in the SDK. Logging for manual follow-up.
+  // The legacy migration plan leaves customers and files for manual follow-up.
+  // SDK customer creation is available separately through customers create.
 
   if (plan.customers.length > 0) {
     console.log();
@@ -970,23 +980,39 @@ async function executeMigration(
 // CLI Commands
 // ============================================================================
 
-function createLemonSqueezyCommand(): Command {
-  const command = new Command("lemon-squeezy")
-    .description("Migrate from Lemon Squeezy to CREEM")
+function createLemonSqueezyCommand(context: CliContext): Command {
+  const command = addGlobalOptions(
+    new Command("lemon-squeezy").description("Migrate from Lemon Squeezy to CREEM"),
+  )
     .option("--ls-api-key <key>", "Lemon Squeezy API key")
     .option("--ls-store-id <id>", "Lemon Squeezy store ID to migrate from")
     .option("--dry-run", "Preview migration without making changes")
     // Note: --log-file is not yet implemented - will be added in future version
-    .option("--json", "Output migration plan as JSON (implies --dry-run)")
+
     .option("--exclude-discounts", "Skip migrating discounts entirely")
     .action(
-      async (options: {
-        lsApiKey?: string;
-        lsStoreId?: string;
-        dryRun?: boolean;
-        json?: boolean;
-        excludeDiscounts?: boolean;
-      }) => {
+      async (
+        localOptions: {
+          lsApiKey?: string;
+          lsStoreId?: string;
+          dryRun?: boolean;
+          json?: boolean;
+          excludeDiscounts?: boolean;
+        },
+        cmd: Command,
+      ) => {
+        const globals = cmd.optsWithGlobals();
+        const options = { ...localOptions, json: outputFormat(cmd) !== "table" };
+        const client = context.client({
+          environment: globals.environment,
+          timeout: globals.timeout,
+        });
+        const executionContext = { ...context, client: () => client };
+        if (!context.isTTY && !options.dryRun && !options.json && !globals.yes)
+          throw new CliError("Migration requires --yes in non-interactive mode.");
+        if (options.lsStoreId) parseInteger("--ls-store-id", options.lsStoreId, { min: 1 });
+        const spin = (text: string) =>
+          ora({ text, isSilent: options.json || !context.isTTY }).start();
         // Skip banner when outputting JSON to avoid corrupting stdout
         if (!options.json) {
           console.log();
@@ -995,18 +1021,12 @@ function createLemonSqueezyCommand(): Command {
           console.log();
         }
 
-        // Verify CREEM authentication
-        try {
-          getClient();
-        } catch {
-          output.error("Not authenticated with CREEM. Run `creem login` first.");
-          process.exit(1);
-        }
-
         // Get Lemon Squeezy API key
         let lsApiKey = options.lsApiKey;
 
         if (!lsApiKey) {
+          if (!context.isTTY || options.json)
+            throw new CliError("Supply --ls-api-key for non-interactive migration.", 3);
           try {
             lsApiKey = await password({
               message: "Enter your Lemon Squeezy API key:",
@@ -1023,15 +1043,19 @@ function createLemonSqueezyCommand(): Command {
           }
         }
 
+        context.secrets.add(lsApiKey);
         // Validate Lemon Squeezy API key
-        const lsClient = new LemonSqueezyClient(lsApiKey);
-        const validateSpinner = ora("Validating Lemon Squeezy API key...").start();
+        const lsClient = new LemonSqueezyClient(lsApiKey, options.json);
+        const validateSpinner = spin("Validating Lemon Squeezy API key...");
 
         const validation = await lsClient.validateKey();
         if (!validation.valid) {
           validateSpinner.fail("Invalid Lemon Squeezy API key");
-          output.error(validation.error || "Could not validate API key");
-          process.exit(1);
+          throw new CliError(
+            validation.error || "Could not validate API key",
+            3,
+            "Check --ls-api-key and Lemon Squeezy connectivity.",
+          );
         }
 
         const stores = validation.stores || [];
@@ -1043,29 +1067,25 @@ function createLemonSqueezyCommand(): Command {
 
         if (options.lsStoreId) {
           if (!/^\d+$/.test(options.lsStoreId)) {
-            output.error(`Invalid Lemon Squeezy store ID: ${options.lsStoreId}`);
-            process.exit(1);
+            throw new CliError(`Invalid Lemon Squeezy store ID: ${options.lsStoreId}`);
           }
 
           const requestedStoreId = parseInt(options.lsStoreId, 10);
           if (!Number.isInteger(requestedStoreId) || requestedStoreId <= 0) {
-            output.error(`Invalid Lemon Squeezy store ID: ${options.lsStoreId}`);
-            process.exit(1);
+            throw new CliError(`Invalid Lemon Squeezy store ID: ${options.lsStoreId}`);
           }
 
           selectedStore = stores.find((store) => parseInt(store.id, 10) === requestedStoreId);
           if (!selectedStore) {
-            output.error(
+            throw new CliError(
               `Lemon Squeezy store ID ${options.lsStoreId} was not found for this API key.`,
             );
-            if (stores.length > 0) {
-              output.dim(`Available store IDs: ${stores.map((store) => store.id).join(", ")}`);
-            }
-            process.exit(1);
           }
         } else if (stores.length === 1) {
           selectedStore = stores[0];
         } else {
+          if (!context.isTTY || options.json)
+            throw new CliError("Supply --ls-store-id when more than one store is available.");
           try {
             selectedStore = await select<LSStore>({
               message: "Which Lemon Squeezy store do you want to migrate?",
@@ -1090,20 +1110,17 @@ function createLemonSqueezyCommand(): Command {
         }
 
         if (!selectedStore) {
-          output.error("No Lemon Squeezy store selected. Cannot proceed with migration.");
-          process.exit(1);
+          throw new CliError("No Lemon Squeezy store selected. Cannot proceed with migration.");
         }
 
         const selectedStoreId = parseInt(selectedStore.id, 10);
         if (!Number.isInteger(selectedStoreId) || selectedStoreId <= 0) {
-          output.error(`Invalid Lemon Squeezy store ID: ${selectedStore.id}`);
-          process.exit(1);
+          throw new CliError(`Invalid Lemon Squeezy store ID: ${selectedStore.id}`);
         }
 
         const selectedStoreCurrency = selectedStore.attributes?.currency;
         if (!selectedStoreCurrency) {
-          output.error("Store currency not found. Cannot proceed with migration.");
-          process.exit(1);
+          throw new CliError("Store currency not found. Cannot proceed with migration.");
         }
 
         if (!options.json) {
@@ -1120,19 +1137,18 @@ function createLemonSqueezyCommand(): Command {
         // Validate store currency - CREEM only supports USD and EUR
         const rawCurrency = selectedStoreCurrency.toUpperCase();
         if (rawCurrency !== "USD" && rawCurrency !== "EUR") {
-          output.error(
+          throw new CliError(
             `Your Lemon Squeezy store uses ${rawCurrency}, but CREEM currently only supports USD and EUR.\n` +
               `To migrate, please either:\n` +
               `  1. Change your Lemon Squeezy store currency to USD or EUR before migration\n` +
               `  2. Contact CREEM support for assistance with currency conversion\n` +
               `\nNote: Migrating with incorrect currency would result in wrong pricing in CREEM.`,
           );
-          process.exit(1);
         }
         const storeCurrency: "USD" | "EUR" = rawCurrency;
 
         // Fetch data from Lemon Squeezy
-        const fetchSpinner = ora("Fetching data from Lemon Squeezy...").start();
+        const fetchSpinner = spin("Fetching data from Lemon Squeezy...");
 
         let products: LSProduct[] = [];
         let variants: LSVariant[] = [];
@@ -1231,7 +1247,7 @@ function createLemonSqueezyCommand(): Command {
         }
 
         // Build migration plan (storeCurrency already validated as USD or EUR above)
-        const planSpinner = ora("Building migration plan...").start();
+        const planSpinner = spin("Building migration plan...");
         const plan = buildMigrationPlan(
           products,
           variants,
@@ -1245,7 +1261,12 @@ function createLemonSqueezyCommand(): Command {
         // If JSON output requested, print and exit
         if (options.json) {
           const jsonOutput = fetchFailures.length > 0 ? { ...plan, fetchFailures } : plan;
-          output.outputJson(jsonOutput);
+          writeResult(context, jsonOutput, "json");
+          if (fetchFailures.length)
+            throw new CliError(
+              "Migration preview is incomplete because some source data could not be fetched.",
+              4,
+            );
           return;
         }
 
@@ -1396,31 +1417,20 @@ function createLemonSqueezyCommand(): Command {
           return;
         }
 
-        // Confirmation prompt
-        console.log();
-        let proceed: boolean;
-        try {
-          proceed = await confirm({
-            message: "Proceed with migration?",
-            default: false,
-          });
-        } catch {
-          console.log(chalk.dim("\nMigration cancelled."));
-          return;
-        }
-
-        if (!proceed) {
-          console.log(chalk.dim("\nMigration cancelled."));
-          return;
-        }
+        // Shared TEST/LIVE confirmation policy; JSON remains preview-only.
+        if (
+          !globals.yes &&
+          !(await context.confirm(
+            `${context.environment().toUpperCase()}: Proceed with migration?`,
+          ))
+        )
+          throw new CliError("Migration canceled.");
 
         // Execute migration
         console.log();
         console.log(chalk.bold.green("Starting migration..."));
 
-        const result = await executeMigration(plan, {
-          dryRun: false,
-        });
+        const result = await executeMigration(plan, { dryRun: false }, executionContext);
 
         // Display results
         console.log();
@@ -1486,7 +1496,7 @@ function createLemonSqueezyCommand(): Command {
   return command;
 }
 
-export function createMigrateCommand(): Command {
+export function createMigrateCommand(context: CliContext = createContext()): Command {
   const command = new Command("migrate")
     .description("Migrate from other platforms to CREEM")
     .addHelpText(
@@ -1511,7 +1521,7 @@ ${chalk.dim("Examples:")}
 `,
     );
 
-  command.addCommand(createLemonSqueezyCommand());
+  command.addCommand(createLemonSqueezyCommand(context));
 
   return command;
 }

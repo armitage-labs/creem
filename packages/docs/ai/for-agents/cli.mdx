@@ -1,317 +1,50 @@
 ---
 title: Creem CLI
-description: Manage your entire Creem business from the terminal. Perfect for AI agents and automation workflows.
+description: Automate every generated SDK operation with environment authentication and stable JSON output.
 ---
 
-The Creem CLI lets you manage products, customers, subscriptions, and transactions directly from the terminal. It's designed for both human developers and AI agents building automation workflows.
+Provide `CREEM_API_KEY` through your environment or secret store. The CLI infers test/live mode without persisting the key. Use Node.js 22 or newer.
 
-## Installation
-
-### Homebrew (macOS/Linux)
-
-```bash
-brew tap armitage-labs/creem
-brew install creem
-```
-
-Verify installation:
-
-```bash
-creem --version
-```
-
-## Authentication
-
-```bash
-# Login with your API key
-creem login --api-key creem_test_YOUR_KEY_HERE
-
-# Verify authentication
-creem whoami
-
-# Logout
-creem logout
-```
-
-<Warning>
-**API Key Security:** Never share your API key with any service, tool, or agent other than the Creem CLI or API. Keys are stored locally at `~/.creem/config.json`.
-</Warning>
-
-### Test vs Live Mode
-
-The CLI automatically detects your environment based on the API key prefix:
-
-| Key Prefix | Environment | API Base |
-|------------|-------------|----------|
-| `creem_test_` | Test (sandbox) | `https://test-api.creem.io` |
-| `creem_` | Live (production) | `https://api.creem.io` |
-
-**Always start in test mode.** Switch to live only when you're ready for real transactions.
-
-## Command Reference
-
-### Products
-
-```bash
-# List all products
-creem products list
-
-# List with pagination
-creem products list --page 2 --limit 10
-
-# Get a specific product
-creem products get prod_XXXXX
-
-# Create a product
-creem products create \
-  --name "Pro Plan" \
-  --description "Monthly pro subscription with all features" \
-  --price 1999 \
-  --currency USD \
-  --billing-type recurring \
-  --billing-period every-month
-```
-
-**Product Options:**
-
-| Option | Values |
-|--------|--------|
-| `--billing-type` | `onetime`, `recurring` |
-| `--billing-period` | `every-month`, `every-three-months`, `every-six-months`, `every-year` |
-| `--tax-category` | `saas`, `digital-goods-service`, `ebooks` |
-| `--tax-mode` | `inclusive`, `exclusive` |
-
-### Customers
-
-```bash
-# List all customers
-creem customers list
-
-# Get customer by ID
-creem customers get cust_XXXXX
-
-# Get customer by email
-creem customers get --email user@example.com
-
-# Generate billing portal link (self-service for payment methods, invoices)
-creem customers billing cust_XXXXX
-```
-
-### Subscriptions
-
-```bash
-# List all subscriptions
-creem subscriptions list
-
-# Filter by status
-creem subscriptions list --status active
-
-# Get subscription details
-creem subscriptions get sub_XXXXX
-
-# Cancel immediately
-creem subscriptions cancel sub_XXXXX
-
-# Cancel at period end (customer keeps access until billing period ends)
-creem subscriptions cancel sub_XXXXX --mode scheduled
-
-# Pause billing
-creem subscriptions pause sub_XXXXX
-
-# Resume billing
-creem subscriptions resume sub_XXXXX
-```
-
-**Subscription Statuses:** `active`, `trialing`, `paused`, `past_due`, `expired`, `canceled`, `scheduled_cancel`
-
-<Tip>
-**Best Practice:** Use `--mode scheduled` for cancellations. Immediate cancellation cuts off access instantly, which frustrates customers.
-</Tip>
-
-### Checkouts
-
-```bash
-# Create a checkout session
-creem checkouts create --product prod_XXXXX
-
-# Create with success URL
-creem checkouts create --product prod_XXXXX --success-url https://app.com/welcome
-
-# Get checkout details
-creem checkouts get chk_XXXXX
-```
-
-### Transactions
-
-```bash
-# List all transactions (newest first)
-creem transactions list
-
-# List with more results
-creem transactions list --limit 50
-
-# Filter by customer
-creem transactions list --customer cust_XXXXX
-
-# Filter by product
-creem transactions list --product prod_XXXXX
-
-# Get transaction details
-creem transactions get txn_XXXXX
-```
-
-### Configuration
-
-```bash
-# View all settings
-creem config show
-
-# Switch to live mode
-creem config set environment live
-
-# Switch to test mode
-creem config set environment test
-
-# Set default output format
-creem config set output_format json
-creem config set output_format table
-
-# Get a specific setting
-creem config get environment
-
-# List all config keys
-creem config list
-```
-
-## Interactive Mode
-
-Run a resource command without a subcommand to launch an interactive browser:
-
-```bash
-creem products
-creem customers
-creem subscriptions
-creem transactions
-```
-
-**Keys:**
-- Arrow keys to navigate
-- Enter to view details
-- `:` to open the command bar
-- `q` to exit
-
-## Output Formats
-
-Every command supports table (default) and JSON output:
-
-```bash
-# Per-command JSON output
+```sh
+npm install -g @creem_io/cli
 creem products list --json
-creem customers get cust_XXXXX --json
-
-# Set JSON as global default
-creem config set output_format json
+creem subscriptions list --all --json
+creem credits entries acc_123 --all --output ndjson
 ```
 
-<Note>
-**For AI Agents:** Always use `--json` and parse with `jq` for reliable automation:
+## Input contract
 
-```bash
-creem products list --json | jq '.[].id'
-creem customers get cust_XXXXX --json | jq '.email'
-creem subscriptions list --status active --json | jq 'length'
-```
-</Note>
+Use `creem <resource> <command> --help` to discover inputs. All 55 SDK operations appear in the shared [command reference](/code/cli#command-reference). Every body operation accepts camelCase JSON inline, from `@file.json`, or from stdin with `--data -`. Do not combine body flags with `--data`. Non-body flags, path IDs, and `--yes` remain allowed.
 
-## Automation Examples
-
-### Check for new transactions
-
-```bash
-# Get the latest transaction ID
-LATEST=$(creem transactions list --limit 1 --json | jq -r '.[0].id')
-echo "Latest transaction: $LATEST"
+```sh
+creem checkouts create --data '{"productId":"prod_123","customer":{"email":"person@example.com"},"metadata":{"visits":42}}' --json
+creem credits credit acc_123 --amount '9007199254740993' --reference event-123 --idempotency-key event-123 --json
+creem transactions refund tran_123 --yes --json
 ```
 
-### Count active subscriptions
+Credit amounts stay strings. Writes are attempted once; the CLI never retries automatically. If a write fails ambiguously, inspect its outcome before manually retrying with the same supported idempotency key. Product creation supports the idempotency header; credit/debit idempotency keys are body fields.
 
-```bash
-ACTIVE=$(creem subscriptions list --status active --json | jq 'length')
-echo "Active subscriptions: $ACTIVE"
+## Output and errors
+
+Use `--json` for a single SDK result or aggregated collection, and `--all --output ndjson` to stream list items. Standard output contains results; structured errors go to standard error. NDJSON may contain successful earlier pages before a later failure. Check the process exit code before accepting a completed export.
+
+| Exit | Meaning |
+| --- | --- |
+| 0 | Success |
+| 1 | Unexpected failure |
+| 2 | Invalid CLI usage or request input |
+| 3 | Auth/config failure |
+| 4 | API or response-validation failure |
+| 5 | Network/timeout failure |
+
+Without credentials, `creem products list --json` produces no stdout and exits 3 with this stderr:
+
+```json
+{"error":{"type":"auth","message":"Not authenticated.","status":null,"traceId":null,"details":null,"cause":null,"suggestion":"Set CREEM_API_KEY or run creem login.","retryAfter":null}}
 ```
 
-### Check for payment issues
+## Confirmation and compatibility
 
-```bash
-PAST_DUE=$(creem subscriptions list --status past_due --json | jq 'length')
-EXPIRED=$(creem subscriptions list --status expired --json | jq 'length')
+Use `--yes` for destructive commands in automation. Human prompts are disabled for JSON/NDJSON and non-TTY execution. The [reference](/code/cli#errors-and-safety) lists the policy. Existing aliases remain valid. Subscription and discount lists now use authoritative SDK search; the old subscription `note` field is removed. Subscription `--status` filters all pages and labels its client-side result.
 
-if [ "$PAST_DUE" -gt 0 ] || [ "$EXPIRED" -gt 0 ]; then
-  echo "⚠️ Alert: $PAST_DUE past_due, $EXPIRED expired subscriptions"
-fi
-```
-
-### Generate bulk checkout links
-
-```bash
-for PRODUCT_ID in prod_AAA prod_BBB prod_CCC; do
-  URL=$(creem checkouts create --product "$PRODUCT_ID" --json | jq -r '.checkout_url')
-  echo "$PRODUCT_ID: $URL"
-done
-```
-
-### Daily subscription health check
-
-```bash
-#!/bin/bash
-# Run daily via cron to monitor subscription health
-
-echo "📊 Subscription Report - $(date)"
-echo "================================"
-echo "Active: $(creem subscriptions list --status active --json | jq 'length')"
-echo "Trialing: $(creem subscriptions list --status trialing --json | jq 'length')"
-echo "Past Due: $(creem subscriptions list --status past_due --json | jq 'length')"
-echo "Expired: $(creem subscriptions list --status expired --json | jq 'length')"
-echo "Canceled: $(creem subscriptions list --status canceled --json | jq 'length')"
-```
-
-## Tips for AI Agents
-
-<CardGroup cols={2}>
-  <Card title="Use JSON Output" icon="code">
-    Always add `--json` to commands when processing output programmatically. Parse with `jq` for reliable automation.
-  </Card>
-  <Card title="Test Mode First" icon="flask">
-    Mistakes in live mode affect real customers and money. Always develop against test mode.
-  </Card>
-  <Card title="Check whoami First" icon="user-check">
-    Run `creem whoami` before operations to confirm authentication and environment.
-  </Card>
-  <Card title="Don't Guess IDs" icon="list">
-    List resources first, then use actual IDs from the response. Don't assume ID formats.
-  </Card>
-</CardGroup>
-
-## Going Live
-
-Before accepting real payments:
-
-1. Complete account verification in the [Dashboard](https://creem.io/dashboard) → Balances → Payout Account
-2. Switch to your live API key:
-
-```bash
-creem login --api-key creem_LIVE_KEY_HERE
-```
-
-The CLI automatically switches to the production API based on the key prefix.
-
-## Next Steps
-
-<CardGroup cols={2}>
-  <Card title="Store Monitoring" icon="bell" href="/ai/for-agents/store-monitoring">
-    Set up automated monitoring to get notified about sales and issues
-  </Card>
-  <Card title="Webhooks" icon="webhook" href="/code/webhooks">
-    Handle real-time payment events in your application
-  </Card>
-</CardGroup>
+The CLI covers the generated SDK's 55-operation baseline. It does not add raw HTTP commands for dashboard-only or ungenerated metering operations.

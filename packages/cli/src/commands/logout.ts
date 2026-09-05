@@ -1,27 +1,12 @@
 import { Command } from "commander";
 import { logout } from "../lib/auth";
-import { isAuthenticated } from "../lib/config";
-import * as output from "../utils/output";
-
-export function createLogoutCommand(): Command {
-  const command = new Command("logout")
-    .description("Log out and clear stored credentials")
-    .action(() => {
-      if (!isAuthenticated()) {
-        output.info("Not currently logged in.");
-        return;
-      }
-
-      const result = logout();
-
-      if (result.success) {
-        output.success("Successfully logged out.");
-        output.dim("Your API key has been removed from local storage.");
-      } else {
-        output.error(result.message);
-        process.exit(1);
-      }
-    });
-
+import { createContext, type CliContext } from "../lib/context";
+import { addGlobalOptions, outputFormat } from "./resource";
+import { writeResult } from "../utils/results";
+export function createLogoutCommand(context: CliContext = createContext()): Command {
+  const command = addGlobalOptions(
+    new Command("logout").description("Clear stored credentials (environment keys remain active)"),
+  );
+  command.action(() => writeResult(context, logout(), outputFormat(command)));
   return command;
 }
