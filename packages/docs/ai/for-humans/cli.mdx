@@ -3,15 +3,28 @@ title: Creem CLI
 description: Browse and manage your Creem store directly from the terminal with an interactive TUI.
 ---
 
-import CliInstallation from "/snippets/cli-installation.mdx";
-
 The Creem CLI gives you full control of your store without leaving the terminal. Browse products, customers, subscriptions, and transactions through an interactive interface, or run quick commands for day-to-day operations.
 
 ## Installation
 
-Choose Homebrew, npm, or npx. npm and npx require Node.js 22 or newer.
+**Prerequisite:** Node.js 22 or newer.
 
-<CliInstallation />
+<CodeGroup>
+
+```bash brew
+brew tap armitage-labs/creem
+brew install creem
+```
+
+```bash npm
+npm install -g @creem_io/cli
+```
+
+```bash npx
+npx @creem_io/cli --help
+```
+
+</CodeGroup>
 
 After installing, run `creem --help` to explore commands. With npx, replace `creem` with `npx @creem_io/cli` in the examples below.
 
