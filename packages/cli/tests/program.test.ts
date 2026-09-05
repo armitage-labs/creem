@@ -14,6 +14,12 @@ describe("command contracts", () => {
   it.each(["cust", "subs", "txn", "credits"])("preserves %s alias", (alias) =>
     expect(createProgram().commands.some((c) => c.aliases().includes(alias))).toBe(true),
   );
+  it.each([["help"], ["help", "products"]])("preserves the legacy %s command", async (...args) => {
+    const result = await harness().run(args);
+    expect(result.code, result.stderr).toBe(0);
+    expect(result.stdout).toContain("Usage:");
+    expect(result.stderr).toBe("");
+  });
   it.each([
     ["--json", "missing"],
     ["products", "get", "--json"],

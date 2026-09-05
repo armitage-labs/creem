@@ -2,6 +2,7 @@ import { Creem } from "creem";
 import { getConfigValue, loadConfig } from "./config";
 import { resetEnvCache } from "./env-cache";
 import { CliError, redact } from "./errors";
+import { isRecord } from "./operation";
 
 export function inferEnvironment(key: string): "test" | "live" {
   if (key.startsWith("creem_test_")) return "test";
@@ -62,6 +63,9 @@ export async function validateApiKey(
     await client.products.search(1, 1);
     return { valid: true };
   } catch (error) {
+    // A 403 proves that the API recognized the key, but the key does not have
+    // access to the product-list probe. Authorization remains operation-specific.
+    if (isRecord(error) && error.statusCode === 403) return { valid: true };
     return {
       valid: false,
       error: redact(error instanceof Error ? error.message : "Authentication failed", [apiKey]),

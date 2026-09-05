@@ -186,6 +186,8 @@ export async function executeOperation(
         } else if (schema.properties || schema.type === "object") b[field] = parseJsonValue(value);
         else b[field] = parseInput(field, value, schema);
       }
+    if (row.cliPath === "subscriptions cancel" && opts.data === undefined && b.mode === undefined)
+      b.mode = "immediate";
     if (row.body.positional && id) {
       const field = row.body.positional;
       if (b[field] !== undefined && b[field] !== id)

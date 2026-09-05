@@ -29,6 +29,26 @@ export function createProgram(context: CliContext = createContext()): Command {
   program.addCommand(createWhoamiCommand(context));
   program.addCommand(createConfigCommand(context));
   program.addCommand(createMigrateCommand(context));
+  program.addCommand(
+    new Command("help")
+      .description("Display help for the CLI or a command")
+      .argument("[command]", "Command to get help for")
+      .action((commandName?: string) => {
+        if (!commandName) {
+          program.outputHelp();
+          return;
+        }
+        const command = program.commands.find(
+          (candidate) =>
+            candidate.name() === commandName || candidate.aliases().includes(commandName),
+        );
+        if (!command)
+          throw new CliError(
+            `Unknown command: ${commandName}. Run creem --help for available commands.`,
+          );
+        command.outputHelp();
+      }),
+  );
   program.action(() => program.outputHelp());
   const configure = (cmd: Command) => {
     cmd.configureOutput({ writeOut: context.stdout, writeErr: () => {} }).exitOverride();

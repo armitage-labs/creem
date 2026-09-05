@@ -48,6 +48,20 @@ it("subscriptions cancel sends the exact SDK arguments", async () => {
   expect(result.stderr).toContain("SDK_SENTINEL");
   expect(result.stdout).toBe("");
 });
+it("subscriptions cancel preserves immediate mode when --mode is omitted", async () => {
+  const h = harness();
+  const spy = vi
+    .spyOn(h.client.subscriptions, "cancel")
+    .mockRejectedValue(new Error("SDK_SENTINEL"));
+  const result = await h.run(["subscriptions", "cancel", "sub_1", "--yes", "--json"]);
+  expect(spy, result.stderr).toHaveBeenCalledExactlyOnceWith(
+    "sub_1",
+    expect.objectContaining({ mode: "immediate" }),
+    expect.objectContaining({ retries: { strategy: "none" } }),
+  );
+  expect(result.stderr).toContain("SDK_SENTINEL");
+  expect(result.stdout).toBe("");
+});
 it("subscriptions update sends the exact SDK arguments", async () => {
   const h = harness();
   const spy = vi
