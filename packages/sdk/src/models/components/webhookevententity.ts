@@ -13,6 +13,12 @@ import {
   WebhookCheckoutCompletedEventEntity$outboundSchema,
 } from "./webhookcheckoutcompletedevententity.js";
 import {
+  WebhookCustomerCreditsExhaustedEventEntity,
+  WebhookCustomerCreditsExhaustedEventEntity$inboundSchema,
+  WebhookCustomerCreditsExhaustedEventEntity$Outbound,
+  WebhookCustomerCreditsExhaustedEventEntity$outboundSchema,
+} from "./webhookcustomercreditsexhaustedevententity.js";
+import {
   WebhookDisputeCreatedEventEntity,
   WebhookDisputeCreatedEventEntity$inboundSchema,
   WebhookDisputeCreatedEventEntity$Outbound,
@@ -92,6 +98,9 @@ export type WebhookEventEntity =
   | (WebhookCheckoutCompletedEventEntity & { eventType: "checkout.completed" })
   | (WebhookRefundCreatedEventEntity & { eventType: "refund.created" })
   | (WebhookDisputeCreatedEventEntity & { eventType: "dispute.created" })
+  | (WebhookCustomerCreditsExhaustedEventEntity & {
+    eventType: "customer_credits.exhausted";
+  })
   | (WebhookSubscriptionActiveEventEntity & {
     eventType: "subscription.active";
   })
@@ -136,6 +145,9 @@ export const WebhookEventEntity$inboundSchema: z.ZodType<
   WebhookDisputeCreatedEventEntity$inboundSchema.and(
     z.object({ eventType: z.literal("dispute.created") }),
   ),
+  WebhookCustomerCreditsExhaustedEventEntity$inboundSchema.and(
+    z.object({ eventType: z.literal("customer_credits.exhausted") }),
+  ),
   WebhookSubscriptionActiveEventEntity$inboundSchema.and(
     z.object({ eventType: z.literal("subscription.active") }),
   ),
@@ -175,6 +187,9 @@ export type WebhookEventEntity$Outbound =
   | (WebhookRefundCreatedEventEntity$Outbound & { eventType: "refund.created" })
   | (WebhookDisputeCreatedEventEntity$Outbound & {
     eventType: "dispute.created";
+  })
+  | (WebhookCustomerCreditsExhaustedEventEntity$Outbound & {
+    eventType: "customer_credits.exhausted";
   })
   | (WebhookSubscriptionActiveEventEntity$Outbound & {
     eventType: "subscription.active";
@@ -221,6 +236,9 @@ export const WebhookEventEntity$outboundSchema: z.ZodType<
   ),
   WebhookDisputeCreatedEventEntity$outboundSchema.and(
     z.object({ eventType: z.literal("dispute.created") }),
+  ),
+  WebhookCustomerCreditsExhaustedEventEntity$outboundSchema.and(
+    z.object({ eventType: z.literal("customer_credits.exhausted") }),
   ),
   WebhookSubscriptionActiveEventEntity$outboundSchema.and(
     z.object({ eventType: z.literal("subscription.active") }),

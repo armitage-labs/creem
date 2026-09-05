@@ -6,7 +6,7 @@ import * as z from "zod/v3";
 import { ClosedEnum } from "../../types/enums.js";
 
 /**
- * Billing interval. Required when `billing_type` is `recurring`.
+ * Billing interval. Required when `billing_type` is `recurring`. Use a preset for the common cadences, or `custom` together with `recurring_interval` + `recurring_interval_count` for anything else (e.g. weekly).
  */
 export const ProductRequestBillingPeriod = {
   Once: "once",
@@ -15,9 +15,10 @@ export const ProductRequestBillingPeriod = {
   EveryThreeMonths: "every-three-months",
   EverySixMonths: "every-six-months",
   EveryYear: "every-year",
+  Custom: "custom",
 } as const;
 /**
- * Billing interval. Required when `billing_type` is `recurring`.
+ * Billing interval. Required when `billing_type` is `recurring`. Use a preset for the common cadences, or `custom` together with `recurring_interval` + `recurring_interval_count` for anything else (e.g. weekly).
  */
 export type ProductRequestBillingPeriod = ClosedEnum<
   typeof ProductRequestBillingPeriod

@@ -1,0 +1,21 @@
+# CreateSplitRecipientRequestEntity
+
+## Example Usage
+
+```typescript
+import { CreateSplitRecipientRequestEntity } from "creem/models/components";
+
+let value: CreateSplitRecipientRequestEntity = {
+  recipientType: "store",
+  recipientReference: "store_1a2b3c4d",
+  amount: 25,
+};
+```
+
+## Fields
+
+| Field                                                                                                                                                       | Type                                                                                                                                                        | Required                                                                                                                                                    | Description                                                                                                                                                 | Example                                                                                                                                                     |
+| ----------------------------------------------------------------------------------------------------------------------------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `recipientType`                                                                                                                                             | [components.RecipientType](../../models/components/recipienttype.md)                                                                                        | :heavy_check_mark:                                                                                                                                          | The kind of recipient: `store` for an existing store (add it directly), or `email` to invite someone by email (the split stays disabled until they accept). | store                                                                                                                                                       |
+| `recipientReference`                                                                                                                                        | *string*                                                                                                                                                    | :heavy_check_mark:                                                                                                                                          | The recipient reference: a store id when `recipient_type` is `store`, or an email address when `recipient_type` is `email`.                                 | store_1a2b3c4d                                                                                                                                              |
+| `amount`                                                                                                                                                    | *number*                                                                                                                                                    | :heavy_check_mark:                                                                                                                                          | The recipient's share as a percentage of the split net, from 1 to 100. The sum of all recipient shares must not exceed 100.                                 | 25                                                                                                                                                          |

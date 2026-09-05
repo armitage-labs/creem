@@ -15,6 +15,7 @@ export const ProductBillingPeriod = {
   EveryYear: "every-year",
   EveryDay: "every-day",
   Once: "once",
+  Custom: "custom",
 } as const;
 /**
  * Billing period

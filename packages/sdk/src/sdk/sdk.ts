@@ -11,6 +11,7 @@ import { Discounts } from "./discounts.js";
 import { Licenses } from "./licenses.js";
 import { Moderation } from "./moderation.js";
 import { Products } from "./products.js";
+import { Splits } from "./splits.js";
 import { Stats } from "./stats.js";
 import { Subscriptions } from "./subscriptions.js";
 import { Transactions } from "./transactions.js";
@@ -69,5 +70,10 @@ export class Creem extends ClientSDK {
   private _affiliates?: Affiliates;
   get affiliates(): Affiliates {
     return (this._affiliates ??= new Affiliates(this._options));
+  }
+
+  private _splits?: Splits;
+  get splits(): Splits {
+    return (this._splits ??= new Splits(this._options));
   }
 }

@@ -29,6 +29,11 @@ import {
   ProductRequestBillingType$outboundSchema,
 } from "./productrequestbillingtype.js";
 import {
+  ProductRequestRecurringInterval,
+  ProductRequestRecurringInterval$inboundSchema,
+  ProductRequestRecurringInterval$outboundSchema,
+} from "./productrequestrecurringinterval.js";
+import {
   TaxCategory,
   TaxCategory$inboundSchema,
   TaxCategory$outboundSchema,
@@ -69,9 +74,17 @@ export type CreateProductRequestEntity = {
    */
   billingType: ProductRequestBillingType;
   /**
-   * Billing interval. Required when `billing_type` is `recurring`.
+   * Billing interval. Required when `billing_type` is `recurring`. Use a preset for the common cadences, or `custom` together with `recurring_interval` + `recurring_interval_count` for anything else (e.g. weekly).
    */
   billingPeriod?: ProductRequestBillingPeriod | undefined;
+  /**
+   * Unit of a custom billing period. Required when `billing_period` is `custom`; must be omitted for preset billing periods.
+   */
+  recurringInterval?: ProductRequestRecurringInterval | undefined;
+  /**
+   * Number of `recurring_interval` units per billing cycle. Required when `billing_period` is `custom`. Bounds: day 1–365, week 1–52, month 1–24, year 1–3.
+   */
+  recurringIntervalCount?: number | undefined;
   /**
    * Specifies the tax calculation mode for the transaction. If set to "inclusive," the tax is included in the price. If set to "exclusive," the tax is added on top of the price.
    */
@@ -122,6 +135,8 @@ export const CreateProductRequestEntity$inboundSchema: z.ZodType<
   currency: ProductCurrency$inboundSchema,
   billing_type: ProductRequestBillingType$inboundSchema,
   billing_period: ProductRequestBillingPeriod$inboundSchema.optional(),
+  recurring_interval: ProductRequestRecurringInterval$inboundSchema.optional(),
+  recurring_interval_count: z.number().int().optional(),
   tax_mode: TaxMode$inboundSchema.optional(),
   tax_category: TaxCategory$inboundSchema.optional(),
   pay_what_you_want: z.boolean().optional(),
@@ -136,6 +151,8 @@ export const CreateProductRequestEntity$inboundSchema: z.ZodType<
     "image_urls": "imageUrls",
     "billing_type": "billingType",
     "billing_period": "billingPeriod",
+    "recurring_interval": "recurringInterval",
+    "recurring_interval_count": "recurringIntervalCount",
     "tax_mode": "taxMode",
     "tax_category": "taxCategory",
     "pay_what_you_want": "payWhatYouWant",
@@ -156,6 +173,8 @@ export type CreateProductRequestEntity$Outbound = {
   currency: string;
   billing_type: string;
   billing_period?: string | undefined;
+  recurring_interval?: string | undefined;
+  recurring_interval_count?: number | undefined;
   tax_mode?: string | undefined;
   tax_category?: string | undefined;
   pay_what_you_want?: boolean | undefined;
@@ -180,6 +199,8 @@ export const CreateProductRequestEntity$outboundSchema: z.ZodType<
   currency: ProductCurrency$outboundSchema,
   billingType: ProductRequestBillingType$outboundSchema,
   billingPeriod: ProductRequestBillingPeriod$outboundSchema.optional(),
+  recurringInterval: ProductRequestRecurringInterval$outboundSchema.optional(),
+  recurringIntervalCount: z.number().int().optional(),
   taxMode: TaxMode$outboundSchema.optional(),
   taxCategory: TaxCategory$outboundSchema.optional(),
   payWhatYouWant: z.boolean().optional(),
@@ -194,6 +215,8 @@ export const CreateProductRequestEntity$outboundSchema: z.ZodType<
     imageUrls: "image_urls",
     billingType: "billing_type",
     billingPeriod: "billing_period",
+    recurringInterval: "recurring_interval",
+    recurringIntervalCount: "recurring_interval_count",
     taxMode: "tax_mode",
     taxCategory: "tax_category",
     payWhatYouWant: "pay_what_you_want",
