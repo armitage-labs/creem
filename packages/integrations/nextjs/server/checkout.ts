@@ -21,6 +21,7 @@ export const Checkout = ({
 
   return async (req: NextRequest) => {
     const productId = req.nextUrl.searchParams.get("productId");
+    const requestId = req.nextUrl.searchParams.get("requestId");
     const unitsParam = req.nextUrl.searchParams.get("units");
     const discountCode = req.nextUrl.searchParams.get("discountCode");
     const customerParam = req.nextUrl.searchParams.get("customer");
@@ -66,6 +67,7 @@ export const Checkout = ({
     try {
       const checkout = await creem.checkouts.create({
         productId,
+        requestId: requestId ?? undefined,
         units,
         discountCode: discountCode ?? undefined,
         ...(customer && { customer }),

@@ -1,25 +1,33 @@
 {
   "name": "@creem_io/embed",
-  "version": "0.3.3",
+  "version": "0.3.4",
   "description": "Framework-agnostic core for embedding Creem checkout (modal & inline).",
   "main": "./dist/index.js",
   "module": "./dist/index.mjs",
   "types": "./dist/index.d.ts",
   "exports": {
     ".": {
-      "types": "./dist/index.d.ts",
-      "import": "./dist/index.mjs",
-      "require": "./dist/index.js"
+      "import": {
+        "types": "./dist/index.d.mts",
+        "default": "./dist/index.mjs"
+      },
+      "require": {
+        "types": "./dist/index.d.ts",
+        "default": "./dist/index.js"
+      }
     }
   },
   "files": [
     "dist",
-    "README.md"
+    "README.md",
+    "LICENSE",
+    "CHANGELOG.md"
   ],
   "scripts": {
     "build": "tsup",
     "dev": "tsup --watch",
-    "typecheck": "tsc --noEmit"
+    "typecheck": "tsc --noEmit",
+    "check:package": "publint --strict --pack pnpm && attw --pack ."
   },
   "keywords": [
     "creem",
@@ -42,5 +50,8 @@
     "url": "https://github.com/armitage-labs/creem.git",
     "directory": "packages/ui/embed"
   },
-  "homepage": "https://github.com/armitage-labs/creem/tree/main/packages/ui/embed"
+  "homepage": "https://github.com/armitage-labs/creem/tree/main/packages/ui/embed",
+  "bugs": {
+    "url": "https://github.com/armitage-labs/creem/issues"
+  }
 }

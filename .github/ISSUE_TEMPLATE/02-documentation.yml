@@ -1,0 +1,33 @@
+name: Documentation issue
+description: Report missing, incorrect, or confusing documentation
+title: "[Docs]: "
+body:
+  - type: input
+    id: location
+    attributes:
+      label: Documentation location
+      description: Link the page or name the README and section.
+      placeholder: https://docs.creem.io/...
+    validations:
+      required: true
+  - type: textarea
+    id: problem
+    attributes:
+      label: What is unclear or incorrect?
+      description: Include the package and version when relevant.
+    validations:
+      required: true
+  - type: textarea
+    id: suggestion
+    attributes:
+      label: Suggested improvement
+      description: Describe the information or example that would resolve the problem.
+  - type: checkboxes
+    id: checks
+    attributes:
+      label: Submission checks
+      options:
+        - label: I searched existing issues for the same documentation problem.
+          required: true
+        - label: This report contains no secrets or private customer data.
+          required: true

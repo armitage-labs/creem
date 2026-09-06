@@ -1,0 +1,140 @@
+---
+title: "Client API"
+description: "Create checkouts, open the billing portal, and manage Creem subscriptions through Better Auth."
+---
+
+The client plugin exposes billing methods under `authClient.creem`. Requests include the current
+Better Auth session when one is available. Portal, subscription, transaction, and access endpoints
+require a signed-in user; checkout can also be created without a session.
+
+```typescript
+import { creemClient } from "@creem_io/better-auth/client";
+import { createAuthClient } from "better-auth/react";
+
+export const authClient = createAuthClient({
+  plugins: [creemClient()],
+});
+```
+
+Every method returns the Better Auth `{ data, error }` result shape. Handle `error` before using
+`data`.
+
+## Create a checkout
+
+```typescript
+const { data, error } = await authClient.creem.createCheckout({
+  productId: "prod_...",
+  units: 1,
+  successUrl: "/billing/success",
+  discountCode: "LAUNCH20",
+  metadata: { plan: "pro" },
+});
+
+if (!error && data?.url) {
+  window.location.assign(data.url);
+}
+```
+
+| Input            | Required | Description                                                            |
+| ---------------- | -------- | ---------------------------------------------------------------------- |
+| `productId`      | Yes      | Product to purchase.                                                   |
+| `requestId`      | No       | Idempotency key for retrying checkout creation.                        |
+| `units`          | No       | Positive unit count; defaults to `1`.                                  |
+| `discountCode`   | No       | Active Creem discount code.                                            |
+| `customer.email` | No       | Defaults to the signed-in user's email.                                |
+| `customFields`   | No       | Up to three text or checkbox fields shown during checkout.             |
+| `successUrl`     | No       | Overrides `defaultSuccessUrl` for this checkout.                       |
+| `metadata`       | No       | Application metadata. The signed-in user ID is added as `referenceId`. |
+
+<Note>
+  `customField` is a deprecated alias for `customFields`. New code should use `customFields`.
+</Note>
+
+## Open the customer portal
+
+```typescript
+const { data, error } = await authClient.creem.createPortal();
+
+if (!error && data?.url) {
+  window.location.assign(data.url);
+}
+```
+
+With persistence enabled, omit `customerId` so the plugin uses the current user's stored
+`creemCustomerId`. The endpoint also accepts an explicit customer ID, but it does not verify that
+the ID belongs to the signed-in user. Do not pass a value obtained from untrusted client input.
+
+## Check access
+
+`hasAccessGranted()` reads the signed-in user's persisted subscriptions. It grants access for
+`active`, `trialing`, or `paid` records. A `canceled`, `past_due`, or `unpaid` subscription also
+retains access while its `periodEnd` is still in the future, so customers can use time they have
+already paid for.
+
+```typescript
+const { data, error } = await authClient.creem.hasAccessGranted();
+
+if (!error && data?.hasAccessGranted) {
+  console.log("Access granted", data.subscription);
+}
+```
+
+`hasAccessGranted` can be `undefined` when the user is not signed in, persistence is disabled, or
+the check fails. Do not treat an indeterminate result as authorized access.
+
+## Cancel a subscription
+
+```typescript
+const { data, error } = await authClient.creem.cancelSubscription({
+  id: "sub_...",
+});
+```
+
+The published client type requires the subscription ID. The endpoint does not consistently verify
+ownership of caller-supplied IDs, so derive the ID from billing state already authorized for the
+signed-in user. Use the returned `success` and `message` fields to update the interface.
+
+## Retrieve a subscription
+
+```typescript
+const { data, error } = await authClient.creem.retrieveSubscription({
+  id: "sub_...",
+});
+```
+
+The result includes the subscription status, customer, product, billing dates, and metadata.
+As with cancellation, do not accept the subscription ID from an untrusted caller without checking
+that it belongs to the signed-in account.
+
+## Search transactions
+
+```typescript
+const { data, error } = await authClient.creem.searchTransactions({
+  productId: "prod_...",
+  pageNumber: 1,
+  pageSize: 20,
+});
+
+for (const transaction of data?.items ?? []) {
+  console.log(transaction.id, transaction.status, transaction.amount);
+}
+```
+
+Available filters are `customerId`, `productId`, `orderId`, `pageNumber`, and `pageSize`. When
+`customerId` is omitted, the endpoint uses the customer associated with the signed-in user. Prefer
+that default: an explicit customer ID is not checked against the current user.
+
+## Type exports
+
+Client input and result types can be imported from the package root or client entry point:
+
+```typescript
+import type {
+  CancelSubscriptionInput,
+  CreateCheckoutInput,
+  CreatePortalInput,
+  HasAccessGrantedResponse,
+  RetrieveSubscriptionInput,
+  SearchTransactionsInput,
+} from "@creem_io/better-auth";
+```
