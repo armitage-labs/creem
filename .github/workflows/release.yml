@@ -38,6 +38,14 @@ jobs:
           pnpm check:package-metadata
           pnpm check:repository-contracts
 
+      - name: Enforce CLI SDK parity before release
+        run: |
+          pnpm --filter creem build
+          pnpm --filter @creem_io/cli build
+          pnpm --filter @creem_io/cli parity:check --strict
+          node packages/cli/scripts/sync-reference.mjs --check
+          pnpm --filter @creem_io/cli test
+
       - name: Create Release Pull Request or Publish
         id: changesets
         uses: changesets/action@v1

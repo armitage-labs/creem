@@ -1,155 +1,54 @@
 # Creem CLI
 
-The official command-line tool for [Creem](https://creem.io) — the Merchant of Record for SaaS and digital businesses.
+The Creem CLI lets you manage products, customers, subscriptions, and transactions directly from the terminal. It's designed for both human developers and AI agents building automation workflows.
 
-Manage products, customers, subscriptions, checkouts, transactions, and discounts from your terminal.
+**Full documentation: [docs.creem.io/code/cli](https://docs.creem.io/code/cli).**
 
-## Installation
+| I want to…                                  | Go here                                                               |
+| ------------------------------------------- | --------------------------------------------------------------------- |
+| Install and authenticate                    | [Setup guide](https://docs.creem.io/code/cli#installation)            |
+| Browse and manage my store interactively    | [Interactive guide](https://docs.creem.io/ai/for-humans/cli)          |
+| Build automation or give an AI agent access | [Agent guide](https://docs.creem.io/ai/for-agents/cli)                |
+| Find commands, flags, and request examples  | [Command reference](https://docs.creem.io/code/cli#command-reference) |
 
-### Homebrew (macOS/Linux)
+## Quick start
 
-```bash
+Choose your installation method. npm and npx require Node.js 22 or newer.
+
+**Homebrew (macOS/Linux)**
+
+```sh
 brew tap armitage-labs/creem
 brew install creem
 ```
 
-### npm (Global)
+**npm**
 
-```bash
+```sh
 npm install -g @creem_io/cli
 ```
 
-### npx (No Install)
+**npx (without a global install)**
 
-```bash
-npx @creem_io/cli <command>
+```sh
+npx @creem_io/cli --help
 ```
 
-## Quick Start
+Log in with your API key, then browse your store or run a command:
 
-```bash
-# Authenticate with your API key
+```sh
 creem login
-
-# Check your auth status
-creem whoami
-
-# Switch to live mode
-creem config set environment live
+creem products
+creem products list --json
+creem --help
 ```
 
-Get your API key from the [Creem Dashboard](https://creem.io/dashboard/developers).
-
-- Test keys start with `creem_test_`
-- Live keys start with `creem_`
-
-## Commands
-
-### Authentication
-
-```bash
-# Login with API key (interactive)
-creem login
-
-# Login with API key (non-interactive)
-creem login --api-key creem_xxxxx
-
-# Check current authentication
-creem whoami
-
-# Logout
-creem logout
-```
-
-### Configuration
-
-```bash
-# Show all config
-creem config show
-
-# Get a specific value
-creem config get environment
-
-# Set a value
-creem config set environment live
-creem config set output_format json
-
-# List available config keys
-creem config list
-```
-
-### Resources
-
-- `creem products` — list, create, get, update products
-- `creem customers` — list, get, create customers and open billing portals
-- `creem subscriptions` — list, get, cancel, pause, resume, upgrade, update
-- `creem checkouts` — create and get checkout sessions
-- `creem transactions` — list and inspect transactions
-- `creem discounts` — create and list discount codes
-- `creem migrate` — migrate from LemonSqueezy to Creem
-
-Run `creem <command> --help` for details on any command.
-
-### Global Options
-
-- `--json` — Output in JSON format (works with most commands)
-- `--help` — Show help for any command
-- `--version` — Show CLI version
-
-## Configuration
-
-Config is stored at `~/.creem/config.json`:
-
-```json
-{
-  "api_key": "creem_xxxxx",
-  "environment": "test",
-  "output_format": "table"
-}
-```
-
-### Environment
-
-- `test` — Uses `https://test-api.creem.io` (default)
-- `live` — Uses `https://api.creem.io`
-
-## Development
-
-This package lives inside the [armitage-labs/creem](https://github.com/armitage-labs/creem) monorepo and uses `pnpm` + `turbo`.
-
-```bash
-# From the repo root
-pnpm install
-pnpm --filter @creem_io/cli build
-
-# Or from this directory
-cd packages/cli
-pnpm build      # build once
-pnpm dev        # watch mode
-```
-
-Run the locally built binary:
-
-```bash
-node packages/cli/dist/index.js <command>
-```
-
-### Optional: direnv
-
-A `.envrc` is included that adds `packages/cli/bin` to your `PATH`, so after building you can just run `creem`:
-
-```bash
-brew install direnv       # if not already installed
-cd packages/cli
-direnv allow
-creem whoami
-```
+If using npx, replace `creem` with `npx @creem_io/cli` in these examples.
+For automation, provide `CREEM_API_KEY` through your environment or secret store;
+see the [agent guide](https://docs.creem.io/ai/for-agents/cli) for authentication,
+JSON output, and error handling.
 
 ## Contributing
 
-Contributions are welcome! Please open an issue or pull request at
-[github.com/armitage-labs/creem](https://github.com/armitage-labs/creem).
-
-## License
-
-MIT
+See the repository [contributing guide](../../CONTRIBUTING.md) and
+[CLI development instructions](./AGENTS.md) for setup and validation.
