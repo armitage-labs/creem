@@ -228,6 +228,8 @@ run();
 
 ### [Affiliates](docs/sdks/affiliates/README.md)
 
+* [createInvite](docs/sdks/affiliates/README.md#createinvite) - Create an affiliate invitation
+* [listInvites](docs/sdks/affiliates/README.md#listinvites) - List affiliate invitations
 * [list](docs/sdks/affiliates/README.md#list) - List all affiliates
 * [retrieve](docs/sdks/affiliates/README.md#retrieve) - Retrieve an affiliate
 * [listCommissions](docs/sdks/affiliates/README.md#listcommissions) - List affiliate commissions
@@ -288,6 +290,13 @@ run();
 * [update](docs/sdks/products/README.md#update) - Update a product
 * [archive](docs/sdks/products/README.md#archive) - Archive a product
 
+### [Splits](docs/sdks/splits/README.md)
+
+* [create](docs/sdks/splits/README.md#create) - Create a split
+* [list](docs/sdks/splits/README.md#list) - List all splits
+* [retrieve](docs/sdks/splits/README.md#retrieve) - Retrieve a split
+* [delete](docs/sdks/splits/README.md#delete) - Delete a split
+
 ### [Stats](docs/sdks/stats/README.md)
 
 * [getSummary](docs/sdks/stats/README.md#getsummary) - Get store metrics summary
@@ -326,8 +335,10 @@ To read more about standalone functions, check [FUNCTIONS.md](./FUNCTIONS.md).
 
 <summary>Available standalone functions</summary>
 
+- [`affiliatesCreateInvite`](docs/sdks/affiliates/README.md#createinvite) - Create an affiliate invitation
 - [`affiliatesList`](docs/sdks/affiliates/README.md#list) - List all affiliates
 - [`affiliatesListCommissions`](docs/sdks/affiliates/README.md#listcommissions) - List affiliate commissions
+- [`affiliatesListInvites`](docs/sdks/affiliates/README.md#listinvites) - List affiliate invitations
 - [`affiliatesRetrieve`](docs/sdks/affiliates/README.md#retrieve) - Retrieve an affiliate
 - [`checkoutsCreate`](docs/sdks/checkouts/README.md#create) - Creates a new checkout session.
 - [`checkoutsRetrieve`](docs/sdks/checkouts/README.md#retrieve) - Retrieve a checkout session.
@@ -364,6 +375,10 @@ To read more about standalone functions, check [FUNCTIONS.md](./FUNCTIONS.md).
 - [`productsGet`](docs/sdks/products/README.md#get) - Get a product by ID
 - [`productsSearch`](docs/sdks/products/README.md#search) - List all products
 - [`productsUpdate`](docs/sdks/products/README.md#update) - Update a product
+- [`splitsCreate`](docs/sdks/splits/README.md#create) - Create a split
+- [`splitsDelete`](docs/sdks/splits/README.md#delete) - Delete a split
+- [`splitsList`](docs/sdks/splits/README.md#list) - List all splits
+- [`splitsRetrieve`](docs/sdks/splits/README.md#retrieve) - Retrieve a split
 - [`statsGetSummary`](docs/sdks/stats/README.md#getsummary) - Get store metrics summary
 - [`subscriptionsCancel`](docs/sdks/subscriptions/README.md#cancel) - Cancel a subscription.
 - [`subscriptionsGet`](docs/sdks/subscriptions/README.md#get) - Retrieve a subscription
@@ -543,7 +558,7 @@ run();
 
 
 **Inherit from [`CreemError`](./src/models/errors/creemerror.ts)**:
-* [`CustomerCreditsErrorResponseDto`](./src/models/errors/customercreditserrorresponsedto.ts): Status code `409`. Applicable to 5 of 49 methods.*
+* [`CustomerCreditsErrorResponseDto`](./src/models/errors/customercreditserrorresponsedto.ts): Status code `409`. Applicable to 5 of 55 methods.*
 * [`ResponseValidationError`](./src/models/errors/responsevalidationerror.ts): Type mismatch between the data returned from the server and the structure expected by the SDK. See `error.rawValue` for the raw value and `error.pretty()` for a nicely formatted multi-line string.
 
 </details>

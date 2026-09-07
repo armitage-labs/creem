@@ -70,6 +70,7 @@ jobs:
             .changeset \
             package.json \
             pnpm-workspace.yaml \
+            ':(glob)scripts/sync-sdk-version*.mjs' \
             ':(glob)packages/**/package.json' \
             .github/workflows/ci.yml \
             .github/workflows/release.yml \
@@ -90,6 +91,11 @@ jobs:
 
       - name: Check repository contracts
         run: pnpm check:repository-contracts
+
+      - name: Check SDK version metadata
+        run: |
+          node --test scripts/sync-sdk-version.test.mjs
+          pnpm check:sdk-version
 
       - name: Validate generated API reference structure
         if: steps.docs.outputs.changed == 'true'
@@ -175,3 +181,4 @@ jobs:
           pnpm install --frozen-lockfile
           pnpm check:package-metadata
           pnpm check:repository-contracts
+          pnpm check:sdk-version

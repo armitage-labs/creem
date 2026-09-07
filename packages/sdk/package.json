@@ -1,18 +1,11 @@
 {
   "name": "creem",
   "version": "1.6.2",
-  "description": "Official TypeScript SDK and MCP server for the Creem API",
   "author": "Speakeasy",
-  "license": "MIT",
-  "repository": {
-    "type": "git",
-    "url": "https://github.com/armitage-labs/creem.git",
-    "directory": "packages/sdk"
-  },
-  "homepage": "https://github.com/armitage-labs/creem/tree/main/packages/sdk",
   "bugs": {
     "url": "https://github.com/armitage-labs/creem/issues"
   },
+  "description": "Official TypeScript SDK and MCP server for the Creem API",
   "files": [
     "bin",
     "dist",
@@ -22,9 +15,16 @@
     "CHANGELOG.md",
     "RELEASES.md"
   ],
+  "homepage": "https://github.com/armitage-labs/creem/tree/main/packages/sdk",
+  "license": "MIT",
   "publishConfig": {
     "access": "public",
     "provenance": true
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/armitage-labs/creem.git",
+    "directory": "packages/sdk"
   },
   "type": "module",
   "bin": {
@@ -50,11 +50,11 @@
     "lint": "eslint --cache --max-warnings=0 src",
     "build:mcp": "bun src/mcp-server/build.mts",
     "build": "npm run build:mcp && tshy",
-    "typecheck": "tsc --noEmit",
-    "check:package": "publint --strict --pack pnpm && attw --pack .",
     "prepublishOnly": "npm run build",
+    "check:package": "publint --strict --pack pnpm && attw --pack .",
     "test": "vitest run",
-    "test:watch": "vitest"
+    "test:watch": "vitest",
+    "typecheck": "tsc --noEmit"
   },
   "peerDependencies": {},
   "devDependencies": {

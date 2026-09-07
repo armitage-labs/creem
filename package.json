@@ -12,6 +12,7 @@
     "test:workflow-paths": "node --test tests/workflow-path-filters.test.mjs",
     "check:package-metadata": "manypkg check && npmPkgJsonLint .",
     "check:repository-contracts": "node scripts/check-repository-contracts.mjs",
+    "check:sdk-version": "node scripts/sync-sdk-version.mjs --check",
     "check:package-artifacts": "turbo run check:package --concurrency=2 --filter='!./packages/creem-io'",
     "typecheck": "turbo run typecheck",
     "lint": "turbo run lint",
@@ -19,8 +20,8 @@
     "format:check": "prettier --check \"**/*.{ts,tsx,js,jsx,mjs,cjs}\" packages/sdk/openapi.json",
     "gen:sdk": "prettier --write packages/sdk/openapi.json && cd packages/sdk && speakeasy run --skip-compile && cp openapi.json ../docs/api-reference/openapi.json",
     "changeset": "changeset",
-    "version-packages": "changeset version && pnpm install --lockfile-only",
-    "release": "pnpm check:package-metadata && pnpm check:repository-contracts && pnpm check:package-artifacts && changeset publish",
+    "version-packages": "changeset version && node scripts/sync-sdk-version.mjs && pnpm install --lockfile-only",
+    "release": "pnpm check:package-metadata && pnpm check:repository-contracts && pnpm check:sdk-version && pnpm check:package-artifacts && changeset publish",
     "prepare": "husky"
   },
   "devDependencies": {

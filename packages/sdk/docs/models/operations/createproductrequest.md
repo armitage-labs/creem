@@ -18,6 +18,7 @@ let value: CreateProductRequest = {
     price: 400,
     currency: "USD",
     billingType: "onetime",
+    recurringIntervalCount: 1,
     payWhatYouWant: false,
     suggestedPrice: 1500,
     defaultSuccessUrl: "https://example.com/?status=successful",
