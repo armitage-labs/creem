@@ -1,3 +1,5 @@
+import { CliError, redact } from "../lib/errors";
+import { loadConfig } from "../lib/config";
 import * as readline from "readline";
 import type { TuiModuleDescriptor, TuiState } from "./types";
 import { createInitialState } from "./types";
@@ -11,8 +13,7 @@ const STATUS_CLEAR_MS = 3000;
 export async function launchInteractiveMode<T>(descriptor: TuiModuleDescriptor<T>): Promise<void> {
   // Non-TTY fallback
   if (!process.stdout.isTTY || !process.stdin.isTTY) {
-    console.error('Interactive mode requires a TTY. Use the "list" subcommand instead.');
-    process.exit(1);
+    throw new CliError('Interactive mode requires a TTY. Use the "list" subcommand instead.');
   }
 
   const state: TuiState<T> = createInitialState<T>();
@@ -45,7 +46,7 @@ export async function launchInteractiveMode<T>(descriptor: TuiModuleDescriptor<T
   };
 
   const setStatus = (message: string, type: "info" | "success" | "error"): void => {
-    state.statusMessage = message;
+    state.statusMessage = redact(message, [loadConfig().api_key ?? ""]);
     state.statusType = type;
     if (statusTimer) clearTimeout(statusTimer);
     statusTimer = setTimeout(() => {
@@ -398,7 +399,7 @@ export async function launchInteractiveMode<T>(descriptor: TuiModuleDescriptor<T
   // Graceful shutdown handlers
   const onSignal = (): void => {
     cleanup();
-    process.exit(0);
+    process.exitCode = 0;
   };
   process.on("SIGINT", onSignal);
   process.on("SIGTERM", onSignal);

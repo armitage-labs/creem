@@ -1,0 +1,2451 @@
+[
+  {
+    "operationId": "searchProducts",
+    "sdkMethod": "products.search",
+    "cliPath": "products list",
+    "disposition": "implemented",
+    "description": "List all products",
+    "parameters": [
+      {
+        "name": "page_number",
+        "sdkName": "pageNumber",
+        "in": "query",
+        "cliFlagOrArgument": "--page",
+        "required": false,
+        "schema": {
+          "type": "number"
+        }
+      },
+      {
+        "name": "page_size",
+        "sdkName": "pageSize",
+        "in": "query",
+        "cliFlagOrArgument": "--limit",
+        "required": false,
+        "schema": {
+          "type": "number"
+        }
+      },
+      {
+        "name": "status",
+        "sdkName": "status",
+        "in": "query",
+        "cliFlagOrArgument": "--status",
+        "required": false,
+        "schema": {
+          "type": "string",
+          "enum": [
+            "active",
+            "archived"
+          ]
+        }
+      }
+    ],
+    "pagination": "page",
+    "destructive": false
+  },
+  {
+    "operationId": "createProduct",
+    "sdkMethod": "products.create",
+    "cliPath": "products create",
+    "disposition": "implemented",
+    "description": "Creates a new product.",
+    "parameters": [
+      {
+        "name": "Idempotency-Key",
+        "sdkName": "idempotencyKey",
+        "in": "header",
+        "cliFlagOrArgument": "--idempotency-key",
+        "required": false,
+        "schema": {
+          "type": "string"
+        }
+      }
+    ],
+    "body": {
+      "viaData": true,
+      "schema": {
+        "type": "object",
+        "properties": {
+          "name": {
+            "type": "string"
+          },
+          "description": {
+            "type": "string"
+          },
+          "imageUrl": {
+            "type": "string"
+          },
+          "imageUrls": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "price": {
+            "type": "integer"
+          },
+          "currency": {
+            "type": "string",
+            "enum": [
+              "EUR",
+              "USD"
+            ]
+          },
+          "billingType": {
+            "type": "string",
+            "enum": [
+              "recurring",
+              "onetime"
+            ]
+          },
+          "billingPeriod": {
+            "type": "string",
+            "enum": [
+              "once",
+              "every-day",
+              "every-month",
+              "every-three-months",
+              "every-six-months",
+              "every-year",
+              "custom"
+            ]
+          },
+          "recurringInterval": {
+            "type": "string",
+            "enum": [
+              "day",
+              "week",
+              "month",
+              "year"
+            ]
+          },
+          "recurringIntervalCount": {
+            "type": "integer"
+          },
+          "taxMode": {
+            "type": "string",
+            "enum": [
+              "inclusive",
+              "exclusive"
+            ]
+          },
+          "taxCategory": {
+            "type": "string",
+            "enum": [
+              "saas",
+              "digital-goods-service",
+              "ebooks"
+            ]
+          },
+          "payWhatYouWant": {
+            "type": "boolean"
+          },
+          "suggestedPrice": {
+            "type": "integer"
+          },
+          "defaultSuccessUrl": {
+            "type": "string"
+          },
+          "customFields": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "properties": {
+                "type": {
+                  "type": "string",
+                  "enum": [
+                    "text",
+                    "checkbox"
+                  ]
+                },
+                "key": {
+                  "type": "string"
+                },
+                "label": {
+                  "type": "string"
+                },
+                "optional": {
+                  "type": "boolean"
+                },
+                "text": {
+                  "type": "object",
+                  "properties": {
+                    "maxLength": {
+                      "type": "number"
+                    },
+                    "minLength": {
+                      "type": "number"
+                    }
+                  },
+                  "required": []
+                },
+                "checkbox": {
+                  "type": "object",
+                  "properties": {
+                    "label": {
+                      "type": "string"
+                    }
+                  },
+                  "required": []
+                }
+              },
+              "required": [
+                "type",
+                "key",
+                "label"
+              ]
+            }
+          },
+          "customField": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "properties": {
+                "type": {
+                  "type": "string",
+                  "enum": [
+                    "text",
+                    "checkbox"
+                  ]
+                },
+                "key": {
+                  "type": "string"
+                },
+                "label": {
+                  "type": "string"
+                },
+                "optional": {
+                  "type": "boolean"
+                },
+                "text": {
+                  "type": "object",
+                  "properties": {
+                    "maxLength": {
+                      "type": "number"
+                    },
+                    "minLength": {
+                      "type": "number"
+                    }
+                  },
+                  "required": []
+                },
+                "checkbox": {
+                  "type": "object",
+                  "properties": {
+                    "label": {
+                      "type": "string"
+                    }
+                  },
+                  "required": []
+                }
+              },
+              "required": [
+                "type",
+                "key",
+                "label"
+              ]
+            }
+          },
+          "abandonedCartRecoveryEnabled": {
+            "type": "boolean"
+          }
+        },
+        "required": [
+          "name",
+          "description",
+          "price",
+          "currency",
+          "billingType"
+        ]
+      },
+      "primaryFlags": {
+        "name": "--name",
+        "description": "--description",
+        "price": "--price",
+        "currency": "--currency",
+        "billingType": "--billing-type",
+        "billingPeriod": "--billing-period",
+        "recurringInterval": "--recurring-interval",
+        "recurringIntervalCount": "--recurring-interval-count",
+        "taxMode": "--tax-mode",
+        "taxCategory": "--tax-category",
+        "payWhatYouWant": "--pay-what-you-want",
+        "suggestedPrice": "--suggested-price",
+        "defaultSuccessUrl": "--success-url",
+        "customFields": "--custom-field",
+        "abandonedCartRecoveryEnabled": "--abandoned-cart-recovery",
+        "imageUrls": "--image-url"
+      }
+    },
+    "pagination": "none",
+    "destructive": false
+  },
+  {
+    "operationId": "getProduct",
+    "sdkMethod": "products.get",
+    "cliPath": "products get",
+    "disposition": "implemented",
+    "description": "Get a product by ID",
+    "parameters": [
+      {
+        "name": "id",
+        "sdkName": "id",
+        "in": "path",
+        "cliFlagOrArgument": "<id>",
+        "required": true,
+        "schema": {
+          "type": "string"
+        }
+      }
+    ],
+    "pagination": "none",
+    "destructive": false
+  },
+  {
+    "operationId": "updateProduct",
+    "sdkMethod": "products.update",
+    "cliPath": "products update",
+    "disposition": "implemented",
+    "description": "Update a product",
+    "parameters": [
+      {
+        "name": "id",
+        "sdkName": "id",
+        "in": "path",
+        "cliFlagOrArgument": "<id>",
+        "required": true,
+        "schema": {
+          "type": "string"
+        }
+      }
+    ],
+    "body": {
+      "viaData": true,
+      "schema": {
+        "type": "object",
+        "properties": {
+          "name": {
+            "type": "string"
+          },
+          "description": {
+            "type": "string"
+          },
+          "imageUrl": {
+            "type": "string"
+          },
+          "imageUrls": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "defaultSuccessUrl": {
+            "type": "string"
+          },
+          "price": {
+            "type": "integer"
+          },
+          "currency": {
+            "type": "string",
+            "enum": [
+              "EUR",
+              "USD"
+            ]
+          },
+          "billingType": {
+            "type": "string",
+            "enum": [
+              "recurring",
+              "onetime"
+            ]
+          },
+          "billingPeriod": {
+            "type": "string",
+            "enum": [
+              "once",
+              "every-day",
+              "every-month",
+              "every-three-months",
+              "every-six-months",
+              "every-year",
+              "custom"
+            ]
+          },
+          "recurringInterval": {
+            "type": "string",
+            "enum": [
+              "day",
+              "week",
+              "month",
+              "year"
+            ]
+          },
+          "recurringIntervalCount": {
+            "type": "integer"
+          },
+          "taxMode": {
+            "type": "string",
+            "enum": [
+              "inclusive",
+              "exclusive"
+            ]
+          },
+          "payWhatYouWant": {
+            "type": "boolean"
+          },
+          "suggestedPrice": {
+            "type": "integer"
+          }
+        },
+        "required": []
+      },
+      "primaryFlags": {
+        "name": "--name",
+        "description": "--description",
+        "defaultSuccessUrl": "--success-url",
+        "price": "--price",
+        "currency": "--currency",
+        "billingType": "--billing-type",
+        "billingPeriod": "--billing-period",
+        "recurringInterval": "--recurring-interval",
+        "recurringIntervalCount": "--recurring-interval-count",
+        "taxMode": "--tax-mode",
+        "payWhatYouWant": "--pay-what-you-want",
+        "suggestedPrice": "--suggested-price",
+        "imageUrls": "--image-url"
+      }
+    },
+    "pagination": "none",
+    "destructive": true
+  },
+  {
+    "operationId": "archiveProduct",
+    "sdkMethod": "products.archive",
+    "cliPath": "products archive",
+    "disposition": "implemented",
+    "description": "Archive a product",
+    "parameters": [
+      {
+        "name": "id",
+        "sdkName": "id",
+        "in": "path",
+        "cliFlagOrArgument": "<id>",
+        "required": true,
+        "schema": {
+          "type": "string"
+        }
+      }
+    ],
+    "pagination": "none",
+    "destructive": true
+  },
+  {
+    "operationId": "listCustomers",
+    "sdkMethod": "customers.list",
+    "cliPath": "customers list",
+    "disposition": "implemented",
+    "description": "List all customers",
+    "parameters": [
+      {
+        "name": "page_number",
+        "sdkName": "pageNumber",
+        "in": "query",
+        "cliFlagOrArgument": "--page",
+        "required": false,
+        "schema": {
+          "type": "number"
+        }
+      },
+      {
+        "name": "page_size",
+        "sdkName": "pageSize",
+        "in": "query",
+        "cliFlagOrArgument": "--limit",
+        "required": false,
+        "schema": {
+          "type": "number"
+        }
+      }
+    ],
+    "pagination": "page",
+    "destructive": false
+  },
+  {
+    "operationId": "listCustomerOrders",
+    "sdkMethod": "customers.getOrders",
+    "cliPath": "customers orders",
+    "disposition": "implemented",
+    "description": "List customer orders",
+    "parameters": [
+      {
+        "name": "id",
+        "sdkName": "id",
+        "in": "path",
+        "cliFlagOrArgument": "<id>",
+        "required": true,
+        "schema": {
+          "type": "string"
+        }
+      },
+      {
+        "name": "page_number",
+        "sdkName": "pageNumber",
+        "in": "query",
+        "cliFlagOrArgument": "--page",
+        "required": false,
+        "schema": {
+          "type": "number"
+        }
+      },
+      {
+        "name": "page_size",
+        "sdkName": "pageSize",
+        "in": "query",
+        "cliFlagOrArgument": "--limit",
+        "required": false,
+        "schema": {
+          "type": "number"
+        }
+      }
+    ],
+    "pagination": "page",
+    "destructive": false
+  },
+  {
+    "operationId": "listCustomerSubscriptions",
+    "sdkMethod": "customers.listSubscriptions",
+    "cliPath": "customers subscriptions",
+    "disposition": "implemented",
+    "description": "List customer subscriptions",
+    "parameters": [
+      {
+        "name": "id",
+        "sdkName": "id",
+        "in": "path",
+        "cliFlagOrArgument": "<id>",
+        "required": true,
+        "schema": {
+          "type": "string"
+        }
+      },
+      {
+        "name": "page_number",
+        "sdkName": "pageNumber",
+        "in": "query",
+        "cliFlagOrArgument": "--page",
+        "required": false,
+        "schema": {
+          "type": "number"
+        }
+      },
+      {
+        "name": "page_size",
+        "sdkName": "pageSize",
+        "in": "query",
+        "cliFlagOrArgument": "--limit",
+        "required": false,
+        "schema": {
+          "type": "number"
+        }
+      }
+    ],
+    "pagination": "page",
+    "destructive": false
+  },
+  {
+    "operationId": "listCustomerLicenses",
+    "sdkMethod": "customers.listLicenses",
+    "cliPath": "customers licenses",
+    "disposition": "implemented",
+    "description": "List customer licenses",
+    "parameters": [
+      {
+        "name": "id",
+        "sdkName": "id",
+        "in": "path",
+        "cliFlagOrArgument": "<id>",
+        "required": true,
+        "schema": {
+          "type": "string"
+        }
+      },
+      {
+        "name": "page_number",
+        "sdkName": "pageNumber",
+        "in": "query",
+        "cliFlagOrArgument": "--page",
+        "required": false,
+        "schema": {
+          "type": "number"
+        }
+      },
+      {
+        "name": "page_size",
+        "sdkName": "pageSize",
+        "in": "query",
+        "cliFlagOrArgument": "--limit",
+        "required": false,
+        "schema": {
+          "type": "number"
+        }
+      }
+    ],
+    "pagination": "page",
+    "destructive": false
+  },
+  {
+    "operationId": "retrieveCustomer",
+    "sdkMethod": "customers.retrieve",
+    "cliPath": "customers get",
+    "disposition": "implemented",
+    "description": "Retrieve a customer",
+    "parameters": [
+      {
+        "name": "customer_id",
+        "sdkName": "customerId",
+        "in": "query",
+        "cliFlagOrArgument": "[id]",
+        "required": false,
+        "schema": {
+          "type": "string"
+        }
+      },
+      {
+        "name": "email",
+        "sdkName": "email",
+        "in": "query",
+        "cliFlagOrArgument": "--email",
+        "required": false,
+        "schema": {
+          "type": "string"
+        }
+      }
+    ],
+    "pagination": "none",
+    "destructive": false
+  },
+  {
+    "operationId": "createCustomer",
+    "sdkMethod": "customers.create",
+    "cliPath": "customers create",
+    "disposition": "implemented",
+    "description": "Create a customer",
+    "parameters": [],
+    "body": {
+      "viaData": true,
+      "schema": {
+        "type": "object",
+        "properties": {
+          "email": {
+            "type": "string"
+          },
+          "name": {
+            "type": "string"
+          },
+          "metadata": {
+            "type": "object",
+            "additionalProperties": true
+          }
+        },
+        "required": [
+          "email",
+          "name"
+        ]
+      },
+      "primaryFlags": {
+        "email": "--email",
+        "name": "--name",
+        "metadata": "--metadata"
+      }
+    },
+    "pagination": "none",
+    "destructive": false
+  },
+  {
+    "operationId": "updateCustomer",
+    "sdkMethod": "customers.update",
+    "cliPath": "customers update",
+    "disposition": "implemented",
+    "description": "Update a customer",
+    "parameters": [],
+    "body": {
+      "viaData": true,
+      "schema": {
+        "type": "object",
+        "properties": {
+          "customerId": {
+            "type": "string"
+          },
+          "name": {
+            "type": "string"
+          },
+          "metadata": {
+            "type": "object",
+            "additionalProperties": true
+          }
+        },
+        "required": [
+          "customerId"
+        ]
+      },
+      "primaryFlags": {
+        "name": "--name",
+        "metadata": "--metadata"
+      },
+      "positional": "customerId"
+    },
+    "argument": "<id>",
+    "pagination": "none",
+    "destructive": true
+  },
+  {
+    "operationId": "generateCustomerLinks",
+    "sdkMethod": "customers.generateBillingLinks",
+    "cliPath": "customers billing",
+    "disposition": "implemented",
+    "description": "Generate Customer Links",
+    "parameters": [],
+    "body": {
+      "viaData": true,
+      "schema": {
+        "type": "object",
+        "properties": {
+          "customerId": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "customerId"
+        ]
+      },
+      "primaryFlags": {},
+      "positional": "customerId"
+    },
+    "argument": "<id>",
+    "pagination": "none",
+    "destructive": false
+  },
+  {
+    "operationId": "retrieveSubscription",
+    "sdkMethod": "subscriptions.get",
+    "cliPath": "subscriptions get",
+    "disposition": "implemented",
+    "description": "Retrieve a subscription",
+    "parameters": [
+      {
+        "name": "subscription_id",
+        "sdkName": "subscriptionId",
+        "in": "query",
+        "cliFlagOrArgument": "<id>",
+        "required": true,
+        "schema": {
+          "type": "string"
+        }
+      }
+    ],
+    "pagination": "none",
+    "destructive": false
+  },
+  {
+    "operationId": "searchSubscriptions",
+    "sdkMethod": "subscriptions.search",
+    "cliPath": "subscriptions list",
+    "disposition": "implemented",
+    "description": "List all subscriptions",
+    "parameters": [
+      {
+        "name": "page_number",
+        "sdkName": "pageNumber",
+        "in": "query",
+        "cliFlagOrArgument": "--page",
+        "required": false,
+        "schema": {
+          "type": "number"
+        }
+      },
+      {
+        "name": "page_size",
+        "sdkName": "pageSize",
+        "in": "query",
+        "cliFlagOrArgument": "--limit",
+        "required": false,
+        "schema": {
+          "type": "number"
+        }
+      }
+    ],
+    "pagination": "page",
+    "destructive": false
+  },
+  {
+    "operationId": "cancelSubscription",
+    "sdkMethod": "subscriptions.cancel",
+    "cliPath": "subscriptions cancel",
+    "disposition": "implemented",
+    "description": "Cancel a subscription.",
+    "parameters": [
+      {
+        "name": "id",
+        "sdkName": "id",
+        "in": "path",
+        "cliFlagOrArgument": "<id>",
+        "required": true,
+        "schema": {
+          "type": "string"
+        }
+      }
+    ],
+    "body": {
+      "viaData": true,
+      "schema": {
+        "type": "object",
+        "properties": {
+          "mode": {
+            "type": "string",
+            "enum": [
+              "immediate",
+              "scheduled"
+            ]
+          },
+          "onExecute": {
+            "type": "string",
+            "enum": [
+              "cancel",
+              "pause"
+            ]
+          }
+        },
+        "required": []
+      },
+      "primaryFlags": {
+        "mode": "--mode",
+        "onExecute": "--on-execute"
+      }
+    },
+    "pagination": "none",
+    "destructive": true
+  },
+  {
+    "operationId": "updateSubscription",
+    "sdkMethod": "subscriptions.update",
+    "cliPath": "subscriptions update",
+    "disposition": "implemented",
+    "description": "Update a subscription.",
+    "parameters": [
+      {
+        "name": "id",
+        "sdkName": "id",
+        "in": "path",
+        "cliFlagOrArgument": "<id>",
+        "required": true,
+        "schema": {
+          "type": "string"
+        }
+      }
+    ],
+    "body": {
+      "viaData": true,
+      "schema": {
+        "type": "object",
+        "properties": {
+          "items": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "properties": {
+                "id": {
+                  "type": "string"
+                },
+                "productId": {
+                  "type": "string"
+                },
+                "priceId": {
+                  "type": "string"
+                },
+                "units": {
+                  "type": "number"
+                }
+              },
+              "required": []
+            }
+          },
+          "updateBehavior": {
+            "type": "string",
+            "enum": [
+              "proration-charge-immediately",
+              "proration-charge",
+              "proration-none"
+            ]
+          }
+        },
+        "required": []
+      },
+      "primaryFlags": {
+        "items": "--item",
+        "updateBehavior": "--update-behavior"
+      }
+    },
+    "pagination": "none",
+    "destructive": true
+  },
+  {
+    "operationId": "upgradeSubscription",
+    "sdkMethod": "subscriptions.upgrade",
+    "cliPath": "subscriptions upgrade",
+    "disposition": "implemented",
+    "description": "Upgrade a subscription to a different product",
+    "parameters": [
+      {
+        "name": "id",
+        "sdkName": "id",
+        "in": "path",
+        "cliFlagOrArgument": "<id>",
+        "required": true,
+        "schema": {
+          "type": "string"
+        }
+      }
+    ],
+    "body": {
+      "viaData": true,
+      "schema": {
+        "type": "object",
+        "properties": {
+          "productId": {
+            "type": "string"
+          },
+          "updateBehavior": {
+            "type": "string",
+            "enum": [
+              "proration-charge-immediately",
+              "proration-charge",
+              "proration-none"
+            ]
+          }
+        },
+        "required": [
+          "productId"
+        ]
+      },
+      "primaryFlags": {
+        "productId": "--product",
+        "updateBehavior": "--update-behavior"
+      }
+    },
+    "pagination": "none",
+    "destructive": true
+  },
+  {
+    "operationId": "pauseSubscription",
+    "sdkMethod": "subscriptions.pause",
+    "cliPath": "subscriptions pause",
+    "disposition": "implemented",
+    "description": "Pause a subscription.",
+    "parameters": [
+      {
+        "name": "id",
+        "sdkName": "id",
+        "in": "path",
+        "cliFlagOrArgument": "<id>",
+        "required": true,
+        "schema": {
+          "type": "string"
+        }
+      }
+    ],
+    "pagination": "none",
+    "destructive": true
+  },
+  {
+    "operationId": "resumeSubscription",
+    "sdkMethod": "subscriptions.resume",
+    "cliPath": "subscriptions resume",
+    "disposition": "implemented",
+    "description": "Resume a subscription.",
+    "parameters": [
+      {
+        "name": "id",
+        "sdkName": "id",
+        "in": "path",
+        "cliFlagOrArgument": "<id>",
+        "required": true,
+        "schema": {
+          "type": "string"
+        }
+      }
+    ],
+    "pagination": "none",
+    "destructive": false
+  },
+  {
+    "operationId": "retrieveCheckout",
+    "sdkMethod": "checkouts.retrieve",
+    "cliPath": "checkouts get",
+    "disposition": "implemented",
+    "description": "Retrieve a checkout session.",
+    "parameters": [
+      {
+        "name": "checkout_id",
+        "sdkName": "checkoutId",
+        "in": "query",
+        "cliFlagOrArgument": "<id>",
+        "required": true,
+        "schema": {
+          "type": "string"
+        }
+      }
+    ],
+    "pagination": "none",
+    "destructive": false
+  },
+  {
+    "operationId": "createCheckout",
+    "sdkMethod": "checkouts.create",
+    "cliPath": "checkouts create",
+    "disposition": "implemented",
+    "description": "Creates a new checkout session.",
+    "parameters": [],
+    "body": {
+      "viaData": true,
+      "schema": {
+        "type": "object",
+        "properties": {
+          "requestId": {
+            "type": "string"
+          },
+          "productId": {
+            "type": "string"
+          },
+          "units": {
+            "type": "number"
+          },
+          "customPrice": {
+            "type": "integer"
+          },
+          "discountCode": {
+            "type": "string"
+          },
+          "affiliateCode": {
+            "type": "string"
+          },
+          "customer": {
+            "type": "object",
+            "properties": {
+              "id": {
+                "type": "string"
+              },
+              "email": {
+                "type": "string"
+              },
+              "name": {
+                "type": "string"
+              }
+            },
+            "required": []
+          },
+          "customFields": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "properties": {
+                "type": {
+                  "type": "string",
+                  "enum": [
+                    "text",
+                    "checkbox"
+                  ]
+                },
+                "key": {
+                  "type": "string"
+                },
+                "label": {
+                  "type": "string"
+                },
+                "optional": {
+                  "type": "boolean"
+                },
+                "text": {
+                  "type": "object",
+                  "properties": {
+                    "maxLength": {
+                      "type": "number"
+                    },
+                    "minLength": {
+                      "type": "number"
+                    }
+                  },
+                  "required": []
+                },
+                "checkbox": {
+                  "type": "object",
+                  "properties": {
+                    "label": {
+                      "type": "string"
+                    }
+                  },
+                  "required": []
+                }
+              },
+              "required": [
+                "type",
+                "key",
+                "label"
+              ]
+            }
+          },
+          "customField": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "properties": {
+                "type": {
+                  "type": "string",
+                  "enum": [
+                    "text",
+                    "checkbox"
+                  ]
+                },
+                "key": {
+                  "type": "string"
+                },
+                "label": {
+                  "type": "string"
+                },
+                "optional": {
+                  "type": "boolean"
+                },
+                "text": {
+                  "type": "object",
+                  "properties": {
+                    "maxLength": {
+                      "type": "number"
+                    },
+                    "minLength": {
+                      "type": "number"
+                    }
+                  },
+                  "required": []
+                },
+                "checkbox": {
+                  "type": "object",
+                  "properties": {
+                    "label": {
+                      "type": "string"
+                    }
+                  },
+                  "required": []
+                }
+              },
+              "required": [
+                "type",
+                "key",
+                "label"
+              ]
+            }
+          },
+          "successUrl": {
+            "type": "string"
+          },
+          "metadata": {
+            "type": "object",
+            "additionalProperties": true
+          }
+        },
+        "required": [
+          "productId"
+        ]
+      },
+      "primaryFlags": {
+        "requestId": "--request-id",
+        "productId": "--product",
+        "units": "--units",
+        "customPrice": "--custom-price",
+        "discountCode": "--discount",
+        "affiliateCode": "--affiliate-code",
+        "customer": "--customer",
+        "customFields": "--custom-field",
+        "successUrl": "--success-url",
+        "metadata": "--metadata",
+        "customer.email": "--customer-email"
+      }
+    },
+    "pagination": "none",
+    "destructive": false
+  },
+  {
+    "operationId": "activateLicense",
+    "sdkMethod": "licenses.activate",
+    "cliPath": "licenses activate",
+    "disposition": "implemented",
+    "description": "Activates a license key.",
+    "parameters": [],
+    "body": {
+      "viaData": true,
+      "schema": {
+        "type": "object",
+        "properties": {
+          "key": {
+            "type": "string"
+          },
+          "instanceName": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "key",
+          "instanceName"
+        ]
+      },
+      "primaryFlags": {
+        "key": "--key",
+        "instanceName": "--instance-name"
+      }
+    },
+    "pagination": "none",
+    "destructive": false
+  },
+  {
+    "operationId": "deactivateLicense",
+    "sdkMethod": "licenses.deactivate",
+    "cliPath": "licenses deactivate",
+    "disposition": "implemented",
+    "description": "Deactivate a license key instance.",
+    "parameters": [],
+    "body": {
+      "viaData": true,
+      "schema": {
+        "type": "object",
+        "properties": {
+          "key": {
+            "type": "string"
+          },
+          "instanceId": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "key",
+          "instanceId"
+        ]
+      },
+      "primaryFlags": {
+        "key": "--key",
+        "instanceId": "--instance-id"
+      }
+    },
+    "pagination": "none",
+    "destructive": true
+  },
+  {
+    "operationId": "validateLicense",
+    "sdkMethod": "licenses.validate",
+    "cliPath": "licenses validate",
+    "disposition": "implemented",
+    "description": "Validates a license key or instance.",
+    "parameters": [],
+    "body": {
+      "viaData": true,
+      "schema": {
+        "type": "object",
+        "properties": {
+          "key": {
+            "type": "string"
+          },
+          "instanceId": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "key",
+          "instanceId"
+        ]
+      },
+      "primaryFlags": {
+        "key": "--key",
+        "instanceId": "--instance-id"
+      }
+    },
+    "pagination": "none",
+    "destructive": false
+  },
+  {
+    "operationId": "listLicenseInstances",
+    "sdkMethod": "licenses.listInstances",
+    "cliPath": "licenses instances",
+    "disposition": "implemented",
+    "description": "List license instances.",
+    "parameters": [
+      {
+        "name": "id",
+        "sdkName": "id",
+        "in": "path",
+        "cliFlagOrArgument": "<id>",
+        "required": true,
+        "schema": {
+          "type": "string"
+        }
+      },
+      {
+        "name": "page_number",
+        "sdkName": "pageNumber",
+        "in": "query",
+        "cliFlagOrArgument": "--page",
+        "required": false,
+        "schema": {
+          "type": "number"
+        }
+      },
+      {
+        "name": "page_size",
+        "sdkName": "pageSize",
+        "in": "query",
+        "cliFlagOrArgument": "--limit",
+        "required": false,
+        "schema": {
+          "type": "number"
+        }
+      }
+    ],
+    "pagination": "page",
+    "destructive": false
+  },
+  {
+    "operationId": "searchDiscounts",
+    "sdkMethod": "discounts.search",
+    "cliPath": "discounts list",
+    "disposition": "implemented",
+    "description": "Search discounts",
+    "parameters": [
+      {
+        "name": "page_number",
+        "sdkName": "pageNumber",
+        "in": "query",
+        "cliFlagOrArgument": "--page",
+        "required": false,
+        "schema": {
+          "type": "number"
+        }
+      },
+      {
+        "name": "page_size",
+        "sdkName": "pageSize",
+        "in": "query",
+        "cliFlagOrArgument": "--limit",
+        "required": false,
+        "schema": {
+          "type": "number"
+        }
+      },
+      {
+        "name": "product_id",
+        "sdkName": "productId",
+        "in": "query",
+        "cliFlagOrArgument": "--product",
+        "required": false,
+        "schema": {
+          "type": "string"
+        }
+      },
+      {
+        "name": "status",
+        "sdkName": "status",
+        "in": "query",
+        "cliFlagOrArgument": "--status",
+        "required": false,
+        "schema": {
+          "enum": [
+            "active",
+            "deleted"
+          ],
+          "type": "string"
+        }
+      },
+      {
+        "name": "type",
+        "sdkName": "type",
+        "in": "query",
+        "cliFlagOrArgument": "--type",
+        "required": false,
+        "schema": {
+          "enum": [
+            "percentage",
+            "fixed"
+          ],
+          "type": "string"
+        }
+      },
+      {
+        "name": "created_after",
+        "sdkName": "createdAfter",
+        "in": "query",
+        "cliFlagOrArgument": "--created-after",
+        "required": false,
+        "schema": {
+          "type": "string"
+        }
+      },
+      {
+        "name": "created_before",
+        "sdkName": "createdBefore",
+        "in": "query",
+        "cliFlagOrArgument": "--created-before",
+        "required": false,
+        "schema": {
+          "type": "string"
+        }
+      }
+    ],
+    "pagination": "page",
+    "destructive": false
+  },
+  {
+    "operationId": "retrieveDiscount",
+    "sdkMethod": "discounts.get",
+    "cliPath": "discounts get",
+    "disposition": "implemented",
+    "description": "Retrieve discount",
+    "parameters": [
+      {
+        "name": "discount_id",
+        "sdkName": "discountId",
+        "in": "query",
+        "cliFlagOrArgument": "[id]",
+        "required": false,
+        "schema": {
+          "type": "string"
+        }
+      },
+      {
+        "name": "discount_code",
+        "sdkName": "discountCode",
+        "in": "query",
+        "cliFlagOrArgument": "--code",
+        "required": false,
+        "schema": {
+          "type": "string"
+        }
+      }
+    ],
+    "pagination": "none",
+    "destructive": false
+  },
+  {
+    "operationId": "createDiscount",
+    "sdkMethod": "discounts.create",
+    "cliPath": "discounts create",
+    "disposition": "implemented",
+    "description": "Create a discount.",
+    "parameters": [],
+    "body": {
+      "viaData": true,
+      "schema": {
+        "type": "object",
+        "properties": {
+          "name": {
+            "type": "string"
+          },
+          "code": {
+            "type": "string"
+          },
+          "type": {
+            "type": "string",
+            "enum": [
+              "percentage",
+              "fixed"
+            ]
+          },
+          "amount": {
+            "type": "number"
+          },
+          "currency": {
+            "type": "string"
+          },
+          "percentage": {
+            "type": "number"
+          },
+          "expiryDate": {
+            "format": "date-time",
+            "type": "string"
+          },
+          "maxRedemptions": {
+            "type": "number"
+          },
+          "duration": {
+            "type": "string",
+            "enum": [
+              "forever",
+              "once",
+              "repeating"
+            ]
+          },
+          "durationInMonths": {
+            "type": "number"
+          },
+          "appliesToProducts": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          }
+        },
+        "required": [
+          "name",
+          "type",
+          "duration",
+          "appliesToProducts"
+        ]
+      },
+      "primaryFlags": {
+        "name": "--name",
+        "code": "--code",
+        "type": "--type",
+        "amount": "--amount",
+        "currency": "--currency",
+        "percentage": "--percentage",
+        "expiryDate": "--expires",
+        "maxRedemptions": "--max-redemptions",
+        "duration": "--duration",
+        "durationInMonths": "--duration-months",
+        "appliesToProducts": "--products"
+      }
+    },
+    "pagination": "none",
+    "destructive": false
+  },
+  {
+    "operationId": "deleteDiscount",
+    "sdkMethod": "discounts.delete",
+    "cliPath": "discounts delete",
+    "disposition": "implemented",
+    "description": "Delete a discount.",
+    "parameters": [
+      {
+        "name": "id",
+        "sdkName": "id",
+        "in": "path",
+        "cliFlagOrArgument": "<id>",
+        "required": true,
+        "schema": {
+          "type": "string"
+        }
+      }
+    ],
+    "pagination": "none",
+    "destructive": true
+  },
+  {
+    "operationId": "getTransactionById",
+    "sdkMethod": "transactions.getById",
+    "cliPath": "transactions get",
+    "disposition": "implemented",
+    "description": "Get a transaction by ID",
+    "parameters": [
+      {
+        "name": "transaction_id",
+        "sdkName": "transactionId",
+        "in": "query",
+        "cliFlagOrArgument": "<id>",
+        "required": true,
+        "schema": {
+          "type": "string"
+        }
+      }
+    ],
+    "pagination": "none",
+    "destructive": false
+  },
+  {
+    "operationId": "searchTransactions",
+    "sdkMethod": "transactions.search",
+    "cliPath": "transactions list",
+    "disposition": "implemented",
+    "description": "List all transactions",
+    "parameters": [
+      {
+        "name": "customer_id",
+        "sdkName": "customerId",
+        "in": "query",
+        "cliFlagOrArgument": "--customer",
+        "required": false,
+        "schema": {
+          "type": "string"
+        }
+      },
+      {
+        "name": "order_id",
+        "sdkName": "orderId",
+        "in": "query",
+        "cliFlagOrArgument": "--order",
+        "required": false,
+        "schema": {
+          "type": "string"
+        }
+      },
+      {
+        "name": "product_id",
+        "sdkName": "productId",
+        "in": "query",
+        "cliFlagOrArgument": "--product",
+        "required": false,
+        "schema": {
+          "type": "string"
+        }
+      },
+      {
+        "name": "page_number",
+        "sdkName": "pageNumber",
+        "in": "query",
+        "cliFlagOrArgument": "--page",
+        "required": false,
+        "schema": {
+          "type": "number"
+        }
+      },
+      {
+        "name": "page_size",
+        "sdkName": "pageSize",
+        "in": "query",
+        "cliFlagOrArgument": "--limit",
+        "required": false,
+        "schema": {
+          "type": "number"
+        }
+      }
+    ],
+    "pagination": "page",
+    "destructive": false
+  },
+  {
+    "operationId": "getMetricsSummary",
+    "sdkMethod": "stats.getSummary",
+    "cliPath": "stats summary",
+    "disposition": "implemented",
+    "description": "Get store metrics summary",
+    "parameters": [
+      {
+        "name": "startDate",
+        "sdkName": "startDate",
+        "in": "query",
+        "cliFlagOrArgument": "--start-date",
+        "required": false,
+        "schema": {
+          "type": "number"
+        }
+      },
+      {
+        "name": "endDate",
+        "sdkName": "endDate",
+        "in": "query",
+        "cliFlagOrArgument": "--end-date",
+        "required": false,
+        "schema": {
+          "type": "number"
+        }
+      },
+      {
+        "name": "interval",
+        "sdkName": "interval",
+        "in": "query",
+        "cliFlagOrArgument": "--interval",
+        "required": false,
+        "schema": {
+          "enum": [
+            "day",
+            "week",
+            "month"
+          ],
+          "type": "string"
+        }
+      },
+      {
+        "name": "currency",
+        "sdkName": "currency",
+        "in": "query",
+        "cliFlagOrArgument": "--currency",
+        "required": true,
+        "schema": {
+          "enum": [
+            "EUR",
+            "USD"
+          ],
+          "type": "string"
+        }
+      }
+    ],
+    "pagination": "none",
+    "destructive": false
+  },
+  {
+    "operationId": "screenPrompt",
+    "sdkMethod": "moderation.screenPrompt",
+    "cliPath": "moderation screen",
+    "disposition": "implemented",
+    "description": "Screen a prompt",
+    "parameters": [],
+    "body": {
+      "viaData": true,
+      "schema": {
+        "type": "object",
+        "properties": {
+          "prompt": {
+            "type": "string"
+          },
+          "externalId": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "prompt"
+        ]
+      },
+      "primaryFlags": {
+        "prompt": "--prompt",
+        "externalId": "--external-id"
+      }
+    },
+    "pagination": "none",
+    "destructive": false
+  },
+  {
+    "operationId": "refundPayment",
+    "sdkMethod": "transactions.refund",
+    "cliPath": "transactions refund",
+    "disposition": "implemented",
+    "description": "Refund a payment",
+    "parameters": [],
+    "body": {
+      "viaData": true,
+      "schema": {
+        "type": "object",
+        "properties": {
+          "transactionId": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "transactionId"
+        ]
+      },
+      "primaryFlags": {},
+      "positional": "transactionId"
+    },
+    "argument": "<id>",
+    "pagination": "none",
+    "destructive": true
+  },
+  {
+    "operationId": "createCustomerCreditsAccount",
+    "sdkMethod": "customerCredits.createAccount",
+    "cliPath": "customer-credits create",
+    "disposition": "implemented",
+    "description": "Create a customer credits account",
+    "parameters": [],
+    "body": {
+      "viaData": true,
+      "schema": {
+        "type": "object",
+        "properties": {
+          "name": {
+            "type": "string"
+          },
+          "customerId": {
+            "type": "string"
+          },
+          "unitLabel": {
+            "type": "string"
+          },
+          "initialBalance": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "customerId"
+        ]
+      },
+      "primaryFlags": {
+        "name": "--name",
+        "customerId": "--customer",
+        "unitLabel": "--unit-label",
+        "initialBalance": "--initial-balance"
+      }
+    },
+    "pagination": "none",
+    "destructive": false
+  },
+  {
+    "operationId": "listCustomerCreditsAccounts",
+    "sdkMethod": "customerCredits.listAccounts",
+    "cliPath": "customer-credits list",
+    "disposition": "implemented",
+    "description": "List customer credits accounts",
+    "parameters": [
+      {
+        "name": "limit",
+        "sdkName": "limit",
+        "in": "query",
+        "cliFlagOrArgument": "--limit",
+        "required": false,
+        "schema": {
+          "minimum": 1,
+          "maximum": 100,
+          "type": "number"
+        }
+      },
+      {
+        "name": "customer_id",
+        "sdkName": "customerId",
+        "in": "query",
+        "cliFlagOrArgument": "--customer",
+        "required": false,
+        "schema": {
+          "type": "string"
+        }
+      },
+      {
+        "name": "starting_after",
+        "sdkName": "startingAfter",
+        "in": "query",
+        "cliFlagOrArgument": "--starting-after",
+        "required": false,
+        "schema": {
+          "type": "string"
+        }
+      },
+      {
+        "name": "ending_before",
+        "sdkName": "endingBefore",
+        "in": "query",
+        "cliFlagOrArgument": "--ending-before",
+        "required": false,
+        "schema": {
+          "type": "string"
+        }
+      }
+    ],
+    "pagination": "cursor",
+    "destructive": false
+  },
+  {
+    "operationId": "getCustomerCreditsAccount",
+    "sdkMethod": "customerCredits.getAccount",
+    "cliPath": "customer-credits get",
+    "disposition": "implemented",
+    "description": "Retrieve a customer credits account",
+    "parameters": [
+      {
+        "name": "id",
+        "sdkName": "id",
+        "in": "path",
+        "cliFlagOrArgument": "<id>",
+        "required": true,
+        "schema": {
+          "type": "string"
+        }
+      }
+    ],
+    "pagination": "none",
+    "destructive": false
+  },
+  {
+    "operationId": "getCustomerCreditsAccountBalance",
+    "sdkMethod": "customerCredits.getAccountBalance",
+    "cliPath": "customer-credits balance",
+    "disposition": "implemented",
+    "description": "Get account balance",
+    "parameters": [
+      {
+        "name": "id",
+        "sdkName": "id",
+        "in": "path",
+        "cliFlagOrArgument": "<id>",
+        "required": true,
+        "schema": {
+          "type": "string"
+        }
+      },
+      {
+        "name": "at",
+        "sdkName": "at",
+        "in": "query",
+        "cliFlagOrArgument": "--at",
+        "required": false,
+        "schema": {
+          "type": "string"
+        }
+      }
+    ],
+    "pagination": "none",
+    "destructive": false
+  },
+  {
+    "operationId": "listCustomerCreditsAccountEntries",
+    "sdkMethod": "customerCredits.listEntries",
+    "cliPath": "customer-credits entries",
+    "disposition": "implemented",
+    "description": "List account entries",
+    "parameters": [
+      {
+        "name": "id",
+        "sdkName": "id",
+        "in": "path",
+        "cliFlagOrArgument": "<id>",
+        "required": true,
+        "schema": {
+          "type": "string"
+        }
+      },
+      {
+        "name": "limit",
+        "sdkName": "limit",
+        "in": "query",
+        "cliFlagOrArgument": "--limit",
+        "required": false,
+        "schema": {
+          "minimum": 1,
+          "maximum": 100,
+          "type": "number"
+        }
+      },
+      {
+        "name": "starting_after",
+        "sdkName": "startingAfter",
+        "in": "query",
+        "cliFlagOrArgument": "--starting-after",
+        "required": false,
+        "schema": {
+          "type": "string"
+        }
+      },
+      {
+        "name": "ending_before",
+        "sdkName": "endingBefore",
+        "in": "query",
+        "cliFlagOrArgument": "--ending-before",
+        "required": false,
+        "schema": {
+          "type": "string"
+        }
+      }
+    ],
+    "pagination": "cursor",
+    "destructive": false
+  },
+  {
+    "operationId": "freezeCustomerCreditsAccount",
+    "sdkMethod": "customerCredits.freezeAccount",
+    "cliPath": "customer-credits freeze",
+    "disposition": "implemented",
+    "description": "Freeze an account",
+    "parameters": [
+      {
+        "name": "id",
+        "sdkName": "id",
+        "in": "path",
+        "cliFlagOrArgument": "<id>",
+        "required": true,
+        "schema": {
+          "type": "string"
+        }
+      }
+    ],
+    "pagination": "none",
+    "destructive": true
+  },
+  {
+    "operationId": "unfreezeCustomerCreditsAccount",
+    "sdkMethod": "customerCredits.unfreezeAccount",
+    "cliPath": "customer-credits unfreeze",
+    "disposition": "implemented",
+    "description": "Unfreeze an account",
+    "parameters": [
+      {
+        "name": "id",
+        "sdkName": "id",
+        "in": "path",
+        "cliFlagOrArgument": "<id>",
+        "required": true,
+        "schema": {
+          "type": "string"
+        }
+      }
+    ],
+    "pagination": "none",
+    "destructive": false
+  },
+  {
+    "operationId": "creditCustomerCreditsAccount",
+    "sdkMethod": "customerCredits.creditAccount",
+    "cliPath": "customer-credits credit",
+    "disposition": "implemented",
+    "description": "Credit an account",
+    "parameters": [
+      {
+        "name": "id",
+        "sdkName": "id",
+        "in": "path",
+        "cliFlagOrArgument": "<id>",
+        "required": true,
+        "schema": {
+          "type": "string"
+        }
+      }
+    ],
+    "body": {
+      "viaData": true,
+      "schema": {
+        "type": "object",
+        "properties": {
+          "amount": {
+            "type": "string"
+          },
+          "reference": {
+            "type": "string"
+          },
+          "idempotencyKey": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "amount",
+          "reference",
+          "idempotencyKey"
+        ]
+      },
+      "primaryFlags": {
+        "amount": "--amount",
+        "reference": "--reference",
+        "idempotencyKey": "--idempotency-key"
+      }
+    },
+    "pagination": "none",
+    "destructive": false
+  },
+  {
+    "operationId": "debitCustomerCreditsAccount",
+    "sdkMethod": "customerCredits.debitAccount",
+    "cliPath": "customer-credits debit",
+    "disposition": "implemented",
+    "description": "Debit an account",
+    "parameters": [
+      {
+        "name": "id",
+        "sdkName": "id",
+        "in": "path",
+        "cliFlagOrArgument": "<id>",
+        "required": true,
+        "schema": {
+          "type": "string"
+        }
+      }
+    ],
+    "body": {
+      "viaData": true,
+      "schema": {
+        "type": "object",
+        "properties": {
+          "amount": {
+            "type": "string"
+          },
+          "reference": {
+            "type": "string"
+          },
+          "idempotencyKey": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "amount",
+          "reference",
+          "idempotencyKey"
+        ]
+      },
+      "primaryFlags": {
+        "amount": "--amount",
+        "reference": "--reference",
+        "idempotencyKey": "--idempotency-key"
+      }
+    },
+    "pagination": "none",
+    "destructive": true
+  },
+  {
+    "operationId": "reverseCustomerCreditsAccountTransaction",
+    "sdkMethod": "customerCredits.reverseTransaction",
+    "cliPath": "customer-credits reverse",
+    "disposition": "implemented",
+    "description": "Reverse a transaction",
+    "parameters": [
+      {
+        "name": "id",
+        "sdkName": "id",
+        "in": "path",
+        "cliFlagOrArgument": "<id>",
+        "required": true,
+        "schema": {
+          "type": "string"
+        }
+      }
+    ],
+    "body": {
+      "viaData": true,
+      "schema": {
+        "type": "object",
+        "properties": {
+          "transactionId": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "transactionId"
+        ]
+      },
+      "primaryFlags": {
+        "transactionId": "--transaction"
+      }
+    },
+    "pagination": "none",
+    "destructive": true
+  },
+  {
+    "operationId": "closeCustomerCreditsAccount",
+    "sdkMethod": "customerCredits.closeAccount",
+    "cliPath": "customer-credits close",
+    "disposition": "implemented",
+    "description": "Close an account",
+    "parameters": [
+      {
+        "name": "id",
+        "sdkName": "id",
+        "in": "path",
+        "cliFlagOrArgument": "<id>",
+        "required": true,
+        "schema": {
+          "type": "string"
+        }
+      }
+    ],
+    "pagination": "none",
+    "destructive": true
+  },
+  {
+    "operationId": "createAffiliateInvite",
+    "sdkMethod": "affiliates.createInvite",
+    "cliPath": "affiliates invites create",
+    "disposition": "implemented",
+    "description": "Create an affiliate invitation",
+    "parameters": [],
+    "body": {
+      "viaData": true,
+      "schema": {
+        "type": "object",
+        "properties": {
+          "email": {
+            "type": "string"
+          },
+          "name": {
+            "type": "string"
+          },
+          "programId": {
+            "type": "string",
+            "nullable": true
+          }
+        },
+        "required": [
+          "email",
+          "name"
+        ]
+      },
+      "primaryFlags": {
+        "email": "--email",
+        "name": "--name",
+        "programId": "--program"
+      }
+    },
+    "pagination": "none",
+    "destructive": false
+  },
+  {
+    "operationId": "listAffiliateInvites",
+    "sdkMethod": "affiliates.listInvites",
+    "cliPath": "affiliates invites list",
+    "disposition": "implemented",
+    "description": "List affiliate invitations",
+    "parameters": [
+      {
+        "name": "page_number",
+        "sdkName": "pageNumber",
+        "in": "query",
+        "cliFlagOrArgument": "--page",
+        "required": false,
+        "schema": {
+          "type": "number"
+        }
+      },
+      {
+        "name": "page_size",
+        "sdkName": "pageSize",
+        "in": "query",
+        "cliFlagOrArgument": "--limit",
+        "required": false,
+        "schema": {
+          "type": "number"
+        }
+      }
+    ],
+    "pagination": "page",
+    "destructive": false
+  },
+  {
+    "operationId": "listAffiliates",
+    "sdkMethod": "affiliates.list",
+    "cliPath": "affiliates list",
+    "disposition": "implemented",
+    "description": "List all affiliates",
+    "parameters": [
+      {
+        "name": "page_number",
+        "sdkName": "pageNumber",
+        "in": "query",
+        "cliFlagOrArgument": "--page",
+        "required": false,
+        "schema": {
+          "type": "number"
+        }
+      },
+      {
+        "name": "page_size",
+        "sdkName": "pageSize",
+        "in": "query",
+        "cliFlagOrArgument": "--limit",
+        "required": false,
+        "schema": {
+          "type": "number"
+        }
+      }
+    ],
+    "pagination": "page",
+    "destructive": false
+  },
+  {
+    "operationId": "retrieveAffiliate",
+    "sdkMethod": "affiliates.retrieve",
+    "cliPath": "affiliates get",
+    "disposition": "implemented",
+    "description": "Retrieve an affiliate",
+    "parameters": [
+      {
+        "name": "id",
+        "sdkName": "id",
+        "in": "path",
+        "cliFlagOrArgument": "<id>",
+        "required": true,
+        "schema": {
+          "type": "string"
+        }
+      }
+    ],
+    "pagination": "none",
+    "destructive": false
+  },
+  {
+    "operationId": "listAffiliateCommissions",
+    "sdkMethod": "affiliates.listCommissions",
+    "cliPath": "affiliates commissions",
+    "disposition": "implemented",
+    "description": "List affiliate commissions",
+    "parameters": [
+      {
+        "name": "id",
+        "sdkName": "id",
+        "in": "path",
+        "cliFlagOrArgument": "<id>",
+        "required": true,
+        "schema": {
+          "type": "string"
+        }
+      },
+      {
+        "name": "status",
+        "sdkName": "status",
+        "in": "query",
+        "cliFlagOrArgument": "--status",
+        "required": false,
+        "schema": {
+          "type": "string",
+          "enum": [
+            "pending",
+            "approved",
+            "paid"
+          ]
+        }
+      },
+      {
+        "name": "page_number",
+        "sdkName": "pageNumber",
+        "in": "query",
+        "cliFlagOrArgument": "--page",
+        "required": false,
+        "schema": {
+          "type": "number"
+        }
+      },
+      {
+        "name": "page_size",
+        "sdkName": "pageSize",
+        "in": "query",
+        "cliFlagOrArgument": "--limit",
+        "required": false,
+        "schema": {
+          "type": "number"
+        }
+      }
+    ],
+    "pagination": "page",
+    "destructive": false
+  },
+  {
+    "operationId": "createSplit",
+    "sdkMethod": "splits.create",
+    "cliPath": "splits create",
+    "disposition": "implemented",
+    "description": "Create a split",
+    "parameters": [],
+    "body": {
+      "viaData": true,
+      "schema": {
+        "type": "object",
+        "properties": {
+          "description": {
+            "type": "string",
+            "nullable": true
+          },
+          "type": {
+            "type": "string",
+            "enum": [
+              "store",
+              "product"
+            ]
+          },
+          "typeReference": {
+            "type": "string"
+          },
+          "recipients": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "properties": {
+                "recipientType": {
+                  "type": "string",
+                  "enum": [
+                    "store",
+                    "email"
+                  ]
+                },
+                "recipientReference": {
+                  "type": "string"
+                },
+                "amount": {
+                  "type": "number",
+                  "minimum": 1,
+                  "maximum": 100
+                }
+              },
+              "required": [
+                "recipientType",
+                "recipientReference",
+                "amount"
+              ]
+            }
+          }
+        },
+        "required": [
+          "type",
+          "typeReference",
+          "recipients"
+        ]
+      },
+      "primaryFlags": {
+        "description": "--description",
+        "type": "--type",
+        "typeReference": "--type-reference",
+        "recipients": "--recipient"
+      }
+    },
+    "pagination": "none",
+    "destructive": false
+  },
+  {
+    "operationId": "listSplits",
+    "sdkMethod": "splits.list",
+    "cliPath": "splits list",
+    "disposition": "implemented",
+    "description": "List all splits",
+    "parameters": [
+      {
+        "name": "page_number",
+        "sdkName": "pageNumber",
+        "in": "query",
+        "cliFlagOrArgument": "--page",
+        "required": false,
+        "schema": {
+          "type": "number"
+        }
+      },
+      {
+        "name": "page_size",
+        "sdkName": "pageSize",
+        "in": "query",
+        "cliFlagOrArgument": "--limit",
+        "required": false,
+        "schema": {
+          "type": "number"
+        }
+      }
+    ],
+    "pagination": "page",
+    "destructive": false
+  },
+  {
+    "operationId": "retrieveSplit",
+    "sdkMethod": "splits.retrieve",
+    "cliPath": "splits get",
+    "disposition": "implemented",
+    "description": "Retrieve a split",
+    "parameters": [
+      {
+        "name": "id",
+        "sdkName": "id",
+        "in": "path",
+        "cliFlagOrArgument": "<id>",
+        "required": true,
+        "schema": {
+          "type": "string"
+        }
+      }
+    ],
+    "pagination": "none",
+    "destructive": false
+  },
+  {
+    "operationId": "deleteSplit",
+    "sdkMethod": "splits.delete",
+    "cliPath": "splits delete",
+    "disposition": "implemented",
+    "description": "Delete a split",
+    "parameters": [
+      {
+        "name": "id",
+        "sdkName": "id",
+        "in": "path",
+        "cliFlagOrArgument": "<id>",
+        "required": true,
+        "schema": {
+          "type": "string"
+        }
+      }
+    ],
+    "pagination": "none",
+    "destructive": true
+  }
+]

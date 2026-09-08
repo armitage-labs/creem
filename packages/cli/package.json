@@ -35,24 +35,32 @@
     "build": "tsc",
     "typecheck": "tsc --noEmit",
     "check:package": "publint --strict --pack pnpm && attw --pack .",
-    "test": "node dist/index.js --help",
+    "test": "vitest run && node dist/index.js --help",
     "dev": "tsc --watch",
     "start": "node dist/index.js",
-    "format:check": "prettier --check \"src/**/*.ts\"",
+    "format:check": "prettier --check \"{src,tests,scripts}/**/*.{ts,mjs}\"",
     "clean": "rm -rf dist",
-    "prepublishOnly": "npm run build"
+    "prepublishOnly": "npm run build",
+    "lint": "eslint src tests scripts --max-warnings=0",
+    "parity:check": "node scripts/check-parity.mjs",
+    "test:packed": "node scripts/test-packed.mjs"
   },
   "dependencies": {
     "@inquirer/prompts": "^7.5.1",
     "chalk": "^4.1.2",
     "cli-table3": "^0.6.5",
     "commander": "^12.1.0",
-    "creem": "workspace:^1.5.3",
+    "creem": "workspace:*",
     "ora": "^5.4.1"
   },
   "devDependencies": {
+    "@eslint/js": "^9.26.0",
     "@types/node": "^22.0.0",
-    "typescript": "^5.4.5"
+    "eslint": "^9.26.0",
+    "globals": "^15.14.0",
+    "typescript": "^5.4.5",
+    "typescript-eslint": "^8.26.0",
+    "vitest": "^3.0.0"
   },
   "engines": {
     "node": ">=22.0.0"
