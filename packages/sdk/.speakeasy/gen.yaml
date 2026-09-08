@@ -35,7 +35,7 @@ generation:
   repoSubDirectory: packages/sdk
   repoUrl: https://github.com/armitage-labs/creem.git
 typescript:
-  version: 1.6.2
+  version: 1.7.0
   acceptHeaderEnum: true
   additionalDependencies:
     dependencies: {}
