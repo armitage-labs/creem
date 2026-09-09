@@ -1,7 +1,7 @@
 ---
-title: 'Webhooks'
-description: 'Creem webhooks guide: receive real-time payment notifications, handle subscription lifecycle events, and verify webhook signatures securely.'
-keywords: 'webhooks, payment notifications, subscription events, webhook verification'
+title: "Webhooks"
+description: "Creem webhooks guide: receive real-time payment notifications, handle subscription lifecycle events, and verify webhook signatures securely."
+keywords: "webhooks, payment notifications, subscription events, webhook verification, webhook IP allowlist, webhook source IPs"
 ---
 
 ## What is a webhook?
@@ -12,7 +12,7 @@ Creem uses webhooks to push real-time notifications to you about your payments a
 - Automatically remove access to a user after a canceled subscription
 - Confirm that a payment has been received by the same customer that initiated it.
 
-In case webhooks are not successfully received by your endpoint, Creem automatically retries to send the request with a progressive backoff period of 30 seconds, 1 minute, 5 minutes and 1 hour. You can also resend webhook events manually from your Merchant dashboard under [Developers section](https://creem.io/dashboard/developers).
+In case webhooks are not successfully received by your endpoint, Creem automatically retries the request with a progressive backoff. There are 5 attempts in total — the initial delivery, then retries after 30 seconds, 5 minutes, 30 minutes and 6 hours. Events are not retried after 24 hours, even if attempts remain. Because the same event can be delivered more than once, your handler should be idempotent. You can also resend webhook events manually from your Merchant dashboard under [Developers section](https://creem.io/dashboard/developers).
 
 ## Steps to receive a webhook
 
@@ -25,10 +25,9 @@ You can start receiving real-time events in your app using the steps:
 - Register your production webhook endpoint on Creem live dashboard
 
 <Info>
-  On Next.js projects, the{' '}
-  <a href="/code/sdks/nextjs">@creem_io/nextjs adapter</a> exports a `Webhook`
-  helper that verifies signatures and surfaces typed lifecycle callbacks. Use it
-  as your default implementation before falling back to manual parsing.
+  On Next.js projects, the <a href="/code/sdks/nextjs">@creem_io/nextjs adapter</a> exports a
+  `Webhook` helper that verifies signatures and surfaces typed lifecycle callbacks. Use it as your
+  default implementation before falling back to manual parsing.
 </Info>
 
 ### 1. Create a local endpoint to receive requests
@@ -39,7 +38,7 @@ In your local application, create a new route that can accept POST requests.
 
 ```ts Next.js
 // app/api/webhook/creem/route.ts
-import { Webhook } from '@creem_io/nextjs';
+import { Webhook } from "@creem_io/nextjs";
 
 export const POST = Webhook({
   webhookSecret: process.env.CREEM_WEBHOOK_SECRET!,
@@ -58,13 +57,10 @@ export const POST = Webhook({
 ```
 
 ```ts Node.js
-import type { NextApiRequest, NextApiResponse } from 'next';
+import type { NextApiRequest, NextApiResponse } from "next";
 
-export default async function handler(
-  req: NextApiRequest,
-  res: NextApiResponse
-) {
-  if (req.method !== 'POST') {
+export default async function handler(req: NextApiRequest, res: NextApiResponse) {
+  if (req.method !== "POST") {
     return res.status(405).end();
   }
 
@@ -83,12 +79,12 @@ On receiving an event, you should respond with an HTTP 200 OK to signal to Creem
 Register your publicly accessible HTTPS URL in the Creem dashboard.
 
 <Tip>
-  You can create a tunnel to your localhost server using a tool like ngrok. For
-  example: https://8733-191-204-177-89.sa.ngrok.io/api/webhooks
+  You can create a tunnel to your localhost server using a tool like ngrok. For example:
+  https://8733-191-204-177-89.sa.ngrok.io/api/webhooks
 </Tip>
 
 <img
-  style={{ borderRadius: '0.5rem' }}
+  style={{ borderRadius: "0.5rem" }}
   src="https://nucn5fajkcc6sgrd.public.blob.vercel-storage.com/test-webhook-yBodvIWasxCmgr4bYqZJBlWg8qbUD2.png"
 />
 
@@ -103,6 +99,22 @@ After you're done testing, deploy your webhook endpoint to production.
 ### 5. Register your production webhook endpoint
 
 Once your webhook endpoint is deployed to production, you can register it in the Creem dashboard.
+
+## Network Configuration
+
+<Info>
+  Creem does not provide static source IP addresses for outbound webhooks in either Test Mode or
+  production. If your firewall or WAF protects the webhook endpoint, do not rely on source-IP
+  allowlists as the authentication mechanism. Keep the endpoint reachable over HTTPS and verify
+  every request with the `creem-signature` header.
+</Info>
+
+<Tip>
+  Bot protection and WAF products can challenge webhook deliveries because webhooks are automated
+  server-to-server requests. If this happens, add a route-level exception or skip rule for your
+  webhook endpoint. On Cloudflare specifically, Bot Fight Mode cannot be skipped with custom rules;
+  disable it or use Super Bot Fight Mode or Bot Management with a skip rule.
+</Tip>
 
 ## Webhook Signatures
 
@@ -121,18 +133,26 @@ Creem signature is sent in the `creem-signature` header of the webhook request. 
   </Accordion>
 </AccordionGroup>
 
-To verify the signature, you need to generate the signature using the same algorithm and compare it with the signature sent in the header. If the two signatures match, the request is authentic.
+Use the TypeScript SDK to verify the signature before processing the event payload.
 
 <Tip>
 You can find your webhook secret on the Developers>Webhook page.
 </Tip>
 
 <img
-  style={{ borderRadius: '0.5rem' }}
+  style={{ borderRadius: "0.5rem" }}
   src="https://nucn5fajkcc6sgrd.public.blob.vercel-storage.com/Screenshot%202024-10-03%20at%2014.26.39-MtSMvooQi4OrZoh9eMyFZngfc0CrQn.png"
 />
 
-To generate the signature, you can use the following code snippet:
+```typescript
+import { verifyWebhookSignature } from "creem/webhooks";
+
+await verifyWebhookSignature(rawBody, request.headers, {
+  secret: process.env.CREEM_WEBHOOK_SECRET!,
+});
+```
+
+If you are not using the SDK, generate the signature with HMAC-SHA256 using the raw request body and compare it with the `creem-signature` header.
 
 ```typescript
 import * as crypto from 'crypto';
@@ -223,6 +243,21 @@ A checkout session was completed, returning all the information about the paymen
         },
         "mode": "local"
       },
+      "license_keys": [
+        {
+          "id": "lk_2wMk1RtYqPnZ7bVxCdEfGh",
+          "object": "license",
+          "product_id": "prod_d1AY2Sadk9YAvLI0pj97f",
+          "key": "ABCDE-FGHIJ-KLMNO-PQRST-UVWXY",
+          "status": "inactive",
+          "activation": 0,
+          "activation_limit": 1,
+          "expires_at": null,
+          "created_at": "2024-10-12T11:58:33.097Z",
+          "instance": null,
+          "mode": "local"
+        }
+      ],
       "custom_fields": [],
       "status": "completed",
       "metadata": {
@@ -236,6 +271,44 @@ A checkout session was completed, returning all the information about the paymen
     
   </Accordion>
 </AccordionGroup>
+
+#### License keys
+
+If the purchased product issues license keys, the checkout object also carries a `license_keys` array, as shown in the sample above.
+
+<Info>
+  `license_keys` is only present when the order actually issued license keys.
+  For a product without a license key feature the field is **omitted
+  entirely** — check whether it is present rather than expecting an empty
+  array.
+</Info>
+
+Each entry is a license **object**, not a key string:
+
+| Field | Type | Description |
+| --- | --- | --- |
+| `id` | string | Unique identifier for the license, prefixed with `lk_`. |
+| `object` | string | Always `license`. |
+| `product_id` | string | The product the license was issued for. |
+| `key` | string | The license key itself: five groups of five uppercase alphanumeric characters, for example `ABCDE-FGHIJ-KLMNO-PQRST-UVWXY`. |
+| `status` | string | One of `inactive`, `active`, `expired`, or `disabled`. A key stays `inactive` until its first successful activation. |
+| `activation` | number | Number of times the key has been activated so far. |
+| `activation_limit` | number \| null | Maximum number of activations allowed. `null` means unlimited. |
+| `expires_at` | string \| null | ISO 8601 expiry date. `null` means the key does not expire. |
+| `created_at` | string | ISO 8601 date the license was created. |
+| `instance` | object \| null | The associated license instance, when one exists. |
+| `mode` | string | The environment the license belongs to. |
+
+<Tip>
+  You do not need a real purchase to see this shape. In the dashboard go to
+  **Settings → Webhooks**, open a webhook and use **Send test event** — the
+  `checkout.completed` payload it delivers includes a populated
+  `license_keys` array.
+</Tip>
+
+One key is issued per license key feature on the product, multiplied by the number of units purchased — a three-unit order of a keyed product delivers three entries. Always treat `license_keys` as a list, never as a single key.
+
+For issuing and managing keys, see [Licenses](/features/addons/licenses).
 
 ### subscription.active
 
@@ -422,7 +495,7 @@ The subscription was canceled by the merchant or by the customer.
 The subscription was scheduled for cancellation at the end of the current billing period. The subscription remains active until `current_period_end_date`, after which it transitions to `canceled`.
 This event is triggered when a customer or merchant requests cancellation but opts to cancel at the end of the period rather than immediately. You can use this event to notify the customer about the upcoming cancellation or to offer retention incentives.
 
-The subscription can be resumed before the period ends using the [Resume Subscription](/api-reference/endpoint/subscriptions/resume-subscription) endpoint, which will change the status back to `active` and prevent the cancellation.
+The subscription can be resumed before the period ends using the [Resume Subscription](/api-reference/endpoint/resume-subscription) endpoint, which will change the status back to `active` and prevent the cancellation.
 
 <AccordionGroup>
   <Accordion title="Sample Request Body">
@@ -541,6 +614,55 @@ The subscription payment has failed and the subscription is now past due. This o
 }
   ```
     
+  </Accordion>
+</AccordionGroup>
+
+### subscription.unpaid
+
+The subscription moved to the `unpaid` status after failed payment collection. Treat it like `subscription.past_due` in payment-recovery UI, and suspend access according to your policy.
+
+<AccordionGroup>
+  <Accordion title="Sample Request Body">
+  ```json
+{
+    "id": "evt_h9hBneNdvWvA8hQzIBzDx",
+    "eventType": "subscription.unpaid",
+    "created_at": 1772265400331,
+    "object": {
+        "id": "sub_3xx35QzxsnpFiJ3vRB9YKt",
+        "object": "subscription",
+        "status": "unpaid",
+        "product": {
+            "id": "prod_L8mMzoYLOOZpMpTBwGw0k",
+            "name": "Pro Plan",
+            "price": 2999,
+            "currency": "USD",
+            "billing_type": "recurring",
+            "billing_period": "every-month",
+            "status": "active",
+            "tax_mode": "exclusive",
+            "tax_category": "saas",
+            "mode": "test"
+        },
+        "customer": {
+            "id": "cust_ubD9UtnJpafXNKQ5UaV0H",
+            "object": "customer",
+            "email": "customer@example.com",
+            "name": "Test Customer",
+            "country": "US",
+            "mode": "test"
+        },
+        "collection_method": "charge_automatically",
+        "last_transaction_id": "tran_6uBkPewvO7KHjfvGmpin82",
+        "current_period_start_date": "2026-02-28T07:56:07.282Z",
+        "current_period_end_date": "2026-03-30T07:56:07.282Z",
+        "canceled_at": null,
+        "metadata": {},
+        "mode": "test"
+    }
+}
+  ```
+
   </Accordion>
 </AccordionGroup>
 

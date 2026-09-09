@@ -10,7 +10,7 @@ AI coding assistants like Claude Code, Cursor, and Windsurf are transforming how
 Install the Creem skill with a single command:
 
 ```bash
-/plugin marketplace add armitage-labs/creem-skills
+/plugin marketplace add armitage-labs/creem
 ```
 
 Then install the skill using either method:
@@ -29,10 +29,16 @@ Then install the skill using either method:
 ```
 
 <Tip>
-  That's it! Claude Code now has complete knowledge of the Creem API and will
-  generate production-ready integration code when you ask about payments,
-  subscriptions, webhooks, or licenses.
+  That's it! Claude Code now has complete knowledge of the Creem API and will generate
+  production-ready integration code when you ask about payments, subscriptions, webhooks, or
+  licenses.
 </Tip>
+
+<Note>
+  The skill teaches your assistant how Creem works. If you also want it to **act** — create products,
+  open checkouts, cancel subscriptions — add the [MCP server](/ai/for-agents/mcp-server), which
+  exposes 49 API tools from the same `creem` package.
+</Note>
 
 ---
 
@@ -40,7 +46,7 @@ Then install the skill using either method:
 
 A skill is a structured set of instructions and reference materials that AI assistants use to provide more accurate, contextual help for specific tasks. When you load the Creem skill, your AI assistant gains comprehensive knowledge about:
 
-- All 24 API endpoints with request/response schemas
+- Every documented API endpoint with request/response schemas
 - Webhook events and signature verification
 - Common integration patterns and workflows
 - Best practices for security and error handling
@@ -52,24 +58,22 @@ A skill is a structured set of instructions and reference materials that AI assi
 
 <CardGroup cols={3}>
   <Card title="Claude Code (Recommended)" icon="terminal">
-    ```bash
-    /plugin marketplace add armitage-labs/creem-skills
-    /plugin install creem-api@creem-skills
-    ```
+    One-line install via the plugin marketplace: `/plugin marketplace add armitage-labs/creem`
   </Card>
   <Card
     title="GitHub Repository"
     icon="github"
-    href="https://github.com/armitage-labs/creem-skills"
+    href="https://github.com/armitage-labs/creem/tree/main/packages/docs/skills/creem-api"
   >
-    Clone, fork, or download the skill files directly
+    Browse or fork the skill files directly
   </Card>
   <Card
-    title="Download ZIP"
+    title="Any Other Tool"
     icon="download"
-    href="https://github.com/armitage-labs/creem-skills/archive/refs/heads/main.zip"
+    href="https://github.com/armitage-labs/creem/tree/main/packages/docs/skills/creem-api"
   >
-    Download as a ZIP file for manual setup
+    Copy the folder into your project: `npx degit armitage-labs/creem/packages/docs/skills/creem-api/skills/creem-api
+    creem-skill`
   </Card>
 </CardGroup>
 
@@ -81,7 +85,7 @@ The skill includes four comprehensive reference files:
 
 | File           | Description                                                 |
 | -------------- | ----------------------------------------------------------- |
-| `Skill.md`     | Core skill with quick reference and implementation patterns |
+| `SKILL.md`     | Core skill with quick reference and implementation patterns |
 | `REFERENCE.md` | Complete API reference with all endpoints and schemas       |
 | `WEBHOOKS.md`  | Webhook events documentation with payload examples          |
 | `WORKFLOWS.md` | Step-by-step integration guides for common use cases        |
@@ -89,7 +93,7 @@ The skill includes four comprehensive reference files:
 ### What's Covered
 
 <AccordionGroup>
-  <Accordion title="API Endpoints (24 total)">
+  <Accordion title="API Endpoints">
     - **Checkouts**: Create and retrieve checkout sessions
     - **Products**: Create, retrieve, and list products
     - **Customers**: Manage customers and portal links
@@ -99,27 +103,36 @@ The skill includes four comprehensive reference files:
     - **Transactions**: Query payment history
   </Accordion>
 
-  <Accordion title="Webhook Events (10 types)">
-    - `checkout.completed` - Payment successful
-    - `subscription.active` - New subscription created
-    - `subscription.paid` - Recurring payment processed
-    - `subscription.canceled` - Subscription ended
-    - `subscription.expired` - Period ended without payment
-    - `subscription.trialing` - Trial started
-    - `subscription.paused` - Subscription paused
-    - `subscription.update` - Subscription modified
-    - `refund.created` - Refund processed
-    - `dispute.created` - Chargeback opened
-  </Accordion>
+<Accordion title="Webhook Events (13 types)">
 
-  <Accordion title="Integration Workflows">
-    - Basic SaaS subscription flows
-    - One-time purchases with digital delivery
-    - License key systems for desktop/mobile apps
-    - Seat-based team billing
-    - Freemium with upgrade flows
-    - Affiliate and referral tracking
-  </Accordion>
+| Event                           | Meaning                               |
+| ------------------------------- | ------------------------------------- |
+| `checkout.completed`            | Payment successful                    |
+| `subscription.active`           | New subscription created              |
+| `subscription.paid`             | Recurring payment processed           |
+| `subscription.canceled`         | Subscription ended                    |
+| `subscription.scheduled_cancel` | Cancellation scheduled for period end |
+| `subscription.past_due`         | Payment failed, retries pending       |
+| `subscription.unpaid`           | Payment collection failed             |
+| `subscription.expired`          | Period ended without payment          |
+| `subscription.trialing`         | Trial started                         |
+| `subscription.paused`           | Subscription paused                   |
+| `subscription.update`           | Subscription modified                 |
+| `refund.created`                | Refund processed                      |
+| `dispute.created`               | Chargeback opened                     |
+
+</Accordion>
+
+<Accordion title="Integration Workflows">
+
+- Basic SaaS subscription flows
+- One-time purchases with digital delivery
+- License key systems for desktop/mobile apps
+- Seat-based team billing
+- Freemium with upgrade flows
+- Affiliate and referral tracking
+
+</Accordion>
 
   <Accordion title="Best Practices">
     - Webhook signature verification (HMAC-SHA256)
@@ -136,9 +149,7 @@ The skill includes four comprehensive reference files:
 
 ### Claude Code
 
-<Note>
-  **Recommended Method**: Use the plugin marketplace for the easiest setup experience.
-</Note>
+<Note>**Recommended Method**: Use the plugin marketplace for the easiest setup experience.</Note>
 
 **One-Line Install (Plugin Marketplace)**
 
@@ -148,7 +159,7 @@ Claude Code's plugin marketplace makes installation effortless:
   <Step title="Add the Marketplace">
     Open Claude Code and run:
     ```bash
-    /plugin marketplace add armitage-labs/creem-skills
+    /plugin marketplace add armitage-labs/creem
     ```
   </Step>
   <Step title="Install the Skill">
@@ -160,6 +171,7 @@ Claude Code's plugin marketplace makes installation effortless:
     ```bash
     /plugin install creem-api@creem-skills
     ```
+
   </Step>
   <Step title="Start Building">
     Ask Claude to help with Creem integration:
@@ -193,7 +205,7 @@ Claude Code's plugin marketplace makes installation effortless:
 If you prefer not to use the marketplace, you can reference the skill directly in any conversation:
 
 ```
-Help me integrate Creem payments. Use the skill at https://github.com/armitage-labs/creem-skills
+Help me integrate Creem payments. Use the skill at https://github.com/armitage-labs/creem
 ```
 
 ---
@@ -204,16 +216,16 @@ Cursor supports adding context through multiple methods:
 
 **Option 1: Add to Project**
 
-1. Clone the skill repository into your project:
+1. Pull just the skill directory into your project:
 
    ```bash
-   git clone https://github.com/armitage-labs/creem-skills.git .cursor/skills
+   npx degit armitage-labs/creem/packages/docs/skills/creem-api/skills/creem-api .cursor/skills/creem-api
    ```
 
 2. Reference the skill files in your conversations using `@` mentions:
 
    ```
-   @.cursor/skills/creem-api/Skill.md Help me create a checkout flow
+   @.cursor/skills/creem-api/SKILL.md Help me create a checkout flow
    ```
 
 **Option 2: Custom Instructions**
@@ -243,10 +255,10 @@ Add the Creem documentation to Cursor's docs:
 
 Windsurf supports custom knowledge through its Cascade feature:
 
-1. Clone the skill repository:
+1. Pull just the skill directory:
 
    ```bash
-   git clone https://github.com/armitage-labs/creem-skills.git .windsurf/creem
+   npx degit armitage-labs/creem/packages/docs/skills/creem-api/skills/creem-api .windsurf/creem
    ```
 
 2. Add to your project's knowledge base in Windsurf settings
@@ -263,8 +275,13 @@ Windsurf supports custom knowledge through its Cascade feature:
 
 For other AI coding assistants (GitHub Copilot Chat, Cody, Continue, etc.):
 
-1. **Download the skill files** from the GitHub repository
-2. **Add to your project** in a dedicated folder (e.g., `.ai/creem/`)
+1. **Pull the skill files** into a dedicated folder:
+
+   ```bash
+   npx degit armitage-labs/creem/packages/docs/skills/creem-api/skills/creem-api .ai/creem
+   ```
+
+2. **Add that folder** to your tool's context or knowledge base
 3. **Reference in context** when asking questions about Creem integration
 4. **Copy relevant sections** into your conversation when needed
 
@@ -287,29 +304,27 @@ with metadata tracking
 
 ```typescript Generated Code
 // app/api/checkout/route.ts
-import { NextRequest, NextResponse } from 'next/server';
+import { NextRequest, NextResponse } from "next/server";
 
 const CREEM_API_KEY = process.env.CREEM_API_KEY!;
 const BASE_URL =
-  process.env.NODE_ENV === 'production'
-    ? 'https://api.creem.io'
-    : 'https://test-api.creem.io';
+  process.env.NODE_ENV === "production" ? "https://api.creem.io" : "https://test-api.creem.io";
 
 export async function POST(req: NextRequest) {
   const { productId, userId, email } = await req.json();
 
   const response = await fetch(`${BASE_URL}/v1/checkouts`, {
-    method: 'POST',
+    method: "POST",
     headers: {
-      'x-api-key': CREEM_API_KEY,
-      'Content-Type': 'application/json',
+      "x-api-key": CREEM_API_KEY,
+      "Content-Type": "application/json",
     },
     body: JSON.stringify({
       product_id: productId,
       request_id: `checkout_${userId}_${Date.now()}`,
       success_url: `${process.env.NEXT_PUBLIC_APP_URL}/success`,
       customer: { email },
-      metadata: { userId, source: 'webapp' },
+      metadata: { userId, source: "webapp" },
     }),
   });
 
@@ -330,33 +345,27 @@ Create a webhook handler that verifies signatures and handles subscription event
 
 ```typescript Generated Code
 // app/api/webhooks/creem/route.ts
-import { NextRequest, NextResponse } from 'next/server';
-import crypto from 'crypto';
+import { NextRequest, NextResponse } from "next/server";
+import { constructWebhookEventEntity } from "creem/webhooks";
 
 export async function POST(req: NextRequest) {
-  const signature = req.headers.get('creem-signature');
   const rawBody = await req.text();
+  const event = await constructWebhookEventEntity(rawBody, req.headers, {
+    secret: process.env.CREEM_WEBHOOK_SECRET!,
+  }).catch(() => null);
 
-  // Verify signature
-  const computed = crypto
-    .createHmac('sha256', process.env.CREEM_WEBHOOK_SECRET!)
-    .update(rawBody)
-    .digest('hex');
-
-  if (computed !== signature) {
-    return NextResponse.json({ error: 'Invalid signature' }, { status: 401 });
+  if (!event) {
+    return NextResponse.json({ error: "Invalid signature" }, { status: 401 });
   }
 
-  const event = JSON.parse(rawBody);
-
   switch (event.eventType) {
-    case 'checkout.completed':
+    case "checkout.completed":
       await handleCheckoutCompleted(event.object);
       break;
-    case 'subscription.paid':
+    case "subscription.paid":
       await handleSubscriptionPaid(event.object);
       break;
-    case 'subscription.canceled':
+    case "subscription.canceled":
       await handleSubscriptionCanceled(event.object);
       break;
   }
@@ -376,22 +385,21 @@ Implement license key activation and validation for my Electron desktop app
 ```
 
 ```typescript Generated Code
-// license.ts
-import Store from 'electron-store';
-import { machineIdSync } from 'node-machine-id';
+// license.ts (Electron)
+import Store from "electron-store";
+import { machineIdSync } from "node-machine-id";
 
 const store = new Store<{ license: LicenseState }>();
-const API_URL = 'https://api.creem.io';
+// Your backend proxies these calls to Creem. The merchant API key
+// never ships inside the desktop binary.
+const LICENSE_API = "https://yourapp.com/api/license";
 
 export async function activateLicense(licenseKey: string) {
   const instanceName = machineIdSync();
 
-  const response = await fetch(`${API_URL}/v1/licenses/activate`, {
-    method: 'POST',
-    headers: {
-      'x-api-key': process.env.CREEM_API_KEY!,
-      'Content-Type': 'application/json',
-    },
+  const response = await fetch(`${LICENSE_API}/activate`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
     body: JSON.stringify({
       key: licenseKey,
       instance_name: instanceName,
@@ -400,11 +408,11 @@ export async function activateLicense(licenseKey: string) {
 
   if (!response.ok) {
     const error = await response.json();
-    throw new Error(error.message || 'Activation failed');
+    throw new Error(error.message || "Activation failed");
   }
 
   const license = await response.json();
-  store.set('license', {
+  store.set("license", {
     key: licenseKey,
     instanceId: license.instance.id,
     expiresAt: license.expires_at,
@@ -414,15 +422,12 @@ export async function activateLicense(licenseKey: string) {
 }
 
 export async function validateLicense() {
-  const stored = store.get('license');
-  if (!stored) return { valid: false, status: 'not_activated' };
+  const stored = store.get("license");
+  if (!stored) return { valid: false, status: "not_activated" };
 
-  const response = await fetch(`${API_URL}/v1/licenses/validate`, {
-    method: 'POST',
-    headers: {
-      'x-api-key': process.env.CREEM_API_KEY!,
-      'Content-Type': 'application/json',
-    },
+  const response = await fetch(`${LICENSE_API}/validate`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
     body: JSON.stringify({
       key: stored.key,
       instance_id: stored.instanceId,
@@ -430,7 +435,7 @@ export async function validateLicense() {
   });
 
   const license = await response.json();
-  return { valid: license.status === 'active', status: license.status };
+  return { valid: license.status === "active", status: license.status };
 }
 ```
 
@@ -442,12 +447,10 @@ export async function validateLicense() {
 
 <CardGroup cols={3}>
   <Card title="Faster Development" icon="bolt">
-    Skip reading documentation - describe what you want and get working code
-    instantly
+    Skip reading documentation - describe what you want and get working code instantly
   </Card>
   <Card title="Best Practices Built-in" icon="shield-check">
-    Generated code includes security patterns, error handling, and production
-    considerations
+    Generated code includes security patterns, error handling, and production considerations
   </Card>
   <Card title="Always Up-to-Date" icon="rotate">
     We maintain the skill alongside our API - you always get current patterns
@@ -490,17 +493,13 @@ The Creem skill is designed for **direct API integration** and complements our S
 Found an issue or want to improve the skill? We welcome contributions:
 
 <CardGroup cols={2}>
-  <Card
-    title="Report Issues"
-    icon="bug"
-    href="https://github.com/armitage-labs/creem-skills/issues"
-  >
+  <Card title="Report Issues" icon="bug" href="https://github.com/armitage-labs/creem/issues">
     Found a bug or incorrect information? Let us know
   </Card>
   <Card
     title="Contribute"
     icon="code-pull-request"
-    href="https://github.com/armitage-labs/creem-skills/pulls"
+    href="https://github.com/armitage-labs/creem/pulls"
   >
     Submit improvements or new workflow examples
   </Card>
@@ -511,12 +510,8 @@ Found an issue or want to improve the skill? We welcome contributions:
 ## Next Steps
 
 <CardGroup cols={2}>
-  <Card
-    title="Install the Skill"
-    icon="terminal"
-    href="https://github.com/armitage-labs/creem-skills"
-  >
-    Run `/plugin marketplace add armitage-labs/creem-skills` in Claude Code
+  <Card title="Install the Skill" icon="terminal" href="https://github.com/armitage-labs/creem">
+    Run `/plugin marketplace add armitage-labs/creem` in Claude Code
   </Card>
   <Card title="API Reference" icon="book" href="/api-reference/introduction">
     Explore the full API documentation

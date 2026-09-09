@@ -1,6 +1,6 @@
 ---
-title: 'Discount Codes'
-description: 'Create and manage discount codes to drive sales, reward customers, and run promotional campaigns for your products.'
+title: "Discount Codes"
+description: "Create and manage discount codes to drive sales, reward customers, and run promotional campaigns for your products."
 ---
 
 Discount codes give you powerful tools to incentivize purchases and run promotional campaigns. You can create percentage-based or fixed-amount discounts that apply to specific products, with full control over duration, expiration, and redemption limits.
@@ -30,31 +30,33 @@ You can also create discounts programmatically using the API.
   <Tab title="TypeScript SDK">
 
 ```typescript
-import { createCreem } from 'creem_io';
+import { Creem } from "creem";
 
-const creem = createCreem({
+const creem = new Creem({
   apiKey: process.env.CREEM_API_KEY!,
-  testMode: process.env.NODE_ENV !== 'production',
+  server: process.env.NODE_ENV === "production" ? "prod" : "test",
 });
 
 // Create a percentage discount
 const percentageDiscount = await creem.discounts.create({
-  name: 'Percentage Discount',
-  code: 'PERC10',
-  currency: 'USD',
-  type: 'percentage',
+  name: "Percentage Discount",
+  code: "PERC10",
+  currency: "USD",
+  type: "percentage",
   percentage: 10,
-  duration: 'forever',
+  duration: "forever",
+  appliesToProducts: ["prod_YOUR_PRODUCT_ID"],
 });
 
 // Create a fixed amount discount
 const fixedDiscount = await creem.discounts.create({
-  name: 'Fixed Discount',
-  code: 'FIXED10',
+  name: "Fixed Discount",
+  code: "FIXED10",
   amount: 1000, // In cents
-  currency: 'USD',
-  type: 'fixed',
-  duration: 'forever',
+  currency: "USD",
+  type: "fixed",
+  duration: "forever",
+  appliesToProducts: ["prod_YOUR_PRODUCT_ID"],
 });
 ```
 
@@ -175,8 +177,8 @@ Applies for a specific number of months, then reverts to full price.
 **Use case**: "50% off for your first 3 months" on a subscription.
 
 <Note>
-  Duration only affects subscription products. For one-time payments, the
-  discount is always applied once.
+  Duration only affects subscription products. For one-time payments, the discount is always applied
+  once.
 </Note>
 
 ---
@@ -197,7 +199,7 @@ Pre-apply a discount code programmatically when creating a checkout session. Thi
   <Tab title="Next.js">
 
 ```tsx
-import { CreemCheckout } from '@creem_io/nextjs';
+import { CreemCheckout } from "@creem_io/nextjs";
 
 export function PromoButton() {
   return (
@@ -214,13 +216,13 @@ export function PromoButton() {
 
 ```typescript
 const checkout = await creem.checkouts.create({
-  productId: 'prod_YOUR_PRODUCT_ID',
-  discountCode: 'LAUNCH50',
-  successUrl: 'https://yoursite.com/success',
+  productId: "prod_YOUR_PRODUCT_ID",
+  discountCode: "LAUNCH50",
+  successUrl: "https://yoursite.com/success",
 });
 
 // Redirect to checkout with discount pre-applied
-window.location.href = checkout.checkout_url;
+window.location.href = checkout.checkoutUrl;
 ```
 
   </Tab>
@@ -229,9 +231,9 @@ window.location.href = checkout.checkout_url;
 
 ```typescript
 const { data } = await authClient.creem.createCheckout({
-  productId: 'prod_YOUR_PRODUCT_ID',
-  discountCode: 'LAUNCH50',
-  successUrl: '/dashboard',
+  productId: "prod_YOUR_PRODUCT_ID",
+  discountCode: "LAUNCH50",
+  successUrl: "/dashboard",
 });
 
 if (data?.url) {
@@ -271,12 +273,12 @@ Get details about a specific discount code.
 ```typescript
 // By discount ID
 const discount = await creem.discounts.get({
-  discountId: 'disc_1234567890',
+  discountId: "disc_1234567890",
 });
 
 // By discount code
 const discount = await creem.discounts.get({
-  discountCode: 'LAUNCH50',
+  discountCode: "LAUNCH50",
 });
 
 console.log(discount.redeem_count); // See how many times it's been used
@@ -308,7 +310,7 @@ Permanently delete a discount code. This action cannot be undone.
 
 ```typescript
 await creem.discounts.delete({
-  discountId: 'disc_1234567890',
+  discountId: "disc_1234567890",
 });
 ```
 

@@ -55,27 +55,35 @@ creem-docs/
 
 ## Development Commands
 
+Run these commands from the repository root.
+
 ```bash
 # Preview docs locally
-mintlify dev
+pnpm --dir packages/docs exec mint dev
 
 # Format all content files
-npm run format
+pnpm --dir packages/docs format
 
 # Check formatting without changes
-npm run format:check
+pnpm --dir packages/docs format:check
 
 # Generate API reference MDX from local openapi.json
-npm run generate:api
+pnpm --dir packages/docs generate:api
 
 # Generate from remote API, update local spec, and clean orphans
-npm run generate:api:remote -- https://api.creem.io/open-api/json
+pnpm --dir packages/docs generate:api:remote -- https://api.creem.io/open-api/json
 
 # Preview API doc generation without writing files
-npm run generate:api:dry-run
+pnpm --dir packages/docs generate:api:dry-run
 
 # Delete orphaned endpoint MDX files
-npm run generate:api:cleanup
+pnpm --dir packages/docs generate:api:cleanup
+
+# Validate the Mintlify build and referenced OpenAPI document
+pnpm --dir packages/docs validate
+
+# Check internal links, redirect destinations, and anchors
+pnpm --dir packages/docs check:links
 ```
 
 ---
@@ -124,7 +132,13 @@ icon: 'icon-name'  # Optional — Font Awesome icon name
 
 ### Source of Truth
 
-The OpenAPI 3.0 spec lives at `api-reference/openapi.json`. This is the single source of truth for all API endpoint documentation.
+The OpenAPI 3.0 spec authored at `../sdk/openapi.json` (workspace-shared with the SDK generator) is the single source of truth. `api-reference/openapi.json` is a **generated copy** kept in sync by `pnpm gen:sdk` so Mintlify can auto-discover it for the API playground — don't edit it directly.
+
+Deployed backend Swagger JSON is exposed at `/open-api/json`, for example `https://api.creem.io/open-api/json`, `https://test-api.creem.io/open-api/json`, and `https://stg-api.creem.io/open-api/json`. The private backend's local/sandbox Swagger setup may expose `/open-api/json` when run with `APP_ENVIRONMENT=local` or `APP_ENVIRONMENT=sandbox`.
+
+For backend schema changes, fix the private backend annotations first, regenerate `../sdk/openapi.json`, run `speakeasy run` from `../sdk`, then copy the spec to `api-reference/openapi.json`. Do not manually patch generated SDK files or the public OpenAPI spec for backend schema changes. Check that the SDK package version was not bumped unless a release is intentional.
+
+Speakeasy requires an authenticated CLI session and network access. If generation changes the package version unexpectedly, restore the intended version before committing.
 
 ### How API Docs Are Generated
 
@@ -139,7 +153,7 @@ The `scripts/generate-api-docs.js` script:
 ```yaml
 ---
 title: 'Creates a new product'
-description: 'Create a new product for one-time payments or subscriptions.'
+description: 'Create a new product for one-time payments, including free products with a 0 price, or subscriptions.'
 openapi: post /v1/products
 ---
 
@@ -157,7 +171,7 @@ The script has a `FILENAME_OVERRIDES` map for custom filenames. If an operationI
 When the backend API changes:
 
 1. Deploy or run the backend locally to expose the updated OpenAPI spec
-2. Run: `npm run generate:api:remote -- https://api.creem.io/open-api/json` (or sandbox URL)
+2. Run: `pnpm --dir packages/docs generate:api:remote -- https://api.creem.io/open-api/json` (or sandbox URL)
 3. Review the generated changes
 4. Add the new endpoint page path to `docs.json` navigation if it's a new endpoint
 5. Commit both the updated `openapi.json` and any new/changed MDX files
@@ -259,7 +273,7 @@ Special scope: `*:*` grants full access to all resources.
 |------|---------|
 | `@creem/sdk` | Core TypeScript SDK |
 | `@creem/next` | Next.js adapter with server-side helpers |
-| `creem-cli` | CLI tool for managing products, customers, subscriptions |
+| `@creem_io/cli` | CLI tool for managing products, customers, subscriptions |
 | Webhooks | Event-driven notifications (checkout.completed, subscription.active, etc.) |
 
 ---
@@ -336,10 +350,16 @@ Use Mintlify's built-in components in MDX:
 
 Creem has first-class support for AI agents. The `skills/` directory contains a Claude Code plugin:
 
-- `skills/creem-api/Skill.md` — Core instructions for the Creem API skill
-- `skills/creem-api/REFERENCE.md` — API reference for agents
-- `skills/creem-api/WEBHOOKS.md` — Webhook documentation for agents
-- `skills/creem-api/WORKFLOWS.md` — Common integration patterns
+- `skills/creem-api/.claude-plugin/plugin.json` — plugin manifest, at the plugin root
+- `skills/creem-api/skills/creem-api/SKILL.md` — Core instructions for the Creem API skill
+- `skills/creem-api/skills/creem-api/REFERENCE.md` — API reference for agents
+- `skills/creem-api/skills/creem-api/WEBHOOKS.md` — Webhook documentation for agents
+- `skills/creem-api/skills/creem-api/WORKFLOWS.md` — Common integration patterns
+
+The doubled path is required: Claude Code discovers a plugin's skills only at
+`<plugin>/skills/<name>/SKILL.md`. A `SKILL.md` at the plugin root installs
+cleanly and contributes nothing. Keep the four `.md` files together — `SKILL.md`
+references the other three by bare filename.
 
 The `ai/` documentation directory covers:
 - **For Humans**: CLI usage, getting started guides
@@ -377,7 +397,7 @@ Before submitting documentation changes, verify:
 - [ ] Links to other docs use relative paths (e.g., `/getting-started/quickstart`)
 - [ ] Code examples are accurate and use current SDK/API patterns
 - [ ] API reference changes are generated via the script, not manually edited
-- [ ] Formatting passes (`npm run format:check`)
+- [ ] Formatting passes (`pnpm --dir packages/docs format:check`)
 - [ ] No broken internal links
 - [ ] Tone matches Creem voice (professional, friendly, developer-focused)
 - [ ] Business/legal terminology is accurate (MoR, VAT, compliance)

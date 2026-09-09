@@ -1,0 +1,35 @@
+name: Changeset Check
+
+on:
+  pull_request:
+    branches: [main]
+    paths:
+      - "packages/*/src/**"
+      - "packages/*/package.json"
+      # Integration and UI packages do not share one source layout. Match the
+      # complete package trees so root-level and deeper sources stay covered.
+      - "packages/integrations/*/**"
+      - "packages/ui/*/**"
+
+jobs:
+  changeset:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - uses: pnpm/action-setup@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24
+          cache: "pnpm"
+
+      - run: pnpm install --frozen-lockfile
+
+      - name: Check for changesets
+        run: |
+          if ! pnpm changeset status --since=origin/main 2>&1; then
+            echo "::warning::No changeset found. If this PR includes package changes that need a release, run 'pnpm changeset' to add one."
+          fi

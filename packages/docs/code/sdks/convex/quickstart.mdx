@@ -1,0 +1,399 @@
+---
+title: "Quickstart"
+description: "Set up Creem billing in your Convex app: backend sync, webhook, and a working subscription pricing page."
+---
+
+`@creem_io/convex` connects your Convex backend to Creem. Webhooks keep billing state synced into your Convex database. Pre-built React and Svelte widgets handle checkout, plan switching, and cancellation.
+
+This page gets you to a working two-plan pricing page.
+
+**Before you start**, you need an existing [Convex](https://docs.convex.dev/quickstarts) project with `npx convex dev` running, and [auth configured](https://docs.convex.dev/auth) so `ctx.auth.getUserIdentity()` returns your signed-in user. Without auth, the pricing page renders - but only in its public, logged-out state, and checkout stays unavailable.
+
+<Note>
+  **Integrating with an AI agent, or migrating from another billing provider?** Point it at the
+  [Integration Guide](/code/sdks/convex/integration). That page holds the whole setup sequence in
+  order, with validation steps. Agents can fetch it as raw markdown:
+
+```text
+https://docs.creem.io/code/sdks/convex/integration.md
+```
+
+</Note>
+
+## Backend
+
+<Steps>
+  <Step title="Install" id="install">
+
+```bash
+npm install @creem_io/convex convex creem
+```
+
+  </Step>
+  <Step title="Register the component" id="register-component">
+
+```ts title="convex/convex.config.ts"
+import { defineApp } from "convex/server";
+import creem from "@creem_io/convex/convex.config";
+
+const app = defineApp();
+app.use(creem);
+
+export default app;
+```
+
+  </Step>
+  <Step title="Set secrets" id="set-secrets">
+
+```bash
+npx convex env set CREEM_API_KEY <your_creem_api_key>
+npx convex env set CREEM_WEBHOOK_SECRET <your_creem_webhook_signing_secret>
+npx convex env set CREEM_SERVER test
+```
+
+Both keys live in the [Developers section](https://creem.io/dashboard/developers) of your dashboard. Toggle [Test Mode](/getting-started/test-mode#activating-test-mode) to get test keys. Set `CREEM_SERVER=prod` (or omit it) when you go live.
+
+  </Step>
+  <Step title="Export the billing API" id="export-billing-api">
+
+The `resolve` callback maps your authenticated session to a billing entity. Replace it with your real auth logic:
+
+```ts title="convex/billing.ts"
+import { Creem, type ApiResolver } from "@creem_io/convex";
+import { components } from "./_generated/api";
+import { internalAction } from "./_generated/server";
+
+export const creem = new Creem(components.creem);
+
+// Return `null` for an unauthenticated caller. That is what keeps public
+// pricing pages working. Anything thrown here counts as a real failure.
+const resolve: ApiResolver = async (ctx) => {
+  const identity = await ctx.auth.getUserIdentity();
+  if (!identity) return null;
+  return {
+    userId: identity.subject,
+    email: identity.email!,
+    entityId: identity.subject, // for org billing, return the org ID
+  };
+};
+
+const { uiModel, checkouts, subscriptions, customers } = creem.api({ resolve });
+
+export { uiModel };
+export const checkoutsCreate = checkouts.create;
+export const subscriptionsUpdate = subscriptions.update;
+export const subscriptionsCancel = subscriptions.cancel;
+export const subscriptionsResume = subscriptions.resume;
+export const customersPortalUrl = customers.portalUrl;
+
+export const syncBillingProducts = internalAction({
+  args: {},
+  handler: async (ctx) => {
+    await creem.syncProducts(ctx);
+  },
+});
+```
+
+<Tip>
+  Keep these export names. `connectCreemApi` on the frontend maps them onto the widget API for you.
+</Tip>
+
+  </Step>
+  <Step title="Register the webhook" id="register-webhook">
+
+```ts title="convex/http.ts"
+import { httpRouter } from "convex/server";
+import { creem } from "./billing";
+
+const http = httpRouter();
+creem.registerRoutes(http);
+export default http;
+```
+
+In your Creem dashboard, set the webhook endpoint to your **Convex site URL** plus `/creem/events`:
+
+```text
+https://<your-deployment>.convex.site/creem/events
+```
+
+  </Step>
+  <Step title="Create two products" id="create-products">
+
+This quickstart renders a Basic and a Premium plan, so create one Creem product
+for each.
+
+<Tabs>
+  <Tab title="CLI">
+
+[Install the CLI](/ai/for-humans/cli), then sign in with the same test key you
+set in step 3:
+
+```bash
+creem login --api-key creem_test_YOUR_KEY
+
+creem products create \
+  --name "Basic" \
+  --description "For small teams" \
+  --price 1900 \
+  --currency USD \
+  --billing-type recurring \
+  --billing-period every-month
+
+creem products create \
+  --name "Premium" \
+  --description "For growing teams" \
+  --price 4900 \
+  --currency USD \
+  --billing-type recurring \
+  --billing-period every-month
+```
+
+Each command prints the new `prod_...` ID. `creem products list` shows them again later.
+
+  </Tab>
+  <Tab title="Dashboard">
+
+Create two recurring products in the [Products section](https://creem.io/dashboard/products)
+of your dashboard, then copy each product ID from its detail page.
+
+  </Tab>
+</Tabs>
+
+Put both IDs in your frontend env file. They are public values that the browser
+needs in order to start checkout:
+
+```bash title=".env.local"
+VITE_CREEM_SUB_BASIC_MONTHLY=prod_...
+VITE_CREEM_SUB_PREMIUM_MONTHLY=prod_...
+```
+
+<Note>
+  Use whichever public prefix your framework expects: `VITE_*` for Vite, `NEXT_PUBLIC_*` for
+  Next.js, `PUBLIC_*` for SvelteKit. Your Creem API key is not a public value and stays in Convex
+  env, as set above.
+</Note>
+
+  </Step>
+  <Step title="Sync products" id="sync-products">
+
+Pull the product metadata (names, prices, descriptions) into Convex so the
+widgets can render it:
+
+```bash
+npx convex run billing:syncBillingProducts
+```
+
+Billing state now syncs into Convex automatically. The backend is done.
+
+  </Step>
+</Steps>
+
+## Frontend
+
+<Steps>
+  <Step title="Install UI dependencies" id="install-ui">
+
+The widgets are built on [Ark UI](https://ark-ui.com) headless primitives. Add the adapter for your framework to your existing app:
+
+<Tabs>
+  <Tab title="React">
+
+```bash
+npm install @ark-ui/react
+```
+
+  </Tab>
+  <Tab title="Svelte">
+
+```bash
+npm install convex-svelte @ark-ui/svelte
+```
+
+  </Tab>
+</Tabs>
+
+  </Step>
+  <Step title="Set up Tailwind and import styles" id="import-styles">
+
+The widgets require **Tailwind CSS v4**. If your project doesn't have it yet, follow the [Tailwind framework guide](https://tailwindcss.com/docs/installation/framework-guides). The steps differ per framework.
+
+Then add the component styles to your CSS entry point, after the Tailwind import:
+
+```css
+@import "tailwindcss";
+@import "@creem_io/convex/styles";
+```
+
+  </Step>
+  <Step title="Define your plans" id="define-plans">
+
+Map stable plan IDs to your Creem product IDs:
+
+<Tabs>
+  <Tab title="React">
+
+```ts title="src/billingCatalog.ts"
+import { defineBillingCatalog } from "@creem_io/convex/react";
+
+export const billingCatalog = defineBillingCatalog({
+  version: "1",
+  plans: [
+    {
+      planId: "basic",
+      category: "paid",
+      billingType: "recurring",
+      creemProductIds: {
+        "every-month": import.meta.env.VITE_CREEM_SUB_BASIC_MONTHLY,
+      },
+    },
+    {
+      planId: "premium",
+      category: "paid",
+      billingType: "recurring",
+      recommended: true,
+      creemProductIds: {
+        "every-month": import.meta.env.VITE_CREEM_SUB_PREMIUM_MONTHLY,
+      },
+    },
+  ],
+} as const);
+```
+
+  </Tab>
+  <Tab title="Svelte">
+
+```ts title="src/billingCatalog.ts"
+import { defineBillingCatalog } from "@creem_io/convex/svelte";
+
+export const billingCatalog = defineBillingCatalog({
+  version: "1",
+  plans: [
+    {
+      planId: "basic",
+      category: "paid",
+      billingType: "recurring",
+      creemProductIds: {
+        "every-month": import.meta.env.VITE_CREEM_SUB_BASIC_MONTHLY,
+      },
+    },
+    {
+      planId: "premium",
+      category: "paid",
+      billingType: "recurring",
+      recommended: true,
+      creemProductIds: {
+        "every-month": import.meta.env.VITE_CREEM_SUB_PREMIUM_MONTHLY,
+      },
+    },
+  ],
+} as const);
+```
+
+  </Tab>
+</Tabs>
+
+`defineBillingCatalog` is the same framework-agnostic function in both entry points. It is re-exported from `/react` and `/svelte` so that browser code never has to import the server entry.
+
+Titles, descriptions, and prices come from the synced Creem product data.
+
+  </Step>
+  <Step title="Render the pricing page" id="render-pricing-page">
+
+Wrap your billing UI once in `CreemConvexProvider`. The widgets read everything from it:
+
+<Tabs>
+  <Tab title="React">
+
+```tsx title="src/PricingPage.tsx"
+import {
+  CreemConvexProvider,
+  Subscription,
+  BillingPortal,
+  connectCreemApi,
+  plansOf,
+} from "@creem_io/convex/react";
+import { api } from "../convex/_generated/api";
+import { billingCatalog } from "./billingCatalog";
+
+// Maps the exports from convex/billing.ts onto the widget API.
+const connectedApi = connectCreemApi(api.billing);
+
+export function PricingPage() {
+  return (
+    <CreemConvexProvider api={connectedApi} catalog={billingCatalog}>
+      <Subscription.Root plans={plansOf(billingCatalog, ["basic", "premium"])} />
+      <BillingPortal />
+    </CreemConvexProvider>
+  );
+}
+```
+
+  </Tab>
+  <Tab title="Svelte">
+
+```svelte title="src/routes/+page.svelte"
+<script lang="ts">
+  import { setupConvex } from "convex-svelte";
+  import {
+    CreemConvexProvider,
+    Subscription,
+    BillingPortal,
+    connectCreemApi,
+    plansOf,
+  } from "@creem_io/convex/svelte";
+  import { api } from "../convex/_generated/api.js";
+  import { billingCatalog } from "./billingCatalog";
+
+  setupConvex(import.meta.env.VITE_CONVEX_URL);
+
+  // Maps the exports from convex/billing.ts onto the widget API.
+  const connectedApi = connectCreemApi(api.billing);
+</script>
+
+<CreemConvexProvider api={connectedApi} catalog={billingCatalog}>
+  <Subscription.Root plans={plansOf(billingCatalog, ["basic", "premium"])} />
+  <BillingPortal />
+</CreemConvexProvider>
+```
+
+  </Tab>
+</Tabs>
+
+You now have a pricing page with live prices and working checkout. It shows a "Current plan" badge, and handles plan switching, cancel, and resume. Convex keeps all of it in sync. Try it with a [test card](/getting-started/test-mode#testing-payments).
+
+<Frame>
+  <img
+    src="/images/convex/pricing-two-plans-light.webp"
+    alt="Two subscription plan cards, Basic at $50 per month and a recommended Premium at $100 per month, each with a Subscribe button"
+    className="block dark:hidden"
+  />
+  <img
+    src="/images/convex/pricing-two-plans-dark.webp"
+    alt="Two subscription plan cards, Basic at $50 per month and a recommended Premium at $100 per month, each with a Subscribe button"
+    className="hidden dark:block"
+  />
+</Frame>
+
+  </Step>
+</Steps>
+
+## Next steps
+
+<CardGroup cols={2}>
+  <Card title="Subscriptions" icon="repeat" href="/code/sdks/convex/subscriptions">
+    Billing cycles, trials, unit-based pricing, and scheduled changes
+  </Card>
+  <Card
+    title="One-Time Products & Credits"
+    icon="coins"
+    href="/code/sdks/convex/one-time-and-credits"
+  >
+    Owned products, consumables, credit packs, and upgrade paths
+  </Card>
+  <Card title="Entitlements & Account UI" icon="lock-open" href="/code/sdks/convex/entitlements">
+    Feature gating, usage limits, billing history, and payment recovery
+  </Card>
+  <Card title="Advanced" icon="wrench" href="/code/sdks/convex/advanced">
+    Custom auth/RBAC, entity model, webhook middleware, and migration
+  </Card>
+</CardGroup>

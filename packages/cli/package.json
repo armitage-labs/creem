@@ -1,0 +1,72 @@
+{
+  "name": "@creem_io/cli",
+  "version": "0.3.0",
+  "description": "Official CLI for Creem - the Stripe alternative for SaaS",
+  "keywords": [
+    "creem",
+    "cli",
+    "payments",
+    "saas",
+    "subscriptions"
+  ],
+  "author": "Creem <support@creem.io>",
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/armitage-labs/creem.git",
+    "directory": "packages/cli"
+  },
+  "homepage": "https://github.com/armitage-labs/creem/tree/main/packages/cli",
+  "bugs": {
+    "url": "https://github.com/armitage-labs/creem/issues"
+  },
+  "bin": {
+    "creem": "./dist/index.js"
+  },
+  "main": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "files": [
+    "dist",
+    "README.md",
+    "LICENSE",
+    "CHANGELOG.md"
+  ],
+  "scripts": {
+    "build": "tsc",
+    "typecheck": "tsc --noEmit",
+    "check:package": "publint --strict --pack pnpm && attw --pack .",
+    "test": "vitest run && node dist/index.js --help",
+    "dev": "tsc --watch",
+    "start": "node dist/index.js",
+    "format:check": "prettier --check \"{src,tests,scripts}/**/*.{ts,mjs}\"",
+    "clean": "rm -rf dist",
+    "prepublishOnly": "npm run build",
+    "lint": "eslint src tests scripts --max-warnings=0",
+    "parity:check": "node scripts/check-parity.mjs",
+    "test:packed": "node scripts/test-packed.mjs"
+  },
+  "dependencies": {
+    "@inquirer/prompts": "^7.5.1",
+    "chalk": "^4.1.2",
+    "cli-table3": "^0.6.5",
+    "commander": "^12.1.0",
+    "creem": "workspace:*",
+    "ora": "^5.4.1"
+  },
+  "devDependencies": {
+    "@eslint/js": "^9.26.0",
+    "@types/node": "^22.0.0",
+    "eslint": "^9.26.0",
+    "globals": "^15.14.0",
+    "typescript": "^5.4.5",
+    "typescript-eslint": "^8.26.0",
+    "vitest": "^3.0.0"
+  },
+  "engines": {
+    "node": ">=22.0.0"
+  },
+  "publishConfig": {
+    "access": "public",
+    "provenance": true
+  }
+}

@@ -1,0 +1,453 @@
+---
+title: 'Embedded Checkout'
+description: 'Embed Creem checkout directly in your site — as a modal overlay or inline — without redirecting customers away.'
+---
+
+Embedded checkout runs the entire Creem payment flow **inside your own site** instead of sending customers to a hosted page. Drop in a small script, open checkout as a modal or inline iframe, and get a callback when payment completes.
+
+<Frame caption="Creem embedded checkout shown as a modal overlay on a merchant's site">
+  <img
+    style={{ borderRadius: '0.5rem' }}
+    src="https://nucn5fajkcc6sgrd.public.blob.vercel-storage.com/embed-checkout-4sSl5sCtTb30kDoLuhCZHtZaW1qPp4.png"
+    alt="Creem embedded checkout as a modal overlay on a merchant's site"
+  />
+</Frame>
+
+## How it works
+
+1. Create a **checkout session** on your server with your secret API key (see [Checkout API](/features/checkout/checkout-api)) and read its `checkoutUrl`.
+2. Load the Creem embed script on your page.
+3. Open the checkout as an overlay or inline, and handle `onComplete`.
+
+<Tip>
+  You create the session server-side (secret key) and pass the resulting URL to the browser — the URL is safe to expose, and completion is always confirmed server-side via webhook.
+</Tip>
+
+## 1. Create a checkout session (server-side)
+
+Every embed needs a **checkout URL**, created on your server with your secret API key so the price and product can't be tampered with. Use the [Checkout API](/features/checkout/checkout-api) or one of its SDKs and read `checkoutUrl` (the raw REST API returns it as `checkout_url`):
+
+```ts
+// Server-side only — keep CREEM_API_KEY secret
+import { createCreem } from 'creem_io';
+
+const creem = createCreem({ apiKey: process.env.CREEM_API_KEY! });
+
+const checkout = await creem.checkouts.create({
+  productId: 'prod_YOUR_PRODUCT_ID',
+  successUrl: 'https://yoursite.com/success', // optional
+});
+
+// `checkoutUrl` is typed as optional in the SDK — assert (or guard) it:
+const checkoutUrl = checkout.checkoutUrl!;
+
+// Send `checkoutUrl` to the browser, then embed it (below).
+```
+
+Then embed that URL with **a framework SDK**, the **script loader**, or a **raw iframe** — pick one.
+
+## 2. Choose an embed path
+
+Use exactly **one** of the three paths below — framework SDKs, the script loader, or a raw iframe.
+
+### Framework SDKs
+
+First-class packages for **React (≥18), Vue (≥3), and Svelte (≥4)** with typed props and lifecycle events. They share a framework-agnostic core, [`@creem_io/embed`](https://www.npmjs.com/package/@creem_io/embed), which you can also use directly in vanilla JS.
+
+<Tabs>
+  <Tab title="React">
+    <CodeGroup>
+
+    ```bash npm
+    npm install @creem_io/react
+    ```
+
+    ```bash yarn
+    yarn add @creem_io/react
+    ```
+
+    ```bash pnpm
+    pnpm add @creem_io/react
+    ```
+
+    ```bash bun
+    bun add @creem_io/react
+    ```
+
+    </CodeGroup>
+
+    ```tsx
+    import { CreemCheckout, CreemCheckoutInline } from '@creem_io/react';
+
+    // Overlay — wrap any clickable element
+    <CreemCheckout checkoutUrl={checkoutUrl} onComplete={(d) => console.log('paid', d)}>
+      <button>Subscribe</button>
+    </CreemCheckout>
+
+    // Inline — mount in place
+    <CreemCheckoutInline
+      checkoutUrl={checkoutUrl}
+      onComplete={onComplete}
+      style={{ width: 460, height: 820 }}
+    />
+    ```
+
+    Also available: the `useCreemCheckout()` hook and the `CreemEmbedCheckout.create()` promise API. [Full reference →](https://www.npmjs.com/package/@creem_io/react)
+  </Tab>
+  <Tab title="Vue">
+    <CodeGroup>
+
+    ```bash npm
+    npm install @creem_io/vue
+    ```
+
+    ```bash yarn
+    yarn add @creem_io/vue
+    ```
+
+    ```bash pnpm
+    pnpm add @creem_io/vue
+    ```
+
+    ```bash bun
+    bun add @creem_io/vue
+    ```
+
+    </CodeGroup>
+
+    ```vue
+    <script setup>
+    import { CreemCheckout, CreemCheckoutInline } from '@creem_io/vue';
+    </script>
+
+    <template>
+      <!-- Overlay -->
+      <CreemCheckout :checkout-url="checkoutUrl" @complete="onComplete">
+        <button>Subscribe</button>
+      </CreemCheckout>
+
+      <!-- Inline -->
+      <CreemCheckoutInline :checkout-url="checkoutUrl" @complete="onComplete" />
+    </template>
+    ```
+
+    Also available: the `useCreemCheckout()` composable and `CreemEmbedCheckout.create()`. [Full reference →](https://www.npmjs.com/package/@creem_io/vue)
+  </Tab>
+  <Tab title="Svelte">
+    <CodeGroup>
+
+    ```bash npm
+    npm install @creem_io/svelte
+    ```
+
+    ```bash yarn
+    yarn add @creem_io/svelte
+    ```
+
+    ```bash pnpm
+    pnpm add @creem_io/svelte
+    ```
+
+    ```bash bun
+    bun add @creem_io/svelte
+    ```
+
+    </CodeGroup>
+
+    ```svelte
+    <script>
+      import { CreemCheckout, CreemCheckoutInline } from '@creem_io/svelte';
+    </script>
+
+    <!-- Overlay — wrap any clickable element -->
+    <CreemCheckout {checkoutUrl} onComplete={onComplete}>
+      <button>Subscribe</button>
+    </CreemCheckout>
+
+    <!-- Inline -->
+    <CreemCheckoutInline {checkoutUrl} onComplete={onComplete} style="height:820px" />
+    ```
+
+    Low-level: the `{@attach}` attachments (Svelte 5.29+) or `use:` actions (Svelte 4). [Full reference →](https://www.npmjs.com/package/@creem_io/svelte)
+  </Tab>
+</Tabs>
+
+Every SDK takes the same options as the loader below (`theme`, `locale`) and emits the same `ready` + `completed` events.
+
+On completion the embed behaves exactly like the hosted checkout's return page:
+
+- **Product has a Return URL** → a short confirmation screen, then the top window navigates there (~3s).
+- **No Return URL** → a "View order" button; the embed stays open until the customer closes it.
+
+To keep customers fully inline, call `close()` inside `onComplete` — it dismisses the embed **and cancels the pending redirect**. Cancelling the redirect from `close()` requires `@creem_io/embed` ≥ 0.3.3 (or `@creem_io/react` / `/vue` / `/svelte` ≥ 0.2.3); on older versions `close()` dismisses the modal but the redirect still fires.
+
+<Frame caption="Product has a Return URL — a confirmation screen with a 'Returning to Merchant' countdown, then the redirect.">
+  <img
+    style={{ borderRadius: '0.5rem' }}
+    src="https://nucn5fajkcc6sgrd.public.blob.vercel-storage.com/embed-completion-return-url.png"
+    alt="Embedded checkout success screen: 'Thank you for your payment' with a 'Returning to Merchant in 2s' countdown button"
+  />
+</Frame>
+
+<Frame caption="No Return URL — a 'View order' button; the embed stays open until the customer closes it (or you call close() in onComplete).">
+  <img
+    style={{ borderRadius: '0.5rem' }}
+    src="https://nucn5fajkcc6sgrd.public.blob.vercel-storage.com/embed-completion-view-order.png"
+    alt="Embedded checkout success screen: 'Thank you for your payment' with a 'View Order' button"
+  />
+</Frame>
+
+#### Open on click (dynamic sessions)
+
+The components above need the `checkoutUrl` at render time. For a **pricing grid** — many products, where you don't want to pre-create a session for each one on page load — create the session **on demand** and open it imperatively with the `useCreemCheckout()` hook:
+
+```tsx
+import { useCreemCheckout } from '@creem_io/react';
+
+function BuyButton({ productId }: { productId: string }) {
+  const openCheckout = useCreemCheckout();
+
+  async function buy() {
+    // Create the session on YOUR server (keeps the secret key off the client),
+    // then open the returned URL — no need to pre-create sessions on load.
+    const res = await fetch('/api/checkout', {
+      method: 'POST',
+      body: JSON.stringify({ productId }),
+    });
+    const { checkoutUrl } = await res.json();
+    openCheckout({ checkoutUrl, onComplete: (detail) => console.log('paid', detail) });
+  }
+
+  return <button onClick={buy}>Subscribe</button>;
+}
+```
+
+Vue exposes the same `useCreemCheckout()` composable. In vanilla JS (or any framework), use the promise-based `CreemEmbedCheckout.create({ checkoutUrl })`, which resolves once the checkout has rendered.
+
+### Script loader
+
+For non-framework apps, or when you want a global `Creem` object. No build step — drop in the loader script and open checkout from any framework or plain HTML.
+
+#### Overlay
+
+<Steps>
+  <Step title="Add the script">
+    ```html
+    <script src="https://www.creem.io/embed.js" defer></script>
+    ```
+  </Step>
+  <Step title="Open checkout on click">
+    ```html
+    <button id="buy">Subscribe</button>
+    <script>
+      document.getElementById('buy').onclick = () => {
+        Creem.openCheckout({
+          checkoutUrl: 'CHECKOUT_URL', // from step 1
+          onComplete: (detail) => {
+            // detail = { checkoutId, orderId, orderNo }
+            console.log('Payment complete', detail);
+          },
+        });
+      };
+    </script>
+    ```
+  </Step>
+</Steps>
+
+The overlay shows the confirmation screen on success; call `Creem.close()` from `onComplete` to dismiss it — this also **cancels the pending redirect** to the Return URL, keeping the customer on your page.
+
+#### Inline
+
+Mount checkout inside a container on your page:
+
+```html
+<div id="creem-checkout" style="height: 820px"></div>
+<script>
+  Creem.mount({
+    checkoutUrl: 'CHECKOUT_URL',
+    container: '#creem-checkout',
+    onComplete: (detail) => unlockContent(detail.orderId),
+  });
+</script>
+```
+
+<Warning>
+  **`onComplete` is UX-only.** It fires in the browser and can be spoofed — use it to close the modal or show a success state. Grant entitlements / fulfil orders from your **[webhook handler](/code/webhooks)** (verified server-side), never from `onComplete`.
+</Warning>
+
+#### Declarative data attributes
+
+Any element with `data-creem-checkout` opens the overlay on click — no JS wiring, but it still relies on the loader script above:
+
+```html
+<a data-creem-checkout data-creem-url="CHECKOUT_URL">Buy now</a>
+```
+
+Optionally set the theme and language with `data-creem-theme` and `data-creem-locale`:
+
+```html
+<a
+  data-creem-checkout
+  data-creem-url="CHECKOUT_URL"
+  data-creem-theme="dark"
+  data-creem-locale="fr"
+>Buy now</a>
+```
+
+### Raw iframe
+
+The lowest-level option — no loader, no SDK. Use it when you only need inline display and will handle the lifecycle yourself, or don't need callbacks:
+
+```html
+<iframe
+  src="CHECKOUT_URL"
+  allow="payment *; publickey-credentials-get *"
+  style="border:0;width:460px;height:820px">
+</iframe>
+```
+
+<Warning>
+  The `allow="payment *; publickey-credentials-get *"` attribute is required — without it, digital wallets, passkeys, and 3-D Secure challenges can't run inside the iframe. (The framework SDKs and the script loader set this for you.)
+</Warning>
+
+## Presentation — theme & language
+
+Works with the framework SDKs and the script loader. `openCheckout` and `mount` accept two presentation options, appended to the checkout URL for you:
+
+```js
+Creem.openCheckout({
+  checkoutUrl: 'CHECKOUT_URL',
+  theme: 'dark',   // 'light' | 'dark'
+  locale: 'pt-BR', // BCP47 tag — forces the checkout language
+});
+```
+
+By default the checkout follows the customer's **browser language**. Pass `locale` to force a specific one (e.g. to match your own site's language). Unsupported locales fall back to English. See the [supported languages](/features/checkout/checkout-api) for the full list.
+
+## Affiliate attribution
+
+If you run the Creem [Affiliate Program](/features/affiliate-program), embedded checkout still credits referred sales to the right affiliate — and the SDKs and script loader handle it for you. Here's what happens, and the one edge case worth knowing.
+
+**How it works**
+
+- An affiliate link (`creem.io/affiliate?code=…`) sends the visitor to your site and appends a `creem_ref` token to the landing URL.
+- On the **hosted** checkout, attribution rides a first-party cookie on Creem's domain — nothing to do.
+- Inside the **embed**, the checkout runs in a cross-site iframe, so the browser doesn't send that cookie there — in any browser. Attribution instead rides the token: the SDK/loader reads `creem_ref` from your page, **persists it in your site's own first-party storage**, and forwards it into the checkout iframe, so it works uniformly everywhere. No code needed for the common case.
+
+<Note>
+  `creem_ref` is an **opaque, signed token** — it identifies the click, not the affiliate. Don't try to parse an affiliate code out of it, and you don't need to read or forward it yourself: the SDKs and loader do it automatically. (It mirrors `client_reference_id` in Stripe-based tools like Rewardful and Tolt.)
+</Note>
+
+**Edge case: separate landing and checkout pages**
+
+The token arrives on whatever page the affiliate link points to. The SDK captures it automatically when it runs on that page. But if a visitor lands on `/?creem_ref=…`, then **navigates** to another page (say `/pricing`) before opening checkout, and your app drops the query string on that navigation, the token is no longer on the URL. If it wasn't captured before that navigation, attribution is lost — in every browser, since the embed relies on the token, not the cookie.
+
+To cover this, call `captureAffiliateRef()` once early in your app (e.g. a root layout) so the token is captured on the landing page and stored for later:
+
+```tsx
+// Root layout / top-level component — runs on every page
+'use client';
+import { useEffect } from 'react';
+import { captureAffiliateRef } from '@creem_io/react'; // also in /vue, /svelte, /embed
+
+export function AffiliateRefCapture() {
+  useEffect(() => { captureAffiliateRef(); }, []);
+  return null;
+}
+```
+
+<Tip>
+  The **script loader** (`creem.io/embed.js`) captures the token automatically on every page it loads on — so if you include the `<script>` site-wide (not just on the checkout page), there's nothing to add.
+</Tip>
+
+**Manage it yourself (optional)**
+
+We persist `creem_ref` in `localStorage` by default. Prefer your own storage — `sessionStorage`, your own cookie, or server-side? Read the value off the landing URL, store it however you like, and append it to the `checkoutUrl` you pass to the SDK. The SDK **won't overwrite a `creem_ref` you've already set on the URL**, so your value wins:
+
+```ts
+// On your affiliate landing page — capture into your own store
+const ref = new URLSearchParams(location.search).get('creem_ref');
+if (ref) sessionStorage.setItem('creem_ref', ref);
+
+// When you open checkout — put it back on the checkout URL yourself
+const stored = sessionStorage.getItem('creem_ref');
+const url = new URL(checkoutUrl);
+if (stored) url.searchParams.set('creem_ref', stored);
+openCheckout({ checkoutUrl: url.toString() });
+```
+
+## API reference
+
+The framework SDKs (`@creem_io/react`, `/vue`, `/svelte`) accept these same options — as props/args, with `onComplete`/`onClose` surfaced as the `complete`/`close` events where idiomatic.
+
+### `Creem.openCheckout(options)`
+
+Opens checkout in a modal overlay.
+
+<ParamField path="checkoutUrl" type="string" required>
+  The checkout session URL from the [Checkout API](/features/checkout/checkout-api).
+</ParamField>
+<ParamField path="theme" type="'light' | 'dark'">
+  Color theme for the checkout. Defaults to light.
+</ParamField>
+<ParamField path="locale" type="string">
+  BCP47 language tag (e.g. `'fr'`, `'pt-BR'`) to force the checkout language. Defaults to the customer's browser language; unsupported locales fall back to English.
+</ParamField>
+<ParamField path="onReady" type="() => void">
+  Called once the checkout UI has rendered and is ready for input.
+</ParamField>
+<ParamField path="onComplete" type="(detail) => void">
+  Called when payment completes. `detail = { checkoutId, orderId?, orderNo?, redirect?, redirectUrl? }` — `redirectUrl` is the merchant success URL, if set.
+</ParamField>
+<ParamField path="onClose" type="() => void">
+  Called when the overlay is dismissed by the customer.
+</ParamField>
+
+**Returns** a handle `{ close() }` — call `close()` to dismiss the overlay programmatically.
+
+### `Creem.mount(options)`
+
+Mounts checkout inline. Same options as `openCheckout`, plus:
+
+<ParamField path="container" type="string | HTMLElement" required>
+  The element (or a CSS selector) to mount the checkout iframe into. The loader accepts a CSS selector; the npm `@creem_io/embed` `mount` requires an `HTMLElement` (pass `document.querySelector('#…')`).
+</ParamField>
+
+**Returns** a handle `{ destroy() }` — call `destroy()` to unmount the inline checkout and remove its listener (important in SPAs, e.g. on component unmount).
+
+### `Creem.close()`
+
+Programmatically closes the overlay.
+
+### `captureAffiliateRef()`
+
+An SDK export (`@creem_io/embed`, `/react`, `/vue`, `/svelte`) — not a method on the loader, which captures automatically. Reads the affiliate `creem_ref` token from the current URL, persists it to your site's first-party storage, and returns the active token (from the URL, or a previously stored one), or `null`. `openCheckout`/`mount` already do this; call it directly only to capture on a **landing page** the visitor reaches before opening checkout (see [Affiliate attribution](#affiliate-attribution)). Safe anywhere — a no-op during SSR and when no token is present.
+
+**Returns** `string | null`.
+
+## Events
+
+Under the hood, the checkout posts messages to the parent window over its lifecycle. The loader handles these for you (`onReady`, `onComplete`); if you build a fully custom integration (e.g. a raw iframe), listen for them directly:
+
+```js
+window.addEventListener('message', (event) => {
+  // Only trust events from the checkout's own origin.
+  if (event.origin !== 'https://www.creem.io') return;
+  const data = event.data;
+  if (data?.source !== 'creem-embed') return;
+  if (data.type === 'ready') {
+    console.log('checkout ready');
+  } else if (data.type === 'completed') {
+    // { checkoutId, orderId, orderNo, redirect, redirectUrl }
+    console.log('completed', data);
+  }
+});
+```
+
+<ParamField path="source" type="string">Always `"creem-embed"`.</ParamField>
+<ParamField path="version" type="number">Protocol version (currently `1`).</ParamField>
+<ParamField path="type" type="string">`"ready"` when the UI has rendered, then `"completed"` on payment.</ParamField>
+
+<Note>
+  **Digital wallets.** **Google Pay** works inside the embedded iframe. **Apple Pay does not** — this is an Apple platform restriction, not an embed limitation. In a cross-origin iframe, Safari only presents the Apple Pay sheet when the **top-level page's domain** (your site) is registered as an Apple Pay merchant domain and the merchant session is validated against that top-level domain, not the iframe's. Your site isn't registered under Creem's Apple Pay account, so Safari suppresses the button — Google Pay has no equivalent top-level-domain requirement, which is why it still appears. Card and 3-D Secure payments always work in the embed. If Apple Pay is critical for you, use the hosted checkout page, where payment runs on Creem's own registered domain.
+</Note>

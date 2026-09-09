@@ -1,0 +1,115 @@
+---
+title: "Run Your Affiliate Program via API"
+description: "Invite partners, attribute sales, and track commissions programmatically — without leaving your own backend."
+---
+
+Everything the [Affiliate Hub dashboard](/features/affiliate-program) does for inviting and tracking partners is also available over the API. This guide walks through the full lifecycle: inviting an affiliate, understanding how sales are attributed, and reading commission data back.
+
+If you are new to the affiliate platform itself (programs, commission terms, payouts), start with the [Affiliate Program feature guide](/features/affiliate-program) — this page assumes a program already exists on your store.
+
+## Prerequisites
+
+- An affiliate program on your store, created from the Affiliate Hub.
+- An API key with the right scopes: reading affiliate data requires `affiliates:read`, creating invitations requires `affiliates:write`. Keys created with **Full access** cover both, including scopes added after the key was created.
+
+<Note>
+  All endpoints work in both test and live mode — use your test-mode API key while integrating.
+  Responses carry a `mode` field so you always know which environment you are looking at.
+</Note>
+
+## 1. Invite partners programmatically
+
+Create an invitation from your own backend — for example when someone fills in a "become a partner" form on your site, or when you sync partners from your CRM:
+
+```bash
+curl -X POST https://api.creem.io/v1/affiliates/invites \
+  -H "x-api-key: creem_..." \
+  -H "Content-Type: application/json" \
+  -d '{"email": "partner@example.com", "name": "Jane Partner"}'
+```
+
+The invitee receives the same invitation email as a dashboard-created invite, and appears in your Affiliate Hub's **Invites** tab immediately. Once they accept, an affiliate account is provisioned and they become an active partner.
+
+`program_id` is optional — when omitted, the invitation is created for your store's affiliate program. Pass it explicitly if your store runs more than one program.
+
+A few behaviors to design around:
+
+| Behavior                               | Response                                              |
+| -------------------------------------- | ----------------------------------------------------- |
+| Same email invited twice               | `409 Conflict` — one pending invitation per email     |
+| Invitee is a member of your store team | `400 Bad Request` — team members cannot be affiliates |
+| Pending-invite limit reached           | `400 Bad Request` — see below                         |
+| Key lacks `affiliates:write`           | `403 Forbidden`                                       |
+
+<Warning>
+  A store can have at most **100 pending invitations** at a time. Accepted invitations free their
+  slot; you can also cancel stale pending invites from the Affiliate Hub. If you legitimately need a
+  higher limit, contact [support@creem.io](mailto:support@creem.io) and we will raise it for your
+  store — no code changes needed.
+</Warning>
+
+Track the lifecycle of your invitations with [List affiliate invites](/api-reference/endpoint/list-affiliate-invites) — each invitation carries a `status` of `pending`, `accepted`, `canceled`, or `rejected`.
+
+## 2. How sales get attributed
+
+A sale is credited to an affiliate through one of three paths. Each checkout gets **exactly one** attribution — they never stack, and an explicit `affiliate_code` on the API request takes precedence.
+
+<CardGroup cols={1}>
+  <Card title="Referral link (cookie-based)" icon="link">
+    The default path. Each affiliate gets a unique referral link (`creem.io/affiliate?code=...`). A
+    click records attribution and redirects the visitor to your site; any extra query parameters on
+    the link (UTMs, deep-link params) are forwarded to your destination URL, so affiliates can
+    target specific landing pages and you can see their campaigns in your own analytics.
+  </Card>
+  <Card title="Affiliate code on the Checkout API" icon="code">
+    For server-driven and headless checkouts where cookies never enter the picture. If you already
+    know which affiliate referred the customer, pass their referral code when creating the checkout
+    — no click required.
+  </Card>
+  <Card title="Affiliate-linked discount code" icon="tag">
+    If an affiliate has a discount code assigned in the Affiliate Hub, any checkout using that code
+    credits them — including codes prefilled via the API.
+  </Card>
+</CardGroup>
+
+Passing the code at checkout creation:
+
+```bash
+curl -X POST https://api.creem.io/v1/checkouts \
+  -H "x-api-key: creem_..." \
+  -H "Content-Type: application/json" \
+  -d '{
+    "product_id": "prod_...",
+    "affiliate_code": "AFFXXXXXXXX"
+  }'
+```
+
+The `affiliate_code` value is the affiliate's referral-link code — the same code you see in [List affiliates](/api-reference/endpoint/list-affiliates) responses and the affiliate sees in their portal. An invalid, inactive, or foreign-store code is rejected with `400 Bad Request` before the checkout is created, so a typo can never silently drop attribution.
+
+## 3. Commissions
+
+Commission math follows the program's configuration — you do not compute anything yourself:
+
+- **Type and value**: percentage of the sale or a fixed amount per sale.
+- **Recurrence**: `recurring` pays on every subscription payment; `one_time` pays only on the first payment of a subscription (the CPA model).
+- **Duration**: recurring commissions can be capped to a number of months.
+- **Per-product rates**: individual products can override the program rate, including a `0` rate to exclude a product entirely.
+
+Read results back with [List affiliate commissions](/api-reference/endpoint/list-affiliate-commissions), or aggregate views per partner via [List affiliates](/api-reference/endpoint/list-affiliates) (clicks, conversions, earnings per affiliate).
+
+Payouts to affiliates are handled by Creem through the affiliate portal, including identity verification — nothing to build on your side. See [the feature guide](/features/affiliate-program) for the payout flow.
+
+## Current limitations
+
+- **No affiliate webhooks yet.** Invitation acceptance and new conversions are not pushed as webhook events — poll [List affiliate invites](/api-reference/endpoint/list-affiliate-invites) and [List affiliate commissions](/api-reference/endpoint/list-affiliate-commissions) where you need to react to changes.
+- **Program management stays in the dashboard.** Creating programs and editing commission terms is done in the Affiliate Hub, not the public API.
+
+## Endpoint reference
+
+| Endpoint                                                                                   | Scope              | Purpose                                     |
+| ------------------------------------------------------------------------------------------ | ------------------ | ------------------------------------------- |
+| [`GET /v1/affiliates`](/api-reference/endpoint/list-affiliates)                            | `affiliates:read`  | List your affiliates with performance stats |
+| [`GET /v1/affiliates/:id`](/api-reference/endpoint/retrieve-affiliate)                     | `affiliates:read`  | Retrieve one affiliate                      |
+| [`GET /v1/affiliates/:id/commissions`](/api-reference/endpoint/list-affiliate-commissions) | `affiliates:read`  | List an affiliate's commissions             |
+| [`POST /v1/affiliates/invites`](/api-reference/endpoint/create-affiliate-invite)           | `affiliates:write` | Invite a partner by email                   |
+| [`GET /v1/affiliates/invites`](/api-reference/endpoint/list-affiliate-invites)             | `affiliates:read`  | List invitations and their status           |

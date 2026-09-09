@@ -1,0 +1,558 @@
+---
+title: "Integration Guide"
+description: "Sequential, self-contained setup guide for the Creem Convex component — optimized for AI-agent-driven greenfield and brownfield integrations."
+# INTENTIONALLY NOT IN docs.json NAVIGATION.
+#
+# This page is written for AI agents, not for sidebar browsing: it repeats the
+# whole setup sequence in one self-contained page, which would duplicate the
+# human-facing Quickstart -> Subscriptions -> Entitlements path if it sat beside
+# them in the sidebar. Agents reach it through llms.txt, which links it
+# directly, and through the in-page links from Quickstart, Advanced, and
+# Migration.
+#
+# Do not "fix" this by adding it to docs.json - that is a deliberate exception
+# to the repo rule in packages/docs/CLAUDE.md. Keep the page self-contained so
+# an agent that lands here needs no other page.
+---
+
+<Note>
+  This guide is the complete setup sequence in one page, with validation steps — optimized for AI
+  agents and for careful step-by-step integration (agents can fetch it as markdown by appending
+  `.md` to this page's URL). For learning the component and ongoing development, start with the
+  [Quickstart](/code/sdks/convex/quickstart) and its sibling pages.
+</Note>
+
+This guide walks through a complete Convex Creem integration for React or Svelte.
+
+Use this order:
+
+1. Set up the Convex component and webhook route.
+2. Export the connected Convex billing API.
+3. Define the browser-side billing catalog.
+4. Wrap your billing UI in `CreemConvexProvider`.
+5. Choose the billing path you need: subscriptions, one-time products, credits, account tools, or usage gates.
+
+For brownfield projects, first inventory the billing integration you are replacing. Agent automation can add the Convex Creem component, routes, and catalog wiring, but it cannot know which old provider settings are still safe to remove from your deployment or payment dashboard. Before switching traffic, check:
+
+- Existing webhook paths in your app and payment provider dashboard, such as `/api/stripe/webhook`, `/api/billing/webhook`, `/webhooks/lemonsqueezy`, or other custom billing endpoints. Keep them only if another live billing flow still depends on them.
+- Public client env vars for the old billing UI, such as product, price, plan, checkout, or publishable-key variables in `VITE_*`, `NEXT_PUBLIC_*`, or `PUBLIC_*` namespaces.
+- Server env vars for the old billing system, such as API keys, webhook signing secrets, customer portal configuration, price IDs used by server actions, or framework route secrets.
+- Background jobs, scheduled syncs, or server functions that still read the old billing env vars or process the old webhook events.
+
+Clean up the old webhook registrations and env vars manually after confirming the Convex Creem webhook is receiving events and any necessary historical data has been migrated or retained. Do not delete old secrets before rollback and data-retention requirements are clear.
+
+---
+
+## 1. Install
+
+Install the package plus the peer dependencies for the frontend framework you use.
+
+```bash
+npm install @creem_io/convex convex creem
+```
+
+For Svelte widgets:
+
+```bash
+npm install svelte convex-svelte @ark-ui/svelte
+```
+
+For React widgets:
+
+```bash
+npm install react react-dom @ark-ui/react
+```
+
+---
+
+## 2. Register the Convex component
+
+Create or update `convex/convex.config.ts`:
+
+```ts
+import { defineApp } from "convex/server";
+import creem from "@creem_io/convex/convex.config";
+
+const app = defineApp();
+app.use(creem);
+
+export default app;
+```
+
+Set Creem secrets in Convex:
+
+```bash
+npx convex env set CREEM_API_KEY <your_creem_api_key>
+npx convex env set CREEM_WEBHOOK_SECRET <your_creem_webhook_signing_secret>
+npx convex env set CREEM_SERVER test
+```
+
+`CREEM_SERVER=test` points the component at the Creem test API, matching a test-mode API key. Set it to `prod` (or omit it) when deploying with a production key.
+
+If you use credit packs, also set a server-side product ID. Do not trust a browser-exposed product ID for webhook fulfillment:
+
+```bash
+npx convex env set CREEM_ONETIME_CREDITS prod_...
+```
+
+---
+
+## 3. Export the Convex billing API
+
+Create `convex/billing.ts`. Replace the resolver with your real auth and entity logic. `entityId` is the billing owner; use the user ID for user billing or the org/team ID for organization billing.
+
+```ts
+import { Creem, defineBillingCatalog, type ApiResolver } from "@creem_io/convex";
+import { components } from "./_generated/api";
+import { action, internalAction } from "./_generated/server";
+import { ConvexError, v } from "convex/values";
+
+const creditsProductId = process.env.CREEM_ONETIME_CREDITS;
+const serverBillingCatalog = creditsProductId
+  ? defineBillingCatalog({
+      version: "server",
+      plans: [
+        {
+          planId: "ai-credits-100",
+          category: "paid",
+          billingType: "onetime",
+          creemProductIds: {
+            custom: creditsProductId,
+          },
+          creditGrant: {
+            amount: "100",
+            accountName: "credits",
+            unitLabel: "credits",
+            refundBehavior: "revoke_on_full_refund",
+          },
+        },
+      ],
+    } as const)
+  : undefined;
+
+export const creem = new Creem(components.creem, {
+  ...(serverBillingCatalog ? { billingCatalog: serverBillingCatalog } : {}),
+  cancelMode: "scheduled",
+});
+
+// Return `null` for an unauthenticated caller. Public pricing pages depend on
+// that. Anything thrown here counts as a real failure: it is logged and
+// rethrown instead of silently rendering the logged-out state.
+const resolve: ApiResolver = async (ctx) => {
+  const identity = await ctx.auth.getUserIdentity();
+  if (!identity) return null;
+  return {
+    userId: identity.subject,
+    email: identity.email!,
+    entityId: identity.subject, // for org billing, return the verified org ID
+  };
+};
+
+const {
+  uiModel,
+  snapshot,
+  checkouts,
+  subscriptions,
+  products,
+  customers,
+  transactions,
+  plans,
+  orders,
+  credits,
+} = creem.api({ resolve });
+
+export { uiModel, snapshot };
+export const checkoutsCreate = checkouts.create;
+export const subscriptionsUpdate = subscriptions.update;
+export const subscriptionsCancel = subscriptions.cancel;
+export const subscriptionsResume = subscriptions.resume;
+export const subscriptionsCancelScheduledUpdate = subscriptions.cancelScheduledUpdate;
+export const subscriptionsPause = subscriptions.pause;
+export const subscriptionsList = subscriptions.list;
+export const subscriptionsListAll = subscriptions.listAll;
+export const productsList = products.list;
+export const productsGet = products.get;
+export const customersRetrieve = customers.retrieve;
+export const customersPortalUrl = customers.portalUrl;
+export const transactionsSearch = transactions.search;
+export const plansActivate = plans.activate;
+export const ordersList = orders.list;
+export const creditsGetBalance = credits.getBalance;
+export const creditsListEntries = credits.listEntries;
+
+export const generateImage = action({
+  args: { requestId: v.string() },
+  returns: v.object({ creditsConsumed: v.string() }),
+  handler: async (ctx, args) => {
+    const identity = await resolve(ctx);
+    if (!identity) throw new ConvexError("Not authenticated");
+    await creem.credits.debitForEntity(ctx, {
+      entityId: identity.entityId,
+      amount: "10",
+      reference: "generate_image",
+      // A stable key per logical operation. A timestamp would make every
+      // retry a fresh debit, which is the opposite of idempotent.
+      idempotencyKey: `generate_image_${args.requestId}`,
+    });
+    return { creditsConsumed: "10" };
+  },
+});
+
+export const syncBillingProducts = internalAction({
+  args: {},
+  returns: v.object({ synced: v.boolean() }),
+  handler: async (ctx) => {
+    await creem.syncProducts(ctx);
+    return { synced: true };
+  },
+});
+```
+
+Security boundary:
+
+- `export const creem = new Creem(...)` exports a normal server-side object for other Convex modules such as `http.ts`; it does not register a client-callable Convex function.
+- Functions returned by `creem.api({ resolve })` become public when exported from `convex/billing.ts`.
+- `resolve` must authenticate the caller and authorize the selected user or organization. Generated functions then bind customers, subscriptions, transactions, and credit reads to that resolved `entityId`.
+- Privileged credit operations are intentionally absent from the generated public API. Put grants and spending behind app-owned actions whose amount, reference, and idempotency policy are controlled on the server.
+
+What to consider:
+
+- Export only capabilities your UI needs. If you omit `subscriptions.cancel`, cancel buttons disappear.
+- Use `cancelMode: "scheduled"` when canceling should keep access until the current period ends. Use `"immediate"` when cancellation should end access immediately.
+- Put credit grants in the server catalog because webhooks run on the server.
+- `syncBillingProducts` is intentionally an `internalAction`. Trigger it from the Convex CLI, dashboard, or another trusted internal function, not from browser UI.
+- App-owned credit spending, such as `generateImage`, should call `creem.credits.debitForEntity` with server-controlled business inputs. The credits widget only displays and refreshes balance state.
+
+---
+
+## 4. Register the webhook route
+
+Create or update `convex/http.ts`:
+
+```ts
+import { httpRouter } from "convex/server";
+import { creem } from "./billing";
+
+const http = httpRouter();
+
+creem.registerRoutes(http, {
+  path: "/creem/events",
+  events: {
+    "checkout.completed": async (_ctx, event) => {
+      console.log("Checkout completed", event);
+    },
+    "subscription.update": async (_ctx, event) => {
+      console.log("Subscription updated", event);
+    },
+  },
+});
+
+export default http;
+```
+
+In Creem, set the webhook endpoint to:
+
+```text
+https://<your-convex-site-url>/creem/events
+```
+
+The component stores customers, subscriptions, orders, refunds, disputes, and credit grants from supported Creem events.
+
+### Create the products
+
+Every plan in your catalog maps to a Creem product. Create them in the dashboard, or with the [CLI](/ai/for-agents/cli). Running it through `npx` avoids installing anything globally on the developer's machine:
+
+```bash
+npx @creem_io/cli login --api-key creem_test_YOUR_KEY
+
+npx @creem_io/cli products create \
+  --name "Basic" \
+  --description "For small teams" \
+  --price 1900 \
+  --currency USD \
+  --billing-type recurring \
+  --billing-period every-month
+```
+
+Use the same Creem API key you set as `CREEM_API_KEY` in step 2. `brew` and global `npm` installs are also available; see the [CLI guide](/ai/for-humans/cli).
+
+Repeat for every plan and billing cycle you offer. A plan billed monthly and yearly needs two products. `creem products list --json` prints the IDs for scripting.
+
+`--billing-period` accepts `every-month`, `every-three-months`, `every-six-months`, or `every-year`, and is required when `--billing-type` is `recurring`. Use `--billing-type onetime` for one-time products and credit packs.
+
+### Sync them into Convex
+
+Once the products exist, pull their metadata into Convex:
+
+```bash
+npx convex run billing:syncBillingProducts
+```
+
+This works with the internal action above. If you expose your own admin-only public action instead, protect it server-side and keep it out of client-facing billing pages.
+
+---
+
+## 5. Add CSS
+
+Import the package CSS in your app CSS entry point:
+
+```css
+@import "tailwindcss";
+@import "@creem_io/convex/styles";
+```
+
+---
+
+## 6. Define the browser billing catalog
+
+Create a shared catalog file in your frontend. Import from the framework entry you are using (`/svelte` or `/react`).
+
+```ts
+import { defineBillingCatalog } from "@creem_io/convex/svelte";
+
+export const billingCatalog = defineBillingCatalog({
+  version: "1",
+  defaultPlanId: "free",
+  plans: [
+    {
+      planId: "free",
+      category: "free",
+      title: "Free",
+      description: "For individuals getting started",
+      limits: { projects: 1, aiMessages: 50 },
+    },
+    {
+      planId: "basic",
+      category: "paid",
+      billingType: "recurring",
+      title: "Basic",
+      creemProductIds: {
+        "every-month": import.meta.env.VITE_CREEM_SUB_BASIC_MONTHLY,
+      },
+      limits: { projects: 5, aiMessages: 250 },
+    },
+    {
+      planId: "premium",
+      category: "paid",
+      billingType: "recurring",
+      title: "Premium",
+      recommended: true,
+      creemProductIds: {
+        "every-month": import.meta.env.VITE_CREEM_SUB_PREMIUM_MONTHLY,
+        "every-year": import.meta.env.VITE_CREEM_SUB_PREMIUM_ANNUAL,
+      },
+      limits: { projects: 100, aiMessages: 2500 },
+    },
+    {
+      planId: "enterprise",
+      category: "enterprise",
+      title: "Enterprise",
+      contactUrl: "https://example.com/contact",
+    },
+  ],
+} as const);
+```
+
+What to consider:
+
+- `creemProductIds` maps billing cycles to Creem product IDs.
+- Supported recurring cycles are `every-month`, `every-three-months`, `every-six-months`, and `every-year`.
+- If a plan has multiple cycles, the interval selector appears automatically.
+- Product IDs used only by frontend widgets may live in your framework's public client env namespace, such as Vite `VITE_*`, Next.js `NEXT_PUBLIC_*`, or SvelteKit `PUBLIC_*`. Trusted webhook fulfillment data must live in Convex env vars.
+
+---
+
+## 7. Connect Svelte
+
+In Svelte, initialize Convex once with `setupConvex`, create a `ConnectedBillingApi`, and wrap widgets in `CreemConvexProvider`. The provider is the required integration boundary. `ConvexCreemProvider` is not an exported component name; the package exports `CreemConvexProvider`.
+
+```svelte
+<script lang="ts">
+  import { setupConvex } from "convex-svelte";
+  import {
+    CreemConvexProvider,
+    Subscription,
+    BillingPortal,
+    connectCreemApi,
+    plansOf,
+  } from "@creem_io/convex/svelte";
+  import { api } from "../convex/_generated/api.js";
+  import { billingCatalog } from "./billingCatalog";
+
+  const convexUrl = import.meta.env.VITE_CONVEX_URL as string | undefined;
+  if (!convexUrl) throw new Error("VITE_CONVEX_URL is required");
+  setupConvex(convexUrl);
+
+  // Maps every generated `convex/billing.ts` export onto the widget API.
+  // A missing or mis-wired export is a compile error, not a blank widget.
+  const connectedApi = connectCreemApi(api.billing);
+</script>
+
+<CreemConvexProvider api={connectedApi} catalog={billingCatalog}>
+  <Subscription.Root plans={plansOf(billingCatalog, ["free", "premium"])} />
+  <BillingPortal />
+</CreemConvexProvider>
+```
+
+Important: connected widgets must be rendered inside `CreemConvexProvider`. Do not pass `api={...}` directly to `Subscription.Root`, `Product.Root`, `BillingPortal`, or `BillingHistory`.
+
+The provider-level `ConnectedBillingApi` decides which paths are available:
+
+| API field                             | Used by                                         | If omitted                                             |
+| ------------------------------------- | ----------------------------------------------- | ------------------------------------------------------ |
+| `uiModel`                             | All connected widgets                           | Widgets cannot load billing state.                     |
+| `checkouts.create`                    | `Subscription.Root`, `Product.Root`             | Subscribe/buy buttons cannot create checkout sessions. |
+| `subscriptions.update`                | Plan switches, unit changes, period-end updates | Switch and unit update controls are unavailable.       |
+| `subscriptions.cancel`                | Subscription cancel buttons                     | Cancel controls are unavailable.                       |
+| `subscriptions.resume`                | Scheduled-cancel resume controls                | Resume/undo cancel controls are unavailable.           |
+| `subscriptions.cancelScheduledUpdate` | App-side period-end update undo                 | Pending period-end update undo is unavailable.         |
+| `plans.activate`                      | App-owned plans (free plans, no-card trials)    | Trial and free plan cards cannot be activated.         |
+| `customers.portalUrl`                 | `BillingPortal`, `PaymentRecoveryButton`        | Portal buttons cannot open the Creem customer portal.  |
+| `transactions.search`                 | `BillingHistory`                                | Billing history cannot render.                         |
+| `credits.getBalance`                  | `Credits.Root`                                  | Credit balance UI cannot load.                         |
+
+Use `createCreemSvelte` when you want one typed binding object:
+
+```svelte
+<script lang="ts">
+  import {
+    CreemConvexProvider,
+    Subscription,
+    BillingPortal,
+    createCreemSvelte,
+  } from "@creem_io/convex/svelte";
+
+  const billing = createCreemSvelte({
+    catalog: billingCatalog,
+    api: connectedApi,
+    defaultCycle: "every-month",
+  });
+</script>
+
+<CreemConvexProvider {...billing}>
+  <Subscription.Root plans={billing.planIds} />
+  <BillingPortal />
+</CreemConvexProvider>
+```
+
+You can also read `uiModel` directly once for account-level UI such as payment recovery and usage gates:
+
+```svelte
+<script lang="ts">
+  import { useQuery } from "convex-svelte";
+  import { CheckoutSuccessSummary } from "@creem_io/convex/svelte";
+  import { api } from "../convex/_generated/api.js";
+
+  const billingModelQuery = useQuery(api.billing.uiModel, {});
+  const snapshot = $derived(billingModelQuery.data?.snapshot ?? null);
+  const checkoutSearch =
+    typeof window === "undefined" ? "" : window.location.search;
+</script>
+
+<CheckoutSuccessSummary search={checkoutSearch} />
+```
+
+---
+
+## 8. Connect React
+
+React uses the same `ConnectedBillingApi` shape. The difference is your normal Convex React client setup.
+
+```tsx
+import {
+  CreemConvexProvider,
+  Subscription,
+  BillingPortal,
+  createCreemReact,
+  connectCreemApi,
+  plansOf,
+} from "@creem_io/convex/react";
+import { api } from "../convex/_generated/api";
+import { billingCatalog } from "./billingCatalog";
+
+const connectedApi = connectCreemApi(api.billing);
+
+const billing = createCreemReact({
+  catalog: billingCatalog,
+  api: connectedApi,
+  defaultCycle: "every-month",
+});
+
+export function PricingPage() {
+  return (
+    <CreemConvexProvider {...billing}>
+      <Subscription.Root plans={plansOf(billing.catalog, ["free", "premium"])} />
+      <BillingPortal />
+    </CreemConvexProvider>
+  );
+}
+```
+
+---
+
+## 9. Choose your billing path
+
+Use the closest path as your starting point.
+
+| Scenario                                         | Main API to configure                                              | Considerations                                                                                                 |
+| ------------------------------------------------ | ------------------------------------------------------------------ | -------------------------------------------------------------------------------------------------------------- |
+| One paid plan                                    | `Subscription.Root plans={["pro"]}`                                | Smallest catalog-driven subscription setup.                                                                    |
+| Simple upgrade choice                            | `plans={["basic", "premium"]}`                                     | Good default for most SaaS pricing pages.                                                                      |
+| Monthly/yearly or more cycles                    | `creemProductIds` with several cycle keys                          | The interval selector appears only when multiple cycles exist.                                                 |
+| Plans split by audience                          | `groups={[...]}`                                                   | Group selector controls visible plans; unit plans can show a picker.                                           |
+| Quantity from app state                          | `units={memberCount}`                                              | Keep Creem quantity synced when the app count changes.                                                         |
+| Groups with different intervals                  | `groups` plus multi-cycle products                                 | The active group controls available billing cycles.                                                            |
+| No-card trial before choosing free or paid       | `category: "trial"` plus `plans.activate`                          | Component records once-per-entity history and can expire trials by `eligibilityScopeId`; your app owns quotas. |
+| Checkout requires terms, auth, or policy consent | `onBeforeCheckout`, `onBeforePlanChange`, `onBeforePlanActivation` | Return `false` to stop the billing action. Enforce real permissions server-side too.                           |
+| App-owned card markup                            | `unstyled`, `Subscription.Grid`, `Subscription.Item`, slots        | The root still owns checkout, switch, cancel, units, and active state.                                         |
+| Typed plan IDs and one binding object            | `createCreemSvelte` or `createCreemReact`                          | Recommended for production apps.                                                                               |
+| Downgrades apply at period end                   | `updateBehavior` resolver and `cancelScheduledUpdate` export       | App-side scheduled updates are tracked in Convex until applied.                                                |
+| One-time product sold once                       | `Product.Root` with `Product.Item type="one-time"`                 | Shows "Owned" after purchase.                                                                                  |
+| Mutually exclusive one-time products             | `Product.Root transition={[...]}`                                  | Use `via_product` for delta-priced upgrades.                                                                   |
+| Repeatable packs or consumables                  | `Product.Item type="recurring"` and optional `Credits.Root`        | Repeating products do not show "Owned"; credit grants should be server-owned.                                  |
+| Past-due or failed-payment UI                    | `PaymentRecoveryBanner`, `PaymentRecoveryButton`                   | Button needs `customers.portalUrl`; banners can derive from snapshot or accept an explicit state.              |
+| Transaction history                              | `BillingHistory` and `transactions.search`                         | This is transaction history, not full invoice rendering.                                                       |
+| Features depend on plan or payment state         | `BillingGate`, `evaluateUsageLimits`                               | Billing state gates access; your app still measures usage.                                                     |
+
+The external paths are:
+
+- `/creem/events` — Convex HTTP webhook endpoint for Creem.
+- Creem checkout URL — opened by `checkouts.create`.
+- Creem customer portal URL — opened by `customers.portalUrl`.
+- Your checkout success URL — defaults to the current page path when `successUrl` is not passed.
+
+Detailed feature guides: [Subscriptions](/code/sdks/convex/subscriptions), [One-Time Products & Credits](/code/sdks/convex/one-time-and-credits), [Entitlements & Account UI](/code/sdks/convex/entitlements), [Advanced](/code/sdks/convex/advanced).
+
+---
+
+## 10. Environment placement checklist
+
+Use your app framework's public client env namespace only for values the browser needs to render widgets or start checkout, such as product IDs referenced by the frontend catalog:
+
+```text
+Vite:       VITE_CREEM_SUB_BASIC_MONTHLY=prod_...
+Next.js:    NEXT_PUBLIC_CREEM_SUB_BASIC_MONTHLY=prod_...
+SvelteKit:  PUBLIC_CREEM_SUB_BASIC_MONTHLY=prod_...
+```
+
+Trusted server values are set with Convex, not in `.env` files:
+
+```bash
+npx convex env set CREEM_API_KEY <your_creem_api_key>
+npx convex env set CREEM_WEBHOOK_SECRET <your_creem_webhook_signing_secret>
+npx convex env set CREEM_SERVER test
+npx convex env set CREEM_ONETIME_CREDITS prod_...
+```
+
+In brownfield projects, also remove stale billing env vars after the migration is verified. Old provider values usually live in several places: local `.env*` files, hosting provider env settings, CI secrets, Convex env, and the payment provider dashboard. Search for the old provider name and old public prefixes so unused webhook secrets, price IDs, product IDs, publishable keys, and API keys do not linger.
+
+---
+
+## 11. Validation
+
+Before shipping an integration:
+
+- Type-check and lint your app with your project's usual commands.
+- Run `timeout 30 npx convex dev --once` and confirm the deployment pushes without errors.
+- Complete a test-mode checkout with a [test card](/getting-started/test-mode#testing-payments) and confirm the webhook writes billing state (check the Convex dashboard data browser and logs).
+- Confirm the widgets reflect the new subscription without a page reload.

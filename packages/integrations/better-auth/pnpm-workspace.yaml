@@ -1,0 +1,7 @@
+packages:
+  - "."
+  - "examples/*"
+
+# pnpm 11: don't auto-install before `pnpm run` — this nested workspace shadows
+# the repo-root settings, and the check misresolves root workspace: deps
+verifyDepsBeforeRun: false
