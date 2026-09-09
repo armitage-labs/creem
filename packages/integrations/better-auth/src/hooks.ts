@@ -427,10 +427,13 @@ async function updateSubscriptionFromEvent(
       .catch(async (error: unknown) => {
         // Prisma throws when the guarded write matches no row; other adapters return null.
         if (status === "scheduled_cancel") {
-          const current = await ctx.context.adapter.findOne<SubscriptionRecord>({
-            model: "creem_subscription",
-            where: [{ field: "id", value: subscription.id }],
-          });
+          const current = await ctx.context.adapter
+            .findOne<SubscriptionRecord>({
+              model: "creem_subscription",
+              where: [{ field: "id", value: subscription.id }],
+            })
+            // Preserve the original write error if the diagnostic read also fails.
+            .catch(() => null);
           if (current?.status === "canceled" || current?.status === "expired") return null;
         }
         throw error;
@@ -444,6 +447,7 @@ async function updateSubscriptionFromEvent(
   } catch (error) {
     const message = error instanceof Error ? error.message : String(error);
     logger.error(`[creem] Webhook failed (subscription update): ${message}`);
+    // Retry failed scheduled-state writes, including subscription.update, before callbacks run.
     if (status === "scheduled_cancel") throw error;
   }
 }
