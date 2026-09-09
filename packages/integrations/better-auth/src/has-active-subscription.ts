@@ -71,8 +71,8 @@ const createHasAccessGrantedHandler = (options: CreemOptions) => {
           });
         }
 
-        // For canceled, past_due, or unpaid - check if period hasn't ended yet
-        if (status === "canceled" || status === "past_due" || status === "unpaid") {
+        // Scheduled cancellation and existing payment grace periods retain access until periodEnd.
+        if (status === "scheduled_cancel" || status === "past_due" || status === "unpaid") {
           if (subscription.periodEnd) {
             const periodEnd = new Date(subscription.periodEnd);
 

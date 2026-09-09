@@ -48,6 +48,34 @@ describe("onCheckoutCompleted", () => {
     vi.clearAllMocks();
   });
 
+  it.each(["active", "scheduled_cancel"] as const)(
+    "persists the cancellation flag from a %s checkout subscription",
+    async (status) => {
+      const adapter = createMockAdapter();
+      const ctx = createMockContext({ adapter });
+      await onCheckoutCompleted(
+        ctx,
+        {
+          ...mockCheckoutCompletedEvent,
+          object: {
+            ...mockCheckoutCompletedEvent.object,
+            subscription: { ...mockSubscription, status },
+          },
+        },
+        defaultOptions,
+      );
+      expect(adapter.create).toHaveBeenCalledWith(
+        expect.objectContaining({
+          model: "creem_subscription",
+          data: expect.objectContaining({
+            status,
+            cancelAtPeriodEnd: status === "scheduled_cancel",
+          }),
+        }),
+      );
+    },
+  );
+
   it("skips when persistSubscriptions is false", async () => {
     const ctx = createMockContext();
     await onCheckoutCompleted(ctx, mockCheckoutCompletedEvent, optionsNoPersist);
