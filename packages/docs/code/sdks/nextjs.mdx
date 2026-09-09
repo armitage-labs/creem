@@ -199,9 +199,8 @@ calls the matching handler. Keep every callback idempotent because delivery may 
 ### Access callbacks
 
 `onGrantAccess` runs for active, trialing, and paid subscription events. `onRevokeAccess` runs for
-paused, expired, and canceled subscription events. `subscription.canceled` revokes access when
-received, even if `current_period_end_date` is in the future. `subscription.scheduled_cancel`
-only calls `onSubscriptionScheduledCancel` and does not change access.
+paused, expired, and canceled subscription events. `subscription.scheduled_cancel` only calls
+`onSubscriptionScheduledCancel` and does not change access.
 
 ### Event callbacks
 
@@ -236,10 +235,6 @@ comparison in your callback never matches. Access callback reasons use underscor
 `subscription.canceled` calls `onRevokeAccess` with reason `subscription_canceled`, then calls
 `onSubscriptionCanceled`. The adapter awaits each callback; if revocation throws, it returns
 an error for retry and does not call `onSubscriptionCanceled` on that attempt.
-
-Earlier versions only called `onSubscriptionCanceled` for cancellation. When upgrading, update
-exhaustive reason checks to handle `subscription_canceled`. If both callbacks already revoke
-access, consolidate that logic in `onRevokeAccess` or ensure the operation is idempotent.
 
 ### SDK and webhook field casing
 

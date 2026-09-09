@@ -318,8 +318,7 @@ export interface WebhookOptions {
   /**
    * Called when a user's access should be revoked.
    * This is triggered for: paused, expired, and canceled subscription events.
-   * A canceled event revokes access when received, even if its period end is
-   * in the future. A scheduled_cancel event does not invoke this callback.
+   * A scheduled_cancel event does not invoke this callback.
    *
    * NOTE: This may be called multiple times for the same user/subscription.
    * Implement this as an idempotent operation (safe to call repeatedly).
