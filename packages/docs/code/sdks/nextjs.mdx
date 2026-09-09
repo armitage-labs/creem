@@ -198,9 +198,9 @@ calls the matching handler. Keep every callback idempotent because delivery may 
 
 ### Access callbacks
 
-`onGrantAccess` runs for active, trialing, and paid subscription events. `onRevokeAccess` runs when
-a subscription is paused or expired. A scheduled cancellation does not revoke access immediately;
-the subscription remains usable through the end of its current period.
+`onGrantAccess` runs for active, trialing, and paid subscription events. `onRevokeAccess` runs for
+paused, expired, and canceled subscription events. `subscription.scheduled_cancel` only calls
+`onSubscriptionScheduledCancel` and does not change access.
 
 ### Event callbacks
 
@@ -232,8 +232,9 @@ A misspelled event type sent to `Webhook` returns `400 Unknown event type`; a mi
 comparison in your callback never matches. Access callback reasons use underscores, such as
 `subscription_expired`, rather than dotted event names like `subscription.expired`.
 
-`subscription.canceled` calls `onSubscriptionCanceled`, but does not call `onRevokeAccess`.
-The access callback runs for paused and expired subscriptions, as described above.
+`subscription.canceled` calls `onRevokeAccess` with reason `subscription_canceled`, then calls
+`onSubscriptionCanceled`. The adapter awaits each callback; if revocation throws, it returns
+an error for retry and does not call `onSubscriptionCanceled` on that attempt.
 
 ### SDK and webhook field casing
 

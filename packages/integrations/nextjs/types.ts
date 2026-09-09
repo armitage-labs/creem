@@ -164,7 +164,10 @@ export type GrantAccessReason =
 /**
  * Reasons for revoking access
  */
-export type RevokeAccessReason = "subscription_paused" | "subscription_expired";
+export type RevokeAccessReason =
+  | "subscription_paused"
+  | "subscription_expired"
+  | "subscription_canceled";
 
 /**
  * Context passed to onGrantAccess callback.
@@ -314,7 +317,8 @@ export interface WebhookOptions {
 
   /**
    * Called when a user's access should be revoked.
-   * This is triggered for: paused and expired subscriptions.
+   * This is triggered for: paused, expired, and canceled subscription events.
+   * A scheduled_cancel event does not invoke this callback.
    *
    * NOTE: This may be called multiple times for the same user/subscription.
    * Implement this as an idempotent operation (safe to call repeatedly).
