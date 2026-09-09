@@ -1,0 +1,22 @@
+{
+  "include": ["src/svelte/**/*"],
+  "exclude": ["src/**/*.test.*", "src/**/*.spec.*"],
+  "compilerOptions": {
+    "strict": true,
+    "target": "ESNext",
+    "lib": ["ES2022", "dom", "DOM.Iterable"],
+    "module": "ESNext",
+    "moduleResolution": "Bundler",
+    "types": ["node"],
+    "allowJs": true,
+    "checkJs": true,
+    "allowSyntheticDefaultImports": true,
+    "forceConsistentCasingInFileNames": true,
+    "isolatedModules": true,
+    "verbatimModuleSyntax": true,
+    "skipLibCheck": true,
+    "declaration": true,
+    "declarationMap": true,
+    "tsBuildInfoFile": "./.svelte-kit/tsconfig.svelte-package.tsbuildinfo"
+  }
+}

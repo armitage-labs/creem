@@ -5,9 +5,11 @@ on:
     branches: [main]
   pull_request:
     branches: [main]
+  workflow_dispatch: {}
 
 jobs:
-  build-and-test:
+  merge-gate:
+    name: merge-gate
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
@@ -18,19 +20,165 @@ jobs:
 
       - uses: actions/setup-node@v4
         with:
-          node-version: 20
+          node-version: 24
           cache: "pnpm"
 
       - run: pnpm install --frozen-lockfile
 
-      - name: Build changed packages
-        run: pnpm turbo build --filter='...[origin/main]' --filter='!./packages/creem-io'
+      # Workflow-level path filters can leave a required check permanently
+      # pending when a pull request does not match. Keep this job present on
+      # every pull request and skip only the expensive documentation steps.
+      - name: Detect documentation changes
+        id: docs
+        shell: bash
+        run: |
+          if [ "${{ github.event_name }}" = "workflow_dispatch" ]; then
+            echo "changed=true" >> "$GITHUB_OUTPUT"
+            exit 0
+          fi
+
+          if [ "${{ github.event_name }}" = "pull_request" ]; then
+            diff_range="origin/${{ github.base_ref }}...HEAD"
+          else
+            before="${{ github.event.before }}"
+            if ! git cat-file -e "${before}^{commit}" 2>/dev/null; then
+              echo "changed=true" >> "$GITHUB_OUTPUT"
+              exit 0
+            fi
+            diff_range="${before}..HEAD"
+          fi
+
+          if git diff --quiet "$diff_range" -- \
+            packages/docs \
+            .github/workflows/ci.yml \
+            .github/workflows/docs-ci.yml; then
+            echo "changed=false" >> "$GITHUB_OUTPUT"
+          else
+            echo "changed=true" >> "$GITHUB_OUTPUT"
+          fi
+
+      # Changesets rewrites package manifests before publishing. Simulate that
+      # generated state on pull requests that can affect a release so stale
+      # lockfiles or invalid generated dependency ranges fail before merge.
+      - name: Detect release changes
+        id: release
+        if: github.event_name == 'pull_request'
+        shell: bash
+        run: |
+          diff_range="origin/${{ github.base_ref }}...HEAD"
+          if git diff --quiet "$diff_range" -- \
+            .changeset \
+            package.json \
+            pnpm-workspace.yaml \
+            ':(glob)scripts/sync-sdk-version*.mjs' \
+            ':(glob)packages/**/package.json' \
+            .github/workflows/ci.yml \
+            .github/workflows/release.yml \
+            .github/workflows/sdk-cascade.yml; then
+            echo "changed=false" >> "$GITHUB_OUTPUT"
+          else
+            echo "changed=true" >> "$GITHUB_OUTPUT"
+          fi
+
+      - name: Test workflow path filters
+        run: pnpm test:workflow-paths
+
+      - name: Test repository contracts
+        run: pnpm test:repository-contracts
+
+      - name: Check package metadata
+        run: pnpm check:package-metadata
+
+      - name: Check repository contracts
+        run: pnpm check:repository-contracts
+
+      - name: Check SDK version metadata
+        run: |
+          node --test scripts/sync-sdk-version.test.mjs
+          pnpm check:sdk-version
+
+      - name: Validate generated API reference structure
+        if: steps.docs.outputs.changed == 'true'
+        run: pnpm --dir packages/docs generate:api:dry-run
+
+      - name: Validate Mintlify build
+        if: steps.docs.outputs.changed == 'true'
+        run: pnpm --dir packages/docs validate
+
+      - name: Check documentation links, redirects, and anchors
+        if: steps.docs.outputs.changed == 'true'
+        run: pnpm --dir packages/docs check:links
+
+      - name: Determine turbo filter
+        id: filter
+        run: |
+          if [ "${{ github.event_name }}" = "pull_request" ]; then
+            echo "args=--filter='...[origin/main]'" >> $GITHUB_OUTPUT
+          else
+            # On push to main or manual dispatch, run all packages
+            echo "args=" >> $GITHUB_OUTPUT
+          fi
+
+      - name: Build
+        run: pnpm turbo build ${{ steps.filter.outputs.args }} --filter='!./packages/creem-io'
+
+      # On pull requests, check changed published packages and affected
+      # dependents. Pushes to main and manual runs have no filter and therefore
+      # check every published package. The release command also checks all of
+      # them before publishing.
+      - name: Check published package artifacts
+        run: pnpm turbo check:package ${{ steps.filter.outputs.args }} --concurrency=2 --filter='!./packages/creem-io'
 
       - name: Typecheck
-        run: pnpm turbo typecheck --filter='...[origin/main]' --filter='!./packages/creem-io' --filter='!./packages/creem-sdk'
+        run: pnpm turbo typecheck ${{ steps.filter.outputs.args }} --filter='!./packages/creem-io' --filter='!./packages/sdk'
 
       - name: Test
-        run: pnpm turbo test --filter='...[origin/main]' --filter='!./packages/creem-io'
+        env:
+          TEST_API_KEY: ${{ secrets.TEST_API_KEY }}
+        run: pnpm turbo test ${{ steps.filter.outputs.args }} --filter='!./packages/creem-io'
 
       - name: Lint
-        run: pnpm turbo lint --filter='...[origin/main]' --filter='!./packages/creem-io' --filter='!./packages/creem-sdk'
+        run: pnpm turbo lint ${{ steps.filter.outputs.args }} --filter='!./packages/creem-io' --filter='!./packages/sdk'
+
+      - name: Format check
+        run: pnpm format:check
+
+      # The skill is distributed as a Claude Code plugin from this repo's root
+      # marketplace manifest. A broken manifest or a moved plugin path silently
+      # ships a skill nobody can install, so validate both on every PR.
+      - name: Validate plugin marketplace
+        run: |
+          npx -y @anthropic-ai/claude-code@latest plugin validate .
+          npx -y @anthropic-ai/claude-code@latest plugin validate ./packages/docs/skills/creem-api
+
+      # `plugin validate` checks manifest schema, not skill discovery — it passed
+      # on a layout that shipped zero skills. Claude Code only finds a plugin's
+      # skills at <plugin>/skills/<name>/SKILL.md, so assert that directly.
+      - name: Assert plugin skills are discoverable
+        run: |
+          plugin=packages/docs/skills/creem-api
+          shopt -s nullglob
+          found=("$plugin"/skills/*/SKILL.md)
+          if [ ${#found[@]} -eq 0 ]; then
+            echo "::error::No skills found under $plugin/skills/<name>/SKILL.md."
+            echo "Claude Code discovers skills only at that path. A SKILL.md at the"
+            echo "plugin root installs cleanly and contributes nothing."
+            find "$plugin" -name 'SKILL.md' -printf '  found instead: %p\n'
+            exit 1
+          fi
+          for f in "${found[@]}"; do
+            [ -s "$f" ] || { echo "::error::$f is empty"; exit 1; }
+            head -1 "$f" | grep -q '^---$' || { echo "::error::$f has no YAML frontmatter"; exit 1; }
+            grep -qE '^name:' "$f" || { echo "::error::$f frontmatter has no name:"; exit 1; }
+            grep -qE '^description:' "$f" || { echo "::error::$f frontmatter has no description:"; exit 1; }
+            echo "ok: $f"
+          done
+
+      - name: Validate pending release generation
+        if: steps.release.outputs.changed == 'true'
+        run: |
+          pnpm version-packages
+          pnpm install --frozen-lockfile
+          pnpm check:package-metadata
+          pnpm check:repository-contracts
+          pnpm check:sdk-version

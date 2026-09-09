@@ -1,7 +1,7 @@
 ---
 title: 'Affiliate Program'
 sidebarTitle: 'Affiliate Program'
-description: 'Launch your own affiliate marketing program to grow revenue through partner referrals. Invite affiliates, set custom commission rates, and track performance from your dashboard.'
+description: 'Launch your own affiliate marketing program to grow revenue through partner referrals. Invite affiliates, set a program commission rate, and track performance from your dashboard.'
 ---
 
 The Creem Affiliate Platform is a complete affiliate marketing solution that enables merchants to create referral programs and affiliates to earn commissions by promoting products. The platform handles tracking, attribution, payouts, and compliance automatically.
@@ -24,7 +24,7 @@ The Creem Affiliate Platform is a complete affiliate marketing solution that ena
     Join programs, get unique referral links, track earnings in real-time, and request payouts
   </Card>
   <Card title="Automated Tracking" icon="chart-line">
-    Cookie-based attribution automatically credits affiliates for referred sales
+    Attribution automatically credits affiliates for referred sales
   </Card>
   <Card title="Compliant Payouts" icon="building-columns">
     Built-in KYC verification and multiple payout methods (bank transfer, crypto)
@@ -136,13 +136,25 @@ The Affiliate Hub provides comprehensive analytics for your program:
 | **Conversions** | Conversion rate (sales / unique leads) |
 | **Affiliates** | Number of active affiliate partners |
 
-### Managing Individual Affiliates
+### Partners List
 
-Click on any affiliate in your Partners list to open their details panel. From here you can:
+The Partners list shows each affiliate in your program and their current performance at a glance:
 
-- **Set Custom Commission Rate**: Override the program default (0-95%)
-- **Select Allowed Products**: Restrict which products this affiliate can promote
-- **View Performance**: See clicks, conversions, and earnings for this affiliate
+| Column | Description |
+|--------|-------------|
+| **Name** | Affiliate's display name |
+| **Email** | Affiliate's email address |
+| **Status** | Current partner status, such as Active or Invited |
+| **Clicks** | Total clicks tracked for this affiliate |
+| **Conversions** | Total referred purchases for this affiliate |
+| **Conversion Rate** | Percentage of clicks that converted into purchases |
+| **Earnings** | Total commissions earned by this affiliate |
+
+#### Limitations
+
+At this time, managing individual partners is not supported, including deleting pending affiliate invitations, setting per-affiliate commission rates, or configuring per-affiliate product restrictions.
+
+Want this workflow? Upvote and follow the [Manage affiliate partners feature request](https://creem.featurebase.app/en/p/manage-affiliate-partners) to get updates if it is implemented.
 
 ---
 
@@ -245,7 +257,38 @@ Before requesting payouts, you must complete verification:
   </Accordion>
 </AccordionGroup>
 
-Once verified, you can request payouts from the Payouts page. Funds are distributed according to the merchant's payout schedule.
+Once verified, you can request payouts from the Payouts page.
+
+### Payout Schedule and Thresholds
+
+Affiliate payouts follow the same schedule as merchant payouts:
+
+| Detail | Value |
+|--------|-------|
+| **Payout windows** | 1st and 15th of each month |
+| **Minimum balance** | 50 USD or 50 EUR |
+| **Hold period** | 7–12 days (required by payment partners for risk assessment) |
+
+<Note>
+Only commissions that have cleared the hold period by the payout date will be included. For example, if your payout is scheduled for the 15th, only commissions from sales processed before approximately the 8th will be available for that payout.
+</Note>
+
+When your available balance reaches the minimum threshold, click the **Withdraw** button on your Balance page. Your payout will be queued and processed in the next available payout window (1st or 15th of the month).
+
+If the payout date falls on a weekend or public holiday, the payout will be processed on the next business day.
+
+### Payout Methods and Fees
+
+| Method | Provider | Fee |
+|--------|----------|-----|
+| **Bank Transfer** | Paysway | 7 USD/EUR or 1% of payout amount, whichever is higher |
+| **Cryptocurrency (USDC via Polygon)** | Mural | 2% of payout volume |
+
+<Info>
+If your bank account currency differs from the commission currency, a conversion fee may be applied by the payment provider. This is outside of Creem's control.
+</Info>
+
+After your payout is processed, a payout record will appear on the **Payout Activity** tab of your Balance page, with a reverse invoice available for download for tax purposes.
 
 ### Managing Your Profile
 
@@ -283,12 +326,6 @@ If you're an affiliate for multiple merchants, you can switch between programs u
 | **Requires Approval** | Whether new affiliates need manual approval | Yes |
 | **Public Program** | Whether anyone can join without invitation | No |
 
-### Per-Affiliate Overrides
-
-Merchants can customize settings for individual affiliates:
-- Custom commission rates (override program default)
-- Product restrictions (limit which products an affiliate can promote)
-
 ---
 
 ## Frequently Asked Questions
@@ -298,7 +335,7 @@ Merchants can customize settings for individual affiliates:
     Cookie duration is set by the merchant when creating the program. Typical durations range from 30 to 90 days. If a customer returns and purchases within the cookie window, you earn commission.
   </Accordion>
   <Accordion title="When do I get paid?">
-    Payouts are processed according to the merchant's schedule after you request a withdrawal. You must complete identity verification and set up a payout method first. Processing typically takes 3-5 business days.
+    Payouts are processed on the 1st and 15th of each month. You must reach a minimum balance of 50 USD/EUR, complete identity verification (KYC), and set up a payout method before requesting a withdrawal. Once you click Withdraw, your payout is queued for the next available window. Note that commissions have a 7–12 day hold period before they become available.
   </Accordion>
   <Accordion title="Can I promote multiple merchants?">
     Yes! You can join multiple affiliate programs and manage them all from your affiliate portal. Use the membership switcher to view stats and earnings for each program.
@@ -309,6 +346,9 @@ Merchants can customize settings for individual affiliates:
   <Accordion title="How is my referral tracked?">
     When someone clicks your affiliate link, a cookie is stored in their browser. This cookie attributes any purchases to you within the cookie duration period.
   </Accordion>
+  <Accordion title="Does attribution work with embedded checkout?">
+    Yes. When a merchant embeds the Creem checkout in their own site, the affiliate cookie isn't available inside the cross-site iframe (no browser sends it there) — so Creem carries attribution as a signed URL token (`creem_ref`) that the embed forwards automatically. Merchants don't need to wire anything for the common case. See [Embedded checkout → Affiliate attribution](/features/checkout/embedded-checkout#affiliate-attribution).
+  </Accordion>
   <Accordion title="Can I see which products are selling?">
     Yes, your dashboard shows conversion data. Merchants may also provide additional reporting on which products drive the most affiliate sales.
   </Accordion>
@@ -316,7 +356,7 @@ Merchants can customize settings for individual affiliates:
     Affiliates can receive payouts via bank transfer (processed through Paysway) or cryptocurrency (USDC via Mural). Set up your preferred method in the Payouts section.
   </Accordion>
   <Accordion title="Is there a minimum payout amount?">
-    This depends on the merchant's program settings. Some programs have minimum payout thresholds, while others allow withdrawals of any amount.
+    Yes, you need a minimum available balance of 50 USD or 50 EUR to request a withdrawal. Once you reach this threshold, the Withdraw button becomes available on your Balance page.
   </Accordion>
 </AccordionGroup>
 
@@ -352,6 +392,13 @@ Merchants can customize settings for individual affiliates:
     href="/integrations/affiliates"
   >
     Alternative: Use Affonso for external affiliate tracking
+  </Card>
+  <Card
+    title="Rekomi Integration"
+    icon="plug"
+    href="/integrations/rekomi"
+  >
+    Alternative: Use Rekomi for external affiliate tracking and payouts
   </Card>
 </CardGroup>
 

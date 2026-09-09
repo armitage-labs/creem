@@ -4,36 +4,70 @@ Documentation for the Creem API, built with [Mintlify](https://mintlify.com).
 
 ## Development
 
-Install the [Mintlify CLI](https://www.npmjs.com/package/mintlify) to preview the documentation changes locally:
+Install the [Mintlify CLI](https://www.npmjs.com/package/mint) to preview documentation changes locally. The repository pins the CLI as a development dependency, so prefer the package scripts below over a global installation:
 
 ```bash
-npm i -g mintlify
+pnpm install
 ```
 
-Run the following command at the root of your documentation:
+Run the following command from the repository root:
 
 ```bash
-mintlify dev
+pnpm --dir packages/docs exec mint dev
 ```
 
 ## API Reference Generation
 
 The API reference MDX files are generated from the OpenAPI spec. The script updates only the frontmatter (title, description, openapi reference) and preserves any custom content you add below.
 
+### SDK/OpenAPI Regeneration
+
+The canonical OpenAPI spec for the public SDK lives at `packages/sdk/openapi.json`. The Mintlify API playground uses `packages/docs/api-reference/openapi.json`, which is a generated copy of the SDK spec.
+
+When backend annotations change, regenerate from the private backend source or from a deployed backend that already includes the change:
+
+```bash
+# From a deployed backend
+curl -s https://stg-api.creem.io/open-api/json -o packages/sdk/openapi.json
+
+# Keep the spec diff readable
+pnpm exec prettier --write packages/sdk/openapi.json
+
+# Regenerate the SDK from the updated spec
+cd packages/sdk
+speakeasy run
+
+# Keep the docs playground spec in sync
+cd ../..
+cp packages/sdk/openapi.json packages/docs/api-reference/openapi.json
+```
+
+Deployed backend Swagger JSON is exposed at `/open-api/json` (for example `https://api.creem.io/open-api/json`, `https://test-api.creem.io/open-api/json`, and `https://stg-api.creem.io/open-api/json`). The private backend's local/sandbox Swagger setup may expose `/open-api/json` when run with `APP_ENVIRONMENT=local` or `APP_ENVIRONMENT=sandbox`.
+
+Do not manually patch generated SDK files or the public `openapi.json` for backend schema changes. Fix the private backend annotations first, regenerate the OpenAPI spec, then run Speakeasy. Check that `packages/sdk/package.json` was not version-bumped unless you are intentionally preparing a release.
+
+Speakeasy requires an authenticated CLI session and network access. If generation changes the package version unexpectedly, restore the intended version before committing.
+
 ### Available Commands
 
 ```bash
 # Generate from local openapi.json
-npm run generate:api
+pnpm --dir packages/docs generate:api
 
 # Generate from remote API, update local openapi.json, and cleanup orphans
-npm run generate:api:remote -- https://your-api.com/open-api/json
+pnpm --dir packages/docs generate:api:remote -- https://your-api.com/open-api/json
 
 # Preview changes without writing files
-npm run generate:api:dry-run
+pnpm --dir packages/docs generate:api:dry-run
 
 # Delete orphaned MDX files (endpoints removed from spec)
-npm run generate:api:cleanup
+pnpm --dir packages/docs generate:api:cleanup
+
+# Validate the Mintlify build and referenced OpenAPI document
+pnpm --dir packages/docs validate
+
+# Check internal links, redirect destinations, and anchors
+pnpm --dir packages/docs check:links
 ```
 
 ### Using Custom URLs
@@ -92,5 +126,5 @@ Changes pushed to the default branch are automatically deployed to production vi
 
 ## Troubleshooting
 
-- **Mintlify dev isn't running** - Run `mintlify install` to re-install dependencies
+- **Mintlify dev isn't running** - Run `pnpm install --frozen-lockfile`, then start it with `pnpm --dir packages/docs exec mint dev`
 - **Page loads as a 404** - Make sure you are running in a folder with `docs.json`

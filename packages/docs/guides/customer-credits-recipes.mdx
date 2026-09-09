@@ -1,0 +1,188 @@
+---
+title: 'Customer Credits Recipes'
+sidebarTitle: 'Credits Recipes'
+description: 'Copy-paste examples for common credit use cases.'
+---
+
+<Note>
+  Customer Credits is in **Experimental** preview.
+</Note>
+
+## Loyalty points
+
+Award points on purchases, let customers redeem them later.
+
+```bash
+# Create a points account
+curl -X POST https://api.creem.io/v1/customer-credits/accounts \
+  -H "x-api-key: YOUR_API_KEY" \
+  -H "Content-Type: application/json" \
+  -d '{ "customer_id": "cust_abc123", "name": "loyalty_points", "unit_label": "points", "initial_balance": "50" }'
+
+# Award points after a purchase
+curl -X POST https://api.creem.io/v1/customer-credits/accounts/{account_id}/credit \
+  -H "x-api-key: YOUR_API_KEY" \
+  -H "Content-Type: application/json" \
+  -d '{ "amount": "75", "reference": "order_789", "idempotency_key": "loyalty_earn_order_789" }'
+
+# Redeem points at checkout
+curl -X POST https://api.creem.io/v1/customer-credits/accounts/{account_id}/debit \
+  -H "x-api-key: YOUR_API_KEY" \
+  -H "Content-Type: application/json" \
+  -d '{ "amount": "50", "reference": "checkout_456", "idempotency_key": "loyalty_redeem_checkout_456" }'
+
+# Order cancelled? Reverse the points
+curl -X POST https://api.creem.io/v1/customer-credits/accounts/{account_id}/reverse \
+  -H "x-api-key: YOUR_API_KEY" \
+  -H "Content-Type: application/json" \
+  -d '{ "transaction_id": "cct_3mNpK8rW2xY" }'
+```
+
+---
+
+## Prepaid balance
+
+Customers buy credit packs, then spend them over time.
+
+```bash
+# Create wallet
+curl -X POST https://api.creem.io/v1/customer-credits/accounts \
+  -H "x-api-key: YOUR_API_KEY" \
+  -H "Content-Type: application/json" \
+  -d '{ "customer_id": "cust_abc123", "name": "prepaid_balance", "unit_label": "credits" }'
+
+# Top up after they buy a credit pack (in your checkout.completed webhook)
+curl -X POST https://api.creem.io/v1/customer-credits/accounts/{account_id}/credit \
+  -H "x-api-key: YOUR_API_KEY" \
+  -H "Content-Type: application/json" \
+  -d '{ "amount": "1000", "reference": "topup_order_123", "idempotency_key": "topup_order_123" }'
+
+# Deduct when they use a feature
+curl -X POST https://api.creem.io/v1/customer-credits/accounts/{account_id}/debit \
+  -H "x-api-key: YOUR_API_KEY" \
+  -H "Content-Type: application/json" \
+  -d '{ "amount": "25", "reference": "usage_evt_456", "idempotency_key": "usage_evt_456" }'
+```
+
+---
+
+## AI product credits
+
+Sell credit packs for your AI product. Deduct per API call — different models can cost different amounts.
+
+```bash
+# Create credits account on signup
+curl -X POST https://api.creem.io/v1/customer-credits/accounts \
+  -H "x-api-key: YOUR_API_KEY" \
+  -H "Content-Type: application/json" \
+  -d '{ "customer_id": "cust_abc123", "name": "ai_credits", "unit_label": "credits" }'
+
+# Customer buys a credit pack → top up
+curl -X POST https://api.creem.io/v1/customer-credits/accounts/{account_id}/credit \
+  -H "x-api-key: YOUR_API_KEY" \
+  -H "Content-Type: application/json" \
+  -d '{ "amount": "5000", "reference": "order_credit_pack_500", "idempotency_key": "topup_order_credit_pack_500" }'
+
+# Deduct per AI call (e.g., 10 credits for a premium model)
+curl -X POST https://api.creem.io/v1/customer-credits/accounts/{account_id}/debit \
+  -H "x-api-key: YOUR_API_KEY" \
+  -H "Content-Type: application/json" \
+  -d '{ "amount": "10", "reference": "ai_call_gpt4_req_abc123", "idempotency_key": "ai_debit_req_abc123" }'
+
+# Check remaining balance
+curl https://api.creem.io/v1/customer-credits/accounts/{account_id}/balance \
+  -H "x-api-key: YOUR_API_KEY"
+```
+
+<Tip>
+  Price different models at different credit costs (e.g., premium = 10 credits, standard = 1 credit). Use the `reference` field to record which model was called.
+</Tip>
+
+---
+
+## Referral credits
+
+Credit both sides when a referred user converts.
+
+```bash
+# Credit the referrer
+curl -X POST https://api.creem.io/v1/customer-credits/accounts/{referrer_account_id}/credit \
+  -H "x-api-key: YOUR_API_KEY" \
+  -H "Content-Type: application/json" \
+  -d '{ "amount": "500", "reference": "referral_cust_newuser", "idempotency_key": "referral_reward_cust_newuser" }'
+
+# Credit the new user (welcome bonus)
+curl -X POST https://api.creem.io/v1/customer-credits/accounts/{referee_account_id}/credit \
+  -H "x-api-key: YOUR_API_KEY" \
+  -H "Content-Type: application/json" \
+  -d '{ "amount": "200", "reference": "referred_welcome", "idempotency_key": "referred_welcome_cust_newuser" }'
+```
+
+---
+
+## API usage metering
+
+Give customers a monthly credit allowance, deduct per API call.
+
+```bash
+# Monthly allocation (in your subscription.renewed webhook)
+curl -X POST https://api.creem.io/v1/customer-credits/accounts/{account_id}/credit \
+  -H "x-api-key: YOUR_API_KEY" \
+  -H "Content-Type: application/json" \
+  -d '{ "amount": "10000", "reference": "subscription_sub_123_period_2026-04", "idempotency_key": "api_alloc_sub_123_2026-04" }'
+
+# Deduct per call
+curl -X POST https://api.creem.io/v1/customer-credits/accounts/{account_id}/debit \
+  -H "x-api-key: YOUR_API_KEY" \
+  -H "Content-Type: application/json" \
+  -d '{ "amount": "1", "reference": "api_call_req_abc123", "idempotency_key": "api_debit_req_abc123" }'
+```
+
+<Tip>
+  For high-volume APIs, batch debits (e.g., debit every 100 calls) instead of one-per-request.
+</Tip>
+
+---
+
+## Promo credits
+
+Issue credits for a marketing campaign.
+
+```bash
+curl -X POST https://api.creem.io/v1/customer-credits/accounts/{account_id}/credit \
+  -H "x-api-key: YOUR_API_KEY" \
+  -H "Content-Type: application/json" \
+  -d '{ "amount": "100", "reference": "campaign_summer2026", "idempotency_key": "promo_summer2026_cust_abc123" }'
+```
+
+<Info>
+  Expiration is up to your app — Creem stores the credit, your app decides when it's no longer redeemable.
+</Info>
+
+---
+
+## Goodwill credits
+
+Issue credits for service disruptions or support escalations.
+
+```bash
+curl -X POST https://api.creem.io/v1/customer-credits/accounts/{account_id}/credit \
+  -H "x-api-key: YOUR_API_KEY" \
+  -H "Content-Type: application/json" \
+  -d '{ "amount": "100", "reference": "support_ticket_TK-4567", "idempotency_key": "goodwill_TK-4567" }'
+```
+
+---
+
+## Reconciliation
+
+Use the `reference` field and entry history to match credits back to your system.
+
+```bash
+curl "https://api.creem.io/v1/customer-credits/accounts/{account_id}/entries?limit=100" \
+  -H "x-api-key: YOUR_API_KEY"
+```
+
+<Tip>
+  Use consistent references like `order_{id}` or `subscription_{id}_period_{date}` — they make reconciliation trivial.
+</Tip>

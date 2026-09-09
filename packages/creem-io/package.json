@@ -27,7 +27,6 @@
     "dev": "tsup --watch",
     "prepublishOnly": "pnpm run build",
     "typecheck": "tsc --noEmit",
-    "lint": "prettier --check .",
     "format": "prettier --write .",
     "format:check": "prettier --check .",
     "test": "vitest run",
@@ -62,19 +61,15 @@
   },
   "repository": {
     "type": "git",
-    "url": "https://github.com/armitage-labs/creem_io"
+    "url": "https://github.com/armitage-labs/creem.git",
+    "directory": "packages/creem-io"
   },
-  "homepage": "https://creem.io",
+  "homepage": "https://github.com/armitage-labs/creem/tree/main/packages/creem-io",
   "bugs": {
-    "url": "https://github.com/armitage-labs/creem_io/issues"
+    "url": "https://github.com/armitage-labs/creem/issues"
   },
   "deprecated": "This package is deprecated. Please use the 'creem' package instead: npm install creem",
   "engines": {
     "node": ">=16.0.0"
-  },
-  "pnpm": {
-    "onlyBuiltDependencies": [
-      "esbuild"
-    ]
   }
 }

@@ -1,0 +1,15 @@
+{
+  "extends": "@strapi/typescript-utils/tsconfigs/admin",
+  "include": ["./src", "./custom.d.ts"],
+  "compilerOptions": {
+    "rootDir": "../",
+    "baseUrl": ".",
+    "skipLibCheck": true,
+    "paths": {
+      "react": ["../node_modules/@types/react/index.d.ts"],
+      "react-dom": ["../node_modules/@types/react-dom/index.d.ts"],
+      "react/jsx-runtime": ["../node_modules/@types/react/jsx-runtime.d.ts"],
+      "react/jsx-dev-runtime": ["../node_modules/@types/react/jsx-dev-runtime.d.ts"]
+    }
+  }
+}

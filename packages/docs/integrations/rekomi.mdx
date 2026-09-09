@@ -1,0 +1,216 @@
+---
+title: "Rekomi Affiliate Program Integration"
+sidebarTitle: "Rekomi"
+description: "Set up an affiliate program on your Creem store. One webhook connects the two, and Rekomi tracks every sale, then pays your affiliates in 150+ countries."
+---
+
+## Overview
+
+[Rekomi](https://rekomi.com) is affiliate tracking and management software that plugs straight into Creem. Someone shares an affiliate link, Rekomi records the click, and when that visitor buys, the sale arrives from Creem and the right affiliate is credited automatically. Rekomi works out the commission and pays your affiliates for you, in 150+ countries.
+
+Setup is small on purpose. You add one webhook in Creem, paste two values into Rekomi, and pass one extra field through your checkout. There is no relay service to build and nothing to host. From then on, sales, subscription renewals, refunds, and chargebacks all arrive through that single webhook.
+
+<Accordion title="What you'll learn">
+
+How to connect your Creem store to Rekomi, how to carry the affiliate referral through Creem checkout, and how to confirm that commissions and clawbacks are tracking correctly.
+
+</Accordion>
+
+<Card title="What you'll need" icon="gears">
+
+- A Creem account in production mode
+- A Rekomi account ([start a free trial](https://app.rekomi.com/sign-up))
+- A Creem API key with the `products:read` scope
+
+</Card>
+
+## How It Works
+
+Creem hosts checkout on its own domain, so the affiliate referral needs a way to travel from your site into the sale. That is the one piece you wire up yourself, and it is a single metadata field.
+
+Here is the whole flow:
+
+- A visitor clicks an affiliate link and lands on your site, and the Rekomi script stores the referral in their browser.
+- They go to checkout, and you attach that referral to the Creem checkout as `rekomi_ref` metadata.
+- Creem processes the payment and sends a signed webhook to Rekomi.
+- Rekomi matches the referral to the affiliate, calculates the commission, and records it.
+
+Your API key is only used to validate the connection and run a periodic read-only health check. Sales never come through the API, they arrive on the signed webhook, which is why a `products:read` key is all you need to hand over.
+
+<Note>
+  Rekomi reads `rekomi_ref` from checkout metadata, not `creem_ref`. Creem reserves `creem_ref` for
+  its own [built-in affiliate feature](/features/affiliate-program), so the two can coexist.
+</Note>
+
+## Integration Steps
+
+Five steps, about ten minutes.
+
+### 1. Open the Creem setup page in Rekomi
+
+<Accordion title="Get your webhook URL">
+
+In Rekomi, open **Setup > Connect payment processor** and choose Creem. The page gives you a webhook URL that is unique to your workspace, plus the two fields you will fill in shortly.
+
+Keep this tab open, you will come back to it in step 3.
+
+</Accordion>
+
+<Frame caption="Step 1 in Rekomi: copy your workspace's webhook URL.">
+  <img
+    style={{ borderRadius: "0.5rem", maxWidth: "640px" }}
+    src="/images/rekomi/webhook-url.png"
+    alt="Rekomi showing the per-workspace Creem webhook URL to copy, with a reminder to select all events"
+  />
+</Frame>
+
+### 2. Add the webhook in Creem
+
+<Accordion title="Create the endpoint">
+
+In your Creem dashboard, go to **Developers > Webhooks** and click **Add Webhook**, then:
+
+- Give it a name you will recognize later, for example "Rekomi"
+- Paste the webhook URL from step 1
+- Select **all events**
+
+</Accordion>
+
+<Frame caption="Step 2 in Creem: use Select All so the counter reads 13 of 13 events selected.">
+  <img
+    style={{ borderRadius: "0.5rem" }}
+    src="/images/rekomi/webhook-events.png"
+    alt="Creem's Create Webhook form with the name and URL fields and all 13 event types selected"
+  />
+</Frame>
+
+<Warning>
+  Please select every event type. The quickest way is the **Select All** button, which should leave
+  the counter reading 13 of 13. Rekomi quietly ignores the events it does not need, but a partial
+  selection is accepted without complaint and then drops sales, with no error shown anywhere. If
+  tracking ever goes quiet, this is the first thing to check.
+</Warning>
+
+### 3. Create an API key and connect
+
+<Accordion title="Create the key">
+
+In Creem, go to **Developers > API Keys** and create a key with the `products:read` scope.
+
+Use a production key. If you paste a `creem_test_` key into a production connection, Rekomi tells you
+so before anything is saved.
+
+</Accordion>
+
+<Frame caption="Step 3 in Creem: tick READ on Products. Nothing else is needed.">
+  <img
+    style={{ borderRadius: "0.5rem" }}
+    src="/images/rekomi/api-key-scopes.png"
+    alt="Creem's Create API Key dialog showing the resource permission matrix with read and write columns"
+  />
+</Frame>
+
+<Accordion title="Paste both values into Rekomi">
+
+Back on the Rekomi setup page:
+
+- Paste the **webhook signing secret** from Creem's webhook page, including its prefix
+- Paste the **API key**
+- Click **Connect Creem**
+
+Rekomi checks the key against Creem before accepting it, so you find out straight away if something
+is off.
+
+</Accordion>
+
+<Frame caption="Step 3 in Rekomi: paste the signing secret and API key, then connect.">
+  <img
+    style={{ borderRadius: "0.5rem", maxWidth: "640px" }}
+    src="/images/rekomi/connect-form.png"
+    alt="The Rekomi connect form with fields for the Creem webhook signing secret and API key"
+  />
+</Frame>
+
+### 4. Add the Rekomi script to your site
+
+<Accordion title="Install the tracking script">
+
+Drop this into the `<head>` of your marketing site so affiliate clicks get captured:
+
+```html
+<script
+  async
+  src="https://api.rekomi.com/api/v1/r/loader.js"
+  data-program-id="YOUR_PROGRAM_ID"
+></script>
+```
+
+Your program ID is in Rekomi under **Setup > Install**. The script remembers the referral and exposes
+`window.Rekomi.getReferral()`, which you will use in the last step.
+
+</Accordion>
+
+### 5. Pass the referral into checkout
+
+<Accordion title="Attach rekomi_ref to the sale">
+
+This is the step that connects a click to a sale, so it is worth getting right. Without it, sales
+arrive with no referral attached and no commission is credited.
+
+Pick whichever matches how you sell:
+
+<CodeGroup>
+
+```json Checkout API
+{
+  "product_id": "prod_your_product",
+  "metadata": { "rekomi_ref": "REFERRAL_FROM_YOUR_FRONTEND" }
+}
+```
+
+```js Payment links
+const ref = window.Rekomi?.getReferral?.();
+const url = new URL("https://www.creem.io/payment/prod_your_product");
+if (ref) url.searchParams.set("metadata[rekomi_ref]", ref);
+// use url.toString() as the href on your Buy button
+```
+
+</CodeGroup>
+
+If you create checkout sessions on your server, read the referral in the browser with
+`window.Rekomi.getReferral()` and send it along with the rest of your checkout request.
+
+</Accordion>
+
+<Tip>
+  Creem carries checkout metadata onto the subscription, so renewals keep crediting the same
+  affiliate without you doing anything extra.
+</Tip>
+
+## What Gets Tracked
+
+Once you are connected, these all happen on their own:
+
+| Event                | What happens                                                           |
+| -------------------- | ---------------------------------------------------------------------- |
+| One-time sale        | Commission credited when the checkout completes                        |
+| Subscription renewal | Recurring commission at the amount actually charged                    |
+| Trial start          | Recorded, but no commission until the first real payment               |
+| Refund               | Commission clawed back proportionally, never past the original amount  |
+| Chargeback           | Disputed amount clawed back, without double counting a matching refund |
+
+Commissions are calculated on the pre-tax sale amount, in both of Creem's tax modes. As Merchant of Record, Creem collects the tax, and your affiliates earn on the sale rather than on the tax. With `tax_mode: exclusive` the tax sits on top of your price, and with `tax_mode: inclusive` your price already contains it. Rekomi works out the net from what the customer paid less the tax line, so an inclusive-priced product never pays commission on its own VAT.
+
+Everything is de-duplicated by the underlying order, transaction, refund, and dispute ID, so redeliveries and manual resends never count twice.
+
+## Good to Know
+
+- **Check the event selection first.** A webhook saved with only some events ticked is the most common problem, and it fails quietly. It is worth a look before anything else.
+- **Try a real purchase.** Click an affiliate link, buy something, confirm the conversion shows up in Rekomi within a minute, then refund it and watch the commission come back off.
+- **Watch the event state, not just the key check.** Creem has no webhook management API, so Rekomi can confirm your API key works but cannot see whether your endpoint still exists. The setup page handles this for you: it stays amber until a real delivery lands, and says so again if events go quiet.
+- **Re-created the webhook? Update the signing secret.** Deleting and re-creating the endpoint in Creem gives you a new secret. Until you paste it in, deliveries fail their signature check even though the API key still looks fine.
+- **After an outage, resend from Creem.** Creem retries with increasing delays for several hours. Past that, resend the delivery from your Creem dashboard, and Rekomi will record it without duplicating anything.
+
+<Card title="Full setup guide" icon="book-open" href="https://rekomi.com/docs/brands/install/creem">
+  Troubleshooting, security details, and the complete Creem reference in Rekomi's own docs.
+</Card>

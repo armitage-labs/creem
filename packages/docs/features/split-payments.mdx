@@ -1,11 +1,11 @@
 ---
-title: 'Revenue Splits'
-description: 'Revenue Splits in Creem allow you to automatically distribute payments between multiple recipients. This documentation will guide you through the key concepts and answer most common questions.'
+title: "Revenue Splits"
+description: "Revenue Splits in Creem allow you to automatically distribute payments between multiple recipients. This documentation will guide you through the key concepts and answer most common questions."
 ---
 
 <Frame>
   <img
-    style={{ borderRadius: '0.5rem' }}
+    style={{ borderRadius: "0.5rem" }}
     src="https://nucn5fajkcc6sgrd.public.blob.vercel-storage.com/banners%20%2824%29.png"
   />
 </Frame>
@@ -40,7 +40,7 @@ Once on the splits overview page, you will see a button to create a new split.
 
 <Frame>
   <img
-    style={{ borderRadius: '0.5rem' }}
+    style={{ borderRadius: "0.5rem" }}
     src="https://nucn5fajkcc6sgrd.public.blob.vercel-storage.com/Screenshot%202025-08-25%20at%2012.54.45.png"
   />
 </Frame>
@@ -51,7 +51,7 @@ In both scenarios, the recipient will need to onboard and verify their account a
 
 <Frame>
   <img
-    style={{ borderRadius: '0.5rem' }}
+    style={{ borderRadius: "0.5rem" }}
     src="https://nucn5fajkcc6sgrd.public.blob.vercel-storage.com/Screenshot%202025-08-25%20at%2013.01.07.png"
   />
 </Frame>
@@ -75,3 +75,55 @@ Creem provides comprehensive tools for managing your revenue splits:
 - **Automated Distribution:** Funds are automatically distributed according to your split rules
 - **Recipient Management:** Add, remove, or modify recipients and their payout preferences
 - **Compliance Support:** All splits are handled with proper tax documentation and reporting
+
+## Refunds and chargebacks
+
+When you refund a split sale — or lose a chargeback on one — Creem can reverse each recipient's share alongside your own, so a reversal is shared the same way the sale was. This is controlled by a per-split **Split refunds** setting:
+
+- **New splits** have it **on** by default — if the sale was split, the refund is split.
+- **Existing splits** stay **off**, so nothing about your current payouts changes unless you opt in.
+- You can turn it on or off at any time from the split's detail page, next to **Share customer info**.
+
+The setting is applied as it stood **at the time of each sale**: changing it only affects how _future_ sales are reversed, never sales that already happened. Each recipient is clawed back only a proportional share of what they actually received, so a recipient who was never paid — for example, an invite still pending — is never affected.
+
+If you later **win** a disputed chargeback, any amount clawed back from your recipients is automatically put back, so everyone ends up where they started.
+
+> Note: As with any Creem refund, fees are not returned — this includes the 2% split fee. Only the distributed revenue is reversed.
+
+## Managing Splits via API
+
+You can also create and manage revenue splits programmatically. A split applies either to your whole store (`type: store`) or to a single product (`type: product`), and can have up to 10 recipients with percentage shares summing to at most 100.
+
+Recipients are either existing Creem stores (added by store ID) or email invitees. A split created with any email invitee starts disabled and activates once the first invitee accepts.
+
+```bash
+# Create a split: 25% of every store payment goes to a partner store
+curl -X POST https://api.creem.io/v1/splits \
+  -H "x-api-key: YOUR_API_KEY" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "description": "Co-founder revenue share",
+    "type": "store",
+    "type_reference": "store_YOUR_STORE_ID",
+    "recipients": [
+      {
+        "recipient_type": "store",
+        "recipient_reference": "store_PARTNER_STORE_ID",
+        "amount": 25
+      }
+    ]
+  }'
+```
+
+See the API reference for all split endpoints:
+
+<CardGroup cols={2}>
+  <Card title="Create a split" icon="plus" href="/api-reference/endpoint/create-split" />
+  <Card title="List all splits" icon="list" href="/api-reference/endpoint/list-splits" />
+  <Card
+    title="Retrieve a split"
+    icon="magnifying-glass"
+    href="/api-reference/endpoint/retrieve-split"
+  />
+  <Card title="Delete a split" icon="trash" href="/api-reference/endpoint/delete-split" />
+</CardGroup>
