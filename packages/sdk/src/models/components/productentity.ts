@@ -100,6 +100,14 @@ export type ProductEntity = {
    */
   billingPeriod: ProductBillingPeriod;
   /**
+   * The unit of the recurring billing interval (`day`, `week`, `month`, or `year`). Together with `recurring_interval_count` this is authoritative for renewal timing — a `billing_period` of `custom` cannot be interpreted without it. For presets it is derived from the cadence (e.g. `every-three-months` → `month`). `null` for one-time products.
+   */
+  recurringInterval?: string | null | undefined;
+  /**
+   * The number of `recurring_interval` units per billing cycle (e.g. `3` with a `month` interval bills every three months). Together with `recurring_interval` this is authoritative for renewal timing. For presets it is derived from the cadence. `null` for one-time products.
+   */
+  recurringIntervalCount?: number | null | undefined;
+  /**
    * Lifecycle status of the product: `active` or `archived`.
    */
   status: ProductStatus;
@@ -151,6 +159,8 @@ export const ProductEntity$inboundSchema: z.ZodType<
   currency: z.string(),
   billing_type: ProductBillingType$inboundSchema,
   billing_period: ProductBillingPeriod$inboundSchema,
+  recurring_interval: z.nullable(z.string()).optional(),
+  recurring_interval_count: z.nullable(z.number().int()).optional(),
   status: ProductStatus$inboundSchema,
   tax_mode: TaxMode$inboundSchema,
   tax_category: TaxCategory$inboundSchema,
@@ -165,6 +175,8 @@ export const ProductEntity$inboundSchema: z.ZodType<
     "image_urls": "imageUrls",
     "billing_type": "billingType",
     "billing_period": "billingPeriod",
+    "recurring_interval": "recurringInterval",
+    "recurring_interval_count": "recurringIntervalCount",
     "tax_mode": "taxMode",
     "tax_category": "taxCategory",
     "product_url": "productUrl",
@@ -188,6 +200,8 @@ export type ProductEntity$Outbound = {
   currency: string;
   billing_type: string;
   billing_period: string;
+  recurring_interval?: string | null | undefined;
+  recurring_interval_count?: number | null | undefined;
   status: string;
   tax_mode: string;
   tax_category: string;
@@ -216,6 +230,8 @@ export const ProductEntity$outboundSchema: z.ZodType<
   currency: z.string(),
   billingType: ProductBillingType$outboundSchema,
   billingPeriod: ProductBillingPeriod$outboundSchema,
+  recurringInterval: z.nullable(z.string()).optional(),
+  recurringIntervalCount: z.nullable(z.number().int()).optional(),
   status: ProductStatus$outboundSchema,
   taxMode: TaxMode$outboundSchema,
   taxCategory: TaxCategory$outboundSchema,
@@ -230,6 +246,8 @@ export const ProductEntity$outboundSchema: z.ZodType<
     imageUrls: "image_urls",
     billingType: "billing_type",
     billingPeriod: "billing_period",
+    recurringInterval: "recurring_interval",
+    recurringIntervalCount: "recurring_interval_count",
     taxMode: "tax_mode",
     taxCategory: "tax_category",
     productUrl: "product_url",

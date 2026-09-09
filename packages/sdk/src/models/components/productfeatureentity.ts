@@ -146,6 +146,10 @@ export type CustomerCredits = {
    * Optional label for the credit unit (e.g. "tokens", "credits").
    */
   unitLabel?: string | null | undefined;
+  /**
+   * The customer-credit bucket this grant funds — the `name` of the customer's credit account. Set it to a meter bucket (e.g. "images") so the credits fund a per-unit metered price; otherwise they land in `default` and metered usage cannot spend them. Distinct from `unit_label`, which is only a display label. On UPDATE the field is tri-state: OMIT it to leave the stored bucket unchanged, send `null` to clear it to the shared `default` wallet, or send a name to set it. On CREATE, omitted or null both mean `default`. A present-but-blank value is rejected.
+   */
+  bucketName?: string | null | undefined;
 };
 
 /**
@@ -478,15 +482,18 @@ export const CustomerCredits$inboundSchema: z.ZodType<
 > = z.object({
   amount: z.string(),
   unit_label: z.nullable(z.string()).optional(),
+  bucket_name: z.nullable(z.string()).optional(),
 }).transform((v) => {
   return remap$(v, {
     "unit_label": "unitLabel",
+    "bucket_name": "bucketName",
   });
 });
 /** @internal */
 export type CustomerCredits$Outbound = {
   amount: string;
   unit_label?: string | null | undefined;
+  bucket_name?: string | null | undefined;
 };
 
 /** @internal */
@@ -497,9 +504,11 @@ export const CustomerCredits$outboundSchema: z.ZodType<
 > = z.object({
   amount: z.string(),
   unitLabel: z.nullable(z.string()).optional(),
+  bucketName: z.nullable(z.string()).optional(),
 }).transform((v) => {
   return remap$(v, {
     unitLabel: "unit_label",
+    bucketName: "bucket_name",
   });
 });
 

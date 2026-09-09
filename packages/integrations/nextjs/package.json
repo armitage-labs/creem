@@ -46,7 +46,7 @@
   },
   "dependencies": {
     "@creem_io/webhook-types": "workspace:^",
-    "creem": "workspace:^1.6.2"
+    "creem": "workspace:^1.7.0"
   },
   "devDependencies": {
     "@types/node": "^22.0.0",

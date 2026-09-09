@@ -1,83 +1,74 @@
 import { Creem } from "creem";
-import { getConfigValue } from "./config";
+import { getConfigValue, loadConfig } from "./config";
 import { resetEnvCache } from "./env-cache";
+import { CliError, redact } from "./errors";
+import { isRecord } from "./operation";
 
-const API_URLS = {
-  live: "https://api.creem.io",
-  test: "https://test-api.creem.io",
-} as const;
-
-let clientInstance: Creem | null = null;
-let cachedApiKey: string | null = null;
-let cachedEnvironment: string | null = null;
-
-/**
- * Gets the base URL for the current environment
- */
+export function inferEnvironment(key: string): "test" | "live" {
+  if (key.startsWith("creem_test_")) return "test";
+  if (key.startsWith("creem_")) return "live";
+  throw new CliError(
+    "Invalid API key format.",
+    3,
+    "Set CREEM_API_KEY from the dashboard developers page, or run creem login.",
+  );
+}
+export function resolveAuth(explicitEnvironment?: "test" | "live") {
+  const config = loadConfig();
+  const environmentKey = process.env.CREEM_API_KEY?.trim();
+  const apiKey = environmentKey || config.api_key;
+  if (!apiKey) throw new CliError("Not authenticated.", 3, "Set CREEM_API_KEY or run creem login.");
+  const inferred = inferEnvironment(apiKey);
+  const environment = explicitEnvironment ?? (environmentKey ? inferred : config.environment);
+  if (environment !== inferred)
+    throw new CliError(
+      "API key and selected environment do not match.",
+      3,
+      `Select --environment ${inferred} or provide a key for the selected environment.`,
+    );
+  return { apiKey, environment };
+}
 export function getBaseUrl(): string {
-  const env = getConfigValue("environment");
-  return API_URLS[env] || API_URLS.test;
+  const environment = process.env.CREEM_API_KEY
+    ? inferEnvironment(process.env.CREEM_API_KEY.trim())
+    : getConfigValue("environment");
+  return environment === "live" ? "https://api.creem.io" : "https://test-api.creem.io";
 }
-
-/**
- * Gets or creates a Creem SDK client instance
- * Recreates client if API key or environment changed
- */
-export function getClient(): Creem {
-  const apiKey = getConfigValue("api_key");
-
-  if (!apiKey) {
-    throw new Error("Not authenticated. Run `creem login` first.");
-  }
-
-  const environment = getConfigValue("environment");
-
-  // Recreate client if API key or environment changed
-  if (!clientInstance || apiKey !== cachedApiKey || environment !== cachedEnvironment) {
-    clientInstance = new Creem({
-      apiKey,
-      server: environment === "live" ? "prod" : "test",
-    });
-    cachedApiKey = apiKey;
-    cachedEnvironment = environment;
-  }
-
-  return clientInstance;
+export function getClient(
+  options: { environment?: "test" | "live"; timeout?: number } = {},
+): Creem {
+  const { apiKey, environment } = resolveAuth(options.environment);
+  return new Creem({
+    apiKey,
+    server: environment === "live" ? "prod" : "test",
+    timeoutMs: options.timeout ?? 30000,
+    retryConfig: { strategy: "none" },
+  });
 }
-
-/**
- * Resets the client (call after login/logout)
- * Also resets the TUI environment cache to ensure UI shows current environment
- */
 export function resetClient(): void {
-  clientInstance = null;
-  cachedApiKey = null;
-  cachedEnvironment = null;
   resetEnvCache();
 }
-
-/**
- * Validates an API key by making a test request
- * @param apiKey - The API key to validate
- * @param environment - Optional environment override (defaults to config value)
- */
 export async function validateApiKey(
   apiKey: string,
   environment?: "test" | "live",
 ): Promise<{ valid: boolean; error?: string }> {
-  const env = environment ?? getConfigValue("environment");
-
   try {
-    const testClient = new Creem({
+    const env = environment ?? inferEnvironment(apiKey);
+    const client = new Creem({
       apiKey,
       server: env === "live" ? "prod" : "test",
+      retryConfig: { strategy: "none" },
+      timeoutMs: 30000,
     });
-
-    // Make a simple API call to validate the key
-    await testClient.products.search(1, 1);
+    await client.products.search(1, 1);
     return { valid: true };
   } catch (error) {
-    const message = error instanceof Error ? error.message : "Unknown error";
-    return { valid: false, error: message };
+    // A 403 proves that the API recognized the key, but the key does not have
+    // access to the product-list probe. Authorization remains operation-specific.
+    if (isRecord(error) && error.statusCode === 403) return { valid: true };
+    return {
+      valid: false,
+      error: redact(error instanceof Error ? error.message : "Authentication failed", [apiKey]),
+    };
   }
 }

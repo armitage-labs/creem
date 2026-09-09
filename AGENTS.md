@@ -80,6 +80,11 @@ generation log and `CHANGELOG.md` as the human-facing release history. The SDK's
 nested `.github/workflows` are inert generated artifacts, not repository
 workflows. The deprecated SDK's nested workflows are frozen historical files.
 
+Changesets owns SDK versions; Speakeasy uses manual versioning. The narrow
+exception to generated-source edits is `scripts/sync-sdk-version.mjs`, which
+propagates the package version to release metadata during `version-packages`.
+Do not synchronize historical generator lockfiles or `RELEASES.md`.
+
 ## Validation
 
 Use package filters while iterating, then run the relevant root gates:
