@@ -195,7 +195,7 @@ export const Webhook = (options: WebhookOptions) => {
           console.log("Subscription scheduled to cancel");
           // The subscription is set to cancel at period end but remains active
           // until then, so access is not changed here. Access ends when
-          // subscription.expired fires.
+          // subscription.canceled or subscription.expired fires.
           await options.onSubscriptionScheduledCancel?.({
             webhookEventType: event.eventType,
             webhookId: event.id,
