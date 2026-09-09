@@ -24,7 +24,16 @@ function createSubscriptionStore() {
   const adapter = createMockAdapter();
   adapter.findOne.mockImplementation(async () => record);
   adapter.findMany.mockImplementation(async () => [record]);
-  adapter.update.mockImplementation(async ({ update }) => {
+  adapter.update.mockImplementation(async ({ update, where = [] }) => {
+    for (const condition of where) {
+      if (
+        condition.field === "status" &&
+        condition.operator === "not_in" &&
+        condition.value.includes(record.status)
+      ) {
+        return null;
+      }
+    }
     record = { ...record, ...update };
     return record;
   });
@@ -160,6 +169,78 @@ describe("cancellation lifecycle through verified webhooks", () => {
     expect(store.record.status).toBe(eventType === "subscription.expired" ? "expired" : status);
   });
 
+  it.each(["canceled", "expired"] as const)(
+    "ignores a scheduled-cancellation retry after %s without restoring access",
+    async (terminalStatus) => {
+      vi.useFakeTimers();
+      vi.setSystemTime(new Date(periodEnd.getTime() - 1));
+      const store = createSubscriptionStore();
+      const onSubscriptionScheduledCancel = vi.fn().mockRejectedValueOnce(new Error("Retry"));
+      const options = { ...defaultOptions, onSubscriptionScheduledCancel };
+      const failed = await deliver(
+        store,
+        "subscription.scheduled_cancel",
+        "scheduled_cancel",
+        options,
+      );
+      expect(failed.json).toHaveBeenCalledWith(
+        { error: "Failed to process webhook" },
+        { status: 500 },
+      );
+
+      await deliver(store, `subscription.${terminalStatus}`, "canceled");
+      const retried = await deliver(
+        store,
+        "subscription.scheduled_cancel",
+        "scheduled_cancel",
+        options,
+      );
+      expect(retried.json).toHaveBeenCalledWith({ message: "Webhook received" });
+      expect(onSubscriptionScheduledCancel).toHaveBeenCalledTimes(1);
+      expect(store.record).toMatchObject({ status: terminalStatus, cancelAtPeriodEnd: false });
+      expect(await hasAccess(store)).toBe(false);
+
+      await deliver(store, "subscription.update", "scheduled_cancel");
+      expect(store.record.status).toBe(terminalStatus);
+      expect(await hasAccess(store)).toBe(false);
+    },
+  );
+
+  it("keeps terminal state when cancellation finishes between the scheduled-event lookup and write", async () => {
+    vi.useFakeTimers();
+    vi.setSystemTime(new Date(periodEnd.getTime() - 1));
+    const store = createSubscriptionStore();
+    const update = store.adapter.update.getMockImplementation()!;
+    store.adapter.update.mockImplementationOnce(async (args) => {
+      await update({ update: { status: "canceled", cancelAtPeriodEnd: false } });
+      return update(args);
+    });
+    const onSubscriptionScheduledCancel = vi.fn();
+    const ctx = await deliver(store, "subscription.scheduled_cancel", "scheduled_cancel", {
+      ...defaultOptions,
+      onSubscriptionScheduledCancel,
+    });
+    expect(ctx.json).toHaveBeenCalledWith({ message: "Webhook received" });
+    expect(store.record).toMatchObject({ status: "canceled", cancelAtPeriodEnd: false });
+    expect(onSubscriptionScheduledCancel).not.toHaveBeenCalled();
+    expect(await hasAccess(store)).toBe(false);
+  });
+
+  it.each(["past_due", "unpaid"] as const)(
+    "preserves the existing %s grace period",
+    async (status) => {
+      vi.useFakeTimers();
+      const store = createSubscriptionStore();
+      await deliver(store, `subscription.${status}`, status);
+      vi.setSystemTime(new Date(periodEnd.getTime() - 1));
+      expect(await hasAccess(store)).toBe(true);
+      vi.setSystemTime(periodEnd);
+      expect(await hasAccess(store)).toBe(false);
+      vi.setSystemTime(new Date(periodEnd.getTime() + 1));
+      expect(await hasAccess(store)).toBe(false);
+    },
+  );
+
   it("keeps the scheduled flag when a subscription.update still carries scheduled_cancel", async () => {
     const store = createSubscriptionStore();
     await deliver(store, "subscription.update", "scheduled_cancel");
@@ -190,6 +271,27 @@ describe("cancellation lifecycle through verified webhooks", () => {
     expect(ctx.json).toHaveBeenCalledWith({ message: "Webhook received" });
     expect(onSubscriptionScheduledCancel).toHaveBeenCalledTimes(1);
     expect(store.adapter.findOne).not.toHaveBeenCalled();
+    expect(store.adapter.update).not.toHaveBeenCalled();
+  });
+
+  it("revokes canceled subscriptions with persistence disabled", async () => {
+    const store = createSubscriptionStore();
+    const onRevokeAccess = vi.fn();
+    const onSubscriptionCanceled = vi.fn();
+    const ctx = await deliver(store, "subscription.canceled", "canceled", {
+      ...defaultOptions,
+      persistSubscriptions: false,
+      onRevokeAccess,
+      onSubscriptionCanceled,
+    });
+    expect(ctx.json).toHaveBeenCalledWith({ message: "Webhook received" });
+    expect(onRevokeAccess).toHaveBeenCalledExactlyOnceWith(
+      expect.objectContaining({ reason: "subscription_canceled", id: mockSubscription.id }),
+      ctx,
+    );
+    expect(onSubscriptionCanceled).toHaveBeenCalledTimes(1);
+    expect(store.adapter.findOne).not.toHaveBeenCalled();
+    expect(store.adapter.findMany).not.toHaveBeenCalled();
     expect(store.adapter.update).not.toHaveBeenCalled();
   });
 

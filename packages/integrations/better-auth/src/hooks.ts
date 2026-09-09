@@ -242,7 +242,7 @@ export async function onSubscriptionScheduledCancel(
   event: NormalizedSubscriptionScheduledCancelEvent,
   options: CreemOptions,
 ) {
-  await updateSubscriptionFromEvent(ctx, event.object, "scheduled_cancel", options);
+  return updateSubscriptionFromEvent(ctx, event.object, "scheduled_cancel", options);
 }
 
 /**
@@ -373,6 +373,17 @@ async function updateSubscriptionFromEvent(
       return;
     }
 
+    // A delayed scheduled-cancellation event must not reopen a terminated subscription.
+    if (
+      status === "scheduled_cancel" &&
+      (subscription.status === "canceled" || subscription.status === "expired")
+    ) {
+      logger.info(
+        `[creem] Ignoring scheduled cancellation for terminated subscription ${subscription.id}`,
+      );
+      return false;
+    }
+
     // Prepare update data
     const updateData: Partial<SubscriptionRecord> = {
       status,
@@ -388,11 +399,21 @@ async function updateSubscriptionFromEvent(
     };
 
     // Update subscription
-    await ctx.context.adapter.update({
+    const updated = await ctx.context.adapter.update({
       model: "creem_subscription",
-      where: [{ field: "id", value: subscription.id }],
+      where: [
+        { field: "id", value: subscription.id },
+        // Also protect against a terminal event arriving between the lookup and this write.
+        ...(status === "scheduled_cancel"
+          ? [{ field: "status", operator: "not_in" as const, value: ["canceled", "expired"] }]
+          : []),
+      ],
       update: updateData,
     });
+
+    if (status === "scheduled_cancel" && !updated) {
+      return false;
+    }
 
     logger.info(`[creem] Updated subscription ${subscription.id} to status: ${status}`);
   } catch (error) {

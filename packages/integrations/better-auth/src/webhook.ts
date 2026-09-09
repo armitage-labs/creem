@@ -144,7 +144,7 @@ const createWebhookHandler = (options: CreemOptions) => {
           break;
 
         case "subscription.scheduled_cancel":
-          await onSubscriptionScheduledCancel(ctx, event, options);
+          if ((await onSubscriptionScheduledCancel(ctx, event, options)) === false) break;
           await options.onSubscriptionScheduledCancel?.(
             {
               webhookEventType: event.eventType,

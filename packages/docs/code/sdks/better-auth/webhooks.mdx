@@ -77,17 +77,17 @@ enabled, the plugin stores `status: "scheduled_cancel"` and `cancelAtPeriodEnd: 
 This event calls `onSubscriptionScheduledCancel` without calling `onGrantAccess` or `onRevokeAccess`.
 
 `subscription.canceled` means the subscription has ended. It calls both `onRevokeAccess` and
-`onSubscriptionCanceled`, and the access check denies that subscription even if its stored
-period end is in the future. When cancellation is undone or finalized, subsequent subscription
+`onSubscriptionCanceled`, and the access check denies that subscription.
+When cancellation is undone or finalized, subsequent subscription
 events synchronize the status and clear `cancelAtPeriodEnd` when the status is no longer
 `scheduled_cancel`.
 
-<Note>
-  Previously, canceled subscriptions retained access until their stored period end and did not
-  trigger `onRevokeAccess`. When upgrading, handle the new `subscription_canceled` reason in any
-  exhaustive reason checks and keep revoke callbacks idempotent. If you manage access outside the
-  plugin database, store the scheduled period end and enforce it in your own access checks.
-</Note>
+With persistence enabled, delayed scheduled-cancellation updates cannot change a stored `canceled`
+or `expired` subscription back to `scheduled_cancel`. Ignored `subscription.scheduled_cancel`
+events do not invoke `onSubscriptionScheduledCancel`.
+
+If you manage access outside the plugin database, store the scheduled period end and enforce it
+in your own access checks.
 
 <Warning>
   Webhooks can be retried or delivered more than once. Make every callback idempotent: applying the
