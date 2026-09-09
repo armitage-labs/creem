@@ -10,6 +10,8 @@ import { createHasAccessGrantedEndpoint } from "./has-active-subscription.js";
 import { createWebhookEndpoint } from "./webhook.js";
 import { CreemOptions } from "./types.js";
 
+export type { CreemSchemaOverrides } from "./schema.js";
+
 // Export plugin configuration types
 export type {
   CreemOptions,

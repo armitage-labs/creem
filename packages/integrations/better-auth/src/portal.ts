@@ -1,4 +1,4 @@
-import { createAuthEndpoint, getSessionFromCtx } from "better-auth/api";
+import { APIError, createAuthEndpoint, getSessionFromCtx } from "better-auth/api";
 import { type GenericEndpointContext, logger } from "better-auth";
 import { Creem } from "creem";
 import { z } from "zod";
@@ -20,24 +20,21 @@ const createPortalHandler = (creem: Creem, options: CreemOptions) => {
     const body = (ctx.body || {}) as PortalParams;
 
     if (!options.apiKey) {
-      return ctx.json(
-        {
-          error:
-            "Creem API key is not configured. Please set the apiKey option when initializing the Creem plugin.",
-        },
-        { status: 500 },
-      );
+      throw new APIError("INTERNAL_SERVER_ERROR", {
+        message:
+          "Creem API key is not configured. Please set the apiKey option when initializing the Creem plugin.",
+      });
     }
 
     try {
       const session = await getSessionFromCtx(ctx);
 
       if (!session?.user?.id) {
-        return ctx.json({ error: "User must be logged in" }, { status: 400 });
+        throw new APIError("BAD_REQUEST", { message: "User must be logged in" });
       }
 
       if (!session?.user.creemCustomerId) {
-        return ctx.json({ error: "User must have a Creem customer ID" }, { status: 400 });
+        throw new APIError("BAD_REQUEST", { message: "User must have a Creem customer ID" });
       }
 
       logger.debug(`[creem] Portal: customer=${body.customerId || session.user.creemCustomerId}`);
@@ -54,9 +51,10 @@ const createPortalHandler = (creem: Creem, options: CreemOptions) => {
         redirect: !!body.redirect,
       });
     } catch (error) {
+      if (error instanceof APIError) throw error;
       const message = error instanceof Error ? error.message : String(error);
       logger.error(`[creem] Failed to create portal: ${message}`);
-      return ctx.json({ error: "Failed to create portal" }, { status: 500 });
+      throw new APIError("INTERNAL_SERVER_ERROR", { message: "Failed to create portal" });
     }
   };
 };

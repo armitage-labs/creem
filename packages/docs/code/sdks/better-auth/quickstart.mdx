@@ -12,24 +12,25 @@ through webhooks.
 <CodeGroup>
 
 ```bash npm
-npm install @creem_io/better-auth better-auth
+npm install @creem_io/better-auth better-auth@^1.5.6
 ```
 
 ```bash pnpm
-pnpm add @creem_io/better-auth better-auth
+pnpm add @creem_io/better-auth better-auth@^1.5.6
 ```
 
 ```bash yarn
-yarn add @creem_io/better-auth better-auth
+yarn add @creem_io/better-auth better-auth@^1.5.6
 ```
 
 ```bash bun
-bun add @creem_io/better-auth better-auth
+bun add @creem_io/better-auth better-auth@^1.5.6
 ```
 
 </CodeGroup>
 
-The Creem TypeScript SDK is included as a dependency of the plugin.
+Better Auth `^1.5.6` is required for native endpoint type inference. The Creem TypeScript SDK is
+included as a dependency of the plugin.
 
 ## 2. Configure the server plugin
 
@@ -121,7 +122,7 @@ export function SubscribeButton({ productId }: { productId: string }) {
       throw new Error(error.message);
     }
 
-    if (data && "url" in data && data.url) {
+    if (data?.url) {
       window.location.assign(data.url);
     }
   };

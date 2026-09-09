@@ -7,14 +7,14 @@ description: "Configure the Creem Better Auth server and client plugins, persist
 
 Pass these options to `creem()` in your Better Auth configuration:
 
-| Option                 | Type                       | Default  | Description                                                                                                      |
-| ---------------------- | -------------------------- | -------- | ---------------------------------------------------------------------------------------------------------------- |
-| `apiKey`               | `string`                   | Required | Creem API key for the selected environment. Keep it on the server.                                               |
-| `webhookSecret`        | `string`                   | —        | Signing secret used to verify Creem webhooks. The webhook endpoint is omitted when this is not set.              |
-| `testMode`             | `boolean`                  | `false`  | Uses `https://test-api.creem.io` instead of the production API.                                                  |
-| `defaultSuccessUrl`    | `string`                   | —        | Checkout return URL used when a request does not provide `successUrl`. Relative and absolute URLs are supported. |
-| `persistSubscriptions` | `boolean`                  | `true`   | Adds the plugin schema and synchronizes customer and subscription data from webhooks.                            |
-| `schema`               | `BetterAuthPluginDBSchema` | —        | Better Auth schema overrides merged into the plugin schema.                                                      |
+| Option                 | Type                   | Default  | Description                                                                                                      |
+| ---------------------- | ---------------------- | -------- | ---------------------------------------------------------------------------------------------------------------- |
+| `apiKey`               | `string`               | Required | Creem API key for the selected environment. Keep it on the server.                                               |
+| `webhookSecret`        | `string`               | —        | Signing secret used to verify Creem webhooks. The webhook endpoint is omitted when this is not set.              |
+| `testMode`             | `boolean`              | `false`  | Uses `https://test-api.creem.io` instead of the production API.                                                  |
+| `defaultSuccessUrl`    | `string`               | —        | Checkout return URL used when a request does not provide `successUrl`. Relative and absolute URLs are supported. |
+| `persistSubscriptions` | `boolean`              | `true`   | Adds the plugin schema and synchronizes customer and subscription data from webhooks.                            |
+| `schema`               | `CreemSchemaOverrides` | —        | Physical model and column name overrides for existing plugin fields.                                             |
 
 Webhook callback options are covered in [Webhooks and access](/code/sdks/better-auth/webhooks).
 
@@ -103,10 +103,44 @@ creem({
 });
 ```
 
-No plugin schema is added and no subscription records are written. `hasAccessGranted()` cannot
+No plugin schema is added: neither subscription models nor Creem user fields are registered.
+No plugin customer, trial, or subscription data is written. `hasAccessGranted()` cannot
 determine access in this mode, so implement access checks in your own data layer. Other endpoints
 can still call Creem, provided they receive or can resolve the required customer or subscription
 identifier.
+
+Mirror this option in your client configuration so session types do not promise fields that the
+server has not registered:
+
+```typescript
+const authClient = createAuthClient({
+  plugins: [creemClient({ persistSubscriptions: false })],
+});
+```
+
+### Custom model and column names
+
+With persistence enabled, `schema` maps existing logical names to physical database names:
+
+```typescript
+creem({
+  apiKey: process.env.CREEM_API_KEY!,
+  schema: {
+    creem_subscription: {
+      modelName: "billing_subscription",
+      fields: { referenceId: "user_id" },
+    },
+    user: {
+      fields: { creemCustomerId: "creem_customer_id" },
+    },
+  },
+});
+```
+
+Field mappings are strings, not field definition objects. They rename existing models and columns;
+they do not add models, add fields, or change their types. The logical names in session and endpoint
+types stay the same. Overrides are ignored when persistence is disabled. Each server plugin instance
+has its own schema, so overrides do not affect other instances.
 
 ## Client options
 
@@ -125,16 +159,11 @@ export const authClient = createAuthClient({
 `baseURL` is optional when the client calls the same origin. Use Better Auth's client import for
 your framework, such as `better-auth/react` for React.
 
-If TypeScript does not expose clean method signatures for an inferred client, use the typed wrapper:
+The standard client infers Creem endpoint inputs and successful responses. With persistence enabled
+(the default), it also infers `session.user.creemCustomerId` and `session.user.hadTrial`. The client
+option `persistSubscriptions` must match the server option; it controls types only and cannot enable
+server persistence.
 
-```typescript lib/auth-client.ts
-import { creemClient } from "@creem_io/better-auth/client";
-import { createCreemAuthClient } from "@creem_io/better-auth/create-creem-auth-client";
-
-export const authClient = createCreemAuthClient({
-  plugins: [creemClient()],
-});
-```
-
-The wrapper is optimized for the Creem plugin. Prefer the standard client when combining many
-Better Auth client plugins, and use the wrapper only when its improved Creem types are useful.
+`createCreemAuthClient` remains exported but is deprecated. Replace it with your framework's standard
+`createAuthClient` while keeping `creemClient()` in the plugins array. See the
+[2.0 migration guide](/code/sdks/better-auth/migration) for response handling changes.

@@ -1,0 +1,13 @@
+{
+  "extends": "./tsconfig.json",
+  "compilerOptions": {
+    "rootDir": ".",
+    "paths": {
+      "@creem_io/better-auth": ["./src/index.ts"],
+      "@creem_io/better-auth/client": ["./src/client.ts"],
+      "@creem_io/better-auth/create-creem-auth-client": ["./src/create-creem-auth-client.ts"]
+    }
+  },
+  "include": ["test/types/**/*.ts"],
+  "exclude": ["node_modules", "dist"]
+}

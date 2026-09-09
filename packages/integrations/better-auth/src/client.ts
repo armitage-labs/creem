@@ -30,21 +30,12 @@ import type { creem } from "./index.js";
  * });
  * ```
  */
-export const creemClient = <
-  T extends { persistSubscriptions?: boolean } = {
-    persistSubscriptions?: boolean;
-  },
->(
+export const creemClient = <T extends { persistSubscriptions?: boolean } = {}>(
   _options: T = {} as T,
 ) => {
   return {
     id: "creem",
-    $InferServerPlugin: {} as ReturnType<
-      typeof creem<{
-        apiKey: string;
-        persistSubscriptions: T["persistSubscriptions"];
-      }>
-    >,
+    $InferServerPlugin: {} as ReturnType<typeof creem<T & { apiKey: string }>>,
     pathMethods: {
       "/creem/create-checkout": "POST",
       "/creem/create-portal": "POST",

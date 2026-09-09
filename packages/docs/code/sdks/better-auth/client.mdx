@@ -16,11 +16,26 @@ export const authClient = createAuthClient({
 });
 ```
 
-The plugin infers endpoint inputs and Creem session fields through Better Auth. The
+The plugin infers endpoint inputs, successful responses, and Creem session fields through Better Auth. The
 `createCreemAuthClient` wrapper remains exported for compatibility but is deprecated.
 
 Every method returns the Better Auth `{ data, error }` result shape. Handle `error` before using
-`data`.
+`data`. A failed request returns `data: null` and an error containing `message`, `status`, and
+`statusText`; successful response types do not contain an error alternative.
+
+```typescript
+const { data, error } = await authClient.creem.createPortal();
+
+if (error) {
+  console.error(error.status, error.message);
+} else if (data.url) {
+  window.location.assign(data.url);
+}
+```
+
+Creem session fields are inferred when persistence is enabled. If the server uses
+`persistSubscriptions: false`, configure `creemClient({ persistSubscriptions: false })` too.
+The client option controls inference; it does not change the server configuration.
 
 ## Create a checkout
 
@@ -36,7 +51,7 @@ const { data, error } = await authClient.creem.createCheckout({
   metadata: { plan: "pro" },
 });
 
-if (!error && data && "url" in data && data.url) {
+if (!error && data?.url) {
   window.location.assign(data.url);
 }
 ```
@@ -62,7 +77,7 @@ if (!error && data && "url" in data && data.url) {
 ```typescript
 const { data, error } = await authClient.creem.createPortal();
 
-if (!error && data && "url" in data && data.url) {
+if (!error && data?.url) {
   window.location.assign(data.url);
 }
 ```
@@ -89,8 +104,10 @@ if (!error && data?.hasAccessGranted) {
 }
 ```
 
-`hasAccessGranted` can be `undefined` when the user is not signed in, persistence is disabled, or
-the check fails. Do not treat an indeterminate result as authorized access.
+On success, `data.hasAccessGranted` is a boolean. A signed-out request returns an error with status
+`401`, disabled persistence returns `400`, and a failed database check returns `500`. These failures
+return `data: null`, so check `error` before reading the access result. Do not grant access when the
+check fails.
 
 ## Cancel a subscription
 
@@ -113,6 +130,9 @@ const { data, error } = await authClient.creem.retrieveSubscription({
 ```
 
 The result includes the subscription status, customer, product, billing dates, and metadata.
+Customer and product values can be IDs or expanded objects; narrow their types before reading
+object properties. Dates returned over HTTP are serialized values, so convert them with `new Date()`
+when you need date methods instead of assuming a JavaScript `Date` instance.
 As with cancellation, do not accept the subscription ID from an untrusted caller without checking
 that it belongs to the signed-in account.
 
@@ -129,6 +149,8 @@ for (const transaction of data?.items ?? []) {
   console.log(transaction.id, transaction.status, transaction.amount);
 }
 ```
+
+The response contains `data.items` and `data.pagination`; it does not expose the SDK page iterator.
 
 Available filters are `customerId`, `productId`, `orderId`, `pageNumber`, and `pageSize`. When
 `customerId` is omitted, the endpoint uses the customer associated with the signed-in user. Prefer

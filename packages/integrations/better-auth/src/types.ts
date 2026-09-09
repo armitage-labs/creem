@@ -1,4 +1,4 @@
-import type { BetterAuthPluginDBSchema } from "@better-auth/core/db";
+import type { CreemSchemaOverrides } from "./schema.js";
 import type { GenericEndpointContext } from "better-auth";
 import type {
   NormalizedCheckoutEntity,
@@ -143,7 +143,7 @@ export interface CreemOptions {
    * @default true
    */
   persistSubscriptions?: boolean;
-  schema?: BetterAuthPluginDBSchema;
+  schema?: CreemSchemaOverrides;
   /**
    * Called when a checkout is completed.
    * All properties are flattened for easy destructuring:

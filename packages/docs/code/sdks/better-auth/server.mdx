@@ -110,3 +110,33 @@ The server entry point also exports:
 mode expects a raw query-builder interface that is not compatible with every Better Auth adapter.
 Prefer the authenticated `hasAccessGranted()` endpoint or query your own database through its
 supported adapter API.
+
+## Call Better Auth endpoints on the server
+
+Calls through `auth.api` use the same endpoints as the browser client. Pass the current request's
+headers for session authentication. Unlike browser client results, failed direct calls throw a
+Better Auth `APIError`:
+
+```typescript
+import { APIError } from "better-auth/api";
+import { auth } from "@/lib/auth";
+
+try {
+  const portal = await auth.api.createPortal({
+    headers: request.headers,
+    body: { redirect: false },
+  });
+  console.log(portal.url);
+} catch (error) {
+  if (error instanceof APIError) {
+    console.error(error.status, error.body?.message);
+  } else {
+    throw error;
+  }
+}
+```
+
+Pass `asResponse: true` when you need an HTTP `Response` instead. Check `response.ok` and
+`response.status`; error JSON contains `message`, replacing the previous `error` field. This applies
+to checkout, portal, cancel, retrieve, transaction search, and access endpoints. The direct helpers
+from `@creem_io/better-auth/server` keep their separate behavior.

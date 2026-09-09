@@ -1,4 +1,4 @@
-import { createAuthEndpoint, getSessionFromCtx } from "better-auth/api";
+import { APIError, createAuthEndpoint, getSessionFromCtx } from "better-auth/api";
 import { type GenericEndpointContext, logger } from "better-auth";
 import { Creem } from "creem";
 import { z } from "zod";
@@ -77,13 +77,10 @@ const createCheckoutHandler = (creem: Creem, options: CreemOptions) => {
     const body = ctx.body as CheckoutParams;
 
     if (!options.apiKey) {
-      return ctx.json(
-        {
-          error:
-            "Creem API key is not configured. Please set the apiKey option when initializing the Creem plugin.",
-        },
-        { status: 500 },
-      );
+      throw new APIError("INTERNAL_SERVER_ERROR", {
+        message:
+          "Creem API key is not configured. Please set the apiKey option when initializing the Creem plugin.",
+      });
     }
 
     try {
@@ -135,6 +132,12 @@ const createCheckoutHandler = (creem: Creem, options: CreemOptions) => {
         },
       });
 
+      if (!checkout.checkoutUrl) {
+        throw new APIError("INTERNAL_SERVER_ERROR", {
+          message: "Checkout did not return a URL",
+        });
+      }
+
       logger.debug(`[creem] Checkout created: ${checkout.checkoutUrl}`);
 
       return ctx.json({
@@ -143,9 +146,10 @@ const createCheckoutHandler = (creem: Creem, options: CreemOptions) => {
         redirect: !!body.redirect,
       });
     } catch (error) {
+      if (error instanceof APIError) throw error;
       const message = error instanceof Error ? error.message : String(error);
       logger.error(`[creem] Failed to create checkout: ${message}`);
-      return ctx.json({ error: "Failed to create checkout" }, { status: 500 });
+      throw new APIError("INTERNAL_SERVER_ERROR", { message: "Failed to create checkout" });
     }
   };
 };
