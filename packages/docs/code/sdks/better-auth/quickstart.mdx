@@ -1,0 +1,153 @@
+---
+title: "Quickstart"
+description: "Install the Creem Better Auth plugin and create an authenticated checkout."
+---
+
+This guide uses subscription persistence, the recommended setup for most applications. It stores
+Creem customer and subscription identifiers in your Better Auth database and keeps them current
+through webhooks.
+
+## 1. Install the plugin
+
+<CodeGroup>
+
+```bash npm
+npm install @creem_io/better-auth better-auth
+```
+
+```bash pnpm
+pnpm add @creem_io/better-auth better-auth
+```
+
+```bash yarn
+yarn add @creem_io/better-auth better-auth
+```
+
+```bash bun
+bun add @creem_io/better-auth better-auth
+```
+
+</CodeGroup>
+
+The Creem TypeScript SDK is included as a dependency of the plugin.
+
+## 2. Configure the server plugin
+
+Add your test API key and a webhook signing secret to the server environment:
+
+```bash .env
+CREEM_API_KEY=creem_test_...
+CREEM_WEBHOOK_SECRET=whsec_...
+```
+
+Register the plugin in your Better Auth configuration:
+
+```typescript lib/auth.ts
+import { creem } from "@creem_io/better-auth";
+import { betterAuth } from "better-auth";
+
+export const auth = betterAuth({
+  database: {
+    // Your Better Auth database configuration
+  },
+  plugins: [
+    creem({
+      apiKey: process.env.CREEM_API_KEY!,
+      webhookSecret: process.env.CREEM_WEBHOOK_SECRET!,
+      testMode: true,
+      defaultSuccessUrl: "/billing/success",
+      persistSubscriptions: true,
+    }),
+  ],
+});
+```
+
+The webhook endpoint is registered only when `webhookSecret` is present.
+
+## 3. Generate the database schema
+
+The plugin adds `creemCustomerId` and `hadTrial` to the Better Auth user model and creates a
+`creem_subscription` model. With Better Auth's built-in Kysely adapter, apply the schema directly:
+
+```bash
+npx @better-auth/cli migrate
+```
+
+When Prisma, Drizzle, or another ORM owns your schema, generate the schema instead and apply it with
+that ORM's migration tooling:
+
+```bash
+npx @better-auth/cli generate
+```
+
+See the
+[Better Auth database documentation](https://www.better-auth.com/docs/concepts/database) when your
+adapter requires manual migration steps.
+
+## 4. Configure the client plugin
+
+```typescript lib/auth-client.ts
+import { creemClient } from "@creem_io/better-auth/client";
+import { createAuthClient } from "better-auth/react";
+
+export const authClient = createAuthClient({
+  plugins: [creemClient()],
+});
+```
+
+If client and server are separate applications, install `@creem_io/better-auth` in both.
+
+## 5. Create a checkout
+
+The signed-in user's email is used when no customer is supplied. Their Better Auth user ID is added
+to checkout metadata as `referenceId`.
+
+```tsx app/pricing/subscribe-button.tsx
+"use client";
+
+import { authClient } from "@/lib/auth-client";
+
+export function SubscribeButton({ productId }: { productId: string }) {
+  const subscribe = async () => {
+    const { data, error } = await authClient.creem.createCheckout({
+      productId,
+      successUrl: "/billing/success",
+    });
+
+    if (error) {
+      throw new Error(error.message);
+    }
+
+    if (data?.url) {
+      window.location.assign(data.url);
+    }
+  };
+
+  return <button onClick={subscribe}>Subscribe</button>;
+}
+```
+
+## 6. Register the webhook
+
+In the Creem dashboard, point a test-mode webhook at:
+
+```text
+https://your-domain.com/api/auth/creem/webhook
+```
+
+`/api/auth` is Better Auth's default base path. Use your configured base path if you changed it.
+For local development, expose the application over HTTPS with a tunnel and register that URL.
+
+Once Creem delivers subscription events, the plugin updates the local subscription record. You can
+also add [access callbacks](/code/sdks/better-auth/webhooks) for application-specific provisioning.
+
+## Continue
+
+<CardGroup cols={2}>
+  <Card title="Configuration" href="/code/sdks/better-auth/configuration">
+    Review every plugin option and persistence behavior.
+  </Card>
+  <Card title="Client API" href="/code/sdks/better-auth/client">
+    Add the portal, cancellation, access checks, and transaction history.
+  </Card>
+</CardGroup>

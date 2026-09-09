@@ -1,7 +1,7 @@
 ---
 title: 'Affiliate Program'
 sidebarTitle: 'Affiliate Program'
-description: 'Launch your own affiliate marketing program to grow revenue through partner referrals. Invite affiliates, set custom commission rates, and track performance from your dashboard.'
+description: 'Launch your own affiliate marketing program to grow revenue through partner referrals. Invite affiliates, set a program commission rate, and track performance from your dashboard.'
 ---
 
 The Creem Affiliate Platform is a complete affiliate marketing solution that enables merchants to create referral programs and affiliates to earn commissions by promoting products. The platform handles tracking, attribution, payouts, and compliance automatically.
@@ -24,7 +24,7 @@ The Creem Affiliate Platform is a complete affiliate marketing solution that ena
     Join programs, get unique referral links, track earnings in real-time, and request payouts
   </Card>
   <Card title="Automated Tracking" icon="chart-line">
-    Cookie-based attribution automatically credits affiliates for referred sales
+    Attribution automatically credits affiliates for referred sales
   </Card>
   <Card title="Compliant Payouts" icon="building-columns">
     Built-in KYC verification and multiple payout methods (bank transfer, crypto)
@@ -136,13 +136,25 @@ The Affiliate Hub provides comprehensive analytics for your program:
 | **Conversions** | Conversion rate (sales / unique leads) |
 | **Affiliates** | Number of active affiliate partners |
 
-### Managing Individual Affiliates
+### Partners List
 
-Click on any affiliate in your Partners list to open their details panel. From here you can:
+The Partners list shows each affiliate in your program and their current performance at a glance:
 
-- **Set Custom Commission Rate**: Override the program default (0-95%)
-- **Select Allowed Products**: Restrict which products this affiliate can promote
-- **View Performance**: See clicks, conversions, and earnings for this affiliate
+| Column | Description |
+|--------|-------------|
+| **Name** | Affiliate's display name |
+| **Email** | Affiliate's email address |
+| **Status** | Current partner status, such as Active or Invited |
+| **Clicks** | Total clicks tracked for this affiliate |
+| **Conversions** | Total referred purchases for this affiliate |
+| **Conversion Rate** | Percentage of clicks that converted into purchases |
+| **Earnings** | Total commissions earned by this affiliate |
+
+#### Limitations
+
+At this time, managing individual partners is not supported, including deleting pending affiliate invitations, setting per-affiliate commission rates, or configuring per-affiliate product restrictions.
+
+Want this workflow? Upvote and follow the [Manage affiliate partners feature request](https://creem.featurebase.app/en/p/manage-affiliate-partners) to get updates if it is implemented.
 
 ---
 
@@ -269,8 +281,7 @@ If the payout date falls on a weekend or public holiday, the payout will be proc
 
 | Method | Provider | Fee |
 |--------|----------|-----|
-| **Bank Transfer (SEPA / EU)** | Paysway | No additional fee |
-| **Bank Transfer (International)** | Paysway | 7 USD/EUR or 1% of payout amount, whichever is higher |
+| **Bank Transfer** | Paysway | 7 USD/EUR or 1% of payout amount, whichever is higher |
 | **Cryptocurrency (USDC via Polygon)** | Mural | 2% of payout volume |
 
 <Info>
@@ -315,12 +326,6 @@ If you're an affiliate for multiple merchants, you can switch between programs u
 | **Requires Approval** | Whether new affiliates need manual approval | Yes |
 | **Public Program** | Whether anyone can join without invitation | No |
 
-### Per-Affiliate Overrides
-
-Merchants can customize settings for individual affiliates:
-- Custom commission rates (override program default)
-- Product restrictions (limit which products an affiliate can promote)
-
 ---
 
 ## Frequently Asked Questions
@@ -340,6 +345,9 @@ Merchants can customize settings for individual affiliates:
   </Accordion>
   <Accordion title="How is my referral tracked?">
     When someone clicks your affiliate link, a cookie is stored in their browser. This cookie attributes any purchases to you within the cookie duration period.
+  </Accordion>
+  <Accordion title="Does attribution work with embedded checkout?">
+    Yes. When a merchant embeds the Creem checkout in their own site, the affiliate cookie isn't available inside the cross-site iframe (no browser sends it there) — so Creem carries attribution as a signed URL token (`creem_ref`) that the embed forwards automatically. Merchants don't need to wire anything for the common case. See [Embedded checkout → Affiliate attribution](/features/checkout/embedded-checkout#affiliate-attribution).
   </Accordion>
   <Accordion title="Can I see which products are selling?">
     Yes, your dashboard shows conversion data. Merchants may also provide additional reporting on which products drive the most affiliate sales.
@@ -384,6 +392,13 @@ Merchants can customize settings for individual affiliates:
     href="/integrations/affiliates"
   >
     Alternative: Use Affonso for external affiliate tracking
+  </Card>
+  <Card
+    title="Rekomi Integration"
+    icon="plug"
+    href="/integrations/rekomi"
+  >
+    Alternative: Use Rekomi for external affiliate tracking and payouts
   </Card>
 </CardGroup>
 

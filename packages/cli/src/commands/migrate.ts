@@ -1,8 +1,12 @@
 import { Command } from "commander";
 import ora from "ora";
 import chalk from "chalk";
-import { password, confirm } from "@inquirer/prompts";
-import { getClient } from "../lib/api";
+import { password, select } from "@inquirer/prompts";
+import { createContext, type CliContext } from "../lib/context";
+import { CliError, redact } from "../lib/errors";
+import { parseInteger } from "../lib/input";
+import { addGlobalOptions, outputFormat } from "./resource";
+import { writeResult } from "../utils/results";
 import * as output from "../utils/output";
 
 // ============================================================================
@@ -289,6 +293,7 @@ async function withRetry<T>(
   label: string,
   maxAttempts = 3,
   baseDelayMs = 1000,
+  silent = false,
 ): Promise<T> {
   if (maxAttempts < 1) {
     throw new Error("maxAttempts must be at least 1");
@@ -301,11 +306,10 @@ async function withRetry<T>(
       lastError = error instanceof Error ? error : new Error(String(error));
       if (attempt < maxAttempts && isRetryableError(error)) {
         const delayMs = baseDelayMs * Math.pow(2, attempt - 1);
-        console.error(
-          chalk.dim(
-            `  ↻ Attempt ${attempt + 1}/${maxAttempts} for ${label} in ${delayMs}ms...`,
-          ),
-        );
+        if (!silent)
+          console.error(
+            chalk.dim(`  ↻ Attempt ${attempt + 1}/${maxAttempts} for ${label} in ${delayMs}ms...`),
+          );
         await new Promise((resolve) => setTimeout(resolve, delayMs));
       } else {
         break;
@@ -324,7 +328,10 @@ class LemonSqueezyClient {
   private baseUrl = "https://api.lemonsqueezy.com/v1";
   private storeId?: number;
 
-  constructor(apiKey: string) {
+  constructor(
+    apiKey: string,
+    private readonly silent = false,
+  ) {
     this.apiKey = apiKey;
   }
 
@@ -338,48 +345,46 @@ class LemonSqueezyClient {
     perPage = 100,
     filterByStore = false,
   ): Promise<LSApiResponse<T>> {
-    return withRetry(async () => {
-      const url = new URL(`${this.baseUrl}${endpoint}`);
-      url.searchParams.set("page[number]", page.toString());
-      url.searchParams.set("page[size]", perPage.toString());
-      // Filter by store_id to only fetch data from the validated store
-      if (filterByStore && this.storeId) {
-        url.searchParams.set("filter[store_id]", this.storeId.toString());
-      }
+    return withRetry(
+      async () => {
+        const url = new URL(`${this.baseUrl}${endpoint}`);
+        url.searchParams.set("page[number]", page.toString());
+        url.searchParams.set("page[size]", perPage.toString());
+        // Filter by store_id to only fetch data from the validated store
+        if (filterByStore && this.storeId) {
+          url.searchParams.set("filter[store_id]", this.storeId.toString());
+        }
 
-      const response = await fetch(url.toString(), {
-        headers: {
-          Accept: "application/vnd.api+json",
-          "Content-Type": "application/vnd.api+json",
-          Authorization: `Bearer ${this.apiKey}`,
-        },
-      });
+        const response = await fetch(url.toString(), {
+          headers: {
+            Accept: "application/vnd.api+json",
+            "Content-Type": "application/vnd.api+json",
+            Authorization: `Bearer ${this.apiKey}`,
+          },
+        });
 
-      if (!response.ok) {
-        const errorText = await response.text();
-        throw new Error(
-          `Lemon Squeezy API error (${response.status}): ${errorText}`,
-        );
-      }
+        if (!response.ok) {
+          const errorText = await response.text();
+          throw new Error(
+            `Lemon Squeezy API error (${response.status}): ${redact(errorText, [this.apiKey])}`,
+          );
+        }
 
-      return response.json() as Promise<LSApiResponse<T>>;
-    }, `${endpoint} (page ${page})`);
+        return response.json() as Promise<LSApiResponse<T>>;
+      },
+      `${endpoint} (page ${page})`,
+      3,
+      1000,
+      this.silent,
+    );
   }
 
-  async *paginate<T>(
-    endpoint: string,
-    filterByStore = false,
-  ): AsyncGenerator<T[], void, unknown> {
+  async *paginate<T>(endpoint: string, filterByStore = false): AsyncGenerator<T[], void, unknown> {
     let page = 1;
     let hasMore = true;
 
     while (hasMore) {
-      const response = await this.request<T>(
-        endpoint,
-        page,
-        100,
-        filterByStore,
-      );
+      const response = await this.request<T>(endpoint, page, 100, filterByStore);
       yield response.data;
 
       // Check for both undefined and null - JSON:API spec allows null for unavailable links
@@ -424,30 +429,21 @@ class LemonSqueezyClient {
     return this.fetchAll<LSFile>("/files", false);
   }
 
+  async getStores(): Promise<LSStore[]> {
+    return this.fetchAll<LSStore>("/stores", false);
+  }
+
   async validateKey(): Promise<{
     valid: boolean;
-    storeId?: number;
-    currency?: string;
+    stores?: LSStore[];
     error?: string;
   }> {
     try {
-      const response = await this.request<LSStore>("/stores", 1, 1);
-      if (response.data.length === 0) {
+      const stores = await this.getStores();
+      if (stores.length === 0) {
         return { valid: false, error: "No store found for this API key" };
       }
-      const store = response.data[0];
-      const storeId = parseInt(store.id, 10);
-      // Get the store's currency - LS supports 150+ currencies, not just USD
-      // Fail if currency is missing to avoid incorrect pricing during migration
-      const currency = store.attributes?.currency;
-      if (!currency) {
-        return {
-          valid: false,
-          error:
-            "Store currency not found in API response. Cannot proceed with migration.",
-        };
-      }
-      return { valid: true, storeId, currency };
+      return { valid: true, stores };
     } catch (error) {
       return {
         valid: false,
@@ -467,17 +463,13 @@ interface BillingPeriodResult {
   skip?: boolean;
 }
 
-function mapBillingPeriod(
-  interval?: string,
-  intervalCount?: number,
-): BillingPeriodResult {
+function mapBillingPeriod(interval?: string, intervalCount?: number): BillingPeriodResult {
   // Missing interval for subscriptions should be skipped - can happen with deprecated LS variant fields
   // This function is only called when is_subscription is true, so missing interval is invalid
   if (!interval) {
     return {
       period: undefined,
-      warning:
-        "Subscription variant missing billing interval (possibly deprecated LS field)",
+      warning: "Subscription variant missing billing interval (possibly deprecated LS field)",
       skip: true,
     };
   }
@@ -485,8 +477,7 @@ function mapBillingPeriod(
   // Map LS intervals to CREEM billing periods
   if (interval === "month") {
     // Handle undefined intervalCount as default monthly (same pattern as year branch)
-    if (intervalCount === 1 || intervalCount === undefined)
-      return { period: "every-month" };
+    if (intervalCount === 1 || intervalCount === undefined) return { period: "every-month" };
     if (intervalCount === 3) return { period: "every-three-months" };
     if (intervalCount === 6) return { period: "every-six-months" };
     // Unsupported month intervals (2, 4, 5, etc.) - skip with warning
@@ -516,9 +507,7 @@ function mapBillingPeriod(
   };
 }
 
-function mapDiscountType(
-  amountType: "percent" | "fixed",
-): "percentage" | "fixed" {
+function mapDiscountType(amountType: "percent" | "fixed"): "percentage" | "fixed" {
   return amountType === "percent" ? "percentage" : "fixed";
 }
 
@@ -565,9 +554,7 @@ function getVariantPrice(variant: LSVariant): number {
   if (variant.attributes.pay_what_you_want) {
     // For PWYW, prefer min_price (sets a floor), fall back to suggested_price, then 0
     // Use || instead of ?? because min_price: 0 means "no minimum" in LS (should fall through)
-    return (
-      variant.attributes.min_price || variant.attributes.suggested_price || 0
-    );
+    return variant.attributes.min_price || variant.attributes.suggested_price || 0;
   }
   return variant.attributes.price;
 }
@@ -576,10 +563,7 @@ function getVariantPrice(variant: LSVariant): number {
  * Check if a variant is eligible for migration.
  * Must match the same criteria used in the main migration loop.
  */
-function isVariantMigrateable(
-  variant: LSVariant,
-  product: LSProduct | undefined,
-): boolean {
+function isVariantMigrateable(variant: LSVariant, product: LSProduct | undefined): boolean {
   if (!product) return false;
 
   // Import all products regardless of status (draft, pending, published)
@@ -620,10 +604,7 @@ function buildMigrationPlan(
     const productId = variant.attributes.product_id;
     const product = productMap.get(productId);
     if (isVariantMigrateable(variant, product)) {
-      migrateableVariantCounts.set(
-        productId,
-        (migrateableVariantCounts.get(productId) || 0) + 1,
-      );
+      migrateableVariantCounts.set(productId, (migrateableVariantCounts.get(productId) || 0) + 1);
     }
   }
 
@@ -636,16 +617,12 @@ function buildMigrationPlan(
 
     const isRecurring = variant.attributes.is_subscription;
     const billingResult = isRecurring
-      ? mapBillingPeriod(
-          variant.attributes.interval,
-          variant.attributes.interval_count,
-        )
+      ? mapBillingPeriod(variant.attributes.interval, variant.attributes.interval_count)
       : { period: undefined };
 
     // Use pre-computed count for naming decision
     const productId = parseInt(product.id, 10);
-    const migrateableVariantCount =
-      migrateableVariantCounts.get(productId) || 0;
+    const migrateableVariantCount = migrateableVariantCounts.get(productId) || 0;
     const productName =
       migrateableVariantCount > 1
         ? `${product.attributes.name} - ${variant.attributes.name}`
@@ -655,8 +632,7 @@ function buildMigrationPlan(
     if (!isVariantMigrateable(variant, product)) {
       // Determine the specific reason for skipping - ALWAYS track and report
       let skipReason: string;
-      const hasPrice =
-        variant.attributes.price > 0 || variant.attributes.pay_what_you_want;
+      const hasPrice = variant.attributes.price > 0 || variant.attributes.pay_what_you_want;
 
       if (!hasPrice) {
         skipReason = "Variant has no price set";
@@ -758,12 +734,8 @@ function buildMigrationPlan(
   // Filter to only include files belonging to products in our store (via productMap)
   const filePlan: MigrationPlan["files"] = [];
   for (const file of files) {
-    const variant = variants.find(
-      (v) => parseInt(v.id, 10) === file.attributes.variant_id,
-    );
-    const product = variant
-      ? productMap.get(variant.attributes.product_id)
-      : undefined;
+    const variant = variants.find((v) => parseInt(v.id, 10) === file.attributes.variant_id);
+    const product = variant ? productMap.get(variant.attributes.product_id) : undefined;
 
     // Skip files that don't belong to products in our store
     if (!product) continue;
@@ -803,6 +775,7 @@ function buildMigrationPlan(
 async function executeMigration(
   plan: MigrationPlan,
   options: { dryRun: boolean },
+  context: CliContext,
 ): Promise<MigrationResult> {
   const result: MigrationResult = {
     success: true,
@@ -818,7 +791,7 @@ async function executeMigration(
     return result;
   }
 
-  const client = getClient();
+  const client = context.client({});
 
   // Migrate Products (skip products with unsupported billing intervals)
   const migrateableProducts = plan.products.filter((p) => !p.skipped);
@@ -839,9 +812,7 @@ async function executeMigration(
     const item = migrateableProducts[i];
     const progress = `[${i + 1}/${migrateableProducts.length}]`;
 
-    const spinner = ora(
-      `${progress} Creating: ${item.creemProduct.name}`,
-    ).start();
+    const spinner = ora(`${progress} Creating: ${item.creemProduct.name}`).start();
 
     try {
       const params: Parameters<typeof client.products.create>[0] = {
@@ -852,10 +823,7 @@ async function executeMigration(
         price: item.creemProduct.price,
         currency: item.creemProduct.currency as "USD" | "EUR",
         billingType: item.creemProduct.billingType as "recurring" | "onetime",
-        taxCategory: item.creemProduct.taxCategory as
-          | "saas"
-          | "digital-goods-service"
-          | "ebooks",
+        taxCategory: item.creemProduct.taxCategory as "saas" | "digital-goods-service" | "ebooks",
       };
 
       if (item.creemProduct.billingPeriod) {
@@ -866,24 +834,18 @@ async function executeMigration(
           | "every-year";
       }
 
-      // NOTE: Retrying a POST create is not idempotent — a transient failure after the server
-      // processes the request could lead to a duplicate product. This is an acceptable tradeoff:
-      // duplicates can be cleaned up manually, whereas failing the entire migration is worse.
-      const created = (await withRetry(
-        () => client.products.create(params),
-        `product "${item.creemProduct.name}"`,
-      )) as unknown as { id: string };
+      const created = await client.products.create(params);
       result.created.products.push(created.id);
       spinner.succeed(`${progress} Created: ${item.creemProduct.name}`);
     } catch (error) {
-      const errorMsg = error instanceof Error ? error.message : "Unknown error";
+      const errorMsg = redact(error instanceof Error ? error.message : "Unknown error", [
+        ...context.secrets,
+      ]);
       result.failed.products.push({
         name: item.creemProduct.name,
         error: errorMsg,
       });
-      spinner.fail(
-        `${progress} Failed: ${item.creemProduct.name} - ${errorMsg}`,
-      );
+      spinner.fail(`${progress} Failed: ${item.creemProduct.name} - ${errorMsg}`);
       result.success = false;
     }
 
@@ -909,10 +871,7 @@ async function executeMigration(
 
     // Skip discount creation if no products were successfully created
     // CREEM API requires at least one product for discounts to apply to
-    if (
-      result.created.products.length === 0 &&
-      migrateableDiscounts.length > 0
-    ) {
+    if (result.created.products.length === 0 && migrateableDiscounts.length > 0) {
       console.log(
         chalk.yellow(
           `  ⚠ Skipping ${migrateableDiscounts.length} discount(s): No products were created to apply them to`,
@@ -929,16 +888,13 @@ async function executeMigration(
     // Create discounts - apply to all created products
     for (
       let i = 0;
-      i <
-      (result.created.products.length > 0 ? migrateableDiscounts.length : 0);
+      i < (result.created.products.length > 0 ? migrateableDiscounts.length : 0);
       i++
     ) {
       const item = migrateableDiscounts[i];
       const progress = `[${i + 1}/${migrateableDiscounts.length}]`;
 
-      const spinner = ora(
-        `${progress} Creating: ${item.creemDiscount.code}`,
-      ).start();
+      const spinner = ora(`${progress} Creating: ${item.creemDiscount.code}`).start();
 
       try {
         // Build discount creation params
@@ -957,10 +913,7 @@ async function executeMigration(
           item.creemDiscount.percentage !== undefined
         ) {
           params.percentage = item.creemDiscount.percentage;
-        } else if (
-          item.creemDiscount.type === "fixed" &&
-          item.creemDiscount.amount !== undefined
-        ) {
+        } else if (item.creemDiscount.type === "fixed" && item.creemDiscount.amount !== undefined) {
           params.amount = item.creemDiscount.amount;
           params.currency = item.creemDiscount.currency;
         }
@@ -979,25 +932,18 @@ async function executeMigration(
           params.durationInMonths = item.creemDiscount.durationInMonths;
         }
 
-        // NOTE: Retrying a POST create is not idempotent — see product create comment above.
-        // Discount codes are unique, so duplicates will fail with a conflict error rather than
-        // silently creating duplicates.
-        const created = (await withRetry(
-          () => client.discounts.create(params),
-          `discount "${item.creemDiscount.code}"`,
-        )) as unknown as { id: string; code: string };
+        const created = await client.discounts.create(params);
         result.created.discounts.push(created.id);
         spinner.succeed(`${progress} Created: ${item.creemDiscount.code}`);
       } catch (error) {
-        const errorMsg =
-          error instanceof Error ? error.message : "Unknown error";
+        const errorMsg = redact(error instanceof Error ? error.message : "Unknown error", [
+          ...context.secrets,
+        ]);
         result.failed.discounts.push({
           code: item.creemDiscount.code,
           error: errorMsg,
         });
-        spinner.fail(
-          `${progress} Failed: ${item.creemDiscount.code} - ${errorMsg}`,
-        );
+        spinner.fail(`${progress} Failed: ${item.creemDiscount.code} - ${errorMsg}`);
         result.success = false;
       }
 
@@ -1006,8 +952,8 @@ async function executeMigration(
     }
   }
 
-  // Note: Customer and File migration require additional CREEM API endpoints
-  // that are not yet available in the SDK. Logging for manual follow-up.
+  // The legacy migration plan leaves customers and files for manual follow-up.
+  // SDK customer creation is available separately through customers create.
 
   if (plan.customers.length > 0) {
     console.log();
@@ -1017,22 +963,14 @@ async function executeMigration(
       ),
     );
     console.log(
-      chalk.dim(
-        "  Customers are auto-created in CREEM when they make their first purchase",
-      ),
+      chalk.dim("  Customers are auto-created in CREEM when they make their first purchase"),
     );
   }
 
   if (plan.files.length > 0) {
     console.log();
-    console.log(
-      chalk.yellow(
-        `⚠ ${plan.files.length} files found - manual upload required`,
-      ),
-    );
-    console.log(
-      chalk.dim("  Upload downloadable files in the CREEM dashboard"),
-    );
+    console.log(chalk.yellow(`⚠ ${plan.files.length} files found - manual upload required`));
+    console.log(chalk.dim("  Upload downloadable files in the CREEM dashboard"));
   }
 
   return result;
@@ -1042,50 +980,52 @@ async function executeMigration(
 // CLI Commands
 // ============================================================================
 
-function createLemonSqueezyCommand(): Command {
-  const command = new Command("lemon-squeezy")
-    .description("Migrate from Lemon Squeezy to CREEM")
+function createLemonSqueezyCommand(context: CliContext): Command {
+  const command = addGlobalOptions(
+    new Command("lemon-squeezy").description("Migrate from Lemon Squeezy to CREEM"),
+  )
     .option("--ls-api-key <key>", "Lemon Squeezy API key")
+    .option("--ls-store-id <id>", "Lemon Squeezy store ID to migrate from")
     .option("--dry-run", "Preview migration without making changes")
     // Note: --log-file is not yet implemented - will be added in future version
-    .option("--json", "Output migration plan as JSON (implies --dry-run)")
+
     .option("--exclude-discounts", "Skip migrating discounts entirely")
     .action(
-      async (options: {
-        lsApiKey?: string;
-        dryRun?: boolean;
-        json?: boolean;
-        excludeDiscounts?: boolean;
-      }) => {
+      async (
+        localOptions: {
+          lsApiKey?: string;
+          lsStoreId?: string;
+          dryRun?: boolean;
+          json?: boolean;
+          excludeDiscounts?: boolean;
+        },
+        cmd: Command,
+      ) => {
+        const globals = cmd.optsWithGlobals();
+        const options = { ...localOptions, json: outputFormat(cmd) !== "table" };
+        if (!context.isTTY && !options.dryRun && !options.json && !globals.yes)
+          throw new CliError("Migration requires --yes in non-interactive mode.");
+        if (options.lsStoreId) parseInteger("--ls-store-id", options.lsStoreId, { min: 1 });
+        const spin = (text: string) =>
+          ora({ text, isSilent: options.json || !context.isTTY }).start();
         // Skip banner when outputting JSON to avoid corrupting stdout
         if (!options.json) {
           console.log();
           console.log(chalk.bold.cyan("🍋 Lemon Squeezy → CREEM Migration"));
-          console.log(
-            chalk.dim("Migrate your products, customers, and discounts"),
-          );
+          console.log(chalk.dim("Migrate your products, customers, and discounts"));
           console.log();
-        }
-
-        // Verify CREEM authentication
-        try {
-          getClient();
-        } catch {
-          output.error(
-            "Not authenticated with CREEM. Run `creem login` first.",
-          );
-          process.exit(1);
         }
 
         // Get Lemon Squeezy API key
         let lsApiKey = options.lsApiKey;
 
         if (!lsApiKey) {
+          if (!context.isTTY || options.json)
+            throw new CliError("Supply --ls-api-key for non-interactive migration.", 3);
           try {
             lsApiKey = await password({
               message: "Enter your Lemon Squeezy API key:",
-              validate: (value) =>
-                value.length > 0 ? true : "API key is required",
+              validate: (value) => (value.length > 0 ? true : "API key is required"),
             });
           } catch {
             console.log(chalk.dim("\nMigration cancelled."));
@@ -1098,49 +1038,112 @@ function createLemonSqueezyCommand(): Command {
           }
         }
 
+        context.secrets.add(lsApiKey);
         // Validate Lemon Squeezy API key
-        const lsClient = new LemonSqueezyClient(lsApiKey);
-        const validateSpinner = ora(
-          "Validating Lemon Squeezy API key...",
-        ).start();
+        const lsClient = new LemonSqueezyClient(lsApiKey, options.json);
+        const validateSpinner = spin("Validating Lemon Squeezy API key...");
 
         const validation = await lsClient.validateKey();
         if (!validation.valid) {
           validateSpinner.fail("Invalid Lemon Squeezy API key");
-          output.error(validation.error || "Could not validate API key");
-          process.exit(1);
+          throw new CliError(
+            validation.error || "Could not validate API key",
+            3,
+            "Check --ls-api-key and Lemon Squeezy connectivity.",
+          );
         }
 
+        const stores = validation.stores || [];
         validateSpinner.succeed(
-          `Connected to Lemon Squeezy (Store ID: ${validation.storeId})`,
+          `Connected to Lemon Squeezy (${stores.length} store${stores.length === 1 ? "" : "s"} found)`,
         );
 
+        let selectedStore: LSStore | undefined;
+
+        if (options.lsStoreId) {
+          if (!/^\d+$/.test(options.lsStoreId)) {
+            throw new CliError(`Invalid Lemon Squeezy store ID: ${options.lsStoreId}`);
+          }
+
+          const requestedStoreId = parseInt(options.lsStoreId, 10);
+          if (!Number.isInteger(requestedStoreId) || requestedStoreId <= 0) {
+            throw new CliError(`Invalid Lemon Squeezy store ID: ${options.lsStoreId}`);
+          }
+
+          selectedStore = stores.find((store) => parseInt(store.id, 10) === requestedStoreId);
+          if (!selectedStore) {
+            throw new CliError(
+              `Lemon Squeezy store ID ${options.lsStoreId} was not found for this API key.`,
+            );
+          }
+        } else if (stores.length === 1) {
+          selectedStore = stores[0];
+        } else {
+          if (!context.isTTY || options.json)
+            throw new CliError("Supply --ls-store-id when more than one store is available.");
+          try {
+            selectedStore = await select<LSStore>({
+              message: "Which Lemon Squeezy store do you want to migrate?",
+              choices: stores.map((store) => {
+                const parts = [
+                  store.attributes.name,
+                  store.attributes.domain || store.attributes.slug,
+                  `ID: ${store.id}`,
+                  store.attributes.currency,
+                ].filter(Boolean);
+
+                return {
+                  name: parts.join(" · "),
+                  value: store,
+                };
+              }),
+            });
+          } catch {
+            console.log(chalk.dim("\nMigration cancelled."));
+            return;
+          }
+        }
+
+        if (!selectedStore) {
+          throw new CliError("No Lemon Squeezy store selected. Cannot proceed with migration.");
+        }
+
+        const selectedStoreId = parseInt(selectedStore.id, 10);
+        if (!Number.isInteger(selectedStoreId) || selectedStoreId <= 0) {
+          throw new CliError(`Invalid Lemon Squeezy store ID: ${selectedStore.id}`);
+        }
+
+        const selectedStoreCurrency = selectedStore.attributes?.currency;
+        if (!selectedStoreCurrency) {
+          throw new CliError("Store currency not found. Cannot proceed with migration.");
+        }
+
+        if (!options.json) {
+          console.log(
+            chalk.dim(
+              `Using Lemon Squeezy store: ${selectedStore.attributes.name} (ID: ${selectedStore.id})`,
+            ),
+          );
+        }
+
         // Set store ID for filtering subsequent API requests
-        lsClient.setStoreId(validation.storeId!);
+        lsClient.setStoreId(selectedStoreId);
 
         // Validate store currency - CREEM only supports USD and EUR
-        // Currency must exist (validated in validateKey), but guard against edge cases
-        if (!validation.currency) {
-          output.error(
-            "Store currency not found. Cannot proceed with migration.",
-          );
-          process.exit(1);
-        }
-        const rawCurrency = validation.currency.toUpperCase();
+        const rawCurrency = selectedStoreCurrency.toUpperCase();
         if (rawCurrency !== "USD" && rawCurrency !== "EUR") {
-          output.error(
+          throw new CliError(
             `Your Lemon Squeezy store uses ${rawCurrency}, but CREEM currently only supports USD and EUR.\n` +
               `To migrate, please either:\n` +
               `  1. Change your Lemon Squeezy store currency to USD or EUR before migration\n` +
               `  2. Contact CREEM support for assistance with currency conversion\n` +
               `\nNote: Migrating with incorrect currency would result in wrong pricing in CREEM.`,
           );
-          process.exit(1);
         }
         const storeCurrency: "USD" | "EUR" = rawCurrency;
 
         // Fetch data from Lemon Squeezy
-        const fetchSpinner = ora("Fetching data from Lemon Squeezy...").start();
+        const fetchSpinner = spin("Fetching data from Lemon Squeezy...");
 
         let products: LSProduct[] = [];
         let variants: LSVariant[] = [];
@@ -1182,8 +1185,7 @@ function createLemonSqueezyCommand(): Command {
           try {
             discounts = await lsClient.getDiscounts();
           } catch (error) {
-            const msg =
-              error instanceof Error ? error.message : "Unknown error";
+            const msg = error instanceof Error ? error.message : "Unknown error";
             fetchFailures.push({
               type: "discount",
               label: "all discounts",
@@ -1230,21 +1232,17 @@ function createLemonSqueezyCommand(): Command {
 
         if (fetchFailures.length > 0 && !options.json) {
           console.error();
-          console.error(
-            chalk.yellow("⚠ Some data could not be fetched after retries:"),
-          );
+          console.error(chalk.yellow("⚠ Some data could not be fetched after retries:"));
           for (const f of fetchFailures) {
             console.error(`  • ${f.type}: ${f.label} - ${f.error}`);
           }
           console.error(
-            chalk.dim(
-              "  Migration will continue with the data that was successfully fetched.",
-            ),
+            chalk.dim("  Migration will continue with the data that was successfully fetched."),
           );
         }
 
         // Build migration plan (storeCurrency already validated as USD or EUR above)
-        const planSpinner = ora("Building migration plan...").start();
+        const planSpinner = spin("Building migration plan...");
         const plan = buildMigrationPlan(
           products,
           variants,
@@ -1257,9 +1255,13 @@ function createLemonSqueezyCommand(): Command {
 
         // If JSON output requested, print and exit
         if (options.json) {
-          const jsonOutput =
-            fetchFailures.length > 0 ? { ...plan, fetchFailures } : plan;
-          output.outputJson(jsonOutput);
+          const jsonOutput = fetchFailures.length > 0 ? { ...plan, fetchFailures } : plan;
+          writeResult(context, jsonOutput, "json");
+          if (fetchFailures.length)
+            throw new CliError(
+              "Migration preview is incomplete because some source data could not be fetched.",
+              4,
+            );
           return;
         }
 
@@ -1276,24 +1278,17 @@ function createLemonSqueezyCommand(): Command {
           );
         }
         if (options.excludeDiscounts) {
-          console.log(
-            `  Discounts: ${chalk.yellow("excluded")} (--exclude-discounts)`,
-          );
+          console.log(`  Discounts: ${chalk.yellow("excluded")} (--exclude-discounts)`);
         } else {
           console.log(
             `  Discounts: ${chalk.cyan(plan.summary.totalDiscounts)}${plan.summary.skippedDiscounts > 0 ? chalk.yellow(` (${plan.summary.skippedDiscounts} skipped)`) : ""}`,
           );
         }
         console.log(`  Customers: ${chalk.cyan(plan.summary.totalCustomers)}`);
-        console.log(
-          `  Files:     ${chalk.cyan(plan.summary.totalFiles)} (manual upload required)`,
-        );
+        console.log(`  Files:     ${chalk.cyan(plan.summary.totalFiles)} (manual upload required)`);
         console.log(chalk.dim("─".repeat(50)));
 
-        if (
-          plan.summary.totalProducts === 0 &&
-          plan.summary.totalCustomers === 0
-        ) {
+        if (plan.summary.totalProducts === 0 && plan.summary.totalCustomers === 0) {
           console.log();
           if (plan.summary.skippedProducts > 0) {
             // All products were skipped - show why
@@ -1318,20 +1313,12 @@ function createLemonSqueezyCommand(): Command {
             }
             console.log();
             console.log(
-              chalk.dim(
-                "Products may be skipped due to unsupported billing intervals or pricing.",
-              ),
+              chalk.dim("Products may be skipped due to unsupported billing intervals or pricing."),
             );
-            console.log(
-              chalk.dim(
-                "CREEM supports one-time, monthly, and yearly billing cycles.",
-              ),
-            );
+            console.log(chalk.dim("CREEM supports one-time, monthly, and yearly billing cycles."));
           } else {
             console.log(
-              chalk.yellow(
-                "Nothing to migrate. Your Lemon Squeezy account appears empty.",
-              ),
+              chalk.yellow("Nothing to migrate. Your Lemon Squeezy account appears empty."),
             );
           }
           return;
@@ -1346,10 +1333,7 @@ function createLemonSqueezyCommand(): Command {
           console.log(chalk.dim("Sample products to be created:"));
           const sample = migrateableProducts.slice(0, 5);
           for (const p of sample) {
-            const price = output.formatCurrency(
-              p.creemProduct.price,
-              p.creemProduct.currency,
-            );
+            const price = output.formatCurrency(p.creemProduct.price, p.creemProduct.currency);
             const billing =
               p.creemProduct.billingType === "recurring"
                 ? `Recurring / ${p.creemProduct.billingPeriod?.replace("every-", "")}`
@@ -1357,9 +1341,7 @@ function createLemonSqueezyCommand(): Command {
             console.log(`  • ${p.creemProduct.name} - ${price} (${billing})`);
           }
           if (migrateableProducts.length > 5) {
-            console.log(
-              chalk.dim(`  ... and ${migrateableProducts.length - 5} more`),
-            );
+            console.log(chalk.dim(`  ... and ${migrateableProducts.length - 5} more`));
           }
         }
 
@@ -1367,9 +1349,7 @@ function createLemonSqueezyCommand(): Command {
         if (skippedProductsList.length > 0) {
           console.log();
           console.log(
-            chalk.yellow(
-              `⚠ ${skippedProductsList.length} variant(s) cannot be migrated:`,
-            ),
+            chalk.yellow(`⚠ ${skippedProductsList.length} variant(s) cannot be migrated:`),
           );
 
           // Group by skip reason for cleaner output
@@ -1383,9 +1363,7 @@ function createLemonSqueezyCommand(): Command {
           }
 
           for (const [reason, names] of reasonCounts) {
-            console.log(
-              `  • ${reason}: ${chalk.dim(`${names.length} variant(s)`)}`,
-            );
+            console.log(`  • ${reason}: ${chalk.dim(`${names.length} variant(s)`)}`);
             // Show first 2 names as examples
             for (const name of names.slice(0, 2)) {
               console.log(chalk.dim(`      - ${name}`));
@@ -1401,9 +1379,7 @@ function createLemonSqueezyCommand(): Command {
         if (skippedDiscountsList.length > 0) {
           console.log();
           console.log(
-            chalk.yellow(
-              `⚠ ${skippedDiscountsList.length} discount(s) require manual setup:`,
-            ),
+            chalk.yellow(`⚠ ${skippedDiscountsList.length} discount(s) require manual setup:`),
           );
 
           // Group by skip reason for cleaner output
@@ -1417,9 +1393,7 @@ function createLemonSqueezyCommand(): Command {
           }
 
           for (const [reason, codes] of discountReasonCounts) {
-            console.log(
-              `  • ${reason}: ${chalk.dim(`${codes.length} discount(s)`)}`,
-            );
+            console.log(`  • ${reason}: ${chalk.dim(`${codes.length} discount(s)`)}`);
             // Show first 3 codes as examples
             for (const code of codes.slice(0, 3)) {
               console.log(chalk.dim(`      - ${code}`));
@@ -1434,55 +1408,39 @@ function createLemonSqueezyCommand(): Command {
         if (options.dryRun) {
           console.log();
           console.log(chalk.yellow.bold("DRY RUN MODE"));
-          console.log(
-            chalk.dim(
-              "No changes were made. Remove --dry-run to execute migration.",
-            ),
-          );
+          console.log(chalk.dim("No changes were made. Remove --dry-run to execute migration."));
           return;
         }
 
-        // Confirmation prompt
-        console.log();
-        let proceed: boolean;
-        try {
-          proceed = await confirm({
-            message: "Proceed with migration?",
-            default: false,
-          });
-        } catch {
-          console.log(chalk.dim("\nMigration cancelled."));
-          return;
-        }
+        const client = context.client({
+          environment: globals.environment,
+          timeout: globals.timeout,
+        });
+        const executionContext = { ...context, client: () => client };
 
-        if (!proceed) {
-          console.log(chalk.dim("\nMigration cancelled."));
-          return;
-        }
+        // Shared TEST/LIVE confirmation policy; JSON remains preview-only.
+        if (
+          !globals.yes &&
+          !(await context.confirm(
+            `${context.environment().toUpperCase()}: Proceed with migration?`,
+          ))
+        )
+          throw new CliError("Migration canceled.");
 
         // Execute migration
         console.log();
         console.log(chalk.bold.green("Starting migration..."));
 
-        const result = await executeMigration(plan, {
-          dryRun: false,
-        });
+        const result = await executeMigration(plan, { dryRun: false }, executionContext);
 
         // Display results
         console.log();
         console.log(chalk.bold("Migration Complete"));
         console.log(chalk.dim("─".repeat(50)));
-        console.log(
-          `  Products created:  ${chalk.green(result.created.products.length)}`,
-        );
-        console.log(
-          `  Discounts created: ${chalk.green(result.created.discounts.length)}`,
-        );
+        console.log(`  Products created:  ${chalk.green(result.created.products.length)}`);
+        console.log(`  Discounts created: ${chalk.green(result.created.discounts.length)}`);
 
-        if (
-          result.failed.products.length > 0 ||
-          result.failed.discounts.length > 0
-        ) {
+        if (result.failed.products.length > 0 || result.failed.discounts.length > 0) {
           console.log();
           console.log(chalk.red("Failed items:"));
           for (const f of result.failed.products) {
@@ -1500,11 +1458,7 @@ function createLemonSqueezyCommand(): Command {
             console.log(`  • ${s.code}: ${s.reason}`);
           }
           if (result.skipped.discounts.length > 5) {
-            console.log(
-              chalk.dim(
-                `  ... and ${result.skipped.discounts.length - 5} more`,
-              ),
-            );
+            console.log(chalk.dim(`  ... and ${result.skipped.discounts.length - 5} more`));
           }
         }
 
@@ -1523,33 +1477,19 @@ function createLemonSqueezyCommand(): Command {
           console.log(chalk.green.bold("✓ Migration completed successfully!"));
         } else {
           console.log();
-          console.log(
-            chalk.yellow.bold("⚠ Migration completed with some errors."),
-          );
+          console.log(chalk.yellow.bold("⚠ Migration completed with some errors."));
           if (fetchFailures.length > 0) {
-            console.log(
-              chalk.dim("  Re-run the migration to retry failed fetches."),
-            );
+            console.log(chalk.dim("  Re-run the migration to retry failed fetches."));
           }
         }
 
         console.log();
         console.log(chalk.dim("Next steps:"));
+        console.log(chalk.dim("  1. Review your products at https://creem.io/dashboard/products"));
         console.log(
-          chalk.dim(
-            "  1. Review your products at https://creem.io/dashboard/products",
-          ),
+          chalk.dim("  2. Review your discounts at https://creem.io/dashboard/discounts"),
         );
-        console.log(
-          chalk.dim(
-            "  2. Review your discounts at https://creem.io/dashboard/discounts",
-          ),
-        );
-        console.log(
-          chalk.dim(
-            "  3. Upload downloadable files in the dashboard if needed",
-          ),
-        );
+        console.log(chalk.dim("  3. Upload downloadable files in the dashboard if needed"));
         console.log(chalk.dim("  4. Update your checkout links to use CREEM"));
       },
     );
@@ -1557,7 +1497,7 @@ function createLemonSqueezyCommand(): Command {
   return command;
 }
 
-export function createMigrateCommand(): Command {
+export function createMigrateCommand(context: CliContext = createContext()): Command {
   const command = new Command("migrate")
     .description("Migrate from other platforms to CREEM")
     .addHelpText(
@@ -1569,17 +1509,20 @@ ${chalk.dim("Available migrations:")}
 ${chalk.dim("Options:")}
   --dry-run               Preview what would be migrated without making changes
   --ls-api-key <key>      Provide API key via flag (skips interactive prompt)
+  --ls-store-id <id>      Lemon Squeezy store ID to migrate from
   --json                  Output migration plan as JSON
   --exclude-discounts     Skip migrating discounts entirely
 
 ${chalk.dim("Examples:")}
   ${chalk.cyan("creem migrate lemon-squeezy")}                    Interactive migration wizard
   ${chalk.cyan("creem migrate lemon-squeezy --dry-run")}          Preview migration plan
+  ${chalk.cyan("creem migrate lemon-squeezy --ls-store-id 123")}  Skip store selection prompt
+  ${chalk.cyan("creem migrate lemon-squeezy --ls-api-key ls_xxx --ls-store-id 123")}  Non-interactive migration
   ${chalk.cyan("creem migrate lemon-squeezy --json > plan.json")} Export migration plan
 `,
     );
 
-  command.addCommand(createLemonSqueezyCommand());
+  command.addCommand(createLemonSqueezyCommand(context));
 
   return command;
 }

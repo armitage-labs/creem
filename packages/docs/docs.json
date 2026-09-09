@@ -1,6 +1,5 @@
 {
   "$schema": "https://mintlify.com/docs.json",
-
   "seo": {
     "indexing": "all",
     "metatags": {
@@ -18,6 +17,68 @@
   "contextual": {
     "options": ["copy", "view", "chatgpt", "claude", "perplexity"]
   },
+  "redirects": [
+    {
+      "source": "/code/sdks/typescript-core",
+      "destination": "/code/sdks/typescript"
+    },
+    {
+      "source": "/api-reference/endpoint/get-product-by-id",
+      "destination": "/api-reference/endpoint/get-product"
+    },
+    {
+      "source": "/api-reference/endpoint/get-metrics-summary",
+      "destination": "/api-reference/endpoint/get-stats-summary"
+    },
+    {
+      "source": "/api-reference/endpoint/create-customer-credits-account",
+      "destination": "/api-reference/endpoint/create-credits-account"
+    },
+    {
+      "source": "/api-reference/endpoint/list-customer-credits-accounts",
+      "destination": "/api-reference/endpoint/list-credits-accounts"
+    },
+    {
+      "source": "/api-reference/endpoint/get-customer-credits-account",
+      "destination": "/api-reference/endpoint/get-credits-account"
+    },
+    {
+      "source": "/api-reference/endpoint/get-customer-credits-account-balance",
+      "destination": "/api-reference/endpoint/get-credits-account-balance"
+    },
+    {
+      "source": "/api-reference/endpoint/list-customer-credits-account-entries",
+      "destination": "/api-reference/endpoint/list-credits-entries"
+    },
+    {
+      "source": "/api-reference/endpoint/freeze-customer-credits-account",
+      "destination": "/api-reference/endpoint/freeze-credits-account"
+    },
+    {
+      "source": "/api-reference/endpoint/unfreeze-customer-credits-account",
+      "destination": "/api-reference/endpoint/unfreeze-credits-account"
+    },
+    {
+      "source": "/api-reference/endpoint/credit-customer-credits-account",
+      "destination": "/api-reference/endpoint/credit-account"
+    },
+    {
+      "source": "/api-reference/endpoint/debit-customer-credits-account",
+      "destination": "/api-reference/endpoint/debit-account"
+    },
+    {
+      "source": "/api-reference/endpoint/reverse-customer-credits-account-transaction",
+      "destination": "/api-reference/endpoint/reverse-credits-transaction"
+    },
+    {
+      "source": "/api-reference/endpoint/close-customer-credits-account",
+      "destination": "/api-reference/endpoint/close-credits-account"
+    },
+    {
+      "source": "/code/mcp",
+      "destination": "/ai/for-agents/mcp-server"
+    }
+  ],
   "theme": "mint",
   "name": "Creem",
   "colors": {
@@ -38,7 +99,15 @@
               "getting-started/introduction",
               "getting-started/quickstart",
               "getting-started/test-mode",
-              "merchant-of-record/account-reviews/account-reviews",
+              {
+                "group": "Account Reviews",
+                "pages": [
+                  "merchant-of-record/account-reviews/account-reviews",
+                  "merchant-of-record/account-reviews/re-review-guide",
+                  "merchant-of-record/account-reviews/rejected-accounts",
+                  "merchant-of-record/account-reviews/ai-wrapper-compliance"
+                ]
+              },
               "getting-started/dashboard-overview",
               "getting-started/migrate"
             ]
@@ -56,6 +125,7 @@
                 "group": "For Agents",
                 "pages": [
                   "ai/for-agents/skill-files",
+                  "ai/for-agents/mcp-server",
                   "ai/for-agents/cli",
                   "ai/for-agents/store-monitoring"
                 ]
@@ -71,12 +141,14 @@
                 "pages": [
                   "features/checkout/checkout-api",
                   "features/checkout/checkout-link",
+                  "features/checkout/embedded-checkout",
                   "features/checkout/checkout-customization",
                   "features/checkout/checkout-custom-fields",
                   "features/checkout/checkout-localization"
                 ]
               },
               "features/one-time-payment",
+              "features/pay-what-you-want",
               {
                 "group": "Subscriptions",
                 "pages": [
@@ -88,6 +160,7 @@
               "features/seat-based-billing",
               "features/split-payments",
               "features/affiliate-program",
+              "features/referral-program",
               "features/storefronts",
               "features/discounts",
               "features/trials",
@@ -120,15 +193,32 @@
               {
                 "group": "SDKs",
                 "pages": [
+                  "code/sdks/typescript",
+                  "code/sdks/nextjs",
                   {
-                    "group": "TypeScript",
+                    "group": "Better Auth",
                     "pages": [
-                      "code/sdks/typescript-core",
-                      "code/sdks/typescript-wrapper"
+                      "code/sdks/better-auth",
+                      "code/sdks/better-auth/quickstart",
+                      "code/sdks/better-auth/configuration",
+                      "code/sdks/better-auth/client",
+                      "code/sdks/better-auth/webhooks",
+                      "code/sdks/better-auth/server"
                     ]
                   },
-                  "code/sdks/nextjs",
-                  "code/sdks/better-auth",
+                  {
+                    "group": "Convex",
+                    "pages": [
+                      "code/sdks/convex/quickstart",
+                      "code/sdks/convex/concepts",
+                      "code/sdks/convex/subscriptions",
+                      "code/sdks/convex/one-time-and-credits",
+                      "code/sdks/convex/entitlements",
+                      "code/sdks/convex/advanced",
+                      "code/sdks/convex/migration",
+                      "code/sdks/convex/reference"
+                    ]
+                  },
                   "code/sdks/templates",
                   "code/sdks/ai-agents"
                 ]
@@ -141,10 +231,21 @@
             "group": "Integrations",
             "icon": "link",
             "pages": [
-              "integrations/ai-negotiation-bot",
+              {
+                "group": "Affiliate Platforms",
+                "pages": ["integrations/affiliates", "integrations/rekomi"]
+              },
               {
                 "group": "Purchase Parity Platforms",
                 "pages": ["integrations/evendeals"]
+              },
+              {
+                "group": "CMS",
+                "pages": ["integrations/strapi"]
+              },
+              {
+                "group": "No-Code Builders",
+                "pages": ["integrations/framer"]
               }
             ]
           },
@@ -190,11 +291,14 @@
             "icon": "book-open",
             "pages": [
               "guides/introduction",
+              "guides/safe-metered-ai-image-video-generator",
               "guides/create-your-first-product",
               "guides/create-checkout-session",
+              "guides/sell-canva-templates",
               "guides/sell-framer-templates-instant-remix-links",
               "guides/customer-credits-recipes",
-              "guides/faq"
+              "guides/faq",
+              "guides/affiliate-program-via-api"
             ]
           }
         ]
@@ -221,7 +325,9 @@
             "pages": [
               "api-reference/endpoint/create-product",
               "api-reference/endpoint/get-product",
-              "api-reference/endpoint/search-products"
+              "api-reference/endpoint/search-products",
+              "api-reference/endpoint/update-product",
+              "api-reference/endpoint/archive-product"
             ]
           },
           {
@@ -238,7 +344,19 @@
             "icon": "receipt",
             "pages": [
               "api-reference/endpoint/get-transaction",
-              "api-reference/endpoint/get-transactions"
+              "api-reference/endpoint/get-transactions",
+              "api-reference/endpoint/refund-payment"
+            ]
+          },
+          {
+            "group": "Affiliate",
+            "icon": "users",
+            "pages": [
+              "api-reference/endpoint/list-affiliates",
+              "api-reference/endpoint/retrieve-affiliate",
+              "api-reference/endpoint/list-affiliate-commissions",
+              "api-reference/endpoint/create-affiliate-invite",
+              "api-reference/endpoint/list-affiliate-invites"
             ]
           },
           {
@@ -247,7 +365,8 @@
             "pages": [
               "api-reference/endpoint/validate-license",
               "api-reference/endpoint/activate-license",
-              "api-reference/endpoint/deactivate-license"
+              "api-reference/endpoint/deactivate-license",
+              "api-reference/endpoint/list-license-instances"
             ]
           },
           {
@@ -271,6 +390,16 @@
               "api-reference/endpoint/pause-subscription",
               "api-reference/endpoint/resume-subscription",
               "api-reference/endpoint/cancel-subscription"
+            ]
+          },
+          {
+            "group": "Splits",
+            "icon": "arrows-split-up-and-left",
+            "pages": [
+              "api-reference/endpoint/create-split",
+              "api-reference/endpoint/list-splits",
+              "api-reference/endpoint/retrieve-split",
+              "api-reference/endpoint/delete-split"
             ]
           },
           {

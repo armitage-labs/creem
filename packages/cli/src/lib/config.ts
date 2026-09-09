@@ -23,6 +23,7 @@ function ensureConfigDir(): void {
   if (!fs.existsSync(CONFIG_DIR)) {
     fs.mkdirSync(CONFIG_DIR, { recursive: true, mode: 0o700 });
   }
+  fs.chmodSync(CONFIG_DIR, 0o700);
 }
 
 const VALID_ENVIRONMENTS = ["test", "live"] as const;
@@ -35,10 +36,7 @@ function validateConfig(config: Partial<CreemConfig>): CreemConfig {
   const validated: CreemConfig = { ...DEFAULT_CONFIG };
 
   // Validate environment
-  if (
-    config.environment &&
-    VALID_ENVIRONMENTS.includes(config.environment as "test" | "live")
-  ) {
+  if (config.environment && VALID_ENVIRONMENTS.includes(config.environment as "test" | "live")) {
     validated.environment = config.environment as "test" | "live";
   }
 
@@ -82,14 +80,13 @@ export function saveConfig(config: CreemConfig): void {
   fs.writeFileSync(CONFIG_FILE, JSON.stringify(config, null, 2), {
     mode: 0o600,
   });
+  fs.chmodSync(CONFIG_FILE, 0o600);
 }
 
 /**
  * Gets a specific config value
  */
-export function getConfigValue<K extends keyof CreemConfig>(
-  key: K,
-): CreemConfig[K] {
+export function getConfigValue<K extends keyof CreemConfig>(key: K): CreemConfig[K] {
   const config = loadConfig();
   return config[key];
 }
@@ -97,10 +94,7 @@ export function getConfigValue<K extends keyof CreemConfig>(
 /**
  * Sets a specific config value
  */
-export function setConfigValue<K extends keyof CreemConfig>(
-  key: K,
-  value: CreemConfig[K],
-): void {
+export function setConfigValue<K extends keyof CreemConfig>(key: K, value: CreemConfig[K]): void {
   const config = loadConfig();
   config[key] = value;
   saveConfig(config);
@@ -128,5 +122,5 @@ export function getConfigPath(): string {
  */
 export function isAuthenticated(): boolean {
   const config = loadConfig();
-  return !!config.api_key;
+  return !!(process.env.CREEM_API_KEY?.trim() || config.api_key);
 }

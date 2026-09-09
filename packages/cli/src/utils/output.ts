@@ -39,9 +39,7 @@ export function outputTable(
   for (const row of rows) {
     for (let i = 0; i < colCount; i++) {
       const cell = row[i];
-      const len = stripAnsi(
-        cell === null || cell === undefined ? "-" : String(cell),
-      ).length;
+      const len = stripAnsi(cell === null || cell === undefined ? "-" : String(cell)).length;
       if (len > maxColWidths[i]) {
         maxColWidths[i] = len;
       }
@@ -49,8 +47,7 @@ export function outputTable(
   }
 
   // Each column needs at least its content width + 2 chars padding (cli-table3 default)
-  const naturalWidth =
-    maxColWidths.reduce((sum, w) => sum + w + 2, 0) + borderOverhead;
+  const naturalWidth = maxColWidths.reduce((sum, w) => sum + w + 2, 0) + borderOverhead;
 
   // If the table fits, render normally
   if (naturalWidth <= termWidth) {
@@ -59,11 +56,7 @@ export function outputTable(
       style: { head: [], border: [] },
     });
     rows.forEach((row) => {
-      table.push(
-        row.map((cell) =>
-          cell === null || cell === undefined ? "-" : String(cell),
-        ),
-      );
+      table.push(row.map((cell) => (cell === null || cell === undefined ? "-" : String(cell))));
     });
     console.log(table.toString());
     return;
@@ -112,9 +105,7 @@ function fitColumns(naturalWidths: number[], available: number): number[] {
   while (total > available) {
     const maxWidth = Math.max(...widths);
     // Find all columns at the maximum width
-    const maxIndices = widths
-      .map((w, i) => (w === maxWidth ? i : -1))
-      .filter((i) => i !== -1);
+    const maxIndices = widths.map((w, i) => (w === maxWidth ? i : -1)).filter((i) => i !== -1);
 
     // When multiple columns are tied at max width, shrink them all by 1
     if (maxIndices.length > 1) {
@@ -144,10 +135,7 @@ function fitColumns(naturalWidths: number[], available: number): number[] {
 /**
  * Outputs key-value pairs
  */
-export function outputKeyValue(
-  data: Record<string, unknown>,
-  options: OutputOptions = {},
-): void {
+export function outputKeyValue(data: Record<string, unknown>, options: OutputOptions = {}): void {
   if (options.json) {
     outputJson(data);
     return;
@@ -157,8 +145,7 @@ export function outputKeyValue(
 
   for (const [key, value] of Object.entries(data)) {
     const paddedKey = key.padEnd(maxKeyLength);
-    const displayValue =
-      value === null || value === undefined ? chalk.dim("-") : String(value);
+    const displayValue = value === null || value === undefined ? chalk.dim("-") : String(value);
     console.log(`${chalk.cyan(paddedKey)}  ${displayValue}`);
   }
 }

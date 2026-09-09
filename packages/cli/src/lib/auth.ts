@@ -1,10 +1,5 @@
-import {
-  loadConfig,
-  saveConfig,
-  isAuthenticated,
-  getConfigValue,
-} from "./config";
-import { validateApiKey, resetClient } from "./api";
+import { loadConfig, saveConfig, isAuthenticated, getConfigValue } from "./config";
+import { validateApiKey, resetClient, inferEnvironment, resolveAuth } from "./api";
 
 export interface LoginResult {
   success: boolean;
@@ -18,16 +13,7 @@ export interface LoginResult {
  * Invalid prefix -> throws error
  */
 export function detectEnvironment(apiKey: string): "test" | "live" {
-  if (apiKey.startsWith("creem_test_")) {
-    return "test";
-  }
-  if (apiKey.startsWith("creem_live_") || apiKey.startsWith("creem_")) {
-    return "live";
-  }
-  throw new Error(
-    'Invalid API key format. Key must start with "creem_test_" or "creem_live_" (or "creem_" for live). ' +
-      "Get your API key from https://creem.io/dashboard/api-keys",
-  );
+  return inferEnvironment(apiKey);
 }
 
 /**
@@ -51,8 +37,7 @@ export async function loginWithApiKey(apiKey: string): Promise<LoginResult> {
   } catch (error) {
     return {
       success: false,
-      message:
-        error instanceof Error ? error.message : "Invalid API key format",
+      message: error instanceof Error ? error.message : "Invalid API key format",
     };
   }
 
@@ -112,11 +97,11 @@ export function getAuthInfo(): {
   apiKeyPreview?: string;
 } {
   const authenticated = isAuthenticated();
-  const environment = getConfigValue("environment");
+  const environment = authenticated ? resolveAuth().environment : getConfigValue("environment");
 
   let apiKeyPreview: string | undefined;
   if (authenticated) {
-    const apiKey = getConfigValue("api_key");
+    const apiKey = resolveAuth().apiKey;
     if (apiKey) {
       // Show first 8 and last 4 characters
       if (apiKey.length > 16) {

@@ -5,12 +5,15 @@
   "scripts": {
     "format": "prettier --write \"**/*.{json,md,mdx}\"",
     "format:check": "prettier --check \"**/*.{json,md,mdx}\"",
+    "validate": "mint validate",
+    "check:links": "mint broken-links --check-redirects --check-anchors",
     "generate:api": "node scripts/generate-api-docs.js",
     "generate:api:remote": "node scripts/generate-api-docs.js --update-spec --cleanup --url",
     "generate:api:dry-run": "node scripts/generate-api-docs.js --dry-run",
     "generate:api:cleanup": "node scripts/generate-api-docs.js --cleanup"
   },
   "devDependencies": {
+    "mint": "4.2.715",
     "prettier": "^3.1.0"
   }
 }

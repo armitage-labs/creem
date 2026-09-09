@@ -1,0 +1,5 @@
+{
+  "profile": "esm-only",
+  "excludeEntrypoints": ["./styles"],
+  "ignoreRules": ["internal-resolution-error"]
+}

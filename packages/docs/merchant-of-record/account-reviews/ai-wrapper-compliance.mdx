@@ -1,0 +1,83 @@
+---
+title: 'AI Wrapper Compliance'
+description: 'Extra review requirements for AI image and video generation products on Creem.'
+---
+
+AI image and video generation products have extra compliance requirements on top of the standard [Account Reviews](/merchant-of-record/account-reviews/account-reviews) checklist.
+
+<Warning>
+  Failure to comply with these policies can result in your payment processing being restricted or suspended.
+</Warning>
+
+## Branding and naming
+
+Your product's brand identity must be distinct from the underlying AI models it uses.
+
+### Not allowed
+
+- Using AI model brand names directly in your product name, such as `VEO3Studio` or `GeminiVideo`
+- Creating branding that implies affiliation with the model creator when there is none
+
+### Required
+
+- Use independent branding for your product. Choose a name that is unique and does not directly reference the AI models. Examples of compliant names include `MintAI`, `RenderZen`, or `SlateVidAI`.
+- If you mention supported models in your app or marketing, make it clear they are integrations, not your brand
+- SEO-focused domains are fine if they redirect to your properly branded main site
+
+## Transparency and marketing
+
+Be explicit about what your product is and what it does.
+
+- Clearly explain that your platform is an independent wrapper or interface built on top of third-party AI models
+- Advertise only the features you actually deliver
+- If you mention model names in ads or marketing, include a disclaimer that your product is not affiliated with or endorsed by the model creators
+
+**Example disclaimer:**
+
+`This platform is an independent product and is not affiliated with Google. We provide access to the VEO3 model through our custom interface.`
+
+## Moderation API requirement
+
+If your product generates images or videos from user prompts, you must integrate the [CREEM Moderation API](/features/moderation).
+
+This requirement applies to AI **image and video generation** products only. It does not apply to image upscaling, background removal, audio/music generation, text generation, or other non-generative use cases.
+
+<Card title="Moderation API Documentation" icon="shield-check" href="/features/moderation">
+  Full integration guide, endpoint reference, code examples, and go-live checklist.
+</Card>
+
+<Tip>
+  If users type a text prompt and your product generates an image or video from it, you need the Moderation API.
+</Tip>
+
+## Content policy requirements
+
+Even with the Moderation API integrated, the following are still not allowed on CREEM:
+
+- Gallery or showcase content featuring suggestive, borderline, or sexually provocative material
+- Marketing that uses terms like `uncensored`, `no filter`, `NSFW`, `18+`, or `unfiltered generation`
+- Face-swap, deepfake, and face-manipulation tools
+
+### Additional required policies
+
+Your site must include:
+
+- A visible **Acceptable Use Policy** that explicitly prohibits NSFW and harmful content generation
+- Terms of Service that explicitly prohibit NSFW, explicit, or sexually suggestive content generation
+- Clear user-facing language about what is and is not allowed
+
+<Warning>
+  CREEM conducts ongoing compliance monitoring and may test AI generation outputs at any time. Merchants are responsible for the content their product enables users to generate.
+</Warning>
+
+## Before you request review or re-review
+
+Make sure all of the following are true:
+
+1. Your product is live and accessible
+2. Your branding is independent from model brand names
+3. Your site includes Terms of Service, Privacy Policy, and Acceptable Use Policy
+4. Your Moderation API integration is active in production
+5. Your marketing does not promise "uncensored" or prohibited output
+
+If you were already flagged, use the [Re-Review Guide](/merchant-of-record/account-reviews/re-review-guide) after making the required changes.

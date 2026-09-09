@@ -39,11 +39,7 @@ export class VimKeymap {
     this.onPendingExpired = handler;
   }
 
-  resolve(
-    str: string | undefined,
-    key: KeypressKey | undefined,
-    mode: TuiMode,
-  ): KeyAction {
+  resolve(str: string | undefined, key: KeypressKey | undefined, mode: TuiMode): KeyAction {
     if (mode === "confirm") {
       return this.resolveConfirmMode(str, key);
     }
@@ -64,22 +60,15 @@ export class VimKeymap {
     this.pendingKey = null;
   }
 
-  private resolveConfirmMode(
-    str: string | undefined,
-    key: KeypressKey | undefined,
-  ): KeyAction {
+  private resolveConfirmMode(str: string | undefined, key: KeypressKey | undefined): KeyAction {
     // Ctrl+C should quit (consistent with other modes)
     if (key?.ctrl && key?.name === "c") return "quit";
     if (str === "y" || str === "Y") return "confirm_yes";
-    if (str === "n" || str === "N" || key?.name === "escape")
-      return "confirm_no";
+    if (str === "n" || str === "N" || key?.name === "escape") return "confirm_no";
     return "none";
   }
 
-  private resolveInputMode(
-    str: string | undefined,
-    key: KeypressKey | undefined,
-  ): KeyAction {
+  private resolveInputMode(str: string | undefined, key: KeypressKey | undefined): KeyAction {
     if (key?.name === "escape") return "cancel_input";
     if (key?.name === "return") return "confirm_input";
     if (key?.name === "backspace") return "backspace_input";
@@ -95,19 +84,13 @@ export class VimKeymap {
     return "none";
   }
 
-  private resolveDetailMode(
-    str: string | undefined,
-    key: KeypressKey | undefined,
-  ): KeyAction {
+  private resolveDetailMode(str: string | undefined, key: KeypressKey | undefined): KeyAction {
     if (key?.ctrl && key?.name === "c") return this.clearPending("quit");
     if (str === "q" || key?.name === "escape") return this.clearPending("back");
-    if (str === "j" || key?.name === "down")
-      return this.clearPending("move_down");
+    if (str === "j" || key?.name === "down") return this.clearPending("move_down");
     if (str === "k" || key?.name === "up") return this.clearPending("move_up");
-    if (key?.ctrl && key?.name === "d")
-      return this.clearPending("half_page_down");
-    if (key?.ctrl && key?.name === "u")
-      return this.clearPending("half_page_up");
+    if (key?.ctrl && key?.name === "d") return this.clearPending("half_page_down");
+    if (key?.ctrl && key?.name === "u") return this.clearPending("half_page_up");
     if (str === ":") return this.clearPending("enter_command");
 
     // gg / G
@@ -118,21 +101,15 @@ export class VimKeymap {
     return "none";
   }
 
-  private resolveListMode(
-    str: string | undefined,
-    key: KeypressKey | undefined,
-  ): KeyAction {
+  private resolveListMode(str: string | undefined, key: KeypressKey | undefined): KeyAction {
     // Ctrl-c always quits
     if (key?.ctrl && key?.name === "c") return "quit";
 
     // Navigation
-    if (str === "j" || key?.name === "down")
-      return this.clearPending("move_down");
+    if (str === "j" || key?.name === "down") return this.clearPending("move_down");
     if (str === "k" || key?.name === "up") return this.clearPending("move_up");
-    if (key?.ctrl && key?.name === "d")
-      return this.clearPending("half_page_down");
-    if (key?.ctrl && key?.name === "u")
-      return this.clearPending("half_page_up");
+    if (key?.ctrl && key?.name === "d") return this.clearPending("half_page_down");
+    if (key?.ctrl && key?.name === "u") return this.clearPending("half_page_up");
 
     // G goes to bottom
     if (str === "G" && !key?.ctrl) return this.clearPending("goto_bottom");

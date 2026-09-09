@@ -1,0 +1,112 @@
+---
+title: "Server API"
+description: "Call Creem directly from Server Actions, route handlers, and other trusted server code."
+---
+
+The `@creem_io/better-auth/server` entry point provides direct Creem helpers for code that does not
+need to go through a Better Auth endpoint.
+
+<Warning>
+  These helpers use your secret API key and must run on the server. They do not automatically infer
+  the signed-in user. Authenticate the request and authorize every customer or subscription ID
+  before calling them.
+</Warning>
+
+## Configure the environment
+
+```typescript
+const creemConfig = {
+  apiKey: process.env.CREEM_API_KEY!,
+  testMode: process.env.NODE_ENV !== "production",
+};
+```
+
+## Create a checkout
+
+Unlike the client endpoint, the direct helper requires customer information because it has no
+Better Auth session to inspect.
+
+```typescript
+"use server";
+
+import { createCheckout } from "@creem_io/better-auth/server";
+import { redirect } from "next/navigation";
+
+export async function startCheckout(productId: string) {
+  const user = await requireUser();
+
+  const { url } = await createCheckout(creemConfig, {
+    productId,
+    customer: { email: user.email },
+    successUrl: "/billing/success",
+    metadata: { referenceId: user.id },
+    skipTrial: user.hadTrial,
+  });
+
+  redirect(url);
+}
+```
+
+## Open the customer portal
+
+```typescript
+import { createPortal } from "@creem_io/better-auth/server";
+
+const user = await requireUser();
+const { url } = await createPortal(creemConfig, user.creemCustomerId);
+```
+
+Verify that the stored customer ID belongs to the authenticated account.
+
+## Manage subscriptions
+
+```typescript
+import { cancelSubscription, retrieveSubscription } from "@creem_io/better-auth/server";
+
+await requireSubscriptionOwner(subscriptionId);
+
+const subscription = await retrieveSubscription(creemConfig, subscriptionId);
+const result = await cancelSubscription(creemConfig, subscriptionId);
+```
+
+## Search transactions
+
+```typescript
+import { searchTransactions } from "@creem_io/better-auth/server";
+
+const user = await requireUser();
+const result = await searchTransactions(creemConfig, {
+  customerId: user.creemCustomerId,
+  pageNumber: 1,
+  pageSize: 20,
+});
+```
+
+## Create a raw SDK client
+
+Use `createCreemClient()` when the helper functions do not cover the API operation you need:
+
+```typescript
+import { createCreemClient } from "@creem_io/better-auth/server";
+
+const creem = createCreemClient(creemConfig);
+const subscription = await creem.subscriptions.get("sub_...");
+```
+
+For general SDK coverage, see the [TypeScript SDK documentation](/code/sdks/typescript).
+
+## Utility functions
+
+The server entry point also exports:
+
+| Function                                               | Purpose                                                            |
+| ------------------------------------------------------ | ------------------------------------------------------------------ |
+| `isActiveSubscription(status)`                         | Returns `true` for `active`, `trialing`, or `paid`.                |
+| `formatCreemDate(timestamp)`                           | Converts a Unix timestamp in seconds to a JavaScript `Date`.       |
+| `getDaysUntilRenewal(timestamp)`                       | Calculates whole days until a Unix timestamp.                      |
+| `validateWebhookSignature(payload, signature, secret)` | Validates a `creem-signature` header against the raw request body. |
+
+`checkSubscriptionAccess()` and `getActiveSubscriptions()` are also exported, but their database
+mode expects a raw query-builder interface that is not compatible with every Better Auth adapter.
+Prefer the authenticated `hasAccessGranted()` endpoint or query your own database through its
+supported adapter API.
