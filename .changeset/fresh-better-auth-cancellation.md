@@ -6,8 +6,6 @@ Handle `subscription.scheduled_cancel` with an optional `onSubscriptionScheduled
 
 Ignore delayed scheduled-cancellation updates for subscriptions already stored as canceled or expired, including a terminal event received during the database update. Ignored `subscription.scheduled_cancel` events do not invoke `onSubscriptionScheduledCancel`.
 
-### Upgrade notes
+**Breaking changes:** Canceled subscriptions no longer grant access through `hasAccessGranted()`, including existing records. Upgrading does not replay revoke callbacks. New `subscription.canceled` deliveries invoke `onRevokeAccess` with the additional `subscription_canceled` reason before `onSubscriptionCanceled`.
 
-- Canceled subscriptions no longer grant access through `hasAccessGranted()`. This applies immediately to existing stored canceled records, including those with a future period end. Upgrading does not replay webhooks or invoke `onRevokeAccess` for those records. Before deploying, reconcile any separately managed entitlements with the subscription's current state in Creem.
-- New `subscription.canceled` deliveries invoke `onRevokeAccess` with the new `subscription_canceled` reason before `onSubscriptionCanceled`. Update exhaustive reason checks. If both callbacks revoke access, consolidate that logic in `onRevokeAccess` or make it idempotent. Scheduled cancellation does not invoke grant or revoke callbacks.
-- Subscription webhooks and checkout writes synchronize `cancelAtPeriodEnd` from the subscription status. Existing records are not automatically backfilled; the flag may remain unset or stale until a subsequent event updates the record. Access checks use status and period end, not this flag.
+Follow the [1.x to 2.0 migration guide](https://docs.creem.io/code/sdks/better-auth/migration#upgrading-from-1-x) to update callbacks and exhaustive reason checks, reconcile existing entitlements, and verify the upgrade. No database schema migration is required; existing cancellation flags are not automatically backfilled.

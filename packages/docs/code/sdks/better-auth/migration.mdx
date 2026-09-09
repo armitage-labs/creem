@@ -1,0 +1,76 @@
+---
+title: "Migration"
+description: "Upgrade the Creem Better Auth plugin from 1.x to 2.0 and update cancellation access handling."
+---
+
+Use this guide when upgrading an existing `@creem_io/better-auth` integration. For a new
+integration, start with the [quickstart](/code/sdks/better-auth/quickstart).
+
+## Upgrading from 1.x
+
+Version 2.0 distinguishes scheduled cancellation from final cancellation in webhook callbacks
+and persisted access checks. Review your callbacks and existing subscription records before
+deploying the upgrade. No database schema migration is required.
+
+### What changes
+
+| Behavior                                             | 1.x                                        | 2.0                                                                                                     |
+| ---------------------------------------------------- | ------------------------------------------ | ------------------------------------------------------------------------------------------------------- |
+| `subscription.scheduled_cancel` webhook              | Rejected with HTTP 400                     | Accepted; persists the scheduled status and calls the optional `onSubscriptionScheduledCancel` callback |
+| Access from a stored `scheduled_cancel` subscription | Does not grant access                      | Grants access only before its stored `periodEnd`                                                        |
+| Access from a stored `canceled` subscription         | Grants access until its stored `periodEnd` | Does not grant access                                                                                   |
+| `subscription.canceled` callbacks                    | Calls `onSubscriptionCanceled`             | Calls `onRevokeAccess` with `subscription_canceled`, then `onSubscriptionCanceled`                      |
+
+Access behavior in this table refers to `hasAccessGranted()` with persistence enabled. The
+existing `past_due` and `unpaid` period-end grace behavior is unchanged. The direct
+[server helpers](/code/sdks/better-auth/server) retain their documented active-status scope.
+
+### Update your callbacks
+
+Add `subscription_canceled` to any exhaustive switches or mappings over `RevokeAccessReason` or
+`AccessChangeReason`. If your `onRevokeAccess` handler already handles every reason the same way,
+it will now also run for final cancellation.
+
+If you currently revoke access in `onSubscriptionCanceled`, move that logic into
+`onRevokeAccess`, or ensure that calling both handlers has the same effect as calling one.
+Keep handlers idempotent because webhooks can be delivered more than once. These callback
+changes also apply when `persistSubscriptions: false`.
+
+Scheduling cancellation does not invoke `onGrantAccess` or `onRevokeAccess`. If you manage
+entitlements outside the plugin database, use `onSubscriptionScheduledCancel` to store the
+period end and enforce it in your own access checks. See
+[Webhooks and access](/code/sdks/better-auth/webhooks) for callback examples and retry behavior.
+
+### Review existing records and entitlements
+
+The new access policy applies to existing records as soon as you deploy 2.0. Upgrading does not
+replay webhooks or invoke `onRevokeAccess` for records already stored as `canceled`.
+
+Before deploying:
+
+1. Review local canceled records that currently grant access and compare them with the
+   subscription's current state in Creem. Correct stale local state from that source; do not
+   relabel a canceled subscription as scheduled solely because its stored period end is in the future.
+2. If you store entitlements separately, reconcile them with the current subscription state.
+   Do not rely on a new revoke callback arriving solely because you upgraded the package.
+3. Check any custom use of `cancelAtPeriodEnd`. Existing flags are not automatically backfilled;
+   subsequent subscription webhooks and checkout writes synchronize the flag. The plugin's
+   access checks use `status` and `periodEnd`.
+
+<Note>
+  An existing canceled record can still have a future `periodEnd`. In this edge case, upgrading
+  stops that record from granting access immediately, rather than waiting for the stored date.
+</Note>
+
+### Install and verify
+
+After updating your handlers and reviewing existing state, install the new major version:
+
+```bash
+pnpm add @creem_io/better-auth@^2
+```
+
+Run your application's typecheck to catch exhaustive reason checks that need updating. In test
+mode, verify that scheduled cancellation preserves access before the period end, that access
+ends at the period boundary, and that final cancellation invokes your revoke logic without
+duplicate side effects. If you manage entitlements separately, verify those access checks too.

@@ -22,6 +22,7 @@ Append `.md` to any documentation URL to fetch it as raw markdown.
 - [TypeScript SDK](https://docs.creem.io/code/sdks/typescript.md): the core client for server-side JavaScript; the API key must stay on your backend
 - [Next.js adapter](https://docs.creem.io/code/sdks/nextjs.md): route handlers and server-side helpers for Next.js apps
 - [Better Auth plugin](https://docs.creem.io/code/sdks/better-auth.md): billing wired into Better Auth sessions and organizations
+- [Better Auth migration](https://docs.creem.io/code/sdks/better-auth/migration.md): upgrade from 1.x to 2.0, update cancellation callbacks, and reconcile existing entitlements
 - [Convex component](https://docs.creem.io/code/sdks/convex/integration.md): complete setup sequence with validation steps — webhook sync into the Convex database plus connected React and Svelte widgets
 - [Convex concepts](https://docs.creem.io/code/sdks/convex/concepts.md): the billing entity, the sources of billing state, and the connected API contract behind the Convex component
 - [CLI](https://docs.creem.io/code/cli.md): manage products, customers, and subscriptions from the terminal

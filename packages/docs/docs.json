@@ -203,7 +203,8 @@
                       "code/sdks/better-auth/configuration",
                       "code/sdks/better-auth/client",
                       "code/sdks/better-auth/webhooks",
-                      "code/sdks/better-auth/server"
+                      "code/sdks/better-auth/server",
+                      "code/sdks/better-auth/migration"
                     ]
                   },
                   {
