@@ -24,6 +24,7 @@ vi.mock("../hooks.js", () => ({
   onSubscriptionActive: vi.fn(),
   onSubscriptionTrialing: vi.fn(),
   onSubscriptionCanceled: vi.fn(),
+  onSubscriptionScheduledCancel: vi.fn(),
   onSubscriptionPaid: vi.fn(),
   onSubscriptionExpired: vi.fn(),
   onSubscriptionUnpaid: vi.fn(),

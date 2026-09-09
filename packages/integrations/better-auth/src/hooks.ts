@@ -4,6 +4,7 @@ import type {
   NormalizedSubscriptionActiveEvent,
   NormalizedSubscriptionTrialingEvent,
   NormalizedSubscriptionCanceledEvent,
+  NormalizedSubscriptionScheduledCancelEvent,
   NormalizedSubscriptionPaidEvent,
   NormalizedSubscriptionExpiredEvent,
   NormalizedSubscriptionUnpaidEvent,
@@ -95,6 +96,7 @@ export async function onCheckoutCompleted(
           creemSubscriptionId: subscriptionData.id,
           creemOrderId: orderId,
           status: subscriptionData.status,
+          cancelAtPeriodEnd: subscriptionData.status === "scheduled_cancel",
           periodStart: subscriptionData.current_period_start_date
             ? new Date(subscriptionData.current_period_start_date)
             : undefined,
@@ -233,6 +235,17 @@ export async function onSubscriptionCanceled(
 }
 
 /**
+ * Handle subscription.scheduled_cancel without revoking access.
+ */
+export async function onSubscriptionScheduledCancel(
+  ctx: GenericEndpointContext,
+  event: NormalizedSubscriptionScheduledCancelEvent,
+  options: CreemOptions,
+) {
+  await updateSubscriptionFromEvent(ctx, event.object, "scheduled_cancel", options);
+}
+
+/**
  * Handle subscription.paid event
  * Updates subscription with latest payment information
  */
@@ -363,6 +376,7 @@ async function updateSubscriptionFromEvent(
     // Prepare update data
     const updateData: Partial<SubscriptionRecord> = {
       status,
+      cancelAtPeriodEnd: status === "scheduled_cancel",
       creemSubscriptionId: subscriptionData.id,
       creemCustomerId: customerId,
       periodStart: subscriptionData.current_period_start_date

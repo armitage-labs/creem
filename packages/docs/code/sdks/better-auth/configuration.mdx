@@ -71,17 +71,17 @@ npx @better-auth/cli generate
 
 The `creem_subscription` model contains:
 
-| Field                 | Type              | Notes                                                |
-| --------------------- | ----------------- | ---------------------------------------------------- |
-| `productId`           | string            | Creem product ID                                     |
-| `referenceId`         | string            | Better Auth user ID or another application reference |
-| `creemCustomerId`     | string, optional  | Creem customer ID                                    |
-| `creemSubscriptionId` | string, optional  | Creem subscription ID                                |
-| `creemOrderId`        | string, optional  | Creem order ID                                       |
-| `status`              | string            | Defaults to `pending`                                |
-| `periodStart`         | date, optional    | Current billing period start                         |
-| `periodEnd`           | date, optional    | Current billing period end                           |
-| `cancelAtPeriodEnd`   | boolean, optional | Defaults to `false`                                  |
+| Field                 | Type              | Notes                                                        |
+| --------------------- | ----------------- | ------------------------------------------------------------ |
+| `productId`           | string            | Creem product ID                                             |
+| `referenceId`         | string            | Better Auth user ID or another application reference         |
+| `creemCustomerId`     | string, optional  | Creem customer ID                                            |
+| `creemSubscriptionId` | string, optional  | Creem subscription ID                                        |
+| `creemOrderId`        | string, optional  | Creem order ID                                               |
+| `status`              | string            | Defaults to `pending`                                        |
+| `periodStart`         | date, optional    | Current billing period start                                 |
+| `periodEnd`           | date, optional    | Current billing period end                                   |
+| `cancelAtPeriodEnd`   | boolean, optional | `true` while status is `scheduled_cancel`; otherwise `false` |
 
 The plugin extends the Better Auth `user` model with:
 

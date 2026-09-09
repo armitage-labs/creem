@@ -72,7 +72,10 @@ export type GrantAccessReason =
   | "subscription_trialing"
   | "subscription_paid";
 
-export type RevokeAccessReason = "subscription_paused" | "subscription_expired";
+export type RevokeAccessReason =
+  | "subscription_paused"
+  | "subscription_expired"
+  | "subscription_canceled";
 
 export type AccessChangeReason = GrantAccessReason | RevokeAccessReason;
 
@@ -202,11 +205,22 @@ export interface CreemOptions {
   ) => void | Promise<void>;
 
   /**
-   * Called when a subscription is canceled.
+   * Called when a subscription ends, including immediate cancellation.
+   * onRevokeAccess is also called for this event.
    * All properties are flattened for easy destructuring.
    */
   onSubscriptionCanceled?: (
     data: FlatSubscriptionEvent<"subscription.canceled">,
+    betterAuthContext: GenericEndpointContext,
+  ) => void | Promise<void>;
+
+  /**
+   * Called when cancellation is scheduled for the end of the billing period.
+   * Access is retained until current_period_end_date; onRevokeAccess is not called.
+   * All properties are flattened for easy destructuring.
+   */
+  onSubscriptionScheduledCancel?: (
+    data: FlatSubscriptionEvent<"subscription.scheduled_cancel">,
     betterAuthContext: GenericEndpointContext,
   ) => void | Promise<void>;
 
@@ -288,7 +302,8 @@ export interface CreemOptions {
 
   /**
    * Called when a user's access should be revoked.
-   * This is triggered for: paused, expired, and canceled (after period ends) subscriptions.
+   * Triggered by subscription.paused, subscription.expired, and subscription.canceled.
+   * subscription.scheduled_cancel does not revoke access.
    *
    * All subscription properties are flattened for easy destructuring:
    * { reason, product, customer, status, metadata, ... }

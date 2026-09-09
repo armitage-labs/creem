@@ -450,7 +450,7 @@ describe("Has access granted endpoint", () => {
     expect(ctx.json).toHaveBeenCalledWith(expect.objectContaining({ hasAccessGranted: true }));
   });
 
-  it("returns true for canceled subscription with future periodEnd", async () => {
+  it("returns false for canceled subscription with future periodEnd", async () => {
     const adapter = createMockAdapter();
     adapter.findMany.mockResolvedValue([
       {
@@ -463,7 +463,7 @@ describe("Has access granted endpoint", () => {
     const ctx = createMockContext({ adapter });
     mockGetSession.mockResolvedValue({ user: { id: "user_123" } });
     await handler(ctx);
-    expect(ctx.json).toHaveBeenCalledWith(expect.objectContaining({ hasAccessGranted: true }));
+    expect(ctx.json).toHaveBeenCalledWith(expect.objectContaining({ hasAccessGranted: false }));
   });
 
   it("returns false for canceled subscription with past periodEnd", async () => {
