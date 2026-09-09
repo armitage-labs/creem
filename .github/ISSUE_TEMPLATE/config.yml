@@ -1,0 +1,11 @@
+blank_issues_enabled: false
+contact_links:
+  - name: Security vulnerability
+    url: https://github.com/armitage-labs/creem/security/advisories/new
+    about: Report suspected vulnerabilities privately; never disclose them in a public issue.
+  - name: Feature request
+    url: https://creem.featurebase.app/
+    about: Suggest new product, API, SDK, CLI, or integration capabilities and vote on existing requests.
+  - name: Product support and usage questions
+    url: https://docs.creem.io
+    about: Use Creem's documentation and support routes for account, API, and integration help.

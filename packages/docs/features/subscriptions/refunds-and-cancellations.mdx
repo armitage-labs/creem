@@ -46,7 +46,7 @@ console.log("Subscription canceled:", canceled);
 
 import { authClient } from "@/lib/auth-client";
 
-export function CancelSubscriptionButton() {
+export function CancelSubscriptionButton({ subscriptionId }: { subscriptionId: string }) {
   const handleCancel = async () => {
     const confirmed = confirm(
       "Are you sure you want to cancel your subscription?"
@@ -54,7 +54,9 @@ export function CancelSubscriptionButton() {
 
     if (!confirmed) return;
 
-    const { data, error } = await authClient.creem.cancelSubscription();
+    const { data, error } = await authClient.creem.cancelSubscription({
+      id: subscriptionId,
+    });
 
     if (data?.success) {
       alert("Subscription canceled successfully");
@@ -119,8 +121,8 @@ import { CreemPortal } from "@creem_io/nextjs";
 
 export function ManageSubscriptionButton({ customerId }: { customerId: string }) {
   return (
-    <CreemPortal customerId={customerId}>
-      <button>Manage Subscription</button>
+    <CreemPortal customerId={customerId} className="btn-primary">
+      Manage Subscription
     </CreemPortal>
   );
 }

@@ -446,16 +446,44 @@ For software requiring activation and device management.
 ### Architecture
 
 ```
-User purchases → License key generated → User enters in app
-                                              ↓
-        Your backend (holds the API key) ← App calls your backend
-                    ↓
-        Creem licenses API (activate / validate / deactivate)
+User purchases
+      ↓
+Creem issues the key and sends checkout.completed (license_keys[])
+      ↓
+Your backend stores / emails the key → user enters it in the app
+      ↓
+App calls your backend (which holds the API key)
+      ↓
+Creem licenses API (activate / validate / deactivate)
 ```
 
 The Creem API key is a merchant credential and must never ship inside the
 desktop binary — anyone can extract it from the app bundle. The desktop app
 calls your backend; only your backend calls Creem.
+
+### How you receive the key
+
+Creem generates the key and delivers it to you on the `checkout.completed`
+webhook, in the `license_keys` array on the checkout object. You do not have to
+poll or call the Licenses API to discover what was issued:
+
+```typescript
+if (event.eventType === "checkout.completed") {
+  for (const license of event.object.license_keys ?? []) {
+    await db.licenses.create({
+      userId: user.id,
+      key: license.key,           // "ABCDE-FGHIJ-KLMNO-PQRST-UVWXY"
+      licenseId: license.id,      // "lk_..." — needed for activate/validate
+      activationLimit: license.activation_limit,
+      expiresAt: license.expires_at,
+    });
+  }
+  await emailLicenseKeys(customer.email, event.object.license_keys ?? []);
+}
+```
+
+`license_keys` is omitted entirely when the order issued no keys, so guard on
+its presence. See WEBHOOKS.md for the full field list.
 
 ### Step 1: Product Setup
 

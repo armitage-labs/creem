@@ -6,6 +6,7 @@
   "linked": [],
   "access": "public",
   "baseBranch": "main",
-  "updateInternalDependencies": "patch",
-  "ignore": ["creem_io", "creem-docs"]
+  "updateInternalDependencies": "minor",
+  "bumpVersionsWithWorkspaceProtocolOnly": true,
+  "ignore": ["creem_io", "creem-docs", "@creem_io/framer"]
 }

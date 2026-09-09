@@ -22,29 +22,29 @@ The API reference MDX files are generated from the OpenAPI spec. The script upda
 
 ### SDK/OpenAPI Regeneration
 
-The canonical OpenAPI spec for the public SDK lives at `packages/creem-sdk/openapi.json`. The Mintlify API playground uses `packages/docs/api-reference/openapi.json`, which is a generated copy of the SDK spec.
+The canonical OpenAPI spec for the public SDK lives at `packages/sdk/openapi.json`. The Mintlify API playground uses `packages/docs/api-reference/openapi.json`, which is a generated copy of the SDK spec.
 
 When backend annotations change, regenerate from the private backend source or from a deployed backend that already includes the change:
 
 ```bash
 # From a deployed backend
-curl -s https://stg-api.creem.io/open-api/json -o packages/creem-sdk/openapi.json
+curl -s https://stg-api.creem.io/open-api/json -o packages/sdk/openapi.json
 
 # Keep the spec diff readable
-pnpm exec prettier --write packages/creem-sdk/openapi.json
+pnpm exec prettier --write packages/sdk/openapi.json
 
 # Regenerate the SDK from the updated spec
-cd packages/creem-sdk
+cd packages/sdk
 speakeasy run
 
 # Keep the docs playground spec in sync
 cd ../..
-cp packages/creem-sdk/openapi.json packages/docs/api-reference/openapi.json
+cp packages/sdk/openapi.json packages/docs/api-reference/openapi.json
 ```
 
 Deployed backend Swagger JSON is exposed at `/open-api/json` (for example `https://api.creem.io/open-api/json`, `https://test-api.creem.io/open-api/json`, and `https://stg-api.creem.io/open-api/json`). The private backend's local/sandbox Swagger setup may expose `/open-api/json` when run with `APP_ENVIRONMENT=local` or `APP_ENVIRONMENT=sandbox`.
 
-Do not manually patch generated SDK files or the public `openapi.json` for backend schema changes. Fix the private backend annotations first, regenerate the OpenAPI spec, then run Speakeasy. Check that `packages/creem-sdk/package.json` was not version-bumped unless you are intentionally preparing a release.
+Do not manually patch generated SDK files or the public `openapi.json` for backend schema changes. Fix the private backend annotations first, regenerate the OpenAPI spec, then run Speakeasy. Check that `packages/sdk/package.json` was not version-bumped unless you are intentionally preparing a release.
 
 Speakeasy requires an authenticated CLI session and network access. If generation changes the package version unexpectedly, restore the intended version before committing.
 

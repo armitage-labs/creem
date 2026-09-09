@@ -132,11 +132,11 @@ icon: 'icon-name'  # Optional — Font Awesome icon name
 
 ### Source of Truth
 
-The OpenAPI 3.0 spec authored at `../creem-sdk/openapi.json` (workspace-shared with the SDK generator) is the single source of truth. `api-reference/openapi.json` is a **generated copy** kept in sync by `pnpm gen:sdk` so Mintlify can auto-discover it for the API playground — don't edit it directly.
+The OpenAPI 3.0 spec authored at `../sdk/openapi.json` (workspace-shared with the SDK generator) is the single source of truth. `api-reference/openapi.json` is a **generated copy** kept in sync by `pnpm gen:sdk` so Mintlify can auto-discover it for the API playground — don't edit it directly.
 
 Deployed backend Swagger JSON is exposed at `/open-api/json`, for example `https://api.creem.io/open-api/json`, `https://test-api.creem.io/open-api/json`, and `https://stg-api.creem.io/open-api/json`. The private backend's local/sandbox Swagger setup may expose `/open-api/json` when run with `APP_ENVIRONMENT=local` or `APP_ENVIRONMENT=sandbox`.
 
-For backend schema changes, fix the private backend annotations first, regenerate `../creem-sdk/openapi.json`, run `speakeasy run` from `../creem-sdk`, then copy the spec to `api-reference/openapi.json`. Do not manually patch generated SDK files or the public OpenAPI spec for backend schema changes. Check that the SDK package version was not bumped unless a release is intentional.
+For backend schema changes, fix the private backend annotations first, regenerate `../sdk/openapi.json`, run `speakeasy run` from `../sdk`, then copy the spec to `api-reference/openapi.json`. Do not manually patch generated SDK files or the public OpenAPI spec for backend schema changes. Check that the SDK package version was not bumped unless a release is intentional.
 
 Speakeasy requires an authenticated CLI session and network access. If generation changes the package version unexpectedly, restore the intended version before committing.
 

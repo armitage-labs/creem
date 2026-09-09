@@ -7,12 +7,6 @@ on:
       - "packages/docs/**"
       # Validate changes to this workflow itself.
       - ".github/workflows/docs-ci.yml"
-  pull_request:
-    branches: [main]
-    paths:
-      - "packages/docs/**"
-      # Validate changes to this workflow itself.
-      - ".github/workflows/docs-ci.yml"
   workflow_dispatch: {}
 
 jobs:
