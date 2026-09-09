@@ -1,6 +1,6 @@
 {
   "name": "@creem_io/nextjs",
-  "version": "0.5.7",
+  "version": "0.6.0",
   "description": "Creem payment integration for Next.js applications",
   "main": "./dist/index.js",
   "module": "./dist/index.mjs",
