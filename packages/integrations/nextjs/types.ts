@@ -164,7 +164,10 @@ export type GrantAccessReason =
 /**
  * Reasons for revoking access
  */
-export type RevokeAccessReason = "subscription_paused" | "subscription_expired";
+export type RevokeAccessReason =
+  | "subscription_paused"
+  | "subscription_expired"
+  | "subscription_canceled";
 
 /**
  * Context passed to onGrantAccess callback.
@@ -198,9 +201,15 @@ export interface WebhookOptions {
    * Called when a checkout is completed.
    * All properties are flattened for easy destructuring.
    *
+   * When `order` is present, the checkout amount is available via `order.amount`
+   * (number, in cents) and `order.currency` (string, e.g. "USD").
+   *
    * @example
    * onCheckoutCompleted: async ({ webhookEventType, product, customer, order, subscription }) => {
    *   console.log(`Checkout completed: ${customer?.email} purchased ${product.name}`);
+   *   if (order) {
+   *     console.log(`Amount: ${order.amount} cents (${order.currency})`);
+   *   }
    * }
    */
   onCheckoutCompleted?: (data: FlatCheckoutCompleted) => void | Promise<void>;
@@ -308,7 +317,8 @@ export interface WebhookOptions {
 
   /**
    * Called when a user's access should be revoked.
-   * This is triggered for: paused and expired subscriptions.
+   * This is triggered for: paused, expired, and canceled subscription events.
+   * A scheduled_cancel event does not invoke this callback.
    *
    * NOTE: This may be called multiple times for the same user/subscription.
    * Implement this as an idempotent operation (safe to call repeatedly).

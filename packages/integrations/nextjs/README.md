@@ -68,6 +68,8 @@ checkout pattern in the full guide before using the access callbacks.
 
 See the [Next.js adapter guide](https://docs.creem.io/code/sdks/nextjs) for all props, route setup,
 access callbacks, and security guidance.
+See [Common gotchas](https://docs.creem.io/code/sdks/nextjs#common-gotchas) for webhook field names,
+timestamps, checkout amounts, and metadata.
 
 ## Example and development
 

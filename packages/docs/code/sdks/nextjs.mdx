@@ -198,9 +198,9 @@ calls the matching handler. Keep every callback idempotent because delivery may 
 
 ### Access callbacks
 
-`onGrantAccess` runs for active, trialing, and paid subscription events. `onRevokeAccess` runs when
-a subscription is paused or expired. A scheduled cancellation does not revoke access immediately;
-the subscription remains usable through the end of its current period.
+`onGrantAccess` runs for active, trialing, and paid subscription events. `onRevokeAccess` runs for
+paused, expired, and canceled subscription events. `subscription.scheduled_cancel` only calls
+`onSubscriptionScheduledCancel` and does not change access.
 
 ### Event callbacks
 
@@ -222,6 +222,62 @@ The adapter also exposes callbacks for individual events:
 
 Each callback receives normalized event data, including `webhookId`, `webhookCreatedAt`, and the
 relevant customer, product, order, or subscription fields.
+
+## Common gotchas
+
+### Event names and access reasons
+
+The event is `subscription.canceled` (one L), and its callback is `onSubscriptionCanceled`.
+A misspelled event type sent to `Webhook` returns `400 Unknown event type`; a misspelled string
+comparison in your callback never matches. Access callback reasons use underscores, such as
+`subscription_expired`, rather than dotted event names like `subscription.expired`.
+
+`subscription.canceled` calls `onRevokeAccess` with reason `subscription_canceled`, then calls
+`onSubscriptionCanceled`. The adapter awaits each callback; if revocation throws, it returns
+an error for retry and does not call `onSubscriptionCanceled` on that attempt.
+
+### SDK and webhook field casing
+
+The `creem` SDK exposes camelCase subscription fields such as `currentPeriodEndDate` and
+`canceledAt`. Next.js webhook callbacks retain snake_case fields such as
+`current_period_end_date` and `canceled_at`. Account for this difference when sharing utilities
+between SDK responses and webhook callbacks.
+
+### Timestamp formats
+
+The event envelope's `created_at` becomes `webhookCreatedAt` in event callbacks and is a
+millisecond timestamp. Transaction `created_at` fields also use milliseconds. Subscription date
+fields such as `current_period_end_date` arrive as ISO 8601 strings in the webhook JSON;
+the adapter does not convert them to `Date` objects. The SDK converts its subscription date
+fields to `Date` objects when parsing API responses.
+
+```typescript
+onSubscriptionPaid: async (data) => {
+  const eventDate = new Date(data.webhookCreatedAt);
+  const periodEnd = new Date(data.current_period_end_date);
+  console.log({ eventDate, periodEnd });
+};
+```
+
+### Checkout amounts
+
+In `onCheckoutCompleted`, the checkout amount and currency are on `order`, not at the top level.
+The `order` field is optional, so check it before reading the amount:
+
+```typescript
+onCheckoutCompleted: async ({ order }) => {
+  if (!order) return;
+
+  console.log(`Payment: ${order.amount} cents (${order.currency})`);
+};
+```
+
+### Metadata in access callbacks
+
+`onGrantAccess` and `onRevokeAccess` receive subscription fields directly, including `metadata`.
+Read `metadata?.referenceId` rather than `context.object.metadata`. Derive that reference ID
+from trusted server-side state when creating an authenticated checkout, and check that it is a
+string before using it, as shown in the [webhook example](#handle-webhooks).
 
 ## Route factory reference
 
