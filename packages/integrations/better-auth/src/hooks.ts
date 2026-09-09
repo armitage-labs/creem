@@ -373,6 +373,19 @@ async function updateSubscriptionFromEvent(
       return;
     }
 
+    // A customer fallback may belong to a different subscription. Leave that row alone,
+    // but still deliver the event-specific callback as with any missing local record.
+    if (
+      status === "scheduled_cancel" &&
+      subscription.creemSubscriptionId &&
+      subscription.creemSubscriptionId !== subscriptionData.id
+    ) {
+      logger.warn(
+        `[creem] No matching local subscription for scheduled cancellation: ${subscriptionData.id}`,
+      );
+      return;
+    }
+
     // A delayed scheduled-cancellation event must not reopen a terminated subscription.
     if (
       status === "scheduled_cancel" &&
@@ -399,17 +412,29 @@ async function updateSubscriptionFromEvent(
     };
 
     // Update subscription
-    const updated = await ctx.context.adapter.update({
-      model: "creem_subscription",
-      where: [
-        { field: "id", value: subscription.id },
-        // Also protect against a terminal event arriving between the lookup and this write.
-        ...(status === "scheduled_cancel"
-          ? [{ field: "status", operator: "not_in" as const, value: ["canceled", "expired"] }]
-          : []),
-      ],
-      update: updateData,
-    });
+    const updated = await ctx.context.adapter
+      .update({
+        model: "creem_subscription",
+        where: [
+          { field: "id", value: subscription.id },
+          // Also protect against a terminal event arriving between the lookup and this write.
+          ...(status === "scheduled_cancel"
+            ? [{ field: "status", operator: "not_in" as const, value: ["canceled", "expired"] }]
+            : []),
+        ],
+        update: updateData,
+      })
+      .catch(async (error: unknown) => {
+        // Prisma throws when the guarded write matches no row; other adapters return null.
+        if (status === "scheduled_cancel") {
+          const current = await ctx.context.adapter.findOne<SubscriptionRecord>({
+            model: "creem_subscription",
+            where: [{ field: "id", value: subscription.id }],
+          });
+          if (current?.status === "canceled" || current?.status === "expired") return null;
+        }
+        throw error;
+      });
 
     if (status === "scheduled_cancel" && !updated) {
       return false;
@@ -419,5 +444,6 @@ async function updateSubscriptionFromEvent(
   } catch (error) {
     const message = error instanceof Error ? error.message : String(error);
     logger.error(`[creem] Webhook failed (subscription update): ${message}`);
+    if (status === "scheduled_cancel") throw error;
   }
 }

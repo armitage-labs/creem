@@ -241,6 +241,71 @@ describe("cancellation lifecycle through verified webhooks", () => {
     },
   );
 
+  it("suppresses the scheduled callback when an adapter throws after a concurrent terminal write", async () => {
+    const store = createSubscriptionStore();
+    const update = store.adapter.update.getMockImplementation()!;
+    store.adapter.update.mockImplementationOnce(async () => {
+      await update({ update: { status: "canceled", cancelAtPeriodEnd: false } });
+      throw Object.assign(new Error("Record to update not found"), { code: "P2025" });
+    });
+    const onSubscriptionScheduledCancel = vi.fn();
+    const ctx = await deliver(store, "subscription.scheduled_cancel", "scheduled_cancel", {
+      ...defaultOptions,
+      onSubscriptionScheduledCancel,
+    });
+    expect(ctx.json).toHaveBeenCalledWith({ message: "Webhook received" });
+    expect(store.record.status).toBe("canceled");
+    expect(onSubscriptionScheduledCancel).not.toHaveBeenCalled();
+  });
+
+  it("retries scheduled persistence failures before running the callback", async () => {
+    const store = createSubscriptionStore();
+    store.adapter.update.mockRejectedValueOnce(new Error("Database unavailable"));
+    const onSubscriptionScheduledCancel = vi.fn();
+    const options = { ...defaultOptions, onSubscriptionScheduledCancel };
+    const failed = await deliver(
+      store,
+      "subscription.scheduled_cancel",
+      "scheduled_cancel",
+      options,
+    );
+    expect(failed.json).toHaveBeenCalledWith(
+      { error: "Failed to process webhook" },
+      { status: 500 },
+    );
+    expect(onSubscriptionScheduledCancel).not.toHaveBeenCalled();
+    const retried = await deliver(
+      store,
+      "subscription.scheduled_cancel",
+      "scheduled_cancel",
+      options,
+    );
+    expect(retried.json).toHaveBeenCalledWith({ message: "Webhook received" });
+    expect(store.record.status).toBe("scheduled_cancel");
+    expect(onSubscriptionScheduledCancel).toHaveBeenCalledTimes(1);
+  });
+
+  it("delivers a new subscription's scheduled callback without overwriting an older canceled fallback row", async () => {
+    const store = createSubscriptionStore();
+    await store.adapter.update({
+      update: { creemSubscriptionId: "sub_older", status: "canceled" },
+    });
+    store.adapter.update.mockClear();
+    store.adapter.findOne.mockResolvedValueOnce(null);
+    const onSubscriptionScheduledCancel = vi.fn();
+    const ctx = await deliver(store, "subscription.scheduled_cancel", "scheduled_cancel", {
+      ...defaultOptions,
+      onSubscriptionScheduledCancel,
+    });
+    expect(ctx.json).toHaveBeenCalledWith({ message: "Webhook received" });
+    expect(store.adapter.update).not.toHaveBeenCalled();
+    expect(store.record).toMatchObject({ creemSubscriptionId: "sub_older", status: "canceled" });
+    expect(onSubscriptionScheduledCancel).toHaveBeenCalledExactlyOnceWith(
+      expect.objectContaining({ id: mockSubscription.id }),
+      ctx,
+    );
+  });
+
   it("keeps the scheduled flag when a subscription.update still carries scheduled_cancel", async () => {
     const store = createSubscriptionStore();
     await deliver(store, "subscription.update", "scheduled_cancel");

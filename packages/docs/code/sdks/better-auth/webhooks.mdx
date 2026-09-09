@@ -85,6 +85,8 @@ events synchronize the status and clear `cancelAtPeriodEnd` when the status is n
 With persistence enabled, delayed scheduled-cancellation updates cannot change a stored `canceled`
 or `expired` subscription back to `scheduled_cancel`. Ignored `subscription.scheduled_cancel`
 events do not invoke `onSubscriptionScheduledCancel`.
+The general `onSubscriptionUpdate` callback still receives `subscription.update` events,
+including those whose scheduled status was ignored by persistence.
 
 If you manage access outside the plugin database, store the scheduled period end and enforce it
 in your own access checks.
