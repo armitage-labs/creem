@@ -1,0 +1,290 @@
+---
+title: "Referly Affiliate Program Integration"
+sidebarTitle: "Referly - Affiliate & Referrals"
+description: "Run your affiliate program on Creem with Referly. One webhook tracks sales, renewals, refunds and coupon codes, and Referly handles your affiliates end to end."
+---
+
+<Frame>
+  <img
+    style={{ borderRadius: "0.5rem" }}
+    src="/images/referly/hero.png"
+    alt="The Referly and Creem logos connected by sync arrows"
+  />
+</Frame>
+
+## Overview
+
+[Referly](https://referly.so/creem) is affiliate tracking and management software with a native Creem
+connection. An affiliate shares a link or a discount code, Referly records the click, and when that
+visitor buys through your Creem checkout the sale arrives on a signed webhook and is credited to the
+right affiliate automatically.
+
+Setup is one webhook in Creem plus two values pasted into Referly, and one metadata field carried
+through your checkout. Sales, subscription renewals, trials, refunds and chargebacks all arrive
+through that single webhook.
+
+## What you can do with Referly
+
+<CardGroup cols={2}>
+  <Card title="Launch an affiliate program" icon="rocket">
+    Create your program in minutes, with a branded portal where affiliates sign up and find their
+    links, codes and earnings.
+  </Card>
+  <Card title="Track referrals and sales" icon="chart-line">
+    Clicks, sign-ups, one-time sales and subscription renewals, with refunds and chargebacks clawing
+    commissions back automatically.
+  </Card>
+  <Card title="Product-based commissions" icon="tags">
+    Pay different rates per Creem product, or build rule-based plans that combine products, order
+    values and coupons.
+  </Card>
+  <Card title="Auto-generated promo codes" icon="ticket">
+    Give every affiliate their own Creem discount code automatically. Sales through a code are
+    credited even without a tracking link.
+  </Card>
+  <Card title="Affiliate self-service" icon="wand-magic-sparkles">
+    Let affiliates create and rename their own codes from the portal, synced to your Creem store.
+  </Card>
+  <Card title="Flexible payouts" icon="money-bill-transfer">
+    Pay commissions out to their local bank accounts, PayPal or Wise, or reward affiliates with
+    discount codes and Creem customer credits instead of cash.
+  </Card>
+</CardGroup>
+
+<Card title="What you'll need" icon="gears">
+
+- A Creem account (production or test mode, Referly follows the key you connect with)
+- A Referly account ([start here](https://referly.so/creem))
+- A Creem API key, plus the signing secret of the webhook you create in step 3
+
+</Card>
+
+## How It Works
+
+Creem hosts checkout on its own domain, so the affiliate referral needs a way to travel from your
+site into the sale. That is the one piece you wire up yourself, and it is a single metadata field.
+
+- A visitor clicks an affiliate link and lands on your site, and the Referly tracking script stores
+  the referral in their browser and exposes it as `window.affiliateId`.
+- They go to checkout, and you attach that referral to the Creem checkout as `referly_ref` metadata.
+  For payment links, a drop-in snippet from Referly does this for you.
+- Creem processes the payment and sends a signed webhook to Referly.
+- Referly matches the referral (or the discount code used at checkout) to the affiliate, calculates
+  the commission, and records it.
+
+Your API key powers the optional extras: listing your Creem products for product-based commission
+rules, and creating or importing discount codes for coupon attribution. Sales never come through the
+API; they arrive on the signed webhook.
+
+<Note>
+  Referly reads `referly_ref` from checkout metadata, not `creem_ref`. Creem reserves `creem_ref`
+  for its own [built-in affiliate feature](/features/affiliate-program), so the two can coexist.
+</Note>
+
+## Integration Steps
+
+Seven steps, about fifteen minutes.
+
+<Steps>
+
+<Step title="Create your affiliate program in Referly">
+
+Sign up at [referly.so](https://referly.so/creem) and create an affiliate program for your Creem store.
+The setup wizard walks you through the parts that matter:
+
+- **Commission structure**: a percentage or flat amount per sale, paid on **purchase**. You can
+  add product-specific rates later, once Creem is connected and Referly can list your products.
+- **Payout schedule**: how long commissions are held before payout. The holding window is also
+  your refund window: a refund inside it claws the commission back automatically.
+- **Affiliate portal**: the page your affiliates sign up on and where they find their links and
+  codes.
+
+<Frame caption="Create the program and set the commission to pay on purchase.">
+  <img
+    style={{ borderRadius: "0.5rem" }}
+    src="/images/referly/create-program.png"
+    alt="Referly's program setup showing the commission structure step with the purchase trigger selected"
+  />
+</Frame>
+
+</Step>
+
+<Step title="Open the Creem connect dialog in Referly">
+
+In your Referly dashboard, open **Settings > Integrations** and choose **Creem**. The dialog shows
+your program's unique webhook URL. Copy it and keep this dialog open; you will come back to it in
+step 5.
+
+<Frame caption="The Creem dialog shows your webhook URL and the two fields you'll fill in shortly.">
+  <img
+    style={{ borderRadius: "0.5rem", maxWidth: "640px" }}
+    src="/images/referly/connect-dialog.png"
+    alt="Referly's Creem connect dialog with the webhook URL, an API key field and a webhook signing secret field"
+  />
+</Frame>
+
+</Step>
+
+<Step title="Add the webhook in Creem">
+
+In your Creem dashboard, go to **Settings > Webhooks** and click **Add Webhook**, then:
+
+- Give it a name you will recognize later, for example "Referly"
+- Paste the webhook URL from step 2
+- Select **all events**
+
+Copy the webhook's **signing secret**; you will paste it into Referly in step 5.
+
+<Frame caption="Use Select All so every event type is ticked.">
+  <img
+    style={{ borderRadius: "0.5rem" }}
+    src="/images/referly/webhook-events.png"
+    alt="Creem's Add Webhook form with the Referly webhook URL pasted and every event type selected"
+  />
+</Frame>
+
+<Warning>
+  Please select every event type. **Select All** ticks the lot, and the counter should match the
+  full list Creem offers. Referly ignores the events it does not need, but a partial selection is
+  accepted without complaint and then silently drops sales or refunds. If tracking ever goes quiet,
+  this is the first thing to check.
+</Warning>
+
+</Step>
+
+<Step title="Create an API key">
+
+In Creem, go to **Settings > API Keys** and create a key. Referly uses it to validate the
+connection, list your products for product-based commission rules, and manage discount codes for
+affiliates, so grant:
+
+- **Products: Read** (required)
+- **Discounts: Read & Write** (only if you want Referly to create and sync affiliate coupon codes)
+- **Customers: Read & Write** (only if you reward affiliates with Creem customer credits)
+
+Use a production key for live tracking. A `creem_test_` key connects the same way and tracks Creem
+Test Mode purchases instead, handy for trying the integration before going live.
+
+<Frame caption="Full access works, or switch it off to grant just the scopes above.">
+  <img
+    style={{ borderRadius: "0.5rem", maxWidth: "640px" }}
+    src="/images/referly/api-key-permissions.png"
+    alt="Creem's New API key dialog, naming the key and granting its permissions"
+  />
+</Frame>
+
+</Step>
+
+<Step title="Connect in Referly">
+
+Back in the Referly dialog from step 2:
+
+- Paste the **API key** from step 4
+- Paste the **webhook signing secret** from step 3, including its prefix
+- Click **Connect**
+
+Referly validates the key against Creem before saving, so you find out straight away if something
+is off, and a test key shows a Test mode badge so there's no guessing which environment you're in.
+
+<Frame caption="Connected, with the Test mode badge when a creem_test_ key is used.">
+  <img
+    style={{ borderRadius: "0.5rem", maxWidth: "640px" }}
+    src="/images/referly/connected.png"
+    alt="Referly's Creem dialog in the connected state showing a green Connected badge and an amber Test mode badge"
+  />
+</Frame>
+
+</Step>
+
+<Step title="Add the Referly tracking script to your site">
+
+Copy your program's tracking script from the Referly dashboard into the `<head>` of your marketing
+site. It records affiliate clicks, stores the referral for your program's cookie window, and
+exposes it as `window.affiliateId` for the next step.
+
+<Frame caption="Copy the tracking script into your site's head tag.">
+  <img
+    style={{ borderRadius: "0.5rem" }}
+    src="/images/referly/tracking-script.png"
+    alt="Referly's tracking script panel with the copyable script snippet"
+  />
+</Frame>
+
+</Step>
+
+<Step title="Pass the referral into checkout">
+
+This is the step that connects a click to a sale. Without it, link-attributed sales arrive with no
+referral attached (discount-code sales still match through the code itself).
+
+Pick whichever matches how you sell:
+
+<CodeGroup>
+
+```json Checkout API
+{
+  "product_id": "prod_your_product",
+  "success_url": "https://yoursite.com/success",
+  "metadata": { "referly_ref": "REFERLY_ID_FROM_YOUR_FRONTEND" }
+}
+```
+
+```html Payment links
+<!-- After the Referly tracking script, decorate Creem payment links automatically -->
+<script async src="https://www.referly.so/creem-integration-snippet.js"></script>
+```
+
+</CodeGroup>
+
+If you create checkout sessions on your server, read the referral in the browser with
+`window.affiliateId` and send it along with the rest of your checkout request. The payment-link
+snippet appends `metadata[referly_ref]` to every `creem.io/payment/...` link on the page once the
+referral is known.
+
+<Tip>
+  Creem carries checkout metadata onto the subscription, so renewals keep crediting the same
+  affiliate without you doing anything extra.
+</Tip>
+
+</Step>
+
+</Steps>
+
+## What Gets Tracked
+
+Once you are connected, these all happen on their own:
+
+| Event                | What happens                                                            |
+| -------------------- | ----------------------------------------------------------------------- |
+| One-time sale        | Commission credited when the checkout completes                         |
+| Subscription renewal | Recurring commission per billing period, at the amount actually charged |
+| Trial start          | Referral recorded, but no commission until the first real payment       |
+| Refund               | The sale is marked refunded and the commission is clawed back           |
+| Chargeback           | Treated like a refund; the disputed sale's commission is clawed back    |
+| Coupon code          | A sale using an affiliate's Creem discount code credits that affiliate  |
+
+Commissions are calculated on the pre-tax sale amount, and every sale, refund and dispute is
+de-duplicated by its Creem order id, so webhook retries and manual resends never count twice.
+
+## Good to Know
+
+- **Check the event selection first.** A webhook saved with only some events ticked is the most
+  common problem, and it fails quietly.
+- **Try it in Test Mode.** Connect with a `creem_test_` key, buy through a test payment link with
+  card `4111 1111 1111 1111`, and watch the referral and sale appear in Referly. Refund it from the
+  Creem dashboard and the commission comes back off.
+- **Coupon attribution works without the snippet.** If an affiliate's discount code is used at
+  checkout, the sale is credited through the code even when no `referly_ref` metadata is present.
+- **Refunds claw back the full commission.** Partial refunds are recorded, but the affected sale's
+  commission is reversed in full rather than prorated.
+- **Re-created the webhook? Update the signing secret.** Deleting and re-creating the endpoint in
+  Creem gives you a new secret; paste the new one into Referly's connect dialog, or deliveries fail
+  their signature check.
+
+<Card
+  title="Referly documentation"
+  icon="book-open"
+  href="https://www.referly.so/docs?utm_source=creem&utm_medium=docs&utm_campaign=creem-integration&ref=creem"
+>
+  Guides to commission plans, coupon rules, payouts and the affiliate portal in Referly's own docs.
+</Card>
