@@ -12,7 +12,8 @@ import {
 
 // Mock better-auth/api
 const mockGetSession = vi.fn();
-vi.mock("better-auth/api", () => ({
+vi.mock("better-auth/api", async (importOriginal) => ({
+  ...(await importOriginal<typeof import("better-auth/api")>()),
   createAuthEndpoint: vi.fn((_path, _opts, handler) => handler),
   getSessionFromCtx: (...args: any[]) => mockGetSession(...args),
 }));
@@ -55,11 +56,10 @@ describe("Checkout endpoint", () => {
     const handler = createCheckoutEndpoint(creem, { ...defaultOptions, apiKey: "" });
     const ctx = createMockContext({ body: { productId: "prod_1" } });
     mockGetSession.mockResolvedValue(null);
-    await handler(ctx);
-    expect(ctx.json).toHaveBeenCalledWith(
-      expect.objectContaining({ error: expect.stringContaining("API key") }),
-      { status: 500 },
-    );
+    await expect(handler(ctx)).rejects.toMatchObject({
+      statusCode: 500,
+      body: expect.objectContaining({ message: expect.stringContaining("API key") }),
+    });
   });
 
   it("uses session email when no customer email provided", async () => {
@@ -110,10 +110,24 @@ describe("Checkout endpoint", () => {
     );
   });
 
-  it("returns checkout URL on success", async () => {
+  it("returns checkout URL without redirect on success", async () => {
     const creem = createMockCreem() as any;
     const handler = createCheckoutEndpoint(creem, defaultOptions);
     const ctx = createMockContext({ body: { productId: "prod_1" } });
+    mockGetSession.mockResolvedValue({ user: { id: "u1", email: "t@e.com" } });
+    await handler(ctx);
+    expect(ctx.json).toHaveBeenCalledWith(
+      expect.objectContaining({
+        url: "https://checkout.creem.io/test-session",
+        redirect: false,
+      }),
+    );
+  });
+
+  it("redirects when redirect is true", async () => {
+    const creem = createMockCreem() as any;
+    const handler = createCheckoutEndpoint(creem, defaultOptions);
+    const ctx = createMockContext({ body: { productId: "prod_1", redirect: true } });
     mockGetSession.mockResolvedValue({ user: { id: "u1", email: "t@e.com" } });
     await handler(ctx);
     expect(ctx.json).toHaveBeenCalledWith(
@@ -149,11 +163,10 @@ describe("Portal endpoint", () => {
     const creem = createMockCreem() as any;
     const handler = createPortalEndpoint(creem, { ...defaultOptions, apiKey: "" });
     const ctx = createMockContext();
-    await handler(ctx);
-    expect(ctx.json).toHaveBeenCalledWith(
-      expect.objectContaining({ error: expect.stringContaining("API key") }),
-      { status: 500 },
-    );
+    await expect(handler(ctx)).rejects.toMatchObject({
+      statusCode: 500,
+      body: expect.objectContaining({ message: expect.stringContaining("API key") }),
+    });
   });
 
   it("returns error when not logged in", async () => {
@@ -161,11 +174,10 @@ describe("Portal endpoint", () => {
     const handler = createPortalEndpoint(creem, defaultOptions);
     const ctx = createMockContext();
     mockGetSession.mockResolvedValue(null);
-    await handler(ctx);
-    expect(ctx.json).toHaveBeenCalledWith(
-      expect.objectContaining({ error: "User must be logged in" }),
-      { status: 400 },
-    );
+    await expect(handler(ctx)).rejects.toMatchObject({
+      statusCode: 400,
+      body: expect.objectContaining({ message: "User must be logged in" }),
+    });
   });
 
   it("returns error when no creemCustomerId", async () => {
@@ -175,19 +187,34 @@ describe("Portal endpoint", () => {
     mockGetSession.mockResolvedValue({
       user: { id: "u1", creemCustomerId: null },
     });
-    await handler(ctx);
-    expect(ctx.json).toHaveBeenCalledWith(
-      expect.objectContaining({
-        error: "User must have a Creem customer ID",
+    await expect(handler(ctx)).rejects.toMatchObject({
+      statusCode: 400,
+      body: expect.objectContaining({
+        message: "User must have a Creem customer ID",
       }),
-      { status: 400 },
-    );
+    });
   });
 
-  it("returns portal URL on success", async () => {
+  it("returns portal URL without redirect on success", async () => {
     const creem = createMockCreem() as any;
     const handler = createPortalEndpoint(creem, defaultOptions);
     const ctx = createMockContext();
+    mockGetSession.mockResolvedValue({
+      user: { id: "u1", creemCustomerId: "cust_123" },
+    });
+    await handler(ctx);
+    expect(ctx.json).toHaveBeenCalledWith(
+      expect.objectContaining({
+        url: "https://portal.creem.io/test-portal",
+        redirect: false,
+      }),
+    );
+  });
+
+  it("redirects when redirect is true", async () => {
+    const creem = createMockCreem() as any;
+    const handler = createPortalEndpoint(creem, defaultOptions);
+    const ctx = createMockContext({ body: { redirect: true } });
     mockGetSession.mockResolvedValue({
       user: { id: "u1", creemCustomerId: "cust_123" },
     });
@@ -213,11 +240,10 @@ describe("Cancel subscription endpoint", () => {
       apiKey: "",
     });
     const ctx = createMockContext();
-    await handler(ctx);
-    expect(ctx.json).toHaveBeenCalledWith(
-      expect.objectContaining({ error: expect.stringContaining("API key") }),
-      { status: 500 },
-    );
+    await expect(handler(ctx)).rejects.toMatchObject({
+      statusCode: 500,
+      body: expect.objectContaining({ message: expect.stringContaining("API key") }),
+    });
   });
 
   it("returns error when not logged in", async () => {
@@ -225,11 +251,10 @@ describe("Cancel subscription endpoint", () => {
     const handler = createCancelSubscriptionEndpoint(creem, defaultOptions);
     const ctx = createMockContext();
     mockGetSession.mockResolvedValue(null);
-    await handler(ctx);
-    expect(ctx.json).toHaveBeenCalledWith(
-      expect.objectContaining({ error: "User must be logged in" }),
-      { status: 400 },
-    );
+    await expect(handler(ctx)).rejects.toMatchObject({
+      statusCode: 400,
+      body: expect.objectContaining({ message: "User must be logged in" }),
+    });
   });
 
   it("auto-finds active subscription with persistence enabled", async () => {
@@ -253,11 +278,10 @@ describe("Cancel subscription endpoint", () => {
     const handler = createCancelSubscriptionEndpoint(creem, defaultOptions);
     const ctx = createMockContext({ body: {}, adapter });
     mockGetSession.mockResolvedValue({ user: { id: "user_123" } });
-    await handler(ctx);
-    expect(ctx.json).toHaveBeenCalledWith(
-      expect.objectContaining({ error: expect.stringContaining("No active subscription") }),
-      { status: 404 },
-    );
+    await expect(handler(ctx)).rejects.toMatchObject({
+      statusCode: 404,
+      body: expect.objectContaining({ message: expect.stringContaining("No active subscription") }),
+    });
   });
 
   it("requires subscription ID when persistence is disabled", async () => {
@@ -265,13 +289,12 @@ describe("Cancel subscription endpoint", () => {
     const handler = createCancelSubscriptionEndpoint(creem, optionsNoPersist);
     const ctx = createMockContext({ body: {} });
     mockGetSession.mockResolvedValue({ user: { id: "user_123" } });
-    await handler(ctx);
-    expect(ctx.json).toHaveBeenCalledWith(
-      expect.objectContaining({
-        error: expect.stringContaining("Subscription ID is required"),
+    await expect(handler(ctx)).rejects.toMatchObject({
+      statusCode: 400,
+      body: expect.objectContaining({
+        message: expect.stringContaining("Subscription ID is required"),
       }),
-      { status: 400 },
-    );
+    });
   });
 
   it("uses provided ID when persistence is disabled", async () => {
@@ -296,11 +319,10 @@ describe("Retrieve subscription endpoint", () => {
       apiKey: "",
     });
     const ctx = createMockContext();
-    await handler(ctx);
-    expect(ctx.json).toHaveBeenCalledWith(
-      expect.objectContaining({ error: expect.stringContaining("API key") }),
-      { status: 500 },
-    );
+    await expect(handler(ctx)).rejects.toMatchObject({
+      statusCode: 500,
+      body: expect.objectContaining({ message: expect.stringContaining("API key") }),
+    });
   });
 
   it("auto-finds subscription with persistence enabled", async () => {
@@ -319,13 +341,12 @@ describe("Retrieve subscription endpoint", () => {
     const handler = createRetrieveSubscriptionEndpoint(creem, optionsNoPersist);
     const ctx = createMockContext({ body: {} });
     mockGetSession.mockResolvedValue({ user: { id: "user_123" } });
-    await handler(ctx);
-    expect(ctx.json).toHaveBeenCalledWith(
-      expect.objectContaining({
-        error: expect.stringContaining("Subscription ID is required"),
+    await expect(handler(ctx)).rejects.toMatchObject({
+      statusCode: 400,
+      body: expect.objectContaining({
+        message: expect.stringContaining("Subscription ID is required"),
       }),
-      { status: 400 },
-    );
+    });
   });
 });
 
@@ -341,11 +362,10 @@ describe("Search transactions endpoint", () => {
       apiKey: "",
     });
     const ctx = createMockContext();
-    await handler(ctx);
-    expect(ctx.json).toHaveBeenCalledWith(
-      expect.objectContaining({ error: expect.stringContaining("API key") }),
-      { status: 500 },
-    );
+    await expect(handler(ctx)).rejects.toMatchObject({
+      statusCode: 500,
+      body: expect.objectContaining({ message: expect.stringContaining("API key") }),
+    });
   });
 
   it("returns error when no customerId available", async () => {
@@ -355,13 +375,12 @@ describe("Search transactions endpoint", () => {
     mockGetSession.mockResolvedValue({
       user: { id: "u1", creemCustomerId: null },
     });
-    await handler(ctx);
-    expect(ctx.json).toHaveBeenCalledWith(
-      expect.objectContaining({
-        error: "User must have a Creem customer ID",
+    await expect(handler(ctx)).rejects.toMatchObject({
+      statusCode: 400,
+      body: expect.objectContaining({
+        message: "User must have a Creem customer ID",
       }),
-      { status: 400 },
-    );
+    });
   });
 
   it("uses session creemCustomerId as fallback", async () => {
@@ -391,7 +410,8 @@ describe("Search transactions endpoint", () => {
     await handler(ctx);
     expect(ctx.json).toHaveBeenCalledWith(
       expect.objectContaining({
-        transactions: expect.any(Array),
+        items: expect.any(Array),
+        pagination: expect.objectContaining({ currentPage: 1 }),
       }),
     );
   });
@@ -406,28 +426,22 @@ describe("Has access granted endpoint", () => {
     const handler = createHasAccessGrantedEndpoint(defaultOptions);
     const ctx = createMockContext();
     mockGetSession.mockResolvedValue(null);
-    await handler(ctx);
-    expect(ctx.json).toHaveBeenCalledWith(
-      expect.objectContaining({
-        hasAccessGranted: undefined,
-        message: expect.stringContaining("logged in"),
-      }),
-      { status: 401 },
-    );
+    await expect(handler(ctx)).rejects.toMatchObject({
+      statusCode: 401,
+      body: expect.objectContaining({ message: expect.stringContaining("logged in") }),
+    });
   });
 
   it("returns 400 when persistence is disabled", async () => {
     const handler = createHasAccessGrantedEndpoint(optionsNoPersist);
     const ctx = createMockContext();
     mockGetSession.mockResolvedValue({ user: { id: "u1" } });
-    await handler(ctx);
-    expect(ctx.json).toHaveBeenCalledWith(
-      expect.objectContaining({
-        hasAccessGranted: undefined,
+    await expect(handler(ctx)).rejects.toMatchObject({
+      statusCode: 400,
+      body: expect.objectContaining({
         message: expect.stringContaining("persistence is disabled"),
       }),
-      { status: 400 },
-    );
+    });
   });
 
   it("returns true for active subscription", async () => {
@@ -498,11 +512,10 @@ describe("Has access granted endpoint", () => {
     const handler = createHasAccessGrantedEndpoint(defaultOptions);
     const ctx = createMockContext({ adapter });
     mockGetSession.mockResolvedValue({ user: { id: "user_123" } });
-    await handler(ctx);
-    expect(ctx.json).toHaveBeenCalledWith(
-      expect.objectContaining({ hasAccessGranted: undefined }),
-      { status: 500 },
-    );
+    await expect(handler(ctx)).rejects.toMatchObject({
+      statusCode: 500,
+      body: expect.objectContaining({ message: "Failed to check subscription status" }),
+    });
     expect(logger.error).toHaveBeenCalledWith(
       expect.stringContaining("Failed to check subscription status"),
     );
@@ -521,11 +534,10 @@ describe("Checkout endpoint - SDK errors", () => {
     const handler = createCheckoutEndpoint(creem, defaultOptions);
     const ctx = createMockContext({ body: { productId: "prod_1" } });
     mockGetSession.mockResolvedValue({ user: { id: "u1", email: "t@e.com" } });
-    await handler(ctx);
-    expect(ctx.json).toHaveBeenCalledWith(
-      expect.objectContaining({ error: "Failed to create checkout" }),
-      { status: 500 },
-    );
+    await expect(handler(ctx)).rejects.toMatchObject({
+      statusCode: 500,
+      body: expect.objectContaining({ message: "Failed to create checkout" }),
+    });
     expect(logger.error).toHaveBeenCalledWith(expect.stringContaining("Failed to create checkout"));
   });
 });
@@ -544,11 +556,10 @@ describe("Portal endpoint - SDK errors", () => {
     mockGetSession.mockResolvedValue({
       user: { id: "u1", creemCustomerId: "cust_123" },
     });
-    await handler(ctx);
-    expect(ctx.json).toHaveBeenCalledWith(
-      expect.objectContaining({ error: "Failed to create portal" }),
-      { status: 500 },
-    );
+    await expect(handler(ctx)).rejects.toMatchObject({
+      statusCode: 500,
+      body: expect.objectContaining({ message: "Failed to create portal" }),
+    });
     expect(logger.error).toHaveBeenCalledWith(expect.stringContaining("Failed to create portal"));
   });
 });
@@ -565,11 +576,10 @@ describe("Cancel subscription endpoint - SDK and adapter errors", () => {
     const handler = createCancelSubscriptionEndpoint(creem, optionsNoPersist);
     const ctx = createMockContext({ body: { id: "sub_explicit" } });
     mockGetSession.mockResolvedValue({ user: { id: "user_123" } });
-    await handler(ctx);
-    expect(ctx.json).toHaveBeenCalledWith(
-      expect.objectContaining({ error: "Failed to cancel subscription" }),
-      { status: 500 },
-    );
+    await expect(handler(ctx)).rejects.toMatchObject({
+      statusCode: 500,
+      body: expect.objectContaining({ message: "Failed to cancel subscription" }),
+    });
     expect(logger.error).toHaveBeenCalledWith(
       expect.stringContaining("Failed to cancel subscription"),
     );
@@ -591,11 +601,10 @@ describe("Cancel subscription endpoint - SDK and adapter errors", () => {
     const handler = createCancelSubscriptionEndpoint(creem, defaultOptions);
     const ctx = createMockContext({ body: {}, adapter });
     mockGetSession.mockResolvedValue({ user: { id: "user_123" } });
-    await handler(ctx);
-    expect(ctx.json).toHaveBeenCalledWith(
-      expect.objectContaining({ error: "Failed to cancel subscription" }),
-      { status: 500 },
-    );
+    await expect(handler(ctx)).rejects.toMatchObject({
+      statusCode: 500,
+      body: expect.objectContaining({ message: "Failed to cancel subscription" }),
+    });
     expect(logger.error).toHaveBeenCalledWith(
       expect.stringContaining("Failed to cancel subscription"),
     );
@@ -614,11 +623,10 @@ describe("Retrieve subscription endpoint - SDK and adapter errors", () => {
     const handler = createRetrieveSubscriptionEndpoint(creem, optionsNoPersist);
     const ctx = createMockContext({ body: { id: "sub_explicit" } });
     mockGetSession.mockResolvedValue({ user: { id: "user_123" } });
-    await handler(ctx);
-    expect(ctx.json).toHaveBeenCalledWith(
-      expect.objectContaining({ error: "Failed to retrieve subscription" }),
-      { status: 500 },
-    );
+    await expect(handler(ctx)).rejects.toMatchObject({
+      statusCode: 500,
+      body: expect.objectContaining({ message: "Failed to retrieve subscription" }),
+    });
     expect(logger.error).toHaveBeenCalledWith(
       expect.stringContaining("Failed to retrieve subscription"),
     );
@@ -630,11 +638,10 @@ describe("Retrieve subscription endpoint - SDK and adapter errors", () => {
     const handler = createRetrieveSubscriptionEndpoint(creem, defaultOptions);
     const ctx = createMockContext({ body: {}, adapter });
     mockGetSession.mockResolvedValue({ user: { id: "user_123" } });
-    await handler(ctx);
-    expect(ctx.json).toHaveBeenCalledWith(
-      expect.objectContaining({ error: "Failed to retrieve subscription" }),
-      { status: 500 },
-    );
+    await expect(handler(ctx)).rejects.toMatchObject({
+      statusCode: 500,
+      body: expect.objectContaining({ message: "Failed to retrieve subscription" }),
+    });
   });
 });
 
@@ -652,11 +659,10 @@ describe("Search transactions endpoint - SDK errors", () => {
     mockGetSession.mockResolvedValue({
       user: { id: "u1", creemCustomerId: "cust_1" },
     });
-    await handler(ctx);
-    expect(ctx.json).toHaveBeenCalledWith(
-      expect.objectContaining({ error: "Failed to search transactions" }),
-      { status: 500 },
-    );
+    await expect(handler(ctx)).rejects.toMatchObject({
+      statusCode: 500,
+      body: expect.objectContaining({ message: "Failed to search transactions" }),
+    });
     expect(logger.error).toHaveBeenCalledWith(
       expect.stringContaining("Failed to search transactions"),
     );
@@ -673,11 +679,10 @@ describe("Retrieve subscription endpoint - missing guards", () => {
     const handler = createRetrieveSubscriptionEndpoint(creem, defaultOptions);
     const ctx = createMockContext();
     mockGetSession.mockResolvedValue(null);
-    await handler(ctx);
-    expect(ctx.json).toHaveBeenCalledWith(
-      expect.objectContaining({ error: "User must be logged in" }),
-      { status: 400 },
-    );
+    await expect(handler(ctx)).rejects.toMatchObject({
+      statusCode: 400,
+      body: expect.objectContaining({ message: "User must be logged in" }),
+    });
   });
 
   it("returns 404 when no subscriptions in DB and no ID provided", async () => {
@@ -687,11 +692,10 @@ describe("Retrieve subscription endpoint - missing guards", () => {
     const handler = createRetrieveSubscriptionEndpoint(creem, defaultOptions);
     const ctx = createMockContext({ body: {}, adapter });
     mockGetSession.mockResolvedValue({ user: { id: "user_123" } });
-    await handler(ctx);
-    expect(ctx.json).toHaveBeenCalledWith(
-      expect.objectContaining({ error: expect.stringContaining("No subscription found") }),
-      { status: 404 },
-    );
+    await expect(handler(ctx)).rejects.toMatchObject({
+      statusCode: 404,
+      body: expect.objectContaining({ message: expect.stringContaining("No subscription found") }),
+    });
   });
 });
 
@@ -705,11 +709,10 @@ describe("Search transactions endpoint - missing guards", () => {
     const handler = createSearchTransactionsEndpoint(creem, defaultOptions);
     const ctx = createMockContext();
     mockGetSession.mockResolvedValue(null);
-    await handler(ctx);
-    expect(ctx.json).toHaveBeenCalledWith(
-      expect.objectContaining({ error: "User must be logged in" }),
-      { status: 400 },
-    );
+    await expect(handler(ctx)).rejects.toMatchObject({
+      statusCode: 400,
+      body: expect.objectContaining({ message: "User must be logged in" }),
+    });
   });
 });
 

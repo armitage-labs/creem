@@ -1,4 +1,4 @@
-import { createAuthEndpoint, getSessionFromCtx } from "better-auth/api";
+import { APIError, createAuthEndpoint, getSessionFromCtx } from "better-auth/api";
 import { type GenericEndpointContext, logger } from "better-auth";
 import { Creem } from "creem";
 import { z } from "zod";
@@ -7,6 +7,7 @@ import type { CreatePortalInput, CreatePortalResponse } from "./portal-types.js"
 
 export const PortalParams = z.object({
   customerId: z.string().optional(),
+  redirect: z.boolean().optional().default(false),
 });
 
 export type PortalParams = z.infer<typeof PortalParams>;
@@ -19,24 +20,21 @@ const createPortalHandler = (creem: Creem, options: CreemOptions) => {
     const body = (ctx.body || {}) as PortalParams;
 
     if (!options.apiKey) {
-      return ctx.json(
-        {
-          error:
-            "Creem API key is not configured. Please set the apiKey option when initializing the Creem plugin.",
-        },
-        { status: 500 },
-      );
+      throw new APIError("INTERNAL_SERVER_ERROR", {
+        message:
+          "Creem API key is not configured. Please set the apiKey option when initializing the Creem plugin.",
+      });
     }
 
     try {
       const session = await getSessionFromCtx(ctx);
 
       if (!session?.user?.id) {
-        return ctx.json({ error: "User must be logged in" }, { status: 400 });
+        throw new APIError("BAD_REQUEST", { message: "User must be logged in" });
       }
 
       if (!session?.user.creemCustomerId) {
-        return ctx.json({ error: "User must have a Creem customer ID" }, { status: 400 });
+        throw new APIError("BAD_REQUEST", { message: "User must have a Creem customer ID" });
       }
 
       logger.debug(`[creem] Portal: customer=${body.customerId || session.user.creemCustomerId}`);
@@ -49,12 +47,14 @@ const createPortalHandler = (creem: Creem, options: CreemOptions) => {
 
       return ctx.json({
         url: portal.customerPortalLink,
-        redirect: true,
+        // No redirect by default; opt in with { redirect: true }
+        redirect: !!body.redirect,
       });
     } catch (error) {
+      if (error instanceof APIError) throw error;
       const message = error instanceof Error ? error.message : String(error);
       logger.error(`[creem] Failed to create portal: ${message}`);
-      return ctx.json({ error: "Failed to create portal" }, { status: 500 });
+      throw new APIError("INTERNAL_SERVER_ERROR", { message: "Failed to create portal" });
     }
   };
 };
@@ -74,7 +74,7 @@ const createPortalHandler = (creem: Creem, options: CreemOptions) => {
  * @example
  * Client-side usage:
  * ```typescript
- * // Use default customer ID from session
+ * // Handle navigation yourself (redirect defaults to false)
  * const { data, error } = await authClient.creem.createPortal();
  *
  * // Or specify a custom customer ID
@@ -85,6 +85,9 @@ const createPortalHandler = (creem: Creem, options: CreemOptions) => {
  * if (data?.url) {
  *   window.location.href = data.url;
  * }
+ *
+ * // Or let better-auth redirect to the portal URL automatically
+ * const { data, error } = await authClient.creem.createPortal({ redirect: true });
  * ```
  */
 export const createPortalEndpoint = (creem: Creem, options: CreemOptions) => {

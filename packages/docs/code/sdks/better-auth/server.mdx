@@ -112,3 +112,33 @@ Prefer the authenticated `hasAccessGranted()` endpoint or query your own databas
 supported adapter API. These server helpers only recognize `active`, `trialing`, and `paid`;
 they do not evaluate scheduled cancellation deadlines or payment grace periods. Use
 [`hasAccessGranted()`](/code/sdks/better-auth/client#check-access) for those access decisions.
+
+## Call Better Auth endpoints on the server
+
+Calls through `auth.api` use the same endpoints as the browser client. Pass the current request's
+headers for session authentication. Unlike browser client results, failed direct calls throw a
+Better Auth `APIError`:
+
+```typescript
+import { APIError } from "better-auth/api";
+import { auth } from "@/lib/auth";
+
+try {
+  const portal = await auth.api.createPortal({
+    headers: request.headers,
+    body: { redirect: false },
+  });
+  console.log(portal.url);
+} catch (error) {
+  if (error instanceof APIError) {
+    console.error(error.status, error.body?.message);
+  } else {
+    throw error;
+  }
+}
+```
+
+Pass `asResponse: true` when you need an HTTP `Response` instead. Check `response.ok` and
+`response.status`; error JSON contains `message`, replacing the previous `error` field. This applies
+to checkout, portal, cancel, retrieve, transaction search, and access endpoints. The direct helpers
+from `@creem_io/better-auth/server` keep their separate behavior.

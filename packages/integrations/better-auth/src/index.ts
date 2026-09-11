@@ -10,6 +10,8 @@ import { createHasAccessGrantedEndpoint } from "./has-active-subscription.js";
 import { createWebhookEndpoint } from "./webhook.js";
 import { CreemOptions } from "./types.js";
 
+export type { CreemSchemaOverrides } from "./schema.js";
+
 // Export plugin configuration types
 export type {
   CreemOptions,
@@ -114,7 +116,7 @@ export {
  * });
  * ```
  */
-export const creem = (options: CreemOptions) => {
+export const creem = <T extends CreemOptions>(options: T) => {
   const serverURL = options.testMode ? "https://test-api.creem.io" : "https://api.creem.io";
 
   const creem = new Creem({

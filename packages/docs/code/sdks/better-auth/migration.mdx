@@ -1,6 +1,6 @@
 ---
 title: "Migration"
-description: "Upgrade the Creem Better Auth plugin from 1.x to 2.0 and update cancellation access handling."
+description: "Upgrade the Creem Better Auth plugin from 1.x to 2.0: redirects, native clients, errors, persistence, and cancellation access."
 ---
 
 Use this guide when upgrading an existing `@creem_io/better-auth` integration. For a new
@@ -8,11 +8,154 @@ integration, start with the [quickstart](/code/sdks/better-auth/quickstart).
 
 ## Upgrading from 1.x
 
-Version 2.0 distinguishes scheduled cancellation from final cancellation in webhook callbacks
-and persisted access checks. Review your callbacks and existing subscription records before
-deploying the upgrade. No database schema migration is required.
+Version 2.0 changes checkout navigation and endpoint error handling, improves native client types,
+and distinguishes scheduled cancellation from final cancellation in webhook callbacks and persisted
+access checks. Review the client, server, and webhook changes below before deploying.
 
-### What changes
+No database schema migration is required for unchanged default persistence settings. If you use
+custom schema mappings, review the mapping changes below against your existing database.
+
+### Upgrade Better Auth alongside the plugin
+
+Version 2.0 requires Better Auth `^1.5.6`. The native inferred endpoint declarations depend on
+Better Auth types that are not available at the previous minimum of 1.3.34. Upgrade both packages
+together, including in separate server and client applications:
+
+```bash
+pnpm add @creem_io/better-auth@^2 better-auth@^1.5.6
+```
+
+### Update checkout and portal navigation
+
+Checkout and portal methods now default to `redirect: false`. Existing calls that relied on
+automatic navigation must explicitly opt in:
+
+```typescript
+await authClient.creem.createCheckout({
+  productId: "prod_...",
+  redirect: true,
+});
+
+await authClient.creem.createPortal({ redirect: true });
+```
+
+For manual navigation, omit `redirect` or set it to `false`, handle `error`, and navigate using
+`data.url`:
+
+```typescript
+const { data, error } = await authClient.creem.createCheckout({
+  productId: "prod_...",
+});
+
+if (error) {
+  console.error(error.status, error.message);
+} else if (data.url) {
+  window.location.assign(data.url);
+}
+```
+
+### Migrate to the native client
+
+`createCreemAuthClient` is deprecated but remains exported. Replace it with the standard Better Auth
+client for your framework and keep the Creem client plugin:
+
+```typescript
+import { createAuthClient } from "better-auth/react";
+import { creemClient } from "@creem_io/better-auth/client";
+
+export const authClient = createAuthClient({
+  plugins: [creemClient()],
+});
+```
+
+The native client infers inputs and successful responses for all six Creem methods, plus
+`session.user.creemCustomerId` and `session.user.hadTrial` when persistence is enabled. Error
+payloads no longer appear as alternatives inside the successful `data` type, so checks such as
+`"url" in data` are unnecessary after handling `error`.
+
+Native types follow the endpoint's actual SDK response. Customer or product values can be IDs or
+expanded objects; narrow them before reading properties. Date values received over HTTP are
+serialized, not JavaScript `Date` instances. For example:
+
+```typescript
+const { data, error } = await authClient.creem.retrieveSubscription({
+  id: "sub_...",
+});
+
+if (!error && data) {
+  const productId = typeof data.product === "string" ? data.product : data.product.id;
+  console.log(productId);
+}
+```
+
+### Update transaction response paths
+
+The Better Auth `searchTransactions()` endpoint now returns the transaction page directly as
+`{ items, pagination }`, matching the documented client contract. If you previously used the native
+client or raw endpoint's SDK iterator envelope, change `data.result.items` to `data.items` and
+`data.result.pagination` to `data.pagination`. The HTTP endpoint does not expose iterator methods.
+The standalone helper from `@creem_io/better-auth/server` is unchanged.
+
+### Update endpoint error handling
+
+Failures from `createCheckout`, `createPortal`, `cancelSubscription`, `retrieveSubscription`,
+`searchTransactions`, and `hasAccessGranted` now use Better Auth's `APIError` mechanism. Existing
+HTTP status codes are preserved, but the error contract changes:
+
+| Caller                                         | 2.0 failure handling                                                                           |
+| ---------------------------------------------- | ---------------------------------------------------------------------------------------------- |
+| `authClient.creem.*`                           | Handle `{ data: null, error }`; read `error.message` and `error.status`.                       |
+| Direct `auth.api.*` call                       | Catch a thrown `APIError` from `better-auth/api`.                                              |
+| Raw HTTP or `auth.api.*({ asResponse: true })` | Check the response status and read `message` from error JSON, replacing the old `error` field. |
+
+Do not check `data.error` or assume a failed direct server call resolves to an error object.
+`hasAccessGranted()` returns `data.hasAccessGranted` as a boolean on success. Signed-out requests (`401`), disabled persistence
+(`400`), and failed checks (`500`) use the error path with `data: null` instead of an indeterminate
+access result. Treat an error as a failed check, not authorization.
+
+See the [Server API](/code/sdks/better-auth/server#call-better-auth-endpoints-on-the-server) for a
+`try`/`catch` example. Helpers imported from `@creem_io/better-auth/server` are separate from these
+Better Auth endpoints and retain their own behavior.
+
+### Match persistence configuration and review schema mappings
+
+The full persistence opt-out remains supported. A server configured with
+`persistSubscriptions: false` registers neither subscription models nor Creem user fields and
+performs no plugin customer, trial, or subscription writes. Mirror that setting in the client so
+its session types match the server:
+
+```typescript
+const authClient = createAuthClient({
+  plugins: [creemClient({ persistSubscriptions: false })],
+});
+```
+
+This client option controls inference only; it does not change the server's behavior. Leave both
+plugins at their defaults when using persistence. If you store billing data yourself, read it
+through your own typed data layer instead of expecting Creem fields on the plugin session.
+
+The `schema` option now correctly types physical name mappings for existing plugin models and
+fields. Field overrides are column-name strings, not Better Auth field definition objects:
+
+```typescript
+creem({
+  apiKey: process.env.CREEM_API_KEY!,
+  schema: {
+    creem_subscription: {
+      modelName: "billing_subscription",
+      fields: { referenceId: "user_id" },
+    },
+    user: { fields: { creemCustomerId: "creem_customer_id" } },
+  },
+});
+```
+
+Update any object-shaped field overrides to string mappings. This option does not add models or
+fields or change their logical types, and it is ignored when persistence is disabled. Each plugin
+instance now applies overrides independently. If you change physical names during the upgrade,
+check your generated ORM schema and apply the corresponding database migration before deployment.
+
+### Cancellation and access changes
 
 | Behavior                                             | 1.x                                        | 2.0                                                                                                     |
 | ---------------------------------------------------- | ------------------------------------------ | ------------------------------------------------------------------------------------------------------- |
@@ -67,10 +210,12 @@ Before deploying:
 After updating your handlers and reviewing existing state, install the new major version:
 
 ```bash
-pnpm add @creem_io/better-auth@^2
+pnpm add @creem_io/better-auth@^2 better-auth@^1.5.6
 ```
 
-Run your application's typecheck to catch exhaustive reason checks that need updating. In test
+Run your application's typecheck to catch native response types, persistence options, schema mappings,
+and exhaustive reason checks that need updating. Verify manual and automatic checkout/portal navigation,
+client error handling, and any direct `auth.api` error handling. In test
 mode, verify that scheduled cancellation preserves access before the period end, that access
 ends at the period boundary, and that final cancellation invokes your revoke logic without
 duplicate side effects. If you manage entitlements separately, verify those access checks too.

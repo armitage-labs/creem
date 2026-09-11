@@ -6,9 +6,9 @@ export interface HasAccessGrantedResponse {
    * Whether the user has access granted
    * - `true` - User has active access
    * - `false` - User has no active access
-   * - `undefined` - Could not determine (not logged in, persistence disabled, or error)
+   * Failures are returned through the client's `error` result, not as access decisions.
    */
-  hasAccessGranted: boolean | undefined;
+  hasAccessGranted: boolean;
 
   /**
    * Human-readable message explaining the status
@@ -35,9 +35,4 @@ export interface HasAccessGrantedResponse {
     productId: string;
     periodEnd?: Date | string;
   }>;
-
-  /**
-   * Error message (if an error occurred)
-   */
-  error?: string;
 }

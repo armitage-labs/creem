@@ -74,17 +74,27 @@ export const user = {
   },
 } satisfies BetterAuthPluginDBSchema;
 
-export const getSchema = (options: CreemOptions) => {
-  // Default persistSubscriptions to true if not specified
-  const shouldPersist = options.persistSubscriptions !== false;
+/** Physical model/column names; these do not change the inferred field types. */
+export type CreemSchemaOverrides = Parameters<
+  typeof mergeSchema<typeof user & typeof subscriptions>
+>[1];
 
-  // Only include schema if persistSubscriptions is enabled
-  const baseSchema = shouldPersist
-    ? {
-        ...subscriptions,
-        ...user,
-      }
-    : {};
+// Better Auth's inference can discard an empty member of a schema union. If persistence
+// might be disabled at runtime, do not promise any Creem fields to the client.
+type GetSchemaResult<T extends CreemOptions> = "persistSubscriptions" extends keyof T
+  ? false extends T["persistSubscriptions"]
+    ? {}
+    : typeof user & typeof subscriptions
+  : typeof user & typeof subscriptions;
 
-  return mergeSchema(baseSchema, options.schema);
+export const getSchema = <T extends CreemOptions>(options: T): GetSchemaResult<T> => {
+  if (options.persistSubscriptions === false) {
+    return {} as GetSchemaResult<T>;
+  }
+
+  // mergeSchema mutates its input. Keep model/column overrides local to this plugin instance.
+  return mergeSchema(
+    structuredClone({ ...subscriptions, ...user }),
+    options.schema,
+  ) as GetSchemaResult<T>;
 };
