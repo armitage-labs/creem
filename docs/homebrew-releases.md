@@ -1,5 +1,8 @@
 # Homebrew CLI releases
 
+This tap distributes stable `X.Y.Z` CLI releases. Prerelease versions are not
+supported; selecting one fails before a formula update can be created.
+
 The `Release` workflow selects `@creem_io/cli` from Changesets' actual
 `publishedPackages` output and calls `Update Homebrew` with that exact version.
 SDK-only releases and version PR generation do not trigger a tap update.
