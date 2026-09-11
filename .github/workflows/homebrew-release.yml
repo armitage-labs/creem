@@ -42,7 +42,7 @@ jobs:
           APP_KEY: ${{ secrets.HOMEBREW_APP_PRIVATE_KEY }}
         run: |
           if [ -z "$APP_ID" ] || [ -z "$APP_KEY" ]; then
-            echo '::error::Configure HOMEBREW_APP_ID and HOMEBREW_APP_PRIVATE_KEY in the release environment. See docs/homebrew-releases.md.'
+            echo '::error::Configure HOMEBREW_APP_ID and HOMEBREW_APP_PRIVATE_KEY in the release environment. See CONTRIBUTING.md#homebrew-cli-releases.'
             exit 1
           fi
 

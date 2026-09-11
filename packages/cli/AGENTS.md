@@ -41,7 +41,7 @@ the stacked SDK may not yet be published. Node 22 and 24 run the same check in C
 create remote resources. Publish the required workspace SDK version before
 releasing a CLI that depends on it. The release workflow automatically opens a
 Homebrew update PR after npm publishing; setup and recovery are documented in
-[`docs/homebrew-releases.md`](../../docs/homebrew-releases.md).
+[the contributing guide](../../CONTRIBUTING.md#homebrew-cli-releases).
 
 ## Documentation and command discovery
 
