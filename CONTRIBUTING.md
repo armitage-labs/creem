@@ -112,6 +112,10 @@ pnpm changeset
 The release workflow applies Changesets and synchronizes SDK version metadata.
 Keep package versions unchanged in feature PRs.
 
+Published CLI releases also open an automatic Homebrew formula update PR. See
+[Homebrew release setup and recovery](docs/homebrew-releases.md) for credentials,
+tap validation, and retry instructions.
+
 ## Pull requests
 
 - Keep a pull request focused on one coherent change.
