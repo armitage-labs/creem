@@ -109,4 +109,6 @@ The server entry point also exports:
 `checkSubscriptionAccess()` and `getActiveSubscriptions()` are also exported, but their database
 mode expects a raw query-builder interface that is not compatible with every Better Auth adapter.
 Prefer the authenticated `hasAccessGranted()` endpoint or query your own database through its
-supported adapter API.
+supported adapter API. These server helpers only recognize `active`, `trialing`, and `paid`;
+they do not evaluate scheduled cancellation deadlines or payment grace periods. Use
+[`hasAccessGranted()`](/code/sdks/better-auth/client#check-access) for those access decisions.

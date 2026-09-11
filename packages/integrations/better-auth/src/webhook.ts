@@ -7,6 +7,7 @@ import {
   onSubscriptionActive,
   onSubscriptionTrialing,
   onSubscriptionCanceled,
+  onSubscriptionScheduledCancel,
   onSubscriptionPaid,
   onSubscriptionExpired,
   onSubscriptionUnpaid,
@@ -130,7 +131,21 @@ const createWebhookHandler = (options: CreemOptions) => {
           break;
         case "subscription.canceled":
           await onSubscriptionCanceled(ctx, event, options);
+          await options.onRevokeAccess?.({ reason: "subscription_canceled", ...event.object }, ctx);
           await options.onSubscriptionCanceled?.(
+            {
+              webhookEventType: event.eventType,
+              webhookId: event.id,
+              webhookCreatedAt: event.created_at,
+              ...event.object,
+            },
+            ctx,
+          );
+          break;
+
+        case "subscription.scheduled_cancel":
+          if ((await onSubscriptionScheduledCancel(ctx, event, options)) === false) break;
+          await options.onSubscriptionScheduledCancel?.(
             {
               webhookEventType: event.eventType,
               webhookId: event.id,

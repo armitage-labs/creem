@@ -67,9 +67,9 @@ the ID belongs to the signed-in user. Do not pass a value obtained from untruste
 ## Check access
 
 `hasAccessGranted()` reads the signed-in user's persisted subscriptions. It grants access for
-`active`, `trialing`, or `paid` records. A `canceled`, `past_due`, or `unpaid` subscription also
+`active`, `trialing`, or `paid` records. A `scheduled_cancel`, `past_due`, or `unpaid` subscription also
 retains access while its `periodEnd` is still in the future, so customers can use time they have
-already paid for.
+already paid for. A `canceled` subscription no longer grants access.
 
 ```typescript
 const { data, error } = await authClient.creem.hasAccessGranted();

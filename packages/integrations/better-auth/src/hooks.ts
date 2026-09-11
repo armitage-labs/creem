@@ -4,6 +4,7 @@ import type {
   NormalizedSubscriptionActiveEvent,
   NormalizedSubscriptionTrialingEvent,
   NormalizedSubscriptionCanceledEvent,
+  NormalizedSubscriptionScheduledCancelEvent,
   NormalizedSubscriptionPaidEvent,
   NormalizedSubscriptionExpiredEvent,
   NormalizedSubscriptionUnpaidEvent,
@@ -95,6 +96,7 @@ export async function onCheckoutCompleted(
           creemSubscriptionId: subscriptionData.id,
           creemOrderId: orderId,
           status: subscriptionData.status,
+          cancelAtPeriodEnd: subscriptionData.status === "scheduled_cancel",
           periodStart: subscriptionData.current_period_start_date
             ? new Date(subscriptionData.current_period_start_date)
             : undefined,
@@ -233,6 +235,17 @@ export async function onSubscriptionCanceled(
 }
 
 /**
+ * Handle subscription.scheduled_cancel without revoking access.
+ */
+export async function onSubscriptionScheduledCancel(
+  ctx: GenericEndpointContext,
+  event: NormalizedSubscriptionScheduledCancelEvent,
+  options: CreemOptions,
+) {
+  return updateSubscriptionFromEvent(ctx, event.object, "scheduled_cancel", options);
+}
+
+/**
  * Handle subscription.paid event
  * Updates subscription with latest payment information
  */
@@ -360,9 +373,34 @@ async function updateSubscriptionFromEvent(
       return;
     }
 
+    // A customer fallback may belong to a different subscription. Leave that row alone,
+    // but still deliver the event-specific callback as with any missing local record.
+    if (
+      status === "scheduled_cancel" &&
+      subscription.creemSubscriptionId &&
+      subscription.creemSubscriptionId !== subscriptionData.id
+    ) {
+      logger.warn(
+        `[creem] No matching local subscription for scheduled cancellation: ${subscriptionData.id}`,
+      );
+      return;
+    }
+
+    // A delayed scheduled-cancellation event must not reopen a terminated subscription.
+    if (
+      status === "scheduled_cancel" &&
+      (subscription.status === "canceled" || subscription.status === "expired")
+    ) {
+      logger.info(
+        `[creem] Ignoring scheduled cancellation for terminated subscription ${subscription.id}`,
+      );
+      return false;
+    }
+
     // Prepare update data
     const updateData: Partial<SubscriptionRecord> = {
       status,
+      cancelAtPeriodEnd: status === "scheduled_cancel",
       creemSubscriptionId: subscriptionData.id,
       creemCustomerId: customerId,
       periodStart: subscriptionData.current_period_start_date
@@ -374,15 +412,42 @@ async function updateSubscriptionFromEvent(
     };
 
     // Update subscription
-    await ctx.context.adapter.update({
-      model: "creem_subscription",
-      where: [{ field: "id", value: subscription.id }],
-      update: updateData,
-    });
+    const updated = await ctx.context.adapter
+      .update({
+        model: "creem_subscription",
+        where: [
+          { field: "id", value: subscription.id },
+          // Also protect against a terminal event arriving between the lookup and this write.
+          ...(status === "scheduled_cancel"
+            ? [{ field: "status", operator: "not_in" as const, value: ["canceled", "expired"] }]
+            : []),
+        ],
+        update: updateData,
+      })
+      .catch(async (error: unknown) => {
+        // Prisma throws when the guarded write matches no row; other adapters return null.
+        if (status === "scheduled_cancel") {
+          const current = await ctx.context.adapter
+            .findOne<SubscriptionRecord>({
+              model: "creem_subscription",
+              where: [{ field: "id", value: subscription.id }],
+            })
+            // Preserve the original write error if the diagnostic read also fails.
+            .catch(() => null);
+          if (current?.status === "canceled" || current?.status === "expired") return null;
+        }
+        throw error;
+      });
+
+    if (status === "scheduled_cancel" && !updated) {
+      return false;
+    }
 
     logger.info(`[creem] Updated subscription ${subscription.id} to status: ${status}`);
   } catch (error) {
     const message = error instanceof Error ? error.message : String(error);
     logger.error(`[creem] Webhook failed (subscription update): ${message}`);
+    // Retry failed scheduled-state writes, including subscription.update, before callbacks run.
+    if (status === "scheduled_cancel") throw error;
   }
 }
