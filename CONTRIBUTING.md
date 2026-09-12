@@ -118,13 +118,6 @@ After Changesets publishes a stable `@creem_io/cli` version, the release workflo
 opens a formula update PR in [the Homebrew tap](https://github.com/armitage-labs/homebrew-creem).
 Other package releases do not trigger it.
 
-Install a GitHub App only on the tap, with Contents and Pull requests write
-permissions. In this repo's `release` environment, restricted to protected
-`main`, set variable `HOMEBREW_APP_ID` and secret `HOMEBREW_APP_PRIVATE_KEY`.
-Merge the tap implementation and complete its
-[maintainer setup](https://github.com/armitage-labs/homebrew-creem/blob/main/CONTRIBUTING.md#maintainer-setup)
-before enabling releases.
-
 If npm published successfully but the tap update failed, retry only the failed
 job or run the standalone workflow with the already-published version:
 
