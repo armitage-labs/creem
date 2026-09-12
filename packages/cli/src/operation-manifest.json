@@ -2447,5 +2447,596 @@
     ],
     "pagination": "none",
     "destructive": true
+  },
+  {
+    "operationId": "ingestUsageEvents",
+    "sdkMethod": "events.ingestEvents",
+    "cliPath": "events ingest",
+    "disposition": "implemented",
+    "description": "Ingest usage events",
+    "parameters": [],
+    "body": {
+      "viaData": true,
+      "schema": {
+        "type": "object",
+        "properties": {
+          "events": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "properties": {
+                "name": {
+                  "type": "string"
+                },
+                "customerId": {
+                  "type": "string"
+                },
+                "eventId": {
+                  "type": "string"
+                },
+                "timestamp": {
+                  "type": "string"
+                },
+                "properties": {
+                  "type": "object"
+                },
+                "metadata": {
+                  "type": "object"
+                }
+              },
+              "required": [
+                "name",
+                "customerId"
+              ]
+            }
+          }
+        },
+        "required": [
+          "events"
+        ]
+      },
+      "primaryFlags": {
+        "events": "--events"
+      }
+    },
+    "pagination": "none",
+    "destructive": false
+  },
+  {
+    "operationId": "listUsageEvents",
+    "sdkMethod": "events.listEvents",
+    "cliPath": "events list",
+    "disposition": "implemented",
+    "description": "List usage events",
+    "parameters": [
+      {
+        "name": "meter_id",
+        "sdkName": "meterId",
+        "in": "query",
+        "cliFlagOrArgument": "--meter",
+        "required": false,
+        "schema": {
+          "type": "string"
+        }
+      },
+      {
+        "name": "customer_id",
+        "sdkName": "customerId",
+        "in": "query",
+        "cliFlagOrArgument": "--customer",
+        "required": false,
+        "schema": {
+          "type": "string"
+        }
+      },
+      {
+        "name": "reference",
+        "sdkName": "reference",
+        "in": "query",
+        "cliFlagOrArgument": "--reference",
+        "required": false,
+        "schema": {
+          "type": "string"
+        }
+      },
+      {
+        "name": "limit",
+        "sdkName": "limit",
+        "in": "query",
+        "cliFlagOrArgument": "--limit",
+        "required": false,
+        "schema": {
+          "minimum": 1,
+          "maximum": 100,
+          "type": "number"
+        }
+      },
+      {
+        "name": "starting_after",
+        "sdkName": "startingAfter",
+        "in": "query",
+        "cliFlagOrArgument": "--starting-after",
+        "required": false,
+        "schema": {
+          "type": "string"
+        }
+      }
+    ],
+    "pagination": "cursor",
+    "destructive": false
+  },
+  {
+    "operationId": "createMeter",
+    "sdkMethod": "meters.createMeter",
+    "cliPath": "meters create",
+    "disposition": "implemented",
+    "description": "Create a meter",
+    "parameters": [],
+    "body": {
+      "viaData": true,
+      "schema": {
+        "type": "object",
+        "properties": {
+          "name": {
+            "type": "string"
+          },
+          "eventName": {
+            "type": "string"
+          },
+          "aggregation": {
+            "type": "string",
+            "enum": [
+              "count",
+              "sum",
+              "average",
+              "min",
+              "max",
+              "unique"
+            ]
+          },
+          "aggregationProperty": {
+            "type": "string"
+          },
+          "filter": {
+            "type": "object",
+            "properties": {
+              "conjunction": {
+                "type": "string",
+                "enum": [
+                  "and",
+                  "or"
+                ]
+              },
+              "clauses": {
+                "type": "array",
+                "items": {
+                  "type": "object",
+                  "properties": {
+                    "property": {
+                      "type": "string"
+                    },
+                    "operator": {
+                      "type": "string",
+                      "enum": [
+                        "equals",
+                        "not_equals",
+                        "gt",
+                        "gte",
+                        "lt",
+                        "lte",
+                        "contains",
+                        "not_contains"
+                      ]
+                    },
+                    "value": {}
+                  },
+                  "required": [
+                    "property",
+                    "operator",
+                    "value"
+                  ]
+                }
+              }
+            },
+            "required": [
+              "conjunction",
+              "clauses"
+            ]
+          },
+          "unitLabel": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "name",
+          "eventName",
+          "aggregation",
+          "unitLabel"
+        ]
+      },
+      "primaryFlags": {
+        "name": "--name",
+        "eventName": "--event-name",
+        "aggregation": "--aggregation",
+        "aggregationProperty": "--aggregation-property",
+        "filter": "--filter",
+        "unitLabel": "--unit-label"
+      }
+    },
+    "pagination": "none",
+    "destructive": false
+  },
+  {
+    "operationId": "listMeters",
+    "sdkMethod": "meters.listMeters",
+    "cliPath": "meters list",
+    "disposition": "implemented",
+    "description": "List meters",
+    "parameters": [
+      {
+        "name": "limit",
+        "sdkName": "limit",
+        "in": "query",
+        "cliFlagOrArgument": "--limit",
+        "required": false,
+        "schema": {
+          "minimum": 1,
+          "maximum": 100,
+          "type": "number"
+        }
+      },
+      {
+        "name": "starting_after",
+        "sdkName": "startingAfter",
+        "in": "query",
+        "cliFlagOrArgument": "--starting-after",
+        "required": false,
+        "schema": {
+          "type": "string"
+        }
+      },
+      {
+        "name": "ending_before",
+        "sdkName": "endingBefore",
+        "in": "query",
+        "cliFlagOrArgument": "--ending-before",
+        "required": false,
+        "schema": {
+          "type": "string"
+        }
+      },
+      {
+        "name": "include_archived",
+        "sdkName": "includeArchived",
+        "in": "query",
+        "cliFlagOrArgument": "--include-archived",
+        "required": false,
+        "schema": {
+          "type": "boolean"
+        }
+      }
+    ],
+    "pagination": "cursor",
+    "destructive": false
+  },
+  {
+    "operationId": "previewMeter",
+    "sdkMethod": "meters.previewMeter",
+    "cliPath": "meters preview",
+    "disposition": "implemented",
+    "description": "Preview an unsaved meter definition",
+    "parameters": [],
+    "body": {
+      "viaData": true,
+      "schema": {
+        "type": "object",
+        "properties": {
+          "eventName": {
+            "type": "string"
+          },
+          "aggregation": {
+            "type": "string",
+            "enum": [
+              "count",
+              "sum",
+              "average",
+              "min",
+              "max",
+              "unique"
+            ]
+          },
+          "aggregationProperty": {
+            "type": "string"
+          },
+          "filter": {
+            "type": "object",
+            "properties": {
+              "conjunction": {
+                "type": "string",
+                "enum": [
+                  "and",
+                  "or"
+                ]
+              },
+              "clauses": {
+                "type": "array",
+                "items": {
+                  "type": "object",
+                  "properties": {
+                    "property": {
+                      "type": "string"
+                    },
+                    "operator": {
+                      "type": "string",
+                      "enum": [
+                        "equals",
+                        "not_equals",
+                        "gt",
+                        "gte",
+                        "lt",
+                        "lte",
+                        "contains",
+                        "not_contains"
+                      ]
+                    },
+                    "value": {}
+                  },
+                  "required": [
+                    "property",
+                    "operator",
+                    "value"
+                  ]
+                }
+              }
+            },
+            "required": [
+              "conjunction",
+              "clauses"
+            ]
+          },
+          "unitLabel": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "eventName",
+          "aggregation"
+        ]
+      },
+      "primaryFlags": {
+        "eventName": "--event-name",
+        "aggregation": "--aggregation",
+        "aggregationProperty": "--aggregation-property",
+        "filter": "--filter",
+        "unitLabel": "--unit-label"
+      }
+    },
+    "pagination": "none",
+    "destructive": false
+  },
+  {
+    "operationId": "getMeter",
+    "sdkMethod": "meters.getMeter",
+    "cliPath": "meters get",
+    "disposition": "implemented",
+    "description": "Retrieve a meter",
+    "parameters": [
+      {
+        "name": "id",
+        "sdkName": "id",
+        "in": "path",
+        "cliFlagOrArgument": "<id>",
+        "required": true,
+        "schema": {
+          "type": "string"
+        }
+      }
+    ],
+    "pagination": "none",
+    "destructive": false
+  },
+  {
+    "operationId": "updateMeter",
+    "sdkMethod": "meters.updateMeter",
+    "cliPath": "meters update",
+    "disposition": "implemented",
+    "description": "Update a meter",
+    "parameters": [
+      {
+        "name": "id",
+        "sdkName": "id",
+        "in": "path",
+        "cliFlagOrArgument": "<id>",
+        "required": true,
+        "schema": {
+          "type": "string"
+        }
+      }
+    ],
+    "body": {
+      "viaData": true,
+      "schema": {
+        "type": "object",
+        "properties": {
+          "name": {
+            "type": "string"
+          },
+          "aggregation": {
+            "type": "string",
+            "enum": [
+              "count",
+              "sum",
+              "average",
+              "min",
+              "max",
+              "unique"
+            ]
+          },
+          "aggregationProperty": {
+            "type": "string",
+            "nullable": true
+          },
+          "filter": {
+            "type": "object",
+            "properties": {
+              "conjunction": {
+                "type": "string",
+                "enum": [
+                  "and",
+                  "or"
+                ]
+              },
+              "clauses": {
+                "type": "array",
+                "items": {
+                  "type": "object",
+                  "properties": {
+                    "property": {
+                      "type": "string"
+                    },
+                    "operator": {
+                      "type": "string",
+                      "enum": [
+                        "equals",
+                        "not_equals",
+                        "gt",
+                        "gte",
+                        "lt",
+                        "lte",
+                        "contains",
+                        "not_contains"
+                      ]
+                    },
+                    "value": {}
+                  },
+                  "required": [
+                    "property",
+                    "operator",
+                    "value"
+                  ]
+                }
+              }
+            },
+            "required": [
+              "conjunction",
+              "clauses"
+            ]
+          }
+        },
+        "required": []
+      },
+      "primaryFlags": {
+        "name": "--name",
+        "aggregation": "--aggregation",
+        "aggregationProperty": "--aggregation-property",
+        "filter": "--filter"
+      }
+    },
+    "pagination": "none",
+    "destructive": true
+  },
+  {
+    "operationId": "previewExistingMeter",
+    "sdkMethod": "meters.previewExistingMeter",
+    "cliPath": "meters preview-stored",
+    "disposition": "implemented",
+    "description": "Preview an existing meter",
+    "parameters": [
+      {
+        "name": "id",
+        "sdkName": "id",
+        "in": "path",
+        "cliFlagOrArgument": "<id>",
+        "required": true,
+        "schema": {
+          "type": "string"
+        }
+      }
+    ],
+    "pagination": "none",
+    "destructive": false
+  },
+  {
+    "operationId": "getMeterConsumedUnits",
+    "sdkMethod": "meters.getConsumedUnits",
+    "cliPath": "meters consumed",
+    "disposition": "implemented",
+    "description": "Get consumed units for a customer",
+    "parameters": [
+      {
+        "name": "id",
+        "sdkName": "id",
+        "in": "path",
+        "cliFlagOrArgument": "<id>",
+        "required": true,
+        "schema": {
+          "type": "string"
+        }
+      },
+      {
+        "name": "customer_id",
+        "sdkName": "customerId",
+        "in": "query",
+        "cliFlagOrArgument": "--customer",
+        "required": true,
+        "schema": {
+          "type": "string"
+        }
+      },
+      {
+        "name": "at",
+        "sdkName": "at",
+        "in": "query",
+        "cliFlagOrArgument": "--at",
+        "required": false,
+        "schema": {
+          "type": "string"
+        }
+      }
+    ],
+    "pagination": "none",
+    "destructive": false
+  },
+  {
+    "operationId": "archiveMeter",
+    "sdkMethod": "meters.archiveMeter",
+    "cliPath": "meters archive",
+    "disposition": "implemented",
+    "description": "Archive a meter",
+    "parameters": [
+      {
+        "name": "id",
+        "sdkName": "id",
+        "in": "path",
+        "cliFlagOrArgument": "<id>",
+        "required": true,
+        "schema": {
+          "type": "string"
+        }
+      }
+    ],
+    "pagination": "none",
+    "destructive": true
+  },
+  {
+    "operationId": "unarchiveMeter",
+    "sdkMethod": "meters.unarchiveMeter",
+    "cliPath": "meters unarchive",
+    "disposition": "implemented",
+    "description": "Unarchive a meter",
+    "parameters": [
+      {
+        "name": "id",
+        "sdkName": "id",
+        "in": "path",
+        "cliFlagOrArgument": "<id>",
+        "required": true,
+        "schema": {
+          "type": "string"
+        }
+      }
+    ],
+    "pagination": "none",
+    "destructive": false
   }
 ]

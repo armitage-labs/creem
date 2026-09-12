@@ -1,0 +1,31 @@
+# UsageEventApiResponseDto
+
+## Example Usage
+
+```typescript
+import { UsageEventApiResponseDto } from "creem/models/components";
+
+let value: UsageEventApiResponseDto = {
+  id: "uev_abc123",
+  customerId: "cust_abc123",
+  eventId: "order-1234",
+  name: "image.generated",
+  properties: {},
+  metadata: {},
+  timestamp: "<value>",
+  createdAt: "1726704547476",
+};
+```
+
+## Fields
+
+| Field                                                                                                          | Type                                                                                                           | Required                                                                                                       | Description                                                                                                    | Example                                                                                                        |
+| -------------------------------------------------------------------------------------------------------------- | -------------------------------------------------------------------------------------------------------------- | -------------------------------------------------------------------------------------------------------------- | -------------------------------------------------------------------------------------------------------------- | -------------------------------------------------------------------------------------------------------------- |
+| `id`                                                                                                           | *string*                                                                                                       | :heavy_check_mark:                                                                                             | Usage event ID                                                                                                 | uev_abc123                                                                                                     |
+| `customerId`                                                                                                   | *string*                                                                                                       | :heavy_check_mark:                                                                                             | Customer ID                                                                                                    | cust_abc123                                                                                                    |
+| `eventId`                                                                                                      | *string*                                                                                                       | :heavy_check_mark:                                                                                             | Your idempotency key for this event                                                                            | order-1234                                                                                                     |
+| `name`                                                                                                         | *string*                                                                                                       | :heavy_check_mark:                                                                                             | Event name                                                                                                     | image.generated                                                                                                |
+| `properties`                                                                                                   | [components.UsageEventApiResponseDtoProperties](../../models/components/usageeventapiresponsedtoproperties.md) | :heavy_check_mark:                                                                                             | Top-level structured fields carried by the event                                                               |                                                                                                                |
+| `metadata`                                                                                                     | [components.UsageEventApiResponseDtoMetadata](../../models/components/usageeventapiresponsedtometadata.md)     | :heavy_check_mark:                                                                                             | Free-form metadata; keys are addressable by meter filters                                                      |                                                                                                                |
+| `timestamp`                                                                                                    | *string*                                                                                                       | :heavy_check_mark:                                                                                             | When the usage occurred, on your clock (ISO 8601)                                                              |                                                                                                                |
+| `createdAt`                                                                                                    | *string*                                                                                                       | :heavy_check_mark:                                                                                             | When the event was ingested (ISO 8601)                                                                         |                                                                                                                |
