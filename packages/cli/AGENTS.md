@@ -39,7 +39,9 @@ the stacked SDK may not yet be published. Node 22 and 24 run the same check in C
 
 `TEST_API_KEY` enables the optional read-only API smoke test. Tests never
 create remote resources. Publish the required workspace SDK version before
-releasing a CLI that depends on it; npm and Homebrew have separate release steps.
+releasing a CLI that depends on it. The release workflow automatically opens a
+Homebrew update PR after npm publishing; recovery is documented in
+[the contributing guide](../../CONTRIBUTING.md#homebrew-cli-releases).
 
 ## Documentation and command discovery
 
