@@ -4,7 +4,7 @@ management:
   docVersion: v1
   speakeasyVersion: 1.796.4
   generationVersion: 2.935.1
-  releaseVersion: 1.6.2
+  releaseVersion: 1.7.0
   repoURL: https://github.com/armitage-labs/creem.git
   repoSubDirectory: packages/sdk
   installationURL: https://github.com/armitage-labs/creem
@@ -77,6 +77,7 @@ trackedFiles:
   docs/models/components/affiliateinviteentity.md: {}
   docs/models/components/affiliateinvitelistentity.md: {}
   docs/models/components/affiliatelistentity.md: {}
+  docs/models/components/aggregation.md: {}
   docs/models/components/balanceresponsedto.md: {}
   docs/models/components/cancelsubscriptionrequestentity.md:
     id: 058fefa14fc4
@@ -97,6 +98,7 @@ trackedFiles:
   docs/models/components/commissionentity.md: {}
   docs/models/components/commissionlistentity.md: {}
   docs/models/components/commissionstatus.md: {}
+  docs/models/components/conjunction.md: {}
   docs/models/components/coupondurationtype.md: {}
   docs/models/components/createaccountdto.md: {}
   docs/models/components/createaffiliateinviterequestentity.md: {}
@@ -110,6 +112,7 @@ trackedFiles:
   docs/models/components/creatediscountrequestentity.md:
     id: 246b87c4416f
     pristine_git_object: 9b48051f449ee9e7d0a4263354c3a113db0012a0
+  docs/models/components/createmeterapirequestdto.md: {}
   docs/models/components/createproductrequestentity.md:
     id: 8257f878173d
     pristine_git_object: 1a0798d76f055612a9f62df2a317829617cf3d11
@@ -122,9 +125,15 @@ trackedFiles:
     id: c4a50385ed0c
     pristine_git_object: e90603c9526c6d2ffbe60436dae40e6989cd43ed
   docs/models/components/customercredits.md: {}
+  docs/models/components/customercreditsautorechargeentity.md: {}
+  docs/models/components/customercreditsautorechargeentityobject.md: {}
+  docs/models/components/customercreditsconsumptionentity.md: {}
+  docs/models/components/customercreditsconsumptionentityobject.md: {}
   docs/models/components/customercreditserrordetaildto.md: {}
   docs/models/components/customercreditserrordetaildtotype.md: {}
   docs/models/components/customercreditsexhaustionentity.md: {}
+  docs/models/components/customercreditsgrantentity.md: {}
+  docs/models/components/customercreditsgrantentityobject.md: {}
   docs/models/components/customerentity.md:
     id: 2e9b74ad0ca6
     pristine_git_object: e22cc8d2ac887e6af76d92b025abf0a6e7f936d7
@@ -151,6 +160,7 @@ trackedFiles:
     id: e531da73e7f9
     pristine_git_object: a4031a40e5d35d9aa03fbff408c4b58ca123ffdd
   docs/models/components/decision.md: {}
+  docs/models/components/details.md: {}
   docs/models/components/discount.md:
     id: 902ead98a895
     pristine_git_object: dcdafadaa2a9290fc163bffe5513958f8d075bae
@@ -175,6 +185,12 @@ trackedFiles:
     pristine_git_object: f60f2dcf49c631efa5aa780eaf2b47a80e6b908e
   docs/models/components/featurefileentity.md: {}
   docs/models/components/filet.md: {}
+  docs/models/components/filterclauseapirequestdto.md: {}
+  docs/models/components/filterclauseapiresponsedto.md: {}
+  docs/models/components/filterclauseapiresponsedtovalue.md: {}
+  docs/models/components/ingestusageeventapirequestdto.md: {}
+  docs/models/components/ingestusageeventsapirequestdto.md: {}
+  docs/models/components/ingestusageeventsapiresponsedto.md: {}
   docs/models/components/instance.md:
     id: 258cabab5b86
     pristine_git_object: 056846e8c98e3dc4bd67c7e694e9c7fe5e5f0755
@@ -190,6 +206,17 @@ trackedFiles:
   docs/models/components/licensekey.md: {}
   docs/models/components/licenselistentity.md: {}
   docs/models/components/licensestatus.md: {}
+  docs/models/components/metadata.md: {}
+  docs/models/components/meterapiresponsedto.md: {}
+  docs/models/components/meterapiresponsedtoaggregation.md: {}
+  docs/models/components/meterapiresponsedtostatus.md: {}
+  docs/models/components/meterconsumedunitsapiresponsedto.md: {}
+  docs/models/components/meterfilterapirequestdto.md: {}
+  docs/models/components/meterfilterapiresponsedto.md: {}
+  docs/models/components/meterfilterapiresponsedtoconjunction.md: {}
+  docs/models/components/meterlistapiresponsedto.md: {}
+  docs/models/components/meterpreviewapiresponsedto.md: {}
+  docs/models/components/meterpreviewdailyapiresponsedto.md: {}
   docs/models/components/mode.md:
     id: ecad6afdf106
     pristine_git_object: 475730b068d9ee60fb0e41666dc07b833e965cd4
@@ -197,6 +224,7 @@ trackedFiles:
   docs/models/components/onexecute.md:
     id: ea2374b1a0da
     pristine_git_object: bc42d77227211b22835ceba9a38bed88fc096553
+  docs/models/components/operator.md: {}
   docs/models/components/order.md: {}
   docs/models/components/orderentity.md:
     id: 5af33ed8aff2
@@ -207,6 +235,8 @@ trackedFiles:
   docs/models/components/paginationentity.md:
     id: 9473e5fff17d
     pristine_git_object: 111a8b029c00eba4f26c5b660d8cdd43e2fdac36
+  docs/models/components/previewmeterapirequestdto.md: {}
+  docs/models/components/previewmeterapirequestdtoaggregation.md: {}
   docs/models/components/product.md:
     id: ba34ccd38ab6
     pristine_git_object: 709453d1ecb4d6a24bffc77ced210daf47d8b709
@@ -231,6 +261,7 @@ trackedFiles:
   docs/models/components/productrequestbillingtype.md: {}
   docs/models/components/productrequestrecurringinterval.md: {}
   docs/models/components/productstatus.md: {}
+  docs/models/components/properties.md: {}
   docs/models/components/recipienttype.md: {}
   docs/models/components/refundentity.md: {}
   docs/models/components/refundentitycustomer.md: {}
@@ -287,6 +318,8 @@ trackedFiles:
     id: 2bbf9ee35707
     pristine_git_object: 13e4d6b4004b5c7b69287e17d07375883709d365
   docs/models/components/updatecustomerrequestentity.md: {}
+  docs/models/components/updatemeterapirequestdto.md: {}
+  docs/models/components/updatemeterapirequestdtoaggregation.md: {}
   docs/models/components/updateproductrequestentity.md: {}
   docs/models/components/updatesubscriptionrequestentity.md:
     id: a9203ebb8593
@@ -301,10 +334,23 @@ trackedFiles:
     id: 9a6b940566f5
     pristine_git_object: b53daec6082bfb6c07ace88d7d0209da53cc90d8
   docs/models/components/usageentity.md: {}
+  docs/models/components/usageeventapiresponsedto.md: {}
+  docs/models/components/usageeventapiresponsedtometadata.md: {}
+  docs/models/components/usageeventapiresponsedtoproperties.md: {}
+  docs/models/components/usageeventlistapiresponsedto.md: {}
+  docs/models/components/usagemeteringerrordetailapidto.md: {}
+  docs/models/components/usagemeteringerrordetailapidtotype.md: {}
   docs/models/components/validatelicenserequestentity.md:
     id: f26067c83d89
     pristine_git_object: dc04743be5b60d9ec782327ae8488a79bbcb2257
+  docs/models/components/value.md: {}
   docs/models/components/webhookcheckoutcompletedevententity.md: {}
+  docs/models/components/webhookcreditsautorechargedevententity.md: {}
+  docs/models/components/webhookcreditsautorechargedevententityeventtype.md: {}
+  docs/models/components/webhookcreditsconsumedevententity.md: {}
+  docs/models/components/webhookcreditsconsumedevententityeventtype.md: {}
+  docs/models/components/webhookcreditsgrantedevententity.md: {}
+  docs/models/components/webhookcreditsgrantedevententityeventtype.md: {}
   docs/models/components/webhookcustomercreditsexhaustedevententity.md: {}
   docs/models/components/webhookcustomercreditsexhaustedevententityeventtype.md: {}
   docs/models/components/webhookdisputecreatedevententity.md: {}
@@ -337,6 +383,8 @@ trackedFiles:
   docs/models/components/webhooksubscriptionupdateevententity.md: {}
   docs/models/components/webhooksubscriptionupdateevententityeventtype.md: {}
   docs/models/errors/customercreditserrorresponsedto.md: {}
+  docs/models/errors/usagemeteringerrorapiresponsedto.md: {}
+  docs/models/operations/archivemeterrequest.md: {}
   docs/models/operations/archiveproductrequest.md: {}
   docs/models/operations/cancelsubscriptionrequest.md:
     id: 838f185094b0
@@ -353,6 +401,8 @@ trackedFiles:
   docs/models/operations/freezecustomercreditsaccountrequest.md: {}
   docs/models/operations/getcustomercreditsaccountbalancerequest.md: {}
   docs/models/operations/getcustomercreditsaccountrequest.md: {}
+  docs/models/operations/getmeterconsumedunitsrequest.md: {}
+  docs/models/operations/getmeterrequest.md: {}
   docs/models/operations/getmetricssummaryrequest.md: {}
   docs/models/operations/getproductrequest.md: {}
   docs/models/operations/gettransactionbyidrequest.md:
@@ -378,11 +428,16 @@ trackedFiles:
   docs/models/operations/listcustomersubscriptionsrequest.md: {}
   docs/models/operations/listlicenseinstancesrequest.md: {}
   docs/models/operations/listlicenseinstancesresponse.md: {}
+  docs/models/operations/listmetersrequest.md: {}
+  docs/models/operations/listmetersresponse.md: {}
   docs/models/operations/listsplitsrequest.md: {}
   docs/models/operations/listsplitsresponse.md: {}
+  docs/models/operations/listusageeventsrequest.md: {}
+  docs/models/operations/listusageeventsresponse.md: {}
   docs/models/operations/pausesubscriptionrequest.md:
     id: 13bd0ce6ef15
     pristine_git_object: 63eed0f107e278a6b36b89fde63be52336ef6a6c
+  docs/models/operations/previewexistingmeterrequest.md: {}
   docs/models/operations/resumesubscriptionrequest.md:
     id: 4fd3f138a941
     pristine_git_object: 1e1b6c3fdd9c300afce5e2c177fc1d7abb4d9420
@@ -415,7 +470,9 @@ trackedFiles:
   docs/models/operations/searchtransactionsresponse.md: {}
   docs/models/operations/status.md: {}
   docs/models/operations/type.md: {}
+  docs/models/operations/unarchivemeterrequest.md: {}
   docs/models/operations/unfreezecustomercreditsaccountrequest.md: {}
+  docs/models/operations/updatemeterrequest.md: {}
   docs/models/operations/updateproductrequest.md: {}
   docs/models/operations/updatesubscriptionrequest.md:
     id: ce583ff5488a
@@ -434,9 +491,11 @@ trackedFiles:
   docs/sdks/discounts/README.md:
     id: "000723261694"
     pristine_git_object: 0b3a5d36f6dbb5983f831f147ecfeff80c1049d4
+  docs/sdks/events/README.md: {}
   docs/sdks/licenses/README.md:
     id: 28ca188b6148
     pristine_git_object: 0940a9ab10fc7952917543409c21d0c319d2c9ab
+  docs/sdks/meters/README.md: {}
   docs/sdks/moderation/README.md: {}
   docs/sdks/products/README.md:
     id: af06255e12ab
@@ -501,10 +560,21 @@ trackedFiles:
   src/funcs/discountsDelete.ts: {}
   src/funcs/discountsGet.ts: {}
   src/funcs/discountsSearch.ts: {}
+  src/funcs/eventsIngestEvents.ts: {}
+  src/funcs/eventsListEvents.ts: {}
   src/funcs/licensesActivate.ts: {}
   src/funcs/licensesDeactivate.ts: {}
   src/funcs/licensesListInstances.ts: {}
   src/funcs/licensesValidate.ts: {}
+  src/funcs/metersArchiveMeter.ts: {}
+  src/funcs/metersCreateMeter.ts: {}
+  src/funcs/metersGetConsumedUnits.ts: {}
+  src/funcs/metersGetMeter.ts: {}
+  src/funcs/metersListMeters.ts: {}
+  src/funcs/metersPreviewExistingMeter.ts: {}
+  src/funcs/metersPreviewMeter.ts: {}
+  src/funcs/metersUnarchiveMeter.ts: {}
+  src/funcs/metersUpdateMeter.ts: {}
   src/funcs/moderationScreenPrompt.ts: {}
   src/funcs/productsArchive.ts: {}
   src/funcs/productsCreate.ts: {}
@@ -649,10 +719,21 @@ trackedFiles:
   src/mcp-server/tools/discountsDelete.ts: {}
   src/mcp-server/tools/discountsGet.ts: {}
   src/mcp-server/tools/discountsSearch.ts: {}
+  src/mcp-server/tools/eventsIngestEvents.ts: {}
+  src/mcp-server/tools/eventsListEvents.ts: {}
   src/mcp-server/tools/licensesActivate.ts: {}
   src/mcp-server/tools/licensesDeactivate.ts: {}
   src/mcp-server/tools/licensesListInstances.ts: {}
   src/mcp-server/tools/licensesValidate.ts: {}
+  src/mcp-server/tools/metersArchiveMeter.ts: {}
+  src/mcp-server/tools/metersCreateMeter.ts: {}
+  src/mcp-server/tools/metersGetConsumedUnits.ts: {}
+  src/mcp-server/tools/metersGetMeter.ts: {}
+  src/mcp-server/tools/metersListMeters.ts: {}
+  src/mcp-server/tools/metersPreviewExistingMeter.ts: {}
+  src/mcp-server/tools/metersPreviewMeter.ts: {}
+  src/mcp-server/tools/metersUnarchiveMeter.ts: {}
+  src/mcp-server/tools/metersUpdateMeter.ts: {}
   src/mcp-server/tools/moderationScreenPrompt.ts: {}
   src/mcp-server/tools/productsArchive.ts: {}
   src/mcp-server/tools/productsCreate.ts: {}
@@ -707,6 +788,7 @@ trackedFiles:
   src/models/components/creatediscountrequestentity.ts:
     id: 0f4006ef7d1c
     pristine_git_object: 8ca5ea4adb2ad2285208dd928407c9e239973448
+  src/models/components/createmeterapirequestdto.ts: {}
   src/models/components/createproductrequestentity.ts:
     id: 81f983fd0163
     pristine_git_object: f903f420dbbf910473c8620607273dba93f0f14e
@@ -714,8 +796,11 @@ trackedFiles:
   src/models/components/createsplitrecipientrequestentity.ts: {}
   src/models/components/createsplitrequestentity.ts: {}
   src/models/components/creditdebitrequestdto.ts: {}
+  src/models/components/customercreditsautorechargeentity.ts: {}
+  src/models/components/customercreditsconsumptionentity.ts: {}
   src/models/components/customercreditserrordetaildto.ts: {}
   src/models/components/customercreditsexhaustionentity.ts: {}
+  src/models/components/customercreditsgrantentity.ts: {}
   src/models/components/customerentity.ts:
     id: 1a7de3219dab
     pristine_git_object: ad6b862892f24506ae9876896a336d38f6ac84b8
@@ -752,9 +837,14 @@ trackedFiles:
     id: d75feb757483
     pristine_git_object: cb273d5ae1c7c68799125dfcdc336eb70b2053ff
   src/models/components/featurefileentity.ts: {}
+  src/models/components/filterclauseapirequestdto.ts: {}
+  src/models/components/filterclauseapiresponsedto.ts: {}
   src/models/components/index.ts:
     id: 0aa842dce54d
     pristine_git_object: 1087c422faa5594a8ec19160f7299d1afeeee9a4
+  src/models/components/ingestusageeventapirequestdto.ts: {}
+  src/models/components/ingestusageeventsapirequestdto.ts: {}
+  src/models/components/ingestusageeventsapiresponsedto.ts: {}
   src/models/components/licenseentity.ts:
     id: 233af4f00429
     pristine_git_object: 3feea4852df433f51d8095c2e9c1c761c7fd1d44
@@ -762,6 +852,13 @@ trackedFiles:
   src/models/components/licenseinstancelistentity.ts: {}
   src/models/components/licenselistentity.ts: {}
   src/models/components/licensestatus.ts: {}
+  src/models/components/meterapiresponsedto.ts: {}
+  src/models/components/meterconsumedunitsapiresponsedto.ts: {}
+  src/models/components/meterfilterapirequestdto.ts: {}
+  src/models/components/meterfilterapiresponsedto.ts: {}
+  src/models/components/meterlistapiresponsedto.ts: {}
+  src/models/components/meterpreviewapiresponsedto.ts: {}
+  src/models/components/meterpreviewdailyapiresponsedto.ts: {}
   src/models/components/orderentity.ts:
     id: 187f5a873311
     pristine_git_object: 83d46e9dc801524ad49ae89e5ca165df76ad9ad2
@@ -771,6 +868,7 @@ trackedFiles:
   src/models/components/paginationentity.ts:
     id: 32290e390954
     pristine_git_object: b7da6165b41637f02a25636cb6be6fc4e7da6e2d
+  src/models/components/previewmeterapirequestdto.ts: {}
   src/models/components/productbillingperiod.ts: {}
   src/models/components/productbillingtype.ts: {}
   src/models/components/productcurrency.ts: {}
@@ -824,6 +922,7 @@ trackedFiles:
   src/models/components/transactionstatus.ts: {}
   src/models/components/transactiontype.ts: {}
   src/models/components/updatecustomerrequestentity.ts: {}
+  src/models/components/updatemeterapirequestdto.ts: {}
   src/models/components/updateproductrequestentity.ts: {}
   src/models/components/updatesubscriptionrequestentity.ts:
     id: 07c0be17653a
@@ -835,10 +934,16 @@ trackedFiles:
     id: 7f25875973d8
     pristine_git_object: 5be559269e682ca7f96f76a88a0a30034d89bedc
   src/models/components/usageentity.ts: {}
+  src/models/components/usageeventapiresponsedto.ts: {}
+  src/models/components/usageeventlistapiresponsedto.ts: {}
+  src/models/components/usagemeteringerrordetailapidto.ts: {}
   src/models/components/validatelicenserequestentity.ts:
     id: c74671333029
     pristine_git_object: e88eb827ee9d67491476047fc3e64e147de5cabf
   src/models/components/webhookcheckoutcompletedevententity.ts: {}
+  src/models/components/webhookcreditsautorechargedevententity.ts: {}
+  src/models/components/webhookcreditsconsumedevententity.ts: {}
+  src/models/components/webhookcreditsgrantedevententity.ts: {}
   src/models/components/webhookcustomercreditsexhaustedevententity.ts: {}
   src/models/components/webhookdisputecreatedevententity.ts: {}
   src/models/components/webhookevententity.ts: {}
@@ -873,6 +978,8 @@ trackedFiles:
   src/models/errors/sdkvalidationerror.ts:
     id: fb6b2b49c445
     pristine_git_object: 6826e1208a5d7b7d310535d18909646522bf0fbd
+  src/models/errors/usagemeteringerrorapiresponsedto.ts: {}
+  src/models/operations/archivemeter.ts: {}
   src/models/operations/archiveproduct.ts: {}
   src/models/operations/cancelsubscription.ts:
     id: 69393943824c
@@ -888,6 +995,8 @@ trackedFiles:
   src/models/operations/freezecustomercreditsaccount.ts: {}
   src/models/operations/getcustomercreditsaccount.ts: {}
   src/models/operations/getcustomercreditsaccountbalance.ts: {}
+  src/models/operations/getmeter.ts: {}
+  src/models/operations/getmeterconsumedunits.ts: {}
   src/models/operations/getmetricssummary.ts: {}
   src/models/operations/getproduct.ts: {}
   src/models/operations/gettransactionbyid.ts:
@@ -908,10 +1017,13 @@ trackedFiles:
     pristine_git_object: a171343908626c6c0eee4bdec87a2c1ad3d1f84f
   src/models/operations/listcustomersubscriptions.ts: {}
   src/models/operations/listlicenseinstances.ts: {}
+  src/models/operations/listmeters.ts: {}
   src/models/operations/listsplits.ts: {}
+  src/models/operations/listusageevents.ts: {}
   src/models/operations/pausesubscription.ts:
     id: 1871e521cda7
     pristine_git_object: b93939a0edf1833aab660ec16f5e7fb3f83a375a
+  src/models/operations/previewexistingmeter.ts: {}
   src/models/operations/resumesubscription.ts:
     id: fc2ed54145d3
     pristine_git_object: 68570c31ad240c6bda3f597935ba79211f6eb9ab
@@ -938,7 +1050,9 @@ trackedFiles:
   src/models/operations/searchtransactions.ts:
     id: 9e0cf81e2211
     pristine_git_object: c39a211d0e695e931d94d04b939463953b2e163e
+  src/models/operations/unarchivemeter.ts: {}
   src/models/operations/unfreezecustomercreditsaccount.ts: {}
+  src/models/operations/updatemeter.ts: {}
   src/models/operations/updateproduct.ts: {}
   src/models/operations/updatesubscription.ts:
     id: 056dbed5624c
@@ -957,12 +1071,14 @@ trackedFiles:
   src/sdk/discounts.ts:
     id: 413e4d5bc639
     pristine_git_object: bee6ede9e1cb2acbcb14f6ce7790dce6d3269d3d
+  src/sdk/events.ts: {}
   src/sdk/index.ts:
     id: a857902a703f
     pristine_git_object: ecac2264817bb369ff2dbf0f0e9029807e67ff77
   src/sdk/licenses.ts:
     id: ea9e33a052fc
     pristine_git_object: 50db819386729343ddc4aa91f6f85fb82abbce81
+  src/sdk/meters.ts: {}
   src/sdk/moderation.ts: {}
   src/sdk/products.ts:
     id: b199702e5352
@@ -1217,6 +1333,16 @@ examples:
       responses:
         "200":
           application/json: {"id": "<id>", "mode": "sandbox", "object": "{}", "product_id": "prod_abc123", "status": "active", "key": "ABC123-XYZ456-XYZ456-XYZ456", "activation": 5, "activation_limit": 1, "expires_at": "2023-09-13T00:00:00Z", "created_at": "2023-09-13T00:00:00Z", "instance": {"id": "<id>", "mode": "test", "object": "license-instance", "name": "My Customer License Instance", "status": "active", "created_at": "2023-09-13T00:00:00Z"}}
+  archiveMeter:
+    speakeasy-default-archive-meter:
+      parameters:
+        path:
+          id: "<id>"
+      responses:
+        "200":
+          application/json: {"id": "mtr_abc123", "store_id": "sto_abc123", "name": "Image generations", "event_name": "image.generated", "aggregation": "sum", "aggregation_property": "tokens", "filter": {"conjunction": "and", "clauses": [{"property": "tier", "operator": "equals", "value": "pro"}]}, "unit_label": "images", "status": "active", "created_at": "1725305289929", "updated_at": "1735606594468"}
+        "409":
+          application/json: {"error": {"type": "invalid_request_error", "code": "meter_name_taken", "message": "A meter named \"Image generations\" already exists in this store", "param": "events[3].customer_id", "details": {}, "request_id": "req_abc123def456"}}
   archiveProduct:
     speakeasy-default-archive-product:
       parameters:
@@ -1288,6 +1414,15 @@ examples:
       responses:
         "200":
           application/json: {"id": "<id>", "mode": "prod", "object": "discount", "status": "active", "name": "Holiday Sale", "code": "HOLIDAY2024", "type": "percentage", "amount": 20, "currency": "USD", "percentage": 15, "expiry_date": "2024-12-31T23:59:59Z", "max_redemptions": 100, "duration": "repeating", "duration_in_months": 6, "applies_to_products": ["prod_123", "prod_456"], "redeem_count": 15}
+  createMeter:
+    speakeasy-default-create-meter:
+      requestBody:
+        application/json: {"name": "Image generations", "event_name": "image.generated", "aggregation": "sum", "aggregation_property": "tokens", "filter": {"conjunction": "and", "clauses": [{"property": "tier", "operator": "equals", "value": "pro"}]}, "unit_label": "images"}
+      responses:
+        "201":
+          application/json: {"id": "mtr_abc123", "store_id": "sto_abc123", "name": "Image generations", "event_name": "image.generated", "aggregation": "sum", "aggregation_property": "tokens", "filter": {"conjunction": "and", "clauses": []}, "unit_label": "images", "status": "active", "created_at": "1714779145182", "updated_at": "1735649770248"}
+        "409":
+          application/json: {"error": {"type": "invalid_request_error", "code": "meter_name_taken", "message": "A meter named \"Image generations\" already exists in this store", "param": "events[3].customer_id", "details": {}, "request_id": "req_abc123def456"}}
   createPermanentMagicLink:
     speakeasy-default-create-permanent-magic-link:
       requestBody:
@@ -1407,6 +1542,25 @@ examples:
       responses:
         "200":
           application/json: {"balance": "5000"}
+  getMeter:
+    speakeasy-default-get-meter:
+      parameters:
+        path:
+          id: "<id>"
+      responses:
+        "200":
+          application/json: {"id": "mtr_abc123", "store_id": "sto_abc123", "name": "Image generations", "event_name": "image.generated", "aggregation": "sum", "aggregation_property": "tokens", "filter": {"conjunction": "and", "clauses": []}, "unit_label": "images", "status": "active", "created_at": "1711861068750", "updated_at": "1735632267599"}
+  getMeterConsumedUnits:
+    speakeasy-default-get-meter-consumed-units:
+      parameters:
+        path:
+          id: "<id>"
+        query:
+          customer_id: "cust_abc123"
+          at: "2026-08-15T00:00:00.000Z"
+      responses:
+        "200":
+          application/json: {"meter_id": "mtr_abc123", "customer_id": "cust_abc123", "units": "1280", "period_start": "<value>", "period_end": "<value>", "updated_at": "1735642210124"}
   getMetricsSummary:
     speakeasy-default-get-metrics-summary:
       parameters:
@@ -1433,6 +1587,15 @@ examples:
       responses:
         "200":
           application/json: {"id": "<id>", "mode": "test", "object": "transaction", "amount": 2000, "amount_paid": 2000, "discount_amount": 2000, "currency": "USD", "type": "payment", "tax_country": "US", "tax_amount": 2000, "status": "chargedBack", "refunded_amount": 2000, "created_at": 6117.34}
+  ingestUsageEvents:
+    speakeasy-default-ingest-usage-events:
+      requestBody:
+        application/json: {"events": []}
+      responses:
+        "202":
+          application/json: {"accepted": 100, "event_ids": ["order-1", "order-2"]}
+        "422":
+          application/json: {"error": {"type": "invalid_request_error", "code": "meter_name_taken", "message": "A meter named \"Image generations\" already exists in this store", "param": "events[3].customer_id", "details": {}, "request_id": "req_abc123def456"}}
   listAffiliateCommissions:
     speakeasy-default-list-affiliate-commissions:
       parameters:
@@ -1536,6 +1699,17 @@ examples:
       responses:
         "200":
           application/json: {"items": [{"id": "<id>", "mode": "prod", "object": "license-instance", "name": "My Customer License Instance", "status": "active", "created_at": "2023-09-13T00:00:00Z"}], "pagination": {"total_records": 0, "total_pages": 0, "current_page": 1, "next_page": 2, "prev_page": null}}
+  listMeters:
+    speakeasy-default-list-meters:
+      parameters:
+        query:
+          limit: 10
+          starting_after: "mtr_abc123"
+          ending_before: "mtr_abc123"
+          include_archived: false
+      responses:
+        "200":
+          application/json: {"object": "list", "data": [], "has_more": true}
   listSplits:
     speakeasy-default-list-splits:
       parameters:
@@ -1545,6 +1719,18 @@ examples:
       responses:
         "200":
           application/json: {"items": [], "pagination": {"total_records": 0, "total_pages": 0, "current_page": 1, "next_page": 2, "prev_page": null}}
+  listUsageEvents:
+    speakeasy-default-list-usage-events:
+      parameters:
+        query:
+          meter_id: "mtr_abc123"
+          customer_id: "cust_abc123"
+          reference: "order-1234"
+          limit: 10
+          starting_after: "uev_abc123"
+      responses:
+        "200":
+          application/json: {"object": "list", "data": [{"id": "uev_abc123", "customer_id": "cust_abc123", "event_id": "order-1234", "name": "image.generated", "properties": {}, "metadata": {}, "timestamp": "<value>", "created_at": "1705136447437"}], "has_more": true}
   logout: {}
   pauseSubscription:
     speakeasy-default-pause-subscription:
@@ -1556,6 +1742,23 @@ examples:
       responses:
         "200":
           application/json: {"id": "<id>", "mode": "prod", "object": "subscription", "product": "{\"id\":\"<id>\",\"mode\":\"prod\",\"object\":{},\"name\":\"<value>\",\"description\":\"This is a sample product description.\",\"image_url\":\"https://example.com/image.jpg\",\"features\":[{\"id\":\"<id>\",\"type\":\"file\",\"description\":\"Get access to discord server.\"}],\"price\":400,\"currency\":\"USD\",\"billing_type\":\"one-time\",\"billing_period\":\"every-six-months\",\"status\":\"active\",\"tax_mode\":\"exclusive\",\"tax_category\":\"ebooks\",\"product_url\":\"https://creem.io/product/prod_123123123123\",\"default_success_url\":\"https://example.com/?status=successful\",\"created_at\":\"2023-01-01T00:00:00Z\",\"updated_at\":\"2023-01-01T00:00:00Z\"}", "customer": "{\"id\":\"<id>\",\"mode\":\"test\",\"object\":\"{}\",\"email\":\"user@example.com\",\"name\":\"John Doe\",\"country\":\"US\",\"created_at\":\"2023-01-01T00:00:00Z\",\"updated_at\":\"2023-01-01T00:00:00Z\"}", "collection_method": "charge_automatically", "status": "active", "last_transaction_id": "tran_3e6Z6TzvHKdsjEgXnGDEp0", "last_transaction": {"id": "<id>", "mode": "sandbox", "object": "transaction", "amount": 2000, "amount_paid": 2000, "discount_amount": 2000, "currency": "USD", "type": "invoice", "tax_country": "US", "tax_amount": 2000, "status": "refunded", "refunded_amount": 2000, "created_at": 8744.24}, "last_transaction_date": "2024-09-12T12:34:56Z", "next_transaction_date": "2024-09-12T12:34:56Z", "current_period_start_date": "2024-09-12T12:34:56Z", "current_period_end_date": "2024-09-12T12:34:56Z", "canceled_at": "2024-09-12T12:34:56Z", "created_at": "2024-01-01T00:00:00Z", "updated_at": "2024-09-12T12:34:56Z", "discount": {"id": "dis_3e6Z6TzvHKdsjEgXnGDEp0", "discountCode": "HOLIDAY2024"}, "metadata": {"userId": "user_123", "plan": "pro"}}
+  previewExistingMeter:
+    speakeasy-default-preview-existing-meter:
+      parameters:
+        path:
+          id: "<id>"
+      responses:
+        "200":
+          application/json: {"matched_events": 137, "units": "4820", "distinct_customers": 12, "daily": [{"date": "2026-08-16", "event_count": 42, "value": "1280"}]}
+  previewMeter:
+    speakeasy-default-preview-meter:
+      requestBody:
+        application/json: {"event_name": "image.generated", "aggregation": "count", "aggregation_property": "tokens", "filter": {"conjunction": "and", "clauses": [{"property": "tier", "operator": "equals", "value": "pro"}]}, "unit_label": "images"}
+      responses:
+        "200":
+          application/json: {"matched_events": 137, "units": "4820", "distinct_customers": 12, "daily": []}
+        "422":
+          application/json: {"error": {"type": "invalid_request_error", "code": "meter_name_taken", "message": "A meter named \"Image generations\" already exists in this store", "param": "events[3].customer_id", "details": {}, "request_id": "req_abc123def456"}}
   refreshToken: {}
   refundPayment:
     speakeasy-default-refund-payment:
@@ -1710,6 +1913,14 @@ examples:
         "200":
           application/json: {"items": [], "pagination": {"total_records": 0, "total_pages": 0, "current_page": 1, "next_page": 2, "prev_page": null}}
   signInWithGoogle: {}
+  unarchiveMeter:
+    speakeasy-default-unarchive-meter:
+      parameters:
+        path:
+          id: "<id>"
+      responses:
+        "200":
+          application/json: {"id": "mtr_abc123", "store_id": "sto_abc123", "name": "Image generations", "event_name": "image.generated", "aggregation": "sum", "aggregation_property": "tokens", "filter": {"conjunction": "and", "clauses": []}, "unit_label": "images", "status": "active", "created_at": "1723511615305", "updated_at": "1735643252126"}
   unfreezeCustomerCreditsAccount:
     speakeasy-default-unfreeze-customer-credits-account:
       parameters:
@@ -1727,6 +1938,18 @@ examples:
       responses:
         "200":
           application/json: {"id": "<id>", "mode": "test", "object": "<value>", "email": "user@example.com", "name": "John Doe", "metadata": {}, "country": "US", "created_at": "2023-01-01T00:00:00Z", "updated_at": "2023-01-01T00:00:00Z"}
+  updateMeter:
+    speakeasy-default-update-meter:
+      parameters:
+        path:
+          id: "<id>"
+      requestBody:
+        application/json: {"name": "Image generations (v2)", "aggregation": "sum", "aggregation_property": "tokens", "filter": {"conjunction": "and", "clauses": [{"property": "tier", "operator": "equals", "value": "pro"}]}}
+      responses:
+        "200":
+          application/json: {"id": "mtr_abc123", "store_id": "sto_abc123", "name": "Image generations", "event_name": "image.generated", "aggregation": "sum", "aggregation_property": "tokens", "filter": {"conjunction": "and", "clauses": [{"property": "tier", "operator": "equals", "value": "pro"}]}, "unit_label": "images", "status": "active", "created_at": "1716451804003", "updated_at": "1735686529503"}
+        "409":
+          application/json: {"error": {"type": "invalid_request_error", "code": "meter_name_taken", "message": "A meter named \"Image generations\" already exists in this store", "param": "events[3].customer_id", "details": {}, "request_id": "req_abc123def456"}}
   updateProduct:
     speakeasy-default-update-product:
       parameters:

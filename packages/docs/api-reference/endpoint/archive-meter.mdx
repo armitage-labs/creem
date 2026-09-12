@@ -1,0 +1,5 @@
+---
+title: 'Archive a meter'
+description: 'Archive a meter: it leaves the default listing and stops accruing new usage, but is never deleted, so the usage it already recorded stays meaningful. Idempotent — archiving an archived meter returns it unchanged.'
+openapi: post /v1/meters/{id}/archive
+---

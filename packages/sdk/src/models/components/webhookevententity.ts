@@ -13,6 +13,24 @@ import {
   WebhookCheckoutCompletedEventEntity$outboundSchema,
 } from "./webhookcheckoutcompletedevententity.js";
 import {
+  WebhookCreditsAutoRechargedEventEntity,
+  WebhookCreditsAutoRechargedEventEntity$inboundSchema,
+  WebhookCreditsAutoRechargedEventEntity$Outbound,
+  WebhookCreditsAutoRechargedEventEntity$outboundSchema,
+} from "./webhookcreditsautorechargedevententity.js";
+import {
+  WebhookCreditsConsumedEventEntity,
+  WebhookCreditsConsumedEventEntity$inboundSchema,
+  WebhookCreditsConsumedEventEntity$Outbound,
+  WebhookCreditsConsumedEventEntity$outboundSchema,
+} from "./webhookcreditsconsumedevententity.js";
+import {
+  WebhookCreditsGrantedEventEntity,
+  WebhookCreditsGrantedEventEntity$inboundSchema,
+  WebhookCreditsGrantedEventEntity$Outbound,
+  WebhookCreditsGrantedEventEntity$outboundSchema,
+} from "./webhookcreditsgrantedevententity.js";
+import {
   WebhookCustomerCreditsExhaustedEventEntity,
   WebhookCustomerCreditsExhaustedEventEntity$inboundSchema,
   WebhookCustomerCreditsExhaustedEventEntity$Outbound,
@@ -101,6 +119,11 @@ export type WebhookEventEntity =
   | (WebhookCustomerCreditsExhaustedEventEntity & {
     eventType: "customer_credits.exhausted";
   })
+  | (WebhookCreditsGrantedEventEntity & { eventType: "credits.granted" })
+  | (WebhookCreditsConsumedEventEntity & { eventType: "credits.consumed" })
+  | (WebhookCreditsAutoRechargedEventEntity & {
+    eventType: "credits.auto_recharged";
+  })
   | (WebhookSubscriptionActiveEventEntity & {
     eventType: "subscription.active";
   })
@@ -148,6 +171,15 @@ export const WebhookEventEntity$inboundSchema: z.ZodType<
   WebhookCustomerCreditsExhaustedEventEntity$inboundSchema.and(
     z.object({ eventType: z.literal("customer_credits.exhausted") }),
   ),
+  WebhookCreditsGrantedEventEntity$inboundSchema.and(
+    z.object({ eventType: z.literal("credits.granted") }),
+  ),
+  WebhookCreditsConsumedEventEntity$inboundSchema.and(
+    z.object({ eventType: z.literal("credits.consumed") }),
+  ),
+  WebhookCreditsAutoRechargedEventEntity$inboundSchema.and(
+    z.object({ eventType: z.literal("credits.auto_recharged") }),
+  ),
   WebhookSubscriptionActiveEventEntity$inboundSchema.and(
     z.object({ eventType: z.literal("subscription.active") }),
   ),
@@ -190,6 +222,15 @@ export type WebhookEventEntity$Outbound =
   })
   | (WebhookCustomerCreditsExhaustedEventEntity$Outbound & {
     eventType: "customer_credits.exhausted";
+  })
+  | (WebhookCreditsGrantedEventEntity$Outbound & {
+    eventType: "credits.granted";
+  })
+  | (WebhookCreditsConsumedEventEntity$Outbound & {
+    eventType: "credits.consumed";
+  })
+  | (WebhookCreditsAutoRechargedEventEntity$Outbound & {
+    eventType: "credits.auto_recharged";
   })
   | (WebhookSubscriptionActiveEventEntity$Outbound & {
     eventType: "subscription.active";
@@ -239,6 +280,15 @@ export const WebhookEventEntity$outboundSchema: z.ZodType<
   ),
   WebhookCustomerCreditsExhaustedEventEntity$outboundSchema.and(
     z.object({ eventType: z.literal("customer_credits.exhausted") }),
+  ),
+  WebhookCreditsGrantedEventEntity$outboundSchema.and(
+    z.object({ eventType: z.literal("credits.granted") }),
+  ),
+  WebhookCreditsConsumedEventEntity$outboundSchema.and(
+    z.object({ eventType: z.literal("credits.consumed") }),
+  ),
+  WebhookCreditsAutoRechargedEventEntity$outboundSchema.and(
+    z.object({ eventType: z.literal("credits.auto_recharged") }),
   ),
   WebhookSubscriptionActiveEventEntity$outboundSchema.and(
     z.object({ eventType: z.literal("subscription.active") }),

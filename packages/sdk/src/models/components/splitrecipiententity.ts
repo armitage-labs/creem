@@ -39,14 +39,15 @@ export type SplitRecipientEntityRecipientType = ClosedEnum<
 >;
 
 /**
- * Invite lifecycle for email-type recipients that have not been accepted yet: `pending` (awaiting acceptance) or `declined`. Absent for resolved store/user recipients.
+ * Invite lifecycle for email-type recipients that have not been accepted yet: `pending` (awaiting acceptance), `declined` (recipient declined) or `revoked` (merchant cancelled). Absent for resolved store/user recipients.
  */
 export const InviteStatus = {
   Pending: "pending",
   Declined: "declined",
+  Revoked: "revoked",
 } as const;
 /**
- * Invite lifecycle for email-type recipients that have not been accepted yet: `pending` (awaiting acceptance) or `declined`. Absent for resolved store/user recipients.
+ * Invite lifecycle for email-type recipients that have not been accepted yet: `pending` (awaiting acceptance), `declined` (recipient declined) or `revoked` (merchant cancelled). Absent for resolved store/user recipients.
  */
 export type InviteStatus = ClosedEnum<typeof InviteStatus>;
 
@@ -72,7 +73,7 @@ export type SplitRecipientEntity = {
    */
   enabled: boolean;
   /**
-   * Invite lifecycle for email-type recipients that have not been accepted yet: `pending` (awaiting acceptance) or `declined`. Absent for resolved store/user recipients.
+   * Invite lifecycle for email-type recipients that have not been accepted yet: `pending` (awaiting acceptance), `declined` (recipient declined) or `revoked` (merchant cancelled). Absent for resolved store/user recipients.
    */
   inviteStatus?: InviteStatus | null | undefined;
 };

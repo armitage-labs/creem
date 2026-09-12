@@ -78,7 +78,7 @@ yarn add creem
 This SDK is also an installable MCP server where the various SDK methods are
 exposed as tools that can be invoked by AI applications.
 
-> Node.js v22 or greater is required to run the MCP server from npm.
+> Node.js v20 or greater is required to run the MCP server from npm.
 
 <details>
 <summary>Claude installation steps</summary>
@@ -271,12 +271,29 @@ run();
 * [create](docs/sdks/discounts/README.md#create) - Create a discount.
 * [delete](docs/sdks/discounts/README.md#delete) - Delete a discount.
 
+### [Events](docs/sdks/events/README.md)
+
+* [ingestEvents](docs/sdks/events/README.md#ingestevents) - Ingest usage events
+* [listEvents](docs/sdks/events/README.md#listevents) - List usage events
+
 ### [Licenses](docs/sdks/licenses/README.md)
 
 * [activate](docs/sdks/licenses/README.md#activate) - Activates a license key.
 * [deactivate](docs/sdks/licenses/README.md#deactivate) - Deactivate a license key instance.
 * [validate](docs/sdks/licenses/README.md#validate) - Validates a license key or instance.
 * [listInstances](docs/sdks/licenses/README.md#listinstances) - List license instances.
+
+### [Meters](docs/sdks/meters/README.md)
+
+* [createMeter](docs/sdks/meters/README.md#createmeter) - Create a meter
+* [listMeters](docs/sdks/meters/README.md#listmeters) - List meters
+* [previewMeter](docs/sdks/meters/README.md#previewmeter) - Preview an unsaved meter definition
+* [getMeter](docs/sdks/meters/README.md#getmeter) - Retrieve a meter
+* [updateMeter](docs/sdks/meters/README.md#updatemeter) - Update a meter
+* [previewExistingMeter](docs/sdks/meters/README.md#previewexistingmeter) - Preview an existing meter
+* [getConsumedUnits](docs/sdks/meters/README.md#getconsumedunits) - Get consumed units for a customer
+* [archiveMeter](docs/sdks/meters/README.md#archivemeter) - Archive a meter
+* [unarchiveMeter](docs/sdks/meters/README.md#unarchivemeter) - Unarchive a meter
 
 ### [Moderation](docs/sdks/moderation/README.md)
 
@@ -365,10 +382,21 @@ To read more about standalone functions, check [FUNCTIONS.md](./FUNCTIONS.md).
 - [`discountsDelete`](docs/sdks/discounts/README.md#delete) - Delete a discount.
 - [`discountsGet`](docs/sdks/discounts/README.md#get) - Retrieve discount
 - [`discountsSearch`](docs/sdks/discounts/README.md#search) - Search discounts
+- [`eventsIngestEvents`](docs/sdks/events/README.md#ingestevents) - Ingest usage events
+- [`eventsListEvents`](docs/sdks/events/README.md#listevents) - List usage events
 - [`licensesActivate`](docs/sdks/licenses/README.md#activate) - Activates a license key.
 - [`licensesDeactivate`](docs/sdks/licenses/README.md#deactivate) - Deactivate a license key instance.
 - [`licensesListInstances`](docs/sdks/licenses/README.md#listinstances) - List license instances.
 - [`licensesValidate`](docs/sdks/licenses/README.md#validate) - Validates a license key or instance.
+- [`metersArchiveMeter`](docs/sdks/meters/README.md#archivemeter) - Archive a meter
+- [`metersCreateMeter`](docs/sdks/meters/README.md#createmeter) - Create a meter
+- [`metersGetConsumedUnits`](docs/sdks/meters/README.md#getconsumedunits) - Get consumed units for a customer
+- [`metersGetMeter`](docs/sdks/meters/README.md#getmeter) - Retrieve a meter
+- [`metersListMeters`](docs/sdks/meters/README.md#listmeters) - List meters
+- [`metersPreviewExistingMeter`](docs/sdks/meters/README.md#previewexistingmeter) - Preview an existing meter
+- [`metersPreviewMeter`](docs/sdks/meters/README.md#previewmeter) - Preview an unsaved meter definition
+- [`metersUnarchiveMeter`](docs/sdks/meters/README.md#unarchivemeter) - Unarchive a meter
+- [`metersUpdateMeter`](docs/sdks/meters/README.md#updatemeter) - Update a meter
 - [`moderationScreenPrompt`](docs/sdks/moderation/README.md#screenprompt) - Screen a prompt
 - [`productsArchive`](docs/sdks/products/README.md#archive) - Archive a product
 - [`productsCreate`](docs/sdks/products/README.md#create) - Creates a new product.
@@ -545,7 +573,7 @@ run();
 **Primary error:**
 * [`CreemError`](./src/models/errors/creemerror.ts): The base class for HTTP error responses.
 
-<details><summary>Less common errors (7)</summary>
+<details><summary>Less common errors (8)</summary>
 
 <br />
 
@@ -558,7 +586,8 @@ run();
 
 
 **Inherit from [`CreemError`](./src/models/errors/creemerror.ts)**:
-* [`CustomerCreditsErrorResponseDto`](./src/models/errors/customercreditserrorresponsedto.ts): Status code `409`. Applicable to 5 of 55 methods.*
+* [`CustomerCreditsErrorResponseDto`](./src/models/errors/customercreditserrorresponsedto.ts): Status code `409`. Applicable to 5 of 66 methods.*
+* [`UsageMeteringErrorApiResponseDto`](./src/models/errors/usagemeteringerrorapiresponsedto.ts): Applicable to 5 of 66 methods.*
 * [`ResponseValidationError`](./src/models/errors/responsevalidationerror.ts): Type mismatch between the data returned from the server and the structure expected by the SDK. See `error.rawValue` for the raw value and `error.pretty()` for a nicely formatted multi-line string.
 
 </details>
