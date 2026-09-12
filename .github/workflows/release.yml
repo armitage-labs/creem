@@ -11,6 +11,8 @@ jobs:
   release:
     runs-on: ubuntu-latest
     environment: release
+    outputs:
+      cli-version: ${{ steps.homebrew.outputs.version }}
     permissions:
       contents: write
       packages: write
@@ -56,5 +58,24 @@ jobs:
           commit: "chore: version packages"
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-#          NPM_TOKEN: ${{ secrets.NPM_TOKEN }}
-#          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
+
+      - name: Select the published CLI release
+        id: homebrew
+        if: steps.changesets.outputs.published == 'true'
+        env:
+          PUBLISHED_PACKAGES: ${{ steps.changesets.outputs.publishedPackages }}
+        run: |
+          node --input-type=module <<'JS'
+          import { appendFileSync } from 'node:fs';
+          import { publishedCliVersion } from './scripts/update-homebrew.mjs';
+          const version = publishedCliVersion(process.env.PUBLISHED_PACKAGES);
+          appendFileSync(process.env.GITHUB_OUTPUT, `version=${version}\n`);
+          JS
+
+  homebrew:
+    needs: release
+    if: needs.release.outputs.cli-version != ''
+    uses: ./.github/workflows/homebrew-release.yml
+    with:
+      version: ${{ needs.release.outputs.cli-version }}
+    secrets: inherit

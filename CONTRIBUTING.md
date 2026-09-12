@@ -112,6 +112,23 @@ pnpm changeset
 The release workflow applies Changesets and synchronizes SDK version metadata.
 Keep package versions unchanged in feature PRs.
 
+## Homebrew CLI releases
+
+After Changesets publishes a stable `@creem_io/cli` version, the release workflow
+opens a formula update PR in [the Homebrew tap](https://github.com/armitage-labs/homebrew-creem).
+Other package releases do not trigger it.
+
+If npm published successfully but the tap update failed, retry only the failed
+job or run the standalone workflow with the already-published version:
+
+```sh
+gh workflow run homebrew-release.yml --repo armitage-labs/creem --ref main -f version=0.3.0
+```
+
+Retries reuse an existing open version PR and skip current/newer formulas;
+they do not republish npm. Test the updater with
+`node --test scripts/update-homebrew.test.mjs`.
+
 ## Pull requests
 
 - Keep a pull request focused on one coherent change.
