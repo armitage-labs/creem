@@ -249,77 +249,43 @@ curl -X POST https://api.creem.io/v1/subscriptions/sub_YOUR_SUBSCRIPTION_ID \
 
 When you edit a recurring product's price, the new price applies to **new checkouts only**. Existing subscriptions keep billing at the price they signed up with.
 
-<Warning>
-  The dashboard doesn't ask for confirmation or show a warning when you edit a price, and Creem
-  doesn't notify existing subscribers about price changes. If you plan to move subscribers to a new
-  price, let them know in advance.
-</Warning>
-
 ### Raising Prices for Existing Subscribers
 
-Creem has no built-in flow for moving existing subscribers to a new price. Instead, create a product with the new price, then run a one-off script that:
+Creem has no built-in flow for moving existing subscribers to a new price. Instead, create a product with the new price, using the same currency and billing interval as the current product. Then move each subscription to the new product with the [upgrade subscription endpoint](/api-reference/endpoint/upgrade-subscription).
 
-1. Pages through your subscriptions with the [search subscriptions endpoint](/api-reference/endpoint/search-subscriptions). The endpoint has no product or status filter, so filter the results in your script.
-2. Moves each matching subscription to the new product with the [upgrade subscription endpoint](/api-reference/endpoint/upgrade-subscription).
+<Warning>
+  Creem doesn't notify subscribers when you move them to a new price. Let them know before the
+  change takes effect.
+</Warning>
 
-<Tabs>
-  <Tab title="TypeScript SDK">
-
-```typescript
-import { Creem } from "creem";
-
-const creem = new Creem({
-  apiKey: process.env.CREEM_API_KEY!,
-  server: process.env.NODE_ENV === "production" ? "prod" : "test",
-});
-
-const OLD_PRODUCT_ID = "prod_OLD_PRICE";
-const NEW_PRODUCT_ID = "prod_NEW_PRICE";
-
-// Collect active subscriptions on the old product (100 per page)
-const toMigrate: string[] = [];
-for await (const page of await creem.subscriptions.search(1, 100)) {
-  for (const sub of page.result.items) {
-    const productId = typeof sub.product === "string" ? sub.product : sub.product.id;
-    if (productId === OLD_PRODUCT_ID && sub.status === "active") {
-      toMigrate.push(sub.id);
-    }
-  }
-}
-
-// Move each subscription to the new product
-for (const subscriptionId of toMigrate) {
-  await creem.subscriptions.upgrade(subscriptionId, {
-    productId: NEW_PRODUCT_ID,
-    updateBehavior: "proration-none",
-  });
-}
-```
-
-  </Tab>
-
-  <Tab title="REST API">
+With the [Creem CLI](/code/cli) and `jq`, list the active subscriptions on the current product, review the list, then move them:
 
 ```bash
-# Step 1: Fetch subscriptions page by page (up to 100 per page), then keep
-# the ones whose product.id is the old product and whose status is active
-curl -X GET "https://api.creem.io/v1/subscriptions/search?page_number=1&page_size=100" \
-  -H "x-api-key: YOUR_API_KEY"
+OLD_PRODUCT_ID=prod_OLD_PRICE
+NEW_PRODUCT_ID=prod_NEW_PRICE
 
-# Step 2: Move each matching subscription to the new product
-curl -X POST https://api.creem.io/v1/subscriptions/sub_YOUR_SUBSCRIPTION_ID/upgrade \
-  -H "x-api-key: YOUR_API_KEY" \
-  -H "Content-Type: application/json" \
-  -d '{
-    "product_id": "prod_NEW_PRICE",
-    "update_behavior": "proration-none"
-  }'
+# 1. Save the IDs of active subscriptions on the current product
+creem subscriptions list --status active --json \
+  | jq -r --arg product "$OLD_PRODUCT_ID" '.items[] | select(.product.id == $product) | .id' \
+  > subscriptions-to-migrate.txt
+
+# 2. Move each subscription to the new product
+for SUBSCRIPTION_ID in $(cat subscriptions-to-migrate.txt); do
+  creem subscriptions upgrade "$SUBSCRIPTION_ID" \
+    --product "$NEW_PRODUCT_ID" \
+    --update-behavior proration-none \
+    --yes --json
+done
 ```
 
-  </Tab>
-</Tabs>
+The [search subscriptions endpoint](/api-reference/endpoint/search-subscriptions) has no product or status filter, so `--status` fetches every page and filters on your machine. To do this with the API or SDK instead, page through that endpoint, keep subscriptions whose `product.id` and `status` match, and call the upgrade endpoint for each.
 
 With `proration-none`, customers aren't charged in the middle of their current billing period and pay the new price from their next billing date. See [Update Behavior Options](#update-behavior-options) for the other values.
+
+<Note>
+  The upgrade endpoint only supports subscriptions with a single item, and it can reject
+  subscriptions that have a discount applied. Check the command output for failed upgrades.
+</Note>
 
 ---
 
