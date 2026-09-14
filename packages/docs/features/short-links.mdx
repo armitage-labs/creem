@@ -1,0 +1,178 @@
+---
+title: "Short Links"
+description: "Create branded l.creem.io short links with click analytics and revenue attribution. Group links into campaigns, target visitors by platform or country, protect links with a password, and generate QR codes."
+---
+
+## What are Short Links?
+
+Short Links are branded, trackable URLs on Creem's `l.creem.io` domain. You point a short link at any destination, share it anywhere, and Creem records every click. When a visitor goes on to buy through your Creem checkout, the sale is attributed back to the link that brought them, so you see revenue per link, not just clicks.
+
+```
+https://l.creem.io/your-slug
+```
+
+Short Links live in your dashboard under **Growth** > **Short Links**. Every link belongs to a store, and anyone with access to that store can manage them.
+
+## Key Features
+
+- **Branded short URLs** - Custom or auto-generated slugs on `l.creem.io`
+- **Revenue attribution** - See checkouts, conversion rate, and net revenue per link
+- **Campaigns** - Group related links and measure them side by side
+- **Smart redirects** - Send iOS, Android, or visitors from specific countries to different destinations
+- **Password protection and expiry** - Gate a link or set a date after which it stops working
+- **QR codes** - Download a customizable SVG or PNG QR code for every link
+- **Safe destinations** - Destination URLs are checked against Google Web Risk
+
+## Creating a Link
+
+<Steps>
+  <Step title="Open Short Links">
+    In your dashboard, go to **Growth** > **Short Links** and click **New link**.
+  </Step>
+  <Step title="Choose a destination">
+    Pick one of two modes:
+
+    - **Product** - Select one of your Creem products. The link points at its payment page and revenue attribution is on.
+    - **Link** - Paste any `http` or `https` URL (up to 2048 characters).
+
+    A test-mode product creates a link to your test checkout, so visitors are not charged.
+
+  </Step>
+  <Step title="Name it and pick a slug">
+    Give the link a title for your own reference. Leave the slug blank to auto-generate an 8-character one, or type your own:
+
+    - 3 to 50 characters
+    - Lowercase letters, numbers, and single hyphens between them
+    - Unique across all of Creem, not just your store
+
+    The slug cannot be changed after the link is created.
+
+  </Step>
+  <Step title="Add optional settings">
+    Assign the link to a campaign, add up to 20 tags, set an expiry date, require a password, or configure redirect rules. All of these can be edited later.
+  </Step>
+  <Step title="Save and share">
+    Copy the short URL or download the QR code from the link's detail page.
+  </Step>
+</Steps>
+
+<Tip>
+  Point short links at your Creem checkout or product pages whenever you want revenue numbers. Links
+  to external destinations still track clicks, but no sale can be attributed to them.
+</Tip>
+
+## Link Settings
+
+### Redirect Rules
+
+A single short link can send different visitors to different destinations. Rules are evaluated in this order and the first match wins:
+
+1. **Platform** - A separate URL for iOS and for Android visitors (for example, the App Store and Play Store listings). Desktop visitors skip this step.
+2. **Country** - Up to 25 country rules per link, each an ISO 3166-1 alpha-2 code (`US`, `DE`, `BR`) with its own URL.
+3. **Default** - The link's destination URL.
+
+<Note>
+  Country rules use the visitor's location as seen by Creem's edge network. If a visitor's country
+  cannot be determined, they receive the default destination.
+</Note>
+
+### Password Protection
+
+Turn on password protection to require a password before redirecting. The password is 4 to 128 characters. Visitors land on a Creem-hosted page, enter the password, and continue to the destination. A click is only recorded after the password is entered correctly. Repeated wrong attempts from the same visitor are rate limited.
+
+### Expiry
+
+Set an expiry date and the link stops resolving after it. Visitors who open an expired link see a not-found page. Analytics collected before expiry are kept.
+
+### Tags and Campaigns
+
+Tags are free-form labels for filtering your links list. Campaigns are a stronger grouping: a campaign has its own page listing every link inside it, with clicks and attributed conversions rolled up across all of them. Create campaigns from the **Campaigns** tab, then assign links to them when creating or editing a link.
+
+## QR Codes
+
+Every link has a QR code you can copy or download as SVG or PNG. You can customize the dot style, marker shape, colors, and whether the Creem logo appears in the center.
+
+Because short links are dynamic, a printed QR code keeps working even if you later change the link's destination.
+
+## Analytics
+
+The **Analytics** tab shows performance per link, per campaign, or across a selection of up to 10 links side by side. Pick a range (last 7, 30, or 90 days, last month, or a custom range) and a granularity (hour, day, week, month).
+
+| Metric              | What it means                                                                     |
+| ------------------- | --------------------------------------------------------------------------------- |
+| **Clicks**          | Redirects served, excluding known bots. Repeat hits within 10 seconds count once. |
+| **Unique visitors** | Distinct visitors, based on a fingerprint of IP address and browser               |
+| **Checkouts**       | Checkouts started by visitors attributed to the link                              |
+| **Paid checkouts**  | Checkouts that resulted in a successful payment                                   |
+| **Conversion rate** | Paid checkouts divided by clicks                                                  |
+| **Gross revenue**   | Total paid amount attributed to the link                                          |
+| **Net revenue**     | Gross revenue minus refunds                                                       |
+
+Breakdowns are available by referrer, country, device, and product, and every view can be filtered by country, device, or referrer.
+
+<Info>
+  Revenue is reported per currency and never converted or summed across currencies. A sale is dated
+  by the click that led to it, not by the payment date, so revenue appears in the period the visitor
+  clicked.
+</Info>
+
+### How attribution works
+
+1. When a visitor is redirected, Creem sets a cookie in the visitor's browser that identifies the click. It lasts 30 days.
+2. If that visitor starts a Creem checkout while the cookie is present, the checkout is attributed to the click.
+3. If the cookie is missing, Creem falls back to matching the visitor's IP address and browser against clicks from the last 12 hours in your store.
+4. Each click can be attributed to at most one checkout. Attribution is last-touch: the most recent click gets full credit.
+
+Attribution is not possible when a visitor clicks on one device and buys on another, blocks cookies and cannot be matched by fingerprint, or completes the checkout inside a third-party iframe.
+
+## Managing Links
+
+- **Edit** - Change the destination, title, campaign, tags, expiry, password, redirect rules, or QR style at any time. The slug is fixed.
+- **Archive** - Archiving stops a link from resolving and collecting clicks. Its analytics are kept. Archiving cannot be undone, and there is no separate delete.
+- **Filter** - The links list can be filtered by status (active, expired, archived, blocked), campaign, and tag.
+
+Archiving a campaign removes it from the campaign picker. Links already in that campaign keep their association.
+
+## Safe Destinations
+
+Creem checks the destination URL and every redirect-rule URL against Google Web Risk when you create or edit a link. If a URL is flagged as unsafe, the link cannot be saved.
+
+Active links are also re-checked periodically. A link whose destination becomes unsafe is moved to the **Blocked** status and stops resolving. To restore it, edit the link with a safe destination and save again.
+
+## Limitations
+
+- Short Links are managed from the dashboard. There is no public API for creating or listing them.
+- Query parameters added to a short URL (such as UTM tags) are not forwarded to the destination. Put tracking parameters in the destination URL itself.
+- Expired, archived, blocked, and unknown links all show the same not-found page.
+
+## Related Features
+
+<CardGroup cols={2}>
+  <Card
+    title="Checkout Links"
+    icon="link"
+    href="/features/checkout/checkout-link"
+  >
+    Direct payment links for individual products
+  </Card>
+
+<Card title="Affiliate Program" icon="handshake" href="/features/affiliate-program">
+  Let partners earn commission on the sales they refer
+</Card>
+
+<Card title="Storefronts" icon="store" href="/features/storefronts">
+  A hosted page listing all your products
+</Card>
+
+  <Card
+    title="Abandoned Cart Recovery"
+    icon="cart-shopping"
+    href="/features/addons/abandoned-cart-recovery"
+  >
+    Bring back visitors who started but did not finish checkout
+  </Card>
+</CardGroup>
+
+---
+
+Need help with Short Links? [Contact us](https://www.creem.io/contact) or join our [Discord community](https://discord.gg/q3GKZs92Av).

@@ -162,6 +162,7 @@
               "features/affiliate-program",
               "features/referral-program",
               "features/storefronts",
+              "features/short-links",
               "features/discounts",
               "features/trials",
               "features/customer-portal",
