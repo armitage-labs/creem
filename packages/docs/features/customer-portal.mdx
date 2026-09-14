@@ -226,3 +226,15 @@ console.log(data.customer_portal_link);
 
   </Tab>
 </Tabs>
+
+## Limitations
+
+Customers can only switch plans in the Customer Portal between products in a [product bundle](/features/product-bundles) that has self-service upgrades turned on. Outside of bundles, customers can't move to another product, and they can't change only their billing cycle.
+
+To handle plan changes in your own application instead, use the [subscription upgrade API](/features/subscriptions/managing#programmatic-upgrades).
+
+<Note>
+  Editing a product's price doesn't change what existing subscribers pay. See [Changing a Product's
+  Price](/features/subscriptions/managing#changing-a-products-price) for how to move them to a new
+  price.
+</Note>

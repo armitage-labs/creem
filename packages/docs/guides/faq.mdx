@@ -56,6 +56,12 @@ description: 'Answers to the most common questions about using Creem.'
   <Accordion title="Does Creem support weekly billing?">
     Yes. For weekly billing, create a recurring product with `billing_period` set to `custom`, `recurring_interval` set to `week`, and `recurring_interval_count` set to `1`. Daily, monthly, 3-month, 6-month, and yearly cycles are available as presets. See [Create Product](/api-reference/endpoint/create-product).
   </Accordion>
+  <Accordion title="If I change a product's price, will existing subscribers be charged the new amount?">
+    No. Existing subscriptions keep the price they signed up with, and only new checkouts use the new price. To move existing subscribers to a new price, see [Raising Prices for Existing Subscribers](/features/subscriptions/managing#raising-prices-for-existing-subscribers).
+  </Accordion>
+  <Accordion title="Can customers switch subscription plans or tiers themselves?">
+    Yes, if you group the plans in a [product bundle](/features/product-bundles) and turn on self-service upgrades. Customers can then switch between those products in the Customer Portal. To handle plan changes in your own application instead, use the [subscription upgrade API](/features/subscriptions/managing#programmatic-upgrades).
+  </Accordion>
   <Accordion title="Which currencies does Creem support?">
     You can price products in **USD** and **EUR** today. Set the currency when creating a product (see [Create Your First Product](/guides/create-your-first-product)). Regardless of the currency you charge in, Creem handles tax collection and remittance as your [Merchant of Record](/merchant-of-record/what-is). Payout currency is handled separately — see [Payouts](/merchant-of-record/finance/payouts).
   </Accordion>
