@@ -1,0 +1,5 @@
+---
+title: 'Get consumed units for a customer'
+description: 'How many units a customer has consumed through this meter in a billing period, alongside the period''s boundaries. Without `at`, this is an O(1) read of the current period''s projection — the number billing uses. With `at`, the units are replayed from the raw events as of that instant, within the billing period containing it, which is the right call for reconstructing what a customer had consumed at a past moment (an invoice date, a support question).'
+openapi: get /v1/meters/{id}/consumed
+---

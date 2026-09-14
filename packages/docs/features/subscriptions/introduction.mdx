@@ -46,10 +46,14 @@ A subscription can be in different states throughout its lifecycle:
 
 Subscriptions operate on billing cycles that determine when payments are collected:
 
+- **Daily billing** - Charged every day
 - **Monthly billing** - Charged every month
 - **3 month billing** - Charged every 3 months
 - **6 month billing** - Charged every 6 months
 - **Yearly billing** - Charged annually
+- **Custom billing** - Charged on any other cadence, such as weekly or every 2 weeks
+
+For a custom cadence, set `billing_period` to `custom` and provide `recurring_interval` (`day`, `week`, `month`, or `year`) and `recurring_interval_count`. See [Create Product](/api-reference/endpoint/create-product).
 
 ## Creating a Subscription
 

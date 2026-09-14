@@ -24,6 +24,7 @@ vi.mock("../hooks.js", () => ({
   onSubscriptionActive: vi.fn(),
   onSubscriptionTrialing: vi.fn(),
   onSubscriptionCanceled: vi.fn(),
+  onSubscriptionScheduledCancel: vi.fn(),
   onSubscriptionPaid: vi.fn(),
   onSubscriptionExpired: vi.fn(),
   onSubscriptionUnpaid: vi.fn(),
@@ -303,6 +304,11 @@ describe("webhook handler", () => {
       { ...mockSubscription, status: "canceled" },
     ],
     ["onSubscriptionPaid", "subscription.paid", mockSubscription],
+    [
+      "onSubscriptionScheduledCancel",
+      "subscription.scheduled_cancel",
+      { ...mockSubscription, status: "scheduled_cancel" },
+    ],
     ["onSubscriptionExpired", "subscription.expired", { ...mockSubscription, status: "expired" }],
     ["onSubscriptionUnpaid", "subscription.unpaid", { ...mockSubscription, status: "unpaid" }],
     ["onSubscriptionUpdate", "subscription.update", mockSubscription],
@@ -320,6 +326,22 @@ describe("webhook handler", () => {
 
     expect(callback).toHaveBeenCalledTimes(1);
     expect(callback.mock.calls[0]?.[1]).toBe(ctx);
+  });
+
+  it("skips the scheduled callback when persistence ignores a stale event", async () => {
+    vi.mocked(hooks.onSubscriptionScheduledCancel).mockResolvedValueOnce(false);
+    const onSubscriptionScheduledCancel = vi.fn();
+    const ctx = await callWebhook(
+      { ...defaultOptions, onSubscriptionScheduledCancel },
+      {
+        eventType: "subscription.scheduled_cancel",
+        id: "stale-scheduled-event",
+        created_at: 1234567890,
+        object: { ...mockSubscription, status: "scheduled_cancel" },
+      },
+    );
+    expect(ctx.json).toHaveBeenCalledWith({ message: "Webhook received" });
+    expect(onSubscriptionScheduledCancel).not.toHaveBeenCalled();
   });
 
   it("returns 500 on processing error", async () => {

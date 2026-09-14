@@ -69,9 +69,27 @@ creem({
 
 - `subscription_paused`
 - `subscription_expired`
+- `subscription_canceled`
 
-Cancellation does not necessarily revoke access immediately. A subscription scheduled to cancel
-can remain usable until its paid period expires.
+`subscription.scheduled_cancel` preserves access until `current_period_end_date`. With persistence
+enabled, the plugin stores `status: "scheduled_cancel"` and `cancelAtPeriodEnd: true`;
+`hasAccessGranted()` returns false once that period ends, even if the final webhook is delayed.
+This event calls `onSubscriptionScheduledCancel` without calling `onGrantAccess` or `onRevokeAccess`.
+
+`subscription.canceled` means the subscription has ended. It calls both `onRevokeAccess` and
+`onSubscriptionCanceled`, and the access check denies that subscription.
+When cancellation is undone or finalized, subsequent subscription
+events synchronize the status and clear `cancelAtPeriodEnd` when the status is no longer
+`scheduled_cancel`.
+
+With persistence enabled, delayed scheduled-cancellation updates cannot change a stored `canceled`
+or `expired` subscription back to `scheduled_cancel`. Ignored `subscription.scheduled_cancel`
+events do not invoke `onSubscriptionScheduledCancel`.
+The general `onSubscriptionUpdate` callback still receives `subscription.update` events,
+including those whose scheduled status was ignored by persistence.
+
+If you manage access outside the plugin database, store the scheduled period end and enforce it
+in your own access checks.
 
 <Warning>
   Webhooks can be retried or delivered more than once. Make every callback idempotent: applying the
@@ -82,20 +100,21 @@ can remain usable until its paid period expires.
 
 Use event-specific callbacks when you need more than the high-level access decision:
 
-| Callback                 | Event                   |
-| ------------------------ | ----------------------- |
-| `onCheckoutCompleted`    | `checkout.completed`    |
-| `onRefundCreated`        | `refund.created`        |
-| `onDisputeCreated`       | `dispute.created`       |
-| `onSubscriptionActive`   | `subscription.active`   |
-| `onSubscriptionTrialing` | `subscription.trialing` |
-| `onSubscriptionCanceled` | `subscription.canceled` |
-| `onSubscriptionPaid`     | `subscription.paid`     |
-| `onSubscriptionExpired`  | `subscription.expired`  |
-| `onSubscriptionUnpaid`   | `subscription.unpaid`   |
-| `onSubscriptionUpdate`   | `subscription.update`   |
-| `onSubscriptionPastDue`  | `subscription.past_due` |
-| `onSubscriptionPaused`   | `subscription.paused`   |
+| Callback                        | Event                           |
+| ------------------------------- | ------------------------------- |
+| `onCheckoutCompleted`           | `checkout.completed`            |
+| `onRefundCreated`               | `refund.created`                |
+| `onDisputeCreated`              | `dispute.created`               |
+| `onSubscriptionActive`          | `subscription.active`           |
+| `onSubscriptionTrialing`        | `subscription.trialing`         |
+| `onSubscriptionCanceled`        | `subscription.canceled`         |
+| `onSubscriptionScheduledCancel` | `subscription.scheduled_cancel` |
+| `onSubscriptionPaid`            | `subscription.paid`             |
+| `onSubscriptionExpired`         | `subscription.expired`          |
+| `onSubscriptionUnpaid`          | `subscription.unpaid`           |
+| `onSubscriptionUpdate`          | `subscription.update`           |
+| `onSubscriptionPastDue`         | `subscription.past_due`         |
+| `onSubscriptionPaused`          | `subscription.paused`           |
 
 Each callback receives normalized event data followed by the Better Auth endpoint context:
 

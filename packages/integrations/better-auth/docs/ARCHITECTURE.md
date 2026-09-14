@@ -7,17 +7,20 @@ The `@creem_io/better-auth` plugin integrates Creem payment and subscription man
 ## Design Principles
 
 ### 1. Flexibility First
+
 - Support both Better Auth endpoints AND direct server-side functions
 - Allow database persistence OR direct API calls
 - Multiple import patterns for different use cases
 
 ### 2. TypeScript Excellence
+
 - Full type safety across all APIs
 - Clean IntelliSense with no generic noise
 - JSDoc comments for inline documentation
 - Automatic type inference where possible
 
 ### 3. Developer Experience
+
 - Sensible defaults
 - Clear error messages
 - Comprehensive examples
@@ -76,13 +79,16 @@ The main plugin export that integrates with Better-Auth:
 export const creem = (options: CreemOptions) => {
   return {
     id: "creem",
-    endpoints: { /* Better Auth endpoints */ },
+    endpoints: {
+      /* Better Auth endpoints */
+    },
     schema: getSchema(options),
   } satisfies BetterAuthPlugin;
 };
 ```
 
 **Responsibilities:**
+
 - Initialize Creem SDK
 - Register Better Auth endpoints
 - Define database schema
@@ -90,42 +96,23 @@ export const creem = (options: CreemOptions) => {
 
 ### 2. Client Plugin (`src/client.ts`)
 
-Client-side plugin for Better-Auth React:
-
-```typescript
-export const creemClient = () => {
-  return {
-    id: "creem",
-    $InferServerPlugin: {} as ReturnType<typeof creem>,
-    pathMethods: {
-      "/creem/create-portal": "POST",
-      "/creem/cancel-subscription": "POST",
-      "/creem/retrieve-subscription": "POST",
-      "/creem/search-transactions": "POST",
-    },
-  } satisfies BetterAuthClientPlugin;
-};
-```
+Client plugin for Better Auth's standard framework clients. `creemClient()` infers endpoint inputs,
+successful responses, and the default persisted Creem user fields. When the server disables
+persistence, use `creemClient({ persistSubscriptions: false })` so session types omit those fields.
+This client option affects inference only; it does not configure the server.
 
 **Responsibilities:**
-- Type inference for client-side methods
-- Map HTTP methods for endpoints that Better Auth can't infer from the schema
-- Connect to server-side plugin
 
-### 3. Enhanced Client (`src/create-creem-auth-client.ts`)
+- Infer client methods from the server plugin
+- Map HTTP methods for Creem endpoints
+- Infer session fields according to the configured persistence mode
 
-Wrapper for cleaner TypeScript types:
+### 3. Deprecated Wrapper (`src/create-creem-auth-client.ts`)
 
-```typescript
-export function createCreemAuthClient(config) {
-  const baseClient = createAuthClient(config);
-  return baseClient as typeof baseClient & {
-    creem: CreemClient;
-  };
-}
-```
-
-**Benefit:** Removes generic type noise, provides clean method signatures
+`createCreemAuthClient` remains exported for compatibility. New integrations use the standard
+Better Auth `createAuthClient` with `creemClient()`. Native response inference now describes
+successful responses because endpoint failures throw `APIError` instead of returning a competing
+JSON shape. The wrapper can be migrated without losing the Creem endpoint methods.
 
 ### 4. Server Utilities (`src/creem-server.ts`)
 
@@ -143,6 +130,7 @@ export async function checkSubscriptionAccess(config, options) {
 ```
 
 **Use Cases:**
+
 - Server Components
 - Server Actions
 - API Routes
@@ -161,12 +149,13 @@ Better Auth endpoint implementations:
 - `src/has-active-subscription.ts` - Check access
 
 **Pattern:**
+
 ```typescript
 export const createCheckoutEndpoint = (creem, options) => {
   return createAuthEndpoint(
     "/creem/create-checkout",
     { method: "POST", body: CheckoutParams },
-    createCheckoutHandler(creem, options)
+    createCheckoutHandler(creem, options),
   );
 };
 ```
@@ -203,12 +192,15 @@ export const subscriptions = {
       referenceId: { type: "string", required: true },
       status: { type: "string", defaultValue: "pending" },
       // ...
-    }
-  }
+    },
+  },
 };
 ```
 
-**Controlled by:** `persistSubscriptions` option (default: `true`)
+**Controlled by:** `persistSubscriptions` option (default: `true`). Setting it to `false` registers
+neither subscription models nor Creem user fields and disables their writes. `schema` supports
+physical model and column name mappings for existing fields, not new field definitions. The schema
+is cloned before applying overrides so plugin instances cannot modify each other's configuration.
 
 ## Data Flow
 
@@ -227,7 +219,7 @@ export const subscriptions = {
    ↓
 6. Return checkout URL
    ↓
-7. Redirect user to Creem checkout
+7. Application navigates to URL (or opts into redirect: true)
    ↓
 8. User completes payment
    ↓
@@ -296,6 +288,7 @@ export type { CreemServerConfig } from "./creem-server";
 ```
 
 **Benefits:**
+
 - Clean imports
 - No circular dependencies
 - Tree-shakeable
@@ -309,10 +302,11 @@ export type { CreemServerConfig } from "./creem-server";
 creem({
   apiKey: "...",
   persistSubscriptions: true, // default
-})
+});
 ```
 
 **Features:**
+
 - ✅ Fast access checks
 - ✅ Offline data access
 - ✅ SQL queries available
@@ -320,6 +314,7 @@ creem({
 - ✅ Full feature support
 
 **Trade-offs:**
+
 - Requires database schema
 - Depends on webhook delivery
 - Data slightly delayed
@@ -330,54 +325,50 @@ creem({
 creem({
   apiKey: "...",
   persistSubscriptions: false,
-})
+});
 ```
 
 **Features:**
+
 - ✅ No database needed
 - ✅ Always fresh data
 - ✅ Simpler setup
 
 **Trade-offs:**
+
 - API call required for checks
 - Network dependency
 - Some features limited
 
 ## Error Handling
 
-### Pattern
+The six billing and access endpoints throw Better Auth `APIError` for failures, preserving their
+HTTP status codes. Catch blocks rethrow existing `APIError` values before wrapping unexpected
+failures, so a validation or authentication error does not become a generic 500.
 
 ```typescript
-try {
-  const result = await creem.createCheckout(...);
-  return ctx.json(result);
-} catch (error) {
-  const message = error instanceof Error ? error.message : String(error);
-  logger.error(`[creem] Failed to create checkout: ${message}`);
-  return ctx.json(
-    { error: "Failed to create checkout" },
-    { status: 500 }
-  );
-}
-```
+import { APIError } from "better-auth/api";
 
-### User-Facing Errors
-
-```typescript
 if (!session?.user) {
-  return ctx.json(
-    { error: "User must be logged in" },
-    { status: 400 }
-  );
+  throw new APIError("UNAUTHORIZED", { message: "User must be logged in" });
 }
 ```
+
+- Browser clients receive `{ data: null, error }`, with `message`, `status`, and `statusText`.
+- Direct `auth.api` calls throw the error.
+- Calls with `asResponse: true` receive an HTTP error response whose JSON contains `message`.
+- Successful access checks contain a boolean; unavailable or failed checks use the error path.
+
+Successful return types therefore exclude failure payloads, allowing native Better Auth clients to
+infer usable response types. HTTP serialization still applies: callers should narrow ID/expanded
+object unions and parse date values before using date methods.
 
 ## Security
 
 ### Webhook Verification
 
 ```typescript
-const signature = req.headers.get('creem-signature');
+const signature = req.headers.get("creem-signature");
 if (generateSignature(payload, secret) !== signature) {
   return ctx.json({ error: "Invalid signature" }, { status: 401 });
 }
@@ -385,7 +376,8 @@ if (generateSignature(payload, secret) !== signature) {
 
 ### Session Requirements
 
-All endpoints require authenticated sessions via Better-Auth.
+Portal, subscription, transaction, and access endpoints require authenticated sessions via Better Auth.
+Checkout also supports requests without a session.
 
 ## Performance Considerations
 
@@ -393,9 +385,7 @@ All endpoints require authenticated sessions via Better-Auth.
 
 ```typescript
 // Fast: Single query to local database
-const subscriptions = await db.select()
-  .from("subscription")
-  .where("referenceId", "=", userId);
+const subscriptions = await db.select().from("subscription").where("referenceId", "=", userId);
 ```
 
 ### API Calls
@@ -404,7 +394,7 @@ const subscriptions = await db.select()
 // Slower: External API call
 const subscriptions = await creem.searchSubscriptions({
   xApiKey: apiKey,
-  customerId
+  customerId,
 });
 ```
 
@@ -421,8 +411,8 @@ creem({
   },
   onSubscriptionActive: async (data) => {
     // Custom logic
-  }
-})
+  },
+});
 ```
 
 ### Custom Server Functions
@@ -453,4 +443,3 @@ export async function customFunction() {
 ## Contributing
 
 See [CONTRIBUTING.md](../CONTRIBUTING.md) for guidelines on contributing to this architecture.
-

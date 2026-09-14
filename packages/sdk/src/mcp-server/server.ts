@@ -43,10 +43,22 @@ import { tool$discountsCreate } from "./tools/discountsCreate.js";
 import { tool$discountsDelete } from "./tools/discountsDelete.js";
 import { tool$discountsGet } from "./tools/discountsGet.js";
 import { tool$discountsSearch } from "./tools/discountsSearch.js";
+import { tool$eventsIngestEvents } from "./tools/eventsIngestEvents.js";
+import { tool$eventsListEvents } from "./tools/eventsListEvents.js";
+import { tool$eventsPreviewEvents } from "./tools/eventsPreviewEvents.js";
 import { tool$licensesActivate } from "./tools/licensesActivate.js";
 import { tool$licensesDeactivate } from "./tools/licensesDeactivate.js";
 import { tool$licensesListInstances } from "./tools/licensesListInstances.js";
 import { tool$licensesValidate } from "./tools/licensesValidate.js";
+import { tool$metersArchiveMeter } from "./tools/metersArchiveMeter.js";
+import { tool$metersCreateMeter } from "./tools/metersCreateMeter.js";
+import { tool$metersGetConsumedUnits } from "./tools/metersGetConsumedUnits.js";
+import { tool$metersGetMeter } from "./tools/metersGetMeter.js";
+import { tool$metersListMeters } from "./tools/metersListMeters.js";
+import { tool$metersPreviewExistingMeter } from "./tools/metersPreviewExistingMeter.js";
+import { tool$metersPreviewMeter } from "./tools/metersPreviewMeter.js";
+import { tool$metersUnarchiveMeter } from "./tools/metersUnarchiveMeter.js";
+import { tool$metersUpdateMeter } from "./tools/metersUpdateMeter.js";
 import { tool$moderationScreenPrompt } from "./tools/moderationScreenPrompt.js";
 import { tool$productsArchive } from "./tools/productsArchive.js";
 import { tool$productsCreate } from "./tools/productsCreate.js";
@@ -79,7 +91,7 @@ export function createMCPServer(deps: {
 }) {
   const server = new McpServer({
     name: "Creem",
-    version: "1.7.0",
+    version: "1.8.0",
   });
 
   const client = new CreemCore({
@@ -155,6 +167,18 @@ export function createMCPServer(deps: {
   tool(tool$customerCreditsDebitAccount);
   tool(tool$customerCreditsReverseTransaction);
   tool(tool$customerCreditsCloseAccount);
+  tool(tool$metersCreateMeter);
+  tool(tool$metersListMeters);
+  tool(tool$metersPreviewMeter);
+  tool(tool$metersGetMeter);
+  tool(tool$metersUpdateMeter);
+  tool(tool$metersPreviewExistingMeter);
+  tool(tool$metersGetConsumedUnits);
+  tool(tool$metersArchiveMeter);
+  tool(tool$metersUnarchiveMeter);
+  tool(tool$eventsIngestEvents);
+  tool(tool$eventsPreviewEvents);
+  tool(tool$eventsListEvents);
   tool(tool$affiliatesCreateInvite);
   tool(tool$affiliatesListInvites);
   tool(tool$affiliatesList);

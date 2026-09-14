@@ -454,6 +454,71 @@ const value: components.WebhookCustomerCreditsExhaustedEventEntity = {
 };
 ```
 
+### `components.WebhookCreditsGrantedEventEntity`
+
+```typescript
+const value: components.WebhookCreditsGrantedEventEntity = {
+  id: "<id>",
+  eventType: "credits.granted",
+  createdAt: 1717.47,
+  object: {
+    id: "<id>",
+    customerId: "<id>",
+    accountId: "<id>",
+    bucketName: "<value>",
+    unitLabel: "<value>",
+    amountMinorUnits: "<value>",
+    balanceAfterMinorUnits: "<value>",
+    reference: "<value>",
+    occurredAt: "<value>",
+    object: "customer_credits_grant",
+  },
+};
+```
+
+### `components.WebhookCreditsConsumedEventEntity`
+
+```typescript
+const value: components.WebhookCreditsConsumedEventEntity = {
+  id: "<id>",
+  eventType: "credits.consumed",
+  createdAt: 1879.21,
+  object: {
+    id: "<id>",
+    customerId: "<id>",
+    accountId: "<id>",
+    bucketName: "<value>",
+    unitLabel: "<value>",
+    amountMinorUnits: "<value>",
+    balanceAfterMinorUnits: "<value>",
+    reference: "<value>",
+    occurredAt: "<value>",
+    object: "customer_credits_consumption",
+  },
+};
+```
+
+### `components.WebhookCreditsAutoRechargedEventEntity`
+
+```typescript
+const value: components.WebhookCreditsAutoRechargedEventEntity = {
+  id: "<id>",
+  eventType: "credits.auto_recharged",
+  createdAt: 8206.26,
+  object: {
+    id: "<id>",
+    object: "customer_credits_auto_recharge",
+    customerId: "<id>",
+    bucketName: "<value>",
+    unitLabel: "<value>",
+    amountMinorUnits: "<value>",
+    currency: "Tenge",
+    chargeReference: "<value>",
+    reference: "<value>",
+  },
+};
+```
+
 ### `components.WebhookSubscriptionActiveEventEntity`
 
 ```typescript

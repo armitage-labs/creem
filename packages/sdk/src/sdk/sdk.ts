@@ -8,7 +8,9 @@ import { Checkouts } from "./checkouts.js";
 import { CustomerCredits } from "./customercredits.js";
 import { Customers } from "./customers.js";
 import { Discounts } from "./discounts.js";
+import { Events } from "./events.js";
 import { Licenses } from "./licenses.js";
+import { Meters } from "./meters.js";
 import { Moderation } from "./moderation.js";
 import { Products } from "./products.js";
 import { Splits } from "./splits.js";
@@ -65,6 +67,16 @@ export class Creem extends ClientSDK {
   private _customerCredits?: CustomerCredits;
   get customerCredits(): CustomerCredits {
     return (this._customerCredits ??= new CustomerCredits(this._options));
+  }
+
+  private _meters?: Meters;
+  get meters(): Meters {
+    return (this._meters ??= new Meters(this._options));
+  }
+
+  private _events?: Events;
+  get events(): Events {
+    return (this._events ??= new Events(this._options));
   }
 
   private _affiliates?: Affiliates;

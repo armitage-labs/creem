@@ -1,4 +1,4 @@
-import { createAuthEndpoint, getSessionFromCtx } from "better-auth/api";
+import { APIError, createAuthEndpoint, getSessionFromCtx } from "better-auth/api";
 import { type GenericEndpointContext, logger } from "better-auth";
 import { Creem } from "creem";
 import { z } from "zod";
@@ -19,23 +19,20 @@ export type { CancelSubscriptionInput, CancelSubscriptionResponse };
 
 const createCancelSubscriptionHandler = (creem: Creem, options: CreemOptions) => {
   return async (ctx: GenericEndpointContext) => {
-    const body = ctx.body as CancelSubscriptionParams;
+    const body = (ctx.body || {}) as CancelSubscriptionParams;
 
     if (!options.apiKey) {
-      return ctx.json(
-        {
-          error:
-            "Creem API key is not configured. Please set the apiKey option when initializing the Creem plugin.",
-        },
-        { status: 500 },
-      );
+      throw new APIError("INTERNAL_SERVER_ERROR", {
+        message:
+          "Creem API key is not configured. Please set the apiKey option when initializing the Creem plugin.",
+      });
     }
 
     try {
       const session = await getSessionFromCtx(ctx);
 
       if (!session?.user?.id) {
-        return ctx.json({ error: "User must be logged in" }, { status: 400 });
+        throw new APIError("BAD_REQUEST", { message: "User must be logged in" });
       }
 
       let subscriptionId = body.id;
@@ -70,23 +67,19 @@ const createCancelSubscriptionHandler = (creem: Creem, options: CreemOptions) =>
             subscriptionId = activeSubscription.creemSubscriptionId;
           } else if (!subscriptionId) {
             // If no active subscription and no ID provided, return error
-            return ctx.json(
-              { error: "No active subscription found for this user" },
-              { status: 404 },
-            );
+            throw new APIError("NOT_FOUND", {
+              message: "No active subscription found for this user",
+            });
           }
         } else if (!subscriptionId) {
           // No subscriptions in database and no ID provided
-          return ctx.json({ error: "No subscription found for this user" }, { status: 404 });
+          throw new APIError("NOT_FOUND", { message: "No subscription found for this user" });
         }
       } else if (!subscriptionId) {
         // If persistence is disabled and no ID provided, return error
-        return ctx.json(
-          {
-            error: "Subscription ID is required when database persistence is disabled",
-          },
-          { status: 400 },
-        );
+        throw new APIError("BAD_REQUEST", {
+          message: "Subscription ID is required when database persistence is disabled",
+        });
       }
 
       logger.debug(`[creem] Cancelling subscription: ${subscriptionId}`);
@@ -98,9 +91,10 @@ const createCancelSubscriptionHandler = (creem: Creem, options: CreemOptions) =>
         message: "Subscription cancelled successfully",
       });
     } catch (error) {
+      if (error instanceof APIError) throw error;
       const message = error instanceof Error ? error.message : String(error);
       logger.error(`[creem] Failed to cancel subscription: ${message}`);
-      return ctx.json({ error: "Failed to cancel subscription" }, { status: 500 });
+      throw new APIError("INTERNAL_SERVER_ERROR", { message: "Failed to cancel subscription" });
     }
   };
 };

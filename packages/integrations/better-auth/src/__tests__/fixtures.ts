@@ -355,8 +355,17 @@ export function createMockCreem() {
     },
     transactions: {
       search: vi.fn().mockResolvedValue({
-        transactions: [mockTransaction],
-        total: 1,
+        result: {
+          items: [mockTransaction],
+          pagination: {
+            totalRecords: 1,
+            totalPages: 1,
+            currentPage: 1,
+            nextPage: null,
+            prevPage: null,
+          },
+        },
+        next: vi.fn(),
       }),
     },
   };

@@ -1,6 +1,6 @@
 {
   "name": "creem",
-  "version": "1.7.0",
+  "version": "1.8.0",
   "author": "Speakeasy",
   "bugs": {
     "url": "https://github.com/armitage-labs/creem/issues"
@@ -51,10 +51,10 @@
     "build:mcp": "bun src/mcp-server/build.mts",
     "build": "npm run build:mcp && tshy",
     "prepublishOnly": "npm run build",
+    "typecheck": "tsc --noEmit",
     "check:package": "publint --strict --pack pnpm && attw --pack .",
     "test": "vitest run",
-    "test:watch": "vitest",
-    "typecheck": "tsc --noEmit"
+    "test:watch": "vitest"
   },
   "peerDependencies": {},
   "devDependencies": {

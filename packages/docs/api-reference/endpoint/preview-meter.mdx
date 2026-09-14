@@ -1,0 +1,5 @@
+---
+title: 'Preview an unsaved meter definition'
+description: 'Dry-run a candidate meter definition against your real usage over the last 7 whole UTC days (today included, future-dated events excluded) WITHOUT creating anything: matched events, aggregated units, distinct customers, and a zero-filled per-day series, oldest first. Useful for checking a definition before committing to it. The scan is capped defensively and runs newest-first, so a very high-volume store gets the most recent slice of the window rather than an unbounded scan — the recent days stay complete and the oldest day of the series degrades.'
+openapi: post /v1/meters/preview
+---

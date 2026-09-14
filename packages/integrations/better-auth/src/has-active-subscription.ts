@@ -1,7 +1,8 @@
-import { createAuthEndpoint, getSessionFromCtx } from "better-auth/api";
+import { APIError, createAuthEndpoint, getSessionFromCtx } from "better-auth/api";
 import { type GenericEndpointContext, logger } from "better-auth";
 import { z } from "zod";
 import type { CreemOptions, SubscriptionRecord } from "./types.js";
+import type { HasAccessGrantedResponse } from "./has-active-subscription-types.js";
 
 // No input needed - uses session to get user ID
 export const HasAccessGrantedParams = z.object({}).optional();
@@ -9,32 +10,24 @@ export const HasAccessGrantedParams = z.object({}).optional();
 export type HasAccessGrantedParams = z.infer<typeof HasAccessGrantedParams>;
 
 const createHasAccessGrantedHandler = (options: CreemOptions) => {
-  return async (ctx: GenericEndpointContext) => {
+  return async (ctx: GenericEndpointContext): Promise<HasAccessGrantedResponse> => {
     try {
       const session = await getSessionFromCtx(ctx);
 
       if (!session?.user?.id) {
-        return ctx.json(
-          {
-            hasAccessGranted: undefined,
-            message: "User must be logged in to check subscription status",
-          },
-          { status: 401 },
-        );
+        throw new APIError("UNAUTHORIZED", {
+          message: "User must be logged in to check subscription status",
+        });
       }
 
       // Check if persistSubscriptions is disabled
       const shouldPersist = options.persistSubscriptions !== false;
 
       if (!shouldPersist) {
-        return ctx.json(
-          {
-            hasAccessGranted: undefined,
-            message:
-              "Database persistence is disabled. Enable 'persistSubscriptions' option or implement custom subscription checking.",
-          },
-          { status: 400 },
-        );
+        throw new APIError("BAD_REQUEST", {
+          message:
+            "Database persistence is disabled. Enable 'persistSubscriptions' option or implement custom subscription checking.",
+        });
       }
 
       const userId = session.user.id;
@@ -78,8 +71,8 @@ const createHasAccessGrantedHandler = (options: CreemOptions) => {
           });
         }
 
-        // For canceled, past_due, or unpaid - check if period hasn't ended yet
-        if (status === "canceled" || status === "past_due" || status === "unpaid") {
+        // Scheduled cancellation and existing payment grace periods retain access until periodEnd.
+        if (status === "scheduled_cancel" || status === "past_due" || status === "unpaid") {
           if (subscription.periodEnd) {
             const periodEnd = new Date(subscription.periodEnd);
 
@@ -116,15 +109,12 @@ const createHasAccessGrantedHandler = (options: CreemOptions) => {
         })),
       });
     } catch (error) {
+      if (error instanceof APIError) throw error;
       const errorMessage = error instanceof Error ? error.message : String(error);
       logger.error(`[creem] Failed to check subscription status: ${errorMessage}`);
-      return ctx.json(
-        {
-          hasAccessGranted: undefined,
-          message: "Failed to check subscription status",
-        },
-        { status: 500 },
-      );
+      throw new APIError("INTERNAL_SERVER_ERROR", {
+        message: "Failed to check subscription status",
+      });
     }
   };
 };

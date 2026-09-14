@@ -15,7 +15,13 @@
     }
   },
   "contextual": {
-    "options": ["copy", "view", "chatgpt", "claude", "perplexity"]
+    "options": [
+      "copy",
+      "view",
+      "chatgpt",
+      "claude",
+      "perplexity"
+    ]
   },
   "redirects": [
     {
@@ -119,7 +125,10 @@
               "ai/introduction",
               {
                 "group": "For Humans",
-                "pages": ["ai/for-humans/getting-started", "ai/for-humans/cli"]
+                "pages": [
+                  "ai/for-humans/getting-started",
+                  "ai/for-humans/cli"
+                ]
               },
               {
                 "group": "For Agents",
@@ -162,6 +171,7 @@
               "features/affiliate-program",
               "features/referral-program",
               "features/storefronts",
+              "features/short-links",
               "features/discounts",
               "features/trials",
               "features/customer-portal",
@@ -173,6 +183,28 @@
                   "features/customer-credits/introduction",
                   "features/customer-credits/accounts",
                   "features/customer-credits/transactions"
+                ]
+              },
+              {
+                "group": "Events",
+                "pages": [
+                  "api-reference/endpoint/ingest-usage-events",
+                  "api-reference/endpoint/preview-usage-events",
+                  "api-reference/endpoint/list-usage-events"
+                ]
+              },
+              {
+                "group": "Meters",
+                "pages": [
+                  "api-reference/endpoint/create-meter",
+                  "api-reference/endpoint/list-meters",
+                  "api-reference/endpoint/get-meter",
+                  "api-reference/endpoint/update-meter",
+                  "api-reference/endpoint/preview-meter",
+                  "api-reference/endpoint/preview-existing-meter",
+                  "api-reference/endpoint/get-meter-consumed-units",
+                  "api-reference/endpoint/archive-meter",
+                  "api-reference/endpoint/unarchive-meter"
                 ]
               },
               {
@@ -203,7 +235,8 @@
                       "code/sdks/better-auth/configuration",
                       "code/sdks/better-auth/client",
                       "code/sdks/better-auth/webhooks",
-                      "code/sdks/better-auth/server"
+                      "code/sdks/better-auth/server",
+                      "code/sdks/better-auth/migration"
                     ]
                   },
                   {
@@ -233,26 +266,37 @@
             "pages": [
               {
                 "group": "Affiliate Platforms",
-                "pages": ["integrations/affiliates", "integrations/rekomi"]
+                "pages": [
+                  "integrations/affiliates",
+                  "integrations/rekomi"
+                ]
               },
               {
                 "group": "Purchase Parity Platforms",
-                "pages": ["integrations/evendeals"]
+                "pages": [
+                  "integrations/evendeals"
+                ]
               },
               {
                 "group": "CMS",
-                "pages": ["integrations/strapi"]
+                "pages": [
+                  "integrations/strapi"
+                ]
               },
               {
                 "group": "No-Code Builders",
-                "pages": ["integrations/framer"]
+                "pages": [
+                  "integrations/framer"
+                ]
               }
             ]
           },
           {
             "group": "Community",
             "icon": "users",
-            "pages": ["code/community/community-resources"]
+            "pages": [
+              "code/community/community-resources"
+            ]
           },
           {
             "group": "Merchant of Record",
@@ -309,7 +353,10 @@
           {
             "group": "API Documentation",
             "icon": "book",
-            "pages": ["api-reference/introduction", "api-reference/error-codes"]
+            "pages": [
+              "api-reference/introduction",
+              "api-reference/error-codes"
+            ]
           },
           {
             "group": "Checkout",
@@ -405,7 +452,9 @@
           {
             "group": "Stats",
             "icon": "chart-line",
-            "pages": ["api-reference/endpoint/get-stats-summary"]
+            "pages": [
+              "api-reference/endpoint/get-stats-summary"
+            ]
           },
           {
             "group": "Customer Credits",
@@ -427,7 +476,9 @@
           {
             "group": "Moderation",
             "icon": "shield-check",
-            "pages": ["api-reference/endpoint/screen-prompt"]
+            "pages": [
+              "api-reference/endpoint/screen-prompt"
+            ]
           }
         ]
       }

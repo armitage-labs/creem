@@ -21,10 +21,11 @@ provisioning callbacks.
 ## Install
 
 ```bash
-pnpm add @creem_io/better-auth better-auth
+pnpm add @creem_io/better-auth better-auth@^1.5.6
 ```
 
-The plugin supports Better Auth `^1.3.34` and Zod 3 or 4. The Creem TypeScript SDK is included.
+The plugin supports Better Auth `^1.5.6` and Zod 3 or 4. Native endpoint inference requires
+Better Auth 1.5.6 or later within 1.x. The Creem TypeScript SDK is included.
 
 ## Minimal setup
 
@@ -63,6 +64,15 @@ export const authClient = createAuthClient({
 });
 ```
 
+The client plugin infers endpoint inputs, successful responses, and Creem session fields through Better Auth.
+The `createCreemAuthClient` wrapper remains exported for compatibility but is deprecated.
+If the server disables persistence, also use `creemClient({ persistSubscriptions: false })` so
+session types reflect the absence of Creem user fields. Failed client calls return `data: null`
+and an `error` with `message` and `status`; direct `auth.api` calls throw `APIError`.
+
+Upgrading from 1.x? Follow the [2.0 migration guide](https://docs.creem.io/code/sdks/better-auth/migration)
+for redirect defaults, error handling, schema configuration, and cancellation changes.
+
 When persistence is enabled, apply the plugin schema directly with Better Auth's built-in Kysely
 adapter:
 
@@ -85,6 +95,9 @@ if (!error && data?.url) {
   window.location.assign(data.url);
 }
 ```
+
+Checkout and portal navigation is manual by default (`redirect: false`). Pass
+`redirect: true` to either method to let Better Auth navigate automatically.
 
 Finally, register this URL as a webhook in the Creem dashboard:
 

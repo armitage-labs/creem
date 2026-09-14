@@ -1,10 +1,92 @@
-import { readFileSync, readdirSync } from "node:fs";
+import { appendFileSync, readFileSync, readdirSync } from "node:fs";
 import { fileURLToPath } from "node:url";
 import { dirname, resolve } from "node:path";
 import { createRequire } from "node:module";
 import assert from "node:assert/strict";
+import { isDeepStrictEqual } from "node:util";
 const require = createRequire(import.meta.url);
 const root = resolve(dirname(fileURLToPath(import.meta.url)), "..");
+const sdkFile = "packages/sdk/openapi.json";
+const docsFile = "packages/docs/api-reference/openapi.json";
+const manifestFile = "packages/cli/src/operation-manifest.json";
+
+const operationList = (spec) =>
+  Object.entries(spec.paths).flatMap(([path, item]) =>
+    Object.entries(item)
+      .filter(([, op]) => op && typeof op === "object" && op.operationId)
+      .map(([method, op]) => ({ ...op, endpoint: `${method.toUpperCase()} ${path}` })),
+  );
+
+function inventoryDifference(actual, expected, label, describe = (id) => id) {
+  return [...new Set([...actual, ...expected])].sort().flatMap((id) => {
+    const found = actual.filter((value) => value === id).length;
+    const wanted = expected.filter((value) => value === id).length;
+    if (found === wanted) return [];
+    const counts =
+      found > 1 || wanted > 1 ? ` (expected ${wanted} occurrences; found ${found})` : "";
+    return [`${found < wanted ? "Missing from" : "Extra in"} ${label}: ${describe(id)}${counts}`];
+  });
+}
+
+function parityError(file, lines) {
+  const error = new Error(lines.join("\n"));
+  error.file = file;
+  return error;
+}
+
+export function checkOpenApiSync(sdkText, docsText) {
+  if (sdkText === docsText) return;
+  const sdk = JSON.parse(sdkText);
+  const docs = JSON.parse(docsText);
+  const expected = operationList(sdk);
+  const actual = operationList(docs);
+  const describe = (id) => {
+    const op =
+      expected.find((op) => op.operationId === id) ?? actual.find((op) => op.operationId === id);
+    return `${id} (${op.endpoint})`;
+  };
+  const differences = inventoryDifference(
+    actual.map((op) => op.operationId),
+    expected.map((op) => op.operationId),
+    docsFile,
+    describe,
+  );
+  throw parityError(docsFile, [
+    "SDK/docs OpenAPI drift",
+    `Source: ${sdkFile} (${expected.length} operations)`,
+    `Copy: ${docsFile} (${actual.length} operations)`,
+    ...differences,
+    isDeepStrictEqual(sdk, docs)
+      ? "The parsed JSON is identical; only formatting or key order differs. Byte-for-byte synchronization is required."
+      : "The parsed JSON differs. Operation counts alone do not cover schema, parameter, or metadata changes.",
+    `Inspect: git diff --no-index ${docsFile} ${sdkFile}`,
+    "Fix: run pnpm gen:sdk from the repository root and commit the generated SDK and docs copy.",
+  ]);
+}
+
+export function reportFailure(
+  error,
+  {
+    github = process.env.GITHUB_ACTIONS === "true",
+    summary = process.env.GITHUB_STEP_SUMMARY,
+    write = console.error,
+  } = {},
+) {
+  const message = error.message ?? String(error);
+  write(message);
+  if (github) {
+    const escape = (value) =>
+      value.replaceAll("%", "%25").replaceAll("\r", "%0D").replaceAll("\n", "%0A");
+    const file = escape(error.file ?? "packages/cli/scripts/check-parity.mjs")
+      .replaceAll(":", "%3A")
+      .replaceAll(",", "%2C");
+    write(`::error file=${file},title=CLI parity failed::${escape(message)}`);
+  }
+  if (summary) {
+    const html = message.replaceAll("&", "&amp;").replaceAll("<", "&lt;").replaceAll(">", "&gt;");
+    appendFileSync(summary, `### CLI parity failed\n\n<pre>${html}</pre>\n\n`);
+  }
+}
 const camel = (s) =>
   s[0].toLowerCase() + s.slice(1).replace(/[-_]([a-zA-Z])/g, (_, c) => c.toUpperCase());
 export function normalizeSchema(schema, spec) {
@@ -60,9 +142,7 @@ export function checkParity({
       .filter((f) => f.endsWith(".ts"))
       .map((f) => readFileSync(resolve(root, "src/commands/operations", f), "utf8"))
       .join("\n");
-  const operations = Object.values(spec.paths).flatMap((path) =>
-    Object.values(path).filter((op) => op && typeof op === "object" && op.operationId),
-  );
+  const operations = operationList(spec);
   assert.equal(
     new Set(manifest.map((r) => r.operationId)).size,
     manifest.length,
@@ -78,16 +158,34 @@ export function checkParity({
     manifest.length,
     "Duplicate CLI mapping",
   );
-  assert.deepEqual(
-    manifest.map((r) => r.operationId).sort(),
-    operations.map((o) => o.operationId).sort(),
-    "OpenAPI/manifest operation drift",
+  const operationDrift = inventoryDifference(
+    manifest.map((r) => r.operationId),
+    operations.map((o) => o.operationId),
+    manifestFile,
+    (id) => {
+      const op = operations.find((op) => op.operationId === id);
+      return op ? `${id} (${op.endpoint})` : id;
+    },
   );
-  assert.deepEqual(
-    manifest.map((r) => r.sdkMethod).sort(),
-    methods.sort(),
-    "SDK/manifest method drift",
+  if (operationDrift.length)
+    throw parityError(manifestFile, [
+      "OpenAPI/manifest operation drift",
+      `${sdkFile}: ${operations.length} operations; ${manifestFile}: ${manifest.length} operations.`,
+      ...operationDrift,
+      "Fix: regenerate the SDK with pnpm gen:sdk, then update the CLI manifest, SDK handlers, commands, tests and reference for the changed operations.",
+      "Run node packages/cli/scripts/sync-reference.mjs, then pnpm --filter @creem_io/cli parity:check --strict.",
+    ]);
+  const methodDrift = inventoryDifference(
+    manifest.map((r) => r.sdkMethod),
+    methods,
+    manifestFile,
   );
+  if (methodDrift.length)
+    throw parityError(manifestFile, [
+      "SDK/manifest method drift",
+      ...methodDrift,
+      "Fix: regenerate the SDK with pnpm gen:sdk and synchronize CLI mappings and handlers with packages/sdk/src/sdk.",
+    ]);
   for (const row of manifest) {
     assert.equal(
       row.disposition,
@@ -166,16 +264,31 @@ export function checkParity({
   return { operations: operations.length, implemented: manifest.length };
 }
 if (process.argv[1] === fileURLToPath(import.meta.url)) {
-  assert.equal(
-    readFileSync(resolve(root, "../sdk/openapi.json"), "utf8"),
-    readFileSync(resolve(root, "../docs/api-reference/openapi.json"), "utf8"),
-    "SDK/docs OpenAPI drift",
-  );
-  const report = checkParity({
-    strict: process.argv.includes("--strict"),
-    docs: readFileSync(resolve(root, "../docs/snippets/cli-reference.mdx"), "utf8"),
-  });
-  console.log(
-    `CLI parity: ${report.implemented}/${report.operations} operations (100%); all parameters, request bodies, handlers and documented commands covered.`,
-  );
+  let failed = false;
+  let report;
+  for (const check of [
+    () =>
+      checkOpenApiSync(
+        readFileSync(resolve(root, "../sdk/openapi.json"), "utf8"),
+        readFileSync(resolve(root, "../docs/api-reference/openapi.json"), "utf8"),
+      ),
+    () => {
+      report = checkParity({
+        strict: process.argv.includes("--strict"),
+        docs: readFileSync(resolve(root, "../docs/snippets/cli-reference.mdx"), "utf8"),
+      });
+    },
+  ]) {
+    try {
+      check();
+    } catch (error) {
+      failed = true;
+      reportFailure(error);
+    }
+  }
+  if (failed) process.exitCode = 1;
+  else
+    console.log(
+      `CLI parity: ${report.implemented}/${report.operations} operations (100%); all parameters, request bodies, handlers and documented commands covered.`,
+    );
 }

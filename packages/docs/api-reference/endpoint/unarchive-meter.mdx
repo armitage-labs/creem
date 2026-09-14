@@ -1,0 +1,5 @@
+---
+title: 'Unarchive a meter'
+description: 'Restore an archived meter: it returns to the default listing and resumes accruing usage from the next matching event. Idempotent — unarchiving an active meter returns it unchanged. No gate applies and none is needed: archiving never released the meter''s name, because per-store name uniqueness counts archived meters (which is why creating a meter with an archived meter''s name returns 409 `meter_name_taken` with `details.archived_holder`), and it never altered the definition. Usage ingested while the meter was archived is retained as raw events and IS folded back in for any period still inside the late-event window, since a period is recomputed in full rather than incrementally — so units for an open period can increase by more than the usage seen since the unarchive. Finalized periods are not moved.'
+openapi: post /v1/meters/{id}/unarchive
+---

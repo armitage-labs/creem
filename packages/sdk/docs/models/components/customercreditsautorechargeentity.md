@@ -1,0 +1,33 @@
+# CustomerCreditsAutoRechargeEntity
+
+## Example Usage
+
+```typescript
+import { CustomerCreditsAutoRechargeEntity } from "creem/models/components";
+
+let value: CustomerCreditsAutoRechargeEntity = {
+  id: "<id>",
+  object: "customer_credits_auto_recharge",
+  customerId: "<id>",
+  bucketName: "<value>",
+  unitLabel: "<value>",
+  amountMinorUnits: "<value>",
+  currency: "Australian Dollar",
+  chargeReference: "<value>",
+  reference: "<value>",
+};
+```
+
+## Fields
+
+| Field                                                                                                                                 | Type                                                                                                                                  | Required                                                                                                                              | Description                                                                                                                           |
+| ------------------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------- |
+| `id`                                                                                                                                  | *string*                                                                                                                              | :heavy_check_mark:                                                                                                                    | Ledger transaction id (cct_...) of the credit grant the recharge posted — the same id the accompanying credits.granted event carries. |
+| `object`                                                                                                                              | [components.CustomerCreditsAutoRechargeEntityObject](../../models/components/customercreditsautorechargeentityobject.md)              | :heavy_check_mark:                                                                                                                    | String representing the object type.                                                                                                  |
+| `customerId`                                                                                                                          | *string*                                                                                                                              | :heavy_check_mark:                                                                                                                    | Identifier of the customer whose bucket was topped up.                                                                                |
+| `bucketName`                                                                                                                          | *string*                                                                                                                              | :heavy_check_mark:                                                                                                                    | Name of the credit bucket that was topped up.                                                                                         |
+| `unitLabel`                                                                                                                           | *string*                                                                                                                              | :heavy_check_mark:                                                                                                                    | Display unit for the bucket (for example "images" or "tokens").                                                                       |
+| `amountMinorUnits`                                                                                                                    | *string*                                                                                                                              | :heavy_check_mark:                                                                                                                    | Amount granted into the bucket, in minor units, serialised as a string to preserve precision.                                         |
+| `currency`                                                                                                                            | *string*                                                                                                                              | :heavy_check_mark:                                                                                                                    | ISO-4217 currency the off-session recharge was charged in.                                                                            |
+| `chargeReference`                                                                                                                     | *string*                                                                                                                              | :heavy_check_mark:                                                                                                                    | Provider-side charge reference for the off-session top-up.                                                                            |
+| `reference`                                                                                                                           | *string*                                                                                                                              | :heavy_check_mark:                                                                                                                    | Usage aggregation-window reference the recharge reconciles against.                                                                   |

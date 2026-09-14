@@ -1,6 +1,6 @@
 # InviteStatus
 
-Invite lifecycle for email-type recipients that have not been accepted yet: `pending` (awaiting acceptance) or `declined`. Absent for resolved store/user recipients.
+Invite lifecycle for email-type recipients that have not been accepted yet: `pending` (awaiting acceptance), `declined` (recipient declined) or `revoked` (merchant cancelled). Absent for resolved store/user recipients.
 
 ## Example Usage
 
@@ -13,5 +13,5 @@ let value: InviteStatus = "pending";
 ## Values
 
 ```typescript
-"pending" | "declined"
+"pending" | "declined" | "revoked"
 ```
