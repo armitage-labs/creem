@@ -274,6 +274,7 @@ run();
 ### [Events](docs/sdks/events/README.md)
 
 * [ingestEvents](docs/sdks/events/README.md#ingestevents) - Ingest usage events
+* [previewEvents](docs/sdks/events/README.md#previewevents) - Preview usage events
 * [listEvents](docs/sdks/events/README.md#listevents) - List usage events
 
 ### [Licenses](docs/sdks/licenses/README.md)
@@ -384,6 +385,7 @@ To read more about standalone functions, check [FUNCTIONS.md](./FUNCTIONS.md).
 - [`discountsSearch`](docs/sdks/discounts/README.md#search) - Search discounts
 - [`eventsIngestEvents`](docs/sdks/events/README.md#ingestevents) - Ingest usage events
 - [`eventsListEvents`](docs/sdks/events/README.md#listevents) - List usage events
+- [`eventsPreviewEvents`](docs/sdks/events/README.md#previewevents) - Preview usage events
 - [`licensesActivate`](docs/sdks/licenses/README.md#activate) - Activates a license key.
 - [`licensesDeactivate`](docs/sdks/licenses/README.md#deactivate) - Deactivate a license key instance.
 - [`licensesListInstances`](docs/sdks/licenses/README.md#listinstances) - List license instances.
@@ -586,8 +588,8 @@ run();
 
 
 **Inherit from [`CreemError`](./src/models/errors/creemerror.ts)**:
-* [`CustomerCreditsErrorResponseDto`](./src/models/errors/customercreditserrorresponsedto.ts): Status code `409`. Applicable to 5 of 66 methods.*
-* [`UsageMeteringErrorApiResponseDto`](./src/models/errors/usagemeteringerrorapiresponsedto.ts): Applicable to 5 of 66 methods.*
+* [`UsageMeteringErrorApiResponseDto`](./src/models/errors/usagemeteringerrorapiresponsedto.ts): Applicable to 6 of 67 methods.*
+* [`CustomerCreditsErrorResponseDto`](./src/models/errors/customercreditserrorresponsedto.ts): Status code `409`. Applicable to 5 of 67 methods.*
 * [`ResponseValidationError`](./src/models/errors/responsevalidationerror.ts): Type mismatch between the data returned from the server and the structure expected by the SDK. See `error.rawValue` for the raw value and `error.pretty()` for a nicely formatted multi-line string.
 
 </details>

@@ -45,6 +45,7 @@ import { tool$discountsGet } from "./tools/discountsGet.js";
 import { tool$discountsSearch } from "./tools/discountsSearch.js";
 import { tool$eventsIngestEvents } from "./tools/eventsIngestEvents.js";
 import { tool$eventsListEvents } from "./tools/eventsListEvents.js";
+import { tool$eventsPreviewEvents } from "./tools/eventsPreviewEvents.js";
 import { tool$licensesActivate } from "./tools/licensesActivate.js";
 import { tool$licensesDeactivate } from "./tools/licensesDeactivate.js";
 import { tool$licensesListInstances } from "./tools/licensesListInstances.js";
@@ -176,6 +177,7 @@ export function createMCPServer(deps: {
   tool(tool$metersArchiveMeter);
   tool(tool$metersUnarchiveMeter);
   tool(tool$eventsIngestEvents);
+  tool(tool$eventsPreviewEvents);
   tool(tool$eventsListEvents);
   tool(tool$affiliatesCreateInvite);
   tool(tool$affiliatesListInvites);

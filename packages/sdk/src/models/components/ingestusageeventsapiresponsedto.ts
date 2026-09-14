@@ -7,6 +7,12 @@ import { remap as remap$ } from "../../lib/primitives.js";
 import { safeParse } from "../../lib/schemas.js";
 import { Result as SafeParseResult } from "../../types/fp.js";
 import { SDKValidationError } from "../errors/sdkvalidationerror.js";
+import {
+  IngestUsageEventWarningApiDto,
+  IngestUsageEventWarningApiDto$inboundSchema,
+  IngestUsageEventWarningApiDto$Outbound,
+  IngestUsageEventWarningApiDto$outboundSchema,
+} from "./ingestusageeventwarningapidto.js";
 
 export type IngestUsageEventsApiResponseDto = {
   /**
@@ -17,6 +23,10 @@ export type IngestUsageEventsApiResponseDto = {
    * The `event_id` each accepted event was recorded under, in the order they were submitted — your own value where you supplied one, the generated value where you did not. This is the stored id after normalisation (surrounding whitespace is trimmed), so it is exactly what `reference` on GET /v1/events will match. Use it to correlate a submitted event with the row it became.
    */
   eventIds: Array<string>;
+  /**
+   * Advisory warnings about accepted events that will not produce billable usage as sent — no active meter consumes the event name, only archived meters match, or the timestamp falls in an already-finalized billing period. Warnings never change what was accepted: the events are stored either way. Absent when every event will aggregate normally.
+   */
+  warnings?: Array<IngestUsageEventWarningApiDto> | undefined;
 };
 
 /** @internal */
@@ -27,6 +37,7 @@ export const IngestUsageEventsApiResponseDto$inboundSchema: z.ZodType<
 > = z.object({
   accepted: z.number(),
   event_ids: z.array(z.string()),
+  warnings: z.array(IngestUsageEventWarningApiDto$inboundSchema).optional(),
 }).transform((v) => {
   return remap$(v, {
     "event_ids": "eventIds",
@@ -36,6 +47,7 @@ export const IngestUsageEventsApiResponseDto$inboundSchema: z.ZodType<
 export type IngestUsageEventsApiResponseDto$Outbound = {
   accepted: number;
   event_ids: Array<string>;
+  warnings?: Array<IngestUsageEventWarningApiDto$Outbound> | undefined;
 };
 
 /** @internal */
@@ -46,6 +58,7 @@ export const IngestUsageEventsApiResponseDto$outboundSchema: z.ZodType<
 > = z.object({
   accepted: z.number(),
   eventIds: z.array(z.string()),
+  warnings: z.array(IngestUsageEventWarningApiDto$outboundSchema).optional(),
 }).transform((v) => {
   return remap$(v, {
     eventIds: "event_ids",

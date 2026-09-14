@@ -4,6 +4,7 @@
 
 import { eventsIngestEvents } from "../funcs/eventsIngestEvents.js";
 import { eventsListEvents } from "../funcs/eventsListEvents.js";
+import { eventsPreviewEvents } from "../funcs/eventsPreviewEvents.js";
 import { ClientSDK, RequestOptions } from "../lib/sdks.js";
 import * as components from "../models/components/index.js";
 import * as operations from "../models/operations/index.js";
@@ -34,6 +35,27 @@ export class Events extends ClientSDK {
     options?: RequestOptions,
   ): Promise<components.IngestUsageEventsApiResponseDto> {
     return unwrapAsync(eventsIngestEvents(
+      this,
+      request,
+      options,
+    ));
+  }
+
+  /**
+   * Preview usage events
+   *
+   * @remarks
+   * Dry-run of `POST /v1/events/ingest`: send the exact batch you would ingest and get a per-event report of what would happen — **nothing is stored**.
+   *
+   * For each event: whether it passes validation (invalid events are reported in place instead of rejecting the batch, unlike ingest), the `event_id` it would be recorded under, whether it would deduplicate against an already-stored event or an earlier entry of the same batch (advisory — another writer can land between preview and ingest), the active meters that would consume it, and the same warnings ingest returns.
+   *
+   * Usage events are immutable once ingested, so preview is the way to gain first-run confidence: wire your integration against preview, check `valid` is true and every event matches the meters you expect, then switch the path to `ingest`.
+   */
+  async previewEvents(
+    request: components.IngestUsageEventsApiRequestDto,
+    options?: RequestOptions,
+  ): Promise<components.PreviewUsageEventsApiResponseDto> {
+    return unwrapAsync(eventsPreviewEvents(
       this,
       request,
       options,

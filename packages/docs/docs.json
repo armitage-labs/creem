@@ -188,6 +188,7 @@
                 "group": "Events",
                 "pages": [
                   "api-reference/endpoint/ingest-usage-events",
+                  "api-reference/endpoint/preview-usage-events",
                   "api-reference/endpoint/list-usage-events"
                 ]
               },

@@ -51,6 +51,10 @@ export type UsageEventApiResponseDto = {
    * When the event was ingested (ISO 8601)
    */
   createdAt: string;
+  /**
+   * Ids of the ACTIVE meters that consume this event name, computed at read time (an archived or later-created meter changes this answer — it is not stored with the event). An empty array means the event is not feeding any aggregation right now.
+   */
+  matchedMeters: Array<string>;
 };
 
 /** @internal */
@@ -138,11 +142,13 @@ export const UsageEventApiResponseDto$inboundSchema: z.ZodType<
   metadata: z.lazy(() => UsageEventApiResponseDtoMetadata$inboundSchema),
   timestamp: z.string(),
   created_at: z.string(),
+  matched_meters: z.array(z.string()),
 }).transform((v) => {
   return remap$(v, {
     "customer_id": "customerId",
     "event_id": "eventId",
     "created_at": "createdAt",
+    "matched_meters": "matchedMeters",
   });
 });
 /** @internal */
@@ -155,6 +161,7 @@ export type UsageEventApiResponseDto$Outbound = {
   metadata: UsageEventApiResponseDtoMetadata$Outbound;
   timestamp: string;
   created_at: string;
+  matched_meters: Array<string>;
 };
 
 /** @internal */
@@ -171,11 +178,13 @@ export const UsageEventApiResponseDto$outboundSchema: z.ZodType<
   metadata: z.lazy(() => UsageEventApiResponseDtoMetadata$outboundSchema),
   timestamp: z.string(),
   createdAt: z.string(),
+  matchedMeters: z.array(z.string()),
 }).transform((v) => {
   return remap$(v, {
     customerId: "customer_id",
     eventId: "event_id",
     createdAt: "created_at",
+    matchedMeters: "matched_meters",
   });
 });
 

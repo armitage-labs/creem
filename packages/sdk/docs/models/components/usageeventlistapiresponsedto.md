@@ -17,6 +17,9 @@ let value: UsageEventListApiResponseDto = {
       metadata: {},
       timestamp: "<value>",
       createdAt: "1712278866004",
+      matchedMeters: [
+        "mtr_abc123",
+      ],
     },
   ],
   hasMore: false,

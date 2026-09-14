@@ -11,6 +11,14 @@ export const handlers: Record<string, OperationHandler> = {
     );
     return client.events.ingestEvents(b, options);
   },
+  previewUsageEvents: (client, parameters, body, options) => {
+    const b = decode(
+      components.IngestUsageEventsApiRequestDto$outboundSchema,
+      components.IngestUsageEventsApiRequestDto$inboundSchema,
+      body,
+    );
+    return client.events.previewEvents(b, options);
+  },
   listUsageEvents: (client, parameters, body, options) => {
     const p = decode(
       operations.ListUsageEventsRequest$outboundSchema,

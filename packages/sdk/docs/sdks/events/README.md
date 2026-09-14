@@ -5,6 +5,7 @@
 ### Available Operations
 
 * [ingestEvents](#ingestevents) - Ingest usage events
+* [previewEvents](#previewevents) - Preview usage events
 * [listEvents](#listevents) - List usage events
 
 ## ingestEvents
@@ -85,6 +86,84 @@ run();
 ### Response
 
 **Promise\<[components.IngestUsageEventsApiResponseDto](../../models/components/ingestusageeventsapiresponsedto.md)\>**
+
+### Errors
+
+| Error Type                              | Status Code                             | Content Type                            |
+| --------------------------------------- | --------------------------------------- | --------------------------------------- |
+| errors.UsageMeteringErrorApiResponseDto | 422                                     | application/json                        |
+| errors.APIError                         | 4XX, 5XX                                | \*/\*                                   |
+
+## previewEvents
+
+Dry-run of `POST /v1/events/ingest`: send the exact batch you would ingest and get a per-event report of what would happen — **nothing is stored**.
+
+For each event: whether it passes validation (invalid events are reported in place instead of rejecting the batch, unlike ingest), the `event_id` it would be recorded under, whether it would deduplicate against an already-stored event or an earlier entry of the same batch (advisory — another writer can land between preview and ingest), the active meters that would consume it, and the same warnings ingest returns.
+
+Usage events are immutable once ingested, so preview is the way to gain first-run confidence: wire your integration against preview, check `valid` is true and every event matches the meters you expect, then switch the path to `ingest`.
+
+### Example Usage
+
+<!-- UsageSnippet language="typescript" operationID="previewUsageEvents" method="post" path="/v1/events/preview" -->
+```typescript
+import { Creem } from "creem";
+
+const creem = new Creem({
+  apiKey: process.env["CREEM_API_KEY"] ?? "",
+});
+
+async function run() {
+  const result = await creem.events.previewEvents({
+    events: [],
+  });
+
+  console.log(result);
+}
+
+run();
+```
+
+### Standalone function
+
+The standalone function version of this method:
+
+```typescript
+import { CreemCore } from "creem/core.js";
+import { eventsPreviewEvents } from "creem/funcs/eventsPreviewEvents.js";
+
+// Use `CreemCore` for best tree-shaking performance.
+// You can create one instance of it to use across an application.
+const creem = new CreemCore({
+  apiKey: process.env["CREEM_API_KEY"] ?? "",
+});
+
+async function run() {
+  const res = await eventsPreviewEvents(creem, {
+    events: [],
+  });
+  if (res.ok) {
+    const { value: result } = res;
+    console.log(result);
+  } else {
+    console.log("eventsPreviewEvents failed:", res.error);
+  }
+}
+
+run();
+```
+
+### Parameters
+
+| Parameter                                                                                                                                                                      | Type                                                                                                                                                                           | Required                                                                                                                                                                       | Description                                                                                                                                                                    |
+| ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| `request`                                                                                                                                                                      | [components.IngestUsageEventsApiRequestDto](../../models/components/ingestusageeventsapirequestdto.md)                                                                         | :heavy_check_mark:                                                                                                                                                             | The request object to use for the request.                                                                                                                                     |
+| `options`                                                                                                                                                                      | RequestOptions                                                                                                                                                                 | :heavy_minus_sign:                                                                                                                                                             | Used to set various options for making HTTP requests.                                                                                                                          |
+| `options.fetchOptions`                                                                                                                                                         | [RequestInit](https://developer.mozilla.org/en-US/docs/Web/API/Request/Request#options)                                                                                        | :heavy_minus_sign:                                                                                                                                                             | Options that are passed to the underlying HTTP request. This can be used to inject extra headers for examples. All `Request` options, except `method` and `body`, are allowed. |
+| `options.retries`                                                                                                                                                              | [RetryConfig](../../lib/utils/retryconfig.md)                                                                                                                                  | :heavy_minus_sign:                                                                                                                                                             | Enables retrying HTTP requests under certain failure conditions.                                                                                                               |
+
+### Response
+
+**Promise\<[components.PreviewUsageEventsApiResponseDto](../../models/components/previewusageeventsapiresponsedto.md)\>**
 
 ### Errors
 

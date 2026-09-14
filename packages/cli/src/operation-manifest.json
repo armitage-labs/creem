@@ -2503,6 +2503,60 @@
     "destructive": false
   },
   {
+    "operationId": "previewUsageEvents",
+    "sdkMethod": "events.previewEvents",
+    "cliPath": "events preview",
+    "disposition": "implemented",
+    "description": "Preview usage events",
+    "parameters": [],
+    "body": {
+      "viaData": true,
+      "schema": {
+        "type": "object",
+        "properties": {
+          "events": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "properties": {
+                "name": {
+                  "type": "string"
+                },
+                "customerId": {
+                  "type": "string"
+                },
+                "eventId": {
+                  "type": "string"
+                },
+                "timestamp": {
+                  "type": "string"
+                },
+                "properties": {
+                  "type": "object"
+                },
+                "metadata": {
+                  "type": "object"
+                }
+              },
+              "required": [
+                "name",
+                "customerId"
+              ]
+            }
+          }
+        },
+        "required": [
+          "events"
+        ]
+      },
+      "primaryFlags": {
+        "events": "--events"
+      }
+    },
+    "pagination": "none",
+    "destructive": false
+  },
+  {
     "operationId": "listUsageEvents",
     "sdkMethod": "events.listEvents",
     "cliPath": "events list",

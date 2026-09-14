@@ -3383,6 +3383,63 @@
         ]
       }
     },
+    "/v1/events/preview": {
+      "post": {
+        "operationId": "previewUsageEvents",
+        "x-speakeasy-name-override": "previewEvents",
+        "x-speakeasy-group": "events",
+        "summary": "Preview usage events",
+        "description": "Dry-run of `POST /v1/events/ingest`: send the exact batch you would ingest and get a per-event report of what would happen — **nothing is stored**.\n\nFor each event: whether it passes validation (invalid events are reported in place instead of rejecting the batch, unlike ingest), the `event_id` it would be recorded under, whether it would deduplicate against an already-stored event or an earlier entry of the same batch (advisory — another writer can land between preview and ingest), the active meters that would consume it, and the same warnings ingest returns.\n\nUsage events are immutable once ingested, so preview is the way to gain first-run confidence: wire your integration against preview, check `valid` is true and every event matches the meters you expect, then switch the path to `ingest`.",
+        "parameters": [],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/IngestUsageEventsApiRequestDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Per-event report; nothing was stored",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PreviewUsageEventsApiResponseDto"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Bad Request - Invalid input parameters"
+          },
+          "401": {
+            "description": "Unauthorized - Invalid or missing API key"
+          },
+          "404": {
+            "description": "Not Found - Resource does not exist"
+          },
+          "422": {
+            "description": "The request envelope itself is malformed (e.g. no events array, or more than the batch maximum)",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/UsageMeteringErrorApiResponseDto"
+                }
+              }
+            }
+          }
+        },
+        "tags": ["Events"],
+        "security": [
+          {
+            "ApiKey": []
+          }
+        ]
+      }
+    },
     "/v1/events": {
       "get": {
         "operationId": "listUsageEvents",
@@ -7228,6 +7285,27 @@
         },
         "required": ["events"]
       },
+      "IngestUsageEventWarningApiDto": {
+        "type": "object",
+        "properties": {
+          "index": {
+            "type": "number",
+            "description": "Zero-based index of the event in the submitted batch",
+            "example": 3
+          },
+          "code": {
+            "type": "string",
+            "description": "Warning code. `no_matching_meter`: no meter consumes this event name. `meter_archived`: only archived meters match — unarchive one to resume aggregation. `timestamp_outside_late_window`: the billing period the timestamp falls in is finalized, so the event will never change its totals.",
+            "enum": ["no_matching_meter", "meter_archived", "timestamp_outside_late_window"],
+            "example": "no_matching_meter"
+          },
+          "message": {
+            "type": "string",
+            "description": "Human-readable explanation"
+          }
+        },
+        "required": ["index", "code", "message"]
+      },
       "IngestUsageEventsApiResponseDto": {
         "type": "object",
         "properties": {
@@ -7243,9 +7321,115 @@
             "items": {
               "type": "string"
             }
+          },
+          "warnings": {
+            "description": "Advisory warnings about accepted events that will not produce billable usage as sent — no active meter consumes the event name, only archived meters match, or the timestamp falls in an already-finalized billing period. Warnings never change what was accepted: the events are stored either way. Absent when every event will aggregate normally.",
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/IngestUsageEventWarningApiDto"
+            }
           }
         },
         "required": ["accepted", "event_ids"]
+      },
+      "PreviewUsageEventErrorApiDto": {
+        "type": "object",
+        "properties": {
+          "code": {
+            "type": "string",
+            "description": "Validation error code",
+            "example": "invalid_usage_event"
+          },
+          "message": {
+            "type": "string",
+            "description": "What is wrong with the event"
+          },
+          "param": {
+            "type": "object",
+            "description": "The offending field, named as you sent it",
+            "example": "customer_id",
+            "nullable": true
+          }
+        },
+        "required": ["code", "message"]
+      },
+      "PreviewUsageEventWarningApiDto": {
+        "type": "object",
+        "properties": {
+          "code": {
+            "type": "string",
+            "description": "Warning code — same set as ingest warnings",
+            "enum": ["no_matching_meter", "meter_archived", "timestamp_outside_late_window"],
+            "example": "no_matching_meter"
+          },
+          "message": {
+            "type": "string",
+            "description": "Human-readable explanation"
+          }
+        },
+        "required": ["code", "message"]
+      },
+      "PreviewUsageEventReportApiDto": {
+        "type": "object",
+        "properties": {
+          "valid": {
+            "type": "boolean",
+            "description": "Whether this event would pass ingest validation"
+          },
+          "event_id": {
+            "type": "object",
+            "description": "The idempotency key the event would be recorded under — your `event_id`, trimmed. Null when the event is invalid, and also null when you omitted `event_id`: ingest generates a fresh id at accept time, so previewing one would be misleading.",
+            "nullable": true,
+            "example": "order-1234"
+          },
+          "error": {
+            "description": "Why the event is invalid. Null when valid.",
+            "nullable": true,
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/PreviewUsageEventErrorApiDto"
+              }
+            ]
+          },
+          "duplicate": {
+            "type": "object",
+            "description": "Advisory: would this event deduplicate against an already-stored event (or an earlier entry of this batch)? Null when the event is invalid. Racy by nature — a signal for debugging retries, not a guarantee.",
+            "nullable": true
+          },
+          "matched_meters": {
+            "description": "Ids of the active meters that would consume this event, at preview time",
+            "example": ["mtr_abc123"],
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "warnings": {
+            "description": "Advisory warnings — same semantics as ingest warnings",
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/PreviewUsageEventWarningApiDto"
+            }
+          }
+        },
+        "required": ["valid", "matched_meters", "warnings"]
+      },
+      "PreviewUsageEventsApiResponseDto": {
+        "type": "object",
+        "properties": {
+          "valid": {
+            "type": "boolean",
+            "description": "Whether the batch as submitted would be accepted by POST /v1/events/ingest (ingest validation is all-or-nothing)"
+          },
+          "events": {
+            "description": "Per-event report, in submission order",
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/PreviewUsageEventReportApiDto"
+            }
+          }
+        },
+        "required": ["valid", "events"]
       },
       "UsageEventApiResponseDto": {
         "type": "object",
@@ -7285,6 +7469,14 @@
           "created_at": {
             "type": "string",
             "description": "When the event was ingested (ISO 8601)"
+          },
+          "matched_meters": {
+            "description": "Ids of the ACTIVE meters that consume this event name, computed at read time (an archived or later-created meter changes this answer — it is not stored with the event). An empty array means the event is not feeding any aggregation right now.",
+            "example": ["mtr_abc123"],
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
           }
         },
         "required": [
@@ -7295,7 +7487,8 @@
           "properties",
           "metadata",
           "timestamp",
-          "created_at"
+          "created_at",
+          "matched_meters"
         ]
       },
       "UsageEventListApiResponseDto": {
