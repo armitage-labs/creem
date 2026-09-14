@@ -54,7 +54,7 @@ description: 'Answers to the most common questions about using Creem.'
     No, test and production environments are completely separate. You'll need to recreate your products in live mode. This ensures your production catalog is intentional and reviewed.
   </Accordion>
   <Accordion title="Does Creem support weekly billing?">
-    Currently, Creem supports **monthly**, **3-month**, **6-month**, and **yearly** billing cycles for subscriptions. Weekly billing is not available at this time.
+    Yes. For weekly billing, create a recurring product with `billing_period` set to `custom`, `recurring_interval` set to `week`, and `recurring_interval_count` set to `1`. Daily, monthly, 3-month, 6-month, and yearly cycles are available as presets. See [Create Product](/api-reference/endpoint/create-product).
   </Accordion>
   <Accordion title="Which currencies does Creem support?">
     You can price products in **USD** and **EUR** today. Set the currency when creating a product (see [Create Your First Product](/guides/create-your-first-product)). Regardless of the currency you charge in, Creem handles tax collection and remittance as your [Merchant of Record](/merchant-of-record/what-is). Payout currency is handled separately — see [Payouts](/merchant-of-record/finance/payouts).
