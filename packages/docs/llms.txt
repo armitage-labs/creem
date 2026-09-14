@@ -43,6 +43,7 @@ Append `.md` to any documentation URL to fetch it as raw markdown.
 - [Split payments](https://docs.creem.io/features/split-payments.md): programmable revenue splits
 - [Affiliate program](https://docs.creem.io/features/affiliate-program.md): built-in referral and affiliate infrastructure
 - [Storefronts](https://docs.creem.io/features/storefronts.md): hosted product pages
+- [Short links](https://docs.creem.io/features/short-links.md): branded l.creem.io links with click analytics and revenue attribution
 
 ## Integrations
 
