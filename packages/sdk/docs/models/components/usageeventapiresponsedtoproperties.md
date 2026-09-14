@@ -1,6 +1,6 @@
 # UsageEventApiResponseDtoProperties
 
-Top-level structured fields carried by the event
+The event's attributes — meter filters and aggregation read their keys here
 
 ## Example Usage
 

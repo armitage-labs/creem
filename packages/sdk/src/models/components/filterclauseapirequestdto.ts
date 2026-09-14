@@ -33,7 +33,7 @@ export type Value = string | number | boolean;
 
 export type FilterClauseApiRequestDto = {
   /**
-   * Event property to test. Resolved as a top-level property first, then as a metadata key — never prefixed with "metadata.".
+   * Event property to test — a key of the event's `properties` bag, unprefixed.
    */
   property: string;
   /**

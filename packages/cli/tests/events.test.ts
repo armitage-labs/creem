@@ -16,7 +16,7 @@ it("events ingest sends the exact SDK arguments", async () => {
           name: "tokens_used",
           customerId: "cust_1",
           eventId: "evt-abc",
-          metadata: { tokens: 512 },
+          properties: { tokens: 512 },
         },
       ],
     }),
@@ -48,13 +48,13 @@ it("events preview sends the exact SDK arguments", async () => {
     "preview",
     "--data",
     JSON.stringify({
-      events: [{ name: "tokens_used", customerId: "cust_1" }],
+      events: [{ name: "tokens_used", externalCustomerId: "user-42" }],
     }),
     "--json",
   ]);
   expect(spy, result.stderr).toHaveBeenCalledExactlyOnceWith(
     expect.objectContaining({
-      events: [expect.objectContaining({ name: "tokens_used", customerId: "cust_1" })],
+      events: [expect.objectContaining({ name: "tokens_used", externalCustomerId: "user-42" })],
     }),
     expect.objectContaining({ retries: { strategy: "none" } }),
   );

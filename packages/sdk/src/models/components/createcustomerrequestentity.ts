@@ -3,6 +3,7 @@
  */
 
 import * as z from "zod/v3";
+import { remap as remap$ } from "../../lib/primitives.js";
 import { safeParse } from "../../lib/schemas.js";
 import { Result as SafeParseResult } from "../../types/fp.js";
 import { SDKValidationError } from "../errors/sdkvalidationerror.js";
@@ -20,6 +21,10 @@ export type CreateCustomerRequestEntity = {
    * Additional metadata for the customer.
    */
   metadata?: { [k: string]: any } | undefined;
+  /**
+   * Your own id for this customer. Unique per store; usage ingestion resolves `external_customer_id` against it. Trimmed; letters, digits, `_` and `-` only; at most 255 characters.
+   */
+  externalId?: string | undefined;
 };
 
 /** @internal */
@@ -31,12 +36,18 @@ export const CreateCustomerRequestEntity$inboundSchema: z.ZodType<
   email: z.string(),
   name: z.string(),
   metadata: z.record(z.any()).optional(),
+  external_id: z.string().optional(),
+}).transform((v) => {
+  return remap$(v, {
+    "external_id": "externalId",
+  });
 });
 /** @internal */
 export type CreateCustomerRequestEntity$Outbound = {
   email: string;
   name: string;
   metadata?: { [k: string]: any } | undefined;
+  external_id?: string | undefined;
 };
 
 /** @internal */
@@ -48,6 +59,11 @@ export const CreateCustomerRequestEntity$outboundSchema: z.ZodType<
   email: z.string(),
   name: z.string(),
   metadata: z.record(z.any()).optional(),
+  externalId: z.string().optional(),
+}).transform((v) => {
+  return remap$(v, {
+    externalId: "external_id",
+  });
 });
 
 export function createCustomerRequestEntityToJSON(

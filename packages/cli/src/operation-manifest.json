@@ -646,6 +646,9 @@
           "metadata": {
             "type": "object",
             "additionalProperties": true
+          },
+          "externalId": {
+            "type": "string"
           }
         },
         "required": [
@@ -656,7 +659,8 @@
       "primaryFlags": {
         "email": "--email",
         "name": "--name",
-        "metadata": "--metadata"
+        "metadata": "--metadata",
+        "externalId": "--external-id"
       }
     },
     "pagination": "none",
@@ -683,6 +687,10 @@
           "metadata": {
             "type": "object",
             "additionalProperties": true
+          },
+          "externalId": {
+            "type": "object",
+            "nullable": true
           }
         },
         "required": [
@@ -691,7 +699,8 @@
       },
       "primaryFlags": {
         "name": "--name",
-        "metadata": "--metadata"
+        "metadata": "--metadata",
+        "externalId": "--external-id"
       },
       "positional": "customerId"
     },
@@ -2480,13 +2489,12 @@
                 "properties": {
                   "type": "object"
                 },
-                "metadata": {
-                  "type": "object"
+                "externalCustomerId": {
+                  "type": "string"
                 }
               },
               "required": [
-                "name",
-                "customerId"
+                "name"
               ]
             }
           }
@@ -2534,13 +2542,12 @@
                 "properties": {
                   "type": "object"
                 },
-                "metadata": {
-                  "type": "object"
+                "externalCustomerId": {
+                  "type": "string"
                 }
               },
               "required": [
-                "name",
-                "customerId"
+                "name"
               ]
             }
           }

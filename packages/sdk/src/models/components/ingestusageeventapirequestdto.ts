@@ -9,14 +9,9 @@ import { Result as SafeParseResult } from "../../types/fp.js";
 import { SDKValidationError } from "../errors/sdkvalidationerror.js";
 
 /**
- * Top-level structured fields carried by the event — this is where the value an aggregation reduces (e.g. "tokens") lives. At most 50 keys, keys at most 40 characters, string values at most 500 characters.
+ * The event's attributes — the ONE bag. Meter filter clauses and aggregation properties (e.g. "tokens") resolve their keys here, unprefixed. At most 50 keys, keys at most 40 characters, string and serialized-object values at most 500 characters.
  */
 export type Properties = {};
-
-/**
- * Free-form metadata. Addressable by meter filter clauses without a prefix. Same limits as `properties`.
- */
-export type Metadata = {};
 
 export type IngestUsageEventApiRequestDto = {
   /**
@@ -24,9 +19,13 @@ export type IngestUsageEventApiRequestDto = {
    */
   name: string;
   /**
-   * The customer this usage is attributed to
+   * The Creem customer this usage is attributed to. Exactly one of `customer_id` / `external_customer_id` is required per event; the id must belong to an existing customer of your store or the whole batch is rejected. Trimmed; letters, digits, `_` and `-` only; at most 255 characters.
    */
-  customerId: string;
+  customerId?: string | undefined;
+  /**
+   * Your own id for this customer, resolved to the Creem customer it was registered for via the customers API. Exactly one of `customer_id` / `external_customer_id` is required per event; an id no customer carries rejects the whole batch. Trimmed; letters, digits, `_` and `-` only; at most 255 characters.
+   */
+  externalCustomerId?: string | undefined;
   /**
    * Your idempotency key for this event, unique within your store. Re-sending the same event_id is a no-op. Generated for you when omitted — supply your own if you want retries to be safe.
    */
@@ -36,13 +35,9 @@ export type IngestUsageEventApiRequestDto = {
    */
   timestamp?: string | undefined;
   /**
-   * Top-level structured fields carried by the event — this is where the value an aggregation reduces (e.g. "tokens") lives. At most 50 keys, keys at most 40 characters, string values at most 500 characters.
+   * The event's attributes — the ONE bag. Meter filter clauses and aggregation properties (e.g. "tokens") resolve their keys here, unprefixed. At most 50 keys, keys at most 40 characters, string and serialized-object values at most 500 characters.
    */
   properties?: Properties | undefined;
-  /**
-   * Free-form metadata. Addressable by meter filter clauses without a prefix. Same limits as `properties`.
-   */
-  metadata?: Metadata | undefined;
 };
 
 /** @internal */
@@ -75,60 +70,32 @@ export function propertiesFromJSON(
 }
 
 /** @internal */
-export const Metadata$inboundSchema: z.ZodType<
-  Metadata,
-  z.ZodTypeDef,
-  unknown
-> = z.object({});
-/** @internal */
-export type Metadata$Outbound = {};
-
-/** @internal */
-export const Metadata$outboundSchema: z.ZodType<
-  Metadata$Outbound,
-  z.ZodTypeDef,
-  Metadata
-> = z.object({});
-
-export function metadataToJSON(metadata: Metadata): string {
-  return JSON.stringify(Metadata$outboundSchema.parse(metadata));
-}
-export function metadataFromJSON(
-  jsonString: string,
-): SafeParseResult<Metadata, SDKValidationError> {
-  return safeParse(
-    jsonString,
-    (x) => Metadata$inboundSchema.parse(JSON.parse(x)),
-    `Failed to parse 'Metadata' from JSON`,
-  );
-}
-
-/** @internal */
 export const IngestUsageEventApiRequestDto$inboundSchema: z.ZodType<
   IngestUsageEventApiRequestDto,
   z.ZodTypeDef,
   unknown
 > = z.object({
   name: z.string(),
-  customer_id: z.string(),
+  customer_id: z.string().optional(),
+  external_customer_id: z.string().optional(),
   event_id: z.string().optional(),
   timestamp: z.string().optional(),
   properties: z.lazy(() => Properties$inboundSchema).optional(),
-  metadata: z.lazy(() => Metadata$inboundSchema).optional(),
 }).transform((v) => {
   return remap$(v, {
     "customer_id": "customerId",
+    "external_customer_id": "externalCustomerId",
     "event_id": "eventId",
   });
 });
 /** @internal */
 export type IngestUsageEventApiRequestDto$Outbound = {
   name: string;
-  customer_id: string;
+  customer_id?: string | undefined;
+  external_customer_id?: string | undefined;
   event_id?: string | undefined;
   timestamp?: string | undefined;
   properties?: Properties$Outbound | undefined;
-  metadata?: Metadata$Outbound | undefined;
 };
 
 /** @internal */
@@ -138,14 +105,15 @@ export const IngestUsageEventApiRequestDto$outboundSchema: z.ZodType<
   IngestUsageEventApiRequestDto
 > = z.object({
   name: z.string(),
-  customerId: z.string(),
+  customerId: z.string().optional(),
+  externalCustomerId: z.string().optional(),
   eventId: z.string().optional(),
   timestamp: z.string().optional(),
   properties: z.lazy(() => Properties$outboundSchema).optional(),
-  metadata: z.lazy(() => Metadata$outboundSchema).optional(),
 }).transform((v) => {
   return remap$(v, {
     customerId: "customer_id",
+    externalCustomerId: "external_customer_id",
     eventId: "event_id",
   });
 });

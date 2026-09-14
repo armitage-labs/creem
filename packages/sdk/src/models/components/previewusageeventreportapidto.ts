@@ -20,6 +20,11 @@ import {
 export type EventId = {};
 
 /**
+ * The Creem customer the usage would be attributed to — resolved from your `external_customer_id` where you sent one. Null when the event is invalid or the reference does not resolve.
+ */
+export type CustomerId = {};
+
+/**
  * The offending field, named as you sent it
  */
 export type Param = {};
@@ -56,6 +61,10 @@ export type PreviewUsageEventReportApiDto = {
    * The idempotency key the event would be recorded under — your `event_id`, trimmed. Null when the event is invalid, and also null when you omitted `event_id`: ingest generates a fresh id at accept time, so previewing one would be misleading.
    */
   eventId?: EventId | null | undefined;
+  /**
+   * The Creem customer the usage would be attributed to — resolved from your `external_customer_id` where you sent one. Null when the event is invalid or the reference does not resolve.
+   */
+  customerId?: CustomerId | null | undefined;
   /**
    * Why the event is invalid. Null when valid.
    */
@@ -97,6 +106,35 @@ export function eventIdFromJSON(
     jsonString,
     (x) => EventId$inboundSchema.parse(JSON.parse(x)),
     `Failed to parse 'EventId' from JSON`,
+  );
+}
+
+/** @internal */
+export const CustomerId$inboundSchema: z.ZodType<
+  CustomerId,
+  z.ZodTypeDef,
+  unknown
+> = z.object({});
+/** @internal */
+export type CustomerId$Outbound = {};
+
+/** @internal */
+export const CustomerId$outboundSchema: z.ZodType<
+  CustomerId$Outbound,
+  z.ZodTypeDef,
+  CustomerId
+> = z.object({});
+
+export function customerIdToJSON(customerId: CustomerId): string {
+  return JSON.stringify(CustomerId$outboundSchema.parse(customerId));
+}
+export function customerIdFromJSON(
+  jsonString: string,
+): SafeParseResult<CustomerId, SDKValidationError> {
+  return safeParse(
+    jsonString,
+    (x) => CustomerId$inboundSchema.parse(JSON.parse(x)),
+    `Failed to parse 'CustomerId' from JSON`,
   );
 }
 
@@ -201,6 +239,7 @@ export const PreviewUsageEventReportApiDto$inboundSchema: z.ZodType<
 > = z.object({
   valid: z.boolean(),
   event_id: z.nullable(z.lazy(() => EventId$inboundSchema)).optional(),
+  customer_id: z.nullable(z.lazy(() => CustomerId$inboundSchema)).optional(),
   error: z.nullable(z.lazy(() => ErrorT$inboundSchema)).optional(),
   duplicate: z.nullable(z.lazy(() => Duplicate$inboundSchema)).optional(),
   matched_meters: z.array(z.string()),
@@ -208,6 +247,7 @@ export const PreviewUsageEventReportApiDto$inboundSchema: z.ZodType<
 }).transform((v) => {
   return remap$(v, {
     "event_id": "eventId",
+    "customer_id": "customerId",
     "matched_meters": "matchedMeters",
   });
 });
@@ -215,6 +255,7 @@ export const PreviewUsageEventReportApiDto$inboundSchema: z.ZodType<
 export type PreviewUsageEventReportApiDto$Outbound = {
   valid: boolean;
   event_id?: EventId$Outbound | null | undefined;
+  customer_id?: CustomerId$Outbound | null | undefined;
   error?: ErrorT$Outbound | null | undefined;
   duplicate?: Duplicate$Outbound | null | undefined;
   matched_meters: Array<string>;
@@ -229,6 +270,7 @@ export const PreviewUsageEventReportApiDto$outboundSchema: z.ZodType<
 > = z.object({
   valid: z.boolean(),
   eventId: z.nullable(z.lazy(() => EventId$outboundSchema)).optional(),
+  customerId: z.nullable(z.lazy(() => CustomerId$outboundSchema)).optional(),
   error: z.nullable(z.lazy(() => ErrorT$outboundSchema)).optional(),
   duplicate: z.nullable(z.lazy(() => Duplicate$outboundSchema)).optional(),
   matchedMeters: z.array(z.string()),
@@ -236,6 +278,7 @@ export const PreviewUsageEventReportApiDto$outboundSchema: z.ZodType<
 }).transform((v) => {
   return remap$(v, {
     eventId: "event_id",
+    customerId: "customer_id",
     matchedMeters: "matched_meters",
   });
 });

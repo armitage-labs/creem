@@ -4,7 +4,7 @@ management:
   docVersion: v1
   speakeasyVersion: 1.796.4
   generationVersion: 2.935.1
-  releaseVersion: 1.7.0
+  releaseVersion: 1.8.0
   repoURL: https://github.com/armitage-labs/creem.git
   repoSubDirectory: packages/sdk
   installationURL: https://github.com/armitage-labs/creem
@@ -138,6 +138,7 @@ trackedFiles:
   docs/models/components/customerentity.md:
     id: 2e9b74ad0ca6
     pristine_git_object: e22cc8d2ac887e6af76d92b025abf0a6e7f936d7
+  docs/models/components/customerid.md: {}
   docs/models/components/customerlinksentity.md:
     id: 7ed83d8861eb
     pristine_git_object: b18f40bbc66ce93b5a4fe6a96b7013c9e2b46276
@@ -184,6 +185,7 @@ trackedFiles:
   docs/models/components/errort.md: {}
   docs/models/components/eventid.md: {}
   docs/models/components/eventtype.md: {}
+  docs/models/components/externalid.md: {}
   docs/models/components/featureentity.md:
     id: fe7695d86411
     pristine_git_object: f60f2dcf49c631efa5aa780eaf2b47a80e6b908e
@@ -211,7 +213,6 @@ trackedFiles:
   docs/models/components/licensekey.md: {}
   docs/models/components/licenselistentity.md: {}
   docs/models/components/licensestatus.md: {}
-  docs/models/components/metadata.md: {}
   docs/models/components/meterapiresponsedto.md: {}
   docs/models/components/meterapiresponsedtoaggregation.md: {}
   docs/models/components/meterapiresponsedtostatus.md: {}
@@ -328,6 +329,7 @@ trackedFiles:
     id: 2bbf9ee35707
     pristine_git_object: 13e4d6b4004b5c7b69287e17d07375883709d365
   docs/models/components/updatecustomerrequestentity.md: {}
+  docs/models/components/updatecustomerrequestentityexternalid.md: {}
   docs/models/components/updatemeterapirequestdto.md: {}
   docs/models/components/updatemeterapirequestdtoaggregation.md: {}
   docs/models/components/updateproductrequestentity.md: {}
@@ -345,7 +347,6 @@ trackedFiles:
     pristine_git_object: b53daec6082bfb6c07ace88d7d0209da53cc90d8
   docs/models/components/usageentity.md: {}
   docs/models/components/usageeventapiresponsedto.md: {}
-  docs/models/components/usageeventapiresponsedtometadata.md: {}
   docs/models/components/usageeventapiresponsedtoproperties.md: {}
   docs/models/components/usageeventlistapiresponsedto.md: {}
   docs/models/components/usagemeteringerrordetailapidto.md: {}
@@ -1409,10 +1410,10 @@ examples:
   createCustomer:
     speakeasy-default-create-customer:
       requestBody:
-        application/json: {"email": "john@example.com", "name": "John Doe", "metadata": {}}
+        application/json: {"email": "john@example.com", "name": "John Doe", "metadata": {}, "external_id": "user-42"}
       responses:
         "200":
-          application/json: {"id": "<id>", "mode": "test", "object": "<value>", "email": "user@example.com", "name": "John Doe", "metadata": {}, "country": "US", "created_at": "2023-01-01T00:00:00Z", "updated_at": "2023-01-01T00:00:00Z"}
+          application/json: {"id": "<id>", "mode": "test", "object": "<value>", "email": "user@example.com", "name": "John Doe", "metadata": {}, "country": "US", "external_id": {}, "created_at": "2023-01-01T00:00:00Z", "updated_at": "2023-01-01T00:00:00Z"}
   createCustomerCreditsAccount:
     speakeasy-default-create-customer-credits-account:
       requestBody:
@@ -1746,7 +1747,7 @@ examples:
           starting_after: "uev_abc123"
       responses:
         "200":
-          application/json: {"object": "list", "data": [{"id": "uev_abc123", "customer_id": "cust_abc123", "event_id": "order-1234", "name": "image.generated", "properties": {}, "metadata": {}, "timestamp": "<value>", "created_at": "1705136447437", "matched_meters": ["mtr_abc123"]}], "has_more": true}
+          application/json: {"object": "list", "data": [{"id": "uev_abc123", "customer_id": "cust_abc123", "event_id": "order-1234", "name": "image.generated", "properties": {}, "timestamp": "<value>", "created_at": "1705136447437", "matched_meters": ["mtr_abc123"]}], "has_more": true}
   logout: {}
   pauseSubscription:
     speakeasy-default-pause-subscription:
@@ -1834,7 +1835,7 @@ examples:
           x-api-key: "<value>"
       responses:
         "200":
-          application/json: {"id": "<id>", "mode": "sandbox", "object": "{}", "email": "user@example.com", "name": "John Doe", "metadata": {}, "country": "US", "created_at": "2023-01-01T00:00:00Z", "updated_at": "2023-01-01T00:00:00Z"}
+          application/json: {"id": "<id>", "mode": "sandbox", "object": "{}", "email": "user@example.com", "name": "John Doe", "metadata": {}, "country": "US", "external_id": {}, "created_at": "2023-01-01T00:00:00Z", "updated_at": "2023-01-01T00:00:00Z"}
   retrieveDiscount:
     speakeasy-default-retrieve-discount:
       parameters:
@@ -1959,10 +1960,10 @@ examples:
   updateCustomer:
     speakeasy-default-update-customer:
       requestBody:
-        application/json: {"customer_id": "cust_abc123", "name": "John Doe", "metadata": {}}
+        application/json: {"customer_id": "cust_abc123", "name": "John Doe", "metadata": {}, "external_id": {}}
       responses:
         "200":
-          application/json: {"id": "<id>", "mode": "test", "object": "<value>", "email": "user@example.com", "name": "John Doe", "metadata": {}, "country": "US", "created_at": "2023-01-01T00:00:00Z", "updated_at": "2023-01-01T00:00:00Z"}
+          application/json: {"id": "<id>", "mode": "test", "object": "<value>", "email": "user@example.com", "name": "John Doe", "metadata": {}, "country": "US", "external_id": {}, "created_at": "2023-01-01T00:00:00Z", "updated_at": "2023-01-01T00:00:00Z"}
   updateMeter:
     speakeasy-default-update-meter:
       parameters:

@@ -106,6 +106,8 @@ it("customers create sends the exact SDK arguments", async () => {
     "person@example.com",
     "--name",
     "Person",
+    "--external-id",
+    "user-42",
     "--metadata",
     "x=1",
     "--metadata",
@@ -113,7 +115,12 @@ it("customers create sends the exact SDK arguments", async () => {
     "--json",
   ]);
   expect(spy, result.stderr).toHaveBeenCalledExactlyOnceWith(
-    expect.objectContaining({ email: "person@example.com", name: "Person", metadata: { x: "2" } }),
+    expect.objectContaining({
+      email: "person@example.com",
+      name: "Person",
+      externalId: "user-42",
+      metadata: { x: "2" },
+    }),
     expect.objectContaining({ retries: { strategy: "none" } }),
   );
   expect(result.stderr).toContain("SDK_SENTINEL");

@@ -51,10 +51,10 @@
     "build:mcp": "bun src/mcp-server/build.mts",
     "build": "npm run build:mcp && tshy",
     "prepublishOnly": "npm run build",
-    "typecheck": "tsc --noEmit",
     "check:package": "publint --strict --pack pnpm && attw --pack .",
     "test": "vitest run",
-    "test:watch": "vitest"
+    "test:watch": "vitest",
+    "typecheck": "tsc --noEmit"
   },
   "peerDependencies": {},
   "devDependencies": {

@@ -9,14 +9,9 @@ import { Result as SafeParseResult } from "../../types/fp.js";
 import { SDKValidationError } from "../errors/sdkvalidationerror.js";
 
 /**
- * Top-level structured fields carried by the event
+ * The event's attributes — meter filters and aggregation read their keys here
  */
 export type UsageEventApiResponseDtoProperties = {};
-
-/**
- * Free-form metadata; keys are addressable by meter filters
- */
-export type UsageEventApiResponseDtoMetadata = {};
 
 export type UsageEventApiResponseDto = {
   /**
@@ -36,13 +31,9 @@ export type UsageEventApiResponseDto = {
    */
   name: string;
   /**
-   * Top-level structured fields carried by the event
+   * The event's attributes — meter filters and aggregation read their keys here
    */
   properties: UsageEventApiResponseDtoProperties;
-  /**
-   * Free-form metadata; keys are addressable by meter filters
-   */
-  metadata: UsageEventApiResponseDtoMetadata;
   /**
    * When the usage occurred, on your clock (ISO 8601)
    */
@@ -94,41 +85,6 @@ export function usageEventApiResponseDtoPropertiesFromJSON(
 }
 
 /** @internal */
-export const UsageEventApiResponseDtoMetadata$inboundSchema: z.ZodType<
-  UsageEventApiResponseDtoMetadata,
-  z.ZodTypeDef,
-  unknown
-> = z.object({});
-/** @internal */
-export type UsageEventApiResponseDtoMetadata$Outbound = {};
-
-/** @internal */
-export const UsageEventApiResponseDtoMetadata$outboundSchema: z.ZodType<
-  UsageEventApiResponseDtoMetadata$Outbound,
-  z.ZodTypeDef,
-  UsageEventApiResponseDtoMetadata
-> = z.object({});
-
-export function usageEventApiResponseDtoMetadataToJSON(
-  usageEventApiResponseDtoMetadata: UsageEventApiResponseDtoMetadata,
-): string {
-  return JSON.stringify(
-    UsageEventApiResponseDtoMetadata$outboundSchema.parse(
-      usageEventApiResponseDtoMetadata,
-    ),
-  );
-}
-export function usageEventApiResponseDtoMetadataFromJSON(
-  jsonString: string,
-): SafeParseResult<UsageEventApiResponseDtoMetadata, SDKValidationError> {
-  return safeParse(
-    jsonString,
-    (x) => UsageEventApiResponseDtoMetadata$inboundSchema.parse(JSON.parse(x)),
-    `Failed to parse 'UsageEventApiResponseDtoMetadata' from JSON`,
-  );
-}
-
-/** @internal */
 export const UsageEventApiResponseDto$inboundSchema: z.ZodType<
   UsageEventApiResponseDto,
   z.ZodTypeDef,
@@ -139,7 +95,6 @@ export const UsageEventApiResponseDto$inboundSchema: z.ZodType<
   event_id: z.string(),
   name: z.string(),
   properties: z.lazy(() => UsageEventApiResponseDtoProperties$inboundSchema),
-  metadata: z.lazy(() => UsageEventApiResponseDtoMetadata$inboundSchema),
   timestamp: z.string(),
   created_at: z.string(),
   matched_meters: z.array(z.string()),
@@ -158,7 +113,6 @@ export type UsageEventApiResponseDto$Outbound = {
   event_id: string;
   name: string;
   properties: UsageEventApiResponseDtoProperties$Outbound;
-  metadata: UsageEventApiResponseDtoMetadata$Outbound;
   timestamp: string;
   created_at: string;
   matched_meters: Array<string>;
@@ -175,7 +129,6 @@ export const UsageEventApiResponseDto$outboundSchema: z.ZodType<
   eventId: z.string(),
   name: z.string(),
   properties: z.lazy(() => UsageEventApiResponseDtoProperties$outboundSchema),
-  metadata: z.lazy(() => UsageEventApiResponseDtoMetadata$outboundSchema),
   timestamp: z.string(),
   createdAt: z.string(),
   matchedMeters: z.array(z.string()),

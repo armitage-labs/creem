@@ -14,7 +14,6 @@ let value: UsageEventListApiResponseDto = {
       eventId: "order-1234",
       name: "image.generated",
       properties: {},
-      metadata: {},
       timestamp: "<value>",
       createdAt: "1712278866004",
       matchedMeters: [

@@ -4781,6 +4781,12 @@
             "pattern": "^[A-Z]{2}$",
             "nullable": true
           },
+          "external_id": {
+            "type": "object",
+            "description": "Your own id for this customer, when you have set one — usage ingestion resolves `external_customer_id` against it.",
+            "example": "user-42",
+            "nullable": true
+          },
           "created_at": {
             "format": "date-time",
             "type": "string",
@@ -5477,6 +5483,11 @@
               "key": "value"
             },
             "additionalProperties": true
+          },
+          "external_id": {
+            "type": "string",
+            "description": "Your own id for this customer. Unique per store; usage ingestion resolves `external_customer_id` against it. Trimmed; letters, digits, `_` and `-` only; at most 255 characters.",
+            "example": "user-42"
           }
         },
         "required": ["email", "name"]
@@ -5501,6 +5512,12 @@
               "key": "value"
             },
             "additionalProperties": true
+          },
+          "external_id": {
+            "type": "object",
+            "description": "Your own id for this customer. Unique per store; usage ingestion resolves `external_customer_id` against it. Omit to leave unchanged; send `null` to clear it. Trimmed; letters, digits, `_` and `-` only; at most 255 characters.",
+            "example": "user-42",
+            "nullable": true
           }
         },
         "required": ["customer_id"]
@@ -6782,7 +6799,7 @@
         "properties": {
           "property": {
             "type": "string",
-            "description": "Event property to test. Resolved as a top-level property first, then as a metadata key — never prefixed with \"metadata.\".",
+            "description": "Event property to test — a key of the event's `properties` bag, unprefixed.",
             "example": "tier"
           },
           "operator": {
@@ -7242,8 +7259,13 @@
           },
           "customer_id": {
             "type": "string",
-            "description": "The customer this usage is attributed to",
+            "description": "The Creem customer this usage is attributed to. Exactly one of `customer_id` / `external_customer_id` is required per event; the id must belong to an existing customer of your store or the whole batch is rejected. Trimmed; letters, digits, `_` and `-` only; at most 255 characters.",
             "example": "cust_abc123"
+          },
+          "external_customer_id": {
+            "type": "string",
+            "description": "Your own id for this customer, resolved to the Creem customer it was registered for via the customers API. Exactly one of `customer_id` / `external_customer_id` is required per event; an id no customer carries rejects the whole batch. Trimmed; letters, digits, `_` and `-` only; at most 255 characters.",
+            "example": "user-42"
           },
           "event_id": {
             "type": "string",
@@ -7257,20 +7279,14 @@
           },
           "properties": {
             "type": "object",
-            "description": "Top-level structured fields carried by the event — this is where the value an aggregation reduces (e.g. \"tokens\") lives. At most 50 keys, keys at most 40 characters, string values at most 500 characters.",
+            "description": "The event's attributes — the ONE bag. Meter filter clauses and aggregation properties (e.g. \"tokens\") resolve their keys here, unprefixed. At most 50 keys, keys at most 40 characters, string and serialized-object values at most 500 characters.",
             "example": {
-              "tokens": 1200
-            }
-          },
-          "metadata": {
-            "type": "object",
-            "description": "Free-form metadata. Addressable by meter filter clauses without a prefix. Same limits as `properties`.",
-            "example": {
+              "tokens": 1200,
               "tier": "pro"
             }
           }
         },
-        "required": ["name", "customer_id"]
+        "required": ["name"]
       },
       "IngestUsageEventsApiRequestDto": {
         "type": "object",
@@ -7382,6 +7398,12 @@
             "nullable": true,
             "example": "order-1234"
           },
+          "customer_id": {
+            "type": "object",
+            "description": "The Creem customer the usage would be attributed to — resolved from your `external_customer_id` where you sent one. Null when the event is invalid or the reference does not resolve.",
+            "nullable": true,
+            "example": "cust_abc123"
+          },
           "error": {
             "description": "Why the event is invalid. Null when valid.",
             "nullable": true,
@@ -7456,11 +7478,7 @@
           },
           "properties": {
             "type": "object",
-            "description": "Top-level structured fields carried by the event"
-          },
-          "metadata": {
-            "type": "object",
-            "description": "Free-form metadata; keys are addressable by meter filters"
+            "description": "The event's attributes — meter filters and aggregation read their keys here"
           },
           "timestamp": {
             "type": "string",
@@ -7485,7 +7503,6 @@
           "event_id",
           "name",
           "properties",
-          "metadata",
           "timestamp",
           "created_at",
           "matched_meters"

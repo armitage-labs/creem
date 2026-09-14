@@ -13,6 +13,11 @@ import {
   EnvironmentMode$outboundSchema,
 } from "./environmentmode.js";
 
+/**
+ * Your own id for this customer, when you have set one — usage ingestion resolves `external_customer_id` against it.
+ */
+export type ExternalId = {};
+
 export type CustomerEntity = {
   /**
    * Unique identifier for the object.
@@ -43,6 +48,10 @@ export type CustomerEntity = {
    */
   country: string | null;
   /**
+   * Your own id for this customer, when you have set one — usage ingestion resolves `external_customer_id` against it.
+   */
+  externalId?: ExternalId | null | undefined;
+  /**
    * Creation date of the customer
    */
   createdAt: Date;
@@ -51,6 +60,35 @@ export type CustomerEntity = {
    */
   updatedAt: Date;
 };
+
+/** @internal */
+export const ExternalId$inboundSchema: z.ZodType<
+  ExternalId,
+  z.ZodTypeDef,
+  unknown
+> = z.object({});
+/** @internal */
+export type ExternalId$Outbound = {};
+
+/** @internal */
+export const ExternalId$outboundSchema: z.ZodType<
+  ExternalId$Outbound,
+  z.ZodTypeDef,
+  ExternalId
+> = z.object({});
+
+export function externalIdToJSON(externalId: ExternalId): string {
+  return JSON.stringify(ExternalId$outboundSchema.parse(externalId));
+}
+export function externalIdFromJSON(
+  jsonString: string,
+): SafeParseResult<ExternalId, SDKValidationError> {
+  return safeParse(
+    jsonString,
+    (x) => ExternalId$inboundSchema.parse(JSON.parse(x)),
+    `Failed to parse 'ExternalId' from JSON`,
+  );
+}
 
 /** @internal */
 export const CustomerEntity$inboundSchema: z.ZodType<
@@ -65,10 +103,12 @@ export const CustomerEntity$inboundSchema: z.ZodType<
   name: z.nullable(z.string()).optional(),
   metadata: z.nullable(z.record(z.any())).optional(),
   country: z.nullable(z.string()),
+  external_id: z.nullable(z.lazy(() => ExternalId$inboundSchema)).optional(),
   created_at: z.string().datetime({ offset: true }).transform(v => new Date(v)),
   updated_at: z.string().datetime({ offset: true }).transform(v => new Date(v)),
 }).transform((v) => {
   return remap$(v, {
+    "external_id": "externalId",
     "created_at": "createdAt",
     "updated_at": "updatedAt",
   });
@@ -82,6 +122,7 @@ export type CustomerEntity$Outbound = {
   name?: string | null | undefined;
   metadata?: { [k: string]: any } | null | undefined;
   country: string | null;
+  external_id?: ExternalId$Outbound | null | undefined;
   created_at: string;
   updated_at: string;
 };
@@ -99,10 +140,12 @@ export const CustomerEntity$outboundSchema: z.ZodType<
   name: z.nullable(z.string()).optional(),
   metadata: z.nullable(z.record(z.any())).optional(),
   country: z.nullable(z.string()),
+  externalId: z.nullable(z.lazy(() => ExternalId$outboundSchema)).optional(),
   createdAt: z.date().transform(v => v.toISOString()),
   updatedAt: z.date().transform(v => v.toISOString()),
 }).transform((v) => {
   return remap$(v, {
+    externalId: "external_id",
     createdAt: "created_at",
     updatedAt: "updated_at",
   });

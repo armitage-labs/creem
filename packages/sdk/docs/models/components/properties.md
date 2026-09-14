@@ -1,6 +1,6 @@
 # Properties
 
-Top-level structured fields carried by the event — this is where the value an aggregation reduces (e.g. "tokens") lives. At most 50 keys, keys at most 40 characters, string values at most 500 characters.
+The event's attributes — the ONE bag. Meter filter clauses and aggregation properties (e.g. "tokens") resolve their keys here, unprefixed. At most 50 keys, keys at most 40 characters, string and serialized-object values at most 500 characters.
 
 ## Example Usage
 
