@@ -1,5 +1,16 @@
 # @creem_io/cli
 
+## 0.4.0
+
+### Minor Changes
+
+- 0e6e264: Add the usage-based billing surface: new `events` group (`ingestEvents` batch usage ingestion, `previewEvents` dry-run, `listEvents` with computed `matched_meters`) and `meters` group (create, list, get, update, preview, preview-stored, per-customer consumed units, archive, unarchive) in the SDK, with matching `creem events …` (ingest, preview, list) and `creem meters …` CLI commands. Ingest responses carry advisory warnings when an event will not aggregate as sent. Customer-credits operations drop their experimental marker.
+
+### Patch Changes
+
+- Updated dependencies [0e6e264]
+  - creem@1.8.0
+
 ## 0.3.0
 
 ### Minor Changes
