@@ -26,7 +26,8 @@ jobs:
     if: github.repository == 'armitage-labs/creem' && github.ref == 'refs/heads/main'
     runs-on: ubuntu-latest
     environment: release
-    timeout-minutes: 10
+    # Covers the script's full npm-propagation retry budget for both registry fetches.
+    timeout-minutes: 30
     steps:
       - uses: actions/checkout@v4
         with:

@@ -55,8 +55,16 @@ export function updateFormula(source, version, sha256) {
 }
 
 // Retry registry propagation delays and transient network failures, never a bad artifact.
+// npm replication can lag several minutes behind publish, so back off exponentially
+// (5s doubling to a 60s cap) for a total wait budget of roughly eight minutes.
+const maxAttempts = 12;
+
+export function retryDelay(attempt) {
+  return Math.min(5_000 * 2 ** (attempt - 1), 60_000);
+}
+
 export async function fetchWithRetry(url, { fetchImpl = fetch, wait = sleep } = {}) {
-  for (let attempt = 1; attempt <= 6; attempt++) {
+  for (let attempt = 1; attempt <= maxAttempts; attempt++) {
     try {
       const response = await fetchImpl(url, {
         signal: AbortSignal.timeout(30_000),
@@ -69,14 +77,14 @@ export async function fetchWithRetry(url, { fetchImpl = fetch, wait = sleep } = 
         throw new Error(`Registry returned HTTP ${response.status} for ${url}`, {
           cause: "permanent",
         });
-      if (attempt === 6)
+      if (attempt === maxAttempts)
         throw new Error(`Registry returned HTTP ${response.status} for ${url}`, {
           cause: "permanent",
         });
     } catch (error) {
-      if (error.cause === "permanent" || attempt === 6) throw error;
+      if (error.cause === "permanent" || attempt === maxAttempts) throw error;
     }
-    await wait(10_000);
+    await wait(retryDelay(attempt));
   }
 }
 
