@@ -1,5 +1,16 @@
 # @creem_io/cli
 
+## 0.6.0
+
+### Minor Changes
+
+- 54e329a: Expose the Customer Credits transactions surface. The SDK gains `customerCredits.postTransaction` (balanced multi-entry transactions across accounts), `customerCredits.getTransaction`, `customerCredits.reverseTransactionById`, and `customerCredits.listTransactionsByReference`, with matching `creem customer-credits transactions …` CLI commands (create, get, reverse, list). Posting and reversing transactions are destructive operations and prompt for confirmation or require `--yes`.
+
+### Patch Changes
+
+- Updated dependencies [54e329a]
+  - creem@1.10.0
+
 ## 0.5.0
 
 ### Minor Changes
