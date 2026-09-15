@@ -2771,6 +2771,221 @@
         ]
       }
     },
+    "/v1/customer-credits/transactions": {
+      "post": {
+        "operationId": "postCustomerCreditsTransaction",
+        "x-speakeasy-name-override": "postTransaction",
+        "x-speakeasy-group": "customerCredits",
+        "summary": "Post a transaction",
+        "description": "Post a multi-entry transaction. Entries must balance (total debits must equal total credits).",
+        "parameters": [],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/PostTransactionDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Transaction posted",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/TransactionResponseDto"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Bad Request - Invalid input parameters"
+          },
+          "401": {
+            "description": "Unauthorized - Invalid or missing API key"
+          },
+          "404": {
+            "description": "Not Found - Resource does not exist"
+          },
+          "409": {
+            "description": "Account frozen or closed",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CustomerCreditsErrorResponseDto"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Unbalanced transaction — debits must equal credits",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CustomerCreditsErrorResponseDto"
+                }
+              }
+            }
+          }
+        },
+        "tags": ["Customer Credits - Transactions"],
+        "security": [
+          {
+            "ApiKey": []
+          }
+        ]
+      },
+      "get": {
+        "operationId": "listCustomerCreditsTransactionsByReference",
+        "x-speakeasy-name-override": "listTransactionsByReference",
+        "x-speakeasy-group": "customerCredits",
+        "summary": "List transactions by reference",
+        "description": "List all transactions matching a reference string.",
+        "parameters": [
+          {
+            "name": "reference",
+            "required": true,
+            "in": "query",
+            "description": "Find all transactions matching this reference",
+            "schema": {
+              "example": "order_xyz",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "List of transactions",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/TransactionListResponseDto"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Bad Request - Invalid input parameters"
+          },
+          "401": {
+            "description": "Unauthorized - Invalid or missing API key"
+          },
+          "404": {
+            "description": "Not Found - Resource does not exist"
+          }
+        },
+        "tags": ["Customer Credits - Transactions"],
+        "security": [
+          {
+            "ApiKey": []
+          }
+        ]
+      }
+    },
+    "/v1/customer-credits/transactions/{id}": {
+      "get": {
+        "operationId": "getCustomerCreditsTransaction",
+        "x-speakeasy-name-override": "getTransaction",
+        "x-speakeasy-group": "customerCredits",
+        "summary": "Retrieve a transaction",
+        "description": "Get details of a transaction by ID.",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Transaction details",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/TransactionResponseDto"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Bad Request - Invalid input parameters"
+          },
+          "401": {
+            "description": "Unauthorized - Invalid or missing API key"
+          },
+          "404": {
+            "description": "Not Found - Resource does not exist"
+          }
+        },
+        "tags": ["Customer Credits - Transactions"],
+        "security": [
+          {
+            "ApiKey": []
+          }
+        ]
+      }
+    },
+    "/v1/customer-credits/transactions/{id}/reverse": {
+      "post": {
+        "operationId": "reverseCustomerCreditsTransaction",
+        "x-speakeasy-name-override": "reverseTransactionById",
+        "x-speakeasy-group": "customerCredits",
+        "summary": "Reverse a transaction",
+        "description": "Reverse a previous transaction. Creates a new transaction that undoes the original, preserving the full history.",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "201": {
+            "description": "Reversal transaction created",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/TransactionResponseDto"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Bad Request - Invalid input parameters"
+          },
+          "401": {
+            "description": "Unauthorized - Invalid or missing API key"
+          },
+          "404": {
+            "description": "Not Found - Resource does not exist"
+          },
+          "409": {
+            "description": "Account frozen or closed",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CustomerCreditsErrorResponseDto"
+                }
+              }
+            }
+          }
+        },
+        "tags": ["Customer Credits - Transactions"],
+        "security": [
+          {
+            "ApiKey": []
+          }
+        ]
+      }
+    },
     "/v1/meters": {
       "post": {
         "operationId": "createMeter",
@@ -6793,6 +7008,72 @@
           }
         },
         "required": ["transaction_id"]
+      },
+      "EntryInputDto": {
+        "type": "object",
+        "properties": {
+          "account_id": {
+            "type": "string",
+            "description": "The account ID for this entry",
+            "example": "cca_abc123"
+          },
+          "side": {
+            "type": "string",
+            "description": "Debit or credit side",
+            "enum": ["debit", "credit"]
+          },
+          "amount": {
+            "type": "string",
+            "description": "Entry amount (string to support large numbers)",
+            "example": "1000"
+          }
+        },
+        "required": ["account_id", "side", "amount"]
+      },
+      "PostTransactionDto": {
+        "type": "object",
+        "properties": {
+          "reference": {
+            "type": "string",
+            "description": "Your reference ID to link this transaction to an event in your system",
+            "example": "order_xyz"
+          },
+          "idempotency_key": {
+            "type": "string",
+            "description": "Idempotency key to prevent duplicate transactions",
+            "example": "idem_abc123"
+          },
+          "entries": {
+            "description": "Array of entries. Must have at least 2 entries and the total debits must equal total credits.",
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/EntryInputDto"
+            }
+          }
+        },
+        "required": ["reference", "idempotency_key", "entries"]
+      },
+      "TransactionListResponseDto": {
+        "type": "object",
+        "properties": {
+          "object": {
+            "type": "string",
+            "description": "Object type",
+            "example": "list"
+          },
+          "data": {
+            "description": "Array of transactions",
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/TransactionResponseDto"
+            }
+          },
+          "has_more": {
+            "type": "boolean",
+            "description": "Whether more items exist beyond this page"
+          }
+        },
+        "required": ["object", "data", "has_more"]
       },
       "FilterClauseApiRequestDto": {
         "type": "object",

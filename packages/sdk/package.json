@@ -18,8 +18,8 @@
   "homepage": "https://github.com/armitage-labs/creem/tree/main/packages/sdk",
   "license": "MIT",
   "publishConfig": {
-    "access": "public",
-    "provenance": true
+    "provenance": true,
+    "access": "public"
   },
   "repository": {
     "type": "git",

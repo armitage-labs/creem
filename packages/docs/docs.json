@@ -468,6 +468,10 @@
               "api-reference/endpoint/credit-account",
               "api-reference/endpoint/debit-account",
               "api-reference/endpoint/reverse-credits-transaction",
+              "api-reference/endpoint/post-customer-credits-transaction",
+              "api-reference/endpoint/list-customer-credits-transactions-by-reference",
+              "api-reference/endpoint/get-customer-credits-transaction",
+              "api-reference/endpoint/reverse-customer-credits-transaction",
               "api-reference/endpoint/freeze-credits-account",
               "api-reference/endpoint/unfreeze-credits-account",
               "api-reference/endpoint/close-credits-account"

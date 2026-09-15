@@ -222,3 +222,88 @@ it("customer-credits closeAccount sends the exact SDK arguments", async () => {
   expect(result.stderr).toContain("SDK_SENTINEL");
   expect(result.stdout).toBe("");
 });
+
+it("customer-credits post-transaction sends the exact SDK arguments", async () => {
+  const h = harness();
+  const spy = vi
+    .spyOn(h.client.customerCredits, "postTransaction")
+    .mockRejectedValue(new Error("SDK_SENTINEL"));
+  const result = await h.run([
+    "customer-credits",
+    "post-transaction",
+    "--data",
+    JSON.stringify({
+      reference: "order_789",
+      idempotencyKey: "idem_1",
+      entries: [
+        { accountId: "acc_1", side: "debit", amount: "50" },
+        { accountId: "acc_2", side: "credit", amount: "50" },
+      ],
+    }),
+    "--yes",
+    "--json",
+  ]);
+  expect(spy, result.stderr).toHaveBeenCalledExactlyOnceWith(
+    expect.objectContaining({
+      reference: "order_789",
+      idempotencyKey: "idem_1",
+      entries: [
+        expect.objectContaining({ accountId: "acc_1", side: "debit", amount: "50" }),
+        expect.objectContaining({ accountId: "acc_2", side: "credit", amount: "50" }),
+      ],
+    }),
+    expect.objectContaining({ retries: { strategy: "none" } }),
+  );
+  expect(result.stderr).toContain("SDK_SENTINEL");
+});
+
+it("customer-credits transactions sends the exact SDK arguments", async () => {
+  const h = harness();
+  const spy = vi
+    .spyOn(h.client.customerCredits, "listTransactionsByReference")
+    .mockRejectedValue(new Error("SDK_SENTINEL"));
+  const result = await h.run([
+    "customer-credits",
+    "transactions",
+    "--reference",
+    "order_789",
+    "--json",
+  ]);
+  expect(spy, result.stderr).toHaveBeenCalledExactlyOnceWith(
+    "order_789",
+    expect.objectContaining({ retries: { strategy: "none" } }),
+  );
+  expect(result.stderr).toContain("SDK_SENTINEL");
+});
+
+it("customer-credits get-transaction sends the exact SDK arguments", async () => {
+  const h = harness();
+  const spy = vi
+    .spyOn(h.client.customerCredits, "getTransaction")
+    .mockRejectedValue(new Error("SDK_SENTINEL"));
+  const result = await h.run(["customer-credits", "get-transaction", "tx_1", "--json"]);
+  expect(spy, result.stderr).toHaveBeenCalledExactlyOnceWith(
+    "tx_1",
+    expect.objectContaining({ retries: { strategy: "none" } }),
+  );
+  expect(result.stderr).toContain("SDK_SENTINEL");
+});
+
+it("customer-credits reverse-transaction sends the exact SDK arguments", async () => {
+  const h = harness();
+  const spy = vi
+    .spyOn(h.client.customerCredits, "reverseTransactionById")
+    .mockRejectedValue(new Error("SDK_SENTINEL"));
+  const result = await h.run([
+    "customer-credits",
+    "reverse-transaction",
+    "tx_1",
+    "--yes",
+    "--json",
+  ]);
+  expect(spy, result.stderr).toHaveBeenCalledExactlyOnceWith(
+    "tx_1",
+    expect.objectContaining({ retries: { strategy: "none" } }),
+  );
+  expect(result.stderr).toContain("SDK_SENTINEL");
+});

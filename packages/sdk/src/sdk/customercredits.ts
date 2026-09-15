@@ -9,9 +9,13 @@ import { customerCreditsDebitAccount } from "../funcs/customerCreditsDebitAccoun
 import { customerCreditsFreezeAccount } from "../funcs/customerCreditsFreezeAccount.js";
 import { customerCreditsGetAccount } from "../funcs/customerCreditsGetAccount.js";
 import { customerCreditsGetAccountBalance } from "../funcs/customerCreditsGetAccountBalance.js";
+import { customerCreditsGetTransaction } from "../funcs/customerCreditsGetTransaction.js";
 import { customerCreditsListAccounts } from "../funcs/customerCreditsListAccounts.js";
 import { customerCreditsListEntries } from "../funcs/customerCreditsListEntries.js";
+import { customerCreditsListTransactionsByReference } from "../funcs/customerCreditsListTransactionsByReference.js";
+import { customerCreditsPostTransaction } from "../funcs/customerCreditsPostTransaction.js";
 import { customerCreditsReverseTransaction } from "../funcs/customerCreditsReverseTransaction.js";
+import { customerCreditsReverseTransactionById } from "../funcs/customerCreditsReverseTransactionById.js";
 import { customerCreditsUnfreezeAccount } from "../funcs/customerCreditsUnfreezeAccount.js";
 import { ClientSDK, RequestOptions } from "../lib/sdks.js";
 import * as components from "../models/components/index.js";
@@ -231,6 +235,74 @@ export class CustomerCredits extends ClientSDK {
     options?: RequestOptions,
   ): Promise<components.AccountResponseDto> {
     return unwrapAsync(customerCreditsCloseAccount(
+      this,
+      id,
+      options,
+    ));
+  }
+
+  /**
+   * Post a transaction
+   *
+   * @remarks
+   * Post a multi-entry transaction. Entries must balance (total debits must equal total credits).
+   */
+  async postTransaction(
+    request: components.PostTransactionDto,
+    options?: RequestOptions,
+  ): Promise<components.TransactionResponseDto> {
+    return unwrapAsync(customerCreditsPostTransaction(
+      this,
+      request,
+      options,
+    ));
+  }
+
+  /**
+   * List transactions by reference
+   *
+   * @remarks
+   * List all transactions matching a reference string.
+   */
+  async listTransactionsByReference(
+    reference: string,
+    options?: RequestOptions,
+  ): Promise<components.TransactionListResponseDto> {
+    return unwrapAsync(customerCreditsListTransactionsByReference(
+      this,
+      reference,
+      options,
+    ));
+  }
+
+  /**
+   * Retrieve a transaction
+   *
+   * @remarks
+   * Get details of a transaction by ID.
+   */
+  async getTransaction(
+    id: string,
+    options?: RequestOptions,
+  ): Promise<components.TransactionResponseDto> {
+    return unwrapAsync(customerCreditsGetTransaction(
+      this,
+      id,
+      options,
+    ));
+  }
+
+  /**
+   * Reverse a transaction
+   *
+   * @remarks
+   * Reverse a previous transaction. Creates a new transaction that undoes the original, preserving the full history.
+   */
+  async reverseTransactionById(
+    id: string,
+    options?: RequestOptions,
+  ): Promise<components.TransactionResponseDto> {
+    return unwrapAsync(customerCreditsReverseTransactionById(
       this,
       id,
       options,
