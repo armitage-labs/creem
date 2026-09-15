@@ -177,6 +177,7 @@
               "features/customer-portal",
               "features/product-bundles",
               "features/moderation",
+              "features/usage-based-billing",
               {
                 "group": "Customer Credits",
                 "pages": [
