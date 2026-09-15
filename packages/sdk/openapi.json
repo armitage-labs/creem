@@ -4997,7 +4997,7 @@
             "nullable": true
           },
           "external_id": {
-            "type": "object",
+            "type": "string",
             "description": "Your own id for this customer, when you have set one — usage ingestion resolves `external_customer_id` against it.",
             "example": "user-42",
             "nullable": true
@@ -5729,7 +5729,7 @@
             "additionalProperties": true
           },
           "external_id": {
-            "type": "object",
+            "type": "string",
             "description": "Your own id for this customer. Unique per store; usage ingestion resolves `external_customer_id` against it. Omit to leave unchanged; send `null` to clear it. Trimmed; letters, digits, `_` and `-` only; at most 255 characters.",
             "example": "user-42",
             "nullable": true
@@ -6064,10 +6064,11 @@
           "feature": {
             "description": "DEPRECATED: Use `license_keys` instead. Features issued for the order.",
             "deprecated": true,
-            "type": "array",
-            "items": {
-              "$ref": "#/components/schemas/ProductFeatureEntity"
-            }
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/ProductFeatureEntity"
+              }
+            ]
           },
           "metadata": {
             "type": "object",
@@ -7330,7 +7331,8 @@
             "example": {
               "archived_holder": true,
               "archived_holder_id": "mtr_abc123"
-            }
+            },
+            "additionalProperties": true
           },
           "request_id": {
             "type": "string",
@@ -7561,6 +7563,7 @@
           "properties": {
             "type": "object",
             "description": "The event's attributes — the ONE bag. Meter filter clauses and aggregation properties (e.g. \"tokens\") resolve their keys here, unprefixed. At most 50 keys, keys at most 40 characters, string and serialized-object values at most 500 characters.",
+            "additionalProperties": true,
             "example": {
               "tokens": 1200,
               "tier": "pro"
@@ -7642,7 +7645,7 @@
             "description": "What is wrong with the event"
           },
           "param": {
-            "type": "object",
+            "type": "string",
             "description": "The offending field, named as you sent it",
             "example": "customer_id",
             "nullable": true
@@ -7674,13 +7677,13 @@
             "description": "Whether this event would pass ingest validation"
           },
           "event_id": {
-            "type": "object",
+            "type": "string",
             "description": "The idempotency key the event would be recorded under — your `event_id`, trimmed. Null when the event is invalid, and also null when you omitted `event_id`: ingest generates a fresh id at accept time, so previewing one would be misleading.",
             "nullable": true,
             "example": "order-1234"
           },
           "customer_id": {
-            "type": "object",
+            "type": "string",
             "description": "The Creem customer the usage would be attributed to — resolved from your `external_customer_id` where you sent one. Null when the event is invalid or the reference does not resolve.",
             "nullable": true,
             "example": "cust_abc123"
@@ -7695,7 +7698,7 @@
             ]
           },
           "duplicate": {
-            "type": "object",
+            "type": "boolean",
             "description": "Advisory: would this event deduplicate against an already-stored event (or an earlier entry of this batch)? Null when the event is invalid. Racy by nature — a signal for debugging retries, not a guarantee.",
             "nullable": true
           },
@@ -7759,7 +7762,8 @@
           },
           "properties": {
             "type": "object",
-            "description": "The event's attributes — meter filters and aggregation read their keys here"
+            "description": "The event's attributes — meter filters and aggregation read their keys here",
+            "additionalProperties": true
           },
           "timestamp": {
             "type": "string",
