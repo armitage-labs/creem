@@ -92,9 +92,53 @@ the reserved keys the SDK owns: `strategy` (the capture mechanism) and
 `_cost` (when a `.cost()` resolver is attached). Keys starting with `_` are
 reserved for SDK-written values.
 
-Concrete strategies (Vercel AI SDK, raw LLM clients, streams, timed
-execution, OpenTelemetry) ship separately on top of the
-`IngestionStrategy` base class exported here.
+### Vercel AI SDK
+
+Wrap a language model once and every `generateText` / `streamText` call is
+metered — token counts, model, and vendor, with no per-call code. Imported
+from the `/ai-sdk` subpath so its types only load when you use it (AI SDK 6+
+/ `LanguageModelV3`+`V4`):
+
+```ts
+import { openai } from "@ai-sdk/openai";
+import { generateText } from "ai";
+import { AiSdkStrategy } from "@creem_io/ingestion/ai-sdk";
+
+const metered = ingestion
+  .strategy(new AiSdkStrategy(openai("gpt-4o")))
+  .ingest("llm-usage");
+
+const model = metered.client({ externalCustomerId: userId });
+const result = await generateText({ model, prompt });
+// → event: { input_tokens, output_tokens, cached_input_tokens,
+//            total_tokens, model, vendor, _llm, strategy }
+```
+
+Streaming is metered from the stream's `finish` part as it passes through —
+consuming the stream once is enough, nothing is buffered or double-read. A
+stream cancelled before its `finish` part bills nothing.
+
+### Timed execution
+
+The cheapest strategy: time a unit of work, bill the duration. Only
+successful executions emit — a throwing execution propagates its error and
+bills nothing:
+
+```ts
+import { DeltaTimeStrategy } from "@creem_io/ingestion";
+
+const metered = ingestion
+  .strategy(new DeltaTimeStrategy())
+  .ingest("compute-time");
+
+const timed = metered.client({ customerId });
+const output = await timed(() => renderVideo(input));
+// → event: { delta_time_ms, strategy }
+```
+
+Further strategies (raw LLM provider clients, streams/bytes,
+OpenTelemetry) build on the same `IngestionStrategy` base class exported
+here.
 
 ## Configuration
 
