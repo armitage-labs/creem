@@ -134,6 +134,36 @@ describe("AiSdkStrategy", () => {
     expect(event.properties?.output_tokens).toBe(40);
   });
 
+  it("coerces NaN and missing token counts to 0", async () => {
+    const { client, calls } = fakeCreem();
+    const pipeline = Ingestion({ client });
+    const model = fakeModel();
+    model.doGenerate = vi.fn(async () => ({
+      content: [],
+      finishReason: "stop",
+      usage: {
+        inputTokens: {
+          total: Number.NaN,
+          noCache: undefined,
+          cacheRead: undefined,
+          cacheWrite: undefined,
+        },
+        outputTokens: { total: undefined, text: undefined, reasoning: undefined },
+      },
+    })) as ModelLike["doGenerate"];
+    const metered = pipeline.strategy(new AiSdkStrategy(model as never)).ingest("llm-usage");
+    const wrapped = metered.client({ customerId: "cust_1" }) as ModelLike;
+
+    await wrapped.doGenerate();
+    await pipeline.flush();
+
+    const properties = calls[0].events[0].properties;
+    expect(properties?.input_tokens).toBe(0);
+    expect(properties?.output_tokens).toBe(0);
+    expect(properties?.cached_input_tokens).toBe(0);
+    expect(properties?.total_tokens).toBe(0);
+  });
+
   it("delegates everything else to the underlying model", () => {
     const { metered } = build();
     const wrapped = metered.client({ customerId: "cust_1" }) as ModelLike;

@@ -19,13 +19,19 @@ export type SupportedLanguageModel = LanguageModelV3 | LanguageModelV4;
 
 type TokenUsage = LanguageModelV3Usage | LanguageModelV4Usage;
 
+// Providers occasionally report NaN or missing token counts; a NaN would
+// serialize to null and corrupt the meter's aggregation, so anything
+// non-finite counts as 0.
+const toCount = (value: number | undefined): number =>
+  typeof value === "number" && Number.isFinite(value) ? value : 0;
+
 const usageToProperties = (model: SupportedLanguageModel, usage: TokenUsage): EventProperties => {
-  const inputTokens = usage.inputTokens.total ?? 0;
-  const outputTokens = usage.outputTokens.total ?? 0;
+  const inputTokens = toCount(usage.inputTokens.total);
+  const outputTokens = toCount(usage.outputTokens.total);
   return {
     input_tokens: inputTokens,
     output_tokens: outputTokens,
-    cached_input_tokens: usage.inputTokens.cacheRead ?? 0,
+    cached_input_tokens: toCount(usage.inputTokens.cacheRead),
     total_tokens: inputTokens + outputTokens,
     model: model.modelId,
     vendor: model.provider,
