@@ -13,9 +13,11 @@ let value: UsageEventListApiResponseDto = {
       customerId: "cust_abc123",
       eventId: "order-1234",
       name: "image.generated",
-      properties: {},
+      properties: {
+        "key": "<value>",
+      },
       timestamp: "<value>",
-      createdAt: "1712278866004",
+      createdAt: "1733617140087",
       matchedMeters: [
         "mtr_abc123",
       ],

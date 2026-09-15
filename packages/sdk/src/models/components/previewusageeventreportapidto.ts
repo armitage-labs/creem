@@ -20,11 +20,6 @@ import {
 export type EventId = {};
 
 /**
- * The Creem customer the usage would be attributed to — resolved from your `external_customer_id` where you sent one. Null when the event is invalid or the reference does not resolve.
- */
-export type CustomerId = {};
-
-/**
  * The offending field, named as you sent it
  */
 export type Param = {};
@@ -47,11 +42,6 @@ export type ErrorT = {
   param?: Param | null | undefined;
 };
 
-/**
- * Advisory: would this event deduplicate against an already-stored event (or an earlier entry of this batch)? Null when the event is invalid. Racy by nature — a signal for debugging retries, not a guarantee.
- */
-export type Duplicate = {};
-
 export type PreviewUsageEventReportApiDto = {
   /**
    * Whether this event would pass ingest validation
@@ -64,7 +54,7 @@ export type PreviewUsageEventReportApiDto = {
   /**
    * The Creem customer the usage would be attributed to — resolved from your `external_customer_id` where you sent one. Null when the event is invalid or the reference does not resolve.
    */
-  customerId?: CustomerId | null | undefined;
+  customerId?: string | null | undefined;
   /**
    * Why the event is invalid. Null when valid.
    */
@@ -72,7 +62,7 @@ export type PreviewUsageEventReportApiDto = {
   /**
    * Advisory: would this event deduplicate against an already-stored event (or an earlier entry of this batch)? Null when the event is invalid. Racy by nature — a signal for debugging retries, not a guarantee.
    */
-  duplicate?: Duplicate | null | undefined;
+  duplicate?: boolean | null | undefined;
   /**
    * Ids of the active meters that would consume this event, at preview time
    */
@@ -106,35 +96,6 @@ export function eventIdFromJSON(
     jsonString,
     (x) => EventId$inboundSchema.parse(JSON.parse(x)),
     `Failed to parse 'EventId' from JSON`,
-  );
-}
-
-/** @internal */
-export const CustomerId$inboundSchema: z.ZodType<
-  CustomerId,
-  z.ZodTypeDef,
-  unknown
-> = z.object({});
-/** @internal */
-export type CustomerId$Outbound = {};
-
-/** @internal */
-export const CustomerId$outboundSchema: z.ZodType<
-  CustomerId$Outbound,
-  z.ZodTypeDef,
-  CustomerId
-> = z.object({});
-
-export function customerIdToJSON(customerId: CustomerId): string {
-  return JSON.stringify(CustomerId$outboundSchema.parse(customerId));
-}
-export function customerIdFromJSON(
-  jsonString: string,
-): SafeParseResult<CustomerId, SDKValidationError> {
-  return safeParse(
-    jsonString,
-    (x) => CustomerId$inboundSchema.parse(JSON.parse(x)),
-    `Failed to parse 'CustomerId' from JSON`,
   );
 }
 
@@ -203,35 +164,6 @@ export function errorFromJSON(
 }
 
 /** @internal */
-export const Duplicate$inboundSchema: z.ZodType<
-  Duplicate,
-  z.ZodTypeDef,
-  unknown
-> = z.object({});
-/** @internal */
-export type Duplicate$Outbound = {};
-
-/** @internal */
-export const Duplicate$outboundSchema: z.ZodType<
-  Duplicate$Outbound,
-  z.ZodTypeDef,
-  Duplicate
-> = z.object({});
-
-export function duplicateToJSON(duplicate: Duplicate): string {
-  return JSON.stringify(Duplicate$outboundSchema.parse(duplicate));
-}
-export function duplicateFromJSON(
-  jsonString: string,
-): SafeParseResult<Duplicate, SDKValidationError> {
-  return safeParse(
-    jsonString,
-    (x) => Duplicate$inboundSchema.parse(JSON.parse(x)),
-    `Failed to parse 'Duplicate' from JSON`,
-  );
-}
-
-/** @internal */
 export const PreviewUsageEventReportApiDto$inboundSchema: z.ZodType<
   PreviewUsageEventReportApiDto,
   z.ZodTypeDef,
@@ -239,9 +171,9 @@ export const PreviewUsageEventReportApiDto$inboundSchema: z.ZodType<
 > = z.object({
   valid: z.boolean(),
   event_id: z.nullable(z.lazy(() => EventId$inboundSchema)).optional(),
-  customer_id: z.nullable(z.lazy(() => CustomerId$inboundSchema)).optional(),
+  customer_id: z.nullable(z.string()).optional(),
   error: z.nullable(z.lazy(() => ErrorT$inboundSchema)).optional(),
-  duplicate: z.nullable(z.lazy(() => Duplicate$inboundSchema)).optional(),
+  duplicate: z.nullable(z.boolean()).optional(),
   matched_meters: z.array(z.string()),
   warnings: z.array(PreviewUsageEventWarningApiDto$inboundSchema),
 }).transform((v) => {
@@ -255,9 +187,9 @@ export const PreviewUsageEventReportApiDto$inboundSchema: z.ZodType<
 export type PreviewUsageEventReportApiDto$Outbound = {
   valid: boolean;
   event_id?: EventId$Outbound | null | undefined;
-  customer_id?: CustomerId$Outbound | null | undefined;
+  customer_id?: string | null | undefined;
   error?: ErrorT$Outbound | null | undefined;
-  duplicate?: Duplicate$Outbound | null | undefined;
+  duplicate?: boolean | null | undefined;
   matched_meters: Array<string>;
   warnings: Array<PreviewUsageEventWarningApiDto$Outbound>;
 };
@@ -270,9 +202,9 @@ export const PreviewUsageEventReportApiDto$outboundSchema: z.ZodType<
 > = z.object({
   valid: z.boolean(),
   eventId: z.nullable(z.lazy(() => EventId$outboundSchema)).optional(),
-  customerId: z.nullable(z.lazy(() => CustomerId$outboundSchema)).optional(),
+  customerId: z.nullable(z.string()).optional(),
   error: z.nullable(z.lazy(() => ErrorT$outboundSchema)).optional(),
-  duplicate: z.nullable(z.lazy(() => Duplicate$outboundSchema)).optional(),
+  duplicate: z.nullable(z.boolean()).optional(),
   matchedMeters: z.array(z.string()),
   warnings: z.array(PreviewUsageEventWarningApiDto$outboundSchema),
 }).transform((v) => {

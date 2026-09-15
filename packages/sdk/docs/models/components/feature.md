@@ -1,31 +1,27 @@
-# ProductFeatureEntity
+# ~~Feature~~
+
+DEPRECATED: Use `license_keys` instead. Features issued for the order.
+
+> :warning: **DEPRECATED**: This will be removed in a future release, please migrate away from it as soon as possible.
 
 ## Example Usage
 
 ```typescript
-import { ProductFeatureEntity } from "creem/models/components";
+import { Feature } from "creem/models/components";
 
-let value: ProductFeatureEntity = {
+let value: Feature = {
   id: "feat_abc123",
   description: "Get access to the full course materials.",
   privateNote: "Thank you for your purchase! Here is your access code: XYZ123",
   file: {
-    files: [
-      {
-        id: "file_abc123",
-        fileName: "ebook.pdf",
-        url: "https://storage.creem.io/files/ebook.pdf",
-        type: "application/pdf",
-        size: 1024000,
-      },
-    ],
+    files: [],
   },
   licenseKey: {
     id: "<id>",
     mode: "test",
     object: "<value>",
     productId: "prod_abc123",
-    status: "disabled",
+    status: "active",
     key: "ABC123-XYZ456-XYZ456-XYZ456",
     activation: 5,
     activationLimit: 1,

@@ -26,11 +26,22 @@ import {
   EnvironmentMode$outboundSchema,
 } from "./environmentmode.js";
 import {
+  FeatureFileEntity,
+  FeatureFileEntity$inboundSchema,
+  FeatureFileEntity$Outbound,
+  FeatureFileEntity$outboundSchema,
+} from "./featurefileentity.js";
+import {
   LicenseEntity,
   LicenseEntity$inboundSchema,
   LicenseEntity$Outbound,
   LicenseEntity$outboundSchema,
 } from "./licenseentity.js";
+import {
+  LicenseStatus,
+  LicenseStatus$inboundSchema,
+  LicenseStatus$outboundSchema,
+} from "./licensestatus.js";
 import {
   OrderEntity,
   OrderEntity$inboundSchema,
@@ -44,11 +55,10 @@ import {
   ProductEntity$outboundSchema,
 } from "./productentity.js";
 import {
-  ProductFeatureEntity,
-  ProductFeatureEntity$inboundSchema,
-  ProductFeatureEntity$Outbound,
-  ProductFeatureEntity$outboundSchema,
-} from "./productfeatureentity.js";
+  ProductFeatureType,
+  ProductFeatureType$inboundSchema,
+  ProductFeatureType$outboundSchema,
+} from "./productfeaturetype.js";
 import {
   SubscriptionEntity,
   SubscriptionEntity$inboundSchema,
@@ -84,6 +94,264 @@ export type Subscription = SubscriptionEntity | string;
  * The customer associated with the checkout session.
  */
 export type CheckoutEntityCustomer = CustomerEntity | string;
+
+/**
+ * File feature data containing downloadable files.
+ */
+export type FileT = {
+  /**
+   * List of downloadable files.
+   */
+  files: Array<FeatureFileEntity>;
+};
+
+/**
+ * The status of the license instance.
+ */
+export const CheckoutEntityStatus = {
+  Active: "active",
+  Deactivated: "deactivated",
+} as const;
+/**
+ * The status of the license instance.
+ */
+export type CheckoutEntityStatus = ClosedEnum<typeof CheckoutEntityStatus>;
+
+/**
+ * Associated license instances.
+ */
+export type CheckoutEntityInstance = {
+  /**
+   * Unique identifier for the object.
+   */
+  id: string;
+  /**
+   * String representing the environment.
+   */
+  mode: EnvironmentMode;
+  /**
+   * A string representing the object’s type. Objects of the same type share the same value.
+   */
+  object: string;
+  /**
+   * The name of the license instance.
+   */
+  name: string;
+  /**
+   * The status of the license instance.
+   */
+  status: CheckoutEntityStatus;
+  /**
+   * The creation date of the license instance.
+   */
+  createdAt: Date;
+};
+
+/**
+ * License key issued for the order.
+ */
+export type LicenseKey = {
+  /**
+   * Unique identifier for the object.
+   */
+  id: string;
+  /**
+   * String representing the environment.
+   */
+  mode: EnvironmentMode;
+  /**
+   * A string representing the object's type. Objects of the same type share the same value.
+   */
+  object: string;
+  /**
+   * The ID of the product this license belongs to.
+   */
+  productId: string;
+  /**
+   * The current status of the license key.
+   */
+  status: LicenseStatus;
+  /**
+   * The license key.
+   */
+  key: string;
+  /**
+   * The number of instances that this license key was activated.
+   */
+  activation: number;
+  /**
+   * The activation limit. Null if activations are unlimited.
+   */
+  activationLimit?: number | null | undefined;
+  /**
+   * The date the license key expires. Null if it does not have an expiration date.
+   */
+  expiresAt?: Date | null | undefined;
+  /**
+   * The creation date of the license key.
+   */
+  createdAt: Date;
+  /**
+   * Associated license instances.
+   */
+  instance?: CheckoutEntityInstance | null | undefined;
+};
+
+/**
+ * Customer credits feature data.
+ */
+export type CustomerCredits = {
+  /**
+   * The number of credits to grant. String to preserve BigInt precision.
+   */
+  amount: string;
+  /**
+   * Optional label for the credit unit (e.g. "tokens", "credits").
+   */
+  unitLabel?: string | null | undefined;
+  /**
+   * The customer-credit bucket this grant funds — the `name` of the customer's credit account. Set it to a meter bucket (e.g. "images") so the credits fund a per-unit metered price; otherwise they land in `default` and metered usage cannot spend them. Distinct from `unit_label`, which is only a display label. On UPDATE the field is tri-state: OMIT it to leave the stored bucket unchanged, send `null` to clear it to the shared `default` wallet, or send a name to set it. On CREATE, omitted or null both mean `default`. A present-but-blank value is rejected.
+   */
+  bucketName?: string | null | undefined;
+};
+
+/**
+ * The status of the license instance.
+ */
+export const CheckoutEntityFeatureStatus = {
+  Active: "active",
+  Deactivated: "deactivated",
+} as const;
+/**
+ * The status of the license instance.
+ */
+export type CheckoutEntityFeatureStatus = ClosedEnum<
+  typeof CheckoutEntityFeatureStatus
+>;
+
+/**
+ * Associated license instances.
+ */
+export type CheckoutEntityFeatureInstance = {
+  /**
+   * Unique identifier for the object.
+   */
+  id: string;
+  /**
+   * String representing the environment.
+   */
+  mode: EnvironmentMode;
+  /**
+   * A string representing the object’s type. Objects of the same type share the same value.
+   */
+  object: string;
+  /**
+   * The name of the license instance.
+   */
+  name: string;
+  /**
+   * The status of the license instance.
+   */
+  status: CheckoutEntityFeatureStatus;
+  /**
+   * The creation date of the license instance.
+   */
+  createdAt: Date;
+};
+
+/**
+ * DEPRECATED: Use `license_key` instead. License key issued for the order.
+ *
+ * @deprecated class: This will be removed in a future release, please migrate away from it as soon as possible.
+ */
+export type License = {
+  /**
+   * Unique identifier for the object.
+   */
+  id: string;
+  /**
+   * String representing the environment.
+   */
+  mode: EnvironmentMode;
+  /**
+   * A string representing the object's type. Objects of the same type share the same value.
+   */
+  object: string;
+  /**
+   * The ID of the product this license belongs to.
+   */
+  productId: string;
+  /**
+   * The current status of the license key.
+   */
+  status: LicenseStatus;
+  /**
+   * The license key.
+   */
+  key: string;
+  /**
+   * The number of instances that this license key was activated.
+   */
+  activation: number;
+  /**
+   * The activation limit. Null if activations are unlimited.
+   */
+  activationLimit?: number | null | undefined;
+  /**
+   * The date the license key expires. Null if it does not have an expiration date.
+   */
+  expiresAt?: Date | null | undefined;
+  /**
+   * The creation date of the license key.
+   */
+  createdAt: Date;
+  /**
+   * Associated license instances.
+   */
+  instance?: CheckoutEntityFeatureInstance | null | undefined;
+};
+
+/**
+ * DEPRECATED: Use `license_keys` instead. Features issued for the order.
+ *
+ * @deprecated class: This will be removed in a future release, please migrate away from it as soon as possible.
+ */
+export type Feature = {
+  /**
+   * Unique identifier for the feature.
+   */
+  id?: string | null | undefined;
+  /**
+   * A brief description of the feature.
+   */
+  description?: string | null | undefined;
+  /**
+   * The type of the feature: `custom` (private note), `file` (downloadable files), `licenseKey` (license key), or `customerCredits` (customer credit grant).
+   */
+  type?: ProductFeatureType | undefined;
+  /**
+   * Private note from the seller. This is only visible to the customer after purchase.
+   */
+  privateNote?: string | null | undefined;
+  /**
+   * File feature data containing downloadable files.
+   */
+  file?: FileT | null | undefined;
+  /**
+   * License key issued for the order.
+   */
+  licenseKey?: LicenseKey | null | undefined;
+  /**
+   * Customer credits feature data.
+   */
+  customerCredits?: CustomerCredits | null | undefined;
+  /**
+   * DEPRECATED: Use `license_key` instead. License key issued for the order.
+   *
+   * @deprecated field: This will be removed in a future release, please migrate away from it as soon as possible.
+   */
+  license?: License | null | undefined;
+};
 
 export const CheckoutEntityType = {
   Percentage: "percentage",
@@ -183,7 +451,7 @@ export type CheckoutEntity = {
    *
    * @deprecated field: This will be removed in a future release, please migrate away from it as soon as possible.
    */
-  feature?: Array<ProductFeatureEntity> | undefined;
+  feature?: Feature | undefined;
   /**
    * Metadata for the checkout in the form of key-value pairs
    */
@@ -297,6 +565,469 @@ export function checkoutEntityCustomerFromJSON(
 }
 
 /** @internal */
+export const FileT$inboundSchema: z.ZodType<FileT, z.ZodTypeDef, unknown> = z
+  .object({
+    files: z.array(FeatureFileEntity$inboundSchema),
+  });
+/** @internal */
+export type FileT$Outbound = {
+  files: Array<FeatureFileEntity$Outbound>;
+};
+
+/** @internal */
+export const FileT$outboundSchema: z.ZodType<
+  FileT$Outbound,
+  z.ZodTypeDef,
+  FileT
+> = z.object({
+  files: z.array(FeatureFileEntity$outboundSchema),
+});
+
+export function fileToJSON(fileT: FileT): string {
+  return JSON.stringify(FileT$outboundSchema.parse(fileT));
+}
+export function fileFromJSON(
+  jsonString: string,
+): SafeParseResult<FileT, SDKValidationError> {
+  return safeParse(
+    jsonString,
+    (x) => FileT$inboundSchema.parse(JSON.parse(x)),
+    `Failed to parse 'FileT' from JSON`,
+  );
+}
+
+/** @internal */
+export const CheckoutEntityStatus$inboundSchema: z.ZodNativeEnum<
+  typeof CheckoutEntityStatus
+> = z.nativeEnum(CheckoutEntityStatus);
+/** @internal */
+export const CheckoutEntityStatus$outboundSchema: z.ZodNativeEnum<
+  typeof CheckoutEntityStatus
+> = CheckoutEntityStatus$inboundSchema;
+
+/** @internal */
+export const CheckoutEntityInstance$inboundSchema: z.ZodType<
+  CheckoutEntityInstance,
+  z.ZodTypeDef,
+  unknown
+> = z.object({
+  id: z.string(),
+  mode: EnvironmentMode$inboundSchema,
+  object: z.string(),
+  name: z.string(),
+  status: CheckoutEntityStatus$inboundSchema,
+  created_at: z.string().datetime({ offset: true }).transform(v => new Date(v)),
+}).transform((v) => {
+  return remap$(v, {
+    "created_at": "createdAt",
+  });
+});
+/** @internal */
+export type CheckoutEntityInstance$Outbound = {
+  id: string;
+  mode: string;
+  object: string;
+  name: string;
+  status: string;
+  created_at: string;
+};
+
+/** @internal */
+export const CheckoutEntityInstance$outboundSchema: z.ZodType<
+  CheckoutEntityInstance$Outbound,
+  z.ZodTypeDef,
+  CheckoutEntityInstance
+> = z.object({
+  id: z.string(),
+  mode: EnvironmentMode$outboundSchema,
+  object: z.string(),
+  name: z.string(),
+  status: CheckoutEntityStatus$outboundSchema,
+  createdAt: z.date().transform(v => v.toISOString()),
+}).transform((v) => {
+  return remap$(v, {
+    createdAt: "created_at",
+  });
+});
+
+export function checkoutEntityInstanceToJSON(
+  checkoutEntityInstance: CheckoutEntityInstance,
+): string {
+  return JSON.stringify(
+    CheckoutEntityInstance$outboundSchema.parse(checkoutEntityInstance),
+  );
+}
+export function checkoutEntityInstanceFromJSON(
+  jsonString: string,
+): SafeParseResult<CheckoutEntityInstance, SDKValidationError> {
+  return safeParse(
+    jsonString,
+    (x) => CheckoutEntityInstance$inboundSchema.parse(JSON.parse(x)),
+    `Failed to parse 'CheckoutEntityInstance' from JSON`,
+  );
+}
+
+/** @internal */
+export const LicenseKey$inboundSchema: z.ZodType<
+  LicenseKey,
+  z.ZodTypeDef,
+  unknown
+> = z.object({
+  id: z.string(),
+  mode: EnvironmentMode$inboundSchema,
+  object: z.string(),
+  product_id: z.string(),
+  status: LicenseStatus$inboundSchema,
+  key: z.string(),
+  activation: z.number(),
+  activation_limit: z.nullable(z.number()).optional(),
+  expires_at: z.nullable(
+    z.string().datetime({ offset: true }).transform(v => new Date(v)),
+  ).optional(),
+  created_at: z.string().datetime({ offset: true }).transform(v => new Date(v)),
+  instance: z.nullable(z.lazy(() => CheckoutEntityInstance$inboundSchema))
+    .optional(),
+}).transform((v) => {
+  return remap$(v, {
+    "product_id": "productId",
+    "activation_limit": "activationLimit",
+    "expires_at": "expiresAt",
+    "created_at": "createdAt",
+  });
+});
+/** @internal */
+export type LicenseKey$Outbound = {
+  id: string;
+  mode: string;
+  object: string;
+  product_id: string;
+  status: string;
+  key: string;
+  activation: number;
+  activation_limit?: number | null | undefined;
+  expires_at?: string | null | undefined;
+  created_at: string;
+  instance?: CheckoutEntityInstance$Outbound | null | undefined;
+};
+
+/** @internal */
+export const LicenseKey$outboundSchema: z.ZodType<
+  LicenseKey$Outbound,
+  z.ZodTypeDef,
+  LicenseKey
+> = z.object({
+  id: z.string(),
+  mode: EnvironmentMode$outboundSchema,
+  object: z.string(),
+  productId: z.string(),
+  status: LicenseStatus$outboundSchema,
+  key: z.string(),
+  activation: z.number(),
+  activationLimit: z.nullable(z.number()).optional(),
+  expiresAt: z.nullable(z.date().transform(v => v.toISOString())).optional(),
+  createdAt: z.date().transform(v => v.toISOString()),
+  instance: z.nullable(z.lazy(() => CheckoutEntityInstance$outboundSchema))
+    .optional(),
+}).transform((v) => {
+  return remap$(v, {
+    productId: "product_id",
+    activationLimit: "activation_limit",
+    expiresAt: "expires_at",
+    createdAt: "created_at",
+  });
+});
+
+export function licenseKeyToJSON(licenseKey: LicenseKey): string {
+  return JSON.stringify(LicenseKey$outboundSchema.parse(licenseKey));
+}
+export function licenseKeyFromJSON(
+  jsonString: string,
+): SafeParseResult<LicenseKey, SDKValidationError> {
+  return safeParse(
+    jsonString,
+    (x) => LicenseKey$inboundSchema.parse(JSON.parse(x)),
+    `Failed to parse 'LicenseKey' from JSON`,
+  );
+}
+
+/** @internal */
+export const CustomerCredits$inboundSchema: z.ZodType<
+  CustomerCredits,
+  z.ZodTypeDef,
+  unknown
+> = z.object({
+  amount: z.string(),
+  unit_label: z.nullable(z.string()).optional(),
+  bucket_name: z.nullable(z.string()).optional(),
+}).transform((v) => {
+  return remap$(v, {
+    "unit_label": "unitLabel",
+    "bucket_name": "bucketName",
+  });
+});
+/** @internal */
+export type CustomerCredits$Outbound = {
+  amount: string;
+  unit_label?: string | null | undefined;
+  bucket_name?: string | null | undefined;
+};
+
+/** @internal */
+export const CustomerCredits$outboundSchema: z.ZodType<
+  CustomerCredits$Outbound,
+  z.ZodTypeDef,
+  CustomerCredits
+> = z.object({
+  amount: z.string(),
+  unitLabel: z.nullable(z.string()).optional(),
+  bucketName: z.nullable(z.string()).optional(),
+}).transform((v) => {
+  return remap$(v, {
+    unitLabel: "unit_label",
+    bucketName: "bucket_name",
+  });
+});
+
+export function customerCreditsToJSON(
+  customerCredits: CustomerCredits,
+): string {
+  return JSON.stringify(CustomerCredits$outboundSchema.parse(customerCredits));
+}
+export function customerCreditsFromJSON(
+  jsonString: string,
+): SafeParseResult<CustomerCredits, SDKValidationError> {
+  return safeParse(
+    jsonString,
+    (x) => CustomerCredits$inboundSchema.parse(JSON.parse(x)),
+    `Failed to parse 'CustomerCredits' from JSON`,
+  );
+}
+
+/** @internal */
+export const CheckoutEntityFeatureStatus$inboundSchema: z.ZodNativeEnum<
+  typeof CheckoutEntityFeatureStatus
+> = z.nativeEnum(CheckoutEntityFeatureStatus);
+/** @internal */
+export const CheckoutEntityFeatureStatus$outboundSchema: z.ZodNativeEnum<
+  typeof CheckoutEntityFeatureStatus
+> = CheckoutEntityFeatureStatus$inboundSchema;
+
+/** @internal */
+export const CheckoutEntityFeatureInstance$inboundSchema: z.ZodType<
+  CheckoutEntityFeatureInstance,
+  z.ZodTypeDef,
+  unknown
+> = z.object({
+  id: z.string(),
+  mode: EnvironmentMode$inboundSchema,
+  object: z.string(),
+  name: z.string(),
+  status: CheckoutEntityFeatureStatus$inboundSchema,
+  created_at: z.string().datetime({ offset: true }).transform(v => new Date(v)),
+}).transform((v) => {
+  return remap$(v, {
+    "created_at": "createdAt",
+  });
+});
+/** @internal */
+export type CheckoutEntityFeatureInstance$Outbound = {
+  id: string;
+  mode: string;
+  object: string;
+  name: string;
+  status: string;
+  created_at: string;
+};
+
+/** @internal */
+export const CheckoutEntityFeatureInstance$outboundSchema: z.ZodType<
+  CheckoutEntityFeatureInstance$Outbound,
+  z.ZodTypeDef,
+  CheckoutEntityFeatureInstance
+> = z.object({
+  id: z.string(),
+  mode: EnvironmentMode$outboundSchema,
+  object: z.string(),
+  name: z.string(),
+  status: CheckoutEntityFeatureStatus$outboundSchema,
+  createdAt: z.date().transform(v => v.toISOString()),
+}).transform((v) => {
+  return remap$(v, {
+    createdAt: "created_at",
+  });
+});
+
+export function checkoutEntityFeatureInstanceToJSON(
+  checkoutEntityFeatureInstance: CheckoutEntityFeatureInstance,
+): string {
+  return JSON.stringify(
+    CheckoutEntityFeatureInstance$outboundSchema.parse(
+      checkoutEntityFeatureInstance,
+    ),
+  );
+}
+export function checkoutEntityFeatureInstanceFromJSON(
+  jsonString: string,
+): SafeParseResult<CheckoutEntityFeatureInstance, SDKValidationError> {
+  return safeParse(
+    jsonString,
+    (x) => CheckoutEntityFeatureInstance$inboundSchema.parse(JSON.parse(x)),
+    `Failed to parse 'CheckoutEntityFeatureInstance' from JSON`,
+  );
+}
+
+/** @internal */
+export const License$inboundSchema: z.ZodType<License, z.ZodTypeDef, unknown> =
+  z.object({
+    id: z.string(),
+    mode: EnvironmentMode$inboundSchema,
+    object: z.string(),
+    product_id: z.string(),
+    status: LicenseStatus$inboundSchema,
+    key: z.string(),
+    activation: z.number(),
+    activation_limit: z.nullable(z.number()).optional(),
+    expires_at: z.nullable(
+      z.string().datetime({ offset: true }).transform(v => new Date(v)),
+    ).optional(),
+    created_at: z.string().datetime({ offset: true }).transform(v =>
+      new Date(v)
+    ),
+    instance: z.nullable(
+      z.lazy(() => CheckoutEntityFeatureInstance$inboundSchema),
+    ).optional(),
+  }).transform((v) => {
+    return remap$(v, {
+      "product_id": "productId",
+      "activation_limit": "activationLimit",
+      "expires_at": "expiresAt",
+      "created_at": "createdAt",
+    });
+  });
+/** @internal */
+export type License$Outbound = {
+  id: string;
+  mode: string;
+  object: string;
+  product_id: string;
+  status: string;
+  key: string;
+  activation: number;
+  activation_limit?: number | null | undefined;
+  expires_at?: string | null | undefined;
+  created_at: string;
+  instance?: CheckoutEntityFeatureInstance$Outbound | null | undefined;
+};
+
+/** @internal */
+export const License$outboundSchema: z.ZodType<
+  License$Outbound,
+  z.ZodTypeDef,
+  License
+> = z.object({
+  id: z.string(),
+  mode: EnvironmentMode$outboundSchema,
+  object: z.string(),
+  productId: z.string(),
+  status: LicenseStatus$outboundSchema,
+  key: z.string(),
+  activation: z.number(),
+  activationLimit: z.nullable(z.number()).optional(),
+  expiresAt: z.nullable(z.date().transform(v => v.toISOString())).optional(),
+  createdAt: z.date().transform(v => v.toISOString()),
+  instance: z.nullable(
+    z.lazy(() => CheckoutEntityFeatureInstance$outboundSchema),
+  ).optional(),
+}).transform((v) => {
+  return remap$(v, {
+    productId: "product_id",
+    activationLimit: "activation_limit",
+    expiresAt: "expires_at",
+    createdAt: "created_at",
+  });
+});
+
+export function licenseToJSON(license: License): string {
+  return JSON.stringify(License$outboundSchema.parse(license));
+}
+export function licenseFromJSON(
+  jsonString: string,
+): SafeParseResult<License, SDKValidationError> {
+  return safeParse(
+    jsonString,
+    (x) => License$inboundSchema.parse(JSON.parse(x)),
+    `Failed to parse 'License' from JSON`,
+  );
+}
+
+/** @internal */
+export const Feature$inboundSchema: z.ZodType<Feature, z.ZodTypeDef, unknown> =
+  z.object({
+    id: z.nullable(z.string()).optional(),
+    description: z.nullable(z.string()).optional(),
+    type: ProductFeatureType$inboundSchema.optional(),
+    private_note: z.nullable(z.string()).optional(),
+    file: z.nullable(z.lazy(() => FileT$inboundSchema)).optional(),
+    license_key: z.nullable(z.lazy(() => LicenseKey$inboundSchema)).optional(),
+    customer_credits: z.nullable(z.lazy(() => CustomerCredits$inboundSchema))
+      .optional(),
+    license: z.nullable(z.lazy(() => License$inboundSchema)).optional(),
+  }).transform((v) => {
+    return remap$(v, {
+      "private_note": "privateNote",
+      "license_key": "licenseKey",
+      "customer_credits": "customerCredits",
+    });
+  });
+/** @internal */
+export type Feature$Outbound = {
+  id?: string | null | undefined;
+  description?: string | null | undefined;
+  type?: string | undefined;
+  private_note?: string | null | undefined;
+  file?: FileT$Outbound | null | undefined;
+  license_key?: LicenseKey$Outbound | null | undefined;
+  customer_credits?: CustomerCredits$Outbound | null | undefined;
+  license?: License$Outbound | null | undefined;
+};
+
+/** @internal */
+export const Feature$outboundSchema: z.ZodType<
+  Feature$Outbound,
+  z.ZodTypeDef,
+  Feature
+> = z.object({
+  id: z.nullable(z.string()).optional(),
+  description: z.nullable(z.string()).optional(),
+  type: ProductFeatureType$outboundSchema.optional(),
+  privateNote: z.nullable(z.string()).optional(),
+  file: z.nullable(z.lazy(() => FileT$outboundSchema)).optional(),
+  licenseKey: z.nullable(z.lazy(() => LicenseKey$outboundSchema)).optional(),
+  customerCredits: z.nullable(z.lazy(() => CustomerCredits$outboundSchema))
+    .optional(),
+  license: z.nullable(z.lazy(() => License$outboundSchema)).optional(),
+}).transform((v) => {
+  return remap$(v, {
+    privateNote: "private_note",
+    licenseKey: "license_key",
+    customerCredits: "customer_credits",
+  });
+});
+
+export function featureToJSON(feature: Feature): string {
+  return JSON.stringify(Feature$outboundSchema.parse(feature));
+}
+export function featureFromJSON(
+  jsonString: string,
+): SafeParseResult<Feature, SDKValidationError> {
+  return safeParse(
+    jsonString,
+    (x) => Feature$inboundSchema.parse(JSON.parse(x)),
+    `Failed to parse 'Feature' from JSON`,
+  );
+}
+
+/** @internal */
 export const CheckoutEntityType$inboundSchema: z.ZodNativeEnum<
   typeof CheckoutEntityType
 > = z.nativeEnum(CheckoutEntityType);
@@ -393,7 +1124,7 @@ export const CheckoutEntity$inboundSchema: z.ZodType<
   checkout_url: z.string().optional(),
   success_url: z.nullable(z.string()).optional(),
   license_keys: z.array(LicenseEntity$inboundSchema).optional(),
-  feature: z.array(ProductFeatureEntity$inboundSchema).optional(),
+  feature: z.lazy(() => Feature$inboundSchema).optional(),
   metadata: z.record(z.any()).optional(),
   discount: z.lazy(() => CheckoutEntityDiscount$inboundSchema).optional(),
 }).transform((v) => {
@@ -423,7 +1154,7 @@ export type CheckoutEntity$Outbound = {
   checkout_url?: string | undefined;
   success_url?: string | null | undefined;
   license_keys?: Array<LicenseEntity$Outbound> | undefined;
-  feature?: Array<ProductFeatureEntity$Outbound> | undefined;
+  feature?: Feature$Outbound | undefined;
   metadata?: { [k: string]: any } | undefined;
   discount?: CheckoutEntityDiscount$Outbound | undefined;
 };
@@ -450,7 +1181,7 @@ export const CheckoutEntity$outboundSchema: z.ZodType<
   checkoutUrl: z.string().optional(),
   successUrl: z.nullable(z.string()).optional(),
   licenseKeys: z.array(LicenseEntity$outboundSchema).optional(),
-  feature: z.array(ProductFeatureEntity$outboundSchema).optional(),
+  feature: z.lazy(() => Feature$outboundSchema).optional(),
   metadata: z.record(z.any()).optional(),
   discount: z.lazy(() => CheckoutEntityDiscount$outboundSchema).optional(),
 }).transform((v) => {

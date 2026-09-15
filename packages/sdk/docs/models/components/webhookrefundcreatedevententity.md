@@ -66,7 +66,7 @@ let value: WebhookRefundCreatedEventEntity = {
         "key": "value",
       },
       country: "US",
-      externalId: {},
+      externalId: "user-42",
       createdAt: new Date("2023-01-01T00:00:00Z"),
       updatedAt: new Date("2023-01-01T00:00:00Z"),
     },

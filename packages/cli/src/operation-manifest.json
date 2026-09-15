@@ -689,7 +689,7 @@
             "additionalProperties": true
           },
           "externalId": {
-            "type": "object",
+            "type": "string",
             "nullable": true
           }
         },
@@ -2610,7 +2610,8 @@
                   "type": "string"
                 },
                 "properties": {
-                  "type": "object"
+                  "type": "object",
+                  "additionalProperties": true
                 },
                 "externalCustomerId": {
                   "type": "string"
@@ -2663,7 +2664,8 @@
                   "type": "string"
                 },
                 "properties": {
-                  "type": "object"
+                  "type": "object",
+                  "additionalProperties": true
                 },
                 "externalCustomerId": {
                   "type": "string"
