@@ -15,7 +15,13 @@
     }
   },
   "contextual": {
-    "options": ["copy", "view", "chatgpt", "claude", "perplexity"]
+    "options": [
+      "copy",
+      "view",
+      "chatgpt",
+      "claude",
+      "perplexity"
+    ]
   },
   "redirects": [
     {
@@ -119,7 +125,10 @@
               "ai/introduction",
               {
                 "group": "For Humans",
-                "pages": ["ai/for-humans/getting-started", "ai/for-humans/cli"]
+                "pages": [
+                  "ai/for-humans/getting-started",
+                  "ai/for-humans/cli"
+                ]
               },
               {
                 "group": "For Agents",
@@ -257,26 +266,37 @@
             "pages": [
               {
                 "group": "Affiliate Platforms",
-                "pages": ["integrations/affiliates", "integrations/rekomi"]
+                "pages": [
+                  "integrations/affiliates",
+                  "integrations/rekomi"
+                ]
               },
               {
                 "group": "Purchase Parity Platforms",
-                "pages": ["integrations/evendeals"]
+                "pages": [
+                  "integrations/evendeals"
+                ]
               },
               {
                 "group": "CMS",
-                "pages": ["integrations/strapi"]
+                "pages": [
+                  "integrations/strapi"
+                ]
               },
               {
                 "group": "No-Code Builders",
-                "pages": ["integrations/framer"]
+                "pages": [
+                  "integrations/framer"
+                ]
               }
             ]
           },
           {
             "group": "Community",
             "icon": "users",
-            "pages": ["code/community/community-resources"]
+            "pages": [
+              "code/community/community-resources"
+            ]
           },
           {
             "group": "Merchant of Record",
@@ -333,7 +353,10 @@
           {
             "group": "API Documentation",
             "icon": "book",
-            "pages": ["api-reference/introduction", "api-reference/error-codes"]
+            "pages": [
+              "api-reference/introduction",
+              "api-reference/error-codes"
+            ]
           },
           {
             "group": "Checkout",
@@ -429,7 +452,9 @@
           {
             "group": "Stats",
             "icon": "chart-line",
-            "pages": ["api-reference/endpoint/get-stats-summary"]
+            "pages": [
+              "api-reference/endpoint/get-stats-summary"
+            ]
           },
           {
             "group": "Customer Credits",
@@ -455,7 +480,9 @@
           {
             "group": "Moderation",
             "icon": "shield-check",
-            "pages": ["api-reference/endpoint/screen-prompt"]
+            "pages": [
+              "api-reference/endpoint/screen-prompt"
+            ]
           }
         ]
       }

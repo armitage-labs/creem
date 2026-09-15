@@ -1,6 +1,6 @@
 ---
-title: "Transactions"
-description: "Add credits, remove credits, undo mistakes. Every change is tracked."
+title: 'Transactions'
+description: 'Add credits, remove credits, undo mistakes. Every change is tracked.'
 ---
 
 <Note>Customer Credits is in **Experimental** preview.</Note>
@@ -87,9 +87,7 @@ curl -X POST https://api.creem.io/v1/customer-credits/accounts/{account_id}/debi
 Same parameters as credit. The response looks identical, just with `"side": "debit"` in the entry.
 
 <Info>
-  The API prevents negative balances — if a debit would bring the balance below zero, it returns an
-  `insufficient_balance` error. Check the balance first if you want to show your users a friendly
-  message.
+  The API prevents negative balances — if a debit would bring the balance below zero, it returns an `insufficient_balance` error. Check the balance first if you want to show your users a friendly message.
 </Info>
 
 ---
@@ -112,7 +110,8 @@ curl -X POST https://api.creem.io/v1/customer-credits/accounts/{account_id}/reve
 The response includes `"reversal_of": "cct_3mNpK8rW2xY"` linking back to the original.
 
 <Tip>
-  Reversals are idempotent — reversing the same transaction twice returns the original reversal.
+  Reversals are idempotent — reversing the same transaction twice returns the
+  original reversal.
 </Tip>
 
 ---
@@ -180,9 +179,7 @@ curl -X POST https://api.creem.io/v1/customer-credits/transactions \
 The response is the same transaction object as credit and debit, with one entry per line you posted. Either every entry is written or none is; an unbalanced request returns a `422`, and a frozen or closed account anywhere in the entries returns a `409`.
 
 <Tip>
-  Post the balanced pair (or set) that describes the whole event in one call rather than a separate
-  credit and debit — a retry or a crash between two calls can leave one side written and the other
-  not.
+  Post the balanced pair (or set) that describes the whole event in one call rather than a separate credit and debit — a retry or a crash between two calls can leave one side written and the other not.
 </Tip>
 
 ---
@@ -227,7 +224,7 @@ curl "https://api.creem.io/v1/customer-credits/transactions?reference=order_789"
       "reference": "order_789",
       "idempotency_key": "reward_order_789",
       "reversal_of": null,
-      "entries": [{ "side": "credit", "amount": "500", "account_id": "cca_7kXmR2pQ9vN" }]
+      "entries": [ { "side": "credit", "amount": "500", "account_id": "cca_7kXmR2pQ9vN" } ]
     }
   ],
   "has_more": false
@@ -245,9 +242,7 @@ Imagine your app credits a customer 500 points for an order. The request goes th
 The `idempotency_key` prevents this. When you retry with the same key, Creem recognizes it's the same request and returns the original result — no double-crediting.
 
 <Tip>
-  Use a key that's tied to the business event, like `reward_order_789` or `topup_sub_123_2026-04`.
-  This way, even if your code accidentally fires twice for the same order, the customer only gets
-  credited once.
+  Use a key that's tied to the business event, like `reward_order_789` or `topup_sub_123_2026-04`. This way, even if your code accidentally fires twice for the same order, the customer only gets credited once.
 </Tip>
 
 ### How it works
@@ -272,6 +267,8 @@ sequenceDiagram
 | Retry with same key + same body | Returns original result, `X-Idempotent-Replay: true` header |
 | Same key but different body     | `409 Conflict` error                                        |
 
+
+
 ---
 
 ## Next steps
@@ -280,13 +277,25 @@ sequenceDiagram
   <Card title="Accounts" icon="user" href="/features/customer-credits/accounts">
     Create, freeze, and manage accounts.
   </Card>
-  <Card title="Recipes" icon="book-open" href="/guides/customer-credits-recipes">
+  <Card
+    title="Recipes"
+    icon="book-open"
+    href="/guides/customer-credits-recipes"
+  >
     Step-by-step guides for common patterns.
   </Card>
-  <Card title="API Reference" icon="code" href="/api-reference/endpoint/credit-account">
+  <Card
+    title="API Reference"
+    icon="code"
+    href="/api-reference/endpoint/credit-account"
+  >
     Full endpoint schemas.
   </Card>
-  <Card title="Introduction" icon="house" href="/features/customer-credits/introduction">
+  <Card
+    title="Introduction"
+    icon="house"
+    href="/features/customer-credits/introduction"
+  >
     Back to overview.
   </Card>
 </CardGroup>
