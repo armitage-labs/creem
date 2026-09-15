@@ -11,6 +11,7 @@ import {
   main,
   publishedArtifact,
   publishedCliVersion,
+  retryDelay,
   updateFormula,
   validateVersion,
 } from "./update-homebrew.mjs";
@@ -115,7 +116,7 @@ test("rejects tampered tarball bytes", async () => {
 
 test("retries registry lag, rate limits, server and network errors", async () => {
   let calls = 0;
-  let waits = 0;
+  const delays = [];
   const response = await fetchWithRetry(tarball, {
     fetchImpl: async () => {
       calls++;
@@ -123,13 +124,19 @@ test("retries registry lag, rate limits, server and network errors", async () =>
       return new Response("", { status: [0, 0, 404, 429, 503, 200][calls] });
     },
     wait: async (delay) => {
-      assert.equal(delay, 10_000);
-      waits++;
+      delays.push(delay);
     },
   });
   assert.equal(response.status, 200);
   assert.equal(calls, 5);
-  assert.equal(waits, 4);
+  assert.deepEqual(delays, [5_000, 10_000, 20_000, 40_000]);
+});
+
+test("backs off exponentially to a capped delay", () => {
+  assert.deepEqual(
+    Array.from({ length: 11 }, (unused, index) => retryDelay(index + 1)),
+    [5_000, 10_000, 20_000, 40_000, 60_000, 60_000, 60_000, 60_000, 60_000, 60_000, 60_000],
+  );
 });
 
 test("stops after bounded retries and fails immediately for permanent errors", async () => {
@@ -145,7 +152,7 @@ test("stops after bounded retries and fails immediately for permanent errors", a
       }),
       new RegExp(`HTTP ${status}`),
     );
-    assert.equal(calls, status === 404 ? 6 : 1);
+    assert.equal(calls, status === 404 ? 12 : 1);
   }
 });
 

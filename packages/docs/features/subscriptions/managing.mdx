@@ -245,6 +245,50 @@ curl -X POST https://api.creem.io/v1/subscriptions/sub_YOUR_SUBSCRIPTION_ID \
 
 ---
 
+## Changing a Product's Price
+
+When you edit a recurring product's price, the new price applies to **new checkouts only**. Existing subscriptions keep billing at the price they signed up with.
+
+### Raising Prices for Existing Subscribers
+
+Creem has no built-in flow for moving existing subscribers to a new price. Instead, create a product with the new price, using the same currency and billing interval as the current product. Then move each subscription to the new product with the [upgrade subscription endpoint](/api-reference/endpoint/upgrade-subscription).
+
+<Warning>
+  Creem doesn't notify subscribers when you move them to a new price. Let them know before the
+  change takes effect.
+</Warning>
+
+With the [Creem CLI](/code/cli) and `jq`, list the active subscriptions on the current product, review the list, then move them:
+
+```bash
+OLD_PRODUCT_ID=prod_OLD_PRICE
+NEW_PRODUCT_ID=prod_NEW_PRICE
+
+# 1. Save the IDs of active subscriptions on the current product
+creem subscriptions list --status active --json \
+  | jq -r --arg product "$OLD_PRODUCT_ID" '.items[] | select(.product.id == $product) | .id' \
+  > subscriptions-to-migrate.txt
+
+# 2. Move each subscription to the new product
+for SUBSCRIPTION_ID in $(cat subscriptions-to-migrate.txt); do
+  creem subscriptions upgrade "$SUBSCRIPTION_ID" \
+    --product "$NEW_PRODUCT_ID" \
+    --update-behavior proration-none \
+    --yes --json
+done
+```
+
+The [search subscriptions endpoint](/api-reference/endpoint/search-subscriptions) has no product or status filter, so `--status` fetches every page and filters on your machine. To do this with the API or SDK instead, page through that endpoint, keep subscriptions whose `product.id` and `status` match, and call the upgrade endpoint for each.
+
+With `proration-none`, customers aren't charged in the middle of their current billing period and pay the new price from their next billing date. See [Update Behavior Options](#update-behavior-options) for the other values.
+
+<Note>
+  The upgrade endpoint only supports subscriptions with a single item, and it can reject
+  subscriptions that have a discount applied. Check the command output for failed upgrades.
+</Note>
+
+---
+
 ## Dashboard Management
 
 You can also manage subscriptions directly through the Creem Dashboard:
