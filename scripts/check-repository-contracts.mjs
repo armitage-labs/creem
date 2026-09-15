@@ -36,7 +36,7 @@ function categoryAcceptsPath(category, packagePath) {
   const patterns = {
     sdk: /^packages\/sdk$/,
     cli: /^packages\/cli$/,
-    shared: /^packages\/(?:core|webhook-types)$/,
+    shared: /^packages\/(?:core|webhook-types|ingestion)$/,
     integration: /^packages\/integrations\/[^/]+$/,
     ui: /^packages\/ui\/[^/]+$/,
     docs: /^packages\/docs$/,
