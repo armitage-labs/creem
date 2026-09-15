@@ -15,3 +15,9 @@ Initial release of the Creem usage-ingestion toolkit.
 - Strategy layer: `strategy(s).cost(fn).ingest(name)` chain with the
   `IngestionStrategy` base class — stateless per customer, reserved
   `strategy` and `_cost` property keys written by the pipeline.
+- `AiSdkStrategy` (`@creem_io/ingestion/ai-sdk` subpath): wrap a Vercel AI
+  SDK language model (`LanguageModelV3`/`V4`, AI SDK 6+) and every
+  generate/stream call emits token counts, model, and vendor; stream usage
+  is read from the `finish` part in passing, never buffered.
+- `DeltaTimeStrategy`: time an execution and bill the duration
+  (`delta_time_ms`); failed executions bill nothing.

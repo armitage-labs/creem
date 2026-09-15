@@ -21,10 +21,24 @@
   "bugs": {
     "url": "https://github.com/armitage-labs/creem/issues"
   },
+  "type": "commonjs",
   "main": "./dist/index.js",
   "types": "./dist/index.d.ts",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "default": "./dist/index.js"
+    },
+    "./ai-sdk": {
+      "types": "./dist/strategies/ai-sdk.d.ts",
+      "default": "./dist/strategies/ai-sdk.js"
+    },
+    "./package.json": "./package.json"
+  },
   "files": [
     "dist",
+    "ai-sdk.js",
+    "ai-sdk.d.ts",
     "README.md",
     "LICENSE",
     "CHANGELOG.md"
@@ -42,7 +56,16 @@
   "dependencies": {
     "creem": "workspace:*"
   },
+  "peerDependencies": {
+    "@ai-sdk/provider": ">=4.0.0"
+  },
+  "peerDependenciesMeta": {
+    "@ai-sdk/provider": {
+      "optional": true
+    }
+  },
   "devDependencies": {
+    "@ai-sdk/provider": "^4.0.14",
     "@eslint/js": "^9.26.0",
     "@types/node": "^22.0.0",
     "eslint": "^9.26.0",
