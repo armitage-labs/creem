@@ -7331,7 +7331,8 @@
             "example": {
               "archived_holder": true,
               "archived_holder_id": "mtr_abc123"
-            }
+            },
+            "additionalProperties": true
           },
           "request_id": {
             "type": "string",
@@ -7644,7 +7645,7 @@
             "description": "What is wrong with the event"
           },
           "param": {
-            "type": "object",
+            "type": "string",
             "description": "The offending field, named as you sent it",
             "example": "customer_id",
             "nullable": true
@@ -7676,7 +7677,7 @@
             "description": "Whether this event would pass ingest validation"
           },
           "event_id": {
-            "type": "object",
+            "type": "string",
             "description": "The idempotency key the event would be recorded under — your `event_id`, trimmed. Null when the event is invalid, and also null when you omitted `event_id`: ingest generates a fresh id at accept time, so previewing one would be misleading.",
             "nullable": true,
             "example": "order-1234"

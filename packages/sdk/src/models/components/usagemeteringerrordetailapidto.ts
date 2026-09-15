@@ -25,11 +25,6 @@ export type UsageMeteringErrorDetailApiDtoType = ClosedEnum<
   typeof UsageMeteringErrorDetailApiDtoType
 >;
 
-/**
- * Structured, machine-readable context for errors that support an action, omitted entirely when there is none. Currently emitted for `meter_name_taken` when the colliding name is held by an ARCHIVED meter: `archived_holder` is true and `archived_holder_id` is that meter, which can be restored via POST /v1/meters/{id}/unarchive. Additive — treat unknown keys as ignorable.
- */
-export type Details = {};
-
 export type UsageMeteringErrorDetailApiDto = {
   /**
    * Error category
@@ -50,7 +45,7 @@ export type UsageMeteringErrorDetailApiDto = {
   /**
    * Structured, machine-readable context for errors that support an action, omitted entirely when there is none. Currently emitted for `meter_name_taken` when the colliding name is held by an ARCHIVED meter: `archived_holder` is true and `archived_holder_id` is that meter, which can be restored via POST /v1/meters/{id}/unarchive. Additive — treat unknown keys as ignorable.
    */
-  details?: Details | undefined;
+  details?: { [k: string]: any } | undefined;
   /**
    * Unique request identifier for support
    */
@@ -67,32 +62,6 @@ export const UsageMeteringErrorDetailApiDtoType$outboundSchema: z.ZodNativeEnum<
 > = UsageMeteringErrorDetailApiDtoType$inboundSchema;
 
 /** @internal */
-export const Details$inboundSchema: z.ZodType<Details, z.ZodTypeDef, unknown> =
-  z.object({});
-/** @internal */
-export type Details$Outbound = {};
-
-/** @internal */
-export const Details$outboundSchema: z.ZodType<
-  Details$Outbound,
-  z.ZodTypeDef,
-  Details
-> = z.object({});
-
-export function detailsToJSON(details: Details): string {
-  return JSON.stringify(Details$outboundSchema.parse(details));
-}
-export function detailsFromJSON(
-  jsonString: string,
-): SafeParseResult<Details, SDKValidationError> {
-  return safeParse(
-    jsonString,
-    (x) => Details$inboundSchema.parse(JSON.parse(x)),
-    `Failed to parse 'Details' from JSON`,
-  );
-}
-
-/** @internal */
 export const UsageMeteringErrorDetailApiDto$inboundSchema: z.ZodType<
   UsageMeteringErrorDetailApiDto,
   z.ZodTypeDef,
@@ -102,7 +71,7 @@ export const UsageMeteringErrorDetailApiDto$inboundSchema: z.ZodType<
   code: z.nullable(z.string()),
   message: z.string(),
   param: z.nullable(z.string()).optional(),
-  details: z.lazy(() => Details$inboundSchema).optional(),
+  details: z.record(z.any()).optional(),
   request_id: z.string(),
 }).transform((v) => {
   return remap$(v, {
@@ -115,7 +84,7 @@ export type UsageMeteringErrorDetailApiDto$Outbound = {
   code: string | null;
   message: string;
   param?: string | null | undefined;
-  details?: Details$Outbound | undefined;
+  details?: { [k: string]: any } | undefined;
   request_id: string;
 };
 
@@ -129,7 +98,7 @@ export const UsageMeteringErrorDetailApiDto$outboundSchema: z.ZodType<
   code: z.nullable(z.string()),
   message: z.string(),
   param: z.nullable(z.string()).optional(),
-  details: z.lazy(() => Details$outboundSchema).optional(),
+  details: z.record(z.any()).optional(),
   requestId: z.string(),
 }).transform((v) => {
   return remap$(v, {

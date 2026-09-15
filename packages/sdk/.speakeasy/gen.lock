@@ -165,7 +165,6 @@ trackedFiles:
     id: e531da73e7f9
     pristine_git_object: a4031a40e5d35d9aa03fbff408c4b58ca123ffdd
   docs/models/components/decision.md: {}
-  docs/models/components/details.md: {}
   docs/models/components/discount.md:
     id: 902ead98a895
     pristine_git_object: dcdafadaa2a9290fc163bffe5513958f8d075bae
@@ -187,7 +186,6 @@ trackedFiles:
   docs/models/components/entryresponsedto.md: {}
   docs/models/components/environmentmode.md: {}
   docs/models/components/errort.md: {}
-  docs/models/components/eventid.md: {}
   docs/models/components/eventtype.md: {}
   docs/models/components/feature.md: {}
   docs/models/components/featureentity.md:
@@ -245,7 +243,6 @@ trackedFiles:
   docs/models/components/paginationentity.md:
     id: 9473e5fff17d
     pristine_git_object: 111a8b029c00eba4f26c5b660d8cdd43e2fdac36
-  docs/models/components/param.md: {}
   docs/models/components/posttransactiondto.md: {}
   docs/models/components/previewmeterapirequestdto.md: {}
   docs/models/components/previewmeterapirequestdtoaggregation.md: {}
@@ -1817,7 +1814,7 @@ examples:
         application/json: {"events": []}
       responses:
         "200":
-          application/json: {"valid": true, "events": [{"valid": false, "event_id": {}, "error": {"code": "invalid_usage_event", "message": "<value>", "param": {}}, "matched_meters": ["mtr_abc123"], "warnings": []}]}
+          application/json: {"valid": true, "events": [{"valid": false, "event_id": "{}", "error": {"code": "invalid_usage_event", "message": "<value>", "param": "{}"}, "matched_meters": ["mtr_abc123"], "warnings": []}]}
         "422":
           application/json: {"error": {"type": "invalid_request_error", "code": "meter_name_taken", "message": "A meter named \"Image generations\" already exists in this store", "param": "events[3].customer_id", "details": {}, "request_id": "req_abc123def456"}}
   refreshToken: {}

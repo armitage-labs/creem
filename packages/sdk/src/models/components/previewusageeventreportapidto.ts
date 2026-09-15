@@ -15,16 +15,6 @@ import {
 } from "./previewusageeventwarningapidto.js";
 
 /**
- * The idempotency key the event would be recorded under — your `event_id`, trimmed. Null when the event is invalid, and also null when you omitted `event_id`: ingest generates a fresh id at accept time, so previewing one would be misleading.
- */
-export type EventId = {};
-
-/**
- * The offending field, named as you sent it
- */
-export type Param = {};
-
-/**
  * Why the event is invalid. Null when valid.
  */
 export type ErrorT = {
@@ -39,7 +29,7 @@ export type ErrorT = {
   /**
    * The offending field, named as you sent it
    */
-  param?: Param | null | undefined;
+  param?: string | null | undefined;
 };
 
 export type PreviewUsageEventReportApiDto = {
@@ -50,7 +40,7 @@ export type PreviewUsageEventReportApiDto = {
   /**
    * The idempotency key the event would be recorded under — your `event_id`, trimmed. Null when the event is invalid, and also null when you omitted `event_id`: ingest generates a fresh id at accept time, so previewing one would be misleading.
    */
-  eventId?: EventId | null | undefined;
+  eventId?: string | null | undefined;
   /**
    * The Creem customer the usage would be attributed to — resolved from your `external_customer_id` where you sent one. Null when the event is invalid or the reference does not resolve.
    */
@@ -74,69 +64,17 @@ export type PreviewUsageEventReportApiDto = {
 };
 
 /** @internal */
-export const EventId$inboundSchema: z.ZodType<EventId, z.ZodTypeDef, unknown> =
-  z.object({});
-/** @internal */
-export type EventId$Outbound = {};
-
-/** @internal */
-export const EventId$outboundSchema: z.ZodType<
-  EventId$Outbound,
-  z.ZodTypeDef,
-  EventId
-> = z.object({});
-
-export function eventIdToJSON(eventId: EventId): string {
-  return JSON.stringify(EventId$outboundSchema.parse(eventId));
-}
-export function eventIdFromJSON(
-  jsonString: string,
-): SafeParseResult<EventId, SDKValidationError> {
-  return safeParse(
-    jsonString,
-    (x) => EventId$inboundSchema.parse(JSON.parse(x)),
-    `Failed to parse 'EventId' from JSON`,
-  );
-}
-
-/** @internal */
-export const Param$inboundSchema: z.ZodType<Param, z.ZodTypeDef, unknown> = z
-  .object({});
-/** @internal */
-export type Param$Outbound = {};
-
-/** @internal */
-export const Param$outboundSchema: z.ZodType<
-  Param$Outbound,
-  z.ZodTypeDef,
-  Param
-> = z.object({});
-
-export function paramToJSON(param: Param): string {
-  return JSON.stringify(Param$outboundSchema.parse(param));
-}
-export function paramFromJSON(
-  jsonString: string,
-): SafeParseResult<Param, SDKValidationError> {
-  return safeParse(
-    jsonString,
-    (x) => Param$inboundSchema.parse(JSON.parse(x)),
-    `Failed to parse 'Param' from JSON`,
-  );
-}
-
-/** @internal */
 export const ErrorT$inboundSchema: z.ZodType<ErrorT, z.ZodTypeDef, unknown> = z
   .object({
     code: z.string(),
     message: z.string(),
-    param: z.nullable(z.lazy(() => Param$inboundSchema)).optional(),
+    param: z.nullable(z.string()).optional(),
   });
 /** @internal */
 export type ErrorT$Outbound = {
   code: string;
   message: string;
-  param?: Param$Outbound | null | undefined;
+  param?: string | null | undefined;
 };
 
 /** @internal */
@@ -147,7 +85,7 @@ export const ErrorT$outboundSchema: z.ZodType<
 > = z.object({
   code: z.string(),
   message: z.string(),
-  param: z.nullable(z.lazy(() => Param$outboundSchema)).optional(),
+  param: z.nullable(z.string()).optional(),
 });
 
 export function errorToJSON(errorT: ErrorT): string {
@@ -170,7 +108,7 @@ export const PreviewUsageEventReportApiDto$inboundSchema: z.ZodType<
   unknown
 > = z.object({
   valid: z.boolean(),
-  event_id: z.nullable(z.lazy(() => EventId$inboundSchema)).optional(),
+  event_id: z.nullable(z.string()).optional(),
   customer_id: z.nullable(z.string()).optional(),
   error: z.nullable(z.lazy(() => ErrorT$inboundSchema)).optional(),
   duplicate: z.nullable(z.boolean()).optional(),
@@ -186,7 +124,7 @@ export const PreviewUsageEventReportApiDto$inboundSchema: z.ZodType<
 /** @internal */
 export type PreviewUsageEventReportApiDto$Outbound = {
   valid: boolean;
-  event_id?: EventId$Outbound | null | undefined;
+  event_id?: string | null | undefined;
   customer_id?: string | null | undefined;
   error?: ErrorT$Outbound | null | undefined;
   duplicate?: boolean | null | undefined;
@@ -201,7 +139,7 @@ export const PreviewUsageEventReportApiDto$outboundSchema: z.ZodType<
   PreviewUsageEventReportApiDto
 > = z.object({
   valid: z.boolean(),
-  eventId: z.nullable(z.lazy(() => EventId$outboundSchema)).optional(),
+  eventId: z.nullable(z.string()).optional(),
   customerId: z.nullable(z.string()).optional(),
   error: z.nullable(z.lazy(() => ErrorT$outboundSchema)).optional(),
   duplicate: z.nullable(z.boolean()).optional(),
