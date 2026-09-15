@@ -1,0 +1,84 @@
+{
+  "name": "@creem_io/ingestion",
+  "version": "0.0.0",
+  "description": "Usage ingestion toolkit for Creem — buffered, retry-safe, non-blocking event delivery with pluggable metering strategies",
+  "keywords": [
+    "creem",
+    "usage-based-billing",
+    "metering",
+    "ingestion",
+    "events",
+    "billing"
+  ],
+  "author": "Creem <support@creem.io>",
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/armitage-labs/creem.git",
+    "directory": "packages/ingestion"
+  },
+  "homepage": "https://github.com/armitage-labs/creem/tree/main/packages/ingestion",
+  "bugs": {
+    "url": "https://github.com/armitage-labs/creem/issues"
+  },
+  "type": "commonjs",
+  "main": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "default": "./dist/index.js"
+    },
+    "./ai-sdk": {
+      "types": "./dist/strategies/ai-sdk.d.ts",
+      "default": "./dist/strategies/ai-sdk.js"
+    },
+    "./package.json": "./package.json"
+  },
+  "files": [
+    "dist",
+    "ai-sdk.js",
+    "ai-sdk.d.ts",
+    "README.md",
+    "LICENSE",
+    "CHANGELOG.md"
+  ],
+  "scripts": {
+    "build": "tsc",
+    "typecheck": "tsc --noEmit",
+    "check:package": "publint --strict --pack pnpm && attw --pack .",
+    "test": "vitest run",
+    "dev": "tsc --watch",
+    "lint": "eslint src tests --max-warnings=0",
+    "format": "prettier --write \"{src,tests}/**/*.ts\"",
+    "format:check": "prettier --check \"{src,tests}/**/*.ts\""
+  },
+  "dependencies": {
+    "creem": "workspace:*"
+  },
+  "peerDependencies": {
+    "@ai-sdk/provider": ">=4.0.0"
+  },
+  "peerDependenciesMeta": {
+    "@ai-sdk/provider": {
+      "optional": true
+    }
+  },
+  "devDependencies": {
+    "@ai-sdk/provider": "^4.0.14",
+    "@eslint/js": "^9.26.0",
+    "@types/node": "^22.0.0",
+    "eslint": "^9.26.0",
+    "globals": "^15.14.0",
+    "typescript": "^5.4.5",
+    "typescript-eslint": "^8.26.0",
+    "vitest": "^3.0.0"
+  },
+  "engines": {
+    "node": ">=18.0.0"
+  },
+  "publishConfig": {
+    "access": "public",
+    "provenance": true
+  }
+}

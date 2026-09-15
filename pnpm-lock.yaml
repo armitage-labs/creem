@@ -126,6 +126,37 @@ importers:
         specifier: ^3.1.0
         version: 3.8.1
 
+  packages/ingestion:
+    dependencies:
+      creem:
+        specifier: workspace:*
+        version: link:../sdk
+    devDependencies:
+      '@ai-sdk/provider':
+        specifier: ^4.0.14
+        version: 4.0.14
+      '@eslint/js':
+        specifier: ^9.26.0
+        version: 9.39.4
+      '@types/node':
+        specifier: ^22.0.0
+        version: 22.20.1
+      eslint:
+        specifier: ^9.26.0
+        version: 9.39.4(jiti@2.7.0)(supports-color@10.2.2)
+      globals:
+        specifier: ^15.14.0
+        version: 15.15.0
+      typescript:
+        specifier: ^5.4.5
+        version: 5.8.3
+      typescript-eslint:
+        specifier: ^8.26.0
+        version: 8.61.1(eslint@9.39.4(jiti@2.7.0)(supports-color@10.2.2))(supports-color@10.2.2)(typescript@5.8.3)
+      vitest:
+        specifier: ^3.0.0
+        version: 3.2.4(@edge-runtime/vm@5.0.0)(@types/debug@4.1.13)(@types/node@22.20.1)(jiti@2.7.0)(jsdom@29.1.1(@noble/hashes@2.0.1))(lightningcss@1.32.0)(supports-color@10.2.2)(terser@5.48.0)(yaml@2.9.0)
+
   packages/integrations/better-auth:
     dependencies:
       '@creem_io/webhook-types':
@@ -657,6 +688,10 @@ packages:
   '@ai-sdk/provider@2.0.1':
     resolution: {integrity: sha512-KCUwswvsC5VsW2PWFqF8eJgSCu5Ysj7m1TxiHTVA6g7k360bk0RNQENT8KTMAYEs+8fWPD3Uu4dEmzGHc+jGng==}
     engines: {node: '>=18'}
+
+  '@ai-sdk/provider@4.0.14':
+    resolution: {integrity: sha512-yukP2tbcQQErG5gLCMBGvpvb/rM3D3KlTKG6eKKOdNHLHqtNNDEeBxdYrY/JL+O76B2ig5dXY19H/f1HFSvRiQ==}
+    engines: {node: '>=22'}
 
   '@ai-sdk/react@2.0.120':
     resolution: {integrity: sha512-x7Oa2LDRURc8uRnAdcEfydbHLSXGYjNaFlQrGuxZAMfqhLJQ+7x4K8Z6O5vnLt414mrPaVvgirfRqsP/nsxtnw==}
@@ -14633,6 +14668,10 @@ snapshots:
     dependencies:
       json-schema: 0.4.0
 
+  '@ai-sdk/provider@4.0.14':
+    dependencies:
+      json-schema: 0.4.0
+
   '@ai-sdk/react@2.0.120(react@18.3.1)(zod@3.25.67)':
     dependencies:
       '@ai-sdk/provider-utils': 3.0.20(zod@3.25.67)
@@ -20621,7 +20660,7 @@ snapshots:
 
   '@types/better-sqlite3@7.6.13':
     dependencies:
-      '@types/node': 25.9.3
+      '@types/node': 22.20.1
 
   '@types/body-parser@1.19.6':
     dependencies:
