@@ -45,6 +45,10 @@ const FILENAME_OVERRIDES = {
   debitCustomerCreditsAccount: "debit-account",
   reverseCustomerCreditsAccountTransaction: "reverse-credits-transaction",
   closeCustomerCreditsAccount: "close-credits-account",
+  postCustomerCreditsTransaction: "post-credits-transaction",
+  getCustomerCreditsTransaction: "get-credits-transaction",
+  reverseCustomerCreditsTransaction: "reverse-credits-transaction-by-id",
+  listCustomerCreditsTransactionsByReference: "list-credits-transactions",
 };
 
 // Fallback descriptions when not provided in OpenAPI spec
