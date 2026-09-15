@@ -252,6 +252,10 @@ run();
 * [debitAccount](docs/sdks/customercredits/README.md#debitaccount) - Debit an account
 * [reverseTransaction](docs/sdks/customercredits/README.md#reversetransaction) - Reverse a transaction
 * [closeAccount](docs/sdks/customercredits/README.md#closeaccount) - Close an account
+* [postTransaction](docs/sdks/customercredits/README.md#posttransaction) - Post a transaction
+* [listTransactionsByReference](docs/sdks/customercredits/README.md#listtransactionsbyreference) - List transactions by reference
+* [getTransaction](docs/sdks/customercredits/README.md#gettransaction) - Retrieve a transaction
+* [reverseTransactionById](docs/sdks/customercredits/README.md#reversetransactionbyid) - Reverse a transaction
 
 ### [Customers](docs/sdks/customers/README.md)
 
@@ -367,9 +371,13 @@ To read more about standalone functions, check [FUNCTIONS.md](./FUNCTIONS.md).
 - [`customerCreditsFreezeAccount`](docs/sdks/customercredits/README.md#freezeaccount) - Freeze an account
 - [`customerCreditsGetAccount`](docs/sdks/customercredits/README.md#getaccount) - Retrieve a customer credits account
 - [`customerCreditsGetAccountBalance`](docs/sdks/customercredits/README.md#getaccountbalance) - Get account balance
+- [`customerCreditsGetTransaction`](docs/sdks/customercredits/README.md#gettransaction) - Retrieve a transaction
 - [`customerCreditsListAccounts`](docs/sdks/customercredits/README.md#listaccounts) - List customer credits accounts
 - [`customerCreditsListEntries`](docs/sdks/customercredits/README.md#listentries) - List account entries
+- [`customerCreditsListTransactionsByReference`](docs/sdks/customercredits/README.md#listtransactionsbyreference) - List transactions by reference
+- [`customerCreditsPostTransaction`](docs/sdks/customercredits/README.md#posttransaction) - Post a transaction
 - [`customerCreditsReverseTransaction`](docs/sdks/customercredits/README.md#reversetransaction) - Reverse a transaction
+- [`customerCreditsReverseTransactionById`](docs/sdks/customercredits/README.md#reversetransactionbyid) - Reverse a transaction
 - [`customerCreditsUnfreezeAccount`](docs/sdks/customercredits/README.md#unfreezeaccount) - Unfreeze an account
 - [`customersCreate`](docs/sdks/customers/README.md#create) - Create a customer
 - [`customersGenerateBillingLinks`](docs/sdks/customers/README.md#generatebillinglinks) - Generate Customer Links
@@ -588,8 +596,8 @@ run();
 
 
 **Inherit from [`CreemError`](./src/models/errors/creemerror.ts)**:
-* [`UsageMeteringErrorApiResponseDto`](./src/models/errors/usagemeteringerrorapiresponsedto.ts): Applicable to 6 of 67 methods.*
-* [`CustomerCreditsErrorResponseDto`](./src/models/errors/customercreditserrorresponsedto.ts): Status code `409`. Applicable to 5 of 67 methods.*
+* [`CustomerCreditsErrorResponseDto`](./src/models/errors/customercreditserrorresponsedto.ts): Applicable to 7 of 71 methods.*
+* [`UsageMeteringErrorApiResponseDto`](./src/models/errors/usagemeteringerrorapiresponsedto.ts): Applicable to 6 of 71 methods.*
 * [`ResponseValidationError`](./src/models/errors/responsevalidationerror.ts): Type mismatch between the data returned from the server and the structure expected by the SDK. See `error.rawValue` for the raw value and `error.pretty()` for a nicely formatted multi-line string.
 
 </details>

@@ -2,9 +2,9 @@ lockVersion: 2.0.0
 id: 091f072e-89b5-4c97-b605-63f1bf64ee97
 management:
   docVersion: v1
-  speakeasyVersion: 1.796.4
-  generationVersion: 2.935.1
-  releaseVersion: 1.8.0
+  speakeasyVersion: 1.797.0
+  generationVersion: 2.937.18
+  releaseVersion: 1.9.0
   repoURL: https://github.com/armitage-labs/creem.git
   repoSubDirectory: packages/sdk
   installationURL: https://github.com/armitage-labs/creem
@@ -179,6 +179,8 @@ trackedFiles:
   docs/models/components/disputeentitysubscription.md: {}
   docs/models/components/duplicate.md: {}
   docs/models/components/duration.md: {}
+  docs/models/components/entryinputdto.md: {}
+  docs/models/components/entryinputdtoside.md: {}
   docs/models/components/entrylistresponsedto.md: {}
   docs/models/components/entryresponsedto.md: {}
   docs/models/components/environmentmode.md: {}
@@ -242,6 +244,7 @@ trackedFiles:
     id: 9473e5fff17d
     pristine_git_object: 111a8b029c00eba4f26c5b660d8cdd43e2fdac36
   docs/models/components/param.md: {}
+  docs/models/components/posttransactiondto.md: {}
   docs/models/components/previewmeterapirequestdto.md: {}
   docs/models/components/previewmeterapirequestdtoaggregation.md: {}
   docs/models/components/previewusageeventreportapidto.md: {}
@@ -321,6 +324,7 @@ trackedFiles:
   docs/models/components/transactionlistentity.md:
     id: b572848678dd
     pristine_git_object: 80d97f8c96303b3b2ca4caf3daa81f77f451421a
+  docs/models/components/transactionlistresponsedto.md: {}
   docs/models/components/transactionresponsedto.md: {}
   docs/models/components/transactionstatus.md: {}
   docs/models/components/transactiontype.md: {}
@@ -412,6 +416,7 @@ trackedFiles:
   docs/models/operations/freezecustomercreditsaccountrequest.md: {}
   docs/models/operations/getcustomercreditsaccountbalancerequest.md: {}
   docs/models/operations/getcustomercreditsaccountrequest.md: {}
+  docs/models/operations/getcustomercreditstransactionrequest.md: {}
   docs/models/operations/getmeterconsumedunitsrequest.md: {}
   docs/models/operations/getmeterrequest.md: {}
   docs/models/operations/getmetricssummaryrequest.md: {}
@@ -430,6 +435,7 @@ trackedFiles:
   docs/models/operations/listcustomercreditsaccountentriesresponse.md: {}
   docs/models/operations/listcustomercreditsaccountsrequest.md: {}
   docs/models/operations/listcustomercreditsaccountsresponse.md: {}
+  docs/models/operations/listcustomercreditstransactionsbyreferencerequest.md: {}
   docs/models/operations/listcustomerlicensesrequest.md: {}
   docs/models/operations/listcustomerordersrequest.md: {}
   docs/models/operations/listcustomersrequest.md:
@@ -467,6 +473,7 @@ trackedFiles:
     id: 609d4d39c68f
     pristine_git_object: 84912b498ab54a11cac4e7d21916a8c9573bc1d2
   docs/models/operations/reversecustomercreditsaccounttransactionrequest.md: {}
+  docs/models/operations/reversecustomercreditstransactionrequest.md: {}
   docs/models/operations/searchdiscountsrequest.md: {}
   docs/models/operations/searchdiscountsresponse.md: {}
   docs/models/operations/searchproductsrequest.md:
@@ -555,9 +562,13 @@ trackedFiles:
   src/funcs/customerCreditsFreezeAccount.ts: {}
   src/funcs/customerCreditsGetAccount.ts: {}
   src/funcs/customerCreditsGetAccountBalance.ts: {}
+  src/funcs/customerCreditsGetTransaction.ts: {}
   src/funcs/customerCreditsListAccounts.ts: {}
   src/funcs/customerCreditsListEntries.ts: {}
+  src/funcs/customerCreditsListTransactionsByReference.ts: {}
+  src/funcs/customerCreditsPostTransaction.ts: {}
   src/funcs/customerCreditsReverseTransaction.ts: {}
+  src/funcs/customerCreditsReverseTransactionById.ts: {}
   src/funcs/customerCreditsUnfreezeAccount.ts: {}
   src/funcs/customersCreate.ts: {}
   src/funcs/customersGenerateBillingLinks.ts: {}
@@ -715,9 +726,13 @@ trackedFiles:
   src/mcp-server/tools/customerCreditsFreezeAccount.ts: {}
   src/mcp-server/tools/customerCreditsGetAccount.ts: {}
   src/mcp-server/tools/customerCreditsGetAccountBalance.ts: {}
+  src/mcp-server/tools/customerCreditsGetTransaction.ts: {}
   src/mcp-server/tools/customerCreditsListAccounts.ts: {}
   src/mcp-server/tools/customerCreditsListEntries.ts: {}
+  src/mcp-server/tools/customerCreditsListTransactionsByReference.ts: {}
+  src/mcp-server/tools/customerCreditsPostTransaction.ts: {}
   src/mcp-server/tools/customerCreditsReverseTransaction.ts: {}
+  src/mcp-server/tools/customerCreditsReverseTransactionById.ts: {}
   src/mcp-server/tools/customerCreditsUnfreezeAccount.ts: {}
   src/mcp-server/tools/customersCreate.ts: {}
   src/mcp-server/tools/customersGenerateBillingLinks.ts: {}
@@ -843,6 +858,7 @@ trackedFiles:
   src/models/components/discountlistentity.ts: {}
   src/models/components/discounttype.ts: {}
   src/models/components/disputeentity.ts: {}
+  src/models/components/entryinputdto.ts: {}
   src/models/components/entrylistresponsedto.ts: {}
   src/models/components/entryresponsedto.ts: {}
   src/models/components/environmentmode.ts: {}
@@ -882,6 +898,7 @@ trackedFiles:
   src/models/components/paginationentity.ts:
     id: 32290e390954
     pristine_git_object: b7da6165b41637f02a25636cb6be6fc4e7da6e2d
+  src/models/components/posttransactiondto.ts: {}
   src/models/components/previewmeterapirequestdto.ts: {}
   src/models/components/previewusageeventreportapidto.ts: {}
   src/models/components/previewusageeventsapiresponsedto.ts: {}
@@ -935,6 +952,7 @@ trackedFiles:
   src/models/components/transactionlistentity.ts:
     id: b5120a9c2a09
     pristine_git_object: a5c4250ef68c78b48944e978f2cbc967124f21c1
+  src/models/components/transactionlistresponsedto.ts: {}
   src/models/components/transactionresponsedto.ts: {}
   src/models/components/transactionstatus.ts: {}
   src/models/components/transactiontype.ts: {}
@@ -1012,6 +1030,7 @@ trackedFiles:
   src/models/operations/freezecustomercreditsaccount.ts: {}
   src/models/operations/getcustomercreditsaccount.ts: {}
   src/models/operations/getcustomercreditsaccountbalance.ts: {}
+  src/models/operations/getcustomercreditstransaction.ts: {}
   src/models/operations/getmeter.ts: {}
   src/models/operations/getmeterconsumedunits.ts: {}
   src/models/operations/getmetricssummary.ts: {}
@@ -1027,6 +1046,7 @@ trackedFiles:
   src/models/operations/listaffiliates.ts: {}
   src/models/operations/listcustomercreditsaccountentries.ts: {}
   src/models/operations/listcustomercreditsaccounts.ts: {}
+  src/models/operations/listcustomercreditstransactionsbyreference.ts: {}
   src/models/operations/listcustomerlicenses.ts: {}
   src/models/operations/listcustomerorders.ts: {}
   src/models/operations/listcustomers.ts:
@@ -1059,6 +1079,7 @@ trackedFiles:
     id: a0fcf4ad186d
     pristine_git_object: bf2b8dc16c3db64ad05685d5147ed790857791b4
   src/models/operations/reversecustomercreditsaccounttransaction.ts: {}
+  src/models/operations/reversecustomercreditstransaction.ts: {}
   src/models/operations/searchdiscounts.ts: {}
   src/models/operations/searchproducts.ts:
     id: f7be5bc8e0b2
@@ -1559,6 +1580,14 @@ examples:
       responses:
         "200":
           application/json: {"balance": "5000"}
+  getCustomerCreditsTransaction:
+    speakeasy-default-get-customer-credits-transaction:
+      parameters:
+        path:
+          id: "<id>"
+      responses:
+        "200":
+          application/json: {"id": "cct_abc123", "store_id": "<id>", "reference": "order_xyz", "idempotency_key": "<value>", "reversal_of": "cct_abc123", "entries": [], "created_at": "1734979376178"}
   getMeter:
     speakeasy-default-get-meter:
       parameters:
@@ -1661,6 +1690,14 @@ examples:
       responses:
         "200":
           application/json: {"object": "list", "data": [], "has_more": false}
+  listCustomerCreditsTransactionsByReference:
+    speakeasy-default-list-customer-credits-transactions-by-reference:
+      parameters:
+        query:
+          reference: "order_xyz"
+      responses:
+        "200":
+          application/json: {"object": "list", "data": [{"id": "cct_abc123", "store_id": "<id>", "reference": "order_xyz", "idempotency_key": "<value>", "reversal_of": "cct_abc123", "entries": [], "created_at": "1715075033459"}], "has_more": true}
   listCustomerLicenses:
     speakeasy-default-list-customer-licenses:
       parameters:
@@ -1759,6 +1796,15 @@ examples:
       responses:
         "200":
           application/json: {"id": "<id>", "mode": "prod", "object": "subscription", "product": "{\"id\":\"<id>\",\"mode\":\"prod\",\"object\":{},\"name\":\"<value>\",\"description\":\"This is a sample product description.\",\"image_url\":\"https://example.com/image.jpg\",\"features\":[{\"id\":\"<id>\",\"type\":\"file\",\"description\":\"Get access to discord server.\"}],\"price\":400,\"currency\":\"USD\",\"billing_type\":\"one-time\",\"billing_period\":\"every-six-months\",\"status\":\"active\",\"tax_mode\":\"exclusive\",\"tax_category\":\"ebooks\",\"product_url\":\"https://creem.io/product/prod_123123123123\",\"default_success_url\":\"https://example.com/?status=successful\",\"created_at\":\"2023-01-01T00:00:00Z\",\"updated_at\":\"2023-01-01T00:00:00Z\"}", "customer": "{\"id\":\"<id>\",\"mode\":\"test\",\"object\":\"{}\",\"email\":\"user@example.com\",\"name\":\"John Doe\",\"country\":\"US\",\"created_at\":\"2023-01-01T00:00:00Z\",\"updated_at\":\"2023-01-01T00:00:00Z\"}", "collection_method": "charge_automatically", "status": "active", "last_transaction_id": "tran_3e6Z6TzvHKdsjEgXnGDEp0", "last_transaction": {"id": "<id>", "mode": "sandbox", "object": "transaction", "amount": 2000, "amount_paid": 2000, "discount_amount": 2000, "currency": "USD", "type": "invoice", "tax_country": "US", "tax_amount": 2000, "status": "refunded", "refunded_amount": 2000, "created_at": 8744.24}, "last_transaction_date": "2024-09-12T12:34:56Z", "next_transaction_date": "2024-09-12T12:34:56Z", "current_period_start_date": "2024-09-12T12:34:56Z", "current_period_end_date": "2024-09-12T12:34:56Z", "canceled_at": "2024-09-12T12:34:56Z", "created_at": "2024-01-01T00:00:00Z", "updated_at": "2024-09-12T12:34:56Z", "discount": {"id": "dis_3e6Z6TzvHKdsjEgXnGDEp0", "discountCode": "HOLIDAY2024"}, "metadata": {"userId": "user_123", "plan": "pro"}}
+  postCustomerCreditsTransaction:
+    speakeasy-default-post-customer-credits-transaction:
+      requestBody:
+        application/json: {"reference": "order_xyz", "idempotency_key": "idem_abc123", "entries": [{"account_id": "cca_abc123", "side": "credit", "amount": "1000"}]}
+      responses:
+        "201":
+          application/json: {"id": "cct_abc123", "store_id": "<id>", "reference": "order_xyz", "idempotency_key": "<value>", "reversal_of": "cct_abc123", "entries": [], "created_at": "1712702451715"}
+        "409":
+          application/json: {"error": {"type": "invalid_request_error", "code": "unbalanced_transaction", "message": "Total debits must equal total credits", "param": "entries", "request_id": "req_abc123def456"}}
   previewExistingMeter:
     speakeasy-default-preview-existing-meter:
       parameters:
@@ -1885,6 +1931,16 @@ examples:
       responses:
         "201":
           application/json: {"id": "cct_abc123", "store_id": "<id>", "reference": "order_xyz", "idempotency_key": "<value>", "reversal_of": "{}", "entries": [], "created_at": "1716740707727"}
+  reverseCustomerCreditsTransaction:
+    speakeasy-default-reverse-customer-credits-transaction:
+      parameters:
+        path:
+          id: "<id>"
+      responses:
+        "201":
+          application/json: {"id": "cct_abc123", "store_id": "<id>", "reference": "order_xyz", "idempotency_key": "<value>", "reversal_of": "cct_abc123", "entries": [{"id": "cce_abc123", "transaction_id": "cct_abc123", "account_id": "cca_abc123", "side": "debit", "amount": "1000", "created_at": "1718838517848"}], "created_at": "1708515636907"}
+        "409":
+          application/json: {"error": {"type": "invalid_request_error", "code": "unbalanced_transaction", "message": "Total debits must equal total credits", "param": "entries", "request_id": "req_abc123def456"}}
   screenPrompt:
     speakeasy-default-screen-prompt:
       requestBody:

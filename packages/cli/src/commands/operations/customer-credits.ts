@@ -118,4 +118,36 @@ export const handlers: Record<string, OperationHandler> = {
     );
     return client.customerCredits.closeAccount(p.id, options);
   },
+  postCustomerCreditsTransaction: (client, parameters, body, options) => {
+    const b = decode(
+      components.PostTransactionDto$outboundSchema,
+      components.PostTransactionDto$inboundSchema,
+      body,
+    );
+    return client.customerCredits.postTransaction(b, options);
+  },
+  getCustomerCreditsTransaction: (client, parameters, body, options) => {
+    const p = decode(
+      operations.GetCustomerCreditsTransactionRequest$outboundSchema,
+      operations.GetCustomerCreditsTransactionRequest$inboundSchema,
+      parameters,
+    );
+    return client.customerCredits.getTransaction(p.id, options);
+  },
+  reverseCustomerCreditsTransaction: (client, parameters, body, options) => {
+    const p = decode(
+      operations.ReverseCustomerCreditsTransactionRequest$outboundSchema,
+      operations.ReverseCustomerCreditsTransactionRequest$inboundSchema,
+      parameters,
+    );
+    return client.customerCredits.reverseTransactionById(p.id, options);
+  },
+  listCustomerCreditsTransactionsByReference: (client, parameters, body, options) => {
+    const p = decode(
+      operations.ListCustomerCreditsTransactionsByReferenceRequest$outboundSchema,
+      operations.ListCustomerCreditsTransactionsByReferenceRequest$inboundSchema,
+      parameters,
+    );
+    return client.customerCredits.listTransactionsByReference(p.reference, options);
+  },
 };

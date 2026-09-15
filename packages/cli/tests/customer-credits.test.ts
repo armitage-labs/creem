@@ -222,3 +222,117 @@ it("customer-credits closeAccount sends the exact SDK arguments", async () => {
   expect(result.stderr).toContain("SDK_SENTINEL");
   expect(result.stdout).toBe("");
 });
+it("customer-credits transactions create sends the exact SDK arguments", async () => {
+  const h = harness();
+  const spy = vi
+    .spyOn(h.client.customerCredits, "postTransaction")
+    .mockRejectedValue(new Error("SDK_SENTINEL"));
+  const result = await h.run([
+    "customer-credits",
+    "transactions",
+    "create",
+    "--reference",
+    "order_1",
+    "--idempotency-key",
+    "idem",
+    "--entry",
+    '{"accountId":"acc_1","side":"debit","amount":"900719925474099312345"}',
+    "--entry",
+    '{"accountId":"acc_2","side":"credit","amount":"900719925474099312345"}',
+    "--yes",
+    "--json",
+  ]);
+  expect(spy, result.stderr).toHaveBeenCalledExactlyOnceWith(
+    expect.objectContaining({
+      reference: "order_1",
+      idempotencyKey: "idem",
+      entries: [
+        { accountId: "acc_1", side: "debit", amount: "900719925474099312345" },
+        { accountId: "acc_2", side: "credit", amount: "900719925474099312345" },
+      ],
+    }),
+    expect.objectContaining({ retries: { strategy: "none" } }),
+  );
+  expect(result.stderr).toContain("SDK_SENTINEL");
+  expect(result.stdout).toBe("");
+});
+it("customer-credits transactions create requires --yes in machine-output mode", async () => {
+  const h = harness();
+  const spy = vi.spyOn(h.client.customerCredits, "postTransaction");
+  const result = await h.run([
+    "customer-credits",
+    "transactions",
+    "create",
+    "--reference",
+    "order_1",
+    "--idempotency-key",
+    "idem",
+    "--entry",
+    '{"accountId":"acc_1","side":"debit","amount":"1"}',
+    "--json",
+  ]);
+  expect(spy).not.toHaveBeenCalled();
+  expect(result.code).toBe(2);
+  expect(result.stderr).toContain("--yes");
+});
+it("customer-credits transactions get sends the exact SDK arguments", async () => {
+  const h = harness();
+  const spy = vi
+    .spyOn(h.client.customerCredits, "getTransaction")
+    .mockRejectedValue(new Error("SDK_SENTINEL"));
+  const result = await h.run(["customer-credits", "transactions", "get", "cct_1", "--json"]);
+  expect(spy, result.stderr).toHaveBeenCalledExactlyOnceWith(
+    "cct_1",
+    expect.objectContaining({ retries: { strategy: "none" } }),
+  );
+  expect(result.stderr).toContain("SDK_SENTINEL");
+  expect(result.stdout).toBe("");
+});
+it("customer-credits transactions reverse sends the exact SDK arguments", async () => {
+  const h = harness();
+  const spy = vi
+    .spyOn(h.client.customerCredits, "reverseTransactionById")
+    .mockRejectedValue(new Error("SDK_SENTINEL"));
+  const result = await h.run([
+    "customer-credits",
+    "transactions",
+    "reverse",
+    "cct_1",
+    "--yes",
+    "--json",
+  ]);
+  expect(spy, result.stderr).toHaveBeenCalledExactlyOnceWith(
+    "cct_1",
+    expect.objectContaining({ retries: { strategy: "none" } }),
+  );
+  expect(result.stderr).toContain("SDK_SENTINEL");
+  expect(result.stdout).toBe("");
+});
+it("customer-credits transactions list sends the exact SDK arguments", async () => {
+  const h = harness();
+  const spy = vi
+    .spyOn(h.client.customerCredits, "listTransactionsByReference")
+    .mockRejectedValue(new Error("SDK_SENTINEL"));
+  const result = await h.run([
+    "customer-credits",
+    "transactions",
+    "list",
+    "--reference",
+    "order_1",
+    "--json",
+  ]);
+  expect(spy, result.stderr).toHaveBeenCalledExactlyOnceWith(
+    "order_1",
+    expect.objectContaining({ retries: { strategy: "none" } }),
+  );
+  expect(result.stderr).toContain("SDK_SENTINEL");
+  expect(result.stdout).toBe("");
+});
+it("customer-credits transactions list requires --reference", async () => {
+  const h = harness();
+  const spy = vi.spyOn(h.client.customerCredits, "listTransactionsByReference");
+  const result = await h.run(["customer-credits", "transactions", "list", "--json"]);
+  expect(spy).not.toHaveBeenCalled();
+  expect(result.code).toBe(2);
+  expect(result.stderr).toContain("--reference is required");
+});

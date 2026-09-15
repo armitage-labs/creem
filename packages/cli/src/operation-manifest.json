@@ -2138,6 +2138,129 @@
     "destructive": true
   },
   {
+    "operationId": "postCustomerCreditsTransaction",
+    "sdkMethod": "customerCredits.postTransaction",
+    "cliPath": "customer-credits transactions create",
+    "disposition": "implemented",
+    "description": "Post a multi-entry transaction (debits must equal credits)",
+    "parameters": [],
+    "body": {
+      "viaData": true,
+      "schema": {
+        "type": "object",
+        "properties": {
+          "reference": {
+            "type": "string"
+          },
+          "idempotencyKey": {
+            "type": "string"
+          },
+          "entries": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "properties": {
+                "accountId": {
+                  "type": "string"
+                },
+                "side": {
+                  "type": "string",
+                  "enum": [
+                    "debit",
+                    "credit"
+                  ]
+                },
+                "amount": {
+                  "type": "string"
+                }
+              },
+              "required": [
+                "accountId",
+                "side",
+                "amount"
+              ]
+            }
+          }
+        },
+        "required": [
+          "reference",
+          "idempotencyKey",
+          "entries"
+        ]
+      },
+      "primaryFlags": {
+        "reference": "--reference",
+        "idempotencyKey": "--idempotency-key",
+        "entries": "--entry"
+      }
+    },
+    "pagination": "none",
+    "destructive": true
+  },
+  {
+    "operationId": "getCustomerCreditsTransaction",
+    "sdkMethod": "customerCredits.getTransaction",
+    "cliPath": "customer-credits transactions get",
+    "disposition": "implemented",
+    "description": "Retrieve a transaction",
+    "parameters": [
+      {
+        "name": "id",
+        "sdkName": "id",
+        "in": "path",
+        "cliFlagOrArgument": "<id>",
+        "required": true,
+        "schema": {
+          "type": "string"
+        }
+      }
+    ],
+    "pagination": "none",
+    "destructive": false
+  },
+  {
+    "operationId": "reverseCustomerCreditsTransaction",
+    "sdkMethod": "customerCredits.reverseTransactionById",
+    "cliPath": "customer-credits transactions reverse",
+    "disposition": "implemented",
+    "description": "Reverse a transaction by ID",
+    "parameters": [
+      {
+        "name": "id",
+        "sdkName": "id",
+        "in": "path",
+        "cliFlagOrArgument": "<id>",
+        "required": true,
+        "schema": {
+          "type": "string"
+        }
+      }
+    ],
+    "pagination": "none",
+    "destructive": true
+  },
+  {
+    "operationId": "listCustomerCreditsTransactionsByReference",
+    "sdkMethod": "customerCredits.listTransactionsByReference",
+    "cliPath": "customer-credits transactions list",
+    "disposition": "implemented",
+    "description": "List transactions by reference",
+    "parameters": [
+      {
+        "name": "reference",
+        "sdkName": "reference",
+        "in": "query",
+        "cliFlagOrArgument": "--reference",
+        "required": true,
+        "schema": {
+          "type": "string"
+        }
+      }
+    ],
+    "pagination": "none",
+    "destructive": false
+  },
+  {
     "operationId": "createAffiliateInvite",
     "sdkMethod": "affiliates.createInvite",
     "cliPath": "affiliates invites create",

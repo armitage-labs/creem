@@ -471,7 +471,11 @@
               "api-reference/endpoint/reverse-credits-transaction",
               "api-reference/endpoint/freeze-credits-account",
               "api-reference/endpoint/unfreeze-credits-account",
-              "api-reference/endpoint/close-credits-account"
+              "api-reference/endpoint/close-credits-account",
+              "api-reference/endpoint/post-credits-transaction",
+              "api-reference/endpoint/get-credits-transaction",
+              "api-reference/endpoint/reverse-credits-transaction-by-id",
+              "api-reference/endpoint/list-credits-transactions"
             ]
           },
           {

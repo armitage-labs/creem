@@ -156,6 +156,81 @@ Each entry shows:
 
 ---
 
+## Multi-entry transactions — move credits between accounts
+
+Credit and debit touch one account at a time. When one business event should move credits between accounts atomically — a transfer between two customers, or a bundle that debits a pool and credits several sub-accounts — post a single transaction with several entries. Entries must balance: total debits must equal total credits, and a transaction needs at least two entries.
+
+```bash
+curl -X POST https://api.creem.io/v1/customer-credits/transactions \
+  -H "x-api-key: YOUR_API_KEY" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "reference": "transfer_42",
+    "idempotency_key": "transfer_42",
+    "entries": [
+      { "account_id": "cca_7kXmR2pQ9vN", "side": "debit", "amount": "300" },
+      { "account_id": "cca_2bQpL5sT8xM", "side": "credit", "amount": "300" }
+    ]
+  }'
+```
+
+The response is the same transaction object as credit and debit, with one entry per line you posted. Either every entry is written or none is; an unbalanced request returns a `422`, and a frozen or closed account anywhere in the entries returns a `409`.
+
+<Tip>
+  Post the balanced pair (or set) that describes the whole event in one call rather than a separate credit and debit — a retry or a crash between two calls can leave one side written and the other not.
+</Tip>
+
+---
+
+## Working with transactions directly
+
+Every credit, debit, reversal, and multi-entry post is a transaction with an ID (`cct_…`). You can fetch, reverse, and search them without going through an account.
+
+### Retrieve a transaction
+
+```bash
+curl https://api.creem.io/v1/customer-credits/transactions/{transaction_id} \
+  -H "x-api-key: YOUR_API_KEY"
+```
+
+### Reverse a transaction by ID
+
+Reverses the whole transaction — every entry — without naming the account. Use this when you hold the transaction ID from an earlier response and the transaction spans several accounts.
+
+```bash
+curl -X POST https://api.creem.io/v1/customer-credits/transactions/{transaction_id}/reverse \
+  -H "x-api-key: YOUR_API_KEY"
+```
+
+The per-account `/accounts/{account_id}/reverse` endpoint above does the same for a transaction you know by account; both preserve the original and link the reversal through `reversal_of`.
+
+### Find every transaction for a reference
+
+Because you set `reference` on each write, you can list everything Creem recorded for one event in your system — an order, a campaign, a support ticket.
+
+```bash
+curl "https://api.creem.io/v1/customer-credits/transactions?reference=order_789" \
+  -H "x-api-key: YOUR_API_KEY"
+```
+
+```json
+{
+  "object": "list",
+  "data": [
+    {
+      "id": "cct_3mNpK8rW2xY",
+      "reference": "order_789",
+      "idempotency_key": "reward_order_789",
+      "reversal_of": null,
+      "entries": [ { "side": "credit", "amount": "500", "account_id": "cca_7kXmR2pQ9vN" } ]
+    }
+  ],
+  "has_more": false
+}
+```
+
+---
+
 ## What is an `idempotency_key`?
 
 An `idempotency_key` is a unique string you include with every credit or debit request. It's your safety net against accidental duplicates.
