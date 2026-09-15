@@ -126,6 +126,34 @@ importers:
         specifier: ^3.1.0
         version: 3.8.1
 
+  packages/ingestion:
+    dependencies:
+      creem:
+        specifier: workspace:*
+        version: link:../sdk
+    devDependencies:
+      '@eslint/js':
+        specifier: ^9.26.0
+        version: 9.39.4
+      '@types/node':
+        specifier: ^22.0.0
+        version: 22.20.1
+      eslint:
+        specifier: ^9.26.0
+        version: 9.39.4(jiti@2.7.0)(supports-color@10.2.2)
+      globals:
+        specifier: ^15.14.0
+        version: 15.15.0
+      typescript:
+        specifier: ^5.4.5
+        version: 5.8.3
+      typescript-eslint:
+        specifier: ^8.26.0
+        version: 8.61.1(eslint@9.39.4(jiti@2.7.0)(supports-color@10.2.2))(supports-color@10.2.2)(typescript@5.8.3)
+      vitest:
+        specifier: ^3.0.0
+        version: 3.2.4(@edge-runtime/vm@5.0.0)(@types/debug@4.1.13)(@types/node@22.20.1)(jiti@2.7.0)(jsdom@29.1.1(@noble/hashes@2.0.1))(lightningcss@1.32.0)(supports-color@10.2.2)(terser@5.48.0)(yaml@2.9.0)
+
   packages/integrations/better-auth:
     dependencies:
       '@creem_io/webhook-types':
@@ -20621,7 +20649,7 @@ snapshots:
 
   '@types/better-sqlite3@7.6.13':
     dependencies:
-      '@types/node': 25.9.3
+      '@types/node': 22.20.1
 
   '@types/body-parser@1.19.6':
     dependencies:
