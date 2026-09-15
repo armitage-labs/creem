@@ -125,12 +125,17 @@ await verifyWebhookSignature(rawBody, request.headers, {
 | `subscription.canceled`         | A subscription was canceled                                |
 | `subscription.scheduled_cancel` | A subscription is scheduled for cancellation at period end |
 | `subscription.past_due`         | A subscription payment failed                              |
+| `subscription.unpaid`           | A subscription is unpaid after failed payment collection   |
 | `subscription.expired`          | A subscription period ended without payment                |
 | `subscription.trialing`         | A subscription started a trial                             |
 | `subscription.paused`           | A subscription was paused                                  |
 | `subscription.update`           | A subscription was updated                                 |
 | `refund.created`                | A refund was issued                                        |
 | `dispute.created`               | A dispute was opened by a customer                         |
+| `credits.granted`               | Credits were added to a customer's account                 |
+| `credits.consumed`              | Credits were debited from a customer's account             |
+| `customer_credits.exhausted`    | A customer's credits ran out during usage settlement       |
+| `credits.auto_recharged`        | A customer's credits were refilled automatically           |
 
 **Retry policy:** If your endpoint doesn't respond with HTTP 200, Creem retries at 30 seconds, 5 minutes, 30 minutes, and 6 hours — 5 attempts in total, and never after 24 hours. The same event can arrive more than once, so keep your handler idempotent. You can also resend events manually from the dashboard.
 

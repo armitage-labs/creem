@@ -750,6 +750,106 @@ Fired when a subscription is paused.
 
 ---
 
+### credits.granted
+
+Fired when credits are added to a customer's credit account, for example a credit through the API or an auto-recharge top-up. Reversals don't fire it. `amount_minor_units` and `balance_after_minor_units` are strings in the account's units.
+
+```json
+{
+  "id": "evt_4kR9vN2xQ7bT1mY8pW3cLd",
+  "eventType": "credits.granted",
+  "created_at": 1789430400123,
+  "object": {
+    "id": "cct_3mNpK8rW2xY",
+    "object": "customer_credits_grant",
+    "customer_id": "cust_abc123",
+    "account_id": "cca_7hQ2nL5vX9k",
+    "bucket_name": "ai_credits",
+    "unit_label": "credits",
+    "amount_minor_units": "5000",
+    "balance_after_minor_units": "5250",
+    "reference": "order_789",
+    "occurred_at": "2026-09-15T00:00:00.000Z"
+  }
+}
+```
+
+---
+
+### credits.consumed
+
+Fired when credits are debited from a customer's credit account, either through the API or by prepaid usage settlement. Reversals don't fire it. Use `balance_after_minor_units` to warn a customer before their balance runs out.
+
+```json
+{
+  "id": "evt_6pZ3cM8wK1rV5nB2tX9fQs",
+  "eventType": "credits.consumed",
+  "created_at": 1789430400456,
+  "object": {
+    "id": "cct_9tBvR4mX1pQ",
+    "object": "customer_credits_consumption",
+    "customer_id": "cust_abc123",
+    "account_id": "cca_7hQ2nL5vX9k",
+    "bucket_name": "ai_credits",
+    "unit_label": "credits",
+    "amount_minor_units": "10",
+    "balance_after_minor_units": "5240",
+    "reference": "req_01J9X8K2",
+    "occurred_at": "2026-09-15T00:00:00.000Z"
+  }
+}
+```
+
+---
+
+### customer_credits.exhausted
+
+Fired when a customer's credits run out while Creem settles a prepaid usage price on one of their products. It fires once per exhaustion, and again only after credits were added and ran out again. Creem also emails the customer. A debit through the API that exceeds the balance doesn't fire it; that request fails with `422` and the error code `insufficient_balance`.
+
+```json
+{
+  "id": "evt_1wT8kP4nR6vY2cM9bX5hLz",
+  "eventType": "customer_credits.exhausted",
+  "created_at": 1789430400789,
+  "object": {
+    "id": "credits-exhausted:store_test:cust_test:default:none",
+    "object": "customer_credits_exhaustion",
+    "customer_id": "cust_test",
+    "bucket_name": "default",
+    "unit_label": "credits",
+    "shortfall_minor_units": "250",
+    "occurred_at": "2026-09-15T00:00:00.000Z"
+  }
+}
+```
+
+---
+
+### credits.auto_recharged
+
+Fired when an empty credit account is topped up with an automatic charge. Only customers who opted in to auto-recharge trigger it, after the charge succeeds and the credits are added. The same top-up also fires `credits.granted`.
+
+```json
+{
+  "id": "evt_8nQ5xL2vB7mR3kT9cW1pYd",
+  "eventType": "credits.auto_recharged",
+  "created_at": 1789430401012,
+  "object": {
+    "id": "cct_5kLm2Qx8vRt",
+    "object": "customer_credits_auto_recharge",
+    "customer_id": "cust_test",
+    "bucket_name": "default",
+    "unit_label": "credits",
+    "amount_minor_units": "2000",
+    "currency": "EUR",
+    "charge_reference": "pay_test_charge",
+    "reference": "usage-window:mtr_test:cust_test:2026-01-01:default"
+  }
+}
+```
+
+---
+
 ## Complete Webhook Handler
 
 Here's a complete TypeScript webhook handler with all event types:
@@ -840,6 +940,22 @@ export async function handleCreemWebhook(req: Request): Promise<Response> {
 
       case "subscription.paused":
         await handleSubscriptionPaused(event.object);
+        break;
+
+      case "credits.granted":
+        await handleCreditsGranted(event.object);
+        break;
+
+      case "credits.consumed":
+        await handleCreditsConsumed(event.object);
+        break;
+
+      case "customer_credits.exhausted":
+        await handleCustomerCreditsExhausted(event.object);
+        break;
+
+      case "credits.auto_recharged":
+        await handleCreditsAutoRecharged(event.object);
         break;
 
       default:
