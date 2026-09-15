@@ -15,6 +15,10 @@
 * [debitAccount](#debitaccount) - Debit an account
 * [reverseTransaction](#reversetransaction) - Reverse a transaction
 * [closeAccount](#closeaccount) - Close an account
+* [postTransaction](#posttransaction) - Post a transaction
+* [listTransactionsByReference](#listtransactionsbyreference) - List transactions by reference
+* [getTransaction](#gettransaction) - Retrieve a transaction
+* [reverseTransactionById](#reversetransactionbyid) - Reverse a transaction
 
 ## createAccount
 
@@ -816,6 +820,304 @@ run();
 ### Response
 
 **Promise\<[components.AccountResponseDto](../../models/components/accountresponsedto.md)\>**
+
+### Errors
+
+| Error Type                             | Status Code                            | Content Type                           |
+| -------------------------------------- | -------------------------------------- | -------------------------------------- |
+| errors.CustomerCreditsErrorResponseDto | 409                                    | application/json                       |
+| errors.APIError                        | 4XX, 5XX                               | \*/\*                                  |
+
+## postTransaction
+
+Post a multi-entry transaction. Entries must balance (total debits must equal total credits).
+
+### Example Usage
+
+<!-- UsageSnippet language="typescript" operationID="postCustomerCreditsTransaction" method="post" path="/v1/customer-credits/transactions" -->
+```typescript
+import { Creem } from "creem";
+
+const creem = new Creem({
+  apiKey: process.env["CREEM_API_KEY"] ?? "",
+});
+
+async function run() {
+  const result = await creem.customerCredits.postTransaction({
+    reference: "order_xyz",
+    idempotencyKey: "idem_abc123",
+    entries: [
+      {
+        accountId: "cca_abc123",
+        side: "credit",
+        amount: "1000",
+      },
+    ],
+  });
+
+  console.log(result);
+}
+
+run();
+```
+
+### Standalone function
+
+The standalone function version of this method:
+
+```typescript
+import { CreemCore } from "creem/core.js";
+import { customerCreditsPostTransaction } from "creem/funcs/customerCreditsPostTransaction.js";
+
+// Use `CreemCore` for best tree-shaking performance.
+// You can create one instance of it to use across an application.
+const creem = new CreemCore({
+  apiKey: process.env["CREEM_API_KEY"] ?? "",
+});
+
+async function run() {
+  const res = await customerCreditsPostTransaction(creem, {
+    reference: "order_xyz",
+    idempotencyKey: "idem_abc123",
+    entries: [
+      {
+        accountId: "cca_abc123",
+        side: "credit",
+        amount: "1000",
+      },
+    ],
+  });
+  if (res.ok) {
+    const { value: result } = res;
+    console.log(result);
+  } else {
+    console.log("customerCreditsPostTransaction failed:", res.error);
+  }
+}
+
+run();
+```
+
+### Parameters
+
+| Parameter                                                                                                                                                                      | Type                                                                                                                                                                           | Required                                                                                                                                                                       | Description                                                                                                                                                                    |
+| ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| `request`                                                                                                                                                                      | [components.PostTransactionDto](../../models/components/posttransactiondto.md)                                                                                                 | :heavy_check_mark:                                                                                                                                                             | The request object to use for the request.                                                                                                                                     |
+| `options`                                                                                                                                                                      | RequestOptions                                                                                                                                                                 | :heavy_minus_sign:                                                                                                                                                             | Used to set various options for making HTTP requests.                                                                                                                          |
+| `options.fetchOptions`                                                                                                                                                         | [RequestInit](https://developer.mozilla.org/en-US/docs/Web/API/Request/Request#options)                                                                                        | :heavy_minus_sign:                                                                                                                                                             | Options that are passed to the underlying HTTP request. This can be used to inject extra headers for examples. All `Request` options, except `method` and `body`, are allowed. |
+| `options.retries`                                                                                                                                                              | [RetryConfig](../../lib/utils/retryconfig.md)                                                                                                                                  | :heavy_minus_sign:                                                                                                                                                             | Enables retrying HTTP requests under certain failure conditions.                                                                                                               |
+
+### Response
+
+**Promise\<[components.TransactionResponseDto](../../models/components/transactionresponsedto.md)\>**
+
+### Errors
+
+| Error Type                             | Status Code                            | Content Type                           |
+| -------------------------------------- | -------------------------------------- | -------------------------------------- |
+| errors.CustomerCreditsErrorResponseDto | 409, 422                               | application/json                       |
+| errors.APIError                        | 4XX, 5XX                               | \*/\*                                  |
+
+## listTransactionsByReference
+
+List all transactions matching a reference string.
+
+### Example Usage
+
+<!-- UsageSnippet language="typescript" operationID="listCustomerCreditsTransactionsByReference" method="get" path="/v1/customer-credits/transactions" -->
+```typescript
+import { Creem } from "creem";
+
+const creem = new Creem({
+  apiKey: process.env["CREEM_API_KEY"] ?? "",
+});
+
+async function run() {
+  const result = await creem.customerCredits.listTransactionsByReference("order_xyz");
+
+  console.log(result);
+}
+
+run();
+```
+
+### Standalone function
+
+The standalone function version of this method:
+
+```typescript
+import { CreemCore } from "creem/core.js";
+import { customerCreditsListTransactionsByReference } from "creem/funcs/customerCreditsListTransactionsByReference.js";
+
+// Use `CreemCore` for best tree-shaking performance.
+// You can create one instance of it to use across an application.
+const creem = new CreemCore({
+  apiKey: process.env["CREEM_API_KEY"] ?? "",
+});
+
+async function run() {
+  const res = await customerCreditsListTransactionsByReference(creem, "order_xyz");
+  if (res.ok) {
+    const { value: result } = res;
+    console.log(result);
+  } else {
+    console.log("customerCreditsListTransactionsByReference failed:", res.error);
+  }
+}
+
+run();
+```
+
+### Parameters
+
+| Parameter                                                                                                                                                                      | Type                                                                                                                                                                           | Required                                                                                                                                                                       | Description                                                                                                                                                                    | Example                                                                                                                                                                        |
+| ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| `reference`                                                                                                                                                                    | *string*                                                                                                                                                                       | :heavy_check_mark:                                                                                                                                                             | Find all transactions matching this reference                                                                                                                                  | order_xyz                                                                                                                                                                      |
+| `options`                                                                                                                                                                      | RequestOptions                                                                                                                                                                 | :heavy_minus_sign:                                                                                                                                                             | Used to set various options for making HTTP requests.                                                                                                                          |                                                                                                                                                                                |
+| `options.fetchOptions`                                                                                                                                                         | [RequestInit](https://developer.mozilla.org/en-US/docs/Web/API/Request/Request#options)                                                                                        | :heavy_minus_sign:                                                                                                                                                             | Options that are passed to the underlying HTTP request. This can be used to inject extra headers for examples. All `Request` options, except `method` and `body`, are allowed. |                                                                                                                                                                                |
+| `options.retries`                                                                                                                                                              | [RetryConfig](../../lib/utils/retryconfig.md)                                                                                                                                  | :heavy_minus_sign:                                                                                                                                                             | Enables retrying HTTP requests under certain failure conditions.                                                                                                               |                                                                                                                                                                                |
+
+### Response
+
+**Promise\<[components.TransactionListResponseDto](../../models/components/transactionlistresponsedto.md)\>**
+
+### Errors
+
+| Error Type      | Status Code     | Content Type    |
+| --------------- | --------------- | --------------- |
+| errors.APIError | 4XX, 5XX        | \*/\*           |
+
+## getTransaction
+
+Get details of a transaction by ID.
+
+### Example Usage
+
+<!-- UsageSnippet language="typescript" operationID="getCustomerCreditsTransaction" method="get" path="/v1/customer-credits/transactions/{id}" -->
+```typescript
+import { Creem } from "creem";
+
+const creem = new Creem({
+  apiKey: process.env["CREEM_API_KEY"] ?? "",
+});
+
+async function run() {
+  const result = await creem.customerCredits.getTransaction("<id>");
+
+  console.log(result);
+}
+
+run();
+```
+
+### Standalone function
+
+The standalone function version of this method:
+
+```typescript
+import { CreemCore } from "creem/core.js";
+import { customerCreditsGetTransaction } from "creem/funcs/customerCreditsGetTransaction.js";
+
+// Use `CreemCore` for best tree-shaking performance.
+// You can create one instance of it to use across an application.
+const creem = new CreemCore({
+  apiKey: process.env["CREEM_API_KEY"] ?? "",
+});
+
+async function run() {
+  const res = await customerCreditsGetTransaction(creem, "<id>");
+  if (res.ok) {
+    const { value: result } = res;
+    console.log(result);
+  } else {
+    console.log("customerCreditsGetTransaction failed:", res.error);
+  }
+}
+
+run();
+```
+
+### Parameters
+
+| Parameter                                                                                                                                                                      | Type                                                                                                                                                                           | Required                                                                                                                                                                       | Description                                                                                                                                                                    |
+| ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| `id`                                                                                                                                                                           | *string*                                                                                                                                                                       | :heavy_check_mark:                                                                                                                                                             | N/A                                                                                                                                                                            |
+| `options`                                                                                                                                                                      | RequestOptions                                                                                                                                                                 | :heavy_minus_sign:                                                                                                                                                             | Used to set various options for making HTTP requests.                                                                                                                          |
+| `options.fetchOptions`                                                                                                                                                         | [RequestInit](https://developer.mozilla.org/en-US/docs/Web/API/Request/Request#options)                                                                                        | :heavy_minus_sign:                                                                                                                                                             | Options that are passed to the underlying HTTP request. This can be used to inject extra headers for examples. All `Request` options, except `method` and `body`, are allowed. |
+| `options.retries`                                                                                                                                                              | [RetryConfig](../../lib/utils/retryconfig.md)                                                                                                                                  | :heavy_minus_sign:                                                                                                                                                             | Enables retrying HTTP requests under certain failure conditions.                                                                                                               |
+
+### Response
+
+**Promise\<[components.TransactionResponseDto](../../models/components/transactionresponsedto.md)\>**
+
+### Errors
+
+| Error Type      | Status Code     | Content Type    |
+| --------------- | --------------- | --------------- |
+| errors.APIError | 4XX, 5XX        | \*/\*           |
+
+## reverseTransactionById
+
+Reverse a previous transaction. Creates a new transaction that undoes the original, preserving the full history.
+
+### Example Usage
+
+<!-- UsageSnippet language="typescript" operationID="reverseCustomerCreditsTransaction" method="post" path="/v1/customer-credits/transactions/{id}/reverse" -->
+```typescript
+import { Creem } from "creem";
+
+const creem = new Creem({
+  apiKey: process.env["CREEM_API_KEY"] ?? "",
+});
+
+async function run() {
+  const result = await creem.customerCredits.reverseTransactionById("<id>");
+
+  console.log(result);
+}
+
+run();
+```
+
+### Standalone function
+
+The standalone function version of this method:
+
+```typescript
+import { CreemCore } from "creem/core.js";
+import { customerCreditsReverseTransactionById } from "creem/funcs/customerCreditsReverseTransactionById.js";
+
+// Use `CreemCore` for best tree-shaking performance.
+// You can create one instance of it to use across an application.
+const creem = new CreemCore({
+  apiKey: process.env["CREEM_API_KEY"] ?? "",
+});
+
+async function run() {
+  const res = await customerCreditsReverseTransactionById(creem, "<id>");
+  if (res.ok) {
+    const { value: result } = res;
+    console.log(result);
+  } else {
+    console.log("customerCreditsReverseTransactionById failed:", res.error);
+  }
+}
+
+run();
+```
+
+### Parameters
+
+| Parameter                                                                                                                                                                      | Type                                                                                                                                                                           | Required                                                                                                                                                                       | Description                                                                                                                                                                    |
+| ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| `id`                                                                                                                                                                           | *string*                                                                                                                                                                       | :heavy_check_mark:                                                                                                                                                             | N/A                                                                                                                                                                            |
+| `options`                                                                                                                                                                      | RequestOptions                                                                                                                                                                 | :heavy_minus_sign:                                                                                                                                                             | Used to set various options for making HTTP requests.                                                                                                                          |
+| `options.fetchOptions`                                                                                                                                                         | [RequestInit](https://developer.mozilla.org/en-US/docs/Web/API/Request/Request#options)                                                                                        | :heavy_minus_sign:                                                                                                                                                             | Options that are passed to the underlying HTTP request. This can be used to inject extra headers for examples. All `Request` options, except `method` and `body`, are allowed. |
+| `options.retries`                                                                                                                                                              | [RetryConfig](../../lib/utils/retryconfig.md)                                                                                                                                  | :heavy_minus_sign:                                                                                                                                                             | Enables retrying HTTP requests under certain failure conditions.                                                                                                               |
+
+### Response
+
+**Promise\<[components.TransactionResponseDto](../../models/components/transactionresponsedto.md)\>**
 
 ### Errors
 

@@ -99,7 +99,7 @@ Single-page JSON returns the result without transport fields. `--all --json` agg
 
 Result data goes to stdout. JSON errors go to stderr as `{ "error": { "type", "message", "status", "traceId", "details", "cause", "suggestion", "retryAfter" } }`. Exit codes are 0 success, 1 unexpected, 2 usage/validation, 3 auth/config, 4 API response, and 5 network/timeout. A late NDJSON failure can leave earlier records on stdout; always check the exit code.
 
-Destructive operations require a TEST/LIVE confirmation in a terminal or `--yes` in noninteractive/JSON/NDJSON mode. This includes updates, upgrades, refunds, immediate/default cancellation, pause, archive/delete, license deactivation, and credit freeze/debit/reverse/close. Scheduled cancellation does not prompt. No writes are automatically retried; check ambiguous outcomes before retrying manually. Human output masks license keys; successful JSON retains the full response.
+Destructive operations require a TEST/LIVE confirmation in a terminal or `--yes` in noninteractive/JSON/NDJSON mode. This includes updates, upgrades, refunds, immediate/default cancellation, pause, archive/delete, license deactivation, credit freeze/debit/reverse/close, and posting or reversing credit transactions. Scheduled cancellation does not prompt. No writes are automatically retried; check ambiguous outcomes before retrying manually. Human output masks license keys; successful JSON retains the full response.
 
 ## Upgrading existing scripts
 

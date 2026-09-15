@@ -27,9 +27,13 @@ import { tool$customerCreditsDebitAccount } from "./tools/customerCreditsDebitAc
 import { tool$customerCreditsFreezeAccount } from "./tools/customerCreditsFreezeAccount.js";
 import { tool$customerCreditsGetAccount } from "./tools/customerCreditsGetAccount.js";
 import { tool$customerCreditsGetAccountBalance } from "./tools/customerCreditsGetAccountBalance.js";
+import { tool$customerCreditsGetTransaction } from "./tools/customerCreditsGetTransaction.js";
 import { tool$customerCreditsListAccounts } from "./tools/customerCreditsListAccounts.js";
 import { tool$customerCreditsListEntries } from "./tools/customerCreditsListEntries.js";
+import { tool$customerCreditsListTransactionsByReference } from "./tools/customerCreditsListTransactionsByReference.js";
+import { tool$customerCreditsPostTransaction } from "./tools/customerCreditsPostTransaction.js";
 import { tool$customerCreditsReverseTransaction } from "./tools/customerCreditsReverseTransaction.js";
+import { tool$customerCreditsReverseTransactionById } from "./tools/customerCreditsReverseTransactionById.js";
 import { tool$customerCreditsUnfreezeAccount } from "./tools/customerCreditsUnfreezeAccount.js";
 import { tool$customersCreate } from "./tools/customersCreate.js";
 import { tool$customersGenerateBillingLinks } from "./tools/customersGenerateBillingLinks.js";
@@ -167,6 +171,10 @@ export function createMCPServer(deps: {
   tool(tool$customerCreditsDebitAccount);
   tool(tool$customerCreditsReverseTransaction);
   tool(tool$customerCreditsCloseAccount);
+  tool(tool$customerCreditsPostTransaction);
+  tool(tool$customerCreditsListTransactionsByReference);
+  tool(tool$customerCreditsGetTransaction);
+  tool(tool$customerCreditsReverseTransactionById);
   tool(tool$metersCreateMeter);
   tool(tool$metersListMeters);
   tool(tool$metersPreviewMeter);
