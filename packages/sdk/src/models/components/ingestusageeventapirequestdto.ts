@@ -8,11 +8,6 @@ import { safeParse } from "../../lib/schemas.js";
 import { Result as SafeParseResult } from "../../types/fp.js";
 import { SDKValidationError } from "../errors/sdkvalidationerror.js";
 
-/**
- * The event's attributes — the ONE bag. Meter filter clauses and aggregation properties (e.g. "tokens") resolve their keys here, unprefixed. At most 50 keys, keys at most 40 characters, string and serialized-object values at most 500 characters.
- */
-export type Properties = {};
-
 export type IngestUsageEventApiRequestDto = {
   /**
    * The usage event name; must match a meter to be aggregated
@@ -37,37 +32,8 @@ export type IngestUsageEventApiRequestDto = {
   /**
    * The event's attributes — the ONE bag. Meter filter clauses and aggregation properties (e.g. "tokens") resolve their keys here, unprefixed. At most 50 keys, keys at most 40 characters, string and serialized-object values at most 500 characters.
    */
-  properties?: Properties | undefined;
+  properties?: { [k: string]: any } | undefined;
 };
-
-/** @internal */
-export const Properties$inboundSchema: z.ZodType<
-  Properties,
-  z.ZodTypeDef,
-  unknown
-> = z.object({});
-/** @internal */
-export type Properties$Outbound = {};
-
-/** @internal */
-export const Properties$outboundSchema: z.ZodType<
-  Properties$Outbound,
-  z.ZodTypeDef,
-  Properties
-> = z.object({});
-
-export function propertiesToJSON(properties: Properties): string {
-  return JSON.stringify(Properties$outboundSchema.parse(properties));
-}
-export function propertiesFromJSON(
-  jsonString: string,
-): SafeParseResult<Properties, SDKValidationError> {
-  return safeParse(
-    jsonString,
-    (x) => Properties$inboundSchema.parse(JSON.parse(x)),
-    `Failed to parse 'Properties' from JSON`,
-  );
-}
 
 /** @internal */
 export const IngestUsageEventApiRequestDto$inboundSchema: z.ZodType<
@@ -80,7 +46,7 @@ export const IngestUsageEventApiRequestDto$inboundSchema: z.ZodType<
   external_customer_id: z.string().optional(),
   event_id: z.string().optional(),
   timestamp: z.string().optional(),
-  properties: z.lazy(() => Properties$inboundSchema).optional(),
+  properties: z.record(z.any()).optional(),
 }).transform((v) => {
   return remap$(v, {
     "customer_id": "customerId",
@@ -95,7 +61,7 @@ export type IngestUsageEventApiRequestDto$Outbound = {
   external_customer_id?: string | undefined;
   event_id?: string | undefined;
   timestamp?: string | undefined;
-  properties?: Properties$Outbound | undefined;
+  properties?: { [k: string]: any } | undefined;
 };
 
 /** @internal */
@@ -109,7 +75,7 @@ export const IngestUsageEventApiRequestDto$outboundSchema: z.ZodType<
   externalCustomerId: z.string().optional(),
   eventId: z.string().optional(),
   timestamp: z.string().optional(),
-  properties: z.lazy(() => Properties$outboundSchema).optional(),
+  properties: z.record(z.any()).optional(),
 }).transform((v) => {
   return remap$(v, {
     customerId: "customer_id",

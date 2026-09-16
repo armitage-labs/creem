@@ -4,7 +4,7 @@ management:
   docVersion: v1
   speakeasyVersion: 1.797.0
   generationVersion: 2.937.18
-  releaseVersion: 1.9.0
+  releaseVersion: 1.10.0
   repoURL: https://github.com/armitage-labs/creem.git
   repoSubDirectory: packages/sdk
   installationURL: https://github.com/armitage-labs/creem
@@ -93,7 +93,11 @@ trackedFiles:
   docs/models/components/checkoutentitycustomer.md: {}
   docs/models/components/checkoutentitydiscount.md: {}
   docs/models/components/checkoutentityduration.md: {}
+  docs/models/components/checkoutentityfeatureinstance.md: {}
+  docs/models/components/checkoutentityfeaturestatus.md: {}
+  docs/models/components/checkoutentityinstance.md: {}
   docs/models/components/checkoutentityproduct.md: {}
+  docs/models/components/checkoutentitystatus.md: {}
   docs/models/components/checkoutentitytype.md: {}
   docs/models/components/code.md: {}
   docs/models/components/commissionentity.md: {}
@@ -138,7 +142,6 @@ trackedFiles:
   docs/models/components/customerentity.md:
     id: 2e9b74ad0ca6
     pristine_git_object: e22cc8d2ac887e6af76d92b025abf0a6e7f936d7
-  docs/models/components/customerid.md: {}
   docs/models/components/customerlinksentity.md:
     id: 7ed83d8861eb
     pristine_git_object: b18f40bbc66ce93b5a4fe6a96b7013c9e2b46276
@@ -162,7 +165,6 @@ trackedFiles:
     id: e531da73e7f9
     pristine_git_object: a4031a40e5d35d9aa03fbff408c4b58ca123ffdd
   docs/models/components/decision.md: {}
-  docs/models/components/details.md: {}
   docs/models/components/discount.md:
     id: 902ead98a895
     pristine_git_object: dcdafadaa2a9290fc163bffe5513958f8d075bae
@@ -177,7 +179,6 @@ trackedFiles:
   docs/models/components/disputeentitycustomer.md: {}
   docs/models/components/disputeentityorder.md: {}
   docs/models/components/disputeentitysubscription.md: {}
-  docs/models/components/duplicate.md: {}
   docs/models/components/duration.md: {}
   docs/models/components/entryinputdto.md: {}
   docs/models/components/entryinputdtoside.md: {}
@@ -185,9 +186,8 @@ trackedFiles:
   docs/models/components/entryresponsedto.md: {}
   docs/models/components/environmentmode.md: {}
   docs/models/components/errort.md: {}
-  docs/models/components/eventid.md: {}
   docs/models/components/eventtype.md: {}
-  docs/models/components/externalid.md: {}
+  docs/models/components/feature.md: {}
   docs/models/components/featureentity.md:
     id: fe7695d86411
     pristine_git_object: f60f2dcf49c631efa5aa780eaf2b47a80e6b908e
@@ -243,7 +243,6 @@ trackedFiles:
   docs/models/components/paginationentity.md:
     id: 9473e5fff17d
     pristine_git_object: 111a8b029c00eba4f26c5b660d8cdd43e2fdac36
-  docs/models/components/param.md: {}
   docs/models/components/posttransactiondto.md: {}
   docs/models/components/previewmeterapirequestdto.md: {}
   docs/models/components/previewmeterapirequestdtoaggregation.md: {}
@@ -260,13 +259,6 @@ trackedFiles:
   docs/models/components/productentity.md:
     id: 01b586923dbb
     pristine_git_object: aa473e7b23f86649b6c80f3c5c11569dc6207ab2
-  docs/models/components/productfeatureentity.md:
-    id: 54a8ab410373
-    pristine_git_object: ac862ed56532a94754de17f42f42bbca51d96ac1
-  docs/models/components/productfeatureentityinstance.md: {}
-  docs/models/components/productfeatureentitylicenseinstance.md: {}
-  docs/models/components/productfeatureentitylicensestatus.md: {}
-  docs/models/components/productfeatureentitystatus.md: {}
   docs/models/components/productfeaturetype.md: {}
   docs/models/components/productlistentity.md:
     id: b087b47a2019
@@ -275,7 +267,6 @@ trackedFiles:
   docs/models/components/productrequestbillingtype.md: {}
   docs/models/components/productrequestrecurringinterval.md: {}
   docs/models/components/productstatus.md: {}
-  docs/models/components/properties.md: {}
   docs/models/components/recipienttype.md: {}
   docs/models/components/refundentity.md: {}
   docs/models/components/refundentitycustomer.md: {}
@@ -333,7 +324,6 @@ trackedFiles:
     id: 2bbf9ee35707
     pristine_git_object: 13e4d6b4004b5c7b69287e17d07375883709d365
   docs/models/components/updatecustomerrequestentity.md: {}
-  docs/models/components/updatecustomerrequestentityexternalid.md: {}
   docs/models/components/updatemeterapirequestdto.md: {}
   docs/models/components/updatemeterapirequestdtoaggregation.md: {}
   docs/models/components/updateproductrequestentity.md: {}
@@ -351,7 +341,6 @@ trackedFiles:
     pristine_git_object: b53daec6082bfb6c07ace88d7d0209da53cc90d8
   docs/models/components/usageentity.md: {}
   docs/models/components/usageeventapiresponsedto.md: {}
-  docs/models/components/usageeventapiresponsedtoproperties.md: {}
   docs/models/components/usageeventlistapiresponsedto.md: {}
   docs/models/components/usagemeteringerrordetailapidto.md: {}
   docs/models/components/usagemeteringerrordetailapidtotype.md: {}
@@ -909,9 +898,6 @@ trackedFiles:
   src/models/components/productentity.ts:
     id: adeb4171e91f
     pristine_git_object: f9a993aff2aaad6b61512c30d1571c34af3fc177
-  src/models/components/productfeatureentity.ts:
-    id: bda25f411261
-    pristine_git_object: 2e9834eb05cec7a81bf656c86db4b754614aa79a
   src/models/components/productfeaturetype.ts: {}
   src/models/components/productlistentity.ts:
     id: df4238ae8cbf
@@ -1434,7 +1420,7 @@ examples:
         application/json: {"email": "john@example.com", "name": "John Doe", "metadata": {}, "external_id": "user-42"}
       responses:
         "200":
-          application/json: {"id": "<id>", "mode": "test", "object": "<value>", "email": "user@example.com", "name": "John Doe", "metadata": {}, "country": "US", "external_id": {}, "created_at": "2023-01-01T00:00:00Z", "updated_at": "2023-01-01T00:00:00Z"}
+          application/json: {"id": "<id>", "mode": "test", "object": "<value>", "email": "user@example.com", "name": "John Doe", "metadata": {}, "country": "US", "external_id": "{}", "created_at": "2023-01-01T00:00:00Z", "updated_at": "2023-01-01T00:00:00Z"}
   createCustomerCreditsAccount:
     speakeasy-default-create-customer-credits-account:
       requestBody:
@@ -1828,7 +1814,7 @@ examples:
         application/json: {"events": []}
       responses:
         "200":
-          application/json: {"valid": true, "events": [{"valid": false, "event_id": {}, "error": {"code": "invalid_usage_event", "message": "<value>", "param": {}}, "matched_meters": ["mtr_abc123"], "warnings": []}]}
+          application/json: {"valid": true, "events": [{"valid": false, "event_id": "{}", "error": {"code": "invalid_usage_event", "message": "<value>", "param": "{}"}, "matched_meters": ["mtr_abc123"], "warnings": []}]}
         "422":
           application/json: {"error": {"type": "invalid_request_error", "code": "meter_name_taken", "message": "A meter named \"Image generations\" already exists in this store", "param": "events[3].customer_id", "details": {}, "request_id": "req_abc123def456"}}
   refreshToken: {}
@@ -1881,7 +1867,7 @@ examples:
           x-api-key: "<value>"
       responses:
         "200":
-          application/json: {"id": "<id>", "mode": "sandbox", "object": "{}", "email": "user@example.com", "name": "John Doe", "metadata": {}, "country": "US", "external_id": {}, "created_at": "2023-01-01T00:00:00Z", "updated_at": "2023-01-01T00:00:00Z"}
+          application/json: {"id": "<id>", "mode": "sandbox", "object": "{}", "email": "user@example.com", "name": "John Doe", "metadata": {}, "country": "US", "external_id": "{}", "created_at": "2023-01-01T00:00:00Z", "updated_at": "2023-01-01T00:00:00Z"}
   retrieveDiscount:
     speakeasy-default-retrieve-discount:
       parameters:
@@ -2016,10 +2002,10 @@ examples:
   updateCustomer:
     speakeasy-default-update-customer:
       requestBody:
-        application/json: {"customer_id": "cust_abc123", "name": "John Doe", "metadata": {}, "external_id": {}}
+        application/json: {"customer_id": "cust_abc123", "name": "John Doe", "metadata": {}, "external_id": "{}"}
       responses:
         "200":
-          application/json: {"id": "<id>", "mode": "test", "object": "<value>", "email": "user@example.com", "name": "John Doe", "metadata": {}, "country": "US", "external_id": {}, "created_at": "2023-01-01T00:00:00Z", "updated_at": "2023-01-01T00:00:00Z"}
+          application/json: {"id": "<id>", "mode": "test", "object": "<value>", "email": "user@example.com", "name": "John Doe", "metadata": {}, "country": "US", "external_id": "{}", "created_at": "2023-01-01T00:00:00Z", "updated_at": "2023-01-01T00:00:00Z"}
   updateMeter:
     speakeasy-default-update-meter:
       parameters:

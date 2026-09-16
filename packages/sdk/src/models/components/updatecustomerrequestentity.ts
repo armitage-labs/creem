@@ -8,11 +8,6 @@ import { safeParse } from "../../lib/schemas.js";
 import { Result as SafeParseResult } from "../../types/fp.js";
 import { SDKValidationError } from "../errors/sdkvalidationerror.js";
 
-/**
- * Your own id for this customer. Unique per store; usage ingestion resolves `external_customer_id` against it. Omit to leave unchanged; send `null` to clear it. Trimmed; letters, digits, `_` and `-` only; at most 255 characters.
- */
-export type UpdateCustomerRequestEntityExternalId = {};
-
 export type UpdateCustomerRequestEntity = {
   /**
    * The ID of the customer to update.
@@ -29,44 +24,8 @@ export type UpdateCustomerRequestEntity = {
   /**
    * Your own id for this customer. Unique per store; usage ingestion resolves `external_customer_id` against it. Omit to leave unchanged; send `null` to clear it. Trimmed; letters, digits, `_` and `-` only; at most 255 characters.
    */
-  externalId?: UpdateCustomerRequestEntityExternalId | null | undefined;
+  externalId?: string | null | undefined;
 };
-
-/** @internal */
-export const UpdateCustomerRequestEntityExternalId$inboundSchema: z.ZodType<
-  UpdateCustomerRequestEntityExternalId,
-  z.ZodTypeDef,
-  unknown
-> = z.object({});
-/** @internal */
-export type UpdateCustomerRequestEntityExternalId$Outbound = {};
-
-/** @internal */
-export const UpdateCustomerRequestEntityExternalId$outboundSchema: z.ZodType<
-  UpdateCustomerRequestEntityExternalId$Outbound,
-  z.ZodTypeDef,
-  UpdateCustomerRequestEntityExternalId
-> = z.object({});
-
-export function updateCustomerRequestEntityExternalIdToJSON(
-  updateCustomerRequestEntityExternalId: UpdateCustomerRequestEntityExternalId,
-): string {
-  return JSON.stringify(
-    UpdateCustomerRequestEntityExternalId$outboundSchema.parse(
-      updateCustomerRequestEntityExternalId,
-    ),
-  );
-}
-export function updateCustomerRequestEntityExternalIdFromJSON(
-  jsonString: string,
-): SafeParseResult<UpdateCustomerRequestEntityExternalId, SDKValidationError> {
-  return safeParse(
-    jsonString,
-    (x) =>
-      UpdateCustomerRequestEntityExternalId$inboundSchema.parse(JSON.parse(x)),
-    `Failed to parse 'UpdateCustomerRequestEntityExternalId' from JSON`,
-  );
-}
 
 /** @internal */
 export const UpdateCustomerRequestEntity$inboundSchema: z.ZodType<
@@ -77,9 +36,7 @@ export const UpdateCustomerRequestEntity$inboundSchema: z.ZodType<
   customer_id: z.string(),
   name: z.string().optional(),
   metadata: z.record(z.any()).optional(),
-  external_id: z.nullable(
-    z.lazy(() => UpdateCustomerRequestEntityExternalId$inboundSchema),
-  ).optional(),
+  external_id: z.nullable(z.string()).optional(),
 }).transform((v) => {
   return remap$(v, {
     "customer_id": "customerId",
@@ -91,10 +48,7 @@ export type UpdateCustomerRequestEntity$Outbound = {
   customer_id: string;
   name?: string | undefined;
   metadata?: { [k: string]: any } | undefined;
-  external_id?:
-    | UpdateCustomerRequestEntityExternalId$Outbound
-    | null
-    | undefined;
+  external_id?: string | null | undefined;
 };
 
 /** @internal */
@@ -106,9 +60,7 @@ export const UpdateCustomerRequestEntity$outboundSchema: z.ZodType<
   customerId: z.string(),
   name: z.string().optional(),
   metadata: z.record(z.any()).optional(),
-  externalId: z.nullable(
-    z.lazy(() => UpdateCustomerRequestEntityExternalId$outboundSchema),
-  ).optional(),
+  externalId: z.nullable(z.string()).optional(),
 }).transform((v) => {
   return remap$(v, {
     customerId: "customer_id",

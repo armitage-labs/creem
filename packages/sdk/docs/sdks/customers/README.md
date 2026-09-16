@@ -474,7 +474,7 @@ async function run() {
     metadata: {
 
     },
-    externalId: {},
+    externalId: "{}",
   });
 
   console.log(result);
@@ -504,7 +504,7 @@ async function run() {
     metadata: {
   
     },
-    externalId: {},
+    externalId: "{}",
   });
   if (res.ok) {
     const { value: result } = res;
