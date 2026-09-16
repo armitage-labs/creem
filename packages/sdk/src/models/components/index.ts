@@ -85,7 +85,6 @@ export * from "./productbillingperiod.js";
 export * from "./productbillingtype.js";
 export * from "./productcurrency.js";
 export * from "./productentity.js";
-export * from "./productfeatureentity.js";
 export * from "./productfeaturetype.js";
 export * from "./productlistentity.js";
 export * from "./productrequestbillingperiod.js";

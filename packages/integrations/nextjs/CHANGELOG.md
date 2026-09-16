@@ -1,5 +1,11 @@
 # Changelog
 
+## 0.6.1
+
+### Patch Changes
+
+- 4f836c7: Bump creem SDK dependency to 1.9.0
+
 ## 0.6.0
 
 ### Minor Changes

@@ -8,11 +8,6 @@ import { safeParse } from "../../lib/schemas.js";
 import { Result as SafeParseResult } from "../../types/fp.js";
 import { SDKValidationError } from "../errors/sdkvalidationerror.js";
 
-/**
- * The event's attributes — meter filters and aggregation read their keys here
- */
-export type UsageEventApiResponseDtoProperties = {};
-
 export type UsageEventApiResponseDto = {
   /**
    * Usage event ID
@@ -33,7 +28,7 @@ export type UsageEventApiResponseDto = {
   /**
    * The event's attributes — meter filters and aggregation read their keys here
    */
-  properties: UsageEventApiResponseDtoProperties;
+  properties: { [k: string]: any };
   /**
    * When the usage occurred, on your clock (ISO 8601)
    */
@@ -49,42 +44,6 @@ export type UsageEventApiResponseDto = {
 };
 
 /** @internal */
-export const UsageEventApiResponseDtoProperties$inboundSchema: z.ZodType<
-  UsageEventApiResponseDtoProperties,
-  z.ZodTypeDef,
-  unknown
-> = z.object({});
-/** @internal */
-export type UsageEventApiResponseDtoProperties$Outbound = {};
-
-/** @internal */
-export const UsageEventApiResponseDtoProperties$outboundSchema: z.ZodType<
-  UsageEventApiResponseDtoProperties$Outbound,
-  z.ZodTypeDef,
-  UsageEventApiResponseDtoProperties
-> = z.object({});
-
-export function usageEventApiResponseDtoPropertiesToJSON(
-  usageEventApiResponseDtoProperties: UsageEventApiResponseDtoProperties,
-): string {
-  return JSON.stringify(
-    UsageEventApiResponseDtoProperties$outboundSchema.parse(
-      usageEventApiResponseDtoProperties,
-    ),
-  );
-}
-export function usageEventApiResponseDtoPropertiesFromJSON(
-  jsonString: string,
-): SafeParseResult<UsageEventApiResponseDtoProperties, SDKValidationError> {
-  return safeParse(
-    jsonString,
-    (x) =>
-      UsageEventApiResponseDtoProperties$inboundSchema.parse(JSON.parse(x)),
-    `Failed to parse 'UsageEventApiResponseDtoProperties' from JSON`,
-  );
-}
-
-/** @internal */
 export const UsageEventApiResponseDto$inboundSchema: z.ZodType<
   UsageEventApiResponseDto,
   z.ZodTypeDef,
@@ -94,7 +53,7 @@ export const UsageEventApiResponseDto$inboundSchema: z.ZodType<
   customer_id: z.string(),
   event_id: z.string(),
   name: z.string(),
-  properties: z.lazy(() => UsageEventApiResponseDtoProperties$inboundSchema),
+  properties: z.record(z.any()),
   timestamp: z.string(),
   created_at: z.string(),
   matched_meters: z.array(z.string()),
@@ -112,7 +71,7 @@ export type UsageEventApiResponseDto$Outbound = {
   customer_id: string;
   event_id: string;
   name: string;
-  properties: UsageEventApiResponseDtoProperties$Outbound;
+  properties: { [k: string]: any };
   timestamp: string;
   created_at: string;
   matched_meters: Array<string>;
@@ -128,7 +87,7 @@ export const UsageEventApiResponseDto$outboundSchema: z.ZodType<
   customerId: z.string(),
   eventId: z.string(),
   name: z.string(),
-  properties: z.lazy(() => UsageEventApiResponseDtoProperties$outboundSchema),
+  properties: z.record(z.any()),
   timestamp: z.string(),
   createdAt: z.string(),
   matchedMeters: z.array(z.string()),
