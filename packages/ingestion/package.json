@@ -1,6 +1,6 @@
 {
   "name": "@creem_io/ingestion",
-  "version": "0.0.0",
+  "version": "0.1.0",
   "description": "Usage ingestion toolkit for Creem — buffered, retry-safe, non-blocking event delivery with pluggable metering strategies",
   "keywords": [
     "creem",
