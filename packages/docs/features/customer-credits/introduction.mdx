@@ -1,7 +1,7 @@
 ---
-title: 'Customer Credits'
-sidebarTitle: 'Introduction'
-description: 'Give your customers a credit balance — points, gems, stars, or any unit. Build loyalty programs, prepaid wallets, and usage-based billing without building the infrastructure yourself.'
+title: "Customer Credits"
+sidebarTitle: "Introduction"
+description: "Give your customers a credit balance — points, gems, stars, or any unit. Build loyalty programs, prepaid wallets, and usage-based billing without building the infrastructure yourself."
 ---
 
 ## What is Customer Credits?
@@ -16,31 +16,28 @@ You add credits when something good happens (a purchase, a referral, a top-up). 
 
 <CardGroup cols={2}>
   <Card title="AI & LLM Products" icon="microchip">
-    Sell credit packs for your AI product. Customers buy credits, each API call
-    deducts from their balance. Different models can cost different amounts.
+    Sell credit packs for your AI product. Customers buy credits, each API call deducts from their
+    balance. Different models can cost different amounts.
   </Card>
   <Card title="Loyalty & Rewards" icon="star">
-    Award points on purchases, let customers redeem them for discounts. Track
-    earning and spending with full history.
+    Award points on purchases, let customers redeem them for discounts. Track earning and spending
+    with full history.
   </Card>
   <Card title="Prepaid Balances" icon="wallet">
-    Let customers top up a balance and draw down against it for future purchases
-    or service usage.
+    Let customers top up a balance and draw down against it for future purchases or service usage.
   </Card>
   <Card title="Referral Programs" icon="user-plus">
-    Credit both sides automatically when a referred user converts. Track the
-    full lifecycle.
+    Credit both sides automatically when a referred user converts. Track the full lifecycle.
   </Card>
   <Card title="Usage Metering" icon="gauge">
-    Allocate credit pools for API calls, compute hours, storage, or any metered
-    resource. Debit on consumption.
+    Allocate credit pools for API calls, compute hours, storage, or any metered resource. Debit on
+    consumption.
   </Card>
   <Card title="Promotional Credits" icon="gift">
     Issue credits for marketing campaigns, seasonal offers, or beta incentives.
   </Card>
   <Card title="Goodwill & Compensation" icon="hand-holding-heart">
-    Issue credits for service disruptions or support escalations — tracked and
-    auditable.
+    Issue credits for service disruptions or support escalations — tracked and auditable.
   </Card>
 </CardGroup>
 
@@ -73,9 +70,8 @@ Three steps:
 ## Quick start
 
 <Warning>
-  If you're in test mode, use `https://test-api.creem.io` instead of
-  `https://api.creem.io`. Learn more about [Test
-  Mode](/getting-started/test-mode).
+  If you're in test mode, use `https://test-api.creem.io` instead of `https://api.creem.io`. Learn
+  more about [Test Mode](/getting-started/test-mode).
 </Warning>
 
 ### 1. Create an account
@@ -156,11 +152,11 @@ curl https://api.creem.io/v1/customer-credits/accounts/cca_7kXmR2pQ9vN/balance \
 
 ## Account states
 
-| Status | Can add/remove credits? | Can read? | Notes |
-| --- | --- | --- | --- |
-| `active` | ✅ | ✅ | Default |
-| `frozen` | ❌ | ✅ | Temporarily paused |
-| `closed` | ❌ | ✅ | Permanent. Balance and history stay readable |
+| Status   | Can add/remove credits? | Can read? | Notes                                        |
+| -------- | ----------------------- | --------- | -------------------------------------------- |
+| `active` | ✅                      | ✅        | Default                                      |
+| `frozen` | ❌                      | ✅        | Temporarily paused                           |
+| `closed` | ❌                      | ✅        | Permanent. Balance and history stay readable |
 
 ## Next steps
 
@@ -175,18 +171,13 @@ curl https://api.creem.io/v1/customer-credits/accounts/cca_7kXmR2pQ9vN/balance \
   >
     Credit, debit, reverse, and view history.
   </Card>
-  <Card
-    title="Recipes"
-    icon="book-open"
-    href="/guides/customer-credits-recipes"
-  >
+  <Card title="Auto-refill" icon="repeat" href="/features/customer-credits/auto-refill">
+    Exhaustion notices and automatic top-ups for prepaid usage.
+  </Card>
+  <Card title="Recipes" icon="book-open" href="/guides/customer-credits-recipes">
     Step-by-step guides for common use cases.
   </Card>
-  <Card
-    title="API Reference"
-    icon="code"
-    href="/api-reference/endpoint/create-credits-account"
-  >
+  <Card title="API Reference" icon="code" href="/api-reference/endpoint/create-credits-account">
     Full endpoint docs with schemas.
   </Card>
 </CardGroup>

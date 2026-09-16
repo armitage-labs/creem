@@ -162,6 +162,7 @@
               "features/affiliate-program",
               "features/referral-program",
               "features/storefronts",
+              "features/custom-domains",
               "features/short-links",
               "features/discounts",
               "features/trials",
@@ -174,7 +175,8 @@
                 "pages": [
                   "features/customer-credits/introduction",
                   "features/customer-credits/accounts",
-                  "features/customer-credits/transactions"
+                  "features/customer-credits/transactions",
+                  "features/customer-credits/auto-refill"
                 ]
               },
               {

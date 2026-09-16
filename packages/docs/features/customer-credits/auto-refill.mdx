@@ -1,0 +1,117 @@
+---
+title: "Auto-refill"
+description: "Keep metered customers running when their prepaid credits run out. Creem tells you and the customer once per exhaustion, and can re-purchase the credit top-up the customer opted into with their saved payment method."
+---
+
+## What is Auto-refill?
+
+When you bill usage against [Customer Credits](/features/customer-credits/introduction) with a prepaid usage price, a customer's bucket eventually runs dry. Auto-refill is what happens next:
+
+1. **Exhaustion notice.** The first settlement that a bucket cannot cover emails the customer and sends you a `customer_credits.exhausted` webhook, once per exhaustion rather than once per refused request.
+2. **Automatic top-up.** If the customer has opted in, Creem re-purchases the credit top-up product they chose, using the payment method saved from their earlier checkout. The product's own fulfilment grants the credits, and settlement resumes.
+
+Both parts are built for a usage flow where thousands of events can arrive between one human action and the next. You do not get a flood of notices, and a customer is never charged twice for one refill.
+
+<Note>
+  Auto-refill applies to usage that Creem settles for you through a prepaid usage price, described
+  in [Step 5 of Usage-based Billing](/features/usage-based-billing). Debits you make yourself
+  through the API that exceed the balance simply fail with `422` and the error code
+  `insufficient_balance`, so your own code decides what to do.
+</Note>
+
+## Requirements
+
+- **A credit top-up product.** A product with a `customerCredits` feature that grants credits into the bucket your usage price debits. This is the product Creem re-purchases. Its price at the time of the refill is what the customer pays, so re-pricing it applies to future refills automatically.
+- **A prepaid usage price on the customer's plan** that debits the same bucket.
+- **A previous checkout by the customer** on your store. The refill is charged to the payment method saved during that checkout, and the customer's tax location comes from their most recent checkout as well. Without both, Creem does not attempt a charge.
+- **The customer's consent**, described below. Auto-refill is opt-in per customer and per bucket, and never charges anyone who has not agreed to it.
+
+## Exhaustion Notices
+
+An exhaustion is an _episode_: the stretch between two grants into a bucket. Within one episode the customer gets one email and you get one `customer_credits.exhausted` webhook, no matter how many settlements are refused. Any credit that reaches the bucket, whether a top-up purchase, a subscription renewal, an auto-refill, or a grant through the API, ends the episode. If the bucket runs dry again after that, you are notified again.
+
+The webhook carries the bucket, the unit label, and `shortfall_minor_units`, the amount the refused settlement was short. Use it to prompt the customer in your own product, pause the feature that consumes credits, or trigger your own top-up flow. When an auto-refill succeeds, the exhaustion is resolved before any notice goes out, so you receive `credits.auto_recharged` and `credits.granted` instead of `customer_credits.exhausted`.
+
+See the payload in the [webhook reference](/code/webhooks).
+
+## Consent and Guardrails
+
+Consent belongs to the customer. It names the credit top-up product to re-purchase and the limits the customer accepts, and the customer can revoke it at any time. Revoking keeps the configured limits, so opting back in does not reset them.
+
+| Setting                 | What it does                                                                                                                | Default  |
+| ----------------------- | --------------------------------------------------------------------------------------------------------------------------- | -------- |
+| **Top-up product**      | The product Creem re-purchases. It must be a live product of your store that grants credits into the bucket being refilled. | Required |
+| **Enabled**             | Turns automatic refills on or off without discarding the limits below.                                                      | Off      |
+| **Threshold**           | The balance at or below which a refill may trigger, recorded as part of what the customer agreed to.                        | `0`      |
+| **Max refills per day** | Refills allowed in any rolling 24 hours. `0` disables refills entirely.                                                     | `1`      |
+| **Cooldown**            | Minimum minutes between two refills. `0` means no cooldown.                                                                 | `0`      |
+| **Monthly cap**         | Maximum refill spend in a calendar month, in minor units of the product currency. `0` means no cap.                         | `0`      |
+
+<Warning>
+  **Caps are applied to the product price before tax.** Tax depends on the customer's location
+  rather than on a choice, so a pre-tax cap keeps the same configured number meaning the same amount
+  of credit everywhere. The amount that leaves the customer's account can be up to their local tax
+  rate higher than the cap.
+</Warning>
+
+A refill that would break a guardrail is skipped and nothing is charged. The exhaustion notice still goes out, so the customer knows to top up by hand.
+
+<Info>
+  Consent is stored per customer and bucket on Creem. The switch for customers to opt in from the
+  hosted [customer portal](/features/customer-portal) is not available yet. If you want to offer
+  auto-refill to your customers today, contact [support@creem.io](mailto:support@creem.io).
+</Info>
+
+## How a Refill Is Charged
+
+A refill is a purchase, not a bare card charge, so it appears in your dashboard, reports, and payouts like any other order.
+
+1. **Nothing is charged without consent and a saved payment method.** Both are checked first, along with the guardrails.
+2. **Tax is calculated** from the customer's most recent checkout location, and the customer pays the product price plus that tax. The price is the product's current price, not the price at the time of consent.
+3. **An order is opened before the charge** and completed only when the payment is confirmed. If a charge ends in an ambiguous state, there is always a record to reconcile against, and the customer is never charged again for the same refill.
+4. **The saved payment method is charged** off-session. A payment that needs the customer's confirmation, such as 3-D Secure, is left pending rather than retried.
+5. **The product's fulfilment grants the credits**, exactly as it would after a checkout. Settlement of the customer's usage picks up from there.
+
+Platform fees on a refill are the same as on a checkout payment of the same amount.
+
+## What You Receive
+
+| Event                        | When                                                                                                                  |
+| ---------------------------- | --------------------------------------------------------------------------------------------------------------------- |
+| `customer_credits.exhausted` | The first refused settlement of an episode, when no refill resolves it.                                               |
+| `credits.auto_recharged`     | A refill was charged successfully and the credits were added. Carries the amount, currency, and the charge reference. |
+| `credits.granted`            | Fires for the same top-up, as it does for every credit that raises a balance.                                         |
+
+See the [webhook reference](/code/webhooks) for the payloads.
+
+## When a Refill Fails
+
+| Outcome                                        | What happens                                                                                                                                              |
+| ---------------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| **Card declined**                              | No credits are added. The customer and you receive the exhaustion notice. The next refused settlement may try again, within the daily limit and cooldown. |
+| **Customer confirmation required**             | The payment stays pending until the customer completes it; it is not retried automatically.                                                               |
+| **Guardrail reached**                          | Nothing is charged. The exhaustion notice goes out.                                                                                                       |
+| **No saved payment method or no tax location** | Nothing is charged. The exhaustion notice goes out.                                                                                                       |
+
+In every case the customer can still buy credits through a normal checkout, and any grant ends the exhaustion episode.
+
+## Related Features
+
+<CardGroup cols={2}>
+  <Card title="Usage-based Billing" icon="gauge" href="/features/usage-based-billing">
+    Meters, event ingestion, and prepaid usage prices that settle against credits
+  </Card>
+  <Card
+    title="Transactions"
+    icon="arrow-right-arrow-left"
+    href="/features/customer-credits/transactions"
+  >
+    Credit, debit, and reverse balances through the API
+  </Card>
+  <Card title="Webhooks" icon="webhook" href="/code/webhooks">
+    Every credits event, with sample payloads
+  </Card>
+  <Card title="Customer Portal" icon="user" href="/features/customer-portal">
+    Where customers manage their purchases and payment methods
+  </Card>
+</CardGroup>
