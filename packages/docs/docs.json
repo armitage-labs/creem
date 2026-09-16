@@ -360,6 +360,7 @@
             "icon": "users",
             "pages": [
               "api-reference/endpoint/get-customer",
+              "api-reference/endpoint/update-customer",
               "api-reference/endpoint/list-customers",
               "api-reference/endpoint/create-customer-billing"
             ]

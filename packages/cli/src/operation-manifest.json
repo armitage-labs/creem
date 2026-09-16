@@ -113,6 +113,9 @@
             "type": "string",
             "enum": ["inclusive", "exclusive"]
           },
+          "businessNetPricing": {
+            "type": "boolean"
+          },
           "taxCategory": {
             "type": "string",
             "enum": ["saas", "digital-goods-service", "ebooks"]
@@ -121,6 +124,12 @@
             "type": "boolean"
           },
           "suggestedPrice": {
+            "type": "integer"
+          },
+          "trialPeriodDays": {
+            "type": "integer"
+          },
+          "trialPrice": {
             "type": "integer"
           },
           "defaultSuccessUrl": {
@@ -335,6 +344,17 @@
           "taxMode": {
             "type": "string",
             "enum": ["inclusive", "exclusive"]
+          },
+          "businessNetPricing": {
+            "type": "boolean"
+          },
+          "trialPeriodDays": {
+            "type": "integer",
+            "nullable": true
+          },
+          "trialPrice": {
+            "type": "integer",
+            "nullable": true
           },
           "payWhatYouWant": {
             "type": "boolean"
@@ -624,6 +644,9 @@
             "type": "string"
           },
           "name": {
+            "type": "string"
+          },
+          "email": {
             "type": "string"
           },
           "metadata": {

@@ -148,6 +148,8 @@ POST /v1/products
 | `default_success_url`             | string  | No           | Default redirect after payment                                                       |
 | `custom_fields`                   | array   | No           | Fields to collect at checkout                                                        |
 | `abandoned_cart_recovery_enabled` | boolean | No           | Enable cart recovery emails                                                          |
+| `trial_period_days`               | integer | No           | Trial length in whole days (min 1). Recurring products only; omit for no trial.      |
+| `trial_price`                     | integer | No           | Paid-trial charge in cents (min 100, below `price`). Omit or `0` for a free trial.   |
 
 **Response: ProductEntity**
 
@@ -163,6 +165,8 @@ POST /v1/products
   "currency": "USD",
   "billing_type": "recurring",
   "billing_period": "every-month",
+  "trial_period_days": 7,
+  "trial_price": 100,
   "status": "active",
   "tax_mode": "exclusive",
   "tax_category": "saas",

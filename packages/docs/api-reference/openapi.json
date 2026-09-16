@@ -4904,6 +4904,18 @@
             "example": 3,
             "nullable": true
           },
+          "trial_period_days": {
+            "type": "integer",
+            "description": "Length of the trial period in days. A whole number of days, at least 1. Only supported for recurring products. `null` when the product has no trial.",
+            "example": 7,
+            "nullable": true
+          },
+          "trial_price": {
+            "type": "integer",
+            "description": "Amount charged at checkout to start the trial, instead of a free card verification. In cents (100 = $1.00). Requires a trial period and must be at least 100 and lower than `price`; only supported on standard-priced recurring products without pay-what-you-want. `null` for a free trial and for products without a trial.",
+            "example": 100,
+            "nullable": true
+          },
           "status": {
             "example": "active",
             "$ref": "#/components/schemas/ProductStatus"
@@ -4911,6 +4923,11 @@
           "tax_mode": {
             "example": "inclusive",
             "$ref": "#/components/schemas/TaxMode"
+          },
+          "business_net_pricing": {
+            "type": "boolean",
+            "description": "When true, business customers whose valid VAT ID triggers reverse charge pay the price excluding VAT instead of the tax-inclusive price. Only supported for tax-inclusive one-time products; the merchant gives up the VAT portion on those sales. Defaults to false.",
+            "example": false
           },
           "tax_category": {
             "example": "saas",
@@ -5173,6 +5190,11 @@
             "example": "inclusive",
             "$ref": "#/components/schemas/TaxMode"
           },
+          "business_net_pricing": {
+            "type": "boolean",
+            "description": "When true, business customers whose valid VAT ID triggers reverse charge pay the price excluding VAT instead of the tax-inclusive price. Only supported for tax-inclusive one-time products; the merchant gives up the VAT portion on those sales. Defaults to false.",
+            "example": false
+          },
           "tax_category": {
             "example": "saas",
             "$ref": "#/components/schemas/TaxCategory"
@@ -5186,6 +5208,16 @@
             "type": "integer",
             "description": "Suggested amount in cents, pre-filled at checkout when pay_what_you_want is enabled. Must be greater than or equal to `price` (the minimum). Ignored when pay_what_you_want is disabled.",
             "example": 1500
+          },
+          "trial_period_days": {
+            "type": "integer",
+            "description": "Length of the trial period in days. A whole number of days, at least 1. Only supported for recurring products. Omit for no trial.",
+            "example": 7
+          },
+          "trial_price": {
+            "type": "integer",
+            "description": "Amount charged at checkout to start the trial, instead of a free card verification. In cents (100 = $1.00). Requires a trial period and must be at least 100 and lower than `price`; only supported on standard-priced recurring products without pay-what-you-want. Omit (or send 0) for a free trial.",
+            "example": 100
           },
           "default_success_url": {
             "type": "string",
@@ -5268,6 +5300,23 @@
           "tax_mode": {
             "example": "inclusive",
             "$ref": "#/components/schemas/TaxMode"
+          },
+          "business_net_pricing": {
+            "type": "boolean",
+            "description": "When true, business customers whose valid VAT ID triggers reverse charge pay the price excluding VAT instead of the tax-inclusive price. Only supported for tax-inclusive one-time products; the merchant gives up the VAT portion on those sales. Defaults to false. Omit to leave unchanged.",
+            "example": false
+          },
+          "trial_period_days": {
+            "type": "integer",
+            "description": "Length of the trial period in days. A whole number of days, at least 1. Only supported for recurring products. Omit to leave the trial unchanged; send `null` to remove it (a paid trial's price is cleared with it). Switching `billing_type` to `onetime` removes the trial as well.",
+            "example": 7,
+            "nullable": true
+          },
+          "trial_price": {
+            "type": "integer",
+            "description": "Amount charged at checkout to start the trial, instead of a free card verification. In cents (100 = $1.00). Requires a trial period and must be at least 100 and lower than `price`; only supported on standard-priced recurring products without pay-what-you-want. Omit to leave unchanged; send `null` or 0 to make the trial free.",
+            "example": 100,
+            "nullable": true
           },
           "pay_what_you_want": {
             "type": "boolean",
@@ -6043,6 +6092,11 @@
             "type": "string",
             "description": "The full name of the customer.",
             "example": "John Doe"
+          },
+          "email": {
+            "type": "string",
+            "description": "The email address of the customer. Must be unique within the store; changing it to an email already used by another customer returns 409. Stored lowercased. Omit to leave unchanged.",
+            "example": "john@example.com"
           },
           "metadata": {
             "type": "object",
