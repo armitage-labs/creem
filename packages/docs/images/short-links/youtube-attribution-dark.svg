@@ -1,0 +1,101 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="1360" viewBox="0 0 1200 1360" role="img" aria-labelledby="diagram-title diagram-desc">
+<title id="diagram-title">Attribute YouTube video sales with Creem Short Links</title>
+<desc id="diagram-desc">A creator already selling through Creem shares a distinct short link in each YouTube video description and pinned comment. Creem records the click, then routes iOS and Android visitors to mintproduct.com/mobile, other UK visitors to mintproduct.com/uk, and everyone else to mintproduct.com. Visitors create an account and buy through Creem. Analytics compare clicks, paid checkouts, conversion rate, and net revenue per video, with audience breakdowns. Mobile rules take priority over country rules. Example metrics are illustrative.</desc>
+<defs><marker id="arrow" markerWidth="8" markerHeight="8" refX="6" refY="4" orient="auto"><path d="M1 1L6 4L1 7" fill="none" stroke="#B0B7C0" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"/></marker></defs>
+<rect width="1200" height="1360" rx="24" fill="#101112"/>
+<text x="48" y="43" fill="#FFC49B" font-family="Inter, Arial, sans-serif" font-size="15" font-weight="700" text-anchor="start">CREEM  /  SHORT LINKS</text>
+<text x="48" y="94" fill="#F5F4F0" font-family="Inter, Arial, sans-serif" font-size="39" font-weight="700" text-anchor="start">See which YouTube videos drive sales</text>
+<text x="48" y="134" fill="#B0B7C0" font-family="Inter, Arial, sans-serif" font-size="22" font-weight="400" text-anchor="start">A creator sells on mintproduct.com and already uses Creem checkout.</text>
+<circle cx="61" cy="176" r="13" fill="#24272B"/>
+<text x="61" y="181" fill="#FFC49B" font-family="Inter, Arial, sans-serif" font-size="13" font-weight="700" text-anchor="middle">1</text>
+<text x="86" y="183" fill="#B0B7C0" font-family="Inter, Arial, sans-serif" font-size="17" font-weight="650" text-anchor="start">SHARE A DIFFERENT SHORT LINK IN EACH VIDEO</text>
+<rect x="48" y="206" width="540" height="152" rx="16" fill="#1B1D20" stroke="#3B4148" stroke-width="1.5"/>
+<rect x="72" y="228" width="44" height="30" rx="8" fill="#D9534F" stroke="#D9534F" stroke-width="1.5"/>
+<path d="M90 236L102 243L90 250Z" fill="white"/>
+<text x="130" y="250" fill="#F5F4F0" font-family="Inter, Arial, sans-serif" font-size="24" font-weight="650" text-anchor="start">Video 01</text>
+<text x="558" y="249" fill="#B0B7C0" font-family="Inter, Arial, sans-serif" font-size="18" font-weight="400" text-anchor="end">Product walkthrough</text>
+<text x="72" y="300" fill="#A8CBFF" font-family="Inter, Arial, sans-serif" font-size="26" font-weight="650" text-anchor="start">l.creem.io/mint-video-01</text>
+<text x="72" y="333" fill="#B0B7C0" font-family="Inter, Arial, sans-serif" font-size="18" font-weight="400" text-anchor="start">Share in the video description + pinned comment</text>
+<rect x="612" y="206" width="540" height="152" rx="16" fill="#1B1D20" stroke="#3B4148" stroke-width="1.5"/>
+<rect x="636" y="228" width="44" height="30" rx="8" fill="#D9534F" stroke="#D9534F" stroke-width="1.5"/>
+<path d="M654 236L666 243L654 250Z" fill="white"/>
+<text x="694" y="250" fill="#F5F4F0" font-family="Inter, Arial, sans-serif" font-size="24" font-weight="650" text-anchor="start">Video 02</text>
+<text x="1122" y="249" fill="#B0B7C0" font-family="Inter, Arial, sans-serif" font-size="18" font-weight="400" text-anchor="end">Next video</text>
+<text x="636" y="300" fill="#CBB9FF" font-family="Inter, Arial, sans-serif" font-size="26" font-weight="650" text-anchor="start">l.creem.io/mint-video-02</text>
+<text x="636" y="333" fill="#B0B7C0" font-family="Inter, Arial, sans-serif" font-size="18" font-weight="400" text-anchor="start">Share in the video description + pinned comment</text>
+<path d="M318 358V379H882V358" fill="none" stroke="#3B4148" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+<path d="M600 379V417" fill="none" stroke="#B0B7C0" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" marker-end="url(#arrow)"/>
+<rect x="403" y="376" width="394" height="28" rx="14" fill="#101112" stroke="#101112" stroke-width="1.5"/>
+<text x="600" y="396" fill="#B0B7C0" font-family="Inter, Arial, sans-serif" font-size="18" font-weight="400" text-anchor="middle">Creem records the click for that video</text>
+<rect x="48" y="430" width="1104" height="250" rx="16" fill="#1B1D20" stroke="#3B4148" stroke-width="1.5"/>
+<circle cx="85" cy="460" r="13" fill="#24272B"/>
+<text x="85" y="465" fill="#FFC49B" font-family="Inter, Arial, sans-serif" font-size="13" font-weight="700" text-anchor="middle">2</text>
+<text x="110" y="467" fill="#B0B7C0" font-family="Inter, Arial, sans-serif" font-size="17" font-weight="650" text-anchor="start">ROUTE THE VISITOR AUTOMATICALLY</text>
+<text x="1124" y="467" fill="#B0B7C0" font-family="Inter, Arial, sans-serif" font-size="17" font-weight="400" text-anchor="end">First matching rule wins</text>
+<circle cx="91" cy="513" r="12" fill="#24272B"/>
+<text x="91" y="518" fill="#A8CBFF" font-family="Inter, Arial, sans-serif" font-size="13" font-weight="700" text-anchor="middle">1</text>
+<text x="120" y="520" fill="#F5F4F0" font-family="Inter, Arial, sans-serif" font-size="23" font-weight="550" text-anchor="start">iOS or Android</text>
+<path d="M472 513H570" fill="none" stroke="#B0B7C0" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" marker-end="url(#arrow)"/>
+<text x="605" y="520" fill="#A8CBFF" font-family="Inter, Arial, sans-serif" font-size="24" font-weight="550" text-anchor="start">mintproduct.com/mobile</text>
+<circle cx="91" cy="574" r="12" fill="#24272B"/>
+<text x="91" y="579" fill="#CBB9FF" font-family="Inter, Arial, sans-serif" font-size="13" font-weight="700" text-anchor="middle">2</text>
+<text x="120" y="581" fill="#F5F4F0" font-family="Inter, Arial, sans-serif" font-size="23" font-weight="550" text-anchor="start">Otherwise, in the UK</text>
+<path d="M472 574H570" fill="none" stroke="#B0B7C0" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" marker-end="url(#arrow)"/>
+<text x="605" y="581" fill="#CBB9FF" font-family="Inter, Arial, sans-serif" font-size="24" font-weight="550" text-anchor="start">mintproduct.com/uk</text>
+<circle cx="91" cy="635" r="12" fill="#24272B"/>
+<text x="91" y="640" fill="#B0B7C0" font-family="Inter, Arial, sans-serif" font-size="13" font-weight="700" text-anchor="middle">3</text>
+<text x="120" y="642" fill="#F5F4F0" font-family="Inter, Arial, sans-serif" font-size="23" font-weight="550" text-anchor="start">Everyone else</text>
+<path d="M472 635H570" fill="none" stroke="#B0B7C0" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" marker-end="url(#arrow)"/>
+<text x="605" y="642" fill="#B0B7C0" font-family="Inter, Arial, sans-serif" font-size="24" font-weight="550" text-anchor="start">mintproduct.com</text>
+<path d="M76 539H1124" fill="none" stroke="#3B4148" stroke-width="1" stroke-linecap="round" stroke-linejoin="round"/>
+<path d="M76 600H1124" fill="none" stroke="#3B4148" stroke-width="1" stroke-linecap="round" stroke-linejoin="round"/>
+<path d="M600 680V718" fill="none" stroke="#B0B7C0" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" marker-end="url(#arrow)"/>
+<rect x="48" y="732" width="1104" height="154" rx="16" fill="#1B1D20" stroke="#3B4148" stroke-width="1.5"/>
+<circle cx="85" cy="762" r="13" fill="#24272B"/>
+<text x="85" y="767" fill="#FFC49B" font-family="Inter, Arial, sans-serif" font-size="13" font-weight="700" text-anchor="middle">3</text>
+<text x="110" y="769" fill="#B0B7C0" font-family="Inter, Arial, sans-serif" font-size="17" font-weight="650" text-anchor="start">THE VIEWER BECOMES A CUSTOMER</text>
+<text x="197" y="817" fill="#F5F4F0" font-family="Inter, Arial, sans-serif" font-size="22" font-weight="650" text-anchor="middle">Visit the website</text>
+<text x="197" y="848" fill="#B0B7C0" font-family="Inter, Arial, sans-serif" font-size="17" font-weight="400" text-anchor="middle">Targeted destination</text>
+<path d="M307 824H348" fill="none" stroke="#B0B7C0" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" marker-end="url(#arrow)"/>
+<text x="463" y="817" fill="#F5F4F0" font-family="Inter, Arial, sans-serif" font-size="22" font-weight="650" text-anchor="middle">Create an account</text>
+<text x="463" y="848" fill="#B0B7C0" font-family="Inter, Arial, sans-serif" font-size="17" font-weight="400" text-anchor="middle">On mintproduct.com</text>
+<path d="M573 824H614" fill="none" stroke="#B0B7C0" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" marker-end="url(#arrow)"/>
+<text x="729" y="817" fill="#F5F4F0" font-family="Inter, Arial, sans-serif" font-size="22" font-weight="650" text-anchor="middle">Buy through Creem</text>
+<text x="729" y="848" fill="#B0B7C0" font-family="Inter, Arial, sans-serif" font-size="17" font-weight="400" text-anchor="middle">Existing checkout</text>
+<path d="M839 824H880" fill="none" stroke="#B0B7C0" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" marker-end="url(#arrow)"/>
+<text x="995" y="817" fill="#A9DCC6" font-family="Inter, Arial, sans-serif" font-size="22" font-weight="650" text-anchor="middle">Sale attributed</text>
+<text x="995" y="848" fill="#B0B7C0" font-family="Inter, Arial, sans-serif" font-size="17" font-weight="400" text-anchor="middle">To the source link</text>
+<path d="M600 886V924" fill="none" stroke="#B0B7C0" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" marker-end="url(#arrow)"/>
+<rect x="48" y="938" width="1104" height="288" rx="16" fill="#1B1D20" stroke="#3B4148" stroke-width="1.5"/>
+<circle cx="85" cy="969" r="13" fill="#24272B"/>
+<text x="85" y="974" fill="#FFC49B" font-family="Inter, Arial, sans-serif" font-size="13" font-weight="700" text-anchor="middle">4</text>
+<text x="110" y="976" fill="#B0B7C0" font-family="Inter, Arial, sans-serif" font-size="17" font-weight="650" text-anchor="start">COMPARE VIDEO PERFORMANCE IN CREEM</text>
+<text x="1124" y="976" fill="#B0B7C0" font-family="Inter, Arial, sans-serif" font-size="17" font-weight="400" text-anchor="end">Illustrative data</text>
+<text x="82" y="1022" fill="#B0B7C0" font-family="Inter, Arial, sans-serif" font-size="18" font-weight="500" text-anchor="start">Source link</text>
+<text x="455" y="1022" fill="#B0B7C0" font-family="Inter, Arial, sans-serif" font-size="18" font-weight="500" text-anchor="end">Clicks</text>
+<text x="660" y="1022" fill="#B0B7C0" font-family="Inter, Arial, sans-serif" font-size="18" font-weight="500" text-anchor="end">Paid checkouts</text>
+<text x="870" y="1022" fill="#B0B7C0" font-family="Inter, Arial, sans-serif" font-size="18" font-weight="500" text-anchor="end">Conversion</text>
+<text x="1114" y="1022" fill="#B0B7C0" font-family="Inter, Arial, sans-serif" font-size="18" font-weight="500" text-anchor="end">Net revenue</text>
+<path d="M76 1039H1124" fill="none" stroke="#3B4148" stroke-width="1" stroke-linecap="round" stroke-linejoin="round"/>
+<circle cx="89" cy="1066" r="5" fill="#A8CBFF"/>
+<text x="105" y="1074" fill="#F5F4F0" font-family="Inter, Arial, sans-serif" font-size="22" font-weight="600" text-anchor="start">Video 01</text>
+<text x="455" y="1074" fill="#F5F4F0" font-family="Inter, Arial, sans-serif" font-size="24" font-weight="500" text-anchor="end">1,000</text>
+<text x="660" y="1074" fill="#F5F4F0" font-family="Inter, Arial, sans-serif" font-size="24" font-weight="500" text-anchor="end">40</text>
+<text x="870" y="1074" fill="#A9DCC6" font-family="Inter, Arial, sans-serif" font-size="24" font-weight="650" text-anchor="end">4.0%</text>
+<text x="1114" y="1074" fill="#F5F4F0" font-family="Inter, Arial, sans-serif" font-size="24" font-weight="500" text-anchor="end">$1,160</text>
+<circle cx="89" cy="1113" r="5" fill="#CBB9FF"/>
+<text x="105" y="1121" fill="#F5F4F0" font-family="Inter, Arial, sans-serif" font-size="22" font-weight="600" text-anchor="start">Video 02</text>
+<text x="455" y="1121" fill="#F5F4F0" font-family="Inter, Arial, sans-serif" font-size="24" font-weight="500" text-anchor="end">800</text>
+<text x="660" y="1121" fill="#F5F4F0" font-family="Inter, Arial, sans-serif" font-size="24" font-weight="500" text-anchor="end">56</text>
+<text x="870" y="1121" fill="#A9DCC6" font-family="Inter, Arial, sans-serif" font-size="24" font-weight="650" text-anchor="end">7.0%</text>
+<text x="1114" y="1121" fill="#F5F4F0" font-family="Inter, Arial, sans-serif" font-size="24" font-weight="500" text-anchor="end">$1,624</text>
+<path d="M76 1140H1124" fill="none" stroke="#3B4148" stroke-width="1" stroke-linecap="round" stroke-linejoin="round"/>
+<text x="82" y="1174" fill="#F5F4F0" font-family="Inter, Arial, sans-serif" font-size="18" font-weight="600" text-anchor="start">Audience insights</text>
+<text x="330" y="1174" fill="#B0B7C0" font-family="Inter, Arial, sans-serif" font-size="19" font-weight="400" text-anchor="start">Unique visitors · Countries · Devices · Referrers</text>
+<text x="82" y="1203" fill="#B0B7C0" font-family="Inter, Arial, sans-serif" font-size="17" font-weight="400" text-anchor="start">Conversion rate = paid checkouts ÷ clicks</text>
+<rect x="48" y="1246" width="1104" height="66" rx="14" fill="#191C1F" stroke="#3B4148" stroke-width="1.5"/>
+<circle cx="82" cy="1279" r="13" fill="#A9DCC6"/>
+<path d="M76 1279L81 1284L89 1274" fill="none" stroke="#101112" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+<text x="109" y="1287" fill="#F5F4F0" font-family="Inter, Arial, sans-serif" font-size="23" font-weight="600" text-anchor="start">Already selling through Creem? No extra tracking integration needed.</text>
+<text x="600" y="1337" fill="#B0B7C0" font-family="Inter, Arial, sans-serif" font-size="16" font-weight="400" text-anchor="middle">Eligible purchases are attributed to the most recent short-link click.</text>
+</svg>
