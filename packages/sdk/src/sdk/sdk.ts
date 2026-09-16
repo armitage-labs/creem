@@ -17,6 +17,7 @@ import { Splits } from "./splits.js";
 import { Stats } from "./stats.js";
 import { Subscriptions } from "./subscriptions.js";
 import { Transactions } from "./transactions.js";
+import { Webhooks } from "./webhooks.js";
 
 export class Creem extends ClientSDK {
   private _products?: Products;
@@ -87,5 +88,10 @@ export class Creem extends ClientSDK {
   private _splits?: Splits;
   get splits(): Splits {
     return (this._splits ??= new Splits(this._options));
+  }
+
+  private _webhooks?: Webhooks;
+  get webhooks(): Webhooks {
+    return (this._webhooks ??= new Webhooks(this._options));
   }
 }

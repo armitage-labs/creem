@@ -1,5 +1,11 @@
 # Changelog
 
+## 0.6.2
+
+### Patch Changes
+
+- d54c988: Bump creem SDK dependency to 1.10.1
+
 ## 0.6.1
 
 ### Patch Changes

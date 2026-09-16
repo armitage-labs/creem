@@ -12,6 +12,7 @@ import { handlers as affiliates } from "./affiliates";
 import { handlers as splits } from "./splits";
 import { handlers as events } from "./events";
 import { handlers as meters } from "./meters";
+import { handlers as webhooks } from "./webhooks";
 export const handlers = {
   ...products,
   ...customers,
@@ -27,4 +28,5 @@ export const handlers = {
   ...splits,
   ...events,
   ...meters,
+  ...webhooks,
 };

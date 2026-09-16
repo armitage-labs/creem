@@ -1,12 +1,14 @@
 ---
 title: MCP Server
-description: Give your AI agent 49 tools that call the Creem API directly, over the Model Context Protocol.
+description: Give your AI agent 77 tools that call the Creem API directly, over the Model Context Protocol.
 ---
 
-The Creem TypeScript SDK ships an [MCP](https://modelcontextprotocol.io) server. Point Claude Code, Claude Desktop, Cursor or any MCP client at it and your agent can create products, open checkouts, manage subscriptions, issue refunds and inspect your store — by calling the real API, with your key.
+The Creem TypeScript SDK ships an [MCP](https://modelcontextprotocol.io) server. Point Claude Code, Claude Desktop, Cursor or any MCP client at it and your agent can create products, open checkouts, manage subscriptions, issue refunds, register webhook endpoints and inspect your store — by calling the real API, with your key.
 
 <Tip>
-**Skill files vs MCP server.** [Skill files](/ai/for-agents/skill-files) are reference material your agent *reads* — they teach it how Creem works. The MCP server is a set of tools your agent *runs* — it changes live data. Most teams want both.
+  **Skill files vs MCP server.** [Skill files](/ai/for-agents/skill-files) are reference material
+  your agent *reads* — they teach it how Creem works. The MCP server is a set of tools your agent
+  *runs* — it changes live data. Most teams want both.
 </Tip>
 
 ## Requirements
@@ -25,7 +27,9 @@ npx -y --package creem -- mcp start --api-key creem_test_your_key --server test
 The server speaks MCP over stdio and exits when the client disconnects.
 
 <Warning>
-**Test-mode keys require `--server test`.** Without it the SDK targets production, and every tool call fails with `401 Unauthorized — Invalid API Key`, even though your key is valid. This is the single most common setup problem.
+  **Test-mode keys require `--server test`.** Without it the SDK targets production, and every tool
+  call fails with `401 Unauthorized — Invalid API Key`, even though your key is valid. This is the
+  single most common setup problem.
 </Warning>
 
 ## Claude Code
@@ -44,10 +48,16 @@ Add to `claude_desktop_config.json`:
     "Creem": {
       "command": "npx",
       "args": [
-        "-y", "--package", "creem", "--",
-        "mcp", "start",
-        "--api-key", "creem_test_your_key",
-        "--server", "test"
+        "-y",
+        "--package",
+        "creem",
+        "--",
+        "mcp",
+        "start",
+        "--api-key",
+        "creem_test_your_key",
+        "--server",
+        "test"
       ]
     }
   }
@@ -60,26 +70,33 @@ Add the same block to `.cursor/mcp.json` in your project, or to `~/.cursor/mcp.j
 
 ## Available tools
 
-49 tools, covering the API surface.
+77 tools, covering the API surface.
 
-| Group | Count | Tools |
-|-------|-------|-------|
-| **Products** | 5 | `products-create`, `products-get`, `products-update`, `products-search`, `products-archive` |
-| **Checkouts** | 2 | `checkouts-create`, `checkouts-retrieve` |
-| **Customers** | 8 | `customers-create`, `customers-retrieve`, `customers-update`, `customers-list`, `customers-get-orders`, `customers-list-subscriptions`, `customers-list-licenses`, `customers-generate-billing-links` |
-| **Subscriptions** | 7 | `subscriptions-get`, `subscriptions-search`, `subscriptions-update`, `subscriptions-upgrade`, `subscriptions-cancel`, `subscriptions-pause`, `subscriptions-resume` |
-| **Transactions** | 3 | `transactions-get-by-id`, `transactions-search`, `transactions-refund` |
-| **Discounts** | 4 | `discounts-create`, `discounts-get`, `discounts-search`, `discounts-delete` |
-| **Licenses** | 4 | `licenses-activate`, `licenses-deactivate`, `licenses-validate`, `licenses-list-instances` |
-| **Customer credits** | 11 | `customer-credits-create-account`, `-get-account`, `-get-account-balance`, `-list-accounts`, `-list-entries`, `-credit-account`, `-debit-account`, `-freeze-account`, `-unfreeze-account`, `-reverse-transaction`, `-close-account` |
-| **Affiliates** | 3 | `affiliates-list`, `affiliates-retrieve`, `affiliates-list-commissions` |
-| **Stats** | 1 | `stats-get-summary` |
-| **Moderation** | 1 | `moderation-screen-prompt` |
+| Group                | Count | Tools                                                                                                                                                                                                                                                                                                                                         |
+| -------------------- | ----- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| **Products**         | 5     | `products-create`, `products-get`, `products-update`, `products-search`, `products-archive`                                                                                                                                                                                                                                                   |
+| **Checkouts**        | 2     | `checkouts-create`, `checkouts-retrieve`                                                                                                                                                                                                                                                                                                      |
+| **Customers**        | 8     | `customers-create`, `customers-retrieve`, `customers-update`, `customers-list`, `customers-get-orders`, `customers-list-subscriptions`, `customers-list-licenses`, `customers-generate-billing-links`                                                                                                                                         |
+| **Subscriptions**    | 7     | `subscriptions-get`, `subscriptions-search`, `subscriptions-update`, `subscriptions-upgrade`, `subscriptions-cancel`, `subscriptions-pause`, `subscriptions-resume`                                                                                                                                                                           |
+| **Transactions**     | 3     | `transactions-get-by-id`, `transactions-search`, `transactions-refund`                                                                                                                                                                                                                                                                        |
+| **Discounts**        | 4     | `discounts-create`, `discounts-get`, `discounts-search`, `discounts-delete`                                                                                                                                                                                                                                                                   |
+| **Licenses**         | 4     | `licenses-activate`, `licenses-deactivate`, `licenses-validate`, `licenses-list-instances`                                                                                                                                                                                                                                                    |
+| **Customer credits** | 15    | `customer-credits-create-account`, `-get-account`, `-get-account-balance`, `-list-accounts`, `-list-entries`, `-credit-account`, `-debit-account`, `-freeze-account`, `-unfreeze-account`, `-reverse-transaction`, `-close-account`, `-post-transaction`, `-get-transaction`, `-reverse-transaction-by-id`, `-list-transactions-by-reference` |
+| **Meters**           | 9     | `meters-create-meter`, `meters-get-meter`, `meters-list-meters`, `meters-update-meter`, `meters-archive-meter`, `meters-unarchive-meter`, `meters-preview-meter`, `meters-preview-existing-meter`, `meters-get-consumed-units`                                                                                                                |
+| **Events**           | 3     | `events-ingest-events`, `events-preview-events`, `events-list-events`                                                                                                                                                                                                                                                                         |
+| **Webhooks**         | 6     | `webhooks-list`, `webhooks-create`, `webhooks-get`, `webhooks-update`, `webhooks-delete`, `webhooks-get-secret`                                                                                                                                                                                                                               |
+| **Affiliates**       | 5     | `affiliates-list`, `affiliates-retrieve`, `affiliates-list-commissions`, `affiliates-create-invite`, `affiliates-list-invites`                                                                                                                                                                                                                |
+| **Splits**           | 4     | `splits-create`, `splits-list`, `splits-retrieve`, `splits-delete`                                                                                                                                                                                                                                                                            |
+| **Stats**            | 1     | `stats-get-summary`                                                                                                                                                                                                                                                                                                                           |
+| **Moderation**       | 1     | `moderation-screen-prompt`                                                                                                                                                                                                                                                                                                                    |
 
 ## Security
 
 <Warning>
-An API key grants an agent **every** tool, including destructive ones — `transactions-refund`, `subscriptions-cancel`, `products-archive`, `discounts-delete` and `customer-credits-debit-account`. There are no read-only or scoped keys today.
+  A full-access API key grants an agent **every** tool, including destructive ones —
+  `transactions-refund`, `subscriptions-cancel`, `products-archive`, `discounts-delete`,
+  `webhooks-delete` and `customer-credits-debit-account`. Scoped keys (for example `products:read`
+  or `webhooks:write`) limit which tools succeed; a tool the key is not scoped for fails with `403`.
 </Warning>
 
 Two things to do about that:
@@ -98,16 +115,16 @@ This is a client-side allowlist, not a credential restriction — anyone who can
 
 ## Options
 
-| Flag | Description | Default |
-|------|-------------|---------|
-| `--api-key` | Your Creem API key | — |
-| `--server` | `prod` or `test` — **use `test` for test keys** | `prod` |
-| `--server-url` | Override the API base URL entirely | — |
-| `--transport` | `stdio` or `sse` | `stdio` |
-| `--port` | Port, when `--transport sse` | `2718` |
-| `--tool` | Mount only this tool; repeatable | all 49 |
-| `--log-level` | `debug`, `info`, `warning`, `error` | `info` |
-| `--env` | Extra environment variables for the server | — |
+| Flag           | Description                                     | Default |
+| -------------- | ----------------------------------------------- | ------- |
+| `--api-key`    | Your Creem API key                              | —       |
+| `--server`     | `prod` or `test` — **use `test` for test keys** | `prod`  |
+| `--server-url` | Override the API base URL entirely              | —       |
+| `--transport`  | `stdio` or `sse`                                | `stdio` |
+| `--port`       | Port, when `--transport sse`                    | `2718`  |
+| `--tool`       | Mount only this tool; repeatable                | all 77  |
+| `--log-level`  | `debug`, `info`, `warning`, `error`             | `info`  |
+| `--env`        | Extra environment variables for the server      | —       |
 
 ## Verifying it works
 
@@ -115,6 +132,7 @@ This is a client-side allowlist, not a credential restriction — anyone who can
 **A green "Connected" does not mean it's configured correctly.** `claude mcp list` — and the equivalent status in other clients — only confirms the server process started and completed the MCP handshake. It runs before any API call, so it passes even when the environment is wrong.
 
 A test key without `--server test` reports `✔ Connected` and then fails `401` on the first tool call.
+
 </Warning>
 
 Confirm with a real call instead. Ask your agent something harmless and read-only:
@@ -132,15 +150,18 @@ If products come back, the key, environment and tools are all wired up. If you g
     You're using a test key without `--server test`, so requests go to production. Add the flag and restart your MCP client.
 
     Note that your client will still have shown the server as connected — the health check can't see this.
+
   </Accordion>
 
-  <Accordion title="The server doesn't start">
-    Check `node --version` — v22 or newer is required. Then run the command directly in a terminal; MCP clients often swallow startup errors.
-  </Accordion>
+<Accordion title="The server doesn't start">
+  Check `node --version` — v22 or newer is required. Then run the command directly in a terminal;
+  MCP clients often swallow startup errors.
+</Accordion>
 
-  <Accordion title="My agent can't see the tools">
-    Restart the MCP client after editing its config — most read it only at launch. Then confirm the server is listed and connected in your client's MCP settings.
-  </Accordion>
+<Accordion title="My agent can't see the tools">
+  Restart the MCP client after editing its config — most read it only at launch. Then confirm the
+  server is listed and connected in your client's MCP settings.
+</Accordion>
 
   <Accordion title="I want to see what the agent is doing">
     Start with `--log-level debug` and check your client's MCP logs.

@@ -10,7 +10,7 @@ import { SDKValidationError } from "../errors/sdkvalidationerror.js";
 
 export type CreateAccountDto = {
   /**
-   * Human-readable name for the account
+   * Human-readable name for the account (bucket). Unique per customer, compared case-insensitively: `Tokens` and `tokens` are the same account. Surrounding whitespace is trimmed; the spelling you send is preserved on read. Max 100 characters.
    */
   name?: string | undefined;
   /**

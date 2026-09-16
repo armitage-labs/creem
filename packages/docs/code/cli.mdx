@@ -80,6 +80,7 @@ Every operation with a body supports `--data` with camelCase field names. Choose
 creem checkouts create --product prod_123 --units 2 --customer-email person@example.com --json
 creem products create --data @product.json --idempotency-key import-1 --json
 cat customer.json | creem customers update cust_123 --data - --yes --json
+creem webhooks create --url https://example.com/webhooks/creem --event checkout.completed --json
 ```
 
 Repeat `--metadata key=value` for string metadata (last duplicate wins). Use `--data` for numeric or nested metadata. Repeat `--custom-field`, `--item`, or `--recipient` with JSON objects, and `--image-url` with ordered URLs. Credit amounts are strings and retain full precision. Free products accept `--price 0`. Custom billing accepts `--billing-period custom` with both recurring interval flags. Use `customFields` instead of the deprecated `customField`.

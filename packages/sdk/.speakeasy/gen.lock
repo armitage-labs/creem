@@ -4,7 +4,7 @@ management:
   docVersion: v1
   speakeasyVersion: 1.797.0
   generationVersion: 2.937.18
-  releaseVersion: 1.10.0
+  releaseVersion: 1.10.1
   repoURL: https://github.com/armitage-labs/creem.git
   repoSubDirectory: packages/sdk
   installationURL: https://github.com/armitage-labs/creem
@@ -125,6 +125,7 @@ trackedFiles:
   docs/models/components/createsplitrecipientrequestentity.md: {}
   docs/models/components/createsplitrequestentity.md: {}
   docs/models/components/createsplitrequestentitytype.md: {}
+  docs/models/components/createwebhookrequestentity.md: {}
   docs/models/components/creditdebitrequestdto.md: {}
   docs/models/components/customer.md:
     id: c4a50385ed0c
@@ -330,6 +331,7 @@ trackedFiles:
   docs/models/components/updatesubscriptionrequestentity.md:
     id: a9203ebb8593
     pristine_git_object: 8abb4fde0f967b879213359d6fa986855921a494
+  docs/models/components/updatewebhookrequestentity.md: {}
   docs/models/components/upgradesubscriptionrequestentity.md:
     id: 132bee25b7aa
     pristine_git_object: 6d52464bf587e853311cf9bd5ea2c092333ef4e6
@@ -359,9 +361,14 @@ trackedFiles:
   docs/models/components/webhookcustomercreditsexhaustedevententityeventtype.md: {}
   docs/models/components/webhookdisputecreatedevententity.md: {}
   docs/models/components/webhookdisputecreatedevententityeventtype.md: {}
+  docs/models/components/webhookentity.md: {}
   docs/models/components/webhookevententity.md: {}
+  docs/models/components/webhookeventtype.md: {}
+  docs/models/components/webhooklistentity.md: {}
   docs/models/components/webhookrefundcreatedevententity.md: {}
   docs/models/components/webhookrefundcreatedevententityeventtype.md: {}
+  docs/models/components/webhooksecretentity.md: {}
+  docs/models/components/webhookstatus.md: {}
   docs/models/components/webhooksubscriptionactiveevententity.md: {}
   docs/models/components/webhooksubscriptionactiveevententityeventtype.md: {}
   docs/models/components/webhooksubscriptioncanceledevententity.md: {}
@@ -402,6 +409,7 @@ trackedFiles:
     id: a531c39a8944
     pristine_git_object: 6c568413b4ab173f9f65480f60859637f85103b7
   docs/models/operations/deletesplitrequest.md: {}
+  docs/models/operations/deletewebhookrequest.md: {}
   docs/models/operations/freezecustomercreditsaccountrequest.md: {}
   docs/models/operations/getcustomercreditsaccountbalancerequest.md: {}
   docs/models/operations/getcustomercreditsaccountrequest.md: {}
@@ -413,6 +421,8 @@ trackedFiles:
   docs/models/operations/gettransactionbyidrequest.md:
     id: 0e4013c65303
     pristine_git_object: 35e14c16281dbd4f6b58863ab29a1160b8b55181
+  docs/models/operations/getwebhookrequest.md: {}
+  docs/models/operations/getwebhooksecretrequest.md: {}
   docs/models/operations/interval.md: {}
   docs/models/operations/listaffiliatecommissionsrequest.md: {}
   docs/models/operations/listaffiliatecommissionsresponse.md: {}
@@ -440,6 +450,8 @@ trackedFiles:
   docs/models/operations/listsplitsresponse.md: {}
   docs/models/operations/listusageeventsrequest.md: {}
   docs/models/operations/listusageeventsresponse.md: {}
+  docs/models/operations/listwebhooksrequest.md: {}
+  docs/models/operations/listwebhooksresponse.md: {}
   docs/models/operations/pausesubscriptionrequest.md:
     id: 13bd0ce6ef15
     pristine_git_object: 63eed0f107e278a6b36b89fde63be52336ef6a6c
@@ -484,6 +496,7 @@ trackedFiles:
   docs/models/operations/updatesubscriptionrequest.md:
     id: ce583ff5488a
     pristine_git_object: 5b21a1092106a5c7ac5d5241befb3501a9898e9d
+  docs/models/operations/updatewebhookrequest.md: {}
   docs/models/operations/upgradesubscriptionrequest.md:
     id: 345ea726fc03
     pristine_git_object: 05718ded2b06e4de3e1722d41e4052c6a2f66ea3
@@ -515,6 +528,7 @@ trackedFiles:
   docs/sdks/transactions/README.md:
     id: 85592abe3c6b
     pristine_git_object: 73c87b3c1655fe3bcb6b4fcf276ee6947819052e
+  docs/sdks/webhooks/README.md: {}
   eslint.config.mjs:
     id: 461c8d07f6da
     pristine_git_object: 67bccfec985be20a00970d90155752832dd47135
@@ -608,6 +622,12 @@ trackedFiles:
   src/funcs/transactionsGetById.ts: {}
   src/funcs/transactionsRefund.ts: {}
   src/funcs/transactionsSearch.ts: {}
+  src/funcs/webhooksCreate.ts: {}
+  src/funcs/webhooksDelete.ts: {}
+  src/funcs/webhooksGet.ts: {}
+  src/funcs/webhooksGetSecret.ts: {}
+  src/funcs/webhooksList.ts: {}
+  src/funcs/webhooksUpdate.ts: {}
   src/hooks/hooks.ts:
     id: a2463fc6f69b
     pristine_git_object: fc9b13b25900a363b2123d2bad90f541e1d5d176
@@ -772,6 +792,12 @@ trackedFiles:
   src/mcp-server/tools/transactionsGetById.ts: {}
   src/mcp-server/tools/transactionsRefund.ts: {}
   src/mcp-server/tools/transactionsSearch.ts: {}
+  src/mcp-server/tools/webhooksCreate.ts: {}
+  src/mcp-server/tools/webhooksDelete.ts: {}
+  src/mcp-server/tools/webhooksGet.ts: {}
+  src/mcp-server/tools/webhooksGetSecret.ts: {}
+  src/mcp-server/tools/webhooksList.ts: {}
+  src/mcp-server/tools/webhooksUpdate.ts: {}
   src/models/components/accountlistresponsedto.ts: {}
   src/models/components/accountresponsedto.ts: {}
   src/models/components/activatelicenserequestentity.ts:
@@ -812,6 +838,7 @@ trackedFiles:
   src/models/components/createrefundrequestentity.ts: {}
   src/models/components/createsplitrecipientrequestentity.ts: {}
   src/models/components/createsplitrequestentity.ts: {}
+  src/models/components/createwebhookrequestentity.ts: {}
   src/models/components/creditdebitrequestdto.ts: {}
   src/models/components/customercreditsautorechargeentity.ts: {}
   src/models/components/customercreditsconsumptionentity.ts: {}
@@ -948,6 +975,7 @@ trackedFiles:
   src/models/components/updatesubscriptionrequestentity.ts:
     id: 07c0be17653a
     pristine_git_object: 6923c409bbc2224822358c1382ab84608ee25cd8
+  src/models/components/updatewebhookrequestentity.ts: {}
   src/models/components/upgradesubscriptionrequestentity.ts:
     id: 4557496c70bc
     pristine_git_object: 82f0fd8f32c25e31182f7e8fdc3143371c89ad49
@@ -967,8 +995,13 @@ trackedFiles:
   src/models/components/webhookcreditsgrantedevententity.ts: {}
   src/models/components/webhookcustomercreditsexhaustedevententity.ts: {}
   src/models/components/webhookdisputecreatedevententity.ts: {}
+  src/models/components/webhookentity.ts: {}
   src/models/components/webhookevententity.ts: {}
+  src/models/components/webhookeventtype.ts: {}
+  src/models/components/webhooklistentity.ts: {}
   src/models/components/webhookrefundcreatedevententity.ts: {}
+  src/models/components/webhooksecretentity.ts: {}
+  src/models/components/webhookstatus.ts: {}
   src/models/components/webhooksubscriptionactiveevententity.ts: {}
   src/models/components/webhooksubscriptioncanceledevententity.ts: {}
   src/models/components/webhooksubscriptionentity.ts: {}
@@ -1013,6 +1046,7 @@ trackedFiles:
     id: 026f15ee4bfa
     pristine_git_object: 946c37cf9b94129851519dc34c92751b9653f062
   src/models/operations/deletesplit.ts: {}
+  src/models/operations/deletewebhook.ts: {}
   src/models/operations/freezecustomercreditsaccount.ts: {}
   src/models/operations/getcustomercreditsaccount.ts: {}
   src/models/operations/getcustomercreditsaccountbalance.ts: {}
@@ -1024,6 +1058,8 @@ trackedFiles:
   src/models/operations/gettransactionbyid.ts:
     id: 6948027a052a
     pristine_git_object: 8bb83e0a5f1efcbc99fe37b658f3884459dcbd72
+  src/models/operations/getwebhook.ts: {}
+  src/models/operations/getwebhooksecret.ts: {}
   src/models/operations/index.ts:
     id: 0d9ffaf774d2
     pristine_git_object: b913dce8f9e69774c040f831d83754a78616264a
@@ -1043,6 +1079,7 @@ trackedFiles:
   src/models/operations/listmeters.ts: {}
   src/models/operations/listsplits.ts: {}
   src/models/operations/listusageevents.ts: {}
+  src/models/operations/listwebhooks.ts: {}
   src/models/operations/pausesubscription.ts:
     id: 1871e521cda7
     pristine_git_object: b93939a0edf1833aab660ec16f5e7fb3f83a375a
@@ -1081,6 +1118,7 @@ trackedFiles:
   src/models/operations/updatesubscription.ts:
     id: 056dbed5624c
     pristine_git_object: ad5a2749f0376cf74a47957692697e28640d5f72
+  src/models/operations/updatewebhook.ts: {}
   src/models/operations/upgradesubscription.ts:
     id: e806bbbebb75
     pristine_git_object: ce7cec3529f6961a54c8aec665dc504749feea68
@@ -1118,6 +1156,7 @@ trackedFiles:
   src/sdk/transactions.ts:
     id: bcd7a9b32ed7
     pristine_git_object: ffa659f97c7d3839412341722d5c580a69b52477
+  src/sdk/webhooks.ts: {}
   src/types/async.ts:
     id: fac8da972f86
     pristine_git_object: 689dba5de50e8769e5f3bb913e3f42a146d15bc1
@@ -1428,6 +1467,8 @@ examples:
       responses:
         "201":
           application/json: {"id": "cca_abc123", "store_id": "<id>", "customer_id": "cust_abc123", "name": "default", "unit_label": "credits", "status": "active", "created_at": "1721418551205", "updated_at": "1735678294861"}
+        "409":
+          application/json: {"error": {"type": "invalid_request_error", "code": "unbalanced_transaction", "message": "Total debits must equal total credits", "param": "entries", "request_id": "req_abc123def456"}}
   createDiscount:
     speakeasy-default-create-discount:
       parameters:
@@ -1471,6 +1512,13 @@ examples:
       responses:
         "200":
           application/json: {"id": "<id>", "mode": "sandbox", "object": "split", "store_id": "store_1a2b3c4d", "description": "Q3 revenue share", "type": "store", "type_reference": "prod_1a2b3c4d", "enabled": true, "recipients": [], "created_at": 1735689600000}
+  createWebhook:
+    speakeasy-default-create-webhook:
+      requestBody:
+        application/json: {"url": "https://example.com/webhooks/creem", "name": "Production billing events", "events": ["checkout.completed", "subscription.paid"]}
+      responses:
+        "200":
+          application/json: {"id": "<id>", "mode": "test", "object": "webhook", "store_id": "sto_1234567890", "name": "Production billing events", "url": "https://example.com/webhooks/creem", "status": "enabled", "events": ["checkout.completed", "subscription.paid"], "secret": "whsec_xxxxxxxxxxxxxxxxxxxx"}
   creditCustomerCreditsAccount:
     speakeasy-default-credit-customer-credits-account:
       parameters:
@@ -1523,6 +1571,14 @@ examples:
       responses:
         "200":
           application/json: {"id": "<id>", "mode": "sandbox", "object": "split", "store_id": "store_1a2b3c4d", "description": "Q3 revenue share", "type": "store", "type_reference": "prod_1a2b3c4d", "enabled": true, "recipients": [], "created_at": 1735689600000}
+  deleteWebhook:
+    speakeasy-default-delete-webhook:
+      parameters:
+        path:
+          id: "<id>"
+      responses:
+        "200":
+          application/json: {"id": "<id>", "mode": "test", "object": "webhook", "store_id": "sto_1234567890", "name": "Production billing events", "url": "https://example.com/webhooks/creem", "status": "disabled", "events": ["checkout.completed", "subscription.paid"], "secret": "whsec_xxxxxxxxxxxxxxxxxxxx"}
   exchangeMagicLink:
     speakeasy-default-exchange-magic-link:
       requestBody:
@@ -1619,6 +1675,22 @@ examples:
       responses:
         "200":
           application/json: {"id": "<id>", "mode": "test", "object": "transaction", "amount": 2000, "amount_paid": 2000, "discount_amount": 2000, "currency": "USD", "type": "payment", "tax_country": "US", "tax_amount": 2000, "status": "chargedBack", "refunded_amount": 2000, "created_at": 6117.34}
+  getWebhook:
+    speakeasy-default-get-webhook:
+      parameters:
+        path:
+          id: "<id>"
+      responses:
+        "200":
+          application/json: {"id": "<id>", "mode": "sandbox", "object": "webhook", "store_id": "sto_1234567890", "name": "Production billing events", "url": "https://example.com/webhooks/creem", "status": "disabled", "events": ["checkout.completed", "subscription.paid"], "secret": "whsec_xxxxxxxxxxxxxxxxxxxx"}
+  getWebhookSecret:
+    speakeasy-default-get-webhook-secret:
+      parameters:
+        path:
+          id: "<id>"
+      responses:
+        "200":
+          application/json: {"secret": "whsec_xxxxxxxxxxxxxxxxxxxx"}
   ingestUsageEvents:
     speakeasy-default-ingest-usage-events:
       requestBody:
@@ -1771,6 +1843,15 @@ examples:
       responses:
         "200":
           application/json: {"object": "list", "data": [{"id": "uev_abc123", "customer_id": "cust_abc123", "event_id": "order-1234", "name": "image.generated", "properties": {}, "timestamp": "<value>", "created_at": "1705136447437", "matched_meters": ["mtr_abc123"]}], "has_more": true}
+  listWebhooks:
+    speakeasy-default-list-webhooks:
+      parameters:
+        query:
+          page_number: 1
+          page_size: 10
+      responses:
+        "200":
+          application/json: {"items": [], "pagination": {"total_records": 0, "total_pages": 0, "current_page": 1, "next_page": 2, "prev_page": null}}
   logout: {}
   pauseSubscription:
     speakeasy-default-pause-subscription:
@@ -2040,6 +2121,16 @@ examples:
       responses:
         "200":
           application/json: {"id": "<id>", "mode": "prod", "object": "subscription", "product": {"id": "<id>", "mode": "prod", "object": "{}", "name": "<value>", "description": "This is a sample product description.", "image_url": "https://example.com/image.jpg", "features": [{"id": "<id>", "type": "file", "description": "Get access to discord server."}], "price": 400, "currency": "USD", "billing_type": "recurring", "billing_period": "every-month", "status": "archived", "tax_mode": "inclusive", "tax_category": "ebooks", "product_url": "https://creem.io/product/prod_123123123123", "default_success_url": "https://example.com/?status=successful", "created_at": "2023-01-01T00:00:00Z", "updated_at": "2023-01-01T00:00:00Z"}, "customer": "{\"id\":\"<id>\",\"mode\":\"test\",\"object\":{},\"email\":\"user@example.com\",\"name\":\"John Doe\",\"country\":\"US\",\"created_at\":\"2023-01-01T00:00:00Z\",\"updated_at\":\"2023-01-01T00:00:00Z\"}", "collection_method": "charge_automatically", "status": "active", "last_transaction_id": "tran_3e6Z6TzvHKdsjEgXnGDEp0", "last_transaction": {"id": "<id>", "mode": "test", "object": "transaction", "amount": 2000, "amount_paid": 2000, "discount_amount": 2000, "currency": "USD", "type": "invoice", "tax_country": "US", "tax_amount": 2000, "status": "void", "refunded_amount": 2000, "created_at": 8102.12}, "last_transaction_date": "2024-09-12T12:34:56Z", "next_transaction_date": "2024-09-12T12:34:56Z", "current_period_start_date": "2024-09-12T12:34:56Z", "current_period_end_date": "2024-09-12T12:34:56Z", "canceled_at": "2024-09-12T12:34:56Z", "created_at": "2024-01-01T00:00:00Z", "updated_at": "2024-09-12T12:34:56Z", "discount": {"id": "dis_3e6Z6TzvHKdsjEgXnGDEp0", "discountCode": "HOLIDAY2024"}, "metadata": {"userId": "user_123", "plan": "pro"}}
+  updateWebhook:
+    speakeasy-default-update-webhook:
+      parameters:
+        path:
+          id: "<id>"
+      requestBody:
+        application/json: {"url": "https://example.com/webhooks/creem", "name": "Production billing events"}
+      responses:
+        "200":
+          application/json: {"id": "<id>", "mode": "sandbox", "object": "webhook", "store_id": "sto_1234567890", "name": "Production billing events", "url": "https://example.com/webhooks/creem", "status": "disabled", "events": ["checkout.completed", "subscription.paid"], "secret": "whsec_xxxxxxxxxxxxxxxxxxxx"}
   upgradeSubscription:
     speakeasy-default-upgrade-subscription:
       parameters:

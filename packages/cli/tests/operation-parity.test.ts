@@ -5,7 +5,7 @@ import { operationManifest } from "../src/operation-manifest";
 import { checkParity } from "../scripts/check-parity.mjs";
 const spec = JSON.parse(readFileSync("../sdk/openapi.json", "utf8"));
 it("strictly covers the complete SDK and current contract", () =>
-  expect(checkParity({ program: createProgram() })).toEqual({ operations: 71, implemented: 71 }));
+  expect(checkParity({ program: createProgram() })).toEqual({ operations: 77, implemented: 77 }));
 it.each(["operation", "parameter", "body", "duplicate", "path", "planned"])(
   "detects %s drift",
   (kind) => {

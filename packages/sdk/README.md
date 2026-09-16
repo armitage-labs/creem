@@ -339,6 +339,15 @@ run();
 * [search](docs/sdks/transactions/README.md#search) - List all transactions
 * [refund](docs/sdks/transactions/README.md#refund) - Refund a payment
 
+### [Webhooks](docs/sdks/webhooks/README.md)
+
+* [list](docs/sdks/webhooks/README.md#list) - List webhook endpoints
+* [create](docs/sdks/webhooks/README.md#create) - Create a webhook endpoint
+* [get](docs/sdks/webhooks/README.md#get) - Retrieve a webhook endpoint
+* [update](docs/sdks/webhooks/README.md#update) - Update a webhook endpoint
+* [delete](docs/sdks/webhooks/README.md#delete) - Delete a webhook endpoint
+* [getSecret](docs/sdks/webhooks/README.md#getsecret) - Retrieve a webhook signing secret
+
 </details>
 <!-- End Available Resources and Operations [operations] -->
 
@@ -428,6 +437,12 @@ To read more about standalone functions, check [FUNCTIONS.md](./FUNCTIONS.md).
 - [`transactionsGetById`](docs/sdks/transactions/README.md#getbyid) - Get a transaction by ID
 - [`transactionsRefund`](docs/sdks/transactions/README.md#refund) - Refund a payment
 - [`transactionsSearch`](docs/sdks/transactions/README.md#search) - List all transactions
+- [`webhooksCreate`](docs/sdks/webhooks/README.md#create) - Create a webhook endpoint
+- [`webhooksDelete`](docs/sdks/webhooks/README.md#delete) - Delete a webhook endpoint
+- [`webhooksGet`](docs/sdks/webhooks/README.md#get) - Retrieve a webhook endpoint
+- [`webhooksGetSecret`](docs/sdks/webhooks/README.md#getsecret) - Retrieve a webhook signing secret
+- [`webhooksList`](docs/sdks/webhooks/README.md#list) - List webhook endpoints
+- [`webhooksUpdate`](docs/sdks/webhooks/README.md#update) - Update a webhook endpoint
 
 </details>
 <!-- End Standalone functions [standalone-funcs] -->
@@ -556,7 +571,10 @@ const creem = new Creem({
 
 async function run() {
   try {
-    const result = await creem.customerCredits.freezeAccount("<id>");
+    const result = await creem.customerCredits.createAccount({
+      customerId: "cust_abc123",
+      initialBalance: "300",
+    });
 
     console.log(result);
   } catch (error) {
@@ -596,8 +614,8 @@ run();
 
 
 **Inherit from [`CreemError`](./src/models/errors/creemerror.ts)**:
-* [`CustomerCreditsErrorResponseDto`](./src/models/errors/customercreditserrorresponsedto.ts): Applicable to 7 of 71 methods.*
-* [`UsageMeteringErrorApiResponseDto`](./src/models/errors/usagemeteringerrorapiresponsedto.ts): Applicable to 6 of 71 methods.*
+* [`CustomerCreditsErrorResponseDto`](./src/models/errors/customercreditserrorresponsedto.ts): Applicable to 8 of 77 methods.*
+* [`UsageMeteringErrorApiResponseDto`](./src/models/errors/usagemeteringerrorapiresponsedto.ts): Applicable to 6 of 77 methods.*
 * [`ResponseValidationError`](./src/models/errors/responsevalidationerror.ts): Type mismatch between the data returned from the server and the structure expected by the SDK. See `error.rawValue` for the raw value and `error.pretty()` for a nicely formatted multi-line string.
 
 </details>

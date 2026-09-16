@@ -84,6 +84,12 @@ import { tool$subscriptionsUpgrade } from "./tools/subscriptionsUpgrade.js";
 import { tool$transactionsGetById } from "./tools/transactionsGetById.js";
 import { tool$transactionsRefund } from "./tools/transactionsRefund.js";
 import { tool$transactionsSearch } from "./tools/transactionsSearch.js";
+import { tool$webhooksCreate } from "./tools/webhooksCreate.js";
+import { tool$webhooksDelete } from "./tools/webhooksDelete.js";
+import { tool$webhooksGet } from "./tools/webhooksGet.js";
+import { tool$webhooksGetSecret } from "./tools/webhooksGetSecret.js";
+import { tool$webhooksList } from "./tools/webhooksList.js";
+import { tool$webhooksUpdate } from "./tools/webhooksUpdate.js";
 
 export function createMCPServer(deps: {
   logger: ConsoleLogger;
@@ -95,7 +101,7 @@ export function createMCPServer(deps: {
 }) {
   const server = new McpServer({
     name: "Creem",
-    version: "1.10.1",
+    version: "1.11.0",
   });
 
   const client = new CreemCore({
@@ -196,6 +202,12 @@ export function createMCPServer(deps: {
   tool(tool$splitsList);
   tool(tool$splitsRetrieve);
   tool(tool$splitsDelete);
+  tool(tool$webhooksList);
+  tool(tool$webhooksCreate);
+  tool(tool$webhooksGet);
+  tool(tool$webhooksUpdate);
+  tool(tool$webhooksDelete);
+  tool(tool$webhooksGetSecret);
 
   return server;
 }
