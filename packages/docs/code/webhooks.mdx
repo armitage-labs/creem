@@ -100,6 +100,45 @@ After you're done testing, deploy your webhook endpoint to production.
 
 Once your webhook endpoint is deployed to production, you can register it in the Creem dashboard.
 
+## Register endpoints programmatically
+
+Every step above can also be done from code, so an integration (or an AI agent) can provision its own endpoint. The public API exposes webhook endpoint management under `/v1/webhooks`; the same operations are available in the TypeScript SDK, the CLI and the MCP server. Keys need the `webhooks:read` or `webhooks:write` scope.
+
+<CodeGroup>
+
+```typescript TypeScript SDK
+import { Creem } from "creem";
+
+const creem = new Creem({ apiKey: process.env.CREEM_API_KEY });
+
+// The signing secret is returned on create only. Store it, then verify
+// every delivery with it (see "Webhook Signatures" below).
+const webhook = await creem.webhooks.create({
+  url: "https://example.com/webhooks/creem",
+  name: "Production billing events",
+  events: ["checkout.completed", "subscription.paid"],
+});
+console.log(webhook.id, webhook.secret);
+
+// Pause deliveries without losing the configuration.
+await creem.webhooks.update(webhook.id, { status: "disabled" });
+
+// Fetch the secret again later.
+const { secret } = await creem.webhooks.getSecret(webhook.id);
+```
+
+```sh CLI
+creem webhooks create --url https://example.com/webhooks/creem --event checkout.completed --event subscription.paid --json
+creem webhooks list --json
+creem webhooks update wh_123 --status disabled --json
+creem webhooks secret wh_123 --json
+creem webhooks delete wh_123 --yes --json
+```
+
+</CodeGroup>
+
+An empty `events` list subscribes the endpoint to every event type. See the [Webhooks API reference](/api-reference/endpoint/create-webhook) for the full contract.
+
 ## Network Configuration
 
 <Info>
@@ -277,33 +316,31 @@ A checkout session was completed, returning all the information about the paymen
 If the purchased product issues license keys, the checkout object also carries a `license_keys` array, as shown in the sample above.
 
 <Info>
-  `license_keys` is only present when the order actually issued license keys.
-  For a product without a license key feature the field is **omitted
-  entirely** — check whether it is present rather than expecting an empty
-  array.
+  `license_keys` is only present when the order actually issued license keys. For a product without
+  a license key feature the field is **omitted entirely** — check whether it is present rather than
+  expecting an empty array.
 </Info>
 
 Each entry is a license **object**, not a key string:
 
-| Field | Type | Description |
-| --- | --- | --- |
-| `id` | string | Unique identifier for the license, prefixed with `lk_`. |
-| `object` | string | Always `license`. |
-| `product_id` | string | The product the license was issued for. |
-| `key` | string | The license key itself: five groups of five uppercase alphanumeric characters, for example `ABCDE-FGHIJ-KLMNO-PQRST-UVWXY`. |
-| `status` | string | One of `inactive`, `active`, `expired`, or `disabled`. A key stays `inactive` until its first successful activation. |
-| `activation` | number | Number of times the key has been activated so far. |
-| `activation_limit` | number \| null | Maximum number of activations allowed. `null` means unlimited. |
-| `expires_at` | string \| null | ISO 8601 expiry date. `null` means the key does not expire. |
-| `created_at` | string | ISO 8601 date the license was created. |
-| `instance` | object \| null | The associated license instance, when one exists. |
-| `mode` | string | The environment the license belongs to. |
+| Field              | Type           | Description                                                                                                                 |
+| ------------------ | -------------- | --------------------------------------------------------------------------------------------------------------------------- |
+| `id`               | string         | Unique identifier for the license, prefixed with `lk_`.                                                                     |
+| `object`           | string         | Always `license`.                                                                                                           |
+| `product_id`       | string         | The product the license was issued for.                                                                                     |
+| `key`              | string         | The license key itself: five groups of five uppercase alphanumeric characters, for example `ABCDE-FGHIJ-KLMNO-PQRST-UVWXY`. |
+| `status`           | string         | One of `inactive`, `active`, `expired`, or `disabled`. A key stays `inactive` until its first successful activation.        |
+| `activation`       | number         | Number of times the key has been activated so far.                                                                          |
+| `activation_limit` | number \| null | Maximum number of activations allowed. `null` means unlimited.                                                              |
+| `expires_at`       | string \| null | ISO 8601 expiry date. `null` means the key does not expire.                                                                 |
+| `created_at`       | string         | ISO 8601 date the license was created.                                                                                      |
+| `instance`         | object \| null | The associated license instance, when one exists.                                                                           |
+| `mode`             | string         | The environment the license belongs to.                                                                                     |
 
 <Tip>
-  You do not need a real purchase to see this shape. In the dashboard go to
-  **Settings → Webhooks**, open a webhook and use **Send test event** — the
-  `checkout.completed` payload it delivers includes a populated
-  `license_keys` array.
+  You do not need a real purchase to see this shape. In the dashboard go to **Settings → Webhooks**,
+  open a webhook and use **Send test event** — the `checkout.completed` payload it delivers includes
+  a populated `license_keys` array.
 </Tip>
 
 One key is issued per license key feature on the product, multiplied by the number of units purchased — a three-unit order of a keyed product delivers three entries. Always treat `license_keys` as a list, never as a single key.

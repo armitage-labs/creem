@@ -2113,6 +2113,16 @@
           },
           "404": {
             "description": "Not Found - Resource does not exist"
+          },
+          "409": {
+            "description": "An account with this name (compared case-insensitively) already exists for the customer",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CustomerCreditsErrorResponseDto"
+                }
+              }
+            }
           }
         },
         "tags": ["Customer Credits - Accounts"],
@@ -4316,6 +4326,320 @@
           }
         },
         "tags": ["Splits"],
+        "security": [
+          {
+            "ApiKey": []
+          }
+        ]
+      }
+    },
+    "/v1/webhooks": {
+      "get": {
+        "operationId": "listWebhooks",
+        "x-speakeasy-pagination": {
+          "type": "offsetLimit",
+          "inputs": [
+            {
+              "name": "page_number",
+              "in": "parameters",
+              "type": "page"
+            },
+            {
+              "name": "page_size",
+              "in": "parameters",
+              "type": "limit"
+            }
+          ],
+          "outputs": {
+            "numPages": "$.pagination.total_pages",
+            "results": "$.items"
+          }
+        },
+        "x-speakeasy-name-override": "list",
+        "summary": "List webhook endpoints",
+        "description": "List the webhook endpoints configured for your store.",
+        "parameters": [
+          {
+            "name": "page_number",
+            "required": false,
+            "in": "query",
+            "description": "The page number for pagination.",
+            "schema": {
+              "default": 1,
+              "example": 1,
+              "type": "number"
+            }
+          },
+          {
+            "name": "page_size",
+            "required": false,
+            "in": "query",
+            "description": "The number of items per page.",
+            "schema": {
+              "default": 10,
+              "example": 10,
+              "type": "number"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successfully retrieved the list of webhook endpoints",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/WebhookListEntity"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Bad Request - Invalid input parameters"
+          },
+          "401": {
+            "description": "Unauthorized - Invalid or missing API key"
+          },
+          "404": {
+            "description": "Not Found - Resource does not exist"
+          }
+        },
+        "tags": ["Webhooks"],
+        "security": [
+          {
+            "ApiKey": []
+          }
+        ]
+      },
+      "post": {
+        "operationId": "createWebhook",
+        "x-speakeasy-name-override": "create",
+        "summary": "Create a webhook endpoint",
+        "description": "Register a URL to receive event deliveries. The response includes the signing secret; store it, it is the only time the create call returns it.",
+        "parameters": [],
+        "requestBody": {
+          "required": true,
+          "description": "Webhook endpoint creation payload",
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CreateWebhookRequestEntity"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Successfully created the webhook endpoint",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/WebhookEntity"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Bad Request - Invalid input parameters"
+          },
+          "401": {
+            "description": "Unauthorized - Invalid or missing API key"
+          },
+          "404": {
+            "description": "Not Found - Resource does not exist"
+          }
+        },
+        "tags": ["Webhooks"],
+        "security": [
+          {
+            "ApiKey": []
+          }
+        ]
+      }
+    },
+    "/v1/webhooks/{id}": {
+      "get": {
+        "operationId": "getWebhook",
+        "x-speakeasy-name-override": "get",
+        "summary": "Retrieve a webhook endpoint",
+        "description": "Retrieve a webhook endpoint by ID.",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "description": "The webhook ID",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successfully retrieved the webhook endpoint",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/WebhookEntity"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Bad Request - Invalid input parameters"
+          },
+          "401": {
+            "description": "Unauthorized - Invalid or missing API key"
+          },
+          "404": {
+            "description": "Not Found - Resource does not exist"
+          }
+        },
+        "tags": ["Webhooks"],
+        "security": [
+          {
+            "ApiKey": []
+          }
+        ]
+      },
+      "patch": {
+        "operationId": "updateWebhook",
+        "x-speakeasy-name-override": "update",
+        "summary": "Update a webhook endpoint",
+        "description": "Update the URL, name, status or event filter of a webhook endpoint. Only supplied fields change.",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "description": "The webhook ID",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "description": "Webhook endpoint update payload",
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/UpdateWebhookRequestEntity"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Successfully updated the webhook endpoint",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/WebhookEntity"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Bad Request - Invalid input parameters"
+          },
+          "401": {
+            "description": "Unauthorized - Invalid or missing API key"
+          },
+          "404": {
+            "description": "Not Found - Resource does not exist"
+          }
+        },
+        "tags": ["Webhooks"],
+        "security": [
+          {
+            "ApiKey": []
+          }
+        ]
+      },
+      "delete": {
+        "operationId": "deleteWebhook",
+        "x-speakeasy-name-override": "delete",
+        "summary": "Delete a webhook endpoint",
+        "description": "Permanently delete a webhook endpoint and its delivery history. To pause deliveries without losing the configuration, update the status to disabled instead.",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "description": "The webhook ID",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successfully deleted the webhook endpoint",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/WebhookEntity"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Bad Request - Invalid input parameters"
+          },
+          "401": {
+            "description": "Unauthorized - Invalid or missing API key"
+          },
+          "404": {
+            "description": "Not Found - Resource does not exist"
+          }
+        },
+        "tags": ["Webhooks"],
+        "security": [
+          {
+            "ApiKey": []
+          }
+        ]
+      }
+    },
+    "/v1/webhooks/{id}/secret": {
+      "get": {
+        "operationId": "getWebhookSecret",
+        "x-speakeasy-name-override": "getSecret",
+        "summary": "Retrieve a webhook signing secret",
+        "description": "Retrieve the signing secret for a webhook endpoint, used to verify delivery signatures.",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "description": "The webhook ID",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successfully retrieved the webhook signing secret",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/WebhookSecretEntity"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Bad Request - Invalid input parameters"
+          },
+          "401": {
+            "description": "Unauthorized - Invalid or missing API key"
+          },
+          "404": {
+            "description": "Not Found - Resource does not exist"
+          }
+        },
+        "tags": ["Webhooks"],
         "security": [
           {
             "ApiKey": []
@@ -6711,9 +7035,10 @@
         "properties": {
           "name": {
             "type": "string",
-            "description": "Human-readable name for the account",
+            "description": "Human-readable name for the account (bucket). Unique per customer, compared case-insensitively: `Tokens` and `tokens` are the same account. Surrounding whitespace is trimmed; the spelling you send is preserved on read. Max 100 characters.",
             "example": "default",
-            "default": "default"
+            "default": "default",
+            "maxLength": 100
           },
           "customer_id": {
             "type": "string",
@@ -6785,6 +7110,59 @@
           "created_at",
           "updated_at"
         ]
+      },
+      "CustomerCreditsErrorDetailDto": {
+        "type": "object",
+        "properties": {
+          "type": {
+            "type": "string",
+            "description": "Error category",
+            "enum": [
+              "invalid_request_error",
+              "api_error",
+              "authentication_error",
+              "rate_limit_error"
+            ],
+            "example": "invalid_request_error"
+          },
+          "code": {
+            "type": "string",
+            "description": "Machine-readable error code",
+            "example": "unbalanced_transaction",
+            "nullable": true
+          },
+          "message": {
+            "type": "string",
+            "description": "Human-readable error message",
+            "example": "Total debits must equal total credits"
+          },
+          "param": {
+            "type": "string",
+            "description": "The parameter related to the error, if applicable",
+            "example": "entries",
+            "nullable": true
+          },
+          "request_id": {
+            "type": "string",
+            "description": "Unique request identifier for support",
+            "example": "req_abc123def456"
+          }
+        },
+        "required": ["type", "code", "message", "request_id"]
+      },
+      "CustomerCreditsErrorResponseDto": {
+        "type": "object",
+        "properties": {
+          "error": {
+            "description": "Error details",
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/CustomerCreditsErrorDetailDto"
+              }
+            ]
+          }
+        },
+        "required": ["error"]
       },
       "AccountListResponseDto": {
         "type": "object",
@@ -6883,59 +7261,6 @@
           }
         },
         "required": ["object", "data", "has_more"]
-      },
-      "CustomerCreditsErrorDetailDto": {
-        "type": "object",
-        "properties": {
-          "type": {
-            "type": "string",
-            "description": "Error category",
-            "enum": [
-              "invalid_request_error",
-              "api_error",
-              "authentication_error",
-              "rate_limit_error"
-            ],
-            "example": "invalid_request_error"
-          },
-          "code": {
-            "type": "string",
-            "description": "Machine-readable error code",
-            "example": "unbalanced_transaction",
-            "nullable": true
-          },
-          "message": {
-            "type": "string",
-            "description": "Human-readable error message",
-            "example": "Total debits must equal total credits"
-          },
-          "param": {
-            "type": "string",
-            "description": "The parameter related to the error, if applicable",
-            "example": "entries",
-            "nullable": true
-          },
-          "request_id": {
-            "type": "string",
-            "description": "Unique request identifier for support",
-            "example": "req_abc123def456"
-          }
-        },
-        "required": ["type", "code", "message", "request_id"]
-      },
-      "CustomerCreditsErrorResponseDto": {
-        "type": "object",
-        "properties": {
-          "error": {
-            "description": "Error details",
-            "allOf": [
-              {
-                "$ref": "#/components/schemas/CustomerCreditsErrorDetailDto"
-              }
-            ]
-          }
-        },
-        "required": ["error"]
       },
       "CreditDebitRequestDto": {
         "type": "object",
@@ -8256,6 +8581,164 @@
           }
         },
         "required": ["items", "pagination"]
+      },
+      "WebhookStatus": {
+        "type": "string",
+        "description": "Whether the endpoint receives deliveries. Disabled endpoints keep their configuration but receive nothing.",
+        "enum": ["enabled", "disabled"]
+      },
+      "WebhookEventType": {
+        "type": "string",
+        "description": "Event types delivered to this endpoint. An empty list means every event type.",
+        "enum": [
+          "checkout.completed",
+          "refund.created",
+          "dispute.created",
+          "subscription.active",
+          "subscription.trialing",
+          "subscription.canceled",
+          "subscription.scheduled_cancel",
+          "subscription.paid",
+          "subscription.expired",
+          "subscription.unpaid",
+          "subscription.update",
+          "subscription.past_due",
+          "subscription.paused",
+          "customer_credits.exhausted",
+          "credits.granted",
+          "credits.consumed",
+          "credits.auto_recharged"
+        ]
+      },
+      "WebhookEntity": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "description": "Unique identifier for the object."
+          },
+          "mode": {
+            "$ref": "#/components/schemas/EnvironmentMode"
+          },
+          "object": {
+            "type": "string",
+            "description": "A string representing the object’s type. Objects of the same type share the same value.",
+            "example": "webhook"
+          },
+          "store_id": {
+            "type": "string",
+            "description": "The store this webhook endpoint belongs to.",
+            "example": "sto_1234567890"
+          },
+          "name": {
+            "type": "string",
+            "description": "A human-readable label for the endpoint.",
+            "example": "Production billing events",
+            "nullable": true
+          },
+          "url": {
+            "type": "string",
+            "description": "The HTTPS URL Creem delivers events to.",
+            "example": "https://example.com/webhooks/creem"
+          },
+          "status": {
+            "example": "enabled",
+            "$ref": "#/components/schemas/WebhookStatus"
+          },
+          "events": {
+            "type": "array",
+            "example": ["checkout.completed", "subscription.paid"],
+            "items": {
+              "$ref": "#/components/schemas/WebhookEventType"
+            }
+          },
+          "secret": {
+            "type": "string",
+            "description": "The signing secret used to verify delivery signatures. Only returned when the endpoint is created; retrieve it later via the secret endpoint.",
+            "example": "whsec_xxxxxxxxxxxxxxxxxxxx"
+          }
+        },
+        "required": ["id", "mode", "object", "store_id", "name", "url", "status", "events"]
+      },
+      "WebhookListEntity": {
+        "type": "object",
+        "properties": {
+          "items": {
+            "description": "List of webhook endpoints",
+            "items": {
+              "$ref": "#/components/schemas/WebhookEntity"
+            },
+            "type": "array"
+          },
+          "pagination": {
+            "description": "Pagination details for the list",
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/PaginationEntity"
+              }
+            ]
+          }
+        },
+        "required": ["items", "pagination"]
+      },
+      "CreateWebhookRequestEntity": {
+        "type": "object",
+        "properties": {
+          "url": {
+            "type": "string",
+            "description": "The HTTPS URL Creem will deliver events to.",
+            "example": "https://example.com/webhooks/creem"
+          },
+          "name": {
+            "type": "string",
+            "description": "A human-readable label for the endpoint.",
+            "example": "Production billing events"
+          },
+          "events": {
+            "type": "array",
+            "example": ["checkout.completed", "subscription.paid"],
+            "items": {
+              "$ref": "#/components/schemas/WebhookEventType"
+            }
+          }
+        },
+        "required": ["url"]
+      },
+      "UpdateWebhookRequestEntity": {
+        "type": "object",
+        "properties": {
+          "url": {
+            "type": "string",
+            "description": "The HTTPS URL Creem will deliver events to.",
+            "example": "https://example.com/webhooks/creem"
+          },
+          "name": {
+            "type": "string",
+            "description": "A human-readable label for the endpoint. Send `null` to clear it.",
+            "example": "Production billing events",
+            "nullable": true
+          },
+          "status": {
+            "$ref": "#/components/schemas/WebhookStatus"
+          },
+          "events": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/WebhookEventType"
+            }
+          }
+        }
+      },
+      "WebhookSecretEntity": {
+        "type": "object",
+        "properties": {
+          "secret": {
+            "type": "string",
+            "description": "The signing secret for this endpoint. Use it to verify the signature header on every delivery.",
+            "example": "whsec_xxxxxxxxxxxxxxxxxxxx"
+          }
+        },
+        "required": ["secret"]
       },
       "WebhookSubscriptionEntity": {
         "type": "object",

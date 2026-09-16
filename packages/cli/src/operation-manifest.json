@@ -34,10 +34,7 @@
         "required": false,
         "schema": {
           "type": "string",
-          "enum": [
-            "active",
-            "archived"
-          ]
+          "enum": ["active", "archived"]
         }
       }
     ],
@@ -87,17 +84,11 @@
           },
           "currency": {
             "type": "string",
-            "enum": [
-              "EUR",
-              "USD"
-            ]
+            "enum": ["EUR", "USD"]
           },
           "billingType": {
             "type": "string",
-            "enum": [
-              "recurring",
-              "onetime"
-            ]
+            "enum": ["recurring", "onetime"]
           },
           "billingPeriod": {
             "type": "string",
@@ -113,30 +104,18 @@
           },
           "recurringInterval": {
             "type": "string",
-            "enum": [
-              "day",
-              "week",
-              "month",
-              "year"
-            ]
+            "enum": ["day", "week", "month", "year"]
           },
           "recurringIntervalCount": {
             "type": "integer"
           },
           "taxMode": {
             "type": "string",
-            "enum": [
-              "inclusive",
-              "exclusive"
-            ]
+            "enum": ["inclusive", "exclusive"]
           },
           "taxCategory": {
             "type": "string",
-            "enum": [
-              "saas",
-              "digital-goods-service",
-              "ebooks"
-            ]
+            "enum": ["saas", "digital-goods-service", "ebooks"]
           },
           "payWhatYouWant": {
             "type": "boolean"
@@ -154,10 +133,7 @@
               "properties": {
                 "type": {
                   "type": "string",
-                  "enum": [
-                    "text",
-                    "checkbox"
-                  ]
+                  "enum": ["text", "checkbox"]
                 },
                 "key": {
                   "type": "string"
@@ -190,11 +166,7 @@
                   "required": []
                 }
               },
-              "required": [
-                "type",
-                "key",
-                "label"
-              ]
+              "required": ["type", "key", "label"]
             }
           },
           "customField": {
@@ -204,10 +176,7 @@
               "properties": {
                 "type": {
                   "type": "string",
-                  "enum": [
-                    "text",
-                    "checkbox"
-                  ]
+                  "enum": ["text", "checkbox"]
                 },
                 "key": {
                   "type": "string"
@@ -240,24 +209,14 @@
                   "required": []
                 }
               },
-              "required": [
-                "type",
-                "key",
-                "label"
-              ]
+              "required": ["type", "key", "label"]
             }
           },
           "abandonedCartRecoveryEnabled": {
             "type": "boolean"
           }
         },
-        "required": [
-          "name",
-          "description",
-          "price",
-          "currency",
-          "billingType"
-        ]
+        "required": ["name", "description", "price", "currency", "billingType"]
       },
       "primaryFlags": {
         "name": "--name",
@@ -348,17 +307,11 @@
           },
           "currency": {
             "type": "string",
-            "enum": [
-              "EUR",
-              "USD"
-            ]
+            "enum": ["EUR", "USD"]
           },
           "billingType": {
             "type": "string",
-            "enum": [
-              "recurring",
-              "onetime"
-            ]
+            "enum": ["recurring", "onetime"]
           },
           "billingPeriod": {
             "type": "string",
@@ -374,22 +327,14 @@
           },
           "recurringInterval": {
             "type": "string",
-            "enum": [
-              "day",
-              "week",
-              "month",
-              "year"
-            ]
+            "enum": ["day", "week", "month", "year"]
           },
           "recurringIntervalCount": {
             "type": "integer"
           },
           "taxMode": {
             "type": "string",
-            "enum": [
-              "inclusive",
-              "exclusive"
-            ]
+            "enum": ["inclusive", "exclusive"]
           },
           "payWhatYouWant": {
             "type": "boolean"
@@ -651,10 +596,7 @@
             "type": "string"
           }
         },
-        "required": [
-          "email",
-          "name"
-        ]
+        "required": ["email", "name"]
       },
       "primaryFlags": {
         "email": "--email",
@@ -693,9 +635,7 @@
             "nullable": true
           }
         },
-        "required": [
-          "customerId"
-        ]
+        "required": ["customerId"]
       },
       "primaryFlags": {
         "name": "--name",
@@ -724,9 +664,7 @@
             "type": "string"
           }
         },
-        "required": [
-          "customerId"
-        ]
+        "required": ["customerId"]
       },
       "primaryFlags": {},
       "positional": "customerId"
@@ -812,17 +750,11 @@
         "properties": {
           "mode": {
             "type": "string",
-            "enum": [
-              "immediate",
-              "scheduled"
-            ]
+            "enum": ["immediate", "scheduled"]
           },
           "onExecute": {
             "type": "string",
-            "enum": [
-              "cancel",
-              "pause"
-            ]
+            "enum": ["cancel", "pause"]
           }
         },
         "required": []
@@ -881,11 +813,7 @@
           },
           "updateBehavior": {
             "type": "string",
-            "enum": [
-              "proration-charge-immediately",
-              "proration-charge",
-              "proration-none"
-            ]
+            "enum": ["proration-charge-immediately", "proration-charge", "proration-none"]
           }
         },
         "required": []
@@ -926,16 +854,10 @@
           },
           "updateBehavior": {
             "type": "string",
-            "enum": [
-              "proration-charge-immediately",
-              "proration-charge",
-              "proration-none"
-            ]
+            "enum": ["proration-charge-immediately", "proration-charge", "proration-none"]
           }
         },
-        "required": [
-          "productId"
-        ]
+        "required": ["productId"]
       },
       "primaryFlags": {
         "productId": "--product",
@@ -1060,10 +982,7 @@
               "properties": {
                 "type": {
                   "type": "string",
-                  "enum": [
-                    "text",
-                    "checkbox"
-                  ]
+                  "enum": ["text", "checkbox"]
                 },
                 "key": {
                   "type": "string"
@@ -1096,11 +1015,7 @@
                   "required": []
                 }
               },
-              "required": [
-                "type",
-                "key",
-                "label"
-              ]
+              "required": ["type", "key", "label"]
             }
           },
           "customField": {
@@ -1110,10 +1025,7 @@
               "properties": {
                 "type": {
                   "type": "string",
-                  "enum": [
-                    "text",
-                    "checkbox"
-                  ]
+                  "enum": ["text", "checkbox"]
                 },
                 "key": {
                   "type": "string"
@@ -1146,11 +1058,7 @@
                   "required": []
                 }
               },
-              "required": [
-                "type",
-                "key",
-                "label"
-              ]
+              "required": ["type", "key", "label"]
             }
           },
           "successUrl": {
@@ -1161,9 +1069,7 @@
             "additionalProperties": true
           }
         },
-        "required": [
-          "productId"
-        ]
+        "required": ["productId"]
       },
       "primaryFlags": {
         "requestId": "--request-id",
@@ -1201,10 +1107,7 @@
             "type": "string"
           }
         },
-        "required": [
-          "key",
-          "instanceName"
-        ]
+        "required": ["key", "instanceName"]
       },
       "primaryFlags": {
         "key": "--key",
@@ -1233,10 +1136,7 @@
             "type": "string"
           }
         },
-        "required": [
-          "key",
-          "instanceId"
-        ]
+        "required": ["key", "instanceId"]
       },
       "primaryFlags": {
         "key": "--key",
@@ -1265,10 +1165,7 @@
             "type": "string"
           }
         },
-        "required": [
-          "key",
-          "instanceId"
-        ]
+        "required": ["key", "instanceId"]
       },
       "primaryFlags": {
         "key": "--key",
@@ -1363,10 +1260,7 @@
         "cliFlagOrArgument": "--status",
         "required": false,
         "schema": {
-          "enum": [
-            "active",
-            "deleted"
-          ],
+          "enum": ["active", "deleted"],
           "type": "string"
         }
       },
@@ -1377,10 +1271,7 @@
         "cliFlagOrArgument": "--type",
         "required": false,
         "schema": {
-          "enum": [
-            "percentage",
-            "fixed"
-          ],
+          "enum": ["percentage", "fixed"],
           "type": "string"
         }
       },
@@ -1459,10 +1350,7 @@
           },
           "type": {
             "type": "string",
-            "enum": [
-              "percentage",
-              "fixed"
-            ]
+            "enum": ["percentage", "fixed"]
           },
           "amount": {
             "type": "number"
@@ -1482,11 +1370,7 @@
           },
           "duration": {
             "type": "string",
-            "enum": [
-              "forever",
-              "once",
-              "repeating"
-            ]
+            "enum": ["forever", "once", "repeating"]
           },
           "durationInMonths": {
             "type": "number"
@@ -1498,12 +1382,7 @@
             }
           }
         },
-        "required": [
-          "name",
-          "type",
-          "duration",
-          "appliesToProducts"
-        ]
+        "required": ["name", "type", "duration", "appliesToProducts"]
       },
       "primaryFlags": {
         "name": "--name",
@@ -1659,11 +1538,7 @@
         "cliFlagOrArgument": "--interval",
         "required": false,
         "schema": {
-          "enum": [
-            "day",
-            "week",
-            "month"
-          ],
+          "enum": ["day", "week", "month"],
           "type": "string"
         }
       },
@@ -1674,10 +1549,7 @@
         "cliFlagOrArgument": "--currency",
         "required": true,
         "schema": {
-          "enum": [
-            "EUR",
-            "USD"
-          ],
+          "enum": ["EUR", "USD"],
           "type": "string"
         }
       }
@@ -1704,9 +1576,7 @@
             "type": "string"
           }
         },
-        "required": [
-          "prompt"
-        ]
+        "required": ["prompt"]
       },
       "primaryFlags": {
         "prompt": "--prompt",
@@ -1732,9 +1602,7 @@
             "type": "string"
           }
         },
-        "required": [
-          "transactionId"
-        ]
+        "required": ["transactionId"]
       },
       "primaryFlags": {},
       "positional": "transactionId"
@@ -1768,9 +1636,7 @@
             "type": "string"
           }
         },
-        "required": [
-          "customerId"
-        ]
+        "required": ["customerId"]
       },
       "primaryFlags": {
         "name": "--name",
@@ -2015,11 +1881,7 @@
             "type": "string"
           }
         },
-        "required": [
-          "amount",
-          "reference",
-          "idempotencyKey"
-        ]
+        "required": ["amount", "reference", "idempotencyKey"]
       },
       "primaryFlags": {
         "amount": "--amount",
@@ -2063,11 +1925,7 @@
             "type": "string"
           }
         },
-        "required": [
-          "amount",
-          "reference",
-          "idempotencyKey"
-        ]
+        "required": ["amount", "reference", "idempotencyKey"]
       },
       "primaryFlags": {
         "amount": "--amount",
@@ -2105,9 +1963,7 @@
             "type": "string"
           }
         },
-        "required": [
-          "transactionId"
-        ]
+        "required": ["transactionId"]
       },
       "primaryFlags": {
         "transactionId": "--transaction"
@@ -2165,28 +2021,17 @@
                 },
                 "side": {
                   "type": "string",
-                  "enum": [
-                    "debit",
-                    "credit"
-                  ]
+                  "enum": ["debit", "credit"]
                 },
                 "amount": {
                   "type": "string"
                 }
               },
-              "required": [
-                "accountId",
-                "side",
-                "amount"
-              ]
+              "required": ["accountId", "side", "amount"]
             }
           }
         },
-        "required": [
-          "reference",
-          "idempotencyKey",
-          "entries"
-        ]
+        "required": ["reference", "idempotencyKey", "entries"]
       },
       "primaryFlags": {
         "reference": "--reference",
@@ -2283,10 +2128,7 @@
             "nullable": true
           }
         },
-        "required": [
-          "email",
-          "name"
-        ]
+        "required": ["email", "name"]
       },
       "primaryFlags": {
         "email": "--email",
@@ -2405,11 +2247,7 @@
         "required": false,
         "schema": {
           "type": "string",
-          "enum": [
-            "pending",
-            "approved",
-            "paid"
-          ]
+          "enum": ["pending", "approved", "paid"]
         }
       },
       {
@@ -2454,10 +2292,7 @@
           },
           "type": {
             "type": "string",
-            "enum": [
-              "store",
-              "product"
-            ]
+            "enum": ["store", "product"]
           },
           "typeReference": {
             "type": "string"
@@ -2469,10 +2304,7 @@
               "properties": {
                 "recipientType": {
                   "type": "string",
-                  "enum": [
-                    "store",
-                    "email"
-                  ]
+                  "enum": ["store", "email"]
                 },
                 "recipientReference": {
                   "type": "string"
@@ -2483,19 +2315,11 @@
                   "maximum": 100
                 }
               },
-              "required": [
-                "recipientType",
-                "recipientReference",
-                "amount"
-              ]
+              "required": ["recipientType", "recipientReference", "amount"]
             }
           }
         },
-        "required": [
-          "type",
-          "typeReference",
-          "recipients"
-        ]
+        "required": ["type", "typeReference", "recipients"]
       },
       "primaryFlags": {
         "description": "--description",
@@ -2617,15 +2441,11 @@
                   "type": "string"
                 }
               },
-              "required": [
-                "name"
-              ]
+              "required": ["name"]
             }
           }
         },
-        "required": [
-          "events"
-        ]
+        "required": ["events"]
       },
       "primaryFlags": {
         "events": "--events"
@@ -2671,15 +2491,11 @@
                   "type": "string"
                 }
               },
-              "required": [
-                "name"
-              ]
+              "required": ["name"]
             }
           }
         },
-        "required": [
-          "events"
-        ]
+        "required": ["events"]
       },
       "primaryFlags": {
         "events": "--events"
@@ -2771,14 +2587,7 @@
           },
           "aggregation": {
             "type": "string",
-            "enum": [
-              "count",
-              "sum",
-              "average",
-              "min",
-              "max",
-              "unique"
-            ]
+            "enum": ["count", "sum", "average", "min", "max", "unique"]
           },
           "aggregationProperty": {
             "type": "string"
@@ -2788,10 +2597,7 @@
             "properties": {
               "conjunction": {
                 "type": "string",
-                "enum": [
-                  "and",
-                  "or"
-                ]
+                "enum": ["and", "or"]
               },
               "clauses": {
                 "type": "array",
@@ -2816,29 +2622,17 @@
                     },
                     "value": {}
                   },
-                  "required": [
-                    "property",
-                    "operator",
-                    "value"
-                  ]
+                  "required": ["property", "operator", "value"]
                 }
               }
             },
-            "required": [
-              "conjunction",
-              "clauses"
-            ]
+            "required": ["conjunction", "clauses"]
           },
           "unitLabel": {
             "type": "string"
           }
         },
-        "required": [
-          "name",
-          "eventName",
-          "aggregation",
-          "unitLabel"
-        ]
+        "required": ["name", "eventName", "aggregation", "unitLabel"]
       },
       "primaryFlags": {
         "name": "--name",
@@ -2922,14 +2716,7 @@
           },
           "aggregation": {
             "type": "string",
-            "enum": [
-              "count",
-              "sum",
-              "average",
-              "min",
-              "max",
-              "unique"
-            ]
+            "enum": ["count", "sum", "average", "min", "max", "unique"]
           },
           "aggregationProperty": {
             "type": "string"
@@ -2939,10 +2726,7 @@
             "properties": {
               "conjunction": {
                 "type": "string",
-                "enum": [
-                  "and",
-                  "or"
-                ]
+                "enum": ["and", "or"]
               },
               "clauses": {
                 "type": "array",
@@ -2967,27 +2751,17 @@
                     },
                     "value": {}
                   },
-                  "required": [
-                    "property",
-                    "operator",
-                    "value"
-                  ]
+                  "required": ["property", "operator", "value"]
                 }
               }
             },
-            "required": [
-              "conjunction",
-              "clauses"
-            ]
+            "required": ["conjunction", "clauses"]
           },
           "unitLabel": {
             "type": "string"
           }
         },
-        "required": [
-          "eventName",
-          "aggregation"
-        ]
+        "required": ["eventName", "aggregation"]
       },
       "primaryFlags": {
         "eventName": "--event-name",
@@ -3049,14 +2823,7 @@
           },
           "aggregation": {
             "type": "string",
-            "enum": [
-              "count",
-              "sum",
-              "average",
-              "min",
-              "max",
-              "unique"
-            ]
+            "enum": ["count", "sum", "average", "min", "max", "unique"]
           },
           "aggregationProperty": {
             "type": "string",
@@ -3067,10 +2834,7 @@
             "properties": {
               "conjunction": {
                 "type": "string",
-                "enum": [
-                  "and",
-                  "or"
-                ]
+                "enum": ["and", "or"]
               },
               "clauses": {
                 "type": "array",
@@ -3095,18 +2859,11 @@
                     },
                     "value": {}
                   },
-                  "required": [
-                    "property",
-                    "operator",
-                    "value"
-                  ]
+                  "required": ["property", "operator", "value"]
                 }
               }
             },
-            "required": [
-              "conjunction",
-              "clauses"
-            ]
+            "required": ["conjunction", "clauses"]
           }
         },
         "required": []
@@ -3210,6 +2967,227 @@
     "cliPath": "meters unarchive",
     "disposition": "implemented",
     "description": "Unarchive a meter",
+    "parameters": [
+      {
+        "name": "id",
+        "sdkName": "id",
+        "in": "path",
+        "cliFlagOrArgument": "<id>",
+        "required": true,
+        "schema": {
+          "type": "string"
+        }
+      }
+    ],
+    "pagination": "none",
+    "destructive": false
+  },
+  {
+    "operationId": "listWebhooks",
+    "sdkMethod": "webhooks.list",
+    "cliPath": "webhooks list",
+    "disposition": "implemented",
+    "description": "List webhook endpoints",
+    "parameters": [
+      {
+        "name": "page_number",
+        "sdkName": "pageNumber",
+        "in": "query",
+        "cliFlagOrArgument": "--page",
+        "required": false,
+        "schema": {
+          "type": "number"
+        }
+      },
+      {
+        "name": "page_size",
+        "sdkName": "pageSize",
+        "in": "query",
+        "cliFlagOrArgument": "--limit",
+        "required": false,
+        "schema": {
+          "type": "number"
+        }
+      }
+    ],
+    "pagination": "page",
+    "destructive": false
+  },
+  {
+    "operationId": "createWebhook",
+    "sdkMethod": "webhooks.create",
+    "cliPath": "webhooks create",
+    "disposition": "implemented",
+    "description": "Create a webhook endpoint",
+    "parameters": [],
+    "body": {
+      "viaData": true,
+      "schema": {
+        "type": "object",
+        "properties": {
+          "url": {
+            "type": "string"
+          },
+          "name": {
+            "type": "string"
+          },
+          "events": {
+            "type": "array",
+            "items": {
+              "type": "string",
+              "enum": [
+                "checkout.completed",
+                "refund.created",
+                "dispute.created",
+                "subscription.active",
+                "subscription.trialing",
+                "subscription.canceled",
+                "subscription.scheduled_cancel",
+                "subscription.paid",
+                "subscription.expired",
+                "subscription.unpaid",
+                "subscription.update",
+                "subscription.past_due",
+                "subscription.paused",
+                "customer_credits.exhausted",
+                "credits.granted",
+                "credits.consumed",
+                "credits.auto_recharged"
+              ]
+            }
+          }
+        },
+        "required": ["url"]
+      },
+      "primaryFlags": {
+        "url": "--url",
+        "name": "--name",
+        "events": "--event"
+      }
+    },
+    "pagination": "none",
+    "destructive": false
+  },
+  {
+    "operationId": "getWebhook",
+    "sdkMethod": "webhooks.get",
+    "cliPath": "webhooks get",
+    "disposition": "implemented",
+    "description": "Retrieve a webhook endpoint",
+    "parameters": [
+      {
+        "name": "id",
+        "sdkName": "id",
+        "in": "path",
+        "cliFlagOrArgument": "<id>",
+        "required": true,
+        "schema": {
+          "type": "string"
+        }
+      }
+    ],
+    "pagination": "none",
+    "destructive": false
+  },
+  {
+    "operationId": "updateWebhook",
+    "sdkMethod": "webhooks.update",
+    "cliPath": "webhooks update",
+    "disposition": "implemented",
+    "description": "Update a webhook endpoint",
+    "parameters": [
+      {
+        "name": "id",
+        "sdkName": "id",
+        "in": "path",
+        "cliFlagOrArgument": "<id>",
+        "required": true,
+        "schema": {
+          "type": "string"
+        }
+      }
+    ],
+    "body": {
+      "viaData": true,
+      "schema": {
+        "type": "object",
+        "properties": {
+          "url": {
+            "type": "string"
+          },
+          "name": {
+            "type": "string",
+            "nullable": true
+          },
+          "status": {
+            "type": "string",
+            "enum": ["enabled", "disabled"]
+          },
+          "events": {
+            "type": "array",
+            "items": {
+              "type": "string",
+              "enum": [
+                "checkout.completed",
+                "refund.created",
+                "dispute.created",
+                "subscription.active",
+                "subscription.trialing",
+                "subscription.canceled",
+                "subscription.scheduled_cancel",
+                "subscription.paid",
+                "subscription.expired",
+                "subscription.unpaid",
+                "subscription.update",
+                "subscription.past_due",
+                "subscription.paused",
+                "customer_credits.exhausted",
+                "credits.granted",
+                "credits.consumed",
+                "credits.auto_recharged"
+              ]
+            }
+          }
+        },
+        "required": []
+      },
+      "primaryFlags": {
+        "url": "--url",
+        "name": "--name",
+        "status": "--status",
+        "events": "--event"
+      }
+    },
+    "pagination": "none",
+    "destructive": false
+  },
+  {
+    "operationId": "deleteWebhook",
+    "sdkMethod": "webhooks.delete",
+    "cliPath": "webhooks delete",
+    "disposition": "implemented",
+    "description": "Delete a webhook endpoint",
+    "parameters": [
+      {
+        "name": "id",
+        "sdkName": "id",
+        "in": "path",
+        "cliFlagOrArgument": "<id>",
+        "required": true,
+        "schema": {
+          "type": "string"
+        }
+      }
+    ],
+    "pagination": "none",
+    "destructive": true
+  },
+  {
+    "operationId": "getWebhookSecret",
+    "sdkMethod": "webhooks.getSecret",
+    "cliPath": "webhooks secret",
+    "disposition": "implemented",
+    "description": "Retrieve a webhook signing secret",
     "parameters": [
       {
         "name": "id",
