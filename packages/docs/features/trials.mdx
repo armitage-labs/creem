@@ -1,22 +1,105 @@
 ---
-title: 'Free Trials'
-description: "Offer free trials to let customers try your subscription products before they're charged."
+title: "Trials"
+description: "Offer free or paid trials to let customers try your subscription products before the regular price applies."
 ---
+
+A trial is a period at the start of a subscription during which the customer has full access to the product before the regular price is charged. A trial can be **free** or **paid**: a paid trial charges a small fixed amount at checkout, for example $1 for 7 days, then $29 per month.
 
 ## Creating a Trial
 
-To create a trial is just as simple as:
-
 1. Go to **Products**
-2. Click **Create Product**
-3. Enable **Trial Period**
-4. Set **Days of Trial** (e.g., 7, 14, or 30 days)
+2. Create a subscription product, or open an existing one
+3. Enable **Trial period** and set the length in days (e.g., 7, 14, or 30 days)
+4. Choose **Free** or **Paid**. For a paid trial, set the **trial price** the customer pays at checkout
 
-That's it! Customers will now get the specified trial period before their first payment.
+That's it! New subscriptions to the product start with the trial you configured. Changing the trial later only affects subscriptions created from then on.
 
-## How Trials Work
+## Free Trials
 
+- No payment is collected at checkout; the customer's card is verified and saved for the first payment
 - During the trial period, customers have full access to the product
-- No payment is collected until the trial ends
 - Customers can cancel anytime during the trial without being charged
-- After the trial ends, the subscription automatically begins and the customer is charged
+- After the trial ends, the subscription automatically begins and the customer is charged the regular price
+
+## Paid Trials
+
+- The trial price is charged at checkout, and the customer's card is saved for the renewals
+- During the trial period, customers have full access to the product
+- Customers can cancel anytime during the trial; the trial charge is not refunded automatically
+- After the trial ends, the subscription renews at the regular price every billing period
+
+The trial price must be at least 1.00 in the product's currency and lower than the regular price. Paid trials are available on subscription products with standard pricing; they cannot be combined with pay-what-you-want pricing, package pricing, or usage-based pricing.
+
+### What the customer sees
+
+The hosted checkout shows the trial charge as **Due today**, followed by the regular price and the date it applies from. The receipt and invoice for the trial charge list the product with its trial length, for example "Pro Plan — 7-day trial".
+
+Tax is calculated on the trial charge like on any other payment, based on the customer's location and the product's tax mode.
+
+### Discount codes
+
+A discount code applied at checkout is applied to the payments after the trial, not to the trial charge. A code that applies once discounts the first payment after the trial; a repeating code discounts that many payments after the trial; a forever code discounts every renewal. The checkout shows the discounted amounts alongside the trial charge.
+
+### Checkout limits
+
+A paid-trial checkout is for a single unit: a checkout created with more than one unit is rejected, and a custom price cannot be combined with a paid trial.
+
+## Subscription Lifecycle
+
+A subscription with a trial has the `trialing` status until the trial ends and moves to `active` with the first regular payment, for free and paid trials alike. Your webhook endpoint receives `subscription.trialing` when the trial starts. See the [subscription lifecycle](/features/subscriptions/introduction#trial-subscription-lifecycle) for the full flow.
+
+## Trials in the API
+
+Products expose their trial configuration, and you can set it when creating or updating a product.
+
+| Field               | Type            | Description                                                                                                        |
+| ------------------- | --------------- | ------------------------------------------------------------------------------------------------------------------ |
+| `trial_period_days` | integer \| null | Length of the trial in whole days, at least 1. `null` when the product has no trial. Recurring products only.      |
+| `trial_price`       | integer \| null | Amount charged at checkout to start the trial, in cents. `null` for a free trial and for products without a trial. |
+
+### Create a product with a trial
+
+```bash
+curl -X POST https://api.creem.io/v1/products \
+  -H "x-api-key: creem_your_api_key" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "name": "Pro Plan",
+    "description": "Full access to all features",
+    "price": 2900,
+    "currency": "USD",
+    "billing_type": "recurring",
+    "billing_period": "every-month",
+    "trial_period_days": 7,
+    "trial_price": 100
+  }'
+```
+
+Omit `trial_price` (or send `0`) for a free trial, and omit `trial_period_days` for no trial. The same validation as the dashboard applies: `trial_price` requires `trial_period_days`, must be at least `100`, and must be lower than `price`.
+
+### Update or remove a trial
+
+```bash
+curl -X PATCH https://api.creem.io/v1/products/prod_abc123 \
+  -H "x-api-key: creem_your_api_key" \
+  -H "Content-Type: application/json" \
+  -d '{ "trial_period_days": 14, "trial_price": 100 }'
+```
+
+Every field is optional and omitted fields keep their current value:
+
+- `trial_period_days: 14` sets the trial length (and turns the trial on)
+- `trial_price: 100` sets the trial charge; `trial_price: 0` or `null` makes the trial free
+- `trial_period_days: null` removes the trial, clearing a paid trial's price with it
+- switching `billing_type` to `onetime` removes the trial as well
+
+Products returned by `GET /v1/products/{id}`, `GET /v1/products/search`, checkout sessions and webhook payloads carry the same two fields.
+
+<CardGroup cols={2}>
+  <Card title="Create Product" icon="code" href="/api-reference/endpoint/create-product">
+    Full API reference for creating products
+  </Card>
+  <Card title="Subscriptions" icon="repeat" href="/features/subscriptions/introduction">
+    How subscriptions, renewals and cancellations work
+  </Card>
+</CardGroup>
