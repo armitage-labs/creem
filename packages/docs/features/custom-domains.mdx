@@ -1,0 +1,102 @@
+---
+title: "Custom Domains"
+description: "Serve your checkout and storefront on a subdomain you own, such as pay.yourbrand.com, instead of creem.io. Connect the domain in Settings, add two DNS records, and Creem provisions the certificate and Apple Pay registration for you."
+---
+
+## What is a Custom Domain?
+
+By default, every checkout link and storefront Creem creates for your store lives on `creem.io`. A custom domain lets you serve those same pages on a subdomain you own, for example `pay.yourbrand.com` or `checkout.yourbrand.com`.
+
+Your customers see your brand in the address bar from the first click to the receipt. Nothing else changes: the checkout, the payment methods, the tax handling, and the webhooks you receive are identical.
+
+## Key Features
+
+- **Branded checkout**: New checkout links for your store are created on your domain as soon as it is active.
+- **Branded storefront**: Your [storefront](/features/storefronts) and product pages are served on the same domain.
+- **Managed certificates**: Creem issues and renews the TLS certificate. You only add DNS records.
+- **Wallets included**: Apple Pay is registered for your domain automatically after activation, and Google Pay works as soon as the domain is active.
+- **Safe by default**: Only checkout and storefront pages exist on your domain. Creem's dashboard, marketing site, and sign-in pages are never served there.
+
+## Requirements
+
+- **A subdomain you control.** Use a subdomain such as `pay.yourbrand.com`. Root domains (`yourbrand.com`) are not supported, because most DNS hosts cannot point a root domain with the record Creem needs.
+- **Access to your DNS provider.** You will add two records: one that points the subdomain at Creem and one that proves you own it.
+- **One domain per store.** A store can have one custom domain at a time. Remove it before connecting a different one.
+
+## Connecting Your Domain
+
+<Steps>
+  <Step title="Open Settings → Custom domain">
+    In your dashboard, go to **Settings** and open the **Custom domain** tab. Enter the subdomain
+    you want to use and click **Connect domain**.
+  </Step>
+  <Step title="Add the required DNS records">
+    Creem shows the records your domain needs, each with a **Name** and a **Value** you can copy.
+    Add every record at your DNS provider exactly as shown. All records are required: the domain
+    stays inactive until each one is detected.
+  </Step>
+  <Step title="Wait for verification">
+    Creem re-checks your DNS automatically every few minutes and marks each record as **Detected**
+    once it sees it. DNS changes can take up to an hour to propagate. Use **Check now** to trigger a
+    check immediately.
+  </Step>
+  <Step title="Start selling on your domain">
+    When the status turns **Active**, new checkout links, your storefront, and your product pages
+    are created on your domain. Links you created before activation keep working on `creem.io`.
+  </Step>
+</Steps>
+
+<Tip>
+  Keep the DNS records in place for as long as you use the domain. Removing them later stops
+  verification and takes the domain offline.
+</Tip>
+
+## Domain Status
+
+| Status           | Meaning                                                                                                     |
+| ---------------- | ----------------------------------------------------------------------------------------------------------- |
+| **Awaiting DNS** | The domain is registered with Creem, but at least one required DNS record has not been detected yet.        |
+| **Verifying**    | Your DNS points at Creem. Ownership verification and the certificate are still being completed.             |
+| **Active**       | Verified with an active certificate. Checkout and storefront traffic is served on your domain.              |
+| **Failed**       | The domain could not be verified. Remove it, make sure your DNS records are in place, and connect it again. |
+
+A domain only becomes active after Creem has confirmed the ownership record in your DNS. A hostname that merely points at Creem is never activated without that proof, which protects your customers from someone else claiming your domain.
+
+## Apple Pay and Google Pay
+
+The **Wallet compatibility** section of the tab shows the state of each wallet on your domain.
+
+- **Apple Pay** requires Apple to verify each domain that shows the Apple Pay button. Creem registers your domain with Apple automatically after it becomes active. This usually completes within a few minutes and needs nothing from you. If the registration fails, use the retry button in the dashboard or contact support if it keeps failing.
+- **Google Pay** needs no per-domain registration and works as soon as your domain is active.
+
+While Apple's verification is in progress, checkout on your domain works normally with every other payment method.
+
+## Removing a Domain
+
+Click **Remove domain** in the Custom domain tab. Removal is immediate and has two consequences:
+
+- Checkout links you already sent to customers on that hostname stop working.
+- New checkout links for the store go back to `creem.io`.
+
+If you want to move to a different subdomain, connect the new one and update any links you share before removing the old one.
+
+## Using the API
+
+No API changes are needed. When your domain is active, the `checkout_url` returned by [Create Checkout](/api-reference/endpoint/create-checkout) and the links on your products and storefront already point at your domain. Webhooks, the customer portal, and API keys are unaffected.
+
+## Related Features
+
+<CardGroup cols={2}>
+  <Card title="Checkout Links" icon="link" href="/features/checkout/checkout-link">
+    Create direct payment links for individual products
+  </Card>
+  <Card title="Storefronts" icon="store" href="/features/storefronts">
+    A hosted page that lists all your products, served on your domain
+  </Card>
+  <Card title="Short Links" icon="chart-line" href="/features/short-links">
+    Branded short links with click analytics and revenue attribution
+  </Card>
+  <Card title="Customer Portal" icon="user" href="/features/customer-portal">
+    Let customers manage subscriptions, receipts, and payment methods
+  </Card>
+</CardGroup>

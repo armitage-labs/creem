@@ -1235,7 +1235,7 @@ Credits were debited from a customer's credit account, either through the API or
 
 A customer's credits ran out while Creem settled a prepaid usage price on one of their products. It fires once per exhaustion: the first refused settlement sends it, and it fires again only after credits were added and ran out again. Creem also emails the customer.
 
-A debit through the API that exceeds the balance doesn't fire this event. That request fails with `422` and the error code `insufficient_balance`.
+A debit through the API that exceeds the balance doesn't fire this event. That request fails with `422` and the error code `insufficient_balance`. See [Auto-refill](/features/customer-credits/auto-refill) for how exhaustion episodes and automatic top-ups work.
 
 <AccordionGroup>
   <Accordion title="Sample Request Body">
@@ -1261,7 +1261,7 @@ A debit through the API that exceeds the balance doesn't fire this event. That r
 
 ### credits.auto_recharged
 
-An empty credit account was topped up with an automatic charge. It fires only for customers who opted in to auto-recharge, after the charge succeeds and the credits are added. The same top-up also fires `credits.granted`.
+An empty credit account was topped up with an automatic charge. It fires only for customers who opted in to auto-recharge, after the charge succeeds and the credits are added. The same top-up also fires `credits.granted`. See [Auto-refill](/features/customer-credits/auto-refill) for consent, guardrails, and how the charge is made.
 
 <AccordionGroup>
   <Accordion title="Sample Request Body">
