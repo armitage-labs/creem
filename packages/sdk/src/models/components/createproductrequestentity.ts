@@ -19,6 +19,12 @@ import {
   ProductCurrency$outboundSchema,
 } from "./productcurrency.js";
 import {
+  ProductFeatureRequestEntity,
+  ProductFeatureRequestEntity$inboundSchema,
+  ProductFeatureRequestEntity$Outbound,
+  ProductFeatureRequestEntity$outboundSchema,
+} from "./productfeaturerequestentity.js";
+import {
   ProductRequestBillingPeriod,
   ProductRequestBillingPeriod$inboundSchema,
   ProductRequestBillingPeriod$outboundSchema,
@@ -43,6 +49,12 @@ import {
   TaxMode$inboundSchema,
   TaxMode$outboundSchema,
 } from "./taxmode.js";
+import {
+  UsagePriceRequestEntity,
+  UsagePriceRequestEntity$inboundSchema,
+  UsagePriceRequestEntity$Outbound,
+  UsagePriceRequestEntity$outboundSchema,
+} from "./usagepricerequestentity.js";
 
 export type CreateProductRequestEntity = {
   /**
@@ -90,6 +102,10 @@ export type CreateProductRequestEntity = {
    */
   taxMode?: TaxMode | undefined;
   /**
+   * When true, business customers whose valid VAT ID triggers reverse charge pay the price excluding VAT instead of the tax-inclusive price. Only supported for tax-inclusive one-time products; the merchant gives up the VAT portion on those sales. Defaults to false.
+   */
+  businessNetPricing?: boolean | undefined;
+  /**
    * Categorizes the type of product or service for tax purposes. This helps determine the applicable tax rules based on the nature of the item or service.
    */
   taxCategory?: TaxCategory | undefined;
@@ -101,6 +117,14 @@ export type CreateProductRequestEntity = {
    * Suggested amount in cents, pre-filled at checkout when pay_what_you_want is enabled. Must be greater than or equal to `price` (the minimum). Ignored when pay_what_you_want is disabled.
    */
   suggestedPrice?: number | undefined;
+  /**
+   * Length of the trial period in days. A whole number of days, at least 1. Only supported for recurring products. Omit for no trial.
+   */
+  trialPeriodDays?: number | undefined;
+  /**
+   * Amount charged at checkout to start the trial, instead of a free card verification. In cents (100 = $1.00). Requires a trial period and must be at least 100 and lower than `price`; only supported on standard-priced recurring products without pay-what-you-want. Omit (or send 0) for a free trial.
+   */
+  trialPrice?: number | undefined;
   /**
    * The URL to which the user will be redirected after successfull payment.
    */
@@ -119,6 +143,14 @@ export type CreateProductRequestEntity = {
    * Enable abandoned cart recovery for this product
    */
   abandonedCartRecoveryEnabled?: boolean | undefined;
+  /**
+   * Metered charges billed on top of the base price, one per meter. Recurring products only.
+   */
+  usagePrices?: Array<UsagePriceRequestEntity> | undefined;
+  /**
+   * Features granted by purchase. Only `customerCredits` (a credit grant into one of the customer credit buckets) can be managed through the API.
+   */
+  features?: Array<ProductFeatureRequestEntity> | undefined;
 };
 
 /** @internal */
@@ -138,13 +170,18 @@ export const CreateProductRequestEntity$inboundSchema: z.ZodType<
   recurring_interval: ProductRequestRecurringInterval$inboundSchema.optional(),
   recurring_interval_count: z.number().int().optional(),
   tax_mode: TaxMode$inboundSchema.optional(),
+  business_net_pricing: z.boolean().optional(),
   tax_category: TaxCategory$inboundSchema.optional(),
   pay_what_you_want: z.boolean().optional(),
   suggested_price: z.number().int().optional(),
+  trial_period_days: z.number().int().optional(),
+  trial_price: z.number().int().optional(),
   default_success_url: z.string().optional(),
   custom_fields: z.array(CustomFieldRequestEntity$inboundSchema).optional(),
   custom_field: z.array(CustomFieldRequestEntity$inboundSchema).optional(),
   abandoned_cart_recovery_enabled: z.boolean().default(false),
+  usage_prices: z.array(UsagePriceRequestEntity$inboundSchema).optional(),
+  features: z.array(ProductFeatureRequestEntity$inboundSchema).optional(),
 }).transform((v) => {
   return remap$(v, {
     "image_url": "imageUrl",
@@ -154,13 +191,17 @@ export const CreateProductRequestEntity$inboundSchema: z.ZodType<
     "recurring_interval": "recurringInterval",
     "recurring_interval_count": "recurringIntervalCount",
     "tax_mode": "taxMode",
+    "business_net_pricing": "businessNetPricing",
     "tax_category": "taxCategory",
     "pay_what_you_want": "payWhatYouWant",
     "suggested_price": "suggestedPrice",
+    "trial_period_days": "trialPeriodDays",
+    "trial_price": "trialPrice",
     "default_success_url": "defaultSuccessUrl",
     "custom_fields": "customFields",
     "custom_field": "customField",
     "abandoned_cart_recovery_enabled": "abandonedCartRecoveryEnabled",
+    "usage_prices": "usagePrices",
   });
 });
 /** @internal */
@@ -176,13 +217,18 @@ export type CreateProductRequestEntity$Outbound = {
   recurring_interval?: string | undefined;
   recurring_interval_count?: number | undefined;
   tax_mode?: string | undefined;
+  business_net_pricing?: boolean | undefined;
   tax_category?: string | undefined;
   pay_what_you_want?: boolean | undefined;
   suggested_price?: number | undefined;
+  trial_period_days?: number | undefined;
+  trial_price?: number | undefined;
   default_success_url?: string | undefined;
   custom_fields?: Array<CustomFieldRequestEntity$Outbound> | undefined;
   custom_field?: Array<CustomFieldRequestEntity$Outbound> | undefined;
   abandoned_cart_recovery_enabled: boolean;
+  usage_prices?: Array<UsagePriceRequestEntity$Outbound> | undefined;
+  features?: Array<ProductFeatureRequestEntity$Outbound> | undefined;
 };
 
 /** @internal */
@@ -202,13 +248,18 @@ export const CreateProductRequestEntity$outboundSchema: z.ZodType<
   recurringInterval: ProductRequestRecurringInterval$outboundSchema.optional(),
   recurringIntervalCount: z.number().int().optional(),
   taxMode: TaxMode$outboundSchema.optional(),
+  businessNetPricing: z.boolean().optional(),
   taxCategory: TaxCategory$outboundSchema.optional(),
   payWhatYouWant: z.boolean().optional(),
   suggestedPrice: z.number().int().optional(),
+  trialPeriodDays: z.number().int().optional(),
+  trialPrice: z.number().int().optional(),
   defaultSuccessUrl: z.string().optional(),
   customFields: z.array(CustomFieldRequestEntity$outboundSchema).optional(),
   customField: z.array(CustomFieldRequestEntity$outboundSchema).optional(),
   abandonedCartRecoveryEnabled: z.boolean().default(false),
+  usagePrices: z.array(UsagePriceRequestEntity$outboundSchema).optional(),
+  features: z.array(ProductFeatureRequestEntity$outboundSchema).optional(),
 }).transform((v) => {
   return remap$(v, {
     imageUrl: "image_url",
@@ -218,13 +269,17 @@ export const CreateProductRequestEntity$outboundSchema: z.ZodType<
     recurringInterval: "recurring_interval",
     recurringIntervalCount: "recurring_interval_count",
     taxMode: "tax_mode",
+    businessNetPricing: "business_net_pricing",
     taxCategory: "tax_category",
     payWhatYouWant: "pay_what_you_want",
     suggestedPrice: "suggested_price",
+    trialPeriodDays: "trial_period_days",
+    trialPrice: "trial_price",
     defaultSuccessUrl: "default_success_url",
     customFields: "custom_fields",
     customField: "custom_field",
     abandonedCartRecoveryEnabled: "abandoned_cart_recovery_enabled",
+    usagePrices: "usage_prices",
   });
 });
 

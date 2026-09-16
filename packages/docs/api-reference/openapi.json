@@ -4701,6 +4701,29 @@
         "description": "The type of the feature: `custom` (private note), `file` (downloadable files), `licenseKey` (license key), or `customerCredits` (customer credit grant).",
         "enum": ["custom", "file", "licenseKey", "customerCredits"]
       },
+      "CustomerCreditsFeatureEntity": {
+        "type": "object",
+        "properties": {
+          "amount": {
+            "type": "string",
+            "description": "The number of credits to grant. String to preserve BigInt precision.",
+            "example": "100"
+          },
+          "unit_label": {
+            "type": "string",
+            "description": "Optional label for the credit unit (e.g. \"tokens\", \"credits\").",
+            "example": "tokens",
+            "nullable": true
+          },
+          "bucket_name": {
+            "type": "string",
+            "description": "The customer-credit bucket this grant funds — the `name` of the customer's credit account. Set it to a meter bucket (e.g. \"images\") so the credits fund a per-unit metered price; otherwise they land in `default` and metered usage cannot spend them. Distinct from `unit_label`, which is only a display label. On UPDATE the field is tri-state: OMIT it to leave the stored bucket unchanged, send `null` to clear it to the shared `default` wallet, or send a name to set it. On CREATE, omitted or null both mean `default`. A present-but-blank value is rejected.",
+            "example": "images",
+            "nullable": true
+          }
+        },
+        "required": ["amount"]
+      },
       "FeatureEntity": {
         "type": "object",
         "properties": {
@@ -4717,9 +4740,91 @@
             "type": "string",
             "description": "A brief description of the feature.",
             "example": "Access to premium course materials."
+          },
+          "customer_credits": {
+            "description": "The credit grant behind a `customerCredits` feature. Absent for other feature types.",
+            "nullable": true,
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/CustomerCreditsFeatureEntity"
+              }
+            ]
           }
         },
         "required": ["id", "type", "description"]
+      },
+      "UsagePriceSettlementMode": {
+        "type": "string",
+        "description": "How the charge settles: `prepaid` debits the customer credit account as usage aggregates; `postpaid` bills at renewal where the store supports it.",
+        "enum": ["prepaid", "postpaid"]
+      },
+      "UsagePriceTargetAccount": {
+        "type": "string",
+        "description": "Credit bucket a prepaid charge debits: `shared` (the customer default wallet) or `per_unit` (a bucket named after the meter unit label, or `target_account_name`). Defaults to `shared`.",
+        "enum": ["shared", "per_unit"]
+      },
+      "UsagePriceTrialUsageMode": {
+        "type": "string",
+        "description": "Usage metered during a free trial: `free` is not charged, `accrue` is charged when the trial converts. Defaults to `free`.",
+        "enum": ["free", "accrue"]
+      },
+      "UsagePriceEntity": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "description": "Unique identifier of the usage price.",
+            "example": "price_abc123"
+          },
+          "meter_id": {
+            "type": "string",
+            "description": "The meter this charge bills.",
+            "example": "mtr_abc123"
+          },
+          "unit_price": {
+            "type": "number",
+            "description": "Tax-exclusive price per SINGLE meter unit, in minor units of the product currency. \"$20 per 1,000,000 tokens\" is 0.002 (2000 cents / 1,000,000). Fractional values are allowed.",
+            "example": 0.002
+          },
+          "free_allowance": {
+            "type": "integer",
+            "description": "Meter units free per billing period, per customer, before the charge applies.",
+            "example": 1000
+          },
+          "cap": {
+            "type": "integer",
+            "description": "Optional ceiling on the charge per billing period, in minor units. Null means uncapped.",
+            "example": 50000,
+            "nullable": true
+          },
+          "settlement_mode": {
+            "example": "prepaid",
+            "$ref": "#/components/schemas/UsagePriceSettlementMode"
+          },
+          "target_account": {
+            "example": "per_unit",
+            "$ref": "#/components/schemas/UsagePriceTargetAccount"
+          },
+          "target_account_name": {
+            "type": "string",
+            "description": "The per-unit bucket this charge debits: the name given on write, or the meter unit label when none was. Null for a `shared` charge.",
+            "example": "images",
+            "nullable": true
+          },
+          "trial_usage_mode": {
+            "example": "free",
+            "$ref": "#/components/schemas/UsagePriceTrialUsageMode"
+          }
+        },
+        "required": [
+          "id",
+          "meter_id",
+          "unit_price",
+          "free_allowance",
+          "settlement_mode",
+          "target_account",
+          "trial_usage_mode"
+        ]
       },
       "ProductBillingType": {
         "type": "string",
@@ -4872,6 +4977,13 @@
             "type": "array",
             "items": {
               "$ref": "#/components/schemas/FeatureEntity"
+            }
+          },
+          "usage_prices": {
+            "description": "Metered charges billed on top of the base price, one per meter. Present on recurring products that meter usage.",
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/UsagePriceEntity"
             }
           },
           "price": {
@@ -5136,6 +5248,89 @@
         },
         "required": ["type", "key", "label"]
       },
+      "UsagePriceRequestEntity": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "description": "Identifier of an existing usage price to edit in place (update only). Omit to add a new charge.",
+            "example": "price_abc123"
+          },
+          "meter_id": {
+            "type": "string",
+            "description": "The meter this charge bills. Must belong to the same store. One charge per meter per product.",
+            "example": "mtr_abc123"
+          },
+          "unit_price": {
+            "type": "number",
+            "description": "Tax-exclusive price per SINGLE meter unit, in minor units of the product currency. \"$20 per 1,000,000 tokens\" is 0.002 (2000 cents / 1,000,000), not 20. Fractional values are allowed.",
+            "example": 0.002
+          },
+          "free_allowance": {
+            "type": "integer",
+            "description": "Meter units free per billing period, per customer, before the charge applies. Defaults to 0.",
+            "example": 1000
+          },
+          "cap": {
+            "type": "integer",
+            "description": "Optional ceiling on the charge per billing period, in minor units.",
+            "example": 50000,
+            "nullable": true
+          },
+          "settlement_mode": {
+            "example": "prepaid",
+            "$ref": "#/components/schemas/UsagePriceSettlementMode"
+          },
+          "target_account": {
+            "example": "per_unit",
+            "$ref": "#/components/schemas/UsagePriceTargetAccount"
+          },
+          "target_account_name": {
+            "type": "string",
+            "description": "Explicit name for the per-unit bucket. Only meaningful with `target_account: per_unit`; defaults to the meter unit label.",
+            "example": "images",
+            "nullable": true
+          },
+          "trial_usage_mode": {
+            "example": "free",
+            "$ref": "#/components/schemas/UsagePriceTrialUsageMode"
+          }
+        },
+        "required": ["meter_id", "unit_price", "settlement_mode"]
+      },
+      "ProductFeatureRequestType": {
+        "type": "string",
+        "description": "The feature type. Only `customerCredits` can be managed through the API.",
+        "enum": ["customerCredits"]
+      },
+      "ProductFeatureRequestEntity": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "description": "Identifier of an existing feature to edit in place (update only). Omit to add a new feature.",
+            "example": "feat_abc123"
+          },
+          "type": {
+            "example": "customerCredits",
+            "$ref": "#/components/schemas/ProductFeatureRequestType"
+          },
+          "description": {
+            "type": "string",
+            "description": "A brief description of the feature, shown to the customer.",
+            "example": "500 image credits"
+          },
+          "customer_credits": {
+            "description": "The credit grant this feature carries.",
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/CustomerCreditsFeatureEntity"
+              }
+            ]
+          }
+        },
+        "required": ["type", "description", "customer_credits"]
+      },
       "CreateProductRequestEntity": {
         "type": "object",
         "properties": {
@@ -5243,6 +5438,20 @@
             "type": "boolean",
             "description": "Enable abandoned cart recovery for this product",
             "default": false
+          },
+          "usage_prices": {
+            "description": "Metered charges billed on top of the base price, one per meter. Recurring products only.",
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/UsagePriceRequestEntity"
+            }
+          },
+          "features": {
+            "description": "Features granted by purchase. Only `customerCredits` (a credit grant into one of the customer credit buckets) can be managed through the API.",
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/ProductFeatureRequestEntity"
+            }
           }
         },
         "required": ["name", "description", "price", "currency", "billing_type"]
@@ -5325,6 +5534,20 @@
           "suggested_price": {
             "type": "integer",
             "description": "Suggested amount in cents when pay_what_you_want is enabled. Omit to leave unchanged; send `null` to clear it."
+          },
+          "usage_prices": {
+            "description": "Metered charges billed on top of the base price, one per meter. Recurring products only. The array is the complete set after the update: omit (or send `null`) to leave charges untouched, send `[]` to remove all, include `id` to edit a charge in place.",
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/UsagePriceRequestEntity"
+            }
+          },
+          "features": {
+            "description": "Features granted by purchase. Only `customerCredits` (a credit grant into one of the customer credit buckets) can be managed through the API. The array is the complete set of credit features after the update: omit (or send `null`) to leave features untouched, include `id` to edit in place; credit features missing from the array are removed.",
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/ProductFeatureRequestEntity"
+            }
           }
         }
       },
@@ -6251,29 +6474,6 @@
           }
         },
         "required": ["files"]
-      },
-      "CustomerCreditsFeatureEntity": {
-        "type": "object",
-        "properties": {
-          "amount": {
-            "type": "string",
-            "description": "The number of credits to grant. String to preserve BigInt precision.",
-            "example": "100"
-          },
-          "unit_label": {
-            "type": "string",
-            "description": "Optional label for the credit unit (e.g. \"tokens\", \"credits\").",
-            "example": "tokens",
-            "nullable": true
-          },
-          "bucket_name": {
-            "type": "string",
-            "description": "The customer-credit bucket this grant funds — the `name` of the customer's credit account. Set it to a meter bucket (e.g. \"images\") so the credits fund a per-unit metered price; otherwise they land in `default` and metered usage cannot spend them. Distinct from `unit_label`, which is only a display label. On UPDATE the field is tri-state: OMIT it to leave the stored bucket unchanged, send `null` to clear it to the shared `default` wallet, or send a name to set it. On CREATE, omitted or null both mean `default`. A present-but-blank value is rejected.",
-            "example": "images",
-            "nullable": true
-          }
-        },
-        "required": ["amount"]
       },
       "ProductFeatureEntity": {
         "type": "object",

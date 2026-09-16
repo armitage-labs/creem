@@ -223,6 +223,83 @@
           },
           "abandonedCartRecoveryEnabled": {
             "type": "boolean"
+          },
+          "usagePrices": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "properties": {
+                "id": {
+                  "type": "string"
+                },
+                "meterId": {
+                  "type": "string"
+                },
+                "unitPrice": {
+                  "type": "number"
+                },
+                "freeAllowance": {
+                  "type": "integer"
+                },
+                "cap": {
+                  "type": "integer",
+                  "nullable": true
+                },
+                "settlementMode": {
+                  "type": "string",
+                  "enum": ["prepaid", "postpaid"]
+                },
+                "targetAccount": {
+                  "type": "string",
+                  "enum": ["shared", "per_unit"]
+                },
+                "targetAccountName": {
+                  "type": "string",
+                  "nullable": true
+                },
+                "trialUsageMode": {
+                  "type": "string",
+                  "enum": ["free", "accrue"]
+                }
+              },
+              "required": ["meterId", "unitPrice", "settlementMode"]
+            }
+          },
+          "features": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "properties": {
+                "id": {
+                  "type": "string"
+                },
+                "type": {
+                  "type": "string",
+                  "enum": ["customerCredits"]
+                },
+                "description": {
+                  "type": "string"
+                },
+                "customerCredits": {
+                  "type": "object",
+                  "properties": {
+                    "amount": {
+                      "type": "string"
+                    },
+                    "unitLabel": {
+                      "type": "string",
+                      "nullable": true
+                    },
+                    "bucketName": {
+                      "type": "string",
+                      "nullable": true
+                    }
+                  },
+                  "required": ["amount"]
+                }
+              },
+              "required": ["type", "description", "customerCredits"]
+            }
           }
         },
         "required": ["name", "description", "price", "currency", "billingType"]
@@ -361,6 +438,83 @@
           },
           "suggestedPrice": {
             "type": "integer"
+          },
+          "usagePrices": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "properties": {
+                "id": {
+                  "type": "string"
+                },
+                "meterId": {
+                  "type": "string"
+                },
+                "unitPrice": {
+                  "type": "number"
+                },
+                "freeAllowance": {
+                  "type": "integer"
+                },
+                "cap": {
+                  "type": "integer",
+                  "nullable": true
+                },
+                "settlementMode": {
+                  "type": "string",
+                  "enum": ["prepaid", "postpaid"]
+                },
+                "targetAccount": {
+                  "type": "string",
+                  "enum": ["shared", "per_unit"]
+                },
+                "targetAccountName": {
+                  "type": "string",
+                  "nullable": true
+                },
+                "trialUsageMode": {
+                  "type": "string",
+                  "enum": ["free", "accrue"]
+                }
+              },
+              "required": ["meterId", "unitPrice", "settlementMode"]
+            }
+          },
+          "features": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "properties": {
+                "id": {
+                  "type": "string"
+                },
+                "type": {
+                  "type": "string",
+                  "enum": ["customerCredits"]
+                },
+                "description": {
+                  "type": "string"
+                },
+                "customerCredits": {
+                  "type": "object",
+                  "properties": {
+                    "amount": {
+                      "type": "string"
+                    },
+                    "unitLabel": {
+                      "type": "string",
+                      "nullable": true
+                    },
+                    "bucketName": {
+                      "type": "string",
+                      "nullable": true
+                    }
+                  },
+                  "required": ["amount"]
+                }
+              },
+              "required": ["type", "description", "customerCredits"]
+            }
           }
         },
         "required": []

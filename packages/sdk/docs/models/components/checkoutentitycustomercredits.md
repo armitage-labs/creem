@@ -1,13 +1,13 @@
-# CustomerCredits
+# CheckoutEntityCustomerCredits
 
-The credit grant behind a `customerCredits` feature. Absent for other feature types.
+Customer credits feature data.
 
 ## Example Usage
 
 ```typescript
-import { CustomerCredits } from "creem/models/components";
+import { CheckoutEntityCustomerCredits } from "creem/models/components";
 
-let value: CustomerCredits = {
+let value: CheckoutEntityCustomerCredits = {
   amount: "100",
   unitLabel: "tokens",
   bucketName: "images",

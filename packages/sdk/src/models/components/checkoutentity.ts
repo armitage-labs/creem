@@ -200,7 +200,7 @@ export type LicenseKey = {
 /**
  * Customer credits feature data.
  */
-export type CustomerCredits = {
+export type CheckoutEntityCustomerCredits = {
   /**
    * The number of credits to grant. String to preserve BigInt precision.
    */
@@ -344,7 +344,7 @@ export type Feature = {
   /**
    * Customer credits feature data.
    */
-  customerCredits?: CustomerCredits | null | undefined;
+  customerCredits?: CheckoutEntityCustomerCredits | null | undefined;
   /**
    * DEPRECATED: Use `license_key` instead. License key issued for the order.
    *
@@ -751,8 +751,8 @@ export function licenseKeyFromJSON(
 }
 
 /** @internal */
-export const CustomerCredits$inboundSchema: z.ZodType<
-  CustomerCredits,
+export const CheckoutEntityCustomerCredits$inboundSchema: z.ZodType<
+  CheckoutEntityCustomerCredits,
   z.ZodTypeDef,
   unknown
 > = z.object({
@@ -766,17 +766,17 @@ export const CustomerCredits$inboundSchema: z.ZodType<
   });
 });
 /** @internal */
-export type CustomerCredits$Outbound = {
+export type CheckoutEntityCustomerCredits$Outbound = {
   amount: string;
   unit_label?: string | null | undefined;
   bucket_name?: string | null | undefined;
 };
 
 /** @internal */
-export const CustomerCredits$outboundSchema: z.ZodType<
-  CustomerCredits$Outbound,
+export const CheckoutEntityCustomerCredits$outboundSchema: z.ZodType<
+  CheckoutEntityCustomerCredits$Outbound,
   z.ZodTypeDef,
-  CustomerCredits
+  CheckoutEntityCustomerCredits
 > = z.object({
   amount: z.string(),
   unitLabel: z.nullable(z.string()).optional(),
@@ -788,18 +788,22 @@ export const CustomerCredits$outboundSchema: z.ZodType<
   });
 });
 
-export function customerCreditsToJSON(
-  customerCredits: CustomerCredits,
+export function checkoutEntityCustomerCreditsToJSON(
+  checkoutEntityCustomerCredits: CheckoutEntityCustomerCredits,
 ): string {
-  return JSON.stringify(CustomerCredits$outboundSchema.parse(customerCredits));
+  return JSON.stringify(
+    CheckoutEntityCustomerCredits$outboundSchema.parse(
+      checkoutEntityCustomerCredits,
+    ),
+  );
 }
-export function customerCreditsFromJSON(
+export function checkoutEntityCustomerCreditsFromJSON(
   jsonString: string,
-): SafeParseResult<CustomerCredits, SDKValidationError> {
+): SafeParseResult<CheckoutEntityCustomerCredits, SDKValidationError> {
   return safeParse(
     jsonString,
-    (x) => CustomerCredits$inboundSchema.parse(JSON.parse(x)),
-    `Failed to parse 'CustomerCredits' from JSON`,
+    (x) => CheckoutEntityCustomerCredits$inboundSchema.parse(JSON.parse(x)),
+    `Failed to parse 'CheckoutEntityCustomerCredits' from JSON`,
   );
 }
 
@@ -969,8 +973,9 @@ export const Feature$inboundSchema: z.ZodType<Feature, z.ZodTypeDef, unknown> =
     private_note: z.nullable(z.string()).optional(),
     file: z.nullable(z.lazy(() => FileT$inboundSchema)).optional(),
     license_key: z.nullable(z.lazy(() => LicenseKey$inboundSchema)).optional(),
-    customer_credits: z.nullable(z.lazy(() => CustomerCredits$inboundSchema))
-      .optional(),
+    customer_credits: z.nullable(
+      z.lazy(() => CheckoutEntityCustomerCredits$inboundSchema),
+    ).optional(),
     license: z.nullable(z.lazy(() => License$inboundSchema)).optional(),
   }).transform((v) => {
     return remap$(v, {
@@ -987,7 +992,7 @@ export type Feature$Outbound = {
   private_note?: string | null | undefined;
   file?: FileT$Outbound | null | undefined;
   license_key?: LicenseKey$Outbound | null | undefined;
-  customer_credits?: CustomerCredits$Outbound | null | undefined;
+  customer_credits?: CheckoutEntityCustomerCredits$Outbound | null | undefined;
   license?: License$Outbound | null | undefined;
 };
 
@@ -1003,8 +1008,9 @@ export const Feature$outboundSchema: z.ZodType<
   privateNote: z.nullable(z.string()).optional(),
   file: z.nullable(z.lazy(() => FileT$outboundSchema)).optional(),
   licenseKey: z.nullable(z.lazy(() => LicenseKey$outboundSchema)).optional(),
-  customerCredits: z.nullable(z.lazy(() => CustomerCredits$outboundSchema))
-    .optional(),
+  customerCredits: z.nullable(
+    z.lazy(() => CheckoutEntityCustomerCredits$outboundSchema),
+  ).optional(),
   license: z.nullable(z.lazy(() => License$outboundSchema)).optional(),
 }).transform((v) => {
   return remap$(v, {

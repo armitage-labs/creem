@@ -19,8 +19,11 @@ let value: CreateProductRequest = {
     currency: "USD",
     billingType: "onetime",
     recurringIntervalCount: 1,
+    businessNetPricing: false,
     payWhatYouWant: false,
     suggestedPrice: 1500,
+    trialPeriodDays: 7,
+    trialPrice: 100,
     defaultSuccessUrl: "https://example.com/?status=successful",
     customFields: [
       {
@@ -34,6 +37,29 @@ let value: CreateProductRequest = {
         checkbox: {
           label:
             "I agree to the [terms and conditions](https://example.com/terms)",
+        },
+      },
+    ],
+    usagePrices: [
+      {
+        id: "price_abc123",
+        meterId: "mtr_abc123",
+        unitPrice: 0.002,
+        freeAllowance: 1000,
+        cap: 50000,
+        settlementMode: "prepaid",
+        targetAccountName: "images",
+      },
+    ],
+    features: [
+      {
+        id: "feat_abc123",
+        type: "customerCredits",
+        description: "500 image credits",
+        customerCredits: {
+          amount: "100",
+          unitLabel: "tokens",
+          bucketName: "images",
         },
       },
     ],

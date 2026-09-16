@@ -471,6 +471,7 @@ async function run() {
   const result = await creem.customers.update({
     customerId: "cust_abc123",
     name: "John Doe",
+    email: "john@example.com",
     metadata: {
 
     },
@@ -501,6 +502,7 @@ async function run() {
   const res = await customersUpdate(creem, {
     customerId: "cust_abc123",
     name: "John Doe",
+    email: "john@example.com",
     metadata: {
   
     },

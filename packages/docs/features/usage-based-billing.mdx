@@ -1,6 +1,6 @@
 ---
-title: 'Usage-Based Billing'
-description: 'Track what each customer consumes with events and meters, then charge for it with Customer Credits.'
+title: "Usage-Based Billing"
+description: "Track what each customer consumes with events and meters, then charge for it with Customer Credits."
 ---
 
 ## How it fits together
@@ -18,16 +18,15 @@ flowchart LR
 
 <CardGroup cols={3}>
   <Card title="Events" icon="bolt" href="/api-reference/endpoint/ingest-usage-events">
-    One customer's usage at one moment, for example 512 tokens for
-    `cust_abc123`.
+    One customer's usage at one moment, for example 512 tokens for `cust_abc123`.
   </Card>
   <Card title="Meters" icon="gauge" href="/api-reference/endpoint/create-meter">
-    Match events by name, filter them on their properties, and aggregate them
-    with `count`, `sum`, `average`, `min`, `max`, or `unique`.
+    Match events by name, filter them on their properties, and aggregate them with `count`, `sum`,
+    `average`, `min`, `max`, or `unique`.
   </Card>
   <Card title="Credits" icon="wallet" href="/features/customer-credits/introduction">
-    A prepaid balance per customer. Credit it when they buy, and debit it when
-    they use your product.
+    A prepaid balance per customer. Credit it when they buy, and debit it when they use your
+    product.
   </Card>
 </CardGroup>
 
@@ -82,10 +81,9 @@ curl -X POST https://api.creem.io/v1/meters \
 </CodeGroup>
 
 <Tip>
-  Check a definition before you create it. `POST /v1/meters/preview` runs a
-  meter definition against your recently ingested events without storing
-  anything, and `POST /v1/meters/{id}/preview` does the same for an existing
-  meter.
+  Check a definition before you create it. `POST /v1/meters/preview` runs a meter definition against
+  your recently ingested events without storing anything, and `POST /v1/meters/{id}/preview` does
+  the same for an existing meter.
 </Tip>
 
 Archive a meter to stop counting with it, and unarchive it to start again. Creem keeps the raw events while a meter is archived, so unarchiving adds that usage back into any billing period still inside its late-event window.
@@ -161,21 +159,21 @@ Both resolve to the same Creem customer, so you can switch from one to the other
 
 A `202` means Creem stored the events. Whether a meter counts them shows up in the per-event warnings in the response, so a misconfigured meter surfaces on the first request instead of at the end of the month:
 
-| Code | Meaning |
-| --- | --- |
-| `no_matching_meter` | No meter counts this event name. The event is stored but not aggregated. |
-| `meter_archived` | Only archived meters match. Unarchive one to resume aggregation. |
+| Code                            | Meaning                                                                                              |
+| ------------------------------- | ---------------------------------------------------------------------------------------------------- |
+| `no_matching_meter`             | No meter counts this event name. The event is stored but not aggregated.                             |
+| `meter_archived`                | Only archived meters match. Unarchive one to resume aggregation.                                     |
 | `timestamp_outside_late_window` | The timestamp falls in a finalized billing period, so the event doesn't change that period's totals. |
 
 ## Step 3: Verify ingestion
 
 Check that your events arrive and your meters count them:
 
-| Endpoint | Use it to |
-| --- | --- |
-| [`POST /v1/events/preview`](/api-reference/endpoint/preview-usage-events) | Dry-run an ingest payload. It returns each event's resolved `customer_id`, the meters that would count it, and any warnings, and stores nothing. |
-| [`GET /v1/events`](/api-reference/endpoint/list-usage-events) | List stored events, filtered by customer, meter, or your `event_id` (the `reference` parameter). Each event lists the meters that matched it. |
-| [`GET /v1/meters/{id}/consumed`](/api-reference/endpoint/get-meter-consumed-units) | Read a customer's units for the current billing period. Pass `at` to get the total as of an earlier moment. |
+| Endpoint                                                                           | Use it to                                                                                                                                        |
+| ---------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------ |
+| [`POST /v1/events/preview`](/api-reference/endpoint/preview-usage-events)          | Dry-run an ingest payload. It returns each event's resolved `customer_id`, the meters that would count it, and any warnings, and stores nothing. |
+| [`GET /v1/events`](/api-reference/endpoint/list-usage-events)                      | List stored events, filtered by customer, meter, or your `event_id` (the `reference` parameter). Each event lists the meters that matched it.    |
+| [`GET /v1/meters/{id}/consumed`](/api-reference/endpoint/get-meter-consumed-units) | Read a customer's units for the current billing period. Pass `at` to get the total as of an earlier moment.                                      |
 
 ## Step 4: Charge with credits
 
@@ -183,27 +181,26 @@ Customers buy credits up front, and you draw the balance down as they use your p
 
 <Steps>
   <Step title="Create an account per customer">
-    Call [`POST /v1/customer-credits/accounts`](/api-reference/endpoint/create-credits-account)
-    with the `unit_label` your customers see, such as "credits" or "renders".
-    Use `initial_balance` to include free trial credits.
+    Call [`POST /v1/customer-credits/accounts`](/api-reference/endpoint/create-credits-account) with
+    the `unit_label` your customers see, such as "credits" or "renders". Use `initial_balance` to
+    include free trial credits.
   </Step>
   <Step title="Credit on purchase">
-    When a customer buys a credit pack, call
-    [`POST /v1/customer-credits/accounts/{id}/credit`](/api-reference/endpoint/credit-account)
-    with your order ID as the `reference` and an `idempotency_key`. If your
-    purchase webhook is retried, the same key credits the account only once.
+    When a customer buys a credit pack, call [`POST /v1/customer-credits/accounts/{id}
+    /credit`](/api-reference/endpoint/credit-account) with your order ID as the `reference` and an
+    `idempotency_key`. If your purchase webhook is retried, the same key credits the account only
+    once.
   </Step>
   <Step title="Debit on each request">
-    When you serve a request, call
-    [`POST /v1/customer-credits/accounts/{id}/debit`](/api-reference/endpoint/debit-account)
-    with the amount at your price. Use the request's `event_id` in the
-    `reference` and `idempotency_key`, so a retried request debits only once.
+    When you serve a request, call [`POST /v1/customer-credits/accounts/{id}
+    /debit`](/api-reference/endpoint/debit-account) with the amount at your price. Use the request's
+    `event_id` in the `reference` and `idempotency_key`, so a retried request debits only once.
   </Step>
   <Step title="Prompt the top-up">
-    If the balance is too low, the debit fails with `422` and the error code
-    `insufficient_balance`, and nothing is debited. To warn customers earlier,
-    listen for the [`credits.consumed` webhook](/code/webhooks). Each one
-    carries `balance_after_minor_units`, the balance left after the debit.
+    If the balance is too low, the debit fails with `422` and the error code `insufficient_balance`,
+    and nothing is debited. To warn customers earlier, listen for the [`credits.consumed`
+    webhook](/code/webhooks). Each one carries `balance_after_minor_units`, the balance left after
+    the debit.
   </Step>
 </Steps>
 
@@ -220,13 +217,75 @@ await creem.customerCredits.debitAccount("cca_...", {
 });
 ```
 
+## Step 5: Let Creem settle usage against credits
+
+Instead of debiting on every request yourself, attach the meter to a product as a **prepaid usage price**. Subscribers to that product are then debited automatically as their usage aggregates: units past the free allowance are multiplied by the unit price and drawn from the credit bucket the price names. You keep ingesting events; Creem does the settlement.
+
+Both the metered product and the credit top-up that funds it can be created from the API:
+
+```bash
+# A recurring plan with a metered charge on top of its base price
+curl -X POST https://api.creem.io/v1/products \
+  -H "x-api-key: creem_your_api_key" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "name": "Pro plan",
+    "description": "Base fee plus per-image usage",
+    "price": 1000,
+    "currency": "EUR",
+    "billing_type": "recurring",
+    "billing_period": "every-month",
+    "usage_prices": [
+      {
+        "meter_id": "mtr_...",
+        "unit_price": 2,
+        "free_allowance": 100,
+        "settlement_mode": "prepaid",
+        "target_account": "per_unit"
+      }
+    ]
+  }'
+```
+
+```bash
+# A one-time top-up whose purchase grants 500 credits into that bucket
+curl -X POST https://api.creem.io/v1/products \
+  -H "x-api-key: creem_your_api_key" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "name": "500 image credits",
+    "description": "Top up your image balance",
+    "price": 500,
+    "currency": "EUR",
+    "billing_type": "onetime",
+    "features": [
+      {
+        "type": "customerCredits",
+        "description": "500 image credits",
+        "customer_credits": { "amount": "500", "unit_label": "images", "bucket_name": "images" }
+      }
+    ]
+  }'
+```
+
+| Field                            | Description                                                                                                                                                       |
+| -------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `usage_prices[].meter_id`        | The meter this charge bills. One charge per meter per product; recurring products only.                                                                           |
+| `usage_prices[].unit_price`      | Tax-exclusive price per **single** meter unit, in minor units of the product currency. "$20 per 1,000,000 tokens" is `0.002`, not `20`.                           |
+| `usage_prices[].free_allowance`  | Units per billing period, per customer, before the charge applies. Defaults to `0`.                                                                               |
+| `usage_prices[].settlement_mode` | `prepaid` debits the customer's credit account as usage aggregates.                                                                                               |
+| `usage_prices[].target_account`  | `shared` (the customer's default wallet) or `per_unit` (a bucket named after the meter's unit label, or `target_account_name`).                                   |
+| `features[].customer_credits`    | The grant a purchase makes: `amount` (as a string), an optional `unit_label`, and the `bucket_name` it funds. Point it at the same bucket the usage price debits. |
+
+On update, `usage_prices` and `features` are the product's complete set: omit them to leave charges and credit features untouched, send `[]` to remove them, include an `id` to edit one in place. `GET /v1/products/{id}` echoes both, so you can read back what you attached. Settlement emits `credits.consumed` per billing window; when the bucket cannot cover a charge, `customer_credits.exhausted` fires once per episode, and a customer who has consented to auto-refill is charged for the top-up product on their saved card.
+
 ## API key scopes
 
 Usage endpoints need scoped API keys. Give each key only the scopes its job needs. An ingestion worker, for example, needs only `events:write`.
 
-| Scope | Grants |
-| --- | --- |
-| `events:write` | Ingest and preview events |
-| `events:read` | List stored events |
+| Scope          | Grants                                                 |
+| -------------- | ------------------------------------------------------ |
+| `events:write` | Ingest and preview events                              |
+| `events:read`  | List stored events                                     |
 | `meters:write` | Create, update, preview, archive, and unarchive meters |
-| `meters:read` | List meters, read consumed units |
+| `meters:read`  | List meters, read consumed units                       |

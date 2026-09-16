@@ -3,6 +3,7 @@
  */
 
 import * as z from "zod/v3";
+import { remap as remap$ } from "../../lib/primitives.js";
 import { safeParse } from "../../lib/schemas.js";
 import { Result as SafeParseResult } from "../../types/fp.js";
 import { SDKValidationError } from "../errors/sdkvalidationerror.js";
@@ -11,6 +12,24 @@ import {
   ProductFeatureType$inboundSchema,
   ProductFeatureType$outboundSchema,
 } from "./productfeaturetype.js";
+
+/**
+ * The credit grant behind a `customerCredits` feature. Absent for other feature types.
+ */
+export type CustomerCredits = {
+  /**
+   * The number of credits to grant. String to preserve BigInt precision.
+   */
+  amount: string;
+  /**
+   * Optional label for the credit unit (e.g. "tokens", "credits").
+   */
+  unitLabel?: string | null | undefined;
+  /**
+   * The customer-credit bucket this grant funds — the `name` of the customer's credit account. Set it to a meter bucket (e.g. "images") so the credits fund a per-unit metered price; otherwise they land in `default` and metered usage cannot spend them. Distinct from `unit_label`, which is only a display label. On UPDATE the field is tri-state: OMIT it to leave the stored bucket unchanged, send `null` to clear it to the shared `default` wallet, or send a name to set it. On CREATE, omitted or null both mean `default`. A present-but-blank value is rejected.
+   */
+  bucketName?: string | null | undefined;
+};
 
 export type FeatureEntity = {
   /**
@@ -25,7 +44,64 @@ export type FeatureEntity = {
    * A brief description of the feature.
    */
   description: string;
+  /**
+   * The credit grant behind a `customerCredits` feature. Absent for other feature types.
+   */
+  customerCredits?: CustomerCredits | null | undefined;
 };
+
+/** @internal */
+export const CustomerCredits$inboundSchema: z.ZodType<
+  CustomerCredits,
+  z.ZodTypeDef,
+  unknown
+> = z.object({
+  amount: z.string(),
+  unit_label: z.nullable(z.string()).optional(),
+  bucket_name: z.nullable(z.string()).optional(),
+}).transform((v) => {
+  return remap$(v, {
+    "unit_label": "unitLabel",
+    "bucket_name": "bucketName",
+  });
+});
+/** @internal */
+export type CustomerCredits$Outbound = {
+  amount: string;
+  unit_label?: string | null | undefined;
+  bucket_name?: string | null | undefined;
+};
+
+/** @internal */
+export const CustomerCredits$outboundSchema: z.ZodType<
+  CustomerCredits$Outbound,
+  z.ZodTypeDef,
+  CustomerCredits
+> = z.object({
+  amount: z.string(),
+  unitLabel: z.nullable(z.string()).optional(),
+  bucketName: z.nullable(z.string()).optional(),
+}).transform((v) => {
+  return remap$(v, {
+    unitLabel: "unit_label",
+    bucketName: "bucket_name",
+  });
+});
+
+export function customerCreditsToJSON(
+  customerCredits: CustomerCredits,
+): string {
+  return JSON.stringify(CustomerCredits$outboundSchema.parse(customerCredits));
+}
+export function customerCreditsFromJSON(
+  jsonString: string,
+): SafeParseResult<CustomerCredits, SDKValidationError> {
+  return safeParse(
+    jsonString,
+    (x) => CustomerCredits$inboundSchema.parse(JSON.parse(x)),
+    `Failed to parse 'CustomerCredits' from JSON`,
+  );
+}
 
 /** @internal */
 export const FeatureEntity$inboundSchema: z.ZodType<
@@ -36,12 +112,19 @@ export const FeatureEntity$inboundSchema: z.ZodType<
   id: z.string(),
   type: ProductFeatureType$inboundSchema,
   description: z.string(),
+  customer_credits: z.nullable(z.lazy(() => CustomerCredits$inboundSchema))
+    .optional(),
+}).transform((v) => {
+  return remap$(v, {
+    "customer_credits": "customerCredits",
+  });
 });
 /** @internal */
 export type FeatureEntity$Outbound = {
   id: string;
   type: string;
   description: string;
+  customer_credits?: CustomerCredits$Outbound | null | undefined;
 };
 
 /** @internal */
@@ -53,6 +136,12 @@ export const FeatureEntity$outboundSchema: z.ZodType<
   id: z.string(),
   type: ProductFeatureType$outboundSchema,
   description: z.string(),
+  customerCredits: z.nullable(z.lazy(() => CustomerCredits$outboundSchema))
+    .optional(),
+}).transform((v) => {
+  return remap$(v, {
+    customerCredits: "customer_credits",
+  });
 });
 
 export function featureEntityToJSON(featureEntity: FeatureEntity): string {

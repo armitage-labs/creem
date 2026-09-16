@@ -13,6 +13,12 @@ import {
   ProductCurrency$outboundSchema,
 } from "./productcurrency.js";
 import {
+  ProductFeatureRequestEntity,
+  ProductFeatureRequestEntity$inboundSchema,
+  ProductFeatureRequestEntity$Outbound,
+  ProductFeatureRequestEntity$outboundSchema,
+} from "./productfeaturerequestentity.js";
+import {
   ProductRequestBillingPeriod,
   ProductRequestBillingPeriod$inboundSchema,
   ProductRequestBillingPeriod$outboundSchema,
@@ -32,6 +38,12 @@ import {
   TaxMode$inboundSchema,
   TaxMode$outboundSchema,
 } from "./taxmode.js";
+import {
+  UsagePriceRequestEntity,
+  UsagePriceRequestEntity$inboundSchema,
+  UsagePriceRequestEntity$Outbound,
+  UsagePriceRequestEntity$outboundSchema,
+} from "./usagepricerequestentity.js";
 
 export type UpdateProductRequestEntity = {
   /**
@@ -83,6 +95,18 @@ export type UpdateProductRequestEntity = {
    */
   taxMode?: TaxMode | undefined;
   /**
+   * When true, business customers whose valid VAT ID triggers reverse charge pay the price excluding VAT instead of the tax-inclusive price. Only supported for tax-inclusive one-time products; the merchant gives up the VAT portion on those sales. Defaults to false. Omit to leave unchanged.
+   */
+  businessNetPricing?: boolean | undefined;
+  /**
+   * Length of the trial period in days. A whole number of days, at least 1. Only supported for recurring products. Omit to leave the trial unchanged; send `null` to remove it (a paid trial's price is cleared with it). Switching `billing_type` to `onetime` removes the trial as well.
+   */
+  trialPeriodDays?: number | null | undefined;
+  /**
+   * Amount charged at checkout to start the trial, instead of a free card verification. In cents (100 = $1.00). Requires a trial period and must be at least 100 and lower than `price`; only supported on standard-priced recurring products without pay-what-you-want. Omit to leave unchanged; send `null` or 0 to make the trial free.
+   */
+  trialPrice?: number | null | undefined;
+  /**
    * Enable pay-what-you-want pricing (one-time only).
    */
   payWhatYouWant?: boolean | undefined;
@@ -90,6 +114,14 @@ export type UpdateProductRequestEntity = {
    * Suggested amount in cents when pay_what_you_want is enabled. Omit to leave unchanged; send `null` to clear it.
    */
   suggestedPrice?: number | undefined;
+  /**
+   * Metered charges billed on top of the base price, one per meter. Recurring products only. The array is the complete set after the update: omit (or send `null`) to leave charges untouched, send `[]` to remove all, include `id` to edit a charge in place.
+   */
+  usagePrices?: Array<UsagePriceRequestEntity> | undefined;
+  /**
+   * Features granted by purchase. Only `customerCredits` (a credit grant into one of the customer credit buckets) can be managed through the API. The array is the complete set of credit features after the update: omit (or send `null`) to leave features untouched, include `id` to edit in place; credit features missing from the array are removed.
+   */
+  features?: Array<ProductFeatureRequestEntity> | undefined;
 };
 
 /** @internal */
@@ -110,8 +142,13 @@ export const UpdateProductRequestEntity$inboundSchema: z.ZodType<
   recurring_interval: ProductRequestRecurringInterval$inboundSchema.optional(),
   recurring_interval_count: z.number().int().optional(),
   tax_mode: TaxMode$inboundSchema.optional(),
+  business_net_pricing: z.boolean().optional(),
+  trial_period_days: z.nullable(z.number().int()).optional(),
+  trial_price: z.nullable(z.number().int()).optional(),
   pay_what_you_want: z.boolean().optional(),
   suggested_price: z.number().int().optional(),
+  usage_prices: z.array(UsagePriceRequestEntity$inboundSchema).optional(),
+  features: z.array(ProductFeatureRequestEntity$inboundSchema).optional(),
 }).transform((v) => {
   return remap$(v, {
     "image_url": "imageUrl",
@@ -122,8 +159,12 @@ export const UpdateProductRequestEntity$inboundSchema: z.ZodType<
     "recurring_interval": "recurringInterval",
     "recurring_interval_count": "recurringIntervalCount",
     "tax_mode": "taxMode",
+    "business_net_pricing": "businessNetPricing",
+    "trial_period_days": "trialPeriodDays",
+    "trial_price": "trialPrice",
     "pay_what_you_want": "payWhatYouWant",
     "suggested_price": "suggestedPrice",
+    "usage_prices": "usagePrices",
   });
 });
 /** @internal */
@@ -140,8 +181,13 @@ export type UpdateProductRequestEntity$Outbound = {
   recurring_interval?: string | undefined;
   recurring_interval_count?: number | undefined;
   tax_mode?: string | undefined;
+  business_net_pricing?: boolean | undefined;
+  trial_period_days?: number | null | undefined;
+  trial_price?: number | null | undefined;
   pay_what_you_want?: boolean | undefined;
   suggested_price?: number | undefined;
+  usage_prices?: Array<UsagePriceRequestEntity$Outbound> | undefined;
+  features?: Array<ProductFeatureRequestEntity$Outbound> | undefined;
 };
 
 /** @internal */
@@ -162,8 +208,13 @@ export const UpdateProductRequestEntity$outboundSchema: z.ZodType<
   recurringInterval: ProductRequestRecurringInterval$outboundSchema.optional(),
   recurringIntervalCount: z.number().int().optional(),
   taxMode: TaxMode$outboundSchema.optional(),
+  businessNetPricing: z.boolean().optional(),
+  trialPeriodDays: z.nullable(z.number().int()).optional(),
+  trialPrice: z.nullable(z.number().int()).optional(),
   payWhatYouWant: z.boolean().optional(),
   suggestedPrice: z.number().int().optional(),
+  usagePrices: z.array(UsagePriceRequestEntity$outboundSchema).optional(),
+  features: z.array(ProductFeatureRequestEntity$outboundSchema).optional(),
 }).transform((v) => {
   return remap$(v, {
     imageUrl: "image_url",
@@ -174,8 +225,12 @@ export const UpdateProductRequestEntity$outboundSchema: z.ZodType<
     recurringInterval: "recurring_interval",
     recurringIntervalCount: "recurring_interval_count",
     taxMode: "tax_mode",
+    businessNetPricing: "business_net_pricing",
+    trialPeriodDays: "trial_period_days",
+    trialPrice: "trial_price",
     payWhatYouWant: "pay_what_you_want",
     suggestedPrice: "suggested_price",
+    usagePrices: "usage_prices",
   });
 });
 

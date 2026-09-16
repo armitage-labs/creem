@@ -18,6 +18,10 @@ export type UpdateCustomerRequestEntity = {
    */
   name?: string | undefined;
   /**
+   * The email address of the customer. Must be unique within the store; changing it to an email already used by another customer returns 409. Stored lowercased. Omit to leave unchanged.
+   */
+  email?: string | undefined;
+  /**
    * Additional metadata for the customer. Omit to leave unchanged; send `null` to clear it.
    */
   metadata?: { [k: string]: any } | undefined;
@@ -35,6 +39,7 @@ export const UpdateCustomerRequestEntity$inboundSchema: z.ZodType<
 > = z.object({
   customer_id: z.string(),
   name: z.string().optional(),
+  email: z.string().optional(),
   metadata: z.record(z.any()).optional(),
   external_id: z.nullable(z.string()).optional(),
 }).transform((v) => {
@@ -47,6 +52,7 @@ export const UpdateCustomerRequestEntity$inboundSchema: z.ZodType<
 export type UpdateCustomerRequestEntity$Outbound = {
   customer_id: string;
   name?: string | undefined;
+  email?: string | undefined;
   metadata?: { [k: string]: any } | undefined;
   external_id?: string | null | undefined;
 };
@@ -59,6 +65,7 @@ export const UpdateCustomerRequestEntity$outboundSchema: z.ZodType<
 > = z.object({
   customerId: z.string(),
   name: z.string().optional(),
+  email: z.string().optional(),
   metadata: z.record(z.any()).optional(),
   externalId: z.nullable(z.string()).optional(),
 }).transform((v) => {

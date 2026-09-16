@@ -112,8 +112,11 @@ async function run() {
     currency: "USD",
     billingType: "recurring",
     recurringIntervalCount: 1,
+    businessNetPricing: false,
     payWhatYouWant: false,
     suggestedPrice: 1500,
+    trialPeriodDays: 7,
+    trialPrice: 100,
     defaultSuccessUrl: "https://example.com/?status=successful",
     customFields: [
       {
@@ -126,6 +129,29 @@ async function run() {
         },
         checkbox: {
           label: "I agree to the [terms and conditions](https://example.com/terms)",
+        },
+      },
+    ],
+    usagePrices: [
+      {
+        id: "price_abc123",
+        meterId: "mtr_abc123",
+        unitPrice: 0.002,
+        freeAllowance: 1000,
+        cap: 50000,
+        settlementMode: "postpaid",
+        targetAccountName: "images",
+      },
+    ],
+    features: [
+      {
+        id: "feat_abc123",
+        type: "customerCredits",
+        description: "500 image credits",
+        customerCredits: {
+          amount: "100",
+          unitLabel: "tokens",
+          bucketName: "images",
         },
       },
     ],
@@ -164,8 +190,11 @@ async function run() {
     currency: "USD",
     billingType: "recurring",
     recurringIntervalCount: 1,
+    businessNetPricing: false,
     payWhatYouWant: false,
     suggestedPrice: 1500,
+    trialPeriodDays: 7,
+    trialPrice: 100,
     defaultSuccessUrl: "https://example.com/?status=successful",
     customFields: [
       {
@@ -178,6 +207,29 @@ async function run() {
         },
         checkbox: {
           label: "I agree to the [terms and conditions](https://example.com/terms)",
+        },
+      },
+    ],
+    usagePrices: [
+      {
+        id: "price_abc123",
+        meterId: "mtr_abc123",
+        unitPrice: 0.002,
+        freeAllowance: 1000,
+        cap: 50000,
+        settlementMode: "postpaid",
+        targetAccountName: "images",
+      },
+    ],
+    features: [
+      {
+        id: "feat_abc123",
+        type: "customerCredits",
+        description: "500 image credits",
+        customerCredits: {
+          amount: "100",
+          unitLabel: "tokens",
+          bucketName: "images",
         },
       },
     ],
@@ -297,7 +349,34 @@ const creem = new Creem({
 });
 
 async function run() {
-  const result = await creem.products.update("<id>", {});
+  const result = await creem.products.update("<id>", {
+    businessNetPricing: false,
+    trialPeriodDays: 7,
+    trialPrice: 100,
+    usagePrices: [
+      {
+        id: "price_abc123",
+        meterId: "mtr_abc123",
+        unitPrice: 0.002,
+        freeAllowance: 1000,
+        cap: 50000,
+        settlementMode: "prepaid",
+        targetAccountName: "images",
+      },
+    ],
+    features: [
+      {
+        id: "feat_abc123",
+        type: "customerCredits",
+        description: "500 image credits",
+        customerCredits: {
+          amount: "100",
+          unitLabel: "tokens",
+          bucketName: "images",
+        },
+      },
+    ],
+  });
 
   console.log(result);
 }
@@ -320,7 +399,34 @@ const creem = new CreemCore({
 });
 
 async function run() {
-  const res = await productsUpdate(creem, "<id>", {});
+  const res = await productsUpdate(creem, "<id>", {
+    businessNetPricing: false,
+    trialPeriodDays: 7,
+    trialPrice: 100,
+    usagePrices: [
+      {
+        id: "price_abc123",
+        meterId: "mtr_abc123",
+        unitPrice: 0.002,
+        freeAllowance: 1000,
+        cap: 50000,
+        settlementMode: "prepaid",
+        targetAccountName: "images",
+      },
+    ],
+    features: [
+      {
+        id: "feat_abc123",
+        type: "customerCredits",
+        description: "500 image credits",
+        customerCredits: {
+          amount: "100",
+          unitLabel: "tokens",
+          bucketName: "images",
+        },
+      },
+    ],
+  });
   if (res.ok) {
     const { value: result } = res;
     console.log(result);

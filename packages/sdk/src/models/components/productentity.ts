@@ -49,6 +49,12 @@ import {
   TaxMode$inboundSchema,
   TaxMode$outboundSchema,
 } from "./taxmode.js";
+import {
+  UsagePriceEntity,
+  UsagePriceEntity$inboundSchema,
+  UsagePriceEntity$Outbound,
+  UsagePriceEntity$outboundSchema,
+} from "./usagepriceentity.js";
 
 export type ProductEntity = {
   /**
@@ -84,6 +90,10 @@ export type ProductEntity = {
    */
   features?: Array<FeatureEntity> | undefined;
   /**
+   * Metered charges billed on top of the base price, one per meter. Present on recurring products that meter usage.
+   */
+  usagePrices?: Array<UsagePriceEntity> | undefined;
+  /**
    * The price of the product in cents. 1000 = $10.00
    */
   price: number;
@@ -108,6 +118,14 @@ export type ProductEntity = {
    */
   recurringIntervalCount?: number | null | undefined;
   /**
+   * Length of the trial period in days. A whole number of days, at least 1. Only supported for recurring products. `null` when the product has no trial.
+   */
+  trialPeriodDays?: number | null | undefined;
+  /**
+   * Amount charged at checkout to start the trial, instead of a free card verification. In cents (100 = $1.00). Requires a trial period and must be at least 100 and lower than `price`; only supported on standard-priced recurring products without pay-what-you-want. `null` for a free trial and for products without a trial.
+   */
+  trialPrice?: number | null | undefined;
+  /**
    * Lifecycle status of the product: `active` or `archived`.
    */
   status: ProductStatus;
@@ -115,6 +133,10 @@ export type ProductEntity = {
    * Specifies the tax calculation mode for the transaction. If set to "inclusive," the tax is included in the price. If set to "exclusive," the tax is added on top of the price.
    */
   taxMode: TaxMode;
+  /**
+   * When true, business customers whose valid VAT ID triggers reverse charge pay the price excluding VAT instead of the tax-inclusive price. Only supported for tax-inclusive one-time products; the merchant gives up the VAT portion on those sales. Defaults to false.
+   */
+  businessNetPricing?: boolean | undefined;
   /**
    * Categorizes the type of product or service for tax purposes. This helps determine the applicable tax rules based on the nature of the item or service.
    */
@@ -155,14 +177,18 @@ export const ProductEntity$inboundSchema: z.ZodType<
   image_url: z.string().optional(),
   image_urls: z.array(z.string()).optional(),
   features: z.array(FeatureEntity$inboundSchema).optional(),
+  usage_prices: z.array(UsagePriceEntity$inboundSchema).optional(),
   price: z.number(),
   currency: z.string(),
   billing_type: ProductBillingType$inboundSchema,
   billing_period: ProductBillingPeriod$inboundSchema,
   recurring_interval: z.nullable(z.string()).optional(),
   recurring_interval_count: z.nullable(z.number().int()).optional(),
+  trial_period_days: z.nullable(z.number().int()).optional(),
+  trial_price: z.nullable(z.number().int()).optional(),
   status: ProductStatus$inboundSchema,
   tax_mode: TaxMode$inboundSchema,
+  business_net_pricing: z.boolean().optional(),
   tax_category: TaxCategory$inboundSchema,
   product_url: z.string().optional(),
   default_success_url: z.nullable(z.string()).optional(),
@@ -173,11 +199,15 @@ export const ProductEntity$inboundSchema: z.ZodType<
   return remap$(v, {
     "image_url": "imageUrl",
     "image_urls": "imageUrls",
+    "usage_prices": "usagePrices",
     "billing_type": "billingType",
     "billing_period": "billingPeriod",
     "recurring_interval": "recurringInterval",
     "recurring_interval_count": "recurringIntervalCount",
+    "trial_period_days": "trialPeriodDays",
+    "trial_price": "trialPrice",
     "tax_mode": "taxMode",
+    "business_net_pricing": "businessNetPricing",
     "tax_category": "taxCategory",
     "product_url": "productUrl",
     "default_success_url": "defaultSuccessUrl",
@@ -196,14 +226,18 @@ export type ProductEntity$Outbound = {
   image_url?: string | undefined;
   image_urls?: Array<string> | undefined;
   features?: Array<FeatureEntity$Outbound> | undefined;
+  usage_prices?: Array<UsagePriceEntity$Outbound> | undefined;
   price: number;
   currency: string;
   billing_type: string;
   billing_period: string;
   recurring_interval?: string | null | undefined;
   recurring_interval_count?: number | null | undefined;
+  trial_period_days?: number | null | undefined;
+  trial_price?: number | null | undefined;
   status: string;
   tax_mode: string;
+  business_net_pricing?: boolean | undefined;
   tax_category: string;
   product_url?: string | undefined;
   default_success_url?: string | null | undefined;
@@ -226,14 +260,18 @@ export const ProductEntity$outboundSchema: z.ZodType<
   imageUrl: z.string().optional(),
   imageUrls: z.array(z.string()).optional(),
   features: z.array(FeatureEntity$outboundSchema).optional(),
+  usagePrices: z.array(UsagePriceEntity$outboundSchema).optional(),
   price: z.number(),
   currency: z.string(),
   billingType: ProductBillingType$outboundSchema,
   billingPeriod: ProductBillingPeriod$outboundSchema,
   recurringInterval: z.nullable(z.string()).optional(),
   recurringIntervalCount: z.nullable(z.number().int()).optional(),
+  trialPeriodDays: z.nullable(z.number().int()).optional(),
+  trialPrice: z.nullable(z.number().int()).optional(),
   status: ProductStatus$outboundSchema,
   taxMode: TaxMode$outboundSchema,
+  businessNetPricing: z.boolean().optional(),
   taxCategory: TaxCategory$outboundSchema,
   productUrl: z.string().optional(),
   defaultSuccessUrl: z.nullable(z.string()).optional(),
@@ -244,11 +282,15 @@ export const ProductEntity$outboundSchema: z.ZodType<
   return remap$(v, {
     imageUrl: "image_url",
     imageUrls: "image_urls",
+    usagePrices: "usage_prices",
     billingType: "billing_type",
     billingPeriod: "billing_period",
     recurringInterval: "recurring_interval",
     recurringIntervalCount: "recurring_interval_count",
+    trialPeriodDays: "trial_period_days",
+    trialPrice: "trial_price",
     taxMode: "tax_mode",
+    businessNetPricing: "business_net_pricing",
     taxCategory: "tax_category",
     productUrl: "product_url",
     defaultSuccessUrl: "default_success_url",
