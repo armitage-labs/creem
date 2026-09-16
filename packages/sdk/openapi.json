@@ -6093,6 +6093,11 @@
             "description": "The full name of the customer.",
             "example": "John Doe"
           },
+          "email": {
+            "type": "string",
+            "description": "The email address of the customer. Must be unique within the store; changing it to an email already used by another customer returns 409. Stored lowercased. Omit to leave unchanged.",
+            "example": "john@example.com"
+          },
           "metadata": {
             "type": "object",
             "description": "Additional metadata for the customer. Omit to leave unchanged; send `null` to clear it.",
