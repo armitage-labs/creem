@@ -114,7 +114,7 @@ description: 'Answers to the most common questions about using Creem.'
     Go to the **Developers** section in the left sidebar of your dashboard. Make sure you're in the correct mode (test/live) using the toggle in the sidebar. See [Dashboard Overview](/getting-started/dashboard-overview) for a visual guide.
   </Accordion>
   <Accordion title="How do I test webhooks locally?">
-    Use a tunneling tool like [ngrok](https://ngrok.com) to expose your local server, then set the ngrok URL as your webhook endpoint in the dashboard. See [Webhooks](/code/webhooks) for full setup instructions.
+    Run `creem listen --forward-to http://localhost:3000/api/webhooks` with the [Creem CLI](/code/cli#local-webhooks). It receives your store's events and forwards them to your local server with the real signature header, then use **Send test event** on the endpoint in the dashboard or make test checkouts. If you prefer a public URL, a tunneling tool like [ngrok](https://ngrok.com) also works: set the tunnel URL as your webhook endpoint. See [Webhooks](/code/webhooks) for full setup instructions.
   </Accordion>
   <Accordion title="Does the webhook fire when a customer cancels?">
     Yes. The `subscription.canceled` event is fired when a subscription is canceled. If you want to revoke access immediately on cancellation (rather than at the end of the billing period), listen for this event. See [Subscriptions](/features/subscriptions/introduction).

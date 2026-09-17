@@ -6,7 +6,7 @@ import * as z from "zod/v3";
 import { ClosedEnum } from "../../types/enums.js";
 
 /**
- * Event types delivered to this endpoint. An empty list means every event type.
+ * The event type carried in the delivery.
  */
 export const WebhookEventType = {
   CheckoutCompleted: "checkout.completed",
@@ -28,7 +28,7 @@ export const WebhookEventType = {
   CreditsAutoRecharged: "credits.auto_recharged",
 } as const;
 /**
- * Event types delivered to this endpoint. An empty list means every event type.
+ * The event type carried in the delivery.
  */
 export type WebhookEventType = ClosedEnum<typeof WebhookEventType>;
 

@@ -1,0 +1,5 @@
+---
+title: 'Acknowledge a CLI webhook event'
+description: 'Report the status your local server returned for an event from the pending feed. Any 2xx marks the delivery successful; anything else records a failure. Acknowledged events leave the pending feed and appear in the dashboard event log with the reported result. Only valid for endpoints created with `delivery_mode: cli`.'
+openapi: post /v1/webhooks/{id}/events/{event_id}/ack
+---

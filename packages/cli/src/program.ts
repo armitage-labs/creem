@@ -11,6 +11,7 @@ import { createLogoutCommand } from "./commands/logout";
 import { createWhoamiCommand } from "./commands/whoami";
 import { createConfigCommand } from "./commands/config";
 import { createMigrateCommand } from "./commands/migrate";
+import { createListenCommand } from "./commands/listen";
 import { loadConfig } from "./lib/config";
 
 export function createProgram(context: CliContext = createContext()): Command {
@@ -29,6 +30,7 @@ export function createProgram(context: CliContext = createContext()): Command {
   program.addCommand(createWhoamiCommand(context));
   program.addCommand(createConfigCommand(context));
   program.addCommand(createMigrateCommand(context));
+  program.addCommand(createListenCommand(context));
   program.addCommand(
     new Command("help")
       .description("Display help for the CLI or a command")

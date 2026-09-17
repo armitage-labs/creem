@@ -347,6 +347,8 @@ run();
 * [update](docs/sdks/webhooks/README.md#update) - Update a webhook endpoint
 * [delete](docs/sdks/webhooks/README.md#delete) - Delete a webhook endpoint
 * [getSecret](docs/sdks/webhooks/README.md#getsecret) - Retrieve a webhook signing secret
+* [listPendingEvents](docs/sdks/webhooks/README.md#listpendingevents) - List pending events for a CLI webhook endpoint
+* [acknowledgeEvent](docs/sdks/webhooks/README.md#acknowledgeevent) - Acknowledge a CLI webhook event
 
 </details>
 <!-- End Available Resources and Operations [operations] -->
@@ -437,11 +439,13 @@ To read more about standalone functions, check [FUNCTIONS.md](./FUNCTIONS.md).
 - [`transactionsGetById`](docs/sdks/transactions/README.md#getbyid) - Get a transaction by ID
 - [`transactionsRefund`](docs/sdks/transactions/README.md#refund) - Refund a payment
 - [`transactionsSearch`](docs/sdks/transactions/README.md#search) - List all transactions
+- [`webhooksAcknowledgeEvent`](docs/sdks/webhooks/README.md#acknowledgeevent) - Acknowledge a CLI webhook event
 - [`webhooksCreate`](docs/sdks/webhooks/README.md#create) - Create a webhook endpoint
 - [`webhooksDelete`](docs/sdks/webhooks/README.md#delete) - Delete a webhook endpoint
 - [`webhooksGet`](docs/sdks/webhooks/README.md#get) - Retrieve a webhook endpoint
 - [`webhooksGetSecret`](docs/sdks/webhooks/README.md#getsecret) - Retrieve a webhook signing secret
 - [`webhooksList`](docs/sdks/webhooks/README.md#list) - List webhook endpoints
+- [`webhooksListPendingEvents`](docs/sdks/webhooks/README.md#listpendingevents) - List pending events for a CLI webhook endpoint
 - [`webhooksUpdate`](docs/sdks/webhooks/README.md#update) - Update a webhook endpoint
 
 </details>
@@ -614,8 +618,8 @@ run();
 
 
 **Inherit from [`CreemError`](./src/models/errors/creemerror.ts)**:
-* [`CustomerCreditsErrorResponseDto`](./src/models/errors/customercreditserrorresponsedto.ts): Applicable to 8 of 77 methods.*
-* [`UsageMeteringErrorApiResponseDto`](./src/models/errors/usagemeteringerrorapiresponsedto.ts): Applicable to 6 of 77 methods.*
+* [`CustomerCreditsErrorResponseDto`](./src/models/errors/customercreditserrorresponsedto.ts): Applicable to 8 of 79 methods.*
+* [`UsageMeteringErrorApiResponseDto`](./src/models/errors/usagemeteringerrorapiresponsedto.ts): Applicable to 6 of 79 methods.*
 * [`ResponseValidationError`](./src/models/errors/responsevalidationerror.ts): Type mismatch between the data returned from the server and the structure expected by the SDK. See `error.rawValue` for the raw value and `error.pretty()` for a nicely formatted multi-line string.
 
 </details>

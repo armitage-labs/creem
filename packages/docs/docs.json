@@ -470,7 +470,9 @@
               "api-reference/endpoint/get-webhook",
               "api-reference/endpoint/update-webhook",
               "api-reference/endpoint/delete-webhook",
-              "api-reference/endpoint/get-webhook-secret"
+              "api-reference/endpoint/get-webhook-secret",
+              "api-reference/endpoint/list-pending-webhook-events",
+              "api-reference/endpoint/acknowledge-webhook-event"
             ]
           }
         ]

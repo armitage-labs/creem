@@ -1,0 +1,5 @@
+---
+title: 'List pending events for a CLI webhook endpoint'
+description: 'Events recorded for a `cli` delivery-mode endpoint that have not been acknowledged yet, oldest first. Each item carries the exact request body and headers an HTTP delivery would send. Forward them to your local server, then acknowledge each event with the status it returned. Only valid for endpoints created with `delivery_mode: cli`.'
+openapi: get /v1/webhooks/{id}/events/pending
+---

@@ -84,11 +84,13 @@ import { tool$subscriptionsUpgrade } from "./tools/subscriptionsUpgrade.js";
 import { tool$transactionsGetById } from "./tools/transactionsGetById.js";
 import { tool$transactionsRefund } from "./tools/transactionsRefund.js";
 import { tool$transactionsSearch } from "./tools/transactionsSearch.js";
+import { tool$webhooksAcknowledgeEvent } from "./tools/webhooksAcknowledgeEvent.js";
 import { tool$webhooksCreate } from "./tools/webhooksCreate.js";
 import { tool$webhooksDelete } from "./tools/webhooksDelete.js";
 import { tool$webhooksGet } from "./tools/webhooksGet.js";
 import { tool$webhooksGetSecret } from "./tools/webhooksGetSecret.js";
 import { tool$webhooksList } from "./tools/webhooksList.js";
+import { tool$webhooksListPendingEvents } from "./tools/webhooksListPendingEvents.js";
 import { tool$webhooksUpdate } from "./tools/webhooksUpdate.js";
 
 export function createMCPServer(deps: {
@@ -208,6 +210,8 @@ export function createMCPServer(deps: {
   tool(tool$webhooksUpdate);
   tool(tool$webhooksDelete);
   tool(tool$webhooksGetSecret);
+  tool(tool$webhooksListPendingEvents);
+  tool(tool$webhooksAcknowledgeEvent);
 
   return server;
 }

@@ -14,6 +14,7 @@ let value: WebhookListEntity = {
       storeId: "sto_1234567890",
       name: "Production billing events",
       url: "https://example.com/webhooks/creem",
+      deliveryMode: "http",
       status: "enabled",
       events: [
         "checkout.completed",

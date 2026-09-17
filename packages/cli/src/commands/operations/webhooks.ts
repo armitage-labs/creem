@@ -56,4 +56,25 @@ export const handlers: Record<string, OperationHandler> = {
     );
     return client.webhooks.getSecret(p.id, options);
   },
+  listPendingWebhookEvents: (client, parameters, body, options) => {
+    const p = decode(
+      operations.ListPendingWebhookEventsRequest$outboundSchema,
+      operations.ListPendingWebhookEventsRequest$inboundSchema,
+      parameters,
+    );
+    return client.webhooks.listPendingEvents(p.id, p.limit, options);
+  },
+  acknowledgeWebhookEvent: (client, parameters, body, options) => {
+    const p = decode(
+      operations.AcknowledgeWebhookEventRequest$outboundSchema,
+      operations.AcknowledgeWebhookEventRequest$inboundSchema,
+      { ...parameters, acknowledgeWebhookEventRequestEntity: body },
+    );
+    const b = decode(
+      components.AcknowledgeWebhookEventRequestEntity$outboundSchema,
+      components.AcknowledgeWebhookEventRequestEntity$inboundSchema,
+      body,
+    );
+    return client.webhooks.acknowledgeEvent(p.id, p.eventId, b, options);
+  },
 };

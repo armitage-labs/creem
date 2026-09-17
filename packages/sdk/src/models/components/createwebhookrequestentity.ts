@@ -3,9 +3,15 @@
  */
 
 import * as z from "zod/v3";
+import { remap as remap$ } from "../../lib/primitives.js";
 import { safeParse } from "../../lib/schemas.js";
 import { Result as SafeParseResult } from "../../types/fp.js";
 import { SDKValidationError } from "../errors/sdkvalidationerror.js";
+import {
+  WebhookDeliveryMode,
+  WebhookDeliveryMode$inboundSchema,
+  WebhookDeliveryMode$outboundSchema,
+} from "./webhookdeliverymode.js";
 import {
   WebhookEventType,
   WebhookEventType$inboundSchema,
@@ -14,9 +20,13 @@ import {
 
 export type CreateWebhookRequestEntity = {
   /**
-   * The HTTPS URL Creem will deliver events to.
+   * The HTTPS URL Creem will deliver events to. Required unless `delivery_mode` is `cli`, in which case it is ignored.
    */
-  url: string;
+  url?: string | undefined;
+  /**
+   * How events reach this endpoint: `http` deliveries are POSTed to `url`; `cli` deliveries wait in the pending-events feed for a local `creem listen` session.
+   */
+  deliveryMode?: WebhookDeliveryMode | undefined;
   /**
    * A human-readable label for the endpoint.
    */
@@ -30,13 +40,19 @@ export const CreateWebhookRequestEntity$inboundSchema: z.ZodType<
   z.ZodTypeDef,
   unknown
 > = z.object({
-  url: z.string(),
+  url: z.string().optional(),
+  delivery_mode: WebhookDeliveryMode$inboundSchema.optional(),
   name: z.string().optional(),
   events: z.array(WebhookEventType$inboundSchema).optional(),
+}).transform((v) => {
+  return remap$(v, {
+    "delivery_mode": "deliveryMode",
+  });
 });
 /** @internal */
 export type CreateWebhookRequestEntity$Outbound = {
-  url: string;
+  url?: string | undefined;
+  delivery_mode?: string | undefined;
   name?: string | undefined;
   events?: Array<string> | undefined;
 };
@@ -47,9 +63,14 @@ export const CreateWebhookRequestEntity$outboundSchema: z.ZodType<
   z.ZodTypeDef,
   CreateWebhookRequestEntity
 > = z.object({
-  url: z.string(),
+  url: z.string().optional(),
+  deliveryMode: WebhookDeliveryMode$outboundSchema.optional(),
   name: z.string().optional(),
   events: z.array(WebhookEventType$outboundSchema).optional(),
+}).transform((v) => {
+  return remap$(v, {
+    deliveryMode: "delivery_mode",
+  });
 });
 
 export function createWebhookRequestEntityToJSON(
