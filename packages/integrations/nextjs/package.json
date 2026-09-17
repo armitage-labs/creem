@@ -1,6 +1,6 @@
 {
   "name": "@creem_io/nextjs",
-  "version": "0.6.3",
+  "version": "0.6.4",
   "description": "Creem payment integration for Next.js applications",
   "main": "./dist/index.js",
   "module": "./dist/index.mjs",
@@ -46,7 +46,7 @@
   },
   "dependencies": {
     "@creem_io/webhook-types": "workspace:^",
-    "creem": "workspace:^1.12.0"
+    "creem": "workspace:^1.13.0"
   },
   "devDependencies": {
     "@types/node": "^22.0.0",
