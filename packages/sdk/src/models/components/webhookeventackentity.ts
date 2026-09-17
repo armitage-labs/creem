@@ -17,7 +17,7 @@ export type WebhookEventAckEntity = {
    */
   object: string;
   /**
-   * Whether the reported status code counts as a successful delivery (any 2xx).
+   * Whether the first acknowledgment recorded a successful delivery (any 2xx). Repeated acknowledgments return the stored result.
    */
   success: boolean;
 };

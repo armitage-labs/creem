@@ -267,11 +267,14 @@ export function createListenCommand(context: CliContext = createContext()): Comm
         for (const event of pending) {
           if (controller.signal.aborted) break;
           const result = await forward(target.toString(), event, opts.forwardTimeout);
-          await client.webhooks.acknowledgeEvent(webhookId, event.id, {
+          const acknowledgment = await client.webhooks.acknowledgeEvent(webhookId, event.id, {
             statusCode: result.statusCode,
             responseBody: result.responseBody,
           });
-          const success = result.statusCode >= 200 && result.statusCode < 300;
+          // The first acknowledgment wins; another listener may have already
+          // recorded a different outcome for this delivery.
+          const success = acknowledgment.success;
+          const localSuccess = result.statusCode >= 200 && result.statusCode < 300;
           forwarded++;
           if (!success) failed++;
           if (machine)
@@ -286,21 +289,25 @@ export function createListenCommand(context: CliContext = createContext()): Comm
               ...(result.transportError ? { error: result.transportError } : {}),
             });
           else {
-            const status = success
+            const status = localSuccess
               ? chalk.green(String(result.statusCode))
               : chalk.red(String(result.statusCode));
             const detail = result.transportError
               ? chalk.red(`  ${result.transportError}`)
-              : success
+              : localSuccess
                 ? ""
                 : chalk.red("  failed");
+            const storedOutcome =
+              success === localSuccess
+                ? ""
+                : `  stored acknowledgment: ${success ? "succeeded" : "failed"}`;
             emit(
-              `${chalk.dim(timestamp())}  ${event.eventType.padEnd(32)} ${chalk.dim(event.id)}  → ${status}  ${chalk.dim(`(${result.durationMs} ms)`)}${detail}`,
+              `${chalk.dim(timestamp())}  ${event.eventType.padEnd(32)} ${chalk.dim(event.id)}  → ${status}  ${chalk.dim(`(${result.durationMs} ms)`)}${detail}${storedOutcome}`,
             );
           }
         }
 
-        if (opts.once) break;
+        if (opts.once && pending.length < POLL_PAGE_SIZE) break;
         // Drain a backlog immediately; only idle-wait when the feed was empty.
         if (pending.length === 0) await sleep(opts.interval, controller.signal);
       }

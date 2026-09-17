@@ -1873,6 +1873,8 @@ examples:
       parameters:
         path:
           id: "<id>"
+        query:
+          limit: 50
       responses:
         "200":
           application/json: {"items": []}

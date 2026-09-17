@@ -4667,9 +4667,12 @@
             "name": "limit",
             "required": false,
             "in": "query",
-            "description": "Maximum number of events to return (1-100, default 50).",
+            "description": "Maximum number of pending events to return.",
             "schema": {
-              "type": "number"
+              "minimum": 1,
+              "maximum": 100,
+              "default": 50,
+              "type": "integer"
             }
           }
         ],
@@ -9225,7 +9228,7 @@
           },
           "success": {
             "type": "boolean",
-            "description": "Whether the reported status code counts as a successful delivery (any 2xx).",
+            "description": "Whether the first acknowledgment recorded a successful delivery (any 2xx). Repeated acknowledgments return the stored result.",
             "example": true
           }
         },

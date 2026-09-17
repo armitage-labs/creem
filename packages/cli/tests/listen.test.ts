@@ -28,7 +28,11 @@ function wire(h: ReturnType<typeof harness>) {
     .mockResolvedValue({ items: [pendingEvent] });
   const acknowledgeEvent = vi
     .spyOn(h.client.webhooks, "acknowledgeEvent")
-    .mockResolvedValue({ id: "evt_1", object: "webhook_event", success: true });
+    .mockImplementation(async (_webhookId, eventId, acknowledgment) => ({
+      id: eventId,
+      object: "webhook_event",
+      success: acknowledgment.statusCode >= 200 && acknowledgment.statusCode < 300,
+    }));
   const del = vi.spyOn(h.client.webhooks, "delete").mockResolvedValue({ id: "wh_cli" } as never);
   return { create, listPendingEvents, acknowledgeEvent, delete: del };
 }
@@ -237,3 +241,88 @@ it("still deletes the endpoint when the poll fails under --once", async () => {
   expect(result.stderr).toContain("SDK_SENTINEL");
   expect(spies.delete).toHaveBeenCalledExactlyOnceWith("wh_cli");
 });
+
+it.each([
+  { statusCode: 200, storedSuccess: false },
+  { statusCode: 500, storedSuccess: true },
+])(
+  "reports the stored acknowledgment outcome for local status $statusCode",
+  async ({ statusCode, storedSuccess }) => {
+    const h = harness();
+    const spies = wire(h);
+    spies.acknowledgeEvent.mockResolvedValue({
+      id: pendingEvent.id,
+      object: "webhook_event",
+      success: storedSuccess,
+    });
+    vi.stubGlobal(
+      "fetch",
+      vi.fn(async () => new Response("local result", { status: statusCode })),
+    );
+
+    const result = await h.run([
+      "listen",
+      "--forward-to",
+      "http://localhost:3000/hook",
+      "--once",
+      "--json",
+    ]);
+    const records = result.stdout
+      .trim()
+      .split("\n")
+      .map((line) => JSON.parse(line));
+
+    expect(result.code, result.stderr).toBe(0);
+    expect(records[1]).toMatchObject({
+      type: "event",
+      status_code: statusCode,
+      success: storedSuccess,
+    });
+    expect(records[2]).toMatchObject({
+      type: "stopped",
+      forwarded: 1,
+      failed: storedSuccess ? 0 : 1,
+    });
+  },
+);
+
+it.each([0, 1])(
+  "drains a full pending page and %i additional events under --once",
+  async (remaining) => {
+    const h = harness();
+    const spies = wire(h);
+    const page = Array.from({ length: 100 }, (_, index) => ({
+      ...pendingEvent,
+      id: `evt_${index}`,
+    }));
+    spies.listPendingEvents
+      .mockResolvedValueOnce({ items: page })
+      .mockResolvedValueOnce({ items: remaining ? [{ ...pendingEvent, id: "evt_100" }] : [] });
+    vi.stubGlobal(
+      "fetch",
+      vi.fn(async () => new Response("OK", { status: 200 })),
+    );
+
+    const result = await h.run([
+      "listen",
+      "--forward-to",
+      "http://localhost:3000/hook",
+      "--once",
+      "--json",
+    ]);
+
+    expect(result.code, result.stderr).toBe(0);
+    expect(spies.listPendingEvents).toHaveBeenCalledTimes(2);
+    expect(spies.acknowledgeEvent).toHaveBeenCalledTimes(100 + remaining);
+    expect(spies.delete).toHaveBeenCalledOnce();
+    const records = result.stdout
+      .trim()
+      .split("\n")
+      .map((line) => JSON.parse(line));
+    expect(records.at(-1)).toMatchObject({
+      type: "stopped",
+      forwarded: 100 + remaining,
+      failed: 0,
+    });
+  },
+);

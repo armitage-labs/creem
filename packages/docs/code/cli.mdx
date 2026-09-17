@@ -77,6 +77,12 @@ creem listen --forward-to http://localhost:3000/api/webhooks --events checkout.c
 
 The signing secret is printed at startup so you can verify signatures exactly as in production. Trigger events with test checkouts, or use **Send test event** on the endpoint in the dashboard. Failed forwards are recorded in the dashboard event log with the local status; nothing is retried, so replay from the dashboard once your handler is fixed.
 
+Pending events are available for 24 hours. Disabled endpoints return no pending events. Dashboard replays queue a fresh event only for the selected CLI endpoint.
+
+The first acknowledgment of an event is final; repeated acknowledgments return the stored result. With `--json`, an event record's `status_code` describes this listener's local HTTP response, while `success` and the final `failed` count reflect the stored acknowledgment. These can differ when multiple listeners share an endpoint. Use separate CLI endpoints for independent listeners.
+
+For direct polling, `creem webhooks pending <id> --limit <count>` accepts an integer from 1 to 100 (default 50).
+
 - Listening in live mode requires `--live`.
 - `--webhook <id>` reuses a CLI-mode endpoint you manage yourself (it is never deleted); `--once` drains what is pending and exits.
 - `--json` prints one NDJSON record per event for scripts and agents.

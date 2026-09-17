@@ -13,7 +13,7 @@ export type ListPendingWebhookEventsRequest = {
    */
   id: string;
   /**
-   * Maximum number of events to return (1-100, default 50).
+   * Maximum number of pending events to return.
    */
   limit?: number | undefined;
 };
@@ -25,12 +25,12 @@ export const ListPendingWebhookEventsRequest$inboundSchema: z.ZodType<
   unknown
 > = z.object({
   id: z.string(),
-  limit: z.number().optional(),
+  limit: z.number().int().default(50),
 });
 /** @internal */
 export type ListPendingWebhookEventsRequest$Outbound = {
   id: string;
-  limit?: number | undefined;
+  limit: number;
 };
 
 /** @internal */
@@ -40,7 +40,7 @@ export const ListPendingWebhookEventsRequest$outboundSchema: z.ZodType<
   ListPendingWebhookEventsRequest
 > = z.object({
   id: z.string(),
-  limit: z.number().optional(),
+  limit: z.number().int().default(50),
 });
 
 export function listPendingWebhookEventsRequestToJSON(

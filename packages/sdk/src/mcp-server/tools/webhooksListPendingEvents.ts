@@ -8,7 +8,7 @@ import { formatResult, ToolDefinition } from "../tools.js";
 
 const args = {
   id: z.string(),
-  limit: z.number().optional(),
+  limit: z.number().int().default(50),
 };
 
 export const tool$webhooksListPendingEvents: ToolDefinition<typeof args> = {

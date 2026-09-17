@@ -12,7 +12,7 @@ let value: ListPendingWebhookEventsRequest = {
 
 ## Fields
 
-| Field                                                   | Type                                                    | Required                                                | Description                                             |
-| ------------------------------------------------------- | ------------------------------------------------------- | ------------------------------------------------------- | ------------------------------------------------------- |
-| `id`                                                    | *string*                                                | :heavy_check_mark:                                      | The webhook ID                                          |
-| `limit`                                                 | *number*                                                | :heavy_minus_sign:                                      | Maximum number of events to return (1-100, default 50). |
+| Field                                       | Type                                        | Required                                    | Description                                 |
+| ------------------------------------------- | ------------------------------------------- | ------------------------------------------- | ------------------------------------------- |
+| `id`                                        | *string*                                    | :heavy_check_mark:                          | The webhook ID                              |
+| `limit`                                     | *number*                                    | :heavy_minus_sign:                          | Maximum number of pending events to return. |

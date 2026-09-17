@@ -115,6 +115,25 @@ it("webhooks pending sends the exact SDK arguments", async () => {
   expect(result.stderr).toContain("SDK_SENTINEL");
   expect(result.stdout).toBe("");
 });
+it.each(["0", "101", "1.5", "abc"])(
+  "webhooks pending rejects invalid limit %s before calling the SDK",
+  async (limit) => {
+    const h = harness();
+    const spy = vi.spyOn(h.client.webhooks, "listPendingEvents");
+    const result = await h.run(["webhooks", "pending", "wh_1", "--limit", limit, "--json"]);
+    expect(result.code).toBe(2);
+    expect(spy).not.toHaveBeenCalled();
+  },
+);
+
+it.each(["1", "100"])("webhooks pending accepts boundary limit %s", async (limit) => {
+  const h = harness();
+  const spy = vi.spyOn(h.client.webhooks, "listPendingEvents").mockResolvedValue({ items: [] });
+  const result = await h.run(["webhooks", "pending", "wh_1", "--limit", limit, "--json"]);
+  expect(result.code, result.stderr).toBe(0);
+  expect(spy).toHaveBeenCalledExactlyOnceWith("wh_1", Number(limit), expect.any(Object));
+});
+
 it("webhooks ack sends the exact SDK arguments", async () => {
   const h = harness();
   const spy = vi
