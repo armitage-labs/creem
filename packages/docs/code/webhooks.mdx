@@ -76,7 +76,13 @@ On receiving an event, you should respond with an HTTP 200 OK to signal to Creem
 
 ### 2. Register your development webhook endpoint
 
-Register your publicly accessible HTTPS URL in the Creem dashboard.
+The quickest way to receive events locally is the [Creem CLI](/code/cli#local-webhooks): it registers a temporary endpoint for you and forwards events to your server with the real signature header, no public URL needed.
+
+```sh
+creem listen --forward-to http://localhost:3000/api/webhooks
+```
+
+Otherwise, register your publicly accessible HTTPS URL in the Creem dashboard.
 
 <Tip>
   You can create a tunnel to your localhost server using a tool like ngrok. For example:

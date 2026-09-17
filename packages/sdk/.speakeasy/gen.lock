@@ -4,7 +4,7 @@ management:
   docVersion: v1
   speakeasyVersion: 1.797.0
   generationVersion: 2.937.18
-  releaseVersion: 1.11.0
+  releaseVersion: 1.12.0
   repoURL: https://github.com/armitage-labs/creem.git
   repoSubDirectory: packages/sdk
   installationURL: https://github.com/armitage-labs/creem
@@ -70,6 +70,7 @@ trackedFiles:
   docs/models/components/accountlistresponsedto.md: {}
   docs/models/components/accountresponsedto.md: {}
   docs/models/components/accountresponsedtostatus.md: {}
+  docs/models/components/acknowledgewebhookeventrequestentity.md: {}
   docs/models/components/activatelicenserequestentity.md:
     id: 3dc1cb0e852e
     pristine_git_object: 634cbc45074962fdbda3c112c4a3ba2a1b429754
@@ -368,12 +369,16 @@ trackedFiles:
   docs/models/components/webhookcreditsgrantedevententityeventtype.md: {}
   docs/models/components/webhookcustomercreditsexhaustedevententity.md: {}
   docs/models/components/webhookcustomercreditsexhaustedevententityeventtype.md: {}
+  docs/models/components/webhookdeliverymode.md: {}
   docs/models/components/webhookdisputecreatedevententity.md: {}
   docs/models/components/webhookdisputecreatedevententityeventtype.md: {}
   docs/models/components/webhookentity.md: {}
+  docs/models/components/webhookeventackentity.md: {}
   docs/models/components/webhookevententity.md: {}
   docs/models/components/webhookeventtype.md: {}
   docs/models/components/webhooklistentity.md: {}
+  docs/models/components/webhookpendingevententity.md: {}
+  docs/models/components/webhookpendingeventlistentity.md: {}
   docs/models/components/webhookrefundcreatedevententity.md: {}
   docs/models/components/webhookrefundcreatedevententityeventtype.md: {}
   docs/models/components/webhooksecretentity.md: {}
@@ -404,6 +409,7 @@ trackedFiles:
   docs/models/components/webhooksubscriptionupdateevententityeventtype.md: {}
   docs/models/errors/customercreditserrorresponsedto.md: {}
   docs/models/errors/usagemeteringerrorapiresponsedto.md: {}
+  docs/models/operations/acknowledgewebhookeventrequest.md: {}
   docs/models/operations/archivemeterrequest.md: {}
   docs/models/operations/archiveproductrequest.md: {}
   docs/models/operations/cancelsubscriptionrequest.md:
@@ -455,6 +461,7 @@ trackedFiles:
   docs/models/operations/listlicenseinstancesresponse.md: {}
   docs/models/operations/listmetersrequest.md: {}
   docs/models/operations/listmetersresponse.md: {}
+  docs/models/operations/listpendingwebhookeventsrequest.md: {}
   docs/models/operations/listsplitsrequest.md: {}
   docs/models/operations/listsplitsresponse.md: {}
   docs/models/operations/listusageeventsrequest.md: {}
@@ -631,11 +638,13 @@ trackedFiles:
   src/funcs/transactionsGetById.ts: {}
   src/funcs/transactionsRefund.ts: {}
   src/funcs/transactionsSearch.ts: {}
+  src/funcs/webhooksAcknowledgeEvent.ts: {}
   src/funcs/webhooksCreate.ts: {}
   src/funcs/webhooksDelete.ts: {}
   src/funcs/webhooksGet.ts: {}
   src/funcs/webhooksGetSecret.ts: {}
   src/funcs/webhooksList.ts: {}
+  src/funcs/webhooksListPendingEvents.ts: {}
   src/funcs/webhooksUpdate.ts: {}
   src/hooks/hooks.ts:
     id: a2463fc6f69b
@@ -801,14 +810,17 @@ trackedFiles:
   src/mcp-server/tools/transactionsGetById.ts: {}
   src/mcp-server/tools/transactionsRefund.ts: {}
   src/mcp-server/tools/transactionsSearch.ts: {}
+  src/mcp-server/tools/webhooksAcknowledgeEvent.ts: {}
   src/mcp-server/tools/webhooksCreate.ts: {}
   src/mcp-server/tools/webhooksDelete.ts: {}
   src/mcp-server/tools/webhooksGet.ts: {}
   src/mcp-server/tools/webhooksGetSecret.ts: {}
   src/mcp-server/tools/webhooksList.ts: {}
+  src/mcp-server/tools/webhooksListPendingEvents.ts: {}
   src/mcp-server/tools/webhooksUpdate.ts: {}
   src/models/components/accountlistresponsedto.ts: {}
   src/models/components/accountresponsedto.ts: {}
+  src/models/components/acknowledgewebhookeventrequestentity.ts: {}
   src/models/components/activatelicenserequestentity.ts:
     id: 26d50dbe81c8
     pristine_git_object: 5818ab94ac9ae349a458051e22fc2abd99ed4d0e
@@ -1011,11 +1023,15 @@ trackedFiles:
   src/models/components/webhookcreditsconsumedevententity.ts: {}
   src/models/components/webhookcreditsgrantedevententity.ts: {}
   src/models/components/webhookcustomercreditsexhaustedevententity.ts: {}
+  src/models/components/webhookdeliverymode.ts: {}
   src/models/components/webhookdisputecreatedevententity.ts: {}
   src/models/components/webhookentity.ts: {}
+  src/models/components/webhookeventackentity.ts: {}
   src/models/components/webhookevententity.ts: {}
   src/models/components/webhookeventtype.ts: {}
   src/models/components/webhooklistentity.ts: {}
+  src/models/components/webhookpendingevententity.ts: {}
+  src/models/components/webhookpendingeventlistentity.ts: {}
   src/models/components/webhookrefundcreatedevententity.ts: {}
   src/models/components/webhooksecretentity.ts: {}
   src/models/components/webhookstatus.ts: {}
@@ -1050,6 +1066,7 @@ trackedFiles:
     id: fb6b2b49c445
     pristine_git_object: 6826e1208a5d7b7d310535d18909646522bf0fbd
   src/models/errors/usagemeteringerrorapiresponsedto.ts: {}
+  src/models/operations/acknowledgewebhookevent.ts: {}
   src/models/operations/archivemeter.ts: {}
   src/models/operations/archiveproduct.ts: {}
   src/models/operations/cancelsubscription.ts:
@@ -1094,6 +1111,7 @@ trackedFiles:
   src/models/operations/listcustomersubscriptions.ts: {}
   src/models/operations/listlicenseinstances.ts: {}
   src/models/operations/listmeters.ts: {}
+  src/models/operations/listpendingwebhookevents.ts: {}
   src/models/operations/listsplits.ts: {}
   src/models/operations/listusageevents.ts: {}
   src/models/operations/listwebhooks.ts: {}
@@ -1403,6 +1421,17 @@ examples:
     speakeasy-default-verification-controller-register-wallet-address:
       requestBody:
         application/json: {"userId": "<id>", "storeId": "<id>", "walletAddress": "<value>", "network": "<value>", "signature": "<value>"}
+  acknowledgeWebhookEvent:
+    speakeasy-default-acknowledge-webhook-event:
+      parameters:
+        path:
+          id: "<id>"
+          event_id: "<id>"
+      requestBody:
+        application/json: {"status_code": 200, "response_body": "OK"}
+      responses:
+        "200":
+          application/json: {"id": "evt_5Xb2mQ7vN1pLk9RtYw3zA", "object": "webhook_event", "success": true}
   activateLicense:
     speakeasy-default-activate-license:
       parameters:
@@ -1535,7 +1564,7 @@ examples:
         application/json: {"url": "https://example.com/webhooks/creem", "name": "Production billing events", "events": ["checkout.completed", "subscription.paid"]}
       responses:
         "200":
-          application/json: {"id": "<id>", "mode": "test", "object": "webhook", "store_id": "sto_1234567890", "name": "Production billing events", "url": "https://example.com/webhooks/creem", "status": "enabled", "events": ["checkout.completed", "subscription.paid"], "secret": "whsec_xxxxxxxxxxxxxxxxxxxx"}
+          application/json: {"id": "<id>", "mode": "test", "object": "webhook", "store_id": "sto_1234567890", "name": "Production billing events", "url": "https://example.com/webhooks/creem", "delivery_mode": "http", "status": "enabled", "events": ["checkout.completed", "subscription.paid"], "secret": "whsec_xxxxxxxxxxxxxxxxxxxx"}
   creditCustomerCreditsAccount:
     speakeasy-default-credit-customer-credits-account:
       parameters:
@@ -1595,7 +1624,7 @@ examples:
           id: "<id>"
       responses:
         "200":
-          application/json: {"id": "<id>", "mode": "test", "object": "webhook", "store_id": "sto_1234567890", "name": "Production billing events", "url": "https://example.com/webhooks/creem", "status": "disabled", "events": ["checkout.completed", "subscription.paid"], "secret": "whsec_xxxxxxxxxxxxxxxxxxxx"}
+          application/json: {"id": "<id>", "mode": "test", "object": "webhook", "store_id": "sto_1234567890", "name": "Production billing events", "url": "https://example.com/webhooks/creem", "delivery_mode": "http", "status": "disabled", "events": ["checkout.completed", "subscription.paid"], "secret": "whsec_xxxxxxxxxxxxxxxxxxxx"}
   exchangeMagicLink:
     speakeasy-default-exchange-magic-link:
       requestBody:
@@ -1699,7 +1728,7 @@ examples:
           id: "<id>"
       responses:
         "200":
-          application/json: {"id": "<id>", "mode": "sandbox", "object": "webhook", "store_id": "sto_1234567890", "name": "Production billing events", "url": "https://example.com/webhooks/creem", "status": "disabled", "events": ["checkout.completed", "subscription.paid"], "secret": "whsec_xxxxxxxxxxxxxxxxxxxx"}
+          application/json: {"id": "<id>", "mode": "sandbox", "object": "webhook", "store_id": "sto_1234567890", "name": "Production billing events", "url": "https://example.com/webhooks/creem", "delivery_mode": "cli", "status": "disabled", "events": ["checkout.completed", "subscription.paid"], "secret": "whsec_xxxxxxxxxxxxxxxxxxxx"}
   getWebhookSecret:
     speakeasy-default-get-webhook-secret:
       parameters:
@@ -1839,6 +1868,16 @@ examples:
       responses:
         "200":
           application/json: {"object": "list", "data": [], "has_more": true}
+  listPendingWebhookEvents:
+    speakeasy-default-list-pending-webhook-events:
+      parameters:
+        path:
+          id: "<id>"
+        query:
+          limit: 50
+      responses:
+        "200":
+          application/json: {"items": []}
   listSplits:
     speakeasy-default-list-splits:
       parameters:
@@ -2147,7 +2186,7 @@ examples:
         application/json: {"url": "https://example.com/webhooks/creem", "name": "Production billing events"}
       responses:
         "200":
-          application/json: {"id": "<id>", "mode": "sandbox", "object": "webhook", "store_id": "sto_1234567890", "name": "Production billing events", "url": "https://example.com/webhooks/creem", "status": "disabled", "events": ["checkout.completed", "subscription.paid"], "secret": "whsec_xxxxxxxxxxxxxxxxxxxx"}
+          application/json: {"id": "<id>", "mode": "sandbox", "object": "webhook", "store_id": "sto_1234567890", "name": "Production billing events", "url": "https://example.com/webhooks/creem", "delivery_mode": "cli", "status": "disabled", "events": ["checkout.completed", "subscription.paid"], "secret": "whsec_xxxxxxxxxxxxxxxxxxxx"}
   upgradeSubscription:
     speakeasy-default-upgrade-subscription:
       parameters:

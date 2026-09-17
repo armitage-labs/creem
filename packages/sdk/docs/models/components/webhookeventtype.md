@@ -1,6 +1,6 @@
 # WebhookEventType
 
-Event types delivered to this endpoint. An empty list means every event type.
+The event type carried in the delivery.
 
 ## Example Usage
 

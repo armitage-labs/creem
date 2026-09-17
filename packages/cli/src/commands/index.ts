@@ -9,3 +9,4 @@ export { createCustomersCommand } from "./customers";
 export { createTransactionsCommand } from "./transactions";
 export { createDiscountsCommand } from "./discounts";
 export { createMigrateCommand } from "./migrate";
+export { createListenCommand } from "./listen";

@@ -1,4 +1,6 @@
 import { describe, expect, it } from "vitest";
+import { Creem } from "../src/sdk/sdk.js";
+import { HTTPClient } from "../src/lib/http.js";
 import {
   constructWebhookEvent,
   constructWebhookEventEntity,
@@ -13,6 +15,87 @@ import {
 } from "../src/models/components/index.js";
 
 const legacySecret = "whsec_test_secret";
+
+describe("CLI webhook feed contract", () => {
+  it.each([undefined, 1, 100])(
+    "serializes pending limit %s and preserves the signed body",
+    async (limit) => {
+      const body = '{ "id": "evt_fixture", "eventType": "checkout.completed" }';
+      const headers = {
+        "creem-signature": "signature-fixture",
+        "Content-Type": "application/json",
+      };
+      const client = new Creem({
+        apiKey: "creem_test_fixture",
+        httpClient: new HTTPClient({
+          fetcher: async (input, init) => {
+            const request = new Request(input, init);
+            const url = new URL(request.url);
+            expect(request.method).toBe("GET");
+            expect(url.pathname).toBe("/v1/webhooks/wh_fixture/events/pending");
+            expect(url.searchParams.get("limit")).toBe(String(limit ?? 50));
+            return Response.json({
+              items: [
+                {
+                  id: "evt_fixture",
+                  object: "webhook_event",
+                  event_type: "checkout.completed",
+                  created_at: "2026-09-17T08:00:00.000Z",
+                  body,
+                  headers,
+                },
+              ],
+            });
+          },
+        }),
+      });
+
+      const result = await client.webhooks.listPendingEvents(
+        "wh_fixture",
+        limit,
+      );
+      expect(result.items[0]).toMatchObject({
+        body,
+        headers,
+        eventType: "checkout.completed",
+      });
+    },
+  );
+
+  it("returns the stored failed acknowledgment even when submitting a successful local result", async () => {
+    const client = new Creem({
+      apiKey: "creem_test_fixture",
+      httpClient: new HTTPClient({
+        fetcher: async (input, init) => {
+          const request = new Request(input, init);
+          expect(request.method).toBe("POST");
+          expect(new URL(request.url).pathname).toBe(
+            "/v1/webhooks/wh_fixture/events/evt_fixture/ack",
+          );
+          expect(await request.json()).toEqual({
+            status_code: 200,
+            response_body: "OK",
+          });
+          return Response.json({
+            id: "evt_fixture",
+            object: "webhook_event",
+            success: false,
+          });
+        },
+      }),
+    });
+
+    const result = await client.webhooks.acknowledgeEvent(
+      "wh_fixture",
+      "evt_fixture",
+      {
+        statusCode: 200,
+        responseBody: "OK",
+      },
+    );
+    expect(result.success).toBe(false);
+  });
+});
 
 const textEncoder = new TextEncoder();
 
@@ -57,10 +140,12 @@ const legacySignature = async (payload: string, secret = legacySecret) =>
 const standardSecretBytes = textEncoder.encode("standard-secret");
 const standardSecret = `whsec_${toBase64(standardSecretBytes)}`;
 
-const standardSignature = async (id: string, timestamp: number, payload: string) =>
-  `v1,${toBase64(
-    await hmacSha256(standardSecretBytes, `${id}.${timestamp}.${payload}`),
-  )}`;
+const standardSignature = async (
+  id: string,
+  timestamp: number,
+  payload: string,
+) =>
+  `v1,${toBase64(await hmacSha256(standardSecretBytes, `${id}.${timestamp}.${payload}`))}`;
 
 describe("webhooks", () => {
   const payload = JSON.stringify({
@@ -92,7 +177,11 @@ describe("webhooks", () => {
 
   it("rejects invalid legacy signatures", async () => {
     await expect(
-      verifyWebhookSignature(payload, { "creem-signature": "bad" }, legacySecret),
+      verifyWebhookSignature(
+        payload,
+        { "creem-signature": "bad" },
+        legacySecret,
+      ),
     ).rejects.toBeInstanceOf(WebhookVerificationError);
   });
 
@@ -105,7 +194,11 @@ describe("webhooks", () => {
         {
           "webhook-id": "msg_123",
           "webhook-timestamp": String(timestamp),
-          "webhook-signature": await standardSignature("msg_123", timestamp, payload),
+          "webhook-signature": await standardSignature(
+            "msg_123",
+            timestamp,
+            payload,
+          ),
         },
         standardSecret,
       ),

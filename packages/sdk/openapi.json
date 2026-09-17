@@ -4646,6 +4646,130 @@
           }
         ]
       }
+    },
+    "/v1/webhooks/{id}/events/pending": {
+      "get": {
+        "operationId": "listPendingWebhookEvents",
+        "x-speakeasy-name-override": "listPendingEvents",
+        "summary": "List pending events for a CLI webhook endpoint",
+        "description": "Events recorded for a `cli` delivery-mode endpoint that have not been acknowledged yet, oldest first. Each item carries the exact request body and headers an HTTP delivery would send. Forward them to your local server, then acknowledge each event with the status it returned. Only valid for endpoints created with `delivery_mode: cli`.",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "description": "The webhook ID",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "limit",
+            "required": false,
+            "in": "query",
+            "description": "Maximum number of pending events to return.",
+            "schema": {
+              "minimum": 1,
+              "maximum": 100,
+              "default": 50,
+              "type": "integer"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successfully retrieved the pending events",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/WebhookPendingEventListEntity"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Bad Request - Invalid input parameters"
+          },
+          "401": {
+            "description": "Unauthorized - Invalid or missing API key"
+          },
+          "404": {
+            "description": "Not Found - Resource does not exist"
+          }
+        },
+        "tags": ["Webhooks"],
+        "security": [
+          {
+            "ApiKey": []
+          }
+        ]
+      }
+    },
+    "/v1/webhooks/{id}/events/{event_id}/ack": {
+      "post": {
+        "operationId": "acknowledgeWebhookEvent",
+        "x-speakeasy-name-override": "acknowledgeEvent",
+        "summary": "Acknowledge a CLI webhook event",
+        "description": "Report the status your local server returned for an event from the pending feed. Any 2xx marks the delivery successful; anything else records a failure. Acknowledged events leave the pending feed and appear in the dashboard event log with the reported result. Only valid for endpoints created with `delivery_mode: cli`.",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "description": "The webhook ID",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "event_id",
+            "required": true,
+            "in": "path",
+            "description": "The event ID from the pending feed",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "description": "The local delivery result",
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/AcknowledgeWebhookEventRequestEntity"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Successfully acknowledged the event",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/WebhookEventAckEntity"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Bad Request - Invalid input parameters"
+          },
+          "401": {
+            "description": "Unauthorized - Invalid or missing API key"
+          },
+          "404": {
+            "description": "Not Found - Resource does not exist"
+          }
+        },
+        "tags": ["Webhooks"],
+        "security": [
+          {
+            "ApiKey": []
+          }
+        ]
+      }
     }
   },
   "info": {
@@ -8836,6 +8960,11 @@
         },
         "required": ["items", "pagination"]
       },
+      "WebhookDeliveryMode": {
+        "type": "string",
+        "description": "How events reach this endpoint: `http` deliveries are POSTed to `url`; `cli` deliveries wait in the pending-events feed for a local `creem listen` session.",
+        "enum": ["http", "cli"]
+      },
       "WebhookStatus": {
         "type": "string",
         "description": "Whether the endpoint receives deliveries. Disabled endpoints keep their configuration but receive nothing.",
@@ -8843,7 +8972,7 @@
       },
       "WebhookEventType": {
         "type": "string",
-        "description": "Event types delivered to this endpoint. An empty list means every event type.",
+        "description": "The event type carried in the delivery.",
         "enum": [
           "checkout.completed",
           "refund.created",
@@ -8892,8 +9021,12 @@
           },
           "url": {
             "type": "string",
-            "description": "The HTTPS URL Creem delivers events to.",
+            "description": "The HTTPS URL Creem delivers events to. For `cli` endpoints this is a placeholder that is never called.",
             "example": "https://example.com/webhooks/creem"
+          },
+          "delivery_mode": {
+            "example": "http",
+            "$ref": "#/components/schemas/WebhookDeliveryMode"
           },
           "status": {
             "example": "enabled",
@@ -8912,7 +9045,17 @@
             "example": "whsec_xxxxxxxxxxxxxxxxxxxx"
           }
         },
-        "required": ["id", "mode", "object", "store_id", "name", "url", "status", "events"]
+        "required": [
+          "id",
+          "mode",
+          "object",
+          "store_id",
+          "name",
+          "url",
+          "delivery_mode",
+          "status",
+          "events"
+        ]
       },
       "WebhookListEntity": {
         "type": "object",
@@ -8940,8 +9083,12 @@
         "properties": {
           "url": {
             "type": "string",
-            "description": "The HTTPS URL Creem will deliver events to.",
+            "description": "The HTTPS URL Creem will deliver events to. Required unless `delivery_mode` is `cli`, in which case it is ignored.",
             "example": "https://example.com/webhooks/creem"
+          },
+          "delivery_mode": {
+            "example": "http",
+            "$ref": "#/components/schemas/WebhookDeliveryMode"
           },
           "name": {
             "type": "string",
@@ -8955,8 +9102,7 @@
               "$ref": "#/components/schemas/WebhookEventType"
             }
           }
-        },
-        "required": ["url"]
+        }
       },
       "UpdateWebhookRequestEntity": {
         "type": "object",
@@ -8993,6 +9139,100 @@
           }
         },
         "required": ["secret"]
+      },
+      "WebhookPendingEventEntity": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "description": "The event ID. Acknowledge the delivery with this ID.",
+            "example": "evt_5Xb2mQ7vN1pLk9RtYw3zA"
+          },
+          "object": {
+            "type": "string",
+            "description": "A string representing the object’s type. Objects of the same type share the same value.",
+            "example": "webhook_event"
+          },
+          "event_type": {
+            "example": "checkout.completed",
+            "$ref": "#/components/schemas/WebhookEventType"
+          },
+          "created_at": {
+            "format": "date-time",
+            "type": "string",
+            "description": "When the event was recorded for this endpoint.",
+            "example": "2026-09-17T08:00:00.000Z"
+          },
+          "body": {
+            "type": "string",
+            "description": "The exact JSON request body of the delivery. Forward it byte-for-byte; the signature header is computed over this string.",
+            "example": "{\"id\":\"evt_5Xb2mQ7vN1pLk9RtYw3zA\",\"eventType\":\"checkout.completed\",\"created_at\":1758096000000,\"object\":{\"id\":\"ch_...\"}}"
+          },
+          "headers": {
+            "type": "object",
+            "description": "The HTTP headers a real delivery would carry, including `creem-signature`. Send them unchanged with `body`.",
+            "additionalProperties": {
+              "type": "string"
+            },
+            "example": {
+              "creem-signature": "a1b2c3…",
+              "Content-Type": "application/json"
+            }
+          }
+        },
+        "required": ["id", "object", "event_type", "created_at", "body", "headers"]
+      },
+      "WebhookPendingEventListEntity": {
+        "type": "object",
+        "properties": {
+          "items": {
+            "description": "Pending events, oldest first.",
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/WebhookPendingEventEntity"
+            }
+          }
+        },
+        "required": ["items"]
+      },
+      "AcknowledgeWebhookEventRequestEntity": {
+        "type": "object",
+        "properties": {
+          "status_code": {
+            "type": "number",
+            "description": "The HTTP status code the local server answered with. Any 2xx marks the delivery successful. Report 503 when the local server could not be reached.",
+            "example": 200,
+            "minimum": 100,
+            "maximum": 599
+          },
+          "response_body": {
+            "type": "string",
+            "description": "The response body the local server returned, truncated to 10,000 characters. Shown in the dashboard event log.",
+            "example": "OK"
+          }
+        },
+        "required": ["status_code"]
+      },
+      "WebhookEventAckEntity": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "description": "The acknowledged event ID.",
+            "example": "evt_5Xb2mQ7vN1pLk9RtYw3zA"
+          },
+          "object": {
+            "type": "string",
+            "description": "A string representing the object’s type. Objects of the same type share the same value.",
+            "example": "webhook_event"
+          },
+          "success": {
+            "type": "boolean",
+            "description": "Whether the first acknowledgment recorded a successful delivery (any 2xx). Repeated acknowledgments return the stored result.",
+            "example": true
+          }
+        },
+        "required": ["id", "object", "success"]
       },
       "WebhookSubscriptionEntity": {
         "type": "object",

@@ -3205,6 +3205,10 @@
           "url": {
             "type": "string"
           },
+          "deliveryMode": {
+            "type": "string",
+            "enum": ["http", "cli"]
+          },
           "name": {
             "type": "string"
           },
@@ -3234,12 +3238,13 @@
             }
           }
         },
-        "required": ["url"]
+        "required": []
       },
       "primaryFlags": {
         "url": "--url",
         "name": "--name",
-        "events": "--event"
+        "events": "--event",
+        "deliveryMode": "--delivery-mode"
       }
     },
     "pagination": "none",
@@ -3377,6 +3382,91 @@
         }
       }
     ],
+    "pagination": "none",
+    "destructive": false
+  },
+  {
+    "operationId": "listPendingWebhookEvents",
+    "sdkMethod": "webhooks.listPendingEvents",
+    "cliPath": "webhooks pending",
+    "disposition": "implemented",
+    "description": "List pending events for a CLI webhook endpoint",
+    "parameters": [
+      {
+        "name": "id",
+        "sdkName": "id",
+        "in": "path",
+        "cliFlagOrArgument": "<id>",
+        "required": true,
+        "schema": {
+          "type": "string"
+        }
+      },
+      {
+        "name": "limit",
+        "sdkName": "limit",
+        "in": "query",
+        "cliFlagOrArgument": "--limit",
+        "required": false,
+        "schema": {
+          "type": "integer",
+          "minimum": 1,
+          "maximum": 100
+        }
+      }
+    ],
+    "pagination": "none",
+    "destructive": false
+  },
+  {
+    "operationId": "acknowledgeWebhookEvent",
+    "sdkMethod": "webhooks.acknowledgeEvent",
+    "cliPath": "webhooks ack",
+    "disposition": "implemented",
+    "description": "Acknowledge a CLI webhook event",
+    "parameters": [
+      {
+        "name": "id",
+        "sdkName": "id",
+        "in": "path",
+        "cliFlagOrArgument": "<id>",
+        "required": true,
+        "schema": {
+          "type": "string"
+        }
+      },
+      {
+        "name": "event_id",
+        "sdkName": "eventId",
+        "in": "path",
+        "cliFlagOrArgument": "--event-id",
+        "required": true,
+        "schema": {
+          "type": "string"
+        }
+      }
+    ],
+    "body": {
+      "viaData": true,
+      "primaryFlags": {
+        "statusCode": "--status-code",
+        "responseBody": "--response-body"
+      },
+      "schema": {
+        "type": "object",
+        "properties": {
+          "statusCode": {
+            "type": "number",
+            "minimum": 100,
+            "maximum": 599
+          },
+          "responseBody": {
+            "type": "string"
+          }
+        },
+        "required": ["statusCode"]
+      }
+    },
     "pagination": "none",
     "destructive": false
   }

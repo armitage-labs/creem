@@ -4,6 +4,7 @@
 
 export * from "./accountlistresponsedto.js";
 export * from "./accountresponsedto.js";
+export * from "./acknowledgewebhookeventrequestentity.js";
 export * from "./activatelicenserequestentity.js";
 export * from "./affiliateentity.js";
 export * from "./affiliateinviteentity.js";
@@ -145,11 +146,15 @@ export * from "./webhookcreditsautorechargedevententity.js";
 export * from "./webhookcreditsconsumedevententity.js";
 export * from "./webhookcreditsgrantedevententity.js";
 export * from "./webhookcustomercreditsexhaustedevententity.js";
+export * from "./webhookdeliverymode.js";
 export * from "./webhookdisputecreatedevententity.js";
 export * from "./webhookentity.js";
+export * from "./webhookeventackentity.js";
 export * from "./webhookevententity.js";
 export * from "./webhookeventtype.js";
 export * from "./webhooklistentity.js";
+export * from "./webhookpendingevententity.js";
+export * from "./webhookpendingeventlistentity.js";
 export * from "./webhookrefundcreatedevententity.js";
 export * from "./webhooksecretentity.js";
 export * from "./webhookstatus.js";

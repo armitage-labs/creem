@@ -13,6 +13,11 @@ import {
   EnvironmentMode$outboundSchema,
 } from "./environmentmode.js";
 import {
+  WebhookDeliveryMode,
+  WebhookDeliveryMode$inboundSchema,
+  WebhookDeliveryMode$outboundSchema,
+} from "./webhookdeliverymode.js";
+import {
   WebhookEventType,
   WebhookEventType$inboundSchema,
   WebhookEventType$outboundSchema,
@@ -45,9 +50,13 @@ export type WebhookEntity = {
    */
   name: string | null;
   /**
-   * The HTTPS URL Creem delivers events to.
+   * The HTTPS URL Creem delivers events to. For `cli` endpoints this is a placeholder that is never called.
    */
   url: string;
+  /**
+   * How events reach this endpoint: `http` deliveries are POSTed to `url`; `cli` deliveries wait in the pending-events feed for a local `creem listen` session.
+   */
+  deliveryMode: WebhookDeliveryMode;
   /**
    * Whether the endpoint receives deliveries. Disabled endpoints keep their configuration but receive nothing.
    */
@@ -71,12 +80,14 @@ export const WebhookEntity$inboundSchema: z.ZodType<
   store_id: z.string(),
   name: z.nullable(z.string()),
   url: z.string(),
+  delivery_mode: WebhookDeliveryMode$inboundSchema,
   status: WebhookStatus$inboundSchema,
   events: z.array(WebhookEventType$inboundSchema),
   secret: z.string().optional(),
 }).transform((v) => {
   return remap$(v, {
     "store_id": "storeId",
+    "delivery_mode": "deliveryMode",
   });
 });
 /** @internal */
@@ -87,6 +98,7 @@ export type WebhookEntity$Outbound = {
   store_id: string;
   name: string | null;
   url: string;
+  delivery_mode: string;
   status: string;
   events: Array<string>;
   secret?: string | undefined;
@@ -104,12 +116,14 @@ export const WebhookEntity$outboundSchema: z.ZodType<
   storeId: z.string(),
   name: z.nullable(z.string()),
   url: z.string(),
+  deliveryMode: WebhookDeliveryMode$outboundSchema,
   status: WebhookStatus$outboundSchema,
   events: z.array(WebhookEventType$outboundSchema),
   secret: z.string().optional(),
 }).transform((v) => {
   return remap$(v, {
     storeId: "store_id",
+    deliveryMode: "delivery_mode",
   });
 });
 

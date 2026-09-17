@@ -58,6 +58,10 @@ Without credentials, `creem products list --json` produces no stdout and exits 3
 }
 ```
 
+## Local webhooks
+
+`creem listen --forward-to <url> --json` streams the store's webhooks to a local server as NDJSON records (`listening`, `event`, `stopped`) and cleans up its temporary endpoint on exit. Use `--once` to drain pending events in a single run. See the [CLI reference](/code/cli#local-webhooks).
+
 ## Confirmation
 
 Use `--yes` for destructive commands in automation. Human prompts are disabled for JSON/NDJSON and non-TTY execution. The [reference](/code/cli#errors-and-safety) lists the policy. Existing aliases remain valid. For existing scripts, see the [upgrade notes](/code/cli#upgrading-existing-scripts). Subscription `--status` filters all pages and labels its client-side result.

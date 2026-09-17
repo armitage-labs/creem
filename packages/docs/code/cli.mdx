@@ -66,6 +66,27 @@ creem transactions
 
 Search records, open details, and manage subscriptions from the terminal. See the [interactive guide](/ai/for-humans/cli#interactive-browsing) for navigation and examples.
 
+## Local webhooks
+
+`creem listen` delivers your store's webhooks to a local URL with no tunnel and no deploy. It creates a temporary endpoint in `cli` delivery mode, forwards every event with the exact body and `creem-signature` header a real delivery carries, reports the status your server returned, and deletes the endpoint when you stop it.
+
+```sh
+creem listen --forward-to http://localhost:3000/api/webhooks
+creem listen --forward-to http://localhost:3000/api/webhooks --events checkout.completed,subscription.paid
+```
+
+The signing secret is printed at startup so you can verify signatures exactly as in production. Trigger events with test checkouts, or use **Send test event** on the endpoint in the dashboard. Failed forwards are recorded in the dashboard event log with the local status; nothing is retried, so replay from the dashboard once your handler is fixed.
+
+Pending events are available for 24 hours. Disabled endpoints return no pending events. Dashboard replays queue a fresh event only for the selected CLI endpoint.
+
+The first acknowledgment of an event is final; repeated acknowledgments return the stored result. With `--json`, an event record's `status_code` describes this listener's local HTTP response, while `success` and the final `failed` count reflect the stored acknowledgment. These can differ when multiple listeners share an endpoint. Use separate CLI endpoints for independent listeners.
+
+For direct polling, `creem webhooks pending <id> --limit <count>` accepts an integer from 1 to 100 (default 50).
+
+- Listening in live mode requires `--live`.
+- `--webhook <id>` reuses a CLI-mode endpoint you manage yourself (it is never deleted); `--once` drains what is pending and exits.
+- `--json` prints one NDJSON record per event for scripts and agents.
+
 ## Command reference
 
 Use `--help` on any command to see its accepted flags. `credits`, `cust`, `subs`, and `txn` are aliases. IDs are positional where shown. Authentication, configuration, and `migrate lemon-squeezy` are also available.

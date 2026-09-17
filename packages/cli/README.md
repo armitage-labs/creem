@@ -40,8 +40,12 @@ Log in with your API key, then browse your store or run a command:
 creem login
 creem products
 creem products list --json
+creem listen --forward-to http://localhost:3000/api/webhooks
 creem --help
 ```
+
+`creem listen` receives your store's webhooks on your machine (no tunnel, no deploy) and
+forwards them to a local URL with the real `creem-signature` header.
 
 If using npx, replace `creem` with `npx @creem_io/cli` in these examples.
 For automation, provide `CREEM_API_KEY` through your environment or secret store;
