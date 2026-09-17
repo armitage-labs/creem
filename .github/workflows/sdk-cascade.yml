@@ -35,7 +35,7 @@ jobs:
         run: |
           SDK_VERSION="${{ steps.sdk.outputs.version }}"
           NEEDS_UPDATE=false
-          for pkg in packages/integrations/better-auth packages/integrations/nextjs; do
+          for pkg in packages/integrations/better-auth packages/integrations/nextjs packages/ingestion; do
             CURRENT=$(jq -r '.dependencies.creem // empty' "$pkg/package.json")
             if [ "$CURRENT" != "workspace:^${SDK_VERSION}" ]; then
               NEEDS_UPDATE=true
@@ -77,7 +77,7 @@ jobs:
         if: steps.npm.outputs.published == 'true'
         run: |
           SDK_VERSION="${{ steps.sdk.outputs.version }}"
-          for pkg in packages/integrations/better-auth packages/integrations/nextjs; do
+          for pkg in packages/integrations/better-auth packages/integrations/nextjs packages/ingestion; do
             jq --arg v "workspace:^${SDK_VERSION}" '.dependencies.creem = $v' "$pkg/package.json" > tmp.json && mv tmp.json "$pkg/package.json"
           done
 
@@ -99,6 +99,7 @@ jobs:
           ---
           "@creem_io/better-auth": patch
           "@creem_io/nextjs": patch
+          "@creem_io/ingestion": patch
           ---
 
           Bump creem SDK dependency to ${{ steps.sdk.outputs.version }}
@@ -113,6 +114,6 @@ jobs:
           title: "chore: bump adaptors to creem@${{ steps.sdk.outputs.version }}"
           branch: chore/sdk-cascade-${{ steps.sdk.outputs.version }}
           body: |
-            Auto-generated: bumps `creem` dependency in adaptor packages after Speakeasy SDK release to `${{ steps.sdk.outputs.version }}`.
+            Auto-generated: bumps `creem` dependency in adaptor and ingestion packages after Speakeasy SDK release to `${{ steps.sdk.outputs.version }}`.
 
             When merged, the changesets release workflow will publish new patch versions of the adaptors.

@@ -129,7 +129,7 @@ importers:
   packages/ingestion:
     dependencies:
       creem:
-        specifier: workspace:*
+        specifier: workspace:^1.12.0
         version: link:../sdk
     devDependencies:
       '@ai-sdk/provider':

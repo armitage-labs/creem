@@ -30,6 +30,12 @@ const BACKOFF_CAP_MS = 30_000;
 const defaultSleep = (ms: number): Promise<void> =>
   new Promise((resolve) => setTimeout(resolve, ms));
 
+/** Stamps the idempotency key that makes every later retry of this event safe. */
+export const withEventId = (event: IngestionEvent): IngestionEvent => ({
+  ...event,
+  eventId: event.eventId ?? randomUUID(),
+});
+
 export const toWireEvent = (event: IngestionEvent): WireEvent => ({
   name: event.name,
   customerId: event.customerId,
@@ -38,6 +44,19 @@ export const toWireEvent = (event: IngestionEvent): WireEvent => ({
   timestamp: event.timestamp instanceof Date ? event.timestamp.toISOString() : event.timestamp,
   properties: event.properties,
 });
+
+/**
+ * Runs a user hook. Hooks are the caller's code (a logger, an error tracker)
+ * and there is nowhere left to report a failure inside one, so it is
+ * swallowed: a throwing hook must never reject a flush or crash the process.
+ */
+export const invokeHook = <T>(hook: (value: T) => void, value: T): void => {
+  try {
+    hook(value);
+  } catch {
+    // Deliberately ignored — see above.
+  }
+};
 
 /**
  * Extracts the batch index from a validation error's `param`
@@ -52,14 +71,15 @@ const rejectedEventIndex = (error: unknown): number | null => {
   return match ? Number(match[1]) : null;
 };
 
-/** HTTP status of an SDK error, when one is attached. */
+/**
+ * HTTP status of an SDK error, when one is attached. Every SDK HTTP error
+ * extends `CreemError`, which exposes `statusCode`; transport errors
+ * (connection, timeout, abort) carry none.
+ */
 const errorStatus = (error: unknown): number | null => {
   if (typeof error !== "object" || error === null) return null;
-  const status = (error as { httpMeta?: { response?: { status?: number } } }).httpMeta?.response
-    ?.status;
-  if (typeof status === "number") return status;
-  const direct = (error as { statusCode?: number }).statusCode;
-  return typeof direct === "number" ? direct : null;
+  const status = (error as { statusCode?: number }).statusCode;
+  return typeof status === "number" ? status : null;
 };
 
 /**
@@ -78,6 +98,9 @@ const isRetryable = (error: unknown): boolean => {
  *
  * Guarantees:
  * - `enqueue` never throws and never awaits the network.
+ * - `flush` never rejects — not on network failure, and not when a user hook
+ *   throws. Hook failures are swallowed so one bad logger call cannot poison
+ *   the flush chain or surface as an unhandled rejection.
  * - Every event gets an `eventId` at enqueue time, so retries replay the
  *   same ids and the server's `(store, event_id)` dedup collapses them —
  *   a retry can never double-bill.
@@ -104,7 +127,7 @@ export class BufferedDelivery {
 
   enqueue(event: IngestionEvent): void {
     if (this.closed) {
-      this.options.onError({
+      this.reportError({
         code: "delivery_failed",
         message: "Ingestion pipeline is closed; event dropped.",
         events: [event],
@@ -112,14 +135,14 @@ export class BufferedDelivery {
       return;
     }
     if (this.queue.length >= this.options.maxQueueSize) {
-      this.options.onError({
+      this.reportError({
         code: "queue_overflow",
         message: `Ingestion queue is full (maxQueueSize=${this.options.maxQueueSize}); newest event dropped.`,
         events: [event],
       });
       return;
     }
-    this.queue.push({ ...event, eventId: event.eventId ?? randomUUID() });
+    this.queue.push(withEventId(event));
     if (this.queue.length >= this.options.maxBatchSize) {
       void this.flush();
     } else {
@@ -133,7 +156,9 @@ export class BufferedDelivery {
    */
   flush(): Promise<void> {
     this.disarmTimer();
-    this.inFlight = this.inFlight.then(() => this.drain());
+    // Chain past any earlier rejection so a single failed drain can never
+    // make every later flush reject with the same stale error.
+    this.inFlight = this.inFlight.catch(() => undefined).then(() => this.drain());
     return this.inFlight;
   }
 
@@ -141,6 +166,10 @@ export class BufferedDelivery {
   async close(): Promise<void> {
     this.closed = true;
     await this.flush();
+  }
+
+  private reportError(error: IngestionError): void {
+    invokeHook(this.options.onError, error);
   }
 
   private armTimer(): void {
@@ -179,7 +208,7 @@ export class BufferedDelivery {
       try {
         const result = await this.send(remaining.map(toWireEvent));
         if (result.warnings && result.warnings.length > 0) {
-          this.options.onWarnings(result.warnings);
+          invokeHook(this.options.onWarnings, result.warnings);
         }
         return;
       } catch (error) {
@@ -190,7 +219,7 @@ export class BufferedDelivery {
         const rejected = rejectedEventIndex(error);
         if (rejected !== null && rejected < remaining.length) {
           const [evicted] = remaining.splice(rejected, 1);
-          this.options.onError({
+          this.reportError({
             code: "event_rejected",
             message: `Server rejected event at batch index ${rejected}; the rest of the batch was retried without it.`,
             events: [evicted],
@@ -199,7 +228,7 @@ export class BufferedDelivery {
           continue;
         }
         if (!isRetryable(error) || attempt >= this.options.maxRetries) {
-          this.options.onError({
+          this.reportError({
             code: "delivery_failed",
             message:
               attempt >= this.options.maxRetries

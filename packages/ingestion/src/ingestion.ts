@@ -1,11 +1,12 @@
 import { Creem } from "creem";
-import { BufferedDelivery, toWireEvent } from "./delivery.js";
+import { BufferedDelivery, invokeHook, toWireEvent, withEventId } from "./delivery.js";
 import type { IngestionStrategy, StrategyEmission } from "./strategy.js";
 import type {
   EventProperties,
   IngestResult,
   IngestionConfig,
   IngestionCustomer,
+  IngestionError,
   IngestionEvent,
 } from "./types.js";
 
@@ -41,10 +42,12 @@ export function Ingestion(config: IngestionConfig): IngestionPipeline {
 export class IngestionPipeline {
   private readonly creem: Creem;
   private readonly delivery: BufferedDelivery;
+  private readonly onError: NonNullable<IngestionConfig["onError"]>;
   private readonly onWarnings: IngestionConfig["onWarnings"];
 
   constructor(config: IngestionConfig) {
     this.creem = config.client ?? new Creem({ apiKey: config.apiKey, serverURL: config.serverURL });
+    this.onError = config.onError ?? (() => undefined);
     this.onWarnings = config.onWarnings;
     this.delivery = new BufferedDelivery(
       (events) =>
@@ -58,7 +61,7 @@ export class IngestionPipeline {
         flushIntervalMs: config.flushIntervalMs ?? DEFAULT_FLUSH_INTERVAL_MS,
         maxQueueSize: config.maxQueueSize ?? DEFAULT_MAX_QUEUE_SIZE,
         maxRetries: config.maxRetries ?? DEFAULT_MAX_RETRIES,
-        onError: config.onError ?? (() => undefined),
+        onError: this.onError,
         onWarnings: config.onWarnings ?? (() => undefined),
       },
     );
@@ -68,10 +71,14 @@ export class IngestionPipeline {
    * Send a batch directly and await the 202 envelope. Errors THROW here —
    * this is the explicit path for callers who want to handle them. Use
    * `enqueue` for the never-throws path.
+   *
+   * Events without an `eventId` get one before sending, so a retry — by
+   * you, or by a `client` configured with the SDK's backoff — replays the
+   * same ids and can never bill twice. The ids come back in `eventIds`.
    */
   async ingest(events: IngestionEvent[]): Promise<IngestResult> {
     const result = await this.creem.events.ingestEvents({
-      events: events.map(toWireEvent),
+      events: events.map((event) => toWireEvent(withEventId(event))),
     });
     if (this.onWarnings && result.warnings && result.warnings.length > 0) {
       this.onWarnings(result.warnings);
@@ -104,6 +111,15 @@ export class IngestionPipeline {
   ): StrategyPipelineBuilder<TClient> {
     return new StrategyPipelineBuilder(this, ingestionStrategy);
   }
+
+  /**
+   * Route a failure that happened outside the delivery engine (a throwing
+   * resolver) to the configured `onError`. Internal to the package.
+   * @internal
+   */
+  reportError(error: IngestionError): void {
+    invokeHook(this.onError, error);
+  }
 }
 
 export class StrategyPipelineBuilder<TClient> {
@@ -123,6 +139,11 @@ export class StrategyPipelineBuilder<TClient> {
   /**
    * Bind the event name and finish the chain. Every usage the strategy
    * observes is enqueued (buffered, non-blocking) as `eventName`.
+   *
+   * The resolvers run inside the metered call (inside `generateText`, the
+   * timed function, …). One that throws is reported via `onError` as
+   * `resolver_failed` and the event is dropped; it never throws into the
+   * caller's request path.
    */
   ingest(
     eventName: string,
@@ -132,15 +153,30 @@ export class StrategyPipelineBuilder<TClient> {
     return {
       client: (customer: IngestionCustomer): TClient =>
         ingestionStrategy.createClient(customer, (emission) => {
-          const properties: EventProperties = {
-            ...emission.properties,
-            ...(propertiesResolver ? propertiesResolver(emission) : {}),
-            strategy: ingestionStrategy.strategyKind,
+          const event: IngestionEvent = {
+            name: eventName,
+            ...customer,
+            properties: { ...emission.properties, strategy: ingestionStrategy.strategyKind },
           };
-          if (costResolver) {
-            properties._cost = costResolver(emission);
+          try {
+            event.properties = {
+              ...emission.properties,
+              ...(propertiesResolver ? propertiesResolver(emission) : {}),
+              strategy: ingestionStrategy.strategyKind,
+            };
+            if (costResolver) {
+              event.properties._cost = costResolver(emission);
+            }
+          } catch (error) {
+            pipeline.reportError({
+              code: "resolver_failed",
+              message: "A cost or properties resolver threw; the event was dropped.",
+              events: [event],
+              cause: error,
+            });
+            return;
           }
-          pipeline.enqueue({ name: eventName, ...customer, properties });
+          pipeline.enqueue(event);
         }),
     };
   }

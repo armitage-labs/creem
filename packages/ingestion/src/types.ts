@@ -58,7 +58,9 @@ export type IngestionErrorCode =
   /** The server rejected specific events as invalid; the rest of their batch was retried without them. */
   | "event_rejected"
   /** The in-memory queue hit `maxQueueSize`; the newest event was dropped. */
-  | "queue_overflow";
+  | "queue_overflow"
+  /** A `.cost()` or properties resolver threw inside a metered call; the event was dropped. */
+  | "resolver_failed";
 
 export interface IngestionError {
   code: IngestionErrorCode;
@@ -90,9 +92,16 @@ export interface IngestionConfig {
    * Default: 10,000.
    */
   maxQueueSize?: number;
-  /** Delivery attempts per batch before it is dropped. Default: 5. */
+  /**
+   * Retries per batch after the first attempt, so the default of 5 allows up
+   * to 6 deliveries before the batch is dropped. Backoff doubles from 500ms,
+   * capped at 30s.
+   */
   maxRetries?: number;
-  /** Every delivery-side failure lands here. Never thrown. */
+  /**
+   * Every delivery-side failure lands here. Never thrown. If the hook itself
+   * throws, the error is swallowed — a failing logger cannot break delivery.
+   */
   onError?: (error: IngestionError) => void;
   /**
    * Advisory 202 warnings (`no_matching_meter`, `meter_archived`,

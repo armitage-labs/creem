@@ -66,6 +66,10 @@ const result = await ingestion.ingest([
 // { accepted: 1, eventIds: ["..."], warnings?: [...] }
 ```
 
+Events without an `eventId` get one before sending, so retrying the call —
+yourself, or through a `client` configured with the SDK's backoff — replays
+the same ids and cannot bill twice.
+
 `warnings` tells you when an accepted event will not produce billable usage —
 no meter listens to the event name, only archived meters match, or the
 timestamp falls in a finalized billing period.
@@ -91,6 +95,10 @@ Emitted events carry the strategy's raw measurements in `properties`, plus
 the reserved keys the SDK owns: `strategy` (the capture mechanism) and
 `_cost` (when a `.cost()` resolver is attached). Keys starting with `_` are
 reserved for SDK-written values.
+
+Resolvers run inside the metered call. If one throws, the event is dropped
+and reported via `onError` as `resolver_failed` — it never throws into the
+call you are metering.
 
 ### Vercel AI SDK
 
@@ -150,6 +158,6 @@ here.
 | `maxBatchSize` | `100` | events per request (server cap) |
 | `flushIntervalMs` | `5000` | idle time before a partial batch flushes |
 | `maxQueueSize` | `10000` | buffer bound; overflow drops the newest event via `onError` |
-| `maxRetries` | `5` | delivery attempts per batch (backoff, capped at 30s) |
-| `onError` | — | every delivery-side failure; never thrown |
+| `maxRetries` | `5` | retries per batch after the first attempt (up to 6 deliveries; backoff capped at 30s) |
+| `onError` | — | every delivery-side failure; never thrown, and a throwing hook is swallowed |
 | `onWarnings` | — | advisory 202 warnings |

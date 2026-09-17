@@ -2,7 +2,12 @@ import type { Creem } from "creem";
 import { describe, expect, it, vi } from "vitest";
 import { Ingestion } from "../src/ingestion.js";
 import { IngestionStrategy, type EmitUsage } from "../src/strategy.js";
-import type { IngestResult, IngestionCustomer, IngestWarnings } from "../src/types.js";
+import type {
+  IngestResult,
+  IngestionCustomer,
+  IngestionError,
+  IngestWarnings,
+} from "../src/types.js";
 
 interface IngestCall {
   events: Array<{
@@ -65,6 +70,20 @@ describe("Ingestion", () => {
       timestamp: "2026-09-15T00:00:00.000Z",
       properties: { tokens: 512 },
     });
+  });
+
+  it("ingest() assigns an eventId when absent and preserves a supplied one", async () => {
+    const { client, calls } = fakeCreem();
+    const pipeline = Ingestion({ client });
+
+    const result = await pipeline.ingest([
+      { name: "tokens_used", customerId: "cust_1" },
+      { name: "tokens_used", customerId: "cust_1", eventId: "mine" },
+    ]);
+
+    expect(calls[0].events[0].eventId).toMatch(/^[0-9a-f-]{36}$/);
+    expect(calls[0].events[1].eventId).toBe("mine");
+    expect(result.eventIds).toEqual([calls[0].events[0].eventId, "mine"]);
   });
 
   it("ingest() surfaces warnings through onWarnings AND the return value", async () => {
@@ -139,6 +158,32 @@ describe("Ingestion", () => {
     expect(events[0].properties?.tokens).toBe(1);
     expect(events[1].externalCustomerId).toBe("user-42");
     expect(events[1].properties?.tokens).toBe(2);
+  });
+
+  it("a throwing resolver is reported via onError instead of throwing into the metered call", async () => {
+    const { client, calls } = fakeCreem();
+    const errors: IngestionError[] = [];
+    const pipeline = Ingestion({ client, onError: (error) => errors.push(error) });
+    const metered = pipeline
+      .strategy(new FakeMeterStrategy())
+      .cost(() => {
+        throw new Error("pricing table unavailable");
+      })
+      .ingest("openai-usage");
+    const meter = metered.client({ customerId: "cust_1" });
+
+    expect(() => meter(7)).not.toThrow();
+    await pipeline.flush();
+
+    expect(calls).toHaveLength(0);
+    expect(errors).toHaveLength(1);
+    expect(errors[0].code).toBe("resolver_failed");
+    expect(errors[0].events[0]).toMatchObject({
+      name: "openai-usage",
+      customerId: "cust_1",
+      properties: { tokens: 7, strategy: "fake-meter" },
+    });
+    expect((errors[0].cause as Error).message).toBe("pricing table unavailable");
   });
 
   it("a strategy emission can never throw into the caller's path", async () => {

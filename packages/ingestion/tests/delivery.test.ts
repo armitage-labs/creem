@@ -114,9 +114,11 @@ describe("BufferedDelivery", () => {
     expect(errors).toHaveLength(0);
   });
 
-  it("drops the batch after maxRetries and reports delivery_failed", async () => {
+  it("drops the batch after maxRetries retries and reports delivery_failed", async () => {
+    let calls = 0;
     const { delivery, errors } = harness(
       async () => {
+        calls += 1;
         throw new Error("still down");
       },
       { maxRetries: 2 },
@@ -125,7 +127,10 @@ describe("BufferedDelivery", () => {
     delivery.enqueue({ name: "e", customerId: "cust_1" });
     await delivery.flush();
 
+    // maxRetries counts retries, not attempts: 1 initial + 2 retries.
+    expect(calls).toBe(3);
     expect(errors).toHaveLength(1);
+    expect(errors[0].message).toBe("Batch dropped after 3 delivery attempts.");
     expect(errors[0].code).toBe("delivery_failed");
     expect(errors[0].events).toHaveLength(1);
   });
@@ -134,11 +139,8 @@ describe("BufferedDelivery", () => {
     let calls = 0;
     const { delivery, errors } = harness(async () => {
       calls += 1;
-      const error = new Error("unauthorized") as Error & {
-        httpMeta: { response: { status: number } };
-      };
-      error.httpMeta = { response: { status: 401 } };
-      throw error;
+      // Shaped like the SDK's `CreemError`: HTTP errors expose `statusCode`.
+      throw Object.assign(new Error("unauthorized"), { statusCode: 401 });
     });
 
     delivery.enqueue({ name: "e", customerId: "cust_1" });
@@ -154,13 +156,12 @@ describe("BufferedDelivery", () => {
       sent.push(events);
       if (events.some((event) => event.customerId === "cust_bad")) {
         const index = events.findIndex((event) => event.customerId === "cust_bad");
-        const error = new Error("unknown customer") as Error & {
-          error: { param: string };
-          httpMeta: { response: { status: number } };
-        };
-        error.error = { param: `events[${index}].customer_id` };
-        error.httpMeta = { response: { status: 422 } };
-        throw error;
+        // Shaped like `UsageMeteringErrorApiResponseDto`: the 422 envelope
+        // carries `error.param` naming the offending event.
+        throw Object.assign(new Error("unknown customer"), {
+          statusCode: 422,
+          error: { param: `events[${index}].customer_id` },
+        });
       }
       return accepted(events);
     });
@@ -239,6 +240,64 @@ describe("BufferedDelivery", () => {
     expect(sent).toHaveLength(1);
     expect(errors).toHaveLength(1);
     expect(errors[0].code).toBe("delivery_failed");
+  });
+
+  it("a throwing onError does not poison subsequent flushes", async () => {
+    const sent: WireEvent[][] = [];
+    let calls = 0;
+    const { delivery } = harness(
+      async (events) => {
+        calls += 1;
+        if (calls === 1) throw Object.assign(new Error("unauthorized"), { statusCode: 401 });
+        sent.push(events);
+        return accepted(events);
+      },
+      {
+        maxRetries: 1,
+        onError: () => {
+          throw new Error("logger exploded");
+        },
+      },
+    );
+
+    delivery.enqueue({ name: "e", customerId: "cust_1" });
+    await expect(delivery.flush()).resolves.toBeUndefined();
+
+    delivery.enqueue({ name: "e", customerId: "cust_2" });
+    await expect(delivery.flush()).resolves.toBeUndefined();
+
+    expect(sent).toHaveLength(1);
+    expect(sent[0][0].customerId).toBe("cust_2");
+    expect(delivery.pending).toBe(0);
+  });
+
+  it("a throwing onWarnings does not reject the flush", async () => {
+    const { delivery } = harness(
+      async (events) => ({
+        ...accepted(events),
+        warnings: [{ index: 0, code: "no_matching_meter" as const, message: "nothing listening" }],
+      }),
+      {
+        onWarnings: () => {
+          throw new Error("logger exploded");
+        },
+      },
+    );
+
+    delivery.enqueue({ name: "unmetered", customerId: "cust_1" });
+    await expect(delivery.flush()).resolves.toBeUndefined();
+    expect(delivery.pending).toBe(0);
+  });
+
+  it("a throwing onError on enqueue overflow does not throw into the caller", () => {
+    const { delivery } = harness(async (events) => accepted(events), {
+      maxQueueSize: 0,
+      onError: () => {
+        throw new Error("logger exploded");
+      },
+    });
+
+    expect(() => delivery.enqueue({ name: "e", customerId: "cust_1" })).not.toThrow();
   });
 
   it("splits an oversized backlog into server-sized batches", async () => {

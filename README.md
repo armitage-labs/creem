@@ -55,6 +55,7 @@ packages, webhook types, examples, and documentation.
 | [`creem`](./packages/sdk)                             | Official generated TypeScript SDK with full API coverage and an MCP server.                              |
 | [`@creem_io/cli`](./packages/cli)                     | Command-line access to Creem products, customers, subscriptions, checkouts, transactions, and discounts. |
 | [`@creem_io/webhook-types`](./packages/webhook-types) | Shared webhook entity/event types, type guards, and parsing utilities.                                   |
+| [`@creem_io/ingestion`](./packages/ingestion)         | Buffered, retry-safe usage-event ingestion with metering strategies for usage-based billing.             |
 
 ### Integrations
 
@@ -115,6 +116,7 @@ packages/
 ├── cli/                       # public CLI
 ├── core/                      # future shared primitive
 ├── webhook-types/             # temporary until absorbed into core
+├── ingestion/                 # usage-event ingestion toolkit
 ├── integrations/
 │   ├── better-auth/
 │   ├── convex/
@@ -139,7 +141,7 @@ destinations:
 
 | Source | Artifact destination |
 | --- | --- |
-| `packages/sdk`, `packages/cli`, `packages/webhook-types` | Public npm packages |
+| `packages/sdk`, `packages/cli`, `packages/webhook-types`, `packages/ingestion` | Public npm packages |
 | `packages/integrations/{better-auth,convex,nextjs,strapi}` | Public npm packages |
 | `packages/ui/*` | Public npm packages |
 | `packages/integrations/framer` | Framer Marketplace plugin |

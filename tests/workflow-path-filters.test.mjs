@@ -40,6 +40,7 @@ test("Changeset Check covers publishable package changes across every layout", (
     "packages/sdk/src/sdk/sdk.ts",
     "packages/cli/src/index.ts",
     "packages/webhook-types/package.json",
+    "packages/ingestion/src/index.ts",
 
     // Integrations with conventional, root-level, and deeper source layouts.
     "packages/integrations/better-auth/src/index.ts",
