@@ -260,7 +260,7 @@
             "pages": [
               {
                 "group": "Affiliate Platforms",
-                "pages": ["integrations/affiliates", "integrations/rekomi"]
+                "pages": ["integrations/affiliates", "integrations/rekomi", "integrations/referly"]
               },
               {
                 "group": "Purchase Parity Platforms",
