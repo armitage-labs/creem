@@ -163,7 +163,16 @@
               },
               "features/seat-based-billing",
               "features/split-payments",
-              "features/affiliate-program",
+              {
+                "group": "Affiliate Program",
+                "pages": [
+                  "features/affiliate-program",
+                  {
+                    "group": "Third-party platforms",
+                    "pages": ["integrations/affonso", "integrations/rekomi", "integrations/referly"]
+                  }
+                ]
+              },
               "features/referral-program",
               "features/storefronts",
               "features/custom-domains",
@@ -262,10 +271,6 @@
             "group": "Integrations",
             "icon": "link",
             "pages": [
-              {
-                "group": "Affiliate Platforms",
-                "pages": ["integrations/affonso", "integrations/rekomi", "integrations/referly"]
-              },
               {
                 "group": "Purchase Parity Platforms",
                 "pages": ["integrations/evendeals"]
