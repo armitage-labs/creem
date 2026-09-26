@@ -19,6 +19,10 @@
   },
   "redirects": [
     {
+      "source": "/integrations/affiliates",
+      "destination": "/integrations/affonso"
+    },
+    {
       "source": "/code/sdks/typescript-core",
       "destination": "/code/sdks/typescript"
     },
@@ -260,7 +264,7 @@
             "pages": [
               {
                 "group": "Affiliate Platforms",
-                "pages": ["integrations/affiliates", "integrations/rekomi", "integrations/referly"]
+                "pages": ["integrations/affonso", "integrations/rekomi", "integrations/referly"]
               },
               {
                 "group": "Purchase Parity Platforms",
