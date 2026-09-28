@@ -1,0 +1,298 @@
+---
+title: "LinkJolt Affiliate Program Integration"
+sidebarTitle: "LinkJolt"
+description: "Run your affiliate program on Creem with LinkJolt. One API key sets up the webhook, tracks sales, renewals and refunds, and creates affiliate discount codes in your store."
+---
+
+## Overview
+
+[LinkJolt](https://www.linkjolt.io/integrations/creem-affiliate-tracking?utm_source=creem&utm_medium=docs)
+is affiliate tracking and management software with a native Creem connection. An affiliate shares a
+link or a discount code, LinkJolt records the click, and when that visitor buys through your Creem
+checkout the sale arrives on a signed webhook and is credited to the right affiliate.
+
+Setup is one API key. You paste it into LinkJolt, and LinkJolt adds its own webhook to your Creem
+store and keeps the signing secret, so there is no URL to copy and no secret to paste. Sales,
+subscription renewals, trials, refunds and chargebacks all arrive through that webhook.
+
+## What you can do with LinkJolt
+
+<CardGroup cols={2}>
+  <Card title="Launch an affiliate program" icon="rocket">
+    An affiliate portal where partners join your program and find their links, codes and earnings.
+  </Card>
+  <Card title="Track sales and renewals" icon="chart-line">
+    One-time sales, subscription renewals, trials, refunds and chargebacks, from Creem's own events.
+  </Card>
+  <Card title="Recurring and tiered commissions" icon="layer-group">
+    Pay on every renewal, capped by months or payments if you like, and raise the rate as an
+    affiliate sells more. Both on the Professional plan and above.
+  </Card>
+  <Card title="Affiliate discount codes" icon="ticket">
+    A Creem discount code per affiliate, created in your store by LinkJolt, or one for every
+    approved affiliate automatically.
+  </Card>
+  <Card title="Pay affiliates" icon="money-bill-transfer">
+    Payouts through Stripe Connect to affiliates in the US, UK, EEA, Canada and Switzerland, or a
+    CSV export for PayPal and Wise.
+  </Card>
+  <Card title="A daily webhook check" icon="stethoscope">
+    LinkJolt checks its webhook every day, switches it back on if it was disabled, and tells you
+    when something needs you.
+  </Card>
+</CardGroup>
+
+<Card title="What you'll need" icon="gears">
+
+- A Creem account (production or Test Mode, LinkJolt follows the key you connect with)
+- A LinkJolt account ([start a free trial](https://www.linkjolt.io/auth/sign-up?utm_source=creem&utm_medium=docs))
+- A Creem API key with the `webhooks:read`, `webhooks:write`, `discounts:read`, `discounts:write`
+  and `products:read` scopes
+
+</Card>
+
+## How It Works
+
+Creem hosts checkout on its own domain, so the affiliate referral needs a way to travel from your
+site into the sale. It travels as one metadata field, `linkjolt_ref`, and on Creem payment links the
+LinkJolt tracking script adds it for you.
+
+- A visitor clicks an affiliate's link and lands on your site. The LinkJolt tracking script stores
+  the referral in their browser for 30 days and exposes it as `window.linkjolt.referral`.
+- They go to checkout with the referral attached as `linkjolt_ref` metadata. The script adds it to
+  every Creem payment link and product link on your page; if your server creates the checkout, you
+  add it there.
+- Creem processes the payment and sends a signed webhook to LinkJolt.
+- LinkJolt matches the referral, or the discount code used at checkout, to the affiliate,
+  calculates the commission, and records it as pending until you approve it.
+
+Your API key sets up and looks after the webhook, and creates discount codes in your store. Sales
+never come through the API; they arrive on the signed webhook.
+
+<Note>
+  LinkJolt reads `linkjolt_ref` from checkout metadata, not `creem_ref`. Creem reserves `creem_ref`
+  for its own [built-in affiliate feature](/features/affiliate-program), so the two can coexist.
+</Note>
+
+## Integration Steps
+
+Six steps, about fifteen minutes including a test purchase. You connect Creem's Test Mode first,
+check a purchase end to end, then connect your live store.
+
+<Steps>
+
+<Step title="Create a campaign in LinkJolt">
+
+Sign up at [linkjolt.io](https://www.linkjolt.io/auth/sign-up?utm_source=creem&utm_medium=docs) and
+create a campaign. It holds your commission terms:
+
+- **Commission**: a percentage of each sale, or a fixed amount.
+- **Renewals**: whether subscription renewals pay commission too, and for how many months or
+  payments. Recurring commission is on the Professional plan and above.
+- **Approval**: whether affiliates who apply are approved automatically, or wait for you.
+
+Then invite affiliates from LinkJolt, or share your program's join page so they can apply.
+
+</Step>
+
+<Step title="Create a restricted API key in Creem">
+
+In your Creem dashboard, switch on **Test Mode**, go to **Developers > API Keys** and create a key.
+Switch **Full access** off and grant only the scopes LinkJolt uses:
+
+| Scope                                  | Used for                                                                                                                        |
+| -------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------- |
+| `webhooks:read` and `webhooks:write`   | Adding the LinkJolt webhook to your store, reading its signing secret, and switching the webhook back on if it is ever disabled |
+| `discounts:read` and `discounts:write` | Creating a discount code for each affiliate                                                                                     |
+| `products:read`                        | Listing your active products, so each new code applies to them                                                                  |
+
+Nothing else is required. LinkJolt never changes your products, customers or orders.
+
+A Test Mode key starts with `creem_test_`. Sales from your Test Mode are recorded as test sales,
+which are never paid out. You create the live key the same way in step 6.
+
+</Step>
+
+<Step title="Connect Creem in LinkJolt">
+
+In LinkJolt, open **Integrations** and choose the **Creem** tab. Paste the key into **Creem API
+key** and click **Set it up**. LinkJolt then:
+
+- adds a webhook named **LinkJolt** to your Creem store, subscribed to every event
+- reads the webhook back from Creem to confirm it was saved as asked
+- reads the webhook's signing secret, so there is nothing to copy
+- keeps the key encrypted, to create discount codes and to check the webhook once a day
+
+The tab now shows your Test Mode as connected. The new webhook is in Creem under **Developers >
+Webhooks**; leave its events as they are.
+
+<Tip>
+  Rather not hand LinkJolt an API key? Choose **Set it up by hand instead** on the Creem tab, add
+  the webhook in Creem yourself with every event selected, and paste its signing secret into
+  LinkJolt. Tracking works the same, without automatic discount codes and the daily check.
+</Tip>
+
+</Step>
+
+<Step title="Add the LinkJolt tracking script to your site">
+
+The Creem tab also asks how your customers pay on Creem: payment links on your site, a checkout
+your own code creates, or discount codes only. For the first two, add the tracking script to the
+`<head>` of your marketing site. It records affiliate clicks and stores the referral for the next
+step.
+
+```html Tracking script
+<script src="https://www.linkjolt.io/api/tracking.js?id=YOUR_MERCHANT_ID"></script>
+```
+
+The Creem tab shows the script with your ID filled in, plus a version for React. With discount
+codes only, there is nothing to install: skip to step 6.
+
+</Step>
+
+<Step title="Pass the referral into checkout">
+
+This is the step that connects a click to a sale. Pick whichever matches how you sell.
+
+**Payment links**: nothing to add. The tracking script appends `metadata[linkjolt_ref]` to every
+link on the page that points at a Creem payment link or product page (`creem.io/payment/`,
+`creem.io/product/` and their `/test/` forms), including links added after the page loads. Creem
+carries the metadata into the checkout.
+
+**Checkout API or SDK**: read the referral in the browser with `window.linkjolt.referral`, send it
+along with your checkout request, and set it as `metadata.linkjolt_ref` where your server creates
+the checkout.
+
+<CodeGroup>
+
+```json Checkout API
+{
+  "product_id": "prod_your_product",
+  "success_url": "https://yoursite.com/success",
+  "metadata": { "linkjolt_ref": "REFERRAL_FROM_YOUR_FRONTEND" }
+}
+```
+
+```ts TypeScript SDK
+const checkout = await creem.checkouts.create({
+  productId: "prod_your_product",
+  successUrl: "https://yoursite.com/success",
+  metadata: { linkjolt_ref: referral }, // the value of window.linkjolt.referral
+});
+// send the customer to checkout.checkoutUrl
+```
+
+```js Links you build in JavaScript
+const url = new URL("https://www.creem.io/payment/prod_your_product");
+const referral = window.linkjolt?.referral;
+if (referral) url.searchParams.set("metadata[linkjolt_ref]", referral);
+window.location.href = url.toString();
+```
+
+</CodeGroup>
+
+**Links you build in JavaScript**: the script rewrites links on the page, not a URL your code opens
+(for example with `window.open` or `location.href`). Add the parameter yourself, as in the third
+tab.
+
+<Tip>
+  Creem carries checkout metadata onto the order and the subscription, so renewals keep crediting
+  the same affiliate without anything extra.
+</Tip>
+
+</Step>
+
+<Step title="Verify with a test purchase, then go live">
+
+Run this once in Test Mode before relying on it. It takes about five minutes.
+
+1. **Visit your site through an affiliate link.** Take any affiliate's link from LinkJolt, or a test
+   affiliate's, and open your site with it.
+2. **Check the link carries the referral.** Hover a Creem payment link on the page: its address now
+   includes `linkjolt_ref`. Checkout API integrations should log the value they send instead.
+3. **Buy with a test card.** Complete the checkout with card `4111 1111 1111 1111`, any future
+   expiry and any CVC ([test cards](/getting-started/test-mode)). In LinkJolt, the sale appears under
+   **Test sales** on the **Commissions** page, credited to that affiliate with its commission.
+4. **Refund the purchase in Creem.** LinkJolt reverses the commission.
+5. **Resend the webhook.** In Creem, resend the `checkout.completed` delivery. LinkJolt keys every
+   payment by its Creem transaction, so nothing changes: still one sale, no second commission.
+
+To go live, switch Test Mode off in Creem, create a live API key with the same scopes as step 2, and
+paste it into the same field on LinkJolt's Creem tab. LinkJolt adds its webhook to your live store.
+Your Test Mode connection stays, and test sales stay apart from your live commissions.
+
+</Step>
+
+</Steps>
+
+## Affiliate discount codes
+
+Discount codes credit an affiliate without a link, which suits podcasts, videos and newsletters.
+Once your live store is connected with an API key:
+
+- **One code at a time**: on the **Coupons** tab of LinkJolt's **Campaigns** page, create a coupon,
+  pick the affiliate, choose **Creem discount**, and enter the code and the discount. LinkJolt
+  creates it as a discount in your Creem store, with the percentage or amount and the duration you
+  chose.
+- **A code for every affiliate**: switch on **A coupon code for every affiliate** in a campaign's
+  settings, and every approved affiliate gets their own code, named after them.
+
+A sale that uses the code is credited to that affiliate, by the discount's ID or by its code.
+LinkJolt creates each code for the products active in your store at that moment, so a product you
+add later needs new codes.
+
+Discounts you create in Creem yourself work too: register each one on the same Coupons tab by its
+`dis_` ID.
+
+## What Gets Tracked
+
+Once you are connected, these all happen on their own:
+
+| Event                      | What happens                                                                            |
+| -------------------------- | --------------------------------------------------------------------------------------- |
+| One-time sale              | Commission recorded from `checkout.completed`, pending until you approve it             |
+| First subscription payment | Recorded once, whether `checkout.completed` or `subscription.paid` arrives first        |
+| Subscription renewal       | Commission from each `subscription.paid`, at your recurring rate, up to the cap you set |
+| Trial start                | Recorded as a trial, with no commission until the first real payment                    |
+| Refund                     | Commission reduced in proportion for a partial refund, removed for a full one           |
+| Chargeback                 | Commission reversed in full                                                             |
+| Discount code              | A sale using an affiliate's code credits them, even without a link                      |
+| Test Mode purchase         | Recorded as a test sale, apart from your live commissions, and never paid out           |
+
+Commission is calculated on what the customer paid, or on the price before tax if you switch on
+**Commission on the price before tax** in LinkJolt's settings. Every payment is keyed by its Creem
+transaction, so webhook retries and manual resends never count twice.
+
+## Refunds and chargebacks
+
+Creem's refund event carries the amount of this refund and what was refunded before it, so LinkJolt
+reverses the commission in the same proportion, and a full refund or a chargeback removes it. A
+redelivered or out-of-order event never reverses anything twice, and a payout still queued for the
+sale is reduced or cancelled to match.
+
+Every commission waits as pending until you approve it, so a refund that arrives first adjusts it
+before anything is paid. If you have already paid the commission, LinkJolt still records the
+refund, but it does not take money back from the affiliate; settle that with them directly.
+
+## Good to Know
+
+- **The daily check.** Once a day LinkJolt reads its webhook with your key. If Creem switched it
+  off after failed deliveries, LinkJolt switches it back on, and if the signing secret changed,
+  LinkJolt saves the new one. If the webhook was deleted or the key revoked, the Creem tab says what
+  is wrong and LinkJolt emails you once.
+- **Short links and storefronts.** The script adds the referral to full payment links and product
+  links on your own site. It can't reach a Creem short link (`l.creem.io`) or a storefront page, so
+  link to the payment link itself where affiliates send traffic, or give those affiliates a
+  discount code.
+- **One Creem store per LinkJolt brand.** A store already connected to another brand is refused
+  until you disconnect it there.
+- **Disconnecting.** Click **Disconnect Creem** on the Creem tab. LinkJolt removes its webhook from
+  your store and keeps the discount codes it created, since they live in Creem.
+
+<Card
+  title="LinkJolt for Creem"
+  icon="book-open"
+  href="https://www.linkjolt.io/integrations/creem-affiliate-tracking?utm_source=creem&utm_medium=docs"
+>
+  How LinkJolt works with Creem, with pricing and answers to common questions.
+</Card>
