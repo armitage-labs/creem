@@ -282,6 +282,10 @@
               {
                 "group": "No-Code Builders",
                 "pages": ["integrations/framer"]
+              },
+              {
+                "group": "Email Marketing",
+                "pages": ["integrations/sequenzy"]
               }
             ]
           },
