@@ -4,7 +4,7 @@
 
 import { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js";
 import { CreemCore } from "../core.js";
-import { SDKOptions } from "../lib/config.js";
+import { SDK_METADATA, SDKOptions } from "../lib/config.js";
 import type { ConsoleLogger } from "./console-logger.js";
 import { createRegisterPrompt } from "./prompts.js";
 import {
@@ -110,6 +110,10 @@ export function createMCPServer(deps: {
     apiKey: deps.apiKey,
     serverURL: deps.serverURL,
     server: deps.server,
+    // Identify MCP-originated traffic distinctly from CLI and direct SDK usage.
+    // Prefixes the default Speakeasy UA (which retains the SDK + gen version) so
+    // requests made through the MCP server are attributable in server-side logs.
+    userAgent: `creem-mcp/${SDK_METADATA.sdkVersion} ${SDK_METADATA.userAgent}`,
   });
 
   const scopes = new Set(deps.scopes);
