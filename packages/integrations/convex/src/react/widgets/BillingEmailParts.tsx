@@ -110,6 +110,7 @@ export const BillingEmailLabel = ({
 export const BillingEmailInput = ({
   class: classProp,
   className,
+  onBlur,
   ...rest
 }: ClassProps &
   Omit<
@@ -139,6 +140,10 @@ export const BillingEmailInput = ({
       value={state.draft}
       disabled={state.status !== "ready" || state.saving}
       onChange={(event) => context.setDraft(event.currentTarget.value)}
+      onBlur={(event) => {
+        onBlur?.(event);
+        context.markTouched();
+      }}
       className={resolveClass(
         context,
         "creem-base:input-default creem-base:w-full",
@@ -211,7 +216,10 @@ export const BillingEmailStatus = ({
   );
 };
 
-/** The current load or save error. The input references it while shown. */
+/**
+ * The current load or save error, or the validation message for a malformed
+ * address. The input references it while shown.
+ */
 export const BillingEmailError = ({
   class: classProp,
   className,

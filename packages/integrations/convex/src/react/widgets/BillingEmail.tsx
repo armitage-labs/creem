@@ -183,6 +183,7 @@ export const BillingEmailRoot = ({
       ids,
       parts,
       setDraft: controller.setDraft,
+      markTouched: controller.markTouched,
       submit: () => void controller.submit(),
       reload: controller.reload,
       registerPart,

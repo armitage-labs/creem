@@ -436,6 +436,7 @@ export type ComponentApi<Name extends string | undefined = string | undefined> =
           country?: string;
           createdAt?: string;
           email?: string;
+          emailUpdatedAt?: string;
           entityId: string;
           id: string;
           metadata?: Record<string, any>;
@@ -533,6 +534,7 @@ export type ComponentApi<Name extends string | undefined = string | undefined> =
           country?: string;
           createdAt?: string;
           email?: string;
+          emailUpdatedAt?: string;
           entityId: string;
           id: string;
           metadata?: Record<string, any>;
@@ -853,7 +855,12 @@ export type ComponentApi<Name extends string | undefined = string | undefined> =
       setCustomerEmail: FunctionReference<
         "mutation",
         "internal",
-        { customerId: string; email: string; entityId: string },
+        {
+          customerId: string;
+          email: string;
+          entityId: string;
+          updatedAt: string;
+        },
         null,
         Name
       >;

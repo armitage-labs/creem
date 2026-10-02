@@ -326,4 +326,20 @@ describe("<BillingEmail> composition (Svelte)", () => {
     expect(target.innerHTML).not.toContain("creem-base:");
     expect(input()?.value).toBe("billing@example.com");
   });
+
+  it("explains a malformed address after the input loses focus", async () => {
+    modelStore.set(modelFor("org_1"));
+    convex.action.mockResolvedValue(ok("billing@example.com"));
+    await render();
+
+    await type("accounts@");
+    expect(target.querySelector('[role="alert"]')).toBeNull();
+
+    input()?.dispatchEvent(new FocusEvent("blur"));
+    await settle();
+
+    const error = target.querySelector('[role="alert"]');
+    expect(error?.textContent?.trim()).toBe("Enter a valid email address.");
+    expect(input()?.getAttribute("aria-describedby")).toContain(error?.id);
+  });
 });

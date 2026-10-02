@@ -330,4 +330,21 @@ describe("<BillingEmail> composition (React)", () => {
     expect(container.innerHTML).not.toContain("creem-base:");
     expect(input()?.value).toBe("billing@example.com");
   });
+
+  it("explains a malformed address after the input loses focus", async () => {
+    convex.model = modelFor("org_1");
+    convex.action.mockResolvedValue(ok("billing@example.com"));
+    await render();
+
+    await type("accounts@");
+    expect(container.querySelector('[role="alert"]')).toBeNull();
+
+    await act(async () => {
+      input()?.dispatchEvent(new FocusEvent("focusout", { bubbles: true }));
+    });
+
+    const error = container.querySelector('[role="alert"]');
+    expect(error?.textContent).toBe("Enter a valid email address.");
+    expect(input()?.getAttribute("aria-describedby")).toContain(error?.id);
+  });
 });

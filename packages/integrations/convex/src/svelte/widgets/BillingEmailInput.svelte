@@ -24,6 +24,7 @@
     placeholder = undefined,
     name = "billingEmail",
     autocomplete = "email",
+    onblur = undefined,
     ...rest
   }: Props = $props();
   const ctx = getBillingEmailContext();
@@ -42,6 +43,10 @@
   value={ctx.state.draft}
   disabled={ctx.state.status !== "ready" || ctx.state.saving}
   oninput={(event) => ctx.setDraft(event.currentTarget.value)}
+  onblur={(event) => {
+    onblur?.(event);
+    ctx.markTouched();
+  }}
   class={resolveBillingEmailClass(
     ctx,
     "creem-base:input-default creem-base:w-full",

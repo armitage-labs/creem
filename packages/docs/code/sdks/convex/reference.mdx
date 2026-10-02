@@ -46,12 +46,12 @@ cancel call when you need to override that default.
 
 **`creem.customers.*`**
 
-| Method                                          | Data source | Description                                                                                                                    |
-| ----------------------------------------------- | ----------- | ------------------------------------------------------------------------------------------------------------------------------ |
-| `.retrieve(ctx, { entityId })`                  | Convex DB   | Customer record by entity                                                                                                      |
-| `.portalUrl(ctx, { entityId })`                 | Creem API   | Customer billing portal URL                                                                                                    |
-| `.billingEmail(ctx, { entityId })`              | Creem API   | Email Creem sends invoices and receipts to: `{ status: "ok", email }` or `{ status: "no-customer" }`                           |
-| `.updateBillingEmail(ctx, { entityId, email })` | Creem API   | Change that email; same result shape. Reads the customer back from Creem and stores that address on the Convex customer record |
+| Method                                          | Data source | Description                                                                                                                                                                                        |
+| ----------------------------------------------- | ----------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `.retrieve(ctx, { entityId })`                  | Convex DB   | Customer record by entity                                                                                                                                                                          |
+| `.portalUrl(ctx, { entityId })`                 | Creem API   | Customer billing portal URL                                                                                                                                                                        |
+| `.billingEmail(ctx, { entityId })`              | Creem API   | Email Creem sends invoices and receipts to: `{ status: "ok", email }` or `{ status: "no-customer" }`                                                                                               |
+| `.updateBillingEmail(ctx, { entityId, email })` | Creem API   | Change that email; same result shape. Reads the customer back from Creem and stores that address on the Convex customer record unless a newer readback is already stored (by Creem's `updated_at`) |
 
 **`creem.orders.*`**
 
@@ -616,16 +616,16 @@ otherwise. `class`/`className` is added to the part's default classes (which
 sit in a lower CSS layer, so your utilities win); other props are forwarded to
 the element, except the ones the root wires.
 
-| Part                       | Element                | Wiring                                                                                           |
-| -------------------------- | ---------------------- | ------------------------------------------------------------------------------------------------ |
-| `BillingEmail.Title`       | `<h3>`                 | Names the form through `aria-labelledby`                                                         |
-| `BillingEmail.Description` | `<p>`                  | Referenced by the input's `aria-describedby`                                                     |
-| `BillingEmail.Label`       | `<label>`              | Points at the input; without it the input gets `aria-label` from the `inputLabel` text           |
-| `BillingEmail.Input`       | `<input type=email>`   | Bound to the draft; sets `aria-invalid` and `aria-describedby`; disabled while loading or saving |
-| `BillingEmail.Save`        | `<button type=submit>` | Disabled until the draft is a valid, changed address                                             |
-| `BillingEmail.Status`      | `<p role=status>`      | Loading and saved messages                                                                       |
-| `BillingEmail.Error`       | `<p role=alert>`       | Load or save error; referenced by the input while shown                                          |
-| `BillingEmail.Retry`       | `<button>`             | Shown only after a failed load; reloads                                                          |
+| Part                       | Element                | Wiring                                                                                                                                        |
+| -------------------------- | ---------------------- | --------------------------------------------------------------------------------------------------------------------------------------------- |
+| `BillingEmail.Title`       | `<h3>`                 | Names the form through `aria-labelledby`                                                                                                      |
+| `BillingEmail.Description` | `<p>`                  | Referenced by the input's `aria-describedby`                                                                                                  |
+| `BillingEmail.Label`       | `<label>`              | Points at the input; without it the input gets `aria-label` from the `inputLabel` text                                                        |
+| `BillingEmail.Input`       | `<input type=email>`   | Bound to the draft; sets `aria-invalid` and `aria-describedby`; disabled while loading or saving                                              |
+| `BillingEmail.Save`        | `<button type=submit>` | Disabled until the draft is a valid, changed address                                                                                          |
+| `BillingEmail.Status`      | `<p role=status>`      | Loading and saved messages                                                                                                                    |
+| `BillingEmail.Error`       | `<p role=alert>`       | Load or save error, or "Enter a valid email address." after the input loses focus or a save is attempted; referenced by the input while shown |
+| `BillingEmail.Retry`       | `<button>`             | Shown only after a failed load; reloads                                                                                                       |
 
 Text parts accept children to replace their label. To read the state in your
 own component, use `useBillingEmail()` (React) or `getBillingEmailContext()`

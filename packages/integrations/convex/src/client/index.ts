@@ -290,6 +290,10 @@ export class CreemNotAuthenticatedError extends Error {
   }
 }
 
+/** The SDK parses timestamps into `Date`; older SDK builds pass strings. */
+const toIsoString = (value: Date | string): string =>
+  value instanceof Date ? value.toISOString() : String(value);
+
 /** Largest quantity Creem accepts for a unit-based subscription. */
 const MAX_SUBSCRIPTION_UNITS = 1_000_000;
 
@@ -602,14 +606,15 @@ export class Creem {
       );
     }
 
-    // Read the address back instead of mirroring `updated.email`: with two
-    // overlapping saves the responses can arrive out of order, and the call
-    // that finishes last would otherwise store the older address.
+    // Read the address back with Creem's `updated_at` and let the mirror keep
+    // only the newest readback. Overlapping saves can finish in any order;
+    // mirroring each response as it arrives could store an older address.
     const current = await this.sdk.customers.retrieve(customer.id);
     await ctx.runMutation(this.component.lib.setCustomerEmail, {
       entityId,
       customerId: customer.id,
       email: current.email,
+      updatedAt: toIsoString(current.updatedAt),
     });
     return { status: "ok", email: current.email };
   }

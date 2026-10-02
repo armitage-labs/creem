@@ -2,10 +2,12 @@ import { describe, expect, it, vi } from "vitest";
 import {
   canSaveBillingEmail,
   createBillingEmailController,
+  deriveBillingEmailView,
   isValidBillingEmail,
   type BillingEmailState,
 } from "./billingEmail.js";
 import type { BillingEmailActionResult } from "./types.js";
+import { defaultBillingLabels } from "./i18n.js";
 
 type Deferred<T> = {
   promise: Promise<T>;
@@ -38,6 +40,7 @@ const ready = (
   draft: "billing@example.com",
   saving: false,
   saved: false,
+  touched: false,
   error: null,
   ...overrides,
 });
@@ -407,5 +410,49 @@ describe("createBillingEmailController", () => {
     await flush();
 
     expect(listener).not.toHaveBeenCalled();
+  });
+});
+
+describe("billing email validation message", () => {
+  const labels = defaultBillingLabels.billingEmail;
+  const message = (state: BillingEmailState) =>
+    deriveBillingEmailView(state, labels).errorMessage;
+
+  it("stays hidden while the draft is being typed", () => {
+    expect(message(ready({ draft: "acc" }))).toBeNull();
+  });
+
+  it("explains a malformed or empty draft once touched", () => {
+    expect(message(ready({ draft: "accounts@", touched: true }))).toBe(
+      "Enter a valid email address.",
+    );
+    expect(message(ready({ draft: "  ", touched: true }))).toBe(
+      "Enter a valid email address.",
+    );
+    expect(message(ready({ draft: "ok@example.com", touched: true }))).toBe(
+      null,
+    );
+  });
+
+  it("is touched by losing focus or by a save attempt, and reset by a save", async () => {
+    const controller = createBillingEmailController({
+      load: async () => ok("billing@example.com"),
+      save: async (_entityKey, email) => ok(email),
+    });
+    controller.setEntity("org_1");
+    await flush();
+
+    controller.setDraft("accounts@");
+    expect(controller.getState().touched).toBe(false);
+    await controller.submit();
+    expect(controller.getState().touched).toBe(true);
+
+    controller.setDraft("accounts@example.com");
+    await controller.submit();
+    expect(controller.getState().touched).toBe(false);
+
+    controller.setDraft("x");
+    controller.markTouched();
+    expect(message(controller.getState())).toBe("Enter a valid email address.");
   });
 });

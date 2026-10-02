@@ -412,6 +412,7 @@ describe("customers namespace", () => {
       creem.sdk.customers.retrieve = vi.fn(async () => ({
         id: "cust_1",
         email: "billing@example.com",
+        updatedAt: new Date("2026-03-01T10:00:00.000Z"),
       })) as never;
 
       const result = await creem.customers.updateBillingEmail(ctx as never, {
@@ -425,56 +426,12 @@ describe("customers namespace", () => {
         email: "Billing@Example.com",
       });
       expect(result).toEqual({ status: "ok", email: "billing@example.com" });
+      // The mirror gets the readback's timestamp so it can drop stale ones.
       expect(ctx.runMutation).toHaveBeenCalledWith(REFS.setCustomerEmail, {
         entityId: "user_1",
         customerId: "cust_1",
         email: "billing@example.com",
-      });
-    });
-
-    it("stores Creem's final address when overlapping saves finish out of order", async () => {
-      // Creem applies "first" and then "second", but the response to "first"
-      // arrives last. Mirroring each response would leave "first" locally.
-      const ctx = createMockCtx({
-        [REFS.getCustomerByEntityId]: { id: "cust_1", entityId: "user_1" },
-      });
-      let creemEmail = "old@example.com";
-      let releaseFirst: () => void = () => {};
-      const firstResponse = new Promise<void>((resolve) => {
-        releaseFirst = resolve;
-      });
-      creem.sdk.customers.update = vi.fn(
-        async ({ email }: { email: string }) => {
-          creemEmail = email;
-          if (email === "first@example.com") await firstResponse;
-          return { id: "cust_1", email };
-        },
-      ) as never;
-      creem.sdk.customers.retrieve = vi.fn(async () => ({
-        id: "cust_1",
-        email: creemEmail,
-      })) as never;
-
-      const first = creem.customers.updateBillingEmail(ctx as never, {
-        entityId: "user_1",
-        email: "first@example.com",
-      });
-      const second = await creem.customers.updateBillingEmail(ctx as never, {
-        entityId: "user_1",
-        email: "second@example.com",
-      });
-      releaseFirst();
-      const firstResult = await first;
-
-      expect(ctx.runMutation).toHaveBeenLastCalledWith(REFS.setCustomerEmail, {
-        entityId: "user_1",
-        customerId: "cust_1",
-        email: "second@example.com",
-      });
-      expect(second).toEqual({ status: "ok", email: "second@example.com" });
-      expect(firstResult).toEqual({
-        status: "ok",
-        email: "second@example.com",
+        updatedAt: "2026-03-01T10:00:00.000Z",
       });
     });
 

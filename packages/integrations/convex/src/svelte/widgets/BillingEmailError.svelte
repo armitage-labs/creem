@@ -1,7 +1,8 @@
 <!--
   @component
-  The current load or save error of a `BillingEmail.Root` form. The input
-  references it while it is shown.
+  The current load or save error of a `BillingEmail.Root` form, or the
+  validation message for a malformed address. The input references it while
+  it is shown.
 -->
 <script lang="ts">
   import type { HTMLAttributes } from "svelte/elements";

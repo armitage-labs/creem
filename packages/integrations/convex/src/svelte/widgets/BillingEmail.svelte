@@ -171,6 +171,7 @@
       return parts;
     },
     setDraft: (draft) => controller.setDraft(draft),
+    markTouched: () => controller.markTouched(),
     submit: () => void controller.submit(),
     reload: () => controller.reload(),
     // Parts call this from an effect. Untracked, so the count the part bumps

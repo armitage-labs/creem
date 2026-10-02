@@ -44,6 +44,11 @@ export type BillingEmailState = {
   saving: boolean;
   /** `true` after a successful save, until the draft changes again. */
   saved: boolean;
+  /**
+   * `true` once the input lost focus or a save was attempted. Validation
+   * messages wait for it, so typing the first characters shows none.
+   */
+  touched: boolean;
   /** The last failure. Widgets turn `cause` into a message. */
   error: { phase: "load" | "save"; cause: unknown } | null;
 };
@@ -54,6 +59,7 @@ const initialState: BillingEmailState = {
   draft: "",
   saving: false,
   saved: false,
+  touched: false,
   error: null,
 };
 
@@ -94,7 +100,12 @@ export type BillingEmailController = {
   /** Load the current entity's email again, for example after a failed load. */
   reload: () => void;
   setDraft: (draft: string) => void;
-  /** Save the draft. Does nothing unless {@link canSaveBillingEmail} holds. */
+  /** Show validation for the draft, for example when the input loses focus. */
+  markTouched: () => void;
+  /**
+   * Save the draft. Unless {@link canSaveBillingEmail} holds it only marks the
+   * draft as touched, so an invalid address explains itself.
+   */
   submit: () => Promise<void>;
 };
 
@@ -197,8 +208,18 @@ export const createBillingEmailController = ({
         error: state.error?.phase === "save" ? null : state.error,
       });
     },
+    markTouched: () => {
+      if (state.status === "ready" && !state.touched) {
+        setState({ ...state, touched: true });
+      }
+    },
     submit: async () => {
-      if (!canSaveBillingEmail(state) || entityKey === null) return;
+      if (!canSaveBillingEmail(state) || entityKey === null) {
+        if (state.status === "ready" && !state.touched) {
+          setState({ ...state, touched: true });
+        }
+        return;
+      }
       const current = generation;
       const email = normalizeBillingEmail(state.draft);
       setState({ ...state, saving: true, saved: false, error: null });
@@ -258,7 +279,10 @@ export type BillingEmailContextBase = {
   readonly canSave: boolean;
   /** The draft has changed and is not a valid address. */
   readonly isInvalid: boolean;
-  /** Localized load or save error, or `null`. */
+  /**
+   * Localized load or save error, or the validation message for a touched,
+   * malformed draft; `null` otherwise.
+   */
   readonly errorMessage: string | null;
   readonly labels: BillingLabels["billingEmail"];
   /** Parts drop their default classes and keep only the `class` you pass. */
@@ -267,6 +291,7 @@ export type BillingEmailContextBase = {
   /** Parts currently mounted inside the root. */
   readonly parts: Readonly<Record<BillingEmailPart, boolean>>;
   setDraft: (draft: string) => void;
+  markTouched: () => void;
   submit: () => void;
   reload: () => void;
 };
@@ -290,7 +315,11 @@ export const deriveBillingEmailView = (
         state.error.cause,
         state.error.phase === "load" ? labels.loadFailed : labels.saveFailed,
       )
-    : null,
+    : state.touched &&
+        state.status === "ready" &&
+        !isValidBillingEmail(state.draft)
+      ? labels.invalid
+      : null,
 });
 
 /**

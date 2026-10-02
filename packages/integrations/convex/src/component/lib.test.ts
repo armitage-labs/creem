@@ -2140,6 +2140,7 @@ describe("setCustomerEmail mutation", () => {
       entityId: "user_456",
       customerId: "cust_123",
       email: "billing@example.com",
+      updatedAt: "2026-03-01T10:00:00.000Z",
     });
 
     const result = await t.query(api.lib.getCustomerByEntityId, {
@@ -2158,6 +2159,7 @@ describe("setCustomerEmail mutation", () => {
       entityId: "user_456",
       customerId: "cust_123",
       email: "billing@example.com",
+      updatedAt: "2026-03-01T10:00:00.000Z",
     });
 
     const result = await t.query(api.lib.getCustomerByEntityId, {
@@ -2172,10 +2174,32 @@ describe("setCustomerEmail mutation", () => {
         entityId: "user_456",
         customerId: "cust_123",
         email: "billing@example.com",
+        updatedAt: "2026-03-01T10:00:00.000Z",
       }),
     ).resolves.toBeNull();
     expect(
       await t.query(api.lib.getCustomerByEntityId, { entityId: "user_456" }),
     ).toBeNull();
+  });
+
+  it("ignores a readback that is not newer than the stored one", async () => {
+    await t.mutation(api.lib.insertCustomer, createTestCustomer());
+    const mirror = (email: string, updatedAt: string) =>
+      t.mutation(api.lib.setCustomerEmail, {
+        entityId: "user_456",
+        customerId: "cust_123",
+        email,
+        updatedAt,
+      });
+
+    await mirror("second@example.com", "2026-03-01T10:00:02.000Z");
+    await mirror("first@example.com", "2026-03-01T10:00:01.000Z");
+    await mirror("same-time@example.com", "2026-03-01T10:00:02.000Z");
+
+    const result = await t.query(api.lib.getCustomerByEntityId, {
+      entityId: "user_456",
+    });
+    expect(result?.email).toBe("second@example.com");
+    expect(result?.emailUpdatedAt).toBe("2026-03-01T10:00:02.000Z");
   });
 });

@@ -79,6 +79,8 @@ export type BillingLabels = {
     loading: string;
     loadFailed: string;
     saveFailed: string;
+    /** Shown for a malformed address after the input loses focus. */
+    invalid: string;
     /** Button that reloads the email after a failed load. */
     retry: string;
   };
@@ -302,6 +304,7 @@ export const defaultBillingLabels: BillingLabels = {
     loading: "Loading billing email...",
     loadFailed: "Could not load the billing email",
     saveFailed: "Could not update the billing email",
+    invalid: "Enter a valid email address.",
     retry: "Try again",
   },
   subscription: {
