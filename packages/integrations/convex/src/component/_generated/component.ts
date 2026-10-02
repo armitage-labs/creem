@@ -27,7 +27,7 @@ export type ComponentApi<Name extends string | undefined = string | undefined> =
       activateScheduledAppPlanAssignment: FunctionReference<
         "mutation",
         "internal",
-        { planId?: string; subscriptionId: string },
+        { entityId: string; planId?: string; subscriptionId: string },
         {
           assignedByUserId?: string;
           createdAt: string;
@@ -110,7 +110,7 @@ export type ComponentApi<Name extends string | undefined = string | undefined> =
       cancelScheduledAppPlanAssignment: FunctionReference<
         "mutation",
         "internal",
-        { planId?: string; subscriptionId: string },
+        { entityId: string; planId?: string; subscriptionId: string },
         {
           assignedByUserId?: string;
           createdAt: string;
@@ -142,6 +142,13 @@ export type ComponentApi<Name extends string | undefined = string | undefined> =
           targetUnits?: number;
           updatedAt: string;
         } | null,
+        Name
+      >;
+      claimSubscriptionOwner: FunctionReference<
+        "mutation",
+        "internal",
+        { entityId: string; id: string },
+        string | null,
         Name
       >;
       compensateSubscriptionLifecycle: FunctionReference<

@@ -17,6 +17,7 @@ import {
   byCreationTime,
   LEGACY_SCAN_LIMIT,
   legacyRowsOf,
+  establishedOwnerOf,
   ownerClaimOf,
   recordCustomerEntity,
   resolveOwner,
@@ -450,6 +451,31 @@ export const expireTrialIfElapsed = mutation({
   },
 });
 
+/**
+ * Give a stored subscription without an owner the owner a trusted event
+ * claims. An established owner is kept. Returns the owner the row now has.
+ */
+export const claimSubscriptionOwner = mutation({
+  args: { id: v.string(), entityId: v.string() },
+  returns: v.union(v.string(), v.null()),
+  handler: async (ctx, args) => {
+    const subscription = await ctx.db
+      .query("subscriptions")
+      .withIndex("id", (q) => q.eq("id", args.id))
+      .unique();
+    if (!subscription) return null;
+    const owner = resolveOwner(
+      subscription,
+      { entityId: args.entityId },
+      `subscription ${args.id}`,
+    );
+    if (owner && subscription.entityId === undefined) {
+      await ctx.db.patch(subscription._id, { entityId: owner });
+    }
+    return owner ?? null;
+  },
+});
+
 export const createSubscription = mutation({
   args: {
     subscription: schema.tables.subscriptions.validator,
@@ -871,12 +897,19 @@ const BACKFILL_BATCH = 25;
  * first every row's recorded `convexBillingEntityId` is established (claims),
  * then owners are inferred for the rows still without one, each for
  * subscriptions and then orders. `after` is the `_creationTime` of the last
- * row examined in the current step.
+ * row examined in the current step. `customerId` pins the Creem customer the
+ * steps ran for: a mapping re-pointed meanwhile starts over, because its new
+ * customer's claims have not been established yet.
  */
 type BackfillCursor = {
   /** `_creationTime` of the last customer mapping finished. */
   done: number | null;
-  current: { customer: number; step: number; after: number | null } | null;
+  current: {
+    customer: number;
+    customerId: string;
+    step: number;
+    after: number | null;
+  } | null;
 };
 
 const BACKFILL_STEPS = [
@@ -940,7 +973,12 @@ export const backfillBillingEntityTags = mutation({
         return { cursor: args.cursor ?? null, isDone: true, processed: 0 };
       }
       await recordCustomerEntity(ctx, next.id, next.entityId);
-      current = { customer: next._creationTime, step: 0, after: null };
+      current = {
+        customer: next._creationTime,
+        customerId: next.id,
+        step: 0,
+        after: null,
+      };
     }
     const customerCreation = current.customer;
     const customer = await ctx.db
@@ -953,6 +991,15 @@ export const backfillBillingEntityTags = mutation({
       // The mapping was deleted meanwhile; move on.
       const cursor: BackfillCursor = { done: customerCreation, current: null };
       return { cursor: JSON.stringify(cursor), isDone: false, processed: 0 };
+    }
+    if (customer.id !== current.customerId) {
+      await recordCustomerEntity(ctx, customer.id, customer.entityId);
+      current = {
+        customer: customerCreation,
+        customerId: customer.id,
+        step: 0,
+        after: null,
+      };
     }
 
     const step = BACKFILL_STEPS[current.step];
@@ -1006,6 +1053,7 @@ export const backfillBillingEntityTags = mutation({
         done: state.done,
         current: {
           customer: customerCreation,
+          customerId: customer.id,
           step: current.step + 1,
           after: null,
         },
@@ -1309,6 +1357,7 @@ export const assignAppPlan = mutation({
  */
 export const activateScheduledAppPlanAssignment = mutation({
   args: {
+    entityId: v.string(),
     subscriptionId: v.string(),
     planId: v.optional(v.string()),
   },
@@ -1320,8 +1369,12 @@ export const activateScheduledAppPlanAssignment = mutation({
         q.eq("subscriptionId", args.subscriptionId).eq("status", "scheduled"),
       )
       .collect();
+    // Only the entity's own assignment: another entity sharing the Creem
+    // customer may have one that names the same subscription.
     const assignment = scheduled.find(
-      (item) => !args.planId || item.planId === args.planId,
+      (item) =>
+        item.entityId === args.entityId &&
+        (!args.planId || item.planId === args.planId),
     );
     if (!assignment) return null;
 
@@ -1357,6 +1410,7 @@ export const activateScheduledAppPlanAssignment = mutation({
  */
 export const cancelScheduledAppPlanAssignment = mutation({
   args: {
+    entityId: v.string(),
     subscriptionId: v.string(),
     planId: v.optional(v.string()),
   },
@@ -1368,8 +1422,12 @@ export const cancelScheduledAppPlanAssignment = mutation({
         q.eq("subscriptionId", args.subscriptionId).eq("status", "scheduled"),
       )
       .collect();
+    // Only the entity's own assignment: another entity sharing the Creem
+    // customer may have one that names the same subscription.
     const assignment = scheduled.find(
-      (item) => !args.planId || item.planId === args.planId,
+      (item) =>
+        item.entityId === args.entityId &&
+        (!args.planId || item.planId === args.planId),
     );
     if (!assignment) return null;
 
@@ -1764,6 +1822,9 @@ export const compensateSubscriptionLifecycle = mutation({
     }
 
     if (!args.rollback) return null;
+    const owner = establishedOwnerOf(subscription);
+    const ownedByOwner = (row: { entityId: string }) =>
+      owner === null || row.entityId === owner;
 
     for (const replacementId of args.rollback.replacementScheduledUpdateIds ??
       []) {
@@ -1804,6 +1865,7 @@ export const compensateSubscriptionLifecycle = mutation({
         scheduledUpdate =
           candidates.find(
             (candidate) =>
+              ownedByOwner(candidate) &&
               candidate.createdAt === transition.scheduledUpdateCreatedAt &&
               candidate.targetPlanId === transition.planId,
           ) ?? null;
@@ -1837,6 +1899,7 @@ export const compensateSubscriptionLifecycle = mutation({
         assignment =
           candidates.find(
             (candidate) =>
+              ownedByOwner(candidate) &&
               candidate.planId === transition.planId &&
               (!transition.assignmentCreatedAt ||
                 candidate.createdAt === transition.assignmentCreatedAt),
@@ -2094,6 +2157,7 @@ export const applyScheduledSubscriptionUpdate = action({
         });
       } else if (scheduledUpdate.targetPlanId) {
         await ctx.runMutation(api.lib.activateScheduledAppPlanAssignment, {
+          entityId: scheduledUpdate.entityId,
           subscriptionId: scheduledUpdate.subscriptionId,
           planId: scheduledUpdate.targetPlanId,
         });

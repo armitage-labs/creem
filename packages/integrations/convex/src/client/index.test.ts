@@ -915,6 +915,7 @@ describe("subscriptions namespace", () => {
       expect(ctx.runMutation).toHaveBeenCalledWith(
         REFS.cancelScheduledAppPlanAssignment,
         {
+          entityId: "user_1",
           subscriptionId: "sub_1",
           planId: "free",
         },
@@ -1065,6 +1066,7 @@ describe("subscriptions namespace", () => {
       expect(ctx.runMutation).toHaveBeenCalledWith(
         REFS.cancelScheduledAppPlanAssignment,
         {
+          entityId: "user_1",
           subscriptionId: "sub_1",
           planId: "free",
         },

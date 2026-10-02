@@ -39,7 +39,7 @@ import {
   type RunActionCtx,
 } from "../component/util.js";
 import type { ComponentApi } from "../component/_generated/component.js";
-import { ownerClaimOf } from "../component/entityScope.js";
+import { establishedOwnerOf, ownerClaimOf } from "../component/entityScope.js";
 import { SHARED_CUSTOMER_ERROR_CODE } from "../core/convexError.js";
 import { resolveBillingSnapshot } from "../core/resolver.js";
 import {
@@ -1216,6 +1216,7 @@ export class Creem {
       const canceledAssignment = await ctx.runMutation(
         this.component.lib.cancelScheduledAppPlanAssignment,
         {
+          entityId: args.entityId,
           subscriptionId: args.subscription.id,
           planId: update.targetPlanId,
         },
@@ -1705,6 +1706,7 @@ export class Creem {
           const canceledAssignment = await ctx.runMutation(
             this.component.lib.cancelScheduledAppPlanAssignment,
             {
+              entityId: args.entityId,
               subscriptionId: subscription.id,
               planId: canceledUpdate.targetPlanId,
             },
@@ -2696,18 +2698,30 @@ export class Creem {
 
             // A checkout can reference its subscription by ID only. The row a
             // subscription webhook stored then decides, as it does for an
-            // expanded one.
+            // expanded one; a row from before the upgrade decides by the
+            // claim its metadata records.
             if (typeof checkout.subscription === "string") {
               const stored = await ctx.runQuery(
                 this.component.lib.getSubscription,
                 { id: checkout.subscription },
               );
-              if (stored?.entityId) {
-                persistedOwner = stored.entityId;
+              // A row the subscription webhook stored without an owner takes
+              // the checkout's claim.
+              const storedOwner = stored
+                ? (establishedOwnerOf(stored) ??
+                  (checkoutOwner
+                    ? await ctx.runMutation(
+                        this.component.lib.claimSubscriptionOwner,
+                        { id: stored.id, entityId: checkoutOwner },
+                      )
+                    : null))
+                : null;
+              if (stored && storedOwner) {
+                persistedOwner = storedOwner;
                 persistedCustomerId = stored.customerId;
                 await this.endAppPlansForPaidSubscription(
                   ctx,
-                  stored.entityId,
+                  storedOwner,
                   stored,
                 );
               }

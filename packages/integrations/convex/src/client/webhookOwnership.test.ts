@@ -387,4 +387,59 @@ describe("webhook side effects follow the stored owner", () => {
     expect(response.status).toBe(202);
     await expectUserUntouched();
   });
+
+  it("uses the recorded claim of a pre-upgrade subscription a checkout references by id", async () => {
+    // Before the backfill, the row records its owner only in its metadata.
+    await t.run(async (db) => {
+      const row = (await db.db.query("subscriptions").collect()).find(
+        (item) => item.id === "sub_org",
+      );
+      if (row) await db.db.patch(row._id, { entityId: undefined });
+    });
+
+    const response = await send(
+      JSON.stringify(
+        checkoutPayload(
+          "sub_org",
+          subscriptionPayload("2026-02-02T00:00:00.000Z", {}).customer,
+          { convexUserId: USER, convexBillingEntityId: USER },
+        ),
+      ),
+    );
+
+    expect(response.status).toBe(202);
+    expect(
+      (await t.query(api.lib.getCustomerByEntityId, { entityId: USER }))?.id,
+    ).toBe(USER_CUSTOMER);
+    const [plan] = await t.query(api.lib.listAppPlanAssignments, {
+      entityId: USER,
+    });
+    expect(plan?.status).toBe("active");
+  });
+
+  it("gives an ownerless subscription the claim of a checkout that references it by id", async () => {
+    await t.run(async (db) => {
+      const row = (await db.db.query("subscriptions").collect()).find(
+        (item) => item.id === "sub_org",
+      );
+      if (row) {
+        await db.db.patch(row._id, { entityId: undefined, metadata: {} });
+      }
+    });
+
+    const response = await send(
+      JSON.stringify(
+        checkoutPayload(
+          "sub_org",
+          subscriptionPayload("2026-02-02T00:00:00.000Z", {}).customer,
+          { convexBillingEntityId: ORG },
+        ),
+      ),
+    );
+
+    expect(response.status).toBe(202);
+    expect(
+      (await t.query(api.lib.getSubscription, { id: "sub_org" }))?.entityId,
+    ).toBe(ORG);
+  });
 });

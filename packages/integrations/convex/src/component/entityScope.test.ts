@@ -749,6 +749,54 @@ describe("entity-scoped billing data on a shared Creem customer", () => {
       ).toEqual([]);
     });
 
+    it("starts over for a mapping re-pointed while it is being backfilled", async () => {
+      const OTHER_CUSTOMER = "cust_other";
+      const legacy = convexTest(schema, modules);
+      await legacy.run(async (ctx) => {
+        await ctx.db.insert("customers", { id: CUSTOMER, entityId: ORG });
+        await ctx.db.insert("subscriptions", {
+          ...subscription("sub_untagged", {}),
+          customerId: OTHER_CUSTOMER,
+        });
+        await ctx.db.insert("subscriptions", {
+          ...subscription("sub_personal", { convexBillingEntityId: PERSONAL }),
+          customerId: OTHER_CUSTOMER,
+        });
+      });
+
+      // The first call finishes the subscription claims of the old customer.
+      const first: { cursor: string | null; isDone: boolean } =
+        await legacy.mutation(api.lib.backfillBillingEntityTags, {});
+      expect(first.isDone).toBe(false);
+      await legacy.run(async (ctx) => {
+        const mapping = await ctx.db
+          .query("customers")
+          .withIndex("entityId", (q) => q.eq("entityId", ORG))
+          .unique();
+        if (mapping) await ctx.db.patch(mapping._id, { id: OTHER_CUSTOMER });
+      });
+
+      let cursor = first.cursor;
+      for (let calls = 0; calls < 50; calls += 1) {
+        const page: { cursor: string | null; isDone: boolean } =
+          await legacy.mutation(api.lib.backfillBillingEntityTags, { cursor });
+        cursor = page.cursor;
+        if (page.isDone) break;
+      }
+
+      expect(
+        (await legacy.query(api.lib.getSubscription, { id: "sub_personal" }))
+          ?.entityId,
+      ).toBe(PERSONAL);
+      expect(
+        (await legacy.query(api.lib.getSubscription, { id: "sub_untagged" }))
+          ?.entityId,
+      ).toBeUndefined();
+      expect(
+        await legacy.query(api.lib.listAllUserSubscriptions, { entityId: ORG }),
+      ).toEqual([]);
+    });
+
     it("reaches a tagged row behind more ambiguous rows than one batch", async () => {
       const legacy = convexTest(schema, modules);
       await legacy.run(async (ctx) => {
