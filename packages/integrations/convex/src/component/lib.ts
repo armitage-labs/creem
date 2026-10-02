@@ -12,7 +12,14 @@ import schema from "./schema.js";
 import { asyncMap } from "convex-helpers";
 import { api } from "./_generated/api.js";
 import { convertToDatabaseProduct } from "./util.js";
-import { scopeToEntity } from "./entityScope.js";
+import {
+  billingEntityOf,
+  isSharedWithOthers,
+  loadCustomerOwnership,
+  OWNERSHIP_SCAN_LIMIT,
+  preserveBillingEntity,
+  scopeToEntity,
+} from "./entityScope.js";
 import {
   resolveUpdateFailureAfterResume,
   resumeSubscriptionIfNeeded,
@@ -436,7 +443,13 @@ export const createSubscription = mutation({
     if (existingModifiedAt > incomingModifiedAt) {
       return null; // stale webhook, skip
     }
-    await ctx.db.patch(existingSubscription._id, args.subscription);
+    await ctx.db.patch(existingSubscription._id, {
+      ...args.subscription,
+      metadata: preserveBillingEntity(
+        existingSubscription.metadata,
+        args.subscription.metadata,
+      ),
+    });
     await scheduleTrialExpiry(
       ctx,
       existingSubscription._id,
@@ -553,6 +566,12 @@ export const updateSubscription = mutation({
       }
     }
 
+    // Subscription webhooks can arrive without metadata; the entity the row
+    // already names must survive them.
+    subscriptionToWrite.metadata = preserveBillingEntity(
+      existingSubscription.metadata,
+      subscriptionToWrite.metadata,
+    );
     await ctx.db.patch(existingSubscription._id, subscriptionToWrite);
     await scheduleTrialExpiry(
       ctx,
@@ -627,9 +646,18 @@ export const createOrder = mutation({
       await ctx.db.insert("orders", args.order);
       return;
     }
-    // Update if incoming is newer
+    // Update if incoming is newer, keeping the entity the order names.
     if ((args.order.updatedAt ?? "") >= (existing.updatedAt ?? "")) {
-      await ctx.db.patch(existing._id, args.order);
+      await ctx.db.patch(existing._id, {
+        ...args.order,
+        metadata:
+          existing.metadata || args.order.metadata
+            ? preserveBillingEntity(
+                existing.metadata,
+                args.order.metadata ?? {},
+              )
+            : undefined,
+      });
     }
   },
 });
@@ -707,8 +735,10 @@ export const getEntitySubscription = query({
 });
 
 /**
- * Billing entities mapped to a Creem customer. More than one means the
- * customer is shared: Creem keeps one customer per store and email address.
+ * Billing entities a Creem customer touches: those mapped to it and those
+ * named by its subscriptions and orders (which can outlive a mapping that was
+ * re-pointed to another customer). Reads are bounded; see `isCustomerShared`
+ * for a decision that accounts for that.
  */
 export const listCustomerEntities = query({
   args: {
@@ -716,11 +746,79 @@ export const listCustomerEntities = query({
   },
   returns: v.array(v.string()),
   handler: async (ctx, args) => {
-    const customers = await ctx.db
+    const ownership = await loadCustomerOwnership(ctx, args.customerId);
+    return [...ownership.entities].sort();
+  },
+});
+
+/**
+ * Whether a Creem customer touches billing entities other than `entityId`.
+ * Creem keeps one customer per store and email address, so the same person
+ * checking out for two entities shares one. A customer with more history than
+ * the bounded scan reads counts as shared.
+ */
+export const isCustomerShared = query({
+  args: {
+    customerId: v.string(),
+    entityId: v.string(),
+  },
+  returns: v.boolean(),
+  handler: async (ctx, args) =>
+    isSharedWithOthers(
+      await loadCustomerOwnership(ctx, args.customerId),
+      args.entityId,
+    ),
+});
+
+/**
+ * Tag subscriptions and orders written before checkouts recorded
+ * `convexBillingEntityId`, for one page of customer mappings.
+ *
+ * A customer's untagged rows are tagged only when exactly one entity maps to
+ * the customer and no row names another; ambiguous rows stay untagged and
+ * keep belonging to no entity. Call it with the returned cursor until
+ * `isDone`. It is idempotent, so running it again is safe.
+ */
+export const backfillBillingEntityTags = mutation({
+  args: {
+    cursor: v.optional(v.union(v.string(), v.null())),
+    numItems: v.optional(v.number()),
+  },
+  returns: v.object({
+    cursor: v.string(),
+    isDone: v.boolean(),
+    tagged: v.number(),
+  }),
+  handler: async (ctx, args) => {
+    const page = await ctx.db
       .query("customers")
-      .withIndex("id", (q) => q.eq("id", args.customerId))
-      .collect();
-    return [...new Set(customers.map((customer) => customer.entityId))];
+      .paginate({ cursor: args.cursor ?? null, numItems: args.numItems ?? 10 });
+    let tagged = 0;
+    for (const customer of page.page) {
+      const ownership = await loadCustomerOwnership(ctx, customer.id);
+      if (isSharedWithOthers(ownership, customer.entityId)) continue;
+      const [subscriptions, orders] = await Promise.all([
+        ctx.db
+          .query("subscriptions")
+          .withIndex("customerId", (q) => q.eq("customerId", customer.id))
+          .take(OWNERSHIP_SCAN_LIMIT),
+        ctx.db
+          .query("orders")
+          .withIndex("customerId", (q) => q.eq("customerId", customer.id))
+          .take(OWNERSHIP_SCAN_LIMIT),
+      ]);
+      for (const row of [...subscriptions, ...orders]) {
+        if (billingEntityOf(row) !== null) continue;
+        await ctx.db.patch(row._id, {
+          metadata: {
+            ...(row.metadata ?? {}),
+            convexBillingEntityId: customer.entityId,
+          },
+        });
+        tagged += 1;
+      }
+    }
+    return { cursor: page.continueCursor, isDone: page.isDone, tagged };
   },
 });
 
@@ -1734,6 +1832,23 @@ export const applyScheduledSubscriptionUpdate = action({
       scheduledUpdate.status !== "pending" &&
       scheduledUpdate.status !== "applying"
     ) {
+      return null;
+    }
+
+    // Updates scheduled before subscriptions were scoped to their entity may
+    // name a subscription of another entity sharing the Creem customer.
+    const owned = await ctx.runQuery(api.lib.getEntitySubscription, {
+      entityId: scheduledUpdate.entityId,
+      id: scheduledUpdate.subscriptionId,
+    });
+    if (!owned) {
+      console.warn(
+        `[creem] dropping scheduled update ${args.scheduledUpdateId}: subscription ${scheduledUpdate.subscriptionId} does not belong to entity ${scheduledUpdate.entityId}`,
+      );
+      await ctx.runMutation(api.lib.markScheduledSubscriptionUpdateFailed, {
+        scheduledUpdateId: args.scheduledUpdateId,
+        error: "Subscription does not belong to the scheduled entity",
+      });
       return null;
     }
 

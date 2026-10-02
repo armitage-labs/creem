@@ -25,7 +25,7 @@ const REFS = {
   insertCustomer: Symbol("insertCustomer"),
   setCustomerEmail: Symbol("setCustomerEmail"),
   getEntitySubscription: Symbol("getEntitySubscription"),
-  listCustomerEntities: Symbol("listCustomerEntities"),
+  isCustomerShared: Symbol("isCustomerShared"),
   patchSubscription: Symbol("patchSubscription"),
   createSubscription: Symbol("createSubscription"),
   updateSubscription: Symbol("updateSubscription"),
@@ -341,14 +341,14 @@ describe("customers namespace", () => {
     expect(result).toEqual(mockCustomer);
   });
 
-  it("isShared reports whether other entities map to the customer", async () => {
+  it("isShared reports whether other entities touch the customer", async () => {
     const shared = createMockCtx({
       [REFS.getCustomerByEntityId]: { id: "cust_1", entityId: "user_1" },
-      [REFS.listCustomerEntities]: ["user_1", "org_1"],
+      [REFS.isCustomerShared]: true,
     });
     const single = createMockCtx({
       [REFS.getCustomerByEntityId]: { id: "cust_1", entityId: "user_1" },
-      [REFS.listCustomerEntities]: ["user_1"],
+      [REFS.isCustomerShared]: false,
     });
     const none = createMockCtx({ [REFS.getCustomerByEntityId]: null });
 
@@ -427,7 +427,7 @@ describe("customers namespace", () => {
     it("updates the email in Creem and mirrors it locally", async () => {
       const ctx = createMockCtx({
         [REFS.getCustomerByEntityId]: { id: "cust_1", entityId: "user_1" },
-        [REFS.listCustomerEntities]: ["user_1"],
+        [REFS.isCustomerShared]: false,
       });
       const update = vi.fn(async () => ({
         id: "cust_1",
@@ -463,7 +463,7 @@ describe("customers namespace", () => {
     it("refuses to change the email of a customer shared with another entity", async () => {
       const ctx = createMockCtx({
         [REFS.getCustomerByEntityId]: { id: "cust_1", entityId: "user_1" },
-        [REFS.listCustomerEntities]: ["user_1", "org_1"],
+        [REFS.isCustomerShared]: true,
       });
       const update = vi.fn();
       creem.sdk.customers.update = update as never;
@@ -473,8 +473,9 @@ describe("customers namespace", () => {
         email: "billing@example.com",
       });
 
-      expect(ctx.runQuery).toHaveBeenCalledWith(REFS.listCustomerEntities, {
+      expect(ctx.runQuery).toHaveBeenCalledWith(REFS.isCustomerShared, {
         customerId: "cust_1",
+        entityId: "user_1",
       });
       expect(result).toEqual({ status: "shared-customer" });
       expect(update).not.toHaveBeenCalled();
@@ -499,7 +500,7 @@ describe("customers namespace", () => {
     it("rejects a malformed address before calling Creem", async () => {
       const ctx = createMockCtx({
         [REFS.getCustomerByEntityId]: { id: "cust_1", entityId: "user_1" },
-        [REFS.listCustomerEntities]: ["user_1"],
+        [REFS.isCustomerShared]: false,
       });
       const update = vi.fn();
       creem.sdk.customers.update = update as never;
@@ -516,7 +517,7 @@ describe("customers namespace", () => {
     it("propagates Creem API errors without touching the local record", async () => {
       const ctx = createMockCtx({
         [REFS.getCustomerByEntityId]: { id: "cust_1", entityId: "user_1" },
-        [REFS.listCustomerEntities]: ["user_1"],
+        [REFS.isCustomerShared]: false,
       });
       creem.sdk.customers.update = vi.fn(async () => {
         throw new Error("Conflict: email already in use");
@@ -536,7 +537,7 @@ describe("customers namespace", () => {
       // customer.
       const ctx = createMockCtx({
         [REFS.getCustomerByEntityId]: { id: "cust_1", entityId: "user_1" },
-        [REFS.listCustomerEntities]: ["user_1"],
+        [REFS.isCustomerShared]: false,
       });
       creem.sdk.customers.update = vi.fn(async () => ({
         id: "cust_1",
@@ -2477,7 +2478,7 @@ describe("api() convenience exports", () => {
       });
       const ctx = createMockCtx({
         [REFS.getCustomerByEntityId]: { id: "cust_1", entityId: "org_1" },
-        [REFS.listCustomerEntities]: ["org_1"],
+        [REFS.isCustomerShared]: false,
       });
       let creemEmail = "old@example.com";
       const update = vi.fn(async ({ email }: { email: string }) => {

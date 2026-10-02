@@ -1,7 +1,11 @@
 import { useState, useCallback, type PropsWithChildren } from "react";
 import { useConvex } from "convex/react";
 import { defaultBillingLabels, type BillingLabels } from "../../core/i18n.js";
-import { getConvexErrorMessage } from "../../core/convexError.js";
+import {
+  getConvexErrorCode,
+  getConvexErrorMessage,
+  SHARED_CUSTOMER_ERROR_CODE,
+} from "../../core/convexError.js";
 import { useCreemConvex } from "../CreemConvexProvider.js";
 import type { CustomerPortalUrlFunction } from "../../core/connectedApi.js";
 
@@ -42,10 +46,19 @@ export const PaymentRecoveryButton = ({
       const result = await client.action(resolvedPortalUrl, {});
       window.location.href = result.url;
     } catch (err) {
-      setError(getConvexErrorMessage(err, labels.portal.failedToOpen));
+      setError(
+        getConvexErrorCode(err) === SHARED_CUSTOMER_ERROR_CODE
+          ? labels.portal.sharedCustomer
+          : getConvexErrorMessage(err, labels.portal.failedToOpen),
+      );
       setIsLoading(false);
     }
-  }, [client, labels.portal.failedToOpen, resolvedPortalUrl]);
+  }, [
+    client,
+    labels.portal.failedToOpen,
+    labels.portal.sharedCustomer,
+    resolvedPortalUrl,
+  ]);
 
   if (!resolvedPortalUrl) return null;
 

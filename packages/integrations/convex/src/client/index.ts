@@ -39,6 +39,8 @@ import {
   type RunActionCtx,
 } from "../component/util.js";
 import type { ComponentApi } from "../component/_generated/component.js";
+import { withParentBillingEntity } from "../component/entityScope.js";
+import { SHARED_CUSTOMER_ERROR_CODE } from "../core/convexError.js";
 import { resolveBillingSnapshot } from "../core/resolver.js";
 import {
   findCreditGrantByProductId,
@@ -157,6 +159,12 @@ import {
 
 const CUSTOMER_CHECKOUT_REQUIRED_ERROR = {
   message: "Customer not found — complete a checkout first",
+} as const;
+
+const SHARED_CUSTOMER_PORTAL_ERROR = {
+  code: SHARED_CUSTOMER_ERROR_CODE,
+  message:
+    "This billing contact is shared with another account, so its customer portal is not available here.",
 } as const;
 
 /** Function reference type for internal mutations that receive a subscription document. */
@@ -560,6 +568,12 @@ export class Creem {
     if (!customer) {
       throw new ConvexError("Customer not found");
     }
+    // The Creem portal shows and manages everything of the customer. When the
+    // customer is shared with another billing entity, that includes the other
+    // entity's subscriptions and invoices.
+    if (await this.isCustomerShared(ctx, customer.id, entityId)) {
+      throw new ConvexError(SHARED_CUSTOMER_PORTAL_ERROR);
+    }
 
     const portal = await this.sdk.customers.generateBillingLinks({
       customerId: customer.id,
@@ -567,15 +581,15 @@ export class Creem {
     return { url: portal.customerPortalLink };
   }
 
-  private async isCustomerShared(
+  private isCustomerShared(
     ctx: RunQueryCtx,
     customerId: string,
+    entityId: string,
   ): Promise<boolean> {
-    const entities = await ctx.runQuery(
-      this.component.lib.listCustomerEntities,
-      { customerId },
-    );
-    return entities.length > 1;
+    return ctx.runQuery(this.component.lib.isCustomerShared, {
+      customerId,
+      entityId,
+    });
   }
 
   private async getCustomerBillingEmail(
@@ -606,7 +620,7 @@ export class Creem {
     // person checking out for two entities yields one shared customer. Its
     // email is every sharing entity's billing address; one entity's admin
     // must not change it for the others.
-    if (await this.isCustomerShared(ctx, customer.id)) {
+    if (await this.isCustomerShared(ctx, customer.id, entityId)) {
       return { status: "shared-customer" };
     }
 
@@ -1858,7 +1872,9 @@ export class Creem {
         { entityId }: { entityId: string },
       ): Promise<boolean> => {
         const customer = await this.getCustomerByEntityId(ctx, entityId);
-        return customer ? await this.isCustomerShared(ctx, customer.id) : false;
+        return customer
+          ? await this.isCustomerShared(ctx, customer.id, entityId)
+          : false;
       },
       billingEmail: (ctx: RunActionCtx, { entityId }: { entityId: string }) =>
         this.getCustomerBillingEmail(ctx, { entityId }),
@@ -2631,9 +2647,11 @@ export class Creem {
                 string,
                 unknown
               >;
-              const rawMeta = (embeddedRaw.metadata ??
-                checkout.metadata ??
-                {}) as Record<string, unknown>;
+              // An embedded `{}` must not hide the checkout's entity.
+              const rawMeta = withParentBillingEntity(
+                embeddedRaw.metadata as Record<string, unknown> | undefined,
+                checkout.metadata as Record<string, unknown> | undefined,
+              );
               const subscription = convertToDatabaseSubscription(embeddedSub, {
                 rawMetadata: rawMeta,
               });

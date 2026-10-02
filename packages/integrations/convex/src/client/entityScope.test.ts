@@ -1,11 +1,16 @@
 /// <reference types="vite/client" />
-import { beforeEach, describe, expect, it } from "vitest";
+import { beforeEach, describe, expect, it, vi } from "vitest";
 import { convexTest } from "convex-test";
 import type { FunctionReference } from "convex/server";
+import { ConvexError } from "convex/values";
 import { Creem } from "./index.js";
 import schema from "../component/schema.js";
 import { api } from "../component/_generated/api.js";
 import type { ComponentApi } from "../component/_generated/component.js";
+import {
+  getConvexErrorCode,
+  SHARED_CUSTOMER_ERROR_CODE,
+} from "../core/convexError.js";
 
 // Two billing entities that share one Creem customer (Creem keeps one per store
 // and email address), run against the real component functions.
@@ -107,5 +112,34 @@ describe("Creem client on a customer shared by two entities", () => {
         email: "billing@example.com",
       }),
     ).resolves.toEqual({ status: "shared-customer" });
+  });
+
+  it("refuses the customer portal while the customer is shared", async () => {
+    const generateBillingLinks = vi.fn(async () => ({
+      customerPortalLink: "https://portal.example/shared",
+    }));
+    creem.sdk.customers.generateBillingLinks = generateBillingLinks as never;
+
+    const refusal = await creem.customers
+      .portalUrl(ctx as never, { entityId: "org_1" })
+      .catch((error: unknown) => error);
+
+    expect(refusal).toBeInstanceOf(ConvexError);
+    expect(getConvexErrorCode(refusal)).toBe(SHARED_CUSTOMER_ERROR_CODE);
+    expect(generateBillingLinks).not.toHaveBeenCalled();
+  });
+
+  it("opens the portal for a customer only one entity touches", async () => {
+    await t.mutation(api.lib.insertCustomer, {
+      id: "cust_solo",
+      entityId: "user_2",
+    });
+    creem.sdk.customers.generateBillingLinks = vi.fn(async () => ({
+      customerPortalLink: "https://portal.example/solo",
+    })) as never;
+
+    await expect(
+      creem.customers.portalUrl(ctx as never, { entityId: "user_2" }),
+    ).resolves.toEqual({ url: "https://portal.example/solo" });
   });
 });

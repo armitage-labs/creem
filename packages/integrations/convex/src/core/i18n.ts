@@ -66,6 +66,8 @@ export type BillingLabels = {
     manageBilling: string;
     loading: string;
     failedToOpen: string;
+    /** Shown when the portal is refused because other accounts share the Creem customer. */
+    sharedCustomer: string;
   };
   billingEmail: {
     title: string;
@@ -294,6 +296,8 @@ export const defaultBillingLabels: BillingLabels = {
     manageBilling: "Manage billing",
     loading: "Loading...",
     failedToOpen: "Failed to open billing portal",
+    sharedCustomer:
+      "This billing contact is shared with another account, so the billing portal isn't available here.",
   },
   billingEmail: {
     title: "Billing email",

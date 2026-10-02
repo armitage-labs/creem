@@ -81,6 +81,13 @@ export type ComponentApi<Name extends string | undefined = string | undefined> =
         },
         Name
       >;
+      backfillBillingEntityTags: FunctionReference<
+        "mutation",
+        "internal",
+        { cursor?: string | null; numItems?: number },
+        { cursor: string; isDone: boolean; tagged: number },
+        Name
+      >;
       cancelPendingScheduledSubscriptionUpdates: FunctionReference<
         "mutation",
         "internal",
@@ -579,6 +586,13 @@ export type ComponentApi<Name extends string | undefined = string | undefined> =
           updatedAt?: string;
         },
         string,
+        Name
+      >;
+      isCustomerShared: FunctionReference<
+        "query",
+        "internal",
+        { customerId: string; entityId: string },
+        boolean,
         Name
       >;
       listAllUserSubscriptions: FunctionReference<
