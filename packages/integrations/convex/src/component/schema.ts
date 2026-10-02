@@ -19,7 +19,9 @@ export default defineSchema(
       // `setCustomerEmail`. Kept apart from `updatedAt`, which orders customer
       // re-pointing in `insertCustomer`.
       emailUpdatedAt: v.optional(v.string()),
-    }).index("entityId", ["entityId"]),
+    })
+      .index("entityId", ["entityId"])
+      .index("id", ["id"]),
     products: defineTable({
       id: v.string(),
       name: v.string(),

@@ -24,6 +24,8 @@ const REFS = {
   listUserOrders: Symbol("listUserOrders"),
   insertCustomer: Symbol("insertCustomer"),
   setCustomerEmail: Symbol("setCustomerEmail"),
+  getEntitySubscription: Symbol("getEntitySubscription"),
+  listCustomerEntities: Symbol("listCustomerEntities"),
   patchSubscription: Symbol("patchSubscription"),
   createSubscription: Symbol("createSubscription"),
   updateSubscription: Symbol("updateSubscription"),
@@ -339,6 +341,28 @@ describe("customers namespace", () => {
     expect(result).toEqual(mockCustomer);
   });
 
+  it("isShared reports whether other entities map to the customer", async () => {
+    const shared = createMockCtx({
+      [REFS.getCustomerByEntityId]: { id: "cust_1", entityId: "user_1" },
+      [REFS.listCustomerEntities]: ["user_1", "org_1"],
+    });
+    const single = createMockCtx({
+      [REFS.getCustomerByEntityId]: { id: "cust_1", entityId: "user_1" },
+      [REFS.listCustomerEntities]: ["user_1"],
+    });
+    const none = createMockCtx({ [REFS.getCustomerByEntityId]: null });
+
+    expect(
+      await creem.customers.isShared(shared as never, { entityId: "user_1" }),
+    ).toBe(true);
+    expect(
+      await creem.customers.isShared(single as never, { entityId: "user_1" }),
+    ).toBe(false);
+    expect(
+      await creem.customers.isShared(none as never, { entityId: "user_1" }),
+    ).toBe(false);
+  });
+
   it("portalUrl throws when customer not found", async () => {
     const ctx = createMockCtx({
       [REFS.getCustomerByEntityId]: null,
@@ -403,6 +427,7 @@ describe("customers namespace", () => {
     it("updates the email in Creem and mirrors it locally", async () => {
       const ctx = createMockCtx({
         [REFS.getCustomerByEntityId]: { id: "cust_1", entityId: "user_1" },
+        [REFS.listCustomerEntities]: ["user_1"],
       });
       const update = vi.fn(async () => ({
         id: "cust_1",
@@ -435,6 +460,27 @@ describe("customers namespace", () => {
       });
     });
 
+    it("refuses to change the email of a customer shared with another entity", async () => {
+      const ctx = createMockCtx({
+        [REFS.getCustomerByEntityId]: { id: "cust_1", entityId: "user_1" },
+        [REFS.listCustomerEntities]: ["user_1", "org_1"],
+      });
+      const update = vi.fn();
+      creem.sdk.customers.update = update as never;
+
+      const result = await creem.customers.updateBillingEmail(ctx as never, {
+        entityId: "user_1",
+        email: "billing@example.com",
+      });
+
+      expect(ctx.runQuery).toHaveBeenCalledWith(REFS.listCustomerEntities, {
+        customerId: "cust_1",
+      });
+      expect(result).toEqual({ status: "shared-customer" });
+      expect(update).not.toHaveBeenCalled();
+      expect(ctx.runMutation).not.toHaveBeenCalled();
+    });
+
     it("returns no-customer before the entity's first checkout", async () => {
       const ctx = createMockCtx({ [REFS.getCustomerByEntityId]: null });
       const update = vi.fn();
@@ -453,6 +499,7 @@ describe("customers namespace", () => {
     it("rejects a malformed address before calling Creem", async () => {
       const ctx = createMockCtx({
         [REFS.getCustomerByEntityId]: { id: "cust_1", entityId: "user_1" },
+        [REFS.listCustomerEntities]: ["user_1"],
       });
       const update = vi.fn();
       creem.sdk.customers.update = update as never;
@@ -469,6 +516,7 @@ describe("customers namespace", () => {
     it("propagates Creem API errors without touching the local record", async () => {
       const ctx = createMockCtx({
         [REFS.getCustomerByEntityId]: { id: "cust_1", entityId: "user_1" },
+        [REFS.listCustomerEntities]: ["user_1"],
       });
       creem.sdk.customers.update = vi.fn(async () => {
         throw new Error("Conflict: email already in use");
@@ -488,6 +536,7 @@ describe("customers namespace", () => {
       // customer.
       const ctx = createMockCtx({
         [REFS.getCustomerByEntityId]: { id: "cust_1", entityId: "user_1" },
+        [REFS.listCustomerEntities]: ["user_1"],
       });
       creem.sdk.customers.update = vi.fn(async () => ({
         id: "cust_1",
@@ -1034,13 +1083,9 @@ describe("subscriptions namespace", () => {
       );
     });
 
-    it("resolves by subscriptionId when provided", async () => {
+    it("resolves by subscriptionId within the entity's scope", async () => {
       const ctx = createMockCtx({
-        [REFS.getSubscription]: ACTIVE_SUB,
-        [REFS.getCustomerByEntityId]: {
-          id: "cust_1",
-          entityId: "user_1",
-        },
+        [REFS.getEntitySubscription]: ACTIVE_SUB,
       });
       await creem.subscriptions.update(ctx as never, {
         kind: "units" as const,
@@ -1048,21 +1093,17 @@ describe("subscriptions namespace", () => {
         subscriptionId: "sub_1",
         units: 3,
       });
-      expect(ctx.runQuery).toHaveBeenCalledWith(REFS.getSubscription, {
+      expect(ctx.runQuery).toHaveBeenCalledWith(REFS.getEntitySubscription, {
+        entityId: "user_1",
         id: "sub_1",
       });
     });
 
-    it("rejects an explicit subscription owned by another entity", async () => {
+    it("rejects an explicit subscription outside the entity's scope", async () => {
+      // `getEntitySubscription` answers null for another customer's
+      // subscription and for another entity's on a shared customer.
       const ctx = createMockCtx({
-        [REFS.getSubscription]: {
-          ...ACTIVE_SUB,
-          customerId: "cust_other",
-        },
-        [REFS.getCustomerByEntityId]: {
-          id: "cust_1",
-          entityId: "user_1",
-        },
+        [REFS.getEntitySubscription]: null,
       });
 
       await expect(
@@ -2436,6 +2477,7 @@ describe("api() convenience exports", () => {
       });
       const ctx = createMockCtx({
         [REFS.getCustomerByEntityId]: { id: "cust_1", entityId: "org_1" },
+        [REFS.listCustomerEntities]: ["org_1"],
       });
       let creemEmail = "old@example.com";
       const update = vi.fn(async ({ email }: { email: string }) => {
@@ -2820,11 +2862,7 @@ describe("api() convenience exports", () => {
             id: "cust_1",
             entityId: "user_1",
           },
-          [REFS.getSubscription]: {
-            ...ACTIVE_SUB,
-            id: "sub_other",
-            customerId: "cust_other",
-          },
+          [REFS.getEntitySubscription]: null,
         });
         const handler = extractHandler(
           apiExports.subscriptions[operation] as never,

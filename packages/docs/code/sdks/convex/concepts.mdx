@@ -32,6 +32,14 @@ const resolve: ApiResolver = async (ctx) => {
   an anonymous signal.)
 </Warning>
 
+### One Creem customer, several entities
+
+Creem keeps one customer per store and email address. When the same person checks out for two billing entities, for example their personal account and an organization, both entities map to the same Creem customer. The component therefore never scopes by customer alone: every checkout records the entity as `convexBillingEntityId` in its metadata, which Creem copies onto the subscription and the order, and every read and subscription command only sees the rows of the resolved entity. A subscription ID that belongs to the other entity is rejected like an unknown one.
+
+Rows created before that metadata existed carry no entity. Such a row counts for the entity only while none of the customer's other subscriptions and orders name a different entity. Once they do, the unlabelled row is shown to neither entity, because nothing tells whose it is.
+
+The customer's email is shared by every entity mapped to it, so `customers.updateBillingEmail` refuses with `{ status: "shared-customer" }` while the customer is shared, and `<BillingEmail>` says so. `creem.customers.isShared(ctx, { entityId })` tells you whether an entity's customer is shared.
+
 By default, the component tracks the entity's active app-owned plan itself. Apps that own their plan assignment can override that from the resolver — see [Advanced → Resolver plan overrides](/code/sdks/convex/advanced#resolver-plan-overrides).
 
 ## The billing state model

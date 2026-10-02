@@ -445,8 +445,10 @@ export class Creem {
    * Resolve a subscription inside an entity's billing scope.
    *
    * Explicit resource IDs are always checked against the customer mapped to
-   * `entityId`. Returning the same error for missing and foreign resources
-   * avoids exposing whether another customer's subscription exists.
+   * `entityId` and against the entity recorded on the subscription, because a
+   * Creem customer can be shared by several entities. Returning the same error
+   * for missing and foreign resources avoids exposing whether another
+   * customer's or entity's subscription exists.
    */
   private async getOwnedSubscription(
     ctx: RunQueryCtx,
@@ -469,13 +471,11 @@ export class Creem {
       return subscription;
     }
 
-    const [customer, subscription] = await Promise.all([
-      this.getCustomerByEntityId(ctx, entityId),
-      ctx.runQuery(this.component.lib.getSubscription, {
-        id: subscriptionId,
-      }),
-    ]);
-    if (!customer || !subscription || subscription.customerId !== customer.id) {
+    const subscription = await ctx.runQuery(
+      this.component.lib.getEntitySubscription,
+      { entityId, id: subscriptionId },
+    );
+    if (!subscription) {
       throw new ConvexError("Subscription not found");
     }
     return subscription;
@@ -567,6 +567,17 @@ export class Creem {
     return { url: portal.customerPortalLink };
   }
 
+  private async isCustomerShared(
+    ctx: RunQueryCtx,
+    customerId: string,
+  ): Promise<boolean> {
+    const entities = await ctx.runQuery(
+      this.component.lib.listCustomerEntities,
+      { customerId },
+    );
+    return entities.length > 1;
+  }
+
   private async getCustomerBillingEmail(
     ctx: RunActionCtx,
     { entityId }: { entityId: string },
@@ -591,6 +602,13 @@ export class Creem {
 
     const customer = await this.getCustomerByEntityId(ctx, entityId);
     if (!customer) return { status: "no-customer" };
+    // Creem keeps one customer per store and email address, so the same
+    // person checking out for two entities yields one shared customer. Its
+    // email is every sharing entity's billing address; one entity's admin
+    // must not change it for the others.
+    if (await this.isCustomerShared(ctx, customer.id)) {
+      return { status: "shared-customer" };
+    }
 
     const updated = await this.sdk.customers.update({
       customerId: customer.id,
@@ -1820,9 +1838,14 @@ export class Creem {
    * - `.billingEmail()` — the email Creem sends invoices and receipts to (Creem API)
    * - `.updateBillingEmail()` — change that email (Creem API)
    *
+   * - `.isShared()` — whether other billing entities share the entity's Creem
+   *   customer (Convex DB)
+   *
    * The billing email methods return `{ status: "no-customer" }` while the
-   * entity has no Creem customer. Creem rejects an address that another
-   * customer of the store already uses; that error propagates.
+   * entity has no Creem customer. `updateBillingEmail` returns
+   * `{ status: "shared-customer" }` without calling Creem when the customer is
+   * shared. Creem rejects an address that another customer of the store
+   * already uses; that error propagates.
    */
   get customers() {
     return {
@@ -1830,6 +1853,13 @@ export class Creem {
         this.getCustomerByEntityId(ctx, entityId),
       portalUrl: (ctx: RunActionCtx, { entityId }: { entityId: string }) =>
         this.createCustomerPortalSession(ctx, { entityId }),
+      isShared: async (
+        ctx: RunQueryCtx,
+        { entityId }: { entityId: string },
+      ): Promise<boolean> => {
+        const customer = await this.getCustomerByEntityId(ctx, entityId);
+        return customer ? await this.isCustomerShared(ctx, customer.id) : false;
+      },
       billingEmail: (ctx: RunActionCtx, { entityId }: { entityId: string }) =>
         this.getCustomerBillingEmail(ctx, { entityId }),
       updateBillingEmail: (

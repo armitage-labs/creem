@@ -8,6 +8,7 @@
  * @module
  */
 
+import type * as entityScope from "../entityScope.js";
 import type * as lib from "../lib.js";
 import type * as subscriptionLifecycle from "../subscriptionLifecycle.js";
 import type * as util from "../util.js";
@@ -20,6 +21,7 @@ import type {
 import { anyApi, componentsGeneric } from "convex/server";
 
 const fullApi: ApiFromModules<{
+  entityScope: typeof entityScope;
   lib: typeof lib;
   subscriptionLifecycle: typeof subscriptionLifecycle;
   util: typeof util;

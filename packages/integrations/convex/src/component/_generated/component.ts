@@ -446,6 +446,42 @@ export type ComponentApi<Name extends string | undefined = string | undefined> =
         } | null,
         Name
       >;
+      getEntitySubscription: FunctionReference<
+        "query",
+        "internal",
+        { entityId: string; id: string },
+        {
+          amount: number | null;
+          cancelAtPeriodEnd: boolean;
+          canceledAt?: string | null;
+          checkoutId: string | null;
+          collectionMethod?: string;
+          createdAt: string;
+          currency: string | null;
+          currentPeriodEnd: string | null;
+          currentPeriodStart: string;
+          customerId: string;
+          discountId?: string | null;
+          endedAt: string | null;
+          endsAt?: string | null;
+          id: string;
+          lastTransactionId?: string | null;
+          metadata: Record<string, any>;
+          mode?: string;
+          modifiedAt: string | null;
+          nextTransactionDate?: string | null;
+          priceId?: string;
+          productId: string;
+          recurringInterval: string | null;
+          seats?: number | null;
+          startedAt: string | null;
+          status: string;
+          trialEnd?: string | null;
+          trialExpiryScheduledFor?: string;
+          trialStart?: string | null;
+        } | null,
+        Name
+      >;
       getProduct: FunctionReference<
         "query",
         "internal",
@@ -631,6 +667,13 @@ export type ComponentApi<Name extends string | undefined = string | undefined> =
           subscriptionId?: string;
           updatedAt: string;
         }>,
+        Name
+      >;
+      listCustomerEntities: FunctionReference<
+        "query",
+        "internal",
+        { customerId: string },
+        Array<string>,
         Name
       >;
       listCustomerSubscriptions: FunctionReference<

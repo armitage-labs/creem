@@ -81,6 +81,8 @@ export type BillingLabels = {
     saveFailed: string;
     /** Shown for a malformed address after the input loses focus. */
     invalid: string;
+    /** Shown when a save is refused because other accounts share the Creem customer. */
+    sharedCustomer: string;
     /** Button that reloads the email after a failed load. */
     retry: string;
   };
@@ -305,6 +307,8 @@ export const defaultBillingLabels: BillingLabels = {
     loadFailed: "Could not load the billing email",
     saveFailed: "Could not update the billing email",
     invalid: "Enter a valid email address.",
+    sharedCustomer:
+      "This billing email is shared with another account and can't be changed here.",
     retry: "Try again",
   },
   subscription: {

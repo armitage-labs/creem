@@ -462,3 +462,34 @@ describe("billing email validation message", () => {
     expect(message(controller.getState())).toBe("Enter a valid email address.");
   });
 });
+
+describe("shared Creem customer", () => {
+  it("keeps the draft, explains the refusal, and clears it on edit", async () => {
+    const controller = createBillingEmailController({
+      load: async () => ok("billing@example.com"),
+      save: async () => ({ status: "shared-customer" }),
+    });
+    controller.setEntity("org_1");
+    await flush();
+
+    controller.setDraft("new@example.com");
+    await controller.submit();
+
+    const state = controller.getState();
+    expect(state).toMatchObject({
+      status: "ready",
+      email: "billing@example.com",
+      draft: "new@example.com",
+      saving: false,
+      saved: false,
+      error: { phase: "shared-customer" },
+    });
+    expect(
+      deriveBillingEmailView(state, defaultBillingLabels.billingEmail)
+        .errorMessage,
+    ).toBe(defaultBillingLabels.billingEmail.sharedCustomer);
+
+    controller.setDraft("other@example.com");
+    expect(controller.getState().error).toBeNull();
+  });
+});
