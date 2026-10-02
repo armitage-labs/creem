@@ -456,6 +456,38 @@ describe("entity-scoped billing data on a shared Creem customer", () => {
     ).toBe("prod_1");
   });
 
+  it("drops a queued cancellation for another entity's subscription", async () => {
+    await addSubscription(
+      subscription("sub_personal", { convexBillingEntityId: PERSONAL }),
+    );
+    const scheduledUpdateId = await t.mutation(
+      api.lib.createScheduledSubscriptionUpdate,
+      {
+        entityId: ORG,
+        subscriptionId: "sub_personal",
+        targetPlanId: "free",
+        effectiveAt: "2026-02-01T00:00:00.000Z",
+      },
+    );
+
+    await t.action(api.lib.executeSubscriptionLifecycle, {
+      apiKey: "k",
+      subscriptionId: "sub_personal",
+      operation: "cancel",
+      cancelMode: "scheduled",
+      scheduledUpdateId,
+    });
+
+    expect(
+      await t.query(api.lib.getScheduledSubscriptionUpdate, {
+        scheduledUpdateId,
+      }),
+    ).toMatchObject({
+      status: "failed",
+      error: "Subscription does not belong to the scheduled entity",
+    });
+  });
+
   describe("write-once owner", () => {
     it("keeps the established owner and logs a conflicting claim", () => {
       expect(

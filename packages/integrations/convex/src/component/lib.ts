@@ -2216,6 +2216,25 @@ export const executeSubscriptionLifecycle = action({
           if (!scheduledUpdate || scheduledUpdate.status !== "pending") {
             return;
           }
+          // As in `applyScheduledSubscriptionUpdate`: a change queued before
+          // subscriptions were scoped may name another entity's subscription.
+          const owned = await ctx.runQuery(api.lib.getEntitySubscription, {
+            entityId: scheduledUpdate.entityId,
+            id: args.subscriptionId,
+          });
+          if (!owned) {
+            console.warn(
+              `[creem] dropping queued cancellation for ${args.subscriptionId}: it does not belong to entity ${scheduledUpdate.entityId}`,
+            );
+            await ctx.runMutation(
+              api.lib.markScheduledSubscriptionUpdateFailed,
+              {
+                scheduledUpdateId: args.scheduledUpdateId,
+                error: "Subscription does not belong to the scheduled entity",
+              },
+            );
+            return;
+          }
         }
         const cancelParams =
           args.cancelMode === "immediate"
