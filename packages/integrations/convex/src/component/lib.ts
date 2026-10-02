@@ -6,12 +6,24 @@ import {
   mutation,
   query,
   type MutationCtx,
+  type QueryCtx,
 } from "./_generated/server.js";
 import type { Doc, Id } from "./_generated/dataModel.js";
 import schema from "./schema.js";
 import { asyncMap } from "convex-helpers";
 import { api } from "./_generated/api.js";
 import { convertToDatabaseProduct } from "./util.js";
+import {
+  byCreationTime,
+  LEGACY_SCAN_LIMIT,
+  legacyRowsOf,
+  establishedOwnerOf,
+  ownerClaimOf,
+  recordCustomerEntity,
+  resolveOwner,
+  rowBelongsToEntity,
+  touchedByOtherEntity,
+} from "./entityScope.js";
 import {
   resolveUpdateFailureAfterResume,
   resumeSubscriptionIfNeeded,
@@ -88,11 +100,16 @@ export const insertCustomer = mutation({
       if (args.id && args.id !== existingCustomer.id && isStrictlyNewer) {
         patch.id = args.id;
       }
+      // Both customers have been this entity's; remember it before a
+      // re-point replaces the mapping.
+      await recordCustomerEntity(ctx, existingCustomer.id, args.entityId);
+      if (args.id) await recordCustomerEntity(ctx, args.id, args.entityId);
       if (Object.keys(patch).length > 0) {
         await ctx.db.patch(existingCustomer._id, patch);
       }
       return existingCustomer._id;
     }
+    await recordCustomerEntity(ctx, args.id, args.entityId);
     return ctx.db.insert("customers", args);
   },
 });
@@ -185,12 +202,32 @@ export const getCurrentSubscription = query({
     if (!customer) {
       return null;
     }
-    const subscription = await ctx.db
-      .query("subscriptions")
-      .withIndex("customerId_endedAt", (q) =>
-        q.eq("customerId", customer.id).eq("endedAt", null),
-      )
-      .first();
+    // The customer can be shared with other billing entities; only this
+    // entity's open subscriptions qualify.
+    const [owned, legacy] = await Promise.all([
+      ctx.db
+        .query("subscriptions")
+        .withIndex("customerId_entityId_endedAt", (q) =>
+          q
+            .eq("customerId", customer.id)
+            .eq("entityId", args.entityId)
+            .eq("endedAt", null),
+        )
+        .first(),
+      ctx.db
+        .query("subscriptions")
+        .withIndex("customerId_entityId_endedAt", (q) =>
+          q
+            .eq("customerId", customer.id)
+            .eq("entityId", undefined)
+            .eq("endedAt", null),
+        )
+        .take(LEGACY_SCAN_LIMIT),
+    ]);
+    const [subscription] = [
+      ...(owned ? [owned] : []),
+      ...(await legacyRowsOf(ctx, customer.id, args.entityId, legacy)),
+    ].sort(byCreationTime);
     if (!subscription) {
       return null;
     }
@@ -216,6 +253,32 @@ export const getCurrentSubscription = query({
   },
 });
 
+/** Every subscription of the entity on its current Creem customer. */
+const entitySubscriptions = async (
+  ctx: QueryCtx,
+  customerId: string,
+  entityId: string,
+) => {
+  const [owned, legacy] = await Promise.all([
+    ctx.db
+      .query("subscriptions")
+      .withIndex("customerId_entityId_endedAt", (q) =>
+        q.eq("customerId", customerId).eq("entityId", entityId),
+      )
+      .collect(),
+    ctx.db
+      .query("subscriptions")
+      .withIndex("customerId_entityId_endedAt", (q) =>
+        q.eq("customerId", customerId).eq("entityId", undefined),
+      )
+      .take(LEGACY_SCAN_LIMIT),
+  ]);
+  return [
+    ...owned,
+    ...(await legacyRowsOf(ctx, customerId, entityId, legacy)),
+  ].sort(byCreationTime);
+};
+
 /** List active subscriptions for a user, excluding ended and expired trials. */
 export const listUserSubscriptions = query({
   args: {
@@ -237,10 +300,7 @@ export const listUserSubscriptions = query({
     }
     const now = new Date().toISOString();
     const subscriptions = await asyncMap(
-      ctx.db
-        .query("subscriptions")
-        .withIndex("customerId", (q) => q.eq("customerId", customer.id))
-        .collect(),
+      await entitySubscriptions(ctx, customer.id, args.entityId),
       async (subscription) => {
         if (
           (subscription.endedAt && subscription.endedAt <= now) ||
@@ -288,10 +348,7 @@ export const listAllUserSubscriptions = query({
       return [];
     }
     const subscriptions = await asyncMap(
-      ctx.db
-        .query("subscriptions")
-        .withIndex("customerId", (q) => q.eq("customerId", customer.id))
-        .collect(),
+      await entitySubscriptions(ctx, customer.id, args.entityId),
       async (subscription) => {
         const product = subscription.productId
           ? (await ctx.db
@@ -394,6 +451,31 @@ export const expireTrialIfElapsed = mutation({
   },
 });
 
+/**
+ * Give a stored subscription without an owner the owner a trusted event
+ * claims. An established owner is kept. Returns the owner the row now has.
+ */
+export const claimSubscriptionOwner = mutation({
+  args: { id: v.string(), entityId: v.string() },
+  returns: v.union(v.string(), v.null()),
+  handler: async (ctx, args) => {
+    const subscription = await ctx.db
+      .query("subscriptions")
+      .withIndex("id", (q) => q.eq("id", args.id))
+      .unique();
+    if (!subscription) return null;
+    const owner = resolveOwner(
+      subscription,
+      { entityId: args.entityId },
+      `subscription ${args.id}`,
+    );
+    if (owner && subscription.entityId === undefined) {
+      await ctx.db.patch(subscription._id, { entityId: owner });
+    }
+    return owner ?? null;
+  },
+});
+
 export const createSubscription = mutation({
   args: {
     subscription: schema.tables.subscriptions.validator,
@@ -404,21 +486,33 @@ export const createSubscription = mutation({
       .query("subscriptions")
       .withIndex("id", (q) => q.eq("id", args.subscription.id))
       .unique();
+    const entityId = resolveOwner(
+      existingSubscription,
+      args.subscription,
+      `subscription ${args.subscription.id}`,
+    );
     if (!existingSubscription) {
-      const insertedId = await ctx.db.insert(
-        "subscriptions",
-        args.subscription,
-      );
+      const insertedId = await ctx.db.insert("subscriptions", {
+        ...args.subscription,
+        entityId,
+      });
       await scheduleTrialExpiry(ctx, insertedId, args.subscription);
       return null;
     }
-    // Timestamp guard: skip if existing record is newer
+    // Timestamp guard: skip if existing record is newer — but a stale event
+    // may still supply an owner the row does not have yet.
     const incomingModifiedAt = args.subscription.modifiedAt ?? "";
     const existingModifiedAt = existingSubscription.modifiedAt ?? "";
     if (existingModifiedAt > incomingModifiedAt) {
+      if (existingSubscription.entityId === undefined && entityId) {
+        await ctx.db.patch(existingSubscription._id, { entityId });
+      }
       return null; // stale webhook, skip
     }
-    await ctx.db.patch(existingSubscription._id, args.subscription);
+    await ctx.db.patch(existingSubscription._id, {
+      ...args.subscription,
+      entityId,
+    });
     await scheduleTrialExpiry(
       ctx,
       existingSubscription._id,
@@ -439,19 +533,28 @@ export const updateSubscription = mutation({
       .query("subscriptions")
       .withIndex("id", (q) => q.eq("id", args.subscription.id))
       .unique();
+    const entityId = resolveOwner(
+      existingSubscription,
+      args.subscription,
+      `subscription ${args.subscription.id}`,
+    );
     if (!existingSubscription) {
       // Subscription doesn't exist yet — insert instead of throwing
-      const insertedId = await ctx.db.insert(
-        "subscriptions",
-        args.subscription,
-      );
+      const insertedId = await ctx.db.insert("subscriptions", {
+        ...args.subscription,
+        entityId,
+      });
       await scheduleTrialExpiry(ctx, insertedId, args.subscription);
       return null;
     }
-    // Timestamp guard: skip if existing record is newer
+    // Timestamp guard: skip if existing record is newer — but a stale event
+    // may still supply an owner the row does not have yet.
     const incomingModifiedAt = args.subscription.modifiedAt ?? "";
     const existingModifiedAt = existingSubscription.modifiedAt ?? "";
     if (existingModifiedAt > incomingModifiedAt) {
+      if (existingSubscription.entityId === undefined && entityId) {
+        await ctx.db.patch(existingSubscription._id, { entityId });
+      }
       return null; // stale webhook, skip
     }
 
@@ -535,6 +638,9 @@ export const updateSubscription = mutation({
       }
     }
 
+    // The owner is write-once: webhooks without one, or naming another
+    // entity, keep the established owner.
+    subscriptionToWrite.entityId = entityId;
     await ctx.db.patch(existingSubscription._id, subscriptionToWrite);
     await scheduleTrialExpiry(
       ctx,
@@ -605,13 +711,21 @@ export const createOrder = mutation({
       .query("orders")
       .withIndex("id", (q) => q.eq("id", args.order.id))
       .unique();
+    const entityId = resolveOwner(
+      existing,
+      args.order,
+      `order ${args.order.id}`,
+    );
     if (!existing) {
-      await ctx.db.insert("orders", args.order);
+      await ctx.db.insert("orders", { ...args.order, entityId });
       return;
     }
-    // Update if incoming is newer
+    // Update if incoming is newer, keeping the write-once owner. An older
+    // event may still supply an owner the row does not have yet.
     if ((args.order.updatedAt ?? "") >= (existing.updatedAt ?? "")) {
-      await ctx.db.patch(existing._id, args.order);
+      await ctx.db.patch(existing._id, { ...args.order, entityId });
+    } else if (existing.entityId === undefined && entityId) {
+      await ctx.db.patch(existing._id, { entityId });
     }
   },
 });
@@ -630,13 +744,46 @@ export const listUserOrders = query({
     if (!customer) {
       return [];
     }
-    const orders = await ctx.db
+    const [owned, legacy] = await Promise.all([
+      ctx.db
+        .query("orders")
+        .withIndex("customerId_entityId_type", (q) =>
+          q
+            .eq("customerId", customer.id)
+            .eq("entityId", args.entityId)
+            .eq("type", "onetime"),
+        )
+        .collect(),
+      ctx.db
+        .query("orders")
+        .withIndex("customerId_entityId_type", (q) =>
+          q
+            .eq("customerId", customer.id)
+            .eq("entityId", undefined)
+            .eq("type", "onetime"),
+        )
+        .take(LEGACY_SCAN_LIMIT),
+    ]);
+    return [
+      ...owned,
+      ...(await legacyRowsOf(ctx, customer.id, args.entityId, legacy)),
+    ]
+      .sort(byCreationTime)
+      .map(omitSystemFields);
+  },
+});
+
+export const getOrder = query({
+  args: {
+    id: v.string(),
+  },
+  returns: v.union(schema.tables.orders.validator, v.null()),
+  handler: async (ctx, args) => {
+    const order = await ctx.db
       .query("orders")
-      .withIndex("customerId_type", (q) =>
-        q.eq("customerId", customer.id).eq("type", "onetime"),
-      )
-      .collect();
-    return orders.map(omitSystemFields);
+      .withIndex("id", (q) => q.eq("id", args.id))
+      .unique();
+    return omitSystemFields(order);
   },
 });
 
@@ -651,6 +798,270 @@ export const listCustomerSubscriptions = query({
       .withIndex("customerId", (q) => q.eq("customerId", args.customerId))
       .collect();
     return subscriptions.map(omitSystemFields);
+  },
+});
+
+/**
+ * A subscription of `entityId`, or `null` when it does not exist, belongs to
+ * another customer, or belongs to another entity sharing this customer.
+ */
+export const getEntitySubscription = query({
+  args: {
+    entityId: v.string(),
+    id: v.string(),
+  },
+  returns: v.union(schema.tables.subscriptions.validator, v.null()),
+  handler: async (ctx, args) => {
+    const customer = await ctx.db
+      .query("customers")
+      .withIndex("entityId", (q) => q.eq("entityId", args.entityId))
+      .unique();
+    const subscription = await ctx.db
+      .query("subscriptions")
+      .withIndex("id", (q) => q.eq("id", args.id))
+      .unique();
+    if (!customer || !subscription || subscription.customerId !== customer.id) {
+      return null;
+    }
+    return (await rowBelongsToEntity(ctx, subscription, args.entityId))
+      ? omitSystemFields(subscription)
+      : null;
+  },
+});
+
+/** Most entities `listCustomerEntities` returns. */
+const CUSTOMER_ENTITIES_LIMIT = 100;
+
+/**
+ * Billing entities mapped to a Creem customer, now or before (re-pointing an
+ * entity to a new customer keeps it here). Returns at most 100;
+ * `truncated` says whether there are more. Use `isCustomerShared` for a
+ * sharing decision.
+ */
+export const listCustomerEntities = query({
+  args: {
+    customerId: v.string(),
+  },
+  returns: v.object({
+    entities: v.array(v.string()),
+    truncated: v.boolean(),
+  }),
+  handler: async (ctx, args) => {
+    const [history, mappings] = await Promise.all([
+      ctx.db
+        .query("customerEntityHistory")
+        .withIndex("customerId_entityId", (q) =>
+          q.eq("customerId", args.customerId),
+        )
+        .take(CUSTOMER_ENTITIES_LIMIT + 1),
+      ctx.db
+        .query("customers")
+        .withIndex("id", (q) => q.eq("id", args.customerId))
+        .take(CUSTOMER_ENTITIES_LIMIT + 1),
+    ]);
+    const entities = [
+      ...new Set([...history, ...mappings].map((row) => row.entityId)),
+    ].sort();
+    const truncated =
+      history.length > CUSTOMER_ENTITIES_LIMIT ||
+      mappings.length > CUSTOMER_ENTITIES_LIMIT ||
+      entities.length > CUSTOMER_ENTITIES_LIMIT;
+    return {
+      entities: entities.slice(0, CUSTOMER_ENTITIES_LIMIT),
+      truncated,
+    };
+  },
+});
+
+/**
+ * Whether a billing entity other than `entityId` has touched a Creem
+ * customer: mapped to it now or before, or owning one of its subscriptions or
+ * orders. Creem keeps one customer per store and email address, so the same
+ * person checking out for two entities shares one.
+ */
+export const isCustomerShared = query({
+  args: {
+    customerId: v.string(),
+    entityId: v.string(),
+  },
+  returns: v.boolean(),
+  handler: async (ctx, args) =>
+    touchedByOtherEntity(ctx, args.customerId, args.entityId),
+});
+
+/** Most rows a backfill call examines; also the default. */
+const BACKFILL_BATCH = 25;
+
+/**
+ * Where the backfill stands. Each customer mapping is walked in four steps:
+ * first every row's recorded `convexBillingEntityId` is established (claims),
+ * then owners are inferred for the rows still without one, each for
+ * subscriptions and then orders. `after` is the `_creationTime` of the last
+ * row examined in the current step. `customerId` pins the Creem customer the
+ * steps ran for: a mapping re-pointed meanwhile starts over, because its new
+ * customer's claims have not been established yet.
+ */
+type BackfillCursor = {
+  /** `_creationTime` of the last customer mapping finished. */
+  done: number | null;
+  current: {
+    customer: number;
+    customerId: string;
+    step: number;
+    after: number | null;
+  } | null;
+};
+
+const BACKFILL_STEPS = [
+  { table: "subscriptions", infer: false },
+  { table: "orders", infer: false },
+  { table: "subscriptions", infer: true },
+  { table: "orders", infer: true },
+] as const;
+
+const parseBackfillCursor = (cursor: string | null): BackfillCursor => {
+  if (cursor === null) return { done: null, current: null };
+  const parsed = JSON.parse(cursor) as BackfillCursor;
+  return { done: parsed.done ?? null, current: parsed.current ?? null };
+};
+
+/**
+ * Give subscriptions and orders written before the `entityId` field existed
+ * their owner.
+ *
+ * For each customer mapping it first copies every row's recorded
+ * `convexBillingEntityId` into `entityId`. Only then does it infer the owner
+ * of rows that record none: the mapping's entity, when no other entity has
+ * ever been mapped to the customer or owns one of its rows. Ambiguous rows
+ * keep no owner and belong to no entity. Mappings are also recorded in
+ * `customerEntityHistory`.
+ *
+ * Paging contract: start without a cursor and pass back the returned
+ * `cursor` until `isDone`. Each call examines at most `batchSize` rows
+ * (default and maximum 25), so every transaction stays small, and it moves
+ * past a customer only after examining all of its rows. Components cannot
+ * use `paginate()`, so the cursor is the component's own. Running the whole
+ * backfill again is safe.
+ */
+export const backfillBillingEntityTags = mutation({
+  args: {
+    cursor: v.optional(v.union(v.string(), v.null())),
+    batchSize: v.optional(v.number()),
+  },
+  returns: v.object({
+    cursor: v.union(v.string(), v.null()),
+    isDone: v.boolean(),
+    processed: v.number(),
+  }),
+  handler: async (ctx, args) => {
+    const batchSize = Math.min(
+      BACKFILL_BATCH,
+      Math.max(1, Math.floor(args.batchSize ?? BACKFILL_BATCH)),
+    );
+    const state = parseBackfillCursor(args.cursor ?? null);
+
+    let current = state.current;
+    if (current === null) {
+      const done = state.done;
+      const [next] = await ctx.db
+        .query("customers")
+        .withIndex("by_creation_time", (q) =>
+          done === null ? q : q.gt("_creationTime", done),
+        )
+        .take(1);
+      if (!next) {
+        return { cursor: args.cursor ?? null, isDone: true, processed: 0 };
+      }
+      await recordCustomerEntity(ctx, next.id, next.entityId);
+      current = {
+        customer: next._creationTime,
+        customerId: next.id,
+        step: 0,
+        after: null,
+      };
+    }
+    const customerCreation = current.customer;
+    const customer = await ctx.db
+      .query("customers")
+      .withIndex("by_creation_time", (q) =>
+        q.eq("_creationTime", customerCreation),
+      )
+      .first();
+    if (!customer) {
+      // The mapping was deleted meanwhile; move on.
+      const cursor: BackfillCursor = { done: customerCreation, current: null };
+      return { cursor: JSON.stringify(cursor), isDone: false, processed: 0 };
+    }
+    if (customer.id !== current.customerId) {
+      await recordCustomerEntity(ctx, customer.id, customer.entityId);
+      current = {
+        customer: customerCreation,
+        customerId: customer.id,
+        step: 0,
+        after: null,
+      };
+    }
+
+    const step = BACKFILL_STEPS[current.step];
+    const after = current.after;
+    const query =
+      step.table === "subscriptions"
+        ? ctx.db
+            .query("subscriptions")
+            .withIndex("customerId_entityId", (q) => {
+              const base = q
+                .eq("customerId", customer.id)
+                .eq("entityId", undefined);
+              return after === null ? base : base.gt("_creationTime", after);
+            })
+        : ctx.db.query("orders").withIndex("customerId_entityId", (q) => {
+            const base = q
+              .eq("customerId", customer.id)
+              .eq("entityId", undefined);
+            return after === null ? base : base.gt("_creationTime", after);
+          });
+    const rows = await query.take(batchSize);
+
+    // Inference runs after every claim on this customer is established, so
+    // the remaining rows without an owner carry no claim to scan for.
+    const inferredOwner =
+      step.infer &&
+      !(await touchedByOtherEntity(ctx, customer.id, customer.entityId, {
+        includeLegacyClaims: false,
+      }))
+        ? customer.entityId
+        : null;
+
+    let processed = 0;
+    for (const row of rows) {
+      const claim = ownerClaimOf(row.metadata);
+      const owner = step.infer ? (claim ?? inferredOwner) : claim;
+      if (owner === null) continue;
+      await ctx.db.patch(row._id, { entityId: owner });
+      processed += 1;
+    }
+
+    const lastRow = rows.at(-1);
+    let next: BackfillCursor;
+    if (rows.length === batchSize && lastRow) {
+      next = {
+        done: state.done,
+        current: { ...current, after: lastRow._creationTime },
+      };
+    } else if (current.step + 1 < BACKFILL_STEPS.length) {
+      next = {
+        done: state.done,
+        current: {
+          customer: customerCreation,
+          customerId: customer.id,
+          step: current.step + 1,
+          after: null,
+        },
+      };
+    } else {
+      next = { done: customerCreation, current: null };
+    }
+    return { cursor: JSON.stringify(next), isDone: false, processed };
   },
 });
 
@@ -946,6 +1357,7 @@ export const assignAppPlan = mutation({
  */
 export const activateScheduledAppPlanAssignment = mutation({
   args: {
+    entityId: v.string(),
     subscriptionId: v.string(),
     planId: v.optional(v.string()),
   },
@@ -957,8 +1369,12 @@ export const activateScheduledAppPlanAssignment = mutation({
         q.eq("subscriptionId", args.subscriptionId).eq("status", "scheduled"),
       )
       .collect();
+    // Only the entity's own assignment: another entity sharing the Creem
+    // customer may have one that names the same subscription.
     const assignment = scheduled.find(
-      (item) => !args.planId || item.planId === args.planId,
+      (item) =>
+        item.entityId === args.entityId &&
+        (!args.planId || item.planId === args.planId),
     );
     if (!assignment) return null;
 
@@ -994,6 +1410,7 @@ export const activateScheduledAppPlanAssignment = mutation({
  */
 export const cancelScheduledAppPlanAssignment = mutation({
   args: {
+    entityId: v.string(),
     subscriptionId: v.string(),
     planId: v.optional(v.string()),
   },
@@ -1005,8 +1422,12 @@ export const cancelScheduledAppPlanAssignment = mutation({
         q.eq("subscriptionId", args.subscriptionId).eq("status", "scheduled"),
       )
       .collect();
+    // Only the entity's own assignment: another entity sharing the Creem
+    // customer may have one that names the same subscription.
     const assignment = scheduled.find(
-      (item) => !args.planId || item.planId === args.planId,
+      (item) =>
+        item.entityId === args.entityId &&
+        (!args.planId || item.planId === args.planId),
     );
     if (!assignment) return null;
 
@@ -1401,6 +1822,9 @@ export const compensateSubscriptionLifecycle = mutation({
     }
 
     if (!args.rollback) return null;
+    const owner = establishedOwnerOf(subscription);
+    const ownedByOwner = (row: { entityId: string }) =>
+      owner === null || row.entityId === owner;
 
     for (const replacementId of args.rollback.replacementScheduledUpdateIds ??
       []) {
@@ -1441,6 +1865,7 @@ export const compensateSubscriptionLifecycle = mutation({
         scheduledUpdate =
           candidates.find(
             (candidate) =>
+              ownedByOwner(candidate) &&
               candidate.createdAt === transition.scheduledUpdateCreatedAt &&
               candidate.targetPlanId === transition.planId,
           ) ?? null;
@@ -1474,6 +1899,7 @@ export const compensateSubscriptionLifecycle = mutation({
         assignment =
           candidates.find(
             (candidate) =>
+              ownedByOwner(candidate) &&
               candidate.planId === transition.planId &&
               (!transition.assignmentCreatedAt ||
                 candidate.createdAt === transition.assignmentCreatedAt),
@@ -1667,6 +2093,23 @@ export const applyScheduledSubscriptionUpdate = action({
       return null;
     }
 
+    // Updates scheduled before subscriptions were scoped to their entity may
+    // name a subscription of another entity sharing the Creem customer.
+    const owned = await ctx.runQuery(api.lib.getEntitySubscription, {
+      entityId: scheduledUpdate.entityId,
+      id: scheduledUpdate.subscriptionId,
+    });
+    if (!owned) {
+      console.warn(
+        `[creem] dropping scheduled update ${args.scheduledUpdateId}: subscription ${scheduledUpdate.subscriptionId} does not belong to entity ${scheduledUpdate.entityId}`,
+      );
+      await ctx.runMutation(api.lib.markScheduledSubscriptionUpdateFailed, {
+        scheduledUpdateId: args.scheduledUpdateId,
+        error: "Subscription does not belong to the scheduled entity",
+      });
+      return null;
+    }
+
     const marked = await ctx.runMutation(
       api.lib.markScheduledSubscriptionUpdateApplying,
       {
@@ -1714,6 +2157,7 @@ export const applyScheduledSubscriptionUpdate = action({
         });
       } else if (scheduledUpdate.targetPlanId) {
         await ctx.runMutation(api.lib.activateScheduledAppPlanAssignment, {
+          entityId: scheduledUpdate.entityId,
           subscriptionId: scheduledUpdate.subscriptionId,
           planId: scheduledUpdate.targetPlanId,
         });
@@ -1770,6 +2214,25 @@ export const executeSubscriptionLifecycle = action({
             },
           );
           if (!scheduledUpdate || scheduledUpdate.status !== "pending") {
+            return;
+          }
+          // As in `applyScheduledSubscriptionUpdate`: a change queued before
+          // subscriptions were scoped may name another entity's subscription.
+          const owned = await ctx.runQuery(api.lib.getEntitySubscription, {
+            entityId: scheduledUpdate.entityId,
+            id: args.subscriptionId,
+          });
+          if (!owned) {
+            console.warn(
+              `[creem] dropping queued cancellation for ${args.subscriptionId}: it does not belong to entity ${scheduledUpdate.entityId}`,
+            );
+            await ctx.runMutation(
+              api.lib.markScheduledSubscriptionUpdateFailed,
+              {
+                scheduledUpdateId: args.scheduledUpdateId,
+                error: "Subscription does not belong to the scheduled entity",
+              },
+            );
             return;
           }
         }

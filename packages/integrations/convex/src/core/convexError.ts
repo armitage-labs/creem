@@ -22,3 +22,21 @@ export const getConvexErrorMessage = (
   }
   return fallback;
 };
+
+/**
+ * `code` of the ConvexError thrown when a customer-wide action, such as the
+ * customer portal, is refused because other billing entities share the Creem
+ * customer.
+ */
+export const SHARED_CUSTOMER_ERROR_CODE = "shared-customer";
+
+/** Reads `data.code` from a thrown Convex error, if there is one. */
+export const getConvexErrorCode = (error: unknown): string | undefined => {
+  if (!(error instanceof ConvexError)) return undefined;
+  const data: unknown = error.data;
+  if (data && typeof data === "object" && "code" in data) {
+    const code = (data as { code?: unknown }).code;
+    if (typeof code === "string") return code;
+  }
+  return undefined;
+};

@@ -46,12 +46,13 @@ cancel call when you need to override that default.
 
 **`creem.customers.*`**
 
-| Method                                          | Data source | Description                                                                                                                                                                                        |
-| ----------------------------------------------- | ----------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `.retrieve(ctx, { entityId })`                  | Convex DB   | Customer record by entity                                                                                                                                                                          |
-| `.portalUrl(ctx, { entityId })`                 | Creem API   | Customer billing portal URL                                                                                                                                                                        |
-| `.billingEmail(ctx, { entityId })`              | Creem API   | Email Creem sends invoices and receipts to: `{ status: "ok", email }` or `{ status: "no-customer" }`                                                                                               |
-| `.updateBillingEmail(ctx, { entityId, email })` | Creem API   | Change that email; same result shape. Reads the customer back from Creem and stores that address on the Convex customer record unless a newer readback is already stored (by Creem's `updated_at`) |
+| Method                                          | Data source | Description                                                                                                                                                                                                                                                                                            |
+| ----------------------------------------------- | ----------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| `.retrieve(ctx, { entityId })`                  | Convex DB   | Customer record by entity                                                                                                                                                                                                                                                                              |
+| `.portalUrl(ctx, { entityId })`                 | Creem API   | Customer billing portal URL. Throws a `ConvexError` with `code: "shared-customer"` while other billing entities share the customer                                                                                                                                                                     |
+| `.billingEmail(ctx, { entityId })`              | Creem API   | Email Creem sends invoices and receipts to: `{ status: "ok", email }` or `{ status: "no-customer" }`                                                                                                                                                                                                   |
+| `.updateBillingEmail(ctx, { entityId, email })` | Creem API   | Change that email; same result shape, plus `{ status: "shared-customer" }` without calling Creem while other entities share the customer. Reads the customer back from Creem and stores that address on the Convex customer record unless a newer readback is already stored (by Creem's `updated_at`) |
+| `.isShared(ctx, { entityId })`                  | Convex DB   | Whether another billing entity is or was mapped to the entity's Creem customer, or owns one of its subscriptions or orders (Creem keeps one customer per store and email address)                                                                                                                      |
 
 **`creem.orders.*`**
 
@@ -597,6 +598,10 @@ The widget sends the entity it displays (`uiModel.snapshot.entityId`) as
 `expectedEntityId`. When the resolver has moved to another entity in the
 meantime, the actions answer `"entity-changed"` without touching Creem, and the
 widget reloads instead of saving one organization's address into another.
+
+When other billing entities share the entity's Creem customer, a save is refused
+with `"shared-customer"` and the form shows the `sharedCustomer` label instead
+of changing an address the other entities use.
 
 `<BillingEmail />` is the same component as `<BillingEmail.Root />`. Without
 children it renders the default layout; with children it renders a `<form>`

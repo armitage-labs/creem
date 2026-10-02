@@ -1637,6 +1637,7 @@ describe("app plan activation history", () => {
     const activated = await t.mutation(
       api.lib.activateScheduledAppPlanAssignment,
       {
+        entityId: "org_1",
         subscriptionId: "sub_1",
         planId: "free",
       },
@@ -1653,11 +1654,42 @@ describe("app plan activation history", () => {
     const canceled = await t.mutation(
       api.lib.cancelScheduledAppPlanAssignment,
       {
+        entityId: "org_1",
         subscriptionId: "sub_2",
         planId: "trial",
       },
     );
     expect(canceled?.status).toBe("ended");
+  });
+
+  it("activates only the entity's own scheduled assignment", async () => {
+    // Another entity sharing the customer holds an older assignment that
+    // names the same subscription and plan.
+    await t.mutation(api.lib.assignAppPlan, {
+      entityId: "user_b",
+      planId: "free",
+      status: "scheduled",
+      startsAt: "2026-03-01T00:00:00.000Z",
+      subscriptionId: "sub_1",
+    });
+    await t.mutation(api.lib.assignAppPlan, {
+      entityId: "org_1",
+      planId: "free",
+      status: "scheduled",
+      startsAt: "2026-03-01T00:00:00.000Z",
+      subscriptionId: "sub_1",
+    });
+
+    const activated = await t.mutation(
+      api.lib.activateScheduledAppPlanAssignment,
+      { entityId: "org_1", subscriptionId: "sub_1", planId: "free" },
+    );
+
+    expect(activated?.entityId).toBe("org_1");
+    const [foreign] = await t.query(api.lib.listAppPlanAssignments, {
+      entityId: "user_b",
+    });
+    expect(foreign?.status).toBe("scheduled");
   });
 });
 
@@ -1800,6 +1832,7 @@ describe("subscription lifecycle compensation", () => {
       },
     );
     await t.mutation(api.lib.cancelScheduledAppPlanAssignment, {
+      entityId: "user_456",
       subscriptionId: "sub_1",
       planId: "community",
     });
