@@ -38,7 +38,7 @@ Creem keeps one customer per store and email address. When the same person check
 
 - The owner is the `entityId` field, taken from the checkout that created the row (`convexBillingEntityId` in its metadata, which Creem copies onto the subscription and the order).
 - It is write-once. Any verified webhook, even one that arrives out of order, can fill a missing owner, but nothing changes an existing one; a conflicting claim is logged and ignored.
-- Webhook side effects (customer mapping, ending app-owned plans) follow the stored row's owner and customer, not the incoming event's metadata.
+- Webhook side effects follow what the stored row accepted after the timestamp-guarded write: its owner and customer decide the customer mapping (and any re-pointing), and its status and start date decide whether app-owned plans end. A stale or conflicting event cannot trigger them through its own metadata, customer, or status.
 
 What that scopes:
 
@@ -50,9 +50,17 @@ A customer counts as shared for an entity when another entity is or ever was map
 
 #### Upgrading an existing deployment
 
-Rows written before this version have no `entityId`. Until they get one, a row counts for the `convexBillingEntityId` its metadata records, and a row with neither counts for an entity only while no other entity has touched the customer; otherwise it belongs to no entity. Run the component's `backfillBillingEntityTags` mutation once after deploying. It records the existing mappings in the history and copies each recorded `convexBillingEntityId` into `entityId`, or assigns the mapping's entity when the history proves a single owner. Ambiguous rows keep no owner.
+Rows written before this version have no `entityId`. Until the backfill below gives them one:
 
-Paging contract: each call handles one customer mapping and at most `batchSize` (default 25) rows per table. Start without a cursor and pass back the returned `cursor` until `isDone`; the cursor stays on a customer until its rows are done, and running it again is safe. It pages with its own cursor because Convex does not allow `paginate()` inside a component.
+- A row counts for the entity its metadata `convexBillingEntityId` records, and a claim naming another entity counts as evidence that the customer is shared.
+- A row that records no entity counts for an entity only while no other entity has touched the customer; otherwise it belongs to no entity.
+- Only the first 50 rows without an owner per table and customer are read. Until the backfill has run, an entity with more such rows can miss subscriptions and orders (and the access they grant) beyond those 50, and a customer with more than 50 counts as shared, so its untagged rows stay hidden and its portal and billing email are refused.
+
+So run the backfill right after deploying.
+
+Run the component's `backfillBillingEntityTags` mutation once after deploying. For each customer mapping it records the mapping in the history, then copies every recorded `convexBillingEntityId` into `entityId`, and only after that assigns the mapping's entity to the rows that record none, when no other entity has ever been mapped to the customer or owns one of its rows. Ambiguous rows keep no owner.
+
+Paging contract: start without a cursor and pass back the returned `cursor` until `isDone`; the result also reports how many rows got an owner (`processed`). Each call examines at most `batchSize` rows (default and maximum 25) and moves past a customer only after examining all of its rows, so a long run of ambiguous rows does not hide later ones. The backfill is complete when a call returns `isDone: true`; a later run from the start then reports `processed: 0` in every call, which you can use to check it. Running the whole backfill again is safe. It pages with its own cursor because Convex does not allow `paginate()` inside a component.
 
 ```ts title="convex/billing.ts"
 export const backfillBillingEntities = internalAction({

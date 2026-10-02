@@ -803,15 +803,23 @@ export const getEntitySubscription = query({
   },
 });
 
+/** Most entities `listCustomerEntities` returns. */
+const CUSTOMER_ENTITIES_LIMIT = 100;
+
 /**
  * Billing entities mapped to a Creem customer, now or before (re-pointing an
- * entity to a new customer keeps it here).
+ * entity to a new customer keeps it here). Returns at most 100;
+ * `truncated` says whether there are more. Use `isCustomerShared` for a
+ * sharing decision.
  */
 export const listCustomerEntities = query({
   args: {
     customerId: v.string(),
   },
-  returns: v.array(v.string()),
+  returns: v.object({
+    entities: v.array(v.string()),
+    truncated: v.boolean(),
+  }),
   handler: async (ctx, args) => {
     const [history, mappings] = await Promise.all([
       ctx.db
@@ -819,15 +827,23 @@ export const listCustomerEntities = query({
         .withIndex("customerId_entityId", (q) =>
           q.eq("customerId", args.customerId),
         )
-        .take(100),
+        .take(CUSTOMER_ENTITIES_LIMIT + 1),
       ctx.db
         .query("customers")
         .withIndex("id", (q) => q.eq("id", args.customerId))
-        .take(100),
+        .take(CUSTOMER_ENTITIES_LIMIT + 1),
     ]);
-    return [
+    const entities = [
       ...new Set([...history, ...mappings].map((row) => row.entityId)),
     ].sort();
+    const truncated =
+      history.length > CUSTOMER_ENTITIES_LIMIT ||
+      mappings.length > CUSTOMER_ENTITIES_LIMIT ||
+      entities.length > CUSTOMER_ENTITIES_LIMIT;
+    return {
+      entities: entities.slice(0, CUSTOMER_ENTITIES_LIMIT),
+      truncated,
+    };
   },
 });
 
@@ -847,23 +863,52 @@ export const isCustomerShared = query({
     touchedByOtherEntity(ctx, args.customerId, args.entityId),
 });
 
-/** Rows without an owner a backfill call handles per table by default. */
+/** Most rows a backfill call examines; also the default. */
 const BACKFILL_BATCH = 25;
 
 /**
+ * Where the backfill stands. Each customer mapping is walked in four steps:
+ * first every row's recorded `convexBillingEntityId` is established (claims),
+ * then owners are inferred for the rows still without one, each for
+ * subscriptions and then orders. `after` is the `_creationTime` of the last
+ * row examined in the current step.
+ */
+type BackfillCursor = {
+  /** `_creationTime` of the last customer mapping finished. */
+  done: number | null;
+  current: { customer: number; step: number; after: number | null } | null;
+};
+
+const BACKFILL_STEPS = [
+  { table: "subscriptions", infer: false },
+  { table: "orders", infer: false },
+  { table: "subscriptions", infer: true },
+  { table: "orders", infer: true },
+] as const;
+
+const parseBackfillCursor = (cursor: string | null): BackfillCursor => {
+  if (cursor === null) return { done: null, current: null };
+  const parsed = JSON.parse(cursor) as BackfillCursor;
+  return { done: parsed.done ?? null, current: parsed.current ?? null };
+};
+
+/**
  * Give subscriptions and orders written before the `entityId` field existed
- * their owner. One call handles one customer mapping and at most `batchSize`
- * rows per table, so each transaction stays small.
+ * their owner.
  *
- * A row gets the `convexBillingEntityId` its metadata records. A row without
- * one gets the mapping's entity only when no other entity has ever touched
- * the customer; ambiguous rows keep no owner and belong to no entity. The
- * mapping is also recorded in `customerEntityHistory`.
+ * For each customer mapping it first copies every row's recorded
+ * `convexBillingEntityId` into `entityId`. Only then does it infer the owner
+ * of rows that record none: the mapping's entity, when no other entity has
+ * ever been mapped to the customer or owns one of its rows. Ambiguous rows
+ * keep no owner and belong to no entity. Mappings are also recorded in
+ * `customerEntityHistory`.
  *
- * Paging contract: start with no cursor, then pass back the returned
- * `cursor` until `isDone`. The cursor stays on a customer until its rows are
- * done. Components cannot use `paginate()`, so the cursor is the mapping's
- * `_creationTime`. Running it again is safe.
+ * Paging contract: start without a cursor and pass back the returned
+ * `cursor` until `isDone`. Each call examines at most `batchSize` rows
+ * (default and maximum 25), so every transaction stays small, and it moves
+ * past a customer only after examining all of its rows. Components cannot
+ * use `paginate()`, so the cursor is the component's own. Running the whole
+ * backfill again is safe.
  */
 export const backfillBillingEntityTags = mutation({
   args: {
@@ -876,55 +921,99 @@ export const backfillBillingEntityTags = mutation({
     processed: v.number(),
   }),
   handler: async (ctx, args) => {
-    const cursor = args.cursor ?? null;
-    const after = cursor === null ? null : Number(cursor);
-    const batchSize = Math.max(1, Math.floor(args.batchSize ?? BACKFILL_BATCH));
-    const [customer] = await ctx.db
+    const batchSize = Math.min(
+      BACKFILL_BATCH,
+      Math.max(1, Math.floor(args.batchSize ?? BACKFILL_BATCH)),
+    );
+    const state = parseBackfillCursor(args.cursor ?? null);
+
+    let current = state.current;
+    if (current === null) {
+      const done = state.done;
+      const [next] = await ctx.db
+        .query("customers")
+        .withIndex("by_creation_time", (q) =>
+          done === null ? q : q.gt("_creationTime", done),
+        )
+        .take(1);
+      if (!next) {
+        return { cursor: args.cursor ?? null, isDone: true, processed: 0 };
+      }
+      await recordCustomerEntity(ctx, next.id, next.entityId);
+      current = { customer: next._creationTime, step: 0, after: null };
+    }
+    const customerCreation = current.customer;
+    const customer = await ctx.db
       .query("customers")
       .withIndex("by_creation_time", (q) =>
-        after === null ? q : q.gt("_creationTime", after),
+        q.eq("_creationTime", customerCreation),
       )
-      .take(1);
-    if (!customer) return { cursor, isDone: true, processed: 0 };
+      .first();
+    if (!customer) {
+      // The mapping was deleted meanwhile; move on.
+      const cursor: BackfillCursor = { done: customerCreation, current: null };
+      return { cursor: JSON.stringify(cursor), isDone: false, processed: 0 };
+    }
 
-    await recordCustomerEntity(ctx, customer.id, customer.entityId);
-    const ambiguous = await touchedByOtherEntity(
-      ctx,
-      customer.id,
-      customer.entityId,
-    );
-    const [subscriptions, orders] = await Promise.all([
-      ctx.db
-        .query("subscriptions")
-        .withIndex("customerId_entityId_endedAt", (q) =>
-          q.eq("customerId", customer.id).eq("entityId", undefined),
-        )
-        .take(batchSize),
-      ctx.db
-        .query("orders")
-        .withIndex("customerId_entityId_type", (q) =>
-          q.eq("customerId", customer.id).eq("entityId", undefined),
-        )
-        .take(batchSize),
-    ]);
+    const step = BACKFILL_STEPS[current.step];
+    const after = current.after;
+    const query =
+      step.table === "subscriptions"
+        ? ctx.db
+            .query("subscriptions")
+            .withIndex("customerId_entityId", (q) => {
+              const base = q
+                .eq("customerId", customer.id)
+                .eq("entityId", undefined);
+              return after === null ? base : base.gt("_creationTime", after);
+            })
+        : ctx.db.query("orders").withIndex("customerId_entityId", (q) => {
+            const base = q
+              .eq("customerId", customer.id)
+              .eq("entityId", undefined);
+            return after === null ? base : base.gt("_creationTime", after);
+          });
+    const rows = await query.take(batchSize);
+
+    // Inference runs after every claim on this customer is established, so
+    // the remaining rows without an owner carry no claim to scan for.
+    const inferredOwner =
+      step.infer &&
+      !(await touchedByOtherEntity(ctx, customer.id, customer.entityId, {
+        includeLegacyClaims: false,
+      }))
+        ? customer.entityId
+        : null;
+
     let processed = 0;
-    for (const row of [...subscriptions, ...orders]) {
-      const owner =
-        ownerClaimOf(row.metadata) ?? (ambiguous ? null : customer.entityId);
+    for (const row of rows) {
+      const claim = ownerClaimOf(row.metadata);
+      const owner = step.infer ? (claim ?? inferredOwner) : claim;
       if (owner === null) continue;
       await ctx.db.patch(row._id, { entityId: owner });
       processed += 1;
     }
-    // A full batch that made progress may hide more rows of this customer.
-    // Rows left without an owner are ambiguous and do not hold the cursor.
-    const unfinished =
-      processed > 0 &&
-      (subscriptions.length === batchSize || orders.length === batchSize);
-    return {
-      cursor: unfinished ? cursor : String(customer._creationTime),
-      isDone: false,
-      processed,
-    };
+
+    const lastRow = rows.at(-1);
+    let next: BackfillCursor;
+    if (rows.length === batchSize && lastRow) {
+      next = {
+        done: state.done,
+        current: { ...current, after: lastRow._creationTime },
+      };
+    } else if (current.step + 1 < BACKFILL_STEPS.length) {
+      next = {
+        done: state.done,
+        current: {
+          customer: customerCreation,
+          step: current.step + 1,
+          after: null,
+        },
+      };
+    } else {
+      next = { done: customerCreation, current: null };
+    }
+    return { cursor: JSON.stringify(next), isDone: false, processed };
   },
 });
 

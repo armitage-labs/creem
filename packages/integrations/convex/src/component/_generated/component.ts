@@ -722,7 +722,7 @@ export type ComponentApi<Name extends string | undefined = string | undefined> =
         "query",
         "internal",
         { customerId: string },
-        Array<string>,
+        { entities: Array<string>; truncated: boolean },
         Name
       >;
       listCustomerSubscriptions: FunctionReference<

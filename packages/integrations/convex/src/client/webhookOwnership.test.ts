@@ -41,6 +41,7 @@ const sign = async (body: string) => {
 const subscriptionPayload = (
   updatedAt: string,
   metadata: Record<string, unknown>,
+  overrides: Record<string, unknown> = {},
 ) => ({
   id: "sub_org",
   object: "subscription",
@@ -80,6 +81,41 @@ const subscriptionPayload = (
   updated_at: updatedAt,
   mode: "test",
   metadata,
+  ...overrides,
+});
+
+const customerPayload = (id: string, updatedAt: string) => ({
+  id,
+  object: "customer",
+  email: "buyer@example.com",
+  name: "Buyer",
+  country: "US",
+  created_at: "2026-01-01T00:00:00.000Z",
+  updated_at: updatedAt,
+  mode: "test",
+});
+
+const checkoutPayload = (
+  subscription: Record<string, unknown> | string,
+  customer: Record<string, unknown>,
+  metadata: Record<string, unknown>,
+) => ({
+  id: "evt_checkout_stale",
+  eventType: "checkout.completed",
+  created_at: 1780000000000,
+  object: {
+    id: "ch_stale",
+    object: "checkout",
+    request_id: "req_stale",
+    product: subscriptionPayload("2026-01-01T00:00:00.000Z", {}).product,
+    units: 1,
+    success_url: "https://example.com/success",
+    customer,
+    subscription,
+    status: "completed",
+    mode: "test",
+    metadata,
+  },
 });
 
 describe("webhook side effects follow the stored owner", () => {
@@ -212,6 +248,140 @@ describe("webhook side effects follow the stored owner", () => {
           metadata: { convexUserId: USER, convexBillingEntityId: USER },
         },
       }),
+    );
+
+    expect(response.status).toBe(202);
+    await expectUserUntouched();
+  });
+
+  it("keeps the entity on the stored row's customer when a stale checkout names another", async () => {
+    const otherCustomer = customerPayload("cust_x", "2026-06-01T00:00:00.000Z");
+    const response = await send(
+      JSON.stringify(
+        checkoutPayload(
+          subscriptionPayload(
+            "2026-01-15T00:00:00.000Z",
+            { convexBillingEntityId: ORG },
+            { customer: otherCustomer },
+          ),
+          otherCustomer,
+          { convexBillingEntityId: ORG },
+        ),
+      ),
+    );
+
+    expect(response.status).toBe(202);
+    expect(
+      (await t.query(api.lib.getCustomerByEntityId, { entityId: ORG }))?.id,
+    ).toBe(ORG_CUSTOMER);
+    expect(
+      (await t.query(api.lib.listAllUserSubscriptions, { entityId: ORG })).map(
+        (row) => row.id,
+      ),
+    ).toEqual(["sub_org"]);
+  });
+
+  it("does not end app plans for a stale active checkout over a canceled subscription", async () => {
+    await t.mutation(api.lib.createSubscription, {
+      subscription: {
+        id: "sub_late",
+        customerId: ORG_CUSTOMER,
+        productId: "prod_team",
+        checkoutId: null,
+        createdAt: "2026-02-01T00:00:00.000Z",
+        modifiedAt: "2026-03-01T00:00:00.000Z",
+        amount: 2999,
+        currency: "USD",
+        recurringInterval: "every-month",
+        status: "canceled",
+        currentPeriodStart: "2026-02-01T00:00:00.000Z",
+        currentPeriodEnd: "2026-03-01T00:00:00.000Z",
+        cancelAtPeriodEnd: false,
+        startedAt: "2026-02-01T00:00:00.000Z",
+        endedAt: "2026-03-01T00:00:00.000Z",
+        metadata: {},
+      },
+    });
+    await t.mutation(api.lib.assignAppPlan, { entityId: ORG, planId: "free" });
+
+    const response = await send(
+      JSON.stringify(
+        checkoutPayload(
+          subscriptionPayload(
+            "2026-02-15T00:00:00.000Z",
+            { convexBillingEntityId: ORG },
+            { id: "sub_late" },
+          ),
+          subscriptionPayload("2026-02-15T00:00:00.000Z", {}).customer,
+          { convexBillingEntityId: ORG },
+        ),
+      ),
+    );
+
+    expect(response.status).toBe(202);
+    const stored = await t.query(api.lib.getSubscription, { id: "sub_late" });
+    expect(stored?.entityId).toBe(ORG);
+    expect(stored?.status).toBe("canceled");
+    const [plan] = await t.query(api.lib.listAppPlanAssignments, {
+      entityId: ORG,
+    });
+    expect(plan?.status).toBe("active");
+  });
+
+  it("does not end app plans for a stale active subscription webhook", async () => {
+    await t.mutation(api.lib.updateSubscription, {
+      subscription: {
+        id: "sub_org",
+        customerId: ORG_CUSTOMER,
+        productId: "prod_team",
+        checkoutId: null,
+        createdAt: "2026-02-01T00:00:00.000Z",
+        modifiedAt: "2026-03-01T00:00:00.000Z",
+        amount: 2999,
+        currency: "USD",
+        recurringInterval: "every-month",
+        status: "canceled",
+        currentPeriodStart: "2026-02-01T00:00:00.000Z",
+        currentPeriodEnd: "2026-03-01T00:00:00.000Z",
+        cancelAtPeriodEnd: false,
+        startedAt: "2026-02-01T00:00:00.000Z",
+        endedAt: "2026-03-01T00:00:00.000Z",
+        metadata: { convexBillingEntityId: ORG },
+      },
+    });
+    await t.mutation(api.lib.assignAppPlan, { entityId: ORG, planId: "free" });
+
+    const response = await send(
+      JSON.stringify({
+        id: "evt_stale_active",
+        eventType: "subscription.active",
+        created_at: 1780000000000,
+        object: subscriptionPayload("2026-02-15T00:00:00.000Z", {
+          convexBillingEntityId: ORG,
+        }),
+      }),
+    );
+
+    expect(response.status).toBe(202);
+    expect(
+      (await t.query(api.lib.getSubscription, { id: "sub_org" }))?.status,
+    ).toBe("canceled");
+    const [plan] = await t.query(api.lib.listAppPlanAssignments, {
+      entityId: ORG,
+    });
+    expect(plan?.status).toBe("active");
+  });
+
+  it("uses the stored owner for a checkout that references its subscription by id", async () => {
+    const response = await send(
+      JSON.stringify(
+        checkoutPayload(
+          // `subscription` as a bare ID, no order: the stored row decides.
+          "sub_org",
+          subscriptionPayload("2026-02-02T00:00:00.000Z", {}).customer,
+          { convexUserId: USER, convexBillingEntityId: USER },
+        ),
+      ),
     );
 
     expect(response.status).toBe(202);

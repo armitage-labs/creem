@@ -936,6 +936,23 @@ export class Creem {
     return constructWebhookEventEntity(body, headers, this.webhookSecret);
   }
 
+  /**
+   * End the entity's app-owned plans when its stored subscription is paid
+   * access. Reads the stored row, so a stale event whose state the guarded
+   * write rejected cannot end them.
+   */
+  private async endAppPlansForPaidSubscription(
+    ctx: RunMutationCtx,
+    entityId: string,
+    stored: { status: string; startedAt: string | null },
+  ) {
+    if (stored.status !== "active" && stored.status !== "trialing") return;
+    await ctx.runMutation(this.component.lib.endActiveAppPlanAssignments, {
+      entityId,
+      endedAt: stored.startedAt ?? new Date().toISOString(),
+    });
+  }
+
   /** Upsert a customer record if we have both entityId and customerId. */
   private async upsertCustomerFromWebhook(
     ctx: RunMutationCtx,
@@ -2629,9 +2646,11 @@ export class Creem {
               | Record<string, unknown>
               | undefined;
             const checkoutOwner = ownerClaimOf(checkoutMetadata) ?? undefined;
-            // Side effects follow the owner the stored rows accepted, which a
-            // conflicting claim in this event cannot change.
+            // Side effects follow what the stored rows accepted (owner,
+            // customer, status), which a conflicting or stale event cannot
+            // change.
             let persistedOwner: string | undefined;
+            let persistedCustomerId: string | undefined;
 
             // Process embedded subscription if present (recurring checkout).
             // checkoutEntityFromJSON already parsed it into a typed SubscriptionEntity,
@@ -2665,17 +2684,31 @@ export class Creem {
                 { id: subscription.id },
               );
               persistedOwner = stored?.entityId;
-              if (
-                persistedOwner &&
-                (subscription.status === "active" ||
-                  subscription.status === "trialing")
-              ) {
-                await ctx.runMutation(
-                  this.component.lib.endActiveAppPlanAssignments,
-                  {
-                    entityId: persistedOwner,
-                    endedAt: subscription.startedAt ?? new Date().toISOString(),
-                  },
+              persistedCustomerId = stored?.customerId;
+              if (persistedOwner && stored) {
+                await this.endAppPlansForPaidSubscription(
+                  ctx,
+                  persistedOwner,
+                  stored,
+                );
+              }
+            }
+
+            // A checkout can reference its subscription by ID only. The row a
+            // subscription webhook stored then decides, as it does for an
+            // expanded one.
+            if (typeof checkout.subscription === "string") {
+              const stored = await ctx.runQuery(
+                this.component.lib.getSubscription,
+                { id: checkout.subscription },
+              );
+              if (stored?.entityId) {
+                persistedOwner = stored.entityId;
+                persistedCustomerId = stored.customerId;
+                await this.endAppPlansForPaidSubscription(
+                  ctx,
+                  stored.entityId,
+                  stored,
                 );
               }
             }
@@ -2722,20 +2755,31 @@ export class Creem {
               await ctx.runMutation(this.component.lib.createOrder, {
                 order: { ...order, entityId: checkoutOwner },
               });
-              persistedOwner ??= (
-                await ctx.runQuery(this.component.lib.getOrder, {
-                  id: order.id,
-                })
-              )?.entityId;
+              if (persistedOwner === undefined) {
+                const storedOrder = await ctx.runQuery(
+                  this.component.lib.getOrder,
+                  { id: order.id },
+                );
+                persistedOwner = storedOrder?.entityId;
+                persistedCustomerId = storedOrder?.customerId;
+              }
             }
 
             // Without a stored owner (no rows, or a checkout from before the
             // entity was recorded) the checkout metadata decides, as before.
+            // The customer profile only enriches the mapping when it describes
+            // the customer the stored rows are on; a different customer in a
+            // stale checkout must not re-point the entity.
+            const mappedCustomerId = persistedOwner
+              ? (persistedCustomerId ?? customerId)
+              : customerId;
             await this.upsertCustomerFromWebhook(
               ctx,
-              customerId,
+              mappedCustomerId,
               persistedOwner ?? getConvexEntityId(checkout.metadata),
-              customerObj as CustomerEntity | undefined,
+              mappedCustomerId === customerId
+                ? (customerObj as CustomerEntity | undefined)
+                : undefined,
             );
 
             await this.creditCheckoutCustomerCredits(checkout);
@@ -2786,20 +2830,12 @@ export class Creem {
             ctx,
             customerId,
             entityId,
-            customerEntity,
+            customerId === getCustomerId(parsed.customer)
+              ? customerEntity
+              : undefined,
           );
-          if (
-            entityId &&
-            (subscription.status === "active" ||
-              subscription.status === "trialing")
-          ) {
-            await ctx.runMutation(
-              this.component.lib.endActiveAppPlanAssignments,
-              {
-                entityId,
-                endedAt: subscription.startedAt ?? new Date().toISOString(),
-              },
-            );
+          if (entityId && stored) {
+            await this.endAppPlansForPaidSubscription(ctx, entityId, stored);
           }
         }
 

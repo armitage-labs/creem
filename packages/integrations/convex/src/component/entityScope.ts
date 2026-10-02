@@ -93,14 +93,21 @@ export const recordCustomerEntity = async (
 
 /**
  * Whether any entity other than `entityId` has touched the customer: mapped
- * to it now or before, or owning one of its subscriptions or orders. Every
- * check is an index lookup that stops at the first match, so the cost does
- * not grow with the customer's history.
+ * to it now or before, owning one of its subscriptions or orders, or named by
+ * the `convexBillingEntityId` of a row that has no owner yet. The first three
+ * are index lookups that stop at the first match. The last reads up to
+ * {@link LEGACY_SCAN_LIMIT} rows without an owner per table and counts more
+ * as shared; after `backfillBillingEntityTags` only untagged rows remain
+ * there.
+ *
+ * `includeLegacyClaims: false` skips that scan, for callers that already
+ * established every claim on the customer.
  */
 export const touchedByOtherEntity = async (
   ctx: QueryCtx,
   customerId: string,
   entityId: string,
+  { includeLegacyClaims = true }: { includeLegacyClaims?: boolean } = {},
 ): Promise<boolean> => {
   const [historyBefore, historyAfter, mappings] = await Promise.all([
     ctx.db
@@ -158,7 +165,31 @@ export const touchedByOtherEntity = async (
       )
       .first(),
   ]);
-  return foreignRows.some((row) => row !== null);
+  if (foreignRows.some((row) => row !== null)) return true;
+  if (!includeLegacyClaims) return false;
+
+  const legacy = await Promise.all([
+    ctx.db
+      .query("subscriptions")
+      .withIndex("customerId_entityId", (q) =>
+        q.eq("customerId", customerId).eq("entityId", undefined),
+      )
+      .take(LEGACY_SCAN_LIMIT + 1),
+    ctx.db
+      .query("orders")
+      .withIndex("customerId_entityId", (q) =>
+        q.eq("customerId", customerId).eq("entityId", undefined),
+      )
+      .take(LEGACY_SCAN_LIMIT + 1),
+  ]);
+  return legacy.some(
+    (rows) =>
+      rows.length > LEGACY_SCAN_LIMIT ||
+      rows.some((row) => {
+        const claim = ownerClaimOf(row.metadata);
+        return claim !== null && claim !== entityId;
+      }),
+  );
 };
 
 /**

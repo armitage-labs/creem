@@ -72,10 +72,26 @@ describe("entity-scoped billing data on a shared Creem customer", () => {
     t.mutation(api.lib.createOrder, { order: row });
 
   it("lists the entities mapped to the customer", async () => {
-    const entities = await t.query(api.lib.listCustomerEntities, {
-      customerId: CUSTOMER,
+    expect(
+      await t.query(api.lib.listCustomerEntities, { customerId: CUSTOMER }),
+    ).toEqual({ entities: [ORG, PERSONAL], truncated: false });
+  });
+
+  it("says when the entity list is truncated", async () => {
+    await t.run(async (ctx) => {
+      for (let index = 0; index < 101; index += 1) {
+        await ctx.db.insert("customerEntityHistory", {
+          customerId: "cust_busy",
+          entityId: `entity_${String(index).padStart(3, "0")}`,
+          recordedAt: "2026-01-01T00:00:00.000Z",
+        });
+      }
     });
-    expect(entities.sort()).toEqual([ORG, PERSONAL]);
+    const result = await t.query(api.lib.listCustomerEntities, {
+      customerId: "cust_busy",
+    });
+    expect(result.entities).toHaveLength(100);
+    expect(result.truncated).toBe(true);
   });
 
   it("returns each entity only its own subscriptions and orders", async () => {
@@ -218,7 +234,7 @@ describe("entity-scoped billing data on a shared Creem customer", () => {
 
       let cursor: string | null = null;
       let tagged = 0;
-      for (let calls = 0; calls < 10; calls += 1) {
+      for (let calls = 0; calls < 50; calls += 1) {
         const page: {
           cursor: string | null;
           isDone: boolean;
@@ -355,7 +371,8 @@ describe("entity-scoped billing data on a shared Creem customer", () => {
         }),
       ).toBe(true);
       expect(
-        await t.query(api.lib.listCustomerEntities, { customerId: CUSTOMER }),
+        (await t.query(api.lib.listCustomerEntities, { customerId: CUSTOMER }))
+          .entities,
       ).toEqual([ORG, PERSONAL]);
     });
   });
@@ -529,13 +546,15 @@ describe("entity-scoped billing data on a shared Creem customer", () => {
         }),
       ).toBe(true);
       expect(
-        await legacy.query(api.lib.listCustomerEntities, {
-          customerId: CUSTOMER,
-        }),
+        (
+          await legacy.query(api.lib.listCustomerEntities, {
+            customerId: CUSTOMER,
+          })
+        ).entities,
       ).toEqual([ORG, PERSONAL]);
 
       let cursor: string | null = null;
-      for (let calls = 0; calls < 10; calls += 1) {
+      for (let calls = 0; calls < 50; calls += 1) {
         const page: { cursor: string | null; isDone: boolean } =
           await legacy.mutation(api.lib.backfillBillingEntityTags, { cursor });
         cursor = page.cursor;
@@ -650,7 +669,7 @@ describe("entity-scoped billing data on a shared Creem customer", () => {
 
     let cursor: string | null = null;
     let tagged = 0;
-    for (let calls = 0; calls < 100; calls += 1) {
+    for (let calls = 0; calls < 500; calls += 1) {
       const page: {
         cursor: string | null;
         isDone: boolean;
@@ -666,5 +685,131 @@ describe("entity-scoped billing data on a shared Creem customer", () => {
       (await limited.query(api.lib.listUserOrders, { entityId: "user_3" }))
         .length,
     ).toBe(200);
+  });
+
+  describe("upgrading pre-existing data", () => {
+    const runBackfill = async (
+      db: ReturnType<typeof convexTest>,
+      batchSize?: number,
+    ) => {
+      let cursor: string | null = null;
+      let processed = 0;
+      let calls = 0;
+      for (; calls < 500; calls += 1) {
+        const page: {
+          cursor: string | null;
+          isDone: boolean;
+          processed: number;
+        } = await db.mutation(api.lib.backfillBillingEntityTags, {
+          cursor,
+          batchSize,
+        });
+        processed += page.processed;
+        cursor = page.cursor;
+        if (page.isDone) break;
+      }
+      return { processed, calls };
+    };
+
+    it("treats another entity's recorded claim as sharing evidence", async () => {
+      // Pre-upgrade documents: ORG is mapped; one subscription records
+      // PERSONAL in its metadata, one records nothing. Neither has an owner.
+      const legacy = convexTest(schema, modules);
+      await legacy.run(async (ctx) => {
+        await ctx.db.insert("customers", { id: CUSTOMER, entityId: ORG });
+        await ctx.db.insert("subscriptions", subscription("sub_untagged", {}));
+        await ctx.db.insert(
+          "subscriptions",
+          subscription("sub_personal", { convexBillingEntityId: PERSONAL }),
+        );
+      });
+
+      expect(
+        await legacy.query(api.lib.isCustomerShared, {
+          customerId: CUSTOMER,
+          entityId: ORG,
+        }),
+      ).toBe(true);
+      expect(
+        await legacy.query(api.lib.listAllUserSubscriptions, { entityId: ORG }),
+      ).toEqual([]);
+
+      await runBackfill(legacy);
+
+      expect(
+        (await legacy.query(api.lib.getSubscription, { id: "sub_personal" }))
+          ?.entityId,
+      ).toBe(PERSONAL);
+      expect(
+        (await legacy.query(api.lib.getSubscription, { id: "sub_untagged" }))
+          ?.entityId,
+      ).toBeUndefined();
+      expect(
+        await legacy.query(api.lib.listAllUserSubscriptions, { entityId: ORG }),
+      ).toEqual([]);
+    });
+
+    it("reaches a tagged row behind more ambiguous rows than one batch", async () => {
+      const legacy = convexTest(schema, modules);
+      await legacy.run(async (ctx) => {
+        await ctx.db.insert("customers", { id: CUSTOMER, entityId: PERSONAL });
+        await ctx.db.insert("customers", { id: CUSTOMER, entityId: ORG });
+        for (let index = 0; index < 55; index += 1) {
+          await ctx.db.insert(
+            "subscriptions",
+            subscription(`sub_ambiguous_${index}`, {}),
+          );
+        }
+        await ctx.db.insert(
+          "subscriptions",
+          subscription("sub_personal", { convexBillingEntityId: PERSONAL }),
+        );
+      });
+
+      const first = await runBackfill(legacy);
+      expect(first.processed).toBe(1);
+      expect(
+        (
+          await legacy.query(api.lib.listAllUserSubscriptions, {
+            entityId: PERSONAL,
+          })
+        ).map((row) => row.id),
+      ).toEqual(["sub_personal"]);
+      expect(
+        await legacy.query(api.lib.listAllUserSubscriptions, { entityId: ORG }),
+      ).toEqual([]);
+
+      const again = await runBackfill(legacy);
+      expect(again.processed).toBe(0);
+    });
+
+    it("examines at most 25 rows per call", async () => {
+      const legacy = convexTest(schema, modules);
+      await legacy.run(async (ctx) => {
+        await ctx.db.insert("customers", { id: CUSTOMER, entityId: PERSONAL });
+        for (let index = 0; index < 60; index += 1) {
+          await ctx.db.insert(
+            "subscriptions",
+            subscription(`sub_${index}`, {}),
+          );
+        }
+      });
+
+      const call = (cursor: string | null) =>
+        legacy.mutation(api.lib.backfillBillingEntityTags, {
+          cursor,
+          batchSize: 100,
+        });
+      // The claims step examines rows without changing untagged ones; the
+      // inference step then assigns them, 25 per call.
+      let page = await call(null);
+      for (let calls = 0; calls < 20 && page.processed === 0; calls += 1) {
+        page = await call(page.cursor);
+      }
+      expect(page.processed).toBe(25);
+
+      const { processed } = await runBackfill(legacy, 100);
+      expect(processed + 25).toBe(60);
+    });
   });
 });

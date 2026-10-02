@@ -96,7 +96,10 @@ export default defineSchema(
         "customerId",
         "entityId",
         "endedAt",
-      ]),
+      ])
+      // Walks a customer's rows of one owner (or without one) in creation
+      // order, which the backfill uses as its row cursor.
+      .index("customerId_entityId", ["customerId", "entityId"]),
     orders: defineTable({
       id: v.string(),
       customerId: v.string(),
@@ -124,6 +127,7 @@ export default defineSchema(
       .index("id", ["id"])
       .index("customerId", ["customerId"])
       .index("customerId_entityId_type", ["customerId", "entityId", "type"])
+      .index("customerId_entityId", ["customerId", "entityId"])
       // `listUserOrders` only ever wants one-time orders. Without this index it
       // would scan every renewal order the customer has ever had, which grows
       // by one row per billing period forever.
