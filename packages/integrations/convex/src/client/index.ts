@@ -39,7 +39,7 @@ import {
   type RunActionCtx,
 } from "../component/util.js";
 import type { ComponentApi } from "../component/_generated/component.js";
-import { withParentBillingEntity } from "../component/entityScope.js";
+import { ownerClaimOf } from "../component/entityScope.js";
 import { SHARED_CUSTOMER_ERROR_CODE } from "../core/convexError.js";
 import { resolveBillingSnapshot } from "../core/resolver.js";
 import {
@@ -2625,13 +2625,13 @@ export class Creem {
             // expanded form carries the profile fields used for enrichment.
             // Reading the narrowed object would drop the ID in the string case.
             const customerId = getCustomerId(checkout.customer);
-            const entityId = getConvexEntityId(checkout.metadata);
-            await this.upsertCustomerFromWebhook(
-              ctx,
-              customerId,
-              entityId,
-              customerObj as CustomerEntity | undefined,
-            );
+            const checkoutMetadata = checkout.metadata as
+              | Record<string, unknown>
+              | undefined;
+            const checkoutOwner = ownerClaimOf(checkoutMetadata) ?? undefined;
+            // Side effects follow the owner the stored rows accepted, which a
+            // conflicting claim in this event cannot change.
+            let persistedOwner: string | undefined;
 
             // Process embedded subscription if present (recurring checkout).
             // checkoutEntityFromJSON already parsed it into a typed SubscriptionEntity,
@@ -2647,26 +2647,33 @@ export class Creem {
                 string,
                 unknown
               >;
-              // An embedded `{}` must not hide the checkout's entity.
-              const rawMeta = withParentBillingEntity(
-                embeddedRaw.metadata as Record<string, unknown> | undefined,
-                checkout.metadata as Record<string, unknown> | undefined,
-              );
+              const embeddedMetadata = embeddedRaw.metadata as
+                | Record<string, unknown>
+                | undefined;
               const subscription = convertToDatabaseSubscription(embeddedSub, {
-                rawMetadata: rawMeta,
+                rawMetadata: embeddedMetadata ?? checkoutMetadata ?? {},
               });
+              // An embedded `{}` must not hide the checkout's entity.
               await ctx.runMutation(this.component.lib.createSubscription, {
-                subscription,
+                subscription: {
+                  ...subscription,
+                  entityId: ownerClaimOf(embeddedMetadata) ?? checkoutOwner,
+                },
               });
+              const stored = await ctx.runQuery(
+                this.component.lib.getSubscription,
+                { id: subscription.id },
+              );
+              persistedOwner = stored?.entityId;
               if (
-                entityId &&
+                persistedOwner &&
                 (subscription.status === "active" ||
                   subscription.status === "trialing")
               ) {
                 await ctx.runMutation(
                   this.component.lib.endActiveAppPlanAssignments,
                   {
-                    entityId,
+                    entityId: persistedOwner,
                     endedAt: subscription.startedAt ?? new Date().toISOString(),
                   },
                 );
@@ -2713,9 +2720,23 @@ export class Creem {
                 },
               );
               await ctx.runMutation(this.component.lib.createOrder, {
-                order,
+                order: { ...order, entityId: checkoutOwner },
               });
+              persistedOwner ??= (
+                await ctx.runQuery(this.component.lib.getOrder, {
+                  id: order.id,
+                })
+              )?.entityId;
             }
+
+            // Without a stored owner (no rows, or a checkout from before the
+            // entity was recorded) the checkout metadata decides, as before.
+            await this.upsertCustomerFromWebhook(
+              ctx,
+              customerId,
+              persistedOwner ?? getConvexEntityId(checkout.metadata),
+              customerObj as CustomerEntity | undefined,
+            );
 
             await this.creditCheckoutCustomerCredits(checkout);
           }
@@ -2735,20 +2756,32 @@ export class Creem {
           isGeneratedSubscriptionWebhookEvent(event)
         ) {
           const parsed = event.object;
+          const metadata = (parsed.metadata ?? {}) as Record<string, unknown>;
           const subscription = convertToDatabaseSubscription(parsed, {
-            rawMetadata: (parsed.metadata ?? {}) as Record<string, unknown>,
+            rawMetadata: metadata,
           });
           await ctx.runMutation(this.component.lib.updateSubscription, {
-            subscription,
+            subscription: {
+              ...subscription,
+              entityId: ownerClaimOf(metadata) ?? undefined,
+            },
           });
 
-          // Auto-create customer record from subscription metadata
+          // Side effects follow the stored row: its write-once owner and its
+          // customer, not this event's metadata. Rows without an owner keep
+          // the earlier behavior of trusting the event.
+          const stored = await ctx.runQuery(
+            this.component.lib.getSubscription,
+            { id: subscription.id },
+          );
           const customerEntity =
             typeof parsed.customer === "object"
               ? (parsed.customer as CustomerEntity)
               : undefined;
-          const customerId = getCustomerId(parsed.customer);
-          const entityId = getConvexEntityId(parsed.metadata);
+          const customerId =
+            stored?.customerId ?? getCustomerId(parsed.customer);
+          const entityId =
+            stored?.entityId ?? getConvexEntityId(parsed.metadata);
           await this.upsertCustomerFromWebhook(
             ctx,
             customerId,

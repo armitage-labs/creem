@@ -6,6 +6,7 @@ import {
   mutation,
   query,
   type MutationCtx,
+  type QueryCtx,
 } from "./_generated/server.js";
 import type { Doc, Id } from "./_generated/dataModel.js";
 import schema from "./schema.js";
@@ -13,12 +14,14 @@ import { asyncMap } from "convex-helpers";
 import { api } from "./_generated/api.js";
 import { convertToDatabaseProduct } from "./util.js";
 import {
-  billingEntityOf,
-  isSharedWithOthers,
-  loadCustomerOwnership,
-  OWNERSHIP_SCAN_LIMIT,
-  preserveBillingEntity,
-  scopeToEntity,
+  byCreationTime,
+  LEGACY_SCAN_LIMIT,
+  legacyRowsOf,
+  ownerClaimOf,
+  recordCustomerEntity,
+  resolveOwner,
+  rowBelongsToEntity,
+  touchedByOtherEntity,
 } from "./entityScope.js";
 import {
   resolveUpdateFailureAfterResume,
@@ -96,11 +99,16 @@ export const insertCustomer = mutation({
       if (args.id && args.id !== existingCustomer.id && isStrictlyNewer) {
         patch.id = args.id;
       }
+      // Both customers have been this entity's; remember it before a
+      // re-point replaces the mapping.
+      await recordCustomerEntity(ctx, existingCustomer.id, args.entityId);
+      if (args.id) await recordCustomerEntity(ctx, args.id, args.entityId);
       if (Object.keys(patch).length > 0) {
         await ctx.db.patch(existingCustomer._id, patch);
       }
       return existingCustomer._id;
     }
+    await recordCustomerEntity(ctx, args.id, args.entityId);
     return ctx.db.insert("customers", args);
   },
 });
@@ -195,17 +203,30 @@ export const getCurrentSubscription = query({
     }
     // The customer can be shared with other billing entities; only this
     // entity's open subscriptions qualify.
-    const [subscription] = await scopeToEntity(
-      ctx,
-      customer.id,
-      args.entityId,
-      await ctx.db
+    const [owned, legacy] = await Promise.all([
+      ctx.db
         .query("subscriptions")
-        .withIndex("customerId_endedAt", (q) =>
-          q.eq("customerId", customer.id).eq("endedAt", null),
+        .withIndex("customerId_entityId_endedAt", (q) =>
+          q
+            .eq("customerId", customer.id)
+            .eq("entityId", args.entityId)
+            .eq("endedAt", null),
         )
-        .collect(),
-    );
+        .first(),
+      ctx.db
+        .query("subscriptions")
+        .withIndex("customerId_entityId_endedAt", (q) =>
+          q
+            .eq("customerId", customer.id)
+            .eq("entityId", undefined)
+            .eq("endedAt", null),
+        )
+        .take(LEGACY_SCAN_LIMIT),
+    ]);
+    const [subscription] = [
+      ...(owned ? [owned] : []),
+      ...(await legacyRowsOf(ctx, customer.id, args.entityId, legacy)),
+    ].sort(byCreationTime);
     if (!subscription) {
       return null;
     }
@@ -231,6 +252,32 @@ export const getCurrentSubscription = query({
   },
 });
 
+/** Every subscription of the entity on its current Creem customer. */
+const entitySubscriptions = async (
+  ctx: QueryCtx,
+  customerId: string,
+  entityId: string,
+) => {
+  const [owned, legacy] = await Promise.all([
+    ctx.db
+      .query("subscriptions")
+      .withIndex("customerId_entityId_endedAt", (q) =>
+        q.eq("customerId", customerId).eq("entityId", entityId),
+      )
+      .collect(),
+    ctx.db
+      .query("subscriptions")
+      .withIndex("customerId_entityId_endedAt", (q) =>
+        q.eq("customerId", customerId).eq("entityId", undefined),
+      )
+      .take(LEGACY_SCAN_LIMIT),
+  ]);
+  return [
+    ...owned,
+    ...(await legacyRowsOf(ctx, customerId, entityId, legacy)),
+  ].sort(byCreationTime);
+};
+
 /** List active subscriptions for a user, excluding ended and expired trials. */
 export const listUserSubscriptions = query({
   args: {
@@ -252,15 +299,7 @@ export const listUserSubscriptions = query({
     }
     const now = new Date().toISOString();
     const subscriptions = await asyncMap(
-      await scopeToEntity(
-        ctx,
-        customer.id,
-        args.entityId,
-        await ctx.db
-          .query("subscriptions")
-          .withIndex("customerId", (q) => q.eq("customerId", customer.id))
-          .collect(),
-      ),
+      await entitySubscriptions(ctx, customer.id, args.entityId),
       async (subscription) => {
         if (
           (subscription.endedAt && subscription.endedAt <= now) ||
@@ -308,15 +347,7 @@ export const listAllUserSubscriptions = query({
       return [];
     }
     const subscriptions = await asyncMap(
-      await scopeToEntity(
-        ctx,
-        customer.id,
-        args.entityId,
-        await ctx.db
-          .query("subscriptions")
-          .withIndex("customerId", (q) => q.eq("customerId", customer.id))
-          .collect(),
-      ),
+      await entitySubscriptions(ctx, customer.id, args.entityId),
       async (subscription) => {
         const product = subscription.productId
           ? (await ctx.db
@@ -429,26 +460,32 @@ export const createSubscription = mutation({
       .query("subscriptions")
       .withIndex("id", (q) => q.eq("id", args.subscription.id))
       .unique();
+    const entityId = resolveOwner(
+      existingSubscription,
+      args.subscription,
+      `subscription ${args.subscription.id}`,
+    );
     if (!existingSubscription) {
-      const insertedId = await ctx.db.insert(
-        "subscriptions",
-        args.subscription,
-      );
+      const insertedId = await ctx.db.insert("subscriptions", {
+        ...args.subscription,
+        entityId,
+      });
       await scheduleTrialExpiry(ctx, insertedId, args.subscription);
       return null;
     }
-    // Timestamp guard: skip if existing record is newer
+    // Timestamp guard: skip if existing record is newer — but a stale event
+    // may still supply an owner the row does not have yet.
     const incomingModifiedAt = args.subscription.modifiedAt ?? "";
     const existingModifiedAt = existingSubscription.modifiedAt ?? "";
     if (existingModifiedAt > incomingModifiedAt) {
+      if (existingSubscription.entityId === undefined && entityId) {
+        await ctx.db.patch(existingSubscription._id, { entityId });
+      }
       return null; // stale webhook, skip
     }
     await ctx.db.patch(existingSubscription._id, {
       ...args.subscription,
-      metadata: preserveBillingEntity(
-        existingSubscription.metadata,
-        args.subscription.metadata,
-      ),
+      entityId,
     });
     await scheduleTrialExpiry(
       ctx,
@@ -470,19 +507,28 @@ export const updateSubscription = mutation({
       .query("subscriptions")
       .withIndex("id", (q) => q.eq("id", args.subscription.id))
       .unique();
+    const entityId = resolveOwner(
+      existingSubscription,
+      args.subscription,
+      `subscription ${args.subscription.id}`,
+    );
     if (!existingSubscription) {
       // Subscription doesn't exist yet — insert instead of throwing
-      const insertedId = await ctx.db.insert(
-        "subscriptions",
-        args.subscription,
-      );
+      const insertedId = await ctx.db.insert("subscriptions", {
+        ...args.subscription,
+        entityId,
+      });
       await scheduleTrialExpiry(ctx, insertedId, args.subscription);
       return null;
     }
-    // Timestamp guard: skip if existing record is newer
+    // Timestamp guard: skip if existing record is newer — but a stale event
+    // may still supply an owner the row does not have yet.
     const incomingModifiedAt = args.subscription.modifiedAt ?? "";
     const existingModifiedAt = existingSubscription.modifiedAt ?? "";
     if (existingModifiedAt > incomingModifiedAt) {
+      if (existingSubscription.entityId === undefined && entityId) {
+        await ctx.db.patch(existingSubscription._id, { entityId });
+      }
       return null; // stale webhook, skip
     }
 
@@ -566,12 +612,9 @@ export const updateSubscription = mutation({
       }
     }
 
-    // Subscription webhooks can arrive without metadata; the entity the row
-    // already names must survive them.
-    subscriptionToWrite.metadata = preserveBillingEntity(
-      existingSubscription.metadata,
-      subscriptionToWrite.metadata,
-    );
+    // The owner is write-once: webhooks without one, or naming another
+    // entity, keep the established owner.
+    subscriptionToWrite.entityId = entityId;
     await ctx.db.patch(existingSubscription._id, subscriptionToWrite);
     await scheduleTrialExpiry(
       ctx,
@@ -642,22 +685,21 @@ export const createOrder = mutation({
       .query("orders")
       .withIndex("id", (q) => q.eq("id", args.order.id))
       .unique();
+    const entityId = resolveOwner(
+      existing,
+      args.order,
+      `order ${args.order.id}`,
+    );
     if (!existing) {
-      await ctx.db.insert("orders", args.order);
+      await ctx.db.insert("orders", { ...args.order, entityId });
       return;
     }
-    // Update if incoming is newer, keeping the entity the order names.
+    // Update if incoming is newer, keeping the write-once owner. An older
+    // event may still supply an owner the row does not have yet.
     if ((args.order.updatedAt ?? "") >= (existing.updatedAt ?? "")) {
-      await ctx.db.patch(existing._id, {
-        ...args.order,
-        metadata:
-          existing.metadata || args.order.metadata
-            ? preserveBillingEntity(
-                existing.metadata,
-                args.order.metadata ?? {},
-              )
-            : undefined,
-      });
+      await ctx.db.patch(existing._id, { ...args.order, entityId });
+    } else if (existing.entityId === undefined && entityId) {
+      await ctx.db.patch(existing._id, { entityId });
     }
   },
 });
@@ -676,18 +718,46 @@ export const listUserOrders = query({
     if (!customer) {
       return [];
     }
-    const orders = await scopeToEntity(
-      ctx,
-      customer.id,
-      args.entityId,
-      await ctx.db
+    const [owned, legacy] = await Promise.all([
+      ctx.db
         .query("orders")
-        .withIndex("customerId_type", (q) =>
-          q.eq("customerId", customer.id).eq("type", "onetime"),
+        .withIndex("customerId_entityId_type", (q) =>
+          q
+            .eq("customerId", customer.id)
+            .eq("entityId", args.entityId)
+            .eq("type", "onetime"),
         )
         .collect(),
-    );
-    return orders.map(omitSystemFields);
+      ctx.db
+        .query("orders")
+        .withIndex("customerId_entityId_type", (q) =>
+          q
+            .eq("customerId", customer.id)
+            .eq("entityId", undefined)
+            .eq("type", "onetime"),
+        )
+        .take(LEGACY_SCAN_LIMIT),
+    ]);
+    return [
+      ...owned,
+      ...(await legacyRowsOf(ctx, customer.id, args.entityId, legacy)),
+    ]
+      .sort(byCreationTime)
+      .map(omitSystemFields);
+  },
+});
+
+export const getOrder = query({
+  args: {
+    id: v.string(),
+  },
+  returns: v.union(schema.tables.orders.validator, v.null()),
+  handler: async (ctx, args) => {
+    const order = await ctx.db
+      .query("orders")
+      .withIndex("id", (q) => q.eq("id", args.id))
+      .unique();
+    return omitSystemFields(order);
   },
 });
 
@@ -727,18 +797,15 @@ export const getEntitySubscription = query({
     if (!customer || !subscription || subscription.customerId !== customer.id) {
       return null;
     }
-    const [scoped] = await scopeToEntity(ctx, customer.id, args.entityId, [
-      subscription,
-    ]);
-    return scoped ? omitSystemFields(scoped) : null;
+    return (await rowBelongsToEntity(ctx, subscription, args.entityId))
+      ? omitSystemFields(subscription)
+      : null;
   },
 });
 
 /**
- * Billing entities a Creem customer touches: those mapped to it and those
- * named by its subscriptions and orders (which can outlive a mapping that was
- * re-pointed to another customer). Reads are bounded; see `isCustomerShared`
- * for a decision that accounts for that.
+ * Billing entities mapped to a Creem customer, now or before (re-pointing an
+ * entity to a new customer keeps it here).
  */
 export const listCustomerEntities = query({
   args: {
@@ -746,16 +813,29 @@ export const listCustomerEntities = query({
   },
   returns: v.array(v.string()),
   handler: async (ctx, args) => {
-    const ownership = await loadCustomerOwnership(ctx, args.customerId);
-    return [...ownership.entities].sort();
+    const [history, mappings] = await Promise.all([
+      ctx.db
+        .query("customerEntityHistory")
+        .withIndex("customerId_entityId", (q) =>
+          q.eq("customerId", args.customerId),
+        )
+        .take(100),
+      ctx.db
+        .query("customers")
+        .withIndex("id", (q) => q.eq("id", args.customerId))
+        .take(100),
+    ]);
+    return [
+      ...new Set([...history, ...mappings].map((row) => row.entityId)),
+    ].sort();
   },
 });
 
 /**
- * Whether a Creem customer touches billing entities other than `entityId`.
- * Creem keeps one customer per store and email address, so the same person
- * checking out for two entities shares one. A customer with more history than
- * the bounded scan reads counts as shared.
+ * Whether a billing entity other than `entityId` has touched a Creem
+ * customer: mapped to it now or before, or owning one of its subscriptions or
+ * orders. Creem keeps one customer per store and email address, so the same
+ * person checking out for two entities shares one.
  */
 export const isCustomerShared = query({
   args: {
@@ -764,61 +844,87 @@ export const isCustomerShared = query({
   },
   returns: v.boolean(),
   handler: async (ctx, args) =>
-    isSharedWithOthers(
-      await loadCustomerOwnership(ctx, args.customerId),
-      args.entityId,
-    ),
+    touchedByOtherEntity(ctx, args.customerId, args.entityId),
 });
 
+/** Rows without an owner a backfill call handles per table by default. */
+const BACKFILL_BATCH = 25;
+
 /**
- * Tag subscriptions and orders written before checkouts recorded
- * `convexBillingEntityId`, for one page of customer mappings.
+ * Give subscriptions and orders written before the `entityId` field existed
+ * their owner. One call handles one customer mapping and at most `batchSize`
+ * rows per table, so each transaction stays small.
  *
- * A customer's untagged rows are tagged only when exactly one entity maps to
- * the customer and no row names another; ambiguous rows stay untagged and
- * keep belonging to no entity. Call it with the returned cursor until
- * `isDone`. It is idempotent, so running it again is safe.
+ * A row gets the `convexBillingEntityId` its metadata records. A row without
+ * one gets the mapping's entity only when no other entity has ever touched
+ * the customer; ambiguous rows keep no owner and belong to no entity. The
+ * mapping is also recorded in `customerEntityHistory`.
+ *
+ * Paging contract: start with no cursor, then pass back the returned
+ * `cursor` until `isDone`. The cursor stays on a customer until its rows are
+ * done. Components cannot use `paginate()`, so the cursor is the mapping's
+ * `_creationTime`. Running it again is safe.
  */
 export const backfillBillingEntityTags = mutation({
   args: {
     cursor: v.optional(v.union(v.string(), v.null())),
-    numItems: v.optional(v.number()),
+    batchSize: v.optional(v.number()),
   },
   returns: v.object({
-    cursor: v.string(),
+    cursor: v.union(v.string(), v.null()),
     isDone: v.boolean(),
-    tagged: v.number(),
+    processed: v.number(),
   }),
   handler: async (ctx, args) => {
-    const page = await ctx.db
+    const cursor = args.cursor ?? null;
+    const after = cursor === null ? null : Number(cursor);
+    const batchSize = Math.max(1, Math.floor(args.batchSize ?? BACKFILL_BATCH));
+    const [customer] = await ctx.db
       .query("customers")
-      .paginate({ cursor: args.cursor ?? null, numItems: args.numItems ?? 10 });
-    let tagged = 0;
-    for (const customer of page.page) {
-      const ownership = await loadCustomerOwnership(ctx, customer.id);
-      if (isSharedWithOthers(ownership, customer.entityId)) continue;
-      const [subscriptions, orders] = await Promise.all([
-        ctx.db
-          .query("subscriptions")
-          .withIndex("customerId", (q) => q.eq("customerId", customer.id))
-          .take(OWNERSHIP_SCAN_LIMIT),
-        ctx.db
-          .query("orders")
-          .withIndex("customerId", (q) => q.eq("customerId", customer.id))
-          .take(OWNERSHIP_SCAN_LIMIT),
-      ]);
-      for (const row of [...subscriptions, ...orders]) {
-        if (billingEntityOf(row) !== null) continue;
-        await ctx.db.patch(row._id, {
-          metadata: {
-            ...(row.metadata ?? {}),
-            convexBillingEntityId: customer.entityId,
-          },
-        });
-        tagged += 1;
-      }
+      .withIndex("by_creation_time", (q) =>
+        after === null ? q : q.gt("_creationTime", after),
+      )
+      .take(1);
+    if (!customer) return { cursor, isDone: true, processed: 0 };
+
+    await recordCustomerEntity(ctx, customer.id, customer.entityId);
+    const ambiguous = await touchedByOtherEntity(
+      ctx,
+      customer.id,
+      customer.entityId,
+    );
+    const [subscriptions, orders] = await Promise.all([
+      ctx.db
+        .query("subscriptions")
+        .withIndex("customerId_entityId_endedAt", (q) =>
+          q.eq("customerId", customer.id).eq("entityId", undefined),
+        )
+        .take(batchSize),
+      ctx.db
+        .query("orders")
+        .withIndex("customerId_entityId_type", (q) =>
+          q.eq("customerId", customer.id).eq("entityId", undefined),
+        )
+        .take(batchSize),
+    ]);
+    let processed = 0;
+    for (const row of [...subscriptions, ...orders]) {
+      const owner =
+        ownerClaimOf(row.metadata) ?? (ambiguous ? null : customer.entityId);
+      if (owner === null) continue;
+      await ctx.db.patch(row._id, { entityId: owner });
+      processed += 1;
     }
-    return { cursor: page.continueCursor, isDone: page.isDone, tagged };
+    // A full batch that made progress may hide more rows of this customer.
+    // Rows left without an owner are ambiguous and do not hold the cursor.
+    const unfinished =
+      processed > 0 &&
+      (subscriptions.length === batchSize || orders.length === batchSize);
+    return {
+      cursor: unfinished ? cursor : String(customer._creationTime),
+      isDone: false,
+      processed,
+    };
   },
 });
 

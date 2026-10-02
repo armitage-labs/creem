@@ -84,10 +84,19 @@ export default defineSchema(
       // was already trialing before this field existed still gets a job, and
       // repeated webhooks for an unchanged trial do not pile up duplicates.
       trialExpiryScheduledFor: v.optional(v.string()),
+      // The billing entity that owns the subscription. Set from the checkout
+      // that created it and never changed afterwards. Absent on rows written
+      // before this field existed until `backfillBillingEntityTags` runs.
+      entityId: v.optional(v.string()),
     })
       .index("id", ["id"])
       .index("customerId", ["customerId"])
-      .index("customerId_endedAt", ["customerId", "endedAt"]),
+      .index("customerId_endedAt", ["customerId", "endedAt"])
+      .index("customerId_entityId_endedAt", [
+        "customerId",
+        "entityId",
+        "endedAt",
+      ]),
     orders: defineTable({
       id: v.string(),
       customerId: v.string(),
@@ -109,13 +118,25 @@ export default defineSchema(
       metadata: v.optional(v.record(v.string(), v.any())),
       createdAt: v.string(),
       updatedAt: v.string(),
+      // Owning billing entity; write-once like `subscriptions.entityId`.
+      entityId: v.optional(v.string()),
     })
       .index("id", ["id"])
       .index("customerId", ["customerId"])
+      .index("customerId_entityId_type", ["customerId", "entityId", "type"])
       // `listUserOrders` only ever wants one-time orders. Without this index it
       // would scan every renewal order the customer has ever had, which grows
       // by one row per billing period forever.
       .index("customerId_type", ["customerId", "type"]),
+    // Every billing entity ever mapped to a Creem customer. `customers` keeps
+    // only the current mapping per entity, so re-pointing an entity to a new
+    // customer would otherwise erase the evidence that the old customer was
+    // shared.
+    customerEntityHistory: defineTable({
+      customerId: v.string(),
+      entityId: v.string(),
+      recordedAt: v.string(),
+    }).index("customerId_entityId", ["customerId", "entityId"]),
     scheduledSubscriptionUpdates: defineTable({
       entityId: v.string(),
       subscriptionId: v.string(),

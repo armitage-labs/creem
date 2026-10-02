@@ -34,17 +34,25 @@ const resolve: ApiResolver = async (ctx) => {
 
 ### One Creem customer, several entities
 
-Creem keeps one customer per store and email address. When the same person checks out for two billing entities, for example their personal account and an organization, both entities map to the same Creem customer. Every checkout records the entity as `convexBillingEntityId` in its metadata, which Creem copies onto the subscription and the order, and the component scopes by it:
+Creem keeps one customer per store and email address. When the same person checks out for two billing entities, for example their personal account and an organization, both entities map to the same Creem customer. The component therefore records an owner on every subscription and order:
 
-- **Scoped to the entity:** subscriptions and orders in `uiModel`, `snapshot`, `getBillingModel`, `getBillingSnapshot`, `subscriptions.list`/`listAll` and `orders.list`; and the subscription commands (`update`, `cancel`, `resume`, `pause`, `cancelScheduledUpdate`), which reject another entity's subscription ID like an unknown one. Period-end updates are checked again when they apply.
-- **Refused while the customer is shared:** `customers.portalUrl` (the Creem portal manages everything of the customer) throws a `ConvexError` with `code: "shared-customer"`, and `<BillingPortal>` and `<PaymentRecoveryButton>` show `portal.sharedCustomer`. `customers.updateBillingEmail` returns `{ status: "shared-customer" }`, and `<BillingEmail>` shows `billingEmail.sharedCustomer`.
-- **Still customer-wide:** `transactions.search` and `<BillingHistory>` list the Creem customer's transactions, and Customer Credits keep one balance per Creem customer. Entities sharing a customer see and spend the same ones.
+- The owner is the `entityId` field, taken from the checkout that created the row (`convexBillingEntityId` in its metadata, which Creem copies onto the subscription and the order).
+- It is write-once. Any verified webhook, even one that arrives out of order, can fill a missing owner, but nothing changes an existing one; a conflicting claim is logged and ignored.
+- Webhook side effects (customer mapping, ending app-owned plans) follow the stored row's owner and customer, not the incoming event's metadata.
 
-A customer counts as shared for an entity when another entity maps to it or any of its subscriptions or orders names another entity. That evidence outlives re-pointing an entity to a new customer. A customer with more history than the component reads for this check counts as shared.
+What that scopes:
 
-A webhook never removes or changes the entity a subscription or order already names.
+- **Scoped to the entity:** subscriptions and orders in `uiModel`, `snapshot`, `getBillingModel`, `getBillingSnapshot`, `subscriptions.list`/`listAll` and `orders.list`, read through an index on the owner. The subscription commands (`update`, `cancel`, `resume`, `pause`, `cancelScheduledUpdate`) reject another entity's subscription ID like an unknown one, and period-end updates are checked again when they apply.
+- **Refused while the customer is shared:** `customers.portalUrl` throws a `ConvexError` with `code: "shared-customer"` (the Creem portal manages everything of the customer), and `<BillingPortal>` and `<PaymentRecoveryButton>` show `portal.sharedCustomer`. `customers.updateBillingEmail` returns `{ status: "shared-customer" }`, and `<BillingEmail>` shows `billingEmail.sharedCustomer`.
+- **Still customer-wide:** `transactions.search` and `<BillingHistory>` list the Creem customer's transactions, and Customer Credits keep one balance per Creem customer.
 
-Rows created before checkouts recorded the entity carry none. Such a row counts for an entity only while nothing on the customer points at another entity; otherwise it belongs to no entity. To restore rows whose owner is unambiguous, run the component's `backfillBillingEntityTags` mutation once from an internal mutation or action, passing back its `cursor` until `isDone`:
+A customer counts as shared for an entity when another entity is or ever was mapped to it, or owns one of its subscriptions or orders. The component keeps every mapping in a `customerEntityHistory` table, so re-pointing an entity to a new customer does not erase that evidence. `creem.customers.isShared(ctx, { entityId })` exposes the check.
+
+#### Upgrading an existing deployment
+
+Rows written before this version have no `entityId`. Until they get one, a row counts for the `convexBillingEntityId` its metadata records, and a row with neither counts for an entity only while no other entity has touched the customer; otherwise it belongs to no entity. Run the component's `backfillBillingEntityTags` mutation once after deploying. It records the existing mappings in the history and copies each recorded `convexBillingEntityId` into `entityId`, or assigns the mapping's entity when the history proves a single owner. Ambiguous rows keep no owner.
+
+Paging contract: each call handles one customer mapping and at most `batchSize` (default 25) rows per table. Start without a cursor and pass back the returned `cursor` until `isDone`; the cursor stays on a customer until its rows are done, and running it again is safe. It pages with its own cursor because Convex does not allow `paginate()` inside a component.
 
 ```ts title="convex/billing.ts"
 export const backfillBillingEntities = internalAction({
@@ -62,9 +70,7 @@ export const backfillBillingEntities = internalAction({
 });
 ```
 
-It only tags rows of customers with exactly one entity and nothing naming another, so ambiguous rows stay hidden.
-
-`creem.customers.isShared(ctx, { entityId })` tells you whether an entity's customer is shared.
+One case cannot be resolved: if an entity was re-pointed away from a customer before this version and left untagged rows there, nothing records that it was ever mapped, so those rows count for the entity that is still mapped to that customer.
 
 By default, the component tracks the entity's active app-owned plan itself. Apps that own their plan assignment can override that from the resolver — see [Advanced → Resolver plan overrides](/code/sdks/convex/advanced#resolver-plan-overrides).
 

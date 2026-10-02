@@ -5,11 +5,7 @@ import type { TestConvex } from "convex-test";
 import type { Infer } from "convex/values";
 import schema from "./schema.js";
 import { api } from "./_generated/api.js";
-import {
-  OWNERSHIP_SCAN_LIMIT,
-  preserveBillingEntity,
-  withParentBillingEntity,
-} from "./entityScope.js";
+import { resolveOwner } from "./entityScope.js";
 
 const modules = import.meta.glob("./**/*.ts");
 
@@ -222,13 +218,13 @@ describe("entity-scoped billing data on a shared Creem customer", () => {
 
       let cursor: string | null = null;
       let tagged = 0;
-      for (;;) {
-        const page: { cursor: string; isDone: boolean; tagged: number } =
-          await t.mutation(api.lib.backfillBillingEntityTags, {
-            cursor,
-            numItems: 1,
-          });
-        tagged += page.tagged;
+      for (let calls = 0; calls < 10; calls += 1) {
+        const page: {
+          cursor: string | null;
+          isDone: boolean;
+          processed: number;
+        } = await t.mutation(api.lib.backfillBillingEntityTags, { cursor });
+        tagged += page.processed;
         cursor = page.cursor;
         if (page.isDone) break;
       }
@@ -236,12 +232,12 @@ describe("entity-scoped billing data on a shared Creem customer", () => {
       expect(tagged).toBe(1);
       expect(
         (await t.query(api.lib.getSubscription, { id: "sub_single_legacy" }))
-          ?.metadata,
-      ).toEqual({ convexBillingEntityId: "user_2" });
+          ?.entityId,
+      ).toBe("user_2");
       expect(
         (await t.query(api.lib.getSubscription, { id: "sub_shared_legacy" }))
-          ?.metadata,
-      ).toEqual({});
+          ?.entityId,
+      ).toBeUndefined();
     });
 
     it("belong to no entity once the customer's rows name two", async () => {
@@ -294,7 +290,7 @@ describe("entity-scoped billing data on a shared Creem customer", () => {
         id: "sub_personal",
       });
       expect(stored?.status).toBe("canceled");
-      expect(stored?.metadata).toEqual({ convexBillingEntityId: PERSONAL });
+      expect(stored?.entityId).toBe(PERSONAL);
       expect(
         ids(await t.query(api.lib.listAllUserSubscriptions, { entityId: ORG })),
       ).toEqual(["sub_org"]);
@@ -361,34 +357,6 @@ describe("entity-scoped billing data on a shared Creem customer", () => {
       expect(
         await t.query(api.lib.listCustomerEntities, { customerId: CUSTOMER }),
       ).toEqual([ORG, PERSONAL]);
-    });
-
-    it("treats a customer whose history exceeds the scan as shared", async () => {
-      const single = convexTest(schema, modules);
-      await single.mutation(api.lib.insertCustomer, {
-        id: CUSTOMER,
-        entityId: PERSONAL,
-      });
-      for (let index = 0; index <= OWNERSHIP_SCAN_LIMIT; index += 1) {
-        await single.mutation(api.lib.createOrder, {
-          order: order(`ord_${index}`, { convexBillingEntityId: PERSONAL }),
-        });
-      }
-      await single.mutation(api.lib.createSubscription, {
-        subscription: subscription("sub_legacy", {}),
-      });
-
-      expect(
-        await single.query(api.lib.isCustomerShared, {
-          customerId: CUSTOMER,
-          entityId: PERSONAL,
-        }),
-      ).toBe(true);
-      expect(
-        await single.query(api.lib.listAllUserSubscriptions, {
-          entityId: PERSONAL,
-        }),
-      ).toEqual([]);
     });
   });
 
@@ -471,27 +439,232 @@ describe("entity-scoped billing data on a shared Creem customer", () => {
     ).toBe("prod_1");
   });
 
-  describe("metadata helpers", () => {
-    it("fills an embedded payload's missing entity from its parent", () => {
-      const checkout = { convexBillingEntityId: ORG, source: "app" };
-      expect(withParentBillingEntity({}, checkout)).toEqual({
-        convexBillingEntityId: ORG,
-      });
-      expect(withParentBillingEntity(undefined, checkout)).toEqual(checkout);
+  describe("write-once owner", () => {
+    it("keeps the established owner and logs a conflicting claim", () => {
       expect(
-        withParentBillingEntity({ convexBillingEntityId: PERSONAL }, checkout),
-      ).toEqual({ convexBillingEntityId: PERSONAL });
+        resolveOwner({ entityId: PERSONAL }, { entityId: ORG }, "subscription"),
+      ).toBe(PERSONAL);
+      expect(
+        resolveOwner(
+          { metadata: { convexBillingEntityId: PERSONAL } },
+          { metadata: {} },
+          "subscription",
+        ),
+      ).toBe(PERSONAL);
+      expect(
+        resolveOwner(null, { metadata: { convexBillingEntityId: ORG } }, "x"),
+      ).toBe(ORG);
+      expect(resolveOwner({}, {}, "x")).toBeUndefined();
     });
 
-    it("keeps an established entity over incoming metadata", () => {
-      const established = { convexBillingEntityId: PERSONAL, plan: "old" };
-      expect(preserveBillingEntity(established, { plan: "new" })).toEqual({
-        plan: "new",
-        convexBillingEntityId: PERSONAL,
+    it("fills a missing owner from an older event without reverting newer state", async () => {
+      // A newer webhook without metadata arrives first; the older checkout
+      // that names the owner arrives last.
+      await t.mutation(api.lib.updateSubscription, {
+        subscription: {
+          ...subscription("sub_late_owner", {}),
+          modifiedAt: "2026-03-01T00:00:00.000Z",
+          status: "canceled",
+        },
       });
-      expect(preserveBillingEntity(undefined, { plan: "new" })).toEqual({
-        plan: "new",
+      await t.mutation(api.lib.createSubscription, {
+        subscription: subscription("sub_late_owner", {
+          convexBillingEntityId: PERSONAL,
+        }),
       });
+
+      const stored = await t.query(api.lib.getSubscription, {
+        id: "sub_late_owner",
+      });
+      expect(stored?.entityId).toBe(PERSONAL);
+      expect(stored?.status).toBe("canceled");
+      expect(
+        ids(
+          await t.query(api.lib.listAllUserSubscriptions, {
+            entityId: PERSONAL,
+          }),
+        ),
+      ).toEqual(["sub_late_owner"]);
+      expect(
+        await t.query(api.lib.listAllUserSubscriptions, { entityId: ORG }),
+      ).toEqual([]);
     });
+
+    it("fills a missing order owner from an older event", async () => {
+      await addOrder({
+        ...order("ord_late_owner"),
+        updatedAt: "2026-03-01T00:00:00.000Z",
+      });
+      await addOrder(order("ord_late_owner", { convexBillingEntityId: ORG }));
+
+      expect(
+        ids(await t.query(api.lib.listUserOrders, { entityId: ORG })),
+      ).toEqual(["ord_late_owner"]);
+    });
+  });
+
+  describe("ownership history", () => {
+    it("keeps an untagged row ambiguous after its entity is re-pointed away", async () => {
+      // Mappings and the row predate the history table and the owner field.
+      // Re-pointing PERSONAL must not hand the row to ORG.
+      const legacy = convexTest(schema, modules);
+      await legacy.run(async (ctx) => {
+        await ctx.db.insert("customers", { id: CUSTOMER, entityId: PERSONAL });
+        await ctx.db.insert("customers", { id: CUSTOMER, entityId: ORG });
+        await ctx.db.insert("subscriptions", subscription("sub_legacy", {}));
+      });
+      await legacy.mutation(api.lib.insertCustomer, {
+        id: "cust_new",
+        entityId: PERSONAL,
+        updatedAt: "2026-05-01T00:00:00.000Z",
+      });
+
+      expect(
+        await legacy.query(api.lib.listAllUserSubscriptions, { entityId: ORG }),
+      ).toEqual([]);
+      expect(
+        await legacy.query(api.lib.isCustomerShared, {
+          customerId: CUSTOMER,
+          entityId: ORG,
+        }),
+      ).toBe(true);
+      expect(
+        await legacy.query(api.lib.listCustomerEntities, {
+          customerId: CUSTOMER,
+        }),
+      ).toEqual([ORG, PERSONAL]);
+
+      let cursor: string | null = null;
+      for (let calls = 0; calls < 10; calls += 1) {
+        const page: { cursor: string | null; isDone: boolean } =
+          await legacy.mutation(api.lib.backfillBillingEntityTags, { cursor });
+        cursor = page.cursor;
+        if (page.isDone) break;
+      }
+      expect(
+        (await legacy.query(api.lib.getSubscription, { id: "sub_legacy" }))
+          ?.entityId,
+      ).toBeUndefined();
+      expect(
+        await legacy.query(api.lib.listAllUserSubscriptions, { entityId: ORG }),
+      ).toEqual([]);
+    });
+
+    it("counts a row tagged before the owner field existed", async () => {
+      const single = convexTest(schema, modules);
+      await single.mutation(api.lib.insertCustomer, {
+        id: CUSTOMER,
+        entityId: PERSONAL,
+      });
+      await single.run(async (ctx) => {
+        await ctx.db.insert(
+          "subscriptions",
+          subscription("sub_tagged_legacy", {
+            convexBillingEntityId: PERSONAL,
+          }),
+        );
+      });
+
+      expect(
+        ids(
+          await single.query(api.lib.listAllUserSubscriptions, {
+            entityId: PERSONAL,
+          }),
+        ),
+      ).toEqual(["sub_tagged_legacy"]);
+
+      await single.mutation(api.lib.backfillBillingEntityTags, {});
+      expect(
+        (
+          await single.query(api.lib.getSubscription, {
+            id: "sub_tagged_legacy",
+          })
+        )?.entityId,
+      ).toBe(PERSONAL);
+    });
+  });
+
+  it("finds an owned subscription without reading another entity's history", async () => {
+    const limited = convexTest({
+      schema,
+      modules,
+      transactionLimits: { bytesRead: 256 * 1024 },
+    });
+    await limited.mutation(api.lib.insertCustomer, {
+      id: CUSTOMER,
+      entityId: PERSONAL,
+    });
+    await limited.mutation(api.lib.createSubscription, {
+      subscription: subscription("sub_personal", {
+        convexBillingEntityId: PERSONAL,
+      }),
+    });
+    for (let index = 0; index < 10; index += 1) {
+      await limited.mutation(api.lib.createSubscription, {
+        subscription: subscription(`sub_org_${index}`, {
+          convexBillingEntityId: ORG,
+          note: "x".repeat(60 * 1024),
+        }),
+      });
+    }
+
+    expect(
+      (
+        await limited.query(api.lib.getCurrentSubscription, {
+          entityId: PERSONAL,
+        })
+      )?.id,
+    ).toBe("sub_personal");
+    expect(
+      ids(
+        await limited.query(api.lib.listAllUserSubscriptions, {
+          entityId: PERSONAL,
+        }),
+      ),
+    ).toEqual(["sub_personal"]);
+    expect(
+      await limited.query(api.lib.isCustomerShared, {
+        customerId: CUSTOMER,
+        entityId: PERSONAL,
+      }),
+    ).toBe(true);
+  });
+
+  it("backfills large legacy histories within the transaction limits", async () => {
+    const limited = convexTest({ schema, modules, transactionLimits: true });
+    for (let index = 0; index < 10; index += 1) {
+      const customerId = `cust_${index}`;
+      await limited.mutation(api.lib.insertCustomer, {
+        id: customerId,
+        entityId: `user_${index}`,
+      });
+      await limited.run(async (ctx) => {
+        for (let row = 0; row < 200; row += 1) {
+          await ctx.db.insert("orders", {
+            ...order(`ord_${index}_${row}`, { note: "x".repeat(4 * 1024) }),
+            customerId,
+          });
+        }
+      });
+    }
+
+    let cursor: string | null = null;
+    let tagged = 0;
+    for (let calls = 0; calls < 100; calls += 1) {
+      const page: {
+        cursor: string | null;
+        isDone: boolean;
+        processed: number;
+      } = await limited.mutation(api.lib.backfillBillingEntityTags, { cursor });
+      tagged += page.processed;
+      cursor = page.cursor;
+      if (page.isDone) break;
+    }
+
+    expect(tagged).toBe(2000);
+    expect(
+      (await limited.query(api.lib.listUserOrders, { entityId: "user_3" }))
+        .length,
+    ).toBe(200);
   });
 });
