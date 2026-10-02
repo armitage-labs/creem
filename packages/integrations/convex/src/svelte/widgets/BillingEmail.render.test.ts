@@ -12,7 +12,7 @@ import type {
   ConnectedBillingApi,
   ConnectedBillingModel,
 } from "./types.js";
-import type { BillingEmailResult } from "../../core/types.js";
+import type { BillingEmailActionResult } from "../../core/types.js";
 
 const convex = vi.hoisted(() => {
   const action = vi.fn();
@@ -52,7 +52,10 @@ const modelFor = (
     snapshot: { entityId },
   }) as unknown as ConnectedBillingModel;
 
-const ok = (email: string): BillingEmailResult => ({ status: "ok", email });
+const ok = (email: string): BillingEmailActionResult => ({
+  status: "ok",
+  email,
+});
 
 const settle = async () => {
   await new Promise((resolve) => setTimeout(resolve, 0));
@@ -145,6 +148,7 @@ describe("<BillingEmail> (Svelte)", () => {
     await submit();
 
     expect(convex.action).toHaveBeenCalledWith("customersUpdateBillingEmail", {
+      expectedEntityId: "org_1",
       email: "accounts@example.com",
     });
     expect(target.querySelector('[role="status"]')?.textContent?.trim()).toBe(
@@ -171,11 +175,61 @@ describe("<BillingEmail> (Svelte)", () => {
     expect(button()?.disabled).toBe(false);
   });
 
+  it("reloads instead of saving when the server resolves another entity", async () => {
+    modelStore.set(modelFor("org_1"));
+    convex.action.mockImplementation(
+      async (ref: string): Promise<BillingEmailActionResult> =>
+        ref === "customersBillingEmail"
+          ? ok("org1@example.com")
+          : { status: "entity-changed" },
+    );
+    await render();
+
+    await type("new@example.com");
+    await submit();
+
+    expect(convex.action).toHaveBeenCalledWith("customersUpdateBillingEmail", {
+      expectedEntityId: "org_1",
+      email: "new@example.com",
+    });
+    const loads = convex.action.mock.calls.filter(
+      ([ref]) => ref === "customersBillingEmail",
+    );
+    expect(loads).toEqual([
+      ["customersBillingEmail", { expectedEntityId: "org_1" }],
+      ["customersBillingEmail", { expectedEntityId: "org_1" }],
+    ]);
+    expect(input()?.value).toBe("org1@example.com");
+    expect(target.querySelector('[role="status"]')).toBeNull();
+  });
+
+  it("retries a failed load from the error state", async () => {
+    modelStore.set(modelFor("org_1"));
+    convex.action
+      .mockRejectedValueOnce(new Error("Creem unavailable"))
+      .mockResolvedValueOnce(ok("billing@example.com"));
+    await render();
+
+    expect(target.querySelector('[role="alert"]')?.textContent?.trim()).toBe(
+      "Could not load the billing email",
+    );
+    const retry = Array.from(target.querySelectorAll("button")).find(
+      (element) => element.textContent?.trim() === "Try again",
+    );
+    expect(retry).toBeDefined();
+
+    retry?.click();
+    await settle();
+
+    expect(input()?.value).toBe("billing@example.com");
+    expect(target.querySelector('[role="alert"]')).toBeNull();
+  });
+
   it("switches to the new entity's email and ignores the old late response", async () => {
-    let resolveOrg1: (result: BillingEmailResult) => void = () => {};
+    let resolveOrg1: (result: BillingEmailActionResult) => void = () => {};
     convex.action
       .mockReturnValueOnce(
-        new Promise<BillingEmailResult>((resolve) => {
+        new Promise<BillingEmailActionResult>((resolve) => {
           resolveOrg1 = resolve;
         }),
       )

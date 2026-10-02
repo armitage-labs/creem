@@ -5,7 +5,7 @@ import {
   isValidBillingEmail,
   type BillingEmailState,
 } from "./billingEmail.js";
-import type { BillingEmailResult } from "./types.js";
+import type { BillingEmailActionResult } from "./types.js";
 
 type Deferred<T> = {
   promise: Promise<T>;
@@ -25,7 +25,10 @@ const deferred = <T>(): Deferred<T> => {
 
 const flush = () => new Promise((resolve) => setTimeout(resolve, 0));
 
-const ok = (email: string): BillingEmailResult => ({ status: "ok", email });
+const ok = (email: string): BillingEmailActionResult => ({
+  status: "ok",
+  email,
+});
 
 const ready = (
   overrides: Partial<BillingEmailState> = {},
@@ -150,7 +153,9 @@ describe("createBillingEmailController", () => {
   });
 
   it("saves a trimmed draft and marks it saved until the next edit", async () => {
-    const save = vi.fn(async (email: string) => ok(email.toLowerCase()));
+    const save = vi.fn(async (_entityKey: string, email: string) =>
+      ok(email.toLowerCase()),
+    );
     const controller = createBillingEmailController({
       load: async () => ok("billing@example.com"),
       save,
@@ -165,7 +170,7 @@ describe("createBillingEmailController", () => {
     expect(controller.getState().saving).toBe(true);
     await submitted;
 
-    expect(save).toHaveBeenCalledWith("Accounts@Example.com");
+    expect(save).toHaveBeenCalledWith("org_1", "Accounts@Example.com");
     expect(controller.getState()).toEqual(
       ready({
         email: "accounts@example.com",
@@ -233,10 +238,10 @@ describe("createBillingEmailController", () => {
   });
 
   it("resets on entity switch and ignores the previous entity's late load", async () => {
-    const first = deferred<BillingEmailResult>();
-    const second = deferred<BillingEmailResult>();
+    const first = deferred<BillingEmailActionResult>();
+    const second = deferred<BillingEmailActionResult>();
     const load = vi
-      .fn<() => Promise<BillingEmailResult>>()
+      .fn<(entityKey: string) => Promise<BillingEmailActionResult>>()
       .mockReturnValueOnce(first.promise)
       .mockReturnValueOnce(second.promise);
     const controller = createBillingEmailController({ load, save: vi.fn() });
@@ -256,10 +261,10 @@ describe("createBillingEmailController", () => {
   });
 
   it("drops a draft and a save response that belong to the previous entity", async () => {
-    const pendingSave = deferred<BillingEmailResult>();
+    const pendingSave = deferred<BillingEmailActionResult>();
     const controller = createBillingEmailController({
       load: vi
-        .fn<() => Promise<BillingEmailResult>>()
+        .fn<(entityKey: string) => Promise<BillingEmailActionResult>>()
         .mockResolvedValueOnce(ok("org1@example.com"))
         .mockResolvedValueOnce(ok("org2@example.com")),
       save: () => pendingSave.promise,
@@ -294,6 +299,99 @@ describe("createBillingEmailController", () => {
       email: null,
       draft: "",
     });
+  });
+
+  it("asks for the displayed entity's email", async () => {
+    const load = vi.fn(async () => ok("billing@example.com"));
+    const controller = createBillingEmailController({ load, save: vi.fn() });
+
+    controller.setEntity("org_1");
+    await flush();
+
+    expect(load).toHaveBeenCalledWith("org_1");
+  });
+
+  it("reloads after a transient load failure", async () => {
+    const load = vi
+      .fn<(entityKey: string) => Promise<BillingEmailActionResult>>()
+      .mockRejectedValueOnce(new Error("Creem unavailable"))
+      .mockResolvedValueOnce(ok("billing@example.com"));
+    const controller = createBillingEmailController({ load, save: vi.fn() });
+    controller.setEntity("org_1");
+    await flush();
+    expect(controller.getState().status).toBe("load-error");
+
+    controller.reload();
+    await flush();
+
+    expect(load).toHaveBeenCalledTimes(2);
+    expect(controller.getState()).toEqual(ready());
+  });
+
+  it("starts over when the server resolves another entity at save time", async () => {
+    // The resolver moved to another organization after the form loaded. The
+    // save must not land there; the form reloads instead.
+    const load = vi
+      .fn<(entityKey: string) => Promise<BillingEmailActionResult>>()
+      .mockResolvedValueOnce(ok("org1@example.com"))
+      .mockResolvedValueOnce(ok("org1@example.com"));
+    const save = vi.fn(
+      async (): Promise<BillingEmailActionResult> => ({
+        status: "entity-changed",
+      }),
+    );
+    const controller = createBillingEmailController({ load, save });
+    controller.setEntity("org_1");
+    await flush();
+
+    controller.setDraft("new@example.com");
+    await controller.submit();
+    await flush();
+
+    expect(save).toHaveBeenCalledWith("org_1", "new@example.com");
+    expect(load).toHaveBeenCalledTimes(2);
+    expect(controller.getState()).toEqual(
+      ready({ email: "org1@example.com", draft: "org1@example.com" }),
+    );
+  });
+
+  it("reloads once on an entity mismatch, then offers a retry", async () => {
+    const load = vi.fn(
+      async (): Promise<BillingEmailActionResult> => ({
+        status: "entity-changed",
+      }),
+    );
+    const controller = createBillingEmailController({ load, save: vi.fn() });
+
+    controller.setEntity("org_1");
+    await flush();
+
+    expect(load).toHaveBeenCalledTimes(2);
+    expect(controller.getState()).toMatchObject({
+      status: "load-error",
+      error: { phase: "load" },
+    });
+  });
+
+  it("drops a mismatch answer once the new entity arrives", async () => {
+    const stale = deferred<BillingEmailActionResult>();
+    const load = vi
+      .fn<(entityKey: string) => Promise<BillingEmailActionResult>>()
+      .mockReturnValueOnce(stale.promise)
+      .mockResolvedValueOnce(ok("org2@example.com"));
+    const controller = createBillingEmailController({ load, save: vi.fn() });
+
+    controller.setEntity("org_1");
+    controller.setEntity("org_2");
+    await flush();
+    stale.resolve({ status: "entity-changed" });
+    await flush();
+
+    expect(load).toHaveBeenCalledTimes(2);
+    expect(load).toHaveBeenLastCalledWith("org_2");
+    expect(controller.getState()).toEqual(
+      ready({ email: "org2@example.com", draft: "org2@example.com" }),
+    );
   });
 
   it("stops notifying after unsubscribe", async () => {

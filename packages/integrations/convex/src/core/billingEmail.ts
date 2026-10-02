@@ -1,4 +1,4 @@
-import type { BillingEmailResult } from "./types.js";
+import type { BillingEmailActionResult } from "./types.js";
 
 /**
  * Framework-neutral state for the `<BillingEmail>` widgets.
@@ -70,10 +70,13 @@ export const canSaveBillingEmail = (state: BillingEmailState): boolean =>
     state.email.toLowerCase();
 
 export type BillingEmailControllerOptions = {
-  /** Read the current entity's billing email. */
-  load: () => Promise<BillingEmailResult>;
-  /** Change the current entity's billing email. */
-  save: (email: string) => Promise<BillingEmailResult>;
+  /**
+   * Read the billing email of `entityKey`, the entity the form displays.
+   * Answer `"entity-changed"` when the server resolves a different entity.
+   */
+  load: (entityKey: string) => Promise<BillingEmailActionResult>;
+  /** Change the billing email of `entityKey`, with the same guard. */
+  save: (entityKey: string, email: string) => Promise<BillingEmailActionResult>;
 };
 
 export type BillingEmailController = {
@@ -86,13 +89,15 @@ export type BillingEmailController = {
    * `null` clears the state without loading.
    */
   setEntity: (entityKey: string | null) => void;
+  /** Load the current entity's email again, for example after a failed load. */
+  reload: () => void;
   setDraft: (draft: string) => void;
   /** Save the draft. Does nothing unless {@link canSaveBillingEmail} holds. */
   submit: () => Promise<void>;
 };
 
 const stateFromResult = (
-  result: BillingEmailResult,
+  result: Exclude<BillingEmailActionResult, { status: "entity-changed" }>,
   saved: boolean,
 ): BillingEmailState =>
   result.status === "ok"
@@ -105,21 +110,65 @@ const stateFromResult = (
       }
     : { ...initialState, status: "no-customer" };
 
+const entityChangedError = new Error(
+  "The billing entity changed while loading its email.",
+);
+
 export const createBillingEmailController = ({
   load,
   save,
 }: BillingEmailControllerOptions): BillingEmailController => {
   let state = initialState;
   let entityKey: string | null = null;
-  // Incremented on every entity change. A response whose generation is no
-  // longer current belongs to a previous entity and is dropped, so a slow read
-  // for one organization can never overwrite the form of the next.
+  // Incremented whenever the form starts over (entity change or reload). A
+  // response whose generation is no longer current belongs to an earlier
+  // form and is dropped, so a slow read for one organization can never
+  // overwrite the form of the next.
   let generation = 0;
   const listeners = new Set<() => void>();
 
   const setState = (next: BillingEmailState) => {
     state = next;
     for (const listener of listeners) listener();
+  };
+
+  // `"entity-changed"` means the server already resolves another entity and
+  // the new key is usually about to arrive through `setEntity`. Reload once in
+  // case the server moved back; a second mismatch becomes a retryable error
+  // instead of a load loop.
+  const startLoad = (afterEntityChange: boolean) => {
+    const key = entityKey;
+    const current = ++generation;
+    if (key === null) {
+      setState(initialState);
+      return;
+    }
+    setState({ ...initialState, status: "loading" });
+    load(key).then(
+      (result) => {
+        if (current !== generation) return;
+        if (result.status !== "entity-changed") {
+          setState(stateFromResult(result, false));
+        } else if (!afterEntityChange) {
+          startLoad(true);
+        } else {
+          setState({
+            ...initialState,
+            status: "load-error",
+            error: { phase: "load", cause: entityChangedError },
+          });
+        }
+      },
+      (cause: unknown) => {
+        if (current === generation) {
+          setState({
+            ...initialState,
+            status: "load-error",
+            error: { phase: "load", cause },
+          });
+        }
+      },
+    );
   };
 
   return {
@@ -133,26 +182,10 @@ export const createBillingEmailController = ({
     setEntity: (nextEntityKey) => {
       if (nextEntityKey === entityKey) return;
       entityKey = nextEntityKey;
-      const current = ++generation;
-      if (nextEntityKey === null) {
-        setState(initialState);
-        return;
-      }
-      setState({ ...initialState, status: "loading" });
-      load().then(
-        (result) => {
-          if (current === generation) setState(stateFromResult(result, false));
-        },
-        (cause: unknown) => {
-          if (current === generation) {
-            setState({
-              ...initialState,
-              status: "load-error",
-              error: { phase: "load", cause },
-            });
-          }
-        },
-      );
+      startLoad(false);
+    },
+    reload: () => {
+      if (entityKey !== null) startLoad(false);
     },
     setDraft: (draft) => {
       setState({
@@ -163,13 +196,20 @@ export const createBillingEmailController = ({
       });
     },
     submit: async () => {
-      if (!canSaveBillingEmail(state)) return;
+      if (!canSaveBillingEmail(state) || entityKey === null) return;
       const current = generation;
       const email = normalizeBillingEmail(state.draft);
       setState({ ...state, saving: true, saved: false, error: null });
       try {
-        const result = await save(email);
-        if (current === generation) setState(stateFromResult(result, true));
+        const result = await save(entityKey, email);
+        if (current !== generation) return;
+        if (result.status === "entity-changed") {
+          // Nothing was saved. The draft belongs to an entity the server no
+          // longer resolves, so start over instead of offering to retry it.
+          startLoad(false);
+        } else {
+          setState(stateFromResult(result, true));
+        }
       } catch (cause) {
         if (current === generation) {
           setState({

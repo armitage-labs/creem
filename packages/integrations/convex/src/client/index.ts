@@ -54,6 +54,7 @@ import {
 } from "../core/billingEmail.js";
 import type {
   AppPlanAssignment,
+  BillingEmailActionResult,
   BillingEmailResult,
   CreditBalance,
   CreditEntryList,
@@ -133,7 +134,7 @@ export type Subscription = Infer<typeof subscriptionValidator>;
 
 import {
   appPlanActivateArgs,
-  billingEmailResultValidator,
+  billingEmailActionResultValidator,
   billingSnapshotValidator,
   checkoutCreateArgs,
   connectedBillingModelValidator,
@@ -141,6 +142,7 @@ import {
   creditBalanceValidator,
   creditEntryListValidator,
   creditsListEntriesArgs,
+  customersBillingEmailArgs,
   customersUpdateBillingEmailArgs,
   parseSubscriptionUpdateArgs,
   subscriptionCancelArgs,
@@ -600,12 +602,16 @@ export class Creem {
       );
     }
 
+    // Read the address back instead of mirroring `updated.email`: with two
+    // overlapping saves the responses can arrive out of order, and the call
+    // that finishes last would otherwise store the older address.
+    const current = await this.sdk.customers.retrieve(customer.id);
     await ctx.runMutation(this.component.lib.setCustomerEmail, {
       entityId,
       customerId: customer.id,
-      email: updated.email,
+      email: current.email,
     });
-    return { status: "ok", email: updated.email };
+    return { status: "ok", email: current.email };
   }
 
   private listProducts(
@@ -2378,19 +2384,29 @@ export class Creem {
             return await this.customers.portalUrl(ctx, { entityId });
           },
         }),
+        // Both actions re-resolve the entity and compare it with the one the
+        // caller displays. A resolver backed by mutable state (the active
+        // organization) can move between the form loading and saving; without
+        // this check one organization's draft would land on another.
         billingEmail: actionGeneric({
-          args: {},
-          returns: billingEmailResultValidator,
-          handler: async (ctx): Promise<BillingEmailResult> => {
+          args: customersBillingEmailArgs,
+          returns: billingEmailActionResultValidator,
+          handler: async (ctx, args): Promise<BillingEmailActionResult> => {
             const { entityId } = await requireIdentity(resolve, ctx);
+            if (entityId !== args.expectedEntityId) {
+              return { status: "entity-changed" };
+            }
             return await this.customers.billingEmail(ctx, { entityId });
           },
         }),
         updateBillingEmail: actionGeneric({
           args: customersUpdateBillingEmailArgs,
-          returns: billingEmailResultValidator,
-          handler: async (ctx, args): Promise<BillingEmailResult> => {
+          returns: billingEmailActionResultValidator,
+          handler: async (ctx, args): Promise<BillingEmailActionResult> => {
             const { entityId } = await requireIdentity(resolve, ctx);
+            if (entityId !== args.expectedEntityId) {
+              return { status: "entity-changed" };
+            }
             return await this.customers.updateBillingEmail(ctx, {
               entityId,
               email: args.email,

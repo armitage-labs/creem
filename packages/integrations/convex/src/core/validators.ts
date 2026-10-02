@@ -247,6 +247,19 @@ export const billingEmailResultValidator = v.union(
   v.object({ status: v.literal("no-customer") }),
 );
 
+/**
+ * Result of the generated billing email actions.
+ *
+ * Adds `"entity-changed"`: the resolver now picks a different billing entity
+ * than the one the caller displayed (for example after an organization switch
+ * in another tab). Nothing was read or changed; reload for the new entity.
+ */
+export const billingEmailActionResultValidator = v.union(
+  v.object({ status: v.literal("ok"), email: v.string() }),
+  v.object({ status: v.literal("no-customer") }),
+  v.object({ status: v.literal("entity-changed") }),
+);
+
 // ── Shared arg validators ─────────────────────────────────────────────
 // Use these when writing your own Convex functions that wrap creem methods
 // (e.g. for RBAC). They match exactly what the connected widgets send.
@@ -526,12 +539,26 @@ export const creditsListEntriesArgs = {
 };
 
 /**
+ * Convex arg validator for reading the billing entity's Creem customer email.
+ *
+ * Matches the args sent by `<BillingEmail>`. `expectedEntityId` is the entity
+ * the caller displays (`uiModel.snapshot.entityId`). It does not select the
+ * entity: the server resolves that itself and answers `"entity-changed"` when
+ * the two differ.
+ */
+export const customersBillingEmailArgs = {
+  expectedEntityId: v.string(),
+};
+
+/**
  * Convex arg validator for changing the billing entity's Creem customer email.
  *
- * Matches the args sent by `<BillingEmail>`. The customer is resolved
- * server-side and cannot be selected by the client.
+ * Matches the args sent by `<BillingEmail>`. As with
+ * {@link customersBillingEmailArgs}, `expectedEntityId` only guards against
+ * saving into an entity other than the one the form showed.
  */
 export const customersUpdateBillingEmailArgs = {
+  expectedEntityId: v.string(),
   email: v.string(),
 };
 
@@ -547,6 +574,9 @@ export type SubscriptionPauseArgs = ObjectType<typeof subscriptionPauseArgs>;
 export type AppPlanActivateArgs = ObjectType<typeof appPlanActivateArgs>;
 export type TransactionsSearchArgs = ObjectType<typeof transactionsSearchArgs>;
 export type CreditsListEntriesArgs = ObjectType<typeof creditsListEntriesArgs>;
+export type CustomersBillingEmailArgs = ObjectType<
+  typeof customersBillingEmailArgs
+>;
 export type CustomersUpdateBillingEmailArgs = ObjectType<
   typeof customersUpdateBillingEmailArgs
 >;
@@ -658,3 +688,10 @@ export type CreditEntryList = Infer<typeof creditEntryListValidator>;
  * first checkout.
  */
 export type BillingEmailResult = Infer<typeof billingEmailResultValidator>;
+/**
+ * What the generated billing email actions return: a {@link BillingEmailResult}
+ * or `"entity-changed"` when the resolved entity no longer matches the caller's.
+ */
+export type BillingEmailActionResult = Infer<
+  typeof billingEmailActionResultValidator
+>;

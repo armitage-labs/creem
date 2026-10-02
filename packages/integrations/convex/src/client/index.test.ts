@@ -409,6 +409,10 @@ describe("customers namespace", () => {
         email: "billing@example.com",
       }));
       creem.sdk.customers.update = update as never;
+      creem.sdk.customers.retrieve = vi.fn(async () => ({
+        id: "cust_1",
+        email: "billing@example.com",
+      })) as never;
 
       const result = await creem.customers.updateBillingEmail(ctx as never, {
         entityId: "user_1",
@@ -425,6 +429,52 @@ describe("customers namespace", () => {
         entityId: "user_1",
         customerId: "cust_1",
         email: "billing@example.com",
+      });
+    });
+
+    it("stores Creem's final address when overlapping saves finish out of order", async () => {
+      // Creem applies "first" and then "second", but the response to "first"
+      // arrives last. Mirroring each response would leave "first" locally.
+      const ctx = createMockCtx({
+        [REFS.getCustomerByEntityId]: { id: "cust_1", entityId: "user_1" },
+      });
+      let creemEmail = "old@example.com";
+      let releaseFirst: () => void = () => {};
+      const firstResponse = new Promise<void>((resolve) => {
+        releaseFirst = resolve;
+      });
+      creem.sdk.customers.update = vi.fn(
+        async ({ email }: { email: string }) => {
+          creemEmail = email;
+          if (email === "first@example.com") await firstResponse;
+          return { id: "cust_1", email };
+        },
+      ) as never;
+      creem.sdk.customers.retrieve = vi.fn(async () => ({
+        id: "cust_1",
+        email: creemEmail,
+      })) as never;
+
+      const first = creem.customers.updateBillingEmail(ctx as never, {
+        entityId: "user_1",
+        email: "first@example.com",
+      });
+      const second = await creem.customers.updateBillingEmail(ctx as never, {
+        entityId: "user_1",
+        email: "second@example.com",
+      });
+      releaseFirst();
+      const firstResult = await first;
+
+      expect(ctx.runMutation).toHaveBeenLastCalledWith(REFS.setCustomerEmail, {
+        entityId: "user_1",
+        customerId: "cust_1",
+        email: "second@example.com",
+      });
+      expect(second).toEqual({ status: "ok", email: "second@example.com" });
+      expect(firstResult).toEqual({
+        status: "ok",
+        email: "second@example.com",
       });
     });
 
@@ -2409,10 +2459,13 @@ describe("api() convenience exports", () => {
       const ctx = createMockCtx();
 
       await expect(
-        extractHandler(apiExports.customers.billingEmail as never)(ctx, {}),
+        extractHandler(apiExports.customers.billingEmail as never)(ctx, {
+          expectedEntityId: "org_1",
+        }),
       ).rejects.toThrow("Not authenticated");
       await expect(
         extractHandler(apiExports.customers.updateBillingEmail as never)(ctx, {
+          expectedEntityId: "org_1",
           email: "billing@example.com",
         }),
       ).rejects.toThrow("Not authenticated");
@@ -2427,23 +2480,27 @@ describe("api() convenience exports", () => {
       const ctx = createMockCtx({
         [REFS.getCustomerByEntityId]: { id: "cust_1", entityId: "org_1" },
       });
-      const retrieve = vi.fn(async () => ({
+      let creemEmail = "old@example.com";
+      const update = vi.fn(async ({ email }: { email: string }) => {
+        creemEmail = email;
+        return { id: "cust_1", email };
+      });
+      creem.sdk.customers.retrieve = vi.fn(async () => ({
         id: "cust_1",
-        email: "old@example.com",
-      }));
-      const update = vi.fn(async () => ({
-        id: "cust_1",
-        email: "billing@example.com",
-      }));
-      creem.sdk.customers.retrieve = retrieve as never;
+        email: creemEmail,
+      })) as never;
       creem.sdk.customers.update = update as never;
 
       const read = await extractHandler(
         apiExports.customers.billingEmail as never,
-      )(ctx, {});
+      )(ctx, { expectedEntityId: "org_1" });
       const updated = await extractHandler(
         apiExports.customers.updateBillingEmail as never,
-      )(ctx, { email: "billing@example.com", customerId: "cust_other" });
+      )(ctx, {
+        expectedEntityId: "org_1",
+        email: "billing@example.com",
+        customerId: "cust_other",
+      });
 
       expect(ctx.runQuery).toHaveBeenCalledWith(REFS.getCustomerByEntityId, {
         entityId: "org_1",
@@ -2454,6 +2511,35 @@ describe("api() convenience exports", () => {
         email: "billing@example.com",
       });
       expect(updated).toEqual({ status: "ok", email: "billing@example.com" });
+    });
+
+    it("refuses to read or save for an entity other than the displayed one", async () => {
+      // The form shows org_1, but the active organization is now org_2.
+      resolve.mockResolvedValue({
+        userId: "user_1",
+        email: "a@b.com",
+        entityId: "org_2",
+      });
+      const ctx = createMockCtx({
+        [REFS.getCustomerByEntityId]: { id: "cust_2", entityId: "org_2" },
+      });
+      const retrieve = vi.fn();
+      const update = vi.fn();
+      creem.sdk.customers.retrieve = retrieve as never;
+      creem.sdk.customers.update = update as never;
+
+      const read = await extractHandler(
+        apiExports.customers.billingEmail as never,
+      )(ctx, { expectedEntityId: "org_1" });
+      const updated = await extractHandler(
+        apiExports.customers.updateBillingEmail as never,
+      )(ctx, { expectedEntityId: "org_1", email: "org1@example.com" });
+
+      expect(read).toEqual({ status: "entity-changed" });
+      expect(updated).toEqual({ status: "entity-changed" });
+      expect(retrieve).not.toHaveBeenCalled();
+      expect(update).not.toHaveBeenCalled();
+      expect(ctx.runMutation).not.toHaveBeenCalled();
     });
   });
 

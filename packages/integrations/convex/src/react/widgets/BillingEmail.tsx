@@ -79,13 +79,16 @@ export const BillingEmail = ({
   const controller = useMemo(
     () =>
       createBillingEmailController({
-        load: async () =>
+        load: async (expectedEntityId) =>
           billingEmailRef
-            ? await client.action(billingEmailRef, {})
+            ? await client.action(billingEmailRef, { expectedEntityId })
             : { status: "no-customer" },
-        save: async (email) =>
+        save: async (expectedEntityId, email) =>
           updateBillingEmailRef
-            ? await client.action(updateBillingEmailRef, { email })
+            ? await client.action(updateBillingEmailRef, {
+                expectedEntityId,
+                email,
+              })
             : { status: "no-customer" },
       }),
     [client, billingEmailRef, updateBillingEmailRef],
@@ -162,6 +165,15 @@ export const BillingEmail = ({
         <p role="alert" className="text-error-foreground-default text-sm">
           {errorMessage}
         </p>
+      ) : null}
+      {view.status === "load-error" ? (
+        <button
+          type="button"
+          className="button-outline cursor-pointer"
+          onClick={controller.reload}
+        >
+          {labels.retry}
+        </button>
       ) : null}
     </section>
   );

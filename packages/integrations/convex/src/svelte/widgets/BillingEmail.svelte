@@ -73,13 +73,16 @@
   );
 
   const controller = createBillingEmailController({
-    load: async () =>
+    load: async (expectedEntityId) =>
       billingEmailRef
-        ? await client.action(billingEmailRef, {})
+        ? await client.action(billingEmailRef, { expectedEntityId })
         : { status: "no-customer" },
-    save: async (email) =>
+    save: async (expectedEntityId, email) =>
       updateBillingEmailRef
-        ? await client.action(updateBillingEmailRef, { email })
+        ? await client.action(updateBillingEmailRef, {
+            expectedEntityId,
+            email,
+          })
         : { status: "no-customer" },
   });
 
@@ -160,6 +163,15 @@
       <p role="alert" class="text-error-foreground-default text-sm">
         {errorMessage}
       </p>
+    {/if}
+    {#if view.status === "load-error"}
+      <button
+        type="button"
+        class="button-outline cursor-pointer"
+        onclick={controller.reload}
+      >
+        {labels.retry}
+      </button>
     {/if}
   </section>
 {/if}

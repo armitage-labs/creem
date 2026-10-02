@@ -9,7 +9,7 @@ import type {
   ConnectedBillingApi,
   ConnectedBillingModel,
 } from "./types.js";
-import type { BillingEmailResult } from "../../core/types.js";
+import type { BillingEmailActionResult } from "../../core/types.js";
 
 const convex = vi.hoisted(() => {
   const action = vi.fn();
@@ -50,7 +50,10 @@ const deferred = <T,>(): Deferred<T> => {
   return { promise, resolve };
 };
 
-const ok = (email: string): BillingEmailResult => ({ status: "ok", email });
+const ok = (email: string): BillingEmailActionResult => ({
+  status: "ok",
+  email,
+});
 
 let container: HTMLDivElement;
 let root: Root;
@@ -146,6 +149,7 @@ describe("<BillingEmail> (React)", () => {
     await submit();
 
     expect(convex.action).toHaveBeenCalledWith("customersUpdateBillingEmail", {
+      expectedEntityId: "org_1",
       email: "accounts@example.com",
     });
     expect(container.querySelector('[role="status"]')?.textContent).toBe(
@@ -172,8 +176,57 @@ describe("<BillingEmail> (React)", () => {
     expect(button()?.disabled).toBe(false);
   });
 
+  it("reloads instead of saving when the server resolves another entity", async () => {
+    convex.model = modelFor("org_1");
+    convex.action.mockImplementation(
+      async (ref: string): Promise<BillingEmailActionResult> =>
+        ref === "customersBillingEmail"
+          ? ok("org1@example.com")
+          : { status: "entity-changed" },
+    );
+    await render();
+
+    await type("new@example.com");
+    await submit();
+
+    expect(convex.action).toHaveBeenCalledWith("customersUpdateBillingEmail", {
+      expectedEntityId: "org_1",
+      email: "new@example.com",
+    });
+    const loads = convex.action.mock.calls.filter(
+      ([ref]) => ref === "customersBillingEmail",
+    );
+    expect(loads).toEqual([
+      ["customersBillingEmail", { expectedEntityId: "org_1" }],
+      ["customersBillingEmail", { expectedEntityId: "org_1" }],
+    ]);
+    expect(input()?.value).toBe("org1@example.com");
+    expect(container.querySelector('[role="status"]')).toBeNull();
+  });
+
+  it("retries a failed load from the error state", async () => {
+    convex.model = modelFor("org_1");
+    convex.action
+      .mockRejectedValueOnce(new Error("Creem unavailable"))
+      .mockResolvedValueOnce(ok("billing@example.com"));
+    await render();
+
+    expect(container.querySelector('[role="alert"]')?.textContent?.trim()).toBe(
+      "Could not load the billing email",
+    );
+    const retry = Array.from(container.querySelectorAll("button")).find(
+      (element) => element.textContent?.trim() === "Try again",
+    );
+    expect(retry).toBeDefined();
+
+    await act(async () => retry?.click());
+
+    expect(input()?.value).toBe("billing@example.com");
+    expect(container.querySelector('[role="alert"]')).toBeNull();
+  });
+
   it("switches to the new entity's email and ignores the old late response", async () => {
-    const org1 = deferred<BillingEmailResult>();
+    const org1 = deferred<BillingEmailActionResult>();
     convex.action
       .mockReturnValueOnce(org1.promise)
       .mockResolvedValueOnce(ok("org2@example.com"));

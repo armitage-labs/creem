@@ -117,8 +117,10 @@ currently uses, and saves a new one through Creem's customer API.
 
 Like the portal button, it renders nothing until the entity has a Creem
 customer, and nothing when `canManageBillingEmail` is `false`. It reloads when
-the billing entity changes, so switching organizations never shows or saves the
-previous organization's address.
+the billing entity changes. Each request also carries the entity the form
+shows, and the generated actions refuse it when your resolver now returns a
+different one, so switching organizations in another tab never saves one
+organization's address into another. A failed load offers a retry button.
 
 Requires `customers.billingEmail` and `customers.updateBillingEmail` in the
 connected API. Export `customersBillingEmail` and `customersUpdateBillingEmail`
@@ -131,7 +133,8 @@ export const customersUpdateBillingEmail = customers.updateBillingEmail;
 
 The generated actions let any caller your `resolve` accepts change the
 entity's billing email. If only billing admins may do that, write your own
-action with `customersUpdateBillingEmailArgs` and check the role before calling
+action with `customersUpdateBillingEmailArgs`, keep the `expectedEntityId`
+check, and check the role before calling
 `creem.customers.updateBillingEmail`, as in
 [Advanced → Custom auth and RBAC](/code/sdks/convex/advanced#custom-auth-and-rbac).
 

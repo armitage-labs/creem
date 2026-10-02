@@ -79,6 +79,8 @@ export type BillingLabels = {
     loading: string;
     loadFailed: string;
     saveFailed: string;
+    /** Button that reloads the email after a failed load. */
+    retry: string;
   };
   subscription: {
     loadingBillingModel: string;
@@ -300,6 +302,7 @@ export const defaultBillingLabels: BillingLabels = {
     loading: "Loading billing email...",
     loadFailed: "Could not load the billing email",
     saveFailed: "Could not update the billing email",
+    retry: "Try again",
   },
   subscription: {
     loadingBillingModel: "Loading billing model...",

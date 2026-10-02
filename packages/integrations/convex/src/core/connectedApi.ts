@@ -2,10 +2,11 @@ import type { FunctionReference } from "convex/server";
 import type { ConnectedBillingModel } from "./model.js";
 import type {
   AppPlanActivateArgs,
-  BillingEmailResult,
+  BillingEmailActionResult,
   CheckoutCreateArgs,
   CreditBalance,
   ConnectedTransactionList,
+  CustomersBillingEmailArgs,
   CustomersUpdateBillingEmailArgs,
   SubscriptionCancelArgs,
   SubscriptionCancelScheduledUpdateArgs,
@@ -82,15 +83,15 @@ export type CustomerPortalUrlFunction = FunctionReference<
 export type CustomerBillingEmailFunction = FunctionReference<
   "action",
   "public",
-  Record<string, never>,
-  BillingEmailResult
+  CustomersBillingEmailArgs,
+  BillingEmailActionResult
 >;
 
 export type CustomerUpdateBillingEmailFunction = FunctionReference<
   "action",
   "public",
   CustomersUpdateBillingEmailArgs,
-  BillingEmailResult
+  BillingEmailActionResult
 >;
 
 export type TransactionsSearchFunction = FunctionReference<

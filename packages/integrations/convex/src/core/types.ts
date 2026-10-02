@@ -29,6 +29,7 @@ export type {
   CreditEntry,
   CreditEntryList,
   BillingEmailResult,
+  BillingEmailActionResult,
   CheckoutCreateArgs,
   SubscriptionUpdateArgs,
   SubscriptionUpdateWireArgs,
@@ -39,6 +40,7 @@ export type {
   AppPlanActivateArgs,
   TransactionsSearchArgs,
   CreditsListEntriesArgs,
+  CustomersBillingEmailArgs,
   CustomersUpdateBillingEmailArgs,
 } from "./validators.js";
 
