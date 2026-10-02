@@ -342,4 +342,21 @@ describe("<BillingEmail> composition (Svelte)", () => {
     expect(error?.textContent?.trim()).toBe("Enter a valid email address.");
     expect(input()?.getAttribute("aria-describedby")).toContain(error?.id);
   });
+
+  it("marks a cleared input invalid once it loses focus", async () => {
+    modelStore.set(modelFor("org_1"));
+    convex.action.mockResolvedValue(ok("billing@example.com"));
+    await render();
+
+    await type("");
+    expect(input()?.getAttribute("aria-invalid")).toBe("false");
+
+    input()?.dispatchEvent(new FocusEvent("blur"));
+    await settle();
+
+    expect(input()?.getAttribute("aria-invalid")).toBe("true");
+    expect(target.querySelector('[role="alert"]')?.textContent?.trim()).toBe(
+      "Enter a valid email address.",
+    );
+  });
 });

@@ -277,7 +277,10 @@ export type BillingEmailContextBase = {
   /** `true` until the current email has loaded. */
   readonly isLoading: boolean;
   readonly canSave: boolean;
-  /** The draft has changed and is not a valid address. */
+  /**
+   * The draft is not a valid address: a non-empty draft at once, an empty one
+   * after the input was touched. Drives `aria-invalid`.
+   */
   readonly isInvalid: boolean;
   /**
    * Localized load or save error, or the validation message for a touched,
@@ -306,10 +309,12 @@ export const deriveBillingEmailView = (
 ) => ({
   isLoading: state.status === "idle" || state.status === "loading",
   canSave: canSaveBillingEmail(state),
+  // A non-empty malformed draft is flagged while typing; an empty one only
+  // once touched, together with the validation message.
   isInvalid:
     state.status === "ready" &&
-    normalizeBillingEmail(state.draft) !== "" &&
-    !isValidBillingEmail(state.draft),
+    !isValidBillingEmail(state.draft) &&
+    (state.touched || normalizeBillingEmail(state.draft) !== ""),
   errorMessage: state.error
     ? getConvexErrorMessage(
         state.error.cause,

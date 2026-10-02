@@ -429,6 +429,12 @@ describe("billing email validation message", () => {
     expect(message(ready({ draft: "  ", touched: true }))).toBe(
       "Enter a valid email address.",
     );
+    // `aria-invalid` follows the message for an empty draft, not before.
+    const invalid = (state: BillingEmailState) =>
+      deriveBillingEmailView(state, labels).isInvalid;
+    expect(invalid(ready({ draft: "" }))).toBe(false);
+    expect(invalid(ready({ draft: "", touched: true }))).toBe(true);
+    expect(invalid(ready({ draft: "accounts@" }))).toBe(true);
     expect(message(ready({ draft: "ok@example.com", touched: true }))).toBe(
       null,
     );

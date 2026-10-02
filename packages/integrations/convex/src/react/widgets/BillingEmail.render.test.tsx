@@ -347,4 +347,22 @@ describe("<BillingEmail> composition (React)", () => {
     expect(error?.textContent).toBe("Enter a valid email address.");
     expect(input()?.getAttribute("aria-describedby")).toContain(error?.id);
   });
+
+  it("marks a cleared input invalid once it loses focus", async () => {
+    convex.model = modelFor("org_1");
+    convex.action.mockResolvedValue(ok("billing@example.com"));
+    await render();
+
+    await type("");
+    expect(input()?.getAttribute("aria-invalid")).toBe("false");
+
+    await act(async () => {
+      input()?.dispatchEvent(new FocusEvent("focusout", { bubbles: true }));
+    });
+
+    expect(input()?.getAttribute("aria-invalid")).toBe("true");
+    expect(container.querySelector('[role="alert"]')?.textContent).toBe(
+      "Enter a valid email address.",
+    );
+  });
 });
