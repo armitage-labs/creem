@@ -83,6 +83,7 @@ The library evaluates the limits. Your app owns the actual usage counters and de
     canResumeSubscription: isAdmin,
     canUpdateUnits: isAdmin,
     canAccessPortal: isAdmin,
+    canManageBillingEmail: isAdmin,
   }}
 >
   ...
@@ -103,6 +104,63 @@ Opens the Creem customer portal, which is where payment methods, billing details
 ```
 
 Requires `customers.portalUrl` in the connected API.
+
+### Billing email
+
+The Creem customer portal does not let a customer change the email address
+invoices and receipts go to. `<BillingEmail>` does: it shows the address Creem
+currently uses, and saves a new one through Creem's customer API.
+
+```tsx title="Account page"
+<BillingEmail />
+```
+
+Like the portal button, it renders nothing until the entity has a Creem
+customer, and nothing when `canManageBillingEmail` is `false`. It reloads when
+the billing entity changes. Each request also carries the entity the form
+shows, and the generated actions refuse it when your resolver now returns a
+different one, so switching organizations in another tab never saves one
+organization's address into another. A failed load offers a retry button.
+
+Requires `customers.billingEmail` and `customers.updateBillingEmail` in the
+connected API. Export `customersBillingEmail` and `customersUpdateBillingEmail`
+from `convex/billing.ts` and `connectCreemApi` wires them:
+
+```ts title="convex/billing.ts"
+export const customersBillingEmail = customers.billingEmail;
+export const customersUpdateBillingEmail = customers.updateBillingEmail;
+```
+
+The generated actions let any caller your `resolve` accepts change the
+entity's billing email. If only billing admins may do that, write your own
+action with `customersUpdateBillingEmailArgs`, keep the `expectedEntityId`
+check, and check the role before calling
+`creem.customers.updateBillingEmail`, as in
+[Advanced → Custom auth and RBAC](/code/sdks/convex/advanced#custom-auth-and-rbac).
+
+Creem rejects an address that another customer of your store already uses. The
+widget then shows its generic save error.
+
+`<BillingEmail />` is the ready-made layout. For your own markup, compose the
+parts inside `<BillingEmail.Root>`; the root keeps the state and wires the
+label, description, and error to the input:
+
+```tsx title="Account page"
+<BillingEmail.Root className="rounded-xl border p-6">
+  <BillingEmail.Label />
+  <div className="flex gap-2">
+    <BillingEmail.Input className="flex-1" />
+    <BillingEmail.Save>Update</BillingEmail.Save>
+  </div>
+  <BillingEmail.Status />
+  <BillingEmail.Error />
+  <BillingEmail.Retry />
+</BillingEmail.Root>
+```
+
+Svelte uses the same names: `<BillingEmail.Root>`, `<BillingEmail.Input />`,
+and so on. See the [reference](/code/sdks/convex/reference#component-reference) for
+every part.
 
 ### Billing history
 

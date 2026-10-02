@@ -22,11 +22,14 @@ export {
   Subscription,
   Product,
   BillingPortal,
+  BillingEmail,
   BillingHistory,
   Credits,
   getSubscriptionItemContext,
   getCreditsContext,
+  getBillingEmailContext,
 } from "./widgets/index.js";
+export type { BillingEmailContextValue } from "./widgets/index.js";
 export type {
   CheckoutSuccessParams,
   OneTimePaymentStatus,

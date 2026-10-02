@@ -44,7 +44,10 @@ await removeMatchingFiles(
 );
 
 // svelte-package scans the full input directory and has no test exclude option.
-// Tests should not be part of the Svelte package output.
+// Tests and their `.test.svelte` fixtures should not be part of the Svelte
+// package output.
 await removeMatchingFiles(join(root, "dist", "svelte"), (file) =>
-  /\.(test|spec)\.(js|js\.map|d\.ts|d\.ts\.map)$/.test(file),
+  /\.(test|spec)\.(js|js\.map|d\.ts|d\.ts\.map|svelte|svelte\.d\.ts|svelte\.d\.ts\.map)$/.test(
+    file,
+  ),
 );

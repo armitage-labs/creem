@@ -48,8 +48,14 @@ import {
   isAppPlanEligible,
   normalizePlanCatalog,
 } from "../core/catalog.js";
+import {
+  isValidBillingEmail,
+  normalizeBillingEmail,
+} from "../core/billingEmail.js";
 import type {
   AppPlanAssignment,
+  BillingEmailActionResult,
+  BillingEmailResult,
   CreditBalance,
   CreditEntryList,
   CreditGrant,
@@ -128,6 +134,7 @@ export type Subscription = Infer<typeof subscriptionValidator>;
 
 import {
   appPlanActivateArgs,
+  billingEmailActionResultValidator,
   billingSnapshotValidator,
   checkoutCreateArgs,
   connectedBillingModelValidator,
@@ -135,6 +142,8 @@ import {
   creditBalanceValidator,
   creditEntryListValidator,
   creditsListEntriesArgs,
+  customersBillingEmailArgs,
+  customersUpdateBillingEmailArgs,
   parseSubscriptionUpdateArgs,
   subscriptionCancelArgs,
   subscriptionCancelScheduledUpdateArgs,
@@ -280,6 +289,10 @@ export class CreemNotAuthenticatedError extends Error {
     this.name = "CreemNotAuthenticatedError";
   }
 }
+
+/** The SDK parses timestamps into `Date`; older SDK builds pass strings. */
+const toIsoString = (value: Date | string): string =>
+  value instanceof Date ? value.toISOString() : String(value);
 
 /** Largest quantity Creem accepts for a unit-based subscription. */
 const MAX_SUBSCRIPTION_UNITS = 1_000_000;
@@ -552,6 +565,58 @@ export class Creem {
       customerId: customer.id,
     });
     return { url: portal.customerPortalLink };
+  }
+
+  private async getCustomerBillingEmail(
+    ctx: RunActionCtx,
+    { entityId }: { entityId: string },
+  ): Promise<BillingEmailResult> {
+    const customer = await this.getCustomerByEntityId(ctx, entityId);
+    if (!customer) return { status: "no-customer" };
+
+    // Read through to Creem: the local record only keeps the first address it
+    // saw, and an address changed in the Creem dashboard never reaches it.
+    const creemCustomer = await this.sdk.customers.retrieve(customer.id);
+    return { status: "ok", email: creemCustomer.email };
+  }
+
+  private async updateCustomerBillingEmail(
+    ctx: RunActionCtx,
+    { entityId, email }: { entityId: string; email: string },
+  ): Promise<BillingEmailResult> {
+    const nextEmail = normalizeBillingEmail(email);
+    if (!isValidBillingEmail(nextEmail)) {
+      throw new ConvexError("Invalid email address");
+    }
+
+    const customer = await this.getCustomerByEntityId(ctx, entityId);
+    if (!customer) return { status: "no-customer" };
+
+    const updated = await this.sdk.customers.update({
+      customerId: customer.id,
+      email: nextEmail,
+    });
+    // `creem` before 1.12.0 strips `email` from the update request, so the call
+    // succeeds without changing anything. Fail loudly instead of reporting a
+    // change that did not happen. Creem stores addresses lowercased.
+    if (updated.email.toLowerCase() !== nextEmail.toLowerCase()) {
+      throw new Error(
+        "[creem] Creem did not apply the billing email change. " +
+          "Changing a customer email requires creem 1.12.0 or newer.",
+      );
+    }
+
+    // Read the address back with Creem's `updated_at` and let the mirror keep
+    // only the newest readback. Overlapping saves can finish in any order;
+    // mirroring each response as it arrives could store an older address.
+    const current = await this.sdk.customers.retrieve(customer.id);
+    await ctx.runMutation(this.component.lib.setCustomerEmail, {
+      entityId,
+      customerId: customer.id,
+      email: current.email,
+      updatedAt: toIsoString(current.updatedAt),
+    });
+    return { status: "ok", email: current.email };
   }
 
   private listProducts(
@@ -1752,6 +1817,12 @@ export class Creem {
    *
    * - `.retrieve()` — customer record by billing entity (Convex DB)
    * - `.portalUrl()` — generate a Creem customer billing portal URL (Creem API)
+   * - `.billingEmail()` — the email Creem sends invoices and receipts to (Creem API)
+   * - `.updateBillingEmail()` — change that email (Creem API)
+   *
+   * The billing email methods return `{ status: "no-customer" }` while the
+   * entity has no Creem customer. Creem rejects an address that another
+   * customer of the store already uses; that error propagates.
    */
   get customers() {
     return {
@@ -1759,6 +1830,12 @@ export class Creem {
         this.getCustomerByEntityId(ctx, entityId),
       portalUrl: (ctx: RunActionCtx, { entityId }: { entityId: string }) =>
         this.createCustomerPortalSession(ctx, { entityId }),
+      billingEmail: (ctx: RunActionCtx, { entityId }: { entityId: string }) =>
+        this.getCustomerBillingEmail(ctx, { entityId }),
+      updateBillingEmail: (
+        ctx: RunActionCtx,
+        { entityId, email }: { entityId: string; email: string },
+      ) => this.updateCustomerBillingEmail(ctx, { entityId, email }),
     };
   }
 
@@ -2310,6 +2387,35 @@ export class Creem {
           handler: async (ctx): Promise<{ url: string }> => {
             const { entityId } = await requireIdentity(resolve, ctx);
             return await this.customers.portalUrl(ctx, { entityId });
+          },
+        }),
+        // Both actions re-resolve the entity and compare it with the one the
+        // caller displays. A resolver backed by mutable state (the active
+        // organization) can move between the form loading and saving; without
+        // this check one organization's draft would land on another.
+        billingEmail: actionGeneric({
+          args: customersBillingEmailArgs,
+          returns: billingEmailActionResultValidator,
+          handler: async (ctx, args): Promise<BillingEmailActionResult> => {
+            const { entityId } = await requireIdentity(resolve, ctx);
+            if (entityId !== args.expectedEntityId) {
+              return { status: "entity-changed" };
+            }
+            return await this.customers.billingEmail(ctx, { entityId });
+          },
+        }),
+        updateBillingEmail: actionGeneric({
+          args: customersUpdateBillingEmailArgs,
+          returns: billingEmailActionResultValidator,
+          handler: async (ctx, args): Promise<BillingEmailActionResult> => {
+            const { entityId } = await requireIdentity(resolve, ctx);
+            if (entityId !== args.expectedEntityId) {
+              return { status: "entity-changed" };
+            }
+            return await this.customers.updateBillingEmail(ctx, {
+              entityId,
+              email: args.email,
+            });
           },
         }),
       },

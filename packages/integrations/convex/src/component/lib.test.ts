@@ -2117,3 +2117,89 @@ describe("trial conversion after expiry sweep", () => {
     expect(current?.endedAt).toBeNull();
   });
 });
+
+describe("setCustomerEmail mutation", () => {
+  let t: TestConvex<typeof schema>;
+
+  beforeEach(() => {
+    t = convexTest(schema, modules);
+  });
+
+  it("replaces the email that insertCustomer would keep", async () => {
+    await t.mutation(
+      api.lib.insertCustomer,
+      createTestCustomer({ email: "first@example.com" }),
+    );
+    // Webhooks only fill an empty email, so a later address never lands.
+    await t.mutation(
+      api.lib.insertCustomer,
+      createTestCustomer({ email: "ignored@example.com" }),
+    );
+
+    await t.mutation(api.lib.setCustomerEmail, {
+      entityId: "user_456",
+      customerId: "cust_123",
+      email: "billing@example.com",
+      updatedAt: "2026-03-01T10:00:00.000Z",
+    });
+
+    const result = await t.query(api.lib.getCustomerByEntityId, {
+      entityId: "user_456",
+    });
+    expect(result?.email).toBe("billing@example.com");
+  });
+
+  it("leaves the record alone when the entity now maps to another customer", async () => {
+    await t.mutation(
+      api.lib.insertCustomer,
+      createTestCustomer({ id: "cust_new", email: "current@example.com" }),
+    );
+
+    await t.mutation(api.lib.setCustomerEmail, {
+      entityId: "user_456",
+      customerId: "cust_123",
+      email: "billing@example.com",
+      updatedAt: "2026-03-01T10:00:00.000Z",
+    });
+
+    const result = await t.query(api.lib.getCustomerByEntityId, {
+      entityId: "user_456",
+    });
+    expect(result?.email).toBe("current@example.com");
+  });
+
+  it("does nothing for an entity without a customer", async () => {
+    await expect(
+      t.mutation(api.lib.setCustomerEmail, {
+        entityId: "user_456",
+        customerId: "cust_123",
+        email: "billing@example.com",
+        updatedAt: "2026-03-01T10:00:00.000Z",
+      }),
+    ).resolves.toBeNull();
+    expect(
+      await t.query(api.lib.getCustomerByEntityId, { entityId: "user_456" }),
+    ).toBeNull();
+  });
+
+  it("ignores a readback that is not newer than the stored one", async () => {
+    await t.mutation(api.lib.insertCustomer, createTestCustomer());
+    const mirror = (email: string, updatedAt: string) =>
+      t.mutation(api.lib.setCustomerEmail, {
+        entityId: "user_456",
+        customerId: "cust_123",
+        email,
+        updatedAt,
+      });
+
+    await mirror("second@example.com", "2026-03-01T10:00:02.000Z");
+    await mirror("first@example.com", "2026-03-01T10:00:01.000Z");
+    await mirror("same-time@example.com", "2026-03-01T10:00:02.000Z");
+
+    const result = await t.query(api.lib.getCustomerByEntityId, {
+      entityId: "user_456",
+    });
+    expect(result?.email).toBe("second@example.com");
+    expect(result?.emailUpdatedAt).toBe("2026-03-01T10:00:02.000Z");
+  });
+});

@@ -163,6 +163,12 @@ and cancel/resume. Trials, unit pricing, groups, credits, feature gating, custom
 card composition, and RBAC are covered in the
 [docs](https://docs.creem.io/code/sdks/convex/quickstart).
 
+The Creem customer portal cannot change the email address invoices and receipts
+go to. To let a billing admin do that in your app, also export
+`customers.billingEmail` and `customers.updateBillingEmail` as
+`customersBillingEmail` and `customersUpdateBillingEmail`, and render
+`<BillingEmail />`.
+
 ---
 
 ## Migrating

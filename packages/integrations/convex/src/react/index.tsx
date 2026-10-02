@@ -26,10 +26,13 @@ export {
   Product,
   Credits,
   BillingPortal,
+  BillingEmail,
   BillingHistory,
   useSubscriptionItem,
   useCredits,
+  useBillingEmail,
 } from "./widgets/index.js";
+export type { BillingEmailContextValue } from "./widgets/index.js";
 export type {
   CheckoutSuccessParams,
   OneTimePaymentStatus,

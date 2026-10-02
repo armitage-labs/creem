@@ -7,6 +7,7 @@
   import {
     BillingGate,
     CheckoutSuccessSummary,
+    BillingEmail,
     BillingHistory,
     BillingPortal,
     Credits,
@@ -1254,12 +1255,33 @@
               class="body-l col-span-12 mt-6 text-center text-foreground-muted lg:col-start-4 lg:col-span-6"
             >
               Paginated transaction history sourced from Creem. Invoice and
-              receipt documents are not included in this transaction view.
+              receipt documents are not included in this transaction view. The
+              form below changes the address Creem sends them to.
             </p>
           </div>
 
           <div class="mt-12">
             <BillingHistory pageSize={5} />
+          </div>
+
+          <div class="mt-12 grid gap-12 md:grid-cols-2">
+            <!-- Default layout -->
+            <BillingEmail />
+
+            <!-- Composed layout: same state, your markup -->
+            <BillingEmail.Root
+              class="radius-xl border border-border-subtle bg-surface-base p-6"
+            >
+              <BillingEmail.Label />
+              <div class="flex gap-2">
+                <BillingEmail.Input class="flex-1" />
+                <BillingEmail.Save>Update</BillingEmail.Save>
+              </div>
+              <BillingEmail.Description class="body-s" />
+              <BillingEmail.Status />
+              <BillingEmail.Error />
+              <BillingEmail.Retry />
+            </BillingEmail.Root>
           </div>
         </div>
       </section>

@@ -22,9 +22,20 @@ import CreditsErrorComponent from "./CreditsError.svelte";
 import CreditsStatusComponent from "./CreditsStatus.svelte";
 
 export { default as BillingPortal } from "./BillingPortal.svelte";
+import BillingEmailRootComponent from "./BillingEmail.svelte";
+import BillingEmailTitleComponent from "./BillingEmailTitle.svelte";
+import BillingEmailDescriptionComponent from "./BillingEmailDescription.svelte";
+import BillingEmailLabelComponent from "./BillingEmailLabel.svelte";
+import BillingEmailInputComponent from "./BillingEmailInput.svelte";
+import BillingEmailSaveComponent from "./BillingEmailSave.svelte";
+import BillingEmailStatusComponent from "./BillingEmailStatus.svelte";
+import BillingEmailErrorComponent from "./BillingEmailError.svelte";
+import BillingEmailRetryComponent from "./BillingEmailRetry.svelte";
 export { default as BillingHistory } from "./BillingHistory.svelte";
 export { getSubscriptionItemContext } from "./subscriptionItemContext.js";
 export { getCreditsContext } from "./creditsContext.js";
+export { getBillingEmailContext } from "./billingEmailContext.js";
+export type { BillingEmailContextValue } from "./billingEmailContext.js";
 
 /**
  * Compound subscription namespace.
@@ -188,6 +199,35 @@ export const Credits: {
   Error: CreditsErrorComponent,
   Status: CreditsStatusComponent,
 };
+
+/**
+ * Billing email form and its parts.
+ *
+ * Unlike the other namespaces it is also a component: `<BillingEmail />` is
+ * `<BillingEmail.Root />` with the default layout, so the common case needs no
+ * composition.
+ */
+export const BillingEmail: typeof BillingEmailRootComponent & {
+  Root: typeof BillingEmailRootComponent;
+  Title: typeof BillingEmailTitleComponent;
+  Description: typeof BillingEmailDescriptionComponent;
+  Label: typeof BillingEmailLabelComponent;
+  Input: typeof BillingEmailInputComponent;
+  Save: typeof BillingEmailSaveComponent;
+  Status: typeof BillingEmailStatusComponent;
+  Error: typeof BillingEmailErrorComponent;
+  Retry: typeof BillingEmailRetryComponent;
+} = Object.assign(BillingEmailRootComponent, {
+  Root: BillingEmailRootComponent,
+  Title: BillingEmailTitleComponent,
+  Description: BillingEmailDescriptionComponent,
+  Label: BillingEmailLabelComponent,
+  Input: BillingEmailInputComponent,
+  Save: BillingEmailSaveComponent,
+  Status: BillingEmailStatusComponent,
+  Error: BillingEmailErrorComponent,
+  Retry: BillingEmailRetryComponent,
+});
 
 export type { CreditsContextValue } from "./creditsContext.js";
 
