@@ -1,3 +1,5 @@
+import { getConvexErrorMessage } from "./convexError.js";
+import type { BillingLabels } from "./i18n.js";
 import type { BillingEmailActionResult } from "./types.js";
 
 /**
@@ -221,4 +223,86 @@ export const createBillingEmailController = ({
       }
     },
   };
+};
+
+// ── Composition support ───────────────────────────────────────────────
+// Shared by the React and Svelte `BillingEmail` parts.
+
+/** Parts the input references for its accessible name and description. */
+export type BillingEmailPart = "title" | "description" | "label" | "error";
+
+export type BillingEmailElementIds = {
+  title: string;
+  description: string;
+  input: string;
+  error: string;
+};
+
+/** Element IDs for one `BillingEmail.Root`, derived from a unique base ID. */
+export const billingEmailElementIds = (
+  baseId: string,
+): BillingEmailElementIds => ({
+  title: `${baseId}-title`,
+  description: `${baseId}-description`,
+  input: `${baseId}-input`,
+  error: `${baseId}-error`,
+});
+
+/**
+ * What `BillingEmail.Root` exposes to its parts and to custom layouts.
+ */
+export type BillingEmailContextBase = {
+  readonly state: BillingEmailState;
+  /** `true` until the current email has loaded. */
+  readonly isLoading: boolean;
+  readonly canSave: boolean;
+  /** The draft has changed and is not a valid address. */
+  readonly isInvalid: boolean;
+  /** Localized load or save error, or `null`. */
+  readonly errorMessage: string | null;
+  readonly labels: BillingLabels["billingEmail"];
+  /** Parts drop their default classes and keep only the `class` you pass. */
+  readonly unstyled: boolean;
+  readonly ids: BillingEmailElementIds;
+  /** Parts currently mounted inside the root. */
+  readonly parts: Readonly<Record<BillingEmailPart, boolean>>;
+  setDraft: (draft: string) => void;
+  submit: () => void;
+  reload: () => void;
+};
+
+export const noBillingEmailParts: Readonly<Record<BillingEmailPart, boolean>> =
+  { title: false, description: false, label: false, error: false };
+
+/** Values the parts derive from the controller state. */
+export const deriveBillingEmailView = (
+  state: BillingEmailState,
+  labels: BillingLabels["billingEmail"],
+) => ({
+  isLoading: state.status === "idle" || state.status === "loading",
+  canSave: canSaveBillingEmail(state),
+  isInvalid:
+    state.status === "ready" &&
+    normalizeBillingEmail(state.draft) !== "" &&
+    !isValidBillingEmail(state.draft),
+  errorMessage: state.error
+    ? getConvexErrorMessage(
+        state.error.cause,
+        state.error.phase === "load" ? labels.loadFailed : labels.saveFailed,
+      )
+    : null,
+});
+
+/**
+ * `aria-describedby` for the input: the description and the current error,
+ * each only while its part is mounted.
+ */
+export const billingEmailInputDescribedBy = (
+  context: Pick<BillingEmailContextBase, "ids" | "parts" | "errorMessage">,
+): string | undefined => {
+  const ids = [
+    context.parts.description ? context.ids.description : null,
+    context.parts.error && context.errorMessage ? context.ids.error : null,
+  ].filter((id): id is string => id !== null);
+  return ids.length > 0 ? ids.join(" ") : undefined;
 };

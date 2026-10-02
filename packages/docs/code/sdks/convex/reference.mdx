@@ -598,10 +598,38 @@ The widget sends the entity it displays (`uiModel.snapshot.entityId`) as
 meantime, the actions answer `"entity-changed"` without touching Creem, and the
 widget reloads instead of saving one organization's address into another.
 
-| Prop                | Type                 | Default              | Description                                             |
-| ------------------- | -------------------- | -------------------- | ------------------------------------------------------- |
-| `permissions`       | `BillingPermissions` | provider permissions | Hide the form (e.g. `{ canManageBillingEmail: false }`) |
-| `class`/`className` | `string`             | `""`                 | Wrapper CSS class                                       |
+`<BillingEmail />` is the same component as `<BillingEmail.Root />`. Without
+children it renders the default layout; with children it renders a `<form>`
+around your layout and provides the state to the parts below.
+
+| Prop                | Type                                       | Default              | Description                                                |
+| ------------------- | ------------------------------------------ | -------------------- | ---------------------------------------------------------- |
+| `permissions`       | `BillingPermissions`                       | provider permissions | Hide the form (e.g. `{ canManageBillingEmail: false }`)    |
+| `unstyled`          | `boolean`                                  | `false`              | Drop the default classes of the root and every part        |
+| `class`/`className` | `string`                                   | `""`                 | Added to the form's default classes                        |
+| `children`          | parts / `ReactNode` / `Snippet<[context]>` | default layout       | Custom layout; React also accepts `(context) => ReactNode` |
+
+Other props are forwarded to the `<form>`.
+
+**Parts.** Each part must be rendered inside `BillingEmail.Root` and throws
+otherwise. `class`/`className` is added to the part's default classes (which
+sit in a lower CSS layer, so your utilities win); other props are forwarded to
+the element, except the ones the root wires.
+
+| Part                       | Element                | Wiring                                                                                           |
+| -------------------------- | ---------------------- | ------------------------------------------------------------------------------------------------ |
+| `BillingEmail.Title`       | `<h3>`                 | Names the form through `aria-labelledby`                                                         |
+| `BillingEmail.Description` | `<p>`                  | Referenced by the input's `aria-describedby`                                                     |
+| `BillingEmail.Label`       | `<label>`              | Points at the input; without it the input gets `aria-label` from the `inputLabel` text           |
+| `BillingEmail.Input`       | `<input type=email>`   | Bound to the draft; sets `aria-invalid` and `aria-describedby`; disabled while loading or saving |
+| `BillingEmail.Save`        | `<button type=submit>` | Disabled until the draft is a valid, changed address                                             |
+| `BillingEmail.Status`      | `<p role=status>`      | Loading and saved messages                                                                       |
+| `BillingEmail.Error`       | `<p role=alert>`       | Load or save error; referenced by the input while shown                                          |
+| `BillingEmail.Retry`       | `<button>`             | Shown only after a failed load; reloads                                                          |
+
+Text parts accept children to replace their label. To read the state in your
+own component, use `useBillingEmail()` (React) or `getBillingEmailContext()`
+(Svelte) inside the root.
 
 ### `<BillingHistory>`
 

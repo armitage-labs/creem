@@ -1,9 +1,9 @@
 // @vitest-environment jsdom
-import { act } from "react";
+import { act, type ReactNode } from "react";
 import { createRoot, type Root } from "react-dom/client";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { CreemConvexProvider } from "../CreemConvexProvider.js";
-import { BillingEmail } from "./BillingEmail.js";
+import { BillingEmail } from "./index.js";
 import type {
   BillingPermissions,
   ConnectedBillingApi,
@@ -58,11 +58,14 @@ const ok = (email: string): BillingEmailActionResult => ({
 let container: HTMLDivElement;
 let root: Root;
 
-const render = async (permissions?: BillingPermissions) => {
+const render = async (
+  permissions?: BillingPermissions,
+  widget: ReactNode = <BillingEmail />,
+) => {
   await act(async () => {
     root.render(
       <CreemConvexProvider api={billingApi} permissions={permissions}>
-        <BillingEmail />
+        {widget}
       </CreemConvexProvider>,
     );
   });
@@ -243,5 +246,88 @@ describe("<BillingEmail> (React)", () => {
 
     expect(convex.action).toHaveBeenCalledTimes(2);
     expect(input()?.value).toBe("org2@example.com");
+  });
+});
+
+describe("<BillingEmail> composition (React)", () => {
+  const loadThenFailSave = () =>
+    convex.action.mockImplementation(async (ref: string) => {
+      if (ref === "customersBillingEmail") return ok("billing@example.com");
+      throw new Error("Conflict");
+    });
+
+  it("throws a clear error for a part outside BillingEmail.Root", async () => {
+    const consoleError = vi
+      .spyOn(console, "error")
+      .mockImplementation(() => {});
+    await expect(render(undefined, <BillingEmail.Title />)).rejects.toThrow(
+      "BillingEmail parts must be used inside <BillingEmail.Root>.",
+    );
+    consoleError.mockRestore();
+  });
+
+  it("wires names and descriptions in the default layout", async () => {
+    convex.model = modelFor("org_1");
+    loadThenFailSave();
+    await render();
+
+    const form = container.querySelector("form");
+    const title = container.querySelector("h3");
+    const description = container.querySelector("p");
+    expect(form?.getAttribute("aria-labelledby")).toBe(title?.id);
+    expect(input()?.getAttribute("aria-label")).toBe("Billing email address");
+    expect(input()?.getAttribute("aria-describedby")).toBe(description?.id);
+
+    await type("taken@example.com");
+    await submit();
+
+    const error = container.querySelector('[role="alert"]');
+    expect(input()?.getAttribute("aria-describedby")).toBe(
+      `${description?.id} ${error?.id}`,
+    );
+  });
+
+  it("supports a custom layout with a visible label and forwarded attributes", async () => {
+    convex.model = modelFor("org_1");
+    loadThenFailSave();
+    await render(
+      undefined,
+      <BillingEmail.Root className="custom-root">
+        <BillingEmail.Label>Invoice address</BillingEmail.Label>
+        <div className="row">
+          <BillingEmail.Input className="custom-input" data-testid="email" />
+          <BillingEmail.Save>Update</BillingEmail.Save>
+        </div>
+        <BillingEmail.Error />
+      </BillingEmail.Root>,
+    );
+
+    const label = container.querySelector("label");
+    expect(label?.textContent).toBe("Invoice address");
+    expect(label?.getAttribute("for")).toBe(input()?.id);
+    expect(input()?.hasAttribute("aria-label")).toBe(false);
+    expect(input()?.getAttribute("aria-describedby")).toBeNull();
+    expect(input()?.dataset.testid).toBe("email");
+    expect(input()?.className).toContain("creem-base:input-default");
+    expect(input()?.className).toContain("custom-input");
+    expect(container.querySelector("form")?.className).toContain("custom-root");
+    expect(container.querySelector("h3")).toBeNull();
+
+    await type("taken@example.com");
+    expect(button()?.textContent).toBe("Update");
+    await submit();
+
+    const error = container.querySelector('[role="alert"]');
+    expect(error?.textContent).toBe("Could not update the billing email");
+    expect(input()?.getAttribute("aria-describedby")).toBe(error?.id);
+  });
+
+  it("keeps only the caller's classes when unstyled", async () => {
+    convex.model = modelFor("org_1");
+    convex.action.mockResolvedValue(ok("billing@example.com"));
+    await render(undefined, <BillingEmail.Root unstyled />);
+
+    expect(container.innerHTML).not.toContain("creem-base:");
+    expect(input()?.value).toBe("billing@example.com");
   });
 });

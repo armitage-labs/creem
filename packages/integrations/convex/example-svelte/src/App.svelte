@@ -1264,8 +1264,24 @@
             <BillingHistory pageSize={5} />
           </div>
 
-          <div class="mt-12">
+          <div class="mt-12 grid gap-12 md:grid-cols-2">
+            <!-- Default layout -->
             <BillingEmail />
+
+            <!-- Composed layout: same state, your markup -->
+            <BillingEmail.Root
+              class="radius-xl border border-border-subtle bg-surface-base p-6"
+            >
+              <BillingEmail.Label />
+              <div class="flex gap-2">
+                <BillingEmail.Input class="flex-1" />
+                <BillingEmail.Save>Update</BillingEmail.Save>
+              </div>
+              <BillingEmail.Description class="body-s" />
+              <BillingEmail.Status />
+              <BillingEmail.Error />
+              <BillingEmail.Retry />
+            </BillingEmail.Root>
           </div>
         </div>
       </section>

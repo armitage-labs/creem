@@ -141,6 +141,27 @@ check, and check the role before calling
 Creem rejects an address that another customer of your store already uses. The
 widget then shows its generic save error.
 
+`<BillingEmail />` is the ready-made layout. For your own markup, compose the
+parts inside `<BillingEmail.Root>`; the root keeps the state and wires the
+label, description, and error to the input:
+
+```tsx title="Account page"
+<BillingEmail.Root className="rounded-xl border p-6">
+  <BillingEmail.Label />
+  <div className="flex gap-2">
+    <BillingEmail.Input className="flex-1" />
+    <BillingEmail.Save>Update</BillingEmail.Save>
+  </div>
+  <BillingEmail.Status />
+  <BillingEmail.Error />
+  <BillingEmail.Retry />
+</BillingEmail.Root>
+```
+
+Svelte uses the same names: `<BillingEmail.Root>`, `<BillingEmail.Input />`,
+and so on. See the [reference](/code/sdks/convex/reference#component-reference) for
+every part.
+
 ### Billing history
 
 Paginated transaction history, backed by Creem's transaction search. This renders transaction rows, not invoice documents:

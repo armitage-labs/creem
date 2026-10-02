@@ -26,10 +26,22 @@ import {
 } from "./CreditsSlots.js";
 
 export { BillingPortal } from "./BillingPortal.js";
-export { BillingEmail } from "./BillingEmail.js";
+import { BillingEmailRoot } from "./BillingEmail.js";
+import {
+  BillingEmailDescription,
+  BillingEmailError,
+  BillingEmailInput,
+  BillingEmailLabel,
+  BillingEmailRetry,
+  BillingEmailSave,
+  BillingEmailStatus,
+  BillingEmailTitle,
+} from "./BillingEmailParts.js";
 export { BillingHistory } from "./BillingHistory.js";
 export { useSubscriptionItem } from "./subscriptionItemContext.js";
 export { useCredits } from "./creditsContext.js";
+export { useBillingEmail } from "./billingEmailContext.js";
+export type { BillingEmailContextValue } from "./billingEmailContext.js";
 
 /**
  * Compound subscription namespace.
@@ -168,6 +180,37 @@ export const Credits = {
    */
   Status: CreditsStatus,
 } as const;
+
+/**
+ * Billing email form and its parts.
+ *
+ * Unlike the other namespaces it is also a component: `<BillingEmail />` is
+ * `<BillingEmail.Root />` with the default layout, so the common case needs no
+ * composition.
+ */
+export const BillingEmail = Object.assign(BillingEmailRoot, {
+  /**
+   * Owns the form state, loads the current email, and provides it to the
+   * parts. Renders the default layout when given no children.
+   */
+  Root: BillingEmailRoot,
+  /** Heading; names the form. */
+  Title: BillingEmailTitle,
+  /** One-line explanation; describes the input. */
+  Description: BillingEmailDescription,
+  /** Optional visible label for the input. */
+  Label: BillingEmailLabel,
+  /** The email input. */
+  Input: BillingEmailInput,
+  /** Submit button, enabled for a valid, changed address. */
+  Save: BillingEmailSave,
+  /** Loading and saved messages. */
+  Status: BillingEmailStatus,
+  /** The current load or save error. */
+  Error: BillingEmailError,
+  /** Reload button after a failed load. */
+  Retry: BillingEmailRetry,
+});
 
 export type {
   ConnectedBillingApi,

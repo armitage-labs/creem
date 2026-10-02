@@ -1,8 +1,11 @@
 // @vitest-environment jsdom
-import { flushSync, mount, tick, unmount } from "svelte";
+import { flushSync, mount, tick, unmount, type Component } from "svelte";
 import { fromStore, writable } from "svelte/store";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import BillingEmail from "./BillingEmail.svelte";
+import BillingEmailTitle from "./BillingEmailTitle.svelte";
+import BillingEmailComposed from "./BillingEmailComposed.test.svelte";
+import BillingEmailUnstyled from "./BillingEmailUnstyled.test.svelte";
 import {
   CREEM_CONVEX_CONTEXT_KEY,
   type CreemConvexContextValue,
@@ -66,9 +69,12 @@ const settle = async () => {
 let target: HTMLDivElement;
 let component: ReturnType<typeof mount> | undefined;
 
-const render = async (permissions?: BillingPermissions) => {
+const render = async (
+  permissions?: BillingPermissions,
+  widget: Component = BillingEmail,
+) => {
   const provider: CreemConvexContextValue = { api: billingApi, permissions };
-  component = mount(BillingEmail, {
+  component = mount(widget, {
     target,
     props: {},
     context: new Map([[CREEM_CONVEX_CONTEXT_KEY, provider]]),
@@ -248,5 +254,76 @@ describe("<BillingEmail> (Svelte)", () => {
 
     expect(convex.action).toHaveBeenCalledTimes(2);
     expect(input()?.value).toBe("org2@example.com");
+  });
+});
+
+describe("<BillingEmail> composition (Svelte)", () => {
+  const loadThenFailSave = () =>
+    convex.action.mockImplementation(async (ref: string) => {
+      if (ref === "customersBillingEmail") return ok("billing@example.com");
+      throw new Error("Conflict");
+    });
+
+  it("throws a clear error for a part outside BillingEmail.Root", () => {
+    expect(() => mount(BillingEmailTitle, { target })).toThrow(
+      "BillingEmail parts must be used inside <BillingEmail.Root>.",
+    );
+  });
+
+  it("wires names and descriptions in the default layout", async () => {
+    modelStore.set(modelFor("org_1"));
+    loadThenFailSave();
+    await render();
+
+    const form = target.querySelector("form");
+    const title = target.querySelector("h3");
+    const description = target.querySelector("p");
+    expect(form?.getAttribute("aria-labelledby")).toBe(title?.id);
+    expect(input()?.getAttribute("aria-label")).toBe("Billing email address");
+    expect(input()?.getAttribute("aria-describedby")).toBe(description?.id);
+
+    await type("taken@example.com");
+    await submit();
+
+    const error = target.querySelector('[role="alert"]');
+    expect(input()?.getAttribute("aria-describedby")).toBe(
+      `${description?.id} ${error?.id}`,
+    );
+  });
+
+  it("supports a custom layout with a visible label and forwarded attributes", async () => {
+    modelStore.set(modelFor("org_1"));
+    loadThenFailSave();
+    await render(undefined, BillingEmailComposed);
+
+    const label = target.querySelector("label");
+    expect(label?.textContent?.trim()).toBe("Invoice address");
+    expect(label?.getAttribute("for")).toBe(input()?.id);
+    expect(input()?.hasAttribute("aria-label")).toBe(false);
+    expect(input()?.getAttribute("aria-describedby")).toBeNull();
+    expect(input()?.dataset.testid).toBe("email");
+    expect(input()?.className).toContain("creem-base:input-default");
+    expect(input()?.className).toContain("custom-input");
+    expect(target.querySelector("form")?.className).toContain("custom-root");
+    expect(target.querySelector("h3")).toBeNull();
+
+    await type("taken@example.com");
+    expect(button()?.textContent?.trim()).toBe("Update");
+    await submit();
+
+    const error = target.querySelector('[role="alert"]');
+    expect(error?.textContent?.trim()).toBe(
+      "Could not update the billing email",
+    );
+    expect(input()?.getAttribute("aria-describedby")).toBe(error?.id);
+  });
+
+  it("keeps only the caller's classes when unstyled", async () => {
+    modelStore.set(modelFor("org_1"));
+    convex.action.mockResolvedValue(ok("billing@example.com"));
+    await render(undefined, BillingEmailUnstyled);
+
+    expect(target.innerHTML).not.toContain("creem-base:");
+    expect(input()?.value).toBe("billing@example.com");
   });
 });

@@ -3,13 +3,17 @@
   Shows and changes the email address Creem sends invoices and receipts to.
   The Creem customer portal does not offer this.
 
+  Renders a `<form>` that owns the state and provides it to the
+  `BillingEmail.*` parts. Without children it renders the default layout.
+
   Renders nothing when the billing entity has no Creem customer record yet
   (customers are created on first checkout), when `canManageBillingEmail` is
   false, or when `customers.billingEmail` and `customers.updateBillingEmail`
   are not both wired.
 -->
 <script lang="ts">
-  import { getContext } from "svelte";
+  import { getContext, setContext, untrack, type Snippet } from "svelte";
+  import type { HTMLFormAttributes } from "svelte/elements";
   import { useConvexClient, useQuery } from "convex-svelte";
   import type { BillingPermissions, ConnectedBillingModel } from "./types.js";
   import {
@@ -17,22 +21,46 @@
     type CreemConvexContextValue,
   } from "../creemConvexContext.js";
   import { resolveBillingI18n } from "../../core/i18n.js";
-  import { getConvexErrorMessage } from "../../core/convexError.js";
   import {
-    canSaveBillingEmail,
+    billingEmailElementIds,
     createBillingEmailController,
-    isValidBillingEmail,
-    normalizeBillingEmail,
+    deriveBillingEmailView,
+    type BillingEmailPart,
   } from "../../core/billingEmail.js";
+  import {
+    BILLING_EMAIL_CONTEXT_KEY,
+    type BillingEmailContextValue,
+  } from "./billingEmailContext.js";
+  import BillingEmailTitle from "./BillingEmailTitle.svelte";
+  import BillingEmailDescription from "./BillingEmailDescription.svelte";
+  import BillingEmailInput from "./BillingEmailInput.svelte";
+  import BillingEmailSave from "./BillingEmailSave.svelte";
+  import BillingEmailStatus from "./BillingEmailStatus.svelte";
+  import BillingEmailError from "./BillingEmailError.svelte";
+  import BillingEmailRetry from "./BillingEmailRetry.svelte";
 
-  interface Props {
-    /** Local UI permission overrides. `canManageBillingEmail: false` hides the widget. */
+  interface Props
+    extends Omit<HTMLFormAttributes, "class" | "children" | "onsubmit"> {
+    /** Local UI permission overrides. `canManageBillingEmail: false` hides the form. */
     permissions?: BillingPermissions;
-    /** Wrapper CSS class. */
+    /** Drop the default classes of the root and every part. */
+    unstyled?: boolean;
+    /** CSS class added to the form's defaults. */
     class?: string;
+    /** Custom layout built from `BillingEmail.*` parts. Receives the context. */
+    children?: Snippet<[BillingEmailContextValue]>;
   }
 
-  let { permissions = undefined, class: className = "" }: Props = $props();
+  let {
+    permissions = undefined,
+    unstyled = false,
+    class: className = "",
+    children,
+    ...rest
+  }: Props = $props();
+
+  const baseId = $props.id();
+  const ids = billingEmailElementIds(baseId);
 
   const provider = getContext<CreemConvexContextValue | undefined>(
     CREEM_CONVEX_CONTEXT_KEY,
@@ -86,12 +114,12 @@
         : { status: "no-customer" },
   });
 
-  let view = $state.raw(controller.getState());
+  let formState = $state.raw(controller.getState());
 
   // Subscribe before the entity effect below so the loading state is seen.
   $effect(() =>
     controller.subscribe(() => {
-      view = controller.getState();
+      formState = controller.getState();
     }),
   );
 
@@ -99,79 +127,98 @@
     controller.setEntity(entityKey);
   });
 
-  const isLoading = $derived(
-    view.status === "idle" || view.status === "loading",
-  );
-  const canSave = $derived(canSaveBillingEmail(view));
-  const isInvalid = $derived(
-    view.status === "ready" &&
-      normalizeBillingEmail(view.draft) !== "" &&
-      !isValidBillingEmail(view.draft),
-  );
-  const errorMessage = $derived(
-    view.error
-      ? getConvexErrorMessage(
-          view.error.cause,
-          view.error.phase === "load" ? labels.loadFailed : labels.saveFailed,
-        )
-      : null,
-  );
+  const view = $derived(deriveBillingEmailView(formState, labels));
+
+  // Counted rather than flagged so that a part rendered twice stays
+  // registered until both copies unmount.
+  const partCounts = $state<Record<BillingEmailPart, number>>({
+    title: 0,
+    description: 0,
+    label: 0,
+    error: 0,
+  });
+  const parts = $derived({
+    title: partCounts.title > 0,
+    description: partCounts.description > 0,
+    label: partCounts.label > 0,
+    error: partCounts.error > 0,
+  });
+
+  const context: BillingEmailContextValue = {
+    get state() {
+      return formState;
+    },
+    get isLoading() {
+      return view.isLoading;
+    },
+    get canSave() {
+      return view.canSave;
+    },
+    get isInvalid() {
+      return view.isInvalid;
+    },
+    get errorMessage() {
+      return view.errorMessage;
+    },
+    get labels() {
+      return labels;
+    },
+    get unstyled() {
+      return unstyled;
+    },
+    ids,
+    get parts() {
+      return parts;
+    },
+    setDraft: (draft) => controller.setDraft(draft),
+    submit: () => void controller.submit(),
+    reload: () => controller.reload(),
+    // Parts call this from an effect. Untracked, so the count the part bumps
+    // is not a dependency that would re-run that effect forever.
+    registerPart: (part) => {
+      untrack(() => {
+        partCounts[part] += 1;
+      });
+      return () => {
+        untrack(() => {
+          partCounts[part] -= 1;
+        });
+      };
+    },
+  };
+
+  setContext(BILLING_EMAIL_CONTEXT_KEY, context);
 
   const submit = (event: SubmitEvent) => {
     event.preventDefault();
-    void controller.submit();
+    context.submit();
   };
 </script>
 
-{#if entityKey !== null && view.status !== "no-customer"}
-  <section class={`w-full max-w-md space-y-3 text-left ${className}`}>
-    <div class="space-y-1">
-      <h3 class="title-s text-foreground-default">{labels.title}</h3>
-      <p class="body-m text-foreground-muted">{labels.description}</p>
-    </div>
-    <form class="flex flex-col gap-2 sm:flex-row" onsubmit={submit}>
-      <input
-        type="email"
-        name="billingEmail"
-        autocomplete="email"
-        class="input-default w-full sm:flex-1"
-        aria-label={labels.inputLabel}
-        aria-invalid={isInvalid}
-        placeholder={labels.placeholder}
-        value={view.draft}
-        disabled={view.status !== "ready" || view.saving}
-        oninput={(event) => controller.setDraft(event.currentTarget.value)}
-      />
-      <button
-        type="submit"
-        class="button-filled cursor-pointer disabled:cursor-not-allowed disabled:opacity-60"
-        disabled={!canSave}
-      >
-        {view.saving ? labels.saving : labels.save}
-      </button>
-    </form>
-    {#if isLoading}
-      <p role="status" class="body-s text-foreground-placeholder">
-        {labels.loading}
-      </p>
-    {:else if view.saved}
-      <p role="status" class="body-s text-success-foreground-default">
-        {labels.saved}
-      </p>
+{#if entityKey !== null && formState.status !== "no-customer"}
+  <form
+    {...rest}
+    novalidate
+    aria-labelledby={parts.title ? ids.title : undefined}
+    class={unstyled
+      ? className
+      : `creem-base:w-full creem-base:max-w-md creem-base:space-y-3 creem-base:text-left ${className}`.trim()}
+    onsubmit={submit}
+  >
+    {#if children}
+      {@render children(context)}
+    {:else}
+      <div class={unstyled ? undefined : "space-y-1"}>
+        <BillingEmailTitle />
+        <BillingEmailDescription />
+      </div>
+      <div class={unstyled ? undefined : "flex flex-col gap-2 sm:flex-row"}>
+        <BillingEmailInput class={unstyled ? "" : "sm:flex-1"} />
+        <BillingEmailSave />
+      </div>
+      <BillingEmailStatus />
+      <BillingEmailError />
+      <BillingEmailRetry />
     {/if}
-    {#if errorMessage}
-      <p role="alert" class="text-error-foreground-default text-sm">
-        {errorMessage}
-      </p>
-    {/if}
-    {#if view.status === "load-error"}
-      <button
-        type="button"
-        class="button-outline cursor-pointer"
-        onclick={controller.reload}
-      >
-        {labels.retry}
-      </button>
-    {/if}
-  </section>
+  </form>
 {/if}

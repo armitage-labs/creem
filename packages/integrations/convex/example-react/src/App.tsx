@@ -1090,8 +1090,22 @@ export default function App() {
                 <BillingHistory pageSize={5} />
               </div>
 
-              <div className="mt-12">
+              <div className="mt-12 grid gap-12 md:grid-cols-2">
+                {/* Default layout */}
                 <BillingEmail />
+
+                {/* Composed layout: same state, your markup */}
+                <BillingEmail.Root className="radius-xl border border-border-subtle bg-surface-base p-6">
+                  <BillingEmail.Label />
+                  <div className="flex gap-2">
+                    <BillingEmail.Input className="flex-1" />
+                    <BillingEmail.Save>Update</BillingEmail.Save>
+                  </div>
+                  <BillingEmail.Description className="body-s" />
+                  <BillingEmail.Status />
+                  <BillingEmail.Error />
+                  <BillingEmail.Retry />
+                </BillingEmail.Root>
               </div>
             </div>
           </section>
