@@ -22,6 +22,7 @@ export {
   Subscription,
   Product,
   BillingPortal,
+  BillingEmail,
   BillingHistory,
   Credits,
   getSubscriptionItemContext,

@@ -97,6 +97,32 @@ export const insertCustomer = mutation({
   },
 });
 
+/**
+ * Mirror an email change the app made through the Creem API.
+ *
+ * `insertCustomer` only fills an empty email, so without this the local record
+ * would keep the address from the first checkout. The customer ID guard keeps
+ * a change for a replaced customer from landing on the entity's current one.
+ */
+export const setCustomerEmail = mutation({
+  args: {
+    entityId: v.string(),
+    customerId: v.string(),
+    email: v.string(),
+  },
+  returns: v.null(),
+  handler: async (ctx, args) => {
+    const customer = await ctx.db
+      .query("customers")
+      .withIndex("entityId", (q) => q.eq("entityId", args.entityId))
+      .unique();
+    if (customer && customer.id === args.customerId) {
+      await ctx.db.patch(customer._id, { email: args.email });
+    }
+    return null;
+  },
+});
+
 export const getSubscription = query({
   args: {
     id: v.string(),

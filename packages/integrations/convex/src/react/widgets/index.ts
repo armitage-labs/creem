@@ -26,6 +26,7 @@ import {
 } from "./CreditsSlots.js";
 
 export { BillingPortal } from "./BillingPortal.js";
+export { BillingEmail } from "./BillingEmail.js";
 export { BillingHistory } from "./BillingHistory.js";
 export { useSubscriptionItem } from "./subscriptionItemContext.js";
 export { useCredits } from "./creditsContext.js";

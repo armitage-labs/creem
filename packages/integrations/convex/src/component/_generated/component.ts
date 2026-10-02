@@ -850,6 +850,13 @@ export type ComponentApi<Name extends string | undefined = string | undefined> =
         },
         Name
       >;
+      setCustomerEmail: FunctionReference<
+        "mutation",
+        "internal",
+        { customerId: string; email: string; entityId: string },
+        null,
+        Name
+      >;
       setScheduledSubscriptionUpdateJob: FunctionReference<
         "mutation",
         "internal",

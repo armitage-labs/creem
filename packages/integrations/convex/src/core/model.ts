@@ -42,6 +42,8 @@ export type BillingPermissions = {
   canUpdateUnits?: boolean;
   /** Allow opening the Creem customer billing portal. */
   canAccessPortal?: boolean;
+  /** Allow viewing and changing the email Creem sends invoices and receipts to. */
+  canManageBillingEmail?: boolean;
 };
 
 /**
@@ -87,7 +89,7 @@ export type ConnectedBillingModel = {
   activeSubscriptions: ConnectedActiveSubscription[];
   /** App-side period-end subscription updates that have not applied yet. */
   scheduledSubscriptionUpdates: ScheduledSubscriptionUpdate[];
-  /** Whether this entity has a Creem customer record (needed for billing portal). */
+  /** Whether this entity has a Creem customer record (needed for the billing portal and billing email). */
   hasCreemCustomer: boolean;
 };
 

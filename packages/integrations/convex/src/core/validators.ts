@@ -233,6 +233,20 @@ export const creditEntryListValidator = v.object({
   hasMore: v.boolean(),
 });
 
+// ── Customer billing email ────────────────────────────────────────────
+
+/**
+ * Result of reading or changing the email address a Creem customer receives
+ * invoices and receipts at.
+ *
+ * `"no-customer"` means the billing entity has no Creem customer yet; Creem
+ * creates one on the entity's first checkout.
+ */
+export const billingEmailResultValidator = v.union(
+  v.object({ status: v.literal("ok"), email: v.string() }),
+  v.object({ status: v.literal("no-customer") }),
+);
+
 // ── Shared arg validators ─────────────────────────────────────────────
 // Use these when writing your own Convex functions that wrap creem methods
 // (e.g. for RBAC). They match exactly what the connected widgets send.
@@ -511,6 +525,16 @@ export const creditsListEntriesArgs = {
   startingAfter: v.optional(v.string()),
 };
 
+/**
+ * Convex arg validator for changing the billing entity's Creem customer email.
+ *
+ * Matches the args sent by `<BillingEmail>`. The customer is resolved
+ * server-side and cannot be selected by the client.
+ */
+export const customersUpdateBillingEmailArgs = {
+  email: v.string(),
+};
+
 // ── Derived TypeScript types ──────────────────────────────────────────
 
 export type CheckoutCreateArgs = ObjectType<typeof checkoutCreateArgs>;
@@ -523,6 +547,9 @@ export type SubscriptionPauseArgs = ObjectType<typeof subscriptionPauseArgs>;
 export type AppPlanActivateArgs = ObjectType<typeof appPlanActivateArgs>;
 export type TransactionsSearchArgs = ObjectType<typeof transactionsSearchArgs>;
 export type CreditsListEntriesArgs = ObjectType<typeof creditsListEntriesArgs>;
+export type CustomersUpdateBillingEmailArgs = ObjectType<
+  typeof customersUpdateBillingEmailArgs
+>;
 
 export type RecurringCycleFromValidator = Infer<typeof recurringCycleValidator>;
 export type PaymentRecoveryStateFromValidator = Infer<
@@ -626,3 +653,8 @@ export type CreditEntry = Infer<typeof creditEntryValidator>;
  * One page of credit ledger entries plus whether more remain.
  */
 export type CreditEntryList = Infer<typeof creditEntryListValidator>;
+/**
+ * The billing entity's Creem customer email, or `"no-customer"` before the
+ * first checkout.
+ */
+export type BillingEmailResult = Infer<typeof billingEmailResultValidator>;

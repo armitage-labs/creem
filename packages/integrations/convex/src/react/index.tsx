@@ -26,6 +26,7 @@ export {
   Product,
   Credits,
   BillingPortal,
+  BillingEmail,
   BillingHistory,
   useSubscriptionItem,
   useCredits,

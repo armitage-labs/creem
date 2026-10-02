@@ -14,11 +14,13 @@ const convexActionErrorSources = [
   readSource("./ProductRoot.svelte"),
   readSource("./SubscriptionRoot.svelte"),
   readSource("../primitives/PaymentRecoveryButton.svelte"),
+  readSource("./BillingEmail.svelte"),
   readSource("../../react/widgets/CreditsRoot.tsx"),
   readSource("../../react/widgets/BillingHistory.tsx"),
   readSource("../../react/widgets/ProductRoot.tsx"),
   readSource("../../react/widgets/SubscriptionRoot.tsx"),
   readSource("../../react/primitives/PaymentRecoveryButton.tsx"),
+  readSource("../../react/widgets/BillingEmail.tsx"),
   readSource("../../../example-svelte/src/App.svelte"),
   readSource("../../../example-react/src/App.tsx"),
 ];

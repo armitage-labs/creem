@@ -22,6 +22,7 @@ import CreditsErrorComponent from "./CreditsError.svelte";
 import CreditsStatusComponent from "./CreditsStatus.svelte";
 
 export { default as BillingPortal } from "./BillingPortal.svelte";
+export { default as BillingEmail } from "./BillingEmail.svelte";
 export { default as BillingHistory } from "./BillingHistory.svelte";
 export { getSubscriptionItemContext } from "./subscriptionItemContext.js";
 export { getCreditsContext } from "./creditsContext.js";

@@ -23,6 +23,7 @@ const REFS = {
   listAllUserSubscriptions: Symbol("listAllUserSubscriptions"),
   listUserOrders: Symbol("listUserOrders"),
   insertCustomer: Symbol("insertCustomer"),
+  setCustomerEmail: Symbol("setCustomerEmail"),
   patchSubscription: Symbol("patchSubscription"),
   createSubscription: Symbol("createSubscription"),
   updateSubscription: Symbol("updateSubscription"),
@@ -345,6 +346,155 @@ describe("customers namespace", () => {
     await expect(
       creem.customers.portalUrl(ctx as never, { entityId: "user_1" }),
     ).rejects.toThrow("Customer not found");
+  });
+
+  describe("billingEmail", () => {
+    it("reads the current email from Creem for the entity's customer", async () => {
+      // The local record can hold an older address than Creem.
+      const ctx = createMockCtx({
+        [REFS.getCustomerByEntityId]: {
+          id: "cust_1",
+          entityId: "user_1",
+          email: "first@example.com",
+        },
+      });
+      const retrieve = vi.fn(async () => ({
+        id: "cust_1",
+        email: "billing@example.com",
+      }));
+      creem.sdk.customers.retrieve = retrieve as never;
+
+      const result = await creem.customers.billingEmail(ctx as never, {
+        entityId: "user_1",
+      });
+
+      expect(retrieve).toHaveBeenCalledWith("cust_1");
+      expect(result).toEqual({ status: "ok", email: "billing@example.com" });
+    });
+
+    it("returns no-customer before the entity's first checkout", async () => {
+      const ctx = createMockCtx({ [REFS.getCustomerByEntityId]: null });
+      const retrieve = vi.fn();
+      creem.sdk.customers.retrieve = retrieve as never;
+
+      const result = await creem.customers.billingEmail(ctx as never, {
+        entityId: "user_1",
+      });
+
+      expect(result).toEqual({ status: "no-customer" });
+      expect(retrieve).not.toHaveBeenCalled();
+    });
+
+    it("propagates Creem API errors", async () => {
+      const ctx = createMockCtx({
+        [REFS.getCustomerByEntityId]: { id: "cust_1", entityId: "user_1" },
+      });
+      creem.sdk.customers.retrieve = vi.fn(async () => {
+        throw new Error("Creem unavailable");
+      }) as never;
+
+      await expect(
+        creem.customers.billingEmail(ctx as never, { entityId: "user_1" }),
+      ).rejects.toThrow("Creem unavailable");
+    });
+  });
+
+  describe("updateBillingEmail", () => {
+    it("updates the email in Creem and mirrors it locally", async () => {
+      const ctx = createMockCtx({
+        [REFS.getCustomerByEntityId]: { id: "cust_1", entityId: "user_1" },
+      });
+      const update = vi.fn(async () => ({
+        id: "cust_1",
+        email: "billing@example.com",
+      }));
+      creem.sdk.customers.update = update as never;
+
+      const result = await creem.customers.updateBillingEmail(ctx as never, {
+        entityId: "user_1",
+        email: "  Billing@Example.com ",
+      });
+
+      // Creem stores the address lowercased and returns what it stored.
+      expect(update).toHaveBeenCalledWith({
+        customerId: "cust_1",
+        email: "Billing@Example.com",
+      });
+      expect(result).toEqual({ status: "ok", email: "billing@example.com" });
+      expect(ctx.runMutation).toHaveBeenCalledWith(REFS.setCustomerEmail, {
+        entityId: "user_1",
+        customerId: "cust_1",
+        email: "billing@example.com",
+      });
+    });
+
+    it("returns no-customer before the entity's first checkout", async () => {
+      const ctx = createMockCtx({ [REFS.getCustomerByEntityId]: null });
+      const update = vi.fn();
+      creem.sdk.customers.update = update as never;
+
+      const result = await creem.customers.updateBillingEmail(ctx as never, {
+        entityId: "user_1",
+        email: "billing@example.com",
+      });
+
+      expect(result).toEqual({ status: "no-customer" });
+      expect(update).not.toHaveBeenCalled();
+      expect(ctx.runMutation).not.toHaveBeenCalled();
+    });
+
+    it("rejects a malformed address before calling Creem", async () => {
+      const ctx = createMockCtx({
+        [REFS.getCustomerByEntityId]: { id: "cust_1", entityId: "user_1" },
+      });
+      const update = vi.fn();
+      creem.sdk.customers.update = update as never;
+
+      await expect(
+        creem.customers.updateBillingEmail(ctx as never, {
+          entityId: "user_1",
+          email: "not-an-email",
+        }),
+      ).rejects.toThrow(ConvexError);
+      expect(update).not.toHaveBeenCalled();
+    });
+
+    it("propagates Creem API errors without touching the local record", async () => {
+      const ctx = createMockCtx({
+        [REFS.getCustomerByEntityId]: { id: "cust_1", entityId: "user_1" },
+      });
+      creem.sdk.customers.update = vi.fn(async () => {
+        throw new Error("Conflict: email already in use");
+      }) as never;
+
+      await expect(
+        creem.customers.updateBillingEmail(ctx as never, {
+          entityId: "user_1",
+          email: "taken@example.com",
+        }),
+      ).rejects.toThrow("Conflict: email already in use");
+      expect(ctx.runMutation).not.toHaveBeenCalled();
+    });
+
+    it("fails when Creem returns the old address instead of reporting success", async () => {
+      // An SDK that strips `email` from the request answers with the unchanged
+      // customer.
+      const ctx = createMockCtx({
+        [REFS.getCustomerByEntityId]: { id: "cust_1", entityId: "user_1" },
+      });
+      creem.sdk.customers.update = vi.fn(async () => ({
+        id: "cust_1",
+        email: "old@example.com",
+      })) as never;
+
+      await expect(
+        creem.customers.updateBillingEmail(ctx as never, {
+          entityId: "user_1",
+          email: "billing@example.com",
+        }),
+      ).rejects.toThrow("creem 1.12.0");
+      expect(ctx.runMutation).not.toHaveBeenCalled();
+    });
   });
 });
 
@@ -2250,6 +2400,60 @@ describe("api() convenience exports", () => {
         1,
         undefined,
       );
+    });
+  });
+
+  describe("customers billing email", () => {
+    it("rejects unauthenticated callers", async () => {
+      resolve.mockResolvedValue(null);
+      const ctx = createMockCtx();
+
+      await expect(
+        extractHandler(apiExports.customers.billingEmail as never)(ctx, {}),
+      ).rejects.toThrow("Not authenticated");
+      await expect(
+        extractHandler(apiExports.customers.updateBillingEmail as never)(ctx, {
+          email: "billing@example.com",
+        }),
+      ).rejects.toThrow("Not authenticated");
+    });
+
+    it("reads and updates the customer of the resolved entity", async () => {
+      resolve.mockResolvedValue({
+        userId: "user_1",
+        email: "a@b.com",
+        entityId: "org_1",
+      });
+      const ctx = createMockCtx({
+        [REFS.getCustomerByEntityId]: { id: "cust_1", entityId: "org_1" },
+      });
+      const retrieve = vi.fn(async () => ({
+        id: "cust_1",
+        email: "old@example.com",
+      }));
+      const update = vi.fn(async () => ({
+        id: "cust_1",
+        email: "billing@example.com",
+      }));
+      creem.sdk.customers.retrieve = retrieve as never;
+      creem.sdk.customers.update = update as never;
+
+      const read = await extractHandler(
+        apiExports.customers.billingEmail as never,
+      )(ctx, {});
+      const updated = await extractHandler(
+        apiExports.customers.updateBillingEmail as never,
+      )(ctx, { email: "billing@example.com", customerId: "cust_other" });
+
+      expect(ctx.runQuery).toHaveBeenCalledWith(REFS.getCustomerByEntityId, {
+        entityId: "org_1",
+      });
+      expect(read).toEqual({ status: "ok", email: "old@example.com" });
+      expect(update).toHaveBeenCalledWith({
+        customerId: "cust_1",
+        email: "billing@example.com",
+      });
+      expect(updated).toEqual({ status: "ok", email: "billing@example.com" });
     });
   });
 

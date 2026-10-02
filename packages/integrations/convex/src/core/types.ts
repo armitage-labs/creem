@@ -28,6 +28,7 @@ export type {
   CreditBalance,
   CreditEntry,
   CreditEntryList,
+  BillingEmailResult,
   CheckoutCreateArgs,
   SubscriptionUpdateArgs,
   SubscriptionUpdateWireArgs,
@@ -38,6 +39,7 @@ export type {
   AppPlanActivateArgs,
   TransactionsSearchArgs,
   CreditsListEntriesArgs,
+  CustomersUpdateBillingEmailArgs,
 } from "./validators.js";
 
 /** Category of a billing plan. Determines default UI behavior and available actions. */

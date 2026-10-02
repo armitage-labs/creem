@@ -44,15 +44,16 @@ functions and handle auth, entity resolution, and permission checks there. The
 library exports **shared arg validators** matching exactly what the widgets send,
 so your custom functions stay drop-in compatible:
 
-| Export                   | Used by                                          |
-| ------------------------ | ------------------------------------------------ |
-| `checkoutCreateArgs`     | `<Subscription.Root>`, `<Product.Root>`          |
-| `subscriptionUpdateArgs` | `<Subscription.Root>` (plan switch, unit update) |
-| `subscriptionCancelArgs` | `<Subscription.Root>` (cancel button)            |
-| `subscriptionResumeArgs` | `<Subscription.Root>` (resume button)            |
-| `subscriptionPauseArgs`  | `<Subscription.Root>` (pause button)             |
-| `appPlanActivateArgs`    | `<Subscription.Root>` (app-owned plan cards)     |
-| `transactionsSearchArgs` | `<BillingHistory>`                               |
+| Export                            | Used by                                          |
+| --------------------------------- | ------------------------------------------------ |
+| `checkoutCreateArgs`              | `<Subscription.Root>`, `<Product.Root>`          |
+| `subscriptionUpdateArgs`          | `<Subscription.Root>` (plan switch, unit update) |
+| `subscriptionCancelArgs`          | `<Subscription.Root>` (cancel button)            |
+| `subscriptionResumeArgs`          | `<Subscription.Root>` (resume button)            |
+| `subscriptionPauseArgs`           | `<Subscription.Root>` (pause button)             |
+| `appPlanActivateArgs`             | `<Subscription.Root>` (app-owned plan cards)     |
+| `transactionsSearchArgs`          | `<BillingHistory>`                               |
+| `customersUpdateBillingEmailArgs` | `<BillingEmail>` (save button)                   |
 
 `subscriptionUpdateArgs` carries a `kind` discriminator for the three mutually exclusive update targets. The exported `SubscriptionUpdateArgs` **type** is a true discriminated union:
 
@@ -82,7 +83,12 @@ export const subscriptionsUpdate = mutation({
 Admin-only billing, for example:
 
 ```ts title="convex/billing.ts"
-import { Creem, checkoutCreateArgs, subscriptionCancelArgs } from "@creem_io/convex";
+import {
+  Creem,
+  checkoutCreateArgs,
+  customersUpdateBillingEmailArgs,
+  subscriptionCancelArgs,
+} from "@creem_io/convex";
 import { ConvexError } from "convex/values";
 import { action, mutation } from "./_generated/server";
 import { api, components } from "./_generated/api";
@@ -121,6 +127,22 @@ export const subscriptionsCancel = mutation({
     const auth = await resolveAuth(ctx);
     if (auth.role !== "admin") throw new ConvexError("Forbidden");
     await creem.subscriptions.cancel(ctx, { entityId: auth.entityId, ...args });
+  },
+});
+```
+
+The same pattern restricts who may change where invoices go:
+
+```ts title="convex/billing.ts"
+export const customersUpdateBillingEmail = action({
+  args: customersUpdateBillingEmailArgs,
+  handler: async (ctx, args) => {
+    const auth = await resolveAuth(ctx);
+    if (auth.role !== "admin") throw new ConvexError("Forbidden");
+    return await creem.customers.updateBillingEmail(ctx, {
+      entityId: auth.entityId,
+      email: args.email,
+    });
   },
 });
 ```

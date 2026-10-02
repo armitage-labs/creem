@@ -2,9 +2,11 @@ import type { FunctionReference } from "convex/server";
 import type { ConnectedBillingModel } from "./model.js";
 import type {
   AppPlanActivateArgs,
+  BillingEmailResult,
   CheckoutCreateArgs,
   CreditBalance,
   ConnectedTransactionList,
+  CustomersUpdateBillingEmailArgs,
   SubscriptionCancelArgs,
   SubscriptionCancelScheduledUpdateArgs,
   SubscriptionResumeArgs,
@@ -77,6 +79,20 @@ export type CustomerPortalUrlFunction = FunctionReference<
   { url: string }
 >;
 
+export type CustomerBillingEmailFunction = FunctionReference<
+  "action",
+  "public",
+  Record<string, never>,
+  BillingEmailResult
+>;
+
+export type CustomerUpdateBillingEmailFunction = FunctionReference<
+  "action",
+  "public",
+  CustomersUpdateBillingEmailArgs,
+  BillingEmailResult
+>;
+
 export type TransactionsSearchFunction = FunctionReference<
   "action",
   "public",
@@ -137,6 +153,10 @@ export type ConnectedBillingApi = {
   customers?: {
     /** Action that returns `{ url }` for the Creem billing portal. */
     portalUrl?: CustomerPortalUrlFunction;
+    /** Action that reads the email Creem sends invoices and receipts to. */
+    billingEmail?: CustomerBillingEmailFunction;
+    /** Action that changes the email Creem sends invoices and receipts to. */
+    updateBillingEmail?: CustomerUpdateBillingEmailFunction;
   };
   /** Transaction actions. */
   transactions?: {
@@ -170,6 +190,8 @@ export type CreemBillingModule = {
   subscriptionsResume?: SubscriptionResumeFunction;
   subscriptionsCancelScheduledUpdate?: SubscriptionCancelScheduledUpdateFunction;
   customersPortalUrl?: CustomerPortalUrlFunction;
+  customersBillingEmail?: CustomerBillingEmailFunction;
+  customersUpdateBillingEmail?: CustomerUpdateBillingEmailFunction;
   transactionsSearch?: TransactionsSearchFunction;
   creditsGetBalance?: CreditsGetBalanceFunction;
   plansActivate?: PlansActivateFunction;
@@ -209,7 +231,11 @@ export const connectCreemApi = <TModule extends CreemBillingModule>(
     resume: module.subscriptionsResume,
     cancelScheduledUpdate: module.subscriptionsCancelScheduledUpdate,
   }),
-  customers: defined({ portalUrl: module.customersPortalUrl }),
+  customers: defined({
+    portalUrl: module.customersPortalUrl,
+    billingEmail: module.customersBillingEmail,
+    updateBillingEmail: module.customersUpdateBillingEmail,
+  }),
   transactions: defined({ search: module.transactionsSearch }),
   credits: defined({ getBalance: module.creditsGetBalance }),
   plans: defined({ activate: module.plansActivate }),
