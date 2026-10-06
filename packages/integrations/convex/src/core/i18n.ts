@@ -67,6 +67,23 @@ export type BillingLabels = {
     loading: string;
     failedToOpen: string;
   };
+  billingEmail: {
+    title: string;
+    description: string;
+    /** Accessible name for the email input. */
+    inputLabel: string;
+    placeholder: string;
+    save: string;
+    saving: string;
+    saved: string;
+    loading: string;
+    loadFailed: string;
+    saveFailed: string;
+    /** Shown for a malformed address after the input loses focus. */
+    invalid: string;
+    /** Button that reloads the email after a failed load. */
+    retry: string;
+  };
   subscription: {
     loadingBillingModel: string;
     currentPlan: string;
@@ -275,6 +292,20 @@ export const defaultBillingLabels: BillingLabels = {
     manageBilling: "Manage billing",
     loading: "Loading...",
     failedToOpen: "Failed to open billing portal",
+  },
+  billingEmail: {
+    title: "Billing email",
+    description: "Invoices and receipts are sent to this address.",
+    inputLabel: "Billing email address",
+    placeholder: "billing@example.com",
+    save: "Save",
+    saving: "Saving...",
+    saved: "Billing email updated.",
+    loading: "Loading billing email...",
+    loadFailed: "Could not load the billing email",
+    saveFailed: "Could not update the billing email",
+    invalid: "Enter a valid email address.",
+    retry: "Try again",
   },
   subscription: {
     loadingBillingModel: "Loading billing model...",

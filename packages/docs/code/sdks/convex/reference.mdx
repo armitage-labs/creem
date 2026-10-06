@@ -46,10 +46,12 @@ cancel call when you need to override that default.
 
 **`creem.customers.*`**
 
-| Method                          | Data source | Description                 |
-| ------------------------------- | ----------- | --------------------------- |
-| `.retrieve(ctx, { entityId })`  | Convex DB   | Customer record by entity   |
-| `.portalUrl(ctx, { entityId })` | Creem API   | Customer billing portal URL |
+| Method                                          | Data source | Description                                                                                                                                                                                        |
+| ----------------------------------------------- | ----------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `.retrieve(ctx, { entityId })`                  | Convex DB   | Customer record by entity                                                                                                                                                                          |
+| `.portalUrl(ctx, { entityId })`                 | Creem API   | Customer billing portal URL                                                                                                                                                                        |
+| `.billingEmail(ctx, { entityId })`              | Creem API   | Email Creem sends invoices and receipts to: `{ status: "ok", email }` or `{ status: "no-customer" }`                                                                                               |
+| `.updateBillingEmail(ctx, { entityId, email })` | Creem API   | Change that email; same result shape. Reads the customer back from Creem and stores that address on the Convex customer record unless a newer readback is already stored (by Creem's `updated_at`) |
 
 **`creem.orders.*`**
 
@@ -85,26 +87,28 @@ Do not export the raw primitives directly as public Convex actions.
 Generates ready-to-export Convex function definitions. Each function calls your
 `resolve` callback, then delegates to the corresponding namespace method.
 
-| Export                  | Wraps                          | Type     | Description                                                                                             |
-| ----------------------- | ------------------------------ | -------- | ------------------------------------------------------------------------------------------------------- |
-| `uiModel`               | `getBillingModel`              | query    | Calls `resolve()`, then `getBillingModel`. Returns the catalog-only model when `resolve` yields `null`. |
-| `snapshot`              | `getBillingSnapshot`           | query    | Calls `resolve()`, then `getBillingSnapshot`. Returns `null` when `resolve` yields `null`.              |
-| `checkouts.create`      | `checkouts.create`             | action   | Auto-resolves auth                                                                                      |
-| `subscriptions.update`  | `subscriptions.update`         | mutation | Auto-resolves auth and verifies explicit subscription ownership                                         |
-| `subscriptions.cancel`  | `subscriptions.cancel`         | mutation | Auto-resolves auth and verifies explicit subscription ownership                                         |
-| `subscriptions.resume`  | `subscriptions.resume`         | mutation | Auto-resolves auth and verifies explicit subscription ownership                                         |
-| `subscriptions.pause`   | `subscriptions.pause`          | mutation | Auto-resolves auth and verifies explicit subscription ownership                                         |
-| `subscriptions.list`    | `subscriptions.list`           | query    | Auto-resolves auth                                                                                      |
-| `subscriptions.listAll` | `subscriptions.listAll`        | query    | Auto-resolves auth                                                                                      |
-| `products.list`         | `products.list`                | query    | Public, no auth needed                                                                                  |
-| `products.get`          | `products.get`                 | query    | Public, no auth needed                                                                                  |
-| `customers.retrieve`    | `customers.retrieve`           | query    | Auto-resolves auth                                                                                      |
-| `customers.portalUrl`   | `customers.portalUrl`          | action   | Auto-resolves auth                                                                                      |
-| `transactions.search`   | `transactions.search`          | action   | Derives the customer from the resolved entity and returns paginated history                             |
-| `plans.activate`        | `appPlans.activate`            | mutation | Enforces catalog eligibility before activation                                                          |
-| `orders.list`           | `orders.list`                  | query    | Auto-resolves auth                                                                                      |
-| `credits.getBalance`    | `credits.getBalanceForEntity`  | action   | Reads the resolved entity's default credit balance                                                      |
-| `credits.listEntries`   | `credits.listEntriesForEntity` | action   | Lists the entity's default credit entries as `{ entries[], hasMore }`                                   |
+| Export                         | Wraps                          | Type     | Description                                                                                                              |
+| ------------------------------ | ------------------------------ | -------- | ------------------------------------------------------------------------------------------------------------------------ |
+| `uiModel`                      | `getBillingModel`              | query    | Calls `resolve()`, then `getBillingModel`. Returns the catalog-only model when `resolve` yields `null`.                  |
+| `snapshot`                     | `getBillingSnapshot`           | query    | Calls `resolve()`, then `getBillingSnapshot`. Returns `null` when `resolve` yields `null`.                               |
+| `checkouts.create`             | `checkouts.create`             | action   | Auto-resolves auth                                                                                                       |
+| `subscriptions.update`         | `subscriptions.update`         | mutation | Auto-resolves auth and verifies explicit subscription ownership                                                          |
+| `subscriptions.cancel`         | `subscriptions.cancel`         | mutation | Auto-resolves auth and verifies explicit subscription ownership                                                          |
+| `subscriptions.resume`         | `subscriptions.resume`         | mutation | Auto-resolves auth and verifies explicit subscription ownership                                                          |
+| `subscriptions.pause`          | `subscriptions.pause`          | mutation | Auto-resolves auth and verifies explicit subscription ownership                                                          |
+| `subscriptions.list`           | `subscriptions.list`           | query    | Auto-resolves auth                                                                                                       |
+| `subscriptions.listAll`        | `subscriptions.listAll`        | query    | Auto-resolves auth                                                                                                       |
+| `products.list`                | `products.list`                | query    | Public, no auth needed                                                                                                   |
+| `products.get`                 | `products.get`                 | query    | Public, no auth needed                                                                                                   |
+| `customers.retrieve`           | `customers.retrieve`           | query    | Auto-resolves auth                                                                                                       |
+| `customers.portalUrl`          | `customers.portalUrl`          | action   | Auto-resolves auth                                                                                                       |
+| `customers.billingEmail`       | `customers.billingEmail`       | action   | Auto-resolves auth; args `{ expectedEntityId }`. Returns `{ status: "entity-changed" }` when the resolved entity differs |
+| `customers.updateBillingEmail` | `customers.updateBillingEmail` | action   | Auto-resolves auth; args `{ expectedEntityId, email }`. Same `"entity-changed"` guard; nothing is changed then           |
+| `transactions.search`          | `transactions.search`          | action   | Derives the customer from the resolved entity and returns paginated history                                              |
+| `plans.activate`               | `appPlans.activate`            | mutation | Enforces catalog eligibility before activation                                                                           |
+| `orders.list`                  | `orders.list`                  | query    | Auto-resolves auth                                                                                                       |
+| `credits.getBalance`           | `credits.getBalanceForEntity`  | action   | Reads the resolved entity's default credit balance                                                                       |
+| `credits.listEntries`          | `credits.listEntriesForEntity` | action   | Lists the entity's default credit entries as `{ entries[], hasMore }`                                                    |
 
 `creem.api()` does not generate public credit-account creation, credit, or debit
 actions. Those operations must stay behind app-owned backend functions.
@@ -578,6 +582,54 @@ entity has no Creem customer record, or when `canAccessPortal` is `false`.
 | `permissions`       | `BillingPermissions`    | provider permissions | Control portal access (e.g. `{ canAccessPortal: false }`) |
 | `class`/`className` | `string`                | `""`                 | Button CSS class                                          |
 | `children`          | `Snippet` / `ReactNode` | `"Manage billing"`   | Custom button label                                       |
+
+### `<BillingEmail>`
+
+Form that shows and changes the email address Creem sends invoices and receipts
+to. Auto-hides when the billing entity has no Creem customer record, when
+`canManageBillingEmail` is `false`, or when `customers.billingEmail` and
+`customers.updateBillingEmail` are not both in the connected API. Save stays
+disabled until the input holds a valid address that differs from the current
+one. A failed load shows a "Try again" button. Labels live under `billingEmail`
+in the i18n labels.
+
+The widget sends the entity it displays (`uiModel.snapshot.entityId`) as
+`expectedEntityId`. When the resolver has moved to another entity in the
+meantime, the actions answer `"entity-changed"` without touching Creem, and the
+widget reloads instead of saving one organization's address into another.
+
+`<BillingEmail />` is the same component as `<BillingEmail.Root />`. Without
+children it renders the default layout; with children it renders a `<form>`
+around your layout and provides the state to the parts below.
+
+| Prop                | Type                                       | Default              | Description                                                |
+| ------------------- | ------------------------------------------ | -------------------- | ---------------------------------------------------------- |
+| `permissions`       | `BillingPermissions`                       | provider permissions | Hide the form (e.g. `{ canManageBillingEmail: false }`)    |
+| `unstyled`          | `boolean`                                  | `false`              | Drop the default classes of the root and every part        |
+| `class`/`className` | `string`                                   | `""`                 | Added to the form's default classes                        |
+| `children`          | parts / `ReactNode` / `Snippet<[context]>` | default layout       | Custom layout; React also accepts `(context) => ReactNode` |
+
+Other props are forwarded to the `<form>`.
+
+**Parts.** Each part must be rendered inside `BillingEmail.Root` and throws
+otherwise. `class`/`className` is added to the part's default classes (which
+sit in a lower CSS layer, so your utilities win); other props are forwarded to
+the element, except the ones the root wires.
+
+| Part                       | Element                | Wiring                                                                                                                                        |
+| -------------------------- | ---------------------- | --------------------------------------------------------------------------------------------------------------------------------------------- |
+| `BillingEmail.Title`       | `<h3>`                 | Names the form through `aria-labelledby`                                                                                                      |
+| `BillingEmail.Description` | `<p>`                  | Referenced by the input's `aria-describedby`                                                                                                  |
+| `BillingEmail.Label`       | `<label>`              | Points at the input; without it the input gets `aria-label` from the `inputLabel` text                                                        |
+| `BillingEmail.Input`       | `<input type=email>`   | Bound to the draft; sets `aria-invalid` and `aria-describedby`; disabled while loading or saving                                              |
+| `BillingEmail.Save`        | `<button type=submit>` | Disabled until the draft is a valid, changed address                                                                                          |
+| `BillingEmail.Status`      | `<p role=status>`      | Loading and saved messages                                                                                                                    |
+| `BillingEmail.Error`       | `<p role=alert>`       | Load or save error, or "Enter a valid email address." after the input loses focus or a save is attempted; referenced by the input while shown |
+| `BillingEmail.Retry`       | `<button>`             | Shown only after a failed load; reloads                                                                                                       |
+
+Text parts accept children to replace their label. To read the state in your
+own component, use `useBillingEmail()` (React) or `getBillingEmailContext()`
+(Svelte) inside the root.
 
 ### `<BillingHistory>`
 

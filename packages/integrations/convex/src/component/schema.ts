@@ -15,6 +15,10 @@ export default defineSchema(
       metadata: v.optional(v.record(v.string(), v.any())),
       createdAt: v.optional(v.string()),
       updatedAt: v.optional(v.string()),
+      // Creem's `updated_at` from the readback that last set `email` through
+      // `setCustomerEmail`. Kept apart from `updatedAt`, which orders customer
+      // re-pointing in `insertCustomer`.
+      emailUpdatedAt: v.optional(v.string()),
     }).index("entityId", ["entityId"]),
     products: defineTable({
       id: v.string(),

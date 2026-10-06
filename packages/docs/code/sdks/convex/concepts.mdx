@@ -92,6 +92,8 @@ const billingApi = connectCreemApi(api.billing);
 | `subscriptions.cancelScheduledUpdate` | `subscriptionsCancelScheduledUpdate` | App-side period-end update undo          | Pending update undo hidden            |
 | `plans.activate`                      | `plansActivate`                      | App-owned plans (free, no-card trials)   | Trial/free plan cards cannot activate |
 | `customers.portalUrl`                 | `customersPortalUrl`                 | `BillingPortal`, payment recovery button | Portal buttons hidden                 |
+| `customers.billingEmail`              | `customersBillingEmail`              | `BillingEmail`                           | Billing email form hidden             |
+| `customers.updateBillingEmail`        | `customersUpdateBillingEmail`        | `BillingEmail`                           | Billing email form hidden             |
 | `transactions.search`                 | `transactionsSearch`                 | `BillingHistory`                         | Billing history can't render          |
 | `credits.getBalance`                  | `creditsGetBalance`                  | `Credits.Root`                           | Credit balance UI can't work          |
 

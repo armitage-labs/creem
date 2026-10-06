@@ -14,6 +14,7 @@ const convexActionErrorSources = [
   readSource("./ProductRoot.svelte"),
   readSource("./SubscriptionRoot.svelte"),
   readSource("../primitives/PaymentRecoveryButton.svelte"),
+  readSource("../../core/billingEmail.ts"),
   readSource("../../react/widgets/CreditsRoot.tsx"),
   readSource("../../react/widgets/BillingHistory.tsx"),
   readSource("../../react/widgets/ProductRoot.tsx"),
