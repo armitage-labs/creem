@@ -365,4 +365,25 @@ describe("<BillingEmail> composition (React)", () => {
       "Enter a valid email address.",
     );
   });
+
+  it("explains a refused save on a shared Creem customer", async () => {
+    convex.model = modelFor("org_1");
+    convex.action.mockImplementation(
+      async (ref: string): Promise<BillingEmailActionResult> =>
+        ref === "customersBillingEmail"
+          ? ok("billing@example.com")
+          : { status: "shared-customer" },
+    );
+    await render();
+
+    await type("accounts@example.com");
+    await submit();
+
+    expect(container.querySelector('[role="alert"]')?.textContent).toBe(
+      "This billing email is shared with another account and can't be changed here.",
+    );
+    expect(container.querySelector('[role="status"]')).toBeNull();
+    expect(input()?.value).toBe("accounts@example.com");
+    expect(input()?.disabled).toBe(false);
+  });
 });

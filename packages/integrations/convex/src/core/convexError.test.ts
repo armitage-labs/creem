@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 import { ConvexError } from "convex/values";
-import { getConvexErrorMessage } from "./convexError.js";
+import { getConvexErrorCode, getConvexErrorMessage } from "./convexError.js";
 
 describe("getConvexErrorMessage", () => {
   it("reads message data from ConvexError", () => {
@@ -30,5 +30,20 @@ describe("getConvexErrorMessage", () => {
         "Unexpected error occurred",
       ),
     ).toBe("Unexpected error occurred");
+  });
+});
+
+describe("getConvexErrorCode", () => {
+  it("reads the code of structured ConvexError data", () => {
+    expect(
+      getConvexErrorCode(
+        new ConvexError({ code: "shared-customer", message: "x" }),
+      ),
+    ).toBe("shared-customer");
+  });
+
+  it("returns undefined without a string code", () => {
+    expect(getConvexErrorCode(new ConvexError("plain"))).toBeUndefined();
+    expect(getConvexErrorCode(new Error("plain"))).toBeUndefined();
   });
 });

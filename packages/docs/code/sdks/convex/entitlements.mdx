@@ -139,7 +139,10 @@ check, and check the role before calling
 [Advanced → Custom auth and RBAC](/code/sdks/convex/advanced#custom-auth-and-rbac).
 
 Creem rejects an address that another customer of your store already uses. The
-widget then shows its generic save error.
+widget then shows its generic save error. When the same person checked out for
+several of your billing entities, those entities share one Creem customer; the
+widget then refuses the change and says the address is shared, because it is
+also the other entities' billing address.
 
 `<BillingEmail />` is the ready-made layout. For your own markup, compose the
 parts inside `<BillingEmail.Root>`; the root keeps the state and wires the

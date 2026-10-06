@@ -11,7 +11,11 @@
     defaultBillingLabels,
     type BillingLabels,
   } from "../../core/i18n.js";
-  import { getConvexErrorMessage } from "../../core/convexError.js";
+  import {
+    getConvexErrorCode,
+    getConvexErrorMessage,
+    SHARED_CUSTOMER_ERROR_CODE,
+  } from "../../core/convexError.js";
   import {
     CREEM_CONVEX_CONTEXT_KEY,
     type CreemConvexContextValue,
@@ -53,7 +57,10 @@
       const result = await client.action(action, {});
       window.location.href = result.url;
     } catch (err) {
-      error = getConvexErrorMessage(err, labels.portal.failedToOpen);
+      error =
+        getConvexErrorCode(err) === SHARED_CUSTOMER_ERROR_CODE
+          ? labels.portal.sharedCustomer
+          : getConvexErrorMessage(err, labels.portal.failedToOpen);
       isLoading = false;
     }
   };

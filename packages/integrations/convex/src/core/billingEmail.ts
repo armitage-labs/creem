@@ -49,8 +49,12 @@ export type BillingEmailState = {
    * messages wait for it, so typing the first characters shows none.
    */
   touched: boolean;
-  /** The last failure. Widgets turn `cause` into a message. */
-  error: { phase: "load" | "save"; cause: unknown } | null;
+  /**
+   * The last failure. `"shared-customer"` means the save was refused because
+   * other billing entities share the Creem customer. Widgets turn the rest
+   * into a message from `cause`.
+   */
+  error: { phase: "load" | "save" | "shared-customer"; cause: unknown } | null;
 };
 
 const initialState: BillingEmailState = {
@@ -110,7 +114,10 @@ export type BillingEmailController = {
 };
 
 const stateFromResult = (
-  result: Exclude<BillingEmailActionResult, { status: "entity-changed" }>,
+  result: Extract<
+    BillingEmailActionResult,
+    { status: "ok" } | { status: "no-customer" }
+  >,
   saved: boolean,
 ): BillingEmailState =>
   result.status === "ok"
@@ -160,8 +167,15 @@ export const createBillingEmailController = ({
     load(key).then(
       (result) => {
         if (current !== generation) return;
-        if (result.status !== "entity-changed") {
+        if (result.status === "ok" || result.status === "no-customer") {
           setState(stateFromResult(result, false));
+        } else if (result.status === "shared-customer") {
+          // Reads never refuse a shared customer; treat it as a failed load.
+          setState({
+            ...initialState,
+            status: "load-error",
+            error: { phase: "load", cause: null },
+          });
         } else if (!afterEntityChange) {
           startLoad(true);
         } else {
@@ -205,7 +219,7 @@ export const createBillingEmailController = ({
         ...state,
         draft,
         saved: false,
-        error: state.error?.phase === "save" ? null : state.error,
+        error: state.error?.phase === "load" ? state.error : null,
       });
     },
     markTouched: () => {
@@ -230,6 +244,13 @@ export const createBillingEmailController = ({
           // Nothing was saved. The draft belongs to an entity the server no
           // longer resolves, so start over instead of offering to retry it.
           startLoad(false);
+        } else if (result.status === "shared-customer") {
+          // Nothing was saved. Keep the draft and say why.
+          setState({
+            ...state,
+            saving: false,
+            error: { phase: "shared-customer", cause: null },
+          });
         } else {
           setState(stateFromResult(result, true));
         }
@@ -316,10 +337,12 @@ export const deriveBillingEmailView = (
     !isValidBillingEmail(state.draft) &&
     (state.touched || normalizeBillingEmail(state.draft) !== ""),
   errorMessage: state.error
-    ? getConvexErrorMessage(
-        state.error.cause,
-        state.error.phase === "load" ? labels.loadFailed : labels.saveFailed,
-      )
+    ? state.error.phase === "shared-customer"
+      ? labels.sharedCustomer
+      : getConvexErrorMessage(
+          state.error.cause,
+          state.error.phase === "load" ? labels.loadFailed : labels.saveFailed,
+        )
     : state.touched &&
         state.status === "ready" &&
         !isValidBillingEmail(state.draft)

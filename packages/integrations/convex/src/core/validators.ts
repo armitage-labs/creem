@@ -240,11 +240,14 @@ export const creditEntryListValidator = v.object({
  * invoices and receipts at.
  *
  * `"no-customer"` means the billing entity has no Creem customer yet; Creem
- * creates one on the entity's first checkout.
+ * creates one on the entity's first checkout. `"shared-customer"` is only
+ * returned by updates: other billing entities share the Creem customer (Creem
+ * keeps one per store and email address), so its email is not changed.
  */
 export const billingEmailResultValidator = v.union(
   v.object({ status: v.literal("ok"), email: v.string() }),
   v.object({ status: v.literal("no-customer") }),
+  v.object({ status: v.literal("shared-customer") }),
 );
 
 /**
@@ -257,6 +260,7 @@ export const billingEmailResultValidator = v.union(
 export const billingEmailActionResultValidator = v.union(
   v.object({ status: v.literal("ok"), email: v.string() }),
   v.object({ status: v.literal("no-customer") }),
+  v.object({ status: v.literal("shared-customer") }),
   v.object({ status: v.literal("entity-changed") }),
 );
 

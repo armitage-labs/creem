@@ -16,7 +16,11 @@
     type CreemConvexContextValue,
   } from "../creemConvexContext.js";
   import { resolveBillingI18n } from "../../core/i18n.js";
-  import { getConvexErrorMessage } from "../../core/convexError.js";
+  import {
+    getConvexErrorCode,
+    getConvexErrorMessage,
+    SHARED_CUSTOMER_ERROR_CODE,
+  } from "../../core/convexError.js";
 
   interface Props {
     /** Local UI permission overrides. `canAccessPortal: false` hides the portal button. */
@@ -65,7 +69,10 @@
     } catch (cause) {
       // Without this the rejection is unhandled and the user gets no feedback
       // at all — the button just stops spinning.
-      error = getConvexErrorMessage(cause, i18n.labels.portal.failedToOpen);
+      error =
+        getConvexErrorCode(cause) === SHARED_CUSTOMER_ERROR_CODE
+          ? i18n.labels.portal.sharedCustomer
+          : getConvexErrorMessage(cause, i18n.labels.portal.failedToOpen);
     } finally {
       isLoading = false;
     }
