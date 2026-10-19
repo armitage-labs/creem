@@ -8,19 +8,13 @@ description: "Sync Creem customers, subscriptions, and revenue into Sequenzy to 
 
 [Sequenzy](https://www.sequenzy.com) is an email marketing platform for SaaS teams that sends campaigns, automated sequences, and transactional email. The Creem integration connects your store to Sequenzy over the Creem API and a signed webhook, so every checkout, renewal, cancellation, and refund in Creem updates the matching subscriber in Sequenzy.
 
-Once connected, you can send onboarding emails when someone buys, win-back sequences when a subscription expires, and target campaigns at customers by plan, billing interval, MRR, or lifetime value.
-
-<Accordion title="What you'll learn">
-
-How to connect your Creem store to Sequenzy, which events and attributes are synced, and how to use that data in segments and automations.
-
-</Accordion>
+Once connected, you can send onboarding emails when someone buys, win-back sequences when a subscription ends, and target campaigns at customers by plan, billing interval, MRR, or lifetime value.
 
 <Card title="What you'll need" icon="gears">
 
 - A Creem account
-- A Sequenzy account ([sign up free](https://www.sequenzy.com))
-- Your Creem API key and Store ID
+- A Sequenzy account ([sign up](https://www.sequenzy.com))
+- A Creem API key with read access to customers, subscriptions, and transactions, and your Store ID
 
 </Card>
 
@@ -32,20 +26,21 @@ How to connect your Creem store to Sequenzy, which events and attributes are syn
 
 ## Integration Steps
 
-### 1. Get your Creem API key and Store ID
+<Steps>
 
-<Accordion title="Copy your credentials">
+<Step title="Create a restricted API key and copy your Store ID">
 
-In your Creem dashboard:
+In your Creem dashboard, go to **Developers > API Keys** and create a key. Switch **Full access** off and grant only the read permissions Sequenzy uses:
 
-- Open **Developers** and copy your API key
-- Open **Settings** and copy your **Store ID** (format: `store_xxxxxxxxxx`)
+- `customers:read`
+- `subscriptions:read`
+- `transactions:read`
 
-</Accordion>
+Then open **Settings** and copy your **Store ID**. It starts with `sto_`.
 
-### 2. Add the webhook in Creem
+</Step>
 
-<Accordion title="Create the endpoint">
+<Step title="Add the webhook in Creem">
 
 In Sequenzy, go to **Settings > Integrations** and click **Connect** next to Creem. The connection dialog shows your workspace's webhook URL:
 
@@ -66,11 +61,9 @@ In Creem, go to **Developers > Webhooks**, create a new endpoint with that URL, 
 
 Save the endpoint and copy its **webhook signing secret**.
 
-</Accordion>
+</Step>
 
-### 3. Connect in Sequenzy
-
-<Accordion title="Paste your credentials">
+<Step title="Connect in Sequenzy">
 
 Back in the Sequenzy connection dialog, enter:
 
@@ -80,7 +73,9 @@ Back in the Sequenzy connection dialog, enter:
 
 Click **Connect Creem**. Sequenzy starts receiving webhook events immediately.
 
-</Accordion>
+</Step>
+
+</Steps>
 
 ## What Gets Synced
 
@@ -115,11 +110,19 @@ Only `active` subscriptions count toward MRR. Yearly, weekly, and daily prices a
 | `saas.churn`            | A subscription expires or is paused                                      |
 | `saas.refund`           | A refund is created                                                      |
 
+<Note>
+  In Creem, `subscription.canceled` means the subscription has ended. A customer who cancels at the
+  end of the billing period keeps access until `current_period_end_date`, and the subscription moves
+  to `canceled` then. `subscription.expired` fires when a period ends without a new payment, and
+  Creem can still retry that payment, so an expired subscription can become active again. See
+  [webhook events](/code/webhooks) for the full lifecycle.
+</Note>
+
 ## Example Uses
 
 - Start an onboarding sequence on `saas.purchase`
 - Send a win-back sequence to subscribers tagged `churned` with `ltv > 500`
-- Reach canceled customers before their access ends with a segment on `tag = cancelled AND mrr >= 100`
+- Ask subscribers tagged `cancelled` why they left, with a short feedback sequence
 - Send yearly-plan upgrade offers to subscribers tagged `saas.monthly`
 
 ## Good to Know
@@ -128,10 +131,6 @@ Only `active` subscriptions count toward MRR. Yearly, weekly, and daily prices a
 - **Check the event selection first.** If data stops arriving, confirm the Creem webhook still has the events above selected and review Creem's webhook delivery logs.
 - **Re-created the webhook? Update the secret.** A new Creem endpoint has a new signing secret. Paste it into Sequenzy or deliveries will fail signature verification.
 
-<Card
-  title="Full setup guide"
-  icon="book-open"
-  href="https://docs.sequenzy.com/integrations/creem"
->
+<Card title="Full setup guide" icon="book-open" href="https://docs.sequenzy.com/integrations/creem">
   Troubleshooting and the complete Creem reference in Sequenzy's docs.
 </Card>
