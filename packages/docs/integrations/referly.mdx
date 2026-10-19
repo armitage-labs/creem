@@ -73,8 +73,9 @@ rules, creating discount codes for coupon attribution, and crediting affiliates 
 customer credits. Sales never come through the API; they arrive on the signed webhook.
 
 <Note>
-  Referly reads `referly_ref` from checkout metadata, not `creem_ref`. Creem reserves `creem_ref`
-  for its own [built-in affiliate feature](/features/affiliate-program), so the two can coexist.
+  Referly reads `referly_ref` from checkout metadata. Creem's [built-in affiliate
+  feature](/features/affiliate-program) uses its own `creem_ref` URL token, which never ends up in
+  your metadata, so you can run both side by side.
 </Note>
 
 ## Integration Steps

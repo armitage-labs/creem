@@ -38,8 +38,9 @@ Here is the whole flow:
 Your API key is only used to validate the connection and run a periodic read-only health check. Sales never come through the API, they arrive on the signed webhook, which is why a `products:read` key is all you need to hand over.
 
 <Note>
-  Rekomi reads `rekomi_ref` from checkout metadata, not `creem_ref`. Creem reserves `creem_ref` for
-  its own [built-in affiliate feature](/features/affiliate-program), so the two can coexist.
+  Rekomi reads `rekomi_ref` from checkout metadata. Creem's [built-in affiliate
+  feature](/features/affiliate-program) uses its own `creem_ref` URL token, which never ends up in
+  your metadata, so you can run both side by side.
 </Note>
 
 ## Integration Steps
@@ -207,7 +208,7 @@ Everything is de-duplicated by the underlying order, transaction, refund, and di
 
 - **Check the event selection first.** A webhook saved with only some events ticked is the most common problem, and it fails quietly. It is worth a look before anything else.
 - **Try a real purchase.** Click an affiliate link, buy something, confirm the conversion shows up in Rekomi within a minute, then refund it and watch the commission come back off.
-- **Watch the event state, not just the key check.** Creem has no webhook management API, so Rekomi can confirm your API key works but cannot see whether your endpoint still exists. The setup page handles this for you: it stays amber until a real delivery lands, and says so again if events go quiet.
+- **Watch the event state, not just the key check.** Rekomi's key only has `products:read`, so Rekomi can confirm the key works but cannot see whether your endpoint still exists. The setup page handles this for you: it stays amber until a real delivery lands, and says so again if events go quiet.
 - **Re-created the webhook? Update the signing secret.** Deleting and re-creating the endpoint in Creem gives you a new secret. Until you paste it in, deliveries fail their signature check even though the API key still looks fine.
 - **After an outage, resend from Creem.** Creem retries with increasing delays for several hours. Past that, resend the delivery from your Creem dashboard, and Rekomi will record it without duplicating anything.
 
