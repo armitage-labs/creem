@@ -60,9 +60,9 @@ When a customer purchases your product, here's what happens automatically:
 - Your backend receives it in the [`checkout.completed` webhook](/code/webhooks#checkout-completed), in the checkout's `license_keys` array
 
 <Note>
-  If you set a success URL, the customer is sent back to your site right after paying, and the
-  confirmation page doesn't show the key. Show it on your own success page instead: read it from the
-  `checkout.completed` webhook, or fetch the checkout with [Get
+  If you set a success URL, the customer is sent back to your site a few seconds after paying, so
+  they only see the key on the confirmation page briefly. Show it on your own success page instead:
+  read it from the `checkout.completed` webhook, or fetch the checkout with [Get
   Checkout](/api-reference/endpoint/get-checkout) using the `checkout_id` from the redirect.
 </Note>
 
