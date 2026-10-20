@@ -54,15 +54,15 @@ First, let's set up your product in the Creem dashboard:
 When a customer purchases your product, here's what happens automatically:
 
 - A unique license key is generated and associated with their purchase (one key per unit when they buy more than one)
-- The key is shown on the order confirmation page right after payment, when the product or checkout has no success URL
+- The key is shown on the order confirmation page right after payment, in the browser that paid, when the product or checkout has no success URL and the checkout isn't embedded on your site
 - It's included in their email receipt
 - The key is accessible in their customer portal
 - Your backend receives it in the [`checkout.completed` webhook](/code/webhooks#checkout-completed), in the checkout's `license_keys` array
 
 <Note>
-  If you set a success URL, the customer is sent back to your site a few seconds after paying, so
-  they only see the key on the confirmation page briefly. Show it on your own success page instead:
-  read it from the `checkout.completed` webhook, or fetch the checkout with [Get
+  If you set a success URL, the confirmation page doesn't show the key: the customer is sent back to
+  your site a few seconds after paying. The same goes for embedded checkouts. Show the key on your
+  own page instead: read it from the `checkout.completed` webhook, or fetch the checkout with [Get
   Checkout](/api-reference/endpoint/get-checkout) using the `checkout_id` from the redirect.
 </Note>
 
