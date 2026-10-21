@@ -169,7 +169,12 @@
                   "features/affiliate-program",
                   {
                     "group": "Third-party platforms",
-                    "pages": ["integrations/affonso", "integrations/rekomi", "integrations/referly"]
+                    "pages": [
+                      "integrations/affonso",
+                      "integrations/rekomi",
+                      "integrations/referly",
+                      "integrations/linkjolt"
+                    ]
                   }
                 ]
               },
