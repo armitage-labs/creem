@@ -114,6 +114,14 @@ The `docs.json` file is the primary configuration. It controls:
 2. Add the page path to `docs.json` under the correct group in `navigation.tabs`
 3. Pages are referenced by their file path without extension (e.g., `features/discounts` for `features/discounts.mdx`)
 
+### Placing Integration Pages
+
+Every third-party integration guide lives in `integrations/` and is listed once, in the Integrations group of `docs.json`:
+
+- **Order**: category groups first, then flat entries, each alphabetical.
+- **Groups**: a category group holds at least two pages, for example "Affiliate programs". A category with a single page stays a flat entry until a second guide arrives.
+- **Native alternative**: when Creem has a native feature for the same job, start the guide with that feature's snippet, right after the frontmatter, and link the guide from the feature page with a card. Affiliate platforms use `snippets/native-affiliate-program.mdx`, and `features/affiliate-program.mdx` lists them at the end.
+
 ### Page Frontmatter
 
 Every MDX page needs frontmatter:
@@ -383,7 +391,7 @@ The `llms.txt` file at the root provides an LLM-friendly summary of Creem. This 
 ## Publishing & Deployment
 
 - Changes pushed to `main` are **automatically deployed** via the Mintlify GitHub App
-- Preview builds are generated for pull requests
+- Pull requests get no Mintlify preview today: the check reports "Skipping deployment", and pull requests from forks never get one. Check visual changes locally with `mint dev`
 - No manual build or deploy step needed
 
 ---
