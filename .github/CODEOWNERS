@@ -7,7 +7,7 @@
 # ──────────────────────────────────────────────
 # Default: Default reviewers
 # ──────────────────────────────────────────────
-*                           @armitage-labs/maintainers
+*                           @armitage-labs/maintainers @mmailaender
 
 # ──────────────────────────────────────────────
 # CI / GitHub config
