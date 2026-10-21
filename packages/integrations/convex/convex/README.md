@@ -64,6 +64,8 @@ The public exports are then passed to frontend `ConnectedBillingApi` objects:
 - `subscriptionsCancelScheduledUpdate`
 - `plansActivate`
 - `customersPortalUrl`
+- `customersBillingEmail`
+- `customersUpdateBillingEmail`
 - `transactionsSearch`
 - `creditsGetBalance`
 

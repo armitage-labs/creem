@@ -66,6 +66,27 @@ export type BillingLabels = {
     manageBilling: string;
     loading: string;
     failedToOpen: string;
+    /** Shown when the portal is refused because other accounts share the Creem customer. */
+    sharedCustomer: string;
+  };
+  billingEmail: {
+    title: string;
+    description: string;
+    /** Accessible name for the email input. */
+    inputLabel: string;
+    placeholder: string;
+    save: string;
+    saving: string;
+    saved: string;
+    loading: string;
+    loadFailed: string;
+    saveFailed: string;
+    /** Shown for a malformed address after the input loses focus. */
+    invalid: string;
+    /** Shown when a save is refused because other accounts share the Creem customer. */
+    sharedCustomer: string;
+    /** Button that reloads the email after a failed load. */
+    retry: string;
   };
   subscription: {
     loadingBillingModel: string;
@@ -275,6 +296,24 @@ export const defaultBillingLabels: BillingLabels = {
     manageBilling: "Manage billing",
     loading: "Loading...",
     failedToOpen: "Failed to open billing portal",
+    sharedCustomer:
+      "This billing contact is shared with another account, so the billing portal isn't available here.",
+  },
+  billingEmail: {
+    title: "Billing email",
+    description: "Invoices and receipts are sent to this address.",
+    inputLabel: "Billing email address",
+    placeholder: "billing@example.com",
+    save: "Save",
+    saving: "Saving...",
+    saved: "Billing email updated.",
+    loading: "Loading billing email...",
+    loadFailed: "Could not load the billing email",
+    saveFailed: "Could not update the billing email",
+    invalid: "Enter a valid email address.",
+    sharedCustomer:
+      "This billing email is shared with another account and can't be changed here.",
+    retry: "Try again",
   },
   subscription: {
     loadingBillingModel: "Loading billing model...",

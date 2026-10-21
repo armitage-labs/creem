@@ -36,11 +36,11 @@ Let's walk through the complete process of implementing license keys in your app
 
 First, let's set up your product in the Creem dashboard:
 
-1. **Navigate to Products:** Log into your Creem dashboard and click "Create New Product"
-2. **Enable License Keys:** In the product settings, enable the "License Key Management" feature
+1. **Navigate to Products:** Log into your Creem dashboard, open **Products** and create a new product (or edit an existing one)
+2. **Add a license key:** In the product's **Delivery** section, click **Add** and choose **New license key**. There is no separate on/off setting: adding this delivery item is what makes the product issue license keys.
 3. **Configure License Settings:**
-   - Set activation limits (e.g., 3 devices per license)
-   - Define expiration periods (e.g., 1 year from purchase)
+   - **Limit activations** to cap how many devices or instances can use one key (e.g., 3 devices per license)
+   - **Set an expiration** to make keys expire (e.g., 1 year from purchase)
 
 <Frame>
   <img
@@ -53,10 +53,18 @@ First, let's set up your product in the Creem dashboard:
 
 When a customer purchases your product, here's what happens automatically:
 
-- A unique license key is generated and associated with their purchase
-- The key appears in their order confirmation page
+- A unique license key is generated and associated with their purchase (one key per unit when they buy more than one)
+- The key is shown on the order confirmation page right after payment, in the browser that paid, when the product or checkout has no success URL and the checkout isn't embedded on your site
 - It's included in their email receipt
 - The key is accessible in their customer portal
+- Your backend receives it in the [`checkout.completed` webhook](/code/webhooks#checkout-completed), in the checkout's `license_keys` array
+
+<Note>
+  If you set a success URL, the confirmation page doesn't show the key: the customer is sent back to
+  your site a few seconds after paying. The same goes for embedded checkouts. Show the key on your
+  own page instead: read it from the `checkout.completed` webhook, or fetch the checkout with [Get
+  Checkout](/api-reference/endpoint/get-checkout) using the `checkout_id` from the redirect.
+</Note>
 
 <Frame>
   <img

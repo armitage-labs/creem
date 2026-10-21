@@ -50,6 +50,7 @@ Append `.md` to any documentation URL to fetch it as raw markdown.
 - [Affonso](https://docs.creem.io/integrations/affonso.md): affiliate program management with Affonso, connected to Creem payments
 - [Rekomi](https://docs.creem.io/integrations/rekomi.md): affiliate program with payouts in 150+ countries, connected by one webhook
 - [Referly](https://docs.creem.io/integrations/referly.md): affiliate program with coupon-code attribution, connected by one webhook
+- [LinkJolt](https://docs.creem.io/integrations/linkjolt.md): affiliate program connected with one API key, with discount codes created in your store
 - [Evendeals](https://docs.creem.io/integrations/evendeals.md): purchase parity pricing to boost international conversions
 - [Strapi](https://docs.creem.io/integrations/strapi.md): manage Creem products and checkout from the Strapi 5 admin panel
 - [Framer](https://docs.creem.io/integrations/framer.md): no-code checkout buttons and pricing tables for Framer sites
