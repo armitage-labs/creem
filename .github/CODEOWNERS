@@ -1,0 +1,15 @@
+# CODEOWNERS — armitage-labs/creem
+# https://docs.github.com/en/repositories/managing-your-repositorys-settings-and-features/customizing-your-repository/about-code-owners
+#
+# These owners are automatically requested for review when a PR
+# touches matching paths. Order matters — last match wins.
+
+# ──────────────────────────────────────────────
+# Default: Default reviewers
+# ──────────────────────────────────────────────
+*                           @armitage-labs/maintainers
+
+# ──────────────────────────────────────────────
+# CI / GitHub config
+# ──────────────────────────────────────────────
+/.github/                   @vyacheslavk
