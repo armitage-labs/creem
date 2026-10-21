@@ -36,6 +36,8 @@ The [CLI](/code/cli) covers the same operations under `creem events`, `creem met
 
 Meters and credit accounts both count units. A meter's `unit_label` names what it counts ("tokens", "requests"), and a credit account has its own `unit_label` ("credits"). Your price is the conversion between the two, for example 1 credit per 1,000 tokens, and you apply it when you debit. The API sends amounts as strings so large counts keep full precision.
 
+When Creem settles usage for you ([Step 5](#step-5-let-creem-settle-usage-against-credits)), the credit bucket holds **minor units of your product currency**: a €10 pack is `1000` credits, and a usage price's `unit_price` is minor units per meter unit. `unit_price` may be fractional, so a rate of €0.004 per request is `0.4`. Creem rounds the running total for the billing window to the nearest minor unit, never each request.
+
 ## Step 1: Define a meter
 
 A meter needs a `name`, the `event_name` it counts, an `aggregation`, and a `unit_label`. Every aggregation except `count` also needs `aggregation_property`, the key in the event's `properties` to aggregate. Add filter clauses to count only some events.
@@ -268,16 +270,119 @@ curl -X POST https://api.creem.io/v1/products \
   }'
 ```
 
-| Field                            | Description                                                                                                                                                       |
-| -------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `usage_prices[].meter_id`        | The meter this charge bills. One charge per meter per product; recurring products only.                                                                           |
-| `usage_prices[].unit_price`      | Tax-exclusive price per **single** meter unit, in minor units of the product currency. "$20 per 1,000,000 tokens" is `0.002`, not `20`.                           |
-| `usage_prices[].free_allowance`  | Units per billing period, per customer, before the charge applies. Defaults to `0`.                                                                               |
-| `usage_prices[].settlement_mode` | `prepaid` debits the customer's credit account as usage aggregates.                                                                                               |
-| `usage_prices[].target_account`  | `shared` (the customer's default wallet) or `per_unit` (a bucket named after the meter's unit label, or `target_account_name`).                                   |
-| `features[].customer_credits`    | The grant a purchase makes: `amount` (as a string), an optional `unit_label`, and the `bucket_name` it funds. Point it at the same bucket the usage price debits. |
+| Field                            | Description                                                                                                                                                                                                                                                                                                                                      |
+| -------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| `usage_prices[].meter_id`        | The meter this charge bills. One charge per meter per product; recurring products only.                                                                                                                                                                                                                                                          |
+| `usage_prices[].unit_price`      | Tax-exclusive price per **single** meter unit, in minor units of the product currency. Fractional values are normal: "$20 per 1,000,000 tokens" is `0.002`, €0.004 per tile is `0.4`. Creem multiplies by the units consumed in the billing window and rounds the running total to the nearest minor unit, so sub-cent rates accumulate exactly. |
+| `usage_prices[].free_allowance`  | Units per billing period, per customer, before the charge applies. Defaults to `0`.                                                                                                                                                                                                                                                              |
+| `usage_prices[].settlement_mode` | `prepaid` debits the customer's credit account as usage aggregates.                                                                                                                                                                                                                                                                              |
+| `usage_prices[].target_account`  | `shared` (the customer's default wallet) or `per_unit` (a bucket named after the meter's unit label, or `target_account_name`).                                                                                                                                                                                                                  |
+| `features[].customer_credits`    | The grant a purchase makes: `amount` (as a string, in minor units of the product currency, so a €10 pack grants `"1000"`), an optional `unit_label`, and the `bucket_name` it funds. Point it at the same bucket the usage price debits.                                                                                                         |
 
 On update, `usage_prices` and `features` are the product's complete set: omit them to leave charges and credit features untouched, send `[]` to remove them, include an `id` to edit one in place. `GET /v1/products/{id}` echoes both, so you can read back what you attached. Settlement emits `credits.consumed` per billing window; when the bucket cannot cover a charge, `customer_credits.exhausted` fires once per episode, and a customer who has consented to auto-refill is charged for the top-up product on their saved card.
+
+## Worked example: pay-as-you-go API with a prepaid wallet
+
+You run a map API. A vector tile costs €0.004 and a geocoding lookup costs €0.04. Customers prepay: a €10 monthly plan includes €10 of usage, and they can buy €25 top-up packs. Creem meters both operations and draws the cost from one wallet.
+
+<Steps>
+  <Step title="One meter per operation">
+    Meter what happened, not what it costs. Each operation gets a `count` meter with its own unit label, so the rate can change later without touching your events.
+
+    ```bash
+    curl -X POST https://api.creem.io/v1/meters \
+      -H "x-api-key: creem_your_api_key" \
+      -H "Content-Type: application/json" \
+      -d '{ "name": "Tiles served", "event_name": "tile_served", "aggregation": "count", "unit_label": "tiles" }'
+
+    curl -X POST https://api.creem.io/v1/meters \
+      -H "x-api-key: creem_your_api_key" \
+      -H "Content-Type: application/json" \
+      -d '{ "name": "Geocoding lookups", "event_name": "geocode", "aggregation": "count", "unit_label": "lookups" }'
+    ```
+
+    If you batch usage before sending it, for example one event per customer per hour, use `sum` over a `count` property instead of `count`, and put the batch total in `properties.count`.
+
+  </Step>
+  <Step title="A plan that carries the rates and includes credits">
+    The plan's base price is €10 a month. Its credits feature grants `1000` credits into the customer's default wallet each time the subscription is paid, which is €10 at one credit per cent. Its two usage prices name the meters and the rates in minor units per unit: `0.4` for a tile, `4` for a lookup.
+
+    ```bash
+    curl -X POST https://api.creem.io/v1/products \
+      -H "x-api-key: creem_your_api_key" \
+      -H "Content-Type: application/json" \
+      -d '{
+        "name": "Maps API",
+        "description": "€10 of usage included every month, pay as you go beyond it",
+        "price": 1000,
+        "currency": "EUR",
+        "billing_type": "recurring",
+        "billing_period": "every-month",
+        "features": [
+          {
+            "type": "customerCredits",
+            "description": "€10 of usage included every month",
+            "customer_credits": { "amount": "1000", "unit_label": "credits", "bucket_name": "default" }
+          }
+        ],
+        "usage_prices": [
+          { "meter_id": "mtr_tiles", "unit_price": 0.4, "settlement_mode": "prepaid", "target_account": "shared" },
+          { "meter_id": "mtr_geocoding", "unit_price": 4, "settlement_mode": "prepaid", "target_account": "shared" }
+        ]
+      }'
+    ```
+
+    The dashboard quotes these rates per 1,000 units: "€0.40 per 1,000 tiles" and "€40.00 per 1,000 lookups".
+
+  </Step>
+  <Step title="A top-up pack">
+    A one-time product whose only job is to fund the same wallet. Its `amount` equals its price in minor units.
+
+    ```bash
+    curl -X POST https://api.creem.io/v1/products \
+      -H "x-api-key: creem_your_api_key" \
+      -H "Content-Type: application/json" \
+      -d '{
+        "name": "€25 usage top-up",
+        "description": "Adds €25 of usage to your wallet",
+        "price": 2500,
+        "currency": "EUR",
+        "billing_type": "onetime",
+        "features": [
+          {
+            "type": "customerCredits",
+            "description": "€25 of usage",
+            "customer_credits": { "amount": "2500", "unit_label": "credits", "bucket_name": "default" }
+          }
+        ]
+      }'
+    ```
+
+  </Step>
+  <Step title="Send events and let Creem settle">
+    Ingest `tile_served` and `geocode` events with the customer's id. Each meter totals them per customer per calendar month, and every time a total changes Creem recomputes the charge for that month and debits the difference.
+
+    | Tiles served this month | Charge so far      | Debited this time |
+    | ----------------------- | ------------------ | ----------------- |
+    | 1,234                   | 493.6 → 494 credits | 494               |
+    | 1,250                   | 500 credits        | 6                 |
+    | 4,000                   | 1,600 credits      | 1,100             |
+
+    Each debit shows up as a `credits.consumed` webhook with the balance after it.
+
+  </Step>
+</Steps>
+
+### When the wallet runs out
+
+A charge the wallet cannot cover is refused, the customer gets an email, and you receive `customer_credits.exhausted` once, with the shortfall. Nothing is lost: the charge is the running total for the month, so the next event in that month collects everything outstanding. A top-up on its own does not trigger a settlement, so usage at the very end of a month with no later event stays uncollected until an event arrives. Customers who opt in to [auto-refill](/features/customer-credits/auto-refill) have the top-up pack re-purchased for them.
+
+### Things to know
+
+- **Windows are calendar months (UTC).** Every meter totals usage per customer per calendar month, independent of the subscription's billing date, and settlement charges the difference each time a month's total changes.
+- **Paused subscriptions are not settled.** Metering continues while a subscription is paused, and the accumulated charge is collected when it is active again. Pausing is not a way to keep debiting while skipping the monthly fee.
+- **Usage prices need a live subscription.** Customers who only buy packs fund the wallet but are not debited automatically. Debit them through the [credits API](/features/customer-credits/transactions) yourself until a plan without a base fee is available.
+- **Use `free_allowance`** on a usage price for units per month that should not be charged at all, and `cap` to bound a customer's monthly usage charge.
 
 ## API key scopes
 
