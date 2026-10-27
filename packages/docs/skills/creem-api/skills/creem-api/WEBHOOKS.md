@@ -280,7 +280,7 @@ Fired when a new subscription is created and first payment collected. Use `subsc
 
 ### subscription.paid
 
-Fired when a subscription payment is successfully processed. This includes initial payments and renewals.
+Fired when a subscription payment is successfully processed. This includes initial payments and renewals. `last_transaction` is the transaction that was just paid: `amount_paid` is what the customer was charged, including `tax_amount`.
 
 ```json
 {
@@ -307,6 +307,18 @@ Fired when a subscription payment is successfully processed. This includes initi
     },
     "collection_method": "charge_automatically",
     "last_transaction_id": "tran_5yMaWzAl3jxuGJMCOrYWwk",
+    "last_transaction": {
+      "id": "tran_5yMaWzAl3jxuGJMCOrYWwk",
+      "object": "transaction",
+      "amount": 1000,
+      "amount_paid": 1210,
+      "currency": "EUR",
+      "type": "invoice",
+      "tax_amount": 210,
+      "status": "paid",
+      "period_start": 1728734318000,
+      "period_end": 1731412718000
+    },
     "last_transaction_date": "2024-10-12T11:58:47.109Z",
     "next_transaction_date": "2024-11-12T11:58:38.000Z",
     "current_period_start_date": "2024-10-12T11:58:38.000Z",

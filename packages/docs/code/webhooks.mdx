@@ -410,7 +410,7 @@ Use only for synchronization, we encourage using `subscription.paid` for activat
 
 ### subscription.paid
 
-A subscription transaction was paid by the customer
+A subscription transaction was paid by the customer. Fires for the first payment and every renewal. `last_transaction` is the transaction that was just paid, with the amount charged, tax and discount.
 
 <AccordionGroup>
   <Accordion title="Sample Request Body">
@@ -452,6 +452,26 @@ A subscription transaction was paid by the customer
       "collection_method": "charge_automatically",
       "status": "active",
       "last_transaction_id": "tran_5yMaWzAl3jxuGJMCOrYWwk",
+      "last_transaction": {
+        "id": "tran_5yMaWzAl3jxuGJMCOrYWwk",
+        "object": "transaction",
+        "amount": 1000,
+        "amount_paid": 1210,
+        "currency": "EUR",
+        "type": "invoice",
+        "tax_country": "NL",
+        "tax_amount": 210,
+        "status": "paid",
+        "refunded_amount": null,
+        "order": "ord_4aDwWXjMLpes4Kj4XqNnUA",
+        "subscription": "sub_6pC2lNB6joCRQIZ1aMrTpi",
+        "customer": "cust_1OcIK1GEuVvXZwD19tjq2z",
+        "description": "Subscription payment",
+        "period_start": 1728734318000,
+        "period_end": 1731412718000,
+        "created_at": 1728734327109,
+        "mode": "local"
+      },
       "last_transaction_date": "2024-10-12T11:58:47.109Z",
       "next_transaction_date": "2024-11-12T11:58:38.000Z",
       "current_period_start_date": "2024-10-12T11:58:38.000Z",
