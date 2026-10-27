@@ -12,7 +12,7 @@ Creem uses webhooks to push real-time notifications to you about your payments a
 - Automatically remove access to a user after a canceled subscription
 - Confirm that a payment has been received by the same customer that initiated it.
 
-In case webhooks are not successfully received by your endpoint, Creem automatically retries the request with a progressive backoff. There are 5 attempts in total — the initial delivery, then retries after 30 seconds, 5 minutes, 30 minutes and 6 hours. Events are not retried after 24 hours, even if attempts remain. Because the same event can be delivered more than once, your handler should be idempotent. You can also resend webhook events manually from your Merchant dashboard under [Developers section](https://creem.io/dashboard/developers).
+In case webhooks are not successfully received by your endpoint, Creem automatically retries the request with a progressive backoff. There are 5 attempts in total — the initial delivery, then retries after 30 seconds, 5 minutes, 30 minutes and 6 hours. Events are not retried after 24 hours, even if attempts remain. Creem waits up to 15 seconds for a response, and a slower response counts as a failed attempt. Because the same event can be delivered more than once, your handler should be idempotent. You can also resend webhook events manually from your Merchant dashboard under [Developers section](https://creem.io/dashboard/developers). Automatic retries keep the event `id`, but a manual resend is sent with a new `id` and `created_at`.
 
 ## Steps to receive a webhook
 
@@ -72,7 +72,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
 
 </CodeGroup>
 
-On receiving an event, you should respond with an HTTP 200 OK to signal to Creem that the event was successfully delivered.
+On receiving an event, you should respond with an HTTP 200 OK to signal to Creem that the event was successfully delivered. Any 2xx status code counts as delivered.
 
 ### 2. Register your development webhook endpoint
 
@@ -228,46 +228,60 @@ A checkout session was completed, returning all the information about the paymen
 {
     "id": "evt_5WHHcZPv7VS0YUsberIuOz",
     "eventType": "checkout.completed",
-    "created_at": 1728734325927,
+    "created_at": 1728734327412,
     "object": {
       "id": "ch_4l0N34kxo16AhRKUHFUuXr",
       "object": "checkout",
       "request_id": "my-request-id",
       "order": {
+        "object": "order",
         "id": "ord_4aDwWXjMLpes4Kj4XqNnUA",
         "customer": "cust_1OcIK1GEuVvXZwD19tjq2z",
         "product": "prod_d1AY2Sadk9YAvLI0pj97f",
         "amount": 1000,
         "currency": "EUR",
+        "sub_total": 1000,
+        "tax_amount": 210,
+        "amount_due": 1210,
+        "amount_paid": 1210,
         "status": "paid",
         "type": "recurring",
+        "transaction": "tran_5yMaWzAl3jxuGJMCOrYWwk",
         "created_at": "2024-10-12T11:58:33.097Z",
         "updated_at": "2024-10-12T11:58:33.097Z",
         "mode": "local"
       },
       "product": {
         "id": "prod_d1AY2Sadk9YAvLI0pj97f",
+        "object": "product",
         "name": "Monthly",
         "description": "Monthly",
-        "image_url": null,
         "price": 1000,
         "currency": "EUR",
         "billing_type": "recurring",
         "billing_period": "every-month",
+        "recurring_interval": "month",
+        "recurring_interval_count": 1,
+        "trial_period_days": null,
+        "trial_price": null,
         "status": "active",
         "tax_mode": "exclusive",
+        "business_net_pricing": false,
         "tax_category": "saas",
         "default_success_url": "",
         "created_at": "2024-10-11T11:50:00.182Z",
         "updated_at": "2024-10-11T11:50:00.182Z",
         "mode": "local"
       },
+      "units": 1,
       "customer": {
         "id": "cust_1OcIK1GEuVvXZwD19tjq2z",
         "object": "customer",
         "email": "customer@emaildomain",
         "name": "Tester Test",
+        "metadata": null,
         "country": "NL",
+        "external_id": null,
         "created_at": "2024-10-11T09:16:48.557Z",
         "updated_at": "2024-10-11T09:16:48.557Z",
         "mode": "local"
@@ -279,6 +293,8 @@ A checkout session was completed, returning all the information about the paymen
         "customer": "cust_1OcIK1GEuVvXZwD19tjq2z",
         "collection_method": "charge_automatically",
         "status": "active",
+        "current_period_start_date": "2024-10-12T11:58:38.000Z",
+        "current_period_end_date": "2024-11-12T11:58:38.000Z",
         "canceled_at": null,
         "created_at": "2024-10-12T11:58:45.425Z",
         "updated_at": "2024-10-12T11:58:45.425Z",
@@ -351,11 +367,32 @@ Each entry is a license **object**, not a key string:
 
 One key is issued per license key feature on the product, multiplied by the number of units purchased — a three-unit order of a keyed product delivers three entries. Always treat `license_keys` as a list, never as a single key.
 
+When `license_keys` is present, the checkout also carries a deprecated `feature` object that repeats only the first key. It is left out of the sample above. Read `license_keys` instead.
+
 For issuing and managing keys, see [Licenses](/features/addons/licenses).
+
+#### Discounts
+
+When a discount code was applied to the checkout, the payload carries three more fields. The order gets `discount_amount`, the amount taken off the price, and `discount`, the ID of the discount. The checkout gets a `discount` object:
+
+```json
+"discount": {
+  "id": "dis_3e6Z6TzvHKdsjEgXnGDEp0",
+  "discountCode": "LAUNCH20",
+  "name": "Launch discount",
+  "type": "percentage",
+  "amount": 20,
+  "duration": "repeating",
+  "durationInMonths": 3
+}
+```
+
+`order.amount` and `order.sub_total` stay the price before the discount, and `amount_paid` is what the customer was charged. For a `percentage` discount, `amount` is the percentage. `durationInMonths` is omitted when the discount has no month count. Subscription events carry the same `discount` object on the subscription when a discount was redeemed for it.
 
 ### subscription.active
 
 Received when a new subscription is created, the payment was successful and Creem collected the payment creating a new subscription object in your account.
+It also fires whenever an existing subscription changes back to `active` from another status, for example when a paused subscription resumes.
 Use only for synchronization, we encourage using `subscription.paid` for activating access.
 
 <AccordionGroup>
@@ -364,21 +401,26 @@ Use only for synchronization, we encourage using `subscription.paid` for activat
 {
     "id": "evt_6EptlmjazyGhEPiNQ5f4lz",
     "eventType": "subscription.active",
-    "created_at": 1728734325927,
+    "created_at": 1726515642348,
     "object": {
         "id": "sub_21lfZb67szyvMiXnm6SVi0",
         "object": "subscription",
         "product": {
             "id": "prod_AnVJ11ujp7x953ARpJvAF",
+            "object": "product",
             "name": "My Product - Product 01",
             "description": "Test my product",
-            "image_url": null,
             "price": 10000,
             "currency": "EUR",
             "billing_type": "recurring",
             "billing_period": "every-month",
+            "recurring_interval": "month",
+            "recurring_interval_count": 1,
+            "trial_period_days": null,
+            "trial_price": null,
             "status": "active",
             "tax_mode": "inclusive",
+            "business_net_pricing": false,
             "tax_category": "saas",
             "default_success_url": "",
             "created_at": "2024-09-16T16:12:09.813Z",
@@ -390,14 +432,30 @@ Use only for synchronization, we encourage using `subscription.paid` for activat
             "object": "customer",
             "email": "customer@emaildomain",
             "name": "Tester Test",
+            "metadata": null,
             "country": "SE",
+            "external_id": null,
             "created_at": "2024-09-16T16:13:39.265Z",
             "updated_at": "2024-09-16T16:13:39.265Z",
             "mode": "local"
         },
+        "items": [
+            {
+                "object": "subscription_item",
+                "id": "sitem_5Rt2YkLm8QxW3vNbJp6sHc",
+                "product_id": "prod_AnVJ11ujp7x953ARpJvAF",
+                "price_id": "pprice_3Dk9WqZr5TmB1xLvNc7yPa",
+                "units": 1,
+                "created_at": "2024-09-16T19:40:41.990Z",
+                "updated_at": "2024-09-16T19:40:41.990Z",
+                "mode": "local"
+            }
+        ],
         "collection_method": "charge_automatically",
         "status": "active",
-        "canceled_at": "2024-09-16T19:40:41.984Z",
+        "current_period_start_date": "2024-09-16T19:40:38.000Z",
+        "current_period_end_date": "2024-10-16T19:40:38.000Z",
+        "canceled_at": null,
         "created_at": "2024-09-16T19:40:41.984Z",
         "updated_at": "2024-09-16T19:40:42.121Z",
         "mode": "local"
@@ -410,7 +468,9 @@ Use only for synchronization, we encourage using `subscription.paid` for activat
 
 ### subscription.paid
 
-A subscription transaction was paid by the customer. Fires for the first payment and every renewal. `last_transaction` is the transaction that was just paid, with the amount charged, tax and discount.
+A subscription transaction was paid by the customer. Fires for the first payment and every renewal. `last_transaction` is the transaction that was just paid, with the amount charged, tax and discount. Its `customer` field is `null` in this event, so read the customer from the subscription's `customer` object.
+
+`subscription.canceled`, `subscription.scheduled_cancel` and `subscription.expired` also carry `last_transaction`, set to the subscription's most recent paid or refunded transaction when it has one. The other `subscription.*` events don't include `last_transaction`, `last_transaction_id`, `last_transaction_date` or `next_transaction_date`.
 
 <AccordionGroup>
   <Accordion title="Sample Request Body">
@@ -424,15 +484,20 @@ A subscription transaction was paid by the customer. Fires for the first payment
       "object": "subscription",
       "product": {
         "id": "prod_d1AY2Sadk9YAvLI0pj97f",
+        "object": "product",
         "name": "Monthly",
         "description": "Monthly",
-        "image_url": null,
         "price": 1000,
         "currency": "EUR",
         "billing_type": "recurring",
         "billing_period": "every-month",
+        "recurring_interval": "month",
+        "recurring_interval_count": 1,
+        "trial_period_days": null,
+        "trial_price": null,
         "status": "active",
         "tax_mode": "exclusive",
+        "business_net_pricing": false,
         "tax_category": "saas",
         "default_success_url": "",
         "created_at": "2024-10-11T11:50:00.182Z",
@@ -444,11 +509,25 @@ A subscription transaction was paid by the customer. Fires for the first payment
         "object": "customer",
         "email": "customer@emaildomain",
         "name": "Tester Test",
+        "metadata": null,
         "country": "NL",
+        "external_id": null,
         "created_at": "2024-10-11T09:16:48.557Z",
         "updated_at": "2024-10-11T09:16:48.557Z",
         "mode": "local"
       },
+      "items": [
+        {
+          "object": "subscription_item",
+          "id": "sitem_2Zk7QwX9rTbN4vLmPq8sYd",
+          "product_id": "prod_d1AY2Sadk9YAvLI0pj97f",
+          "price_id": "pprice_6hJx3VnR8kWcT1yMbQ5uZa",
+          "units": 1,
+          "created_at": "2024-10-12T11:58:45.430Z",
+          "updated_at": "2024-10-12T11:58:45.430Z",
+          "mode": "local"
+        }
+      ],
       "collection_method": "charge_automatically",
       "status": "active",
       "last_transaction_id": "tran_5yMaWzAl3jxuGJMCOrYWwk",
@@ -465,14 +544,14 @@ A subscription transaction was paid by the customer. Fires for the first payment
         "refunded_amount": null,
         "order": "ord_4aDwWXjMLpes4Kj4XqNnUA",
         "subscription": "sub_6pC2lNB6joCRQIZ1aMrTpi",
-        "customer": "cust_1OcIK1GEuVvXZwD19tjq2z",
+        "customer": null,
         "description": "Subscription payment",
         "period_start": 1728734318000,
         "period_end": 1731412718000,
         "created_at": 1728734327109,
         "mode": "local"
       },
-      "last_transaction_date": "2024-10-12T11:58:47.109Z",
+      "last_transaction_date": "2024-10-12T11:58:38.000Z",
       "next_transaction_date": "2024-11-12T11:58:38.000Z",
       "current_period_start_date": "2024-10-12T11:58:38.000Z",
       "current_period_end_date": "2024-11-12T11:58:38.000Z",
@@ -493,7 +572,7 @@ A subscription transaction was paid by the customer. Fires for the first payment
 
 ### subscription.canceled
 
-The subscription was canceled by the merchant or by the customer.
+The subscription was canceled by the merchant or by the customer. It also fires when a scheduled cancellation takes effect at the end of the period.
 
 <AccordionGroup>
   <Accordion title="Sample Request Body">
@@ -507,15 +586,20 @@ The subscription was canceled by the merchant or by the customer.
       "object": "subscription",
       "product": {
         "id": "prod_d1AY2Sadk9YAvLI0pj97f",
+        "object": "product",
         "name": "Monthly",
         "description": "Monthly",
-        "image_url": null,
         "price": 1000,
         "currency": "EUR",
         "billing_type": "recurring",
         "billing_period": "every-month",
+        "recurring_interval": "month",
+        "recurring_interval_count": 1,
+        "trial_period_days": null,
+        "trial_price": null,
         "status": "active",
         "tax_mode": "exclusive",
+        "business_net_pricing": false,
         "tax_category": "saas",
         "default_success_url": "",
         "created_at": "2024-10-11T11:50:00.182Z",
@@ -527,15 +611,49 @@ The subscription was canceled by the merchant or by the customer.
         "object": "customer",
         "email": "customer@emaildomain",
         "name": "Tester Test",
+        "metadata": null,
         "country": "NL",
+        "external_id": null,
         "created_at": "2024-10-11T09:16:48.557Z",
         "updated_at": "2024-10-11T09:16:48.557Z",
         "mode": "local"
       },
+      "items": [
+        {
+          "object": "subscription_item",
+          "id": "sitem_2Zk7QwX9rTbN4vLmPq8sYd",
+          "product_id": "prod_d1AY2Sadk9YAvLI0pj97f",
+          "price_id": "pprice_6hJx3VnR8kWcT1yMbQ5uZa",
+          "units": 1,
+          "created_at": "2024-10-12T11:58:45.430Z",
+          "updated_at": "2024-10-12T11:58:45.430Z",
+          "mode": "local"
+        }
+      ],
       "collection_method": "charge_automatically",
       "status": "canceled",
       "last_transaction_id": "tran_5yMaWzAl3jxuGJMCOrYWwk",
-      "last_transaction_date": "2024-10-12T11:58:47.109Z",
+      "last_transaction": {
+        "id": "tran_5yMaWzAl3jxuGJMCOrYWwk",
+        "object": "transaction",
+        "amount": 1000,
+        "amount_paid": 1210,
+        "currency": "EUR",
+        "type": "invoice",
+        "tax_country": "NL",
+        "tax_amount": 210,
+        "status": "paid",
+        "refunded_amount": null,
+        "order": "ord_4aDwWXjMLpes4Kj4XqNnUA",
+        "subscription": "sub_6pC2lNB6joCRQIZ1aMrTpi",
+        "customer": null,
+        "description": "Subscription payment",
+        "period_start": 1728734318000,
+        "period_end": 1731412718000,
+        "created_at": 1728734327109,
+        "mode": "local"
+      },
+      "last_transaction_date": "2024-10-12T11:58:38.000Z",
       "current_period_start_date": "2024-10-12T11:58:38.000Z",
       "current_period_end_date": "2024-11-12T11:58:38.000Z",
       "canceled_at": "2024-10-12T11:58:57.813Z",
@@ -572,15 +690,20 @@ The subscription can be resumed before the period ends using the [Resume Subscri
       "object": "subscription",
       "product": {
         "id": "prod_d1AY2Sadk9YAvLI0pj97f",
+        "object": "product",
         "name": "Monthly",
         "description": "Monthly",
-        "image_url": null,
         "price": 1000,
         "currency": "EUR",
         "billing_type": "recurring",
         "billing_period": "every-month",
+        "recurring_interval": "month",
+        "recurring_interval_count": 1,
+        "trial_period_days": null,
+        "trial_price": null,
         "status": "active",
         "tax_mode": "exclusive",
+        "business_net_pricing": false,
         "tax_category": "saas",
         "default_success_url": "",
         "created_at": "2024-10-11T11:50:00.182Z",
@@ -592,20 +715,55 @@ The subscription can be resumed before the period ends using the [Resume Subscri
         "object": "customer",
         "email": "customer@emaildomain",
         "name": "Tester Test",
+        "metadata": null,
         "country": "NL",
+        "external_id": null,
         "created_at": "2024-10-11T09:16:48.557Z",
         "updated_at": "2024-10-11T09:16:48.557Z",
         "mode": "local"
       },
+      "items": [
+        {
+          "object": "subscription_item",
+          "id": "sitem_2Zk7QwX9rTbN4vLmPq8sYd",
+          "product_id": "prod_d1AY2Sadk9YAvLI0pj97f",
+          "price_id": "pprice_6hJx3VnR8kWcT1yMbQ5uZa",
+          "units": 1,
+          "created_at": "2024-10-12T11:58:45.430Z",
+          "updated_at": "2024-10-12T11:58:45.430Z",
+          "mode": "local"
+        }
+      ],
       "collection_method": "charge_automatically",
       "status": "scheduled_cancel",
       "last_transaction_id": "tran_5yMaWzAl3jxuGJMCOrYWwk",
-      "last_transaction_date": "2024-10-12T11:58:47.109Z",
+      "last_transaction": {
+        "id": "tran_5yMaWzAl3jxuGJMCOrYWwk",
+        "object": "transaction",
+        "amount": 1000,
+        "amount_paid": 1210,
+        "currency": "EUR",
+        "type": "invoice",
+        "tax_country": "NL",
+        "tax_amount": 210,
+        "status": "paid",
+        "refunded_amount": null,
+        "order": "ord_4aDwWXjMLpes4Kj4XqNnUA",
+        "subscription": "sub_6pC2lNB6joCRQIZ1aMrTpi",
+        "customer": null,
+        "description": "Subscription payment",
+        "period_start": 1728734318000,
+        "period_end": 1731412718000,
+        "created_at": 1728734327109,
+        "mode": "local"
+      },
+      "last_transaction_date": "2024-10-12T11:58:38.000Z",
+      "next_transaction_date": "2024-11-12T11:58:38.000Z",
       "current_period_start_date": "2024-10-12T11:58:38.000Z",
       "current_period_end_date": "2024-11-12T11:58:38.000Z",
       "canceled_at": null,
       "created_at": "2024-10-12T11:58:45.425Z",
-      "updated_at": "2024-10-12T11:59:15.827Z",
+      "updated_at": "2024-10-12T11:58:57.827Z",
       "metadata": {
         "custom_data": "mycustom data",
         "internal_customer_id": "internal_customer_id"
@@ -628,21 +786,26 @@ The subscription payment has failed and the subscription is now past due. This o
 {
     "id": "evt_7HkTd800rHX7GCampi4Nt9",
     "eventType": "subscription.past_due",
-    "created_at": 1728734337932,
+    "created_at": 1731413131204,
     "object": {
       "id": "sub_6pC2lNB6joCRQIZ1aMrTpi",
       "object": "subscription",
       "product": {
         "id": "prod_d1AY2Sadk9YAvLI0pj97f",
+        "object": "product",
         "name": "Monthly",
         "description": "Monthly",
-        "image_url": null,
         "price": 1000,
         "currency": "EUR",
         "billing_type": "recurring",
         "billing_period": "every-month",
+        "recurring_interval": "month",
+        "recurring_interval_count": 1,
+        "trial_period_days": null,
+        "trial_price": null,
         "status": "active",
         "tax_mode": "exclusive",
+        "business_net_pricing": false,
         "tax_category": "saas",
         "default_success_url": "",
         "created_at": "2024-10-11T11:50:00.182Z",
@@ -654,15 +817,27 @@ The subscription payment has failed and the subscription is now past due. This o
         "object": "customer",
         "email": "customer@emaildomain",
         "name": "Tester Test",
+        "metadata": null,
         "country": "NL",
+        "external_id": null,
         "created_at": "2024-10-11T09:16:48.557Z",
         "updated_at": "2024-10-11T09:16:48.557Z",
         "mode": "local"
       },
+      "items": [
+        {
+          "object": "subscription_item",
+          "id": "sitem_2Zk7QwX9rTbN4vLmPq8sYd",
+          "product_id": "prod_d1AY2Sadk9YAvLI0pj97f",
+          "price_id": "pprice_6hJx3VnR8kWcT1yMbQ5uZa",
+          "units": 1,
+          "created_at": "2024-10-12T11:58:45.430Z",
+          "updated_at": "2024-10-12T11:58:45.430Z",
+          "mode": "local"
+        }
+      ],
       "collection_method": "charge_automatically",
       "status": "past_due",
-      "last_transaction_id": "tran_5yMaWzAl3jxuGJMCOrYWwk",
-      "last_transaction_date": "2024-10-12T11:58:47.109Z",
       "current_period_start_date": "2024-10-12T11:58:38.000Z",
       "current_period_end_date": "2024-11-12T11:58:38.000Z",
       "canceled_at": null,
@@ -694,17 +869,26 @@ The subscription moved to the `unpaid` status after failed payment collection. T
     "object": {
         "id": "sub_3xx35QzxsnpFiJ3vRB9YKt",
         "object": "subscription",
-        "status": "unpaid",
         "product": {
             "id": "prod_L8mMzoYLOOZpMpTBwGw0k",
+            "object": "product",
             "name": "Pro Plan",
+            "description": "Pro Plan",
             "price": 2999,
             "currency": "USD",
             "billing_type": "recurring",
             "billing_period": "every-month",
+            "recurring_interval": "month",
+            "recurring_interval_count": 1,
+            "trial_period_days": null,
+            "trial_price": null,
             "status": "active",
             "tax_mode": "exclusive",
+            "business_net_pricing": false,
             "tax_category": "saas",
+            "default_success_url": null,
+            "created_at": "2026-01-12T09:14:22.512Z",
+            "updated_at": "2026-01-12T09:14:22.512Z",
             "mode": "test"
         },
         "customer": {
@@ -712,14 +896,32 @@ The subscription moved to the `unpaid` status after failed payment collection. T
             "object": "customer",
             "email": "customer@example.com",
             "name": "Test Customer",
+            "metadata": null,
             "country": "US",
+            "external_id": null,
+            "created_at": "2026-01-28T07:55:41.903Z",
+            "updated_at": "2026-01-28T07:55:41.903Z",
             "mode": "test"
         },
+        "items": [
+            {
+                "object": "subscription_item",
+                "id": "sitem_4Hn8TzQb2WxK6rLpVm1cYe",
+                "product_id": "prod_L8mMzoYLOOZpMpTBwGw0k",
+                "price_id": "pprice_7Pq2LsXv9NdR4kBjTw3hMf",
+                "units": 1,
+                "created_at": "2026-01-28T07:56:10.118Z",
+                "updated_at": "2026-01-28T07:56:10.118Z",
+                "mode": "test"
+            }
+        ],
         "collection_method": "charge_automatically",
-        "last_transaction_id": "tran_6uBkPewvO7KHjfvGmpin82",
+        "status": "unpaid",
         "current_period_start_date": "2026-02-28T07:56:07.282Z",
         "current_period_end_date": "2026-03-30T07:56:07.282Z",
         "canceled_at": null,
+        "created_at": "2026-01-28T07:56:10.104Z",
+        "updated_at": "2026-02-28T07:56:39.871Z",
         "metadata": {},
         "mode": "test"
     }
@@ -731,8 +933,9 @@ The subscription moved to the `unpaid` status after failed payment collection. T
 
 ### subscription.expired
 
-The subscription was expired, given that the `current_end_period` has been reached without a new payment.
+The subscription was expired, given that the `current_period_end_date` has been reached without a new payment.
 Payment retries can happen at this stage, and the subscription status will be terminal only when status is changed to `canceled`.
+Creem checks once a day for subscriptions whose `current_period_end_date` fell on the previous day, so the event arrives up to a day after the period ended. The event doesn't change the subscription, and `status` shows its current value.
 
 <AccordionGroup>
   <Accordion title="Sample Request Body">
@@ -746,19 +949,24 @@ Payment retries can happen at this stage, and the subscription status will be te
         "object": "subscription",
         "product": {
             "id": "prod_3ELsC3Lt97orn81SOdgQI3",
+            "object": "product",
             "name": "Subs",
             "description": "Subs",
-            "image_url": null,
             "price": 1200,
             "currency": "EUR",
             "billing_type": "recurring",
             "billing_period": "every-year",
+            "recurring_interval": "year",
+            "recurring_interval_count": 1,
+            "trial_period_days": null,
+            "trial_price": null,
             "status": "active",
             "tax_mode": "exclusive",
+            "business_net_pricing": false,
             "tax_category": "saas",
             "default_success_url": "",
-            "created_at": "2024-12-11T17:33:32.186Z",
-            "updated_at": "2024-12-11T17:33:32.186Z",
+            "created_at": "2023-12-11T17:33:32.186Z",
+            "updated_at": "2023-12-11T17:33:32.186Z",
             "mode": "local"
         },
         "customer": {
@@ -766,21 +974,55 @@ Payment retries can happen at this stage, and the subscription status will be te
             "object": "customer",
             "email": "customer@emaildomain",
             "name": "Alec Erasmus",
+            "metadata": null,
             "country": "NL",
-            "created_at": "2024-12-09T16:09:20.709Z",
-            "updated_at": "2024-12-09T16:09:20.709Z",
+            "external_id": null,
+            "created_at": "2023-12-09T16:09:20.709Z",
+            "updated_at": "2023-12-09T16:09:20.709Z",
             "mode": "local"
         },
+        "items": [
+            {
+                "object": "subscription_item",
+                "id": "sitem_6Wd3MxR7kTq1ZbNv8LpJsA",
+                "product_id": "prod_3ELsC3Lt97orn81SOdgQI3",
+                "price_id": "pprice_2Gk5VnY8rQc3XtMw6BjLzE",
+                "units": 1,
+                "created_at": "2023-12-16T12:40:05.063Z",
+                "updated_at": "2023-12-16T12:40:05.063Z",
+                "mode": "local"
+            }
+        ],
         "collection_method": "charge_automatically",
         "status": "active",
         "last_transaction_id": "tran_6ZeTvMqMkGdAIIjw5aAcnh",
-        "last_transaction_date": "2024-12-16T12:40:12.658Z",
-        "next_transaction_date": "2025-12-16T12:39:47.000Z",
-        "current_period_start_date": "2024-12-16T12:39:47.000Z",
+        "last_transaction": {
+            "id": "tran_6ZeTvMqMkGdAIIjw5aAcnh",
+            "object": "transaction",
+            "amount": 1200,
+            "amount_paid": 1452,
+            "currency": "EUR",
+            "type": "invoice",
+            "tax_country": "NL",
+            "tax_amount": 252,
+            "status": "paid",
+            "refunded_amount": null,
+            "order": "ord_1Lq7XcV3mRt9ZwKbN5pYdS",
+            "subscription": "sub_7FgHvrOMC28tG5DEemoCli",
+            "customer": null,
+            "description": "Subscription payment",
+            "period_start": 1702730387000,
+            "period_end": 1734352787000,
+            "created_at": 1702730412658,
+            "mode": "local"
+        },
+        "last_transaction_date": "2023-12-16T12:39:47.000Z",
+        "next_transaction_date": "2024-12-16T12:39:47.000Z",
+        "current_period_start_date": "2023-12-16T12:39:47.000Z",
         "current_period_end_date": "2024-12-16T12:39:47.000Z",
         "canceled_at": null,
-        "created_at": "2024-12-16T12:40:05.058Z",
-        "updated_at": "2024-12-16T12:40:05.058Z",
+        "created_at": "2023-12-16T12:40:05.058Z",
+        "updated_at": "2023-12-16T12:40:05.058Z",
         "mode": "local"
     }
 }
@@ -791,7 +1033,7 @@ Payment retries can happen at this stage, and the subscription status will be te
 
 ### refund.created
 
-A refund was created by the merchant
+A refund was created by the merchant. Creem sends the event once the refund reaches the `succeeded` status.
 
 <AccordionGroup>
   <Accordion title="Sample Request Body">
@@ -820,6 +1062,7 @@ A refund was created by the merchant
       "refunded_amount": 1210,
       "order": "ord_4aDwWXjMLpes4Kj4XqNnUA",
       "subscription": "sub_6pC2lNB6joCRQIZ1aMrTpi",
+      "customer": "cust_1OcIK1GEuVvXZwD19tjq2z",
       "description": "Subscription payment",
       "period_start": 1728734318000,
       "period_end": 1731412718000,
@@ -834,7 +1077,7 @@ A refund was created by the merchant
       "collection_method": "charge_automatically",
       "status": "canceled",
       "last_transaction_id": "tran_5yMaWzAl3jxuGJMCOrYWwk",
-      "last_transaction_date": "2024-10-12T11:58:47.109Z",
+      "last_transaction_date": "2024-10-12T11:58:38.000Z",
       "current_period_start_date": "2024-10-12T11:58:38.000Z",
       "current_period_end_date": "2024-11-12T11:58:38.000Z",
       "canceled_at": "2024-10-12T11:58:57.813Z",
@@ -850,6 +1093,8 @@ A refund was created by the merchant
       "id": "ch_4l0N34kxo16AhRKUHFUuXr",
       "object": "checkout",
       "request_id": "my-request-id",
+      "product": "prod_d1AY2Sadk9YAvLI0pj97f",
+      "units": 1,
       "custom_fields": [],
       "status": "completed",
       "metadata": {
@@ -859,13 +1104,19 @@ A refund was created by the merchant
       "mode": "local"
     },
     "order": {
+      "object": "order",
       "id": "ord_4aDwWXjMLpes4Kj4XqNnUA",
       "customer": "cust_1OcIK1GEuVvXZwD19tjq2z",
       "product": "prod_d1AY2Sadk9YAvLI0pj97f",
       "amount": 1000,
       "currency": "EUR",
+      "sub_total": 1000,
+      "tax_amount": 210,
+      "amount_due": 1210,
+      "amount_paid": 1210,
       "status": "paid",
       "type": "recurring",
+      "transaction": "tran_5yMaWzAl3jxuGJMCOrYWwk",
       "created_at": "2024-10-12T11:58:33.097Z",
       "updated_at": "2024-10-12T11:58:33.097Z",
       "mode": "local"
@@ -875,7 +1126,9 @@ A refund was created by the merchant
       "object": "customer",
       "email": "customer@emaildomain",
       "name": "Tester Test",
+      "metadata": null,
       "country": "NL",
+      "external_id": null,
       "created_at": "2024-10-11T09:16:48.557Z",
       "updated_at": "2024-10-11T09:16:48.557Z",
       "mode": "local"
@@ -982,13 +1235,15 @@ A dispute was created by the customer
         "object": "customer",
         "email": "customer@emaildomain",
         "name": "Alec Erasmus",
+        "metadata": null,
         "country": "NL",
+        "external_id": null,
         "created_at": "2025-02-05T10:11:01.146Z",
         "updated_at": "2025-02-05T10:11:01.146Z",
         "mode": "sandbox"
       },
       "created_at": 1750941264728,
-      "mode": "local"
+      "mode": "sandbox"
     }
 }
   ```
@@ -998,7 +1253,7 @@ A dispute was created by the customer
 
 ### subscription.update
 
-A subscription object was updated
+A subscription object was updated without a change of status. A status change sends the matching status event instead, such as `subscription.paused`.
 
 <AccordionGroup>
   <Accordion title="Sample Request Body">
@@ -1012,15 +1267,20 @@ A subscription object was updated
     "object": "subscription",
     "product": {
       "id": "prod_1dP15yoyogQe2seEt1Evf3",
+      "object": "product",
       "name": "Monthly Sub",
       "description": "Test Test",
-      "image_url": null,
       "price": 1000,
       "currency": "EUR",
       "billing_type": "recurring",
       "billing_period": "every-month",
+      "recurring_interval": "month",
+      "recurring_interval_count": 1,
+      "trial_period_days": null,
+      "trial_price": null,
       "status": "active",
       "tax_mode": "exclusive",
+      "business_net_pricing": false,
       "tax_category": "saas",
       "default_success_url": "",
       "created_at": "2025-01-26T11:17:16.082Z",
@@ -1032,7 +1292,9 @@ A subscription object was updated
       "object": "customer",
       "email": "customer@emaildomain",
       "name": "John Doe",
+      "metadata": null,
       "country": "NL",
+      "external_id": null,
       "created_at": "2025-01-26T11:18:24.071Z",
       "updated_at": "2025-01-26T11:18:24.071Z",
       "mode": "local"
@@ -1080,15 +1342,20 @@ A subscription started a trial period
     "object": "subscription",
     "product": {
       "id": "prod_3kpf0ZdpcfsSCQ3kDiwg9m",
+      "object": "product",
       "name": "trail",
       "description": "asdfasf",
-      "image_url": null,
       "price": 1100,
       "currency": "EUR",
       "billing_type": "recurring",
       "billing_period": "every-month",
+      "recurring_interval": "month",
+      "recurring_interval_count": 1,
+      "trial_period_days": 7,
+      "trial_price": null,
       "status": "active",
       "tax_mode": "exclusive",
+      "business_net_pricing": false,
       "tax_category": "saas",
       "default_success_url": "",
       "created_at": "2025-02-19T11:18:07.570Z",
@@ -1100,7 +1367,9 @@ A subscription started a trial period
       "object": "customer",
       "email": "customer@emaildomain",
       "name": "Alec Erasmus",
+      "metadata": null,
       "country": "NL",
+      "external_id": null,
       "created_at": "2024-11-07T23:21:11.763Z",
       "updated_at": "2024-11-07T23:21:11.763Z",
       "mode": "test"
@@ -1154,8 +1423,13 @@ A subscription was paused.
       "currency": "EUR",
       "billing_type": "recurring",
       "billing_period": "every-month",
+      "recurring_interval": "month",
+      "recurring_interval_count": 1,
+      "trial_period_days": null,
+      "trial_price": null,
       "status": "active",
       "tax_mode": "exclusive",
+      "business_net_pricing": false,
       "tax_category": "saas",
       "default_success_url": "",
       "created_at": "2025-08-01T09:51:26.277Z",
@@ -1167,7 +1441,9 @@ A subscription was paused.
       "object": "customer",
       "email": "customer@emaildomain",
       "name": "Test Test",
+      "metadata": null,
       "country": "NL",
+      "external_id": null,
       "created_at": "2024-11-07T23:21:11.763Z",
       "updated_at": "2024-11-07T23:21:11.763Z",
       "mode": "test"

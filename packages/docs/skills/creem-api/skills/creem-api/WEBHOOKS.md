@@ -71,7 +71,7 @@ function verifySignature(rawBody: string, signature: string, secret: string): bo
 
 ## Retry Policy
 
-If your endpoint doesn't respond with HTTP 200, CREEM retries with progressive backoff. There are **5 attempts in total** — the initial delivery plus 4 retries:
+If your endpoint doesn't respond with a 2xx status within 15 seconds, CREEM retries with progressive backoff. There are **5 attempts in total** — the initial delivery plus 4 retries:
 
 | Attempt | Sent after the previous one |
 | ------- | --------------------------- |
@@ -85,7 +85,7 @@ Events are **not retried after 24 hours**, even if attempts remain. Once retries
 
 Two things to design around:
 
-- Retries mean your handler **must be idempotent** — the same event `id` can arrive more than once.
+- Retries mean your handler **must be idempotent** — the same event `id` can arrive more than once. A manual resend from the dashboard is sent with a new `id`.
 - The final retry can land roughly 6.5 hours after the event. Don't assume delivery within minutes, and anchor purchase time on `object.order.created_at` rather than when you received the event.
 
 ## Event Structure
@@ -115,7 +115,7 @@ Fired when a customer successfully completes a checkout. This is your primary tr
 {
   "id": "evt_5WHHcZPv7VS0YUsberIuOz",
   "eventType": "checkout.completed",
-  "created_at": 1728734325927,
+  "created_at": 1728734327412,
   "object": {
     "id": "ch_4l0N34kxo16AhRKUHFUuXr",
     "object": "checkout",
@@ -123,13 +123,19 @@ Fired when a customer successfully completes a checkout. This is your primary tr
     "status": "completed",
     "mode": "test",
     "order": {
+      "object": "order",
       "id": "ord_4aDwWXjMLpes4Kj4XqNnUA",
       "customer": "cust_1OcIK1GEuVvXZwD19tjq2z",
       "product": "prod_d1AY2Sadk9YAvLI0pj97f",
       "amount": 1000,
       "currency": "EUR",
+      "sub_total": 1000,
+      "tax_amount": 210,
+      "amount_due": 1210,
+      "amount_paid": 1210,
       "status": "paid",
       "type": "recurring",
+      "transaction": "tran_5yMaWzAl3jxuGJMCOrYWwk",
       "created_at": "2024-10-12T11:58:33.097Z",
       "updated_at": "2024-10-12T11:58:33.097Z"
     },
@@ -188,6 +194,12 @@ Fired when a customer successfully completes a checkout. This is your primary tr
 }
 ```
 
+**Discounts.** When a discount code was applied to the checkout, the order also
+carries `discount_amount` and `discount` (the discount ID), and the checkout
+carries a `discount` object with `id`, `discountCode`, `name`, `type`, `amount`,
+`duration` and, for repeating discounts, `durationInMonths`. `order.amount` and
+`order.sub_total` stay the price before the discount.
+
 **License keys.** When the purchased product issues license keys, the checkout
 object carries a `license_keys` array. This is the delivery mechanism for keys —
 you do not need to call the Licenses API to find out what was issued.
@@ -244,13 +256,13 @@ async function handleCheckoutCompleted(checkout: CheckoutObject) {
 
 ### subscription.active
 
-Fired when a new subscription is created and first payment collected. Use `subscription.paid` for granting access instead - this is mainly for synchronization.
+Fired when a new subscription is created and first payment collected, and whenever an existing subscription changes back to `active` from another status. Use `subscription.paid` for granting access instead - this is mainly for synchronization.
 
 ```json
 {
   "id": "evt_6EptlmjazyGhEPiNQ5f4lz",
   "eventType": "subscription.active",
-  "created_at": 1728734325927,
+  "created_at": 1726515642348,
   "object": {
     "id": "sub_21lfZb67szyvMiXnm6SVi0",
     "object": "subscription",
@@ -280,7 +292,9 @@ Fired when a new subscription is created and first payment collected. Use `subsc
 
 ### subscription.paid
 
-Fired when a subscription payment is successfully processed. This includes initial payments and renewals. `last_transaction` is the transaction that was just paid: `amount_paid` is what the customer was charged, including `tax_amount`.
+Fired when a subscription payment is successfully processed. This includes initial payments and renewals. `last_transaction` is the transaction that was just paid: `amount_paid` is what the customer was charged, including `tax_amount`. Its `customer` field is `null`; read the customer from the subscription.
+
+`subscription.canceled`, `subscription.scheduled_cancel` and `subscription.expired` also carry `last_transaction` (the most recent paid or refunded transaction). The other `subscription.*` events omit `last_transaction`, `last_transaction_id`, `last_transaction_date` and `next_transaction_date`.
 
 ```json
 {
@@ -319,7 +333,7 @@ Fired when a subscription payment is successfully processed. This includes initi
       "period_start": 1728734318000,
       "period_end": 1731412718000
     },
-    "last_transaction_date": "2024-10-12T11:58:47.109Z",
+    "last_transaction_date": "2024-10-12T11:58:38.000Z",
     "next_transaction_date": "2024-11-12T11:58:38.000Z",
     "current_period_start_date": "2024-10-12T11:58:38.000Z",
     "current_period_end_date": "2024-11-12T11:58:38.000Z",
@@ -351,7 +365,7 @@ async function handleSubscriptionPaid(subscription: SubscriptionObject) {
 
 ### subscription.canceled
 
-Fired when a subscription is canceled (by customer or merchant).
+Fired when a subscription is canceled (by customer or merchant), including when a scheduled cancellation takes effect at the end of the period.
 
 ```json
 {
@@ -522,7 +536,6 @@ Fired when a subscription moves to the `unpaid` status after failed payment coll
       "email": "customer@example.com"
     },
     "collection_method": "charge_automatically",
-    "last_transaction_id": "tran_6uBkPewvO7KHjfvGmpin82",
     "current_period_start_date": "2026-02-28T07:56:07.282Z",
     "current_period_end_date": "2026-03-30T07:56:07.282Z",
     "canceled_at": null,
@@ -535,7 +548,7 @@ Fired when a subscription moves to the `unpaid` status after failed payment coll
 
 ### subscription.expired
 
-Fired when the billing period ends without successful payment. Retries may still happen.
+Fired when the billing period ends without successful payment. Retries may still happen. CREEM checks once a day for subscriptions whose `current_period_end_date` fell on the previous day, so the event can arrive up to a day late.
 
 ```json
 {
@@ -567,7 +580,7 @@ Fired when the billing period ends without successful payment. Retries may still
 
 ### refund.created
 
-Fired when a refund is processed.
+Fired when a refund is processed and reaches the `succeeded` status.
 
 ```json
 {
@@ -662,7 +675,7 @@ Fired when a chargeback/dispute is opened.
 
 ### subscription.update
 
-Fired when a subscription is modified (seats changed, upgraded, etc.).
+Fired when a subscription is modified without a status change (seats changed, upgraded, etc.). Status changes fire the matching status event instead.
 
 ```json
 {
