@@ -19,6 +19,10 @@
   },
   "redirects": [
     {
+      "source": "/integrations/affiliates",
+      "destination": "/integrations/affonso"
+    },
+    {
       "source": "/code/sdks/typescript-core",
       "destination": "/code/sdks/typescript"
     },
@@ -259,21 +263,17 @@
             "icon": "link",
             "pages": [
               {
-                "group": "Affiliate Platforms",
-                "pages": ["integrations/affiliates", "integrations/rekomi"]
+                "group": "Affiliate programs",
+                "pages": [
+                  "integrations/affonso",
+                  "integrations/linkjolt",
+                  "integrations/referly",
+                  "integrations/rekomi"
+                ]
               },
-              {
-                "group": "Purchase Parity Platforms",
-                "pages": ["integrations/evendeals"]
-              },
-              {
-                "group": "CMS",
-                "pages": ["integrations/strapi"]
-              },
-              {
-                "group": "No-Code Builders",
-                "pages": ["integrations/framer"]
-              }
+              "integrations/evendeals",
+              "integrations/framer",
+              "integrations/strapi"
             ]
           },
           {

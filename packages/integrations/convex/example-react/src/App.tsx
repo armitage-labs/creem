@@ -1,6 +1,7 @@
 import {
   BillingGate,
   CheckoutSuccessSummary,
+  BillingEmail,
   BillingHistory,
   BillingPortal,
   CreemConvexProvider,
@@ -1080,12 +1081,31 @@ export default function App() {
                 <p className="body-l col-span-12 mt-6 text-center text-foreground-muted lg:col-start-4 lg:col-span-6">
                   A paginated transaction history sourced from Creem
                   transactions. Invoice and receipt documents are not included
-                  in this transaction view.
+                  in this transaction view. The form below changes the address
+                  Creem sends them to.
                 </p>
               </div>
 
               <div className="mt-12">
                 <BillingHistory pageSize={5} />
+              </div>
+
+              <div className="mt-12 grid gap-12 md:grid-cols-2">
+                {/* Default layout */}
+                <BillingEmail />
+
+                {/* Composed layout: same state, your markup */}
+                <BillingEmail.Root className="radius-xl border border-border-subtle bg-surface-base p-6">
+                  <BillingEmail.Label />
+                  <div className="flex gap-2">
+                    <BillingEmail.Input className="flex-1" />
+                    <BillingEmail.Save>Update</BillingEmail.Save>
+                  </div>
+                  <BillingEmail.Description className="body-s" />
+                  <BillingEmail.Status />
+                  <BillingEmail.Error />
+                  <BillingEmail.Retry />
+                </BillingEmail.Root>
               </div>
             </div>
           </section>

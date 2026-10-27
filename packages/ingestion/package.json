@@ -1,6 +1,6 @@
 {
   "name": "@creem_io/ingestion",
-  "version": "0.1.2",
+  "version": "0.1.3",
   "description": "Usage ingestion toolkit for Creem — buffered, retry-safe, non-blocking event delivery with pluggable metering strategies",
   "keywords": [
     "creem",
@@ -54,7 +54,7 @@
     "format:check": "prettier --check \"{src,tests}/**/*.ts\""
   },
   "dependencies": {
-    "creem": "workspace:^1.12.0"
+    "creem": "workspace:^1.13.0"
   },
   "peerDependencies": {
     "@ai-sdk/provider": ">=4.0.0"

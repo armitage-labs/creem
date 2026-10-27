@@ -7,7 +7,11 @@ import {
 } from "../CreemConvexProvider.js";
 import type { BillingPermissions, ConnectedBillingModel } from "./types.js";
 import { resolveBillingI18n } from "../../core/i18n.js";
-import { getConvexErrorMessage } from "../../core/convexError.js";
+import {
+  getConvexErrorCode,
+  getConvexErrorMessage,
+  SHARED_CUSTOMER_ERROR_CODE,
+} from "../../core/convexError.js";
 
 /**
  * Button that opens the Creem customer billing portal.
@@ -66,7 +70,11 @@ export const BillingPortal = ({
     } catch (cause) {
       // Without this the rejection is unhandled and the user gets no feedback
       // at all — the button just stops spinning.
-      setError(getConvexErrorMessage(cause, i18n.labels.portal.failedToOpen));
+      setError(
+        getConvexErrorCode(cause) === SHARED_CUSTOMER_ERROR_CODE
+          ? i18n.labels.portal.sharedCustomer
+          : getConvexErrorMessage(cause, i18n.labels.portal.failedToOpen),
+      );
     } finally {
       setIsLoading(false);
     }

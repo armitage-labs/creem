@@ -99,8 +99,15 @@ pnpm format:check
 
 Do not invent root commands such as `pnpm check` or `pnpm format --check`.
 Package-scoped instructions may define additional commands; see
-`packages/cli/AGENTS.md`, `packages/integrations/convex/AGENTS.md`, and the docs
-instructions under `packages/docs/`.
+`packages/cli/AGENTS.md`, `packages/integrations/convex/AGENTS.md`, and
+`packages/docs/AGENTS.md`.
+
+## Agent instruction files
+
+`AGENTS.md` is the single source of agent instructions, at the root and in each
+package. Claude Code reads `CLAUDE.md` instead, so every directory with an
+`AGENTS.md` that Claude Code should load also has a `CLAUDE.md` that contains
+only `@AGENTS.md`. Put new instructions in `AGENTS.md`, never in `CLAUDE.md`.
 
 ## Releases and documentation
 
@@ -112,3 +119,19 @@ ordinary feature pull requests; Changesets owns versioning.
 Update current documentation and the root package catalog when a package moves
 or changes status. Do not rewrite historical changelog or release-log links.
 Never point current documentation at archived standalone repositories.
+
+### Externally hosted documentation
+
+Some integrations are also documented on third-party sites. Those pages do not
+update with our releases.
+
+| Package                 | External page                                                  | Source                                                                                                                                                         |
+| ----------------------- | -------------------------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `@creem_io/better-auth` | [Better Auth docs](https://better-auth.com/docs/plugins/creem) | [`docs/content/docs/plugins/creem.mdx`](https://github.com/better-auth/better-auth/blob/main/docs/content/docs/plugins/creem.mdx) in `better-auth/better-auth` |
+
+When a change affects a listed package's setup, public API, defaults, or
+webhook behavior, or edits its docs.creem.io pages, check the external page in
+the same pull request. If it is now wrong, open a pull request against the
+external repository and link it. Otherwise, state in the description that the
+external page is still accurate. Add a row when an integration gains an
+external page.

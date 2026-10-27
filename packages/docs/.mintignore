@@ -8,7 +8,8 @@
 #
 # Syntax matches .gitignore.
 
-# Internal repo dev guide for working on the docs package — no API relevance.
+# Internal agent instructions for working on the docs package, no API relevance.
+AGENTS.md
 CLAUDE.md
 
 # Repo-level README that explains how to develop the docs package locally.

@@ -27,7 +27,7 @@ export type ComponentApi<Name extends string | undefined = string | undefined> =
       activateScheduledAppPlanAssignment: FunctionReference<
         "mutation",
         "internal",
-        { planId?: string; subscriptionId: string },
+        { entityId: string; planId?: string; subscriptionId: string },
         {
           assignedByUserId?: string;
           createdAt: string;
@@ -81,6 +81,13 @@ export type ComponentApi<Name extends string | undefined = string | undefined> =
         },
         Name
       >;
+      backfillBillingEntityTags: FunctionReference<
+        "mutation",
+        "internal",
+        { batchSize?: number; cursor?: string | null },
+        { cursor: string | null; isDone: boolean; processed: number },
+        Name
+      >;
       cancelPendingScheduledSubscriptionUpdates: FunctionReference<
         "mutation",
         "internal",
@@ -103,7 +110,7 @@ export type ComponentApi<Name extends string | undefined = string | undefined> =
       cancelScheduledAppPlanAssignment: FunctionReference<
         "mutation",
         "internal",
-        { planId?: string; subscriptionId: string },
+        { entityId: string; planId?: string; subscriptionId: string },
         {
           assignedByUserId?: string;
           createdAt: string;
@@ -135,6 +142,13 @@ export type ComponentApi<Name extends string | undefined = string | undefined> =
           targetUnits?: number;
           updatedAt: string;
         } | null,
+        Name
+      >;
+      claimSubscriptionOwner: FunctionReference<
+        "mutation",
+        "internal",
+        { entityId: string; id: string },
+        string | null,
         Name
       >;
       compensateSubscriptionLifecycle: FunctionReference<
@@ -182,6 +196,7 @@ export type ComponentApi<Name extends string | undefined = string | undefined> =
             customerId: string;
             discountAmount?: number;
             discountId?: string | null;
+            entityId?: string;
             id: string;
             metadata?: Record<string, any>;
             mode?: string;
@@ -257,6 +272,7 @@ export type ComponentApi<Name extends string | undefined = string | undefined> =
             discountId?: string | null;
             endedAt: string | null;
             endsAt?: string | null;
+            entityId?: string;
             id: string;
             lastTransactionId?: string | null;
             metadata: Record<string, any>;
@@ -390,6 +406,7 @@ export type ComponentApi<Name extends string | undefined = string | undefined> =
           discountId?: string | null;
           endedAt: string | null;
           endsAt?: string | null;
+          entityId?: string;
           id: string;
           lastTransactionId?: string | null;
           metadata: Record<string, any>;
@@ -436,12 +453,79 @@ export type ComponentApi<Name extends string | undefined = string | undefined> =
           country?: string;
           createdAt?: string;
           email?: string;
+          emailUpdatedAt?: string;
           entityId: string;
           id: string;
           metadata?: Record<string, any>;
           mode?: string;
           name?: string | null;
           updatedAt?: string;
+        } | null,
+        Name
+      >;
+      getEntitySubscription: FunctionReference<
+        "query",
+        "internal",
+        { entityId: string; id: string },
+        {
+          amount: number | null;
+          cancelAtPeriodEnd: boolean;
+          canceledAt?: string | null;
+          checkoutId: string | null;
+          collectionMethod?: string;
+          createdAt: string;
+          currency: string | null;
+          currentPeriodEnd: string | null;
+          currentPeriodStart: string;
+          customerId: string;
+          discountId?: string | null;
+          endedAt: string | null;
+          endsAt?: string | null;
+          entityId?: string;
+          id: string;
+          lastTransactionId?: string | null;
+          metadata: Record<string, any>;
+          mode?: string;
+          modifiedAt: string | null;
+          nextTransactionDate?: string | null;
+          priceId?: string;
+          productId: string;
+          recurringInterval: string | null;
+          seats?: number | null;
+          startedAt: string | null;
+          status: string;
+          trialEnd?: string | null;
+          trialExpiryScheduledFor?: string;
+          trialStart?: string | null;
+        } | null,
+        Name
+      >;
+      getOrder: FunctionReference<
+        "query",
+        "internal",
+        { id: string },
+        {
+          affiliate?: string | null;
+          amount: number;
+          amountDue?: number;
+          amountPaid?: number;
+          checkoutId?: string | null;
+          createdAt: string;
+          currency: string;
+          customerId: string;
+          discountAmount?: number;
+          discountId?: string | null;
+          entityId?: string;
+          id: string;
+          metadata?: Record<string, any>;
+          mode?: string;
+          productId: string;
+          status: string;
+          subTotal?: number;
+          taxAmount?: number;
+          transactionId?: string | null;
+          type: string;
+          updatedAt: string;
         } | null,
         Name
       >;
@@ -508,6 +592,7 @@ export type ComponentApi<Name extends string | undefined = string | undefined> =
           discountId?: string | null;
           endedAt: string | null;
           endsAt?: string | null;
+          entityId?: string;
           id: string;
           lastTransactionId?: string | null;
           metadata: Record<string, any>;
@@ -533,6 +618,7 @@ export type ComponentApi<Name extends string | undefined = string | undefined> =
           country?: string;
           createdAt?: string;
           email?: string;
+          emailUpdatedAt?: string;
           entityId: string;
           id: string;
           metadata?: Record<string, any>;
@@ -541,6 +627,13 @@ export type ComponentApi<Name extends string | undefined = string | undefined> =
           updatedAt?: string;
         },
         string,
+        Name
+      >;
+      isCustomerShared: FunctionReference<
+        "query",
+        "internal",
+        { customerId: string; entityId: string },
+        boolean,
         Name
       >;
       listAllUserSubscriptions: FunctionReference<
@@ -561,6 +654,7 @@ export type ComponentApi<Name extends string | undefined = string | undefined> =
           discountId?: string | null;
           endedAt: string | null;
           endsAt?: string | null;
+          entityId?: string;
           id: string;
           lastTransactionId?: string | null;
           metadata: Record<string, any>;
@@ -631,6 +725,13 @@ export type ComponentApi<Name extends string | undefined = string | undefined> =
         }>,
         Name
       >;
+      listCustomerEntities: FunctionReference<
+        "query",
+        "internal",
+        { customerId: string },
+        { entities: Array<string>; truncated: boolean },
+        Name
+      >;
       listCustomerSubscriptions: FunctionReference<
         "query",
         "internal",
@@ -649,6 +750,7 @@ export type ComponentApi<Name extends string | undefined = string | undefined> =
           discountId?: string | null;
           endedAt: string | null;
           endsAt?: string | null;
+          entityId?: string;
           id: string;
           lastTransactionId?: string | null;
           metadata: Record<string, any>;
@@ -727,6 +829,7 @@ export type ComponentApi<Name extends string | undefined = string | undefined> =
           customerId: string;
           discountAmount?: number;
           discountId?: string | null;
+          entityId?: string;
           id: string;
           metadata?: Record<string, any>;
           mode?: string;
@@ -758,6 +861,7 @@ export type ComponentApi<Name extends string | undefined = string | undefined> =
           discountId?: string | null;
           endedAt: string | null;
           endsAt?: string | null;
+          entityId?: string;
           id: string;
           lastTransactionId?: string | null;
           metadata: Record<string, any>;
@@ -850,6 +954,18 @@ export type ComponentApi<Name extends string | undefined = string | undefined> =
         },
         Name
       >;
+      setCustomerEmail: FunctionReference<
+        "mutation",
+        "internal",
+        {
+          customerId: string;
+          email: string;
+          entityId: string;
+          updatedAt: string;
+        },
+        null,
+        Name
+      >;
       setScheduledSubscriptionUpdateJob: FunctionReference<
         "mutation",
         "internal",
@@ -938,6 +1054,7 @@ export type ComponentApi<Name extends string | undefined = string | undefined> =
             discountId?: string | null;
             endedAt: string | null;
             endsAt?: string | null;
+            entityId?: string;
             id: string;
             lastTransactionId?: string | null;
             metadata: Record<string, any>;
