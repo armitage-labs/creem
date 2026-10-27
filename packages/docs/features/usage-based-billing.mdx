@@ -332,7 +332,7 @@ You run a map API. A vector tile costs €0.004 and a geocoding lookup costs €
       }'
     ```
 
-    The dashboard quotes these rates per 1,000 units: "€0.40 per 1,000 tiles" and "€40.00 per 1,000 lookups".
+    The dashboard quotes these rates per 1,000 units: "€4.00 per 1,000 tiles" and "€40.00 per 1,000 lookups".
 
   </Step>
   <Step title="A top-up pack">
@@ -379,8 +379,8 @@ A charge the wallet cannot cover is refused, the customer gets an email, and you
 
 ### Things to know
 
-- **Windows are calendar months (UTC).** Every meter totals usage per customer per calendar month, independent of the subscription's billing date, and settlement charges the difference each time a month's total changes.
-- **Paused subscriptions are not settled.** Metering continues while a subscription is paused, and the accumulated charge is collected when it is active again. Pausing is not a way to keep debiting while skipping the monthly fee.
+- **Prepaid windows are calendar months (UTC).** For prepaid settlement, every meter totals usage per customer per calendar month, independent of the subscription's billing date, and settlement charges the difference each time a month's total changes.
+- **Paused subscriptions are not settled.** Metering continues while a subscription is paused. Resuming does not trigger a settlement on its own: the month's accumulated charge is collected by the next event that arrives in that same month, and a month that ends with no event after the resume stays uncollected. Pausing is not a way to keep debiting while skipping the monthly fee.
 - **Usage prices need a live subscription.** Customers who only buy packs fund the wallet but are not debited automatically. Debit them through the [credits API](/features/customer-credits/transactions) yourself until a plan without a base fee is available.
 - **Use `free_allowance`** on a usage price for units per month that should not be charged at all, and `cap` to bound a customer's monthly usage charge.
 
