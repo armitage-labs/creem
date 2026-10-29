@@ -56,11 +56,25 @@ Consent belongs to the customer. It names the credit top-up product to re-purcha
 
 A refill that would break a guardrail is skipped and nothing is charged. The exhaustion notice still goes out, so the customer knows to top up by hand.
 
-<Info>
-  Consent is stored per customer and bucket on Creem. The switch for customers to opt in from the
-  hosted [customer portal](/features/customer-portal) is not available yet. If you want to offer
-  auto-refill to your customers today, contact [support@creem.io](mailto:support@creem.io).
-</Info>
+### How customers opt in
+
+Customers turn auto-refill on themselves in the [customer portal](/features/customer-portal). They
+sign in with their email at [creem.io/portal/login](https://creem.io/portal/login), and an
+**Auto-refill** section lists each credit bucket they hold on your store. For each bucket they pick
+the top-up product and set the limits above, and they can switch it off there at any time.
+
+- The section appears once the customer has a credit balance on your store, for example from buying
+  a credit-granting product.
+- A refill also needs a payment method saved during an earlier checkout on your store. The portal
+  says so when none is on file.
+- Consent is stored per customer and bucket on Creem. Because it authorizes charges to the
+  customer's own payment method, it can't be set through the API or by you on a customer's behalf.
+  To offer auto-refill, point customers to the portal from your product.
+
+<Note>
+  Opting in is available in live mode only for now. In test mode, customers can't turn on
+  auto-refill yet.
+</Note>
 
 ## How a Refill Is Charged
 
