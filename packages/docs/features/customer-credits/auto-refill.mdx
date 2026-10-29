@@ -23,7 +23,7 @@ Both parts are built for a usage flow where thousands of events can arrive betwe
 
 - **A credit top-up product.** A product with a `customerCredits` feature that grants credits into the bucket your usage price debits. This is the product Creem re-purchases. Its price at the time of the refill is what the customer pays, so re-pricing it applies to future refills automatically.
 - **A prepaid usage price on the customer's plan** that debits the same bucket.
-- **A previous checkout by the customer** on your store. The refill is charged to the payment method saved during that checkout, and the customer's tax location comes from their most recent checkout as well. Without both, Creem does not attempt a charge.
+- **The customer's subscription checkout** on your store. The refill is charged to the payment method saved when they subscribed (a one-time purchase doesn't save one), and the customer's tax location comes from their most recent checkout. Without both, Creem does not attempt a charge.
 - **The customer's consent**, described below. Auto-refill is opt-in per customer and per bucket, and never charges anyone who has not agreed to it.
 
 ## Exhaustion Notices
