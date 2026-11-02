@@ -59,4 +59,5 @@ Append `.md` to any documentation URL to fetch it as raw markdown.
 ## Background
 
 - [Merchant of Record](https://docs.creem.io/merchant-of-record/what-is.md): what an MoR is and what Creem takes on for you
+- [Account reviews](https://docs.creem.io/merchant-of-record/account-reviews/account-reviews.md): what a store needs before accepting live payments, including a website on its own custom domain
 - [For customers](https://docs.creem.io/for-customers/why-creem-charged-me.md): end-customer billing questions, for support pages
