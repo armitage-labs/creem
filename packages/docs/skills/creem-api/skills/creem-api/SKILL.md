@@ -100,6 +100,7 @@ When implementing Creem:
    - [ ] Store API key in environment variables
    - [ ] Configure base URL for test/production
    - [ ] Set up webhook endpoint
+   - [ ] Website on the merchant's own custom domain (required for account review)
 
 2. **Checkout flow**
    - [ ] Create checkout session with product_id

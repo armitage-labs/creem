@@ -8,7 +8,7 @@ Before you can accept live payments through Creem, your store needs to pass an a
 This page gives you the core checklist. If you need next-step guidance after a rejection, use the [Re-Review Guide](/merchant-of-record/account-reviews/re-review-guide). If you're building an AI image or video product, also read [AI Wrapper Compliance](/merchant-of-record/account-reviews/ai-wrapper-compliance).
 
 <Tip>
-  The fastest approvals happen when your product is already live, your legal pages are visible, and your support email matches what appears on your website.
+  The fastest approvals happen when your product is already live on its own domain, your legal pages are visible, and your support email matches what appears on your website.
 </Tip>
 
 ## Approval checklist
@@ -16,6 +16,7 @@ This page gives you the core checklist. If you need next-step guidance after a r
 | Requirement | Details |
 | --- | --- |
 | **Product is live** | Your product is ready for production. Still building? Use [Test Mode](/getting-started/test-mode) first. |
+| **Own custom domain** | Your website runs on your own custom domain. Shared URLs such as social media profiles, marketplace or checkout pages, and free hosting subdomains are not accepted. |
 | **No false information** | No fake reviews, testimonials, or inflated user/customer counts on your website. |
 | **Privacy Policy & Terms of Service** | Both legal pages must be present and accessible on your website. |
 | **Product clearly visible** | We must be able to understand what you're selling from your website or landing page. |
@@ -25,6 +26,20 @@ This page gives you the core checklist. If you need next-step guidance after a r
 | **Customer support email** | A reachable support email must be set up and shown on your website and receipts. |
 | **Moderation API** | AI image/video generation products must integrate the [CREEM Moderation API](/features/moderation). |
 | **Not on prohibited list** | Your product must not fall under our [prohibited product list](#prohibited-products). |
+
+### Why a custom domain is required
+
+Customers and payment partners rely on your website to know who they are buying from. A custom domain shows that your business is established, stays under your control, and belongs to you. That is why every Creem store needs a website on its own custom domain before it can accept live payments.
+
+**Accepted:** a domain you own, such as `yourbrand.com`, or a subdomain of it, such as `app.yourbrand.com`.
+
+**Not accepted:**
+
+- Free hosting subdomains, such as `yourapp.vercel.app`, `yourapp.netlify.app`, `yourname.github.io`, `yourapp.pages.dev`, Notion or Google Sites pages
+- Social media profiles and channels, such as Instagram, Facebook, YouTube, TikTok, X or Telegram
+- Design and file share links, such as Canva links or Google Drive folders
+- Marketplace and checkout pages, such as Gumroad, Payhip or Whop pages, or a Creem checkout link
+- Code repositories, such as a GitHub repo
 
 ## Review process
 
@@ -54,7 +69,7 @@ Go to **Balance → Payout Account** and click **Set up Payout Account** to subm
 
 - Your full individual name and/or your business entity name
 - Your store or product name
-- The product URL of your store
+- Your website URL, on your own custom domain
 - A description of your business and how you operate
 - A description of the products you intend to sell through Creem
 - Your country of tax residence
@@ -71,10 +86,11 @@ Go to **Balance → Payout Account** and click **Set up Payout Account** to subm
 
 1. **Support email mismatch** - The email in your Business Details doesn't match what's on your website.
 2. **Website not accessible** - Your site is down, password-protected, or returning errors during review.
-3. **Missing legal pages** - Your website needs a Privacy Policy and Terms of Service.
-4. **False information** - Fake reviews, testimonials, or inflated user counts on your website.
-5. **Product not ready** - If your product isn't live yet, use [Test Mode](/getting-started/test-mode) until it's ready.
-6. **AI compliance issues** - AI image/video products are missing moderation, AUP, or clear product disclosures.
+3. **No custom domain** - Your website URL is not on your own custom domain.
+4. **Missing legal pages** - Your website needs a Privacy Policy and Terms of Service.
+5. **False information** - Fake reviews, testimonials, or inflated user counts on your website.
+6. **Product not ready** - If your product isn't live yet, use [Test Mode](/getting-started/test-mode) until it's ready.
+7. **AI compliance issues** - AI image/video products are missing moderation, AUP, or clear product disclosures.
 
 <CardGroup cols={2}>
   <Card title="Re-Review Guide" icon="rotate-right" href="/merchant-of-record/account-reviews/re-review-guide">
