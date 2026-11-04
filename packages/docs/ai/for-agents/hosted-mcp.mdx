@@ -77,6 +77,8 @@ Only **View your store** is ticked on a first connect. Tick the others the agent
 
 A tool outside the granted permissions fails with `missing scope`, for example `missing scope: refunds:write`. To add a permission, connect again from your client: the consent screen keeps what you already allowed and offers the rest.
 
+When you grant a permission that changes your store, the consent screen also shows **Confirmations**: **Ask before risky actions**, ticked by default. Leave it ticked unless you trust the agent to act without asking. See [Security](#security).
+
 You, and the store owner if that's someone else, get an email when an agent is connected or gets new permissions.
 
 ## Test and live mode
@@ -108,22 +110,27 @@ To change mode later, ask your agent (for example "switch Creem to live mode") o
 
 ## Security
 
-<Warning>
-  Some tools change your store and can't be undone. Creem asks **you**, not the agent, to confirm
-  them before anything happens.
-</Warning>
+Some tools change your store and can't be undone. By default, Creem asks **you**, not the agent, to confirm them before anything happens.
 
-| Tool                  | Asks you to confirm                                       |
-| --------------------- | --------------------------------------------------------- |
-| `issue_refund`        | Always                                                    |
-| `cancel_subscription` | Always                                                    |
-| `create_discount`     | Always                                                    |
-| `delete_discount`     | Always                                                    |
-| `archive_product`     | Always                                                    |
-| `update_product`      | When it changes the price, currency, trial or success URL |
-| `switch_mode`         | When switching to live                                    |
+| Tool                  | Asks you to confirm                                                                          |
+| --------------------- | -------------------------------------------------------------------------------------------- |
+| `issue_refund`        | Yes, unless you turn confirmations off                                                       |
+| `cancel_subscription` | Yes, unless you turn confirmations off                                                       |
+| `create_discount`     | Yes, unless you turn confirmations off                                                       |
+| `delete_discount`     | Yes, unless you turn confirmations off                                                       |
+| `archive_product`     | Yes, unless you turn confirmations off                                                       |
+| `update_product`      | When it changes the price, currency, trial or success URL, unless you turn confirmations off |
+| `switch_mode`         | Always when switching to live, even with confirmations off                                   |
 
 Clients that can show a prompt display it with **Accept** and **Decline**. In other clients, the agent shows you the question in the chat and runs the tool only after you reply "yes". A confirmation covers exactly that action, works once and expires after 10 minutes.
+
+To let a connection act without asking, turn off **Ask before risky actions** for it in [Connected apps](#connected-apps). The setting applies to that connection only, in test and live mode.
+
+<Warning>
+  With confirmations off, the agent may also act on text your buyers wrote, such as a customer name,
+  without asking you. Someone could hide instructions in that text. Creem recommends keeping
+  confirmations on.
+</Warning>
 
 Two more things to do:
 
@@ -133,7 +140,13 @@ Two more things to do:
 
 ## Connected apps
 
-**Settings → Connected apps** in the dashboard lists the agents connected to your store, who connected them and their mode. There you can switch a connection between test and live mode, or disconnect it. You can manage the connections you made; the store owner can manage all of them.
+**Settings → Connected apps** in the dashboard lists the agents connected to your store, who connected them, their mode and whether they ask before risky actions. There you can:
+
+- switch a connection between test and live mode
+- turn **Ask before risky actions** on or off with **Change**. The change takes effect within a minute
+- disconnect a connection
+
+You can manage the connections you made; the store owner can manage all of them. Connecting the same app again keeps its current confirmation setting, so change it here.
 
 A disconnected agent has to sign in again. Changes it already made, such as refunds or new products, stay.
 
