@@ -6,10 +6,10 @@ description: Run Creem's MCP server on your own machine with an API key. 77 tool
 The Creem TypeScript SDK ships an [MCP](https://modelcontextprotocol.io) server that runs on your machine. Point Claude Code, Claude Desktop, Cursor or any MCP client at it and your agent can create products, open checkouts, manage subscriptions, issue refunds, register webhook endpoints and inspect your store — by calling the real API, with your key.
 
 <Tip>
-  **Looking for the hosted server?** To connect ChatGPT, Claude Code or Codex without an API key,
-  use the [hosted MCP](/ai/for-agents/hosted-mcp) at `https://mcp.creem.io/mcp`: you sign in with
-  your Creem account. This page is the local server, for scripts, CI and clients the hosted server
-  doesn't support yet.
+  **Looking for the hosted server?** To connect Claude, Claude Code, ChatGPT, Codex, Cursor or
+  another MCP client without an API key, use the [hosted MCP](/ai/for-agents/hosted-mcp) at
+  `https://mcp.creem.io/mcp`: you sign in with your Creem account. This page is the local server,
+  for scripts and CI.
 </Tip>
 
 <Tip>
@@ -24,7 +24,7 @@ The Creem TypeScript SDK ships an [MCP](https://modelcontextprotocol.io) server 
 | ------------------ | --------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------ |
 | Where it runs      | Creem runs it at `https://mcp.creem.io/mcp`                                                                                 | On your machine, started by your MCP client with `npx` |
 | Sign-in            | Your Creem account (OAuth), no API key                                                                                      | An API key you paste into the client config            |
-| Clients            | ChatGPT, Claude Code, Codex                                                                                                 | Any MCP client that can start a local command          |
+| Clients            | Claude, Claude Code, ChatGPT, Codex, Cursor and other remote MCP clients                                                    | Any MCP client that can start a local command          |
 | Tools              | 25 curated tools                                                                                                            | 77 tools, one per API operation                        |
 | Risky actions      | Refunds, cancellations, deletes and going live ask you to confirm (you can turn this off per connection, except going live) | Run as soon as the agent calls them                    |
 | Test and live mode | One connection, switch between modes                                                                                        | Set by the key and `--server`                          |

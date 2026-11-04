@@ -1,23 +1,20 @@
 ---
 title: Hosted MCP Server
-description: Connect ChatGPT, Claude Code or Codex to your Creem store at mcp.creem.io. Sign in with your Creem account, no API key.
+description: Connect Claude, Claude Code, ChatGPT, Codex, Cursor or any remote MCP client to your Creem store at mcp.creem.io. Sign in with your Creem account, no API key.
 ---
 
-Creem runs an [MCP](https://modelcontextprotocol.io) server at `https://mcp.creem.io/mcp`. Add it to ChatGPT, Claude Code or Codex, sign in with your Creem account, and your agent can look up customers, subscriptions and payments, create products, checkout links and discount codes, cancel subscriptions and issue refunds. There is nothing to install and no API key to paste.
+Creem runs an [MCP](https://modelcontextprotocol.io) server at `https://mcp.creem.io/mcp`. Add it to Claude, Claude Code, ChatGPT, Codex, Cursor or another MCP client, sign in with your Creem account, and your agent can look up customers, subscriptions and payments, create products, checkout links and discount codes, cancel subscriptions and issue refunds. There is nothing to install and no API key to paste.
 
 <Tip>
   **Hosted or local?** The hosted server signs you in with your Creem account and asks you to
   confirm before risky actions. The [local MCP server](/ai/for-agents/mcp-server) runs on your
-  machine with an API key and exposes the whole API. Use it for scripts, CI and clients the hosted
-  server doesn't support yet.
+  machine with an API key and exposes the whole API. Use it for scripts and CI.
 </Tip>
 
 ## Requirements
 
 - A Creem account with at least one store ([sign up](https://creem.io/dashboard))
-- ChatGPT, Claude Code, or Codex 0.147 or newer
-
-Other clients, such as Claude.ai, Claude Desktop, Cursor and VS Code, can't sign in yet. Use the [local MCP server](/ai/for-agents/mcp-server) with them.
+- An MCP client: [Claude](#claude), [Claude Code](#claude-code), [ChatGPT](#chatgpt), [Codex](#codex) 0.147 or newer, [Cursor](#cursor), or [another client](#other-clients) that supports remote MCP servers
 
 ## Quickstart
 
@@ -25,7 +22,16 @@ Other clients, such as Claude.ai, Claude Desktop, Cursor and VS Code, can't sign
 claude mcp add --transport http creem https://mcp.creem.io/mcp
 ```
 
-Then run `/mcp` in Claude Code, select **creem** and choose **Authenticate**. Your browser opens the Creem sign-in. For ChatGPT and Codex, see below.
+Then run `/mcp` in Claude Code, select **creem** and choose **Authenticate**. Your browser opens the Creem sign-in. For other clients, see below.
+
+## Claude
+
+In Claude, open **Settings → Connectors**, select **Add custom connector** and enter:
+
+- **Name:** `Creem`
+- **Remote MCP server URL:** `https://mcp.creem.io/mcp`
+
+Select **Add**, then **Connect**, and sign in with your Creem account. The connector works on claude.ai, in Claude Desktop and in the mobile apps. On Team and Enterprise plans, an owner adds the connector for the organization first.
 
 ## Claude Code
 
@@ -62,6 +68,45 @@ codex mcp login creem
 
 `codex mcp login` opens your browser for the Creem sign-in. The Codex CLI, the IDE extension and the ChatGPT desktop app share one configuration, so adding the server once works in all three.
 
+## Cursor
+
+Add the following to `.cursor/mcp.json` in your project, or to `~/.cursor/mcp.json` to make Creem available in every project:
+
+```json
+{
+  "mcpServers": {
+    "creem": {
+      "url": "https://mcp.creem.io/mcp"
+    }
+  }
+}
+```
+
+Open **Customize** in Cursor's sidebar, connect `creem` and sign in with your Creem account. Cursor's cloud agents can't connect: sign-in only completes on your own machine.
+
+## Other clients
+
+If your client accepts a remote MCP URL, add:
+
+```
+https://mcp.creem.io/mcp
+```
+
+If it only supports local commands, use the [`mcp-remote`](https://www.npmjs.com/package/mcp-remote) bridge:
+
+```json
+{
+  "mcpServers": {
+    "creem": {
+      "command": "npx",
+      "args": ["mcp-remote", "https://mcp.creem.io/mcp"]
+    }
+  }
+}
+```
+
+Your browser opens the Creem sign-in the first time the client starts the server. A client not listed above can sign in only if it completes sign-in on your own machine, as `mcp-remote` does. If your client sends the sign-in back to its own website instead, connect it through `mcp-remote` or use the [local MCP server](/ai/for-agents/mcp-server).
+
 ## Sign-in and permissions
 
 When you connect, your browser opens Creem's sign-in and consent screen. You sign in, pick a store and a [mode](#test-and-live-mode), and choose what the agent can do. A connection works on one store; picking another store later replaces it.
@@ -85,7 +130,7 @@ You, and the store owner if that's someone else, get an email when an agent is c
 
 Each connection works in one mode at a time. **Test mode** uses your store's [test mode](/getting-started/test-mode) data, and no real money moves. **Live mode** works on real payments, refunds and subscriptions.
 
-You choose the mode on the consent screen. **Live** is preselected when your store is approved for live payments. Every tool result says which mode it ran in, and every confirmation starts with `[Test mode]` or `[LIVE mode]`.
+You choose the mode on the consent screen. **Live** is preselected on every new connection; pick **Test** to try things out first. If live payments aren't enabled for your store yet, no real payments run until they are. Every tool result says which mode it ran in, and every confirmation starts with `[Test mode]` or `[LIVE mode]`.
 
 To change mode later, ask your agent (for example "switch Creem to live mode") or use **Settings → Connected apps** in the dashboard. Switching to live asks you to confirm.
 
@@ -172,9 +217,10 @@ The result ends with `Ran in test mode: test data, no real money.` If you get an
 ## Troubleshooting
 
 <AccordionGroup>
-  <Accordion title="Sign-in fails with invalid_client">
-    Your client can't sign in to the hosted server yet. See [Requirements](#requirements), or use
-    the [local MCP server](/ai/for-agents/mcp-server).
+  <Accordion title="My client can't finish signing in">
+    Your client isn't listed on this page and sends the sign-in back to its own website instead of
+    your machine. Connect it with the `mcp-remote` bridge (see [Other clients](#other-clients)), or
+    use the [local MCP server](/ai/for-agents/mcp-server).
   </Accordion>
   <Accordion title="Every call fails with “The Creem MCP isn't enabled for this store yet”">
     The hosted server isn't enabled for your store. Contact [support](mailto:support@creem.io). Once

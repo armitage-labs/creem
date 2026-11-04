@@ -30,7 +30,7 @@ Append `.md` to any documentation URL to fetch it as raw markdown.
 
 ## AI and agents
 
-- [Hosted MCP](https://docs.creem.io/ai/for-agents/hosted-mcp.md): connect ChatGPT, Claude Code or Codex to https://mcp.creem.io/mcp and sign in with a Creem account (OAuth, no API key); test and live mode, tools, confirmations
+- [Hosted MCP](https://docs.creem.io/ai/for-agents/hosted-mcp.md): connect Claude, Claude Code, ChatGPT, Codex, Cursor or any remote MCP client to https://mcp.creem.io/mcp and sign in with a Creem account (OAuth, no API key); test and live mode, tools, confirmations
 - [Local MCP server](https://docs.creem.io/ai/for-agents/mcp-server.md): the MCP server in the `creem` npm package, run locally with an API key
 - [Skill files](https://docs.creem.io/ai/for-agents/skill-files.md): reference material an agent reads to integrate Creem
 
