@@ -31,7 +31,7 @@ describe("retrieveSubscription", () => {
 
   it("should handle request errors with invalid subscription ID", async () => {
     try {
-      await creem.subscriptions.get("non-existent-subscription-id");
+      await creem.subscriptions.get({ subscriptionId: "non-existent-subscription-id" });
       fail("Expected error with invalid subscription ID but none was thrown");
     } catch (error) {
       expect(error).toBeDefined();

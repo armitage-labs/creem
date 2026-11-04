@@ -601,7 +601,9 @@ export class Creem {
 
     // Read through to Creem: the local record only keeps the first address it
     // saw, and an address changed in the Creem dashboard never reaches it.
-    const creemCustomer = await this.sdk.customers.retrieve(customer.id);
+    const creemCustomer = await this.sdk.customers.retrieve({
+      customerId: customer.id,
+    });
     return { status: "ok", email: creemCustomer.email };
   }
 
@@ -641,7 +643,9 @@ export class Creem {
     // Read the address back with Creem's `updated_at` and let the mirror keep
     // only the newest readback. Overlapping saves can finish in any order;
     // mirroring each response as it arrives could store an older address.
-    const current = await this.sdk.customers.retrieve(customer.id);
+    const current = await this.sdk.customers.retrieve({
+      customerId: customer.id,
+    });
     await ctx.runMutation(this.component.lib.setCustomerEmail, {
       entityId,
       customerId: customer.id,
@@ -998,10 +1002,10 @@ export class Creem {
       throw new ConvexError(CUSTOMER_CHECKOUT_REQUIRED_ERROR);
     }
     // Try to find existing default account
-    const accounts = await this.sdk.customerCredits.listAccounts(
-      10,
-      customer.id,
-    );
+    const accounts = await this.sdk.customerCredits.listAccounts({
+      limit: 10,
+      customerId: customer.id,
+    });
     const accountData = getCustomerCreditAccounts(accounts);
     const existing = accountData.find(
       (a) => a.name === "default" || a.name === "credits",
@@ -1022,10 +1026,10 @@ export class Creem {
     { createIfMissing = true }: { createIfMissing?: boolean } = {},
   ): Promise<string | null> {
     const accountName = grant?.accountName ?? "credits";
-    const accounts = await this.sdk.customerCredits.listAccounts(
-      10,
-      customerId,
-    );
+    const accounts = await this.sdk.customerCredits.listAccounts({
+      limit: 10,
+      customerId: customerId,
+    });
     const accountData = getCustomerCreditAccounts(accounts);
     const existing = accountData.find((a) => a.name === accountName);
     if (existing) return existing.id;
@@ -1979,13 +1983,13 @@ export class Creem {
           return emptyPage;
         }
 
-        const page = await this.sdk.transactions.search(
-          customer.id,
-          orderId,
-          productId,
-          pageNumber,
-          pageSize,
-        );
+        const page = await this.sdk.transactions.search({
+          customerId: customer.id,
+          orderId: orderId,
+          productId: productId,
+          pageNumber: pageNumber,
+          pageSize: pageSize,
+        });
         const result = unwrapTransactionSearchPage(page);
         return {
           items: (result.items ?? []).map((transaction) => ({
@@ -2128,14 +2132,19 @@ export class Creem {
         });
       },
       getBalance: async (accountId: string) => {
-        return await this.sdk.customerCredits.getAccountBalance(accountId);
+        return await this.sdk.customerCredits.getAccountBalance({
+          id: accountId,
+        });
       },
       credit: async (
         accountId: string,
         args: { amount: string; reference: string; idempotencyKey: string },
       ) => {
         return await this.tolerateCustomerCreditsResponseValidation(() =>
-          this.sdk.customerCredits.creditAccount(accountId, args),
+          this.sdk.customerCredits.creditAccount({
+            id: accountId,
+            creditDebitRequestDto: args,
+          }),
         );
       },
       debit: async (
@@ -2143,7 +2152,10 @@ export class Creem {
         args: { amount: string; reference: string; idempotencyKey: string },
       ) => {
         return await this.tolerateCustomerCreditsResponseValidation(() =>
-          this.sdk.customerCredits.debitAccount(accountId, args),
+          this.sdk.customerCredits.debitAccount({
+            id: accountId,
+            creditDebitRequestDto: args,
+          }),
         );
       },
       listEntries: async (
@@ -2151,14 +2163,17 @@ export class Creem {
         limit?: number,
         startingAfter?: string,
       ) => {
-        return await this.sdk.customerCredits.listEntries(
-          accountId,
-          limit,
-          startingAfter,
-        );
+        return await this.sdk.customerCredits.listEntries({
+          id: accountId,
+          limit: limit,
+          startingAfter: startingAfter,
+        });
       },
       listAccounts: async (customerId?: string, limit?: number) => {
-        return await this.sdk.customerCredits.listAccounts(limit, customerId);
+        return await this.sdk.customerCredits.listAccounts({
+          limit: limit,
+          customerId: customerId,
+        });
       },
     };
   }
@@ -2277,7 +2292,7 @@ export class Creem {
    * namespace method. Destructure and re-export in your `convex/billing.ts`.
    *
    * For full control, use the namespace getters directly instead
-   * (e.g. `creem.subscriptions.cancel(ctx, { entityId })`).
+   * (e.g. `creem.subscriptions.cancel({ id: ctx, cancelSubscriptionRequestEntity: { entityId } })`).
    *
    * @param options.resolve - Auth callback that returns `{ userId, email, entityId }`
    * @returns Entity-scoped UI, checkout, subscription, customer, transaction,

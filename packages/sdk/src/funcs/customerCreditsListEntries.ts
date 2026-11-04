@@ -40,10 +40,7 @@ import {
  */
 export function customerCreditsListEntries(
   client: CreemCore,
-  id: string,
-  limit?: number | undefined,
-  startingAfter?: string | undefined,
-  endingBefore?: string | undefined,
+  request: operations.ListCustomerCreditsAccountEntriesRequest,
   options?: RequestOptions,
 ): APIPromise<
   PageIterator<
@@ -63,20 +60,14 @@ export function customerCreditsListEntries(
 > {
   return new APIPromise($do(
     client,
-    id,
-    limit,
-    startingAfter,
-    endingBefore,
+    request,
     options,
   ));
 }
 
 async function $do(
   client: CreemCore,
-  id: string,
-  limit?: number | undefined,
-  startingAfter?: string | undefined,
-  endingBefore?: string | undefined,
+  request: operations.ListCustomerCreditsAccountEntriesRequest,
   options?: RequestOptions,
 ): Promise<
   [
@@ -97,15 +88,8 @@ async function $do(
     APICall,
   ]
 > {
-  const input: operations.ListCustomerCreditsAccountEntriesRequest = {
-    id: id,
-    limit: limit,
-    startingAfter: startingAfter,
-    endingBefore: endingBefore,
-  };
-
   const parsed = safeParse(
-    input,
+    request,
     (value) =>
       operations.ListCustomerCreditsAccountEntriesRequest$outboundSchema.parse(
         value,
@@ -245,7 +229,7 @@ async function $do(
     if (!Array.isArray(results) || !results.length) {
       return { next: () => null };
     }
-    const limit = input?.limit ?? 10;
+    const limit = request?.limit ?? 10;
     if (results.length < limit) {
       return { next: () => null };
     }
@@ -253,10 +237,10 @@ async function $do(
     const nextVal = () =>
       customerCreditsListEntries(
         client,
-        id,
-        limit,
-        nextCursor,
-        endingBefore,
+        {
+          ...request,
+          startingAfter: nextCursor,
+        },
         options,
       );
 

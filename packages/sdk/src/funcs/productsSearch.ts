@@ -11,7 +11,6 @@ import { safeParse } from "../lib/schemas.js";
 import { RequestOptions } from "../lib/sdks.js";
 import { extractSecurity, resolveGlobalSecurity } from "../lib/security.js";
 import { pathToFunc } from "../lib/url.js";
-import * as components from "../models/components/index.js";
 import { CreemError } from "../models/errors/creemerror.js";
 import {
   ConnectionError,
@@ -40,9 +39,7 @@ import {
  */
 export function productsSearch(
   client: CreemCore,
-  pageNumber?: number | undefined,
-  pageSize?: number | undefined,
-  status?: components.ProductStatus | undefined,
+  request: operations.SearchProductsRequest,
   options?: RequestOptions,
 ): APIPromise<
   PageIterator<
@@ -62,18 +59,14 @@ export function productsSearch(
 > {
   return new APIPromise($do(
     client,
-    pageNumber,
-    pageSize,
-    status,
+    request,
     options,
   ));
 }
 
 async function $do(
   client: CreemCore,
-  pageNumber?: number | undefined,
-  pageSize?: number | undefined,
-  status?: components.ProductStatus | undefined,
+  request: operations.SearchProductsRequest,
   options?: RequestOptions,
 ): Promise<
   [
@@ -94,14 +87,8 @@ async function $do(
     APICall,
   ]
 > {
-  const input: operations.SearchProductsRequest = {
-    pageNumber: pageNumber,
-    pageSize: pageSize,
-    status: status,
-  };
-
   const parsed = safeParse(
-    input,
+    request,
     (value) => operations.SearchProductsRequest$outboundSchema.parse(value),
     "Input validation failed",
   );
@@ -217,7 +204,7 @@ async function $do(
     >;
     "~next"?: { page: number };
   } => {
-    const page = input?.pageNumber ?? 1;
+    const page = request?.pageNumber ?? 1;
     const nextPage = page + 1;
     const numPages =
       (responseData as { pagination: { total_pages: unknown } }).pagination
@@ -233,7 +220,7 @@ async function $do(
     if (!Array.isArray(results) || !results.length) {
       return { next: () => null };
     }
-    const limit = input?.pageSize ?? 10;
+    const limit = request?.pageSize ?? 10;
     if (results.length < limit) {
       return { next: () => null };
     }
@@ -241,9 +228,10 @@ async function $do(
     const nextVal = () =>
       productsSearch(
         client,
-        nextPage,
-        pageSize,
-        status,
+        {
+          ...request,
+          pageNumber: nextPage,
+        },
         options,
       );
 

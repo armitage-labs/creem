@@ -49,13 +49,13 @@ const createSearchTransactionsHandler = (creem: Creem, options: CreemOptions) =>
 
       logger.debug(`[creem] Searching transactions for customer: ${customerId}`);
 
-      const transactions = await creem.transactions.search(
-        customerId,
-        body.orderId,
-        body.productId,
-        body.pageNumber,
-        body.pageSize,
-      );
+      const transactions = await creem.transactions.search({
+        customerId: customerId,
+        orderId: body.orderId,
+        productId: body.productId,
+        pageNumber: body.pageNumber,
+        pageSize: body.pageSize,
+      });
 
       // Expose the requested page, not the SDK's iterator and transport helpers.
       return ctx.json(transactions.result);

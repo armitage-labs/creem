@@ -39,9 +39,7 @@ import {
  */
 export function licensesListInstances(
   client: CreemCore,
-  id: string,
-  pageNumber?: number | undefined,
-  pageSize?: number | undefined,
+  request: operations.ListLicenseInstancesRequest,
   options?: RequestOptions,
 ): APIPromise<
   PageIterator<
@@ -61,18 +59,14 @@ export function licensesListInstances(
 > {
   return new APIPromise($do(
     client,
-    id,
-    pageNumber,
-    pageSize,
+    request,
     options,
   ));
 }
 
 async function $do(
   client: CreemCore,
-  id: string,
-  pageNumber?: number | undefined,
-  pageSize?: number | undefined,
+  request: operations.ListLicenseInstancesRequest,
   options?: RequestOptions,
 ): Promise<
   [
@@ -93,14 +87,8 @@ async function $do(
     APICall,
   ]
 > {
-  const input: operations.ListLicenseInstancesRequest = {
-    id: id,
-    pageNumber: pageNumber,
-    pageSize: pageSize,
-  };
-
   const parsed = safeParse(
-    input,
+    request,
     (value) =>
       operations.ListLicenseInstancesRequest$outboundSchema.parse(value),
     "Input validation failed",
@@ -222,7 +210,7 @@ async function $do(
     >;
     "~next"?: { page: number };
   } => {
-    const page = input?.pageNumber ?? 1;
+    const page = request?.pageNumber ?? 1;
     const nextPage = page + 1;
     const numPages =
       (responseData as { pagination: { total_pages: unknown } }).pagination
@@ -238,7 +226,7 @@ async function $do(
     if (!Array.isArray(results) || !results.length) {
       return { next: () => null };
     }
-    const limit = input?.pageSize ?? 10;
+    const limit = request?.pageSize ?? 10;
     if (results.length < limit) {
       return { next: () => null };
     }
@@ -246,9 +234,10 @@ async function $do(
     const nextVal = () =>
       licensesListInstances(
         client,
-        id,
-        nextPage,
-        pageSize,
+        {
+          ...request,
+          pageNumber: nextPage,
+        },
         options,
       );
 

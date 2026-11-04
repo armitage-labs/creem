@@ -28,11 +28,13 @@ function wire(h: ReturnType<typeof harness>) {
     .mockResolvedValue({ items: [pendingEvent] });
   const acknowledgeEvent = vi
     .spyOn(h.client.webhooks, "acknowledgeEvent")
-    .mockImplementation(async (_webhookId, eventId, acknowledgment) => ({
-      id: eventId,
-      object: "webhook_event",
-      success: acknowledgment.statusCode >= 200 && acknowledgment.statusCode < 300,
-    }));
+    .mockImplementation(
+      async ({ eventId, acknowledgeWebhookEventRequestEntity: acknowledgment }) => ({
+        id: eventId,
+        object: "webhook_event",
+        success: acknowledgment.statusCode >= 200 && acknowledgment.statusCode < 300,
+      }),
+    );
   const del = vi.spyOn(h.client.webhooks, "delete").mockResolvedValue({ id: "wh_cli" } as never);
   return { create, listPendingEvents, acknowledgeEvent, delete: del };
 }
@@ -63,7 +65,7 @@ it("creates a temporary CLI endpoint, forwards the raw body and headers, acks, a
     deliveryMode: "cli",
     events: ["checkout.completed", "subscription.paid"],
   });
-  expect(spies.listPendingEvents).toHaveBeenCalledExactlyOnceWith("wh_cli", 100);
+  expect(spies.listPendingEvents).toHaveBeenCalledExactlyOnceWith({ id: "wh_cli", limit: 100 });
   expect(fetchMock).toHaveBeenCalledExactlyOnceWith(
     "http://localhost:3000/api/webhooks",
     expect.objectContaining({
@@ -72,11 +74,15 @@ it("creates a temporary CLI endpoint, forwards the raw body and headers, acks, a
       headers: pendingEvent.headers,
     }),
   );
-  expect(spies.acknowledgeEvent).toHaveBeenCalledExactlyOnceWith("wh_cli", "evt_1", {
-    statusCode: 200,
-    responseBody: "OK",
+  expect(spies.acknowledgeEvent).toHaveBeenCalledExactlyOnceWith({
+    id: "wh_cli",
+    eventId: "evt_1",
+    acknowledgeWebhookEventRequestEntity: {
+      statusCode: 200,
+      responseBody: "OK",
+    },
   });
-  expect(spies.delete).toHaveBeenCalledExactlyOnceWith("wh_cli");
+  expect(spies.delete).toHaveBeenCalledExactlyOnceWith({ id: "wh_cli" });
 
   const lines = result.stdout
     .trim()
@@ -111,9 +117,13 @@ it("reports an unreachable local server as a 503 failure and keeps going", async
   const result = await h.run(["listen", "--forward-to", "http://localhost:3000/hook", "--once"]);
 
   expect(result.code, result.stderr).toBe(0);
-  expect(spies.acknowledgeEvent).toHaveBeenCalledExactlyOnceWith("wh_cli", "evt_1", {
-    statusCode: 503,
-    responseBody: expect.stringContaining("ECONNREFUSED"),
+  expect(spies.acknowledgeEvent).toHaveBeenCalledExactlyOnceWith({
+    id: "wh_cli",
+    eventId: "evt_1",
+    acknowledgeWebhookEventRequestEntity: {
+      statusCode: 503,
+      responseBody: expect.stringContaining("ECONNREFUSED"),
+    },
   });
   expect(result.stdout).toContain("503");
   expect(result.stdout).toContain("ECONNREFUSED");
@@ -175,10 +185,14 @@ it("reuses an existing CLI endpoint with --webhook and never deletes it", async 
 
   expect(result.code, result.stderr).toBe(0);
   expect(spies.create).not.toHaveBeenCalled();
-  expect(spies.listPendingEvents).toHaveBeenCalledExactlyOnceWith("wh_mine", 100);
-  expect(spies.acknowledgeEvent).toHaveBeenCalledExactlyOnceWith("wh_mine", "evt_1", {
-    statusCode: 204,
-    responseBody: "",
+  expect(spies.listPendingEvents).toHaveBeenCalledExactlyOnceWith({ id: "wh_mine", limit: 100 });
+  expect(spies.acknowledgeEvent).toHaveBeenCalledExactlyOnceWith({
+    id: "wh_mine",
+    eventId: "evt_1",
+    acknowledgeWebhookEventRequestEntity: {
+      statusCode: 204,
+      responseBody: "",
+    },
   });
   expect(spies.delete).not.toHaveBeenCalled();
   expect(result.stdout).toContain('"secret":"whsec_mine"');
@@ -225,7 +239,7 @@ it("stops on SIGINT and deletes the temporary endpoint", async () => {
   ]);
 
   expect(result.code, result.stderr).toBe(0);
-  expect(spies.delete).toHaveBeenCalledExactlyOnceWith("wh_cli");
+  expect(spies.delete).toHaveBeenCalledExactlyOnceWith({ id: "wh_cli" });
   expect(result.stdout).toContain('"type":"stopped"');
   expect(process.listenerCount("SIGINT")).toBe(0);
 });
@@ -239,7 +253,7 @@ it("still deletes the endpoint when the poll fails under --once", async () => {
 
   expect(result.code).toBe(1);
   expect(result.stderr).toContain("SDK_SENTINEL");
-  expect(spies.delete).toHaveBeenCalledExactlyOnceWith("wh_cli");
+  expect(spies.delete).toHaveBeenCalledExactlyOnceWith({ id: "wh_cli" });
 });
 
 it.each([

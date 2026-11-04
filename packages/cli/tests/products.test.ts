@@ -15,9 +15,7 @@ it("products search sends the exact SDK arguments", async () => {
     "--json",
   ]);
   expect(spy, result.stderr).toHaveBeenCalledExactlyOnceWith(
-    2,
-    3,
-    "archived",
+    { pageNumber: 2, pageSize: 3, status: "archived" },
     expect.objectContaining({ retries: { strategy: "none" } }),
   );
   expect(result.stderr).toContain("SDK_SENTINEL");
@@ -51,15 +49,17 @@ it("products create sends the exact SDK arguments", async () => {
     "--json",
   ]);
   expect(spy, result.stderr).toHaveBeenCalledExactlyOnceWith(
-    expect.objectContaining({
-      name: "Free",
-      price: 0,
-      billingType: "onetime",
-      payWhatYouWant: true,
-      suggestedPrice: 100,
-      imageUrls: ["https://example.com/1.png", "https://example.com/2.png"],
-    }),
-    "idem1",
+    {
+      createProductRequestEntity: expect.objectContaining({
+        name: "Free",
+        price: 0,
+        billingType: "onetime",
+        payWhatYouWant: true,
+        suggestedPrice: 100,
+        imageUrls: ["https://example.com/1.png", "https://example.com/2.png"],
+      }),
+      idempotencyKey: "idem1",
+    },
     expect.objectContaining({ retries: { strategy: "none" } }),
   );
   expect(result.stderr).toContain("SDK_SENTINEL");
@@ -70,7 +70,7 @@ it("products get sends the exact SDK arguments", async () => {
   const spy = vi.spyOn(h.client.products, "get").mockRejectedValue(new Error("SDK_SENTINEL"));
   const result = await h.run(["products", "get", "prod_1", "--json"]);
   expect(spy, result.stderr).toHaveBeenCalledExactlyOnceWith(
-    "prod_1",
+    { id: "prod_1" },
     expect.objectContaining({ retries: { strategy: "none" } }),
   );
   expect(result.stderr).toContain("SDK_SENTINEL");
@@ -81,8 +81,7 @@ it("products update sends the exact SDK arguments", async () => {
   const spy = vi.spyOn(h.client.products, "update").mockRejectedValue(new Error("SDK_SENTINEL"));
   const result = await h.run(["products", "update", "prod_1", "--price", "100", "--yes", "--json"]);
   expect(spy, result.stderr).toHaveBeenCalledExactlyOnceWith(
-    "prod_1",
-    expect.objectContaining({ price: 100 }),
+    { id: "prod_1", updateProductRequestEntity: expect.objectContaining({ price: 100 }) },
     expect.objectContaining({ retries: { strategy: "none" } }),
   );
   expect(result.stderr).toContain("SDK_SENTINEL");
@@ -93,7 +92,7 @@ it("products archive sends the exact SDK arguments", async () => {
   const spy = vi.spyOn(h.client.products, "archive").mockRejectedValue(new Error("SDK_SENTINEL"));
   const result = await h.run(["products", "archive", "prod_1", "--yes", "--json"]);
   expect(spy, result.stderr).toHaveBeenCalledExactlyOnceWith(
-    "prod_1",
+    { id: "prod_1" },
     expect.objectContaining({ retries: { strategy: "none" } }),
   );
   expect(result.stderr).toContain("SDK_SENTINEL");
@@ -129,11 +128,12 @@ it("products create passes usagePrices and features through --data untouched", a
   };
   const result = await h.run(["products", "create", "--data", JSON.stringify(body), "--json"]);
   expect(spy, result.stderr).toHaveBeenCalledExactlyOnceWith(
-    expect.objectContaining({
-      usagePrices: body.usagePrices,
-      features: body.features,
-    }),
-    undefined,
+    {
+      createProductRequestEntity: expect.objectContaining({
+        usagePrices: body.usagePrices,
+        features: body.features,
+      }),
+    },
     expect.objectContaining({ retries: { strategy: "none" } }),
   );
   expect(result.stderr).toContain("SDK_SENTINEL");

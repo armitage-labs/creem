@@ -29,7 +29,7 @@ const creem = new CreemCore({
 });
 
 async function run() {
-  const res = await productsSearch(creem);
+  const res = await productsSearch(creem, {});
   if (res.ok) {
     const { value: result } = res;
     for await (const page of result) {

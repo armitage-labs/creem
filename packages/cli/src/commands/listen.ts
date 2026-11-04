@@ -191,7 +191,7 @@ export function createListenCommand(context: CliContext = createContext()): Comm
     let secret: string | undefined;
     const temporary = !opts.webhook;
     if (opts.webhook) {
-      const existing = await client.webhooks.get(opts.webhook);
+      const existing = await client.webhooks.get({ id: opts.webhook });
       if (existing.deliveryMode !== WebhookDeliveryMode.Cli)
         throw new CliError(
           `Webhook ${existing.id} is not a CLI-mode endpoint.`,
@@ -199,7 +199,7 @@ export function createListenCommand(context: CliContext = createContext()): Comm
           'Pass a webhook created with delivery_mode "cli", or omit --webhook to create a temporary one.',
         );
       webhookId = existing.id;
-      secret = (await client.webhooks.getSecret(webhookId)).secret;
+      secret = (await client.webhooks.getSecret({ id: webhookId })).secret;
     } else {
       const created = await client.webhooks.create({
         name: opts.name ?? `creem listen (${hostname()})`,
@@ -250,7 +250,9 @@ export function createListenCommand(context: CliContext = createContext()): Comm
       while (!controller.signal.aborted) {
         let pending: WebhookPendingEventEntity[];
         try {
-          pending = (await client.webhooks.listPendingEvents(webhookId, POLL_PAGE_SIZE)).items;
+          pending = (
+            await client.webhooks.listPendingEvents({ id: webhookId, limit: POLL_PAGE_SIZE })
+          ).items;
           pollFailures = 0;
         } catch (error) {
           if (controller.signal.aborted) break;
@@ -267,9 +269,13 @@ export function createListenCommand(context: CliContext = createContext()): Comm
         for (const event of pending) {
           if (controller.signal.aborted) break;
           const result = await forward(target.toString(), event, opts.forwardTimeout);
-          const acknowledgment = await client.webhooks.acknowledgeEvent(webhookId, event.id, {
-            statusCode: result.statusCode,
-            responseBody: result.responseBody,
+          const acknowledgment = await client.webhooks.acknowledgeEvent({
+            id: webhookId,
+            eventId: event.id,
+            acknowledgeWebhookEventRequestEntity: {
+              statusCode: result.statusCode,
+              responseBody: result.responseBody,
+            },
           });
           // The first acknowledgment wins; another listener may have already
           // recorded a different outcome for this delivery.
@@ -316,7 +322,7 @@ export function createListenCommand(context: CliContext = createContext()): Comm
       process.off("SIGTERM", stop);
       if (temporary) {
         try {
-          await client.webhooks.delete(webhookId);
+          await client.webhooks.delete({ id: webhookId });
           if (machine)
             record({ type: "stopped", webhook_id: webhookId, forwarded, failed, deleted: true });
           else

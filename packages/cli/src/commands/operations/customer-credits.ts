@@ -17,13 +17,7 @@ export const handlers: Record<string, OperationHandler> = {
       operations.ListCustomerCreditsAccountsRequest$inboundSchema,
       parameters,
     );
-    return client.customerCredits.listAccounts(
-      p.limit,
-      p.customerId,
-      p.startingAfter,
-      p.endingBefore,
-      options,
-    );
+    return client.customerCredits.listAccounts(p, options);
   },
   getCustomerCreditsAccount: (client, parameters, body, options) => {
     const p = decode(
@@ -31,7 +25,7 @@ export const handlers: Record<string, OperationHandler> = {
       operations.GetCustomerCreditsAccountRequest$inboundSchema,
       parameters,
     );
-    return client.customerCredits.getAccount(p.id, options);
+    return client.customerCredits.getAccount(p, options);
   },
   getCustomerCreditsAccountBalance: (client, parameters, body, options) => {
     const p = decode(
@@ -39,7 +33,7 @@ export const handlers: Record<string, OperationHandler> = {
       operations.GetCustomerCreditsAccountBalanceRequest$inboundSchema,
       parameters,
     );
-    return client.customerCredits.getAccountBalance(p.id, p.at, options);
+    return client.customerCredits.getAccountBalance(p, options);
   },
   listCustomerCreditsAccountEntries: (client, parameters, body, options) => {
     const p = decode(
@@ -47,13 +41,7 @@ export const handlers: Record<string, OperationHandler> = {
       operations.ListCustomerCreditsAccountEntriesRequest$inboundSchema,
       parameters,
     );
-    return client.customerCredits.listEntries(
-      p.id,
-      p.limit,
-      p.startingAfter,
-      p.endingBefore,
-      options,
-    );
+    return client.customerCredits.listEntries(p, options);
   },
   freezeCustomerCreditsAccount: (client, parameters, body, options) => {
     const p = decode(
@@ -61,7 +49,7 @@ export const handlers: Record<string, OperationHandler> = {
       operations.FreezeCustomerCreditsAccountRequest$inboundSchema,
       parameters,
     );
-    return client.customerCredits.freezeAccount(p.id, options);
+    return client.customerCredits.freezeAccount(p, options);
   },
   unfreezeCustomerCreditsAccount: (client, parameters, body, options) => {
     const p = decode(
@@ -69,7 +57,7 @@ export const handlers: Record<string, OperationHandler> = {
       operations.UnfreezeCustomerCreditsAccountRequest$inboundSchema,
       parameters,
     );
-    return client.customerCredits.unfreezeAccount(p.id, options);
+    return client.customerCredits.unfreezeAccount(p, options);
   },
   creditCustomerCreditsAccount: (client, parameters, body, options) => {
     const p = decode(
@@ -77,12 +65,7 @@ export const handlers: Record<string, OperationHandler> = {
       operations.CreditCustomerCreditsAccountRequest$inboundSchema,
       { ...parameters, creditDebitRequestDto: body },
     );
-    const b = decode(
-      components.CreditDebitRequestDto$outboundSchema,
-      components.CreditDebitRequestDto$inboundSchema,
-      body,
-    );
-    return client.customerCredits.creditAccount(p.id, b, options);
+    return client.customerCredits.creditAccount(p, options);
   },
   debitCustomerCreditsAccount: (client, parameters, body, options) => {
     const p = decode(
@@ -90,12 +73,7 @@ export const handlers: Record<string, OperationHandler> = {
       operations.DebitCustomerCreditsAccountRequest$inboundSchema,
       { ...parameters, creditDebitRequestDto: body },
     );
-    const b = decode(
-      components.CreditDebitRequestDto$outboundSchema,
-      components.CreditDebitRequestDto$inboundSchema,
-      body,
-    );
-    return client.customerCredits.debitAccount(p.id, b, options);
+    return client.customerCredits.debitAccount(p, options);
   },
   reverseCustomerCreditsAccountTransaction: (client, parameters, body, options) => {
     const p = decode(
@@ -103,12 +81,7 @@ export const handlers: Record<string, OperationHandler> = {
       operations.ReverseCustomerCreditsAccountTransactionRequest$inboundSchema,
       { ...parameters, reverseTransactionRequestDto: body },
     );
-    const b = decode(
-      components.ReverseTransactionRequestDto$outboundSchema,
-      components.ReverseTransactionRequestDto$inboundSchema,
-      body,
-    );
-    return client.customerCredits.reverseTransaction(p.id, b, options);
+    return client.customerCredits.reverseTransaction(p, options);
   },
   closeCustomerCreditsAccount: (client, parameters, body, options) => {
     const p = decode(
@@ -116,7 +89,7 @@ export const handlers: Record<string, OperationHandler> = {
       operations.CloseCustomerCreditsAccountRequest$inboundSchema,
       parameters,
     );
-    return client.customerCredits.closeAccount(p.id, options);
+    return client.customerCredits.closeAccount(p, options);
   },
   postCustomerCreditsTransaction: (client, parameters, body, options) => {
     const b = decode(
@@ -132,7 +105,7 @@ export const handlers: Record<string, OperationHandler> = {
       operations.GetCustomerCreditsTransactionRequest$inboundSchema,
       parameters,
     );
-    return client.customerCredits.getTransaction(p.id, options);
+    return client.customerCredits.getTransaction(p, options);
   },
   reverseCustomerCreditsTransaction: (client, parameters, body, options) => {
     const p = decode(
@@ -140,7 +113,7 @@ export const handlers: Record<string, OperationHandler> = {
       operations.ReverseCustomerCreditsTransactionRequest$inboundSchema,
       parameters,
     );
-    return client.customerCredits.reverseTransactionById(p.id, options);
+    return client.customerCredits.reverseTransactionById(p, options);
   },
   listCustomerCreditsTransactionsByReference: (client, parameters, body, options) => {
     const p = decode(
@@ -148,6 +121,6 @@ export const handlers: Record<string, OperationHandler> = {
       operations.ListCustomerCreditsTransactionsByReferenceRequest$inboundSchema,
       parameters,
     );
-    return client.customerCredits.listTransactionsByReference(p.reference, options);
+    return client.customerCredits.listTransactionsByReference(p, options);
   },
 };

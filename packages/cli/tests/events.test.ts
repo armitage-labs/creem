@@ -81,11 +81,13 @@ it("events list sends the exact SDK arguments", async () => {
     "--json",
   ]);
   expect(spy, result.stderr).toHaveBeenCalledExactlyOnceWith(
-    "mtr_1",
-    "cust_1",
-    "evt-abc",
-    5,
-    "uev_1",
+    {
+      meterId: "mtr_1",
+      customerId: "cust_1",
+      reference: "evt-abc",
+      limit: 5,
+      startingAfter: "uev_1",
+    },
     expect.objectContaining({ retries: { strategy: "none" } }),
   );
   expect(result.stderr).toContain("SDK_SENTINEL");

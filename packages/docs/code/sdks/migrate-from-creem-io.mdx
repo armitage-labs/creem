@@ -69,16 +69,16 @@ const creem = new Creem({
 
 The core SDK is generated from the public OpenAPI schema, so method names and argument shapes are closer to the API.
 
-| Area                | `creem_io` wrapper                            | `creem` SDK                                                                 |
-| ------------------- | --------------------------------------------- | --------------------------------------------------------------------------- |
-| Initialize client   | `createCreem({ apiKey, testMode })`           | `new Creem({ apiKey, server })`                                             |
-| Product get         | `creem.products.get({ productId })`           | `creem.products.get(productId)`                                             |
-| Product search      | `creem.products.list({ page, limit })`        | `creem.products.search(page, pageSize)`                                     |
-| Checkout create     | `creem.checkouts.create({ ... })`             | `creem.checkouts.create({ ... })`                                           |
-| Customer retrieve   | wrapper helper methods                        | `creem.customers.retrieve(customerId, email)`                               |
-| Subscription get    | `creem.subscriptions.get({ subscriptionId })` | `creem.subscriptions.get(subscriptionId)`                                   |
-| Subscription cancel | wrapper helper methods                        | `creem.subscriptions.cancel(subscriptionId, { mode })`                      |
-| Transactions search | wrapper helper methods                        | `creem.transactions.search(customerId, orderId, productId, page, pageSize)` |
+| Area                | `creem_io` wrapper                            | `creem` SDK                                                                           |
+| ------------------- | --------------------------------------------- | ------------------------------------------------------------------------------------- |
+| Initialize client   | `createCreem({ apiKey, testMode })`           | `new Creem({ apiKey, server })`                                                       |
+| Product get         | `creem.products.get({ productId })`           | `creem.products.get({ id: productId })`                                               |
+| Product search      | `creem.products.list({ page, limit })`        | `creem.products.search({ pageNumber, pageSize })`                                     |
+| Checkout create     | `creem.checkouts.create({ ... })`             | `creem.checkouts.create({ ... })`                                                     |
+| Customer retrieve   | wrapper helper methods                        | `creem.customers.retrieve({ customerId, email })`                                     |
+| Subscription get    | `creem.subscriptions.get({ subscriptionId })` | `creem.subscriptions.get({ subscriptionId })`                                         |
+| Subscription cancel | wrapper helper methods                        | `creem.subscriptions.cancel({ id, cancelSubscriptionRequestEntity: { mode } })`       |
+| Transactions search | wrapper helper methods                        | `creem.transactions.search({ customerId, orderId, productId, pageNumber, pageSize })` |
 
 Example:
 
@@ -89,7 +89,7 @@ const product = await creem.products.get({
 ```
 
 ```ts creem
-const product = await creem.products.get("prod_123");
+const product = await creem.products.get({ id: "prod_123" });
 ```
 
 ## Search and Pagination
@@ -97,7 +97,7 @@ const product = await creem.products.get("prod_123");
 Some search/list methods return a paginated result. For a single page, read `result`:
 
 ```ts
-const page = await creem.products.search(1, 20);
+const page = await creem.products.search({ pageNumber: 1, pageSize: 20 });
 console.log(page.result.items);
 console.log(page.result.pagination);
 ```
@@ -106,7 +106,7 @@ To fetch across pages, iterate over the result:
 
 ```ts
 const products = [];
-for await (const page of await creem.products.search(1, 20)) {
+for await (const page of await creem.products.search({ pageNumber: 1, pageSize: 20 })) {
   products.push(...page.result.items);
 }
 ```

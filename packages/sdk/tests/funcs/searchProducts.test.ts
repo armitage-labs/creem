@@ -32,7 +32,7 @@ describe("searchProducts", () => {
   });
 
   it("should search products successfully", async () => {
-    const page = await creem.products.search();
+    const page = await creem.products.search({});
     const result = page.result;
 
     // Test direct SDK method
@@ -60,7 +60,7 @@ describe("searchProducts", () => {
   it("should handle pagination parameters correctly", async () => {
     const pageSize = 2;
     // Note: search(pageNumber, pageSize) - pageNumber comes first
-    const page = await creem.products.search(1, pageSize);
+    const page = await creem.products.search({ pageNumber: 1, pageSize: pageSize });
     const result = page.result;
 
     expect(result.items.length).toBeLessThanOrEqual(pageSize);
@@ -89,7 +89,7 @@ describe("searchProducts", () => {
 
   it("should handle invalid pagination parameters", async () => {
     try {
-      await creem.products.search(-1); // Invalid page number
+      await creem.products.search({ pageNumber: -1 }); // Invalid page number
       fail("Expected error with invalid page number but none was thrown");
     } catch (error) {
       expect(error).toBeDefined();

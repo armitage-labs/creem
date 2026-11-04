@@ -20,7 +20,7 @@ it("plain-entity lists traverse pages and aggregate", async () => {
     "order_1",
     "order_2",
   ]);
-  expect(spy.mock.calls.map((c) => c[1])).toEqual([1, 2]);
+  expect(spy.mock.calls.map((c) => c[0].pageNumber)).toEqual([1, 2]);
 });
 it("legacy subscription status filters the complete endpoint, with accurate totals", async () => {
   const h = harness();
@@ -72,37 +72,23 @@ it("legacy list commands preserve their page and limit defaults", async () => {
   await h.run(["transactions", "list", "--json"]);
 
   expect(products).toHaveBeenCalledWith(
-    1,
-    20,
-    undefined,
+    { pageNumber: 1, pageSize: 20 },
     expect.objectContaining({ retries: { strategy: "none" } }),
   );
   expect(customers).toHaveBeenCalledWith(
-    1,
-    20,
+    { pageNumber: 1, pageSize: 20 },
     expect.objectContaining({ retries: { strategy: "none" } }),
   );
   expect(subscriptions).toHaveBeenCalledWith(
-    1,
-    10,
+    { pageNumber: 1, pageSize: 10 },
     expect.objectContaining({ retries: { strategy: "none" } }),
   );
   expect(discounts).toHaveBeenCalledWith(
-    1,
-    20,
-    undefined,
-    undefined,
-    undefined,
-    undefined,
-    undefined,
+    { pageNumber: 1, pageSize: 20 },
     expect.objectContaining({ retries: { strategy: "none" } }),
   );
   expect(transactions).toHaveBeenCalledWith(
-    undefined,
-    undefined,
-    undefined,
-    1,
-    20,
+    { pageNumber: 1, pageSize: 20 },
     expect.objectContaining({ retries: { strategy: "none" } }),
   );
 });

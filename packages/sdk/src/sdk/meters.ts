@@ -42,18 +42,12 @@ export class Meters extends ClientSDK {
    * List your meters, newest first, as a cursor page. Archived meters are hidden unless include_archived=true.
    */
   async listMeters(
-    limit?: number | undefined,
-    startingAfter?: string | undefined,
-    endingBefore?: string | undefined,
-    includeArchived?: boolean | undefined,
+    request: operations.ListMetersRequest,
     options?: RequestOptions,
   ): Promise<PageIterator<operations.ListMetersResponse, { cursor: string }>> {
     return unwrapResultIterator(metersListMeters(
       this,
-      limit,
-      startingAfter,
-      endingBefore,
-      includeArchived,
+      request,
       options,
     ));
   }
@@ -82,12 +76,12 @@ export class Meters extends ClientSDK {
    * Get one meter by ID. Archived meters ARE returned here — a fetch by explicit ID is an intentional lookup.
    */
   async getMeter(
-    id: string,
+    request: operations.GetMeterRequest,
     options?: RequestOptions,
   ): Promise<components.MeterApiResponseDto> {
     return unwrapAsync(metersGetMeter(
       this,
-      id,
+      request,
       options,
     ));
   }
@@ -99,14 +93,12 @@ export class Meters extends ClientSDK {
    * Rename a meter and/or revise its definition. A rename is always allowed — the name is a label no aggregate depends on — but it must stay unique within the store (409 meter_name_taken). Definition changes (filter, aggregation, aggregation_property) are only accepted while the meter has processed no usage and has no associated purchase; otherwise the request is rejected with 409, because editing the definition would silently rewrite what already-recorded usage means. Send aggregation_property as null to clear it; omit it to leave it unchanged.
    */
   async updateMeter(
-    id: string,
-    updateMeterApiRequestDto: components.UpdateMeterApiRequestDto,
+    request: operations.UpdateMeterRequest,
     options?: RequestOptions,
   ): Promise<components.MeterApiResponseDto> {
     return unwrapAsync(metersUpdateMeter(
       this,
-      id,
-      updateMeterApiRequestDto,
+      request,
       options,
     ));
   }
@@ -118,12 +110,12 @@ export class Meters extends ClientSDK {
    * Dry-run an existing meter against your real usage over the last 7 whole UTC days (today included, future-dated events excluded). Same shape as the unsaved-definition preview; nothing is written.
    */
   async previewExistingMeter(
-    id: string,
+    request: operations.PreviewExistingMeterRequest,
     options?: RequestOptions,
   ): Promise<components.MeterPreviewApiResponseDto> {
     return unwrapAsync(metersPreviewExistingMeter(
       this,
-      id,
+      request,
       options,
     ));
   }
@@ -135,16 +127,12 @@ export class Meters extends ClientSDK {
    * How many units a customer has consumed through this meter in a billing period, alongside the period's boundaries. Without `at`, this is an O(1) read of the current period's projection — the number billing uses. With `at`, the units are replayed from the raw events as of that instant, within the billing period containing it, which is the right call for reconstructing what a customer had consumed at a past moment (an invoice date, a support question).
    */
   async getConsumedUnits(
-    id: string,
-    customerId: string,
-    at?: string | undefined,
+    request: operations.GetMeterConsumedUnitsRequest,
     options?: RequestOptions,
   ): Promise<components.MeterConsumedUnitsApiResponseDto> {
     return unwrapAsync(metersGetConsumedUnits(
       this,
-      id,
-      customerId,
-      at,
+      request,
       options,
     ));
   }
@@ -156,12 +144,12 @@ export class Meters extends ClientSDK {
    * Archive a meter: it leaves the default listing and stops accruing new usage, but is never deleted, so the usage it already recorded stays meaningful. Idempotent — archiving an archived meter returns it unchanged.
    */
   async archiveMeter(
-    id: string,
+    request: operations.ArchiveMeterRequest,
     options?: RequestOptions,
   ): Promise<components.MeterApiResponseDto> {
     return unwrapAsync(metersArchiveMeter(
       this,
-      id,
+      request,
       options,
     ));
   }
@@ -173,12 +161,12 @@ export class Meters extends ClientSDK {
    * Restore an archived meter: it returns to the default listing and resumes accruing usage from the next matching event. Idempotent — unarchiving an active meter returns it unchanged. No gate applies and none is needed: archiving never released the meter's name, because per-store name uniqueness counts archived meters (which is why creating a meter with an archived meter's name returns 409 `meter_name_taken` with `details.archived_holder`), and it never altered the definition. Usage ingested while the meter was archived is retained as raw events and IS folded back in for any period still inside the late-event window, since a period is recomputed in full rather than incrementally — so units for an open period can increase by more than the usage seen since the unarchive. Finalized periods are not moved.
    */
   async unarchiveMeter(
-    id: string,
+    request: operations.UnarchiveMeterRequest,
     options?: RequestOptions,
   ): Promise<components.MeterApiResponseDto> {
     return unwrapAsync(metersUnarchiveMeter(
       this,
-      id,
+      request,
       options,
     ));
   }

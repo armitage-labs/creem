@@ -50,10 +50,7 @@ describe("CLI webhook feed contract", () => {
         }),
       });
 
-      const result = await client.webhooks.listPendingEvents(
-        "wh_fixture",
-        limit,
-      );
+      const result = await client.webhooks.listPendingEvents({ id: "wh_fixture", limit: limit });
       expect(result.items[0]).toMatchObject({
         body,
         headers,
@@ -85,14 +82,10 @@ describe("CLI webhook feed contract", () => {
       }),
     });
 
-    const result = await client.webhooks.acknowledgeEvent(
-      "wh_fixture",
-      "evt_fixture",
-      {
+    const result = await client.webhooks.acknowledgeEvent({ id: "wh_fixture", eventId: "evt_fixture", acknowledgeWebhookEventRequestEntity: {
         statusCode: 200,
         responseBody: "OK",
-      },
-    );
+      } });
     expect(result.success).toBe(false);
   });
 });

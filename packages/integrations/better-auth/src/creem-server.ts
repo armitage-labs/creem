@@ -327,7 +327,7 @@ export async function cancelSubscription(
 
   const creem = createCreemClient(config);
 
-  await creem.subscriptions.cancel(subscriptionId, {});
+  await creem.subscriptions.cancel({ id: subscriptionId, cancelSubscriptionRequestEntity: {} });
 
   return {
     success: true,
@@ -378,7 +378,7 @@ export async function retrieveSubscription(
 
   const creem = createCreemClient(config);
 
-  const subscription = await creem.subscriptions.get(subscriptionId);
+  const subscription = await creem.subscriptions.get({ subscriptionId: subscriptionId });
 
   return subscription as unknown as SubscriptionData;
 }
@@ -430,13 +430,13 @@ export async function searchTransactions(
 
   const creem = createCreemClient(config);
 
-  const response = await creem.transactions.search(
-    filters?.customerId,
-    filters?.orderId,
-    filters?.productId,
-    filters?.pageNumber,
-    filters?.pageSize,
-  );
+  const response = await creem.transactions.search({
+    customerId: filters?.customerId,
+    orderId: filters?.orderId,
+    productId: filters?.productId,
+    pageNumber: filters?.pageNumber,
+    pageSize: filters?.pageSize,
+  });
 
   return response as unknown as SearchTransactionsResponse;
 }

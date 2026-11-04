@@ -65,7 +65,7 @@ describe("createProduct", () => {
     };
     
     // When using the SDK instance directly, it returns ProductEntity
-    const result = await creem.products.create(productData);
+    const result = await creem.products.create({ createProductRequestEntity: productData });
 
     // Test direct SDK method
     expect(result).toHaveProperty("id");
@@ -105,10 +105,10 @@ describe("createProduct", () => {
 
   it("should handle request errors with invalid product data", async () => {
     try {
-      await creem.products.create({
+      await creem.products.create({ createProductRequestEntity: {
         // Missing required fields
         name: "Invalid Product",
-      } as any);
+      } as any });
       fail("Expected error with invalid product data but none was thrown");
     } catch (error) {
       expect(error).toBeDefined();
@@ -124,7 +124,7 @@ describe("createProduct", () => {
       billingType: ProductRequestBillingType.Onetime,
     };
 
-    const result = await creem.products.create(minimalProduct);
+    const result = await creem.products.create({ createProductRequestEntity: minimalProduct });
 
     expect(result).toHaveProperty("id");
     expect(result).toHaveProperty("name", minimalProduct.name);
@@ -145,7 +145,7 @@ describe("createProduct", () => {
       billingPeriod: ProductRequestBillingPeriod.EveryMonth,
     };
 
-    const result = await creem.products.create(minimalProduct);
+    const result = await creem.products.create({ createProductRequestEntity: minimalProduct });
 
     expect(result).toHaveProperty("id");
     expect(result).toHaveProperty("name", minimalProduct.name);

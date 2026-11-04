@@ -20,26 +20,14 @@ export class Discounts extends ClientSDK {
    * Search and list discount codes for a store with filters and pagination.
    */
   async search(
-    pageNumber?: number | undefined,
-    pageSize?: number | undefined,
-    productId?: string | undefined,
-    status?: operations.Status | undefined,
-    type?: operations.Type | undefined,
-    createdAfter?: string | undefined,
-    createdBefore?: string | undefined,
+    request: operations.SearchDiscountsRequest,
     options?: RequestOptions,
   ): Promise<
     PageIterator<operations.SearchDiscountsResponse, { page: number }>
   > {
     return unwrapResultIterator(discountsSearch(
       this,
-      pageNumber,
-      pageSize,
-      productId,
-      status,
-      type,
-      createdAfter,
-      createdBefore,
+      request,
       options,
     ));
   }
@@ -51,14 +39,12 @@ export class Discounts extends ClientSDK {
    * Retrieve discount code details by ID or code. Check usage limits, expiration, and discount amount.
    */
   async get(
-    discountId?: string | undefined,
-    discountCode?: string | undefined,
+    request: operations.RetrieveDiscountRequest,
     options?: RequestOptions,
   ): Promise<components.DiscountEntity> {
     return unwrapAsync(discountsGet(
       this,
-      discountId,
-      discountCode,
+      request,
       options,
     ));
   }
@@ -87,12 +73,12 @@ export class Discounts extends ClientSDK {
    * Permanently delete a discount code. Prevent further usage of the discount.
    */
   async delete(
-    id: string,
+    request: operations.DeleteDiscountRequest,
     options?: RequestOptions,
   ): Promise<components.DiscountEntity> {
     return unwrapAsync(discountsDelete(
       this,
-      id,
+      request,
       options,
     ));
   }

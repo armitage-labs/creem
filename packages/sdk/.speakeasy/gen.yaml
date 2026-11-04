@@ -54,6 +54,7 @@ typescript:
       - README.md
       - LICENSE
       - CHANGELOG.md
+      - MIGRATION.md
       - RELEASES.md
     homepage: https://github.com/armitage-labs/creem/tree/main/packages/sdk
     license: MIT
@@ -104,7 +105,7 @@ typescript:
   jsonpath: rfc9535
   laxMode: strict
   legacyFileNaming: true
-  maxMethodParams: 99
+  maxMethodParams: 0
   methodArguments: require-security-and-request
   modelPropertyCasing: camel
   moduleFormat: dual

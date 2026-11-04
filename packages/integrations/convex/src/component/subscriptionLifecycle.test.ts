@@ -21,7 +21,7 @@ describe("resumeSubscriptionIfNeeded", () => {
         true,
       );
       expect(sdk.subscriptions.resume).toHaveBeenCalledOnce();
-      expect(sdk.subscriptions.resume).toHaveBeenCalledWith("sub_1");
+      expect(sdk.subscriptions.resume).toHaveBeenCalledWith({ id: "sub_1" });
     },
   );
 

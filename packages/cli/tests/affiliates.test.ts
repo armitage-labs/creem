@@ -40,8 +40,7 @@ it("affiliates listInvites sends the exact SDK arguments", async () => {
     "--json",
   ]);
   expect(spy, result.stderr).toHaveBeenCalledExactlyOnceWith(
-    2,
-    3,
+    { pageNumber: 2, pageSize: 3 },
     expect.objectContaining({ retries: { strategy: "none" } }),
   );
   expect(result.stderr).toContain("SDK_SENTINEL");
@@ -52,8 +51,7 @@ it("affiliates list sends the exact SDK arguments", async () => {
   const spy = vi.spyOn(h.client.affiliates, "list").mockRejectedValue(new Error("SDK_SENTINEL"));
   const result = await h.run(["affiliates", "list", "--page", "2", "--limit", "3", "--json"]);
   expect(spy, result.stderr).toHaveBeenCalledExactlyOnceWith(
-    2,
-    3,
+    { pageNumber: 2, pageSize: 3 },
     expect.objectContaining({ retries: { strategy: "none" } }),
   );
   expect(result.stderr).toContain("SDK_SENTINEL");
@@ -66,7 +64,7 @@ it("affiliates retrieve sends the exact SDK arguments", async () => {
     .mockRejectedValue(new Error("SDK_SENTINEL"));
   const result = await h.run(["affiliates", "get", "aff_1", "--json"]);
   expect(spy, result.stderr).toHaveBeenCalledExactlyOnceWith(
-    "aff_1",
+    { id: "aff_1" },
     expect.objectContaining({ retries: { strategy: "none" } }),
   );
   expect(result.stderr).toContain("SDK_SENTINEL");
@@ -90,10 +88,7 @@ it("affiliates listCommissions sends the exact SDK arguments", async () => {
     "--json",
   ]);
   expect(spy, result.stderr).toHaveBeenCalledExactlyOnceWith(
-    "aff_1",
-    "approved",
-    2,
-    3,
+    { id: "aff_1", status: "approved", pageNumber: 2, pageSize: 3 },
     expect.objectContaining({ retries: { strategy: "none" } }),
   );
   expect(result.stderr).toContain("SDK_SENTINEL");

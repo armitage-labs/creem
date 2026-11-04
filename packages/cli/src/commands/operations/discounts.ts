@@ -9,16 +9,7 @@ export const handlers: Record<string, OperationHandler> = {
       operations.SearchDiscountsRequest$inboundSchema,
       parameters,
     );
-    return client.discounts.search(
-      p.pageNumber,
-      p.pageSize,
-      p.productId,
-      p.status,
-      p.type,
-      p.createdAfter,
-      p.createdBefore,
-      options,
-    );
+    return client.discounts.search(p, options);
   },
   retrieveDiscount: (client, parameters, body, options) => {
     const p = decode(
@@ -26,7 +17,7 @@ export const handlers: Record<string, OperationHandler> = {
       operations.RetrieveDiscountRequest$inboundSchema,
       parameters,
     );
-    return client.discounts.get(p.discountId, p.discountCode, options);
+    return client.discounts.get(p, options);
   },
   createDiscount: (client, parameters, body, options) => {
     const b = decode(
@@ -42,6 +33,6 @@ export const handlers: Record<string, OperationHandler> = {
       operations.DeleteDiscountRequest$inboundSchema,
       parameters,
     );
-    return client.discounts.delete(p.id, options);
+    return client.discounts.delete(p, options);
   },
 };

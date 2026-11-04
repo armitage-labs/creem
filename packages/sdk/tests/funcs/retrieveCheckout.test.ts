@@ -33,7 +33,7 @@ describe("retrieveCheckout", () => {
   });
 
   it("should retrieve a checkout session successfully", async () => {
-    const result = await creem.checkouts.retrieve(testCheckout.id);
+    const result = await creem.checkouts.retrieve({ checkoutId: testCheckout.id });
 
     // Test the response structure and content
     expect(result).toHaveProperty("id", testCheckout.id);
@@ -60,7 +60,7 @@ describe("retrieveCheckout", () => {
 
   it("should handle request errors with invalid checkout ID", async () => {
     try {
-      await creem.checkouts.retrieve("non-existent-checkout-id");
+      await creem.checkouts.retrieve({ checkoutId: "non-existent-checkout-id" });
       fail("Expected error with invalid checkout ID but none was thrown");
     } catch (error) {
       expect(error).toBeDefined();

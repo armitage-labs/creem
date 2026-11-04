@@ -9,7 +9,7 @@ export const handlers: Record<string, OperationHandler> = {
       operations.GetTransactionByIdRequest$inboundSchema,
       parameters,
     );
-    return client.transactions.getById(p.transactionId, options);
+    return client.transactions.getById(p, options);
   },
   searchTransactions: (client, parameters, body, options) => {
     const p = decode(
@@ -17,14 +17,7 @@ export const handlers: Record<string, OperationHandler> = {
       operations.SearchTransactionsRequest$inboundSchema,
       parameters,
     );
-    return client.transactions.search(
-      p.customerId,
-      p.orderId,
-      p.productId,
-      p.pageNumber,
-      p.pageSize,
-      options,
-    );
+    return client.transactions.search(p, options);
   },
   refundPayment: (client, parameters, body, options) => {
     const b = decode(

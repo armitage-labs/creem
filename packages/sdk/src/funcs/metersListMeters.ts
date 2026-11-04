@@ -40,10 +40,7 @@ import {
  */
 export function metersListMeters(
   client: CreemCore,
-  limit?: number | undefined,
-  startingAfter?: string | undefined,
-  endingBefore?: string | undefined,
-  includeArchived?: boolean | undefined,
+  request: operations.ListMetersRequest,
   options?: RequestOptions,
 ): APIPromise<
   PageIterator<
@@ -63,20 +60,14 @@ export function metersListMeters(
 > {
   return new APIPromise($do(
     client,
-    limit,
-    startingAfter,
-    endingBefore,
-    includeArchived,
+    request,
     options,
   ));
 }
 
 async function $do(
   client: CreemCore,
-  limit?: number | undefined,
-  startingAfter?: string | undefined,
-  endingBefore?: string | undefined,
-  includeArchived?: boolean | undefined,
+  request: operations.ListMetersRequest,
   options?: RequestOptions,
 ): Promise<
   [
@@ -97,15 +88,8 @@ async function $do(
     APICall,
   ]
 > {
-  const input: operations.ListMetersRequest = {
-    limit: limit,
-    startingAfter: startingAfter,
-    endingBefore: endingBefore,
-    includeArchived: includeArchived,
-  };
-
   const parsed = safeParse(
-    input,
+    request,
     (value) => operations.ListMetersRequest$outboundSchema.parse(value),
     "Input validation failed",
   );
@@ -231,7 +215,7 @@ async function $do(
     if (!Array.isArray(results) || !results.length) {
       return { next: () => null };
     }
-    const limit = input?.limit ?? 10;
+    const limit = request?.limit ?? 10;
     if (results.length < limit) {
       return { next: () => null };
     }
@@ -239,10 +223,10 @@ async function $do(
     const nextVal = () =>
       metersListMeters(
         client,
-        limit,
-        nextCursor,
-        endingBefore,
-        includeArchived,
+        {
+          ...request,
+          startingAfter: nextCursor,
+        },
         options,
       );
 

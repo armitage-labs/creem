@@ -176,7 +176,7 @@ const creem = new Creem({
 });
 
 async function run() {
-  const result = await creem.products.search();
+  const result = await creem.products.search({});
 
   for await (const page of result) {
     console.log(page);
@@ -208,7 +208,7 @@ const creem = new Creem({
 });
 
 async function run() {
-  const result = await creem.products.search();
+  const result = await creem.products.search({});
 
   for await (const page of result) {
     console.log(page);
@@ -471,7 +471,7 @@ const creem = new Creem({
 });
 
 async function run() {
-  const result = await creem.products.search();
+  const result = await creem.products.search({});
 
   for await (const page of result) {
     console.log(page);
@@ -497,7 +497,7 @@ const creem = new Creem({
 });
 
 async function run() {
-  const result = await creem.products.search(undefined, undefined, undefined, {
+  const result = await creem.products.search({}, {
     retries: {
       strategy: "backoff",
       backoff: {
@@ -538,7 +538,7 @@ const creem = new Creem({
 });
 
 async function run() {
-  const result = await creem.products.search();
+  const result = await creem.products.search({});
 
   for await (const page of result) {
     console.log(page);
@@ -650,7 +650,7 @@ const creem = new Creem({
 });
 
 async function run() {
-  const result = await creem.products.search();
+  const result = await creem.products.search({});
 
   for await (const page of result) {
     console.log(page);
@@ -673,7 +673,7 @@ const creem = new Creem({
 });
 
 async function run() {
-  const result = await creem.products.search();
+  const result = await creem.products.search({});
 
   for await (const page of result) {
     console.log(page);

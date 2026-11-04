@@ -76,9 +76,7 @@ it("licenses listInstances sends the exact SDK arguments", async () => {
     "--json",
   ]);
   expect(spy, result.stderr).toHaveBeenCalledExactlyOnceWith(
-    "lic_1",
-    2,
-    3,
+    { id: "lic_1", pageNumber: 2, pageSize: 3 },
     expect.objectContaining({ retries: { strategy: "none" } }),
   );
   expect(result.stderr).toContain("SDK_SENTINEL");

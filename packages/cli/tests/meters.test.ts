@@ -45,10 +45,7 @@ it("meters list sends the exact SDK arguments", async () => {
     "--json",
   ]);
   expect(spy, result.stderr).toHaveBeenCalledExactlyOnceWith(
-    7,
-    "mtr_1",
-    undefined,
-    true,
+    { limit: 7, startingAfter: "mtr_1", includeArchived: true },
     expect.objectContaining({ retries: { strategy: "none" } }),
   );
   expect(result.stderr).toContain("SDK_SENTINEL");
@@ -60,7 +57,7 @@ it("meters get sends the exact SDK arguments", async () => {
   const spy = vi.spyOn(h.client.meters, "getMeter").mockRejectedValue(new Error("SDK_SENTINEL"));
   const result = await h.run(["meters", "get", "mtr_1", "--json"]);
   expect(spy, result.stderr).toHaveBeenCalledExactlyOnceWith(
-    "mtr_1",
+    { id: "mtr_1" },
     expect.objectContaining({ retries: { strategy: "none" } }),
   );
   expect(result.stderr).toContain("SDK_SENTINEL");
@@ -80,8 +77,7 @@ it("meters update sends the exact SDK arguments", async () => {
     "--json",
   ]);
   expect(spy, result.stderr).toHaveBeenCalledExactlyOnceWith(
-    "mtr_1",
-    expect.objectContaining({ name: "tokens-v2" }),
+    { id: "mtr_1", updateMeterApiRequestDto: expect.objectContaining({ name: "tokens-v2" }) },
     expect.objectContaining({ retries: { strategy: "none" } }),
   );
   expect(result.stderr).toContain("SDK_SENTINEL");
@@ -115,7 +111,7 @@ it("meters preview-stored sends the exact SDK arguments", async () => {
     .mockRejectedValue(new Error("SDK_SENTINEL"));
   const result = await h.run(["meters", "preview-stored", "mtr_1", "--json"]);
   expect(spy, result.stderr).toHaveBeenCalledExactlyOnceWith(
-    "mtr_1",
+    { id: "mtr_1" },
     expect.objectContaining({ retries: { strategy: "none" } }),
   );
   expect(result.stderr).toContain("SDK_SENTINEL");
@@ -138,9 +134,7 @@ it("meters consumed sends the exact SDK arguments", async () => {
     "--json",
   ]);
   expect(spy, result.stderr).toHaveBeenCalledExactlyOnceWith(
-    "mtr_1",
-    "cust_1",
-    "2026-09-01T00:00:00Z",
+    { id: "mtr_1", customerId: "cust_1", at: "2026-09-01T00:00:00Z" },
     expect.objectContaining({ retries: { strategy: "none" } }),
   );
   expect(result.stderr).toContain("SDK_SENTINEL");
@@ -154,7 +148,7 @@ it("meters archive sends the exact SDK arguments", async () => {
     .mockRejectedValue(new Error("SDK_SENTINEL"));
   const result = await h.run(["meters", "archive", "mtr_1", "--yes", "--json"]);
   expect(spy, result.stderr).toHaveBeenCalledExactlyOnceWith(
-    "mtr_1",
+    { id: "mtr_1" },
     expect.objectContaining({ retries: { strategy: "none" } }),
   );
   expect(result.stderr).toContain("SDK_SENTINEL");
@@ -168,7 +162,7 @@ it("meters unarchive sends the exact SDK arguments", async () => {
     .mockRejectedValue(new Error("SDK_SENTINEL"));
   const result = await h.run(["meters", "unarchive", "mtr_1", "--json"]);
   expect(spy, result.stderr).toHaveBeenCalledExactlyOnceWith(
-    "mtr_1",
+    { id: "mtr_1" },
     expect.objectContaining({ retries: { strategy: "none" } }),
   );
   expect(result.stderr).toContain("SDK_SENTINEL");

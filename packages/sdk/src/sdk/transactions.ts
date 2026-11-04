@@ -19,12 +19,12 @@ export class Transactions extends ClientSDK {
    * Retrieve a single transaction by ID. View payment details, status, and associated order information.
    */
   async getById(
-    transactionId: string,
+    request: operations.GetTransactionByIdRequest,
     options?: RequestOptions,
   ): Promise<components.TransactionEntity> {
     return unwrapAsync(transactionsGetById(
       this,
-      transactionId,
+      request,
       options,
     ));
   }
@@ -36,22 +36,14 @@ export class Transactions extends ClientSDK {
    * Search and retrieve payment transactions. Filter by customer, product, date range, and status.
    */
   async search(
-    customerId?: string | undefined,
-    orderId?: string | undefined,
-    productId?: string | undefined,
-    pageNumber?: number | undefined,
-    pageSize?: number | undefined,
+    request: operations.SearchTransactionsRequest,
     options?: RequestOptions,
   ): Promise<
     PageIterator<operations.SearchTransactionsResponse, { page: number }>
   > {
     return unwrapResultIterator(transactionsSearch(
       this,
-      customerId,
-      orderId,
-      productId,
-      pageNumber,
-      pageSize,
+      request,
       options,
     ));
   }

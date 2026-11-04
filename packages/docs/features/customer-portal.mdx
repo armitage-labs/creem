@@ -120,7 +120,7 @@ You can also retrieve the customer ID by email:
 
 ```typescript
 // Get customer by email first
-const customer = await creem.customers.retrieve(undefined, "customer@example.com");
+const customer = await creem.customers.retrieve({ email: "customer@example.com" });
 
 // Then create portal link
 const portal = await creem.customers.generateBillingLinks({

@@ -7,6 +7,14 @@ description: The official Creem TypeScript SDK with full API access, all endpoin
   This is the **creem** core package with full API access and advanced configuration options.
 </Info>
 
+<Card
+  title="Upgrading from creem 1.x?"
+  href="https://github.com/armitage-labs/creem/blob/main/packages/sdk/MIGRATION.md"
+>
+  In 2.0 every method takes one request object. The migration guide lists every call next to its new
+  form.
+</Card>
+
 <Card title="Migrating from creem_io?" href="/code/sdks/migrate-from-creem-io">
   Follow the migration guide to replace the deprecated wrapper with the core `creem` SDK.
 </Card>
@@ -62,7 +70,7 @@ const creem = new Creem({
 });
 
 // Retrieve a product
-const product = await creem.products.get("prod_7CIbZEZnRC5DWibmoOboOu");
+const product = await creem.products.get({ id: "prod_7CIbZEZnRC5DWibmoOboOu" });
 console.log(product);
 
 // Create a checkout session
@@ -98,24 +106,26 @@ The SDK organizes all operations into logical resources:
 
 ```ts
 // List products
-const productPage = await creem.products.search(1, 10);
+const productPage = await creem.products.search({ pageNumber: 1, pageSize: 10 });
 const products = productPage.result.items;
 
 // Get a product
-const product = await creem.products.get("prod_7CIbb...");
+const product = await creem.products.get({ id: "prod_7CIbb..." });
 
 // Create a product
 const createdProduct = await creem.products.create({
-  name: "Test Product",
-  description: "Test Product Description",
-  price: 1000, // In cents
-  currency: "USD",
-  billingType: "recurring",
-  billingPeriod: "every-month",
+  createProductRequestEntity: {
+    name: "Test Product",
+    description: "Test Product Description",
+    price: 1000, // In cents
+    currency: "USD",
+    billingType: "recurring",
+    billingPeriod: "every-month",
+  },
 });
 
 // Search products
-const productsPage = await creem.products.search(1, 10);
+const productsPage = await creem.products.search({ pageNumber: 1, pageSize: 10 });
 console.log(productsPage.result.items);
 ```
 
@@ -149,21 +159,21 @@ const checkout = await creem.checkouts.create({
 console.log(checkout.checkoutUrl); // Redirect user to this URL
 
 // Get a checkout session
-const retrievedCheckout = await creem.checkouts.retrieve("chck_1234567890");
+const retrievedCheckout = await creem.checkouts.retrieve({ checkoutId: "chck_1234567890" });
 ```
 
 ### Customers
 
 ```ts
 // List customers
-const customerPage = await creem.customers.list(1, 10);
+const customerPage = await creem.customers.list({ pageNumber: 1, pageSize: 10 });
 const customers = customerPage.result.items;
 
 // Get a customer by ID
-const customer = await creem.customers.retrieve("cust_abc123");
+const customer = await creem.customers.retrieve({ customerId: "cust_abc123" });
 
 // Get a customer by email
-const customerByEmail = await creem.customers.retrieve(undefined, "customer@example.com");
+const customerByEmail = await creem.customers.retrieve({ email: "customer@example.com" });
 
 // Create customer portal link
 const portal = await creem.customers.generateBillingLinks({
@@ -177,28 +187,37 @@ console.log(portal.customerPortalLink); // Redirect user to portal
 
 ```ts
 // Get a subscription
-const subscription = await creem.subscriptions.get("sub_abc123");
+const subscription = await creem.subscriptions.get({ subscriptionId: "sub_abc123" });
 
 // Cancel a subscription
-const canceledSubscription = await creem.subscriptions.cancel("sub_abc123", {
-  mode: "immediate",
+const canceledSubscription = await creem.subscriptions.cancel({
+  id: "sub_abc123",
+  cancelSubscriptionRequestEntity: {
+    mode: "immediate",
+  },
 });
 
 // Update a subscription (change units/seats)
-const updated = await creem.subscriptions.update("sub_abc123", {
-  items: [
-    {
-      id: "item_abc123", // Subscription item ID
-      units: 5, // Update to 5 seats
-    },
-  ],
-  updateBehavior: "proration-charge-immediately",
+const updated = await creem.subscriptions.update({
+  id: "sub_abc123",
+  updateSubscriptionRequestEntity: {
+    items: [
+      {
+        id: "item_abc123", // Subscription item ID
+        units: 5, // Update to 5 seats
+      },
+    ],
+    updateBehavior: "proration-charge-immediately",
+  },
 });
 
 // Upgrade a subscription to a different product
-const upgraded = await creem.subscriptions.upgrade("sub_abc123", {
-  productId: "prod_premium", // New product ID
-  updateBehavior: "proration-charge-immediately",
+const upgraded = await creem.subscriptions.upgrade({
+  id: "sub_abc123",
+  upgradeSubscriptionRequestEntity: {
+    productId: "prod_premium", // New product ID
+    updateBehavior: "proration-charge-immediately",
+  },
 });
 ```
 
@@ -249,29 +268,27 @@ const discount = await creem.discounts.create({
 });
 
 // Retrieve a discount by ID
-const discountById = await creem.discounts.get("disc_xxxxx");
+const discountById = await creem.discounts.get({ discountId: "disc_xxxxx" });
 
 // Retrieve a discount by code
-const discountByCode = await creem.discounts.get(undefined, "SUMMER2024");
+const discountByCode = await creem.discounts.get({ discountCode: "SUMMER2024" });
 
 // Delete a discount
-await creem.discounts.delete("disc_xxxxx");
+await creem.discounts.delete({ id: "disc_xxxxx" });
 ```
 
 ### Transactions
 
 ```ts
 // Get a transaction
-const transaction = await creem.transactions.getById("txn_xxxxx");
+const transaction = await creem.transactions.getById({ transactionId: "txn_xxxxx" });
 
 // List transactions
-const transactionPage = await creem.transactions.search(
-  "cust_xxxxx", // customerId (optional)
-  undefined, // orderId
-  undefined, // productId
-  1, // page
-  50, // pageSize
-);
+const transactionPage = await creem.transactions.search({
+  customerId: "cust_xxxxx",
+  pageNumber: 1,
+  pageSize: 50,
+});
 const transactions = transactionPage.result.items;
 ```
 
@@ -352,7 +369,7 @@ The SDK throws errors when API calls fail. Always wrap SDK calls in try-catch bl
 
 ```ts
 try {
-  const product = await creem.products.get("prod_xxxxx");
+  const product = await creem.products.get({ id: "prod_xxxxx" });
 } catch (error) {
   console.error("Failed to retrieve product:", error);
   // Handle error appropriately

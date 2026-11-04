@@ -212,10 +212,13 @@ Debit with the same ID you sent as `event_id`, so the event and the debit point 
 // 1 credit per 1,000 tokens, rounded up
 const credits = (BigInt(tokens) + 999n) / 1000n;
 
-await creem.customerCredits.debitAccount("cca_...", {
-  amount: credits.toString(),
-  reference: eventId,
-  idempotencyKey: `debit-${eventId}`,
+await creem.customerCredits.debitAccount({
+  id: "cca_...",
+  creditDebitRequestDto: {
+    amount: credits.toString(),
+    reference: eventId,
+    idempotencyKey: `debit-${eventId}`,
+  },
 });
 ```
 

@@ -34,7 +34,7 @@ describe("getProduct", () => {
 
   it("should retrieve a product successfully", async () => {
     // When using the SDK instance directly, it returns ProductEntity
-    const result = await creem.products.get(testProduct.id);
+    const result = await creem.products.get({ id: testProduct.id });
 
     // Test direct SDK method
     expect(result).toHaveProperty("id", testProduct.id);
@@ -66,7 +66,7 @@ describe("getProduct", () => {
 
   it("should handle request errors with non-existent product ID", async () => {
     try {
-      await creem.products.get("non-existent-product-id");
+      await creem.products.get({ id: "non-existent-product-id" });
       fail("Expected error with invalid product ID but none was thrown");
     } catch (error) {
       expect(error).toBeDefined();

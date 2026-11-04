@@ -7,7 +7,7 @@ it("transactions getById sends the exact SDK arguments", async () => {
     .mockRejectedValue(new Error("SDK_SENTINEL"));
   const result = await h.run(["transactions", "get", "tx_1", "--json"]);
   expect(spy, result.stderr).toHaveBeenCalledExactlyOnceWith(
-    "tx_1",
+    { transactionId: "tx_1" },
     expect.objectContaining({ retries: { strategy: "none" } }),
   );
   expect(result.stderr).toContain("SDK_SENTINEL");
@@ -34,11 +34,7 @@ it("transactions search sends the exact SDK arguments", async () => {
     "--json",
   ]);
   expect(spy, result.stderr).toHaveBeenCalledExactlyOnceWith(
-    "cust_1",
-    "ord_1",
-    "prod_1",
-    2,
-    3,
+    { customerId: "cust_1", orderId: "ord_1", productId: "prod_1", pageNumber: 2, pageSize: 3 },
     expect.objectContaining({ retries: { strategy: "none" } }),
   );
   expect(result.stderr).toContain("SDK_SENTINEL");

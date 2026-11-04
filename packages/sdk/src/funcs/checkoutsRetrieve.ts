@@ -34,7 +34,7 @@ import { Result } from "../types/fp.js";
  */
 export function checkoutsRetrieve(
   client: CreemCore,
-  checkoutId: string,
+  request: operations.RetrieveCheckoutRequest,
   options?: RequestOptions,
 ): APIPromise<
   Result<
@@ -51,14 +51,14 @@ export function checkoutsRetrieve(
 > {
   return new APIPromise($do(
     client,
-    checkoutId,
+    request,
     options,
   ));
 }
 
 async function $do(
   client: CreemCore,
-  checkoutId: string,
+  request: operations.RetrieveCheckoutRequest,
   options?: RequestOptions,
 ): Promise<
   [
@@ -76,12 +76,8 @@ async function $do(
     APICall,
   ]
 > {
-  const input: operations.RetrieveCheckoutRequest = {
-    checkoutId: checkoutId,
-  };
-
   const parsed = safeParse(
-    input,
+    request,
     (value) => operations.RetrieveCheckoutRequest$outboundSchema.parse(value),
     "Input validation failed",
   );

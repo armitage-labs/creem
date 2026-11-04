@@ -34,7 +34,7 @@ import { Result } from "../types/fp.js";
  */
 export function affiliatesRetrieve(
   client: CreemCore,
-  id: string,
+  request: operations.RetrieveAffiliateRequest,
   options?: RequestOptions,
 ): APIPromise<
   Result<
@@ -51,14 +51,14 @@ export function affiliatesRetrieve(
 > {
   return new APIPromise($do(
     client,
-    id,
+    request,
     options,
   ));
 }
 
 async function $do(
   client: CreemCore,
-  id: string,
+  request: operations.RetrieveAffiliateRequest,
   options?: RequestOptions,
 ): Promise<
   [
@@ -76,12 +76,8 @@ async function $do(
     APICall,
   ]
 > {
-  const input: operations.RetrieveAffiliateRequest = {
-    id: id,
-  };
-
   const parsed = safeParse(
-    input,
+    request,
     (value) => operations.RetrieveAffiliateRequest$outboundSchema.parse(value),
     "Input validation failed",
   );

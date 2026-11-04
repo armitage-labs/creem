@@ -4,7 +4,7 @@ management:
   docVersion: v1
   speakeasyVersion: 1.797.0
   generationVersion: 2.937.18
-  releaseVersion: 1.12.0
+  releaseVersion: 1.13.0
   repoURL: https://github.com/armitage-labs/creem.git
   repoSubDirectory: packages/sdk
   installationURL: https://github.com/armitage-labs/creem
@@ -23,7 +23,6 @@ features:
     devContainers: 2.90.1
     enumUnions: 0.1.0
     envVarSecurityUsage: 0.1.2
-    flattening: 2.82.1
     globalSecurity: 2.82.16
     globalSecurityCallbacks: 0.1.0
     globalSecurityFlattening: 0.1.1

@@ -9,7 +9,7 @@ export const handlers: Record<string, OperationHandler> = {
       operations.RetrieveCheckoutRequest$inboundSchema,
       parameters,
     );
-    return client.checkouts.retrieve(p.checkoutId, options);
+    return client.checkouts.retrieve(p, options);
   },
   createCheckout: (client, parameters, body, options) => {
     const b = decode(

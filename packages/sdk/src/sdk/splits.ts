@@ -37,14 +37,12 @@ export class Splits extends ClientSDK {
    * Retrieve a paginated list of the active splits configured for your store, each with its recipients and their shares. Email invitees who have not yet accepted are shown with a masked email address.
    */
   async list(
-    pageNumber?: number | undefined,
-    pageSize?: number | undefined,
+    request: operations.ListSplitsRequest,
     options?: RequestOptions,
   ): Promise<PageIterator<operations.ListSplitsResponse, { page: number }>> {
     return unwrapResultIterator(splitsList(
       this,
-      pageNumber,
-      pageSize,
+      request,
       options,
     ));
   }
@@ -56,12 +54,12 @@ export class Splits extends ClientSDK {
    * Retrieve a single split by ID, including its recipients and their shares. Email invitees who have not yet accepted are shown with a masked email address and their invite status. Splits belonging to another store are not visible.
    */
   async retrieve(
-    id: string,
+    request: operations.RetrieveSplitRequest,
     options?: RequestOptions,
   ): Promise<components.SplitEntity> {
     return unwrapAsync(splitsRetrieve(
       this,
-      id,
+      request,
       options,
     ));
   }
@@ -73,12 +71,12 @@ export class Splits extends ClientSDK {
    * Delete a split by ID. The split stops applying to future payments immediately. Splits belonging to another store cannot be deleted.
    */
   async delete(
-    id: string,
+    request: operations.DeleteSplitRequest,
     options?: RequestOptions,
   ): Promise<components.SplitEntity> {
     return unwrapAsync(splitsDelete(
       this,
-      id,
+      request,
       options,
     ));
   }

@@ -34,8 +34,7 @@ import { Result } from "../types/fp.js";
  */
 export function webhooksUpdate(
   client: CreemCore,
-  id: string,
-  updateWebhookRequestEntity: components.UpdateWebhookRequestEntity,
+  request: operations.UpdateWebhookRequest,
   options?: RequestOptions,
 ): APIPromise<
   Result<
@@ -52,16 +51,14 @@ export function webhooksUpdate(
 > {
   return new APIPromise($do(
     client,
-    id,
-    updateWebhookRequestEntity,
+    request,
     options,
   ));
 }
 
 async function $do(
   client: CreemCore,
-  id: string,
-  updateWebhookRequestEntity: components.UpdateWebhookRequestEntity,
+  request: operations.UpdateWebhookRequest,
   options?: RequestOptions,
 ): Promise<
   [
@@ -79,13 +76,8 @@ async function $do(
     APICall,
   ]
 > {
-  const input: operations.UpdateWebhookRequest = {
-    id: id,
-    updateWebhookRequestEntity: updateWebhookRequestEntity,
-  };
-
   const parsed = safeParse(
-    input,
+    request,
     (value) => operations.UpdateWebhookRequest$outboundSchema.parse(value),
     "Input validation failed",
   );

@@ -5,8 +5,7 @@ it("customers list sends the exact SDK arguments", async () => {
   const spy = vi.spyOn(h.client.customers, "list").mockRejectedValue(new Error("SDK_SENTINEL"));
   const result = await h.run(["customers", "list", "--page", "2", "--limit", "3", "--json"]);
   expect(spy, result.stderr).toHaveBeenCalledExactlyOnceWith(
-    2,
-    3,
+    { pageNumber: 2, pageSize: 3 },
     expect.objectContaining({ retries: { strategy: "none" } }),
   );
   expect(result.stderr).toContain("SDK_SENTINEL");
@@ -28,9 +27,7 @@ it("customers getOrders sends the exact SDK arguments", async () => {
     "--json",
   ]);
   expect(spy, result.stderr).toHaveBeenCalledExactlyOnceWith(
-    "cust_1",
-    2,
-    3,
+    { id: "cust_1", pageNumber: 2, pageSize: 3 },
     expect.objectContaining({ retries: { strategy: "none" } }),
   );
   expect(result.stderr).toContain("SDK_SENTINEL");
@@ -52,9 +49,7 @@ it("customers listSubscriptions sends the exact SDK arguments", async () => {
     "--json",
   ]);
   expect(spy, result.stderr).toHaveBeenCalledExactlyOnceWith(
-    "cust_1",
-    2,
-    3,
+    { id: "cust_1", pageNumber: 2, pageSize: 3 },
     expect.objectContaining({ retries: { strategy: "none" } }),
   );
   expect(result.stderr).toContain("SDK_SENTINEL");
@@ -76,9 +71,7 @@ it("customers listLicenses sends the exact SDK arguments", async () => {
     "--json",
   ]);
   expect(spy, result.stderr).toHaveBeenCalledExactlyOnceWith(
-    "cust_1",
-    2,
-    3,
+    { id: "cust_1", pageNumber: 2, pageSize: 3 },
     expect.objectContaining({ retries: { strategy: "none" } }),
   );
   expect(result.stderr).toContain("SDK_SENTINEL");
@@ -89,8 +82,7 @@ it("customers retrieve sends the exact SDK arguments", async () => {
   const spy = vi.spyOn(h.client.customers, "retrieve").mockRejectedValue(new Error("SDK_SENTINEL"));
   const result = await h.run(["customers", "get", "--email", "person@example.com", "--json"]);
   expect(spy, result.stderr).toHaveBeenCalledExactlyOnceWith(
-    undefined,
-    "person@example.com",
+    { email: "person@example.com" },
     expect.objectContaining({ retries: { strategy: "none" } }),
   );
   expect(result.stderr).toContain("SDK_SENTINEL");

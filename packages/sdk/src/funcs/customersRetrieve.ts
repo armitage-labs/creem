@@ -34,8 +34,7 @@ import { Result } from "../types/fp.js";
  */
 export function customersRetrieve(
   client: CreemCore,
-  customerId?: string | undefined,
-  email?: string | undefined,
+  request: operations.RetrieveCustomerRequest,
   options?: RequestOptions,
 ): APIPromise<
   Result<
@@ -52,16 +51,14 @@ export function customersRetrieve(
 > {
   return new APIPromise($do(
     client,
-    customerId,
-    email,
+    request,
     options,
   ));
 }
 
 async function $do(
   client: CreemCore,
-  customerId?: string | undefined,
-  email?: string | undefined,
+  request: operations.RetrieveCustomerRequest,
   options?: RequestOptions,
 ): Promise<
   [
@@ -79,13 +76,8 @@ async function $do(
     APICall,
   ]
 > {
-  const input: operations.RetrieveCustomerRequest = {
-    customerId: customerId,
-    email: email,
-  };
-
   const parsed = safeParse(
-    input,
+    request,
     (value) => operations.RetrieveCustomerRequest$outboundSchema.parse(value),
     "Input validation failed",
   );

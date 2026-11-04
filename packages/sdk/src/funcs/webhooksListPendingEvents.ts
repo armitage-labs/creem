@@ -34,8 +34,7 @@ import { Result } from "../types/fp.js";
  */
 export function webhooksListPendingEvents(
   client: CreemCore,
-  id: string,
-  limit?: number | undefined,
+  request: operations.ListPendingWebhookEventsRequest,
   options?: RequestOptions,
 ): APIPromise<
   Result<
@@ -52,16 +51,14 @@ export function webhooksListPendingEvents(
 > {
   return new APIPromise($do(
     client,
-    id,
-    limit,
+    request,
     options,
   ));
 }
 
 async function $do(
   client: CreemCore,
-  id: string,
-  limit?: number | undefined,
+  request: operations.ListPendingWebhookEventsRequest,
   options?: RequestOptions,
 ): Promise<
   [
@@ -79,13 +76,8 @@ async function $do(
     APICall,
   ]
 > {
-  const input: operations.ListPendingWebhookEventsRequest = {
-    id: id,
-    limit: limit,
-  };
-
   const parsed = safeParse(
-    input,
+    request,
     (value) =>
       operations.ListPendingWebhookEventsRequest$outboundSchema.parse(value),
     "Input validation failed",

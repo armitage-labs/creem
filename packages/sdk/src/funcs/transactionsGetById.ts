@@ -34,7 +34,7 @@ import { Result } from "../types/fp.js";
  */
 export function transactionsGetById(
   client: CreemCore,
-  transactionId: string,
+  request: operations.GetTransactionByIdRequest,
   options?: RequestOptions,
 ): APIPromise<
   Result<
@@ -51,14 +51,14 @@ export function transactionsGetById(
 > {
   return new APIPromise($do(
     client,
-    transactionId,
+    request,
     options,
   ));
 }
 
 async function $do(
   client: CreemCore,
-  transactionId: string,
+  request: operations.GetTransactionByIdRequest,
   options?: RequestOptions,
 ): Promise<
   [
@@ -76,12 +76,8 @@ async function $do(
     APICall,
   ]
 > {
-  const input: operations.GetTransactionByIdRequest = {
-    transactionId: transactionId,
-  };
-
   const parsed = safeParse(
-    input,
+    request,
     (value) => operations.GetTransactionByIdRequest$outboundSchema.parse(value),
     "Input validation failed",
   );

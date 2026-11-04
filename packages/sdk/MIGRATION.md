@@ -1,0 +1,140 @@
+# Migrating to `creem` 2.0
+
+`creem` 2.0 changes how every method takes its arguments. The HTTP API is the
+same: requests and responses don't change, only the TypeScript signatures do.
+
+## What changed
+
+Each method now takes **one request object**, then the optional
+`RequestOptions` as before. The path, query and header parameters are
+properties of that object, and so is the request body, under the name it
+already had in the types (for example `updateProductRequestEntity`).
+
+```ts
+// 1.x
+await creem.products.update("prod_123", { name: "Pro" }, { retries });
+
+// 2.0
+await creem.products.update(
+  { id: "prod_123", updateProductRequestEntity: { name: "Pro" } },
+  { retries },
+);
+```
+
+A method whose parameters are all optional still takes the object, so a call
+without arguments becomes `({})`:
+
+```ts
+// 1.x
+await creem.products.search();
+await creem.transactions.search(undefined, undefined, undefined, 2, 50);
+
+// 2.0
+await creem.products.search({});
+await creem.transactions.search({ pageNumber: 2, pageSize: 50 });
+```
+
+## Why
+
+In 1.x every parameter was positional, and `options` came last. When the API
+gained a new optional parameter, it was inserted before `options`, so existing
+calls that passed `options` stopped compiling in TypeScript, and in JavaScript
+the options object was sent as the new parameter. With one request object, a
+new parameter is a new optional property: no existing call changes. The
+upcoming catalog parameters (`dry_run`, `If-None-Match`, `If-Match`, new
+search filters) therefore arrive in minor releases of 2.x.
+
+## Every changed method
+
+| 1.x | 2.0 |
+| --- | --- |
+| `creem.affiliates.list(pageNumber, pageSize)` | `creem.affiliates.list({ pageNumber, pageSize })` |
+| `creem.affiliates.listCommissions(id, status, pageNumber, pageSize)` | `creem.affiliates.listCommissions({ id, status, pageNumber, pageSize })` |
+| `creem.affiliates.listInvites(pageNumber, pageSize)` | `creem.affiliates.listInvites({ pageNumber, pageSize })` |
+| `creem.affiliates.retrieve(id)` | `creem.affiliates.retrieve({ id })` |
+| `creem.checkouts.retrieve(checkoutId)` | `creem.checkouts.retrieve({ checkoutId })` |
+| `creem.customerCredits.closeAccount(id)` | `creem.customerCredits.closeAccount({ id })` |
+| `creem.customerCredits.creditAccount(id, creditDebitRequestDto)` | `creem.customerCredits.creditAccount({ id, creditDebitRequestDto })` |
+| `creem.customerCredits.debitAccount(id, creditDebitRequestDto)` | `creem.customerCredits.debitAccount({ id, creditDebitRequestDto })` |
+| `creem.customerCredits.freezeAccount(id)` | `creem.customerCredits.freezeAccount({ id })` |
+| `creem.customerCredits.getAccount(id)` | `creem.customerCredits.getAccount({ id })` |
+| `creem.customerCredits.getAccountBalance(id, at)` | `creem.customerCredits.getAccountBalance({ id, at })` |
+| `creem.customerCredits.getTransaction(id)` | `creem.customerCredits.getTransaction({ id })` |
+| `creem.customerCredits.listAccounts(limit, customerId, startingAfter, endingBefore)` | `creem.customerCredits.listAccounts({ limit, customerId, startingAfter, endingBefore })` |
+| `creem.customerCredits.listEntries(id, limit, startingAfter, endingBefore)` | `creem.customerCredits.listEntries({ id, limit, startingAfter, endingBefore })` |
+| `creem.customerCredits.listTransactionsByReference(reference)` | `creem.customerCredits.listTransactionsByReference({ reference })` |
+| `creem.customerCredits.reverseTransaction(id, reverseTransactionRequestDto)` | `creem.customerCredits.reverseTransaction({ id, reverseTransactionRequestDto })` |
+| `creem.customerCredits.reverseTransactionById(id)` | `creem.customerCredits.reverseTransactionById({ id })` |
+| `creem.customerCredits.unfreezeAccount(id)` | `creem.customerCredits.unfreezeAccount({ id })` |
+| `creem.customers.getOrders(id, pageNumber, pageSize)` | `creem.customers.getOrders({ id, pageNumber, pageSize })` |
+| `creem.customers.list(pageNumber, pageSize)` | `creem.customers.list({ pageNumber, pageSize })` |
+| `creem.customers.listLicenses(id, pageNumber, pageSize)` | `creem.customers.listLicenses({ id, pageNumber, pageSize })` |
+| `creem.customers.listSubscriptions(id, pageNumber, pageSize)` | `creem.customers.listSubscriptions({ id, pageNumber, pageSize })` |
+| `creem.customers.retrieve(customerId, email)` | `creem.customers.retrieve({ customerId, email })` |
+| `creem.discounts.delete(id)` | `creem.discounts.delete({ id })` |
+| `creem.discounts.get(discountId, discountCode)` | `creem.discounts.get({ discountId, discountCode })` |
+| `creem.discounts.search(pageNumber, pageSize, productId, status, type, createdAfter, createdBefore)` | `creem.discounts.search({ pageNumber, pageSize, productId, status, type, createdAfter, createdBefore })` |
+| `creem.events.listEvents(meterId, customerId, reference, limit, startingAfter)` | `creem.events.listEvents({ meterId, customerId, reference, limit, startingAfter })` |
+| `creem.licenses.listInstances(id, pageNumber, pageSize)` | `creem.licenses.listInstances({ id, pageNumber, pageSize })` |
+| `creem.meters.archiveMeter(id)` | `creem.meters.archiveMeter({ id })` |
+| `creem.meters.getConsumedUnits(id, customerId, at)` | `creem.meters.getConsumedUnits({ id, customerId, at })` |
+| `creem.meters.getMeter(id)` | `creem.meters.getMeter({ id })` |
+| `creem.meters.listMeters(limit, startingAfter, endingBefore, includeArchived)` | `creem.meters.listMeters({ limit, startingAfter, endingBefore, includeArchived })` |
+| `creem.meters.previewExistingMeter(id)` | `creem.meters.previewExistingMeter({ id })` |
+| `creem.meters.unarchiveMeter(id)` | `creem.meters.unarchiveMeter({ id })` |
+| `creem.meters.updateMeter(id, updateMeterApiRequestDto)` | `creem.meters.updateMeter({ id, updateMeterApiRequestDto })` |
+| `creem.products.archive(id)` | `creem.products.archive({ id })` |
+| `creem.products.create(createProductRequestEntity, idempotencyKey)` | `creem.products.create({ createProductRequestEntity, idempotencyKey })` |
+| `creem.products.get(id)` | `creem.products.get({ id })` |
+| `creem.products.search(pageNumber, pageSize, status)` | `creem.products.search({ pageNumber, pageSize, status })` |
+| `creem.products.update(id, updateProductRequestEntity)` | `creem.products.update({ id, updateProductRequestEntity })` |
+| `creem.splits.delete(id)` | `creem.splits.delete({ id })` |
+| `creem.splits.list(pageNumber, pageSize)` | `creem.splits.list({ pageNumber, pageSize })` |
+| `creem.splits.retrieve(id)` | `creem.splits.retrieve({ id })` |
+| `creem.stats.getSummary(currency, startDate, endDate, interval)` | `creem.stats.getSummary({ currency, startDate, endDate, interval })` |
+| `creem.subscriptions.cancel(id, cancelSubscriptionRequestEntity)` | `creem.subscriptions.cancel({ id, cancelSubscriptionRequestEntity })` |
+| `creem.subscriptions.get(subscriptionId)` | `creem.subscriptions.get({ subscriptionId })` |
+| `creem.subscriptions.pause(id)` | `creem.subscriptions.pause({ id })` |
+| `creem.subscriptions.resume(id)` | `creem.subscriptions.resume({ id })` |
+| `creem.subscriptions.search(pageNumber, pageSize)` | `creem.subscriptions.search({ pageNumber, pageSize })` |
+| `creem.subscriptions.update(id, updateSubscriptionRequestEntity)` | `creem.subscriptions.update({ id, updateSubscriptionRequestEntity })` |
+| `creem.subscriptions.upgrade(id, upgradeSubscriptionRequestEntity)` | `creem.subscriptions.upgrade({ id, upgradeSubscriptionRequestEntity })` |
+| `creem.transactions.getById(transactionId)` | `creem.transactions.getById({ transactionId })` |
+| `creem.transactions.search(customerId, orderId, productId, pageNumber, pageSize)` | `creem.transactions.search({ customerId, orderId, productId, pageNumber, pageSize })` |
+| `creem.webhooks.acknowledgeEvent(id, eventId, acknowledgeWebhookEventRequestEntity)` | `creem.webhooks.acknowledgeEvent({ id, eventId, acknowledgeWebhookEventRequestEntity })` |
+| `creem.webhooks.delete(id)` | `creem.webhooks.delete({ id })` |
+| `creem.webhooks.get(id)` | `creem.webhooks.get({ id })` |
+| `creem.webhooks.getSecret(id)` | `creem.webhooks.getSecret({ id })` |
+| `creem.webhooks.list(pageNumber, pageSize)` | `creem.webhooks.list({ pageNumber, pageSize })` |
+| `creem.webhooks.listPendingEvents(id, limit)` | `creem.webhooks.listPendingEvents({ id, limit })` |
+| `creem.webhooks.update(id, updateWebhookRequestEntity)` | `creem.webhooks.update({ id, updateWebhookRequestEntity })` |
+
+These methods already took a single request body and are unchanged:
+
+- `creem.affiliates.createInvite(request)`
+- `creem.checkouts.create(request)`
+- `creem.customerCredits.createAccount(request)`
+- `creem.customerCredits.postTransaction(request)`
+- `creem.customers.create(request)`
+- `creem.customers.generateBillingLinks(request)`
+- `creem.customers.update(request)`
+- `creem.discounts.create(request)`
+- `creem.events.ingestEvents(request)`
+- `creem.events.previewEvents(request)`
+- `creem.licenses.activate(request)`
+- `creem.licenses.deactivate(request)`
+- `creem.licenses.validate(request)`
+- `creem.meters.createMeter(request)`
+- `creem.meters.previewMeter(request)`
+- `creem.moderation.screenPrompt(request)`
+- `creem.splits.create(request)`
+- `creem.transactions.refund(request)`
+- `creem.webhooks.create(request)`
+
+## MCP server and CLI
+
+The bundled MCP server's tools take the same request object as their methods,
+so a tool's input is now `{ "request": { ... } }` (for example
+`products-update` takes `{ "request": { "id": "prod_123",
+"updateProductRequestEntity": { "name": "Pro" } } }`). The `creem` CLI's
+commands, flags and output don't change.

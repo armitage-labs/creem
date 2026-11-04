@@ -34,7 +34,7 @@ import { Result } from "../types/fp.js";
  */
 export function subscriptionsGet(
   client: CreemCore,
-  subscriptionId: string,
+  request: operations.RetrieveSubscriptionRequest,
   options?: RequestOptions,
 ): APIPromise<
   Result<
@@ -51,14 +51,14 @@ export function subscriptionsGet(
 > {
   return new APIPromise($do(
     client,
-    subscriptionId,
+    request,
     options,
   ));
 }
 
 async function $do(
   client: CreemCore,
-  subscriptionId: string,
+  request: operations.RetrieveSubscriptionRequest,
   options?: RequestOptions,
 ): Promise<
   [
@@ -76,12 +76,8 @@ async function $do(
     APICall,
   ]
 > {
-  const input: operations.RetrieveSubscriptionRequest = {
-    subscriptionId: subscriptionId,
-  };
-
   const parsed = safeParse(
-    input,
+    request,
     (value) =>
       operations.RetrieveSubscriptionRequest$outboundSchema.parse(value),
     "Input validation failed",

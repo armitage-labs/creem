@@ -6,6 +6,7 @@ import { checkoutsCreate } from "../funcs/checkoutsCreate.js";
 import { checkoutsRetrieve } from "../funcs/checkoutsRetrieve.js";
 import { ClientSDK, RequestOptions } from "../lib/sdks.js";
 import * as components from "../models/components/index.js";
+import * as operations from "../models/operations/index.js";
 import { unwrapAsync } from "../types/fp.js";
 
 export class Checkouts extends ClientSDK {
@@ -16,12 +17,12 @@ export class Checkouts extends ClientSDK {
    * Retrieve details of a checkout session by ID. View status, customer info, and payment details.
    */
   async retrieve(
-    checkoutId: string,
+    request: operations.RetrieveCheckoutRequest,
     options?: RequestOptions,
   ): Promise<components.CheckoutEntity> {
     return unwrapAsync(checkoutsRetrieve(
       this,
-      checkoutId,
+      request,
       options,
     ));
   }

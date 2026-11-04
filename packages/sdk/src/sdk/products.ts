@@ -21,18 +21,14 @@ export class Products extends ClientSDK {
    * Search and retrieve a paginated list of products. Filter by status, billing type, and other criteria.
    */
   async search(
-    pageNumber?: number | undefined,
-    pageSize?: number | undefined,
-    status?: components.ProductStatus | undefined,
+    request: operations.SearchProductsRequest,
     options?: RequestOptions,
   ): Promise<
     PageIterator<operations.SearchProductsResponse, { page: number }>
   > {
     return unwrapResultIterator(productsSearch(
       this,
-      pageNumber,
-      pageSize,
-      status,
+      request,
       options,
     ));
   }
@@ -44,14 +40,12 @@ export class Products extends ClientSDK {
    * Create a new product for one-time payments, including free products with a 0 price, or subscriptions. Configure pricing, billing cycles, and features.
    */
   async create(
-    createProductRequestEntity: components.CreateProductRequestEntity,
-    idempotencyKey?: string | undefined,
+    request: operations.CreateProductRequest,
     options?: RequestOptions,
   ): Promise<components.ProductEntity> {
     return unwrapAsync(productsCreate(
       this,
-      createProductRequestEntity,
-      idempotencyKey,
+      request,
       options,
     ));
   }
@@ -63,12 +57,12 @@ export class Products extends ClientSDK {
    * Retrieve a single product by its unique identifier.
    */
   async get(
-    id: string,
+    request: operations.GetProductRequest,
     options?: RequestOptions,
   ): Promise<components.ProductEntity> {
     return unwrapAsync(productsGet(
       this,
-      id,
+      request,
       options,
     ));
   }
@@ -80,14 +74,12 @@ export class Products extends ClientSDK {
    * Update a product. Only supplied fields change; a price change mints a new default price.
    */
   async update(
-    id: string,
-    updateProductRequestEntity: components.UpdateProductRequestEntity,
+    request: operations.UpdateProductRequest,
     options?: RequestOptions,
   ): Promise<components.ProductEntity> {
     return unwrapAsync(productsUpdate(
       this,
-      id,
-      updateProductRequestEntity,
+      request,
       options,
     ));
   }
@@ -99,12 +91,12 @@ export class Products extends ClientSDK {
    * Archive a product (soft-delete). The product is retained for historical orders and subscriptions but can no longer be purchased.
    */
   async archive(
-    id: string,
+    request: operations.ArchiveProductRequest,
     options?: RequestOptions,
   ): Promise<components.ProductEntity> {
     return unwrapAsync(productsArchive(
       this,
-      id,
+      request,
       options,
     ));
   }

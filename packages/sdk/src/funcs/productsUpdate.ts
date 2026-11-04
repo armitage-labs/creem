@@ -34,8 +34,7 @@ import { Result } from "../types/fp.js";
  */
 export function productsUpdate(
   client: CreemCore,
-  id: string,
-  updateProductRequestEntity: components.UpdateProductRequestEntity,
+  request: operations.UpdateProductRequest,
   options?: RequestOptions,
 ): APIPromise<
   Result<
@@ -52,16 +51,14 @@ export function productsUpdate(
 > {
   return new APIPromise($do(
     client,
-    id,
-    updateProductRequestEntity,
+    request,
     options,
   ));
 }
 
 async function $do(
   client: CreemCore,
-  id: string,
-  updateProductRequestEntity: components.UpdateProductRequestEntity,
+  request: operations.UpdateProductRequest,
   options?: RequestOptions,
 ): Promise<
   [
@@ -79,13 +76,8 @@ async function $do(
     APICall,
   ]
 > {
-  const input: operations.UpdateProductRequest = {
-    id: id,
-    updateProductRequestEntity: updateProductRequestEntity,
-  };
-
   const parsed = safeParse(
-    input,
+    request,
     (value) => operations.UpdateProductRequest$outboundSchema.parse(value),
     "Input validation failed",
   );

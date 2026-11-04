@@ -38,10 +38,7 @@ it("customer-credits listAccounts sends the exact SDK arguments", async () => {
     "--json",
   ]);
   expect(spy, result.stderr).toHaveBeenCalledExactlyOnceWith(
-    3,
-    "cust_1",
-    "acc_1",
-    undefined,
+    { limit: 3, customerId: "cust_1", startingAfter: "acc_1" },
     expect.objectContaining({ retries: { strategy: "none" } }),
   );
   expect(result.stderr).toContain("SDK_SENTINEL");
@@ -54,7 +51,7 @@ it("customer-credits getAccount sends the exact SDK arguments", async () => {
     .mockRejectedValue(new Error("SDK_SENTINEL"));
   const result = await h.run(["customer-credits", "get", "acc_1", "--json"]);
   expect(spy, result.stderr).toHaveBeenCalledExactlyOnceWith(
-    "acc_1",
+    { id: "acc_1" },
     expect.objectContaining({ retries: { strategy: "none" } }),
   );
   expect(result.stderr).toContain("SDK_SENTINEL");
@@ -74,8 +71,7 @@ it("customer-credits getAccountBalance sends the exact SDK arguments", async () 
     "--json",
   ]);
   expect(spy, result.stderr).toHaveBeenCalledExactlyOnceWith(
-    "acc_1",
-    "2024-01-01T00:00:00Z",
+    { id: "acc_1", at: "2024-01-01T00:00:00Z" },
     expect.objectContaining({ retries: { strategy: "none" } }),
   );
   expect(result.stderr).toContain("SDK_SENTINEL");
@@ -97,10 +93,7 @@ it("customer-credits listEntries sends the exact SDK arguments", async () => {
     "--json",
   ]);
   expect(spy, result.stderr).toHaveBeenCalledExactlyOnceWith(
-    "acc_1",
-    3,
-    undefined,
-    "ent_1",
+    { id: "acc_1", limit: 3, endingBefore: "ent_1" },
     expect.objectContaining({ retries: { strategy: "none" } }),
   );
   expect(result.stderr).toContain("SDK_SENTINEL");
@@ -113,7 +106,7 @@ it("customer-credits freezeAccount sends the exact SDK arguments", async () => {
     .mockRejectedValue(new Error("SDK_SENTINEL"));
   const result = await h.run(["customer-credits", "freeze", "acc_1", "--yes", "--json"]);
   expect(spy, result.stderr).toHaveBeenCalledExactlyOnceWith(
-    "acc_1",
+    { id: "acc_1" },
     expect.objectContaining({ retries: { strategy: "none" } }),
   );
   expect(result.stderr).toContain("SDK_SENTINEL");
@@ -126,7 +119,7 @@ it("customer-credits unfreezeAccount sends the exact SDK arguments", async () =>
     .mockRejectedValue(new Error("SDK_SENTINEL"));
   const result = await h.run(["customer-credits", "unfreeze", "acc_1", "--json"]);
   expect(spy, result.stderr).toHaveBeenCalledExactlyOnceWith(
-    "acc_1",
+    { id: "acc_1" },
     expect.objectContaining({ retries: { strategy: "none" } }),
   );
   expect(result.stderr).toContain("SDK_SENTINEL");
@@ -150,12 +143,14 @@ it("customer-credits creditAccount sends the exact SDK arguments", async () => {
     "--json",
   ]);
   expect(spy, result.stderr).toHaveBeenCalledExactlyOnceWith(
-    "acc_1",
-    expect.objectContaining({
-      amount: "900719925474099312345",
-      reference: "ref",
-      idempotencyKey: "idem",
-    }),
+    {
+      id: "acc_1",
+      creditDebitRequestDto: expect.objectContaining({
+        amount: "900719925474099312345",
+        reference: "ref",
+        idempotencyKey: "idem",
+      }),
+    },
     expect.objectContaining({ retries: { strategy: "none" } }),
   );
   expect(result.stderr).toContain("SDK_SENTINEL");
@@ -180,8 +175,14 @@ it("customer-credits debitAccount sends the exact SDK arguments", async () => {
     "--json",
   ]);
   expect(spy, result.stderr).toHaveBeenCalledExactlyOnceWith(
-    "acc_1",
-    expect.objectContaining({ amount: "20", reference: "ref", idempotencyKey: "idem" }),
+    {
+      id: "acc_1",
+      creditDebitRequestDto: expect.objectContaining({
+        amount: "20",
+        reference: "ref",
+        idempotencyKey: "idem",
+      }),
+    },
     expect.objectContaining({ retries: { strategy: "none" } }),
   );
   expect(result.stderr).toContain("SDK_SENTINEL");
@@ -202,8 +203,10 @@ it("customer-credits reverseTransaction sends the exact SDK arguments", async ()
     "--json",
   ]);
   expect(spy, result.stderr).toHaveBeenCalledExactlyOnceWith(
-    "acc_1",
-    expect.objectContaining({ transactionId: "tx_1" }),
+    {
+      id: "acc_1",
+      reverseTransactionRequestDto: expect.objectContaining({ transactionId: "tx_1" }),
+    },
     expect.objectContaining({ retries: { strategy: "none" } }),
   );
   expect(result.stderr).toContain("SDK_SENTINEL");
@@ -216,7 +219,7 @@ it("customer-credits closeAccount sends the exact SDK arguments", async () => {
     .mockRejectedValue(new Error("SDK_SENTINEL"));
   const result = await h.run(["customer-credits", "close", "acc_1", "--yes", "--json"]);
   expect(spy, result.stderr).toHaveBeenCalledExactlyOnceWith(
-    "acc_1",
+    { id: "acc_1" },
     expect.objectContaining({ retries: { strategy: "none" } }),
   );
   expect(result.stderr).toContain("SDK_SENTINEL");
@@ -282,7 +285,7 @@ it("customer-credits transactions get sends the exact SDK arguments", async () =
     .mockRejectedValue(new Error("SDK_SENTINEL"));
   const result = await h.run(["customer-credits", "transactions", "get", "cct_1", "--json"]);
   expect(spy, result.stderr).toHaveBeenCalledExactlyOnceWith(
-    "cct_1",
+    { id: "cct_1" },
     expect.objectContaining({ retries: { strategy: "none" } }),
   );
   expect(result.stderr).toContain("SDK_SENTINEL");
@@ -302,7 +305,7 @@ it("customer-credits transactions reverse sends the exact SDK arguments", async 
     "--json",
   ]);
   expect(spy, result.stderr).toHaveBeenCalledExactlyOnceWith(
-    "cct_1",
+    { id: "cct_1" },
     expect.objectContaining({ retries: { strategy: "none" } }),
   );
   expect(result.stderr).toContain("SDK_SENTINEL");
@@ -322,7 +325,7 @@ it("customer-credits transactions list sends the exact SDK arguments", async () 
     "--json",
   ]);
   expect(spy, result.stderr).toHaveBeenCalledExactlyOnceWith(
-    "order_1",
+    { reference: "order_1" },
     expect.objectContaining({ retries: { strategy: "none" } }),
   );
   expect(result.stderr).toContain("SDK_SENTINEL");

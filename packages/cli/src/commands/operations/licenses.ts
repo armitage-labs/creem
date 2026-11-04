@@ -33,6 +33,6 @@ export const handlers: Record<string, OperationHandler> = {
       operations.ListLicenseInstancesRequest$inboundSchema,
       parameters,
     );
-    return client.licenses.listInstances(p.id, p.pageNumber, p.pageSize, options);
+    return client.licenses.listInstances(p, options);
   },
 };

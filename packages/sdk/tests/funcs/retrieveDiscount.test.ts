@@ -33,7 +33,7 @@ describe("retrieveDiscount", () => {
   });
 
   it("should retrieve a discount by ID successfully", async () => {
-    const result = await creem.discounts.get(testDiscount.id);
+    const result = await creem.discounts.get({ discountId: testDiscount.id });
 
     // Test the response structure and content
     expect(result).toHaveProperty("id", testDiscount.id);
@@ -47,7 +47,7 @@ describe("retrieveDiscount", () => {
   });
 
   it("should retrieve a discount by code successfully", async () => {
-    const result = await creem.discounts.get(undefined, testDiscount.code);
+    const result = await creem.discounts.get({ discountCode: testDiscount.code });
 
     // Test the response structure and content
     expect(result).toHaveProperty("code", testDiscount.code);
@@ -61,7 +61,7 @@ describe("retrieveDiscount", () => {
 
   it("should handle validation errors when neither ID nor code is provided", async () => {
     try {
-      await creem.discounts.get();
+      await creem.discounts.get({});
       fail("Expected validation error but none was thrown");
     } catch (error) {
       expect(error).toBeDefined();
@@ -70,7 +70,7 @@ describe("retrieveDiscount", () => {
 
   it("should handle request errors with invalid discount ID", async () => {
     try {
-      await creem.discounts.get("non-existent-discount-id");
+      await creem.discounts.get({ discountId: "non-existent-discount-id" });
       fail("Expected error with invalid discount ID but none was thrown");
     } catch (error) {
       expect(error).toBeDefined();
@@ -79,7 +79,7 @@ describe("retrieveDiscount", () => {
 
   it("should handle request errors with invalid discount code", async () => {
     try {
-      await creem.discounts.get(undefined, "NON-EXISTENT-CODE");
+      await creem.discounts.get({ discountCode: "NON-EXISTENT-CODE" });
       fail("Expected error with invalid discount code but none was thrown");
     } catch (error) {
       expect(error).toBeDefined();

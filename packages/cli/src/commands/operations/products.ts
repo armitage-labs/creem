@@ -1,4 +1,3 @@
-import * as components from "creem/models/components";
 import * as operations from "creem/models/operations";
 import { decode, type OperationHandler } from "../../lib/operation";
 
@@ -9,7 +8,7 @@ export const handlers: Record<string, OperationHandler> = {
       operations.SearchProductsRequest$inboundSchema,
       parameters,
     );
-    return client.products.search(p.pageNumber, p.pageSize, p.status, options);
+    return client.products.search(p, options);
   },
   createProduct: (client, parameters, body, options) => {
     const p = decode(
@@ -17,12 +16,7 @@ export const handlers: Record<string, OperationHandler> = {
       operations.CreateProductRequest$inboundSchema,
       { ...parameters, createProductRequestEntity: body },
     );
-    const b = decode(
-      components.CreateProductRequestEntity$outboundSchema,
-      components.CreateProductRequestEntity$inboundSchema,
-      body,
-    );
-    return client.products.create(b, p.idempotencyKey, options);
+    return client.products.create(p, options);
   },
   getProduct: (client, parameters, body, options) => {
     const p = decode(
@@ -30,7 +24,7 @@ export const handlers: Record<string, OperationHandler> = {
       operations.GetProductRequest$inboundSchema,
       parameters,
     );
-    return client.products.get(p.id, options);
+    return client.products.get(p, options);
   },
   updateProduct: (client, parameters, body, options) => {
     const p = decode(
@@ -38,12 +32,7 @@ export const handlers: Record<string, OperationHandler> = {
       operations.UpdateProductRequest$inboundSchema,
       { ...parameters, updateProductRequestEntity: body },
     );
-    const b = decode(
-      components.UpdateProductRequestEntity$outboundSchema,
-      components.UpdateProductRequestEntity$inboundSchema,
-      body,
-    );
-    return client.products.update(p.id, b, options);
+    return client.products.update(p, options);
   },
   archiveProduct: (client, parameters, body, options) => {
     const p = decode(
@@ -51,6 +40,6 @@ export const handlers: Record<string, OperationHandler> = {
       operations.ArchiveProductRequest$inboundSchema,
       parameters,
     );
-    return client.products.archive(p.id, options);
+    return client.products.archive(p, options);
   },
 };

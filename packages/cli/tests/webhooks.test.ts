@@ -5,8 +5,7 @@ it("webhooks list sends the exact SDK arguments", async () => {
   const spy = vi.spyOn(h.client.webhooks, "list").mockRejectedValue(new Error("SDK_SENTINEL"));
   const result = await h.run(["webhooks", "list", "--page", "2", "--limit", "5", "--json"]);
   expect(spy, result.stderr).toHaveBeenCalledExactlyOnceWith(
-    2,
-    5,
+    { pageNumber: 2, pageSize: 5 },
     expect.objectContaining({ retries: { strategy: "none" } }),
   );
   expect(result.stderr).toContain("SDK_SENTINEL");
@@ -60,7 +59,7 @@ it("webhooks get sends the exact SDK arguments", async () => {
   const spy = vi.spyOn(h.client.webhooks, "get").mockRejectedValue(new Error("SDK_SENTINEL"));
   const result = await h.run(["webhooks", "get", "wh_1", "--json"]);
   expect(spy, result.stderr).toHaveBeenCalledExactlyOnceWith(
-    "wh_1",
+    { id: "wh_1" },
     expect.objectContaining({ retries: { strategy: "none" } }),
   );
   expect(result.stderr).toContain("SDK_SENTINEL");
@@ -80,8 +79,13 @@ it("webhooks update sends the exact SDK arguments", async () => {
     "--json",
   ]);
   expect(spy, result.stderr).toHaveBeenCalledExactlyOnceWith(
-    "wh_1",
-    expect.objectContaining({ status: "disabled", url: "https://example.com/v2" }),
+    {
+      id: "wh_1",
+      updateWebhookRequestEntity: expect.objectContaining({
+        status: "disabled",
+        url: "https://example.com/v2",
+      }),
+    },
     expect.objectContaining({ retries: { strategy: "none" } }),
   );
   expect(result.stderr).toContain("SDK_SENTINEL");
@@ -95,7 +99,7 @@ it("webhooks delete requires confirmation and sends the exact SDK arguments", as
   expect(refused.code).toBe(2);
   const result = await h.run(["webhooks", "delete", "wh_1", "--yes", "--json"]);
   expect(spy, result.stderr).toHaveBeenCalledExactlyOnceWith(
-    "wh_1",
+    { id: "wh_1" },
     expect.objectContaining({ retries: { strategy: "none" } }),
   );
   expect(result.stderr).toContain("SDK_SENTINEL");
@@ -108,8 +112,7 @@ it("webhooks pending sends the exact SDK arguments", async () => {
     .mockRejectedValue(new Error("SDK_SENTINEL"));
   const result = await h.run(["webhooks", "pending", "wh_1", "--limit", "25", "--json"]);
   expect(spy, result.stderr).toHaveBeenCalledExactlyOnceWith(
-    "wh_1",
-    25,
+    { id: "wh_1", limit: 25 },
     expect.objectContaining({ retries: { strategy: "none" } }),
   );
   expect(result.stderr).toContain("SDK_SENTINEL");
@@ -131,7 +134,10 @@ it.each(["1", "100"])("webhooks pending accepts boundary limit %s", async (limit
   const spy = vi.spyOn(h.client.webhooks, "listPendingEvents").mockResolvedValue({ items: [] });
   const result = await h.run(["webhooks", "pending", "wh_1", "--limit", limit, "--json"]);
   expect(result.code, result.stderr).toBe(0);
-  expect(spy).toHaveBeenCalledExactlyOnceWith("wh_1", Number(limit), expect.any(Object));
+  expect(spy).toHaveBeenCalledExactlyOnceWith(
+    { id: "wh_1", limit: Number(limit) },
+    expect.any(Object),
+  );
 });
 
 it("webhooks ack sends the exact SDK arguments", async () => {
@@ -152,9 +158,11 @@ it("webhooks ack sends the exact SDK arguments", async () => {
     "--json",
   ]);
   expect(spy, result.stderr).toHaveBeenCalledExactlyOnceWith(
-    "wh_1",
-    "evt_1",
-    { statusCode: 503, responseBody: "connection refused" },
+    {
+      id: "wh_1",
+      eventId: "evt_1",
+      acknowledgeWebhookEventRequestEntity: { statusCode: 503, responseBody: "connection refused" },
+    },
     expect.objectContaining({ retries: { strategy: "none" } }),
   );
   expect(result.stderr).toContain("SDK_SENTINEL");
@@ -175,7 +183,7 @@ it("webhooks secret sends the exact SDK arguments", async () => {
   const spy = vi.spyOn(h.client.webhooks, "getSecret").mockRejectedValue(new Error("SDK_SENTINEL"));
   const result = await h.run(["webhooks", "secret", "wh_1", "--json"]);
   expect(spy, result.stderr).toHaveBeenCalledExactlyOnceWith(
-    "wh_1",
+    { id: "wh_1" },
     expect.objectContaining({ retries: { strategy: "none" } }),
   );
   expect(result.stderr).toContain("SDK_SENTINEL");

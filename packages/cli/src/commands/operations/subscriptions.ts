@@ -1,4 +1,3 @@
-import * as components from "creem/models/components";
 import * as operations from "creem/models/operations";
 import { decode, type OperationHandler } from "../../lib/operation";
 
@@ -9,7 +8,7 @@ export const handlers: Record<string, OperationHandler> = {
       operations.RetrieveSubscriptionRequest$inboundSchema,
       parameters,
     );
-    return client.subscriptions.get(p.subscriptionId, options);
+    return client.subscriptions.get(p, options);
   },
   searchSubscriptions: (client, parameters, body, options) => {
     const p = decode(
@@ -17,7 +16,7 @@ export const handlers: Record<string, OperationHandler> = {
       operations.SearchSubscriptionsRequest$inboundSchema,
       parameters,
     );
-    return client.subscriptions.search(p.pageNumber, p.pageSize, options);
+    return client.subscriptions.search(p, options);
   },
   cancelSubscription: (client, parameters, body, options) => {
     const p = decode(
@@ -25,12 +24,7 @@ export const handlers: Record<string, OperationHandler> = {
       operations.CancelSubscriptionRequest$inboundSchema,
       { ...parameters, cancelSubscriptionRequestEntity: body },
     );
-    const b = decode(
-      components.CancelSubscriptionRequestEntity$outboundSchema,
-      components.CancelSubscriptionRequestEntity$inboundSchema,
-      body,
-    );
-    return client.subscriptions.cancel(p.id, b, options);
+    return client.subscriptions.cancel(p, options);
   },
   updateSubscription: (client, parameters, body, options) => {
     const p = decode(
@@ -38,12 +32,7 @@ export const handlers: Record<string, OperationHandler> = {
       operations.UpdateSubscriptionRequest$inboundSchema,
       { ...parameters, updateSubscriptionRequestEntity: body },
     );
-    const b = decode(
-      components.UpdateSubscriptionRequestEntity$outboundSchema,
-      components.UpdateSubscriptionRequestEntity$inboundSchema,
-      body,
-    );
-    return client.subscriptions.update(p.id, b, options);
+    return client.subscriptions.update(p, options);
   },
   upgradeSubscription: (client, parameters, body, options) => {
     const p = decode(
@@ -51,12 +40,7 @@ export const handlers: Record<string, OperationHandler> = {
       operations.UpgradeSubscriptionRequest$inboundSchema,
       { ...parameters, upgradeSubscriptionRequestEntity: body },
     );
-    const b = decode(
-      components.UpgradeSubscriptionRequestEntity$outboundSchema,
-      components.UpgradeSubscriptionRequestEntity$inboundSchema,
-      body,
-    );
-    return client.subscriptions.upgrade(p.id, b, options);
+    return client.subscriptions.upgrade(p, options);
   },
   pauseSubscription: (client, parameters, body, options) => {
     const p = decode(
@@ -64,7 +48,7 @@ export const handlers: Record<string, OperationHandler> = {
       operations.PauseSubscriptionRequest$inboundSchema,
       parameters,
     );
-    return client.subscriptions.pause(p.id, options);
+    return client.subscriptions.pause(p, options);
   },
   resumeSubscription: (client, parameters, body, options) => {
     const p = decode(
@@ -72,6 +56,6 @@ export const handlers: Record<string, OperationHandler> = {
       operations.ResumeSubscriptionRequest$inboundSchema,
       parameters,
     );
-    return client.subscriptions.resume(p.id, options);
+    return client.subscriptions.resume(p, options);
   },
 };

@@ -1,7 +1,7 @@
 type SubscriptionLifecycleSdk = {
   subscriptions: {
-    get: (subscriptionId: string) => Promise<{ status: string }>;
-    resume: (subscriptionId: string) => Promise<unknown>;
+    get: (request: { subscriptionId: string }) => Promise<{ status: string }>;
+    resume: (request: { id: string }) => Promise<unknown>;
   };
 };
 
@@ -16,14 +16,14 @@ export const resumeSubscriptionIfNeeded = async (
   sdk: SubscriptionLifecycleSdk,
   subscriptionId: string,
 ): Promise<boolean> => {
-  const live = await sdk.subscriptions.get(subscriptionId);
+  const live = await sdk.subscriptions.get({ subscriptionId: subscriptionId });
   if (live.status === "active") {
     return true;
   }
   if (live.status !== "scheduled_cancel" && live.status !== "paused") {
     return false;
   }
-  await sdk.subscriptions.resume(subscriptionId);
+  await sdk.subscriptions.resume({ id: subscriptionId });
   return true;
 };
 

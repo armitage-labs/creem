@@ -25,13 +25,6 @@ export const handlers: Record<string, OperationHandler> = {
       operations.ListUsageEventsRequest$inboundSchema,
       parameters,
     );
-    return client.events.listEvents(
-      p.meterId,
-      p.customerId,
-      p.reference,
-      p.limit,
-      p.startingAfter,
-      options,
-    );
+    return client.events.listEvents(p, options);
   },
 };

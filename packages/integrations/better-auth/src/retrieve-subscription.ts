@@ -73,7 +73,7 @@ const createRetrieveSubscriptionHandler = (creem: Creem, options: CreemOptions) 
 
       logger.debug(`[creem] Retrieving subscription: ${subscriptionId}`);
 
-      const subscription = await creem.subscriptions.get(subscriptionId);
+      const subscription = await creem.subscriptions.get({ subscriptionId: subscriptionId });
 
       return ctx.json(subscription);
     } catch (error) {

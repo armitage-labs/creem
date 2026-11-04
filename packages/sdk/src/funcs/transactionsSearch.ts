@@ -39,11 +39,7 @@ import {
  */
 export function transactionsSearch(
   client: CreemCore,
-  customerId?: string | undefined,
-  orderId?: string | undefined,
-  productId?: string | undefined,
-  pageNumber?: number | undefined,
-  pageSize?: number | undefined,
+  request: operations.SearchTransactionsRequest,
   options?: RequestOptions,
 ): APIPromise<
   PageIterator<
@@ -63,22 +59,14 @@ export function transactionsSearch(
 > {
   return new APIPromise($do(
     client,
-    customerId,
-    orderId,
-    productId,
-    pageNumber,
-    pageSize,
+    request,
     options,
   ));
 }
 
 async function $do(
   client: CreemCore,
-  customerId?: string | undefined,
-  orderId?: string | undefined,
-  productId?: string | undefined,
-  pageNumber?: number | undefined,
-  pageSize?: number | undefined,
+  request: operations.SearchTransactionsRequest,
   options?: RequestOptions,
 ): Promise<
   [
@@ -99,16 +87,8 @@ async function $do(
     APICall,
   ]
 > {
-  const input: operations.SearchTransactionsRequest = {
-    customerId: customerId,
-    orderId: orderId,
-    productId: productId,
-    pageNumber: pageNumber,
-    pageSize: pageSize,
-  };
-
   const parsed = safeParse(
-    input,
+    request,
     (value) => operations.SearchTransactionsRequest$outboundSchema.parse(value),
     "Input validation failed",
   );
@@ -226,7 +206,7 @@ async function $do(
     >;
     "~next"?: { page: number };
   } => {
-    const page = input?.pageNumber ?? 1;
+    const page = request?.pageNumber ?? 1;
     const nextPage = page + 1;
     const numPages =
       (responseData as { pagination: { total_pages: unknown } }).pagination
@@ -242,7 +222,7 @@ async function $do(
     if (!Array.isArray(results) || !results.length) {
       return { next: () => null };
     }
-    const limit = input?.pageSize ?? 10;
+    const limit = request?.pageSize ?? 10;
     if (results.length < limit) {
       return { next: () => null };
     }
@@ -250,11 +230,10 @@ async function $do(
     const nextVal = () =>
       transactionsSearch(
         client,
-        customerId,
-        orderId,
-        productId,
-        nextPage,
-        pageSize,
+        {
+          ...request,
+          pageNumber: nextPage,
+        },
         options,
       );
 

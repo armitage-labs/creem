@@ -23,13 +23,15 @@ it("discounts search sends the exact SDK arguments", async () => {
     "--json",
   ]);
   expect(spy, result.stderr).toHaveBeenCalledExactlyOnceWith(
-    2,
-    3,
-    "prod_1",
-    "active",
-    "fixed",
-    "2024-01-01",
-    "2024-12-31",
+    {
+      pageNumber: 2,
+      pageSize: 3,
+      productId: "prod_1",
+      status: "active",
+      type: "fixed",
+      createdAfter: "2024-01-01",
+      createdBefore: "2024-12-31",
+    },
     expect.objectContaining({ retries: { strategy: "none" } }),
   );
   expect(result.stderr).toContain("SDK_SENTINEL");
@@ -40,8 +42,7 @@ it("discounts get sends the exact SDK arguments", async () => {
   const spy = vi.spyOn(h.client.discounts, "get").mockRejectedValue(new Error("SDK_SENTINEL"));
   const result = await h.run(["discounts", "get", "--code", "SAVE", "--json"]);
   expect(spy, result.stderr).toHaveBeenCalledExactlyOnceWith(
-    undefined,
-    "SAVE",
+    { discountCode: "SAVE" },
     expect.objectContaining({ retries: { strategy: "none" } }),
   );
   expect(result.stderr).toContain("SDK_SENTINEL");
@@ -114,7 +115,7 @@ it("discounts delete sends the exact SDK arguments", async () => {
   const spy = vi.spyOn(h.client.discounts, "delete").mockRejectedValue(new Error("SDK_SENTINEL"));
   const result = await h.run(["discounts", "delete", "disc_1", "--yes", "--json"]);
   expect(spy, result.stderr).toHaveBeenCalledExactlyOnceWith(
-    "disc_1",
+    { id: "disc_1" },
     expect.objectContaining({ retries: { strategy: "none" } }),
   );
   expect(result.stderr).toContain("SDK_SENTINEL");

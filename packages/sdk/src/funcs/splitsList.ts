@@ -39,8 +39,7 @@ import {
  */
 export function splitsList(
   client: CreemCore,
-  pageNumber?: number | undefined,
-  pageSize?: number | undefined,
+  request: operations.ListSplitsRequest,
   options?: RequestOptions,
 ): APIPromise<
   PageIterator<
@@ -60,16 +59,14 @@ export function splitsList(
 > {
   return new APIPromise($do(
     client,
-    pageNumber,
-    pageSize,
+    request,
     options,
   ));
 }
 
 async function $do(
   client: CreemCore,
-  pageNumber?: number | undefined,
-  pageSize?: number | undefined,
+  request: operations.ListSplitsRequest,
   options?: RequestOptions,
 ): Promise<
   [
@@ -90,13 +87,8 @@ async function $do(
     APICall,
   ]
 > {
-  const input: operations.ListSplitsRequest = {
-    pageNumber: pageNumber,
-    pageSize: pageSize,
-  };
-
   const parsed = safeParse(
-    input,
+    request,
     (value) => operations.ListSplitsRequest$outboundSchema.parse(value),
     "Input validation failed",
   );
@@ -209,7 +201,7 @@ async function $do(
     >;
     "~next"?: { page: number };
   } => {
-    const page = input?.pageNumber ?? 1;
+    const page = request?.pageNumber ?? 1;
     const nextPage = page + 1;
     const numPages =
       (responseData as { pagination: { total_pages: unknown } }).pagination
@@ -225,7 +217,7 @@ async function $do(
     if (!Array.isArray(results) || !results.length) {
       return { next: () => null };
     }
-    const limit = input?.pageSize ?? 50;
+    const limit = request?.pageSize ?? 50;
     if (results.length < limit) {
       return { next: () => null };
     }
@@ -233,8 +225,10 @@ async function $do(
     const nextVal = () =>
       splitsList(
         client,
-        nextPage,
-        pageSize,
+        {
+          ...request,
+          pageNumber: nextPage,
+        },
         options,
       );
 

@@ -40,11 +40,7 @@ import {
  */
 export function eventsListEvents(
   client: CreemCore,
-  meterId?: string | undefined,
-  customerId?: string | undefined,
-  reference?: string | undefined,
-  limit?: number | undefined,
-  startingAfter?: string | undefined,
+  request: operations.ListUsageEventsRequest,
   options?: RequestOptions,
 ): APIPromise<
   PageIterator<
@@ -64,22 +60,14 @@ export function eventsListEvents(
 > {
   return new APIPromise($do(
     client,
-    meterId,
-    customerId,
-    reference,
-    limit,
-    startingAfter,
+    request,
     options,
   ));
 }
 
 async function $do(
   client: CreemCore,
-  meterId?: string | undefined,
-  customerId?: string | undefined,
-  reference?: string | undefined,
-  limit?: number | undefined,
-  startingAfter?: string | undefined,
+  request: operations.ListUsageEventsRequest,
   options?: RequestOptions,
 ): Promise<
   [
@@ -100,16 +88,8 @@ async function $do(
     APICall,
   ]
 > {
-  const input: operations.ListUsageEventsRequest = {
-    meterId: meterId,
-    customerId: customerId,
-    reference: reference,
-    limit: limit,
-    startingAfter: startingAfter,
-  };
-
   const parsed = safeParse(
-    input,
+    request,
     (value) => operations.ListUsageEventsRequest$outboundSchema.parse(value),
     "Input validation failed",
   );
@@ -238,7 +218,7 @@ async function $do(
     if (!Array.isArray(results) || !results.length) {
       return { next: () => null };
     }
-    const limit = input?.limit ?? 10;
+    const limit = request?.limit ?? 10;
     if (results.length < limit) {
       return { next: () => null };
     }
@@ -246,11 +226,10 @@ async function $do(
     const nextVal = () =>
       eventsListEvents(
         client,
-        meterId,
-        customerId,
-        reference,
-        limit,
-        nextCursor,
+        {
+          ...request,
+          startingAfter: nextCursor,
+        },
         options,
       );
 

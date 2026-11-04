@@ -23,12 +23,12 @@ export class Subscriptions extends ClientSDK {
    * Retrieve subscription details by ID. View status, billing cycle, customer info, and payment history.
    */
   async get(
-    subscriptionId: string,
+    request: operations.RetrieveSubscriptionRequest,
     options?: RequestOptions,
   ): Promise<components.SubscriptionEntity> {
     return unwrapAsync(subscriptionsGet(
       this,
-      subscriptionId,
+      request,
       options,
     ));
   }
@@ -40,16 +40,14 @@ export class Subscriptions extends ClientSDK {
    * Search and retrieve a paginated list of subscriptions. View status, billing cycle, and customer info.
    */
   async search(
-    pageNumber?: number | undefined,
-    pageSize?: number | undefined,
+    request: operations.SearchSubscriptionsRequest,
     options?: RequestOptions,
   ): Promise<
     PageIterator<operations.SearchSubscriptionsResponse, { page: number }>
   > {
     return unwrapResultIterator(subscriptionsSearch(
       this,
-      pageNumber,
-      pageSize,
+      request,
       options,
     ));
   }
@@ -61,14 +59,12 @@ export class Subscriptions extends ClientSDK {
    * Cancel an active subscription immediately or schedule cancellation at period end.
    */
   async cancel(
-    id: string,
-    cancelSubscriptionRequestEntity: components.CancelSubscriptionRequestEntity,
+    request: operations.CancelSubscriptionRequest,
     options?: RequestOptions,
   ): Promise<components.SubscriptionEntity> {
     return unwrapAsync(subscriptionsCancel(
       this,
-      id,
-      cancelSubscriptionRequestEntity,
+      request,
       options,
     ));
   }
@@ -80,14 +76,12 @@ export class Subscriptions extends ClientSDK {
    * Modify subscription details like units, seats, or add-ons. Support proration and immediate billing options.
    */
   async update(
-    id: string,
-    updateSubscriptionRequestEntity: components.UpdateSubscriptionRequestEntity,
+    request: operations.UpdateSubscriptionRequest,
     options?: RequestOptions,
   ): Promise<components.SubscriptionEntity> {
     return unwrapAsync(subscriptionsUpdate(
       this,
-      id,
-      updateSubscriptionRequestEntity,
+      request,
       options,
     ));
   }
@@ -99,15 +93,12 @@ export class Subscriptions extends ClientSDK {
    * Upgrade a subscription to a different product or plan. Handle proration and plan changes seamlessly.
    */
   async upgrade(
-    id: string,
-    upgradeSubscriptionRequestEntity:
-      components.UpgradeSubscriptionRequestEntity,
+    request: operations.UpgradeSubscriptionRequest,
     options?: RequestOptions,
   ): Promise<components.SubscriptionEntity> {
     return unwrapAsync(subscriptionsUpgrade(
       this,
-      id,
-      upgradeSubscriptionRequestEntity,
+      request,
       options,
     ));
   }
@@ -119,12 +110,12 @@ export class Subscriptions extends ClientSDK {
    * Temporarily pause a subscription. Stop billing while retaining the subscription for later resumption.
    */
   async pause(
-    id: string,
+    request: operations.PauseSubscriptionRequest,
     options?: RequestOptions,
   ): Promise<components.SubscriptionEntity> {
     return unwrapAsync(subscriptionsPause(
       this,
-      id,
+      request,
       options,
     ));
   }
@@ -136,12 +127,12 @@ export class Subscriptions extends ClientSDK {
    * Resume a subscription. Subscription must be in paused or scheduled_cancel status.
    */
   async resume(
-    id: string,
+    request: operations.ResumeSubscriptionRequest,
     options?: RequestOptions,
   ): Promise<components.SubscriptionEntity> {
     return unwrapAsync(subscriptionsResume(
       this,
-      id,
+      request,
       options,
     ));
   }

@@ -17,10 +17,7 @@ it("stats getSummary sends the exact SDK arguments", async () => {
     "--json",
   ]);
   expect(spy, result.stderr).toHaveBeenCalledExactlyOnceWith(
-    "USD",
-    1700000000000,
-    1800000000000,
-    "day",
+    { currency: "USD", startDate: 1700000000000, endDate: 1800000000000, interval: "day" },
     expect.objectContaining({ retries: { strategy: "none" } }),
   );
   expect(result.stderr).toContain("SDK_SENTINEL");

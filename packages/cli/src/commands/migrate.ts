@@ -815,7 +815,7 @@ async function executeMigration(
     const spinner = ora(`${progress} Creating: ${item.creemProduct.name}`).start();
 
     try {
-      const params: Parameters<typeof client.products.create>[0] = {
+      const params: Parameters<typeof client.products.create>[0]["createProductRequestEntity"] = {
         name: item.creemProduct.name,
         // CREEM API requires description to be a non-empty string
         // Use product name as fallback if no description is provided
@@ -834,7 +834,7 @@ async function executeMigration(
           | "every-year";
       }
 
-      const created = await client.products.create(params);
+      const created = await client.products.create({ createProductRequestEntity: params });
       result.created.products.push(created.id);
       spinner.succeed(`${progress} Created: ${item.creemProduct.name}`);
     } catch (error) {

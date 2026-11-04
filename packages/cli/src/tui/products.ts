@@ -88,7 +88,7 @@ export function getProductsTuiDescriptor(context: CliContext): TuiModuleDescript
     ],
     fetchPage: async (page: number, pageSize: number) => {
       const client = context.client({});
-      const response = await client.products.search(page, pageSize);
+      const response = await client.products.search({ pageNumber: page, pageSize: pageSize });
       const { items, pagination } = response.result;
       return {
         items,

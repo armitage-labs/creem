@@ -17,13 +17,7 @@ export const handlers: Record<string, OperationHandler> = {
       operations.ListMetersRequest$inboundSchema,
       parameters,
     );
-    return client.meters.listMeters(
-      p.limit,
-      p.startingAfter,
-      p.endingBefore,
-      p.includeArchived,
-      options,
-    );
+    return client.meters.listMeters(p, options);
   },
   previewMeter: (client, parameters, body, options) => {
     const b = decode(
@@ -39,7 +33,7 @@ export const handlers: Record<string, OperationHandler> = {
       operations.GetMeterRequest$inboundSchema,
       parameters,
     );
-    return client.meters.getMeter(p.id, options);
+    return client.meters.getMeter(p, options);
   },
   updateMeter: (client, parameters, body, options) => {
     const p = decode(
@@ -47,12 +41,7 @@ export const handlers: Record<string, OperationHandler> = {
       operations.UpdateMeterRequest$inboundSchema,
       { ...parameters, updateMeterApiRequestDto: body },
     );
-    const b = decode(
-      components.UpdateMeterApiRequestDto$outboundSchema,
-      components.UpdateMeterApiRequestDto$inboundSchema,
-      body,
-    );
-    return client.meters.updateMeter(p.id, b, options);
+    return client.meters.updateMeter(p, options);
   },
   previewExistingMeter: (client, parameters, body, options) => {
     const p = decode(
@@ -60,7 +49,7 @@ export const handlers: Record<string, OperationHandler> = {
       operations.PreviewExistingMeterRequest$inboundSchema,
       parameters,
     );
-    return client.meters.previewExistingMeter(p.id, options);
+    return client.meters.previewExistingMeter(p, options);
   },
   getMeterConsumedUnits: (client, parameters, body, options) => {
     const p = decode(
@@ -68,7 +57,7 @@ export const handlers: Record<string, OperationHandler> = {
       operations.GetMeterConsumedUnitsRequest$inboundSchema,
       parameters,
     );
-    return client.meters.getConsumedUnits(p.id, p.customerId, p.at, options);
+    return client.meters.getConsumedUnits(p, options);
   },
   archiveMeter: (client, parameters, body, options) => {
     const p = decode(
@@ -76,7 +65,7 @@ export const handlers: Record<string, OperationHandler> = {
       operations.ArchiveMeterRequest$inboundSchema,
       parameters,
     );
-    return client.meters.archiveMeter(p.id, options);
+    return client.meters.archiveMeter(p, options);
   },
   unarchiveMeter: (client, parameters, body, options) => {
     const p = decode(
@@ -84,6 +73,6 @@ export const handlers: Record<string, OperationHandler> = {
       operations.UnarchiveMeterRequest$inboundSchema,
       parameters,
     );
-    return client.meters.unarchiveMeter(p.id, options);
+    return client.meters.unarchiveMeter(p, options);
   },
 };
