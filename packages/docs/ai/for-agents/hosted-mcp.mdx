@@ -1,128 +1,191 @@
 ---
-title: Model Context Protocol (MCP)
-sidebarTitle: MCP Server
-description: Connect AI agents to Creem to manage products, checkouts, discounts, customers, subscriptions and refunds.
+title: Hosted MCP Server
+description: Connect ChatGPT, Claude Code or Codex to your Creem store at mcp.creem.io. Sign in with your Creem account, no API key.
 ---
 
-Use Creem's remote Model Context Protocol (MCP) server to give AI agents access to your Creem store. Agents can look up data and take actions across your products, checkout links, discount codes, customers, subscriptions, transactions and disputes.
+Creem runs an [MCP](https://modelcontextprotocol.io) server at `https://mcp.creem.io/mcp`. Add it to ChatGPT, Claude Code or Codex, sign in with your Creem account, and your agent can look up customers, subscriptions and payments, create products, checkout links and discount codes, cancel subscriptions and issue refunds. There is nothing to install and no API key to paste.
 
-<Note>
-  Creem MCP uses OAuth. When you connect a client, your browser opens so you can sign in with your
-  Creem account and authorize access to your store. You never need to copy an API key into your
-  agent.
-</Note>
+<Tip>
+  **Hosted or local?** The hosted server signs you in with your Creem account and asks you to
+  confirm before risky actions. The [local MCP server](/ai/for-agents/mcp-server) runs on your
+  machine with an API key and exposes the whole API. Use it for scripts, CI and clients the hosted
+  server doesn't support yet.
+</Tip>
 
-## Connect your agent
+## Requirements
 
-Use the server at `https://mcp.creem.io/mcp`. The same URL serves test and live mode: you choose the mode when you authorize (see [Test and live mode](#test-and-live-mode)).
+- A Creem account with at least one store ([sign up](https://creem.io/dashboard))
+- ChatGPT, Claude Code, or Codex 0.147 or newer
 
-Choose your client and add the server.
+Other clients, such as Claude.ai, Claude Desktop, Cursor and VS Code, can't sign in yet. Use the [local MCP server](/ai/for-agents/mcp-server) with them.
 
-<Tabs>
-  <Tab title="Claude Code">
-    Run:
+## Quickstart
 
-    ```bash
-    claude mcp add --transport http creem https://mcp.creem.io/mcp
-    ```
+```bash
+claude mcp add --transport http creem https://mcp.creem.io/mcp
+```
 
-    Then open `/mcp` in Claude Code and authenticate `creem`. Add `--scope user` to make Creem available in every project.
+Then run `/mcp` in Claude Code, select **creem** and choose **Authenticate**. Your browser opens the Creem sign-in. For ChatGPT and Codex, see below.
 
-  </Tab>
-  <Tab title="ChatGPT">
-    Open [ChatGPT Plugins](https://chatgpt.com/plugins), select the plus button, then **Add custom MCP server**, and enter:
+## Claude Code
 
-    - **Name:** `Creem`
-    - **Connection:** `https://mcp.creem.io/mcp`
-    - **Authentication:** OAuth, with the client ID and secret left empty
+```bash
+claude mcp add --transport http creem https://mcp.creem.io/mcp
+```
 
-    Select **Create as a plugin**, install it, and complete authorization in the browser. Your ChatGPT plan or workspace has to allow custom MCP servers ([OpenAI help](https://help.openai.com/en/articles/12584461-developer-mode-apps-and-full-mcp-connectors-in-chatgpt)).
+`--transport http` is required: without it, Claude Code treats the URL as a local command. Add `--scope user` to use Creem in every project.
 
-  </Tab>
-  <Tab title="Codex">
-    Run:
+## ChatGPT
 
-    ```bash
-    codex mcp add creem --url https://mcp.creem.io/mcp
-    codex mcp login creem
-    ```
+Custom MCP servers work in ChatGPT on the web, and your plan or workspace has to allow them. See OpenAI's [Connecting custom MCP servers in ChatGPT](https://help.openai.com/en/articles/12584461-developer-mode-apps-and-full-mcp-connectors-in-chatgpt).
 
-    Complete the authorization in the browser. Requires Codex 0.147 or newer. The CLI, the IDE extension and the ChatGPT desktop app share this configuration.
+<Steps>
+  <Step title="Add the server">
+    Go to [ChatGPT Plugins](https://chatgpt.com/plugins), select the plus button, then **Add custom
+    MCP server**. Name it `Creem` and enter `https://mcp.creem.io/mcp` under **Connection**.
+  </Step>
+  <Step title="Choose OAuth">
+    Choose **OAuth** and leave the client ID and secret empty. Review the risk warning, tick **I
+    understand and want to continue**, then select **Create as a plugin**.
+  </Step>
+  <Step title="Sign in">
+    Install the plugin and sign in with your Creem account when ChatGPT asks.
+  </Step>
+</Steps>
 
-  </Tab>
-  <Tab title="Other clients">
-    Claude.ai, Claude Desktop, Cursor, VS Code and other clients can't authorize with Creem MCP yet:
-    sign-in fails with `invalid_client`.
+## Codex
 
-    Use the [local MCP server](/ai/for-agents/mcp-server) instead. It runs on your machine with an API key and works with any client that can start a local command.
+```bash
+codex mcp add creem --url https://mcp.creem.io/mcp
+codex mcp login creem
+```
 
-  </Tab>
-</Tabs>
+`codex mcp login` opens your browser for the Creem sign-in. The Codex CLI, the IDE extension and the ChatGPT desktop app share one configuration, so adding the server once works in all three.
+
+## Sign-in and permissions
+
+When you connect, your browser opens Creem's sign-in and consent screen. You sign in, pick a store and a [mode](#test-and-live-mode), and choose what the agent can do. A connection works on one store; picking another store later replaces it.
+
+Only **View your store** is ticked on a first connect. Tick the others the agent needs:
+
+| Permission                                        | What it allows                                                                                                                |
+| ------------------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------- |
+| **View your store**                               | Read products, checkouts, discount codes, customers, transactions, subscriptions, disputes, revenue and your business details |
+| **Manage products, checkout links and discounts** | Create, edit and archive products, create checkout links, and create and delete discount codes                                |
+| **Manage subscriptions**                          | Cancel your customers' subscriptions                                                                                          |
+| **Issue refunds**                                 | Refund your customers' payments                                                                                               |
+
+A tool outside the granted permissions fails with `missing scope`, for example `missing scope: refunds:write`. To add a permission, connect again from your client: the consent screen keeps what you already allowed and offers the rest.
+
+You, and the store owner if that's someone else, get an email when an agent is connected or gets new permissions.
 
 ## Test and live mode
 
-A connection works in one mode at a time. **Test mode** uses your store's [test data](/getting-started/test-mode), and no real money moves. **Live mode** works on real payments, refunds and subscriptions.
+Each connection works in one mode at a time. **Test mode** uses your store's [test mode](/getting-started/test-mode) data, and no real money moves. **Live mode** works on real payments, refunds and subscriptions.
 
-You choose the mode when you authorize. Live is preselected when your store is approved for live payments. To change it later, ask your agent (for example "switch Creem to live mode") or use **Settings → Connected apps** in the dashboard. Switching to live asks you to confirm. Every tool result states the mode it ran in.
+You choose the mode on the consent screen. **Live** is preselected when your store is approved for live payments. Every tool result says which mode it ran in, and every confirmation starts with `[Test mode]` or `[LIVE mode]`.
 
-## Permissions
-
-When you authorize, you pick a store and choose what the agent can do in it:
-
-| Permission                                        | Allows                                                                                               |
-| ------------------------------------------------- | ---------------------------------------------------------------------------------------------------- |
-| **View your store**                               | Reading products, checkouts, discounts, customers, transactions, subscriptions, disputes and revenue |
-| **Manage products, checkout links and discounts** | Creating, editing and archiving products, creating checkout links, creating and deleting discounts   |
-| **Manage subscriptions**                          | Cancelling subscriptions                                                                             |
-| **Issue refunds**                                 | Refunding payments                                                                                   |
-
-For an agent that should look up data but never change it, leave only **View your store** ticked. A tool outside the granted permissions fails with `missing scope`. To add a permission later, connect again: authorization keeps what you already allowed and offers the rest.
-
-## How the tools work
-
-The server gives your agent a curated set of tools, each for one task, such as `list_subscriptions`, `create_checkout_link` or `issue_refund`. Every tool is marked read-only or not, so your client knows which calls change data. See [Available tools](#available-tools) for the full list, and [Permissions](#permissions) for what each needs.
-
-Before a refund, a cancellation, a delete, an archive, a new discount, a price change or a switch to live, Creem asks **you** to confirm. Clients that can show a prompt display it with **Accept** and **Decline**. In other clients, the agent shows you the question in the chat and continues only after you answer "yes". A confirmation covers that exact action, works once and expires after 10 minutes.
-
-## Manage connections
-
-**Settings → Connected apps** in the dashboard lists the agents connected to your store, who connected them and their mode. Switch a connection's mode or disconnect it there. You can manage the connections you made; the store owner can manage all of them.
-
-A disconnected agent has to authorize again. Changes it already made, such as refunds or new products, stay. You and the store owner get an email when an agent is connected or gets new permissions.
-
-## Limits
-
-Each connection can make 120 calls and 30 writes per minute. Each store can make 300 calls and 60 writes per minute across its connections, counted separately for test and live mode. A call over a limit fails with `rate_limited` and changes nothing.
+To change mode later, ask your agent (for example "switch Creem to live mode") or use **Settings → Connected apps** in the dashboard. Switching to live asks you to confirm.
 
 ## Available tools
 
-<Accordion title="Available tools (24)">
+25 tools, the same in both modes.
 
-| Tool                         | Description                                                                                                                                          |
-| ---------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `list_products`              | List products with price, billing type, status and payment links.                                                                                    |
-| `get_product`                | Get a product.                                                                                                                                       |
-| `get_revenue_summary`        | Get revenue, payments, new customers and subscriptions for a date range, and MRR.                                                                    |
-| `search_customers`           | Find a customer by email, or list customers.                                                                                                         |
-| `get_customer`               | Get a customer with their newest subscriptions and orders.                                                                                           |
-| `list_subscriptions`         | List subscriptions with status, product, customer and payment dates.                                                                                 |
-| `get_subscription`           | Get a subscription and its last transaction.                                                                                                         |
-| `list_transactions`          | List payments and subscription invoices with tax, discount and refunded amounts.                                                                     |
-| `get_checkout`               | Get a checkout session and, once paid, its order.                                                                                                    |
-| `list_discounts`             | List discount codes with their redemptions.                                                                                                          |
-| `get_discount`               | Get a discount by ID or code.                                                                                                                        |
-| `list_disputes`              | List disputes and the date to send evidence by.                                                                                                      |
-| `get_dispute`                | Get a dispute.                                                                                                                                       |
-| `open_business_details`      | Get a dashboard link to the business details form, the first step to live payments.                                                                  |
-| `open_identity_verification` | Get a dashboard link to identity verification.                                                                                                       |
-| `create_product`             | Create a product.                                                                                                                                    |
-| `create_checkout_link`       | Create a checkout link for a product.                                                                                                                |
-| `create_discount`            | Create a discount code. **Asks to confirm.**                                                                                                         |
-| `update_product`             | Update a product. Price, currency and trial changes apply to new purchases only. **Asks to confirm a price, currency, trial or success URL change.** |
-| `archive_product`            | Archive a product. Existing subscriptions keep renewing. **Asks to confirm.**                                                                        |
-| `delete_discount`            | Delete a discount code. **Asks to confirm.**                                                                                                         |
-| `cancel_subscription`        | Cancel a subscription. **Asks to confirm.**                                                                                                          |
-| `issue_refund`               | Refund a payment. **Asks to confirm.**                                                                                                               |
-| `switch_mode`                | Switch the connection between test and live mode. **Asks to confirm a switch to live.**                                                              |
+| Group             | Count | Tools                                                                                      |
+| ----------------- | ----- | ------------------------------------------------------------------------------------------ |
+| **Products**      | 5     | `list_products`, `get_product`, `create_product`, `update_product`, `archive_product`      |
+| **Checkouts**     | 2     | `get_checkout`, `create_checkout_link`                                                     |
+| **Discounts**     | 4     | `list_discounts`, `get_discount`, `create_discount`, `delete_discount`                     |
+| **Customers**     | 2     | `search_customers`, `get_customer`                                                         |
+| **Subscriptions** | 3     | `list_subscriptions`, `get_subscription`, `cancel_subscription`                            |
+| **Transactions**  | 2     | `list_transactions`, `issue_refund`                                                        |
+| **Disputes**      | 2     | `list_disputes`, `get_dispute`                                                             |
+| **Stats**         | 1     | `get_revenue_summary`                                                                      |
+| **Onboarding**    | 3     | `get_business_details_requirements`, `open_business_details`, `open_identity_verification` |
+| **Connection**    | 1     | `switch_mode`                                                                              |
 
-</Accordion>
+`get_business_details_requirements` shows what your store's business details still need, the first step to live payments. It works in live mode only. The two `open_` tools return a dashboard link, where you fill in the form yourself.
+
+## Security
+
+<Warning>
+  Some tools change your store and can't be undone. Creem asks **you**, not the agent, to confirm
+  them before anything happens.
+</Warning>
+
+| Tool                  | Asks you to confirm                                       |
+| --------------------- | --------------------------------------------------------- |
+| `issue_refund`        | Always                                                    |
+| `cancel_subscription` | Always                                                    |
+| `create_discount`     | Always                                                    |
+| `delete_discount`     | Always                                                    |
+| `archive_product`     | Always                                                    |
+| `update_product`      | When it changes the price, currency, trial or success URL |
+| `switch_mode`         | When switching to live                                    |
+
+Clients that can show a prompt display it with **Accept** and **Decline**. In other clients, the agent shows you the question in the chat and runs the tool only after you reply "yes". A confirmation covers exactly that action, works once and expires after 10 minutes.
+
+Two more things to do:
+
+**Develop in test mode.** Connect in test mode while you try things out. Nothing you break is real.
+
+**Grant only the permissions you need.** An agent that only reports on your store needs **View your store** and nothing else.
+
+## Connected apps
+
+**Settings → Connected apps** in the dashboard lists the agents connected to your store, who connected them and their mode. There you can switch a connection between test and live mode, or disconnect it. You can manage the connections you made; the store owner can manage all of them.
+
+A disconnected agent has to sign in again. Changes it already made, such as refunds or new products, stay.
+
+## Limits
+
+| Limit                  | Per connection | Per store |
+| ---------------------- | -------------- | --------- |
+| Calls per minute       | 120            | 300       |
+| Write calls per minute | 30             | 60        |
+
+Store limits count test-mode and live-mode calls separately. A call over a limit fails with `rate_limited` and changes nothing. Wait for the minute to pass and try again.
+
+## Verifying it works
+
+Connect in test mode and ask your agent:
+
+```
+List my Creem products.
+```
+
+The result ends with `Ran in test mode: test data, no real money.` If you get an error instead, see below.
+
+## Troubleshooting
+
+<AccordionGroup>
+  <Accordion title="Sign-in fails with invalid_client">
+    Your client can't sign in to the hosted server yet. See [Requirements](#requirements), or use
+    the [local MCP server](/ai/for-agents/mcp-server).
+  </Accordion>
+  <Accordion title="Every call fails with “The Creem MCP isn't enabled for this store yet”">
+    The hosted server isn't enabled for your store. Contact [support](mailto:support@creem.io). Once
+    it's enabled, the same connection works without signing in again.
+  </Accordion>
+  <Accordion title="A tool fails with missing scope">
+    The connection doesn't have the permission the tool needs. Connect again and tick it on the
+    consent screen. See [Sign-in and permissions](#sign-in-and-permissions).
+  </Accordion>
+  <Accordion title="My client asks me to sign in again">
+    The connection was disconnected in Connected apps, by you or by the store owner. Sign in again
+    to create a new connection.
+  </Accordion>
+  <Accordion title="A call fails with rate_limited">
+    See [Limits](#limits). Wait for the minute to pass and try again.
+  </Accordion>
+  <Accordion title="A call fails with unavailable">
+    Creem couldn't complete the call. Try again in a moment. If it was a write, check whether it ran
+    first, for example with `list_transactions` after a refund.
+  </Accordion>
+</AccordionGroup>
+
+## Related
+
+- [Local MCP server](/ai/for-agents/mcp-server) — the npm package, with an API key, for scripts and CI
+- [Skill files](/ai/for-agents/skill-files) — reference material your agent reads
+- [Test mode](/getting-started/test-mode) — how test data works
