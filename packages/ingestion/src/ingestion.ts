@@ -4,6 +4,7 @@ import type { IngestionStrategy, StrategyEmission } from "./strategy.js";
 import type {
   EventProperties,
   IngestResult,
+  IngestionClient,
   IngestionConfig,
   IngestionCustomer,
   IngestionError,
@@ -40,7 +41,7 @@ export function Ingestion(config: IngestionConfig): IngestionPipeline {
 }
 
 export class IngestionPipeline {
-  private readonly creem: Creem;
+  private readonly creem: IngestionClient;
   private readonly delivery: BufferedDelivery;
   private readonly onError: NonNullable<IngestionConfig["onError"]>;
   private readonly onWarnings: IngestionConfig["onWarnings"];

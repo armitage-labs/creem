@@ -2292,7 +2292,7 @@ export class Creem {
    * namespace method. Destructure and re-export in your `convex/billing.ts`.
    *
    * For full control, use the namespace getters directly instead
-   * (e.g. `creem.subscriptions.cancel({ id: ctx, cancelSubscriptionRequestEntity: { entityId } })`).
+   * (e.g. `creem.subscriptions.cancel(ctx, { entityId })`).
    *
    * @param options.resolve - Auth callback that returns `{ userId, email, entityId }`
    * @returns Entity-scoped UI, checkout, subscription, customer, transaction,

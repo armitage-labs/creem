@@ -71,6 +71,15 @@ export interface IngestionError {
   cause?: unknown;
 }
 
+/**
+ * The one SDK method ingestion calls. Structural on purpose: `events.ingestEvents`
+ * takes the same request in creem 1.x and 2.x, so a client from either fits and
+ * an SDK major doesn't break the injected-client option.
+ */
+export interface IngestionClient {
+  events: { ingestEvents: Creem["events"]["ingestEvents"] };
+}
+
 export interface IngestionConfig {
   /** Creem API key with the `events:write` scope. */
   apiKey?: string;
@@ -80,7 +89,7 @@ export interface IngestionConfig {
    * Bring your own configured SDK client instead of `apiKey`/`serverURL`.
    * Takes precedence when provided.
    */
-  client?: Creem;
+  client?: IngestionClient;
   /** Events per request. Server maximum (and default): 100. */
   maxBatchSize?: number;
   /** How long an idle buffer waits before flushing. Default: 5000ms. */

@@ -39,9 +39,10 @@ await creem.transactions.search({ pageNumber: 2, pageSize: 50 });
 In 1.x every parameter was positional, and `options` came last. When the API
 gained a new optional parameter, it was inserted before `options`, so existing
 calls that passed `options` stopped compiling in TypeScript, and in JavaScript
-the options object was sent as the new parameter. With one request object, a
-new parameter is a new optional property: no existing call changes. The
-upcoming catalog parameters (`dry_run`, `If-None-Match`, `If-Match`, new
+the options object was sent as the new parameter. With one request object, a new parameter of an operation that already has
+one is a new optional property: no existing call changes (see
+[Methods that take only a body](#methods-that-take-only-a-body) for the rest). The parameters planned
+for products and subscriptions (`dry_run`, `If-None-Match`, `If-Match`, new
 search filters) therefore arrive in minor releases of 2.x.
 
 ## Every changed method
@@ -133,8 +134,17 @@ These methods already took a single request body and are unchanged:
 
 ## MCP server and CLI
 
-The bundled MCP server's tools take the same request object as their methods,
-so a tool's input is now `{ "request": { ... } }` (for example
-`products-update` takes `{ "request": { "id": "prod_123",
-"updateProductRequestEntity": { "name": "Pro" } } }`). The `creem` CLI's
-commands, flags and output don't change.
+The bundled MCP server's tools now take the request under one `request`
+argument, in the API's wire field names, the same as each tool's input schema
+lists them. For example, `products-update` takes
+`{ "request": { "id": "prod_123", "UpdateProductRequestEntity": { "name": "Pro" } } }`.
+The `creem` CLI's commands, flags and output don't change.
+
+## Methods that take only a body
+
+The 19 methods listed above take the request body itself, because their
+operations have no other parameter. If one of those operations gains its first
+query or header parameter, the generator wraps its body in a request object
+(like `updateProductRequestEntity` above), which changes the call. Adding a
+parameter to an operation that already has one is a new optional property and
+doesn't.
