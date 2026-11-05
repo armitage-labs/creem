@@ -17,6 +17,7 @@ import {
   refundEntityFromJSON,
 } from "creem/models/components";
 import { parseWebhookEventEntity } from "creem/webhooks";
+import { SDKValidationError } from "creem/models/errors";
 
 /**
  * A webhook event the route hands to an event handler: every known event type.
@@ -78,6 +79,17 @@ export const getConvexEntityId = (metadata: unknown): string | null => {
 };
 
 /**
+ * What a failed parse logs: the SDK's message without the payload it carries
+ * (`rawValue` holds the customer's email, name and country).
+ */
+const describeParseFailure = (error: unknown): string =>
+  error instanceof SDKValidationError
+    ? String(error.rawMessage)
+    : error instanceof Error
+      ? error.name
+      : "unknown error";
+
+/**
  * Parse a raw webhook subscription object into a typed SubscriptionEntity
  * using the SDK's generated parser.
  */
@@ -89,9 +101,12 @@ export const parseSubscription = (
     if (result.ok) {
       return result.value;
     }
-    console.warn("SDK subscription parsing failed:", result.error);
+    console.warn(
+      "SDK subscription parsing failed:",
+      describeParseFailure(result.error),
+    );
   } catch (e) {
-    console.warn("SDK subscription parsing threw:", e);
+    console.warn("SDK subscription parsing threw:", describeParseFailure(e));
   }
   return null;
 };
@@ -108,9 +123,12 @@ export const parseCheckout = (
     if (result.ok) {
       return result.value;
     }
-    console.warn("SDK checkout parsing failed:", result.error);
+    console.warn(
+      "SDK checkout parsing failed:",
+      describeParseFailure(result.error),
+    );
   } catch (e) {
-    console.warn("SDK checkout parsing threw:", e);
+    console.warn("SDK checkout parsing threw:", describeParseFailure(e));
   }
   return null;
 };
@@ -127,9 +145,12 @@ export const parseProduct = (
     if (result.ok) {
       return result.value;
     }
-    console.warn("SDK product parsing failed:", result.error);
+    console.warn(
+      "SDK product parsing failed:",
+      describeParseFailure(result.error),
+    );
   } catch (e) {
-    console.warn("SDK product parsing threw:", e);
+    console.warn("SDK product parsing threw:", describeParseFailure(e));
   }
   return null;
 };
@@ -146,9 +167,12 @@ export const parseRefund = (
     if (result.ok) {
       return result.value;
     }
-    console.warn("SDK refund parsing failed:", result.error);
+    console.warn(
+      "SDK refund parsing failed:",
+      describeParseFailure(result.error),
+    );
   } catch (e) {
-    console.warn("SDK refund parsing threw:", e);
+    console.warn("SDK refund parsing threw:", describeParseFailure(e));
   }
   return null;
 };

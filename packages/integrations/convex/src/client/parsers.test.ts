@@ -1,4 +1,5 @@
-import { describe, it, expect } from "vitest";
+import { describe, it, expect, vi } from "vitest";
+import { inspect } from "node:util";
 import {
   getEventType,
   getEventData,
@@ -7,6 +8,7 @@ import {
   parseSubscription,
   parseCheckout,
   parseProduct,
+  parseRefund,
   parseGeneratedWebhookEvent,
 } from "./parsers.js";
 
@@ -855,5 +857,35 @@ describe("parseGeneratedWebhookEvent", () => {
       }),
     );
     expect(event.eventType).toBe("UNKNOWN");
+  });
+});
+
+describe("parse helpers on a malformed object", () => {
+  // The SDK's validation error carries the payload; logging it would put the
+  // customer's email in every deployment's logs.
+  it.each([
+    ["parseSubscription", parseSubscription],
+    ["parseCheckout", parseCheckout],
+    ["parseProduct", parseProduct],
+    ["parseRefund", parseRefund],
+  ])("%s returns null and logs no payload data", (_name, parse) => {
+    const logged: unknown[][] = [];
+    const spy = vi
+      .spyOn(console, "warn")
+      .mockImplementation((...args: unknown[]) => void logged.push(args));
+    try {
+      const parsed = (parse as (obj: Record<string, unknown>) => unknown)({
+        id: 42,
+        customer: { email: "buyer@example.com" },
+      });
+      expect(parsed).toBeNull();
+    } finally {
+      spy.mockRestore();
+    }
+    const text = logged
+      .flat()
+      .map((value) => (typeof value === "string" ? value : inspect(value)))
+      .join("\n");
+    expect(text).not.toContain("buyer@example.com");
   });
 });
