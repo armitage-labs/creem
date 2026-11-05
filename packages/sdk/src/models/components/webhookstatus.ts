@@ -3,7 +3,8 @@
  */
 
 import * as z from "zod/v3";
-import { ClosedEnum } from "../../types/enums.js";
+import * as openEnums from "../../types/enums.js";
+import { OpenEnum } from "../../types/enums.js";
 
 /**
  * Whether the endpoint receives deliveries. Disabled endpoints keep their configuration but receive nothing.
@@ -15,13 +16,17 @@ export const WebhookStatus = {
 /**
  * Whether the endpoint receives deliveries. Disabled endpoints keep their configuration but receive nothing.
  */
-export type WebhookStatus = ClosedEnum<typeof WebhookStatus>;
+export type WebhookStatus = OpenEnum<typeof WebhookStatus>;
 
 /** @internal */
-export const WebhookStatus$inboundSchema: z.ZodNativeEnum<
-  typeof WebhookStatus
-> = z.nativeEnum(WebhookStatus);
+export const WebhookStatus$inboundSchema: z.ZodType<
+  WebhookStatus,
+  z.ZodTypeDef,
+  unknown
+> = openEnums.inboundSchema(WebhookStatus);
 /** @internal */
-export const WebhookStatus$outboundSchema: z.ZodNativeEnum<
-  typeof WebhookStatus
-> = WebhookStatus$inboundSchema;
+export const WebhookStatus$outboundSchema: z.ZodType<
+  string,
+  z.ZodTypeDef,
+  WebhookStatus
+> = openEnums.outboundSchema(WebhookStatus);

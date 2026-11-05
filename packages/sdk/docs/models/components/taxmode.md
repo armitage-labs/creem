@@ -8,10 +8,12 @@ Specifies the tax calculation mode for the transaction. If set to "inclusive," t
 import { TaxMode } from "creem/models/components";
 
 let value: TaxMode = "inclusive";
+
+// Open enum: unrecognized values are captured as Unrecognized<string>
 ```
 
 ## Values
 
 ```typescript
-"inclusive" | "exclusive"
+"inclusive" | "exclusive" | Unrecognized<string>
 ```

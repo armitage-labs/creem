@@ -8,10 +8,12 @@ The type of order. This can specify whether it's a regular purchase, subscriptio
 import { OrderType } from "creem/models/components";
 
 let value: OrderType = "onetime";
+
+// Open enum: unrecognized values are captured as Unrecognized<string>
 ```
 
 ## Values
 
 ```typescript
-"recurring" | "onetime"
+"recurring" | "onetime" | Unrecognized<string>
 ```

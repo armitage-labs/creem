@@ -8,10 +8,12 @@ Warning code — same set as ingest warnings
 import { PreviewUsageEventWarningApiDtoCode } from "creem/models/components";
 
 let value: PreviewUsageEventWarningApiDtoCode = "no_matching_meter";
+
+// Open enum: unrecognized values are captured as Unrecognized<string>
 ```
 
 ## Values
 
 ```typescript
-"no_matching_meter" | "meter_archived" | "timestamp_outside_late_window"
+"no_matching_meter" | "meter_archived" | "timestamp_outside_late_window" | Unrecognized<string>
 ```

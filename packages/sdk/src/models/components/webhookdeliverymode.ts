@@ -3,7 +3,8 @@
  */
 
 import * as z from "zod/v3";
-import { ClosedEnum } from "../../types/enums.js";
+import * as openEnums from "../../types/enums.js";
+import { OpenEnum } from "../../types/enums.js";
 
 /**
  * How events reach this endpoint: `http` deliveries are POSTed to `url`; `cli` deliveries wait in the pending-events feed for a local `creem listen` session.
@@ -15,13 +16,17 @@ export const WebhookDeliveryMode = {
 /**
  * How events reach this endpoint: `http` deliveries are POSTed to `url`; `cli` deliveries wait in the pending-events feed for a local `creem listen` session.
  */
-export type WebhookDeliveryMode = ClosedEnum<typeof WebhookDeliveryMode>;
+export type WebhookDeliveryMode = OpenEnum<typeof WebhookDeliveryMode>;
 
 /** @internal */
-export const WebhookDeliveryMode$inboundSchema: z.ZodNativeEnum<
-  typeof WebhookDeliveryMode
-> = z.nativeEnum(WebhookDeliveryMode);
+export const WebhookDeliveryMode$inboundSchema: z.ZodType<
+  WebhookDeliveryMode,
+  z.ZodTypeDef,
+  unknown
+> = openEnums.inboundSchema(WebhookDeliveryMode);
 /** @internal */
-export const WebhookDeliveryMode$outboundSchema: z.ZodNativeEnum<
-  typeof WebhookDeliveryMode
-> = WebhookDeliveryMode$inboundSchema;
+export const WebhookDeliveryMode$outboundSchema: z.ZodType<
+  string,
+  z.ZodTypeDef,
+  WebhookDeliveryMode
+> = openEnums.outboundSchema(WebhookDeliveryMode);

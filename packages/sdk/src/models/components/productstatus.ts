@@ -3,7 +3,8 @@
  */
 
 import * as z from "zod/v3";
-import { ClosedEnum } from "../../types/enums.js";
+import * as openEnums from "../../types/enums.js";
+import { OpenEnum } from "../../types/enums.js";
 
 /**
  * Lifecycle status of the product: `active` or `archived`.
@@ -15,13 +16,17 @@ export const ProductStatus = {
 /**
  * Lifecycle status of the product: `active` or `archived`.
  */
-export type ProductStatus = ClosedEnum<typeof ProductStatus>;
+export type ProductStatus = OpenEnum<typeof ProductStatus>;
 
 /** @internal */
-export const ProductStatus$inboundSchema: z.ZodNativeEnum<
-  typeof ProductStatus
-> = z.nativeEnum(ProductStatus);
+export const ProductStatus$inboundSchema: z.ZodType<
+  ProductStatus,
+  z.ZodTypeDef,
+  unknown
+> = openEnums.inboundSchema(ProductStatus);
 /** @internal */
-export const ProductStatus$outboundSchema: z.ZodNativeEnum<
-  typeof ProductStatus
-> = ProductStatus$inboundSchema;
+export const ProductStatus$outboundSchema: z.ZodType<
+  string,
+  z.ZodTypeDef,
+  ProductStatus
+> = openEnums.outboundSchema(ProductStatus);

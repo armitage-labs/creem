@@ -8,10 +8,12 @@ The kind of recipient. `store` and `user` are resolved (active) recipients; `ema
 import { SplitRecipientEntityRecipientType } from "creem/models/components";
 
 let value: SplitRecipientEntityRecipientType = "store";
+
+// Open enum: unrecognized values are captured as Unrecognized<string>
 ```
 
 ## Values
 
 ```typescript
-"store" | "user" | "email"
+"store" | "user" | "email" | Unrecognized<string>
 ```

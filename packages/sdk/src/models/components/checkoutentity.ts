@@ -5,7 +5,8 @@
 import * as z from "zod/v3";
 import { remap as remap$ } from "../../lib/primitives.js";
 import { safeParse } from "../../lib/schemas.js";
-import { ClosedEnum } from "../../types/enums.js";
+import * as openEnums from "../../types/enums.js";
+import { OpenEnum } from "../../types/enums.js";
 import { Result as SafeParseResult } from "../../types/fp.js";
 import { SDKValidationError } from "../errors/sdkvalidationerror.js";
 import {
@@ -78,7 +79,7 @@ export const Status = {
 /**
  * Status of the checkout.
  */
-export type Status = ClosedEnum<typeof Status>;
+export type Status = OpenEnum<typeof Status>;
 
 /**
  * The product associated with the checkout session.
@@ -115,7 +116,7 @@ export const CheckoutEntityStatus = {
 /**
  * The status of the license instance.
  */
-export type CheckoutEntityStatus = ClosedEnum<typeof CheckoutEntityStatus>;
+export type CheckoutEntityStatus = OpenEnum<typeof CheckoutEntityStatus>;
 
 /**
  * Associated license instances.
@@ -225,7 +226,7 @@ export const CheckoutEntityFeatureStatus = {
 /**
  * The status of the license instance.
  */
-export type CheckoutEntityFeatureStatus = ClosedEnum<
+export type CheckoutEntityFeatureStatus = OpenEnum<
   typeof CheckoutEntityFeatureStatus
 >;
 
@@ -357,14 +358,14 @@ export const CheckoutEntityType = {
   Percentage: "percentage",
   Fixed: "fixed",
 } as const;
-export type CheckoutEntityType = ClosedEnum<typeof CheckoutEntityType>;
+export type CheckoutEntityType = OpenEnum<typeof CheckoutEntityType>;
 
 export const CheckoutEntityDuration = {
   Forever: "forever",
   Once: "once",
   Repeating: "repeating",
 } as const;
-export type CheckoutEntityDuration = ClosedEnum<typeof CheckoutEntityDuration>;
+export type CheckoutEntityDuration = OpenEnum<typeof CheckoutEntityDuration>;
 
 /**
  * The discount applied to the checkout, if any.
@@ -463,11 +464,11 @@ export type CheckoutEntity = {
 };
 
 /** @internal */
-export const Status$inboundSchema: z.ZodNativeEnum<typeof Status> = z
-  .nativeEnum(Status);
+export const Status$inboundSchema: z.ZodType<Status, z.ZodTypeDef, unknown> =
+  openEnums.inboundSchema(Status);
 /** @internal */
-export const Status$outboundSchema: z.ZodNativeEnum<typeof Status> =
-  Status$inboundSchema;
+export const Status$outboundSchema: z.ZodType<string, z.ZodTypeDef, Status> =
+  openEnums.outboundSchema(Status);
 
 /** @internal */
 export const CheckoutEntityProduct$inboundSchema: z.ZodType<
@@ -597,13 +598,17 @@ export function fileFromJSON(
 }
 
 /** @internal */
-export const CheckoutEntityStatus$inboundSchema: z.ZodNativeEnum<
-  typeof CheckoutEntityStatus
-> = z.nativeEnum(CheckoutEntityStatus);
+export const CheckoutEntityStatus$inboundSchema: z.ZodType<
+  CheckoutEntityStatus,
+  z.ZodTypeDef,
+  unknown
+> = openEnums.inboundSchema(CheckoutEntityStatus);
 /** @internal */
-export const CheckoutEntityStatus$outboundSchema: z.ZodNativeEnum<
-  typeof CheckoutEntityStatus
-> = CheckoutEntityStatus$inboundSchema;
+export const CheckoutEntityStatus$outboundSchema: z.ZodType<
+  string,
+  z.ZodTypeDef,
+  CheckoutEntityStatus
+> = openEnums.outboundSchema(CheckoutEntityStatus);
 
 /** @internal */
 export const CheckoutEntityInstance$inboundSchema: z.ZodType<
@@ -808,13 +813,17 @@ export function checkoutEntityCustomerCreditsFromJSON(
 }
 
 /** @internal */
-export const CheckoutEntityFeatureStatus$inboundSchema: z.ZodNativeEnum<
-  typeof CheckoutEntityFeatureStatus
-> = z.nativeEnum(CheckoutEntityFeatureStatus);
+export const CheckoutEntityFeatureStatus$inboundSchema: z.ZodType<
+  CheckoutEntityFeatureStatus,
+  z.ZodTypeDef,
+  unknown
+> = openEnums.inboundSchema(CheckoutEntityFeatureStatus);
 /** @internal */
-export const CheckoutEntityFeatureStatus$outboundSchema: z.ZodNativeEnum<
-  typeof CheckoutEntityFeatureStatus
-> = CheckoutEntityFeatureStatus$inboundSchema;
+export const CheckoutEntityFeatureStatus$outboundSchema: z.ZodType<
+  string,
+  z.ZodTypeDef,
+  CheckoutEntityFeatureStatus
+> = openEnums.outboundSchema(CheckoutEntityFeatureStatus);
 
 /** @internal */
 export const CheckoutEntityFeatureInstance$inboundSchema: z.ZodType<
@@ -1034,22 +1043,30 @@ export function featureFromJSON(
 }
 
 /** @internal */
-export const CheckoutEntityType$inboundSchema: z.ZodNativeEnum<
-  typeof CheckoutEntityType
-> = z.nativeEnum(CheckoutEntityType);
+export const CheckoutEntityType$inboundSchema: z.ZodType<
+  CheckoutEntityType,
+  z.ZodTypeDef,
+  unknown
+> = openEnums.inboundSchema(CheckoutEntityType);
 /** @internal */
-export const CheckoutEntityType$outboundSchema: z.ZodNativeEnum<
-  typeof CheckoutEntityType
-> = CheckoutEntityType$inboundSchema;
+export const CheckoutEntityType$outboundSchema: z.ZodType<
+  string,
+  z.ZodTypeDef,
+  CheckoutEntityType
+> = openEnums.outboundSchema(CheckoutEntityType);
 
 /** @internal */
-export const CheckoutEntityDuration$inboundSchema: z.ZodNativeEnum<
-  typeof CheckoutEntityDuration
-> = z.nativeEnum(CheckoutEntityDuration);
+export const CheckoutEntityDuration$inboundSchema: z.ZodType<
+  CheckoutEntityDuration,
+  z.ZodTypeDef,
+  unknown
+> = openEnums.inboundSchema(CheckoutEntityDuration);
 /** @internal */
-export const CheckoutEntityDuration$outboundSchema: z.ZodNativeEnum<
-  typeof CheckoutEntityDuration
-> = CheckoutEntityDuration$inboundSchema;
+export const CheckoutEntityDuration$outboundSchema: z.ZodType<
+  string,
+  z.ZodTypeDef,
+  CheckoutEntityDuration
+> = openEnums.outboundSchema(CheckoutEntityDuration);
 
 /** @internal */
 export const CheckoutEntityDiscount$inboundSchema: z.ZodType<

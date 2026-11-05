@@ -3,7 +3,8 @@
  */
 
 import * as z from "zod/v3";
-import { ClosedEnum } from "../../types/enums.js";
+import * as openEnums from "../../types/enums.js";
+import { OpenEnum } from "../../types/enums.js";
 
 /**
  * Specifies the tax calculation mode for the transaction. If set to "inclusive," the tax is included in the price. If set to "exclusive," the tax is added on top of the price.
@@ -15,11 +16,11 @@ export const TaxMode = {
 /**
  * Specifies the tax calculation mode for the transaction. If set to "inclusive," the tax is included in the price. If set to "exclusive," the tax is added on top of the price.
  */
-export type TaxMode = ClosedEnum<typeof TaxMode>;
+export type TaxMode = OpenEnum<typeof TaxMode>;
 
 /** @internal */
-export const TaxMode$inboundSchema: z.ZodNativeEnum<typeof TaxMode> = z
-  .nativeEnum(TaxMode);
+export const TaxMode$inboundSchema: z.ZodType<TaxMode, z.ZodTypeDef, unknown> =
+  openEnums.inboundSchema(TaxMode);
 /** @internal */
-export const TaxMode$outboundSchema: z.ZodNativeEnum<typeof TaxMode> =
-  TaxMode$inboundSchema;
+export const TaxMode$outboundSchema: z.ZodType<string, z.ZodTypeDef, TaxMode> =
+  openEnums.outboundSchema(TaxMode);

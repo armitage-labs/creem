@@ -8,10 +8,12 @@ The type of the feature: `custom` (private note), `file` (downloadable files), `
 import { ProductFeatureType } from "creem/models/components";
 
 let value: ProductFeatureType = "file";
+
+// Open enum: unrecognized values are captured as Unrecognized<string>
 ```
 
 ## Values
 
 ```typescript
-"custom" | "file" | "licenseKey" | "customerCredits"
+"custom" | "file" | "licenseKey" | "customerCredits" | Unrecognized<string>
 ```

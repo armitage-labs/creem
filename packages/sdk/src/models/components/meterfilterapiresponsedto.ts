@@ -4,7 +4,8 @@
 
 import * as z from "zod/v3";
 import { safeParse } from "../../lib/schemas.js";
-import { ClosedEnum } from "../../types/enums.js";
+import * as openEnums from "../../types/enums.js";
+import { OpenEnum } from "../../types/enums.js";
 import { Result as SafeParseResult } from "../../types/fp.js";
 import { SDKValidationError } from "../errors/sdkvalidationerror.js";
 import {
@@ -24,7 +25,7 @@ export const MeterFilterApiResponseDtoConjunction = {
 /**
  * How the clauses combine
  */
-export type MeterFilterApiResponseDtoConjunction = ClosedEnum<
+export type MeterFilterApiResponseDtoConjunction = OpenEnum<
   typeof MeterFilterApiResponseDtoConjunction
 >;
 
@@ -40,14 +41,17 @@ export type MeterFilterApiResponseDto = {
 };
 
 /** @internal */
-export const MeterFilterApiResponseDtoConjunction$inboundSchema:
-  z.ZodNativeEnum<typeof MeterFilterApiResponseDtoConjunction> = z.nativeEnum(
-    MeterFilterApiResponseDtoConjunction,
-  );
+export const MeterFilterApiResponseDtoConjunction$inboundSchema: z.ZodType<
+  MeterFilterApiResponseDtoConjunction,
+  z.ZodTypeDef,
+  unknown
+> = openEnums.inboundSchema(MeterFilterApiResponseDtoConjunction);
 /** @internal */
-export const MeterFilterApiResponseDtoConjunction$outboundSchema:
-  z.ZodNativeEnum<typeof MeterFilterApiResponseDtoConjunction> =
-    MeterFilterApiResponseDtoConjunction$inboundSchema;
+export const MeterFilterApiResponseDtoConjunction$outboundSchema: z.ZodType<
+  string,
+  z.ZodTypeDef,
+  MeterFilterApiResponseDtoConjunction
+> = openEnums.outboundSchema(MeterFilterApiResponseDtoConjunction);
 
 /** @internal */
 export const MeterFilterApiResponseDto$inboundSchema: z.ZodType<

@@ -5,7 +5,8 @@
 import * as z from "zod/v3";
 import { remap as remap$ } from "../../lib/primitives.js";
 import { safeParse } from "../../lib/schemas.js";
-import { ClosedEnum } from "../../types/enums.js";
+import * as openEnums from "../../types/enums.js";
+import { OpenEnum } from "../../types/enums.js";
 import { Result as SafeParseResult } from "../../types/fp.js";
 import { SDKValidationError } from "../errors/sdkvalidationerror.js";
 
@@ -21,7 +22,7 @@ export const CustomerCreditsErrorDetailDtoType = {
 /**
  * Error category
  */
-export type CustomerCreditsErrorDetailDtoType = ClosedEnum<
+export type CustomerCreditsErrorDetailDtoType = OpenEnum<
   typeof CustomerCreditsErrorDetailDtoType
 >;
 
@@ -49,13 +50,17 @@ export type CustomerCreditsErrorDetailDto = {
 };
 
 /** @internal */
-export const CustomerCreditsErrorDetailDtoType$inboundSchema: z.ZodNativeEnum<
-  typeof CustomerCreditsErrorDetailDtoType
-> = z.nativeEnum(CustomerCreditsErrorDetailDtoType);
+export const CustomerCreditsErrorDetailDtoType$inboundSchema: z.ZodType<
+  CustomerCreditsErrorDetailDtoType,
+  z.ZodTypeDef,
+  unknown
+> = openEnums.inboundSchema(CustomerCreditsErrorDetailDtoType);
 /** @internal */
-export const CustomerCreditsErrorDetailDtoType$outboundSchema: z.ZodNativeEnum<
-  typeof CustomerCreditsErrorDetailDtoType
-> = CustomerCreditsErrorDetailDtoType$inboundSchema;
+export const CustomerCreditsErrorDetailDtoType$outboundSchema: z.ZodType<
+  string,
+  z.ZodTypeDef,
+  CustomerCreditsErrorDetailDtoType
+> = openEnums.outboundSchema(CustomerCreditsErrorDetailDtoType);
 
 /** @internal */
 export const CustomerCreditsErrorDetailDto$inboundSchema: z.ZodType<

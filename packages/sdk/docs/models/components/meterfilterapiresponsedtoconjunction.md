@@ -8,10 +8,12 @@ How the clauses combine
 import { MeterFilterApiResponseDtoConjunction } from "creem/models/components";
 
 let value: MeterFilterApiResponseDtoConjunction = "and";
+
+// Open enum: unrecognized values are captured as Unrecognized<string>
 ```
 
 ## Values
 
 ```typescript
-"and" | "or"
+"and" | "or" | Unrecognized<string>
 ```

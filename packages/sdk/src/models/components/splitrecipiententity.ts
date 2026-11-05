@@ -5,7 +5,8 @@
 import * as z from "zod/v3";
 import { remap as remap$ } from "../../lib/primitives.js";
 import { safeParse } from "../../lib/schemas.js";
-import { ClosedEnum } from "../../types/enums.js";
+import * as openEnums from "../../types/enums.js";
+import { OpenEnum } from "../../types/enums.js";
 import { Result as SafeParseResult } from "../../types/fp.js";
 import { SDKValidationError } from "../errors/sdkvalidationerror.js";
 
@@ -19,7 +20,7 @@ export const SplitRecipientEntityType = {
 /**
  * How the share is calculated. Currently always `percentage` — the recipient receives `amount` percent of the split net.
  */
-export type SplitRecipientEntityType = ClosedEnum<
+export type SplitRecipientEntityType = OpenEnum<
   typeof SplitRecipientEntityType
 >;
 
@@ -34,7 +35,7 @@ export const SplitRecipientEntityRecipientType = {
 /**
  * The kind of recipient. `store` and `user` are resolved (active) recipients; `email` is an invitee who has not yet accepted (the split share is held until they do).
  */
-export type SplitRecipientEntityRecipientType = ClosedEnum<
+export type SplitRecipientEntityRecipientType = OpenEnum<
   typeof SplitRecipientEntityRecipientType
 >;
 
@@ -49,7 +50,7 @@ export const InviteStatus = {
 /**
  * Invite lifecycle for email-type recipients that have not been accepted yet: `pending` (awaiting acceptance), `declined` (recipient declined) or `revoked` (merchant cancelled). Absent for resolved store/user recipients.
  */
-export type InviteStatus = ClosedEnum<typeof InviteStatus>;
+export type InviteStatus = OpenEnum<typeof InviteStatus>;
 
 export type SplitRecipientEntity = {
   /**
@@ -79,29 +80,43 @@ export type SplitRecipientEntity = {
 };
 
 /** @internal */
-export const SplitRecipientEntityType$inboundSchema: z.ZodNativeEnum<
-  typeof SplitRecipientEntityType
-> = z.nativeEnum(SplitRecipientEntityType);
+export const SplitRecipientEntityType$inboundSchema: z.ZodType<
+  SplitRecipientEntityType,
+  z.ZodTypeDef,
+  unknown
+> = openEnums.inboundSchema(SplitRecipientEntityType);
 /** @internal */
-export const SplitRecipientEntityType$outboundSchema: z.ZodNativeEnum<
-  typeof SplitRecipientEntityType
-> = SplitRecipientEntityType$inboundSchema;
+export const SplitRecipientEntityType$outboundSchema: z.ZodType<
+  string,
+  z.ZodTypeDef,
+  SplitRecipientEntityType
+> = openEnums.outboundSchema(SplitRecipientEntityType);
 
 /** @internal */
-export const SplitRecipientEntityRecipientType$inboundSchema: z.ZodNativeEnum<
-  typeof SplitRecipientEntityRecipientType
-> = z.nativeEnum(SplitRecipientEntityRecipientType);
+export const SplitRecipientEntityRecipientType$inboundSchema: z.ZodType<
+  SplitRecipientEntityRecipientType,
+  z.ZodTypeDef,
+  unknown
+> = openEnums.inboundSchema(SplitRecipientEntityRecipientType);
 /** @internal */
-export const SplitRecipientEntityRecipientType$outboundSchema: z.ZodNativeEnum<
-  typeof SplitRecipientEntityRecipientType
-> = SplitRecipientEntityRecipientType$inboundSchema;
+export const SplitRecipientEntityRecipientType$outboundSchema: z.ZodType<
+  string,
+  z.ZodTypeDef,
+  SplitRecipientEntityRecipientType
+> = openEnums.outboundSchema(SplitRecipientEntityRecipientType);
 
 /** @internal */
-export const InviteStatus$inboundSchema: z.ZodNativeEnum<typeof InviteStatus> =
-  z.nativeEnum(InviteStatus);
+export const InviteStatus$inboundSchema: z.ZodType<
+  InviteStatus,
+  z.ZodTypeDef,
+  unknown
+> = openEnums.inboundSchema(InviteStatus);
 /** @internal */
-export const InviteStatus$outboundSchema: z.ZodNativeEnum<typeof InviteStatus> =
-  InviteStatus$inboundSchema;
+export const InviteStatus$outboundSchema: z.ZodType<
+  string,
+  z.ZodTypeDef,
+  InviteStatus
+> = openEnums.outboundSchema(InviteStatus);
 
 /** @internal */
 export const SplitRecipientEntity$inboundSchema: z.ZodType<

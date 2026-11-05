@@ -3,7 +3,8 @@
  */
 
 import * as z from "zod/v3";
-import { ClosedEnum } from "../../types/enums.js";
+import * as openEnums from "../../types/enums.js";
+import { OpenEnum } from "../../types/enums.js";
 
 /**
  * The settlement status of the commission. `pending` while on hold, `approved` once cleared and available, `paid` once settled by a payout.
@@ -16,13 +17,17 @@ export const CommissionStatus = {
 /**
  * The settlement status of the commission. `pending` while on hold, `approved` once cleared and available, `paid` once settled by a payout.
  */
-export type CommissionStatus = ClosedEnum<typeof CommissionStatus>;
+export type CommissionStatus = OpenEnum<typeof CommissionStatus>;
 
 /** @internal */
-export const CommissionStatus$inboundSchema: z.ZodNativeEnum<
-  typeof CommissionStatus
-> = z.nativeEnum(CommissionStatus);
+export const CommissionStatus$inboundSchema: z.ZodType<
+  CommissionStatus,
+  z.ZodTypeDef,
+  unknown
+> = openEnums.inboundSchema(CommissionStatus);
 /** @internal */
-export const CommissionStatus$outboundSchema: z.ZodNativeEnum<
-  typeof CommissionStatus
-> = CommissionStatus$inboundSchema;
+export const CommissionStatus$outboundSchema: z.ZodType<
+  string,
+  z.ZodTypeDef,
+  CommissionStatus
+> = openEnums.outboundSchema(CommissionStatus);

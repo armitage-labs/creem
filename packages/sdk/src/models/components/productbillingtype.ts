@@ -3,7 +3,8 @@
  */
 
 import * as z from "zod/v3";
-import { ClosedEnum } from "../../types/enums.js";
+import * as openEnums from "../../types/enums.js";
+import { OpenEnum } from "../../types/enums.js";
 
 /**
  * Indicates the billing method for the customer. It can either be a `recurring` billing cycle or a `onetime` payment.
@@ -15,13 +16,17 @@ export const ProductBillingType = {
 /**
  * Indicates the billing method for the customer. It can either be a `recurring` billing cycle or a `onetime` payment.
  */
-export type ProductBillingType = ClosedEnum<typeof ProductBillingType>;
+export type ProductBillingType = OpenEnum<typeof ProductBillingType>;
 
 /** @internal */
-export const ProductBillingType$inboundSchema: z.ZodNativeEnum<
-  typeof ProductBillingType
-> = z.nativeEnum(ProductBillingType);
+export const ProductBillingType$inboundSchema: z.ZodType<
+  ProductBillingType,
+  z.ZodTypeDef,
+  unknown
+> = openEnums.inboundSchema(ProductBillingType);
 /** @internal */
-export const ProductBillingType$outboundSchema: z.ZodNativeEnum<
-  typeof ProductBillingType
-> = ProductBillingType$inboundSchema;
+export const ProductBillingType$outboundSchema: z.ZodType<
+  string,
+  z.ZodTypeDef,
+  ProductBillingType
+> = openEnums.outboundSchema(ProductBillingType);

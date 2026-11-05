@@ -8,10 +8,12 @@ The settlement status of the commission. `pending` while on hold, `approved` onc
 import { CommissionStatus } from "creem/models/components";
 
 let value: CommissionStatus = "paid";
+
+// Open enum: unrecognized values are captured as Unrecognized<string>
 ```
 
 ## Values
 
 ```typescript
-"pending" | "approved" | "paid"
+"pending" | "approved" | "paid" | Unrecognized<string>
 ```

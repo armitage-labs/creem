@@ -132,6 +132,30 @@ These methods already took a single request body and are unchanged:
 - `creem.transactions.refund(request)`
 - `creem.webhooks.create(request)`
 
+## Response enums are open
+
+Enum values in responses (a product's `status`, a ledger entry's `side`, …)
+are now open: a value the API adds later comes through as a plain string
+instead of failing the whole response. The known values keep their literal
+types, so existing comparisons still work. A `switch` that covers every known
+value needs a `default` branch, because the type now also allows other
+strings:
+
+```ts
+switch (product.status) {
+  case "active":
+    break;
+  case "archived":
+    break;
+  default:
+    // a status this SDK version doesn't know yet
+}
+```
+
+From 2.0 on, a new enum value in a response is a minor release. The
+generator is also set to accept an unknown tag in unions told apart by a tag
+field; the API has no such unions today.
+
 ## MCP server and CLI
 
 The bundled MCP server's tools now take the request under one `request`

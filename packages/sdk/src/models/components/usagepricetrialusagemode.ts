@@ -3,7 +3,8 @@
  */
 
 import * as z from "zod/v3";
-import { ClosedEnum } from "../../types/enums.js";
+import * as openEnums from "../../types/enums.js";
+import { OpenEnum } from "../../types/enums.js";
 
 /**
  * Usage metered during a free trial: `free` is not charged, `accrue` is charged when the trial converts. Defaults to `free`.
@@ -15,15 +16,19 @@ export const UsagePriceTrialUsageMode = {
 /**
  * Usage metered during a free trial: `free` is not charged, `accrue` is charged when the trial converts. Defaults to `free`.
  */
-export type UsagePriceTrialUsageMode = ClosedEnum<
+export type UsagePriceTrialUsageMode = OpenEnum<
   typeof UsagePriceTrialUsageMode
 >;
 
 /** @internal */
-export const UsagePriceTrialUsageMode$inboundSchema: z.ZodNativeEnum<
-  typeof UsagePriceTrialUsageMode
-> = z.nativeEnum(UsagePriceTrialUsageMode);
+export const UsagePriceTrialUsageMode$inboundSchema: z.ZodType<
+  UsagePriceTrialUsageMode,
+  z.ZodTypeDef,
+  unknown
+> = openEnums.inboundSchema(UsagePriceTrialUsageMode);
 /** @internal */
-export const UsagePriceTrialUsageMode$outboundSchema: z.ZodNativeEnum<
-  typeof UsagePriceTrialUsageMode
-> = UsagePriceTrialUsageMode$inboundSchema;
+export const UsagePriceTrialUsageMode$outboundSchema: z.ZodType<
+  string,
+  z.ZodTypeDef,
+  UsagePriceTrialUsageMode
+> = openEnums.outboundSchema(UsagePriceTrialUsageMode);

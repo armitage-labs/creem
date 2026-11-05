@@ -8,10 +8,12 @@ How the charge settles: `prepaid` debits the customer credit account as usage ag
 import { UsagePriceSettlementMode } from "creem/models/components";
 
 let value: UsagePriceSettlementMode = "postpaid";
+
+// Open enum: unrecognized values are captured as Unrecognized<string>
 ```
 
 ## Values
 
 ```typescript
-"prepaid" | "postpaid"
+"prepaid" | "postpaid" | Unrecognized<string>
 ```

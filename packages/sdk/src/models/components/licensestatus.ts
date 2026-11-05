@@ -3,7 +3,8 @@
  */
 
 import * as z from "zod/v3";
-import { ClosedEnum } from "../../types/enums.js";
+import * as openEnums from "../../types/enums.js";
+import { OpenEnum } from "../../types/enums.js";
 
 /**
  * The current status of the license key.
@@ -17,13 +18,17 @@ export const LicenseStatus = {
 /**
  * The current status of the license key.
  */
-export type LicenseStatus = ClosedEnum<typeof LicenseStatus>;
+export type LicenseStatus = OpenEnum<typeof LicenseStatus>;
 
 /** @internal */
-export const LicenseStatus$inboundSchema: z.ZodNativeEnum<
-  typeof LicenseStatus
-> = z.nativeEnum(LicenseStatus);
+export const LicenseStatus$inboundSchema: z.ZodType<
+  LicenseStatus,
+  z.ZodTypeDef,
+  unknown
+> = openEnums.inboundSchema(LicenseStatus);
 /** @internal */
-export const LicenseStatus$outboundSchema: z.ZodNativeEnum<
-  typeof LicenseStatus
-> = LicenseStatus$inboundSchema;
+export const LicenseStatus$outboundSchema: z.ZodType<
+  string,
+  z.ZodTypeDef,
+  LicenseStatus
+> = openEnums.outboundSchema(LicenseStatus);

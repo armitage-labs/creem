@@ -8,10 +8,12 @@ Lifecycle status of the product: `active` or `archived`.
 import { ProductStatus } from "creem/models/components";
 
 let value: ProductStatus = "active";
+
+// Open enum: unrecognized values are captured as Unrecognized<string>
 ```
 
 ## Values
 
 ```typescript
-"active" | "archived"
+"active" | "archived" | Unrecognized<string>
 ```

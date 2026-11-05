@@ -5,7 +5,8 @@
 import * as z from "zod/v3";
 import { remap as remap$ } from "../../lib/primitives.js";
 import { safeParse } from "../../lib/schemas.js";
-import { ClosedEnum } from "../../types/enums.js";
+import * as openEnums from "../../types/enums.js";
+import { OpenEnum } from "../../types/enums.js";
 import { Result as SafeParseResult } from "../../types/fp.js";
 import { SDKValidationError } from "../errors/sdkvalidationerror.js";
 import {
@@ -27,7 +28,7 @@ export const DiscountEntityStatus = {
 /**
  * The status of the discount (e.g., active, inactive).
  */
-export type DiscountEntityStatus = ClosedEnum<typeof DiscountEntityStatus>;
+export type DiscountEntityStatus = OpenEnum<typeof DiscountEntityStatus>;
 
 /**
  * The type of the discount, either "percentage" or "fixed".
@@ -39,7 +40,7 @@ export const Type = {
 /**
  * The type of the discount, either "percentage" or "fixed".
  */
-export type Type = ClosedEnum<typeof Type>;
+export type Type = OpenEnum<typeof Type>;
 
 /**
  * The duration type for the discount.
@@ -52,7 +53,7 @@ export const Duration = {
 /**
  * The duration type for the discount.
  */
-export type Duration = ClosedEnum<typeof Duration>;
+export type Duration = OpenEnum<typeof Duration>;
 
 export type DiscountEntity = {
   /**
@@ -122,28 +123,37 @@ export type DiscountEntity = {
 };
 
 /** @internal */
-export const DiscountEntityStatus$inboundSchema: z.ZodNativeEnum<
-  typeof DiscountEntityStatus
-> = z.nativeEnum(DiscountEntityStatus);
+export const DiscountEntityStatus$inboundSchema: z.ZodType<
+  DiscountEntityStatus,
+  z.ZodTypeDef,
+  unknown
+> = openEnums.inboundSchema(DiscountEntityStatus);
 /** @internal */
-export const DiscountEntityStatus$outboundSchema: z.ZodNativeEnum<
-  typeof DiscountEntityStatus
-> = DiscountEntityStatus$inboundSchema;
+export const DiscountEntityStatus$outboundSchema: z.ZodType<
+  string,
+  z.ZodTypeDef,
+  DiscountEntityStatus
+> = openEnums.outboundSchema(DiscountEntityStatus);
 
 /** @internal */
-export const Type$inboundSchema: z.ZodNativeEnum<typeof Type> = z.nativeEnum(
-  Type,
-);
+export const Type$inboundSchema: z.ZodType<Type, z.ZodTypeDef, unknown> =
+  openEnums.inboundSchema(Type);
 /** @internal */
-export const Type$outboundSchema: z.ZodNativeEnum<typeof Type> =
-  Type$inboundSchema;
+export const Type$outboundSchema: z.ZodType<string, z.ZodTypeDef, Type> =
+  openEnums.outboundSchema(Type);
 
 /** @internal */
-export const Duration$inboundSchema: z.ZodNativeEnum<typeof Duration> = z
-  .nativeEnum(Duration);
+export const Duration$inboundSchema: z.ZodType<
+  Duration,
+  z.ZodTypeDef,
+  unknown
+> = openEnums.inboundSchema(Duration);
 /** @internal */
-export const Duration$outboundSchema: z.ZodNativeEnum<typeof Duration> =
-  Duration$inboundSchema;
+export const Duration$outboundSchema: z.ZodType<
+  string,
+  z.ZodTypeDef,
+  Duration
+> = openEnums.outboundSchema(Duration);
 
 /** @internal */
 export const DiscountEntity$inboundSchema: z.ZodType<

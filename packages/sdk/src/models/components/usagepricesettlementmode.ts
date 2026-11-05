@@ -3,7 +3,8 @@
  */
 
 import * as z from "zod/v3";
-import { ClosedEnum } from "../../types/enums.js";
+import * as openEnums from "../../types/enums.js";
+import { OpenEnum } from "../../types/enums.js";
 
 /**
  * How the charge settles: `prepaid` debits the customer credit account as usage aggregates; `postpaid` bills at renewal where the store supports it.
@@ -15,15 +16,19 @@ export const UsagePriceSettlementMode = {
 /**
  * How the charge settles: `prepaid` debits the customer credit account as usage aggregates; `postpaid` bills at renewal where the store supports it.
  */
-export type UsagePriceSettlementMode = ClosedEnum<
+export type UsagePriceSettlementMode = OpenEnum<
   typeof UsagePriceSettlementMode
 >;
 
 /** @internal */
-export const UsagePriceSettlementMode$inboundSchema: z.ZodNativeEnum<
-  typeof UsagePriceSettlementMode
-> = z.nativeEnum(UsagePriceSettlementMode);
+export const UsagePriceSettlementMode$inboundSchema: z.ZodType<
+  UsagePriceSettlementMode,
+  z.ZodTypeDef,
+  unknown
+> = openEnums.inboundSchema(UsagePriceSettlementMode);
 /** @internal */
-export const UsagePriceSettlementMode$outboundSchema: z.ZodNativeEnum<
-  typeof UsagePriceSettlementMode
-> = UsagePriceSettlementMode$inboundSchema;
+export const UsagePriceSettlementMode$outboundSchema: z.ZodType<
+  string,
+  z.ZodTypeDef,
+  UsagePriceSettlementMode
+> = openEnums.outboundSchema(UsagePriceSettlementMode);

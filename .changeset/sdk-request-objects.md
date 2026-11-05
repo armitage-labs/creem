@@ -9,6 +9,7 @@ Every SDK method now takes one request object, then the optional `RequestOptions
 - A method whose parameters are all optional still takes the object: `creem.products.search()` becomes `creem.products.search({})`.
 - The bundled MCP server's tools take the same request object (`{ "request": { … } }`).
 - The CLI moves to the new signatures; its commands, flags and output don't change.
-- `@creem_io/convex` calls the new signatures and now needs `creem` 2 as its peer dependency (`^2.0.0`); its component API doesn't change.
+- Response enums are open: a value the API adds later comes through as a string instead of failing the response, so a new enum value is a minor release from now on. A `switch` over every known value needs a `default` branch.
+- `@creem_io/convex` calls the new signatures and now needs `creem` 2 as its peer dependency (`^2.0.0`); its component API doesn't change, except that a credit entry's `side` is typed as a string, because the SDK now passes a side the API adds later through.
 
 `packages/sdk/MIGRATION.md` lists every changed method next to its new form.

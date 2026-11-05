@@ -8,10 +8,12 @@ The type of the discount, either "percentage" or "fixed".
 import { Type } from "creem/models/components";
 
 let value: Type = "percentage";
+
+// Open enum: unrecognized values are captured as Unrecognized<string>
 ```
 
 ## Values
 
 ```typescript
-"percentage" | "fixed"
+"percentage" | "fixed" | Unrecognized<string>
 ```

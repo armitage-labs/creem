@@ -8,10 +8,12 @@ The moderation decision.
 import { Decision } from "creem/models/components";
 
 let value: Decision = "allow";
+
+// Open enum: unrecognized values are captured as Unrecognized<string>
 ```
 
 ## Values
 
 ```typescript
-"allow" | "deny" | "flag"
+"allow" | "deny" | "flag" | Unrecognized<string>
 ```

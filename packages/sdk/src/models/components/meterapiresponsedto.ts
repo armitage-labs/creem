@@ -5,7 +5,8 @@
 import * as z from "zod/v3";
 import { remap as remap$ } from "../../lib/primitives.js";
 import { safeParse } from "../../lib/schemas.js";
-import { ClosedEnum } from "../../types/enums.js";
+import * as openEnums from "../../types/enums.js";
+import { OpenEnum } from "../../types/enums.js";
 import { Result as SafeParseResult } from "../../types/fp.js";
 import { SDKValidationError } from "../errors/sdkvalidationerror.js";
 import {
@@ -29,7 +30,7 @@ export const MeterApiResponseDtoAggregation = {
 /**
  * Aggregation applied to matching events
  */
-export type MeterApiResponseDtoAggregation = ClosedEnum<
+export type MeterApiResponseDtoAggregation = OpenEnum<
   typeof MeterApiResponseDtoAggregation
 >;
 
@@ -43,7 +44,7 @@ export const MeterApiResponseDtoStatus = {
 /**
  * Whether the meter is active or archived
  */
-export type MeterApiResponseDtoStatus = ClosedEnum<
+export type MeterApiResponseDtoStatus = OpenEnum<
   typeof MeterApiResponseDtoStatus
 >;
 
@@ -95,22 +96,30 @@ export type MeterApiResponseDto = {
 };
 
 /** @internal */
-export const MeterApiResponseDtoAggregation$inboundSchema: z.ZodNativeEnum<
-  typeof MeterApiResponseDtoAggregation
-> = z.nativeEnum(MeterApiResponseDtoAggregation);
+export const MeterApiResponseDtoAggregation$inboundSchema: z.ZodType<
+  MeterApiResponseDtoAggregation,
+  z.ZodTypeDef,
+  unknown
+> = openEnums.inboundSchema(MeterApiResponseDtoAggregation);
 /** @internal */
-export const MeterApiResponseDtoAggregation$outboundSchema: z.ZodNativeEnum<
-  typeof MeterApiResponseDtoAggregation
-> = MeterApiResponseDtoAggregation$inboundSchema;
+export const MeterApiResponseDtoAggregation$outboundSchema: z.ZodType<
+  string,
+  z.ZodTypeDef,
+  MeterApiResponseDtoAggregation
+> = openEnums.outboundSchema(MeterApiResponseDtoAggregation);
 
 /** @internal */
-export const MeterApiResponseDtoStatus$inboundSchema: z.ZodNativeEnum<
-  typeof MeterApiResponseDtoStatus
-> = z.nativeEnum(MeterApiResponseDtoStatus);
+export const MeterApiResponseDtoStatus$inboundSchema: z.ZodType<
+  MeterApiResponseDtoStatus,
+  z.ZodTypeDef,
+  unknown
+> = openEnums.inboundSchema(MeterApiResponseDtoStatus);
 /** @internal */
-export const MeterApiResponseDtoStatus$outboundSchema: z.ZodNativeEnum<
-  typeof MeterApiResponseDtoStatus
-> = MeterApiResponseDtoStatus$inboundSchema;
+export const MeterApiResponseDtoStatus$outboundSchema: z.ZodType<
+  string,
+  z.ZodTypeDef,
+  MeterApiResponseDtoStatus
+> = openEnums.outboundSchema(MeterApiResponseDtoStatus);
 
 /** @internal */
 export const MeterApiResponseDto$inboundSchema: z.ZodType<

@@ -8,10 +8,12 @@ Account status
 import { AccountResponseDtoStatus } from "creem/models/components";
 
 let value: AccountResponseDtoStatus = "active";
+
+// Open enum: unrecognized values are captured as Unrecognized<string>
 ```
 
 ## Values
 
 ```typescript
-"active" | "frozen" | "closed"
+"active" | "frozen" | "closed" | Unrecognized<string>
 ```

@@ -4,7 +4,8 @@
 
 import * as z from "zod/v3";
 import { safeParse } from "../../lib/schemas.js";
-import { ClosedEnum } from "../../types/enums.js";
+import * as openEnums from "../../types/enums.js";
+import { OpenEnum } from "../../types/enums.js";
 import { Result as SafeParseResult } from "../../types/fp.js";
 import { SDKValidationError } from "../errors/sdkvalidationerror.js";
 
@@ -19,7 +20,7 @@ export const Code = {
 /**
  * Warning code. `no_matching_meter`: no meter consumes this event name. `meter_archived`: only archived meters match — unarchive one to resume aggregation. `timestamp_outside_late_window`: the billing period the timestamp falls in is finalized, so the event will never change its totals.
  */
-export type Code = ClosedEnum<typeof Code>;
+export type Code = OpenEnum<typeof Code>;
 
 export type IngestUsageEventWarningApiDto = {
   /**
@@ -37,12 +38,11 @@ export type IngestUsageEventWarningApiDto = {
 };
 
 /** @internal */
-export const Code$inboundSchema: z.ZodNativeEnum<typeof Code> = z.nativeEnum(
-  Code,
-);
+export const Code$inboundSchema: z.ZodType<Code, z.ZodTypeDef, unknown> =
+  openEnums.inboundSchema(Code);
 /** @internal */
-export const Code$outboundSchema: z.ZodNativeEnum<typeof Code> =
-  Code$inboundSchema;
+export const Code$outboundSchema: z.ZodType<string, z.ZodTypeDef, Code> =
+  openEnums.outboundSchema(Code);
 
 /** @internal */
 export const IngestUsageEventWarningApiDto$inboundSchema: z.ZodType<

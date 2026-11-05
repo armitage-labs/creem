@@ -5,7 +5,8 @@
 import * as z from "zod/v3";
 import { remap as remap$ } from "../../lib/primitives.js";
 import { safeParse } from "../../lib/schemas.js";
-import { ClosedEnum } from "../../types/enums.js";
+import * as openEnums from "../../types/enums.js";
+import { OpenEnum } from "../../types/enums.js";
 import { Result as SafeParseResult } from "../../types/fp.js";
 import { SDKValidationError } from "../errors/sdkvalidationerror.js";
 import {
@@ -62,14 +63,14 @@ export const SubscriptionEntityType = {
   Percentage: "percentage",
   Fixed: "fixed",
 } as const;
-export type SubscriptionEntityType = ClosedEnum<typeof SubscriptionEntityType>;
+export type SubscriptionEntityType = OpenEnum<typeof SubscriptionEntityType>;
 
 export const SubscriptionEntityDuration = {
   Forever: "forever",
   Once: "once",
   Repeating: "repeating",
 } as const;
-export type SubscriptionEntityDuration = ClosedEnum<
+export type SubscriptionEntityDuration = OpenEnum<
   typeof SubscriptionEntityDuration
 >;
 
@@ -227,22 +228,30 @@ export function customerFromJSON(
 }
 
 /** @internal */
-export const SubscriptionEntityType$inboundSchema: z.ZodNativeEnum<
-  typeof SubscriptionEntityType
-> = z.nativeEnum(SubscriptionEntityType);
+export const SubscriptionEntityType$inboundSchema: z.ZodType<
+  SubscriptionEntityType,
+  z.ZodTypeDef,
+  unknown
+> = openEnums.inboundSchema(SubscriptionEntityType);
 /** @internal */
-export const SubscriptionEntityType$outboundSchema: z.ZodNativeEnum<
-  typeof SubscriptionEntityType
-> = SubscriptionEntityType$inboundSchema;
+export const SubscriptionEntityType$outboundSchema: z.ZodType<
+  string,
+  z.ZodTypeDef,
+  SubscriptionEntityType
+> = openEnums.outboundSchema(SubscriptionEntityType);
 
 /** @internal */
-export const SubscriptionEntityDuration$inboundSchema: z.ZodNativeEnum<
-  typeof SubscriptionEntityDuration
-> = z.nativeEnum(SubscriptionEntityDuration);
+export const SubscriptionEntityDuration$inboundSchema: z.ZodType<
+  SubscriptionEntityDuration,
+  z.ZodTypeDef,
+  unknown
+> = openEnums.inboundSchema(SubscriptionEntityDuration);
 /** @internal */
-export const SubscriptionEntityDuration$outboundSchema: z.ZodNativeEnum<
-  typeof SubscriptionEntityDuration
-> = SubscriptionEntityDuration$inboundSchema;
+export const SubscriptionEntityDuration$outboundSchema: z.ZodType<
+  string,
+  z.ZodTypeDef,
+  SubscriptionEntityDuration
+> = openEnums.outboundSchema(SubscriptionEntityDuration);
 
 /** @internal */
 export const Discount$inboundSchema: z.ZodType<

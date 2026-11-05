@@ -5,7 +5,8 @@
 import * as z from "zod/v3";
 import { remap as remap$ } from "../../lib/primitives.js";
 import { safeParse } from "../../lib/schemas.js";
-import { ClosedEnum } from "../../types/enums.js";
+import * as openEnums from "../../types/enums.js";
+import { OpenEnum } from "../../types/enums.js";
 import { Result as SafeParseResult } from "../../types/fp.js";
 import { SDKValidationError } from "../errors/sdkvalidationerror.js";
 import {
@@ -24,7 +25,7 @@ export const LicenseInstanceEntityStatus = {
 /**
  * The status of the license instance.
  */
-export type LicenseInstanceEntityStatus = ClosedEnum<
+export type LicenseInstanceEntityStatus = OpenEnum<
   typeof LicenseInstanceEntityStatus
 >;
 
@@ -56,13 +57,17 @@ export type LicenseInstanceEntity = {
 };
 
 /** @internal */
-export const LicenseInstanceEntityStatus$inboundSchema: z.ZodNativeEnum<
-  typeof LicenseInstanceEntityStatus
-> = z.nativeEnum(LicenseInstanceEntityStatus);
+export const LicenseInstanceEntityStatus$inboundSchema: z.ZodType<
+  LicenseInstanceEntityStatus,
+  z.ZodTypeDef,
+  unknown
+> = openEnums.inboundSchema(LicenseInstanceEntityStatus);
 /** @internal */
-export const LicenseInstanceEntityStatus$outboundSchema: z.ZodNativeEnum<
-  typeof LicenseInstanceEntityStatus
-> = LicenseInstanceEntityStatus$inboundSchema;
+export const LicenseInstanceEntityStatus$outboundSchema: z.ZodType<
+  string,
+  z.ZodTypeDef,
+  LicenseInstanceEntityStatus
+> = openEnums.outboundSchema(LicenseInstanceEntityStatus);
 
 /** @internal */
 export const LicenseInstanceEntity$inboundSchema: z.ZodType<
