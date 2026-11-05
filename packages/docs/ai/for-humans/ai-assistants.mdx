@@ -1,9 +1,9 @@
 ---
 title: Use Creem in Your AI Assistant
-description: Connect Claude, ChatGPT, Claude Code, Codex or Cursor to your Creem store and manage products, checkout links, customers and subscriptions by chatting. No API key.
+description: Connect Claude Code, Codex, Claude, ChatGPT or Cursor to your Creem store and manage products, checkout links, customers and subscriptions by chatting. No API key.
 ---
 
-Connect Claude, ChatGPT, Claude Code, Codex or Cursor to your Creem store, and you can ask about sales, find a customer, create a checkout link or cancel a subscription in a normal chat. You sign in with your Creem account, so there is no API key to copy.
+Connect Claude Code, Codex, Claude, ChatGPT or Cursor to your Creem store, and you can ask about sales, find a customer, create a checkout link or cancel a subscription in a normal chat. You sign in with your Creem account, so there is no API key to copy.
 
 ## What you can ask
 
@@ -17,43 +17,6 @@ Once Creem is connected, ask in your own words. For example:
 - "What do I still need to fill in before I can take live payments?"
 
 Your assistant can work with products, checkout links, discount codes, customers, subscriptions, transactions, disputes, revenue and your business details. In live mode it can fill in your business details for you, but you submit them yourself in the dashboard. It can't move money: there are no tools for refunds or payouts, so you make those in the [dashboard](https://creem.io/dashboard).
-
-## Connect Claude
-
-Add Creem on claude.ai or in Claude Desktop. Once it's connected, it works in the Claude mobile apps too.
-
-<Steps>
-  <Step title="Add Creem">
-    In Claude, open **Customize → Connectors** and select **Add custom connector**. Enter `Creem` as
-    the name and `https://mcp.creem.io/mcp` as the URL, then select **Add**. If Claude shows sign-in
-    settings first, keep the ones it detected and continue.
-  </Step>
-  <Step title="Connect">
-    Select **Connect**. Your browser opens the Creem sign-in. Sign in and allow access, as described
-    in [Sign in and choose what it can do](#sign-in-and-choose-what-it-can-do).
-  </Step>
-  <Step title="Ask">Start a new chat and ask a question about your store.</Step>
-</Steps>
-
-On Team and Enterprise plans, an Owner of your Claude organization adds the connector first, in **Organization settings → Connectors**. Each member then finds Creem under **Customize → Connectors**, selects **Connect** and signs in with their own Creem account.
-
-## Connect ChatGPT
-
-Custom connections work in ChatGPT on the web, and your plan or workspace has to allow them. See OpenAI's [Connecting custom MCP servers in ChatGPT](https://help.openai.com/en/articles/12584461-developer-mode-apps-and-full-mcp-connectors-in-chatgpt).
-
-<Steps>
-  <Step title="Add Creem">
-    Go to [ChatGPT Plugins](https://chatgpt.com/plugins), select the plus button, then **Add custom
-    MCP server**. Name it `Creem` and enter `https://mcp.creem.io/mcp` under **Connection**.
-  </Step>
-  <Step title="Choose OAuth">
-    Choose **OAuth** and leave the client ID and secret empty. Review the risk warning, tick **I
-    understand and want to continue**, then select **Create as a plugin**.
-  </Step>
-  <Step title="Sign in">
-    Install the plugin and sign in with your Creem account when ChatGPT asks.
-  </Step>
-</Steps>
 
 ## Connect Claude Code
 
@@ -98,6 +61,43 @@ Codex 0.147 or newer works. The Codex CLI, the Codex IDE extension and the ChatG
     choose what it can do](#sign-in-and-choose-what-it-can-do).
   </Step>
   <Step title="Ask">Start Codex and ask a question about your store.</Step>
+</Steps>
+
+## Connect Claude
+
+Add Creem on claude.ai or in Claude Desktop. Once it's connected, it works in the Claude mobile apps too.
+
+<Steps>
+  <Step title="Add Creem">
+    In Claude, open **Customize → Connectors** and select **Add custom connector**. Enter `Creem` as
+    the name and `https://mcp.creem.io/mcp` as the URL, then select **Add**. If Claude shows sign-in
+    settings first, keep the ones it detected and continue.
+  </Step>
+  <Step title="Connect">
+    Select **Connect**. Your browser opens the Creem sign-in. Sign in and allow access, as described
+    in [Sign in and choose what it can do](#sign-in-and-choose-what-it-can-do).
+  </Step>
+  <Step title="Ask">Start a new chat and ask a question about your store.</Step>
+</Steps>
+
+On Team and Enterprise plans, an Owner of your Claude organization adds the connector first, in **Organization settings → Connectors**. Each member then finds Creem under **Customize → Connectors**, selects **Connect** and signs in with their own Creem account.
+
+## Connect ChatGPT
+
+Custom connections work in ChatGPT on the web, and your plan or workspace has to allow them. See OpenAI's [Connecting custom MCP servers in ChatGPT](https://help.openai.com/en/articles/12584461-developer-mode-apps-and-full-mcp-connectors-in-chatgpt).
+
+<Steps>
+  <Step title="Add Creem">
+    Go to [ChatGPT Plugins](https://chatgpt.com/plugins), select the plus button, then **Add custom
+    MCP server**. Name it `Creem` and enter `https://mcp.creem.io/mcp` under **Connection**.
+  </Step>
+  <Step title="Choose OAuth">
+    Choose **OAuth** and leave the client ID and secret empty. Review the risk warning, tick **I
+    understand and want to continue**, then select **Create as a plugin**.
+  </Step>
+  <Step title="Sign in">
+    Install the plugin and sign in with your Creem account when ChatGPT asks.
+  </Step>
 </Steps>
 
 ## Connect Cursor
