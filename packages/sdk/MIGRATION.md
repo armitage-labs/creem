@@ -152,9 +152,25 @@ switch (product.status) {
 }
 ```
 
-From 2.0 on, a new enum value in a response is a minor release. The
-generator is also set to accept an unknown tag in unions told apart by a tag
-field; the API has no such unions today.
+The same holds for webhook payloads parsed with `parseWebhookEventEntity` or
+`constructWebhookEventEntity`, including a subscription's `collectionMethod`
+and a refund's `reason`. An event type this version doesn't know no longer
+throws. It comes back as the unknown variant, with `eventType: "UNKNOWN"` and
+the payload as sent in `raw`:
+
+```ts
+const event = await constructWebhookEventEntity(body, headers, secret);
+if (event.eventType === "UNKNOWN") {
+  // an event type added after this SDK version; the payload is in event.raw
+  return;
+}
+```
+
+So a new value in a response or a webhook, or a new webhook event type, is a
+minor release from 2.0 on. Values you send are unchanged for TypeScript: an
+open type accepts the known values, and anything else needs a cast. Without
+TypeScript, an unknown value in a request is no longer refused by the SDK, and
+the API answers it with a `400`.
 
 ## MCP server and CLI
 
@@ -162,7 +178,8 @@ The bundled MCP server's tools now take the request under one `request`
 argument, in the API's wire field names, the same as each tool's input schema
 lists them. For example, `products-update` takes
 `{ "request": { "id": "prod_123", "UpdateProductRequestEntity": { "name": "Pro" } } }`.
-The `creem` CLI's commands, flags and output don't change.
+The `creem` CLI's commands and flags don't change. `subscriptions list --status`
+accepts any status, and a billing type the CLI doesn't know is shown as it is.
 
 ## Methods that take only a body
 

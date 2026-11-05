@@ -11,6 +11,10 @@ function formatBilling(product: Product): string {
   if (product.billingType === "onetime") {
     return "One-time";
   }
+  if (product.billingType !== "recurring") {
+    // A billing type the API added after this CLI version: show it as it is.
+    return product.billingType;
+  }
   const period = product.billingPeriod?.replace("every-", "") || "month";
   return `Recurring / ${period}`;
 }

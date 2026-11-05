@@ -1,0 +1,26 @@
+overlay: 1.0.0
+info:
+  title: Forward-compatible values outside API responses
+  version: 1.0.0
+# ENG-2487: gen.yaml opens every enum in an API response
+# (forwardCompatibleEnumsByDefault). These are the values it doesn't reach:
+# webhook payload models (no operation returns them) and single-value enums.
+# Opened here so a value or event type Creem adds later reaches the caller
+# instead of failing the payload. The eventType of each event and the `object`
+# constants stay closed: they identify the variant.
+actions:
+  - target: $.components.schemas.WebhookEventEntity
+    update:
+      x-speakeasy-unknown-values: allow
+  - target: $.components.schemas.SubscriptionCollectionMethod
+    update:
+      x-speakeasy-unknown-values: allow
+  - target: $.components.schemas.RefundReason
+    update:
+      x-speakeasy-unknown-values: allow
+  - target: $.components.schemas.WebhookSubscriptionEntity.properties.discount.properties.type
+    update:
+      x-speakeasy-unknown-values: allow
+  - target: $.components.schemas.WebhookSubscriptionEntity.properties.discount.properties.duration
+    update:
+      x-speakeasy-unknown-values: allow

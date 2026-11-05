@@ -442,4 +442,21 @@ describe("webhook side effects follow the stored owner", () => {
       (await t.query(api.lib.getSubscription, { id: "sub_org" }))?.entityId,
     ).toBe(ORG);
   });
+
+  // ENG-2487: creem 2 returns an event type it doesn't know as its unknown
+  // variant instead of failing the parse. The route acknowledges it, like a
+  // known event without a handler, so Creem doesn't retry it forever.
+  it("acknowledges an event type the SDK doesn't know yet and changes nothing", async () => {
+    const response = await send(
+      JSON.stringify({
+        id: "evt_new_kind",
+        eventType: "invoice.finalized",
+        created_at: 1780000000000,
+        object: { id: "inv_1", metadata: { convexBillingEntityId: USER } },
+      }),
+    );
+
+    expect(response.status).toBe(202);
+    await expectUserUntouched();
+  });
 });

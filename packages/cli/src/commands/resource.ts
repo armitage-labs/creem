@@ -1,12 +1,11 @@
 import { Command, Option } from "commander";
-import { SubscriptionStatus } from "creem/models/components";
 import { operationManifest, type OperationMapping, type InputSchema } from "../operation-manifest";
 import type { CliContext } from "../lib/context";
 import { handlers } from "./operations";
 import {
   parseInput,
   parseInteger,
-  parseEnum,
+  parseNonEmpty,
   parseJsonValue,
   parseKeyValue,
   readData,
@@ -131,7 +130,8 @@ export function createResourceCommand(resource: string, context: CliContext): Co
       command.option(
         "--status <status>",
         "Client-side filter across all pages (cannot combine with --page/--limit)",
-        (v) => parseEnum("status", v, Object.values(SubscriptionStatus)),
+        // Any non-empty status: the API can add statuses this CLI doesn't know yet.
+        (v) => parseNonEmpty("status", v),
       );
     command.action(async (...args: unknown[]) => {
       const cmd = args.at(-1) as Command;

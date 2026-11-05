@@ -4,6 +4,8 @@ sources:
     Creem API:
         inputs:
             - location: ./openapi.json
+        overlays:
+            - location: ./.speakeasy/forward-compatible.overlay.yaml
         registry:
             location: registry.speakeasyapi.dev/creem/engineering/creem-api
 targets:

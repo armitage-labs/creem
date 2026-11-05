@@ -32,6 +32,7 @@ features:
     mcpServer: 0.9.4
     nameOverrides: 2.81.4
     nullables: 0.1.1
+    openEnums: 0.1.3
     pagination: 2.83.2
     responseFormat: 0.3.0
     retries: 2.83.2
@@ -360,52 +361,86 @@ trackedFiles:
     pristine_git_object: dc04743be5b60d9ec782327ae8488a79bbcb2257
   docs/models/components/value.md: {}
   docs/models/components/webhookcheckoutcompletedevententity.md: {}
+  docs/models/components/webhookcheckoutcompletedevententityeventtype.md: {}
   docs/models/components/webhookcreditsautorechargedevententity.md: {}
   docs/models/components/webhookcreditsautorechargedevententityeventtype.md: {}
+  docs/models/components/webhookcreditsautorechargedevententitywebhookevententityeventtype.md: {}
   docs/models/components/webhookcreditsconsumedevententity.md: {}
   docs/models/components/webhookcreditsconsumedevententityeventtype.md: {}
+  docs/models/components/webhookcreditsconsumedevententitywebhookevententityeventtype.md: {}
   docs/models/components/webhookcreditsgrantedevententity.md: {}
   docs/models/components/webhookcreditsgrantedevententityeventtype.md: {}
+  docs/models/components/webhookcreditsgrantedevententitywebhookevententityeventtype.md: {}
   docs/models/components/webhookcustomercreditsexhaustedevententity.md: {}
   docs/models/components/webhookcustomercreditsexhaustedevententityeventtype.md: {}
+  docs/models/components/webhookcustomercreditsexhaustedevententitywebhookevententityeventtype.md: {}
   docs/models/components/webhookdeliverymode.md: {}
   docs/models/components/webhookdisputecreatedevententity.md: {}
   docs/models/components/webhookdisputecreatedevententityeventtype.md: {}
+  docs/models/components/webhookdisputecreatedevententitywebhookevententityeventtype.md: {}
   docs/models/components/webhookentity.md: {}
   docs/models/components/webhookeventackentity.md: {}
   docs/models/components/webhookevententity.md: {}
+  docs/models/components/webhookevententitywebhookcheckoutcompletedevententity.md: {}
+  docs/models/components/webhookevententitywebhookcreditsautorechargedevententity.md: {}
+  docs/models/components/webhookevententitywebhookcreditsconsumedevententity.md: {}
+  docs/models/components/webhookevententitywebhookcreditsgrantedevententity.md: {}
+  docs/models/components/webhookevententitywebhookcustomercreditsexhaustedevententity.md: {}
+  docs/models/components/webhookevententitywebhookdisputecreatedevententity.md: {}
+  docs/models/components/webhookevententitywebhookrefundcreatedevententity.md: {}
+  docs/models/components/webhookevententitywebhooksubscriptionactiveevententity.md: {}
+  docs/models/components/webhookevententitywebhooksubscriptioncanceledevententity.md: {}
+  docs/models/components/webhookevententitywebhooksubscriptionexpiredevententity.md: {}
+  docs/models/components/webhookevententitywebhooksubscriptionpaidevententity.md: {}
+  docs/models/components/webhookevententitywebhooksubscriptionpastdueevententity.md: {}
+  docs/models/components/webhookevententitywebhooksubscriptionpausedevententity.md: {}
+  docs/models/components/webhookevententitywebhooksubscriptionscheduledcancelevententity.md: {}
+  docs/models/components/webhookevententitywebhooksubscriptiontrialingevententity.md: {}
+  docs/models/components/webhookevententitywebhooksubscriptionunpaidevententity.md: {}
+  docs/models/components/webhookevententitywebhooksubscriptionupdateevententity.md: {}
   docs/models/components/webhookeventtype.md: {}
   docs/models/components/webhooklistentity.md: {}
   docs/models/components/webhookpendingevententity.md: {}
   docs/models/components/webhookpendingeventlistentity.md: {}
   docs/models/components/webhookrefundcreatedevententity.md: {}
   docs/models/components/webhookrefundcreatedevententityeventtype.md: {}
+  docs/models/components/webhookrefundcreatedevententitywebhookevententityeventtype.md: {}
   docs/models/components/webhooksecretentity.md: {}
   docs/models/components/webhookstatus.md: {}
   docs/models/components/webhooksubscriptionactiveevententity.md: {}
   docs/models/components/webhooksubscriptionactiveevententityeventtype.md: {}
+  docs/models/components/webhooksubscriptionactiveevententitywebhookevententityeventtype.md: {}
   docs/models/components/webhooksubscriptioncanceledevententity.md: {}
   docs/models/components/webhooksubscriptioncanceledevententityeventtype.md: {}
+  docs/models/components/webhooksubscriptioncanceledevententitywebhookevententityeventtype.md: {}
   docs/models/components/webhooksubscriptionentity.md: {}
   docs/models/components/webhooksubscriptionentitydiscount.md: {}
   docs/models/components/webhooksubscriptionentityduration.md: {}
   docs/models/components/webhooksubscriptionentitytype.md: {}
   docs/models/components/webhooksubscriptionexpiredevententity.md: {}
   docs/models/components/webhooksubscriptionexpiredevententityeventtype.md: {}
+  docs/models/components/webhooksubscriptionexpiredevententitywebhookevententityeventtype.md: {}
   docs/models/components/webhooksubscriptionpaidevententity.md: {}
   docs/models/components/webhooksubscriptionpaidevententityeventtype.md: {}
+  docs/models/components/webhooksubscriptionpaidevententitywebhookevententityeventtype.md: {}
   docs/models/components/webhooksubscriptionpastdueevententity.md: {}
   docs/models/components/webhooksubscriptionpastdueevententityeventtype.md: {}
+  docs/models/components/webhooksubscriptionpastdueevententitywebhookevententityeventtype.md: {}
   docs/models/components/webhooksubscriptionpausedevententity.md: {}
   docs/models/components/webhooksubscriptionpausedevententityeventtype.md: {}
+  docs/models/components/webhooksubscriptionpausedevententitywebhookevententityeventtype.md: {}
   docs/models/components/webhooksubscriptionscheduledcancelevententity.md: {}
   docs/models/components/webhooksubscriptionscheduledcancelevententityeventtype.md: {}
+  docs/models/components/webhooksubscriptionscheduledcancelevententitywebhookevententityeventtype.md: {}
   docs/models/components/webhooksubscriptiontrialingevententity.md: {}
   docs/models/components/webhooksubscriptiontrialingevententityeventtype.md: {}
+  docs/models/components/webhooksubscriptiontrialingevententitywebhookevententityeventtype.md: {}
   docs/models/components/webhooksubscriptionunpaidevententity.md: {}
   docs/models/components/webhooksubscriptionunpaidevententityeventtype.md: {}
+  docs/models/components/webhooksubscriptionunpaidevententitywebhookevententityeventtype.md: {}
   docs/models/components/webhooksubscriptionupdateevententity.md: {}
   docs/models/components/webhooksubscriptionupdateevententityeventtype.md: {}
+  docs/models/components/webhooksubscriptionupdateevententitywebhookevententityeventtype.md: {}
   docs/models/errors/customercreditserrorresponsedto.md: {}
   docs/models/errors/usagemeteringerrorapiresponsedto.md: {}
   docs/models/operations/acknowledgewebhookeventrequest.md: {}
@@ -1200,6 +1235,7 @@ trackedFiles:
   src/types/constdatetime.ts:
     id: 0f7b6f513917
     pristine_git_object: fe62144eaf6a2054fc8ca9a98466e70f41b5434d
+  src/types/discriminatedUnion.ts: {}
   src/types/enums.ts:
     id: 4d03ddfe5100
     pristine_git_object: aba0ffd2a3308a31e516d83b52823d80aa65a8f9

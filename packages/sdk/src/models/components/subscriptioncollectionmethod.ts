@@ -3,7 +3,8 @@
  */
 
 import * as z from "zod/v3";
-import { ClosedEnum } from "../../types/enums.js";
+import * as openEnums from "../../types/enums.js";
+import { OpenEnum } from "../../types/enums.js";
 
 /**
  * The method used for collecting payments for the subscription.
@@ -14,15 +15,19 @@ export const SubscriptionCollectionMethod = {
 /**
  * The method used for collecting payments for the subscription.
  */
-export type SubscriptionCollectionMethod = ClosedEnum<
+export type SubscriptionCollectionMethod = OpenEnum<
   typeof SubscriptionCollectionMethod
 >;
 
 /** @internal */
-export const SubscriptionCollectionMethod$inboundSchema: z.ZodNativeEnum<
-  typeof SubscriptionCollectionMethod
-> = z.nativeEnum(SubscriptionCollectionMethod);
+export const SubscriptionCollectionMethod$inboundSchema: z.ZodType<
+  SubscriptionCollectionMethod,
+  z.ZodTypeDef,
+  unknown
+> = openEnums.inboundSchema(SubscriptionCollectionMethod);
 /** @internal */
-export const SubscriptionCollectionMethod$outboundSchema: z.ZodNativeEnum<
-  typeof SubscriptionCollectionMethod
-> = SubscriptionCollectionMethod$inboundSchema;
+export const SubscriptionCollectionMethod$outboundSchema: z.ZodType<
+  string,
+  z.ZodTypeDef,
+  SubscriptionCollectionMethod
+> = openEnums.outboundSchema(SubscriptionCollectionMethod);

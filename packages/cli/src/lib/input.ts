@@ -24,6 +24,11 @@ export function parseEnum(name: string, value: unknown, values: readonly unknown
   if (!values.includes(value)) throw new CliError(`${name} must be one of: ${values.join(", ")}.`);
   return value;
 }
+export function parseNonEmpty(name: string, value: unknown): string {
+  const text = String(value).trim();
+  if (text === "") throw new CliError(`${name} must not be empty.`);
+  return text;
+}
 export function parseDate(name: string, value: unknown): string {
   const text = String(value);
   if (

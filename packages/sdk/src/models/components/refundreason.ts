@@ -3,7 +3,8 @@
  */
 
 import * as z from "zod/v3";
-import { ClosedEnum } from "../../types/enums.js";
+import * as openEnums from "../../types/enums.js";
+import { OpenEnum } from "../../types/enums.js";
 
 /**
  * Reason for the refund.
@@ -17,11 +18,17 @@ export const RefundReason = {
 /**
  * Reason for the refund.
  */
-export type RefundReason = ClosedEnum<typeof RefundReason>;
+export type RefundReason = OpenEnum<typeof RefundReason>;
 
 /** @internal */
-export const RefundReason$inboundSchema: z.ZodNativeEnum<typeof RefundReason> =
-  z.nativeEnum(RefundReason);
+export const RefundReason$inboundSchema: z.ZodType<
+  RefundReason,
+  z.ZodTypeDef,
+  unknown
+> = openEnums.inboundSchema(RefundReason);
 /** @internal */
-export const RefundReason$outboundSchema: z.ZodNativeEnum<typeof RefundReason> =
-  RefundReason$inboundSchema;
+export const RefundReason$outboundSchema: z.ZodType<
+  string,
+  z.ZodTypeDef,
+  RefundReason
+> = openEnums.outboundSchema(RefundReason);

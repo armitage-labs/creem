@@ -5,7 +5,8 @@
 import * as z from "zod/v3";
 import { remap as remap$ } from "../../lib/primitives.js";
 import { safeParse } from "../../lib/schemas.js";
-import { ClosedEnum } from "../../types/enums.js";
+import * as openEnums from "../../types/enums.js";
+import { OpenEnum } from "../../types/enums.js";
 import { Result as SafeParseResult } from "../../types/fp.js";
 import { SDKValidationError } from "../errors/sdkvalidationerror.js";
 import {
@@ -52,7 +53,7 @@ export const WebhookSubscriptionEntityType = {
   Percentage: "percentage",
   Fixed: "fixed",
 } as const;
-export type WebhookSubscriptionEntityType = ClosedEnum<
+export type WebhookSubscriptionEntityType = OpenEnum<
   typeof WebhookSubscriptionEntityType
 >;
 
@@ -61,7 +62,7 @@ export const WebhookSubscriptionEntityDuration = {
   Once: "once",
   Repeating: "repeating",
 } as const;
-export type WebhookSubscriptionEntityDuration = ClosedEnum<
+export type WebhookSubscriptionEntityDuration = OpenEnum<
   typeof WebhookSubscriptionEntityDuration
 >;
 
@@ -164,22 +165,30 @@ export type WebhookSubscriptionEntity = {
 };
 
 /** @internal */
-export const WebhookSubscriptionEntityType$inboundSchema: z.ZodNativeEnum<
-  typeof WebhookSubscriptionEntityType
-> = z.nativeEnum(WebhookSubscriptionEntityType);
+export const WebhookSubscriptionEntityType$inboundSchema: z.ZodType<
+  WebhookSubscriptionEntityType,
+  z.ZodTypeDef,
+  unknown
+> = openEnums.inboundSchema(WebhookSubscriptionEntityType);
 /** @internal */
-export const WebhookSubscriptionEntityType$outboundSchema: z.ZodNativeEnum<
-  typeof WebhookSubscriptionEntityType
-> = WebhookSubscriptionEntityType$inboundSchema;
+export const WebhookSubscriptionEntityType$outboundSchema: z.ZodType<
+  string,
+  z.ZodTypeDef,
+  WebhookSubscriptionEntityType
+> = openEnums.outboundSchema(WebhookSubscriptionEntityType);
 
 /** @internal */
-export const WebhookSubscriptionEntityDuration$inboundSchema: z.ZodNativeEnum<
-  typeof WebhookSubscriptionEntityDuration
-> = z.nativeEnum(WebhookSubscriptionEntityDuration);
+export const WebhookSubscriptionEntityDuration$inboundSchema: z.ZodType<
+  WebhookSubscriptionEntityDuration,
+  z.ZodTypeDef,
+  unknown
+> = openEnums.inboundSchema(WebhookSubscriptionEntityDuration);
 /** @internal */
-export const WebhookSubscriptionEntityDuration$outboundSchema: z.ZodNativeEnum<
-  typeof WebhookSubscriptionEntityDuration
-> = WebhookSubscriptionEntityDuration$inboundSchema;
+export const WebhookSubscriptionEntityDuration$outboundSchema: z.ZodType<
+  string,
+  z.ZodTypeDef,
+  WebhookSubscriptionEntityDuration
+> = openEnums.outboundSchema(WebhookSubscriptionEntityDuration);
 
 /** @internal */
 export const WebhookSubscriptionEntityDiscount$inboundSchema: z.ZodType<

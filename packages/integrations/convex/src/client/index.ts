@@ -2622,6 +2622,22 @@ export class Creem {
           return new Response("Bad Request", { status: 400 });
         }
 
+        if (event.eventType === "UNKNOWN") {
+          // An event type this SDK version doesn't know (creem 2 returns it as
+          // its unknown variant instead of failing the parse). Nothing here
+          // handles it, so acknowledge it like a known event without a
+          // handler; a 4xx would only make Creem retry it.
+          const raw = (
+            event.raw && typeof event.raw === "object" ? event.raw : {}
+          ) as { id?: unknown; eventType?: unknown };
+          console.log(
+            `[creem-webhook] eventType=${String(raw.eventType ?? "unknown")}`,
+            `id=${String(raw.id ?? "unknown")}`,
+            "not handled by this version",
+          );
+          return new Response("Accepted", { status: 202 });
+        }
+
         const eventType = getEventType(event);
         const eventData = event.object;
 

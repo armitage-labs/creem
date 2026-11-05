@@ -1,0 +1,126 @@
+# WebhookEventEntityWebhookSubscriptionUnpaidEventEntity
+
+## Example Usage
+
+```typescript
+import { WebhookEventEntityWebhookSubscriptionUnpaidEventEntity } from "creem/models/components";
+
+let value: WebhookEventEntityWebhookSubscriptionUnpaidEventEntity = {
+  id: "<id>",
+  eventType: "subscription.unpaid",
+  createdAt: 4755.09,
+  object: {
+    id: "<id>",
+    mode: "test",
+    object: "subscription",
+    product: {
+      id: "<id>",
+      mode: "sandbox",
+      object: "<value>",
+      name: "<value>",
+      description: "This is a sample product description.",
+      imageUrl: "https://example.com/image.jpg",
+      imageUrls: [
+        "https://example.com/image.jpg",
+      ],
+      features: [
+        {
+          id: "feat_abc123",
+          type: "customerCredits",
+          description: "Access to premium course materials.",
+          customerCredits: {
+            amount: "100",
+            unitLabel: "tokens",
+            bucketName: "images",
+          },
+        },
+      ],
+      usagePrices: [
+        {
+          id: "price_abc123",
+          meterId: "mtr_abc123",
+          unitPrice: 0.002,
+          freeAllowance: 1000,
+          cap: 50000,
+          settlementMode: "postpaid",
+          targetAccount: "per_unit",
+          targetAccountName: "images",
+          trialUsageMode: "free",
+        },
+      ],
+      price: 400,
+      currency: "USD",
+      billingType: "onetime",
+      billingPeriod: "custom",
+      recurringInterval: "month",
+      recurringIntervalCount: 3,
+      trialPeriodDays: 7,
+      trialPrice: 100,
+      status: "archived",
+      taxMode: "exclusive",
+      businessNetPricing: false,
+      taxCategory: "digital-goods-service",
+      productUrl: "https://creem.io/product/prod_123123123123",
+      defaultSuccessUrl: "https://example.com/?status=successful",
+      createdAt: new Date("2023-01-01T00:00:00Z"),
+      updatedAt: new Date("2023-01-01T00:00:00Z"),
+    },
+    customer: {
+      id: "<id>",
+      mode: "test",
+      object: "<value>",
+      email: "user@example.com",
+      name: "John Doe",
+      metadata: {
+        "key": "value",
+      },
+      country: "US",
+      externalId: "user-42",
+      createdAt: new Date("2023-01-01T00:00:00Z"),
+      updatedAt: new Date("2023-01-01T00:00:00Z"),
+    },
+    collectionMethod: "charge_automatically",
+    status: "unpaid",
+    lastTransactionId: "tran_3e6Z6TzvHKdsjEgXnGDEp0",
+    lastTransaction: {
+      id: "<id>",
+      mode: "test",
+      object: "transaction",
+      amount: 2000,
+      amountPaid: 2000,
+      discountAmount: 2000,
+      currency: "USD",
+      type: "invoice",
+      taxCountry: "US",
+      taxAmount: 2000,
+      status: "uncollectible",
+      refundedAmount: 2000,
+      createdAt: 6896.2,
+    },
+    lastTransactionDate: new Date("2024-09-12T12:34:56Z"),
+    nextTransactionDate: new Date("2024-09-12T12:34:56Z"),
+    currentPeriodStartDate: new Date("2024-09-12T12:34:56Z"),
+    currentPeriodEndDate: new Date("2024-09-12T12:34:56Z"),
+    canceledAt: new Date("2024-09-12T12:34:56Z"),
+    createdAt: new Date("2024-01-01T00:00:00Z"),
+    updatedAt: new Date("2024-09-12T12:34:56Z"),
+    discount: {
+      id: "dis_3e6Z6TzvHKdsjEgXnGDEp0",
+      discountCode: "HOLIDAY2024",
+    },
+    metadata: {
+      "userId": "user_123",
+      "plan": "pro",
+    },
+  },
+};
+```
+
+## Fields
+
+| Field                                                                                                                                                                    | Type                                                                                                                                                                     | Required                                                                                                                                                                 | Description                                                                                                                                                              |
+| ------------------------------------------------------------------------------------------------------------------------------------------------------------------------ | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------ | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------ | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| `id`                                                                                                                                                                     | *string*                                                                                                                                                                 | :heavy_check_mark:                                                                                                                                                       | Unique identifier for the event.                                                                                                                                         |
+| `eventType`                                                                                                                                                              | [components.WebhookSubscriptionUnpaidEventEntityWebhookEventEntityEventType](../../models/components/webhooksubscriptionunpaidevententitywebhookevententityeventtype.md) | :heavy_check_mark:                                                                                                                                                       | The event name.                                                                                                                                                          |
+| `createdAt`                                                                                                                                                              | *number*                                                                                                                                                                 | :heavy_check_mark:                                                                                                                                                       | Creation date of the event.                                                                                                                                              |
+| `object`                                                                                                                                                                 | [components.WebhookSubscriptionEntity](../../models/components/webhooksubscriptionentity.md)                                                                             | :heavy_check_mark:                                                                                                                                                       | Object related to the event.                                                                                                                                             |

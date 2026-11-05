@@ -30,3 +30,14 @@ it("all existing TUI lists use typed SDK pages, including authoritative subscrip
   expect(subscriptions).toHaveBeenCalledWith({ pageNumber: 2, pageSize: 10 });
   expect(transactions).toHaveBeenCalledExactlyOnceWith({ pageNumber: 2, pageSize: 10 });
 });
+it("shows a billing type the CLI doesn't know as it is, not as recurring", () => {
+  const h = harness();
+  const billing = getProductsTuiDescriptor(h.context).columns.find((c) => c.header === "Billing")!;
+  const product = (billingType: string, billingPeriod?: string) =>
+    ({ id: "prod_1", billingType, billingPeriod }) as never;
+
+  expect(billing.value(product("onetime"))).toBe("One-time");
+  expect(billing.value(product("recurring", "every-year"))).toBe("Recurring / year");
+  // creem 2 passes values the API adds later through (open response enums).
+  expect(billing.value(product("usage_only", "every-month"))).toBe("usage_only");
+});

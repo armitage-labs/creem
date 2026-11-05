@@ -3,263 +3,2178 @@
  */
 
 import * as z from "zod/v3";
+import { remap as remap$ } from "../../lib/primitives.js";
 import { safeParse } from "../../lib/schemas.js";
+import * as discriminatedUnionTypes from "../../types/discriminatedUnion.js";
+import { discriminatedUnion } from "../../types/discriminatedUnion.js";
+import { ClosedEnum } from "../../types/enums.js";
 import { Result as SafeParseResult } from "../../types/fp.js";
 import { SDKValidationError } from "../errors/sdkvalidationerror.js";
 import {
-  WebhookCheckoutCompletedEventEntity,
-  WebhookCheckoutCompletedEventEntity$inboundSchema,
-  WebhookCheckoutCompletedEventEntity$Outbound,
-  WebhookCheckoutCompletedEventEntity$outboundSchema,
-} from "./webhookcheckoutcompletedevententity.js";
+  CheckoutEntity,
+  CheckoutEntity$inboundSchema,
+  CheckoutEntity$Outbound,
+  CheckoutEntity$outboundSchema,
+} from "./checkoutentity.js";
 import {
-  WebhookCreditsAutoRechargedEventEntity,
-  WebhookCreditsAutoRechargedEventEntity$inboundSchema,
-  WebhookCreditsAutoRechargedEventEntity$Outbound,
-  WebhookCreditsAutoRechargedEventEntity$outboundSchema,
-} from "./webhookcreditsautorechargedevententity.js";
+  CustomerCreditsAutoRechargeEntity,
+  CustomerCreditsAutoRechargeEntity$inboundSchema,
+  CustomerCreditsAutoRechargeEntity$Outbound,
+  CustomerCreditsAutoRechargeEntity$outboundSchema,
+} from "./customercreditsautorechargeentity.js";
 import {
-  WebhookCreditsConsumedEventEntity,
-  WebhookCreditsConsumedEventEntity$inboundSchema,
-  WebhookCreditsConsumedEventEntity$Outbound,
-  WebhookCreditsConsumedEventEntity$outboundSchema,
-} from "./webhookcreditsconsumedevententity.js";
+  CustomerCreditsConsumptionEntity,
+  CustomerCreditsConsumptionEntity$inboundSchema,
+  CustomerCreditsConsumptionEntity$Outbound,
+  CustomerCreditsConsumptionEntity$outboundSchema,
+} from "./customercreditsconsumptionentity.js";
 import {
-  WebhookCreditsGrantedEventEntity,
-  WebhookCreditsGrantedEventEntity$inboundSchema,
-  WebhookCreditsGrantedEventEntity$Outbound,
-  WebhookCreditsGrantedEventEntity$outboundSchema,
-} from "./webhookcreditsgrantedevententity.js";
+  CustomerCreditsExhaustionEntity,
+  CustomerCreditsExhaustionEntity$inboundSchema,
+  CustomerCreditsExhaustionEntity$Outbound,
+  CustomerCreditsExhaustionEntity$outboundSchema,
+} from "./customercreditsexhaustionentity.js";
 import {
-  WebhookCustomerCreditsExhaustedEventEntity,
-  WebhookCustomerCreditsExhaustedEventEntity$inboundSchema,
-  WebhookCustomerCreditsExhaustedEventEntity$Outbound,
-  WebhookCustomerCreditsExhaustedEventEntity$outboundSchema,
-} from "./webhookcustomercreditsexhaustedevententity.js";
+  CustomerCreditsGrantEntity,
+  CustomerCreditsGrantEntity$inboundSchema,
+  CustomerCreditsGrantEntity$Outbound,
+  CustomerCreditsGrantEntity$outboundSchema,
+} from "./customercreditsgrantentity.js";
 import {
-  WebhookDisputeCreatedEventEntity,
-  WebhookDisputeCreatedEventEntity$inboundSchema,
-  WebhookDisputeCreatedEventEntity$Outbound,
-  WebhookDisputeCreatedEventEntity$outboundSchema,
-} from "./webhookdisputecreatedevententity.js";
+  DisputeEntity,
+  DisputeEntity$inboundSchema,
+  DisputeEntity$Outbound,
+  DisputeEntity$outboundSchema,
+} from "./disputeentity.js";
 import {
-  WebhookRefundCreatedEventEntity,
-  WebhookRefundCreatedEventEntity$inboundSchema,
-  WebhookRefundCreatedEventEntity$Outbound,
-  WebhookRefundCreatedEventEntity$outboundSchema,
-} from "./webhookrefundcreatedevententity.js";
+  RefundEntity,
+  RefundEntity$inboundSchema,
+  RefundEntity$Outbound,
+  RefundEntity$outboundSchema,
+} from "./refundentity.js";
 import {
-  WebhookSubscriptionActiveEventEntity,
-  WebhookSubscriptionActiveEventEntity$inboundSchema,
-  WebhookSubscriptionActiveEventEntity$Outbound,
-  WebhookSubscriptionActiveEventEntity$outboundSchema,
-} from "./webhooksubscriptionactiveevententity.js";
-import {
-  WebhookSubscriptionCanceledEventEntity,
-  WebhookSubscriptionCanceledEventEntity$inboundSchema,
-  WebhookSubscriptionCanceledEventEntity$Outbound,
-  WebhookSubscriptionCanceledEventEntity$outboundSchema,
-} from "./webhooksubscriptioncanceledevententity.js";
-import {
-  WebhookSubscriptionExpiredEventEntity,
-  WebhookSubscriptionExpiredEventEntity$inboundSchema,
-  WebhookSubscriptionExpiredEventEntity$Outbound,
-  WebhookSubscriptionExpiredEventEntity$outboundSchema,
-} from "./webhooksubscriptionexpiredevententity.js";
-import {
-  WebhookSubscriptionPaidEventEntity,
-  WebhookSubscriptionPaidEventEntity$inboundSchema,
-  WebhookSubscriptionPaidEventEntity$Outbound,
-  WebhookSubscriptionPaidEventEntity$outboundSchema,
-} from "./webhooksubscriptionpaidevententity.js";
-import {
-  WebhookSubscriptionPastDueEventEntity,
-  WebhookSubscriptionPastDueEventEntity$inboundSchema,
-  WebhookSubscriptionPastDueEventEntity$Outbound,
-  WebhookSubscriptionPastDueEventEntity$outboundSchema,
-} from "./webhooksubscriptionpastdueevententity.js";
-import {
-  WebhookSubscriptionPausedEventEntity,
-  WebhookSubscriptionPausedEventEntity$inboundSchema,
-  WebhookSubscriptionPausedEventEntity$Outbound,
-  WebhookSubscriptionPausedEventEntity$outboundSchema,
-} from "./webhooksubscriptionpausedevententity.js";
-import {
-  WebhookSubscriptionScheduledCancelEventEntity,
-  WebhookSubscriptionScheduledCancelEventEntity$inboundSchema,
-  WebhookSubscriptionScheduledCancelEventEntity$Outbound,
-  WebhookSubscriptionScheduledCancelEventEntity$outboundSchema,
-} from "./webhooksubscriptionscheduledcancelevententity.js";
-import {
-  WebhookSubscriptionTrialingEventEntity,
-  WebhookSubscriptionTrialingEventEntity$inboundSchema,
-  WebhookSubscriptionTrialingEventEntity$Outbound,
-  WebhookSubscriptionTrialingEventEntity$outboundSchema,
-} from "./webhooksubscriptiontrialingevententity.js";
-import {
-  WebhookSubscriptionUnpaidEventEntity,
-  WebhookSubscriptionUnpaidEventEntity$inboundSchema,
-  WebhookSubscriptionUnpaidEventEntity$Outbound,
-  WebhookSubscriptionUnpaidEventEntity$outboundSchema,
-} from "./webhooksubscriptionunpaidevententity.js";
-import {
-  WebhookSubscriptionUpdateEventEntity,
-  WebhookSubscriptionUpdateEventEntity$inboundSchema,
-  WebhookSubscriptionUpdateEventEntity$Outbound,
-  WebhookSubscriptionUpdateEventEntity$outboundSchema,
-} from "./webhooksubscriptionupdateevententity.js";
+  WebhookSubscriptionEntity,
+  WebhookSubscriptionEntity$inboundSchema,
+  WebhookSubscriptionEntity$Outbound,
+  WebhookSubscriptionEntity$outboundSchema,
+} from "./webhooksubscriptionentity.js";
+
+/**
+ * The event name.
+ */
+export const WebhookSubscriptionPausedEventEntityWebhookEventEntityEventType = {
+  SubscriptionPaused: "subscription.paused",
+} as const;
+/**
+ * The event name.
+ */
+export type WebhookSubscriptionPausedEventEntityWebhookEventEntityEventType =
+  ClosedEnum<
+    typeof WebhookSubscriptionPausedEventEntityWebhookEventEntityEventType
+  >;
+
+export type WebhookEventEntityWebhookSubscriptionPausedEventEntity = {
+  /**
+   * Unique identifier for the event.
+   */
+  id: string;
+  /**
+   * The event name.
+   */
+  eventType: WebhookSubscriptionPausedEventEntityWebhookEventEntityEventType;
+  /**
+   * Creation date of the event.
+   */
+  createdAt: number;
+  /**
+   * Object related to the event.
+   */
+  object: WebhookSubscriptionEntity;
+};
+
+/**
+ * The event name.
+ */
+export const WebhookSubscriptionPastDueEventEntityWebhookEventEntityEventType =
+  {
+    SubscriptionPastDue: "subscription.past_due",
+  } as const;
+/**
+ * The event name.
+ */
+export type WebhookSubscriptionPastDueEventEntityWebhookEventEntityEventType =
+  ClosedEnum<
+    typeof WebhookSubscriptionPastDueEventEntityWebhookEventEntityEventType
+  >;
+
+export type WebhookEventEntityWebhookSubscriptionPastDueEventEntity = {
+  /**
+   * Unique identifier for the event.
+   */
+  id: string;
+  /**
+   * The event name.
+   */
+  eventType: WebhookSubscriptionPastDueEventEntityWebhookEventEntityEventType;
+  /**
+   * Creation date of the event.
+   */
+  createdAt: number;
+  /**
+   * Object related to the event.
+   */
+  object: WebhookSubscriptionEntity;
+};
+
+/**
+ * The event name.
+ */
+export const WebhookSubscriptionUpdateEventEntityWebhookEventEntityEventType = {
+  SubscriptionUpdate: "subscription.update",
+} as const;
+/**
+ * The event name.
+ */
+export type WebhookSubscriptionUpdateEventEntityWebhookEventEntityEventType =
+  ClosedEnum<
+    typeof WebhookSubscriptionUpdateEventEntityWebhookEventEntityEventType
+  >;
+
+export type WebhookEventEntityWebhookSubscriptionUpdateEventEntity = {
+  /**
+   * Unique identifier for the event.
+   */
+  id: string;
+  /**
+   * The event name.
+   */
+  eventType: WebhookSubscriptionUpdateEventEntityWebhookEventEntityEventType;
+  /**
+   * Creation date of the event.
+   */
+  createdAt: number;
+  /**
+   * Object related to the event.
+   */
+  object: WebhookSubscriptionEntity;
+};
+
+/**
+ * The event name.
+ */
+export const WebhookSubscriptionUnpaidEventEntityWebhookEventEntityEventType = {
+  SubscriptionUnpaid: "subscription.unpaid",
+} as const;
+/**
+ * The event name.
+ */
+export type WebhookSubscriptionUnpaidEventEntityWebhookEventEntityEventType =
+  ClosedEnum<
+    typeof WebhookSubscriptionUnpaidEventEntityWebhookEventEntityEventType
+  >;
+
+export type WebhookEventEntityWebhookSubscriptionUnpaidEventEntity = {
+  /**
+   * Unique identifier for the event.
+   */
+  id: string;
+  /**
+   * The event name.
+   */
+  eventType: WebhookSubscriptionUnpaidEventEntityWebhookEventEntityEventType;
+  /**
+   * Creation date of the event.
+   */
+  createdAt: number;
+  /**
+   * Object related to the event.
+   */
+  object: WebhookSubscriptionEntity;
+};
+
+/**
+ * The event name.
+ */
+export const WebhookSubscriptionExpiredEventEntityWebhookEventEntityEventType =
+  {
+    SubscriptionExpired: "subscription.expired",
+  } as const;
+/**
+ * The event name.
+ */
+export type WebhookSubscriptionExpiredEventEntityWebhookEventEntityEventType =
+  ClosedEnum<
+    typeof WebhookSubscriptionExpiredEventEntityWebhookEventEntityEventType
+  >;
+
+export type WebhookEventEntityWebhookSubscriptionExpiredEventEntity = {
+  /**
+   * Unique identifier for the event.
+   */
+  id: string;
+  /**
+   * The event name.
+   */
+  eventType: WebhookSubscriptionExpiredEventEntityWebhookEventEntityEventType;
+  /**
+   * Creation date of the event.
+   */
+  createdAt: number;
+  /**
+   * Object related to the event.
+   */
+  object: WebhookSubscriptionEntity;
+};
+
+/**
+ * The event name.
+ */
+export const WebhookSubscriptionPaidEventEntityWebhookEventEntityEventType = {
+  SubscriptionPaid: "subscription.paid",
+} as const;
+/**
+ * The event name.
+ */
+export type WebhookSubscriptionPaidEventEntityWebhookEventEntityEventType =
+  ClosedEnum<
+    typeof WebhookSubscriptionPaidEventEntityWebhookEventEntityEventType
+  >;
+
+export type WebhookEventEntityWebhookSubscriptionPaidEventEntity = {
+  /**
+   * Unique identifier for the event.
+   */
+  id: string;
+  /**
+   * The event name.
+   */
+  eventType: WebhookSubscriptionPaidEventEntityWebhookEventEntityEventType;
+  /**
+   * Creation date of the event.
+   */
+  createdAt: number;
+  /**
+   * Object related to the event.
+   */
+  object: WebhookSubscriptionEntity;
+};
+
+/**
+ * The event name.
+ */
+export const WebhookSubscriptionScheduledCancelEventEntityWebhookEventEntityEventType =
+  {
+    SubscriptionScheduledCancel: "subscription.scheduled_cancel",
+  } as const;
+/**
+ * The event name.
+ */
+export type WebhookSubscriptionScheduledCancelEventEntityWebhookEventEntityEventType =
+  ClosedEnum<
+    typeof WebhookSubscriptionScheduledCancelEventEntityWebhookEventEntityEventType
+  >;
+
+export type WebhookEventEntityWebhookSubscriptionScheduledCancelEventEntity = {
+  /**
+   * Unique identifier for the event.
+   */
+  id: string;
+  /**
+   * The event name.
+   */
+  eventType:
+    WebhookSubscriptionScheduledCancelEventEntityWebhookEventEntityEventType;
+  /**
+   * Creation date of the event.
+   */
+  createdAt: number;
+  /**
+   * Object related to the event.
+   */
+  object: WebhookSubscriptionEntity;
+};
+
+/**
+ * The event name.
+ */
+export const WebhookSubscriptionCanceledEventEntityWebhookEventEntityEventType =
+  {
+    SubscriptionCanceled: "subscription.canceled",
+  } as const;
+/**
+ * The event name.
+ */
+export type WebhookSubscriptionCanceledEventEntityWebhookEventEntityEventType =
+  ClosedEnum<
+    typeof WebhookSubscriptionCanceledEventEntityWebhookEventEntityEventType
+  >;
+
+export type WebhookEventEntityWebhookSubscriptionCanceledEventEntity = {
+  /**
+   * Unique identifier for the event.
+   */
+  id: string;
+  /**
+   * The event name.
+   */
+  eventType: WebhookSubscriptionCanceledEventEntityWebhookEventEntityEventType;
+  /**
+   * Creation date of the event.
+   */
+  createdAt: number;
+  /**
+   * Object related to the event.
+   */
+  object: WebhookSubscriptionEntity;
+};
+
+/**
+ * The event name.
+ */
+export const WebhookSubscriptionTrialingEventEntityWebhookEventEntityEventType =
+  {
+    SubscriptionTrialing: "subscription.trialing",
+  } as const;
+/**
+ * The event name.
+ */
+export type WebhookSubscriptionTrialingEventEntityWebhookEventEntityEventType =
+  ClosedEnum<
+    typeof WebhookSubscriptionTrialingEventEntityWebhookEventEntityEventType
+  >;
+
+export type WebhookEventEntityWebhookSubscriptionTrialingEventEntity = {
+  /**
+   * Unique identifier for the event.
+   */
+  id: string;
+  /**
+   * The event name.
+   */
+  eventType: WebhookSubscriptionTrialingEventEntityWebhookEventEntityEventType;
+  /**
+   * Creation date of the event.
+   */
+  createdAt: number;
+  /**
+   * Object related to the event.
+   */
+  object: WebhookSubscriptionEntity;
+};
+
+/**
+ * The event name.
+ */
+export const WebhookSubscriptionActiveEventEntityWebhookEventEntityEventType = {
+  SubscriptionActive: "subscription.active",
+} as const;
+/**
+ * The event name.
+ */
+export type WebhookSubscriptionActiveEventEntityWebhookEventEntityEventType =
+  ClosedEnum<
+    typeof WebhookSubscriptionActiveEventEntityWebhookEventEntityEventType
+  >;
+
+export type WebhookEventEntityWebhookSubscriptionActiveEventEntity = {
+  /**
+   * Unique identifier for the event.
+   */
+  id: string;
+  /**
+   * The event name.
+   */
+  eventType: WebhookSubscriptionActiveEventEntityWebhookEventEntityEventType;
+  /**
+   * Creation date of the event.
+   */
+  createdAt: number;
+  /**
+   * Object related to the event.
+   */
+  object: WebhookSubscriptionEntity;
+};
+
+/**
+ * The event name.
+ */
+export const WebhookCreditsAutoRechargedEventEntityWebhookEventEntityEventType =
+  {
+    CreditsAutoRecharged: "credits.auto_recharged",
+  } as const;
+/**
+ * The event name.
+ */
+export type WebhookCreditsAutoRechargedEventEntityWebhookEventEntityEventType =
+  ClosedEnum<
+    typeof WebhookCreditsAutoRechargedEventEntityWebhookEventEntityEventType
+  >;
+
+export type WebhookEventEntityWebhookCreditsAutoRechargedEventEntity = {
+  /**
+   * Unique identifier for the event.
+   */
+  id: string;
+  /**
+   * The event name.
+   */
+  eventType: WebhookCreditsAutoRechargedEventEntityWebhookEventEntityEventType;
+  /**
+   * Timestamp of when the event was created.
+   */
+  createdAt: number;
+  /**
+   * Object related to the event.
+   */
+  object: CustomerCreditsAutoRechargeEntity;
+};
+
+/**
+ * The event name.
+ */
+export const WebhookCreditsConsumedEventEntityWebhookEventEntityEventType = {
+  CreditsConsumed: "credits.consumed",
+} as const;
+/**
+ * The event name.
+ */
+export type WebhookCreditsConsumedEventEntityWebhookEventEntityEventType =
+  ClosedEnum<
+    typeof WebhookCreditsConsumedEventEntityWebhookEventEntityEventType
+  >;
+
+export type WebhookEventEntityWebhookCreditsConsumedEventEntity = {
+  /**
+   * Unique identifier for the event.
+   */
+  id: string;
+  /**
+   * The event name.
+   */
+  eventType: WebhookCreditsConsumedEventEntityWebhookEventEntityEventType;
+  /**
+   * Timestamp of when the event was created.
+   */
+  createdAt: number;
+  /**
+   * Object related to the event.
+   */
+  object: CustomerCreditsConsumptionEntity;
+};
+
+/**
+ * The event name.
+ */
+export const WebhookCreditsGrantedEventEntityWebhookEventEntityEventType = {
+  CreditsGranted: "credits.granted",
+} as const;
+/**
+ * The event name.
+ */
+export type WebhookCreditsGrantedEventEntityWebhookEventEntityEventType =
+  ClosedEnum<
+    typeof WebhookCreditsGrantedEventEntityWebhookEventEntityEventType
+  >;
+
+export type WebhookEventEntityWebhookCreditsGrantedEventEntity = {
+  /**
+   * Unique identifier for the event.
+   */
+  id: string;
+  /**
+   * The event name.
+   */
+  eventType: WebhookCreditsGrantedEventEntityWebhookEventEntityEventType;
+  /**
+   * Timestamp of when the event was created.
+   */
+  createdAt: number;
+  /**
+   * Object related to the event.
+   */
+  object: CustomerCreditsGrantEntity;
+};
+
+/**
+ * The event name.
+ */
+export const WebhookCustomerCreditsExhaustedEventEntityWebhookEventEntityEventType =
+  {
+    CustomerCreditsExhausted: "customer_credits.exhausted",
+  } as const;
+/**
+ * The event name.
+ */
+export type WebhookCustomerCreditsExhaustedEventEntityWebhookEventEntityEventType =
+  ClosedEnum<
+    typeof WebhookCustomerCreditsExhaustedEventEntityWebhookEventEntityEventType
+  >;
+
+export type WebhookEventEntityWebhookCustomerCreditsExhaustedEventEntity = {
+  /**
+   * Unique identifier for the event.
+   */
+  id: string;
+  /**
+   * The event name.
+   */
+  eventType:
+    WebhookCustomerCreditsExhaustedEventEntityWebhookEventEntityEventType;
+  /**
+   * Timestamp of when the event was created.
+   */
+  createdAt: number;
+  /**
+   * Object related to the event.
+   */
+  object: CustomerCreditsExhaustionEntity;
+};
+
+/**
+ * The event name.
+ */
+export const WebhookDisputeCreatedEventEntityWebhookEventEntityEventType = {
+  DisputeCreated: "dispute.created",
+} as const;
+/**
+ * The event name.
+ */
+export type WebhookDisputeCreatedEventEntityWebhookEventEntityEventType =
+  ClosedEnum<
+    typeof WebhookDisputeCreatedEventEntityWebhookEventEntityEventType
+  >;
+
+export type WebhookEventEntityWebhookDisputeCreatedEventEntity = {
+  /**
+   * Unique identifier for the event.
+   */
+  id: string;
+  /**
+   * The event name.
+   */
+  eventType: WebhookDisputeCreatedEventEntityWebhookEventEntityEventType;
+  /**
+   * Creation date of the event.
+   */
+  createdAt: number;
+  /**
+   * Object related to the event.
+   */
+  object: DisputeEntity;
+};
+
+/**
+ * The event name.
+ */
+export const WebhookRefundCreatedEventEntityWebhookEventEntityEventType = {
+  RefundCreated: "refund.created",
+} as const;
+/**
+ * The event name.
+ */
+export type WebhookRefundCreatedEventEntityWebhookEventEntityEventType =
+  ClosedEnum<typeof WebhookRefundCreatedEventEntityWebhookEventEntityEventType>;
+
+export type WebhookEventEntityWebhookRefundCreatedEventEntity = {
+  /**
+   * Unique identifier for the event.
+   */
+  id: string;
+  /**
+   * The event name.
+   */
+  eventType: WebhookRefundCreatedEventEntityWebhookEventEntityEventType;
+  /**
+   * Creation date of the event.
+   */
+  createdAt: number;
+  /**
+   * Object related to the event.
+   */
+  object: RefundEntity;
+};
+
+/**
+ * The event name.
+ */
+export const WebhookCheckoutCompletedEventEntityEventType = {
+  CheckoutCompleted: "checkout.completed",
+} as const;
+/**
+ * The event name.
+ */
+export type WebhookCheckoutCompletedEventEntityEventType = ClosedEnum<
+  typeof WebhookCheckoutCompletedEventEntityEventType
+>;
+
+export type WebhookEventEntityWebhookCheckoutCompletedEventEntity = {
+  /**
+   * Unique identifier for the event.
+   */
+  id: string;
+  /**
+   * The event name.
+   */
+  eventType: WebhookCheckoutCompletedEventEntityEventType;
+  /**
+   * Creation date of the event.
+   */
+  createdAt: number;
+  /**
+   * Object related to the event.
+   */
+  object: CheckoutEntity;
+};
 
 /**
  * Webhook event delivered by Creem. The eventType property determines the shape of object.
  */
 export type WebhookEventEntity =
-  | (WebhookCheckoutCompletedEventEntity & { eventType: "checkout.completed" })
-  | (WebhookRefundCreatedEventEntity & { eventType: "refund.created" })
-  | (WebhookDisputeCreatedEventEntity & { eventType: "dispute.created" })
-  | (WebhookCustomerCreditsExhaustedEventEntity & {
+  | (WebhookEventEntityWebhookCheckoutCompletedEventEntity & {
+    eventType: "checkout.completed";
+  })
+  | (WebhookEventEntityWebhookRefundCreatedEventEntity & {
+    eventType: "refund.created";
+  })
+  | (WebhookEventEntityWebhookDisputeCreatedEventEntity & {
+    eventType: "dispute.created";
+  })
+  | (WebhookEventEntityWebhookCustomerCreditsExhaustedEventEntity & {
     eventType: "customer_credits.exhausted";
   })
-  | (WebhookCreditsGrantedEventEntity & { eventType: "credits.granted" })
-  | (WebhookCreditsConsumedEventEntity & { eventType: "credits.consumed" })
-  | (WebhookCreditsAutoRechargedEventEntity & {
+  | (WebhookEventEntityWebhookCreditsGrantedEventEntity & {
+    eventType: "credits.granted";
+  })
+  | (WebhookEventEntityWebhookCreditsConsumedEventEntity & {
+    eventType: "credits.consumed";
+  })
+  | (WebhookEventEntityWebhookCreditsAutoRechargedEventEntity & {
     eventType: "credits.auto_recharged";
   })
-  | (WebhookSubscriptionActiveEventEntity & {
+  | (WebhookEventEntityWebhookSubscriptionActiveEventEntity & {
     eventType: "subscription.active";
   })
-  | (WebhookSubscriptionTrialingEventEntity & {
+  | (WebhookEventEntityWebhookSubscriptionTrialingEventEntity & {
     eventType: "subscription.trialing";
   })
-  | (WebhookSubscriptionCanceledEventEntity & {
+  | (WebhookEventEntityWebhookSubscriptionCanceledEventEntity & {
     eventType: "subscription.canceled";
   })
-  | (WebhookSubscriptionScheduledCancelEventEntity & {
+  | (WebhookEventEntityWebhookSubscriptionScheduledCancelEventEntity & {
     eventType: "subscription.scheduled_cancel";
   })
-  | (WebhookSubscriptionPaidEventEntity & { eventType: "subscription.paid" })
-  | (WebhookSubscriptionExpiredEventEntity & {
+  | (WebhookEventEntityWebhookSubscriptionPaidEventEntity & {
+    eventType: "subscription.paid";
+  })
+  | (WebhookEventEntityWebhookSubscriptionExpiredEventEntity & {
     eventType: "subscription.expired";
   })
-  | (WebhookSubscriptionUnpaidEventEntity & {
+  | (WebhookEventEntityWebhookSubscriptionUnpaidEventEntity & {
     eventType: "subscription.unpaid";
   })
-  | (WebhookSubscriptionUpdateEventEntity & {
+  | (WebhookEventEntityWebhookSubscriptionUpdateEventEntity & {
     eventType: "subscription.update";
   })
-  | (WebhookSubscriptionPastDueEventEntity & {
+  | (WebhookEventEntityWebhookSubscriptionPastDueEventEntity & {
     eventType: "subscription.past_due";
   })
-  | (WebhookSubscriptionPausedEventEntity & {
+  | (WebhookEventEntityWebhookSubscriptionPausedEventEntity & {
     eventType: "subscription.paused";
+  })
+  | discriminatedUnionTypes.Unknown<"eventType">;
+
+/** @internal */
+export const WebhookSubscriptionPausedEventEntityWebhookEventEntityEventType$inboundSchema:
+  z.ZodNativeEnum<
+    typeof WebhookSubscriptionPausedEventEntityWebhookEventEntityEventType
+  > = z.nativeEnum(
+    WebhookSubscriptionPausedEventEntityWebhookEventEntityEventType,
+  );
+/** @internal */
+export const WebhookSubscriptionPausedEventEntityWebhookEventEntityEventType$outboundSchema:
+  z.ZodNativeEnum<
+    typeof WebhookSubscriptionPausedEventEntityWebhookEventEntityEventType
+  > =
+    WebhookSubscriptionPausedEventEntityWebhookEventEntityEventType$inboundSchema;
+
+/** @internal */
+export const WebhookEventEntityWebhookSubscriptionPausedEventEntity$inboundSchema:
+  z.ZodType<
+    WebhookEventEntityWebhookSubscriptionPausedEventEntity,
+    z.ZodTypeDef,
+    unknown
+  > = z.object({
+    id: z.string(),
+    eventType:
+      WebhookSubscriptionPausedEventEntityWebhookEventEntityEventType$inboundSchema,
+    created_at: z.number(),
+    object: WebhookSubscriptionEntity$inboundSchema,
+  }).transform((v) => {
+    return remap$(v, {
+      "created_at": "createdAt",
+    });
   });
+/** @internal */
+export type WebhookEventEntityWebhookSubscriptionPausedEventEntity$Outbound = {
+  id: string;
+  eventType: string;
+  created_at: number;
+  object: WebhookSubscriptionEntity$Outbound;
+};
+
+/** @internal */
+export const WebhookEventEntityWebhookSubscriptionPausedEventEntity$outboundSchema:
+  z.ZodType<
+    WebhookEventEntityWebhookSubscriptionPausedEventEntity$Outbound,
+    z.ZodTypeDef,
+    WebhookEventEntityWebhookSubscriptionPausedEventEntity
+  > = z.object({
+    id: z.string(),
+    eventType:
+      WebhookSubscriptionPausedEventEntityWebhookEventEntityEventType$outboundSchema,
+    createdAt: z.number(),
+    object: WebhookSubscriptionEntity$outboundSchema,
+  }).transform((v) => {
+    return remap$(v, {
+      createdAt: "created_at",
+    });
+  });
+
+export function webhookEventEntityWebhookSubscriptionPausedEventEntityToJSON(
+  webhookEventEntityWebhookSubscriptionPausedEventEntity:
+    WebhookEventEntityWebhookSubscriptionPausedEventEntity,
+): string {
+  return JSON.stringify(
+    WebhookEventEntityWebhookSubscriptionPausedEventEntity$outboundSchema.parse(
+      webhookEventEntityWebhookSubscriptionPausedEventEntity,
+    ),
+  );
+}
+export function webhookEventEntityWebhookSubscriptionPausedEventEntityFromJSON(
+  jsonString: string,
+): SafeParseResult<
+  WebhookEventEntityWebhookSubscriptionPausedEventEntity,
+  SDKValidationError
+> {
+  return safeParse(
+    jsonString,
+    (x) =>
+      WebhookEventEntityWebhookSubscriptionPausedEventEntity$inboundSchema
+        .parse(JSON.parse(x)),
+    `Failed to parse 'WebhookEventEntityWebhookSubscriptionPausedEventEntity' from JSON`,
+  );
+}
+
+/** @internal */
+export const WebhookSubscriptionPastDueEventEntityWebhookEventEntityEventType$inboundSchema:
+  z.ZodNativeEnum<
+    typeof WebhookSubscriptionPastDueEventEntityWebhookEventEntityEventType
+  > = z.nativeEnum(
+    WebhookSubscriptionPastDueEventEntityWebhookEventEntityEventType,
+  );
+/** @internal */
+export const WebhookSubscriptionPastDueEventEntityWebhookEventEntityEventType$outboundSchema:
+  z.ZodNativeEnum<
+    typeof WebhookSubscriptionPastDueEventEntityWebhookEventEntityEventType
+  > =
+    WebhookSubscriptionPastDueEventEntityWebhookEventEntityEventType$inboundSchema;
+
+/** @internal */
+export const WebhookEventEntityWebhookSubscriptionPastDueEventEntity$inboundSchema:
+  z.ZodType<
+    WebhookEventEntityWebhookSubscriptionPastDueEventEntity,
+    z.ZodTypeDef,
+    unknown
+  > = z.object({
+    id: z.string(),
+    eventType:
+      WebhookSubscriptionPastDueEventEntityWebhookEventEntityEventType$inboundSchema,
+    created_at: z.number(),
+    object: WebhookSubscriptionEntity$inboundSchema,
+  }).transform((v) => {
+    return remap$(v, {
+      "created_at": "createdAt",
+    });
+  });
+/** @internal */
+export type WebhookEventEntityWebhookSubscriptionPastDueEventEntity$Outbound = {
+  id: string;
+  eventType: string;
+  created_at: number;
+  object: WebhookSubscriptionEntity$Outbound;
+};
+
+/** @internal */
+export const WebhookEventEntityWebhookSubscriptionPastDueEventEntity$outboundSchema:
+  z.ZodType<
+    WebhookEventEntityWebhookSubscriptionPastDueEventEntity$Outbound,
+    z.ZodTypeDef,
+    WebhookEventEntityWebhookSubscriptionPastDueEventEntity
+  > = z.object({
+    id: z.string(),
+    eventType:
+      WebhookSubscriptionPastDueEventEntityWebhookEventEntityEventType$outboundSchema,
+    createdAt: z.number(),
+    object: WebhookSubscriptionEntity$outboundSchema,
+  }).transform((v) => {
+    return remap$(v, {
+      createdAt: "created_at",
+    });
+  });
+
+export function webhookEventEntityWebhookSubscriptionPastDueEventEntityToJSON(
+  webhookEventEntityWebhookSubscriptionPastDueEventEntity:
+    WebhookEventEntityWebhookSubscriptionPastDueEventEntity,
+): string {
+  return JSON.stringify(
+    WebhookEventEntityWebhookSubscriptionPastDueEventEntity$outboundSchema
+      .parse(webhookEventEntityWebhookSubscriptionPastDueEventEntity),
+  );
+}
+export function webhookEventEntityWebhookSubscriptionPastDueEventEntityFromJSON(
+  jsonString: string,
+): SafeParseResult<
+  WebhookEventEntityWebhookSubscriptionPastDueEventEntity,
+  SDKValidationError
+> {
+  return safeParse(
+    jsonString,
+    (x) =>
+      WebhookEventEntityWebhookSubscriptionPastDueEventEntity$inboundSchema
+        .parse(JSON.parse(x)),
+    `Failed to parse 'WebhookEventEntityWebhookSubscriptionPastDueEventEntity' from JSON`,
+  );
+}
+
+/** @internal */
+export const WebhookSubscriptionUpdateEventEntityWebhookEventEntityEventType$inboundSchema:
+  z.ZodNativeEnum<
+    typeof WebhookSubscriptionUpdateEventEntityWebhookEventEntityEventType
+  > = z.nativeEnum(
+    WebhookSubscriptionUpdateEventEntityWebhookEventEntityEventType,
+  );
+/** @internal */
+export const WebhookSubscriptionUpdateEventEntityWebhookEventEntityEventType$outboundSchema:
+  z.ZodNativeEnum<
+    typeof WebhookSubscriptionUpdateEventEntityWebhookEventEntityEventType
+  > =
+    WebhookSubscriptionUpdateEventEntityWebhookEventEntityEventType$inboundSchema;
+
+/** @internal */
+export const WebhookEventEntityWebhookSubscriptionUpdateEventEntity$inboundSchema:
+  z.ZodType<
+    WebhookEventEntityWebhookSubscriptionUpdateEventEntity,
+    z.ZodTypeDef,
+    unknown
+  > = z.object({
+    id: z.string(),
+    eventType:
+      WebhookSubscriptionUpdateEventEntityWebhookEventEntityEventType$inboundSchema,
+    created_at: z.number(),
+    object: WebhookSubscriptionEntity$inboundSchema,
+  }).transform((v) => {
+    return remap$(v, {
+      "created_at": "createdAt",
+    });
+  });
+/** @internal */
+export type WebhookEventEntityWebhookSubscriptionUpdateEventEntity$Outbound = {
+  id: string;
+  eventType: string;
+  created_at: number;
+  object: WebhookSubscriptionEntity$Outbound;
+};
+
+/** @internal */
+export const WebhookEventEntityWebhookSubscriptionUpdateEventEntity$outboundSchema:
+  z.ZodType<
+    WebhookEventEntityWebhookSubscriptionUpdateEventEntity$Outbound,
+    z.ZodTypeDef,
+    WebhookEventEntityWebhookSubscriptionUpdateEventEntity
+  > = z.object({
+    id: z.string(),
+    eventType:
+      WebhookSubscriptionUpdateEventEntityWebhookEventEntityEventType$outboundSchema,
+    createdAt: z.number(),
+    object: WebhookSubscriptionEntity$outboundSchema,
+  }).transform((v) => {
+    return remap$(v, {
+      createdAt: "created_at",
+    });
+  });
+
+export function webhookEventEntityWebhookSubscriptionUpdateEventEntityToJSON(
+  webhookEventEntityWebhookSubscriptionUpdateEventEntity:
+    WebhookEventEntityWebhookSubscriptionUpdateEventEntity,
+): string {
+  return JSON.stringify(
+    WebhookEventEntityWebhookSubscriptionUpdateEventEntity$outboundSchema.parse(
+      webhookEventEntityWebhookSubscriptionUpdateEventEntity,
+    ),
+  );
+}
+export function webhookEventEntityWebhookSubscriptionUpdateEventEntityFromJSON(
+  jsonString: string,
+): SafeParseResult<
+  WebhookEventEntityWebhookSubscriptionUpdateEventEntity,
+  SDKValidationError
+> {
+  return safeParse(
+    jsonString,
+    (x) =>
+      WebhookEventEntityWebhookSubscriptionUpdateEventEntity$inboundSchema
+        .parse(JSON.parse(x)),
+    `Failed to parse 'WebhookEventEntityWebhookSubscriptionUpdateEventEntity' from JSON`,
+  );
+}
+
+/** @internal */
+export const WebhookSubscriptionUnpaidEventEntityWebhookEventEntityEventType$inboundSchema:
+  z.ZodNativeEnum<
+    typeof WebhookSubscriptionUnpaidEventEntityWebhookEventEntityEventType
+  > = z.nativeEnum(
+    WebhookSubscriptionUnpaidEventEntityWebhookEventEntityEventType,
+  );
+/** @internal */
+export const WebhookSubscriptionUnpaidEventEntityWebhookEventEntityEventType$outboundSchema:
+  z.ZodNativeEnum<
+    typeof WebhookSubscriptionUnpaidEventEntityWebhookEventEntityEventType
+  > =
+    WebhookSubscriptionUnpaidEventEntityWebhookEventEntityEventType$inboundSchema;
+
+/** @internal */
+export const WebhookEventEntityWebhookSubscriptionUnpaidEventEntity$inboundSchema:
+  z.ZodType<
+    WebhookEventEntityWebhookSubscriptionUnpaidEventEntity,
+    z.ZodTypeDef,
+    unknown
+  > = z.object({
+    id: z.string(),
+    eventType:
+      WebhookSubscriptionUnpaidEventEntityWebhookEventEntityEventType$inboundSchema,
+    created_at: z.number(),
+    object: WebhookSubscriptionEntity$inboundSchema,
+  }).transform((v) => {
+    return remap$(v, {
+      "created_at": "createdAt",
+    });
+  });
+/** @internal */
+export type WebhookEventEntityWebhookSubscriptionUnpaidEventEntity$Outbound = {
+  id: string;
+  eventType: string;
+  created_at: number;
+  object: WebhookSubscriptionEntity$Outbound;
+};
+
+/** @internal */
+export const WebhookEventEntityWebhookSubscriptionUnpaidEventEntity$outboundSchema:
+  z.ZodType<
+    WebhookEventEntityWebhookSubscriptionUnpaidEventEntity$Outbound,
+    z.ZodTypeDef,
+    WebhookEventEntityWebhookSubscriptionUnpaidEventEntity
+  > = z.object({
+    id: z.string(),
+    eventType:
+      WebhookSubscriptionUnpaidEventEntityWebhookEventEntityEventType$outboundSchema,
+    createdAt: z.number(),
+    object: WebhookSubscriptionEntity$outboundSchema,
+  }).transform((v) => {
+    return remap$(v, {
+      createdAt: "created_at",
+    });
+  });
+
+export function webhookEventEntityWebhookSubscriptionUnpaidEventEntityToJSON(
+  webhookEventEntityWebhookSubscriptionUnpaidEventEntity:
+    WebhookEventEntityWebhookSubscriptionUnpaidEventEntity,
+): string {
+  return JSON.stringify(
+    WebhookEventEntityWebhookSubscriptionUnpaidEventEntity$outboundSchema.parse(
+      webhookEventEntityWebhookSubscriptionUnpaidEventEntity,
+    ),
+  );
+}
+export function webhookEventEntityWebhookSubscriptionUnpaidEventEntityFromJSON(
+  jsonString: string,
+): SafeParseResult<
+  WebhookEventEntityWebhookSubscriptionUnpaidEventEntity,
+  SDKValidationError
+> {
+  return safeParse(
+    jsonString,
+    (x) =>
+      WebhookEventEntityWebhookSubscriptionUnpaidEventEntity$inboundSchema
+        .parse(JSON.parse(x)),
+    `Failed to parse 'WebhookEventEntityWebhookSubscriptionUnpaidEventEntity' from JSON`,
+  );
+}
+
+/** @internal */
+export const WebhookSubscriptionExpiredEventEntityWebhookEventEntityEventType$inboundSchema:
+  z.ZodNativeEnum<
+    typeof WebhookSubscriptionExpiredEventEntityWebhookEventEntityEventType
+  > = z.nativeEnum(
+    WebhookSubscriptionExpiredEventEntityWebhookEventEntityEventType,
+  );
+/** @internal */
+export const WebhookSubscriptionExpiredEventEntityWebhookEventEntityEventType$outboundSchema:
+  z.ZodNativeEnum<
+    typeof WebhookSubscriptionExpiredEventEntityWebhookEventEntityEventType
+  > =
+    WebhookSubscriptionExpiredEventEntityWebhookEventEntityEventType$inboundSchema;
+
+/** @internal */
+export const WebhookEventEntityWebhookSubscriptionExpiredEventEntity$inboundSchema:
+  z.ZodType<
+    WebhookEventEntityWebhookSubscriptionExpiredEventEntity,
+    z.ZodTypeDef,
+    unknown
+  > = z.object({
+    id: z.string(),
+    eventType:
+      WebhookSubscriptionExpiredEventEntityWebhookEventEntityEventType$inboundSchema,
+    created_at: z.number(),
+    object: WebhookSubscriptionEntity$inboundSchema,
+  }).transform((v) => {
+    return remap$(v, {
+      "created_at": "createdAt",
+    });
+  });
+/** @internal */
+export type WebhookEventEntityWebhookSubscriptionExpiredEventEntity$Outbound = {
+  id: string;
+  eventType: string;
+  created_at: number;
+  object: WebhookSubscriptionEntity$Outbound;
+};
+
+/** @internal */
+export const WebhookEventEntityWebhookSubscriptionExpiredEventEntity$outboundSchema:
+  z.ZodType<
+    WebhookEventEntityWebhookSubscriptionExpiredEventEntity$Outbound,
+    z.ZodTypeDef,
+    WebhookEventEntityWebhookSubscriptionExpiredEventEntity
+  > = z.object({
+    id: z.string(),
+    eventType:
+      WebhookSubscriptionExpiredEventEntityWebhookEventEntityEventType$outboundSchema,
+    createdAt: z.number(),
+    object: WebhookSubscriptionEntity$outboundSchema,
+  }).transform((v) => {
+    return remap$(v, {
+      createdAt: "created_at",
+    });
+  });
+
+export function webhookEventEntityWebhookSubscriptionExpiredEventEntityToJSON(
+  webhookEventEntityWebhookSubscriptionExpiredEventEntity:
+    WebhookEventEntityWebhookSubscriptionExpiredEventEntity,
+): string {
+  return JSON.stringify(
+    WebhookEventEntityWebhookSubscriptionExpiredEventEntity$outboundSchema
+      .parse(webhookEventEntityWebhookSubscriptionExpiredEventEntity),
+  );
+}
+export function webhookEventEntityWebhookSubscriptionExpiredEventEntityFromJSON(
+  jsonString: string,
+): SafeParseResult<
+  WebhookEventEntityWebhookSubscriptionExpiredEventEntity,
+  SDKValidationError
+> {
+  return safeParse(
+    jsonString,
+    (x) =>
+      WebhookEventEntityWebhookSubscriptionExpiredEventEntity$inboundSchema
+        .parse(JSON.parse(x)),
+    `Failed to parse 'WebhookEventEntityWebhookSubscriptionExpiredEventEntity' from JSON`,
+  );
+}
+
+/** @internal */
+export const WebhookSubscriptionPaidEventEntityWebhookEventEntityEventType$inboundSchema:
+  z.ZodNativeEnum<
+    typeof WebhookSubscriptionPaidEventEntityWebhookEventEntityEventType
+  > = z.nativeEnum(
+    WebhookSubscriptionPaidEventEntityWebhookEventEntityEventType,
+  );
+/** @internal */
+export const WebhookSubscriptionPaidEventEntityWebhookEventEntityEventType$outboundSchema:
+  z.ZodNativeEnum<
+    typeof WebhookSubscriptionPaidEventEntityWebhookEventEntityEventType
+  > =
+    WebhookSubscriptionPaidEventEntityWebhookEventEntityEventType$inboundSchema;
+
+/** @internal */
+export const WebhookEventEntityWebhookSubscriptionPaidEventEntity$inboundSchema:
+  z.ZodType<
+    WebhookEventEntityWebhookSubscriptionPaidEventEntity,
+    z.ZodTypeDef,
+    unknown
+  > = z.object({
+    id: z.string(),
+    eventType:
+      WebhookSubscriptionPaidEventEntityWebhookEventEntityEventType$inboundSchema,
+    created_at: z.number(),
+    object: WebhookSubscriptionEntity$inboundSchema,
+  }).transform((v) => {
+    return remap$(v, {
+      "created_at": "createdAt",
+    });
+  });
+/** @internal */
+export type WebhookEventEntityWebhookSubscriptionPaidEventEntity$Outbound = {
+  id: string;
+  eventType: string;
+  created_at: number;
+  object: WebhookSubscriptionEntity$Outbound;
+};
+
+/** @internal */
+export const WebhookEventEntityWebhookSubscriptionPaidEventEntity$outboundSchema:
+  z.ZodType<
+    WebhookEventEntityWebhookSubscriptionPaidEventEntity$Outbound,
+    z.ZodTypeDef,
+    WebhookEventEntityWebhookSubscriptionPaidEventEntity
+  > = z.object({
+    id: z.string(),
+    eventType:
+      WebhookSubscriptionPaidEventEntityWebhookEventEntityEventType$outboundSchema,
+    createdAt: z.number(),
+    object: WebhookSubscriptionEntity$outboundSchema,
+  }).transform((v) => {
+    return remap$(v, {
+      createdAt: "created_at",
+    });
+  });
+
+export function webhookEventEntityWebhookSubscriptionPaidEventEntityToJSON(
+  webhookEventEntityWebhookSubscriptionPaidEventEntity:
+    WebhookEventEntityWebhookSubscriptionPaidEventEntity,
+): string {
+  return JSON.stringify(
+    WebhookEventEntityWebhookSubscriptionPaidEventEntity$outboundSchema.parse(
+      webhookEventEntityWebhookSubscriptionPaidEventEntity,
+    ),
+  );
+}
+export function webhookEventEntityWebhookSubscriptionPaidEventEntityFromJSON(
+  jsonString: string,
+): SafeParseResult<
+  WebhookEventEntityWebhookSubscriptionPaidEventEntity,
+  SDKValidationError
+> {
+  return safeParse(
+    jsonString,
+    (x) =>
+      WebhookEventEntityWebhookSubscriptionPaidEventEntity$inboundSchema.parse(
+        JSON.parse(x),
+      ),
+    `Failed to parse 'WebhookEventEntityWebhookSubscriptionPaidEventEntity' from JSON`,
+  );
+}
+
+/** @internal */
+export const WebhookSubscriptionScheduledCancelEventEntityWebhookEventEntityEventType$inboundSchema:
+  z.ZodNativeEnum<
+    typeof WebhookSubscriptionScheduledCancelEventEntityWebhookEventEntityEventType
+  > = z.nativeEnum(
+    WebhookSubscriptionScheduledCancelEventEntityWebhookEventEntityEventType,
+  );
+/** @internal */
+export const WebhookSubscriptionScheduledCancelEventEntityWebhookEventEntityEventType$outboundSchema:
+  z.ZodNativeEnum<
+    typeof WebhookSubscriptionScheduledCancelEventEntityWebhookEventEntityEventType
+  > =
+    WebhookSubscriptionScheduledCancelEventEntityWebhookEventEntityEventType$inboundSchema;
+
+/** @internal */
+export const WebhookEventEntityWebhookSubscriptionScheduledCancelEventEntity$inboundSchema:
+  z.ZodType<
+    WebhookEventEntityWebhookSubscriptionScheduledCancelEventEntity,
+    z.ZodTypeDef,
+    unknown
+  > = z.object({
+    id: z.string(),
+    eventType:
+      WebhookSubscriptionScheduledCancelEventEntityWebhookEventEntityEventType$inboundSchema,
+    created_at: z.number(),
+    object: WebhookSubscriptionEntity$inboundSchema,
+  }).transform((v) => {
+    return remap$(v, {
+      "created_at": "createdAt",
+    });
+  });
+/** @internal */
+export type WebhookEventEntityWebhookSubscriptionScheduledCancelEventEntity$Outbound =
+  {
+    id: string;
+    eventType: string;
+    created_at: number;
+    object: WebhookSubscriptionEntity$Outbound;
+  };
+
+/** @internal */
+export const WebhookEventEntityWebhookSubscriptionScheduledCancelEventEntity$outboundSchema:
+  z.ZodType<
+    WebhookEventEntityWebhookSubscriptionScheduledCancelEventEntity$Outbound,
+    z.ZodTypeDef,
+    WebhookEventEntityWebhookSubscriptionScheduledCancelEventEntity
+  > = z.object({
+    id: z.string(),
+    eventType:
+      WebhookSubscriptionScheduledCancelEventEntityWebhookEventEntityEventType$outboundSchema,
+    createdAt: z.number(),
+    object: WebhookSubscriptionEntity$outboundSchema,
+  }).transform((v) => {
+    return remap$(v, {
+      createdAt: "created_at",
+    });
+  });
+
+export function webhookEventEntityWebhookSubscriptionScheduledCancelEventEntityToJSON(
+  webhookEventEntityWebhookSubscriptionScheduledCancelEventEntity:
+    WebhookEventEntityWebhookSubscriptionScheduledCancelEventEntity,
+): string {
+  return JSON.stringify(
+    WebhookEventEntityWebhookSubscriptionScheduledCancelEventEntity$outboundSchema
+      .parse(webhookEventEntityWebhookSubscriptionScheduledCancelEventEntity),
+  );
+}
+export function webhookEventEntityWebhookSubscriptionScheduledCancelEventEntityFromJSON(
+  jsonString: string,
+): SafeParseResult<
+  WebhookEventEntityWebhookSubscriptionScheduledCancelEventEntity,
+  SDKValidationError
+> {
+  return safeParse(
+    jsonString,
+    (x) =>
+      WebhookEventEntityWebhookSubscriptionScheduledCancelEventEntity$inboundSchema
+        .parse(JSON.parse(x)),
+    `Failed to parse 'WebhookEventEntityWebhookSubscriptionScheduledCancelEventEntity' from JSON`,
+  );
+}
+
+/** @internal */
+export const WebhookSubscriptionCanceledEventEntityWebhookEventEntityEventType$inboundSchema:
+  z.ZodNativeEnum<
+    typeof WebhookSubscriptionCanceledEventEntityWebhookEventEntityEventType
+  > = z.nativeEnum(
+    WebhookSubscriptionCanceledEventEntityWebhookEventEntityEventType,
+  );
+/** @internal */
+export const WebhookSubscriptionCanceledEventEntityWebhookEventEntityEventType$outboundSchema:
+  z.ZodNativeEnum<
+    typeof WebhookSubscriptionCanceledEventEntityWebhookEventEntityEventType
+  > =
+    WebhookSubscriptionCanceledEventEntityWebhookEventEntityEventType$inboundSchema;
+
+/** @internal */
+export const WebhookEventEntityWebhookSubscriptionCanceledEventEntity$inboundSchema:
+  z.ZodType<
+    WebhookEventEntityWebhookSubscriptionCanceledEventEntity,
+    z.ZodTypeDef,
+    unknown
+  > = z.object({
+    id: z.string(),
+    eventType:
+      WebhookSubscriptionCanceledEventEntityWebhookEventEntityEventType$inboundSchema,
+    created_at: z.number(),
+    object: WebhookSubscriptionEntity$inboundSchema,
+  }).transform((v) => {
+    return remap$(v, {
+      "created_at": "createdAt",
+    });
+  });
+/** @internal */
+export type WebhookEventEntityWebhookSubscriptionCanceledEventEntity$Outbound =
+  {
+    id: string;
+    eventType: string;
+    created_at: number;
+    object: WebhookSubscriptionEntity$Outbound;
+  };
+
+/** @internal */
+export const WebhookEventEntityWebhookSubscriptionCanceledEventEntity$outboundSchema:
+  z.ZodType<
+    WebhookEventEntityWebhookSubscriptionCanceledEventEntity$Outbound,
+    z.ZodTypeDef,
+    WebhookEventEntityWebhookSubscriptionCanceledEventEntity
+  > = z.object({
+    id: z.string(),
+    eventType:
+      WebhookSubscriptionCanceledEventEntityWebhookEventEntityEventType$outboundSchema,
+    createdAt: z.number(),
+    object: WebhookSubscriptionEntity$outboundSchema,
+  }).transform((v) => {
+    return remap$(v, {
+      createdAt: "created_at",
+    });
+  });
+
+export function webhookEventEntityWebhookSubscriptionCanceledEventEntityToJSON(
+  webhookEventEntityWebhookSubscriptionCanceledEventEntity:
+    WebhookEventEntityWebhookSubscriptionCanceledEventEntity,
+): string {
+  return JSON.stringify(
+    WebhookEventEntityWebhookSubscriptionCanceledEventEntity$outboundSchema
+      .parse(webhookEventEntityWebhookSubscriptionCanceledEventEntity),
+  );
+}
+export function webhookEventEntityWebhookSubscriptionCanceledEventEntityFromJSON(
+  jsonString: string,
+): SafeParseResult<
+  WebhookEventEntityWebhookSubscriptionCanceledEventEntity,
+  SDKValidationError
+> {
+  return safeParse(
+    jsonString,
+    (x) =>
+      WebhookEventEntityWebhookSubscriptionCanceledEventEntity$inboundSchema
+        .parse(JSON.parse(x)),
+    `Failed to parse 'WebhookEventEntityWebhookSubscriptionCanceledEventEntity' from JSON`,
+  );
+}
+
+/** @internal */
+export const WebhookSubscriptionTrialingEventEntityWebhookEventEntityEventType$inboundSchema:
+  z.ZodNativeEnum<
+    typeof WebhookSubscriptionTrialingEventEntityWebhookEventEntityEventType
+  > = z.nativeEnum(
+    WebhookSubscriptionTrialingEventEntityWebhookEventEntityEventType,
+  );
+/** @internal */
+export const WebhookSubscriptionTrialingEventEntityWebhookEventEntityEventType$outboundSchema:
+  z.ZodNativeEnum<
+    typeof WebhookSubscriptionTrialingEventEntityWebhookEventEntityEventType
+  > =
+    WebhookSubscriptionTrialingEventEntityWebhookEventEntityEventType$inboundSchema;
+
+/** @internal */
+export const WebhookEventEntityWebhookSubscriptionTrialingEventEntity$inboundSchema:
+  z.ZodType<
+    WebhookEventEntityWebhookSubscriptionTrialingEventEntity,
+    z.ZodTypeDef,
+    unknown
+  > = z.object({
+    id: z.string(),
+    eventType:
+      WebhookSubscriptionTrialingEventEntityWebhookEventEntityEventType$inboundSchema,
+    created_at: z.number(),
+    object: WebhookSubscriptionEntity$inboundSchema,
+  }).transform((v) => {
+    return remap$(v, {
+      "created_at": "createdAt",
+    });
+  });
+/** @internal */
+export type WebhookEventEntityWebhookSubscriptionTrialingEventEntity$Outbound =
+  {
+    id: string;
+    eventType: string;
+    created_at: number;
+    object: WebhookSubscriptionEntity$Outbound;
+  };
+
+/** @internal */
+export const WebhookEventEntityWebhookSubscriptionTrialingEventEntity$outboundSchema:
+  z.ZodType<
+    WebhookEventEntityWebhookSubscriptionTrialingEventEntity$Outbound,
+    z.ZodTypeDef,
+    WebhookEventEntityWebhookSubscriptionTrialingEventEntity
+  > = z.object({
+    id: z.string(),
+    eventType:
+      WebhookSubscriptionTrialingEventEntityWebhookEventEntityEventType$outboundSchema,
+    createdAt: z.number(),
+    object: WebhookSubscriptionEntity$outboundSchema,
+  }).transform((v) => {
+    return remap$(v, {
+      createdAt: "created_at",
+    });
+  });
+
+export function webhookEventEntityWebhookSubscriptionTrialingEventEntityToJSON(
+  webhookEventEntityWebhookSubscriptionTrialingEventEntity:
+    WebhookEventEntityWebhookSubscriptionTrialingEventEntity,
+): string {
+  return JSON.stringify(
+    WebhookEventEntityWebhookSubscriptionTrialingEventEntity$outboundSchema
+      .parse(webhookEventEntityWebhookSubscriptionTrialingEventEntity),
+  );
+}
+export function webhookEventEntityWebhookSubscriptionTrialingEventEntityFromJSON(
+  jsonString: string,
+): SafeParseResult<
+  WebhookEventEntityWebhookSubscriptionTrialingEventEntity,
+  SDKValidationError
+> {
+  return safeParse(
+    jsonString,
+    (x) =>
+      WebhookEventEntityWebhookSubscriptionTrialingEventEntity$inboundSchema
+        .parse(JSON.parse(x)),
+    `Failed to parse 'WebhookEventEntityWebhookSubscriptionTrialingEventEntity' from JSON`,
+  );
+}
+
+/** @internal */
+export const WebhookSubscriptionActiveEventEntityWebhookEventEntityEventType$inboundSchema:
+  z.ZodNativeEnum<
+    typeof WebhookSubscriptionActiveEventEntityWebhookEventEntityEventType
+  > = z.nativeEnum(
+    WebhookSubscriptionActiveEventEntityWebhookEventEntityEventType,
+  );
+/** @internal */
+export const WebhookSubscriptionActiveEventEntityWebhookEventEntityEventType$outboundSchema:
+  z.ZodNativeEnum<
+    typeof WebhookSubscriptionActiveEventEntityWebhookEventEntityEventType
+  > =
+    WebhookSubscriptionActiveEventEntityWebhookEventEntityEventType$inboundSchema;
+
+/** @internal */
+export const WebhookEventEntityWebhookSubscriptionActiveEventEntity$inboundSchema:
+  z.ZodType<
+    WebhookEventEntityWebhookSubscriptionActiveEventEntity,
+    z.ZodTypeDef,
+    unknown
+  > = z.object({
+    id: z.string(),
+    eventType:
+      WebhookSubscriptionActiveEventEntityWebhookEventEntityEventType$inboundSchema,
+    created_at: z.number(),
+    object: WebhookSubscriptionEntity$inboundSchema,
+  }).transform((v) => {
+    return remap$(v, {
+      "created_at": "createdAt",
+    });
+  });
+/** @internal */
+export type WebhookEventEntityWebhookSubscriptionActiveEventEntity$Outbound = {
+  id: string;
+  eventType: string;
+  created_at: number;
+  object: WebhookSubscriptionEntity$Outbound;
+};
+
+/** @internal */
+export const WebhookEventEntityWebhookSubscriptionActiveEventEntity$outboundSchema:
+  z.ZodType<
+    WebhookEventEntityWebhookSubscriptionActiveEventEntity$Outbound,
+    z.ZodTypeDef,
+    WebhookEventEntityWebhookSubscriptionActiveEventEntity
+  > = z.object({
+    id: z.string(),
+    eventType:
+      WebhookSubscriptionActiveEventEntityWebhookEventEntityEventType$outboundSchema,
+    createdAt: z.number(),
+    object: WebhookSubscriptionEntity$outboundSchema,
+  }).transform((v) => {
+    return remap$(v, {
+      createdAt: "created_at",
+    });
+  });
+
+export function webhookEventEntityWebhookSubscriptionActiveEventEntityToJSON(
+  webhookEventEntityWebhookSubscriptionActiveEventEntity:
+    WebhookEventEntityWebhookSubscriptionActiveEventEntity,
+): string {
+  return JSON.stringify(
+    WebhookEventEntityWebhookSubscriptionActiveEventEntity$outboundSchema.parse(
+      webhookEventEntityWebhookSubscriptionActiveEventEntity,
+    ),
+  );
+}
+export function webhookEventEntityWebhookSubscriptionActiveEventEntityFromJSON(
+  jsonString: string,
+): SafeParseResult<
+  WebhookEventEntityWebhookSubscriptionActiveEventEntity,
+  SDKValidationError
+> {
+  return safeParse(
+    jsonString,
+    (x) =>
+      WebhookEventEntityWebhookSubscriptionActiveEventEntity$inboundSchema
+        .parse(JSON.parse(x)),
+    `Failed to parse 'WebhookEventEntityWebhookSubscriptionActiveEventEntity' from JSON`,
+  );
+}
+
+/** @internal */
+export const WebhookCreditsAutoRechargedEventEntityWebhookEventEntityEventType$inboundSchema:
+  z.ZodNativeEnum<
+    typeof WebhookCreditsAutoRechargedEventEntityWebhookEventEntityEventType
+  > = z.nativeEnum(
+    WebhookCreditsAutoRechargedEventEntityWebhookEventEntityEventType,
+  );
+/** @internal */
+export const WebhookCreditsAutoRechargedEventEntityWebhookEventEntityEventType$outboundSchema:
+  z.ZodNativeEnum<
+    typeof WebhookCreditsAutoRechargedEventEntityWebhookEventEntityEventType
+  > =
+    WebhookCreditsAutoRechargedEventEntityWebhookEventEntityEventType$inboundSchema;
+
+/** @internal */
+export const WebhookEventEntityWebhookCreditsAutoRechargedEventEntity$inboundSchema:
+  z.ZodType<
+    WebhookEventEntityWebhookCreditsAutoRechargedEventEntity,
+    z.ZodTypeDef,
+    unknown
+  > = z.object({
+    id: z.string(),
+    eventType:
+      WebhookCreditsAutoRechargedEventEntityWebhookEventEntityEventType$inboundSchema,
+    created_at: z.number(),
+    object: CustomerCreditsAutoRechargeEntity$inboundSchema,
+  }).transform((v) => {
+    return remap$(v, {
+      "created_at": "createdAt",
+    });
+  });
+/** @internal */
+export type WebhookEventEntityWebhookCreditsAutoRechargedEventEntity$Outbound =
+  {
+    id: string;
+    eventType: string;
+    created_at: number;
+    object: CustomerCreditsAutoRechargeEntity$Outbound;
+  };
+
+/** @internal */
+export const WebhookEventEntityWebhookCreditsAutoRechargedEventEntity$outboundSchema:
+  z.ZodType<
+    WebhookEventEntityWebhookCreditsAutoRechargedEventEntity$Outbound,
+    z.ZodTypeDef,
+    WebhookEventEntityWebhookCreditsAutoRechargedEventEntity
+  > = z.object({
+    id: z.string(),
+    eventType:
+      WebhookCreditsAutoRechargedEventEntityWebhookEventEntityEventType$outboundSchema,
+    createdAt: z.number(),
+    object: CustomerCreditsAutoRechargeEntity$outboundSchema,
+  }).transform((v) => {
+    return remap$(v, {
+      createdAt: "created_at",
+    });
+  });
+
+export function webhookEventEntityWebhookCreditsAutoRechargedEventEntityToJSON(
+  webhookEventEntityWebhookCreditsAutoRechargedEventEntity:
+    WebhookEventEntityWebhookCreditsAutoRechargedEventEntity,
+): string {
+  return JSON.stringify(
+    WebhookEventEntityWebhookCreditsAutoRechargedEventEntity$outboundSchema
+      .parse(webhookEventEntityWebhookCreditsAutoRechargedEventEntity),
+  );
+}
+export function webhookEventEntityWebhookCreditsAutoRechargedEventEntityFromJSON(
+  jsonString: string,
+): SafeParseResult<
+  WebhookEventEntityWebhookCreditsAutoRechargedEventEntity,
+  SDKValidationError
+> {
+  return safeParse(
+    jsonString,
+    (x) =>
+      WebhookEventEntityWebhookCreditsAutoRechargedEventEntity$inboundSchema
+        .parse(JSON.parse(x)),
+    `Failed to parse 'WebhookEventEntityWebhookCreditsAutoRechargedEventEntity' from JSON`,
+  );
+}
+
+/** @internal */
+export const WebhookCreditsConsumedEventEntityWebhookEventEntityEventType$inboundSchema:
+  z.ZodNativeEnum<
+    typeof WebhookCreditsConsumedEventEntityWebhookEventEntityEventType
+  > = z.nativeEnum(
+    WebhookCreditsConsumedEventEntityWebhookEventEntityEventType,
+  );
+/** @internal */
+export const WebhookCreditsConsumedEventEntityWebhookEventEntityEventType$outboundSchema:
+  z.ZodNativeEnum<
+    typeof WebhookCreditsConsumedEventEntityWebhookEventEntityEventType
+  > =
+    WebhookCreditsConsumedEventEntityWebhookEventEntityEventType$inboundSchema;
+
+/** @internal */
+export const WebhookEventEntityWebhookCreditsConsumedEventEntity$inboundSchema:
+  z.ZodType<
+    WebhookEventEntityWebhookCreditsConsumedEventEntity,
+    z.ZodTypeDef,
+    unknown
+  > = z.object({
+    id: z.string(),
+    eventType:
+      WebhookCreditsConsumedEventEntityWebhookEventEntityEventType$inboundSchema,
+    created_at: z.number(),
+    object: CustomerCreditsConsumptionEntity$inboundSchema,
+  }).transform((v) => {
+    return remap$(v, {
+      "created_at": "createdAt",
+    });
+  });
+/** @internal */
+export type WebhookEventEntityWebhookCreditsConsumedEventEntity$Outbound = {
+  id: string;
+  eventType: string;
+  created_at: number;
+  object: CustomerCreditsConsumptionEntity$Outbound;
+};
+
+/** @internal */
+export const WebhookEventEntityWebhookCreditsConsumedEventEntity$outboundSchema:
+  z.ZodType<
+    WebhookEventEntityWebhookCreditsConsumedEventEntity$Outbound,
+    z.ZodTypeDef,
+    WebhookEventEntityWebhookCreditsConsumedEventEntity
+  > = z.object({
+    id: z.string(),
+    eventType:
+      WebhookCreditsConsumedEventEntityWebhookEventEntityEventType$outboundSchema,
+    createdAt: z.number(),
+    object: CustomerCreditsConsumptionEntity$outboundSchema,
+  }).transform((v) => {
+    return remap$(v, {
+      createdAt: "created_at",
+    });
+  });
+
+export function webhookEventEntityWebhookCreditsConsumedEventEntityToJSON(
+  webhookEventEntityWebhookCreditsConsumedEventEntity:
+    WebhookEventEntityWebhookCreditsConsumedEventEntity,
+): string {
+  return JSON.stringify(
+    WebhookEventEntityWebhookCreditsConsumedEventEntity$outboundSchema.parse(
+      webhookEventEntityWebhookCreditsConsumedEventEntity,
+    ),
+  );
+}
+export function webhookEventEntityWebhookCreditsConsumedEventEntityFromJSON(
+  jsonString: string,
+): SafeParseResult<
+  WebhookEventEntityWebhookCreditsConsumedEventEntity,
+  SDKValidationError
+> {
+  return safeParse(
+    jsonString,
+    (x) =>
+      WebhookEventEntityWebhookCreditsConsumedEventEntity$inboundSchema.parse(
+        JSON.parse(x),
+      ),
+    `Failed to parse 'WebhookEventEntityWebhookCreditsConsumedEventEntity' from JSON`,
+  );
+}
+
+/** @internal */
+export const WebhookCreditsGrantedEventEntityWebhookEventEntityEventType$inboundSchema:
+  z.ZodNativeEnum<
+    typeof WebhookCreditsGrantedEventEntityWebhookEventEntityEventType
+  > = z.nativeEnum(WebhookCreditsGrantedEventEntityWebhookEventEntityEventType);
+/** @internal */
+export const WebhookCreditsGrantedEventEntityWebhookEventEntityEventType$outboundSchema:
+  z.ZodNativeEnum<
+    typeof WebhookCreditsGrantedEventEntityWebhookEventEntityEventType
+  > = WebhookCreditsGrantedEventEntityWebhookEventEntityEventType$inboundSchema;
+
+/** @internal */
+export const WebhookEventEntityWebhookCreditsGrantedEventEntity$inboundSchema:
+  z.ZodType<
+    WebhookEventEntityWebhookCreditsGrantedEventEntity,
+    z.ZodTypeDef,
+    unknown
+  > = z.object({
+    id: z.string(),
+    eventType:
+      WebhookCreditsGrantedEventEntityWebhookEventEntityEventType$inboundSchema,
+    created_at: z.number(),
+    object: CustomerCreditsGrantEntity$inboundSchema,
+  }).transform((v) => {
+    return remap$(v, {
+      "created_at": "createdAt",
+    });
+  });
+/** @internal */
+export type WebhookEventEntityWebhookCreditsGrantedEventEntity$Outbound = {
+  id: string;
+  eventType: string;
+  created_at: number;
+  object: CustomerCreditsGrantEntity$Outbound;
+};
+
+/** @internal */
+export const WebhookEventEntityWebhookCreditsGrantedEventEntity$outboundSchema:
+  z.ZodType<
+    WebhookEventEntityWebhookCreditsGrantedEventEntity$Outbound,
+    z.ZodTypeDef,
+    WebhookEventEntityWebhookCreditsGrantedEventEntity
+  > = z.object({
+    id: z.string(),
+    eventType:
+      WebhookCreditsGrantedEventEntityWebhookEventEntityEventType$outboundSchema,
+    createdAt: z.number(),
+    object: CustomerCreditsGrantEntity$outboundSchema,
+  }).transform((v) => {
+    return remap$(v, {
+      createdAt: "created_at",
+    });
+  });
+
+export function webhookEventEntityWebhookCreditsGrantedEventEntityToJSON(
+  webhookEventEntityWebhookCreditsGrantedEventEntity:
+    WebhookEventEntityWebhookCreditsGrantedEventEntity,
+): string {
+  return JSON.stringify(
+    WebhookEventEntityWebhookCreditsGrantedEventEntity$outboundSchema.parse(
+      webhookEventEntityWebhookCreditsGrantedEventEntity,
+    ),
+  );
+}
+export function webhookEventEntityWebhookCreditsGrantedEventEntityFromJSON(
+  jsonString: string,
+): SafeParseResult<
+  WebhookEventEntityWebhookCreditsGrantedEventEntity,
+  SDKValidationError
+> {
+  return safeParse(
+    jsonString,
+    (x) =>
+      WebhookEventEntityWebhookCreditsGrantedEventEntity$inboundSchema.parse(
+        JSON.parse(x),
+      ),
+    `Failed to parse 'WebhookEventEntityWebhookCreditsGrantedEventEntity' from JSON`,
+  );
+}
+
+/** @internal */
+export const WebhookCustomerCreditsExhaustedEventEntityWebhookEventEntityEventType$inboundSchema:
+  z.ZodNativeEnum<
+    typeof WebhookCustomerCreditsExhaustedEventEntityWebhookEventEntityEventType
+  > = z.nativeEnum(
+    WebhookCustomerCreditsExhaustedEventEntityWebhookEventEntityEventType,
+  );
+/** @internal */
+export const WebhookCustomerCreditsExhaustedEventEntityWebhookEventEntityEventType$outboundSchema:
+  z.ZodNativeEnum<
+    typeof WebhookCustomerCreditsExhaustedEventEntityWebhookEventEntityEventType
+  > =
+    WebhookCustomerCreditsExhaustedEventEntityWebhookEventEntityEventType$inboundSchema;
+
+/** @internal */
+export const WebhookEventEntityWebhookCustomerCreditsExhaustedEventEntity$inboundSchema:
+  z.ZodType<
+    WebhookEventEntityWebhookCustomerCreditsExhaustedEventEntity,
+    z.ZodTypeDef,
+    unknown
+  > = z.object({
+    id: z.string(),
+    eventType:
+      WebhookCustomerCreditsExhaustedEventEntityWebhookEventEntityEventType$inboundSchema,
+    created_at: z.number(),
+    object: CustomerCreditsExhaustionEntity$inboundSchema,
+  }).transform((v) => {
+    return remap$(v, {
+      "created_at": "createdAt",
+    });
+  });
+/** @internal */
+export type WebhookEventEntityWebhookCustomerCreditsExhaustedEventEntity$Outbound =
+  {
+    id: string;
+    eventType: string;
+    created_at: number;
+    object: CustomerCreditsExhaustionEntity$Outbound;
+  };
+
+/** @internal */
+export const WebhookEventEntityWebhookCustomerCreditsExhaustedEventEntity$outboundSchema:
+  z.ZodType<
+    WebhookEventEntityWebhookCustomerCreditsExhaustedEventEntity$Outbound,
+    z.ZodTypeDef,
+    WebhookEventEntityWebhookCustomerCreditsExhaustedEventEntity
+  > = z.object({
+    id: z.string(),
+    eventType:
+      WebhookCustomerCreditsExhaustedEventEntityWebhookEventEntityEventType$outboundSchema,
+    createdAt: z.number(),
+    object: CustomerCreditsExhaustionEntity$outboundSchema,
+  }).transform((v) => {
+    return remap$(v, {
+      createdAt: "created_at",
+    });
+  });
+
+export function webhookEventEntityWebhookCustomerCreditsExhaustedEventEntityToJSON(
+  webhookEventEntityWebhookCustomerCreditsExhaustedEventEntity:
+    WebhookEventEntityWebhookCustomerCreditsExhaustedEventEntity,
+): string {
+  return JSON.stringify(
+    WebhookEventEntityWebhookCustomerCreditsExhaustedEventEntity$outboundSchema
+      .parse(webhookEventEntityWebhookCustomerCreditsExhaustedEventEntity),
+  );
+}
+export function webhookEventEntityWebhookCustomerCreditsExhaustedEventEntityFromJSON(
+  jsonString: string,
+): SafeParseResult<
+  WebhookEventEntityWebhookCustomerCreditsExhaustedEventEntity,
+  SDKValidationError
+> {
+  return safeParse(
+    jsonString,
+    (x) =>
+      WebhookEventEntityWebhookCustomerCreditsExhaustedEventEntity$inboundSchema
+        .parse(JSON.parse(x)),
+    `Failed to parse 'WebhookEventEntityWebhookCustomerCreditsExhaustedEventEntity' from JSON`,
+  );
+}
+
+/** @internal */
+export const WebhookDisputeCreatedEventEntityWebhookEventEntityEventType$inboundSchema:
+  z.ZodNativeEnum<
+    typeof WebhookDisputeCreatedEventEntityWebhookEventEntityEventType
+  > = z.nativeEnum(WebhookDisputeCreatedEventEntityWebhookEventEntityEventType);
+/** @internal */
+export const WebhookDisputeCreatedEventEntityWebhookEventEntityEventType$outboundSchema:
+  z.ZodNativeEnum<
+    typeof WebhookDisputeCreatedEventEntityWebhookEventEntityEventType
+  > = WebhookDisputeCreatedEventEntityWebhookEventEntityEventType$inboundSchema;
+
+/** @internal */
+export const WebhookEventEntityWebhookDisputeCreatedEventEntity$inboundSchema:
+  z.ZodType<
+    WebhookEventEntityWebhookDisputeCreatedEventEntity,
+    z.ZodTypeDef,
+    unknown
+  > = z.object({
+    id: z.string(),
+    eventType:
+      WebhookDisputeCreatedEventEntityWebhookEventEntityEventType$inboundSchema,
+    created_at: z.number(),
+    object: DisputeEntity$inboundSchema,
+  }).transform((v) => {
+    return remap$(v, {
+      "created_at": "createdAt",
+    });
+  });
+/** @internal */
+export type WebhookEventEntityWebhookDisputeCreatedEventEntity$Outbound = {
+  id: string;
+  eventType: string;
+  created_at: number;
+  object: DisputeEntity$Outbound;
+};
+
+/** @internal */
+export const WebhookEventEntityWebhookDisputeCreatedEventEntity$outboundSchema:
+  z.ZodType<
+    WebhookEventEntityWebhookDisputeCreatedEventEntity$Outbound,
+    z.ZodTypeDef,
+    WebhookEventEntityWebhookDisputeCreatedEventEntity
+  > = z.object({
+    id: z.string(),
+    eventType:
+      WebhookDisputeCreatedEventEntityWebhookEventEntityEventType$outboundSchema,
+    createdAt: z.number(),
+    object: DisputeEntity$outboundSchema,
+  }).transform((v) => {
+    return remap$(v, {
+      createdAt: "created_at",
+    });
+  });
+
+export function webhookEventEntityWebhookDisputeCreatedEventEntityToJSON(
+  webhookEventEntityWebhookDisputeCreatedEventEntity:
+    WebhookEventEntityWebhookDisputeCreatedEventEntity,
+): string {
+  return JSON.stringify(
+    WebhookEventEntityWebhookDisputeCreatedEventEntity$outboundSchema.parse(
+      webhookEventEntityWebhookDisputeCreatedEventEntity,
+    ),
+  );
+}
+export function webhookEventEntityWebhookDisputeCreatedEventEntityFromJSON(
+  jsonString: string,
+): SafeParseResult<
+  WebhookEventEntityWebhookDisputeCreatedEventEntity,
+  SDKValidationError
+> {
+  return safeParse(
+    jsonString,
+    (x) =>
+      WebhookEventEntityWebhookDisputeCreatedEventEntity$inboundSchema.parse(
+        JSON.parse(x),
+      ),
+    `Failed to parse 'WebhookEventEntityWebhookDisputeCreatedEventEntity' from JSON`,
+  );
+}
+
+/** @internal */
+export const WebhookRefundCreatedEventEntityWebhookEventEntityEventType$inboundSchema:
+  z.ZodNativeEnum<
+    typeof WebhookRefundCreatedEventEntityWebhookEventEntityEventType
+  > = z.nativeEnum(WebhookRefundCreatedEventEntityWebhookEventEntityEventType);
+/** @internal */
+export const WebhookRefundCreatedEventEntityWebhookEventEntityEventType$outboundSchema:
+  z.ZodNativeEnum<
+    typeof WebhookRefundCreatedEventEntityWebhookEventEntityEventType
+  > = WebhookRefundCreatedEventEntityWebhookEventEntityEventType$inboundSchema;
+
+/** @internal */
+export const WebhookEventEntityWebhookRefundCreatedEventEntity$inboundSchema:
+  z.ZodType<
+    WebhookEventEntityWebhookRefundCreatedEventEntity,
+    z.ZodTypeDef,
+    unknown
+  > = z.object({
+    id: z.string(),
+    eventType:
+      WebhookRefundCreatedEventEntityWebhookEventEntityEventType$inboundSchema,
+    created_at: z.number(),
+    object: RefundEntity$inboundSchema,
+  }).transform((v) => {
+    return remap$(v, {
+      "created_at": "createdAt",
+    });
+  });
+/** @internal */
+export type WebhookEventEntityWebhookRefundCreatedEventEntity$Outbound = {
+  id: string;
+  eventType: string;
+  created_at: number;
+  object: RefundEntity$Outbound;
+};
+
+/** @internal */
+export const WebhookEventEntityWebhookRefundCreatedEventEntity$outboundSchema:
+  z.ZodType<
+    WebhookEventEntityWebhookRefundCreatedEventEntity$Outbound,
+    z.ZodTypeDef,
+    WebhookEventEntityWebhookRefundCreatedEventEntity
+  > = z.object({
+    id: z.string(),
+    eventType:
+      WebhookRefundCreatedEventEntityWebhookEventEntityEventType$outboundSchema,
+    createdAt: z.number(),
+    object: RefundEntity$outboundSchema,
+  }).transform((v) => {
+    return remap$(v, {
+      createdAt: "created_at",
+    });
+  });
+
+export function webhookEventEntityWebhookRefundCreatedEventEntityToJSON(
+  webhookEventEntityWebhookRefundCreatedEventEntity:
+    WebhookEventEntityWebhookRefundCreatedEventEntity,
+): string {
+  return JSON.stringify(
+    WebhookEventEntityWebhookRefundCreatedEventEntity$outboundSchema.parse(
+      webhookEventEntityWebhookRefundCreatedEventEntity,
+    ),
+  );
+}
+export function webhookEventEntityWebhookRefundCreatedEventEntityFromJSON(
+  jsonString: string,
+): SafeParseResult<
+  WebhookEventEntityWebhookRefundCreatedEventEntity,
+  SDKValidationError
+> {
+  return safeParse(
+    jsonString,
+    (x) =>
+      WebhookEventEntityWebhookRefundCreatedEventEntity$inboundSchema.parse(
+        JSON.parse(x),
+      ),
+    `Failed to parse 'WebhookEventEntityWebhookRefundCreatedEventEntity' from JSON`,
+  );
+}
+
+/** @internal */
+export const WebhookCheckoutCompletedEventEntityEventType$inboundSchema:
+  z.ZodNativeEnum<typeof WebhookCheckoutCompletedEventEntityEventType> = z
+    .nativeEnum(WebhookCheckoutCompletedEventEntityEventType);
+/** @internal */
+export const WebhookCheckoutCompletedEventEntityEventType$outboundSchema:
+  z.ZodNativeEnum<typeof WebhookCheckoutCompletedEventEntityEventType> =
+    WebhookCheckoutCompletedEventEntityEventType$inboundSchema;
+
+/** @internal */
+export const WebhookEventEntityWebhookCheckoutCompletedEventEntity$inboundSchema:
+  z.ZodType<
+    WebhookEventEntityWebhookCheckoutCompletedEventEntity,
+    z.ZodTypeDef,
+    unknown
+  > = z.object({
+    id: z.string(),
+    eventType: WebhookCheckoutCompletedEventEntityEventType$inboundSchema,
+    created_at: z.number(),
+    object: CheckoutEntity$inboundSchema,
+  }).transform((v) => {
+    return remap$(v, {
+      "created_at": "createdAt",
+    });
+  });
+/** @internal */
+export type WebhookEventEntityWebhookCheckoutCompletedEventEntity$Outbound = {
+  id: string;
+  eventType: string;
+  created_at: number;
+  object: CheckoutEntity$Outbound;
+};
+
+/** @internal */
+export const WebhookEventEntityWebhookCheckoutCompletedEventEntity$outboundSchema:
+  z.ZodType<
+    WebhookEventEntityWebhookCheckoutCompletedEventEntity$Outbound,
+    z.ZodTypeDef,
+    WebhookEventEntityWebhookCheckoutCompletedEventEntity
+  > = z.object({
+    id: z.string(),
+    eventType: WebhookCheckoutCompletedEventEntityEventType$outboundSchema,
+    createdAt: z.number(),
+    object: CheckoutEntity$outboundSchema,
+  }).transform((v) => {
+    return remap$(v, {
+      createdAt: "created_at",
+    });
+  });
+
+export function webhookEventEntityWebhookCheckoutCompletedEventEntityToJSON(
+  webhookEventEntityWebhookCheckoutCompletedEventEntity:
+    WebhookEventEntityWebhookCheckoutCompletedEventEntity,
+): string {
+  return JSON.stringify(
+    WebhookEventEntityWebhookCheckoutCompletedEventEntity$outboundSchema.parse(
+      webhookEventEntityWebhookCheckoutCompletedEventEntity,
+    ),
+  );
+}
+export function webhookEventEntityWebhookCheckoutCompletedEventEntityFromJSON(
+  jsonString: string,
+): SafeParseResult<
+  WebhookEventEntityWebhookCheckoutCompletedEventEntity,
+  SDKValidationError
+> {
+  return safeParse(
+    jsonString,
+    (x) =>
+      WebhookEventEntityWebhookCheckoutCompletedEventEntity$inboundSchema.parse(
+        JSON.parse(x),
+      ),
+    `Failed to parse 'WebhookEventEntityWebhookCheckoutCompletedEventEntity' from JSON`,
+  );
+}
 
 /** @internal */
 export const WebhookEventEntity$inboundSchema: z.ZodType<
   WebhookEventEntity,
   z.ZodTypeDef,
   unknown
-> = z.union([
-  WebhookCheckoutCompletedEventEntity$inboundSchema.and(
-    z.object({ eventType: z.literal("checkout.completed") }),
-  ),
-  WebhookRefundCreatedEventEntity$inboundSchema.and(
-    z.object({ eventType: z.literal("refund.created") }),
-  ),
-  WebhookDisputeCreatedEventEntity$inboundSchema.and(
-    z.object({ eventType: z.literal("dispute.created") }),
-  ),
-  WebhookCustomerCreditsExhaustedEventEntity$inboundSchema.and(
-    z.object({ eventType: z.literal("customer_credits.exhausted") }),
-  ),
-  WebhookCreditsGrantedEventEntity$inboundSchema.and(
-    z.object({ eventType: z.literal("credits.granted") }),
-  ),
-  WebhookCreditsConsumedEventEntity$inboundSchema.and(
-    z.object({ eventType: z.literal("credits.consumed") }),
-  ),
-  WebhookCreditsAutoRechargedEventEntity$inboundSchema.and(
-    z.object({ eventType: z.literal("credits.auto_recharged") }),
-  ),
-  WebhookSubscriptionActiveEventEntity$inboundSchema.and(
-    z.object({ eventType: z.literal("subscription.active") }),
-  ),
-  WebhookSubscriptionTrialingEventEntity$inboundSchema.and(
-    z.object({ eventType: z.literal("subscription.trialing") }),
-  ),
-  WebhookSubscriptionCanceledEventEntity$inboundSchema.and(
-    z.object({ eventType: z.literal("subscription.canceled") }),
-  ),
-  WebhookSubscriptionScheduledCancelEventEntity$inboundSchema.and(
-    z.object({ eventType: z.literal("subscription.scheduled_cancel") }),
-  ),
-  WebhookSubscriptionPaidEventEntity$inboundSchema.and(
-    z.object({ eventType: z.literal("subscription.paid") }),
-  ),
-  WebhookSubscriptionExpiredEventEntity$inboundSchema.and(
-    z.object({ eventType: z.literal("subscription.expired") }),
-  ),
-  WebhookSubscriptionUnpaidEventEntity$inboundSchema.and(
-    z.object({ eventType: z.literal("subscription.unpaid") }),
-  ),
-  WebhookSubscriptionUpdateEventEntity$inboundSchema.and(
-    z.object({ eventType: z.literal("subscription.update") }),
-  ),
-  WebhookSubscriptionPastDueEventEntity$inboundSchema.and(
-    z.object({ eventType: z.literal("subscription.past_due") }),
-  ),
-  WebhookSubscriptionPausedEventEntity$inboundSchema.and(
-    z.object({ eventType: z.literal("subscription.paused") }),
-  ),
-]);
+> = discriminatedUnion("eventType", {
+  ["checkout.completed"]: z.lazy(() =>
+    WebhookEventEntityWebhookCheckoutCompletedEventEntity$inboundSchema
+  ).and(z.object({ eventType: z.literal("checkout.completed") })),
+  ["refund.created"]: z.lazy(() =>
+    WebhookEventEntityWebhookRefundCreatedEventEntity$inboundSchema
+  ).and(z.object({ eventType: z.literal("refund.created") })),
+  ["dispute.created"]: z.lazy(() =>
+    WebhookEventEntityWebhookDisputeCreatedEventEntity$inboundSchema
+  ).and(z.object({ eventType: z.literal("dispute.created") })),
+  ["customer_credits.exhausted"]: z.lazy(() =>
+    WebhookEventEntityWebhookCustomerCreditsExhaustedEventEntity$inboundSchema
+  ).and(z.object({ eventType: z.literal("customer_credits.exhausted") })),
+  ["credits.granted"]: z.lazy(() =>
+    WebhookEventEntityWebhookCreditsGrantedEventEntity$inboundSchema
+  ).and(z.object({ eventType: z.literal("credits.granted") })),
+  ["credits.consumed"]: z.lazy(() =>
+    WebhookEventEntityWebhookCreditsConsumedEventEntity$inboundSchema
+  ).and(z.object({ eventType: z.literal("credits.consumed") })),
+  ["credits.auto_recharged"]: z.lazy(() =>
+    WebhookEventEntityWebhookCreditsAutoRechargedEventEntity$inboundSchema
+  ).and(z.object({ eventType: z.literal("credits.auto_recharged") })),
+  ["subscription.active"]: z.lazy(() =>
+    WebhookEventEntityWebhookSubscriptionActiveEventEntity$inboundSchema
+  ).and(z.object({ eventType: z.literal("subscription.active") })),
+  ["subscription.trialing"]: z.lazy(() =>
+    WebhookEventEntityWebhookSubscriptionTrialingEventEntity$inboundSchema
+  ).and(z.object({ eventType: z.literal("subscription.trialing") })),
+  ["subscription.canceled"]: z.lazy(() =>
+    WebhookEventEntityWebhookSubscriptionCanceledEventEntity$inboundSchema
+  ).and(z.object({ eventType: z.literal("subscription.canceled") })),
+  ["subscription.scheduled_cancel"]: z.lazy(() =>
+    WebhookEventEntityWebhookSubscriptionScheduledCancelEventEntity$inboundSchema
+  ).and(z.object({ eventType: z.literal("subscription.scheduled_cancel") })),
+  ["subscription.paid"]: z.lazy(() =>
+    WebhookEventEntityWebhookSubscriptionPaidEventEntity$inboundSchema
+  ).and(z.object({ eventType: z.literal("subscription.paid") })),
+  ["subscription.expired"]: z.lazy(() =>
+    WebhookEventEntityWebhookSubscriptionExpiredEventEntity$inboundSchema
+  ).and(z.object({ eventType: z.literal("subscription.expired") })),
+  ["subscription.unpaid"]: z.lazy(() =>
+    WebhookEventEntityWebhookSubscriptionUnpaidEventEntity$inboundSchema
+  ).and(z.object({ eventType: z.literal("subscription.unpaid") })),
+  ["subscription.update"]: z.lazy(() =>
+    WebhookEventEntityWebhookSubscriptionUpdateEventEntity$inboundSchema
+  ).and(z.object({ eventType: z.literal("subscription.update") })),
+  ["subscription.past_due"]: z.lazy(() =>
+    WebhookEventEntityWebhookSubscriptionPastDueEventEntity$inboundSchema
+  ).and(z.object({ eventType: z.literal("subscription.past_due") })),
+  ["subscription.paused"]: z.lazy(() =>
+    WebhookEventEntityWebhookSubscriptionPausedEventEntity$inboundSchema
+  ).and(z.object({ eventType: z.literal("subscription.paused") })),
+});
 /** @internal */
 export type WebhookEventEntity$Outbound =
-  | (WebhookCheckoutCompletedEventEntity$Outbound & {
+  | (WebhookEventEntityWebhookCheckoutCompletedEventEntity$Outbound & {
     eventType: "checkout.completed";
   })
-  | (WebhookRefundCreatedEventEntity$Outbound & { eventType: "refund.created" })
-  | (WebhookDisputeCreatedEventEntity$Outbound & {
+  | (WebhookEventEntityWebhookRefundCreatedEventEntity$Outbound & {
+    eventType: "refund.created";
+  })
+  | (WebhookEventEntityWebhookDisputeCreatedEventEntity$Outbound & {
     eventType: "dispute.created";
   })
-  | (WebhookCustomerCreditsExhaustedEventEntity$Outbound & {
+  | (WebhookEventEntityWebhookCustomerCreditsExhaustedEventEntity$Outbound & {
     eventType: "customer_credits.exhausted";
   })
-  | (WebhookCreditsGrantedEventEntity$Outbound & {
+  | (WebhookEventEntityWebhookCreditsGrantedEventEntity$Outbound & {
     eventType: "credits.granted";
   })
-  | (WebhookCreditsConsumedEventEntity$Outbound & {
+  | (WebhookEventEntityWebhookCreditsConsumedEventEntity$Outbound & {
     eventType: "credits.consumed";
   })
-  | (WebhookCreditsAutoRechargedEventEntity$Outbound & {
+  | (WebhookEventEntityWebhookCreditsAutoRechargedEventEntity$Outbound & {
     eventType: "credits.auto_recharged";
   })
-  | (WebhookSubscriptionActiveEventEntity$Outbound & {
+  | (WebhookEventEntityWebhookSubscriptionActiveEventEntity$Outbound & {
     eventType: "subscription.active";
   })
-  | (WebhookSubscriptionTrialingEventEntity$Outbound & {
+  | (WebhookEventEntityWebhookSubscriptionTrialingEventEntity$Outbound & {
     eventType: "subscription.trialing";
   })
-  | (WebhookSubscriptionCanceledEventEntity$Outbound & {
+  | (WebhookEventEntityWebhookSubscriptionCanceledEventEntity$Outbound & {
     eventType: "subscription.canceled";
   })
-  | (WebhookSubscriptionScheduledCancelEventEntity$Outbound & {
-    eventType: "subscription.scheduled_cancel";
-  })
-  | (WebhookSubscriptionPaidEventEntity$Outbound & {
+  | (
+    & WebhookEventEntityWebhookSubscriptionScheduledCancelEventEntity$Outbound
+    & { eventType: "subscription.scheduled_cancel" }
+  )
+  | (WebhookEventEntityWebhookSubscriptionPaidEventEntity$Outbound & {
     eventType: "subscription.paid";
   })
-  | (WebhookSubscriptionExpiredEventEntity$Outbound & {
+  | (WebhookEventEntityWebhookSubscriptionExpiredEventEntity$Outbound & {
     eventType: "subscription.expired";
   })
-  | (WebhookSubscriptionUnpaidEventEntity$Outbound & {
+  | (WebhookEventEntityWebhookSubscriptionUnpaidEventEntity$Outbound & {
     eventType: "subscription.unpaid";
   })
-  | (WebhookSubscriptionUpdateEventEntity$Outbound & {
+  | (WebhookEventEntityWebhookSubscriptionUpdateEventEntity$Outbound & {
     eventType: "subscription.update";
   })
-  | (WebhookSubscriptionPastDueEventEntity$Outbound & {
+  | (WebhookEventEntityWebhookSubscriptionPastDueEventEntity$Outbound & {
     eventType: "subscription.past_due";
   })
-  | (WebhookSubscriptionPausedEventEntity$Outbound & {
+  | (WebhookEventEntityWebhookSubscriptionPausedEventEntity$Outbound & {
     eventType: "subscription.paused";
   });
 
@@ -269,57 +2184,56 @@ export const WebhookEventEntity$outboundSchema: z.ZodType<
   z.ZodTypeDef,
   WebhookEventEntity
 > = z.union([
-  WebhookCheckoutCompletedEventEntity$outboundSchema.and(
-    z.object({ eventType: z.literal("checkout.completed") }),
-  ),
-  WebhookRefundCreatedEventEntity$outboundSchema.and(
-    z.object({ eventType: z.literal("refund.created") }),
-  ),
-  WebhookDisputeCreatedEventEntity$outboundSchema.and(
-    z.object({ eventType: z.literal("dispute.created") }),
-  ),
-  WebhookCustomerCreditsExhaustedEventEntity$outboundSchema.and(
-    z.object({ eventType: z.literal("customer_credits.exhausted") }),
-  ),
-  WebhookCreditsGrantedEventEntity$outboundSchema.and(
-    z.object({ eventType: z.literal("credits.granted") }),
-  ),
-  WebhookCreditsConsumedEventEntity$outboundSchema.and(
-    z.object({ eventType: z.literal("credits.consumed") }),
-  ),
-  WebhookCreditsAutoRechargedEventEntity$outboundSchema.and(
-    z.object({ eventType: z.literal("credits.auto_recharged") }),
-  ),
-  WebhookSubscriptionActiveEventEntity$outboundSchema.and(
-    z.object({ eventType: z.literal("subscription.active") }),
-  ),
-  WebhookSubscriptionTrialingEventEntity$outboundSchema.and(
-    z.object({ eventType: z.literal("subscription.trialing") }),
-  ),
-  WebhookSubscriptionCanceledEventEntity$outboundSchema.and(
-    z.object({ eventType: z.literal("subscription.canceled") }),
-  ),
-  WebhookSubscriptionScheduledCancelEventEntity$outboundSchema.and(
-    z.object({ eventType: z.literal("subscription.scheduled_cancel") }),
-  ),
-  WebhookSubscriptionPaidEventEntity$outboundSchema.and(
-    z.object({ eventType: z.literal("subscription.paid") }),
-  ),
-  WebhookSubscriptionExpiredEventEntity$outboundSchema.and(
-    z.object({ eventType: z.literal("subscription.expired") }),
-  ),
-  WebhookSubscriptionUnpaidEventEntity$outboundSchema.and(
-    z.object({ eventType: z.literal("subscription.unpaid") }),
-  ),
-  WebhookSubscriptionUpdateEventEntity$outboundSchema.and(
-    z.object({ eventType: z.literal("subscription.update") }),
-  ),
-  WebhookSubscriptionPastDueEventEntity$outboundSchema.and(
-    z.object({ eventType: z.literal("subscription.past_due") }),
-  ),
-  WebhookSubscriptionPausedEventEntity$outboundSchema.and(
-    z.object({ eventType: z.literal("subscription.paused") }),
-  ),
+  z.lazy(() =>
+    WebhookEventEntityWebhookCheckoutCompletedEventEntity$outboundSchema
+  ).and(z.object({ eventType: z.literal("checkout.completed") })),
+  z.lazy(() => WebhookEventEntityWebhookRefundCreatedEventEntity$outboundSchema)
+    .and(z.object({ eventType: z.literal("refund.created") })),
+  z.lazy(() =>
+    WebhookEventEntityWebhookDisputeCreatedEventEntity$outboundSchema
+  ).and(z.object({ eventType: z.literal("dispute.created") })),
+  z.lazy(() =>
+    WebhookEventEntityWebhookCustomerCreditsExhaustedEventEntity$outboundSchema
+  ).and(z.object({ eventType: z.literal("customer_credits.exhausted") })),
+  z.lazy(() =>
+    WebhookEventEntityWebhookCreditsGrantedEventEntity$outboundSchema
+  ).and(z.object({ eventType: z.literal("credits.granted") })),
+  z.lazy(() =>
+    WebhookEventEntityWebhookCreditsConsumedEventEntity$outboundSchema
+  ).and(z.object({ eventType: z.literal("credits.consumed") })),
+  z.lazy(() =>
+    WebhookEventEntityWebhookCreditsAutoRechargedEventEntity$outboundSchema
+  ).and(z.object({ eventType: z.literal("credits.auto_recharged") })),
+  z.lazy(() =>
+    WebhookEventEntityWebhookSubscriptionActiveEventEntity$outboundSchema
+  ).and(z.object({ eventType: z.literal("subscription.active") })),
+  z.lazy(() =>
+    WebhookEventEntityWebhookSubscriptionTrialingEventEntity$outboundSchema
+  ).and(z.object({ eventType: z.literal("subscription.trialing") })),
+  z.lazy(() =>
+    WebhookEventEntityWebhookSubscriptionCanceledEventEntity$outboundSchema
+  ).and(z.object({ eventType: z.literal("subscription.canceled") })),
+  z.lazy(() =>
+    WebhookEventEntityWebhookSubscriptionScheduledCancelEventEntity$outboundSchema
+  ).and(z.object({ eventType: z.literal("subscription.scheduled_cancel") })),
+  z.lazy(() =>
+    WebhookEventEntityWebhookSubscriptionPaidEventEntity$outboundSchema
+  ).and(z.object({ eventType: z.literal("subscription.paid") })),
+  z.lazy(() =>
+    WebhookEventEntityWebhookSubscriptionExpiredEventEntity$outboundSchema
+  ).and(z.object({ eventType: z.literal("subscription.expired") })),
+  z.lazy(() =>
+    WebhookEventEntityWebhookSubscriptionUnpaidEventEntity$outboundSchema
+  ).and(z.object({ eventType: z.literal("subscription.unpaid") })),
+  z.lazy(() =>
+    WebhookEventEntityWebhookSubscriptionUpdateEventEntity$outboundSchema
+  ).and(z.object({ eventType: z.literal("subscription.update") })),
+  z.lazy(() =>
+    WebhookEventEntityWebhookSubscriptionPastDueEventEntity$outboundSchema
+  ).and(z.object({ eventType: z.literal("subscription.past_due") })),
+  z.lazy(() =>
+    WebhookEventEntityWebhookSubscriptionPausedEventEntity$outboundSchema
+  ).and(z.object({ eventType: z.literal("subscription.paused") })),
 ]);
 
 export function webhookEventEntityToJSON(

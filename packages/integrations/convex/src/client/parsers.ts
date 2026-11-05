@@ -18,7 +18,15 @@ import {
   webhookEventEntityFromJSON,
 } from "creem/models/components";
 
-export type CreemWebhookEvent = WebhookEventEntity;
+/**
+ * A webhook event the route hands to an event handler: every known event type.
+ * An event type the SDK doesn't know (`eventType: "UNKNOWN"`) is acknowledged
+ * by the route and never reaches a handler.
+ */
+export type CreemWebhookEvent = Exclude<
+  WebhookEventEntity,
+  { eventType: "UNKNOWN" }
+>;
 
 type WebhookLikeEvent = {
   eventType?: unknown;
