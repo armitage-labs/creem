@@ -113,14 +113,13 @@ Your browser opens the Creem sign-in the first time the client starts the server
 
 When you connect, your browser opens Creem's sign-in and consent screen. You sign in, pick a store and a [mode](#test-and-live-mode), and choose what the agent can do. A connection works on one store; picking another store later replaces it.
 
-On a first connect every permission the client asks for is ticked except **Issue refunds**. Untick what the agent doesn't need:
+On a first connect every permission the client asks for is ticked. Untick what the agent doesn't need:
 
 | Permission                                        | What it allows                                                                                                                |
 | ------------------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------- |
 | **View your store**                               | Read products, checkouts, discount codes, customers, transactions, subscriptions, disputes, revenue and your business details |
 | **Manage products, checkout links and discounts** | Create, edit and archive products, create checkout links, and create and delete discount codes                                |
 | **Manage subscriptions**                          | Change, upgrade, pause, resume or cancel your customers' subscriptions. Today's tools can only cancel                         |
-| **Issue refunds**                                 | Refund your customers' payments. No tool uses it today; make refunds in the dashboard                                         |
 
 When the agent calls a tool the connection has no permission for, your client asks you to sign in again. Tick the permission on the consent screen; it keeps what you already allowed. A client that can't do this shows an authorization error instead. Connect again from your client and tick the permission.
 
