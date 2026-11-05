@@ -5,6 +5,11 @@ description: Connect Claude, Claude Code, ChatGPT, Codex, Cursor or any remote M
 
 Creem runs an [MCP](https://modelcontextprotocol.io) server at `https://mcp.creem.io/mcp`. Add it to Claude, Claude Code, ChatGPT, Codex, Cursor or another MCP client, sign in with your Creem account, and your agent can look up customers, subscriptions and payments, create products, checkout links and discount codes, and cancel subscriptions. There is nothing to install and no API key to paste.
 
+<Tip>
+  Want to use Creem in the Claude or ChatGPT app without the technical detail? See [Use Creem in
+  Claude and ChatGPT](/ai/for-humans/ai-assistants).
+</Tip>
+
 ## Requirements
 
 - A Creem account with at least one store ([sign up](https://creem.io/dashboard))
@@ -20,12 +25,12 @@ Then run `/mcp` in Claude Code, select **creem** and choose **Authenticate**. Yo
 
 ## Claude
 
-In Claude, open **Settings → Connectors**, select **Add custom connector** and enter:
+In Claude, open **Customize → Connectors**, select **Add custom connector** and enter:
 
 - **Name:** `Creem`
 - **Remote MCP server URL:** `https://mcp.creem.io/mcp`
 
-Select **Add**, then **Connect**, and sign in with your Creem account. The connector works on claude.ai, in Claude Desktop and in the mobile apps. On Team and Enterprise plans, an owner adds the connector for the organization first.
+Select **Add** (if Claude shows sign-in settings first, keep the ones it detected), then **Connect**, and sign in with your Creem account. Add the connector on claude.ai or in Claude Desktop; once connected, it also works in the Claude mobile apps. On Team and Enterprise plans, an Owner adds the connector for the organization in **Organization settings → Connectors** first, and each member then connects from **Customize → Connectors**.
 
 ## Claude Code
 
@@ -107,14 +112,14 @@ Your browser opens the Creem sign-in the first time the client starts the server
 
 When you connect, your browser opens Creem's sign-in and consent screen. You sign in, pick a store and a [mode](#test-and-live-mode), and choose what the agent can do. A connection works on one store; picking another store later replaces it.
 
-Only **View your store** is ticked on a first connect. Tick the others the agent needs:
+On a first connect every permission the client asks for is ticked. Untick what the agent doesn't need:
 
 | Permission                                        | What it allows                                                                                                                |
 | ------------------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------- |
 | **View your store**                               | Read products, checkouts, discount codes, customers, transactions, subscriptions, disputes, revenue and your business details |
 | **Manage products, checkout links and discounts** | Create, edit and archive products, create checkout links, and create and delete discount codes                                |
+| **Fill in and submit your business details**      | Save your business details as a draft and submit them to Creem for review. Today's tools only save a draft                    |
 | **Manage subscriptions**                          | Change, upgrade, pause, resume or cancel your customers' subscriptions. Today's tools can only cancel                         |
-| **Issue refunds**                                 | Refund your customers' payments. No tool uses it today; make refunds in the dashboard                                         |
 
 When the agent calls a tool the connection has no permission for, your client asks you to sign in again. Tick the permission on the consent screen; it keeps what you already allowed. A client that can't do this shows an authorization error instead. Connect again from your client and tick the permission.
 
@@ -132,22 +137,22 @@ To change mode later, ask your agent (for example "switch Creem to live mode") o
 
 ## Available tools
 
-24 tools. All of them work in both modes except `get_business_details_requirements`, which works in live mode only.
+25 tools. All of them work in both modes except `get_business_details_requirements` and `save_business_details`, which work in live mode only.
 
-| Group             | Count | Tools                                                                                      |
-| ----------------- | ----- | ------------------------------------------------------------------------------------------ |
-| **Products**      | 5     | `list_products`, `get_product`, `create_product`, `update_product`, `archive_product`      |
-| **Checkouts**     | 2     | `get_checkout`, `create_checkout_link`                                                     |
-| **Discounts**     | 4     | `list_discounts`, `get_discount`, `create_discount`, `delete_discount`                     |
-| **Customers**     | 2     | `search_customers`, `get_customer`                                                         |
-| **Subscriptions** | 3     | `list_subscriptions`, `get_subscription`, `cancel_subscription`                            |
-| **Transactions**  | 1     | `list_transactions`                                                                        |
-| **Disputes**      | 2     | `list_disputes`, `get_dispute`                                                             |
-| **Stats**         | 1     | `get_revenue_summary`                                                                      |
-| **Onboarding**    | 3     | `get_business_details_requirements`, `open_business_details`, `open_identity_verification` |
-| **Connection**    | 1     | `switch_mode`                                                                              |
+| Group             | Count | Tools                                                                                                               |
+| ----------------- | ----- | ------------------------------------------------------------------------------------------------------------------- |
+| **Products**      | 5     | `list_products`, `get_product`, `create_product`, `update_product`, `archive_product`                               |
+| **Checkouts**     | 2     | `get_checkout`, `create_checkout_link`                                                                              |
+| **Discounts**     | 4     | `list_discounts`, `get_discount`, `create_discount`, `delete_discount`                                              |
+| **Customers**     | 2     | `search_customers`, `get_customer`                                                                                  |
+| **Subscriptions** | 3     | `list_subscriptions`, `get_subscription`, `cancel_subscription`                                                     |
+| **Transactions**  | 1     | `list_transactions`                                                                                                 |
+| **Disputes**      | 2     | `list_disputes`, `get_dispute`                                                                                      |
+| **Stats**         | 1     | `get_revenue_summary`                                                                                               |
+| **Onboarding**    | 4     | `get_business_details_requirements`, `save_business_details`, `open_business_details`, `open_identity_verification` |
+| **Connection**    | 1     | `switch_mode`                                                                                                       |
 
-`get_business_details_requirements` shows what your store's business details still need, the first step to live payments. The two `open_` tools return a dashboard link, where you fill in the form yourself.
+`get_business_details_requirements` shows what your store's business details still need, the first step to live payments. `save_business_details` saves what you tell the agent into the same draft the dashboard form shows; it submits nothing. Close the business details form in the dashboard while the agent saves: an open form overwrites the save the next time it autosaves. The two `open_` tools return a dashboard link, where you fill in or submit the form yourself.
 
 ## Security
 

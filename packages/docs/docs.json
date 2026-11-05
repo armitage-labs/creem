@@ -127,7 +127,11 @@
               "ai/introduction",
               {
                 "group": "For Humans",
-                "pages": ["ai/for-humans/getting-started", "ai/for-humans/cli"]
+                "pages": [
+                  "ai/for-humans/getting-started",
+                  "ai/for-humans/ai-assistants",
+                  "ai/for-humans/cli"
+                ]
               },
               {
                 "group": "For Agents",
