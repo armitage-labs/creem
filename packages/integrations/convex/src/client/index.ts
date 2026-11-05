@@ -13,6 +13,7 @@ import {
   constructWebhookEventEntity,
   WebhookVerificationError,
 } from "creem/webhooks";
+import { SDKValidationError } from "creem/models/errors";
 import { getEntityId } from "./helpers.js";
 import {
   type CreemWebhookEvent,
@@ -2618,7 +2619,16 @@ export class Creem {
             console.error(error);
             return new Response("Forbidden", { status: 403 });
           }
-          console.error(error);
+          // The parse error carries the payload, which holds customer PII
+          // (email, name, country): log what failed, not the error itself.
+          console.error(
+            "[creem-webhook] refused an invalid payload:",
+            error instanceof SDKValidationError
+              ? error.rawMessage
+              : error instanceof Error
+                ? error.name
+                : "unknown error",
+          );
           return new Response("Bad Request", { status: 400 });
         }
 

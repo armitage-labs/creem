@@ -104,4 +104,17 @@ describe("forward-compatible webhook payloads", () => {
 
     expect(new Set(Object.values(WebhookEventType))).toEqual(new Set(unionTypes));
   });
+
+  it.each([
+    ["null", "null"],
+    ["an array", "[]"],
+    ["an object without eventType", JSON.stringify({ id: "evt_123", object: {} })],
+    ["an empty eventType", JSON.stringify({ id: "evt_123", eventType: "", object: {} })],
+    [
+      "a type/data envelope",
+      JSON.stringify({ type: "subscription.canceled", data: { id: "sub_123" } }),
+    ],
+  ])("refuses %s instead of calling it an unknown event", (_label, payload) => {
+    expect(() => parseWebhookEventEntity(payload)).toThrow(SDKValidationError);
+  });
 });

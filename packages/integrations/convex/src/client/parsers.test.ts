@@ -7,6 +7,7 @@ import {
   parseSubscription,
   parseCheckout,
   parseProduct,
+  parseGeneratedWebhookEvent,
 } from "./parsers.js";
 
 // ── Real webhook payloads from Creem test mode ──────────────────────
@@ -827,5 +828,32 @@ describe("parseSubscription", () => {
   it("returns null for invalid data", () => {
     const result = parseSubscription({ random: "garbage" });
     expect(result).toBeNull();
+  });
+});
+
+describe("parseGeneratedWebhookEvent", () => {
+  // ENG-2487: the same rules as the route, through the SDK's own parser.
+  it("refuses a known event type whose payload doesn't match it", () => {
+    expect(() =>
+      parseGeneratedWebhookEvent(
+        JSON.stringify({
+          id: "evt_1",
+          eventType: "subscription.canceled",
+          created_at: 1780000000000,
+          object: { id: "sub_1" },
+        }),
+      ),
+    ).toThrow();
+  });
+
+  it("returns an event type the SDK doesn't know as the unknown variant", () => {
+    const event = parseGeneratedWebhookEvent(
+      JSON.stringify({
+        id: "evt_1",
+        eventType: "invoice.finalized",
+        object: {},
+      }),
+    );
+    expect(event.eventType).toBe("UNKNOWN");
   });
 });

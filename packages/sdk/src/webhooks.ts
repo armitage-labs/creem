@@ -251,14 +251,26 @@ export const parseWebhookEventEntity = (
     throw result.error;
   }
   const event = result.value;
-  // The open union also falls back to UNKNOWN when a known event type fails
-  // validation. That is a malformed payload, not an event type added after this
-  // version, so it is refused as before.
+  // The open union falls back to UNKNOWN for anything it can't parse. Only an
+  // object naming an event type this version doesn't know is a newer event.
+  // A known event type that fails validation, or a payload without an event
+  // type, is malformed and refused as before.
   if (event.eventType === "UNKNOWN") {
-    const raw = event.raw as { eventType?: unknown } | null;
-    if (typeof raw?.eventType === "string" && KNOWN_WEBHOOK_EVENT_TYPES.has(raw.eventType)) {
+    const raw = event.raw;
+    const eventType =
+      raw !== null && typeof raw === "object" && !Array.isArray(raw)
+        ? (raw as { eventType?: unknown }).eventType
+        : undefined;
+    if (typeof eventType !== "string" || eventType === "") {
       throw new SDKValidationError(
-        `Invalid "${raw.eventType}" webhook payload`,
+        "Invalid webhook payload",
+        "it is not an object with an eventType",
+        json,
+      );
+    }
+    if (KNOWN_WEBHOOK_EVENT_TYPES.has(eventType)) {
+      throw new SDKValidationError(
+        `Invalid "${eventType}" webhook payload`,
         "the payload doesn't match the schema of its event type",
         json,
       );

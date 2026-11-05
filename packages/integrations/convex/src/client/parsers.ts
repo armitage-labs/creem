@@ -15,8 +15,8 @@ import {
   checkoutEntityFromJSON,
   productEntityFromJSON,
   refundEntityFromJSON,
-  webhookEventEntityFromJSON,
 } from "creem/models/components";
+import { parseWebhookEventEntity } from "creem/webhooks";
 
 /**
  * A webhook event the route hands to an event handler: every known event type.
@@ -33,13 +33,12 @@ type WebhookLikeEvent = {
   object?: unknown;
 };
 
-export const parseGeneratedWebhookEvent = (
-  body: string,
-): WebhookEventEntity => {
-  const result = webhookEventEntityFromJSON(body);
-  if (!result.ok) throw result.error;
-  return result.value;
-};
+/**
+ * Parses a webhook body with the SDK's own rules: an event type the SDK
+ * doesn't know comes back as the unknown variant, a malformed payload throws.
+ */
+export const parseGeneratedWebhookEvent = (body: string): WebhookEventEntity =>
+  parseWebhookEventEntity(body);
 
 const asWebhookLikeEvent = (event: unknown): WebhookLikeEvent =>
   event && typeof event === "object" ? (event as WebhookLikeEvent) : {};
