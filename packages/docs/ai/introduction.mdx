@@ -13,7 +13,7 @@ At Creem, AI agents are first-class citizens, together with the CLI. Whether you
     Browse and manage your store from the terminal with an interactive TUI.
   </Card>
   <Card title="For Agents" icon="robot" href="/ai/for-agents/skill-files">
-    Technical reference for AI agents. Skill files, CLI commands, store monitoring.
+    Technical reference for AI agents. Hosted MCP, skill files, CLI commands, store monitoring.
   </Card>
 </CardGroup>
 
@@ -27,7 +27,13 @@ Read https://creem.io/SKILL.md and follow the instructions to integrate Creem
 
 That's it. The skill file contains everything your AI needs: API endpoints, SDK patterns, webhook handling, and best practices. No documentation rabbit holes.
 
-Or if you prefer the terminal:
+To let your assistant work in your store, connect Claude, Claude Code, ChatGPT, Codex or Cursor to the [hosted MCP](/ai/for-agents/hosted-mcp) and sign in with your Creem account:
+
+```bash
+claude mcp add --transport http creem https://mcp.creem.io/mcp
+```
+
+Or browse and manage your store yourself with the Creem CLI:
 
 ```bash
 brew tap armitage-labs/creem && brew install creem
@@ -41,5 +47,6 @@ Traditional payment integrations require reading docs, understanding patterns, a
 
 - A single prompt gives your AI complete platform context through [skill files](https://creem.io/SKILL.md)
 - The CLI lets you browse and manage your store without leaving the terminal
+- The [hosted MCP](/ai/for-agents/hosted-mcp) lets Claude, Claude Code, ChatGPT, Codex, Cursor and other MCP clients work in your store, and by default asks you before cancellations, product changes and other risky actions
 - Store monitoring lets your AI notify you about sales and issues automatically
 - Skill files work with any AI tool (Claude, Cursor, Windsurf, Copilot)

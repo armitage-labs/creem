@@ -1,0 +1,257 @@
+---
+title: Hosted MCP Server
+description: Connect Claude, Claude Code, ChatGPT, Codex, Cursor or any remote MCP client to your Creem store at mcp.creem.io. Sign in with your Creem account, no API key.
+---
+
+Creem runs an [MCP](https://modelcontextprotocol.io) server at `https://mcp.creem.io/mcp`. Add it to Claude, Claude Code, ChatGPT, Codex, Cursor or another MCP client, sign in with your Creem account, and your agent can look up customers, subscriptions and payments, create products, checkout links and discount codes, and cancel subscriptions. There is nothing to install and no API key to paste.
+
+<Tip>
+  **Hosted or local?** The hosted server signs you in with your Creem account and asks you to
+  confirm before risky actions. The [local MCP server](/ai/for-agents/mcp-server) runs on your
+  machine with an API key and exposes the whole API. Use it for scripts and CI.
+</Tip>
+
+## Requirements
+
+- A Creem account with at least one store ([sign up](https://creem.io/dashboard))
+- An MCP client: [Claude](#claude), [Claude Code](#claude-code), [ChatGPT](#chatgpt), [Codex](#codex) 0.147 or newer, [Cursor](#cursor), or [another client](#other-clients) that supports remote MCP servers
+
+## Quickstart
+
+```bash
+claude mcp add --transport http creem https://mcp.creem.io/mcp
+```
+
+Then run `/mcp` in Claude Code, select **creem** and choose **Authenticate**. Your browser opens the Creem sign-in. On the consent screen, pick **Test mode** to try things out first: **Live mode** is preselected. For other clients, see below.
+
+## Claude
+
+In Claude, open **Settings → Connectors**, select **Add custom connector** and enter:
+
+- **Name:** `Creem`
+- **Remote MCP server URL:** `https://mcp.creem.io/mcp`
+
+Select **Add**, then **Connect**, and sign in with your Creem account. The connector works on claude.ai, in Claude Desktop and in the mobile apps. On Team and Enterprise plans, an owner adds the connector for the organization first.
+
+## Claude Code
+
+```bash
+claude mcp add --transport http creem https://mcp.creem.io/mcp
+```
+
+`--transport http` is required: without it, Claude Code treats the URL as a local command. Add `--scope user` to use Creem in every project.
+
+## ChatGPT
+
+Custom MCP servers work in ChatGPT on the web, and your plan or workspace has to allow them. See OpenAI's [Connecting custom MCP servers in ChatGPT](https://help.openai.com/en/articles/12584461-developer-mode-apps-and-full-mcp-connectors-in-chatgpt).
+
+<Steps>
+  <Step title="Add the server">
+    Go to [ChatGPT Plugins](https://chatgpt.com/plugins), select the plus button, then **Add custom
+    MCP server**. Name it `Creem` and enter `https://mcp.creem.io/mcp` under **Connection**.
+  </Step>
+  <Step title="Choose OAuth">
+    Choose **OAuth** and leave the client ID and secret empty. Review the risk warning, tick **I
+    understand and want to continue**, then select **Create as a plugin**.
+  </Step>
+  <Step title="Sign in">
+    Install the plugin and sign in with your Creem account when ChatGPT asks.
+  </Step>
+</Steps>
+
+## Codex
+
+```bash
+codex mcp add creem --url https://mcp.creem.io/mcp
+codex mcp login creem
+```
+
+`codex mcp login` opens your browser for the Creem sign-in. The Codex CLI, the IDE extension and the ChatGPT desktop app share one configuration, so adding the server once works in all three.
+
+## Cursor
+
+Add the following to `.cursor/mcp.json` in your project, or to `~/.cursor/mcp.json` to make Creem available in every project:
+
+```json
+{
+  "mcpServers": {
+    "creem": {
+      "url": "https://mcp.creem.io/mcp"
+    }
+  }
+}
+```
+
+Open **Customize** in Cursor's sidebar, connect `creem` and sign in with your Creem account. Cursor's cloud agents can't connect: sign-in only completes on your own machine.
+
+## Other clients
+
+If your client accepts a remote MCP URL, add:
+
+```
+https://mcp.creem.io/mcp
+```
+
+If it only supports local commands, use the [`mcp-remote`](https://www.npmjs.com/package/mcp-remote) bridge:
+
+```json
+{
+  "mcpServers": {
+    "creem": {
+      "command": "npx",
+      "args": ["-y", "mcp-remote@0.16.0", "https://mcp.creem.io/mcp"]
+    }
+  }
+}
+```
+
+The example pins `mcp-remote` to a version because the bridge holds your Creem sign-in tokens. Update the version on purpose, not on every start.
+
+Your browser opens the Creem sign-in the first time the client starts the server. A client not listed above can sign in only if it completes sign-in on your own machine, as `mcp-remote` does. If your client sends the sign-in back to its own website instead, connect it through `mcp-remote` or use the [local MCP server](/ai/for-agents/mcp-server).
+
+## Sign-in and permissions
+
+When you connect, your browser opens Creem's sign-in and consent screen. You sign in, pick a store and a [mode](#test-and-live-mode), and choose what the agent can do. A connection works on one store; picking another store later replaces it.
+
+Only **View your store** is ticked on a first connect. Tick the others the agent needs:
+
+| Permission                                        | What it allows                                                                                                                |
+| ------------------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------- |
+| **View your store**                               | Read products, checkouts, discount codes, customers, transactions, subscriptions, disputes, revenue and your business details |
+| **Manage products, checkout links and discounts** | Create, edit and archive products, create checkout links, and create and delete discount codes                                |
+| **Manage subscriptions**                          | Change, upgrade, pause, resume or cancel your customers' subscriptions. Today's tools can only cancel                         |
+| **Issue refunds**                                 | Refund your customers' payments. No tool uses it today; make refunds in the dashboard                                         |
+
+When the agent calls a tool the connection has no permission for, your client asks you to sign in again. Tick the permission on the consent screen; it keeps what you already allowed. A client that can't do this shows an authorization error instead. Connect again from your client and tick the permission.
+
+When you grant a permission that changes your store, the consent screen also shows **Confirmations**: **Ask before risky actions**, ticked by default. Leave it ticked unless you trust the agent to act without asking. See [Security](#security).
+
+You, and the store owner if that's someone else, get an email when an agent is connected or gets new permissions.
+
+## Test and live mode
+
+Each connection works in one mode at a time. **Test mode** uses your store's [test mode](/getting-started/test-mode) data, and no real money moves. **Live mode** works on real payments, customers and subscriptions.
+
+You choose the mode on the consent screen. **Live mode** is preselected on every new connection; pick **Test mode** to try things out first. If live payments aren't enabled for your store yet, no real payments run until they are. Every tool result says which mode it ran in, and every confirmation starts with `[Test mode]` or `[LIVE mode]`.
+
+To change mode later, ask your agent (for example "switch Creem to live mode") or use **Settings → Connected apps** in the dashboard. Switching to live asks you to confirm.
+
+## Available tools
+
+24 tools. All of them work in both modes except `get_business_details_requirements`, which works in live mode only.
+
+| Group             | Count | Tools                                                                                      |
+| ----------------- | ----- | ------------------------------------------------------------------------------------------ |
+| **Products**      | 5     | `list_products`, `get_product`, `create_product`, `update_product`, `archive_product`      |
+| **Checkouts**     | 2     | `get_checkout`, `create_checkout_link`                                                     |
+| **Discounts**     | 4     | `list_discounts`, `get_discount`, `create_discount`, `delete_discount`                     |
+| **Customers**     | 2     | `search_customers`, `get_customer`                                                         |
+| **Subscriptions** | 3     | `list_subscriptions`, `get_subscription`, `cancel_subscription`                            |
+| **Transactions**  | 1     | `list_transactions`                                                                        |
+| **Disputes**      | 2     | `list_disputes`, `get_dispute`                                                             |
+| **Stats**         | 1     | `get_revenue_summary`                                                                      |
+| **Onboarding**    | 3     | `get_business_details_requirements`, `open_business_details`, `open_identity_verification` |
+| **Connection**    | 1     | `switch_mode`                                                                              |
+
+`get_business_details_requirements` shows what your store's business details still need, the first step to live payments. The two `open_` tools return a dashboard link, where you fill in the form yourself.
+
+## Security
+
+Some tools change your store and can't be undone. By default, Creem asks **you**, not the agent, to confirm them before anything happens.
+
+| Tool                  | Asks you to confirm                                                                          |
+| --------------------- | -------------------------------------------------------------------------------------------- |
+| `cancel_subscription` | Yes, unless you turn confirmations off                                                       |
+| `create_discount`     | Yes, unless you turn confirmations off                                                       |
+| `delete_discount`     | Yes, unless you turn confirmations off                                                       |
+| `archive_product`     | Yes, unless you turn confirmations off                                                       |
+| `update_product`      | When it changes the price, currency, trial or success URL, unless you turn confirmations off |
+| `switch_mode`         | Always when switching to live, even with confirmations off                                   |
+
+Clients that can show a prompt display it with **Accept** and **Decline**. In other clients, the agent shows you the question in the chat and runs the tool only after you reply "yes". A confirmation covers exactly that action, works once and expires after 10 minutes.
+
+To let a connection act without asking, turn off **Ask before risky actions** for it in [Connected apps](#connected-apps). The setting applies to that connection only, in test and live mode.
+
+<Warning>
+  With confirmations off, the agent may also act on text your buyers wrote, such as a customer name,
+  without asking you. Someone could hide instructions in that text. Creem recommends keeping
+  confirmations on.
+</Warning>
+
+Two more things to do:
+
+**Develop in test mode.** Connect in test mode while you try things out. Nothing you break is real.
+
+**Grant only the permissions you need.** An agent that only reports on your store needs **View your store** and nothing else.
+
+## Connected apps
+
+**Settings → Connected apps** in the dashboard lists the agents connected to your store, who connected them, their mode and whether they ask before risky actions. There you can:
+
+- switch a connection between test and live mode
+- turn **Ask before risky actions** on or off with **Change**. The change takes effect within a minute
+- disconnect a connection
+
+You can manage the connections you made; the store owner can manage all of them. Connecting the same app again keeps its current confirmation setting, so change it here.
+
+When you disconnect an agent, its calls stop within a minute and it has to sign in again. Changes it already made, such as cancelled subscriptions or new products, stay.
+
+## Limits
+
+| Limit                  | Per connection | Per store |
+| ---------------------- | -------------- | --------- |
+| Calls per minute       | 120            | 300       |
+| Write calls per minute | 30             | 60        |
+
+Store limits count test-mode and live-mode calls separately. A call over a limit fails with `rate_limited` and changes nothing. Wait for the minute to pass and try again.
+
+## Verifying it works
+
+Connect, pick **Test mode** on the consent screen, and ask your agent:
+
+```
+List my Creem products.
+```
+
+The result ends with `Ran in test mode: test data, no real money.` If you get an error instead, see below.
+
+## Troubleshooting
+
+<AccordionGroup>
+  <Accordion title="My client can't finish signing in">
+    Your client isn't listed on this page and sends the sign-in back to its own website instead of
+    your machine. Connect it with the `mcp-remote` bridge (see [Other clients](#other-clients)), or
+    use the [local MCP server](/ai/for-agents/mcp-server).
+  </Accordion>
+  <Accordion title="Every call fails with “The Creem MCP isn't enabled for this store yet”">
+    The hosted server isn't enabled for the store this connection uses. Creem refuses every request,
+    including the first one when your client connects, so your client may only say it can't connect.
+    If another of your stores has access, disconnect and connect again, choosing that store.
+    Otherwise contact [support](mailto:support@creem.io). Once the store is enabled, the same
+    connection works without signing in again.
+  </Accordion>
+  <Accordion title="A tool says it needs a permission this connection does not have yet">
+    The connection doesn't have the permission the tool needs. Connect again and tick it on the
+    consent screen. See [Sign-in and permissions](#sign-in-and-permissions).
+  </Accordion>
+  <Accordion title="My client asks me to sign in again">
+    The connection ended. It was disconnected in Connected apps by you or the store owner, you
+    didn't use it for 7 days, you were removed from the store, the store was deleted, or your Creem
+    account was locked or signed out everywhere. Sign in again to create a new connection.
+  </Accordion>
+  <Accordion title="A call fails with rate_limited">
+    See [Limits](#limits). Creem refuses calls over a limit before anything runs, including the
+    first request when your client connects, so your client may only say it can't connect. Wait for
+    the minute to pass and try again.
+  </Accordion>
+  <Accordion title="A call fails with unavailable">
+    Creem couldn't complete the call. Try again in a moment. If it was a write, check whether it ran
+    first, for example with `list_products` after creating a product.
+  </Accordion>
+</AccordionGroup>
+
+## Related
+
+- [Local MCP server](/ai/for-agents/mcp-server) — the npm package, with an API key, for scripts and CI
+- [Skill files](/ai/for-agents/skill-files) — reference material your agent reads
+- [Test mode](/getting-started/test-mode) — how test data works
