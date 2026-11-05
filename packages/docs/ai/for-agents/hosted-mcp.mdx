@@ -3,7 +3,7 @@ title: Hosted MCP Server
 description: Connect Claude, Claude Code, ChatGPT, Codex, Cursor or any remote MCP client to your Creem store at mcp.creem.io. Sign in with your Creem account, no API key.
 ---
 
-Creem runs an [MCP](https://modelcontextprotocol.io) server at `https://mcp.creem.io/mcp`. Add it to Claude, Claude Code, ChatGPT, Codex, Cursor or another MCP client, sign in with your Creem account, and your agent can look up customers, subscriptions and payments, create products, checkout links and discount codes, cancel subscriptions and issue refunds. There is nothing to install and no API key to paste.
+Creem runs an [MCP](https://modelcontextprotocol.io) server at `https://mcp.creem.io/mcp`. Add it to Claude, Claude Code, ChatGPT, Codex, Cursor or another MCP client, sign in with your Creem account, and your agent can look up customers, subscriptions and payments, create products, checkout links and discount codes, and cancel subscriptions. There is nothing to install and no API key to paste.
 
 <Tip>
   **Hosted or local?** The hosted server signs you in with your Creem account and asks you to
@@ -120,7 +120,7 @@ Only **View your store** is ticked on a first connect. Tick the others the agent
 | **View your store**                               | Read products, checkouts, discount codes, customers, transactions, subscriptions, disputes, revenue and your business details |
 | **Manage products, checkout links and discounts** | Create, edit and archive products, create checkout links, and create and delete discount codes                                |
 | **Manage subscriptions**                          | Change, upgrade, pause, resume or cancel your customers' subscriptions. Today's tools can only cancel                         |
-| **Issue refunds**                                 | Refund your customers' payments                                                                                               |
+| **Issue refunds**                                 | Refund your customers' payments. No tool uses it today; make refunds in the dashboard                                         |
 
 When the agent calls a tool the connection has no permission for, your client asks you to sign in again. Tick the permission on the consent screen; it keeps what you already allowed. A client that can't do this shows an authorization error instead. Connect again from your client and tick the permission.
 
@@ -130,7 +130,7 @@ You, and the store owner if that's someone else, get an email when an agent is c
 
 ## Test and live mode
 
-Each connection works in one mode at a time. **Test mode** uses your store's [test mode](/getting-started/test-mode) data, and no real money moves. **Live mode** works on real payments, refunds and subscriptions.
+Each connection works in one mode at a time. **Test mode** uses your store's [test mode](/getting-started/test-mode) data, and no real money moves. **Live mode** works on real payments, customers and subscriptions.
 
 You choose the mode on the consent screen. **Live mode** is preselected on every new connection; pick **Test mode** to try things out first. If live payments aren't enabled for your store yet, no real payments run until they are. Every tool result says which mode it ran in, and every confirmation starts with `[Test mode]` or `[LIVE mode]`.
 
@@ -138,7 +138,7 @@ To change mode later, ask your agent (for example "switch Creem to live mode") o
 
 ## Available tools
 
-25 tools. All of them work in both modes except `get_business_details_requirements`, which works in live mode only.
+24 tools. All of them work in both modes except `get_business_details_requirements`, which works in live mode only.
 
 | Group             | Count | Tools                                                                                      |
 | ----------------- | ----- | ------------------------------------------------------------------------------------------ |
@@ -147,7 +147,7 @@ To change mode later, ask your agent (for example "switch Creem to live mode") o
 | **Discounts**     | 4     | `list_discounts`, `get_discount`, `create_discount`, `delete_discount`                     |
 | **Customers**     | 2     | `search_customers`, `get_customer`                                                         |
 | **Subscriptions** | 3     | `list_subscriptions`, `get_subscription`, `cancel_subscription`                            |
-| **Transactions**  | 2     | `list_transactions`, `issue_refund`                                                        |
+| **Transactions**  | 1     | `list_transactions`                                                                        |
 | **Disputes**      | 2     | `list_disputes`, `get_dispute`                                                             |
 | **Stats**         | 1     | `get_revenue_summary`                                                                      |
 | **Onboarding**    | 3     | `get_business_details_requirements`, `open_business_details`, `open_identity_verification` |
@@ -161,7 +161,6 @@ Some tools change your store and can't be undone. By default, Creem asks **you**
 
 | Tool                  | Asks you to confirm                                                                          |
 | --------------------- | -------------------------------------------------------------------------------------------- |
-| `issue_refund`        | Yes, unless you turn confirmations off                                                       |
 | `cancel_subscription` | Yes, unless you turn confirmations off                                                       |
 | `create_discount`     | Yes, unless you turn confirmations off                                                       |
 | `delete_discount`     | Yes, unless you turn confirmations off                                                       |
@@ -195,7 +194,7 @@ Two more things to do:
 
 You can manage the connections you made; the store owner can manage all of them. Connecting the same app again keeps its current confirmation setting, so change it here.
 
-When you disconnect an agent, its calls stop within a minute and it has to sign in again. Changes it already made, such as refunds or new products, stay.
+When you disconnect an agent, its calls stop within a minute and it has to sign in again. Changes it already made, such as cancelled subscriptions or new products, stay.
 
 ## Limits
 
@@ -247,7 +246,7 @@ The result ends with `Ran in test mode: test data, no real money.` If you get an
   </Accordion>
   <Accordion title="A call fails with unavailable">
     Creem couldn't complete the call. Try again in a moment. If it was a write, check whether it ran
-    first, for example with `list_transactions` after a refund.
+    first, for example with `list_products` after creating a product.
   </Accordion>
 </AccordionGroup>
 
