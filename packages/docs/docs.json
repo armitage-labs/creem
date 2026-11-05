@@ -80,7 +80,11 @@
     },
     {
       "source": "/code/mcp",
-      "destination": "/ai/for-agents/mcp-server"
+      "destination": "/ai/for-agents/hosted-mcp"
+    },
+    {
+      "source": "/ai/for-agents/mcp-server",
+      "destination": "/ai/for-agents/hosted-mcp"
     }
   ],
   "theme": "mint",
@@ -130,7 +134,6 @@
                 "pages": [
                   "ai/for-agents/hosted-mcp",
                   "ai/for-agents/skill-files",
-                  "ai/for-agents/mcp-server",
                   "ai/for-agents/cli",
                   "ai/for-agents/store-monitoring"
                 ]
