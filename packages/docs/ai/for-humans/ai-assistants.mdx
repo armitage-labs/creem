@@ -16,16 +16,17 @@ Once Creem is connected, ask in your own words. For example:
 - "Cancel the subscription for jane@example.com."
 - "What do I still need to fill in before I can take live payments?"
 
-Your assistant can work with products, checkout links, discount codes, customers, subscriptions, transactions, disputes and revenue. It can't move money: there are no tools for refunds or payouts, so you make those in the [dashboard](https://creem.io/dashboard).
+Your assistant can work with products, checkout links, discount codes, customers, subscriptions, transactions, disputes, revenue and your business details. In live mode it can fill in your business details for you, but you submit them yourself in the dashboard. It can't move money: there are no tools for refunds or payouts, so you make those in the [dashboard](https://creem.io/dashboard).
 
 ## Connect Claude
 
-Works on claude.ai, in Claude Desktop and in the Claude mobile apps.
+Add Creem on claude.ai or in Claude Desktop. Once it's connected, it works in the Claude mobile apps too.
 
 <Steps>
   <Step title="Add Creem">
-    In Claude, open **Settings → Connectors** and select **Add custom connector**. Enter `Creem` as
-    the name and `https://mcp.creem.io/mcp` as the URL, then select **Add**.
+    In Claude, open **Customize → Connectors** and select **Add custom connector**. Enter `Creem` as
+    the name and `https://mcp.creem.io/mcp` as the URL, then select **Add**. If Claude shows sign-in
+    settings first, keep the ones it detected and continue.
   </Step>
   <Step title="Connect">
     Select **Connect**. Your browser opens the Creem sign-in. Sign in and allow access, as described
@@ -34,7 +35,7 @@ Works on claude.ai, in Claude Desktop and in the Claude mobile apps.
   <Step title="Ask">Start a new chat and ask a question about your store.</Step>
 </Steps>
 
-On Team and Enterprise plans, an owner of your Claude organization adds the connector first. Each member then selects **Connect** and signs in with their own Creem account.
+On Team and Enterprise plans, an Owner of your Claude organization adds the connector first, in **Organization settings → Connectors**. Each member then finds Creem under **Customize → Connectors**, selects **Connect** and signs in with their own Creem account.
 
 ## Connect ChatGPT
 
@@ -62,13 +63,14 @@ When you connect, Creem's sign-in page opens. Sign in with the account you use f
 - **Start in:** **Test mode** uses your test data, with no real payments or customers. **Live mode** works on your real store. Live mode is preselected, so pick **Test mode** if you want to try things out first.
 - **Permissions:** every permission the assistant asks for starts ticked. Untick what you don't want it to do:
 
-| Permission                                        | What it allows                                                                                 |
-| ------------------------------------------------- | ---------------------------------------------------------------------------------------------- |
-| **View your store**                               | See products, customers, subscriptions, transactions, disputes and revenue                     |
-| **Manage products, checkout links and discounts** | Create, edit and archive products, create checkout links, and create and delete discount codes |
-| **Manage subscriptions**                          | Cancel your customers' subscriptions                                                           |
+| Permission                                        | What it allows                                                                                                                          |
+| ------------------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------- |
+| **View your store**                               | See products, customers, subscriptions, transactions, disputes, revenue and your business details                                       |
+| **Manage products, checkout links and discounts** | Create, edit and archive products, create checkout links, and create and delete discount codes                                          |
+| **Fill in and submit your business details**      | Save your business details as a draft and submit them to Creem for review. Today's tools only save a draft: you submit in the dashboard |
+| **Manage subscriptions**                          | Change, upgrade, pause, resume or cancel your customers' subscriptions. Today's tools can only cancel                                   |
 
-- **Ask before risky actions:** ticked by default. Leave it ticked so the assistant asks you before cancelling a subscription, archiving a product or deleting a discount code.
+- **Ask before risky actions:** ticked by default. Leave it ticked so the assistant asks you before cancelling a subscription, creating or deleting a discount code, changing a product's price, currency, trial or success URL, or archiving a product.
 
 Select **Allow** to finish. You, and the store owner if that's someone else, get an email when an assistant is connected.
 
