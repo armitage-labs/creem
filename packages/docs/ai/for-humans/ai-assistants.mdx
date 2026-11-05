@@ -1,0 +1,99 @@
+---
+title: Use Creem in Claude and ChatGPT
+description: Connect Claude or ChatGPT to your Creem store and manage products, checkout links, customers and subscriptions by chatting. No code and no API key.
+---
+
+Connect Claude or ChatGPT to your Creem store, and you can ask about sales, find a customer, create a checkout link or cancel a subscription in a normal chat. You sign in with your Creem account, so there is nothing to install and no API key to copy.
+
+## What you can ask
+
+Once Creem is connected, ask in your own words. For example:
+
+- "How much revenue did I make in the last 30 days?"
+- "List my products and create a checkout link for the Pro plan."
+- "Find the customer jane@example.com and show me her subscription."
+- "Create a 20% discount code called LAUNCH20."
+- "Cancel the subscription for jane@example.com."
+- "What do I still need to fill in before I can take live payments?"
+
+Your assistant can work with products, checkout links, discount codes, customers, subscriptions, transactions, disputes and revenue. It can't move money: there are no tools for refunds or payouts, so you make those in the [dashboard](https://creem.io/dashboard).
+
+## Connect Claude
+
+Works on claude.ai, in Claude Desktop and in the Claude mobile apps.
+
+<Steps>
+  <Step title="Add Creem">
+    In Claude, open **Settings → Connectors** and select **Add custom connector**. Enter `Creem` as
+    the name and `https://mcp.creem.io/mcp` as the URL, then select **Add**.
+  </Step>
+  <Step title="Connect">
+    Select **Connect**. Your browser opens the Creem sign-in. Sign in and allow access, as described
+    in [Sign in and choose what it can do](#sign-in-and-choose-what-it-can-do).
+  </Step>
+  <Step title="Ask">Start a new chat and ask a question about your store.</Step>
+</Steps>
+
+On Team and Enterprise plans, an owner of your Claude organization adds the connector first. Each member then selects **Connect** and signs in with their own Creem account.
+
+## Connect ChatGPT
+
+Custom connections work in ChatGPT on the web, and your plan or workspace has to allow them. See OpenAI's [Connecting custom MCP servers in ChatGPT](https://help.openai.com/en/articles/12584461-developer-mode-apps-and-full-mcp-connectors-in-chatgpt).
+
+<Steps>
+  <Step title="Add Creem">
+    Go to [ChatGPT Plugins](https://chatgpt.com/plugins), select the plus button, then **Add custom
+    MCP server**. Name it `Creem` and enter `https://mcp.creem.io/mcp` under **Connection**.
+  </Step>
+  <Step title="Choose OAuth">
+    Choose **OAuth** and leave the client ID and secret empty. Review the risk warning, tick **I
+    understand and want to continue**, then select **Create as a plugin**.
+  </Step>
+  <Step title="Sign in">
+    Install the plugin and sign in with your Creem account when ChatGPT asks.
+  </Step>
+</Steps>
+
+## Sign in and choose what it can do
+
+When you connect, Creem's sign-in page opens. Sign in with the account you use for the Creem dashboard. Then choose:
+
+- **Store:** the store the assistant works in. One connection works on one store.
+- **Start in:** **Test mode** uses your test data, with no real payments or customers. **Live mode** works on your real store. Live mode is preselected, so pick **Test mode** if you want to try things out first.
+- **Permissions:** every permission the assistant asks for starts ticked. Untick what you don't want it to do:
+
+| Permission                                        | What it allows                                                                                 |
+| ------------------------------------------------- | ---------------------------------------------------------------------------------------------- |
+| **View your store**                               | See products, customers, subscriptions, transactions, disputes and revenue                     |
+| **Manage products, checkout links and discounts** | Create, edit and archive products, create checkout links, and create and delete discount codes |
+| **Manage subscriptions**                          | Cancel your customers' subscriptions                                                           |
+
+- **Ask before risky actions:** ticked by default. Leave it ticked so the assistant asks you before cancelling a subscription, archiving a product or deleting a discount code.
+
+Select **Allow** to finish. You, and the store owner if that's someone else, get an email when an assistant is connected.
+
+## Stay in control
+
+- **You confirm risky actions.** With **Ask before risky actions** on, Creem asks you, not the assistant, before anything that can't be undone. Switching to live mode always asks.
+- **Try it in test mode.** In test mode nothing touches real payments or customers, so mistakes don't matter.
+- **Grant only what you need.** An assistant that only answers questions about your sales needs **View your store** and nothing else.
+- **Every answer shows the mode.** Results and confirmations say whether they ran in test or live mode.
+
+## Change mode or disconnect
+
+In the [dashboard](https://creem.io/dashboard), go to **Settings → Connected apps**. There you can switch a connection between test and live mode, turn **Ask before risky actions** on or off, or disconnect it. You can also ask your assistant to "switch Creem to live mode".
+
+When you disconnect, the assistant stops working with your store within a minute. Anything it already changed, such as a new product or a cancelled subscription, stays.
+
+## Using Claude Code, Codex or Cursor?
+
+The same connection works in coding tools and any other MCP client. The [Hosted MCP Server](/ai/for-agents/hosted-mcp) page has the setup for each one, the full tool list and troubleshooting.
+
+<CardGroup cols={2}>
+  <Card title="Hosted MCP Server" icon="server" href="/ai/for-agents/hosted-mcp">
+    Technical reference: every client, every tool, limits and troubleshooting.
+  </Card>
+  <Card title="Test mode" icon="flask" href="/getting-started/test-mode">
+    How test mode works and what you can try there without real payments.
+  </Card>
+</CardGroup>

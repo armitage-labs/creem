@@ -5,9 +5,12 @@ description: AI agents and the CLI are first-class citizens at Creem. Integrate 
 
 At Creem, AI agents are first-class citizens, together with the CLI. Whether you're a founder using AI to ship faster or an AI agent helping integrate payments, everything is built to work for both.
 
-<CardGroup cols={3}>
+<CardGroup cols={2}>
   <Card title="Getting Started" icon="play" href="/ai/for-humans/getting-started">
     One prompt to your AI assistant and you're integrated. No docs required.
+  </Card>
+  <Card title="Use Creem in Claude and ChatGPT" icon="comments" href="/ai/for-humans/ai-assistants">
+    Connect your store and manage it by chatting. No code and no API key.
   </Card>
   <Card title="Creem CLI" icon="terminal" href="/ai/for-humans/cli">
     Browse and manage your store from the terminal with an interactive TUI.
@@ -27,7 +30,7 @@ Read https://creem.io/SKILL.md and follow the instructions to integrate Creem
 
 That's it. The skill file contains everything your AI needs: API endpoints, SDK patterns, webhook handling, and best practices. No documentation rabbit holes.
 
-To let your assistant work in your store, connect Claude, Claude Code, ChatGPT, Codex or Cursor to the [hosted MCP](/ai/for-agents/hosted-mcp) and sign in with your Creem account:
+To manage your store by chatting, [connect Claude or ChatGPT](/ai/for-humans/ai-assistants) and sign in with your Creem account. In Claude Code, Codex, Cursor and other MCP clients, add the [hosted MCP](/ai/for-agents/hosted-mcp):
 
 ```bash
 claude mcp add --transport http creem https://mcp.creem.io/mcp
