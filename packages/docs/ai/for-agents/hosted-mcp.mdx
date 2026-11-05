@@ -22,7 +22,7 @@ Creem runs an [MCP](https://modelcontextprotocol.io) server at `https://mcp.cree
 claude mcp add --transport http creem https://mcp.creem.io/mcp
 ```
 
-Then run `/mcp` in Claude Code, select **creem** and choose **Authenticate**. Your browser opens the Creem sign-in. For other clients, see below.
+Then run `/mcp` in Claude Code, select **creem** and choose **Authenticate**. Your browser opens the Creem sign-in. On the consent screen, pick **Test mode** to try things out first: **Live mode** is preselected. For other clients, see below.
 
 ## Claude
 
@@ -122,7 +122,7 @@ Only **View your store** is ticked on a first connect. Tick the others the agent
 | **Manage subscriptions**                          | Change, upgrade, pause, resume or cancel your customers' subscriptions. Today's tools can only cancel                         |
 | **Issue refunds**                                 | Refund your customers' payments                                                                                               |
 
-When the agent calls a tool the connection has no permission for, your client asks you to sign in again. Tick the permission on the consent screen; it keeps what you already allowed. A client that can't do this shows `This tool needs a permission this connection does not have yet; re-authorize to add it` instead. Connect again from your client and tick the permission.
+When the agent calls a tool the connection has no permission for, your client asks you to sign in again. Tick the permission on the consent screen; it keeps what you already allowed. A client that can't do this shows an authorization error instead. Connect again from your client and tick the permission.
 
 When you grant a permission that changes your store, the consent screen also shows **Confirmations**: **Ask before risky actions**, ticked by default. Leave it ticked unless you trust the agent to act without asking. See [Security](#security).
 
@@ -208,7 +208,7 @@ Store limits count test-mode and live-mode calls separately. A call over a limit
 
 ## Verifying it works
 
-Connect in test mode and ask your agent:
+Connect, pick **Test mode** on the consent screen, and ask your agent:
 
 ```
 List my Creem products.
@@ -225,20 +225,25 @@ The result ends with `Ran in test mode: test data, no real money.` If you get an
     use the [local MCP server](/ai/for-agents/mcp-server).
   </Accordion>
   <Accordion title="Every call fails with “The Creem MCP isn't enabled for this store yet”">
-    The hosted server isn't enabled for your store. Contact [support](mailto:support@creem.io). Once
-    it's enabled, the same connection works without signing in again.
+    The hosted server isn't enabled for the store this connection uses. Creem refuses every request,
+    including the first one when your client connects, so your client may only say it can't connect.
+    If another of your stores has access, disconnect and connect again, choosing that store.
+    Otherwise contact [support](mailto:support@creem.io). Once the store is enabled, the same
+    connection works without signing in again.
   </Accordion>
   <Accordion title="A tool says it needs a permission this connection does not have yet">
     The connection doesn't have the permission the tool needs. Connect again and tick it on the
     consent screen. See [Sign-in and permissions](#sign-in-and-permissions).
   </Accordion>
   <Accordion title="My client asks me to sign in again">
-    The connection ended. It was disconnected in Connected apps by you or the store owner, you were
-    removed from the store, the store was deleted, or your Creem account was locked or signed out
-    everywhere. Sign in again to create a new connection.
+    The connection ended. It was disconnected in Connected apps by you or the store owner, you
+    didn't use it for 7 days, you were removed from the store, the store was deleted, or your Creem
+    account was locked or signed out everywhere. Sign in again to create a new connection.
   </Accordion>
   <Accordion title="A call fails with rate_limited">
-    See [Limits](#limits). Wait for the minute to pass and try again.
+    See [Limits](#limits). Creem refuses calls over a limit before anything runs, including the
+    first request when your client connects, so your client may only say it can't connect. Wait for
+    the minute to pass and try again.
   </Accordion>
   <Accordion title="A call fails with unavailable">
     Creem couldn't complete the call. Try again in a moment. If it was a write, check whether it ran
