@@ -99,11 +99,13 @@ If it only supports local commands, use the [`mcp-remote`](https://www.npmjs.com
   "mcpServers": {
     "creem": {
       "command": "npx",
-      "args": ["mcp-remote", "https://mcp.creem.io/mcp"]
+      "args": ["-y", "mcp-remote@0.16.0", "https://mcp.creem.io/mcp"]
     }
   }
 }
 ```
+
+The example pins `mcp-remote` to a version because the bridge holds your Creem sign-in tokens. Update the version on purpose, not on every start.
 
 Your browser opens the Creem sign-in the first time the client starts the server. A client not listed above can sign in only if it completes sign-in on your own machine, as `mcp-remote` does. If your client sends the sign-in back to its own website instead, connect it through `mcp-remote` or use the [local MCP server](/ai/for-agents/mcp-server).
 
@@ -117,10 +119,10 @@ Only **View your store** is ticked on a first connect. Tick the others the agent
 | ------------------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------- |
 | **View your store**                               | Read products, checkouts, discount codes, customers, transactions, subscriptions, disputes, revenue and your business details |
 | **Manage products, checkout links and discounts** | Create, edit and archive products, create checkout links, and create and delete discount codes                                |
-| **Manage subscriptions**                          | Cancel your customers' subscriptions                                                                                          |
+| **Manage subscriptions**                          | Change, upgrade, pause, resume or cancel your customers' subscriptions. Today's tools can only cancel                         |
 | **Issue refunds**                                 | Refund your customers' payments                                                                                               |
 
-A tool outside the granted permissions fails with `missing scope`, for example `missing scope: refunds:write`. To add a permission, connect again from your client: the consent screen keeps what you already allowed and offers the rest.
+When the agent calls a tool the connection has no permission for, your client asks you to sign in again. Tick the permission on the consent screen; it keeps what you already allowed. A client that can't do this shows `This tool needs a permission this connection does not have yet; re-authorize to add it` instead. Connect again from your client and tick the permission.
 
 When you grant a permission that changes your store, the consent screen also shows **Confirmations**: **Ask before risky actions**, ticked by default. Leave it ticked unless you trust the agent to act without asking. See [Security](#security).
 
@@ -130,13 +132,13 @@ You, and the store owner if that's someone else, get an email when an agent is c
 
 Each connection works in one mode at a time. **Test mode** uses your store's [test mode](/getting-started/test-mode) data, and no real money moves. **Live mode** works on real payments, refunds and subscriptions.
 
-You choose the mode on the consent screen. **Live** is preselected on every new connection; pick **Test** to try things out first. If live payments aren't enabled for your store yet, no real payments run until they are. Every tool result says which mode it ran in, and every confirmation starts with `[Test mode]` or `[LIVE mode]`.
+You choose the mode on the consent screen. **Live mode** is preselected on every new connection; pick **Test mode** to try things out first. If live payments aren't enabled for your store yet, no real payments run until they are. Every tool result says which mode it ran in, and every confirmation starts with `[Test mode]` or `[LIVE mode]`.
 
 To change mode later, ask your agent (for example "switch Creem to live mode") or use **Settings → Connected apps** in the dashboard. Switching to live asks you to confirm.
 
 ## Available tools
 
-25 tools, the same in both modes.
+25 tools. All of them work in both modes except `get_business_details_requirements`, which works in live mode only.
 
 | Group             | Count | Tools                                                                                      |
 | ----------------- | ----- | ------------------------------------------------------------------------------------------ |
@@ -151,7 +153,7 @@ To change mode later, ask your agent (for example "switch Creem to live mode") o
 | **Onboarding**    | 3     | `get_business_details_requirements`, `open_business_details`, `open_identity_verification` |
 | **Connection**    | 1     | `switch_mode`                                                                              |
 
-`get_business_details_requirements` shows what your store's business details still need, the first step to live payments. It works in live mode only. The two `open_` tools return a dashboard link, where you fill in the form yourself.
+`get_business_details_requirements` shows what your store's business details still need, the first step to live payments. The two `open_` tools return a dashboard link, where you fill in the form yourself.
 
 ## Security
 
@@ -193,7 +195,7 @@ Two more things to do:
 
 You can manage the connections you made; the store owner can manage all of them. Connecting the same app again keeps its current confirmation setting, so change it here.
 
-A disconnected agent has to sign in again. Changes it already made, such as refunds or new products, stay.
+When you disconnect an agent, its calls stop within a minute and it has to sign in again. Changes it already made, such as refunds or new products, stay.
 
 ## Limits
 
@@ -226,13 +228,14 @@ The result ends with `Ran in test mode: test data, no real money.` If you get an
     The hosted server isn't enabled for your store. Contact [support](mailto:support@creem.io). Once
     it's enabled, the same connection works without signing in again.
   </Accordion>
-  <Accordion title="A tool fails with missing scope">
+  <Accordion title="A tool says it needs a permission this connection does not have yet">
     The connection doesn't have the permission the tool needs. Connect again and tick it on the
     consent screen. See [Sign-in and permissions](#sign-in-and-permissions).
   </Accordion>
   <Accordion title="My client asks me to sign in again">
-    The connection was disconnected in Connected apps, by you or by the store owner. Sign in again
-    to create a new connection.
+    The connection ended. It was disconnected in Connected apps by you or the store owner, you were
+    removed from the store, the store was deleted, or your Creem account was locked or signed out
+    everywhere. Sign in again to create a new connection.
   </Accordion>
   <Accordion title="A call fails with rate_limited">
     See [Limits](#limits). Wait for the minute to pass and try again.
