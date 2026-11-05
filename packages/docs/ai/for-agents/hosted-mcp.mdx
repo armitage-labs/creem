@@ -5,12 +5,6 @@ description: Connect Claude, Claude Code, ChatGPT, Codex, Cursor or any remote M
 
 Creem runs an [MCP](https://modelcontextprotocol.io) server at `https://mcp.creem.io/mcp`. Add it to Claude, Claude Code, ChatGPT, Codex, Cursor or another MCP client, sign in with your Creem account, and your agent can look up customers, subscriptions and payments, create products, checkout links and discount codes, and cancel subscriptions. There is nothing to install and no API key to paste.
 
-<Tip>
-  **Hosted or local?** The hosted server signs you in with your Creem account and asks you to
-  confirm before risky actions. The [local MCP server](/ai/for-agents/mcp-server) runs on your
-  machine with an API key and exposes the whole API. Use it for scripts and CI.
-</Tip>
-
 ## Requirements
 
 - A Creem account with at least one store ([sign up](https://creem.io/dashboard))
@@ -107,7 +101,7 @@ If it only supports local commands, use the [`mcp-remote`](https://www.npmjs.com
 
 The example pins `mcp-remote` to a version because the bridge holds your Creem sign-in tokens. Update the version on purpose, not on every start.
 
-Your browser opens the Creem sign-in the first time the client starts the server. A client not listed above can sign in only if it completes sign-in on your own machine, as `mcp-remote` does. If your client sends the sign-in back to its own website instead, connect it through `mcp-remote` or use the [local MCP server](/ai/for-agents/mcp-server).
+Your browser opens the Creem sign-in the first time the client starts the server. A client not listed above can sign in only if it completes sign-in on your own machine, as `mcp-remote` does. If your client sends the sign-in back to its own website instead, connect it through `mcp-remote`.
 
 ## Sign-in and permissions
 
@@ -219,8 +213,7 @@ The result ends with `Ran in test mode: test data, no real money.` If you get an
 <AccordionGroup>
   <Accordion title="My client can't finish signing in">
     Your client isn't listed on this page and sends the sign-in back to its own website instead of
-    your machine. Connect it with the `mcp-remote` bridge (see [Other clients](#other-clients)), or
-    use the [local MCP server](/ai/for-agents/mcp-server).
+    your machine. Connect it with the `mcp-remote` bridge (see [Other clients](#other-clients)).
   </Accordion>
   <Accordion title="Every call fails with “The Creem MCP isn't enabled for this store yet”">
     The hosted server isn't enabled for the store this connection uses. Creem refuses every request,
@@ -251,6 +244,5 @@ The result ends with `Ran in test mode: test data, no real money.` If you get an
 
 ## Related
 
-- [Local MCP server](/ai/for-agents/mcp-server) — the npm package, with an API key, for scripts and CI
 - [Skill files](/ai/for-agents/skill-files) — reference material your agent reads
 - [Test mode](/getting-started/test-mode) — how test data works
