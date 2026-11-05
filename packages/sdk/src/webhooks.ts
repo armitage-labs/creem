@@ -1,5 +1,10 @@
 import type { WebhookEventEntity } from "./models/components/webhookevententity.js";
 import { webhookEventEntityFromJSON } from "./models/components/webhookevententity.js";
+import { WebhookEventType } from "./models/components/webhookeventtype.js";
+import { SDKValidationError } from "./models/errors/sdkvalidationerror.js";
+
+/** The event types this SDK version parses into their own shape. */
+const KNOWN_WEBHOOK_EVENT_TYPES: ReadonlySet<string> = new Set(Object.values(WebhookEventType));
 
 export type WebhookHeaders =
   | Headers
@@ -51,7 +56,7 @@ const normalizeHeaders = (headers: WebhookHeaders) => {
   const normalized: Record<string, string> = {};
   const setHeader = (key: string, value: string | string[] | undefined) => {
     if (value === undefined) return;
-    normalized[key.toLowerCase()] = Array.isArray(value) ? value[0] ?? "" : value;
+    normalized[key.toLowerCase()] = Array.isArray(value) ? (value[0] ?? "") : value;
   };
 
   if ("forEach" in headers && typeof headers.forEach === "function") {
@@ -79,7 +84,7 @@ const normalizeSecretOptions = (
   toleranceInSeconds:
     typeof options === "string"
       ? defaultToleranceInSeconds
-      : options.toleranceInSeconds ?? defaultToleranceInSeconds,
+      : (options.toleranceInSeconds ?? defaultToleranceInSeconds),
 });
 
 const toHex = (bytes: Uint8Array) =>
@@ -130,11 +135,7 @@ const hmacSha256 = async (keyBytes: Uint8Array, value: string) => {
     ["sign"],
   );
   return new Uint8Array(
-    await globalThis.crypto.subtle.sign(
-      "HMAC",
-      key,
-      toArrayBuffer(textEncoder.encode(value)),
-    ),
+    await globalThis.crypto.subtle.sign("HMAC", key, toArrayBuffer(textEncoder.encode(value))),
   );
 };
 
@@ -244,11 +245,26 @@ export const parseWebhookEvent = <TData = unknown>(
 export const parseWebhookEventEntity = (
   payload: string | ArrayBuffer | Uint8Array,
 ): WebhookEventEntity => {
-  const result = webhookEventEntityFromJSON(payloadToString(payload));
+  const json = payloadToString(payload);
+  const result = webhookEventEntityFromJSON(json);
   if (!result.ok) {
     throw result.error;
   }
-  return result.value;
+  const event = result.value;
+  // The open union also falls back to UNKNOWN when a known event type fails
+  // validation. That is a malformed payload, not an event type added after this
+  // version, so it is refused as before.
+  if (event.eventType === "UNKNOWN") {
+    const raw = event.raw as { eventType?: unknown } | null;
+    if (typeof raw?.eventType === "string" && KNOWN_WEBHOOK_EVENT_TYPES.has(raw.eventType)) {
+      throw new SDKValidationError(
+        `Invalid "${raw.eventType}" webhook payload`,
+        "the payload doesn't match the schema of its event type",
+        json,
+      );
+    }
+  }
+  return event;
 };
 
 export const constructWebhookEvent = async <TData = unknown>(

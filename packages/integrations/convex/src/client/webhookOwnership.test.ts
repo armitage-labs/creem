@@ -459,4 +459,19 @@ describe("webhook side effects follow the stored owner", () => {
     expect(response.status).toBe(202);
     await expectUserUntouched();
   });
+
+  it("still refuses a known event type whose payload doesn't match it", async () => {
+    const response = await send(
+      JSON.stringify({
+        id: "evt_broken_cancel",
+        eventType: "subscription.canceled",
+        created_at: 1780000000000,
+        object: { id: "sub_org" },
+      }),
+    );
+
+    // A 4xx keeps Creem retrying, instead of dropping a real cancellation.
+    expect(response.status).toBe(400);
+    await expectUserUntouched();
+  });
 });

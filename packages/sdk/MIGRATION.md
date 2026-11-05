@@ -156,7 +156,9 @@ The same holds for webhook payloads parsed with `parseWebhookEventEntity` or
 `constructWebhookEventEntity`, including a subscription's `collectionMethod`
 and a refund's `reason`. An event type this version doesn't know no longer
 throws. It comes back as the unknown variant, with `eventType: "UNKNOWN"` and
-the payload as sent in `raw`:
+the payload as sent in `raw`. A payload whose event type this version knows,
+but that doesn't match that event's schema, still throws an
+`SDKValidationError`, as in 1.x:
 
 ```ts
 const event = await constructWebhookEventEntity(body, headers, secret);

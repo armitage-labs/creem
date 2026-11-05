@@ -1,6 +1,9 @@
 import { describe, expect, it } from "vitest";
 import { parseWebhookEventEntity } from "../../src/webhooks.js";
 import { isUnknown } from "../../src/types/discriminatedUnion.js";
+import { WebhookEventType } from "../../src/models/components/webhookeventtype.js";
+import { SDKValidationError } from "../../src/models/errors/sdkvalidationerror.js";
+import { readFileSync } from "node:fs";
 import { subscriptionEntityFromJSON } from "../../src/models/components/index.js";
 
 // ENG-2487: values outside API responses are open too. Webhook payload models
@@ -77,5 +80,28 @@ describe("forward-compatible webhook payloads", () => {
     expect(subscription.ok).toBe(true);
     if (!subscription.ok) throw subscription.error;
     expect(subscription.value.collectionMethod).toBe("send_invoice");
+  });
+
+  // The generated open union also falls back to UNKNOWN when a KNOWN event
+  // fails validation. That's a malformed payload, not a newer event type, so
+  // the parser must still refuse it, as 1.x did.
+  it("still refuses a known event type whose payload doesn't match it", () => {
+    const malformed = JSON.stringify({
+      id: "evt_123",
+      eventType: "subscription.canceled",
+      created_at: 1700000000,
+      object: { id: "sub_123" },
+    });
+
+    expect(() => parseWebhookEventEntity(malformed)).toThrow(SDKValidationError);
+  });
+
+  it("knows exactly the event types of the webhook union", () => {
+    const spec = JSON.parse(readFileSync(new URL("../../openapi.json", import.meta.url), "utf8"));
+    const unionTypes = Object.keys(
+      spec.components.schemas.WebhookEventEntity.discriminator.mapping,
+    );
+
+    expect(new Set(Object.values(WebhookEventType))).toEqual(new Set(unionTypes));
   });
 });
