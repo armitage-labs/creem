@@ -282,6 +282,7 @@
               },
               "integrations/evendeals",
               "integrations/framer",
+              "integrations/sequenzy",
               "integrations/strapi"
             ]
           },
