@@ -45,7 +45,7 @@ Then open **Settings** and copy your **Store ID**. It starts with `sto_`.
 In Sequenzy, go to **Settings > Integrations** and click **Connect** next to Creem. The connection dialog shows your workspace's webhook URL:
 
 ```
-https://api.sequenzy.com/webhooks/creem/{your-company-id}
+https://api.sequenzy.com/api/webhooks/creem/{your-company-id}
 ```
 
 In Creem, go to **Developers > Webhooks**, create a new endpoint with that URL, and keep all events selected. Sequenzy uses these events:
@@ -58,6 +58,7 @@ In Creem, go to **Developers > Webhooks**, create a new endpoint with that URL, 
 - `subscription.trialing`
 - `subscription.paused`
 - `refund.created`
+- `dispute.created`
 
 Save the endpoint and copy its **webhook signing secret**.
 
@@ -76,6 +77,12 @@ Click **Connect Creem**. Sequenzy starts receiving webhook events immediately.
 </Step>
 
 </Steps>
+
+<Tip>
+  Try it in Test Mode first. Connect your Creem Test Mode store with a test API key (it starts with
+  `creem_test_`) and the signing secret of a Test Mode webhook. When everything works, reconnect
+  Creem in Sequenzy with your live key and the live webhook's secret.
+</Tip>
 
 ## What Gets Synced
 
@@ -103,12 +110,12 @@ Only `active` subscriptions count toward MRR. Yearly, weekly, and daily prices a
 | Event                   | Triggered when                                                           |
 | ----------------------- | ------------------------------------------------------------------------ |
 | `saas.purchase`         | A checkout completes, a subscription activates, or a payment is received |
-| `saas.purchase_monthly` | A monthly subscription is purchased                                      |
-| `saas.purchase_yearly`  | A yearly subscription is purchased                                       |
+| `saas.purchase.monthly` | A monthly subscription is purchased                                      |
+| `saas.purchase.yearly`  | A yearly subscription is purchased                                       |
 | `saas.trial_started`    | A subscription enters a trial                                            |
 | `saas.cancelled`        | A subscription is canceled                                               |
 | `saas.churn`            | A subscription expires or is paused                                      |
-| `saas.refund`           | A refund is created                                                      |
+| `saas.refund`           | A refund or dispute is created                                           |
 
 <Note>
   In Creem, `subscription.canceled` means the subscription has ended. A customer who cancels at the
