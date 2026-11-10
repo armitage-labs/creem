@@ -85,6 +85,10 @@
     {
       "source": "/ai/for-agents/mcp-server",
       "destination": "/ai/for-agents/hosted-mcp"
+    },
+    {
+      "source": "/getting-started/introduction",
+      "destination": "/"
     }
   ],
   "theme": "mint",
@@ -104,7 +108,7 @@
             "group": "Get Started",
             "icon": "rocket",
             "pages": [
-              "getting-started/introduction",
+              "index",
               "getting-started/quickstart",
               "getting-started/test-mode",
               {

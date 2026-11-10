@@ -12,7 +12,7 @@ Append `.md` to any documentation URL to fetch it as raw markdown.
 
 ## Getting Started
 
-- [Introduction](https://docs.creem.io/getting-started/introduction.md): what Creem is and how the MoR model changes your integration
+- [Introduction](https://docs.creem.io/index.md): what Creem is and how the MoR model changes your integration
 - [Quickstart](https://docs.creem.io/getting-started/quickstart.md): create a product and take a first payment
 - [Test mode](https://docs.creem.io/getting-started/test-mode.md): sandbox keys and test cards
 - [Migrate to Creem](https://docs.creem.io/getting-started/migrate.md): moving from another payment provider
