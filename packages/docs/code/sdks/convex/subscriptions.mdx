@@ -242,6 +242,8 @@ Control placement with `groupSelector="auto" | "hidden" | "external"` (use `<Sub
 - `"proration-none"` skips proration; the change applies next billing cycle.
 - `"period-end"` keeps the current subscription until `currentPeriodEnd`, then applies the change from a scheduled Convex job.
 
+A `"period-end"` plan or unit change is sent to Creem one hour before `currentPeriodEnd`, with `proration-none`, so the renewal at the period end already bills the new plan or unit count. Creem charges the renewal at the period end itself, and a change sent at that moment can miss it. The change charges and refunds nothing, the subscription shows the new plan or count from then on, and the pending change keeps the period end as its effective date. Set the lead time in milliseconds with `new Creem(components.creem, { periodEndUpdateLeadMs })`.
+
 Pass a resolver to treat upgrades and downgrades differently:
 
 ```tsx title="Pricing page"

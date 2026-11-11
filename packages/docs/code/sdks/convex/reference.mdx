@@ -348,7 +348,11 @@ the built-in defaults without `tailwind-merge`.
   billing cycle.
 - `"period-end"` keeps the current subscription active until
   `currentPeriodEnd`, then applies the target plan or unit count from a
-  scheduled Convex job.
+  scheduled Convex job. The job sends the change to Creem with
+  `proration-none` one hour before `currentPeriodEnd`, so the renewal bills
+  the new plan or count; set `periodEndUpdateLeadMs` on `new Creem(...)` to
+  change that lead time. The pending change's `effectiveAt` stays the period
+  end.
 
 The first three values map directly to Creem's paid subscription update
 behavior. `updateBehavior` intentionally does not include `"immediate"` because
