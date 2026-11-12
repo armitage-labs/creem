@@ -149,7 +149,15 @@ jobs:
           if [ "$CHANGED" != "true" ]; then
             echo "update=false" >> "$GITHUB_OUTPUT"
             if [ -n "$number" ] && [ -z "$manual" ]; then
-              gh pr close "$number" --delete-branch --comment "main already matches the live API contract, so this pull request is no longer needed."
+              # Delete the branch only if it is still the commit checked above,
+              # so a commit pushed meanwhile survives. GitHub closes the pull
+              # request when its branch goes.
+              if git push --force-with-lease="refs/heads/$BRANCH:$head" origin ":refs/heads/$BRANCH"; then
+                gh pr comment "$number" --body "main already matches the live API contract, so this pull request is no longer needed."
+                gh pr close "$number" 2> /dev/null || true
+              else
+                echo "::warning::$BRANCH changed since it was checked; leaving the pull request open."
+              fi
             fi
             exit 0
           fi
