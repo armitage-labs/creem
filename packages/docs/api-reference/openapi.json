@@ -4943,8 +4943,8 @@
       },
       "ProductFeatureType": {
         "type": "string",
-        "description": "The type of the feature: `custom` (private note), `file` (downloadable files), `licenseKey` (license key), or `customerCredits` (customer credit grant).",
-        "enum": ["custom", "file", "licenseKey", "customerCredits"]
+        "description": "The type of the feature: `custom` (private note), `file` (downloadable files), `licenseKey` (license key), `customerCredits` (customer credit grant), or `githubRepository` (access to a private GitHub repository).",
+        "enum": ["custom", "file", "licenseKey", "customerCredits", "githubRepository"]
       },
       "CustomerCreditsFeatureEntity": {
         "type": "object",
@@ -9243,7 +9243,8 @@
           "customer_credits.exhausted",
           "credits.granted",
           "credits.consumed",
-          "credits.auto_recharged"
+          "credits.auto_recharged",
+          "marketplace.grant.requested"
         ]
       },
       "WebhookEntity": {
@@ -10246,6 +10247,122 @@
         "required": ["id", "eventType", "created_at", "object"],
         "x-speakeasy-include": true
       },
+      "MarketplaceGrantAskOrderEntity": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string"
+          },
+          "status": {
+            "type": "string"
+          },
+          "amountMinor": {
+            "type": "number",
+            "description": "What the buyer was charged, minor units."
+          },
+          "currency": {
+            "type": "string"
+          },
+          "transactionId": {
+            "type": "object",
+            "nullable": true
+          },
+          "paidAt": {
+            "type": "object",
+            "nullable": true
+          }
+        },
+        "required": ["id", "status", "amountMinor", "currency", "transactionId", "paidAt"]
+      },
+      "MarketplaceGrantAskEntity": {
+        "type": "object",
+        "properties": {
+          "grantId": {
+            "type": "string",
+            "description": "The grant this ask belongs to."
+          },
+          "operationId": {
+            "type": "string",
+            "description": "The operation to answer against on the result endpoint."
+          },
+          "action": {
+            "type": "string",
+            "description": "What is asked: a first key, a top-up of the account the grant names, or (after a refund or chargeback) a revoke: disable that account; revoke_credit: remove the credit of the order named here only, the account and the key stay.",
+            "enum": ["provision", "top_up", "revoke", "revoke_credit"]
+          },
+          "deadlineAt": {
+            "type": "object",
+            "description": "ISO-8601 instant the answer is due; past it the order is refunded. null on a revoke or revoke_credit: they have no deadline.",
+            "nullable": true
+          },
+          "reason": {
+            "type": "string",
+            "description": "With a revoke or revoke_credit only: why the account, or that order’s credit, must go.",
+            "enum": ["refund", "chargeback", "undelivered", "test"],
+            "nullable": true
+          },
+          "listingId": {
+            "type": "string",
+            "description": "The marketplace listing the order came through."
+          },
+          "productId": {
+            "type": "string",
+            "description": "The product that was charged."
+          },
+          "order": {
+            "description": "The paid order the ask is for. null on a test ask (test: true) from the review gate, which has no order.",
+            "nullable": true,
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/MarketplaceGrantAskOrderEntity"
+              }
+            ]
+          },
+          "test": {
+            "type": "boolean",
+            "description": "true when the ask is one of the review gate’s test runs before the listing goes live; answer it exactly like a real one. A test provision: a fresh key; grantId and operationId are the run’s id. A test top-up: add credit to the account the test provision created (grantId is that provision run’s id, operationId the top-up run’s) and answer ready with no env. The revoke ask for the test account follows the test top-up, or at once when the test provision failed."
+          }
+        },
+        "required": [
+          "grantId",
+          "operationId",
+          "action",
+          "deadlineAt",
+          "reason",
+          "listingId",
+          "productId",
+          "order",
+          "test"
+        ]
+      },
+      "WebhookMarketplaceGrantRequestedEventEntity": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "description": "Unique identifier for the event."
+          },
+          "eventType": {
+            "type": "string",
+            "description": "The event name.",
+            "enum": ["marketplace.grant.requested"]
+          },
+          "created_at": {
+            "type": "number",
+            "description": "Timestamp of when the event was created."
+          },
+          "object": {
+            "description": "Object related to the event.",
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/MarketplaceGrantAskEntity"
+              }
+            ]
+          }
+        },
+        "required": ["id", "eventType", "created_at", "object"],
+        "x-speakeasy-include": true
+      },
       "WebhookSubscriptionActiveEventEntity": {
         "type": "object",
         "properties": {
@@ -10551,6 +10668,9 @@
             "$ref": "#/components/schemas/WebhookCreditsAutoRechargedEventEntity"
           },
           {
+            "$ref": "#/components/schemas/WebhookMarketplaceGrantRequestedEventEntity"
+          },
+          {
             "$ref": "#/components/schemas/WebhookSubscriptionActiveEventEntity"
           },
           {
@@ -10591,6 +10711,7 @@
             "credits.granted": "#/components/schemas/WebhookCreditsGrantedEventEntity",
             "credits.consumed": "#/components/schemas/WebhookCreditsConsumedEventEntity",
             "credits.auto_recharged": "#/components/schemas/WebhookCreditsAutoRechargedEventEntity",
+            "marketplace.grant.requested": "#/components/schemas/WebhookMarketplaceGrantRequestedEventEntity",
             "subscription.active": "#/components/schemas/WebhookSubscriptionActiveEventEntity",
             "subscription.trialing": "#/components/schemas/WebhookSubscriptionTrialingEventEntity",
             "subscription.canceled": "#/components/schemas/WebhookSubscriptionCanceledEventEntity",
