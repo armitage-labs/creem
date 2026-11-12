@@ -31,15 +31,6 @@ The integration connects five objects through their IDs:
 | **Moderation result**     | `id`            | The Moderation API's decision on one prompt: `allow`, `flag` or `deny`.                                                      |
 | **Debit**                 | `cct_...`       | A credit spend from the generation wallet. It carries the moderation result ID that cleared the prompt.                      |
 
-```mermaid
-flowchart LR
-    U["Your user<br/>user_123"] --> C["Creem customer<br/>external_id = user_123"]
-    C --> W["Generation wallet<br/>cca_..."]
-    P["Purchase or renewal"] -- "credits added automatically" --> W
-    M["Moderation result<br/>decision = allow"] -- "moderation_id" --> D["Debit<br/>cct_..."]
-    W -- "credits spent" --> D
-```
-
 ## How the flow works
 
 In practice, the most common flow looks like this:
@@ -114,7 +105,7 @@ const customer = await creem.customers.create({
 await db.users.update(user.id, { creemCustomerId: customer.id }); // cust_...
 ```
 
-```bash cURL
+```bash API
 curl -X POST https://api.creem.io/v1/customers \
   -H "x-api-key: $CREEM_API_KEY" \
   -H "Content-Type: application/json" \
@@ -144,7 +135,7 @@ const wallet = await creem.customerCredits.createAccount({
 await db.users.update(user.id, { creditAccountId: wallet.id }); // cca_...
 ```
 
-```bash cURL
+```bash API
 curl -X POST https://api.creem.io/v1/customer-credits/accounts \
   -H "x-api-key: $CREEM_API_KEY" \
   -H "Content-Type: application/json" \
@@ -224,7 +215,7 @@ const checkout = await creem.checkouts.create({
 return redirect(checkout.checkoutUrl!);
 ```
 
-```bash cURL
+```bash API
 curl -X POST https://api.creem.io/v1/checkouts \
   -H "x-api-key: $CREEM_API_KEY" \
   -H "Content-Type: application/json" \
@@ -259,7 +250,7 @@ if (Number(balance) < cost) {
 }
 ```
 
-```bash cURL
+```bash API
 curl https://api.creem.io/v1/customer-credits/accounts/cca_.../balance \
   -H "x-api-key: $CREEM_API_KEY"
 ```
@@ -294,7 +285,7 @@ if (mod.decision !== "allow") {
 }
 ```
 
-```bash cURL
+```bash API
 curl -X POST https://api.creem.io/v1/moderation/prompt \
   -H "x-api-key: $CREEM_API_KEY" \
   -H "Content-Type: application/json" \
@@ -337,7 +328,7 @@ try {
 }
 ```
 
-```bash cURL
+```bash API
 curl -X POST https://api.creem.io/v1/customer-credits/accounts/cca_.../debit \
   -H "x-api-key: $CREEM_API_KEY" \
   -H "Content-Type: application/json" \
