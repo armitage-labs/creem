@@ -139,6 +139,9 @@ jobs:
           private-key: ${{ secrets.PR_AUTOMATION_APP_PRIVATE_KEY }}
           permission-contents: write
           permission-pull-requests: write
+          # Rebuilding the branch on a newer main can change workflow files
+          # between the old and the new tip; GitHub refuses that push without it.
+          permission-workflows: write
 
       # One fixed branch, so a newer SDK release updates the open cascade pull
       # request instead of opening another one next to it. The branch is rebuilt
