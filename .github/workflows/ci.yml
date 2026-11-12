@@ -89,6 +89,9 @@ jobs:
       - name: Test Homebrew release automation
         run: node --test scripts/update-homebrew.test.mjs
 
+      - name: Test OpenAPI sync automation
+        run: node --test scripts/openapi-sync.test.mjs
+
       - name: Check package metadata
         run: pnpm check:package-metadata
 

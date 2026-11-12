@@ -1,0 +1,186 @@
+name: OpenAPI Sync
+
+# Keeps packages/sdk/openapi.json in step with the live API. Once a day this
+# fetches the deployed contract. When it differs from main, it regenerates the
+# SDK, the docs copy of the contract and the API reference pages, and opens or
+# updates one pull request from chore/openapi-sync. The backend deploys first,
+# so the live contract is the one the SDK may describe.
+#
+# The changeset's release level comes from Speakeasy's SDK change report
+# (`speakeasy diff`), read by scripts/openapi-sync.mjs: breaking means major,
+# any other SDK change means minor, no SDK change means patch.
+#
+# A commit on the branch that this workflow did not make (CLI flags, a changed
+# release level) is never overwritten: while one exists, the workflow comments
+# on the pull request instead of updating it.
+#
+# Pull requests opened with GITHUB_TOKEN do not start other workflows, so the
+# checks need OPENAPI_SYNC_TOKEN (a GitHub App or bot token with contents and
+# pull-requests write). Without it the pull request still opens, and closing
+# and reopening it starts the checks.
+
+on:
+  schedule:
+    - cron: "23 5 * * *"
+  workflow_dispatch: {}
+
+concurrency:
+  group: openapi-sync
+  cancel-in-progress: false
+
+permissions:
+  contents: write
+  pull-requests: write
+
+env:
+  SPEC_URL: https://api.creem.io/open-api/json
+  BRANCH: chore/openapi-sync
+  BOT: github-actions[bot] <41898282+github-actions[bot]@users.noreply.github.com>
+  BOT_EMAIL: 41898282+github-actions[bot]@users.noreply.github.com
+
+jobs:
+  sync:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - uses: pnpm/action-setup@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24
+          cache: "pnpm"
+
+      - run: pnpm install --frozen-lockfile
+
+      - name: Fetch the live contract
+        id: spec
+        run: |
+          cp packages/sdk/openapi.json "$RUNNER_TEMP/main-openapi.json"
+          curl -fsS --retry 3 --retry-all-errors --max-time 60 "$SPEC_URL" -o "$RUNNER_TEMP/live-openapi.json"
+          # Refuse an error page or an empty document before it replaces the
+          # contract. The API serves minified JSON, and Prettier keeps an object
+          # expanded only when its input already breaks after "{", so expand it
+          # first; otherwise the layout differs from main on every line.
+          node -e '
+            const fs = require("node:fs");
+            const spec = JSON.parse(fs.readFileSync(process.argv[1], "utf8"));
+            if (!/^3\./.test(spec.openapi ?? "") || !Object.keys(spec.paths ?? {}).length) {
+              throw new Error("The live contract is not an OpenAPI 3 document with paths.");
+            }
+            fs.writeFileSync(process.argv[2], JSON.stringify(spec, null, 2) + "\n");
+          ' "$RUNNER_TEMP/live-openapi.json" packages/sdk/openapi.json
+          pnpm exec prettier --write packages/sdk/openapi.json
+          echo "sha256=$(sha256sum packages/sdk/openapi.json | cut -d' ' -f1)" >> "$GITHUB_OUTPUT"
+          if git diff --quiet -- packages/sdk/openapi.json; then
+            echo "changed=false" >> "$GITHUB_OUTPUT"
+            echo "The live contract matches main." >> "$GITHUB_STEP_SUMMARY"
+          else
+            echo "changed=true" >> "$GITHUB_OUTPUT"
+          fi
+
+      - name: Keep manual commits on the sync branch
+        id: guard
+        if: steps.spec.outputs.changed == 'true'
+        env:
+          GH_TOKEN: ${{ secrets.OPENAPI_SYNC_TOKEN || secrets.GITHUB_TOKEN }}
+          SPEC_SHA256: ${{ steps.spec.outputs.sha256 }}
+        run: |
+          if ! git ls-remote --exit-code --heads origin "$BRANCH" > /dev/null; then
+            echo "update=true" >> "$GITHUB_OUTPUT"
+            exit 0
+          fi
+          git fetch --no-tags origin "$BRANCH"
+          # Merge commits (GitHub's "Update branch") carry no manual changes.
+          manual=$(git log --no-merges --format='%ae %h %an' "origin/main..origin/$BRANCH" | grep -vF "$BOT_EMAIL " || true)
+          if [ -z "$manual" ]; then
+            echo "update=true" >> "$GITHUB_OUTPUT"
+            exit 0
+          fi
+          echo "update=false" >> "$GITHUB_OUTPUT"
+          echo "The sync branch has manual commits; not updating it." >> "$GITHUB_STEP_SUMMARY"
+          if git show "origin/$BRANCH:packages/sdk/openapi.json" | cmp -s - packages/sdk/openapi.json; then
+            exit 0
+          fi
+          # One comment per live contract version, not one per day.
+          if gh pr view "$BRANCH" --json comments --jq '.comments[].body' | grep -qF "$SPEC_SHA256"; then
+            exit 0
+          fi
+          gh pr comment "$BRANCH" --body "The live API contract changed again since this pull request was last updated (sha256 \`$SPEC_SHA256\`). This branch has commits the OpenAPI sync did not make, so it was not updated. Merge this pull request; the next daily run opens a new one with the remaining changes."
+
+      - name: Install Speakeasy
+        if: steps.guard.outputs.update == 'true'
+        run: |
+          # The version pinned in workflow.yaml, so regeneration on main stays a no-op.
+          version=$(sed -n 's/^speakeasyVersion: *//p' packages/sdk/.speakeasy/workflow.yaml)
+          case "$version" in
+            [0-9]*.[0-9]*.[0-9]*) ;;
+            *) echo "::error::packages/sdk/.speakeasy/workflow.yaml must pin an exact speakeasyVersion, found '$version'"; exit 1 ;;
+          esac
+          dir="$RUNNER_TEMP/speakeasy"
+          mkdir -p "$dir"
+          base="https://github.com/speakeasy-api/speakeasy/releases/download/v$version"
+          curl -fsSL --retry 3 "$base/speakeasy_linux_amd64.zip" -o "$dir/speakeasy_linux_amd64.zip"
+          curl -fsSL --retry 3 "$base/checksums.txt" -o "$dir/checksums.txt"
+          (cd "$dir" && grep ' speakeasy_linux_amd64.zip$' checksums.txt | sha256sum -c -)
+          unzip -q "$dir/speakeasy_linux_amd64.zip" -d "$dir/bin"
+          echo "$dir/bin" >> "$GITHUB_PATH"
+
+      - name: Compute the SDK change report
+        if: steps.guard.outputs.update == 'true'
+        run: |
+          # speakeasy diff reads gen.yaml from its output directory.
+          out="$RUNNER_TEMP/speakeasy-diff"
+          mkdir -p "$out/.speakeasy"
+          cp packages/sdk/.speakeasy/gen.yaml "$out/.speakeasy/gen.yaml"
+          speakeasy diff files --lang typescript --output-dir "$out" \
+            --old "$RUNNER_TEMP/main-openapi.json" --new packages/sdk/openapi.json
+          test -f "$out/changes.md"
+
+      - uses: actions/upload-artifact@v4
+        if: steps.guard.outputs.update == 'true'
+        with:
+          name: sdk-change-report
+          path: ${{ runner.temp }}/speakeasy-diff/changes.md
+
+      - name: Regenerate the SDK, the docs contract and the API reference
+        if: steps.guard.outputs.update == 'true'
+        env:
+          SPEAKEASY_API_KEY: ${{ secrets.SPEAKEASY_API_KEY }}
+        run: |
+          pnpm gen:sdk
+          pnpm --dir packages/docs generate:api
+          pnpm install --lockfile-only
+
+      - name: Write the changeset and the pull request body
+        id: release
+        if: steps.guard.outputs.update == 'true'
+        run: |
+          level=$(node scripts/openapi-sync.mjs \
+            --old="$RUNNER_TEMP/main-openapi.json" \
+            --new=packages/sdk/openapi.json \
+            --report="$RUNNER_TEMP/speakeasy-diff/changes.md" \
+            --gen-yaml=packages/sdk/.speakeasy/gen.yaml \
+            --changeset=.changeset/openapi-sync.md \
+            --body="$RUNNER_TEMP/pull-request-body.md" \
+            --spec-url="$SPEC_URL" \
+            --spec-sha256="${{ steps.spec.outputs.sha256 }}")
+          echo "level=$level" >> "$GITHUB_OUTPUT"
+          echo "Release level from the Speakeasy report: **$level**" >> "$GITHUB_STEP_SUMMARY"
+
+      - name: Open or update the pull request
+        if: steps.guard.outputs.update == 'true'
+        uses: peter-evans/create-pull-request@v7
+        with:
+          token: ${{ secrets.OPENAPI_SYNC_TOKEN || secrets.GITHUB_TOKEN }}
+          branch: ${{ env.BRANCH }}
+          base: main
+          author: ${{ env.BOT }}
+          committer: ${{ env.BOT }}
+          commit-message: "feat(sdk): sync the SDK with the live API contract"
+          title: "feat(sdk): sync the SDK with the live API contract (${{ steps.release.outputs.level }})"
+          body-path: ${{ runner.temp }}/pull-request-body.md
+          delete-branch: true
