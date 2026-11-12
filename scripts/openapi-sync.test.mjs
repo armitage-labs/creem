@@ -86,8 +86,11 @@ test("derives the release level from Speakeasy's markers and the generated sourc
   assert.equal(releaseLevel(parseSdkChanges("## Typescript SDK Changes:\n")), "patch");
   assert.equal(releaseLevel(parseSdkChanges("")), "patch");
   // A new schema no operation references yet is not in the report but is exported.
-  assert.equal(releaseLevel(parseSdkChanges(""), { sdkFilesChanged: true }), "minor");
-  assert.equal(releaseLevel(parseSdkChanges(breakingReport), { sdkFilesChanged: true }), "major");
+  assert.equal(releaseLevel(parseSdkChanges(""), { sdkFilesAdded: true }), "minor");
+  assert.equal(releaseLevel(parseSdkChanges(breakingReport), { sdkFilesAdded: true }), "major");
+  // A removed generated file takes an exported type away.
+  const removed = ["packages/sdk/src/models/components/webhookevententity.ts"];
+  assert.equal(releaseLevel(parseSdkChanges(""), { sdkFilesRemoved: removed }), "major");
 });
 
 test("a release label overrides the level; conflicting labels fail", () => {
@@ -191,10 +194,22 @@ test("the body names a label override next to Speakeasy's suggestion", () => {
 });
 
 test("the body explains a minor level from generated source without report entries", () => {
-  const body = renderBody({ ...bodyInput, level: "minor", sdkFilesChanged: true, report: "" });
-  assert.match(body, /lists no method changes, but generated SDK files were added or removed/);
+  const body = renderBody({ ...bodyInput, level: "minor", sdkFilesAdded: true, report: "" });
+  assert.match(body, /lists no method changes, but generated SDK files were added/);
   const patch = renderBody({ ...bodyInput, level: "patch", report: "" });
   assert.match(patch, /no generated files were added or removed/);
+});
+
+test("the body lists removed generated files as the reason for a major level", () => {
+  const body = renderBody({
+    ...bodyInput,
+    level: "major",
+    report: "",
+    sdkFilesRemoved: ["packages/sdk/src/models/components/webhookevententity.ts"],
+  });
+  assert.match(body, /These generated SDK files were removed/);
+  assert.match(body, /- `packages\/sdk\/src\/models\/components\/webhookevententity\.ts`/);
+  assert.doesNotMatch(body, /Speakeasy marks these SDK changes as breaking/);
 });
 
 test("the body warns about positional parameters unless the SDK uses request objects", () => {

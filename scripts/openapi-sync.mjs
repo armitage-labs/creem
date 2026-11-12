@@ -72,14 +72,15 @@ export function breakingChanges(methods) {
 }
 
 // Speakeasy's report covers SDK methods. A schema no operation references is
-// still generated and exported (a new webhook event entity, for example), so a
-// generated file added or removed without report entries is an addition, not a
-// patch. Modified files don't count: descriptions land in JSDoc comments.
-export function releaseLevel(methods, { sdkFilesChanged = false } = {}) {
+// still generated and exported (a new webhook event entity, for example). A
+// generated file added without report entries is an addition (minor); one
+// removed takes away an exported type (major). Modified files don't count:
+// descriptions land in JSDoc comments.
+export function releaseLevel(methods, { sdkFilesAdded = false, sdkFilesRemoved = [] } = {}) {
   const texts = methods.flatMap(({ items }) => items.map((item) => item.text));
-  if (texts.some((text) => text.includes(BREAKING))) return "major";
+  if (sdkFilesRemoved.length || texts.some((text) => text.includes(BREAKING))) return "major";
   if (methods.length || texts.some((text) => CHANGE.test(text))) return "minor";
-  return sdkFilesChanged ? "minor" : "patch";
+  return sdkFilesAdded ? "minor" : "patch";
 }
 
 // A reviewer sets the level with a label such as `sdk-release:minor`. Labels
@@ -152,22 +153,28 @@ function codeList(values) {
   return values.map((value) => `\`${value}\``).join(", ");
 }
 
-function levelReason(level, breaking, sdkFilesChanged, methods) {
+function levelReason(level, breaking, sdkFilesAdded, sdkFilesRemoved, methods) {
   if (level === "major") {
     const lines = breaking.map(
       ({ change, methods }) =>
         `- ${change}, in ${methods.length === 1 ? "" : `${methods.length} methods: `}${codeList(methods)}`,
     );
+    const removed = sdkFilesRemoved.map((file) => `- \`${file}\``);
     return [
-      "Speakeasy marks these SDK changes as breaking:",
-      "",
-      ...lines,
-      "",
+      ...(lines.length ? ["Speakeasy marks these SDK changes as breaking:", "", ...lines, ""] : []),
+      ...(removed.length
+        ? [
+            "These generated SDK files were removed, so code that imports their exports breaks:",
+            "",
+            ...removed,
+            "",
+          ]
+        : []),
       "Typical causes: a new enum value in a response (code that handles every value no longer covers all of them), a removed or renamed type, or a field that became required. A major release also needs every non-workspace `creem` peer range (for example in the Convex integration) raised; the SDK cascade only bumps workspace dependencies.",
     ].join("\n");
   }
-  if (level === "minor" && !methods.length && sdkFilesChanged) {
-    return "Speakeasy's report lists no method changes, but generated SDK files were added or removed, for example a new exported model that no operation references yet.";
+  if (level === "minor" && !methods.length && sdkFilesAdded) {
+    return "Speakeasy's report lists no method changes, but generated SDK files were added, for example a new exported model that no operation references yet.";
   }
   if (level === "minor") {
     return "Speakeasy reports SDK additions or changes and nothing breaking.";
@@ -181,7 +188,8 @@ export function renderBody({
   breaking,
   positional,
   positionalLimit,
-  sdkFilesChanged = false,
+  sdkFilesAdded = false,
+  sdkFilesRemoved = [],
   methods = [],
   docsError = "",
   docsOrphans = [],
@@ -205,7 +213,7 @@ export function renderBody({
     levelLine,
     `> To release at another level, add the label \`${LABEL_PREFIX}patch\`, \`${LABEL_PREFIX}minor\` or \`${LABEL_PREFIX}major\` to this pull request and run the OpenAPI Sync workflow (or wait for the next daily run). The label only works while this pull request has nothing but workflow commits. After you push a commit, edit the level in \`${changesetPath}\` instead; the workflow comments if a label and the changeset disagree.`,
     "",
-    levelReason(suggestedLevel, breaking, sdkFilesChanged, methods),
+    levelReason(suggestedLevel, breaking, sdkFilesAdded, sdkFilesRemoved, methods),
   ];
 
   if (positional.length && positionalLimit !== 0) {
@@ -233,7 +241,7 @@ export function renderBody({
       "## API reference pages not regenerated",
       "",
       "> [!WARNING]",
-      "> `pnpm --dir packages/docs generate:api` failed, so the endpoint pages in this pull request are not regenerated. A new endpoint usually needs an entry in `packages/docs/docs.json` navigation first. Add it in this pull request and run the command again.",
+      "> `pnpm --dir packages/docs generate:api` failed, so the endpoint pages in this pull request are not regenerated. A new endpoint usually needs an entry in `packages/docs/docs.json` navigation first. Add it in this pull request and run the command again. Pages of removed endpoints are only listed once the generator runs through.",
       "",
       "```text",
       docsError.trim().slice(0, 4000),
@@ -290,6 +298,13 @@ function readOptional(path) {
   return path && existsSync(path) ? readFileSync(path, "utf8") : "";
 }
 
+function lines(text) {
+  return text
+    .split("\n")
+    .map((line) => line.trim())
+    .filter(Boolean);
+}
+
 export function main(argv = process.argv.slice(2)) {
   const args = Object.fromEntries(
     argv.map((arg) => {
@@ -312,8 +327,9 @@ export function main(argv = process.argv.slice(2)) {
   }
   const report = readFileSync(args.report, "utf8");
   const methods = parseSdkChanges(report);
-  const sdkFilesChanged = args["sdk-files-changed"] === "true";
-  const suggestedLevel = releaseLevel(methods, { sdkFilesChanged });
+  const sdkFilesAdded = args["sdk-files-added"] === "true";
+  const sdkFilesRemoved = lines(readOptional(args["sdk-files-removed"]));
+  const suggestedLevel = releaseLevel(methods, { sdkFilesAdded, sdkFilesRemoved });
   const override = labelLevel((args.labels ?? "").split(",").filter(Boolean));
   const level = override || suggestedLevel;
   const positionalLimit = maxMethodParams(readFileSync(args["gen-yaml"], "utf8"));
@@ -330,13 +346,11 @@ export function main(argv = process.argv.slice(2)) {
       breaking: breakingChanges(methods),
       positional,
       positionalLimit,
-      sdkFilesChanged,
+      sdkFilesAdded,
+      sdkFilesRemoved,
       methods,
       docsError: readOptional(args["docs-error"]),
-      docsOrphans: readOptional(args["docs-orphans"])
-        .split("\n")
-        .map((line) => line.trim())
-        .filter(Boolean),
+      docsOrphans: lines(readOptional(args["docs-orphans"])),
       changesetPath: args.changeset,
       report,
       specUrl: args["spec-url"],

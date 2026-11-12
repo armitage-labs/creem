@@ -56,6 +56,9 @@ jobs:
           private-key: ${{ secrets.PR_AUTOMATION_APP_PRIVATE_KEY }}
           permission-contents: write
           permission-pull-requests: write
+          # Rebuilding the branch on a newer main can change workflow files
+          # between the old and the new tip; GitHub refuses that push without it.
+          permission-workflows: write
 
       # The push at the end uses these credentials. With the App token, the
       # push and the pull request start the checks; with GITHUB_TOKEN they don't.
@@ -244,13 +247,16 @@ jobs:
                list && /^   [^ ]+\.mdx$/ { print $1; next }
                list && NF { list = 0 }' "$RUNNER_TEMP/generate-api.log" > "$RUNNER_TEMP/docs-orphans.txt"
           pnpm install --lockfile-only
-          # Only added, removed or renamed files count: description changes
-          # modify existing files through their JSDoc comments.
-          if git status --porcelain --untracked-files=all -- packages/sdk/src | grep -qE '^(\?\?|A.|.A|D.|.D|R.)'; then
-            echo "sdk_files_changed=true" >> "$GITHUB_OUTPUT"
+          # Only added or removed files count: description changes modify
+          # existing files through their JSDoc comments. A removed file takes an
+          # exported type away, so the script treats it as breaking.
+          status=$(git status --porcelain --untracked-files=all -- packages/sdk/src)
+          if grep -qE '^(\?\?|A.|.A)' <<< "$status"; then
+            echo "sdk_files_added=true" >> "$GITHUB_OUTPUT"
           else
-            echo "sdk_files_changed=false" >> "$GITHUB_OUTPUT"
+            echo "sdk_files_added=false" >> "$GITHUB_OUTPUT"
           fi
+          { grep -E '^(D.|.D|R.)' <<< "$status" || true; } | cut -c4- > "$RUNNER_TEMP/sdk-files-removed.txt"
 
       - name: Write the changeset and the pull request body
         id: release
@@ -258,7 +264,7 @@ jobs:
         env:
           LABELS: ${{ steps.guard.outputs.labels }}
           SPEC_SHA256: ${{ steps.spec.outputs.sha256 }}
-          SDK_FILES_CHANGED: ${{ steps.regenerate.outputs.sdk_files_changed }}
+          SDK_FILES_ADDED: ${{ steps.regenerate.outputs.sdk_files_added }}
         run: |
           # Named after the contract, so a sync changeset that is merged but not
           # yet released stays next to this one instead of being replaced.
@@ -271,7 +277,8 @@ jobs:
             --body="$RUNNER_TEMP/pull-request-body.md" \
             --spec-url="$SPEC_URL" \
             --spec-sha256="$SPEC_SHA256" \
-            --sdk-files-changed="$SDK_FILES_CHANGED" \
+            --sdk-files-added="$SDK_FILES_ADDED" \
+            --sdk-files-removed="$RUNNER_TEMP/sdk-files-removed.txt" \
             --docs-error="$RUNNER_TEMP/docs-error.txt" \
             --docs-orphans="$RUNNER_TEMP/docs-orphans.txt" \
             --labels="$LABELS")
@@ -299,8 +306,16 @@ jobs:
           # The lease makes the push itself conditional: it fails if the branch
           # moved since the guard read it, or appeared when it was absent.
           elif ! git push --force-with-lease="refs/heads/$BRANCH:$EXPECTED" origin "HEAD:refs/heads/$BRANCH"; then
-            echo "::warning::$BRANCH changed while this run regenerated; leaving it for the next run."
-            exit 0
+            # Only a moved branch is the expected race. Anything else (a
+            # missing permission, a branch rule, the network) fails the run,
+            # so the sync does not drift silently.
+            current=$(git ls-remote --heads origin "refs/heads/$BRANCH" | cut -f1)
+            if [ "$current" != "$EXPECTED" ]; then
+              echo "::warning::$BRANCH changed while this run regenerated; leaving it for the next run."
+              exit 0
+            fi
+            echo "::error::Pushing $BRANCH failed although nobody else changed it."
+            exit 1
           fi
 
           if [ -n "$NUMBER" ]; then
