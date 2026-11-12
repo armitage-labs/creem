@@ -1,16 +1,20 @@
-import { readFileSync, writeFileSync } from "node:fs";
+import { existsSync, readFileSync, writeFileSync } from "node:fs";
 import { pathToFileURL } from "node:url";
 
 // Turns Speakeasy's SDK change report (`speakeasy diff files ... -l typescript`,
 // changes.md) into the release level, the changeset and the pull request body
 // for .github/workflows/openapi-sync.yml. Speakeasy decides what is breaking;
-// this script only reads its markers, so the level follows Speakeasy's rules.
+// this script only reads its markers, so the level follows Speakeasy's rules
+// unless a reviewer overrides it with a label on the pull request.
 
 const BREAKING = "(Breaking ⚠️)";
 const CHANGE = /\*\*(Added|Changed|Removed)\*\*/;
 const METHOD = /^\* `([^`]+)`:\s*(.*)$/;
 const ITEM = /^(\s*)[*-]\s+(.*)$/;
+const ENUM_VALUE = /^`[^`]*\.enum\(([^)]+)\)` \*\*(Added|Removed)\*\*$/;
 const HTTP_METHODS = new Set(["get", "put", "post", "delete", "options", "head", "patch", "trace"]);
+export const LEVELS = ["patch", "minor", "major"];
+export const LABEL_PREFIX = "sdk-release:";
 // GitHub rejects pull request bodies above 65,536 characters.
 const MAX_BODY = 60_000;
 
@@ -33,8 +37,18 @@ export function parseSdkChanges(markdown) {
   return methods;
 }
 
-// The breaking changes Speakeasy reported, grouped by change so one new enum
-// value reported on fifteen methods is one line for the reviewer.
+// The same enum value reaches many methods through different paths
+// (`features[].type` and `product.union(ProductEntity).features[].type`);
+// report it once.
+function groupKey(change) {
+  const enumValue = change.match(ENUM_VALUE);
+  if (!enumValue) return change;
+  const verb = enumValue[2] === "Added" ? "New" : "Removed";
+  return `${verb} enum value \`${enumValue[1]}\` in responses`;
+}
+
+// The breaking changes Speakeasy reported, grouped so one new enum value
+// reported on fifteen methods is one line for the reviewer.
 export function breakingChanges(methods) {
   const groups = new Map();
   for (const { method, items } of methods) {
@@ -48,25 +62,42 @@ export function breakingChanges(methods) {
       // A parent such as "`response` **Changed** (Breaking)" only says that a
       // child is breaking; report the child that is.
       if (children.some((child) => child.text.includes(BREAKING))) return;
-      const change = item.text.replace(BREAKING, "").trim();
-      if (!groups.has(change)) groups.set(change, []);
-      if (!groups.get(change).includes(method)) groups.get(change).push(method);
+      const key = groupKey(item.text.replace(BREAKING, "").trim());
+      if (!groups.has(key)) groups.set(key, []);
+      if (!groups.get(key).includes(method)) groups.get(key).push(method);
     });
   }
   return [...groups].map(([change, methods]) => ({ change, methods }));
 }
 
-export function releaseLevel(methods) {
+// Speakeasy's report covers SDK methods. A schema no operation references is
+// still generated and exported (a new webhook event entity, for example), so a
+// changed SDK source without report entries is an addition, not a patch.
+export function releaseLevel(methods, { sdkSourceChanged = false } = {}) {
   const texts = methods.flatMap(({ items }) => items.map((item) => item.text));
   if (texts.some((text) => text.includes(BREAKING))) return "major";
   if (methods.length || texts.some((text) => CHANGE.test(text))) return "minor";
-  return "patch";
+  return sdkSourceChanged ? "minor" : "patch";
 }
 
-// Parameters the SDK passes by position while `maxMethodParams` is above zero.
+// A reviewer sets the level with a label such as `sdk-release:minor`. Labels
+// are not commits, so overriding the level does not stop the daily update.
+export function labelLevel(labels) {
+  const levels = labels
+    .filter((label) => label.startsWith(LABEL_PREFIX))
+    .map((label) => label.slice(LABEL_PREFIX.length).trim())
+    .filter((level) => LEVELS.includes(level));
+  if (new Set(levels).size > 1) {
+    throw new Error(`Conflicting release labels: ${levels.join(", ")}.`);
+  }
+  return levels[0] ?? "";
+}
+
+// Parameters the SDK passes by position. null means gen.yaml does not say, so
+// the generator default applies; treat that as positional to stay on the safe side.
 export function maxMethodParams(genYaml) {
   const match = genYaml.match(/^\s*maxMethodParams:\s*(\d+)\s*$/m);
-  return match ? Number(match[1]) : 0;
+  return match ? Number(match[1]) : null;
 }
 
 function operations(spec) {
@@ -104,12 +135,14 @@ export function newPositionalParameters(oldSpec, newSpec) {
   return found;
 }
 
-export function renderChangeset(level, date) {
+// No date or run-specific text: a rerun on the same contract must produce the
+// same files, or every daily run would force-push the branch and restart CI.
+export function renderChangeset(level) {
   return `---
 "creem": ${level}
 ---
 
-Regenerate the SDK from the live Creem API contract (${date}).
+Regenerate the SDK from the live Creem API contract.
 `;
 }
 
@@ -117,7 +150,7 @@ function codeList(values) {
   return values.map((value) => `\`${value}\``).join(", ");
 }
 
-function levelReason(level, breaking) {
+function levelReason(level, breaking, sdkSourceChanged, methods) {
   if (level === "major") {
     const lines = breaking.map(
       ({ change, methods }) =>
@@ -128,50 +161,80 @@ function levelReason(level, breaking) {
       "",
       ...lines,
       "",
-      "Typical causes: a new enum value in a response (code that handles every value no longer covers all of them), a removed or renamed type, or a field that became required. If the change is acceptable as a minor release, change the level in `.changeset/openapi-sync.md`.",
+      "Typical causes: a new enum value in a response (code that handles every value no longer covers all of them), a removed or renamed type, or a field that became required. A major release also needs every non-workspace `creem` peer range (for example in the Convex integration) raised; the SDK cascade only bumps workspace dependencies.",
     ].join("\n");
+  }
+  if (level === "minor" && !methods.length && sdkSourceChanged) {
+    return "Speakeasy's report lists no method changes, but the generated SDK source changed, for example a new exported model that no operation references yet.";
   }
   if (level === "minor") {
     return "Speakeasy reports SDK additions or changes and nothing breaking.";
   }
-  return "The SDK's methods and types do not change; only descriptions or examples in the contract changed.";
+  return "The generated SDK source does not change; only descriptions or examples in the contract changed.";
 }
 
 export function renderBody({
   level,
+  suggestedLevel = level,
   breaking,
   positional,
   positionalLimit,
+  sdkSourceChanged = false,
+  methods = [],
+  docsError = "",
+  changesetPath,
   report,
   specUrl,
   specSha256,
-  date,
 }) {
+  const overridden = level !== suggestedLevel;
+  const levelLine = overridden
+    ? `> The changeset releases \`creem\` as **${level}**, set by the \`${LABEL_PREFIX}${level}\` label. Speakeasy's report suggests **${suggestedLevel}**.`
+    : `> The changeset releases \`creem\` as **${level}**. The level comes from Speakeasy's SDK change report below: a change Speakeasy marks as breaking means major, any other SDK change means minor, and no SDK change means patch. Check the reason before merging.`;
   const sections = [
     "## Why",
     "",
-    `The OpenAPI contract in \`packages/sdk/openapi.json\` differs from the live API at ${specUrl}. The daily OpenAPI sync regenerated the SDK, the docs copy of the contract and the API reference pages from the live contract (${date}, sha256 \`${specSha256}\`).`,
+    `The OpenAPI contract in \`packages/sdk/openapi.json\` differs from the live API at ${specUrl}. The daily OpenAPI sync regenerated the SDK, the docs copy of the contract and the API reference pages from the live contract (sha256 \`${specSha256}\`).`,
     "",
     `## Release level: \`${level}\``,
     "",
     "> [!IMPORTANT]",
-    `> The changeset releases \`creem\` as **${level}**. The level comes from Speakeasy's SDK change report below: a change Speakeasy marks as breaking means major, any other SDK change means minor, and no SDK change means patch. Check the reason before merging.`,
+    levelLine,
+    `> To release at another level, add the label \`${LABEL_PREFIX}patch\`, \`${LABEL_PREFIX}minor\` or \`${LABEL_PREFIX}major\` to this pull request and run the OpenAPI Sync workflow (or wait for the next daily run). Don't edit \`${changesetPath}\`: a commit stops the daily updates.`,
     "",
-    levelReason(level, breaking),
+    levelReason(suggestedLevel, breaking, sdkSourceChanged, methods),
   ];
 
-  if (positional.length && positionalLimit > 0) {
+  if (positional.length && positionalLimit !== 0) {
+    const limit =
+      positionalLimit === null
+        ? "passes parameters by position (`packages/sdk/.speakeasy/gen.yaml` sets no `maxMethodParams`, so the generator default applies)"
+        : `passes up to ${positionalLimit} parameters by position (\`maxMethodParams\` in \`packages/sdk/.speakeasy/gen.yaml\`)`;
     sections.push(
       "",
       "## New positional parameters",
       "",
       "> [!WARNING]",
-      `> Speakeasy reports these as additions, but the SDK passes up to ${positionalLimit} parameters by position (\`maxMethodParams\` in \`packages/sdk/.speakeasy/gen.yaml\`). Each new parameter moves the trailing \`options\` argument one place, so a caller that passes \`options\` breaks. Decide whether that makes this release major.`,
+      `> Speakeasy reports these as additions, but the SDK ${limit}. Each new parameter moves the trailing \`options\` argument one place, so a caller that passes \`options\` breaks. Decide whether that makes this release major.`,
       "",
       ...positional.map(
         ({ operationId, endpoint, location, name }) =>
           `- \`${operationId}\` (\`${endpoint}\`): new ${location} parameter \`${name}\``,
       ),
+    );
+  }
+
+  if (docsError.trim()) {
+    sections.push(
+      "",
+      "## API reference pages not regenerated",
+      "",
+      "> [!WARNING]",
+      "> `pnpm --dir packages/docs generate:api` failed, so the endpoint pages in this pull request are not regenerated. A new endpoint usually needs an entry in `packages/docs/docs.json` navigation first. Add it in this pull request and run the command again.",
+      "",
+      "```text",
+      docsError.trim().slice(0, 4000),
+      "```",
     );
   }
 
@@ -182,6 +245,7 @@ export function renderBody({
     "| Check | Meaning | Fix |",
     "| --- | --- | --- |",
     "| `merge-gate` build, typecheck or tests | The regenerated SDK breaks hand-written code (CLI, integrations) | Fix the code in this pull request |",
+    "| `merge-gate` docs steps | API reference pages or navigation are out of date | Update `packages/docs` in this pull request |",
     "| `cli-parity` | The CLI does not cover new parameters or request bodies | Update the CLI manifest, flags and reference in this pull request |",
     "| The sync workflow itself (Speakeasy step) | Speakeasy cannot generate from the contract | Fix the API annotations in the backend; the next daily run picks the fix up |",
     "",
@@ -207,6 +271,10 @@ export function renderBody({
   return [header, ...footer, reportText, ...end].join("\n");
 }
 
+function readOptional(path) {
+  return path && existsSync(path) ? readFileSync(path, "utf8") : "";
+}
+
 export function main(argv = process.argv.slice(2)) {
   const args = Object.fromEntries(
     argv.map((arg) => {
@@ -227,27 +295,33 @@ export function main(argv = process.argv.slice(2)) {
   ]) {
     if (!args[required]) throw new Error(`Missing --${required}=...`);
   }
-  const date = args.date ?? new Date().toISOString().slice(0, 10);
   const report = readFileSync(args.report, "utf8");
   const methods = parseSdkChanges(report);
-  const level = releaseLevel(methods);
+  const sdkSourceChanged = args["sdk-source-changed"] === "true";
+  const suggestedLevel = releaseLevel(methods, { sdkSourceChanged });
+  const override = labelLevel((args.labels ?? "").split(",").filter(Boolean));
+  const level = override || suggestedLevel;
   const positionalLimit = maxMethodParams(readFileSync(args["gen-yaml"], "utf8"));
   const positional = newPositionalParameters(
     JSON.parse(readFileSync(args.old, "utf8")),
     JSON.parse(readFileSync(args.new, "utf8")),
   );
-  writeFileSync(args.changeset, renderChangeset(level, date));
+  writeFileSync(args.changeset, renderChangeset(level));
   writeFileSync(
     args.body,
     renderBody({
       level,
+      suggestedLevel,
       breaking: breakingChanges(methods),
       positional,
       positionalLimit,
+      sdkSourceChanged,
+      methods,
+      docsError: readOptional(args["docs-error"]),
+      changesetPath: args.changeset,
       report,
       specUrl: args["spec-url"],
       specSha256: args["spec-sha256"],
-      date,
     }),
   );
   return level;
