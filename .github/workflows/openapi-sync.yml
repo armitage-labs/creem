@@ -25,7 +25,7 @@ name: OpenAPI Sync
 # repository) so the checks run. Without them the pull request still opens and
 # closing and reopening it starts the checks, but a branch rebuilt over
 # workflow changes on main can't be pushed, and the run fails until the pull
-# request is merged or closed.
+# request is merged or the chore/openapi-sync branch is deleted.
 
 on:
   schedule:
@@ -123,7 +123,11 @@ jobs:
           # The branch head as seen now. The push at the end only succeeds if the
           # branch is still exactly here (or still absent), so a commit pushed
           # while this run regenerates is never overwritten.
-          head=$(git ls-remote --heads origin "refs/heads/$BRANCH" | cut -f1)
+          remote=$(git ls-remote --heads origin "refs/heads/$BRANCH") || {
+            echo "::error::Could not read the head of $BRANCH."
+            exit 1
+          }
+          head=$(cut -f1 <<< "$remote")
           if [ -n "$head" ]; then
             git fetch --no-tags origin "$BRANCH"
           fi
@@ -339,7 +343,7 @@ jobs:
               echo "::warning::$BRANCH changed while this run regenerated; leaving it for the next run."
               exit 0
             fi
-            echo "::error::Pushing $BRANCH failed although nobody else changed it. If GitHub refused workflow file changes, the token needs workflows write."
+            echo "::error::Pushing $BRANCH failed although nobody else changed it. If GitHub refused workflow file changes, the token needs workflows write, or delete the branch."
             exit 1
           fi
 
