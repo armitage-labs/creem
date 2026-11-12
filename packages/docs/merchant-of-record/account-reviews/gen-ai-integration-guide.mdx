@@ -1,0 +1,69 @@
+---
+title: "Gen AI Integration Guide"
+description: "Why AI image and video products on Creem must integrate Customer Credits and the Moderation API, and how to do it."
+---
+
+Gen AI is one of the fastest growing categories on Creem, and one of the riskiest. A model that can generate almost anything can also generate content that breaks Creem's [Terms of Service](https://www.creem.io/terms) and the rules of the payment providers behind every card payment.
+
+Creem supports this category with products built for it. If you sell a Gen AI product, your integration must use them before you go live and for as long as you sell on Creem.
+
+<Note>
+  These requirements apply to every product or feature that generates or edits images or video. See
+  [AI Wrapper Compliance](/merchant-of-record/account-reviews/ai-wrapper-compliance) for the full
+  scope and the website requirements.
+</Note>
+
+## Why this integration is required
+
+Creem is the merchant of record for every sale on your store. That makes us the seller, and we answer to our payment providers for what your product generates.
+
+Promising that you moderate is not enough. Creem needs to show that every paid generation on your product passed a content check. The integration on this page creates that record, and it is what lets Creem accept Gen AI products that most payment platforms turn away.
+
+## What you need to integrate
+
+Two Creem products, used together:
+
+<CardGroup cols={2}>
+  <Card title="Customer Credits" icon="wallet" href="/features/customer-credits/introduction">
+    Each of your users gets a credit wallet. Every purchase adds credits to it, and every generation
+    spends from it.
+  </Card>
+  <Card title="Moderation API" icon="shield-check" href="/features/moderation">
+    Screens every prompt before it reaches your model. Each credit spend carries the ID of the
+    moderation result that cleared it.
+  </Card>
+</CardGroup>
+
+Together they link every payment to the credits it bought, every generation to the credits it spent, and every spend to a screened prompt. That chain lets the Creem compliance team monitor how your product is used, and protects you from issues raised by payment providers or regulators.
+
+## Requirements apply after onboarding too
+
+These requirements are not a one time onboarding step. Creem monitors every store in the category daily.
+
+<Warning>
+  If a Gen AI product stops using the required products, or never integrates them, Creem can
+  restrict your store or permanently offboard it. In some cases, your payouts and balance can be
+  frozen.
+</Warning>
+
+## You stay responsible for what your product generates
+
+Customer Credits and the Moderation API do not replace your own safeguards. You must follow the Creem [Terms of Service](https://www.creem.io/terms) and take every measure needed to stop your product from generating prohibited content, including but not limited to:
+
+- Adult, sexual or pornographic content
+- Deepfakes, face swaps or manipulated images of real people
+- Any content involving minors
+- Extreme violence
+- Terrorism
+- Illegal activity
+
+If your product can generate it, you are responsible for it, whether or not you built the product for that purpose. Check your model setup too:
+
+- **Hosted model APIs:** many ship with a safety checker, but it is usually a setting that can be switched off. Some routers do not moderate content at all.
+- **Self hosted or open weight models:** there are no guardrails unless you add them.
+
+See the full [prohibited products list](/merchant-of-record/account-reviews/account-reviews#prohibited-products).
+
+## Requirements can change
+
+Customer Credits and the Moderation API are the current requirements for Gen AI products on Creem. The Creem compliance team can change them at any time, by removing a required product or by adding new products, workflows or procedures that your product must integrate for Creem to keep supporting it. This page always shows the current requirements.
