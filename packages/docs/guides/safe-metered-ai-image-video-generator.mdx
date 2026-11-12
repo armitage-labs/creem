@@ -3,6 +3,13 @@ title: "Build a Safe, Metered AI Image and Video Generator with Creem"
 description: "Moderate every prompt, charge prepaid credits per generation, and auto-refund failed jobs with Creem's Moderation and Customer Credits APIs in a Next.js application."
 ---
 
+<Warning>
+  This guide shows an earlier integration flow. AI image and video products on Creem must now
+  follow the [Gen AI Technical Integration Guide](/merchant-of-record/account-reviews/gen-ai-technical-integration-guide),
+  which uses AI generation credits and links every debit to a moderation result. See
+  [Gen AI Requirements](/merchant-of-record/account-reviews/gen-ai-requirements) for details.
+</Warning>
+
 Charging for AI generations in a way that meets [MoR or PSP guidelines](/merchant-of-record/account-reviews/ai-wrapper-compliance) is hard with unmoderated prompts, failed generations and incorrect customer credits deduction. For e.g., Adobe Firefly users [report failed video jobs that produce nothing yet still deduct credits](https://community.adobe.com/t5/adobe-firefly-bugs/credits-are-being-deducted-even-when-video-generation-fails/idi-p/15659871), with one person losing 680 credits across 17 error-filled attempts. Users are bound to get frustrated if charges are made before the provider is sure that the model worked, or before the prompt has been screened. The fix is in the order of generation steps: moderate the prompt, charge the credits, generate, and refund automatically if the model fails.
 
 In this guide you build [Aperture](https://github.com/armitage-labs/creem/tree/main/packages/examples/safe-metered-ai-generator), a reference image and video generator that uses Creem for billing and moderation. Credits are managed by the [Customer Credits API](/features/customer-credits/introduction#quick-start), and every prompt is validated through the [Moderation API](/features/moderation).
