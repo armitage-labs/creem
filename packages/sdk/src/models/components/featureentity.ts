@@ -67,8 +67,8 @@ export const CustomerCredits$inboundSchema: z.ZodType<
   amount: z.string(),
   unit_label: z.nullable(z.string()).optional(),
   bucket_name: z.nullable(z.string()).optional(),
-  requires_moderation: z.boolean().default(false),
-  resets_each_period: z.boolean().default(false),
+  requires_moderation: z.boolean().optional(),
+  resets_each_period: z.boolean().optional(),
 }).transform((v) => {
   return remap$(v, {
     "unit_label": "unitLabel",
@@ -82,8 +82,8 @@ export type CustomerCredits$Outbound = {
   amount: string;
   unit_label?: string | null | undefined;
   bucket_name?: string | null | undefined;
-  requires_moderation: boolean;
-  resets_each_period: boolean;
+  requires_moderation?: boolean | undefined;
+  resets_each_period?: boolean | undefined;
 };
 
 /** @internal */
@@ -95,8 +95,8 @@ export const CustomerCredits$outboundSchema: z.ZodType<
   amount: z.string(),
   unitLabel: z.nullable(z.string()).optional(),
   bucketName: z.nullable(z.string()).optional(),
-  requiresModeration: z.boolean().default(false),
-  resetsEachPeriod: z.boolean().default(false),
+  requiresModeration: z.boolean().optional(),
+  resetsEachPeriod: z.boolean().optional(),
 }).transform((v) => {
   return remap$(v, {
     unitLabel: "unit_label",

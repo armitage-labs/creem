@@ -32,6 +32,8 @@ let value: WebhookSubscriptionPausedEventEntity = {
             amount: "100",
             unitLabel: "tokens",
             bucketName: "images",
+            requiresModeration: false,
+            resetsEachPeriod: false,
           },
         },
       ],

@@ -9,6 +9,8 @@ let value: CustomerCreditsFeatureEntity = {
   amount: "100",
   unitLabel: "tokens",
   bucketName: "images",
+  requiresModeration: false,
+  resetsEachPeriod: false,
 };
 ```
 

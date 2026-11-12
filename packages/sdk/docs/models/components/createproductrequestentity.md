@@ -62,6 +62,8 @@ let value: CreateProductRequestEntity = {
         amount: "100",
         unitLabel: "tokens",
         bucketName: "images",
+        requiresModeration: false,
+        resetsEachPeriod: false,
       },
     },
   ],

@@ -33,6 +33,8 @@ let value: UpdateProductRequestEntity = {
         amount: "100",
         unitLabel: "tokens",
         bucketName: "images",
+        requiresModeration: false,
+        resetsEachPeriod: false,
       },
     },
   ],

@@ -27,6 +27,8 @@ let value: SearchProductsResponse = {
               amount: "100",
               unitLabel: "tokens",
               bucketName: "images",
+              requiresModeration: false,
+              resetsEachPeriod: false,
             },
           },
         ],

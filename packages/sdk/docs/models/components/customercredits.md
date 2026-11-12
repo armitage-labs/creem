@@ -11,6 +11,8 @@ let value: CustomerCredits = {
   amount: "100",
   unitLabel: "tokens",
   bucketName: "images",
+  requiresModeration: false,
+  resetsEachPeriod: false,
 };
 ```
 
