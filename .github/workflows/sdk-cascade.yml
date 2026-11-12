@@ -13,16 +13,17 @@ on:
     types: [completed]
   workflow_dispatch: {}
 
-# Every run writes the same branch. A run that started from an older main must
-# not finish last and push an older version over a newer one.
-concurrency:
-  group: sdk-cascade
-  cancel-in-progress: true
-
 jobs:
   cascade:
     runs-on: ubuntu-latest
     if: github.event_name == 'workflow_dispatch' || github.event.workflow_run.conclusion == 'success'
+    # Every run writes the same branch. A run that started from an older main
+    # must not finish last and push an older version over a newer one. On the
+    # job, not the workflow, so a run whose job is skipped (a failed Release)
+    # cannot cancel a real cascade.
+    concurrency:
+      group: sdk-cascade
+      cancel-in-progress: true
     permissions:
       contents: write
       pull-requests: write
@@ -57,7 +58,8 @@ jobs:
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
-          number=$(gh pr list --head chore/sdk-cascade --base main --state open --json number --jq '.[0].number // empty')
+          number=$(gh pr list --head chore/sdk-cascade --base main --state open --json number,isCrossRepository \
+            --jq '[.[] | select(.isCrossRepository | not)][0].number // empty')
           if [ -n "$number" ]; then
             gh pr close "$number" --delete-branch --comment "main already depends on creem@${{ steps.sdk.outputs.version }}, so this pull request is no longer needed."
           fi
