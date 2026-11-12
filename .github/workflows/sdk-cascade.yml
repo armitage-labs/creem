@@ -13,6 +13,12 @@ on:
     types: [completed]
   workflow_dispatch: {}
 
+# Every run writes the same branch. A run that started from an older main must
+# not finish last and push an older version over a newer one.
+concurrency:
+  group: sdk-cascade
+  cancel-in-progress: true
+
 jobs:
   cascade:
     runs-on: ubuntu-latest
@@ -43,6 +49,18 @@ jobs:
             fi
           done
           echo "needs_update=$NEEDS_UPDATE" >> $GITHUB_OUTPUT
+
+      # main already depends on the current SDK (bumped by hand, or the cascade
+      # pull request was merged), so an open cascade pull request is stale.
+      - name: Close a stale cascade pull request
+        if: steps.check.outputs.needs_update == 'false'
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          number=$(gh pr list --head chore/sdk-cascade --base main --state open --json number --jq '.[0].number // empty')
+          if [ -n "$number" ]; then
+            gh pr close "$number" --delete-branch --comment "main already depends on creem@${{ steps.sdk.outputs.version }}, so this pull request is no longer needed."
+          fi
 
       # Release publishes creem, but when other changesets are pending it
       # opens a version PR instead of publishing. Poll briefly to absorb
@@ -95,7 +113,9 @@ jobs:
       - name: Create changeset
         if: steps.npm.outputs.published == 'true'
         run: |
-          cat > ".changeset/sdk-cascade-$(date +%s).md" << EOF
+          # A fixed name, so a rerun for the same version changes nothing and
+          # does not force-push the branch again.
+          cat > ".changeset/sdk-cascade.md" << EOF
           ---
           "@creem_io/better-auth": patch
           "@creem_io/nextjs": patch
@@ -105,23 +125,32 @@ jobs:
           Bump creem SDK dependency to ${{ steps.sdk.outputs.version }}
           EOF
 
+      # Pull requests opened with GITHUB_TOKEN do not start other workflows.
+      # The PR_AUTOMATION_APP_ID variable and PR_AUTOMATION_APP_PRIVATE_KEY
+      # secret (shared with openapi-sync.yml) give the pull request its checks;
+      # without them, closing and reopening it starts them.
+      - uses: actions/create-github-app-token@fee1f7d63c2ff003460e3d139729b119787bc349 # v2
+        id: app
+        if: steps.npm.outputs.published == 'true' && vars.PR_AUTOMATION_APP_ID != ''
+        with:
+          app-id: ${{ vars.PR_AUTOMATION_APP_ID }}
+          private-key: ${{ secrets.PR_AUTOMATION_APP_PRIVATE_KEY }}
+          permission-contents: write
+          permission-pull-requests: write
+
       # One fixed branch, so a newer SDK release updates the open cascade pull
       # request instead of opening another one next to it. The branch is rebuilt
-      # from main on every run; fixes for a breaking SDK change belong in their
+      # from main on every run, so a commit pushed to it by hand is replaced by
+      # the next release's bump; fixes for a breaking SDK change belong in their
       # own pull request.
-      #
-      # Pull requests opened with GITHUB_TOKEN do not start other workflows, so
-      # the checks need PR_AUTOMATION_TOKEN (shared with openapi-sync.yml).
-      # Without it, closing and reopening the pull request starts them.
       - name: Create PR
         if: steps.npm.outputs.published == 'true'
-        uses: peter-evans/create-pull-request@v7
+        uses: peter-evans/create-pull-request@22a9089034f40e5a961c8808d113e2c98fb63676 # v7.0.11
         with:
-          token: ${{ secrets.PR_AUTOMATION_TOKEN || secrets.GITHUB_TOKEN }}
+          token: ${{ steps.app.outputs.token || secrets.GITHUB_TOKEN }}
           commit-message: "chore: bump adaptor deps to creem@${{ steps.sdk.outputs.version }}"
           title: "chore: bump adaptors to creem@${{ steps.sdk.outputs.version }}"
           branch: chore/sdk-cascade
-          delete-branch: true
           body: |
             Auto-generated: bumps `creem` dependency in adaptor and ingestion packages after Speakeasy SDK release to `${{ steps.sdk.outputs.version }}`.
 
