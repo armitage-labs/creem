@@ -14,11 +14,11 @@ export type IngestUsageEventApiRequestDto = {
    */
   name: string;
   /**
-   * The Creem customer this usage is attributed to. Exactly one of `customer_id` / `external_customer_id` is required per event; the id must belong to an existing customer of your store or the whole batch is rejected. Trimmed; letters, digits, `_` and `-` only; at most 255 characters.
+   * The Creem customer this usage is attributed to. Exactly one of `customer_id` / `external_customer_id` is required per event; the id must belong to an existing customer of your store or the whole batch is rejected. Trimmed; letters, digits, `_`, `-`, `.` and `:` only; at most 255 characters.
    */
   customerId?: string | undefined;
   /**
-   * Your own id for this customer, resolved to the Creem customer it was registered for via the customers API. Exactly one of `customer_id` / `external_customer_id` is required per event; an id no customer carries rejects the whole batch. Trimmed; letters, digits, `_` and `-` only; at most 255 characters.
+   * Your own id for this customer, resolved to the Creem customer it was registered for via the customers API. Exactly one of `customer_id` / `external_customer_id` is required per event; an id no customer carries rejects the whole batch. Trimmed; letters, digits, `_`, `-`, `.` and `:` only; at most 255 characters.
    */
   externalCustomerId?: string | undefined;
   /**
@@ -30,7 +30,7 @@ export type IngestUsageEventApiRequestDto = {
    */
   timestamp?: string | undefined;
   /**
-   * The event's attributes — the ONE bag. Meter filter clauses and aggregation properties (e.g. "tokens") resolve their keys here, unprefixed. At most 50 keys, keys at most 40 characters, string and serialized-object values at most 500 characters.
+   * The event's attributes — the ONE bag. Meter filter clauses and aggregation properties (e.g. "tokens") resolve their keys here, unprefixed. Set `subscription_id` to the subscription an event belongs to: postpaid usage tagged with one subscription is never billed on another, and untagged usage while a customer holds two subscriptions billing the same meter postpaid is held for review instead of charged. At most 50 keys, keys at most 40 characters, string and serialized-object values at most 500 characters.
    */
   properties?: { [k: string]: any } | undefined;
 };

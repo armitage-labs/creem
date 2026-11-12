@@ -12,7 +12,7 @@
 
 ## search
 
-Search and retrieve a paginated list of products. Filter by status, billing type, and other criteria.
+Search and retrieve a paginated list of products. Filter by status or by your own `external_id`.
 
 ### Example Usage
 
@@ -25,7 +25,7 @@ const creem = new Creem({
 });
 
 async function run() {
-  const result = await creem.products.search();
+  const result = await creem.products.search(1, 10, undefined, "pro-monthly");
 
   for await (const page of result) {
     console.log(page);
@@ -50,7 +50,7 @@ const creem = new CreemCore({
 });
 
 async function run() {
-  const res = await productsSearch(creem);
+  const res = await productsSearch(creem, 1, 10, undefined, "pro-monthly");
   if (res.ok) {
     const { value: result } = res;
     for await (const page of result) {
@@ -71,6 +71,7 @@ run();
 | `pageNumber`                                                                                                                                                                   | *number*                                                                                                                                                                       | :heavy_minus_sign:                                                                                                                                                             | The page number for pagination.                                                                                                                                                | 1                                                                                                                                                                              |
 | `pageSize`                                                                                                                                                                     | *number*                                                                                                                                                                       | :heavy_minus_sign:                                                                                                                                                             | The number of items per page.                                                                                                                                                  | 10                                                                                                                                                                             |
 | `status`                                                                                                                                                                       | [components.ProductStatus](../../models/components/productstatus.md)                                                                                                           | :heavy_minus_sign:                                                                                                                                                             | Lifecycle status of the product: `active` or `archived`.                                                                                                                       |                                                                                                                                                                                |
+| `externalId`                                                                                                                                                                   | *string*                                                                                                                                                                       | :heavy_minus_sign:                                                                                                                                                             | Only the product with this `external_id` (your own key). Case-sensitive, exact match.                                                                                          | pro-monthly                                                                                                                                                                    |
 | `options`                                                                                                                                                                      | RequestOptions                                                                                                                                                                 | :heavy_minus_sign:                                                                                                                                                             | Used to set various options for making HTTP requests.                                                                                                                          |                                                                                                                                                                                |
 | `options.fetchOptions`                                                                                                                                                         | [RequestInit](https://developer.mozilla.org/en-US/docs/Web/API/Request/Request#options)                                                                                        | :heavy_minus_sign:                                                                                                                                                             | Options that are passed to the underlying HTTP request. This can be used to inject extra headers for examples. All `Request` options, except `method` and `body`, are allowed. |                                                                                                                                                                                |
 | `options.retries`                                                                                                                                                              | [RetryConfig](../../lib/utils/retryconfig.md)                                                                                                                                  | :heavy_minus_sign:                                                                                                                                                             | Enables retrying HTTP requests under certain failure conditions.                                                                                                               |                                                                                                                                                                                |
@@ -118,6 +119,10 @@ async function run() {
     trialPeriodDays: 7,
     trialPrice: 100,
     defaultSuccessUrl: "https://example.com/?status=successful",
+    externalId: "pro-monthly",
+    metadata: {
+      "plan": "pro",
+    },
     customFields: [
       {
         type: "checkbox",
@@ -152,6 +157,8 @@ async function run() {
           amount: "100",
           unitLabel: "tokens",
           bucketName: "images",
+          requiresModeration: false,
+          resetsEachPeriod: false,
         },
       },
     ],
@@ -196,6 +203,10 @@ async function run() {
     trialPeriodDays: 7,
     trialPrice: 100,
     defaultSuccessUrl: "https://example.com/?status=successful",
+    externalId: "pro-monthly",
+    metadata: {
+      "plan": "pro",
+    },
     customFields: [
       {
         type: "checkbox",
@@ -230,6 +241,8 @@ async function run() {
           amount: "100",
           unitLabel: "tokens",
           bucketName: "images",
+          requiresModeration: false,
+          resetsEachPeriod: false,
         },
       },
     ],
@@ -350,6 +363,10 @@ const creem = new Creem({
 
 async function run() {
   const result = await creem.products.update("<id>", {
+    externalId: "pro-monthly",
+    metadata: {
+      "plan": "pro",
+    },
     businessNetPricing: false,
     trialPeriodDays: 7,
     trialPrice: 100,
@@ -373,6 +390,8 @@ async function run() {
           amount: "100",
           unitLabel: "tokens",
           bucketName: "images",
+          requiresModeration: false,
+          resetsEachPeriod: false,
         },
       },
     ],
@@ -400,6 +419,10 @@ const creem = new CreemCore({
 
 async function run() {
   const res = await productsUpdate(creem, "<id>", {
+    externalId: "pro-monthly",
+    metadata: {
+      "plan": "pro",
+    },
     businessNetPricing: false,
     trialPeriodDays: 7,
     trialPrice: 100,
@@ -423,6 +446,8 @@ async function run() {
           amount: "100",
           unitLabel: "tokens",
           bucketName: "images",
+          requiresModeration: false,
+          resetsEachPeriod: false,
         },
       },
     ],

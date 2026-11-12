@@ -75,6 +75,7 @@ it("legacy list commands preserve their page and limit defaults", async () => {
     1,
     20,
     undefined,
+    undefined,
     expect.objectContaining({ retries: { strategy: "none" } }),
   );
   expect(customers).toHaveBeenCalledWith(
@@ -103,6 +104,9 @@ it("legacy list commands preserve their page and limit defaults", async () => {
     undefined,
     1,
     20,
+    undefined,
+    undefined,
+    undefined,
     expect.objectContaining({ retries: { strategy: "none" } }),
   );
 });

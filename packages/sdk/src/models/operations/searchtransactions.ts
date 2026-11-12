@@ -5,9 +5,30 @@
 import * as z from "zod/v3";
 import { remap as remap$ } from "../../lib/primitives.js";
 import { safeParse } from "../../lib/schemas.js";
+import { ClosedEnum } from "../../types/enums.js";
 import { Result as SafeParseResult } from "../../types/fp.js";
 import * as components from "../components/index.js";
 import { SDKValidationError } from "../errors/sdkvalidationerror.js";
+
+/**
+ * Filter transactions by status. `chargeback` (the value responses return for a chargeback) and `chargedBack` are equivalent.
+ */
+export const QueryParamStatus = {
+  Pending: "pending",
+  Paid: "paid",
+  Refunded: "refunded",
+  PartialRefund: "partialRefund",
+  ChargedBack: "chargedBack",
+  Uncollectible: "uncollectible",
+  Declined: "declined",
+  Canceled: "canceled",
+  Void: "void",
+  Chargeback: "chargeback",
+} as const;
+/**
+ * Filter transactions by status. `chargeback` (the value responses return for a chargeback) and `chargedBack` are equivalent.
+ */
+export type QueryParamStatus = ClosedEnum<typeof QueryParamStatus>;
 
 export type SearchTransactionsRequest = {
   /**
@@ -30,11 +51,32 @@ export type SearchTransactionsRequest = {
    * The number of items per page.
    */
   pageSize?: number | undefined;
+  /**
+   * Filter transactions by status. `chargeback` (the value responses return for a chargeback) and `chargedBack` are equivalent.
+   */
+  status?: QueryParamStatus | undefined;
+  /**
+   * Filter transactions created at or after this point. A date (`2024-01-01`) means the start of that day in UTC; a date-time needs a UTC offset (`2024-01-01T00:00:00Z`) and at most millisecond precision. In a query string, send a `+` offset as `%2B`.
+   */
+  createdAfter?: string | undefined;
+  /**
+   * Filter transactions created at or before this point. A date (`2024-12-31`) includes that whole day in UTC; a date-time needs a UTC offset (`2024-12-31T23:59:59Z`) and at most millisecond precision. In a query string, send a `+` offset as `%2B`.
+   */
+  createdBefore?: string | undefined;
 };
 
 export type SearchTransactionsResponse = {
   result: components.TransactionListEntity;
 };
+
+/** @internal */
+export const QueryParamStatus$inboundSchema: z.ZodNativeEnum<
+  typeof QueryParamStatus
+> = z.nativeEnum(QueryParamStatus);
+/** @internal */
+export const QueryParamStatus$outboundSchema: z.ZodNativeEnum<
+  typeof QueryParamStatus
+> = QueryParamStatus$inboundSchema;
 
 /** @internal */
 export const SearchTransactionsRequest$inboundSchema: z.ZodType<
@@ -47,6 +89,9 @@ export const SearchTransactionsRequest$inboundSchema: z.ZodType<
   product_id: z.string().optional(),
   page_number: z.number().default(1),
   page_size: z.number().default(10),
+  status: QueryParamStatus$inboundSchema.optional(),
+  created_after: z.string().optional(),
+  created_before: z.string().optional(),
 }).transform((v) => {
   return remap$(v, {
     "customer_id": "customerId",
@@ -54,6 +99,8 @@ export const SearchTransactionsRequest$inboundSchema: z.ZodType<
     "product_id": "productId",
     "page_number": "pageNumber",
     "page_size": "pageSize",
+    "created_after": "createdAfter",
+    "created_before": "createdBefore",
   });
 });
 /** @internal */
@@ -63,6 +110,9 @@ export type SearchTransactionsRequest$Outbound = {
   product_id?: string | undefined;
   page_number: number;
   page_size: number;
+  status?: string | undefined;
+  created_after?: string | undefined;
+  created_before?: string | undefined;
 };
 
 /** @internal */
@@ -76,6 +126,9 @@ export const SearchTransactionsRequest$outboundSchema: z.ZodType<
   productId: z.string().optional(),
   pageNumber: z.number().default(1),
   pageSize: z.number().default(10),
+  status: QueryParamStatus$outboundSchema.optional(),
+  createdAfter: z.string().optional(),
+  createdBefore: z.string().optional(),
 }).transform((v) => {
   return remap$(v, {
     customerId: "customer_id",
@@ -83,6 +136,8 @@ export const SearchTransactionsRequest$outboundSchema: z.ZodType<
     productId: "product_id",
     pageNumber: "page_number",
     pageSize: "page_size",
+    createdAfter: "created_after",
+    createdBefore: "created_before",
   });
 });
 

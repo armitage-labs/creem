@@ -88,11 +88,11 @@ export const handlers: Record<string, OperationHandler> = {
     const p = decode(
       operations.DebitCustomerCreditsAccountRequest$outboundSchema,
       operations.DebitCustomerCreditsAccountRequest$inboundSchema,
-      { ...parameters, creditDebitRequestDto: body },
+      { ...parameters, debitRequestDto: body },
     );
     const b = decode(
-      components.CreditDebitRequestDto$outboundSchema,
-      components.CreditDebitRequestDto$inboundSchema,
+      components.DebitRequestDto$outboundSchema,
+      components.DebitRequestDto$inboundSchema,
       body,
     );
     return client.customerCredits.debitAccount(p.id, b, options);

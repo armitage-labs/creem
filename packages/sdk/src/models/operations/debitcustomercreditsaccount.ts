@@ -11,7 +11,7 @@ import { SDKValidationError } from "../errors/sdkvalidationerror.js";
 
 export type DebitCustomerCreditsAccountRequest = {
   id: string;
-  creditDebitRequestDto: components.CreditDebitRequestDto;
+  debitRequestDto: components.DebitRequestDto;
 };
 
 /** @internal */
@@ -21,16 +21,16 @@ export const DebitCustomerCreditsAccountRequest$inboundSchema: z.ZodType<
   unknown
 > = z.object({
   id: z.string(),
-  CreditDebitRequestDto: components.CreditDebitRequestDto$inboundSchema,
+  DebitRequestDto: components.DebitRequestDto$inboundSchema,
 }).transform((v) => {
   return remap$(v, {
-    "CreditDebitRequestDto": "creditDebitRequestDto",
+    "DebitRequestDto": "debitRequestDto",
   });
 });
 /** @internal */
 export type DebitCustomerCreditsAccountRequest$Outbound = {
   id: string;
-  CreditDebitRequestDto: components.CreditDebitRequestDto$Outbound;
+  DebitRequestDto: components.DebitRequestDto$Outbound;
 };
 
 /** @internal */
@@ -40,10 +40,10 @@ export const DebitCustomerCreditsAccountRequest$outboundSchema: z.ZodType<
   DebitCustomerCreditsAccountRequest
 > = z.object({
   id: z.string(),
-  creditDebitRequestDto: components.CreditDebitRequestDto$outboundSchema,
+  debitRequestDto: components.DebitRequestDto$outboundSchema,
 }).transform((v) => {
   return remap$(v, {
-    creditDebitRequestDto: "CreditDebitRequestDto",
+    debitRequestDto: "DebitRequestDto",
   });
 });
 

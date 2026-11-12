@@ -25,6 +25,10 @@ let value: CreateProductRequest = {
     trialPeriodDays: 7,
     trialPrice: 100,
     defaultSuccessUrl: "https://example.com/?status=successful",
+    externalId: "pro-monthly",
+    metadata: {
+      "plan": "pro",
+    },
     customFields: [
       {
         type: "text",
@@ -60,6 +64,8 @@ let value: CreateProductRequest = {
           amount: "100",
           unitLabel: "tokens",
           bucketName: "images",
+          requiresModeration: false,
+          resetsEachPeriod: false,
         },
       },
     ],

@@ -44,6 +44,7 @@ export function metersListMeters(
   startingAfter?: string | undefined,
   endingBefore?: string | undefined,
   includeArchived?: boolean | undefined,
+  externalId?: string | undefined,
   options?: RequestOptions,
 ): APIPromise<
   PageIterator<
@@ -67,6 +68,7 @@ export function metersListMeters(
     startingAfter,
     endingBefore,
     includeArchived,
+    externalId,
     options,
   ));
 }
@@ -77,6 +79,7 @@ async function $do(
   startingAfter?: string | undefined,
   endingBefore?: string | undefined,
   includeArchived?: boolean | undefined,
+  externalId?: string | undefined,
   options?: RequestOptions,
 ): Promise<
   [
@@ -102,6 +105,7 @@ async function $do(
     startingAfter: startingAfter,
     endingBefore: endingBefore,
     includeArchived: includeArchived,
+    externalId: externalId,
   };
 
   const parsed = safeParse(
@@ -119,6 +123,7 @@ async function $do(
 
   const query = encodeFormQuery({
     "ending_before": payload.ending_before,
+    "external_id": payload.external_id,
     "include_archived": payload.include_archived,
     "limit": payload.limit,
     "starting_after": payload.starting_after,
@@ -243,6 +248,7 @@ async function $do(
         nextCursor,
         endingBefore,
         includeArchived,
+        externalId,
         options,
       );
 

@@ -8,7 +8,7 @@ import { WebhookPendingEventEntity } from "creem/models/components";
 let value: WebhookPendingEventEntity = {
   id: "evt_5Xb2mQ7vN1pLk9RtYw3zA",
   object: "webhook_event",
-  eventType: "subscription.update",
+  eventType: "subscription.past_due",
   createdAt: new Date("2026-09-17T08:00:00.000Z"),
   body:
     "{\"id\":\"evt_5Xb2mQ7vN1pLk9RtYw3zA\",\"eventType\":\"checkout.completed\",\"created_at\":1758096000000,\"object\":{\"id\":\"ch_...\"}}",

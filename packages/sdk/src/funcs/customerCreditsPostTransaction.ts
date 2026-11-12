@@ -30,7 +30,7 @@ import { Result } from "../types/fp.js";
  * Post a transaction
  *
  * @remarks
- * Post a multi-entry transaction. Entries must balance (total debits must equal total credits).
+ * Post a multi-entry transaction. Entries must balance (total debits must equal total credits). A transaction cannot debit a `generation` account (AI generation credits): spend those with `POST /v1/customer-credits/accounts/{id}/debit`. A `moderation_id` is optional on a transaction that debits another customer account; one per transaction.
  */
 export function customerCreditsPostTransaction(
   client: CreemCore,

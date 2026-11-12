@@ -35,6 +35,7 @@ const value: components.OrderEntity = {
   type: "onetime",
   createdAt: new Date("2023-09-13T00:00:00Z"),
   updatedAt: new Date("2023-09-13T00:00:00Z"),
+  recovered: false,
 };
 ```
 

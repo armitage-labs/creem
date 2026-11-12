@@ -12,12 +12,15 @@ it("products search sends the exact SDK arguments", async () => {
     "3",
     "--status",
     "archived",
+    "--external-id",
+    "pro-plan",
     "--json",
   ]);
   expect(spy, result.stderr).toHaveBeenCalledExactlyOnceWith(
     2,
     3,
     "archived",
+    "pro-plan",
     expect.objectContaining({ retries: { strategy: "none" } }),
   );
   expect(result.stderr).toContain("SDK_SENTINEL");

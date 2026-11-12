@@ -46,6 +46,7 @@ export class Meters extends ClientSDK {
     startingAfter?: string | undefined,
     endingBefore?: string | undefined,
     includeArchived?: boolean | undefined,
+    externalId?: string | undefined,
     options?: RequestOptions,
   ): Promise<PageIterator<operations.ListMetersResponse, { cursor: string }>> {
     return unwrapResultIterator(metersListMeters(
@@ -54,6 +55,7 @@ export class Meters extends ClientSDK {
       startingAfter,
       endingBefore,
       includeArchived,
+      externalId,
       options,
     ));
   }

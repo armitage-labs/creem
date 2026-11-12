@@ -16,7 +16,7 @@ export class Stats extends ClientSDK {
    * Retrieve aggregated store metrics including counts, revenue, and MRR. When startDate and endDate are provided, totals are filtered to that date range. When interval is also provided, the response includes a periods array with time-series data points grouped by that interval. The periods array starts from the store's first transaction or startDate, whichever is later, to avoid empty leading buckets. All monetary amounts are in cents (integer, no decimals).
    */
   async getSummary(
-    currency: operations.Currency,
+    currency?: operations.Currency | undefined,
     startDate?: number | undefined,
     endDate?: number | undefined,
     interval?: operations.Interval | undefined,

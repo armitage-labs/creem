@@ -22,6 +22,7 @@ export const handlers: Record<string, OperationHandler> = {
       p.startingAfter,
       p.endingBefore,
       p.includeArchived,
+      p.externalId,
       options,
     );
   },

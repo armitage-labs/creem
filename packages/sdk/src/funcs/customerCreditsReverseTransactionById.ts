@@ -174,7 +174,7 @@ async function $do(
     | SDKValidationError
   >(
     M.json(201, components.TransactionResponseDto$inboundSchema),
-    M.jsonErr(409, errors.CustomerCreditsErrorResponseDto$inboundSchema),
+    M.jsonErr([409, 422], errors.CustomerCreditsErrorResponseDto$inboundSchema),
     M.fail([400, 401, 404, "4XX"]),
     M.fail("5XX"),
   )(response, req, { extraFields: responseFields });

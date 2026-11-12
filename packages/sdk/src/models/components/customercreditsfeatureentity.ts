@@ -21,6 +21,14 @@ export type CustomerCreditsFeatureEntity = {
    * The customer-credit bucket this grant funds — the `name` of the customer's credit account. Set it to a meter bucket (e.g. "images") so the credits fund a per-unit metered price; otherwise they land in `default` and metered usage cannot spend them. Distinct from `unit_label`, which is only a display label. On UPDATE the field is tri-state: OMIT it to leave the stored bucket unchanged, send `null` to clear it to the shared `default` wallet, or send a name to set it. On CREATE, omitted or null both mean `default`. A present-but-blank value is rejected.
    */
   bucketName?: string | null | undefined;
+  /**
+   * When `true`, the credits go to the customer's AI generation wallet: spending them requires a `moderation_id` from the Moderation API. `bucket_name` must be omitted (422 `bucket_name_not_allowed_with_requires_moderation`); that wallet is the reserved `generation` bucket. `generation` and `generation:*` (any casing) cannot be named directly (422 `generation_bucket_reserved`). Defaults to `false` on create; on update, omitting it keeps the stored setting, also when `bucket_name` is sent as `null` (as reads return it); send `false` to move the credits to the shared wallet, or to the `bucket_name` sent with it. Always present on reads.
+   */
+  requiresModeration?: boolean | undefined;
+  /**
+   * Unused credits from subscription grants expire at each renewal; credits from one-time purchases never expire. The reset runs on every paid subscription transaction of the product: renewals, and also the first paid charge after a trial and plan changes charged immediately. Each time, the part of the previous grant the customer did not spend expires before the new grant lands. Subscription products only (422 `credits_reset_requires_subscription` on a one-time product). Defaults to `false` on create. On update, omitting it keeps the stored setting only when the feature's `id` is sent; a feature sent without `id` is replaced and defaults to `false`. Always present on reads.
+   */
+  resetsEachPeriod?: boolean | undefined;
 };
 
 /** @internal */
@@ -32,10 +40,14 @@ export const CustomerCreditsFeatureEntity$inboundSchema: z.ZodType<
   amount: z.string(),
   unit_label: z.nullable(z.string()).optional(),
   bucket_name: z.nullable(z.string()).optional(),
+  requires_moderation: z.boolean().optional(),
+  resets_each_period: z.boolean().optional(),
 }).transform((v) => {
   return remap$(v, {
     "unit_label": "unitLabel",
     "bucket_name": "bucketName",
+    "requires_moderation": "requiresModeration",
+    "resets_each_period": "resetsEachPeriod",
   });
 });
 /** @internal */
@@ -43,6 +55,8 @@ export type CustomerCreditsFeatureEntity$Outbound = {
   amount: string;
   unit_label?: string | null | undefined;
   bucket_name?: string | null | undefined;
+  requires_moderation?: boolean | undefined;
+  resets_each_period?: boolean | undefined;
 };
 
 /** @internal */
@@ -54,10 +68,14 @@ export const CustomerCreditsFeatureEntity$outboundSchema: z.ZodType<
   amount: z.string(),
   unitLabel: z.nullable(z.string()).optional(),
   bucketName: z.nullable(z.string()).optional(),
+  requiresModeration: z.boolean().optional(),
+  resetsEachPeriod: z.boolean().optional(),
 }).transform((v) => {
   return remap$(v, {
     unitLabel: "unit_label",
     bucketName: "bucket_name",
+    requiresModeration: "requires_moderation",
+    resetsEachPeriod: "resets_each_period",
   });
 });
 

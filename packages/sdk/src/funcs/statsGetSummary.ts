@@ -34,7 +34,7 @@ import { Result } from "../types/fp.js";
  */
 export function statsGetSummary(
   client: CreemCore,
-  currency: operations.Currency,
+  currency?: operations.Currency | undefined,
   startDate?: number | undefined,
   endDate?: number | undefined,
   interval?: operations.Interval | undefined,
@@ -64,7 +64,7 @@ export function statsGetSummary(
 
 async function $do(
   client: CreemCore,
-  currency: operations.Currency,
+  currency?: operations.Currency | undefined,
   startDate?: number | undefined,
   endDate?: number | undefined,
   interval?: operations.Interval | undefined,

@@ -112,6 +112,10 @@ export type OrderEntity = {
    * Last updated date of the order
    */
   updatedAt: Date;
+  /**
+   * Whether this order came back through abandoned-cart recovery. Present on order objects returned by the API; absent from webhook payloads, because recovery is attributed asynchronously right after checkout completion.
+   */
+  recovered?: boolean | undefined;
 };
 
 /** @internal */
@@ -142,6 +146,7 @@ export const OrderEntity$inboundSchema: z.ZodType<
   affiliate: z.nullable(z.string()).optional(),
   created_at: z.string().datetime({ offset: true }).transform(v => new Date(v)),
   updated_at: z.string().datetime({ offset: true }).transform(v => new Date(v)),
+  recovered: z.boolean().optional(),
 }).transform((v) => {
   return remap$(v, {
     "sub_total": "subTotal",
@@ -180,6 +185,7 @@ export type OrderEntity$Outbound = {
   affiliate?: string | null | undefined;
   created_at: string;
   updated_at: string;
+  recovered?: boolean | undefined;
 };
 
 /** @internal */
@@ -210,6 +216,7 @@ export const OrderEntity$outboundSchema: z.ZodType<
   affiliate: z.nullable(z.string()).optional(),
   createdAt: z.date().transform(v => v.toISOString()),
   updatedAt: z.date().transform(v => v.toISOString()),
+  recovered: z.boolean().optional(),
 }).transform((v) => {
   return remap$(v, {
     subTotal: "sub_total",

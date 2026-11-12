@@ -130,6 +130,14 @@ export type CreateProductRequestEntity = {
    */
   defaultSuccessUrl?: string | undefined;
   /**
+   * Your own key for this product, such as your SKU or internal product id. Creem never sets it. Unique per store, case-sensitive; 1 to 255 characters: letters, digits, `_`, `-`, `.` and `:`. A key another product of your store already uses answers `409` with code `external_id_taken`. Omit it for a product without a key.
+   */
+  externalId?: string | undefined;
+  /**
+   * Key-value pairs for your own use, for example `{ "plan": "pro" }`. Values are strings or numbers.
+   */
+  metadata?: { [k: string]: any } | undefined;
+  /**
    * Collect additional information from your customer using custom fields during checkout. Up to 3 fields are supported.
    */
   customFields?: Array<CustomFieldRequestEntity> | undefined;
@@ -177,6 +185,8 @@ export const CreateProductRequestEntity$inboundSchema: z.ZodType<
   trial_period_days: z.number().int().optional(),
   trial_price: z.number().int().optional(),
   default_success_url: z.string().optional(),
+  external_id: z.string().optional(),
+  metadata: z.record(z.any()).optional(),
   custom_fields: z.array(CustomFieldRequestEntity$inboundSchema).optional(),
   custom_field: z.array(CustomFieldRequestEntity$inboundSchema).optional(),
   abandoned_cart_recovery_enabled: z.boolean().default(false),
@@ -198,6 +208,7 @@ export const CreateProductRequestEntity$inboundSchema: z.ZodType<
     "trial_period_days": "trialPeriodDays",
     "trial_price": "trialPrice",
     "default_success_url": "defaultSuccessUrl",
+    "external_id": "externalId",
     "custom_fields": "customFields",
     "custom_field": "customField",
     "abandoned_cart_recovery_enabled": "abandonedCartRecoveryEnabled",
@@ -224,6 +235,8 @@ export type CreateProductRequestEntity$Outbound = {
   trial_period_days?: number | undefined;
   trial_price?: number | undefined;
   default_success_url?: string | undefined;
+  external_id?: string | undefined;
+  metadata?: { [k: string]: any } | undefined;
   custom_fields?: Array<CustomFieldRequestEntity$Outbound> | undefined;
   custom_field?: Array<CustomFieldRequestEntity$Outbound> | undefined;
   abandoned_cart_recovery_enabled: boolean;
@@ -255,6 +268,8 @@ export const CreateProductRequestEntity$outboundSchema: z.ZodType<
   trialPeriodDays: z.number().int().optional(),
   trialPrice: z.number().int().optional(),
   defaultSuccessUrl: z.string().optional(),
+  externalId: z.string().optional(),
+  metadata: z.record(z.any()).optional(),
   customFields: z.array(CustomFieldRequestEntity$outboundSchema).optional(),
   customField: z.array(CustomFieldRequestEntity$outboundSchema).optional(),
   abandonedCartRecoveryEnabled: z.boolean().default(false),
@@ -276,6 +291,7 @@ export const CreateProductRequestEntity$outboundSchema: z.ZodType<
     trialPeriodDays: "trial_period_days",
     trialPrice: "trial_price",
     defaultSuccessUrl: "default_success_url",
+    externalId: "external_id",
     customFields: "custom_fields",
     customField: "custom_field",
     abandonedCartRecoveryEnabled: "abandoned_cart_recovery_enabled",

@@ -26,12 +26,14 @@ let value: WebhookSubscriptionUpdateEventEntity = {
       features: [
         {
           id: "feat_abc123",
-          type: "customerCredits",
+          type: "githubRepository",
           description: "Access to premium course materials.",
           customerCredits: {
             amount: "100",
             unitLabel: "tokens",
             bucketName: "images",
+            requiresModeration: false,
+            resetsEachPeriod: false,
           },
         },
       ],
@@ -62,6 +64,10 @@ let value: WebhookSubscriptionUpdateEventEntity = {
       taxCategory: "digital-goods-service",
       productUrl: "https://creem.io/product/prod_123123123123",
       defaultSuccessUrl: "https://example.com/?status=successful",
+      externalId: "pro-monthly",
+      metadata: {
+        "plan": "pro",
+      },
       createdAt: new Date("2023-01-01T00:00:00Z"),
       updatedAt: new Date("2023-01-01T00:00:00Z"),
     },
@@ -112,6 +118,7 @@ let value: WebhookSubscriptionUpdateEventEntity = {
       "userId": "user_123",
       "plan": "pro",
     },
+    recovered: false,
   },
 };
 ```

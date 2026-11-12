@@ -8,7 +8,7 @@ import * as operations from "../../models/operations/index.js";
 import { formatResult, ToolDefinition } from "../tools.js";
 
 const args = {
-  currency: operations.Currency$inboundSchema,
+  currency: operations.Currency$inboundSchema.optional(),
   startDate: z.number().optional(),
   endDate: z.number().optional(),
   interval: operations.Interval$inboundSchema.optional(),

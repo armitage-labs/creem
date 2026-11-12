@@ -56,6 +56,10 @@ export type CreateMeterApiRequestDto = {
    * Display unit for the metered quantity. Also names the customer-credits bucket the meter settles into.
    */
   unitLabel: string;
+  /**
+   * Your own key for this meter. Creem never sets it. Unique per store, case-sensitive; 1 to 255 characters: letters, digits, `_`, `-`, `.` and `:`. A key another meter of your store already uses (archived ones too) answers `409` with code `external_id_taken`.
+   */
+  externalId?: string | undefined;
 };
 
 /** @internal */
@@ -77,11 +81,13 @@ export const CreateMeterApiRequestDto$inboundSchema: z.ZodType<
   aggregation_property: z.string().optional(),
   filter: MeterFilterApiRequestDto$inboundSchema.optional(),
   unit_label: z.string(),
+  external_id: z.string().optional(),
 }).transform((v) => {
   return remap$(v, {
     "event_name": "eventName",
     "aggregation_property": "aggregationProperty",
     "unit_label": "unitLabel",
+    "external_id": "externalId",
   });
 });
 /** @internal */
@@ -92,6 +98,7 @@ export type CreateMeterApiRequestDto$Outbound = {
   aggregation_property?: string | undefined;
   filter?: MeterFilterApiRequestDto$Outbound | undefined;
   unit_label: string;
+  external_id?: string | undefined;
 };
 
 /** @internal */
@@ -106,11 +113,13 @@ export const CreateMeterApiRequestDto$outboundSchema: z.ZodType<
   aggregationProperty: z.string().optional(),
   filter: MeterFilterApiRequestDto$outboundSchema.optional(),
   unitLabel: z.string(),
+  externalId: z.string().optional(),
 }).transform((v) => {
   return remap$(v, {
     eventName: "event_name",
     aggregationProperty: "aggregation_property",
     unitLabel: "unit_label",
+    externalId: "external_id",
   });
 });
 

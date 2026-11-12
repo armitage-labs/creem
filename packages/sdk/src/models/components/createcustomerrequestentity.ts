@@ -22,7 +22,7 @@ export type CreateCustomerRequestEntity = {
    */
   metadata?: { [k: string]: any } | undefined;
   /**
-   * Your own id for this customer. Unique per store; usage ingestion resolves `external_customer_id` against it. Trimmed; letters, digits, `_` and `-` only; at most 255 characters.
+   * Your own id for this customer. Unique per store; usage ingestion resolves `external_customer_id` against it. Trimmed; letters, digits, `_`, `-`, `.` and `:` only; at most 255 characters.
    */
   externalId?: string | undefined;
 };

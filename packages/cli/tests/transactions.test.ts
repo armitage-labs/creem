@@ -31,6 +31,12 @@ it("transactions search sends the exact SDK arguments", async () => {
     "2",
     "--limit",
     "3",
+    "--status",
+    "refunded",
+    "--created-after",
+    "2026-01-01",
+    "--created-before",
+    "2026-01-31T23:59:59Z",
     "--json",
   ]);
   expect(spy, result.stderr).toHaveBeenCalledExactlyOnceWith(
@@ -39,6 +45,9 @@ it("transactions search sends the exact SDK arguments", async () => {
     "prod_1",
     2,
     3,
+    "refunded",
+    "2026-01-01",
+    "2026-01-31T23:59:59Z",
     expect.objectContaining({ retries: { strategy: "none" } }),
   );
   expect(result.stderr).toContain("SDK_SENTINEL");

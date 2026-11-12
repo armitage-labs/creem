@@ -67,6 +67,14 @@ export type UpdateProductRequestEntity = {
    */
   defaultSuccessUrl?: string | undefined;
   /**
+   * Your own key for this product, such as your SKU or internal product id. Creem never sets it. Unique per store, case-sensitive; 1 to 255 characters: letters, digits, `_`, `-`, `.` and `:`. Omit it to leave the key unchanged; send `null` to clear it. A key another product of your store already uses answers `409` with code `external_id_taken`.
+   */
+  externalId?: string | null | undefined;
+  /**
+   * Key-value pairs for your own use, for example `{ "plan": "pro" }`. Values are strings or numbers. Omit it to leave it unchanged; send `null` to clear it. A sent object replaces the whole object.
+   */
+  metadata?: { [k: string]: any } | null | undefined;
+  /**
    * The price of the product in cents. Must be 0 (free product) or at least 100 (one whole unit of the currency).
    */
   price?: number | undefined;
@@ -135,6 +143,8 @@ export const UpdateProductRequestEntity$inboundSchema: z.ZodType<
   image_url: z.string().optional(),
   image_urls: z.array(z.string()).optional(),
   default_success_url: z.string().optional(),
+  external_id: z.nullable(z.string()).optional(),
+  metadata: z.nullable(z.record(z.any())).optional(),
   price: z.number().int().optional(),
   currency: ProductCurrency$inboundSchema.optional(),
   billing_type: ProductRequestBillingType$inboundSchema.optional(),
@@ -154,6 +164,7 @@ export const UpdateProductRequestEntity$inboundSchema: z.ZodType<
     "image_url": "imageUrl",
     "image_urls": "imageUrls",
     "default_success_url": "defaultSuccessUrl",
+    "external_id": "externalId",
     "billing_type": "billingType",
     "billing_period": "billingPeriod",
     "recurring_interval": "recurringInterval",
@@ -174,6 +185,8 @@ export type UpdateProductRequestEntity$Outbound = {
   image_url?: string | undefined;
   image_urls?: Array<string> | undefined;
   default_success_url?: string | undefined;
+  external_id?: string | null | undefined;
+  metadata?: { [k: string]: any } | null | undefined;
   price?: number | undefined;
   currency?: string | undefined;
   billing_type?: string | undefined;
@@ -201,6 +214,8 @@ export const UpdateProductRequestEntity$outboundSchema: z.ZodType<
   imageUrl: z.string().optional(),
   imageUrls: z.array(z.string()).optional(),
   defaultSuccessUrl: z.string().optional(),
+  externalId: z.nullable(z.string()).optional(),
+  metadata: z.nullable(z.record(z.any())).optional(),
   price: z.number().int().optional(),
   currency: ProductCurrency$outboundSchema.optional(),
   billingType: ProductRequestBillingType$outboundSchema.optional(),
@@ -220,6 +235,7 @@ export const UpdateProductRequestEntity$outboundSchema: z.ZodType<
     imageUrl: "image_url",
     imageUrls: "image_urls",
     defaultSuccessUrl: "default_success_url",
+    externalId: "external_id",
     billingType: "billing_type",
     billingPeriod: "billing_period",
     recurringInterval: "recurring_interval",

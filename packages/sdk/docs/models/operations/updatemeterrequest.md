@@ -21,6 +21,7 @@ let value: UpdateMeterRequest = {
         },
       ],
     },
+    externalId: "image-generations",
   },
 };
 ```

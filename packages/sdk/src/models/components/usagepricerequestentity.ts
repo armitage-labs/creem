@@ -53,7 +53,7 @@ export type UsagePriceRequestEntity = {
    */
   targetAccount?: UsagePriceTargetAccount | undefined;
   /**
-   * Explicit name for the per-unit bucket. Only meaningful with `target_account: per_unit`; defaults to the meter unit label.
+   * Explicit name for the per-unit bucket. Only meaningful with `target_account: per_unit`; defaults to the meter unit label. The `generation` and `generation:*` buckets (any casing) hold AI generation credits and cannot be used (422 `generation_credits_usage_price_unsupported`).
    */
   targetAccountName?: string | null | undefined;
   /**

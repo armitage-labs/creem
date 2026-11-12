@@ -18,12 +18,13 @@ export class Products extends ClientSDK {
    * List all products
    *
    * @remarks
-   * Search and retrieve a paginated list of products. Filter by status, billing type, and other criteria.
+   * Search and retrieve a paginated list of products. Filter by status or by your own `external_id`.
    */
   async search(
     pageNumber?: number | undefined,
     pageSize?: number | undefined,
     status?: components.ProductStatus | undefined,
+    externalId?: string | undefined,
     options?: RequestOptions,
   ): Promise<
     PageIterator<operations.SearchProductsResponse, { page: number }>
@@ -33,6 +34,7 @@ export class Products extends ClientSDK {
       pageNumber,
       pageSize,
       status,
+      externalId,
       options,
     ));
   }

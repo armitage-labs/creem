@@ -45,6 +45,7 @@ async function run() {
       ],
     },
     unitLabel: "images",
+    externalId: "image-generations",
   });
 
   console.log(result);
@@ -84,6 +85,7 @@ async function run() {
       ],
     },
     unitLabel: "images",
+    externalId: "image-generations",
   });
   if (res.ok) {
     const { value: result } = res;
@@ -131,7 +133,7 @@ const creem = new Creem({
 });
 
 async function run() {
-  const result = await creem.meters.listMeters(10, "mtr_abc123", "mtr_abc123");
+  const result = await creem.meters.listMeters(10, "mtr_abc123", "mtr_abc123", false, "image-generations");
 
   for await (const page of result) {
     console.log(page);
@@ -156,7 +158,7 @@ const creem = new CreemCore({
 });
 
 async function run() {
-  const res = await metersListMeters(creem, 10, "mtr_abc123", "mtr_abc123");
+  const res = await metersListMeters(creem, 10, "mtr_abc123", "mtr_abc123", false, "image-generations");
   if (res.ok) {
     const { value: result } = res;
     for await (const page of result) {
@@ -178,6 +180,7 @@ run();
 | `startingAfter`                                                                                                                                                                | *string*                                                                                                                                                                       | :heavy_minus_sign:                                                                                                                                                             | Cursor for forward pagination — meter ID to start after                                                                                                                        | mtr_abc123                                                                                                                                                                     |
 | `endingBefore`                                                                                                                                                                 | *string*                                                                                                                                                                       | :heavy_minus_sign:                                                                                                                                                             | Cursor for backward pagination — meter ID to end before                                                                                                                        | mtr_abc123                                                                                                                                                                     |
 | `includeArchived`                                                                                                                                                              | *boolean*                                                                                                                                                                      | :heavy_minus_sign:                                                                                                                                                             | Include archived meters in the page. Defaults to false — archived meters are hidden.                                                                                           |                                                                                                                                                                                |
+| `externalId`                                                                                                                                                                   | *string*                                                                                                                                                                       | :heavy_minus_sign:                                                                                                                                                             | Only the meter with this `external_id` (your own key). Case-sensitive, exact match. Combine with `include_archived` to find an archived one.                                   | image-generations                                                                                                                                                              |
 | `options`                                                                                                                                                                      | RequestOptions                                                                                                                                                                 | :heavy_minus_sign:                                                                                                                                                             | Used to set various options for making HTTP requests.                                                                                                                          |                                                                                                                                                                                |
 | `options.fetchOptions`                                                                                                                                                         | [RequestInit](https://developer.mozilla.org/en-US/docs/Web/API/Request/Request#options)                                                                                        | :heavy_minus_sign:                                                                                                                                                             | Options that are passed to the underlying HTTP request. This can be used to inject extra headers for examples. All `Request` options, except `method` and `body`, are allowed. |                                                                                                                                                                                |
 | `options.retries`                                                                                                                                                              | [RetryConfig](../../lib/utils/retryconfig.md)                                                                                                                                  | :heavy_minus_sign:                                                                                                                                                             | Enables retrying HTTP requests under certain failure conditions.                                                                                                               |                                                                                                                                                                                |
@@ -390,6 +393,7 @@ async function run() {
         },
       ],
     },
+    externalId: "image-generations",
   });
 
   console.log(result);
@@ -427,6 +431,7 @@ async function run() {
         },
       ],
     },
+    externalId: "image-generations",
   });
   if (res.ok) {
     const { value: result } = res;

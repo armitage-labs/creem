@@ -93,7 +93,7 @@ run();
 
 | Error Type                             | Status Code                            | Content Type                           |
 | -------------------------------------- | -------------------------------------- | -------------------------------------- |
-| errors.CustomerCreditsErrorResponseDto | 409                                    | application/json                       |
+| errors.CustomerCreditsErrorResponseDto | 409, 422                               | application/json                       |
 | errors.APIError                        | 4XX, 5XX                               | \*/\*                                  |
 
 ## listAccounts
@@ -608,7 +608,7 @@ run();
 
 ## debitAccount
 
-Deduct credits from a customer account. Returns the resulting transaction record.
+Deduct credits from a customer account. Returns the resulting transaction record. A debit from a `generation` account (AI generation credits) needs the `moderation_id` of an allowed Moderation API result; on other accounts it is optional. A failed debit does not use up the moderation result.
 
 ### Example Usage
 
@@ -625,6 +625,7 @@ async function run() {
     amount: "1000",
     reference: "signup_bonus",
     idempotencyKey: "idem_abc123",
+    moderationId: "3f1c2b9e-8d4a-4c7e-9b1a-2e5f6d7c8a90",
   });
 
   console.log(result);
@@ -652,6 +653,7 @@ async function run() {
     amount: "1000",
     reference: "signup_bonus",
     idempotencyKey: "idem_abc123",
+    moderationId: "3f1c2b9e-8d4a-4c7e-9b1a-2e5f6d7c8a90",
   });
   if (res.ok) {
     const { value: result } = res;
@@ -669,7 +671,7 @@ run();
 | Parameter                                                                                                                                                                      | Type                                                                                                                                                                           | Required                                                                                                                                                                       | Description                                                                                                                                                                    |
 | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
 | `id`                                                                                                                                                                           | *string*                                                                                                                                                                       | :heavy_check_mark:                                                                                                                                                             | N/A                                                                                                                                                                            |
-| `creditDebitRequestDto`                                                                                                                                                        | [components.CreditDebitRequestDto](../../models/components/creditdebitrequestdto.md)                                                                                           | :heavy_check_mark:                                                                                                                                                             | N/A                                                                                                                                                                            |
+| `debitRequestDto`                                                                                                                                                              | [components.DebitRequestDto](../../models/components/debitrequestdto.md)                                                                                                       | :heavy_check_mark:                                                                                                                                                             | N/A                                                                                                                                                                            |
 | `options`                                                                                                                                                                      | RequestOptions                                                                                                                                                                 | :heavy_minus_sign:                                                                                                                                                             | Used to set various options for making HTTP requests.                                                                                                                          |
 | `options.fetchOptions`                                                                                                                                                         | [RequestInit](https://developer.mozilla.org/en-US/docs/Web/API/Request/Request#options)                                                                                        | :heavy_minus_sign:                                                                                                                                                             | Options that are passed to the underlying HTTP request. This can be used to inject extra headers for examples. All `Request` options, except `method` and `body`, are allowed. |
 | `options.retries`                                                                                                                                                              | [RetryConfig](../../lib/utils/retryconfig.md)                                                                                                                                  | :heavy_minus_sign:                                                                                                                                                             | Enables retrying HTTP requests under certain failure conditions.                                                                                                               |
@@ -682,7 +684,7 @@ run();
 
 | Error Type                             | Status Code                            | Content Type                           |
 | -------------------------------------- | -------------------------------------- | -------------------------------------- |
-| errors.CustomerCreditsErrorResponseDto | 409                                    | application/json                       |
+| errors.CustomerCreditsErrorResponseDto | 409, 422                               | application/json                       |
 | errors.APIError                        | 4XX, 5XX                               | \*/\*                                  |
 
 ## reverseTransaction
@@ -755,9 +757,10 @@ run();
 
 ### Errors
 
-| Error Type      | Status Code     | Content Type    |
-| --------------- | --------------- | --------------- |
-| errors.APIError | 4XX, 5XX        | \*/\*           |
+| Error Type                             | Status Code                            | Content Type                           |
+| -------------------------------------- | -------------------------------------- | -------------------------------------- |
+| errors.CustomerCreditsErrorResponseDto | 422                                    | application/json                       |
+| errors.APIError                        | 4XX, 5XX                               | \*/\*                                  |
 
 ## closeAccount
 
@@ -831,7 +834,7 @@ run();
 
 ## postTransaction
 
-Post a multi-entry transaction. Entries must balance (total debits must equal total credits).
+Post a multi-entry transaction. Entries must balance (total debits must equal total credits). A transaction cannot debit a `generation` account (AI generation credits): spend those with `POST /v1/customer-credits/accounts/{id}/debit`. A `moderation_id` is optional on a transaction that debits another customer account; one per transaction.
 
 ### Example Usage
 
@@ -854,6 +857,7 @@ async function run() {
         amount: "1000",
       },
     ],
+    moderationId: "3f1c2b9e-8d4a-4c7e-9b1a-2e5f6d7c8a90",
   });
 
   console.log(result);
@@ -887,6 +891,7 @@ async function run() {
         amount: "1000",
       },
     ],
+    moderationId: "3f1c2b9e-8d4a-4c7e-9b1a-2e5f6d7c8a90",
   });
   if (res.ok) {
     const { value: result } = res;
@@ -1124,5 +1129,5 @@ run();
 
 | Error Type                             | Status Code                            | Content Type                           |
 | -------------------------------------- | -------------------------------------- | -------------------------------------- |
-| errors.CustomerCreditsErrorResponseDto | 409                                    | application/json                       |
+| errors.CustomerCreditsErrorResponseDto | 409, 422                               | application/json                       |
 | errors.APIError                        | 4XX, 5XX                               | \*/\*                                  |
