@@ -8,7 +8,7 @@ Before you can accept live payments through Creem, your store needs to pass an a
 This page gives you the core checklist. If you need next-step guidance after a rejection, use the [Re-Review Guide](/merchant-of-record/account-reviews/re-review-guide). If you're building an AI image or video product, also read [AI Wrapper Compliance](/merchant-of-record/account-reviews/ai-wrapper-compliance).
 
 <Tip>
-  The fastest approvals happen when your product is already live, your legal pages are visible, and your support email matches what appears on your website.
+  The fastest approvals happen when your product is already live on its own domain, your legal pages are visible, and your support email matches what appears on your website.
 </Tip>
 
 ## Approval checklist
@@ -16,6 +16,7 @@ This page gives you the core checklist. If you need next-step guidance after a r
 | Requirement | Details |
 | --- | --- |
 | **Product is live** | Your product is ready for production. Still building? Use [Test Mode](/getting-started/test-mode) first. |
+| **Own custom domain** | Your website runs on your own custom domain. Shared URLs such as social media profiles, marketplace or checkout pages, and free hosting subdomains are not accepted. |
 | **No false information** | No fake reviews, testimonials, or inflated user/customer counts on your website. |
 | **Privacy Policy & Terms of Service** | Both legal pages must be present and accessible on your website. |
 | **Product clearly visible** | We must be able to understand what you're selling from your website or landing page. |
@@ -25,6 +26,20 @@ This page gives you the core checklist. If you need next-step guidance after a r
 | **Customer support email** | A reachable support email must be set up and shown on your website and receipts. |
 | **Moderation API** | AI image/video generation products must integrate the [CREEM Moderation API](/features/moderation). |
 | **Not on prohibited list** | Your product must not fall under our [prohibited product list](#prohibited-products). |
+
+### Why a custom domain is required
+
+Customers and payment partners rely on your website to know who they are buying from. A custom domain shows that your business is established, stays under your control, and belongs to you. That is why every Creem store needs a website on its own custom domain before it can accept live payments.
+
+**Accepted:** a domain you own, such as `yourbrand.com`, or a subdomain of it, such as `app.yourbrand.com`.
+
+**Not accepted:**
+
+- Free hosting subdomains, such as `yourapp.vercel.app`, `yourapp.netlify.app`, `yourname.github.io`, `yourapp.pages.dev`, Notion or Google Sites pages
+- Social media profiles and channels, such as Instagram, Facebook, YouTube, TikTok, X or Telegram
+- Design and file share links, such as Canva links or Google Drive folders
+- Marketplace and checkout pages, such as Gumroad, Payhip or Whop pages, or a Creem checkout link
+- Code repositories, such as a GitHub repo
 
 ## Review process
 
@@ -54,7 +69,7 @@ Go to **Balance → Payout Account** and click **Set up Payout Account** to subm
 
 - Your full individual name and/or your business entity name
 - Your store or product name
-- The product URL of your store
+- Your website URL, on your own custom domain
 - A description of your business and how you operate
 - A description of the products you intend to sell through Creem
 - Your country of tax residence
@@ -71,10 +86,11 @@ Go to **Balance → Payout Account** and click **Set up Payout Account** to subm
 
 1. **Support email mismatch** - The email in your Business Details doesn't match what's on your website.
 2. **Website not accessible** - Your site is down, password-protected, or returning errors during review.
-3. **Missing legal pages** - Your website needs a Privacy Policy and Terms of Service.
-4. **False information** - Fake reviews, testimonials, or inflated user counts on your website.
-5. **Product not ready** - If your product isn't live yet, use [Test Mode](/getting-started/test-mode) until it's ready.
-6. **AI compliance issues** - AI image/video products are missing moderation, AUP, or clear product disclosures.
+3. **No custom domain** - Your website URL is not on your own custom domain.
+4. **Missing legal pages** - Your website needs a Privacy Policy and Terms of Service.
+5. **False information** - Fake reviews, testimonials, or inflated user counts on your website.
+6. **Product not ready** - If your product isn't live yet, use [Test Mode](/getting-started/test-mode) until it's ready.
+7. **AI compliance issues** - AI image/video products are missing moderation, AUP, or clear product disclosures.
 
 <CardGroup cols={2}>
   <Card title="Re-Review Guide" icon="rotate-right" href="/merchant-of-record/account-reviews/re-review-guide">
@@ -113,27 +129,35 @@ We review accounts to ensure stores are legitimate and in compliance with our te
 
 <Accordion title="Full list of prohibited products">
   - Physical goods of any kind, including, but not limited to, illegal or age-restricted products such as drugs, alcohol, tobacco, vaping products, or weapons, as well as pharmacy, pharmaceutical, and nutraceutical products
-  - Trading and investment tools and services that enable or facilitate trade execution or automation
-  - IPTV services
-  - Online traffic and engagement services
+  - Weapon-related digital goods, including, but not limited to, 3D-printable firearm or weapon files, firearm, suppressor, or weapon blueprints, and explosives or weapons manufacturing guides
+  - Trading and investment tools and services that enable or facilitate trade execution or automation, including, but not limited to, trading bots, expert advisors (EAs), automated strategies, and copy trading or mirror trading services
+  - IPTV services, including, but not limited to, IPTV subscriptions, IPTV reseller panels and credits, M3U playlists and playlist stores, M3U and IPTV player apps (with or without preloaded content), Xtream Codes logins, restreaming services, sports or pay-per-view streaming passes, and preloaded devices or apps (such as Firestick setups or Kodi builds) that give access to third-party channels or content
+  - Online traffic and engagement services, including, but not limited to, followers, likes, views, comments, subscribers, fake or incentivized reviews, bot traffic, and PBN or paid backlinks
+  - Account and subscription resale, including, but not limited to, shared or resold seats for streaming, music, or AI subscriptions, aged or verified social media accounts, and bulk email or platform accounts
   - Donations or charity giving where no product exists or where the price is greater than the product value
-  - Counterfeit or unauthorized products and content, including PLR or MRR products, for which you do not hold the required licenses, intellectual property rights, or resale rights
-  - Face-swap, deepfake, and face-manipulation tools of any kind
+  - Counterfeit or unauthorized products and content for which you do not hold the required licenses, intellectual property rights, or resale rights, including, but not limited to, PLR or MRR products, cracked or pirated software, grey-market or resold license keys, leaked or ripped courses, and modded versions of paid apps
+  - Face-swap, deepfake, and face-manipulation tools of any kind, including, but not limited to, nudify or undress apps
   - Sexually-oriented or pornographic content and AI companion or relationship chatbots of any kind, including AI-generated content, NSFW chatbots, and romantic AI characters
-  - Telecommunications and connectivity products such as eSIMs, SIM cards, mobile data plans, calling plans, VoIP services, wireless carriers, or internet service providers
-  - Spyware or parental control apps
-  - Third-party content downloaders and rippers that violate platform Terms of Service
+  - Telecommunications and connectivity products such as eSIMs, SIM cards, mobile data plans, calling plans, VoIP services, wireless carriers, internet service providers, VPN services, or residential and mobile proxy networks
+  - Spyware or parental control apps, including, but not limited to, phone trackers, location trackers, keyloggers, and SMS, call, or messaging app monitoring tools
+  - Third-party content downloaders and rippers that violate platform Terms of Service, including, but not limited to, YouTube, TikTok, Instagram, or Spotify downloaders, streaming service rippers, and DRM removal tools
   - Remote digital file-sharing services and cyberlockers
   - Dating sites
-  - Regulated services such as gambling, lending, telemarketing, debt relief, or banking/financing services
+  - Gambling and games of chance, including, but not limited to, casinos, betting, sweepstakes, lotteries, fantasy sports, prediction markets, skill-based games with cash prizes, and matched betting
+  - Regulated services such as lending, telemarketing, debt relief, or banking/financing services
+  - Gift cards and stored value that can be spent outside your own product, including, but not limited to, gift cards for other brands or retailers, open-loop prepaid cards, balances that can be transferred or redeemed for cash, and mobile credit top-ups. Credits, points, or prepaid balances that can only be spent within your own product, such as those built with [Customer Credits](/features/customer-credits/introduction), are allowed
+  - Fake or fraudulent documents, including, but not limited to, generators or templates for IDs, passports, receipts, invoices, bank statements, pay stubs, or doctor's notes
+  - Hacking, fraud, and platform-abuse tools, including, but not limited to, malware, DDoS stressers or booters, OTP or 2FA bypass tools, carding or "method" guides, captcha-solving services, and antidetect or multi-account browsers
+  - Personal data products, including, but not limited to, the sale of scraped or purchased email, phone, or lead lists or contact databases, and people-search or background-check services. B2B lead generation and data enrichment software is a restricted product (see below)
+  - Get-rich-quick and make-money-online schemes, including, but not limited to, products that promise guaranteed income, earnings, or returns
   - Metaphysical, fortune-telling, and spiritual outcome services
   - Timeshares
   - Homework/essay mills
   - Multi-level marketing, pyramid, or IBO schemes
   - NFT & crypto asset products
   - In-game items, currencies, accounts, boosting services, and virtual goods tied to third-party games, including automation or account-management software that violates the game publisher's Terms of Service
-  - Any other products that our providers and partners deem too risky
   - Products that operate marketplaces or facilitate third-party merchant-funded customer payouts, including cashback, rebates, referral payouts, rewards, or similar payments from merchants to customers
+  - Any other products that our providers and partners deem too risky
 </Accordion>
 
 ### Restricted products
@@ -143,8 +167,9 @@ We review accounts to ensure stores are legitimate and in compliance with our te
   - Job boards
   - Advertising in newsletters, on websites, or in social media posts
   - API resellers
+  - B2B lead generation and data enrichment software
   - Generative AI products, including, but not limited to text-to-image and text-to-video generation tools
-  - Trading and investment communities, courses, and educational products that do not enable trade execution or automation
+  - Trading and investment communities, signal groups, courses, and educational products that do not enable trade execution or automation. Communities and signal groups must publish a clear, documented methodology (such as entry and exit rules, risk management, and markets traded) and a timestamped record of past signals that cannot be edited after the fact, such as a public channel history or a third-party verified track record. Meeting these requirements makes a product eligible for review, but approval is not guaranteed
 
   All restricted products require additional verification, including previous payment processor details, chargeback/refund rate, and reason for moving to Creem. An established and proven track record is required for consideration.
 </Accordion>

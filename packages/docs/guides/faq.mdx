@@ -30,6 +30,9 @@ description: 'Answers to the most common questions about using Creem.'
   <Accordion title="Do I need a separate store for each website?">
     **Yes.** Each website must have its own Creem store. During account review, we verify your website, support email, and product details — these are tied to a specific store. Using one store for multiple websites will cause review issues and is not supported.
   </Accordion>
+  <Accordion title="Can I use a social media profile or a free hosting subdomain as my website?">
+    **No.** Your store needs a website on your own custom domain. Shared URLs such as social media profiles, marketplace or checkout pages, and free hosting subdomains are not accepted.
+  </Accordion>
   <Accordion title="What is the Moderation API and do I need it?">
     The [Moderation API](/features/moderation) is CREEM's prompt screening endpoint. It checks user-submitted text prompts against content policies before your AI model generates output.
 
@@ -97,7 +100,9 @@ description: 'Answers to the most common questions about using Creem.'
     As your [Merchant of Record](/merchant-of-record/what-is), Creem handles all tax collection, remittance, and compliance automatically. The correct tax rate (VAT, GST, sales tax) is applied at checkout based on the customer's location. You don't need to register for tax in any country.
   </Accordion>
   <Accordion title="Can B2B customers get a tax exemption?">
-    Creem automatically applies the correct tax treatment based on the customer's location. For EU B2B transactions, if the customer provides a valid **VAT ID** during checkout, reverse charge rules may apply. Full self-service tax-exempt checkout (where B2B customers can input their VAT ID to skip tax) is on our roadmap — contact [support](https://creem.io/contact) if this is critical for your use case.
+    Yes, for cross-border EU business purchases. At checkout, the customer ticks **I'm purchasing as a business** and enters their business name and **VAT / Tax ID**. If the VAT ID is valid and the sale qualifies for the EU reverse charge, no VAT is charged and the customer accounts for VAT in their own country. Their invoice shows their business name and VAT ID alongside Creem's, and states that the reverse charge applies.
+
+    For prices that include tax, a business customer pays the same total by default, with the VAT removed. To charge them the price without VAT instead, turn on **Business customers pay net price** on a one-time product priced with tax included.
   </Accordion>
   <Accordion title="Why are some transactions taxed differently?">
     Tax rates vary by the customer's country, state, and sometimes city. A customer in France pays 20% VAT, while a customer in the US might pay 0-10% sales tax depending on their state. Creem calculates the correct rate automatically.

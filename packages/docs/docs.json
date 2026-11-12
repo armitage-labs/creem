@@ -80,7 +80,15 @@
     },
     {
       "source": "/code/mcp",
-      "destination": "/ai/for-agents/mcp-server"
+      "destination": "/ai/for-agents/hosted-mcp"
+    },
+    {
+      "source": "/ai/for-agents/mcp-server",
+      "destination": "/ai/for-agents/hosted-mcp"
+    },
+    {
+      "source": "/getting-started/introduction",
+      "destination": "/"
     }
   ],
   "theme": "mint",
@@ -100,7 +108,7 @@
             "group": "Get Started",
             "icon": "rocket",
             "pages": [
-              "getting-started/introduction",
+              "index",
               "getting-started/quickstart",
               "getting-started/test-mode",
               {
@@ -123,13 +131,17 @@
               "ai/introduction",
               {
                 "group": "For Humans",
-                "pages": ["ai/for-humans/getting-started", "ai/for-humans/cli"]
+                "pages": [
+                  "ai/for-humans/getting-started",
+                  "ai/for-humans/ai-assistants",
+                  "ai/for-humans/cli"
+                ]
               },
               {
                 "group": "For Agents",
                 "pages": [
+                  "ai/for-agents/hosted-mcp",
                   "ai/for-agents/skill-files",
-                  "ai/for-agents/mcp-server",
                   "ai/for-agents/cli",
                   "ai/for-agents/store-monitoring"
                 ]
