@@ -1881,6 +1881,28 @@
             }
           },
           {
+            "name": "page_number",
+            "required": false,
+            "in": "query",
+            "description": "The page number for pagination.",
+            "schema": {
+              "default": 1,
+              "example": 1,
+              "type": "number"
+            }
+          },
+          {
+            "name": "page_size",
+            "required": false,
+            "in": "query",
+            "description": "The number of items per page.",
+            "schema": {
+              "default": 10,
+              "example": 10,
+              "type": "number"
+            }
+          },
+          {
             "name": "status",
             "required": false,
             "in": "query",
@@ -1921,28 +1943,6 @@
               "example": "2024-12-31T23:59:59Z",
               "type": "string"
             }
-          },
-          {
-            "name": "page_number",
-            "required": false,
-            "in": "query",
-            "description": "The page number for pagination.",
-            "schema": {
-              "default": 1,
-              "example": 1,
-              "type": "number"
-            }
-          },
-          {
-            "name": "page_size",
-            "required": false,
-            "in": "query",
-            "description": "The number of items per page.",
-            "schema": {
-              "default": 10,
-              "example": 10,
-              "type": "number"
-            }
           }
         ],
         "responses": {
@@ -1982,6 +1982,16 @@
         "description": "Retrieve aggregated store metrics including counts, revenue, and MRR. When startDate and endDate are provided, totals are filtered to that date range. When interval is also provided, the response includes a periods array with time-series data points grouped by that interval. The periods array starts from the store's first transaction or startDate, whichever is later, to avoid empty leading buckets. All monetary amounts are in cents (integer, no decimals).",
         "parameters": [
           {
+            "name": "currency",
+            "required": false,
+            "in": "query",
+            "description": "Currency the monetary totals are converted to. Defaults to USD when omitted.",
+            "schema": {
+              "enum": ["EUR", "USD"],
+              "type": "string"
+            }
+          },
+          {
             "name": "startDate",
             "required": false,
             "in": "query",
@@ -2006,16 +2016,6 @@
             "description": "Groups time-series data into buckets of this size. Requires startDate and endDate. Returns a periods array with one entry per bucket containing grossRevenue and netRevenue.",
             "schema": {
               "enum": ["day", "week", "month"],
-              "type": "string"
-            }
-          },
-          {
-            "name": "currency",
-            "required": false,
-            "in": "query",
-            "description": "Currency the monetary totals are converted to. Defaults to USD when omitted.",
-            "schema": {
-              "enum": ["EUR", "USD"],
               "type": "string"
             }
           }
