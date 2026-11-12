@@ -7,7 +7,9 @@ description: 'Screen user prompts against content policies before generating ima
   The Moderation API is **required** for all merchants running AI image or video
   generation products on Creem. Every user-supplied prompt that will be routed
   to an image or video generation model must be screened through this endpoint
-  before generation happens.
+  before generation happens. Each credit spend must also carry the moderation
+  result ID. See [Gen AI Requirements](/merchant-of-record/account-reviews/gen-ai-requirements)
+  and the [Gen AI Technical Integration Guide](/merchant-of-record/account-reviews/gen-ai-technical-integration-guide).
 </Note>
 
 ## Why moderation matters
