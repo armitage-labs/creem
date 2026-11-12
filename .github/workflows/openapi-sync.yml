@@ -7,9 +7,11 @@ name: OpenAPI Sync
 # so the live contract is the one the SDK may describe.
 #
 # The changeset's release level comes from Speakeasy's SDK change report
-# (`speakeasy diff`), read by scripts/openapi-sync.mjs: breaking means major,
-# any other SDK change means minor, no SDK change means patch. A reviewer
-# overrides it with an `sdk-release:<level>` label on the pull request.
+# (`speakeasy diff`), read by scripts/openapi-sync.mjs: breaking or a removed
+# generated file means major, any other SDK change or an added generated file
+# means minor, anything else patch. A reviewer overrides it with an
+# `sdk-release:<level>` label on the pull request until the pull request has a
+# manual commit.
 #
 # A commit on the open pull request that this workflow did not make (CLI flags,
 # docs navigation) is never overwritten: while one exists, the workflow
@@ -19,9 +21,11 @@ name: OpenAPI Sync
 #
 # Pull requests opened with GITHUB_TOKEN do not start other workflows. Set the
 # PR_AUTOMATION_APP_ID variable and PR_AUTOMATION_APP_PRIVATE_KEY secret (a
-# GitHub App with contents and pull-requests write on this repository) so the
-# checks run. Without them the pull request still opens, and closing and
-# reopening it starts the checks.
+# GitHub App with contents, pull-requests and workflows write on this
+# repository) so the checks run. Without them the pull request still opens and
+# closing and reopening it starts the checks, but a branch rebuilt over
+# workflow changes on main can't be pushed, and the run fails until the pull
+# request is merged or closed.
 
 on:
   schedule:
@@ -156,6 +160,16 @@ jobs:
                 gh pr comment "$number" --body "main already matches the live API contract, so this pull request is no longer needed."
                 gh pr close "$number" 2> /dev/null || true
               else
+                # Only a moved branch is the expected race; any other failure
+                # fails the run instead of leaving a stale pull request open.
+                remote=$(git ls-remote --heads origin "refs/heads/$BRANCH") || {
+                  echo "::error::Deleting $BRANCH failed and its head could not be read."
+                  exit 1
+                }
+                if [ "$(cut -f1 <<< "$remote")" = "$head" ]; then
+                  echo "::error::Deleting $BRANCH failed although nobody else changed it."
+                  exit 1
+                fi
                 echo "::warning::$BRANCH changed since it was checked; leaving the pull request open."
               fi
             fi
@@ -317,12 +331,15 @@ jobs:
             # Only a moved branch is the expected race. Anything else (a
             # missing permission, a branch rule, the network) fails the run,
             # so the sync does not drift silently.
-            current=$(git ls-remote --heads origin "refs/heads/$BRANCH" | cut -f1)
-            if [ "$current" != "$EXPECTED" ]; then
+            remote=$(git ls-remote --heads origin "refs/heads/$BRANCH") || {
+              echo "::error::Pushing $BRANCH failed and its head could not be read."
+              exit 1
+            }
+            if [ "$(cut -f1 <<< "$remote")" != "$EXPECTED" ]; then
               echo "::warning::$BRANCH changed while this run regenerated; leaving it for the next run."
               exit 0
             fi
-            echo "::error::Pushing $BRANCH failed although nobody else changed it."
+            echo "::error::Pushing $BRANCH failed although nobody else changed it. If GitHub refused workflow file changes, the token needs workflows write."
             exit 1
           fi
 
