@@ -18,13 +18,13 @@
   "homepage": "https://github.com/armitage-labs/creem/tree/main/packages/sdk",
   "license": "MIT",
   "publishConfig": {
-    "provenance": true,
-    "access": "public"
+    "access": "public",
+    "provenance": true
   },
   "repository": {
-    "directory": "packages/sdk",
     "type": "git",
-    "url": "https://github.com/armitage-labs/creem.git"
+    "url": "https://github.com/armitage-labs/creem.git",
+    "directory": "packages/sdk"
   },
   "type": "module",
   "bin": {
@@ -46,11 +46,6 @@
     }
   },
   "sideEffects": false,
-  "repository": {
-    "type": "git",
-    "url": "https://github.com/armitage-labs/creem.git",
-    "directory": "packages/sdk"
-  },
   "scripts": {
     "lint": "eslint --cache --max-warnings=0 src",
     "build:mcp": "bun src/mcp-server/build.mts",
@@ -61,9 +56,7 @@
     "test:watch": "vitest",
     "typecheck": "tsc --noEmit"
   },
-  "peerDependencies": {
-    
-  },
+  "peerDependencies": {},
   "devDependencies": {
     "@eslint/js": "^9.26.0",
     "@stricli/core": "^1.1.1",
@@ -83,5 +76,88 @@
     "@modelcontextprotocol/sdk": "^1.26.0",
     "jsonpath-rfc9535": "1.1.0",
     "zod": "^3.25.0 || ^4.0.0"
-  }
+  },
+  "exports": {
+    ".": {
+      "import": {
+        "creem/source": "./src/index.ts",
+        "types": "./dist/esm/index.d.ts",
+        "default": "./dist/esm/index.js"
+      },
+      "require": {
+        "types": "./dist/commonjs/index.d.ts",
+        "default": "./dist/commonjs/index.js"
+      }
+    },
+    "./package.json": "./package.json",
+    "./types": {
+      "import": {
+        "creem/source": "./src/types/index.ts",
+        "types": "./dist/esm/types/index.d.ts",
+        "default": "./dist/esm/types/index.js"
+      },
+      "require": {
+        "types": "./dist/commonjs/types/index.d.ts",
+        "default": "./dist/commonjs/types/index.js"
+      }
+    },
+    "./models/errors": {
+      "import": {
+        "creem/source": "./src/models/errors/index.ts",
+        "types": "./dist/esm/models/errors/index.d.ts",
+        "default": "./dist/esm/models/errors/index.js"
+      },
+      "require": {
+        "types": "./dist/commonjs/models/errors/index.d.ts",
+        "default": "./dist/commonjs/models/errors/index.js"
+      }
+    },
+    "./models/components": {
+      "import": {
+        "creem/source": "./src/models/components/index.ts",
+        "types": "./dist/esm/models/components/index.d.ts",
+        "default": "./dist/esm/models/components/index.js"
+      },
+      "require": {
+        "types": "./dist/commonjs/models/components/index.d.ts",
+        "default": "./dist/commonjs/models/components/index.js"
+      }
+    },
+    "./models/operations": {
+      "import": {
+        "creem/source": "./src/models/operations/index.ts",
+        "types": "./dist/esm/models/operations/index.d.ts",
+        "default": "./dist/esm/models/operations/index.js"
+      },
+      "require": {
+        "types": "./dist/commonjs/models/operations/index.d.ts",
+        "default": "./dist/commonjs/models/operations/index.js"
+      }
+    },
+    "./*.js": {
+      "import": {
+        "creem/source": "./src/*.ts",
+        "types": "./dist/esm/*.d.ts",
+        "default": "./dist/esm/*.js"
+      },
+      "require": {
+        "types": "./dist/commonjs/*.d.ts",
+        "default": "./dist/commonjs/*.js"
+      }
+    },
+    "./*": {
+      "import": {
+        "creem/source": "./src/*.ts",
+        "types": "./dist/esm/*.d.ts",
+        "default": "./dist/esm/*.js"
+      },
+      "require": {
+        "types": "./dist/commonjs/*.d.ts",
+        "default": "./dist/commonjs/*.js"
+      }
+    }
+  },
+  "main": "./dist/commonjs/index.js",
+  "types": "./dist/commonjs/index.d.ts",
+  "module": "./dist/esm/index.js"
 }
