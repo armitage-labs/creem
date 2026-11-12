@@ -4969,14 +4969,12 @@
           "requires_moderation": {
             "type": "boolean",
             "description": "When `true`, the credits go to the customer's AI generation wallet: spending them requires a `moderation_id` from the Moderation API. `bucket_name` must be omitted (422 `bucket_name_not_allowed_with_requires_moderation`); that wallet is the reserved `generation` bucket. `generation` and `generation:*` (any casing) cannot be named directly (422 `generation_bucket_reserved`). Defaults to `false` on create; on update, omitting it keeps the stored setting, also when `bucket_name` is sent as `null` (as reads return it); send `false` to move the credits to the shared wallet, or to the `bucket_name` sent with it. Always present on reads.",
-            "example": false,
-            "default": false
+            "example": false
           },
           "resets_each_period": {
             "type": "boolean",
             "description": "Unused credits from subscription grants expire at each renewal; credits from one-time purchases never expire. The reset runs on every paid subscription transaction of the product: renewals, and also the first paid charge after a trial and plan changes charged immediately. Each time, the part of the previous grant the customer did not spend expires before the new grant lands. Subscription products only (422 `credits_reset_requires_subscription` on a one-time product). Defaults to `false` on create. On update, omitting it keeps the stored setting only when the feature's `id` is sent; a feature sent without `id` is replaced and defaults to `false`. Always present on reads.",
-            "example": false,
-            "default": false
+            "example": false
           }
         },
         "required": ["amount"]
