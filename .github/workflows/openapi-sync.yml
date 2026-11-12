@@ -39,7 +39,6 @@ permissions:
 env:
   SPEC_URL: https://api.creem.io/open-api/json
   BRANCH: chore/openapi-sync
-  BOT: github-actions[bot] <41898282+github-actions[bot]@users.noreply.github.com>
   BOT_EMAIL: 41898282+github-actions[bot]@users.noreply.github.com
 
 jobs:
@@ -49,9 +48,21 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 30
     steps:
+      - uses: actions/create-github-app-token@fee1f7d63c2ff003460e3d139729b119787bc349 # v2
+        id: app
+        if: vars.PR_AUTOMATION_APP_ID != ''
+        with:
+          app-id: ${{ vars.PR_AUTOMATION_APP_ID }}
+          private-key: ${{ secrets.PR_AUTOMATION_APP_PRIVATE_KEY }}
+          permission-contents: write
+          permission-pull-requests: write
+
+      # The push at the end uses these credentials. With the App token, the
+      # push and the pull request start the checks; with GITHUB_TOKEN they don't.
       - uses: actions/checkout@v4
         with:
           fetch-depth: 0
+          token: ${{ steps.app.outputs.token || github.token }}
 
       - uses: pnpm/action-setup@v4
 
@@ -61,15 +72,6 @@ jobs:
           cache: "pnpm"
 
       - run: pnpm install --frozen-lockfile
-
-      - uses: actions/create-github-app-token@fee1f7d63c2ff003460e3d139729b119787bc349 # v2
-        id: app
-        if: vars.PR_AUTOMATION_APP_ID != ''
-        with:
-          app-id: ${{ vars.PR_AUTOMATION_APP_ID }}
-          private-key: ${{ secrets.PR_AUTOMATION_APP_PRIVATE_KEY }}
-          permission-contents: write
-          permission-pull-requests: write
 
       - name: Fetch the live contract
         id: spec
@@ -111,11 +113,15 @@ jobs:
             --jq '[.[] | select(.isCrossRepository | not)][0] // empty')
           number=$(jq -r '.number // empty' <<< "$pr")
           labels=$(jq -r '[.labels[].name] | join(",")' <<< "$pr")
-          head=""
-          manual=""
-          if [ -n "$number" ] && git ls-remote --exit-code --heads origin "$BRANCH" > /dev/null; then
+          # The branch head as seen now. The push at the end only succeeds if the
+          # branch is still exactly here (or still absent), so a commit pushed
+          # while this run regenerates is never overwritten.
+          head=$(git ls-remote --heads origin "refs/heads/$BRANCH" | cut -f1)
+          if [ -n "$head" ]; then
             git fetch --no-tags origin "$BRANCH"
-            head=$(git rev-parse "origin/$BRANCH")
+          fi
+          manual=""
+          if [ -n "$number" ] && [ -n "$head" ]; then
             manual=$(git log --no-merges --format='%ae %h %an' "origin/main..origin/$BRANCH" | grep -vF "$BOT_EMAIL " || true)
             # A merge commit (GitHub's "Update branch") is manual work only if
             # its result differs from an automatic merge of its parents: a
@@ -272,29 +278,33 @@ jobs:
           echo "level=$level" >> "$GITHUB_OUTPUT"
           echo "Release level: **$level**" >> "$GITHUB_STEP_SUMMARY"
 
-      - name: Make sure nobody pushed to the branch meanwhile
-        id: race
+      - name: Push the branch and open or update the pull request
         if: steps.guard.outputs.update == 'true'
         env:
+          GH_TOKEN: ${{ steps.app.outputs.token || secrets.GITHUB_TOKEN }}
           EXPECTED: ${{ steps.guard.outputs.head }}
+          NUMBER: ${{ steps.guard.outputs.number }}
+          TITLE: "feat(sdk): sync the SDK with the live API contract (${{ steps.release.outputs.level }})"
         run: |
-          current=$(git ls-remote --heads origin "$BRANCH" | cut -f1)
-          if [ -n "$EXPECTED" ] && [ "$current" != "$EXPECTED" ]; then
-            echo "::warning::$BRANCH moved while this run regenerated; leaving it for the next run."
-            echo "proceed=false" >> "$GITHUB_OUTPUT"
-          else
-            echo "proceed=true" >> "$GITHUB_OUTPUT"
+          git config user.name "github-actions[bot]"
+          git config user.email "$BOT_EMAIL"
+          git checkout -B "$BRANCH"
+          git add -A
+          git commit -q -m "feat(sdk): sync the SDK with the live API contract"
+
+          # Same content as the branch already has: nothing to push, so CI and
+          # approvals stay as they are.
+          if [ -n "$EXPECTED" ] && [ "$(git rev-parse 'HEAD^{tree}')" = "$(git rev-parse "$EXPECTED^{tree}")" ]; then
+            echo "The branch already has this content." >> "$GITHUB_STEP_SUMMARY"
+          # The lease makes the push itself conditional: it fails if the branch
+          # moved since the guard read it, or appeared when it was absent.
+          elif ! git push --force-with-lease="refs/heads/$BRANCH:$EXPECTED" origin "HEAD:refs/heads/$BRANCH"; then
+            echo "::warning::$BRANCH changed while this run regenerated; leaving it for the next run."
+            exit 0
           fi
 
-      - name: Open or update the pull request
-        if: steps.race.outputs.proceed == 'true'
-        uses: peter-evans/create-pull-request@22a9089034f40e5a961c8808d113e2c98fb63676 # v7.0.11
-        with:
-          token: ${{ steps.app.outputs.token || secrets.GITHUB_TOKEN }}
-          branch: ${{ env.BRANCH }}
-          base: main
-          author: ${{ env.BOT }}
-          committer: ${{ env.BOT }}
-          commit-message: "feat(sdk): sync the SDK with the live API contract"
-          title: "feat(sdk): sync the SDK with the live API contract (${{ steps.release.outputs.level }})"
-          body-path: ${{ runner.temp }}/pull-request-body.md
+          if [ -n "$NUMBER" ]; then
+            gh pr edit "$NUMBER" --title "$TITLE" --body-file "$RUNNER_TEMP/pull-request-body.md"
+          else
+            gh pr create --base main --head "$BRANCH" --title "$TITLE" --body-file "$RUNNER_TEMP/pull-request-body.md"
+          fi
