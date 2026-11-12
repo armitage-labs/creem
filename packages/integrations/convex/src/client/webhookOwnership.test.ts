@@ -57,6 +57,8 @@ const subscriptionPayload = (
     status: "active",
     tax_mode: "exclusive",
     tax_category: "saas",
+    external_id: null,
+    metadata: null,
     default_success_url: null,
     created_at: "2026-02-01T00:00:00.000Z",
     updated_at: "2026-02-01T00:00:00.000Z",
