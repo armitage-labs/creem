@@ -1,5 +1,13 @@
 # [1.1.0](https://github.com/armitage-labs/creem-betterauth/compare/v1.0.2...v1.1.0) (2026-03-10)
 
+## 2.0.5
+
+### Patch Changes
+
+- 8626f81: Bump creem SDK dependency to 1.13.0
+- Updated dependencies [d7a4947]
+  - creem@1.14.0
+
 ## 2.0.4
 
 ### Patch Changes
