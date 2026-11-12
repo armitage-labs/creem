@@ -163,9 +163,25 @@ curl -X POST https://api.creem.io/v1/customer-credits/accounts \
 
 Add **AI generation credits** to every product that sells credits for generations: credit packs and subscription plans. When a user pays, Creem adds the product's credits to their generation wallet as part of the payment. Subscriptions add them again on every renewal.
 
+You don't need the API for this step. You can create the product in the dashboard instead, or use the API if you manage products in code.
+
 <Tabs>
   <Tab title="Dashboard">
-    Open the product in your dashboard, add a delivery, choose **AI generation credits**, then set the amount and the unit label. For subscriptions, choose whether unused credits reset each billing period.
+    1. Create a new product, or open an existing one, in **Products**.
+    2. In **Delivery**, click **Add** and choose **New AI generation credits**.
+
+    <Frame caption="Add AI generation credits as a delivery on the product.">
+      ![The Delivery Add menu with New AI generation credits](/images/gen-ai/add-ai-generation-credits.png)
+    </Frame>
+
+    3. Fill in the **Description**, the **Credit amount** each purchase grants, and the **Unit label**.
+    4. For subscriptions, choose whether **Unused credits reset each billing period**. When it's off, unused credits carry over to the next period.
+    5. Set the pricing (one time for credit packs, subscription for plans) and save the product.
+
+    <Frame caption="The AI generation credits delivery on a monthly subscription.">
+      ![The AI generation credits form with description, credit amount, unit label and the reset toggle](/images/gen-ai/ai-generation-credits-form.png)
+    </Frame>
+
   </Tab>
   <Tab title="API">
 
@@ -196,7 +212,7 @@ curl -X POST https://api.creem.io/v1/products \
   </Tab>
 </Tabs>
 
-`requires_moderation: true` is what makes these AI generation credits. For subscription plans, add `"resets_each_period": true` to expire unused credits at each renewal instead of carrying them over.
+In the API, `requires_moderation: true` is what makes these AI generation credits. For subscription plans, add `"resets_each_period": true` to expire unused credits at each renewal instead of carrying them over.
 
 ## Step 4: Let users buy credits
 
