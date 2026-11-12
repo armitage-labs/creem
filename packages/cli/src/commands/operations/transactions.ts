@@ -23,6 +23,9 @@ export const handlers: Record<string, OperationHandler> = {
       p.productId,
       p.pageNumber,
       p.pageSize,
+      p.status,
+      p.createdAfter,
+      p.createdBefore,
       options,
     );
   },

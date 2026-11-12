@@ -42,6 +42,8 @@ it("meters list sends the exact SDK arguments", async () => {
     "mtr_1",
     "--include-archived",
     "true",
+    "--external-id",
+    "image-generations",
     "--json",
   ]);
   expect(spy, result.stderr).toHaveBeenCalledExactlyOnceWith(
@@ -49,6 +51,7 @@ it("meters list sends the exact SDK arguments", async () => {
     "mtr_1",
     undefined,
     true,
+    "image-generations",
     expect.objectContaining({ retries: { strategy: "none" } }),
   );
   expect(result.stderr).toContain("SDK_SENTINEL");

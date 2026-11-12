@@ -9,7 +9,7 @@ export const handlers: Record<string, OperationHandler> = {
       operations.SearchProductsRequest$inboundSchema,
       parameters,
     );
-    return client.products.search(p.pageNumber, p.pageSize, p.status, options);
+    return client.products.search(p.pageNumber, p.pageSize, p.status, p.externalId, options);
   },
   createProduct: (client, parameters, body, options) => {
     const p = decode(
