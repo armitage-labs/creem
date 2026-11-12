@@ -105,8 +105,10 @@ jobs:
           SPEC_SHA256: ${{ steps.spec.outputs.sha256 }}
         run: |
           # Only an open pull request protects the branch. A closed one is
-          # abandoned, and its branch is rebuilt.
-          pr=$(gh pr list --head "$BRANCH" --base main --state open --json number,labels --jq '.[0] // empty')
+          # abandoned, and its branch is rebuilt. --head matches branch names in
+          # forks too, so skip pull requests from other repositories.
+          pr=$(gh pr list --head "$BRANCH" --base main --state open --json number,labels,isCrossRepository \
+            --jq '[.[] | select(.isCrossRepository | not)][0] // empty')
           number=$(jq -r '.number // empty' <<< "$pr")
           labels=$(jq -r '[.labels[].name] | join(",")' <<< "$pr")
           head=""
@@ -149,11 +151,25 @@ jobs:
 
           echo "update=false" >> "$GITHUB_OUTPUT"
           echo "The sync pull request has manual commits; not updating it." >> "$GITHUB_STEP_SUMMARY"
+          comments=$(gh pr view "$number" --json comments --jq '.comments[].body')
+
+          # The workflow no longer rewrites the changeset, so a release label
+          # would be ignored silently. Say so once per label and level.
+          label=$(tr ',' '\n' <<< "$labels" | sed -n 's/^sdk-release://p' | head -n 1)
+          changeset=$(git diff --name-only --diff-filter=A "origin/main...origin/$BRANCH" -- '.changeset/openapi-sync-*.md' | head -n 1)
+          if [ -n "$label" ] && [ -n "$changeset" ]; then
+            current=$(git show "origin/$BRANCH:$changeset" | sed -n 's/^"creem": *//p')
+            mismatch="The label asks for \`sdk-release:$label\`, but \`$changeset\` releases \`creem\` as \`$current\`."
+            if [ "$current" != "$label" ] && ! grep -qF "$mismatch" <<< "$comments"; then
+              gh pr comment "$number" --body "$mismatch This pull request has commits the OpenAPI sync did not make, so the workflow no longer rewrites the changeset. Edit the level in \`$changeset\`."
+            fi
+          fi
+
           if git show "origin/$BRANCH:packages/sdk/openapi.json" | cmp -s - packages/sdk/openapi.json; then
             exit 0
           fi
           # One comment per live contract version, not one per day.
-          if gh pr view "$number" --json comments --jq '.comments[].body' | grep -qF "$SPEC_SHA256"; then
+          if grep -qF "$SPEC_SHA256" <<< "$comments"; then
             exit 0
           fi
           gh pr comment "$number" --body "The live API contract changed again since this pull request was last updated (sha256 \`$SPEC_SHA256\`). This branch has commits the OpenAPI sync did not make, so it was not updated. Merge this pull request; the next daily run opens a new one with the remaining changes."
@@ -217,11 +233,17 @@ jobs:
               || tail -n 20 "$RUNNER_TEMP/generate-api.log" > "$RUNNER_TEMP/docs-error.txt"
             echo "::warning::API reference pages were not regenerated; see the pull request body."
           fi
+          # Pages whose endpoint left the contract; the generator only logs them.
+          awk '/Orphaned files/ { list = 1; next }
+               list && /^   [^ ]+\.mdx$/ { print $1; next }
+               list && NF { list = 0 }' "$RUNNER_TEMP/generate-api.log" > "$RUNNER_TEMP/docs-orphans.txt"
           pnpm install --lockfile-only
-          if [ -n "$(git status --porcelain -- packages/sdk/src)" ]; then
-            echo "sdk_source_changed=true" >> "$GITHUB_OUTPUT"
+          # Only added, removed or renamed files count: description changes
+          # modify existing files through their JSDoc comments.
+          if git status --porcelain --untracked-files=all -- packages/sdk/src | grep -qE '^(\?\?|A.|.A|D.|.D|R.)'; then
+            echo "sdk_files_changed=true" >> "$GITHUB_OUTPUT"
           else
-            echo "sdk_source_changed=false" >> "$GITHUB_OUTPUT"
+            echo "sdk_files_changed=false" >> "$GITHUB_OUTPUT"
           fi
 
       - name: Write the changeset and the pull request body
@@ -230,7 +252,7 @@ jobs:
         env:
           LABELS: ${{ steps.guard.outputs.labels }}
           SPEC_SHA256: ${{ steps.spec.outputs.sha256 }}
-          SDK_SOURCE_CHANGED: ${{ steps.regenerate.outputs.sdk_source_changed }}
+          SDK_FILES_CHANGED: ${{ steps.regenerate.outputs.sdk_files_changed }}
         run: |
           # Named after the contract, so a sync changeset that is merged but not
           # yet released stays next to this one instead of being replaced.
@@ -243,8 +265,9 @@ jobs:
             --body="$RUNNER_TEMP/pull-request-body.md" \
             --spec-url="$SPEC_URL" \
             --spec-sha256="$SPEC_SHA256" \
-            --sdk-source-changed="$SDK_SOURCE_CHANGED" \
+            --sdk-files-changed="$SDK_FILES_CHANGED" \
             --docs-error="$RUNNER_TEMP/docs-error.txt" \
+            --docs-orphans="$RUNNER_TEMP/docs-orphans.txt" \
             --labels="$LABELS")
           echo "level=$level" >> "$GITHUB_OUTPUT"
           echo "Release level: **$level**" >> "$GITHUB_STEP_SUMMARY"

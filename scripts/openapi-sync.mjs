@@ -39,12 +39,13 @@ export function parseSdkChanges(markdown) {
 
 // The same enum value reaches many methods through different paths
 // (`features[].type` and `product.union(ProductEntity).features[].type`);
-// report it once.
+// report it once. The report does not say whether it is a request or a
+// response enum, so the line does not either.
 function groupKey(change) {
   const enumValue = change.match(ENUM_VALUE);
   if (!enumValue) return change;
   const verb = enumValue[2] === "Added" ? "New" : "Removed";
-  return `${verb} enum value \`${enumValue[1]}\` in responses`;
+  return `${verb} enum value \`${enumValue[1]}\``;
 }
 
 // The breaking changes Speakeasy reported, grouped so one new enum value
@@ -72,12 +73,13 @@ export function breakingChanges(methods) {
 
 // Speakeasy's report covers SDK methods. A schema no operation references is
 // still generated and exported (a new webhook event entity, for example), so a
-// changed SDK source without report entries is an addition, not a patch.
-export function releaseLevel(methods, { sdkSourceChanged = false } = {}) {
+// generated file added or removed without report entries is an addition, not a
+// patch. Modified files don't count: descriptions land in JSDoc comments.
+export function releaseLevel(methods, { sdkFilesChanged = false } = {}) {
   const texts = methods.flatMap(({ items }) => items.map((item) => item.text));
   if (texts.some((text) => text.includes(BREAKING))) return "major";
   if (methods.length || texts.some((text) => CHANGE.test(text))) return "minor";
-  return sdkSourceChanged ? "minor" : "patch";
+  return sdkFilesChanged ? "minor" : "patch";
 }
 
 // A reviewer sets the level with a label such as `sdk-release:minor`. Labels
@@ -150,7 +152,7 @@ function codeList(values) {
   return values.map((value) => `\`${value}\``).join(", ");
 }
 
-function levelReason(level, breaking, sdkSourceChanged, methods) {
+function levelReason(level, breaking, sdkFilesChanged, methods) {
   if (level === "major") {
     const lines = breaking.map(
       ({ change, methods }) =>
@@ -164,13 +166,13 @@ function levelReason(level, breaking, sdkSourceChanged, methods) {
       "Typical causes: a new enum value in a response (code that handles every value no longer covers all of them), a removed or renamed type, or a field that became required. A major release also needs every non-workspace `creem` peer range (for example in the Convex integration) raised; the SDK cascade only bumps workspace dependencies.",
     ].join("\n");
   }
-  if (level === "minor" && !methods.length && sdkSourceChanged) {
-    return "Speakeasy's report lists no method changes, but the generated SDK source changed, for example a new exported model that no operation references yet.";
+  if (level === "minor" && !methods.length && sdkFilesChanged) {
+    return "Speakeasy's report lists no method changes, but generated SDK files were added or removed, for example a new exported model that no operation references yet.";
   }
   if (level === "minor") {
     return "Speakeasy reports SDK additions or changes and nothing breaking.";
   }
-  return "The generated SDK source does not change; only descriptions or examples in the contract changed.";
+  return "Speakeasy reports no SDK changes and no generated files were added or removed; only descriptions, examples or documentation comments changed.";
 }
 
 export function renderBody({
@@ -179,9 +181,10 @@ export function renderBody({
   breaking,
   positional,
   positionalLimit,
-  sdkSourceChanged = false,
+  sdkFilesChanged = false,
   methods = [],
   docsError = "",
+  docsOrphans = [],
   changesetPath,
   report,
   specUrl,
@@ -200,9 +203,9 @@ export function renderBody({
     "",
     "> [!IMPORTANT]",
     levelLine,
-    `> To release at another level, add the label \`${LABEL_PREFIX}patch\`, \`${LABEL_PREFIX}minor\` or \`${LABEL_PREFIX}major\` to this pull request and run the OpenAPI Sync workflow (or wait for the next daily run). Don't edit \`${changesetPath}\`: a commit stops the daily updates.`,
+    `> To release at another level, add the label \`${LABEL_PREFIX}patch\`, \`${LABEL_PREFIX}minor\` or \`${LABEL_PREFIX}major\` to this pull request and run the OpenAPI Sync workflow (or wait for the next daily run). The label only works while this pull request has nothing but workflow commits. After you push a commit, edit the level in \`${changesetPath}\` instead; the workflow comments if a label and the changeset disagree.`,
     "",
-    levelReason(suggestedLevel, breaking, sdkSourceChanged, methods),
+    levelReason(suggestedLevel, breaking, sdkFilesChanged, methods),
   ];
 
   if (positional.length && positionalLimit !== 0) {
@@ -235,6 +238,18 @@ export function renderBody({
       "```text",
       docsError.trim().slice(0, 4000),
       "```",
+    );
+  }
+
+  if (docsOrphans.length) {
+    sections.push(
+      "",
+      "## API reference pages for removed endpoints",
+      "",
+      "> [!WARNING]",
+      "> These endpoint pages are no longer in the contract. Delete them and their `packages/docs/docs.json` navigation entries in this pull request (`pnpm --dir packages/docs generate:api:cleanup` deletes the pages).",
+      "",
+      ...docsOrphans.map((page) => `- \`packages/docs/api-reference/endpoint/${page}\``),
     );
   }
 
@@ -297,8 +312,8 @@ export function main(argv = process.argv.slice(2)) {
   }
   const report = readFileSync(args.report, "utf8");
   const methods = parseSdkChanges(report);
-  const sdkSourceChanged = args["sdk-source-changed"] === "true";
-  const suggestedLevel = releaseLevel(methods, { sdkSourceChanged });
+  const sdkFilesChanged = args["sdk-files-changed"] === "true";
+  const suggestedLevel = releaseLevel(methods, { sdkFilesChanged });
   const override = labelLevel((args.labels ?? "").split(",").filter(Boolean));
   const level = override || suggestedLevel;
   const positionalLimit = maxMethodParams(readFileSync(args["gen-yaml"], "utf8"));
@@ -315,9 +330,13 @@ export function main(argv = process.argv.slice(2)) {
       breaking: breakingChanges(methods),
       positional,
       positionalLimit,
-      sdkSourceChanged,
+      sdkFilesChanged,
       methods,
       docsError: readOptional(args["docs-error"]),
+      docsOrphans: readOptional(args["docs-orphans"])
+        .split("\n")
+        .map((line) => line.trim())
+        .filter(Boolean),
       changesetPath: args.changeset,
       report,
       specUrl: args["spec-url"],

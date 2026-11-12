@@ -62,11 +62,11 @@ test("reports breaking changes as Speakeasy marks them, one line per enum value"
   );
   assert.deepEqual(breakingChanges(methods), [
     {
-      change: "New enum value `githubRepository` in responses",
+      change: "New enum value `githubRepository`",
       methods: ["creem.products.get()", "creem.subscriptions.get()", "creem.products.search()"],
     },
     {
-      change: "New enum value `marketplace.grant.requested` in responses",
+      change: "New enum value `marketplace.grant.requested`",
       methods: ["creem.webhooks.get()"],
     },
     {
@@ -86,8 +86,8 @@ test("derives the release level from Speakeasy's markers and the generated sourc
   assert.equal(releaseLevel(parseSdkChanges("## Typescript SDK Changes:\n")), "patch");
   assert.equal(releaseLevel(parseSdkChanges("")), "patch");
   // A new schema no operation references yet is not in the report but is exported.
-  assert.equal(releaseLevel(parseSdkChanges(""), { sdkSourceChanged: true }), "minor");
-  assert.equal(releaseLevel(parseSdkChanges(breakingReport), { sdkSourceChanged: true }), "major");
+  assert.equal(releaseLevel(parseSdkChanges(""), { sdkFilesChanged: true }), "minor");
+  assert.equal(releaseLevel(parseSdkChanges(breakingReport), { sdkFilesChanged: true }), "major");
 });
 
 test("a release label overrides the level; conflicting labels fail", () => {
@@ -161,7 +161,11 @@ test("the body highlights the level and why, and lists breaking changes", () => 
   assert.match(body, /add the label `sdk-release:patch`/);
   assert.match(
     body,
-    /- New enum value `githubRepository` in responses, in 3 methods: `creem\.products\.get\(\)`/,
+    /The label only works while this pull request has nothing but workflow commits/,
+  );
+  assert.match(
+    body,
+    /- New enum value `githubRepository`, in 3 methods: `creem\.products\.get\(\)`/,
   );
   assert.match(body, /peer range/);
   assert.match(body, /<summary>TypeScript SDK changes<\/summary>\n\n## Typescript SDK Changes:/);
@@ -187,10 +191,10 @@ test("the body names a label override next to Speakeasy's suggestion", () => {
 });
 
 test("the body explains a minor level from generated source without report entries", () => {
-  const body = renderBody({ ...bodyInput, level: "minor", sdkSourceChanged: true, report: "" });
-  assert.match(body, /lists no method changes, but the generated SDK source changed/);
+  const body = renderBody({ ...bodyInput, level: "minor", sdkFilesChanged: true, report: "" });
+  assert.match(body, /lists no method changes, but generated SDK files were added or removed/);
   const patch = renderBody({ ...bodyInput, level: "patch", report: "" });
-  assert.match(patch, /The generated SDK source does not change/);
+  assert.match(patch, /no generated files were added or removed/);
 });
 
 test("the body warns about positional parameters unless the SDK uses request objects", () => {
@@ -231,6 +235,13 @@ test("the body reports API reference pages that could not be regenerated", () =>
   assert.match(body, /## API reference pages not regenerated/);
   assert.match(body, /list-widgets\.mdx/);
   assert.doesNotMatch(renderBody({ ...bodyInput, level: "minor" }), /not regenerated/);
+});
+
+test("the body lists pages of endpoints that left the contract", () => {
+  const body = renderBody({ ...bodyInput, level: "minor", docsOrphans: ["list-widgets.mdx"] });
+  assert.match(body, /## API reference pages for removed endpoints/);
+  assert.match(body, /- `packages\/docs\/api-reference\/endpoint\/list-widgets\.mdx`/);
+  assert.doesNotMatch(renderBody({ ...bodyInput, level: "minor" }), /removed endpoints/);
 });
 
 test("the body stays under GitHub's size limit", () => {
