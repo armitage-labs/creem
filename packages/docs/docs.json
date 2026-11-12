@@ -120,8 +120,9 @@
                   {
                     "group": "Gen AI Compliance",
                     "pages": [
-                      "merchant-of-record/account-reviews/ai-wrapper-compliance",
-                      "merchant-of-record/account-reviews/gen-ai-integration-guide"
+                      "merchant-of-record/account-reviews/gen-ai-requirements",
+                      "merchant-of-record/account-reviews/gen-ai-technical-integration-guide",
+                      "merchant-of-record/account-reviews/ai-wrapper-compliance"
                     ]
                   }
                 ]
