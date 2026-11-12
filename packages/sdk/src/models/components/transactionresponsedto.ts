@@ -36,6 +36,10 @@ export type TransactionResponseDto = {
    */
   reversalOf?: string | null | undefined;
   /**
+   * ID of the Moderation API result linked to this transaction, if one was sent with it
+   */
+  moderationId: string | null;
+  /**
    * Transaction entries
    */
   entries: Array<EntryResponseDto>;
@@ -56,6 +60,7 @@ export const TransactionResponseDto$inboundSchema: z.ZodType<
   reference: z.string(),
   idempotency_key: z.string(),
   reversal_of: z.nullable(z.string()).optional(),
+  moderation_id: z.nullable(z.string()),
   entries: z.array(EntryResponseDto$inboundSchema),
   created_at: z.string(),
 }).transform((v) => {
@@ -63,6 +68,7 @@ export const TransactionResponseDto$inboundSchema: z.ZodType<
     "store_id": "storeId",
     "idempotency_key": "idempotencyKey",
     "reversal_of": "reversalOf",
+    "moderation_id": "moderationId",
     "created_at": "createdAt",
   });
 });
@@ -73,6 +79,7 @@ export type TransactionResponseDto$Outbound = {
   reference: string;
   idempotency_key: string;
   reversal_of?: string | null | undefined;
+  moderation_id: string | null;
   entries: Array<EntryResponseDto$Outbound>;
   created_at: string;
 };
@@ -88,6 +95,7 @@ export const TransactionResponseDto$outboundSchema: z.ZodType<
   reference: z.string(),
   idempotencyKey: z.string(),
   reversalOf: z.nullable(z.string()).optional(),
+  moderationId: z.nullable(z.string()),
   entries: z.array(EntryResponseDto$outboundSchema),
   createdAt: z.string(),
 }).transform((v) => {
@@ -95,6 +103,7 @@ export const TransactionResponseDto$outboundSchema: z.ZodType<
     storeId: "store_id",
     idempotencyKey: "idempotency_key",
     reversalOf: "reversal_of",
+    moderationId: "moderation_id",
     createdAt: "created_at",
   });
 });

@@ -190,17 +190,17 @@ export class CustomerCredits extends ClientSDK {
    * Debit an account
    *
    * @remarks
-   * Deduct credits from a customer account. Returns the resulting transaction record.
+   * Deduct credits from a customer account. Returns the resulting transaction record. A debit from a `generation` account (AI generation credits) needs the `moderation_id` of an allowed Moderation API result; on other accounts it is optional. A failed debit does not use up the moderation result.
    */
   async debitAccount(
     id: string,
-    creditDebitRequestDto: components.CreditDebitRequestDto,
+    debitRequestDto: components.DebitRequestDto,
     options?: RequestOptions,
   ): Promise<components.TransactionResponseDto> {
     return unwrapAsync(customerCreditsDebitAccount(
       this,
       id,
-      creditDebitRequestDto,
+      debitRequestDto,
       options,
     ));
   }
@@ -245,7 +245,7 @@ export class CustomerCredits extends ClientSDK {
    * Post a transaction
    *
    * @remarks
-   * Post a multi-entry transaction. Entries must balance (total debits must equal total credits).
+   * Post a multi-entry transaction. Entries must balance (total debits must equal total credits). A transaction cannot debit a `generation` account (AI generation credits): spend those with `POST /v1/customer-credits/accounts/{id}/debit`. A `moderation_id` is optional on a transaction that debits another customer account; one per transaction.
    */
   async postTransaction(
     request: components.PostTransactionDto,

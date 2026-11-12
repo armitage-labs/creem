@@ -26,6 +26,10 @@ export type ListMetersRequest = {
    * Include archived meters in the page. Defaults to false — archived meters are hidden.
    */
   includeArchived?: boolean | undefined;
+  /**
+   * Only the meter with this `external_id` (your own key). Case-sensitive, exact match. Combine with `include_archived` to find an archived one.
+   */
+  externalId?: string | undefined;
 };
 
 export type ListMetersResponse = {
@@ -42,11 +46,13 @@ export const ListMetersRequest$inboundSchema: z.ZodType<
   starting_after: z.string().optional(),
   ending_before: z.string().optional(),
   include_archived: z.boolean().default(false),
+  external_id: z.string().optional(),
 }).transform((v) => {
   return remap$(v, {
     "starting_after": "startingAfter",
     "ending_before": "endingBefore",
     "include_archived": "includeArchived",
+    "external_id": "externalId",
   });
 });
 /** @internal */
@@ -55,6 +61,7 @@ export type ListMetersRequest$Outbound = {
   starting_after?: string | undefined;
   ending_before?: string | undefined;
   include_archived: boolean;
+  external_id?: string | undefined;
 };
 
 /** @internal */
@@ -67,11 +74,13 @@ export const ListMetersRequest$outboundSchema: z.ZodType<
   startingAfter: z.string().optional(),
   endingBefore: z.string().optional(),
   includeArchived: z.boolean().default(false),
+  externalId: z.string().optional(),
 }).transform((v) => {
   return remap$(v, {
     startingAfter: "starting_after",
     endingBefore: "ending_before",
     includeArchived: "include_archived",
+    externalId: "external_id",
   });
 });
 

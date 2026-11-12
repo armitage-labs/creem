@@ -4,6 +4,7 @@
 
 import * as z from "zod/v3";
 import { transactionsSearch } from "../../funcs/transactionsSearch.js";
+import * as operations from "../../models/operations/index.js";
 import { formatResult, ToolDefinition } from "../tools.js";
 
 const args = {
@@ -12,13 +13,16 @@ const args = {
   productId: z.string().optional(),
   pageNumber: z.number().default(1),
   pageSize: z.number().default(10),
+  status: operations.QueryParamStatus$inboundSchema.optional(),
+  createdAfter: z.string().optional(),
+  createdBefore: z.string().optional(),
 };
 
 export const tool$transactionsSearch: ToolDefinition<typeof args> = {
   name: "transactions-search",
   description: `List all transactions
 
-Search and retrieve payment transactions. Filter by customer, product, date range, and status.`,
+Search and retrieve payment transactions. Filter by customer, order, product, status, and creation date range.`,
   args,
   tool: async (client, args, ctx) => {
     const [result, apiCall] = await transactionsSearch(
@@ -28,6 +32,9 @@ Search and retrieve payment transactions. Filter by customer, product, date rang
       args.productId,
       args.pageNumber,
       args.pageSize,
+      args.status,
+      args.createdAfter,
+      args.createdBefore,
       { fetchOptions: { signal: ctx.signal } },
     ).$inspect();
 

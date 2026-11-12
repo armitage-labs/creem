@@ -22,6 +22,10 @@ export type SearchProductsRequest = {
    * Lifecycle status of the product: `active` or `archived`.
    */
   status?: components.ProductStatus | undefined;
+  /**
+   * Only the product with this `external_id` (your own key). Case-sensitive, exact match.
+   */
+  externalId?: string | undefined;
 };
 
 export type SearchProductsResponse = {
@@ -37,10 +41,12 @@ export const SearchProductsRequest$inboundSchema: z.ZodType<
   page_number: z.number().default(1),
   page_size: z.number().default(10),
   status: components.ProductStatus$inboundSchema.optional(),
+  external_id: z.string().optional(),
 }).transform((v) => {
   return remap$(v, {
     "page_number": "pageNumber",
     "page_size": "pageSize",
+    "external_id": "externalId",
   });
 });
 /** @internal */
@@ -48,6 +54,7 @@ export type SearchProductsRequest$Outbound = {
   page_number: number;
   page_size: number;
   status?: string | undefined;
+  external_id?: string | undefined;
 };
 
 /** @internal */
@@ -59,10 +66,12 @@ export const SearchProductsRequest$outboundSchema: z.ZodType<
   pageNumber: z.number().default(1),
   pageSize: z.number().default(10),
   status: components.ProductStatus$outboundSchema.optional(),
+  externalId: z.string().optional(),
 }).transform((v) => {
   return remap$(v, {
     pageNumber: "page_number",
     pageSize: "page_size",
+    externalId: "external_id",
   });
 });
 

@@ -10,7 +10,7 @@ import { SDKValidationError } from "../errors/sdkvalidationerror.js";
 
 export type UpsertSubscriptionItemEntity = {
   /**
-   * The id of the item to update.
+   * The id of the existing subscription item to update. Every item you send must include one: items without an id are rejected, because adding new items to a subscription is not supported.
    */
   id?: string | undefined;
   /**

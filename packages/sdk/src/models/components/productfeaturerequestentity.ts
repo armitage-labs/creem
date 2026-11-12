@@ -21,7 +21,7 @@ import {
 
 export type ProductFeatureRequestEntity = {
   /**
-   * Identifier of an existing feature to edit in place (update only). Omit to add a new feature.
+   * Identifier of an existing feature to edit in place (update only). Omit to add a new feature. On update the array replaces the credit features of the product: send the `id` of every feature to keep, as returned on reads; a feature sent without its `id` is added as a new one and the stored feature it stood for is removed.
    */
   id?: string | undefined;
   /**
@@ -33,7 +33,7 @@ export type ProductFeatureRequestEntity = {
    */
   description: string;
   /**
-   * The credit grant this feature carries.
+   * The credit grant this feature carries. Set `requires_moderation` to `true` to grant into the customer's AI generation wallet; its credits can only be spent with a `moderation_id` from the Moderation API.
    */
   customerCredits: CustomerCreditsFeatureEntity;
 };

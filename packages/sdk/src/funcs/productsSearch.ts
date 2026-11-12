@@ -36,13 +36,14 @@ import {
  * List all products
  *
  * @remarks
- * Search and retrieve a paginated list of products. Filter by status, billing type, and other criteria.
+ * Search and retrieve a paginated list of products. Filter by status or by your own `external_id`.
  */
 export function productsSearch(
   client: CreemCore,
   pageNumber?: number | undefined,
   pageSize?: number | undefined,
   status?: components.ProductStatus | undefined,
+  externalId?: string | undefined,
   options?: RequestOptions,
 ): APIPromise<
   PageIterator<
@@ -65,6 +66,7 @@ export function productsSearch(
     pageNumber,
     pageSize,
     status,
+    externalId,
     options,
   ));
 }
@@ -74,6 +76,7 @@ async function $do(
   pageNumber?: number | undefined,
   pageSize?: number | undefined,
   status?: components.ProductStatus | undefined,
+  externalId?: string | undefined,
   options?: RequestOptions,
 ): Promise<
   [
@@ -98,6 +101,7 @@ async function $do(
     pageNumber: pageNumber,
     pageSize: pageSize,
     status: status,
+    externalId: externalId,
   };
 
   const parsed = safeParse(
@@ -114,6 +118,7 @@ async function $do(
   const path = pathToFunc("/v1/products/search")();
 
   const query = encodeFormQuery({
+    "external_id": payload.external_id,
     "page_number": payload.page_number,
     "page_size": payload.page_size,
     "status": payload.status,
@@ -244,6 +249,7 @@ async function $do(
         nextPage,
         pageSize,
         status,
+        externalId,
         options,
       );
 

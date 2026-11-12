@@ -43,6 +43,12 @@ import {
   WebhookDisputeCreatedEventEntity$outboundSchema,
 } from "./webhookdisputecreatedevententity.js";
 import {
+  WebhookMarketplaceGrantRequestedEventEntity,
+  WebhookMarketplaceGrantRequestedEventEntity$inboundSchema,
+  WebhookMarketplaceGrantRequestedEventEntity$Outbound,
+  WebhookMarketplaceGrantRequestedEventEntity$outboundSchema,
+} from "./webhookmarketplacegrantrequestedevententity.js";
+import {
   WebhookRefundCreatedEventEntity,
   WebhookRefundCreatedEventEntity$inboundSchema,
   WebhookRefundCreatedEventEntity$Outbound,
@@ -124,6 +130,9 @@ export type WebhookEventEntity =
   | (WebhookCreditsAutoRechargedEventEntity & {
     eventType: "credits.auto_recharged";
   })
+  | (WebhookMarketplaceGrantRequestedEventEntity & {
+    eventType: "marketplace.grant.requested";
+  })
   | (WebhookSubscriptionActiveEventEntity & {
     eventType: "subscription.active";
   })
@@ -180,6 +189,9 @@ export const WebhookEventEntity$inboundSchema: z.ZodType<
   WebhookCreditsAutoRechargedEventEntity$inboundSchema.and(
     z.object({ eventType: z.literal("credits.auto_recharged") }),
   ),
+  WebhookMarketplaceGrantRequestedEventEntity$inboundSchema.and(
+    z.object({ eventType: z.literal("marketplace.grant.requested") }),
+  ),
   WebhookSubscriptionActiveEventEntity$inboundSchema.and(
     z.object({ eventType: z.literal("subscription.active") }),
   ),
@@ -231,6 +243,9 @@ export type WebhookEventEntity$Outbound =
   })
   | (WebhookCreditsAutoRechargedEventEntity$Outbound & {
     eventType: "credits.auto_recharged";
+  })
+  | (WebhookMarketplaceGrantRequestedEventEntity$Outbound & {
+    eventType: "marketplace.grant.requested";
   })
   | (WebhookSubscriptionActiveEventEntity$Outbound & {
     eventType: "subscription.active";
@@ -289,6 +304,9 @@ export const WebhookEventEntity$outboundSchema: z.ZodType<
   ),
   WebhookCreditsAutoRechargedEventEntity$outboundSchema.and(
     z.object({ eventType: z.literal("credits.auto_recharged") }),
+  ),
+  WebhookMarketplaceGrantRequestedEventEntity$outboundSchema.and(
+    z.object({ eventType: z.literal("marketplace.grant.requested") }),
   ),
   WebhookSubscriptionActiveEventEntity$outboundSchema.and(
     z.object({ eventType: z.literal("subscription.active") }),

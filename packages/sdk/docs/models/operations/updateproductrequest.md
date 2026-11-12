@@ -8,6 +8,10 @@ import { UpdateProductRequest } from "creem/models/operations";
 let value: UpdateProductRequest = {
   id: "<id>",
   updateProductRequestEntity: {
+    externalId: "pro-monthly",
+    metadata: {
+      "plan": "pro",
+    },
     businessNetPricing: false,
     trialPeriodDays: 7,
     trialPrice: 100,

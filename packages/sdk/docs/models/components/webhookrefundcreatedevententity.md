@@ -54,6 +54,7 @@ let value: WebhookRefundCreatedEventEntity = {
       type: "recurring",
       createdAt: new Date("2023-09-13T00:00:00Z"),
       updatedAt: new Date("2023-09-13T00:00:00Z"),
+      recovered: false,
     },
     subscription: "<value>",
     customer: {

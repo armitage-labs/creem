@@ -33,7 +33,7 @@ export class Transactions extends ClientSDK {
    * List all transactions
    *
    * @remarks
-   * Search and retrieve payment transactions. Filter by customer, product, date range, and status.
+   * Search and retrieve payment transactions. Filter by customer, order, product, status, and creation date range.
    */
   async search(
     customerId?: string | undefined,
@@ -41,6 +41,9 @@ export class Transactions extends ClientSDK {
     productId?: string | undefined,
     pageNumber?: number | undefined,
     pageSize?: number | undefined,
+    status?: operations.QueryParamStatus | undefined,
+    createdAfter?: string | undefined,
+    createdBefore?: string | undefined,
     options?: RequestOptions,
   ): Promise<
     PageIterator<operations.SearchTransactionsResponse, { page: number }>
@@ -52,6 +55,9 @@ export class Transactions extends ClientSDK {
       productId,
       pageNumber,
       pageSize,
+      status,
+      createdAfter,
+      createdBefore,
       options,
     ));
   }

@@ -11,6 +11,7 @@ const args = {
   startingAfter: z.string().optional(),
   endingBefore: z.string().optional(),
   includeArchived: z.boolean().default(false),
+  externalId: z.string().optional(),
 };
 
 export const tool$metersListMeters: ToolDefinition<typeof args> = {
@@ -26,6 +27,7 @@ List your meters, newest first, as a cursor page. Archived meters are hidden unl
       args.startingAfter,
       args.endingBefore,
       args.includeArchived,
+      args.externalId,
       { fetchOptions: { signal: ctx.signal } },
     ).$inspect();
 

@@ -15,7 +15,7 @@ export const tool$customerCreditsPostTransaction: ToolDefinition<typeof args> =
     name: "customer-credits-post-transaction",
     description: `Post a transaction
 
-Post a multi-entry transaction. Entries must balance (total debits must equal total credits).`,
+Post a multi-entry transaction. Entries must balance (total debits must equal total credits). A transaction cannot debit a \`generation\` account (AI generation credits): spend those with \`POST /v1/customer-credits/accounts/{id}/debit\`. A \`moderation_id\` is optional on a transaction that debits another customer account; one per transaction.`,
     args,
     tool: async (client, args, ctx) => {
       const [result, apiCall] = await customerCreditsPostTransaction(

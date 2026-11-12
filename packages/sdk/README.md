@@ -176,7 +176,7 @@ const creem = new Creem({
 });
 
 async function run() {
-  const result = await creem.products.search();
+  const result = await creem.products.search(1, 10, undefined, "pro-monthly");
 
   for await (const page of result) {
     console.log(page);
@@ -208,7 +208,7 @@ const creem = new Creem({
 });
 
 async function run() {
-  const result = await creem.products.search();
+  const result = await creem.products.search(1, 10, undefined, "pro-monthly");
 
   for await (const page of result) {
     console.log(page);
@@ -471,7 +471,7 @@ const creem = new Creem({
 });
 
 async function run() {
-  const result = await creem.products.search();
+  const result = await creem.products.search(1, 10, undefined, "pro-monthly");
 
   for await (const page of result) {
     console.log(page);
@@ -497,7 +497,7 @@ const creem = new Creem({
 });
 
 async function run() {
-  const result = await creem.products.search(undefined, undefined, undefined, {
+  const result = await creem.products.search(1, 10, undefined, "pro-monthly", {
     retries: {
       strategy: "backoff",
       backoff: {
@@ -538,7 +538,7 @@ const creem = new Creem({
 });
 
 async function run() {
-  const result = await creem.products.search();
+  const result = await creem.products.search(1, 10, undefined, "pro-monthly");
 
   for await (const page of result) {
     console.log(page);
@@ -618,7 +618,7 @@ run();
 
 
 **Inherit from [`CreemError`](./src/models/errors/creemerror.ts)**:
-* [`CustomerCreditsErrorResponseDto`](./src/models/errors/customercreditserrorresponsedto.ts): Applicable to 8 of 79 methods.*
+* [`CustomerCreditsErrorResponseDto`](./src/models/errors/customercreditserrorresponsedto.ts): Applicable to 9 of 79 methods.*
 * [`UsageMeteringErrorApiResponseDto`](./src/models/errors/usagemeteringerrorapiresponsedto.ts): Applicable to 6 of 79 methods.*
 * [`ResponseValidationError`](./src/models/errors/responsevalidationerror.ts): Type mismatch between the data returned from the server and the structure expected by the SDK. See `error.rawValue` for the raw value and `error.pretty()` for a nicely formatted multi-line string.
 
@@ -650,7 +650,7 @@ const creem = new Creem({
 });
 
 async function run() {
-  const result = await creem.products.search();
+  const result = await creem.products.search(1, 10, undefined, "pro-monthly");
 
   for await (const page of result) {
     console.log(page);
@@ -673,7 +673,7 @@ const creem = new Creem({
 });
 
 async function run() {
-  const result = await creem.products.search();
+  const result = await creem.products.search(1, 10, undefined, "pro-monthly");
 
   for await (const page of result) {
     console.log(page);

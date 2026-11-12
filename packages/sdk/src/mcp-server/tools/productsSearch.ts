@@ -11,13 +11,14 @@ const args = {
   pageNumber: z.number().default(1),
   pageSize: z.number().default(10),
   status: components.ProductStatus$inboundSchema.optional(),
+  externalId: z.string().optional(),
 };
 
 export const tool$productsSearch: ToolDefinition<typeof args> = {
   name: "products-search",
   description: `List all products
 
-Search and retrieve a paginated list of products. Filter by status, billing type, and other criteria.`,
+Search and retrieve a paginated list of products. Filter by status or by your own \`external_id\`.`,
   args,
   tool: async (client, args, ctx) => {
     const [result, apiCall] = await productsSearch(
@@ -25,6 +26,7 @@ Search and retrieve a paginated list of products. Filter by status, billing type
       args.pageNumber,
       args.pageSize,
       args.status,
+      args.externalId,
       { fetchOptions: { signal: ctx.signal } },
     ).$inspect();
 
