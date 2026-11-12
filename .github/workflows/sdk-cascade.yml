@@ -105,14 +105,23 @@ jobs:
           Bump creem SDK dependency to ${{ steps.sdk.outputs.version }}
           EOF
 
+      # One fixed branch, so a newer SDK release updates the open cascade pull
+      # request instead of opening another one next to it. The branch is rebuilt
+      # from main on every run; fixes for a breaking SDK change belong in their
+      # own pull request.
+      #
+      # Pull requests opened with GITHUB_TOKEN do not start other workflows, so
+      # the checks need PR_AUTOMATION_TOKEN (shared with openapi-sync.yml).
+      # Without it, closing and reopening the pull request starts them.
       - name: Create PR
         if: steps.npm.outputs.published == 'true'
         uses: peter-evans/create-pull-request@v7
         with:
-          token: ${{ secrets.GITHUB_TOKEN }}
+          token: ${{ secrets.PR_AUTOMATION_TOKEN || secrets.GITHUB_TOKEN }}
           commit-message: "chore: bump adaptor deps to creem@${{ steps.sdk.outputs.version }}"
           title: "chore: bump adaptors to creem@${{ steps.sdk.outputs.version }}"
-          branch: chore/sdk-cascade-${{ steps.sdk.outputs.version }}
+          branch: chore/sdk-cascade
+          delete-branch: true
           body: |
             Auto-generated: bumps `creem` dependency in adaptor and ingestion packages after Speakeasy SDK release to `${{ steps.sdk.outputs.version }}`.
 
