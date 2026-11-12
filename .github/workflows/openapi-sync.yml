@@ -15,7 +15,7 @@ name: OpenAPI Sync
 # on the pull request instead of updating it.
 #
 # Pull requests opened with GITHUB_TOKEN do not start other workflows, so the
-# checks need OPENAPI_SYNC_TOKEN (a GitHub App or bot token with contents and
+# checks need PR_AUTOMATION_TOKEN (a GitHub App or bot token with contents and
 # pull-requests write). Without it the pull request still opens, and closing
 # and reopening it starts the checks.
 
@@ -86,7 +86,7 @@ jobs:
         id: guard
         if: steps.spec.outputs.changed == 'true'
         env:
-          GH_TOKEN: ${{ secrets.OPENAPI_SYNC_TOKEN || secrets.GITHUB_TOKEN }}
+          GH_TOKEN: ${{ secrets.PR_AUTOMATION_TOKEN || secrets.GITHUB_TOKEN }}
           SPEC_SHA256: ${{ steps.spec.outputs.sha256 }}
         run: |
           if ! git ls-remote --exit-code --heads origin "$BRANCH" > /dev/null; then
@@ -175,7 +175,7 @@ jobs:
         if: steps.guard.outputs.update == 'true'
         uses: peter-evans/create-pull-request@v7
         with:
-          token: ${{ secrets.OPENAPI_SYNC_TOKEN || secrets.GITHUB_TOKEN }}
+          token: ${{ secrets.PR_AUTOMATION_TOKEN || secrets.GITHUB_TOKEN }}
           branch: ${{ env.BRANCH }}
           base: main
           author: ${{ env.BOT }}
