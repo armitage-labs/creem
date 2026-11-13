@@ -14,7 +14,7 @@ Your customers see your brand in the address bar from the first click to the rec
 - **Branded checkout**: New checkout links for your store are created on your domain as soon as it is active.
 - **Branded storefront**: Your [storefront](/features/storefronts) and product pages are served on the same domain.
 - **Managed certificates**: Creem issues and renews the TLS certificate. You only add DNS records.
-- **Wallets included**: Apple Pay is registered for your domain automatically after activation, and Google Pay works as soon as the domain is active.
+- **Wallets included**: Apple Pay is registered for your domain automatically after activation, and Creem submits your domain to Google for Google Pay approval.
 - **Safe by default**: Only checkout and storefront pages exist on your domain. Creem's dashboard, marketing site, and sign-in pages are never served there.
 
 ## Requirements
@@ -67,9 +67,11 @@ A domain only becomes active after Creem has confirmed the ownership record in y
 The **Wallet compatibility** section of the tab shows the state of each wallet on your domain.
 
 - **Apple Pay** requires Apple to verify each domain that shows the Apple Pay button. Creem registers your domain with Apple automatically after it becomes active. This usually completes within a few minutes and needs nothing from you. If the registration fails, use the retry button in the dashboard or contact support if it keeps failing.
-- **Google Pay** needs no per-domain registration and works as soon as your domain is active.
+- **Google Pay** requires Google to approve each checkout domain by hand. Creem submits your domain to Google for you after it becomes active, and approval usually takes a few days. Until then the wallet shows **In review** and Google Pay is hidden on your checkout. Nothing is needed from you. If Google does not approve the domain, the wallet shows **Not approved**: contact support and we will follow up with Google.
 
-While Apple's verification is in progress, checkout on your domain works normally with every other payment method.
+If your store has not completed verification yet, the wallets show **Awaiting store verification**. Creem sets up Apple Pay and submits the Google Pay review once verification is complete.
+
+While a wallet is being verified or reviewed, checkout on your domain works normally with every other payment method.
 
 ## Removing a Domain
 
