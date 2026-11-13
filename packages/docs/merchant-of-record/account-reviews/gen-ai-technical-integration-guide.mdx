@@ -316,6 +316,7 @@ curl -X POST https://api.creem.io/v1/moderation/prompt \
 - **Only `allow` goes through.** `deny` is a block.
 - **Treat `flag` as a block too.** Screen again, or stop.
 - **Fail closed.** If the call errors or times out, don't generate.
+- **Screen every generation.** Fixed templates, gallery re-runs and upscaling need a moderation result too, so screen the prompt that drives them.
 
 See the [Moderation API](/features/moderation) for the full response and pricing.
 
