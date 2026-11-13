@@ -1,7 +1,9 @@
 import { randomUUID } from 'node:crypto'
 import { CreemCreditsProvider } from './creem/credits-creem'
+import { findOrCreateCustomer } from './creem/customers'
 import { Balance, LedgerEntry, Transaction } from './creem/types'
 import { pool, query, queryOne } from './db'
+import { WELCOME_CREDITS } from './packs'
 
 /**
  * The wallet layer is the single entry point every route and webhook uses to
@@ -13,6 +15,9 @@ import { pool, query, queryOne } from './db'
  */
 
 const credits = new CreemCreditsProvider()
+
+/** The name of the wallet Creem moderates. Do not rename it. */
+export const GENERATION_WALLET = 'generation'
 
 export interface WalletAccount {
   userId: string
@@ -41,15 +46,15 @@ export async function getAccountForUser(userId: string): Promise<WalletAccount |
 }
 
 /**
- * Ensure a Creem credit wallet exists for a user, creating one if needed.
- * `creemCustomerId` comes from a completed Creem checkout (the plugin sets
- * user.creemCustomerId on first purchase).
+ * Ensure a Creem customer and a `generation` wallet exist for a user, creating
+ * them if needed. Called at sign-up (see lib/auth.ts) and again by the routes.
  */
-export async function ensureAccountForUser(userId: string, creemCustomerId: string): Promise<WalletAccount> {
+export async function ensureWalletForUser(user: { id: string; email: string; name: string }): Promise<WalletAccount> {
+  const userId = user.id
   const existing = await getAccountForUser(userId)
   if (existing) return existing
-  // Two webhook deliveries for the same buyer can race here (e.g. Creem retries
-  // an ambiguous delivery). Creem's createAccount has no idempotency key, so
+  // Sign-up and the user's first request can race here (both call this
+  // function). Creem's createAccount has no idempotency key, so
   // without coordination both callers would pass the check above and each mint
   // a *separate* Creem wallet - the INSERT's ON CONFLICT dedupes the row but
   // leaves an orphaned second account. Serialise per-user creation behind a
@@ -66,15 +71,25 @@ export async function ensureAccountForUser(userId: string, creemCustomerId: stri
       const r = again.rows[0]
       return { userId: r.user_id, creemCustomerId: r.creem_customer_id, accountId: r.account_id, unitLabel: r.unit_label, status: r.status }
     }
-    const account = await credits.createAccount({ customerId: creemCustomerId, name: 'credits', unitLabel: 'credits' })
+    const customer = await findOrCreateCustomer(user)
+    // Reuse the customer's generation wallet if Creem already has one, so the
+    // welcome credits are only granted once.
+    const account =
+      (await credits.findAccount(customer.id, GENERATION_WALLET)) ??
+      (await credits.createAccount({
+        customerId: customer.id,
+        name: GENERATION_WALLET,
+        unitLabel: 'credits',
+        initialBalance: WELCOME_CREDITS > 0 ? String(WELCOME_CREDITS) : undefined,
+      }))
     await client.query(
       `INSERT INTO credit_account (user_id, creem_customer_id, account_id, provider, unit_label, status)
-       VALUES ($1,$2,$3,'creem',$4,'active')
+       VALUES ($1,$2,$3,'creem',$4,$5)
        ON CONFLICT (user_id) DO NOTHING`,
-      [userId, creemCustomerId, account.id, account.unit_label],
+      [userId, customer.id, account.id, account.unit_label, account.status],
     )
     await client.query('COMMIT')
-    return { userId, creemCustomerId, accountId: account.id, unitLabel: account.unit_label, status: 'active' }
+    return { userId, creemCustomerId: customer.id, accountId: account.id, unitLabel: account.unit_label, status: account.status }
   } catch (err) {
     await client.query('ROLLBACK').catch(() => {})
     throw err
@@ -90,24 +105,21 @@ export async function getBalance(userId: string, at?: string): Promise<(Balance 
   return { ...balance, unitLabel: account.unitLabel }
 }
 
-/** Credit a wallet when a customer buys a pack. Idempotent on `idempotencyKey`. */
-export async function creditPack(args: { userId: string; accountId: string; amount: number; reference: string; idempotencyKey: string }): Promise<Transaction> {
-  const result = await credits.credit(args.accountId, { amount: String(args.amount), reference: args.reference, idempotencyKey: args.idempotencyKey })
-  await cacheMovement({
-    userId: args.userId,
-    accountId: args.accountId,
-    transactionId: result.id,
-    side: 'credit',
-    amount: args.amount,
-    reference: args.reference,
-    kind: 'pack_purchase',
-  })
-  return result
-}
-
 /** Debit for a generation. Throws InsufficientBalanceError if too low. */
-export async function debitForGeneration(args: { userId: string; accountId: string; amount: number; reference: string; idempotencyKey: string }): Promise<Transaction> {
-  const result = await credits.debit(args.accountId, { amount: String(args.amount), reference: args.reference, idempotencyKey: args.idempotencyKey })
+export async function debitForGeneration(args: {
+  userId: string
+  accountId: string
+  amount: number
+  reference: string
+  idempotencyKey: string
+  moderationId: string
+}): Promise<Transaction> {
+  const result = await credits.debit(args.accountId, {
+    amount: String(args.amount),
+    reference: args.reference,
+    idempotencyKey: args.idempotencyKey,
+    moderationId: args.moderationId,
+  })
   await cacheMovement({
     userId: args.userId,
     accountId: args.accountId,
@@ -140,7 +152,7 @@ export async function listHistory(userId: string, limit = 50): Promise<LedgerEnt
   const byTxn = new Map(refs.map((r) => [r.transaction_id, r]))
   return entries.map((e) => {
     const hit = byTxn.get(e.transaction_id)
-    return e.reference ? e : { ...e, reference: hit?.reference ?? hit?.kind ?? null }
+    return e.reference ? e : { ...e, reference: hit?.reference ?? hit?.kind ?? (e.side === 'credit' ? 'grant' : null) }
   })
 }
 

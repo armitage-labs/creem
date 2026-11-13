@@ -4,7 +4,7 @@ import { z } from 'zod'
  * Centralised, typed access to environment configuration, validated with zod.
  *
  * Every external service this app depends on (Postgres, Better Auth, and Creem's
- * API, webhook, and products) must be fully configured. Missing or invalid keys
+ * API and products) must be fully configured. Missing or invalid keys
  * or secrets are a hard error at startup: the app never silently degrades to a
  * local or offline stand-in. zod's `safeParse` collects every problem at once,
  * so they can be fixed in a single pass.
@@ -22,7 +22,8 @@ const EnvSchema = z.object({
     emptyToUndefined,
     z.string({ error: 'missing - set it in .env.local' }).startsWith('creem_', 'must start with "creem_" (use a "creem_test_…" key for test mode)'),
   ),
-  CREEM_WEBHOOK_SECRET: requiredString,
+  // Optional: purchases are credited by Creem, not by a webhook handler.
+  CREEM_WEBHOOK_SECRET: z.preprocess(emptyToUndefined, z.string().optional()),
   CREEM_PRODUCT_STARTER: requiredString,
   CREEM_PRODUCT_PRO: requiredString,
   CREEM_PRODUCT_STUDIO: requiredString,

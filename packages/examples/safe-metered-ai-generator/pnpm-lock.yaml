@@ -18,8 +18,8 @@ importers:
         specifier: ^1.6.26
         version: 1.6.26(next@16.3.0(@types/node@26.1.2)(react-dom@19.2.8(react@19.2.8))(react@19.2.8))(react-dom@19.2.8(react@19.2.8))(react@19.2.8)
       creem:
-        specifier: ^1.6.0
-        version: 1.6.0
+        specifier: ^1.14.0
+        version: 1.14.0
       next:
         specifier: ^16.3.0
         version: 16.3.0(@types/node@26.1.2)(react-dom@19.2.8(react@19.2.8))(react@19.2.8)
@@ -827,8 +827,12 @@ packages:
     resolution: {integrity: sha512-tJtZBBHA6vjIAaF6EnIaq6laBBP9aq/Y3ouVJjEfoHbRBcHBAHYcMh/w8LDrk2PvIMMq8gmopa5D4V8RmbrxGw==}
     engines: {node: '>= 0.10'}
 
-  creem@1.6.0:
-    resolution: {integrity: sha512-1dwtrqJ5wWgBVL+0eIqHS4IN99tJeWHa1hbr4AQUNe3r/Zjo0W1/xXvZbhS9TwPNRgsP1gDIsTRQrRHRjG4wzw==}
+  creem@1.13.0:
+    resolution: {integrity: sha512-sme5XEtOoh/7iTIezhNL8ZHFiFwk8WPI2d68OEu4Y6xHpzcyNEpc4FN9mIF8jVT2+vEyMWi/fDlQyhach4AgPg==}
+    hasBin: true
+
+  creem@1.14.0:
+    resolution: {integrity: sha512-0RIZcCXE040j4usbWHfHWDmpmRE68tq3Oxxfap3j9uZWWH4ux0EGopP0OJIWo6zDU9ZeOvKahfatcgqTzRRQ+Q==}
     hasBin: true
 
   cross-spawn@7.0.6:
@@ -1488,7 +1492,7 @@ snapshots:
     dependencies:
       '@creem_io/webhook-types': 1.0.0
       better-auth: 1.6.26(next@16.3.0(@types/node@26.1.2)(react-dom@19.2.8(react@19.2.8))(react@19.2.8))(react-dom@19.2.8(react@19.2.8))(react@19.2.8)
-      creem: 1.6.0
+      creem: 1.13.0
       zod: 4.4.3
     transitivePeerDependencies:
       - '@cfworker/json-schema'
@@ -1951,7 +1955,16 @@ snapshots:
       object-assign: 4.1.1
       vary: 1.1.2
 
-  creem@1.6.0:
+  creem@1.13.0:
+    dependencies:
+      '@modelcontextprotocol/sdk': 1.30.0(zod@4.4.3)
+      jsonpath-rfc9535: 1.1.0
+      zod: 4.4.3
+    transitivePeerDependencies:
+      - '@cfworker/json-schema'
+      - supports-color
+
+  creem@1.14.0:
     dependencies:
       '@modelcontextprotocol/sdk': 1.30.0(zod@4.4.3)
       jsonpath-rfc9535: 1.1.0

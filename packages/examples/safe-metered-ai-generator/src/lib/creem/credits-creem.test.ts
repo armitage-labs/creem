@@ -60,7 +60,7 @@ describe('CreemCreditsProvider (live)', () => {
     assert.equal(bal((await credits.getBalance(account.id)).balance), 7, 'after debiting 3')
 
     // INSUFFICIENT: a debit larger than the balance must surface as our typed
-    // InsufficientBalanceError (mapped from Creem's live 422) and must NOT move
+    // InsufficientBalanceError (mapped from Creem's `insufficient_balance` code) and must NOT move
     // the balance.
     await assert.rejects(
       () => credits.debit(account.id, { amount: '99999', reference: 'test:overdraft', idempotencyKey: `test_over_${randomUUID()}` }),

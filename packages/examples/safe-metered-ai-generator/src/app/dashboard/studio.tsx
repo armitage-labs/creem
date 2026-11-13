@@ -194,8 +194,6 @@ function GeneratePanel({ costs, balance, onDone }: { costs: Costs; balance: Bala
         onDone(data.message ?? 'Not enough credits.', false)
       } else if (data.status === 'refunded') {
         onDone('Generation failed - credits refunded.', false)
-      } else if (data.error === 'no_wallet') {
-        onDone('Buy a credit pack to start generating.', false)
       } else {
         onDone(data.message ?? 'Generation failed.', false)
       }
@@ -255,10 +253,9 @@ function GeneratePanel({ costs, balance, onDone }: { costs: Costs; balance: Bala
       </div>
 
       <div className="mt-5 flex flex-wrap items-center gap-3">
-        <button className="btn btn-primary" onClick={generate} disabled={busy || !prompt.trim() || !!insufficient || !!frozen || balance?.hasWallet === false}>
+        <button className="btn btn-primary" onClick={generate} disabled={busy || !prompt.trim() || !!insufficient || !!frozen}>
           {busy ? 'Generating…' : `Generate - ${cost} credits`}
         </button>
-        {balance?.hasWallet === false && <span className="text-ink-3 text-sm">Buy a pack first →</span>}
         {insufficient && (
           <span className="text-sm text-[var(--color-warn)]">
             Not enough credits ({bal}/{cost}).
@@ -386,7 +383,6 @@ function BalanceWidget({ balance, onRefresh, showToast }: { balance: BalanceStat
         <span className="text-ink-3 text-sm">{balance?.unitLabel ?? 'credits'}</span>
       </p>
       {balance?.status && balance.status !== 'active' && <p className="mt-1 text-sm text-[var(--color-warn)]">Account {balance.status}</p>}
-      {balance?.hasWallet === false && <p className="text-ink-3 mt-1 text-sm">No wallet yet - buy a pack below.</p>}
 
       <button className="btn btn-ghost mt-4 w-full text-sm" onClick={onRefresh}>
         Refresh balance
@@ -494,7 +490,7 @@ function HistoryPanel({ entries, unit }: { entries: Entry[]; unit: string }) {
 
 function referenceLabel(ref?: string | null): string {
   if (!ref) return 'transaction'
-  if (ref.startsWith('pack:')) return 'Credit pack purchase'
+  if (ref === 'grant') return 'Credits added'
   if (ref.startsWith('gen:')) return 'Generation'
   if (ref.startsWith('refund:') || ref.startsWith('reversal')) return 'Refund (failed generation)'
   return ref

@@ -8,6 +8,7 @@ import { creemClient } from './client'
  *   1. Screen the prompt BEFORE anything else (no debit, no generation first).
  *   2. Block on BOTH `deny` and `flag` - treat flag exactly like deny.
  *   3. Fail CLOSED - if the call errors or times out, block, never generate.
+ *   4. Keep the result's `id` - the debit from the generation wallet needs it.
  */
 
 export type ModerationDecision = 'allow' | 'flag' | 'deny' | 'error'
@@ -24,6 +25,11 @@ export const FORCE_FLAG_SENTINEL = '#force-moderation-flag'
 
 export interface ModerationResult {
   decision: ModerationDecision
+  /**
+   * Id of the moderation result. Present on `allow`: pass it to the debit as
+   * `moderationId`. One id pays for one debit and is valid for 24 hours.
+   */
+  id?: string
   /** True when generation is permitted. Only `allow` passes. */
   allowed: boolean
   /** A user-safe reason string when blocked. */
@@ -59,7 +65,7 @@ export async function screenPrompt(prompt: string, externalId?: string): Promise
     const decision = data.decision
 
     if (decision === 'allow') {
-      return { decision: 'allow', allowed: true, raw: data }
+      return { decision: 'allow', allowed: true, id: data.id, raw: data }
     }
     if (decision === 'deny' || decision === 'flag') {
       return blocked(decision, data)
