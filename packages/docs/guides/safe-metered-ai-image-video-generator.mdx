@@ -3,16 +3,17 @@ title: "Build a Safe, Metered AI Image and Video Generator with Creem"
 description: "Moderate every prompt, charge prepaid credits per generation, and auto-refund failed jobs with Creem's Moderation and Customer Credits APIs in a Next.js application."
 ---
 
-<Warning>
-  This guide shows an earlier integration flow. AI image and video products on Creem must now
-  follow the [Gen AI Technical Integration Guide](/merchant-of-record/account-reviews/gen-ai-technical-integration-guide),
-  which uses AI generation credits and links every debit to a moderation result. See
-  [Gen AI Requirements](/merchant-of-record/account-reviews/gen-ai-requirements) for details.
-</Warning>
+<Note>
+  This guide walks through a full sample app. For the short, step by step version of the same
+  integration, see the [Gen AI Technical Integration
+  Guide](/merchant-of-record/account-reviews/gen-ai-technical-integration-guide). [Gen AI
+  Requirements](/merchant-of-record/account-reviews/gen-ai-requirements) explains why it is
+  required.
+</Note>
 
-Charging for AI generations in a way that meets [MoR or PSP guidelines](/merchant-of-record/account-reviews/ai-wrapper-compliance) is hard with unmoderated prompts, failed generations and incorrect customer credits deduction. For e.g., Adobe Firefly users [report failed video jobs that produce nothing yet still deduct credits](https://community.adobe.com/t5/adobe-firefly-bugs/credits-are-being-deducted-even-when-video-generation-fails/idi-p/15659871), with one person losing 680 credits across 17 error-filled attempts. Users are bound to get frustrated if charges are made before the provider is sure that the model worked, or before the prompt has been screened. The fix is in the order of generation steps: moderate the prompt, charge the credits, generate, and refund automatically if the model fails.
+Charging for AI generations in a way that meets [MoR or PSP guidelines](/merchant-of-record/account-reviews/ai-wrapper-compliance) is hard with unmoderated prompts, failed generations and incorrect customer credits deduction. For e.g., Adobe Firefly users [report failed video jobs that produce nothing yet still deduct credits](https://community.adobe.com/t5/adobe-firefly-bugs/credits-are-being-deducted-even-when-video-generation-fails/idi-p/15659871), with one person losing 680 credits across 17 error-filled attempts. Users are bound to get frustrated if charges are made before the provider is sure that the model worked, or before the prompt has been screened. The fix is in the order of generation steps: moderate the prompt, charge the credits with the moderation result attached, generate, and refund automatically if the model fails.
 
-In this guide you build [Aperture](https://github.com/armitage-labs/creem/tree/main/packages/examples/safe-metered-ai-generator), a reference image and video generator that uses Creem for billing and moderation. Credits are managed by the [Customer Credits API](/features/customer-credits/introduction#quick-start), and every prompt is validated through the [Moderation API](/features/moderation).
+In this guide you build [Aperture](https://github.com/armitage-labs/creem/tree/main/packages/examples/safe-metered-ai-generator), a reference image and video generator that uses Creem for billing and moderation. Each user gets a `generation` credit wallet in the [Customer Credits API](/features/customer-credits/introduction#quick-start) when they sign up, Creem adds purchased credits to it, and every prompt is validated through the [Moderation API](/features/moderation). Each debit carries the ID of the moderation result that cleared its prompt.
 
 ## Demo
 
@@ -21,7 +22,7 @@ Aperture implements the following four-step order for every generation:
 ```mermaid
 flowchart TD
     A["MODERATE<br/><br/>screen the prompt first"]
-    B["DEBIT<br/><br/>charge credits up front (idempotent)"]
+    B["DEBIT<br/><br/>charge credits up front (idempotent),<br/>with the moderation ID attached"]
     C["GENERATE<br/><br/>call the model (black box)"]
     D["RETURN / REVERSE<br/><br/>return the asset. if the model failed<br/>after the debit, reverse it so the<br/>customer keeps their credits"]
     A --> B --> C --> D
@@ -76,8 +77,8 @@ pnpm install
 
 It installs the following important dependencies:
 
-- `creem` is the official SDK through which the Customer Credits and Moderation are managed.
-- `@creem_io/better-auth` is the Better Auth plugin of Creem. It syncs `user.creemCustomerId` on the first checkout and serves the Creem webhook.
+- `creem` is the official SDK (version 1.14.0 or later) through which the Customer Credits and Moderation are managed.
+- `@creem_io/better-auth` is the Better Auth plugin of Creem.
 - `better-auth` handles email and password sign-in.
 - `@neondatabase/serverless` to query Postgres in serverless functions over HTTP requests.
 
@@ -106,7 +107,7 @@ Use this connection string as an environment variable designated as `DATABASE_UR
 Grab your API key from the [Developers section](https://creem.io/dashboard/developers) of the dashboard and set it as `CREEM_API_KEY`. The app picks test vs production mode from the key prefix (`creem_test_` is test mode).
 </Step>
 <Step title="Create the three credit packs">
-Each pack (Starter, Pro, and Studio) maps to a one-time Creem product. With `CREEM_API_KEY` set, run the setup script to create all three at once:
+Each pack (Starter, Pro, and Studio) maps to a one-time Creem product with an **AI generation credits** feature. The feature holds the number of credits the pack grants: when a user pays, Creem adds them to that user's generation wallet. With `CREEM_API_KEY` set, run the setup script to create all three at once:
 
 ```bash
 pnpm products:setup
@@ -114,12 +115,7 @@ pnpm products:setup
 
 It prints the three `CREEM_PRODUCT_*` lines to paste into `.env.local`. Re-running in the same mode returns the existing products instead of creating duplicates.
 
-Prefer the dashboard? In the [products tab](https://creem.io/dashboard/products), create one product per pack and copy each product ID (it starts with `prod_`) into `CREEM_PRODUCT_STARTER`, `CREEM_PRODUCT_PRO`, and `CREEM_PRODUCT_STUDIO`.
-</Step>
-<Step title="Set the webhook signing secret">
-In the **Developers > Webhooks** section of the dashboard, create a webhook endpoint and subscribe it to `checkout.completed`. You don't have your local tunnel URL yet, so use any placeholder for now such as `https://example.com/api/auth/creem/webhook`. Then, copy the endpoint's signing secret into `CREEM_WEBHOOK_SECRET`.
-
-That secret is tied to the unique webhook and it remains the same when you repoint the URL at your tunnel from the instructions in the [test webhooks locally](#test-webhooks-locally) section.
+Prefer the dashboard? In the [products tab](https://creem.io/dashboard/products), create one product per pack. In **Delivery**, click **Add**, choose **New AI generation credits**, and set the credit amount (200, 1000 and 3000). Then copy each product ID (it starts with `prod_`) into `CREEM_PRODUCT_STARTER`, `CREEM_PRODUCT_PRO`, and `CREEM_PRODUCT_STUDIO`.
 
 </Step>
 <Step title="Generate a Better Auth secret">
@@ -187,7 +183,7 @@ CREATE TABLE IF NOT EXISTS "credit_ledger_cache" (
 );
 ```
 
-- `credit_account` is a lookup table. It does not store a balance. It only remembers which Creem account id (`cca_…`) belongs to which user, so a request can ask Creem for the live balance of the customer.
+- `credit_account` is a lookup table. It does not store a balance. It only remembers which Creem customer (`cust_…`) and generation wallet (`cca_…`) belong to which user, so a request can ask Creem for the live balance of the customer.
 - `credit_ledger_cache` is a read model. It mirrors every credit and debit. It enables fetching the transaction history page without a round trip to Creem on every page load. It also keeps an audit trail after an account is closed.
 
 Now, apply the schema in your database with the following command:
@@ -196,29 +192,6 @@ Now, apply the schema in your database with the following command:
 pnpm db:migrate
 ```
 
-## Test webhooks locally
-
-Creem cannot POST the `checkout.completed` webhook to `localhost`, so the buy flow needs a public URL for that endpoint. A [localtunnel](https://github.com/localtunnel/localtunnel) enables you to map a localhost port to a public and a secure `https` domain.
-
-1. Run the application in one terminal:
-
-   ```bash
-   pnpm dev
-   ```
-
-2. Open a tunnel to the same port in another terminal:
-
-   ```bash
-   npx -y localtunnel --port 3000
-   # → your url is: https://tidy-otters-jam.loca.lt
-   ```
-
-3. In the Creem dashboard, open the webhook endpoint you created earlier and update its URL to `https://<subdomain>.loca.lt/api/auth/creem/webhook`. The signing secret remains unchanged.
-
-4. Sign up, buy a pack (the 100 percent off code makes it $0), and complete the Creem checkout. Creem posts the webhook to the tunnel, the tunnel forwards it to your local endpoint, `onCheckoutCompleted` credits the wallet, and the balance widget updates on refresh.
-
-Keep `NEXT_PUBLIC_APP_URL` and `BETTER_AUTH_URL` as `http://localhost:3000` so your auth cookies and the success redirect stay on localhost while you browse. You only need the tunnel for the inbound webhook.
-
 ## Screen the prompt before generation
 
 Creem [requires moderation on AI generation products](/features/moderation#why-moderation-matters), so the wrapper in [`src/lib/creem/moderation.ts`](https://github.com/armitage-labs/creem/blob/main/packages/examples/safe-metered-ai-generator/src/lib/creem/moderation.ts) follows three rules:
@@ -226,6 +199,7 @@ Creem [requires moderation on AI generation products](/features/moderation#why-m
 1. Screen the prompt before anything else.
 2. Block on both `deny` and `flag`.
 3. If the call errors or times out, block. Never generate on an unknown answer.
+4. Keep the `id` of the result. The debit needs it.
 
 ```ts
 export async function screenPrompt(prompt: string, externalId?: string): Promise<ModerationResult> {
@@ -237,7 +211,7 @@ export async function screenPrompt(prompt: string, externalId?: string): Promise
     const decision = data.decision;
 
     if (decision === "allow") {
-      return { decision: "allow", allowed: true, raw: data };
+      return { decision: "allow", allowed: true, id: data.id, raw: data };
     }
     if (decision === "deny" || decision === "flag") {
       return blocked(decision, data);
@@ -251,39 +225,81 @@ export async function screenPrompt(prompt: string, externalId?: string): Promise
 }
 ```
 
-`allowed` is `true` only on an explicit `allow`. Every other branch, including the empty `catch`, returns `false`. So the request is blocked on any error, timeout, or an unknown response code. This ensures that generations are always moderated.
+`allowed` is `true` only on an explicit `allow`. Every other branch, including the empty `catch`, returns `false`. So the request is blocked on any error, timeout, or an unknown response code. This ensures that generations are always moderated. On `allow`, the result also carries the moderation `id`, which the route passes to the debit.
 
 ## Implement the wallet layer
 
-Every balance change goes through one module, [`src/lib/wallet.ts`](https://github.com/armitage-labs/creem/blob/main/packages/examples/safe-metered-ai-generator/src/lib/wallet.ts) and is used by routes and the webhook. It calls the Creem API on every generation, and then it mirrors the actions into Postgres for history and auditing.
+Every balance change goes through one module, [`src/lib/wallet.ts`](https://github.com/armitage-labs/creem/blob/main/packages/examples/safe-metered-ai-generator/src/lib/wallet.ts) and is used by the routes and the sign-up hook. It calls the Creem API on every generation, and then it mirrors the actions into Postgres for history and auditing.
 
 The wallet layer is comprised of two files:
 
-- [`src/lib/wallet.ts`](https://github.com/armitage-labs/creem/blob/main/packages/examples/safe-metered-ai-generator/src/lib/wallet.ts): exposes wallet controls, such as `creditPack`, `debitForGeneration`, `refundDebit`, `getBalance`, `listHistory`, and the account controls (`freeze`, `unfreeze`, `close`).
+- [`src/lib/wallet.ts`](https://github.com/armitage-labs/creem/blob/main/packages/examples/safe-metered-ai-generator/src/lib/wallet.ts): exposes wallet controls, such as `ensureWalletForUser`, `debitForGeneration`, `refundDebit`, `getBalance`, `listHistory`, and the account controls (`freeze`, `unfreeze`, `close`).
 - [`src/lib/creem/credits-creem.ts`](https://github.com/armitage-labs/creem/blob/main/packages/examples/safe-metered-ai-generator/src/lib/creem/credits-creem.ts): adapter over `creemClient.customerCredits.*`. It makes the Creem calls and maps the camelCase responses onto the application's snake_case types.
 
-### Use idempotency keys on every step
+### Create the wallet at sign-up
 
-Retries in applications happen for ordinary reasons:
-
-- a webhook fires twice
-- a user double-clicks Buy
-- a network blip makes a client resend a request that already succeeded
-
-An [idempotency key](/features/customer-credits/transactions#what-is-an-idempotency_key) means Creem treats the retry as the same operation and does not change the balance on a duplicated request. Here is how a pack purchase is credited:
+Every user gets a Creem customer and a credit wallet as soon as they sign up. The wallet has to be named `generation`: that name makes it the AI generation wallet, so purchased credits land in it and every debit from it requires a moderation result.
 
 ```ts
-export async function creditPack(args: {
+export const GENERATION_WALLET = "generation";
+
+export async function ensureWalletForUser(user: { id: string; email: string; name: string }) {
+  const existing = await getAccountForUser(user.id);
+  if (existing) return existing;
+  // ...inside a per-user advisory lock:
+  const customer = await findOrCreateCustomer(user); // externalId = your user id
+  const account =
+    (await credits.findAccount(customer.id, GENERATION_WALLET)) ??
+    (await credits.createAccount({
+      customerId: customer.id,
+      name: GENERATION_WALLET,
+      unitLabel: "credits",
+      initialBalance: String(WELCOME_CREDITS), // optional free credits
+    }));
+  // ...store customer.id and account.id in credit_account
+}
+```
+
+In the code above:
+
+- `findOrCreateCustomer` in [`src/lib/creem/customers.ts`](https://github.com/armitage-labs/creem/blob/main/packages/examples/safe-metered-ai-generator/src/lib/creem/customers.ts) looks the customer up by email and creates it with `externalId` set to the app's user id if it does not exist.
+- `initialBalance` gives new users 20 free credits. Free credits work like paid ones: spending them still requires a moderation result.
+- Creating a wallet has no idempotency key, so the function serializes per-user creation behind a transaction-scoped advisory lock (`pg_advisory_xact_lock`) and re-checks the table inside the lock. Exactly one wallet is created per user.
+
+The function is called from a Better Auth hook in [`src/lib/auth.ts`](https://github.com/armitage-labs/creem/blob/main/packages/examples/safe-metered-ai-generator/src/lib/auth.ts) that runs after a user is created:
+
+```ts
+databaseHooks: {
+  user: {
+    create: {
+      after: async (user) => {
+        // A Creem outage must not block sign-up: the routes call
+        // ensureWalletForUser again and create the wallet then.
+        await ensureWalletForUser(user).catch((err) => console.error(err));
+      },
+    },
+  },
+},
+```
+
+### Debit with the moderation ID
+
+A generation is paid for with a debit from the generation wallet. It carries two things besides the amount: an idempotency key and the moderation ID.
+
+```ts
+export async function debitForGeneration(args: {
   userId: string;
   accountId: string;
   amount: number;
   reference: string;
   idempotencyKey: string;
+  moderationId: string;
 }): Promise<Transaction> {
-  const result = await credits.credit(args.accountId, {
+  const result = await credits.debit(args.accountId, {
     amount: String(args.amount),
     reference: args.reference,
     idempotencyKey: args.idempotencyKey,
+    moderationId: args.moderationId,
   });
   await cacheMovement({
     /* mirror into credit_ledger_cache */
@@ -292,9 +308,12 @@ export async function creditPack(args: {
 }
 ```
 
-Creem applies the credit against the account, and `cacheMovement` mirrors the same entry into `credit_ledger_cache` so the history page can render it without another round trip.
+- **The idempotency key.** Retries happen for ordinary reasons: a user double-clicks, or a network blip makes a client resend a request that already succeeded. An [idempotency key](/features/customer-credits/transactions#what-is-an-idempotency_key) means Creem treats the retry as the same operation and does not change the balance a second time.
+- **The moderation ID.** Creem refuses a debit from the generation wallet unless it carries the ID of an `allow` result from your store that is at most 24 hours old and has not paid for another debit.
 
-The debit path for a generation follows the same shape, and it also turns a Creem "not enough balance" response into a typed error for the catch block.
+`cacheMovement` mirrors the same entry into `credit_ledger_cache` so the history page can show its `reference`.
+
+The adapter turns Creem's error codes into typed errors for the route:
 
 ```ts
 async debit(accountId, input) {
@@ -302,13 +321,15 @@ async debit(accountId, input) {
     const txn = await creemClient.customerCredits.debitAccount(accountId, input)
     return toTransaction(txn)
   } catch (err) {
-    if (isInsufficient(err)) throw new InsufficientBalanceError()
+    const code = errorCode(err) // Creem's error code, read from the error body
+    if (code === 'insufficient_balance') throw new InsufficientBalanceError()
+    if (code?.startsWith('moderation_')) throw new ModerationDebitError(code)
     throw err
   }
 }
 ```
 
-In the code above, `isInsufficient` reads the Creem error, either an HTTP 422 or an "insufficient" marker in the body, so the application can show the user a clean "you need N credits" (instead of a raw API error).
+In the code above, `insufficient_balance` lets the application show the user a clean "you need N credits" (instead of a raw API error). A `moderation_*` code, such as `moderation_id_required` or `moderation_result_already_used`, means Creem refused the debit because of its moderation result. In both cases nothing was debited.
 
 ### Read current and point-in-time balances
 
@@ -393,7 +414,7 @@ if (prior && prior.status === "completed") {
 }
 ```
 
-Before consuming credits, it checks that the user has a wallet and that the wallet is `active`. A frozen or closed account is turned away with a clear status. Then the following four steps run:
+Before consuming credits, it loads the user's wallet with `ensureWalletForUser` and checks that it is `active`. A frozen or closed account is turned away with a clear status. Then the following four steps run:
 
 ### Step 1: moderate
 
@@ -401,7 +422,7 @@ If the prompt doesn't clear, the route records a `rejected` generation and retur
 
 ```ts
 const moderation = await screenPrompt(prompt, `user_${user.id}:gen_${genId}`);
-if (!moderation.allowed) {
+if (!moderation.allowed || !moderation.id) {
   await recordGeneration({
     /* status: 'rejected', decision: moderation.decision */
   });
@@ -414,7 +435,7 @@ if (!moderation.allowed) {
 
 ### Step 2: debit
 
-The user is then charged (before the model runs). A separate idempotency key derived from the request key keeps the debit itself safe to retry. An insufficient balance is caught as a 402, and the generation is recorded so the generation attempt is not lost.
+The user is then charged (before the model runs). A separate idempotency key derived from the request key keeps the debit itself safe to retry, and `moderationId` links the debit to the result from step 1. One moderation ID pays for one debit. An insufficient balance is caught as a 402, and a debit Creem refuses because of its moderation result is returned as a blocked prompt. In both cases nothing was charged, and the generation is recorded so the attempt is not lost.
 
 ```ts
 let debitTxnId: string;
@@ -425,6 +446,8 @@ try {
     amount: cost,
     reference: `gen:${genId}`,
     idempotencyKey: `debit_${idempotencyKey}`,
+    // Proof the prompt was screened and allowed. One id pays for one debit.
+    moderationId: moderation.id,
   });
   debitTxnId = txn.id;
 } catch (err) {
@@ -438,6 +461,17 @@ try {
         message: `You need ${cost} credits for this ${mediaType}.`,
       },
       { status: 402 },
+    );
+  }
+  if (err instanceof ModerationDebitError) {
+    // Creem refused the debit because of its moderation result (expired,
+    // already used, ...). Nothing was charged, so treat it as a blocked prompt.
+    await recordGeneration({
+      /* status: 'rejected', decision: 'error' */
+    });
+    return NextResponse.json(
+      { id: genId, status: "rejected", decision: "error", message: "Please try again." },
+      { status: 400 },
     );
   }
   return NextResponse.json({ error: "billing_error" }, { status: 502 });
@@ -540,7 +574,7 @@ In the code above:
 
 ## Sell credit packs
 
-The pricing page lists three packs, defined in [`src/lib/packs.ts`](https://github.com/armitage-labs/creem/blob/main/packages/examples/safe-metered-ai-generator/src/lib/packs.ts), and each one maps to a Creem product through the env vars you set earlier:
+The pricing page lists three packs, defined in [`src/lib/packs.ts`](https://github.com/armitage-labs/creem/blob/main/packages/examples/safe-metered-ai-generator/src/lib/packs.ts), and each one maps to a Creem product through the env vars you set earlier. The `credits` number here is display copy for the pricing card. The amount a purchase grants is the one set on the product's AI generation credits feature, so keep the two in sync:
 
 ```ts
 export const PACKS: Pack[] = [
@@ -557,51 +591,28 @@ export const PACKS: Pack[] = [
 ];
 ```
 
-Clicking "Buy" calls [`src/app/api/checkout/route.ts`](https://github.com/armitage-labs/creem/blob/main/packages/examples/safe-metered-ai-generator/src/app/api/checkout/route.ts), which opens a Creem checkout for that product and returns the URL. The important line is `metadata.referenceId`, which passes the app user id into the checkout so the webhook can credit the right wallet.
+Clicking "Buy" calls [`src/app/api/checkout/route.ts`](https://github.com/armitage-labs/creem/blob/main/packages/examples/safe-metered-ai-generator/src/app/api/checkout/route.ts), which opens a Creem checkout for that product and returns the URL. The important line is `customer.id`: the checkout runs as the Creem customer created at sign-up, so the credits land in that user's generation wallet.
 
 ```ts
-const { url } = await createCheckout(
-  { apiKey: env.creemApiKey, testMode: env.isTestMode },
-  {
-    productId: pack.productId,
-    customer: { email: user.email },
-    successUrl: `${env.appUrl}/success`,
-    ...(DISCOUNT_CODE ? { discountCode: DISCOUNT_CODE } : {}),
-    metadata: { referenceId: user.id, packId: pack.id },
-  },
-);
+const wallet = await ensureWalletForUser(user);
+const checkout = await creemClient.checkouts.create({
+  productId: pack.productId,
+  customer: { id: wallet.creemCustomerId },
+  successUrl: `${env.appUrl}/success`,
+  ...(DISCOUNT_CODE ? { discountCode: DISCOUNT_CODE } : {}),
+  metadata: { referenceId: user.id, packId: pack.id },
+});
 ```
 
-## Credit the wallet from the webhook
+## Creem credits the wallet
 
-The Creem plugin in [`src/lib/auth.ts`](https://github.com/armitage-labs/creem/blob/main/packages/examples/safe-metered-ai-generator/src/lib/auth.ts) verifies the webhook signature for you and serves the endpoint at `/api/auth/creem/webhook`. Your job is the `onCheckoutCompleted` hook, which runs after a confirmed payment:
+When the payment succeeds, Creem adds the product's credits to the buyer's generation wallet as part of the payment. The app has no credit call and no webhook handler for purchases, so there is no double crediting, retry or failed webhook to handle. The balance widget reads the new balance from Creem on the next refresh.
 
-```ts
-onCheckoutCompleted: async ({ customer, product, order, metadata }) => {
-  const customerId = customer?.id;
-  const userId = metadata?.referenceId as string | undefined;
-  if (!customerId || !userId) return;
-
-  const pack = getPackByProductId(product?.id ?? "");
-  if (!pack) return;
-
-  // Ensure the wallet exists for the now-known Creem customer, then credit it.
-  const account = await ensureAccountForUser(userId, customerId);
-  await creditPack({
-    userId,
-    accountId: account.accountId,
-    amount: pack.credits,
-    reference: `pack:${pack.id}:order:${order?.id ?? "unknown"}`,
-    idempotencyKey: `pack_${order?.id ?? `${userId}_${pack.id}`}`,
-  });
-};
-```
-
-In the code above:
-
-- `ensureAccountForUser` function creates the Creem credit wallet the first time a customer pays, using the customer id from the webhook. It serializes per-user creation behind a transaction-scoped advisory lock (`pg_advisory_xact_lock`) and re-checks the table inside the lock, so exactly one wallet is created per user.
-- The idempotency key is built from the order id, so if Creem retries the webhook, the same order does not credit the wallet twice.
-- The hook does not wrap the crediting in a try/catch. If crediting fails on a database or a network hiccup, the error throw returns a non-2xx from the webhook, so Creem retries delivery and the credits get applied on a later automatic attempt.
+<Warning>
+  Don't also add credits from a webhook such as `checkout.completed`. Creem already adds them, so
+  your users would get the credits twice. To refresh the balance in your UI as soon as credits
+  arrive, listen for the `credits.granted` webhook instead.
+</Warning>
 
 ## Protect routes with authentication checks
 
@@ -672,7 +683,7 @@ Then, add a `case 'fal'` in `getGenerator()` and set `GENERATOR=fal` as the envi
 
 ## Deploy to Vercel
 
-<a href="https://vercel.com/new/clone?repository-url=https://github.com/armitage-labs/creem/tree/main/packages/examples/safe-metered-ai-generator&env=DATABASE_URL,BETTER_AUTH_SECRET,CREEM_API_KEY,CREEM_WEBHOOK_SECRET,CREEM_PRODUCT_STARTER,CREEM_PRODUCT_PRO,CREEM_PRODUCT_STUDIO">
+<a href="https://vercel.com/new/clone?repository-url=https://github.com/armitage-labs/creem/tree/main/packages/examples/safe-metered-ai-generator&env=DATABASE_URL,BETTER_AUTH_SECRET,CREEM_API_KEY,CREEM_PRODUCT_STARTER,CREEM_PRODUCT_PRO,CREEM_PRODUCT_STUDIO">
   <img src="https://vercel.com/button" alt="Deploy with Vercel" />
 </a>
 
@@ -680,8 +691,7 @@ Then, add a `case 'fal'` in `getGenerator()` and set `GENERATOR=fal` as the envi
 2. Set every environment variable from your `.env.local`.
 3. Set `BETTER_AUTH_URL` and `NEXT_PUBLIC_APP_URL` to your Vercel URL.
 4. Run `pnpm db:migrate` once against your production database.
-5. Point your Creem webhook at `https://<your-app>/api/auth/creem/webhook` and subscribe it to `checkout.completed`.
 
 ## Summary
 
-You now have a safe, metered AI image and video generator built with Next.js and Creem. Creem holds the credits and screens the prompts, and Postgres keeps a mirror for history and auditing. Every generation runs in the same order: moderate, debit, generate, then return or reverse. When you're ready for a real model, simply swap the `StubGenerator` behind its interface.
+You now have a safe, metered AI image and video generator built with Next.js and Creem. Creem holds the credits, adds purchased ones to each user's generation wallet and screens the prompts, and Postgres keeps a mirror for history and auditing. Every generation runs in the same order: moderate, debit with the moderation ID, generate, then return or reverse. When you're ready for a real model, simply swap the `StubGenerator` behind its interface.

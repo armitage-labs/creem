@@ -1,9 +1,9 @@
 import Link from 'next/link'
 
 /**
- * Post-checkout landing. The wallet is credited asynchronously by the
- * `checkout.completed` webhook, so we tell the user it may take a moment and
- * send them back to the studio where the balance widget polls.
+ * Post-checkout landing. Creem adds the pack's credits to the buyer's
+ * generation wallet once the payment succeeds, so we tell the user it may take
+ * a moment and send them back to the studio where the balance widget polls.
  */
 export default function SuccessPage() {
   return (
@@ -13,9 +13,7 @@ export default function SuccessPage() {
           ✓
         </span>
         <h1 className="text-2xl font-semibold">Payment received</h1>
-        <p className="text-ink-2 mt-3 text-sm leading-relaxed">
-          Thanks! Your credits are being added to your wallet. This happens via a Creem webhook and usually lands within a few seconds.
-        </p>
+        <p className="text-ink-2 mt-3 text-sm leading-relaxed">Thanks! Creem is adding your credits to your wallet. This usually takes a few seconds.</p>
         <Link href="/dashboard" className="btn btn-primary mt-7 w-full">
           Back to the studio
         </Link>
