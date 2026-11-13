@@ -175,25 +175,67 @@ function collectNavigationPages(value, pages = new Set()) {
   return pages;
 }
 
-function validateNavigationCoverage(generatedFiles) {
+// Endpoint pages must match the contract, so every problem below fails the run
+// before any page is written. They are collected and reported together, so a
+// renamed endpoint shows its new page and its stale one in the same run. An
+// endpoint that left the contract must not stay published: its page and its
+// navigation entry both fail the run until they are removed. --cleanup deletes
+// the pages, but only once no navigation entry points at them any more. The
+// problems stay on one line, because the OpenAPI sync quotes the `Error:` line.
+function validateEndpointPages(generatedFiles, outputDir, cleanup) {
   const docsConfigPath = path.join(process.cwd(), "docs.json");
   const docsConfig = JSON.parse(fs.readFileSync(docsConfigPath, "utf-8"));
   const navigationPages = collectNavigationPages(docsConfig.navigation);
+  const prefix = "api-reference/endpoint/";
   const missingFromNavigation = [...generatedFiles]
     .filter((filename) => !HIDDEN_ENDPOINT_ALLOWLIST.has(filename))
-    .filter(
-      (filename) =>
-        !navigationPages.has(`api-reference/endpoint/${filename.replace(/\.mdx$/, "")}`),
-    )
+    .filter((filename) => !navigationPages.has(`${prefix}${filename.replace(/\.mdx$/, "")}`))
+    .sort();
+  const staleNavigation = [...navigationPages]
+    .filter((page) => page.startsWith(prefix))
+    .filter((page) => !generatedFiles.has(`${page.slice(prefix.length)}.mdx`))
+    .sort();
+  const staleAllowlist = [...HIDDEN_ENDPOINT_ALLOWLIST]
+    .filter((filename) => !generatedFiles.has(filename))
+    .sort();
+  const orphanedFiles = fs
+    .readdirSync(outputDir)
+    .filter((filename) => filename.endsWith(".mdx") && !generatedFiles.has(filename))
     .sort();
 
+  const problems = [];
   if (missingFromNavigation.length > 0) {
-    throw new Error(
+    problems.push(
       `Generated endpoint pages are missing from docs.json navigation: ${missingFromNavigation.join(
         ", ",
       )}. Add them to navigation or explicitly document them in HIDDEN_ENDPOINT_ALLOWLIST.`,
     );
   }
+  if (staleNavigation.length > 0) {
+    problems.push(
+      `docs.json navigation lists endpoint pages that are not in the OpenAPI spec: ${staleNavigation.join(
+        ", ",
+      )}. Remove these navigation entries, and add a redirect if the endpoint was renamed.`,
+    );
+  }
+  if (staleAllowlist.length > 0) {
+    problems.push(
+      `HIDDEN_ENDPOINT_ALLOWLIST lists pages that are not in the OpenAPI spec: ${staleAllowlist.join(
+        ", ",
+      )}. Remove them from the list.`,
+    );
+  }
+  if (orphanedFiles.length > 0 && !cleanup) {
+    problems.push(
+      `Endpoint pages have no operation in the OpenAPI spec: ${orphanedFiles.join(
+        ", ",
+      )}. Delete them (generate:api:cleanup does this once their navigation entries are gone).`,
+    );
+  }
+  if (problems.length > 0) {
+    throw new Error(problems.join(" "));
+  }
+  return orphanedFiles;
 }
 
 // Get description from OpenAPI or fallback
@@ -332,7 +374,11 @@ async function main() {
     operationsByFilename.set(filename, operation);
   }
 
-  validateNavigationCoverage(new Set(operationsByFilename.keys()));
+  const orphanedFiles = validateEndpointPages(
+    new Set(operationsByFilename.keys()),
+    outputDir,
+    options.cleanup,
+  );
 
   // Check for operations without descriptions
   const missingDescriptions = operations.filter(
@@ -401,27 +447,18 @@ async function main() {
     }
   }
 
-  // Detect orphaned MDX files (exist but not in spec)
-  const existingFiles = fs.readdirSync(outputDir).filter((f) => f.endsWith(".mdx"));
-  const orphanedFiles = existingFiles.filter((f) => !generatedFiles.has(f));
+  // Orphaned pages only reach this point with --cleanup; otherwise
+  // validateEndpointPages has already failed the run.
   let deleted = 0;
 
   if (orphanedFiles.length > 0) {
     console.log("\n⚠️  Orphaned files (not in OpenAPI spec):\n");
     for (const filename of orphanedFiles) {
-      const filePath = path.join(outputDir, filename);
-      if (options.cleanup) {
-        if (!options.dryRun) {
-          fs.unlinkSync(filePath);
-        }
-        console.log(`🗑️  ${filename} (deleted)`);
-        deleted++;
-      } else {
-        console.log(`   ${filename}`);
+      if (!options.dryRun) {
+        fs.unlinkSync(path.join(outputDir, filename));
       }
-    }
-    if (!options.cleanup) {
-      console.log("\n   Run with --cleanup to delete these files");
+      console.log(`🗑️  ${filename} (deleted)`);
+      deleted++;
     }
   }
 

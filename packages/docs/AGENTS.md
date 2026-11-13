@@ -182,6 +182,7 @@ When the backend API changes:
 2. Run: `pnpm --dir packages/docs generate:api:remote -- https://api.creem.io/open-api/json` (or sandbox URL)
 3. Review the generated changes
 4. Add the new endpoint page path to `docs.json` navigation if it's a new endpoint
+   - For a removed endpoint, remove its `docs.json` navigation entry first (and add a redirect if the endpoint was renamed); `--cleanup` then deletes its page. Without `--cleanup`, a page or navigation entry of an endpoint that is no longer in the spec fails the generator (and `merge-gate`), so it can't stay published.
 5. Commit both the updated `openapi.json` and any new/changed MDX files
 
 ---
