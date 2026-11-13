@@ -1,6 +1,6 @@
 import assert from "node:assert/strict";
 import { spawnSync } from "node:child_process";
-import { existsSync, mkdirSync, mkdtempSync, rmSync, writeFileSync } from "node:fs";
+import { existsSync, mkdirSync, mkdtempSync, readFileSync, rmSync, writeFileSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { dirname, join } from "node:path";
 import test from "node:test";
@@ -8,18 +8,30 @@ import { fileURLToPath } from "node:url";
 
 const generator = join(dirname(fileURLToPath(import.meta.url)), "generate-api-docs.js");
 
-// A docs folder with one operation (`getWidget`) in the contract, the given
+// A docs folder with one listed operation (`getWidget`) in the contract, the given
 // navigation entries and the given endpoint pages already on disk.
 function docsFixture({ navigation, pages = [] }) {
   const dir = mkdtempSync(join(tmpdir(), "generate-api-docs-"));
   const endpointDir = join(dir, "api-reference", "endpoint");
   mkdirSync(endpointDir, { recursive: true });
+  // The hidden operations keep HIDDEN_ENDPOINT_ALLOWLIST valid; they need no
+  // navigation entry.
+  const hidden = [
+    "createCustomer",
+    "updateCustomer",
+    "listCustomerLicenses",
+    "listCustomerOrders",
+    "listCustomerSubscriptions",
+  ];
   const spec = {
     openapi: "3.0.0",
     paths: {
       "/v1/widgets": {
         get: { operationId: "getWidget", summary: "Get widget", description: "Get a widget." },
       },
+      ...Object.fromEntries(
+        hidden.map((operationId) => [`/v1/hidden/${operationId}`, { get: { operationId } }]),
+      ),
     },
   };
   writeFileSync(join(dir, "api-reference", "openapi.json"), JSON.stringify(spec));
@@ -109,6 +121,41 @@ test("a navigation entry without an operation fails even when its page is gone",
     assert.match(
       output,
       /docs\.json navigation lists endpoint pages that are not in the OpenAPI spec: api-reference\/endpoint\/delete-widget\. /,
+    );
+  } finally {
+    rmSync(dir, { recursive: true, force: true });
+  }
+});
+
+test("a renamed endpoint reports the new page and the stale one in the same run", () => {
+  const { dir } = docsFixture({
+    navigation: ["api-reference/endpoint/fetch-widget"],
+    pages: ["fetch-widget.mdx"],
+  });
+  try {
+    const { status, output } = generate(dir, "--dry-run");
+    assert.equal(status, 1);
+    assert.match(output, /missing from docs\.json navigation: get-widget\.mdx/);
+    assert.match(output, /not in the OpenAPI spec: api-reference\/endpoint\/fetch-widget\. /);
+    assert.match(output, /no operation in the OpenAPI spec: fetch-widget\.mdx/);
+    assert.match(output, /add a redirect/);
+  } finally {
+    rmSync(dir, { recursive: true, force: true });
+  }
+});
+
+test("an allowlisted hidden page that left the contract fails", () => {
+  const { dir } = docsFixture({ navigation: ["api-reference/endpoint/get-widget"] });
+  try {
+    const path = join(dir, "api-reference", "openapi.json");
+    const spec = JSON.parse(readFileSync(path, "utf8"));
+    delete spec.paths["/v1/hidden/createCustomer"];
+    writeFileSync(path, JSON.stringify(spec));
+    const { status, output } = generate(dir, "--dry-run");
+    assert.equal(status, 1);
+    assert.match(
+      output,
+      /HIDDEN_ENDPOINT_ALLOWLIST lists pages that are not in the OpenAPI spec: create-customer\.mdx/,
     );
   } finally {
     rmSync(dir, { recursive: true, force: true });

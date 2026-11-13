@@ -251,6 +251,7 @@ test("the body reports API reference pages that could not be regenerated", () =>
   assert.match(body, /list-widgets\.mdx/);
   assert.match(body, /`merge-gate` fails until the docs match the contract/);
   assert.match(body, /A removed endpoint must lose its page and its navigation entry/);
+  assert.match(body, /run `pnpm --dir packages\/docs generate:api:cleanup`/);
   assert.doesNotMatch(renderBody({ ...bodyInput, level: "minor" }), /not regenerated/);
 });
 

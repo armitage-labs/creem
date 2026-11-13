@@ -240,7 +240,7 @@ export function renderBody({
       "## API reference pages not regenerated",
       "",
       "> [!WARNING]",
-      "> `pnpm --dir packages/docs generate:api` failed, so the endpoint pages in this pull request are not regenerated, and `merge-gate` fails until the docs match the contract. A new endpoint needs an entry in `packages/docs/docs.json` navigation. A removed endpoint must lose its page and its navigation entry, so it does not stay published. Fix that in this pull request, then run the command again and commit the pages it writes.",
+      "> `pnpm --dir packages/docs generate:api` failed, so the endpoint pages in this pull request are not regenerated, and `merge-gate` fails until the docs match the contract. A new endpoint needs an entry in `packages/docs/docs.json` navigation. A removed endpoint must lose its page and its navigation entry, so it does not stay published. Fix that in this pull request, then run `pnpm --dir packages/docs generate:api:cleanup` (it writes the pages and deletes those of removed endpoints) and commit the result.",
       "",
       "```text",
       docsError.trim().slice(0, 4000),

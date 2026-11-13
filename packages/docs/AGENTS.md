@@ -102,10 +102,10 @@ The `docs.json` file is the primary configuration. It controls:
 
 ### Navigation Structure
 
-| Tab               | Groups                                                                                                     |
-| ----------------- | ---------------------------------------------------------------------------------------------------------- |
-| **Documentation** | Get Started, AI, Features, Code, Integrations, Community, Merchant of Record, For Customers                |
-| **Guides**        | Step-by-step tutorials (create product, create checkout, FAQ)                                              |
+| Tab | Groups |
+|-----|--------|
+| **Documentation** | Get Started, AI, Features, Code, Integrations, Community, Merchant of Record, For Customers |
+| **Guides** | Step-by-step tutorials (create product, create checkout, FAQ) |
 | **API Reference** | Introduction, Error Codes, Checkout, Product, Customer, Transactions, License, Discount Code, Subscription |
 
 ### Adding a New Page
@@ -128,9 +128,9 @@ Every MDX page needs frontmatter:
 
 ```yaml
 ---
-title: "Page Title"
-description: "Brief description of the page content."
-icon: "icon-name" # Optional — Font Awesome icon name
+title: 'Page Title'
+description: 'Brief description of the page content.'
+icon: 'icon-name'  # Optional — Font Awesome icon name
 ---
 ```
 
@@ -151,7 +151,6 @@ Speakeasy requires an authenticated CLI session and network access. If generatio
 ### How API Docs Are Generated
 
 The `scripts/generate-api-docs.js` script:
-
 1. Reads the OpenAPI spec (local file or remote URL)
 2. Generates/updates MDX files in `api-reference/endpoint/`
 3. Only touches frontmatter (title, description, openapi reference)
@@ -161,10 +160,11 @@ The `scripts/generate-api-docs.js` script:
 
 ```yaml
 ---
-title: "Creates a new product"
-description: "Create a new product for one-time payments, including free products with a 0 price, or subscriptions."
+title: 'Creates a new product'
+description: 'Create a new product for one-time payments, including free products with a 0 price, or subscriptions.'
 openapi: post /v1/products
 ---
+
 ## Custom Content Here
 
 Any content below the frontmatter is preserved across regenerations.
@@ -182,7 +182,7 @@ When the backend API changes:
 2. Run: `pnpm --dir packages/docs generate:api:remote -- https://api.creem.io/open-api/json` (or sandbox URL)
 3. Review the generated changes
 4. Add the new endpoint page path to `docs.json` navigation if it's a new endpoint
-   - For a removed endpoint, remove its `docs.json` navigation entry first; `--cleanup` then deletes its page. Without `--cleanup`, a page or navigation entry of an endpoint that is no longer in the spec fails the generator (and `merge-gate`), so it can't stay published.
+   - For a removed endpoint, remove its `docs.json` navigation entry first (and add a redirect if the endpoint was renamed); `--cleanup` then deletes its page. Without `--cleanup`, a page or navigation entry of an endpoint that is no longer in the spec fails the generator (and `merge-gate`), so it can't stay published.
 5. Commit both the updated `openapi.json` and any new/changed MDX files
 
 ---
@@ -194,30 +194,28 @@ Understanding the business is essential for writing accurate documentation.
 ### What Creem Does
 
 Creem is a **Merchant of Record (MoR)** — the legal entity that sells digital products on behalf of merchants. This means:
-
 - Creem handles payment processing, tax collection, compliance, and chargebacks
 - Merchants integrate via API and receive payouts
 - End-customers see "Creem" (or white-labeled) as the seller on their receipts
 
 ### Core Product Areas
 
-| Area                | Description                                                  |
-| ------------------- | ------------------------------------------------------------ |
-| **Payments**        | One-time and recurring payments via checkout sessions        |
-| **Subscriptions**   | Full lifecycle — create, upgrade, pause, resume, cancel      |
-| **Tax Compliance**  | Automatic VAT/GST collection for 190+ countries              |
-| **License Keys**    | Software licensing with activation, validation, deactivation |
-| **Revenue Splits**  | Programmable payment splitting between multiple recipients   |
-| **Affiliates**      | Built-in affiliate/referral program infrastructure           |
-| **Discounts**       | Coupon codes with percentage or fixed-amount discounts       |
-| **Customer Portal** | Self-service portal for subscription and billing management  |
-| **Storefronts**     | Hosted product pages for merchants                           |
-| **Webhooks**        | Event notifications for all payment lifecycle events         |
+| Area | Description |
+|------|-------------|
+| **Payments** | One-time and recurring payments via checkout sessions |
+| **Subscriptions** | Full lifecycle — create, upgrade, pause, resume, cancel |
+| **Tax Compliance** | Automatic VAT/GST collection for 190+ countries |
+| **License Keys** | Software licensing with activation, validation, deactivation |
+| **Revenue Splits** | Programmable payment splitting between multiple recipients |
+| **Affiliates** | Built-in affiliate/referral program infrastructure |
+| **Discounts** | Coupon codes with percentage or fixed-amount discounts |
+| **Customer Portal** | Self-service portal for subscription and billing management |
+| **Storefronts** | Hosted product pages for merchants |
+| **Webhooks** | Event notifications for all payment lifecycle events |
 
 ### Target Audience
 
 The documentation serves:
-
 - **Developers** integrating Creem via API or SDKs
 - **Solopreneurs / Indie hackers** selling digital products
 - **AI tool creators** needing fast payment integration
@@ -240,52 +238,52 @@ This context helps when writing or editing API-related documentation.
 
 API keys can have granular scopes following `resource:action` pattern:
 
-| Resource      | Read               | Write               |
-| ------------- | ------------------ | ------------------- |
-| checkouts     | checkouts:read     | checkouts:write     |
-| products      | products:read      | products:write      |
-| customers     | customers:read     | customers:write     |
+| Resource | Read | Write |
+|----------|------|-------|
+| checkouts | checkouts:read | checkouts:write |
+| products | products:read | products:write |
+| customers | customers:read | customers:write |
 | subscriptions | subscriptions:read | subscriptions:write |
-| transactions  | transactions:read  | —                   |
-| licenses      | licenses:read      | licenses:write      |
-| discounts     | discounts:read     | discounts:write     |
-| stats         | stats:read         | —                   |
+| transactions | transactions:read | — |
+| licenses | licenses:read | licenses:write |
+| discounts | discounts:read | discounts:write |
+| stats | stats:read | — |
 
 Special scope: `*:*` grants full access to all resources.
 
 ### API Endpoints
 
-| Group            | Endpoints                                           |
-| ---------------- | --------------------------------------------------- |
-| **Checkout**     | Create checkout, Retrieve checkout                  |
-| **Product**      | Create product, Retrieve product, Search products   |
-| **Customer**     | Retrieve customer, List customers, Customer billing |
-| **Subscription** | Retrieve, Update, Upgrade, Pause, Resume, Cancel    |
-| **Transaction**  | Retrieve transaction, List transactions             |
-| **License**      | Validate, Activate, Deactivate                      |
-| **Discount**     | Create, Retrieve, Delete                            |
-| **Stats**        | Revenue, Subscriptions, Customers, MRR, Churn, LTV  |
+| Group | Endpoints |
+|-------|-----------|
+| **Checkout** | Create checkout, Retrieve checkout |
+| **Product** | Create product, Retrieve product, Search products |
+| **Customer** | Retrieve customer, List customers, Customer billing |
+| **Subscription** | Retrieve, Update, Upgrade, Pause, Resume, Cancel |
+| **Transaction** | Retrieve transaction, List transactions |
+| **License** | Validate, Activate, Deactivate |
+| **Discount** | Create, Retrieve, Delete |
+| **Stats** | Revenue, Subscriptions, Customers, MRR, Churn, LTV |
 
 ### Core Data Entities
 
-| Entity           | Key Fields                                                            |
-| ---------------- | --------------------------------------------------------------------- |
-| **Product**      | id, name, price, currency, billing_period, tax_code                   |
-| **Customer**     | id, email, name, country                                              |
-| **Checkout**     | id, product_id, customer info, success/return URLs                    |
+| Entity | Key Fields |
+|--------|-----------|
+| **Product** | id, name, price, currency, billing_period, tax_code |
+| **Customer** | id, email, name, country |
+| **Checkout** | id, product_id, customer info, success/return URLs |
 | **Subscription** | id, status (active/paused/canceled/expired), current_period_start/end |
-| **Transaction**  | id, type (charge/refund/chargeback), status, amount                   |
-| **License**      | id, key, activation_limit, status                                     |
-| **Discount**     | id, code, type (percentage/fixed_amount), duration                    |
+| **Transaction** | id, type (charge/refund/chargeback), status, amount |
+| **License** | id, key, activation_limit, status |
+| **Discount** | id, code, type (percentage/fixed_amount), duration |
 
 ### SDKs & Developer Tools
 
-| Tool            | Purpose                                                                    |
-| --------------- | -------------------------------------------------------------------------- |
-| `@creem/sdk`    | Core TypeScript SDK                                                        |
-| `@creem/next`   | Next.js adapter with server-side helpers                                   |
-| `@creem_io/cli` | CLI tool for managing products, customers, subscriptions                   |
-| Webhooks        | Event-driven notifications (checkout.completed, subscription.active, etc.) |
+| Tool | Purpose |
+|------|---------|
+| `@creem/sdk` | Core TypeScript SDK |
+| `@creem/next` | Next.js adapter with server-side helpers |
+| `@creem_io/cli` | CLI tool for managing products, customers, subscriptions |
+| Webhooks | Event-driven notifications (checkout.completed, subscription.active, etc.) |
 
 ---
 
@@ -319,7 +317,12 @@ Use Mintlify's built-in components in MDX:
 <Info>Additional context that may be useful.</Info>
 
 <CodeGroup>
-  ```typescript TypeScript // TypeScript example ``` ```python Python # Python example ```
+```typescript TypeScript
+// TypeScript example
+```
+```python Python
+# Python example
+```
 </CodeGroup>
 
 <Card title="Card Title" icon="icon-name" href="/link">
@@ -332,8 +335,12 @@ Use Mintlify's built-in components in MDX:
 </CardGroup>
 
 <Steps>
-  <Step title="First Step">Step content here.</Step>
-  <Step title="Second Step">Step content here.</Step>
+  <Step title="First Step">
+    Step content here.
+  </Step>
+  <Step title="Second Step">
+    Step content here.
+  </Step>
 </Steps>
 
 <Tabs>
@@ -341,7 +348,9 @@ Use Mintlify's built-in components in MDX:
   <Tab title="Tab 2">Content for tab 2</Tab>
 </Tabs>
 
-<Accordion title="Expandable Section">Hidden content revealed on click.</Accordion>
+<Accordion title="Expandable Section">
+  Hidden content revealed on click.
+</Accordion>
 ````
 
 ---
@@ -362,7 +371,6 @@ cleanly and contributes nothing. Keep the four `.md` files together — `SKILL.m
 references the other three by bare filename.
 
 The `ai/` documentation directory covers:
-
 - **For Humans**: CLI usage, getting started guides, using Creem in the Claude and ChatGPT apps
 - **For Agents**: Skill files, agent CLI, store monitoring
 

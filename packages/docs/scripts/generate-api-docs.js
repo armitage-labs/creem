@@ -175,36 +175,28 @@ function collectNavigationPages(value, pages = new Set()) {
   return pages;
 }
 
-function validateNavigationCoverage(generatedFiles) {
+// Endpoint pages must match the contract, so every problem below fails the run
+// before any page is written. They are collected and reported together, so a
+// renamed endpoint shows its new page and its stale one in the same run. An
+// endpoint that left the contract must not stay published: its page and its
+// navigation entry both fail the run until they are removed. --cleanup deletes
+// the pages, but only once no navigation entry points at them any more. The
+// problems stay on one line, because the OpenAPI sync quotes the `Error:` line.
+function validateEndpointPages(generatedFiles, outputDir, cleanup) {
   const docsConfigPath = path.join(process.cwd(), "docs.json");
   const docsConfig = JSON.parse(fs.readFileSync(docsConfigPath, "utf-8"));
   const navigationPages = collectNavigationPages(docsConfig.navigation);
+  const prefix = "api-reference/endpoint/";
   const missingFromNavigation = [...generatedFiles]
     .filter((filename) => !HIDDEN_ENDPOINT_ALLOWLIST.has(filename))
-    .filter(
-      (filename) =>
-        !navigationPages.has(`api-reference/endpoint/${filename.replace(/\.mdx$/, "")}`),
-    )
+    .filter((filename) => !navigationPages.has(`${prefix}${filename.replace(/\.mdx$/, "")}`))
     .sort();
-
-  if (missingFromNavigation.length > 0) {
-    throw new Error(
-      `Generated endpoint pages are missing from docs.json navigation: ${missingFromNavigation.join(
-        ", ",
-      )}. Add them to navigation or explicitly document them in HIDDEN_ENDPOINT_ALLOWLIST.`,
-    );
-  }
-}
-
-// An endpoint that left the contract must not stay published: its page and its
-// navigation entry both fail the run until they are removed. --cleanup deletes
-// the pages, but only once no navigation entry points at them any more.
-function findStaleEndpointPages(generatedFiles, outputDir, cleanup) {
-  const docsConfig = JSON.parse(fs.readFileSync(path.join(process.cwd(), "docs.json"), "utf-8"));
-  const prefix = "api-reference/endpoint/";
-  const staleNavigation = [...collectNavigationPages(docsConfig.navigation)]
+  const staleNavigation = [...navigationPages]
     .filter((page) => page.startsWith(prefix))
     .filter((page) => !generatedFiles.has(`${page.slice(prefix.length)}.mdx`))
+    .sort();
+  const staleAllowlist = [...HIDDEN_ENDPOINT_ALLOWLIST]
+    .filter((filename) => !generatedFiles.has(filename))
     .sort();
   const orphanedFiles = fs
     .readdirSync(outputDir)
@@ -212,11 +204,25 @@ function findStaleEndpointPages(generatedFiles, outputDir, cleanup) {
     .sort();
 
   const problems = [];
+  if (missingFromNavigation.length > 0) {
+    problems.push(
+      `Generated endpoint pages are missing from docs.json navigation: ${missingFromNavigation.join(
+        ", ",
+      )}. Add them to navigation or explicitly document them in HIDDEN_ENDPOINT_ALLOWLIST.`,
+    );
+  }
   if (staleNavigation.length > 0) {
     problems.push(
       `docs.json navigation lists endpoint pages that are not in the OpenAPI spec: ${staleNavigation.join(
         ", ",
-      )}. Remove these navigation entries.`,
+      )}. Remove these navigation entries, and add a redirect if the endpoint was renamed.`,
+    );
+  }
+  if (staleAllowlist.length > 0) {
+    problems.push(
+      `HIDDEN_ENDPOINT_ALLOWLIST lists pages that are not in the OpenAPI spec: ${staleAllowlist.join(
+        ", ",
+      )}. Remove them from the list.`,
     );
   }
   if (orphanedFiles.length > 0 && !cleanup) {
@@ -368,8 +374,7 @@ async function main() {
     operationsByFilename.set(filename, operation);
   }
 
-  validateNavigationCoverage(new Set(operationsByFilename.keys()));
-  const orphanedFiles = findStaleEndpointPages(
+  const orphanedFiles = validateEndpointPages(
     new Set(operationsByFilename.keys()),
     outputDir,
     options.cleanup,
@@ -443,7 +448,7 @@ async function main() {
   }
 
   // Orphaned pages only reach this point with --cleanup; otherwise
-  // findStaleEndpointPages has already failed the run.
+  // validateEndpointPages has already failed the run.
   let deleted = 0;
 
   if (orphanedFiles.length > 0) {

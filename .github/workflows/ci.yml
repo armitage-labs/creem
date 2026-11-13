@@ -106,6 +106,15 @@ jobs:
           node --test scripts/sync-sdk-version.test.mjs
           pnpm check:sdk-version
 
+      # The API reference is validated against the docs copy of the contract,
+      # so a contract change that skips `pnpm gen:sdk` must not leave it behind.
+      - name: Check the docs copy of the OpenAPI contract
+        run: |
+          if ! cmp -s packages/sdk/openapi.json packages/docs/api-reference/openapi.json; then
+            echo "::error::packages/docs/api-reference/openapi.json differs from packages/sdk/openapi.json. Run pnpm gen:sdk, or copy the contract, and regenerate the API reference with pnpm --dir packages/docs generate:api."
+            exit 1
+          fi
+
       - name: Validate generated API reference structure
         if: steps.docs.outputs.changed == 'true'
         run: pnpm --dir packages/docs generate:api:dry-run
