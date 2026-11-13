@@ -127,16 +127,19 @@ jobs:
           Bump creem SDK dependency to ${{ steps.sdk.outputs.version }}
           EOF
 
-      # Pull requests opened with GITHUB_TOKEN do not start other workflows.
-      # The PR_AUTOMATION_APP_ID variable and PR_AUTOMATION_APP_PRIVATE_KEY
-      # secret (shared with openapi-sync.yml) give the pull request its checks;
-      # without them, closing and reopening it starts them.
+      # Pull requests opened with GITHUB_TOKEN do not start other workflows, so
+      # the pull request is opened with a token of the GitHub App behind
+      # HOMEBREW_APP_ID and HOMEBREW_APP_PRIVATE_KEY (shared with
+      # homebrew-release.yml and openapi-sync.yml). The App must be installed
+      # on this repository with contents, pull-requests and workflows write.
       - uses: actions/create-github-app-token@fee1f7d63c2ff003460e3d139729b119787bc349 # v2
         id: app
-        if: steps.npm.outputs.published == 'true' && vars.PR_AUTOMATION_APP_ID != ''
+        if: steps.npm.outputs.published == 'true'
         with:
-          app-id: ${{ vars.PR_AUTOMATION_APP_ID }}
-          private-key: ${{ secrets.PR_AUTOMATION_APP_PRIVATE_KEY }}
+          app-id: ${{ vars.HOMEBREW_APP_ID }}
+          private-key: ${{ secrets.HOMEBREW_APP_PRIVATE_KEY }}
+          owner: armitage-labs
+          repositories: creem
           permission-contents: write
           permission-pull-requests: write
           # Rebuilding the branch on a newer main can change workflow files
@@ -152,7 +155,7 @@ jobs:
         if: steps.npm.outputs.published == 'true'
         uses: peter-evans/create-pull-request@22a9089034f40e5a961c8808d113e2c98fb63676 # v7.0.11
         with:
-          token: ${{ steps.app.outputs.token || secrets.GITHUB_TOKEN }}
+          token: ${{ steps.app.outputs.token }}
           commit-message: "chore: bump adaptor deps to creem@${{ steps.sdk.outputs.version }}"
           title: "chore: bump adaptors to creem@${{ steps.sdk.outputs.version }}"
           branch: chore/sdk-cascade
