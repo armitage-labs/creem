@@ -5,9 +5,10 @@ description: 'Screen user prompts against content policies before generating ima
 
 <Note>
   The Moderation API is **required** for all merchants running AI image or video
-  generation products on Creem. Every user-supplied prompt that will be routed
-  to an image or video generation model must be screened through this endpoint
-  before generation happens. Each credit spend must also carry the moderation
+  generation products on Creem. Every image or video generation must be
+  screened through this endpoint before it happens, including generations
+  without user text such as fixed templates, gallery re-runs, upload-only edits
+  and upscaling. Each credit spend must also carry the moderation
   result ID. See [Gen AI Requirements](/merchant-of-record/account-reviews/gen-ai-requirements)
   and the [Gen AI Technical Integration Guide](/merchant-of-record/account-reviews/gen-ai-technical-integration-guide).
 </Note>
@@ -355,6 +356,8 @@ cut your bill by half or more without weakening screening:
 - **Screen the user-supplied text, not your templates.** If your product wraps
   user input in a reusable style or system template, screen only the part the
   user controls — your own static boilerplate bills units on every call.
+  If a generation has no user text at all, screen the prompt that drives it
+  instead. Identical prompts are cached, so repeats cost nothing.
 - **Screen incrementally, not cumulatively.** For chat-style products, screen
   each new user message as it arrives. Re-submitting the entire conversation
   history on every turn re-bills everything you already screened.
