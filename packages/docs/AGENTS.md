@@ -370,7 +370,7 @@ cleanly and contributes nothing. Keep the four `.md` files together — `SKILL.m
 references the other three by bare filename.
 
 The `ai/` documentation directory covers:
-- **For Humans**: CLI usage, getting started guides, using Creem in the Claude and ChatGPT apps
+- **For Humans**: CLI usage, getting started guides, using Creem in AI assistants (Claude, ChatGPT, Claude Code, Codex, Cursor)
 - **For Agents**: Skill files, agent CLI, store monitoring
 
 ### llms.txt

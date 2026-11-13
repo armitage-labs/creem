@@ -1,9 +1,9 @@
 ---
-title: Use Creem in Claude and ChatGPT
-description: Connect Claude or ChatGPT to your Creem store and manage products, checkout links, customers and subscriptions by chatting. No code and no API key.
+title: Use Creem in Your AI Assistant
+description: Connect Claude Code, Codex, Claude, ChatGPT or Cursor to your Creem store and manage products, checkout links, customers and subscriptions by chatting. No API key.
 ---
 
-Connect Claude or ChatGPT to your Creem store, and you can ask about sales, find a customer, create a checkout link or cancel a subscription in a normal chat. You sign in with your Creem account, so there is nothing to install and no API key to copy.
+Connect Claude Code, Codex, Claude, ChatGPT or Cursor to your Creem store, and you can ask about sales, find a customer, create a checkout link or cancel a subscription in a normal chat. You sign in with your Creem account, so there is no API key to copy.
 
 ## What you can ask
 
@@ -17,6 +17,51 @@ Once Creem is connected, ask in your own words. For example:
 - "What do I still need to fill in before I can take live payments?"
 
 Your assistant can work with products, checkout links, discount codes, customers, subscriptions, transactions, disputes, revenue and your business details. In live mode it can fill in your business details for you, but you submit them yourself in the dashboard. It can't move money: there are no tools for refunds or payouts, so you make those in the [dashboard](https://creem.io/dashboard).
+
+## Connect Claude Code
+
+<Tip>
+  Already connected Creem in Claude? Claude Code signed in with the same Claude account picks up
+  your Claude connectors, so Creem is already there. Type `/mcp` in Claude Code to check.
+</Tip>
+
+<Steps>
+  <Step title="Add Creem">
+    In your terminal, run:
+
+    ```bash
+    claude mcp add --transport http --scope user creem https://mcp.creem.io/mcp
+    ```
+
+    `--scope user` makes Creem available in every project.
+
+  </Step>
+  <Step title="Sign in">
+    Start Claude Code, type `/mcp`, select **creem** and choose **Authenticate**. Your browser opens
+    the Creem sign-in, as described in [Sign in and choose what it can do](#sign-in-and-choose-what-it-can-do).
+  </Step>
+  <Step title="Ask">Ask Claude Code a question about your store.</Step>
+</Steps>
+
+## Connect Codex
+
+Codex 0.147 or newer works. The Codex CLI, the Codex IDE extension and the ChatGPT desktop app share one setup, so adding Creem once makes it available in all three.
+
+<Steps>
+  <Step title="Add Creem">
+    In your terminal, run:
+
+    ```bash
+    codex mcp add creem --url https://mcp.creem.io/mcp
+    ```
+
+  </Step>
+  <Step title="Sign in">
+    Run `codex mcp login creem`. Your browser opens the Creem sign-in, as described in [Sign in and
+    choose what it can do](#sign-in-and-choose-what-it-can-do).
+  </Step>
+  <Step title="Ask">Start Codex and ask a question about your store.</Step>
+</Steps>
 
 ## Connect Claude
 
@@ -55,6 +100,35 @@ Custom connections work in ChatGPT on the web, and your plan or workspace has to
   </Step>
 </Steps>
 
+## Connect Cursor
+
+<Steps>
+  <Step title="Add Creem">
+    Open `~/.cursor/mcp.json`, or create it, and add Creem:
+
+    ```json
+    {
+      "mcpServers": {
+        "creem": {
+          "url": "https://mcp.creem.io/mcp"
+        }
+      }
+    }
+    ```
+
+    If the file already lists other servers, add the `creem` entry next to them.
+
+  </Step>
+  <Step title="Sign in">
+    Open **Customize** in Cursor's sidebar, connect **creem** and sign in with your Creem account.
+    The sign-in page shows Cursor as **Not verified by Creem**. That is expected for apps that
+    register themselves when they connect.
+  </Step>
+  <Step title="Ask">Ask Cursor's agent a question about your store.</Step>
+</Steps>
+
+Cursor's cloud agents can't connect: sign-in only completes in Cursor on your own computer.
+
 ## Sign in and choose what it can do
 
 When you connect, Creem's sign-in page opens. Sign in with the account you use for the Creem dashboard. Then choose:
@@ -87,9 +161,9 @@ In the [dashboard](https://creem.io/dashboard), go to **Settings → Connected a
 
 When you disconnect, the assistant stops working with your store within a minute. Anything it already changed, such as a new product or a cancelled subscription, stays.
 
-## Using Claude Code, Codex or Cursor?
+## Other apps
 
-The same connection works in coding tools and any other MCP client. The [Hosted MCP Server](/ai/for-agents/hosted-mcp) page has the setup for each one, the full tool list and troubleshooting.
+Any other app that connects to remote MCP servers can use Creem: add `https://mcp.creem.io/mcp` and sign in. Sign-in has to finish on your own computer, so apps that run only in the browser, apart from Claude and ChatGPT, can't connect yet. The [Hosted MCP Server](/ai/for-agents/hosted-mcp#other-clients) page has the setup, the full tool list and troubleshooting.
 
 <CardGroup cols={2}>
   <Card title="Hosted MCP Server" icon="server" href="/ai/for-agents/hosted-mcp">
