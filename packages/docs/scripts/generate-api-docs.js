@@ -196,6 +196,42 @@ function validateNavigationCoverage(generatedFiles) {
   }
 }
 
+// An endpoint that left the contract must not stay published: its page and its
+// navigation entry both fail the run until they are removed. --cleanup deletes
+// the pages, but only once no navigation entry points at them any more.
+function findStaleEndpointPages(generatedFiles, outputDir, cleanup) {
+  const docsConfig = JSON.parse(fs.readFileSync(path.join(process.cwd(), "docs.json"), "utf-8"));
+  const prefix = "api-reference/endpoint/";
+  const staleNavigation = [...collectNavigationPages(docsConfig.navigation)]
+    .filter((page) => page.startsWith(prefix))
+    .filter((page) => !generatedFiles.has(`${page.slice(prefix.length)}.mdx`))
+    .sort();
+  const orphanedFiles = fs
+    .readdirSync(outputDir)
+    .filter((filename) => filename.endsWith(".mdx") && !generatedFiles.has(filename))
+    .sort();
+
+  const problems = [];
+  if (staleNavigation.length > 0) {
+    problems.push(
+      `docs.json navigation lists endpoint pages that are not in the OpenAPI spec: ${staleNavigation.join(
+        ", ",
+      )}. Remove these navigation entries.`,
+    );
+  }
+  if (orphanedFiles.length > 0 && !cleanup) {
+    problems.push(
+      `Endpoint pages have no operation in the OpenAPI spec: ${orphanedFiles.join(
+        ", ",
+      )}. Delete them (generate:api:cleanup does this once their navigation entries are gone).`,
+    );
+  }
+  if (problems.length > 0) {
+    throw new Error(problems.join(" "));
+  }
+  return orphanedFiles;
+}
+
 // Get description from OpenAPI or fallback
 function getDescription(operationId, operation) {
   // Use OpenAPI description if available
@@ -333,6 +369,11 @@ async function main() {
   }
 
   validateNavigationCoverage(new Set(operationsByFilename.keys()));
+  const orphanedFiles = findStaleEndpointPages(
+    new Set(operationsByFilename.keys()),
+    outputDir,
+    options.cleanup,
+  );
 
   // Check for operations without descriptions
   const missingDescriptions = operations.filter(
@@ -401,27 +442,18 @@ async function main() {
     }
   }
 
-  // Detect orphaned MDX files (exist but not in spec)
-  const existingFiles = fs.readdirSync(outputDir).filter((f) => f.endsWith(".mdx"));
-  const orphanedFiles = existingFiles.filter((f) => !generatedFiles.has(f));
+  // Orphaned pages only reach this point with --cleanup; otherwise
+  // findStaleEndpointPages has already failed the run.
   let deleted = 0;
 
   if (orphanedFiles.length > 0) {
     console.log("\n⚠️  Orphaned files (not in OpenAPI spec):\n");
     for (const filename of orphanedFiles) {
-      const filePath = path.join(outputDir, filename);
-      if (options.cleanup) {
-        if (!options.dryRun) {
-          fs.unlinkSync(filePath);
-        }
-        console.log(`🗑️  ${filename} (deleted)`);
-        deleted++;
-      } else {
-        console.log(`   ${filename}`);
+      if (!options.dryRun) {
+        fs.unlinkSync(path.join(outputDir, filename));
       }
-    }
-    if (!options.cleanup) {
-      console.log("\n   Run with --cleanup to delete these files");
+      console.log(`🗑️  ${filename} (deleted)`);
+      deleted++;
     }
   }
 

@@ -92,6 +92,9 @@ jobs:
       - name: Test OpenAPI sync automation
         run: node --test scripts/openapi-sync.test.mjs
 
+      - name: Test API reference generator
+        run: node --test packages/docs/scripts/generate-api-docs.test.mjs
+
       - name: Check package metadata
         run: pnpm check:package-metadata
 

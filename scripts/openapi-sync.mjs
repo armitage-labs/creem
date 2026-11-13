@@ -192,7 +192,6 @@ export function renderBody({
   sdkFilesRemoved = [],
   methods = [],
   docsError = "",
-  docsOrphans = [],
   changesetPath,
   report,
   specUrl,
@@ -241,23 +240,11 @@ export function renderBody({
       "## API reference pages not regenerated",
       "",
       "> [!WARNING]",
-      "> `pnpm --dir packages/docs generate:api` failed, so the endpoint pages in this pull request are not regenerated. A new endpoint usually needs an entry in `packages/docs/docs.json` navigation first. Add it in this pull request and run the command again. Pages of removed endpoints are only listed once the generator runs through.",
+      "> `pnpm --dir packages/docs generate:api` failed, so the endpoint pages in this pull request are not regenerated, and `merge-gate` fails until the docs match the contract. A new endpoint needs an entry in `packages/docs/docs.json` navigation. A removed endpoint must lose its page and its navigation entry, so it does not stay published. Fix that in this pull request, then run the command again and commit the pages it writes.",
       "",
       "```text",
       docsError.trim().slice(0, 4000),
       "```",
-    );
-  }
-
-  if (docsOrphans.length) {
-    sections.push(
-      "",
-      "## API reference pages for removed endpoints",
-      "",
-      "> [!WARNING]",
-      "> These endpoint pages are no longer in the contract. Delete them and their `packages/docs/docs.json` navigation entries in this pull request (`pnpm --dir packages/docs generate:api:cleanup` deletes the pages).",
-      "",
-      ...docsOrphans.map((page) => `- \`packages/docs/api-reference/endpoint/${page}\``),
     );
   }
 
@@ -350,7 +337,6 @@ export function main(argv = process.argv.slice(2)) {
       sdkFilesRemoved,
       methods,
       docsError: readOptional(args["docs-error"]),
-      docsOrphans: lines(readOptional(args["docs-orphans"])),
       changesetPath: args.changeset,
       report,
       specUrl: args["spec-url"],

@@ -249,14 +249,9 @@ test("the body reports API reference pages that could not be regenerated", () =>
   });
   assert.match(body, /## API reference pages not regenerated/);
   assert.match(body, /list-widgets\.mdx/);
+  assert.match(body, /`merge-gate` fails until the docs match the contract/);
+  assert.match(body, /A removed endpoint must lose its page and its navigation entry/);
   assert.doesNotMatch(renderBody({ ...bodyInput, level: "minor" }), /not regenerated/);
-});
-
-test("the body lists pages of endpoints that left the contract", () => {
-  const body = renderBody({ ...bodyInput, level: "minor", docsOrphans: ["list-widgets.mdx"] });
-  assert.match(body, /## API reference pages for removed endpoints/);
-  assert.match(body, /- `packages\/docs\/api-reference\/endpoint\/list-widgets\.mdx`/);
-  assert.doesNotMatch(renderBody({ ...bodyInput, level: "minor" }), /removed endpoints/);
 });
 
 test("the body stays under GitHub's size limit", () => {
