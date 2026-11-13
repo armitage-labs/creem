@@ -389,6 +389,43 @@ type CreemConfig = {
   serverURL?: string;
   /** Optional app-owned billing catalog used for server-side fulfillment such as Customer Credits grants. */
   billingCatalog?: PlanCatalog;
+  /**
+   * How long before `currentPeriodEnd` a period-end plan or unit change is
+   * sent to Creem, in milliseconds. Defaults to
+   * {@link DEFAULT_PERIOD_END_UPDATE_LEAD_MS} (one hour). Must be zero or more.
+   */
+  periodEndUpdateLeadMs?: number;
+};
+
+/**
+ * Default lead time for period-end plan and unit changes: one hour.
+ *
+ * Creem charges a renewal at the period end itself, so a change sent at that
+ * moment can lose the race and the renewal bills the old product or unit count
+ * for one more period. Sent earlier with `proration-none`, the change charges
+ * and refunds nothing, and the renewal bills the new product or count.
+ *
+ * One hour exceeds `STALE_APPLYING_MS` (15 minutes) with margin. That is how
+ * long a run abandoned mid-flight holds its claim, so a later run of the job
+ * could still claim the row and reach Creem before the renewal. The cost of a
+ * longer lead is that the subscription row shows the new product or count that
+ * long before the renewal, which is small against a billing period. The
+ * scheduled update keeps the period end as its `effectiveAt`, so banners still
+ * show when the change takes effect.
+ *
+ * Changes to an app-owned plan make no Creem call when they apply and still
+ * run at the period end.
+ */
+export const DEFAULT_PERIOD_END_UPDATE_LEAD_MS = 60 * 60 * 1000;
+
+const resolvePeriodEndUpdateLeadMs = (value: number | undefined): number => {
+  if (value === undefined) return DEFAULT_PERIOD_END_UPDATE_LEAD_MS;
+  if (!Number.isFinite(value) || value < 0) {
+    throw new Error(
+      `Invalid periodEndUpdateLeadMs ${value}: expected a finite number of milliseconds, zero or more`,
+    );
+  }
+  return value;
 };
 
 const resolveCreemServer = (
@@ -426,6 +463,7 @@ export class Creem {
   private server?: "test" | "prod";
   private serverURL?: string;
   private billingCatalog?: PlanCatalog;
+  private periodEndUpdateLeadMs: number;
 
   constructor(
     public component: ComponentApi,
@@ -438,6 +476,9 @@ export class Creem {
       config.server ?? resolveCreemServer(process.env["CREEM_SERVER"]);
     this.serverURL = config.serverURL ?? process.env["CREEM_SERVER_URL"];
     this.billingCatalog = normalizePlanCatalog(config.billingCatalog);
+    this.periodEndUpdateLeadMs = resolvePeriodEndUpdateLeadMs(
+      config.periodEndUpdateLeadMs,
+    );
 
     this.sdk = new CreemSDK({
       apiKey: this.apiKey,
@@ -1268,8 +1309,15 @@ export class Creem {
    * component cannot read the host app's environment variables. If you rotate
    * `CREEM_API_KEY`, already-scheduled period-end updates will fail
    * authentication when they run and land in `status: "failed"` with the error
-   * recorded on the row — re-schedule them after a rotation. Runs abandoned
-   * mid-flight are reclaimed automatically (see `STALE_APPLYING_MS`).
+   * recorded on the row — re-schedule them after a rotation. A run abandoned
+   * mid-flight leaves the row `applying`; a later run of the same job may claim
+   * it again after `STALE_APPLYING_MS`, but nothing schedules such a run.
+   *
+   * A product or unit change is sent to Creem `periodEndUpdateLeadMs` before the
+   * period end (or now, inside that window), so the renewal bills the new
+   * product or count; see {@link DEFAULT_PERIOD_END_UPDATE_LEAD_MS}. A change to
+   * an app-owned plan makes no Creem call when it applies and runs at the
+   * period end. `effectiveAt` is the period end in both cases.
    */
   private async schedulePeriodEndSubscriptionUpdate(
     ctx: RunSchedulerMutationCtx,
@@ -1320,8 +1368,20 @@ export class Creem {
         })
       : null;
 
+    // The component stores exactly one target per update, so a row either
+    // calls Creem (product or units) or only activates an app-owned plan.
+    const callsCreem = args.productId !== undefined || args.units !== undefined;
+    const runAt = callsCreem
+      ? new Date(
+          Math.max(
+            Date.now(),
+            effectiveAt.getTime() - this.periodEndUpdateLeadMs,
+          ),
+        )
+      : effectiveAt;
+
     const scheduledFunctionId = await ctx.scheduler.runAt(
-      effectiveAt,
+      runAt,
       this.component.lib.applyScheduledSubscriptionUpdate,
       {
         apiKey: this.apiKey,

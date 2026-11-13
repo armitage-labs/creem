@@ -1,6 +1,10 @@
-import { describe, it, expect, vi, beforeEach } from "vitest";
+import { describe, it, expect, vi, beforeEach, afterEach } from "vitest";
 import { ConvexError } from "convex/values";
-import { Creem, CreemNotAuthenticatedError } from "./index.js";
+import {
+  Creem,
+  CreemNotAuthenticatedError,
+  DEFAULT_PERIOD_END_UPDATE_LEAD_MS,
+} from "./index.js";
 import { defineBillingCatalog } from "../core/catalog.js";
 import type { ComponentApi } from "../component/_generated/component.js";
 import type {
@@ -94,6 +98,19 @@ function createMockCtx(queryMap: Record<symbol, unknown> = {}) {
     },
   };
 }
+
+/**
+ * Pin `Date.now()` for tests whose scheduling depends on the current time.
+ * Only `Date` is faked, so the mocks' promises still resolve.
+ */
+function pinClock(iso: string) {
+  vi.useFakeTimers({ toFake: ["Date"] });
+  vi.setSystemTime(new Date(iso));
+}
+
+afterEach(() => {
+  vi.useRealTimers();
+});
 
 // ── Test subscription fixture ───────────────────────────────────────
 
@@ -199,6 +216,18 @@ describe("Creem constructor", () => {
         process.env["CREEM_WEBHOOK_SECRET"] = origSecret;
       else delete process.env["CREEM_WEBHOOK_SECRET"];
     }
+  });
+
+  it("rejects a negative or non-finite periodEndUpdateLeadMs", () => {
+    for (const periodEndUpdateLeadMs of [-1, Number.NaN, Infinity]) {
+      expect(
+        () => new Creem(mockComponent, { apiKey: "k", periodEndUpdateLeadMs }),
+      ).toThrow(/periodEndUpdateLeadMs/);
+    }
+  });
+
+  it("defaults the period-end lead time to one hour", () => {
+    expect(DEFAULT_PERIOD_END_UPDATE_LEAD_MS).toBe(60 * 60 * 1000);
   });
 
   it("accepts server and serverURL config", () => {
@@ -782,6 +811,7 @@ describe("subscriptions namespace", () => {
     });
 
     it("stores a scheduled update for period-end changes without optimistic patching", async () => {
+      pinClock("2026-02-15T00:00:00Z");
       const ctx = createMockCtx({
         [REFS.getCurrentSubscription]: ACTIVE_SUB,
       });
@@ -802,7 +832,7 @@ describe("subscriptions namespace", () => {
         },
       );
       expect(ctx.scheduler.runAt).toHaveBeenCalledWith(
-        new Date("2026-03-01T00:00:00Z"),
+        new Date("2026-02-28T23:00:00Z"),
         REFS.applyScheduledSubscriptionUpdate,
         expect.objectContaining({
           scheduledUpdateId: "scheduled_update_1",
@@ -1326,6 +1356,129 @@ describe("subscriptions namespace", () => {
         cancelAtPeriodEnd: false,
       });
     });
+  });
+});
+
+// ── Period-end lead time ────────────────────────────────────────────
+
+describe("period-end update scheduling", () => {
+  // ACTIVE_SUB's period ends 2026-03-01T00:00:00Z.
+  const PERIOD_END = "2026-03-01T00:00:00Z";
+
+  const scheduledRunAt = (ctx: ReturnType<typeof createMockCtx>) => {
+    const call = ctx.scheduler.runAt.mock.calls.find(
+      (args: unknown[]) => args[1] === REFS.applyScheduledSubscriptionUpdate,
+    ) as unknown[] | undefined;
+    expect(call).toBeDefined();
+    return (call![0] as Date).toISOString();
+  };
+
+  const storedEffectiveAt = (ctx: ReturnType<typeof createMockCtx>) => {
+    const call = ctx.runMutation.mock.calls.find(
+      (args: unknown[]) => args[0] === REFS.createScheduledSubscriptionUpdate,
+    ) as unknown[] | undefined;
+    expect(call).toBeDefined();
+    return (call![1] as { effectiveAt: string }).effectiveAt;
+  };
+
+  let creem: Creem;
+  beforeEach(() => {
+    creem = new Creem(mockComponent, { apiKey: "k", webhookSecret: "s" });
+  });
+
+  it("sends a period-end units change to Creem one hour before the period end", async () => {
+    pinClock("2026-02-15T00:00:00Z");
+    const ctx = createMockCtx({ [REFS.getCurrentSubscription]: ACTIVE_SUB });
+    await creem.subscriptions.update(ctx as never, {
+      kind: "units",
+      entityId: "user_1",
+      units: 1,
+      updateBehavior: "period-end",
+    });
+    expect(scheduledRunAt(ctx)).toBe("2026-02-28T23:00:00.000Z");
+    expect(storedEffectiveAt(ctx)).toBe(PERIOD_END);
+  });
+
+  it("sends a period-end product change to Creem one hour before the period end", async () => {
+    pinClock("2026-02-15T00:00:00Z");
+    const ctx = createMockCtx({ [REFS.getCurrentSubscription]: ACTIVE_SUB });
+    await creem.subscriptions.update(ctx as never, {
+      kind: "plan",
+      entityId: "user_1",
+      productId: "prod_basic",
+      updateBehavior: "period-end",
+    });
+    expect(scheduledRunAt(ctx)).toBe("2026-02-28T23:00:00.000Z");
+    expect(storedEffectiveAt(ctx)).toBe(PERIOD_END);
+  });
+
+  it("runs now when the change is made inside the lead window", async () => {
+    pinClock("2026-02-28T23:30:00Z");
+    const ctx = createMockCtx({ [REFS.getCurrentSubscription]: ACTIVE_SUB });
+    await creem.subscriptions.update(ctx as never, {
+      kind: "units",
+      entityId: "user_1",
+      units: 1,
+      updateBehavior: "period-end",
+    });
+    expect(scheduledRunAt(ctx)).toBe("2026-02-28T23:30:00.000Z");
+    expect(storedEffectiveAt(ctx)).toBe(PERIOD_END);
+  });
+
+  it("keeps an app-owned plan change at the period end", async () => {
+    pinClock("2026-02-15T00:00:00Z");
+    const ctx = createMockCtx({ [REFS.getCurrentSubscription]: ACTIVE_SUB });
+    await creem.subscriptions.update(ctx as never, {
+      kind: "app-plan",
+      entityId: "user_1",
+      appPlanId: "free",
+      updateBehavior: "period-end",
+    });
+    expect(scheduledRunAt(ctx)).toBe("2026-03-01T00:00:00.000Z");
+    expect(storedEffectiveAt(ctx)).toBe(PERIOD_END);
+  });
+
+  it("keeps cancelToFreePlan at the period end", async () => {
+    pinClock("2026-02-15T00:00:00Z");
+    const ctx = createMockCtx({ [REFS.getCurrentSubscription]: ACTIVE_SUB });
+    await creem.subscriptions.cancelToFreePlan(ctx as never, {
+      entityId: "user_1",
+      freePlanId: "free",
+    });
+    expect(scheduledRunAt(ctx)).toBe("2026-03-01T00:00:00.000Z");
+  });
+
+  it("honours a configured lead time", async () => {
+    pinClock("2026-02-15T00:00:00Z");
+    const configured = new Creem(mockComponent, {
+      apiKey: "k",
+      periodEndUpdateLeadMs: 6 * 60 * 60 * 1000,
+    });
+    const ctx = createMockCtx({ [REFS.getCurrentSubscription]: ACTIVE_SUB });
+    await configured.subscriptions.update(ctx as never, {
+      kind: "units",
+      entityId: "user_1",
+      units: 1,
+      updateBehavior: "period-end",
+    });
+    expect(scheduledRunAt(ctx)).toBe("2026-02-28T18:00:00.000Z");
+    expect(storedEffectiveAt(ctx)).toBe(PERIOD_END);
+  });
+
+  it("runs at the period end with a lead time of zero", async () => {
+    pinClock("2026-02-15T00:00:00Z");
+    const configured = new Creem(mockComponent, {
+      apiKey: "k",
+      periodEndUpdateLeadMs: 0,
+    });
+    const ctx = createMockCtx({ [REFS.getCurrentSubscription]: ACTIVE_SUB });
+    await configured.subscriptions.update(ctx as never, {
+      kind: "plan",
+      entityId: "user_1",
+      productId: "prod_basic",
+      updateBehavior: "period-end",
+    });
+    expect(scheduledRunAt(ctx)).toBe("2026-03-01T00:00:00.000Z");
   });
 });
 
@@ -2611,6 +2764,7 @@ describe("api() convenience exports", () => {
     });
 
     it("supports period-end updates through generated API", async () => {
+      pinClock("2026-02-15T00:00:00Z");
       resolve.mockResolvedValue({ entityId: "user_1" });
       const ctx = createMockCtx({
         [REFS.getCurrentSubscription]: ACTIVE_SUB,
@@ -2631,7 +2785,7 @@ describe("api() convenience exports", () => {
         }),
       );
       expect(ctx.scheduler.runAt).toHaveBeenCalledWith(
-        new Date("2026-03-01T00:00:00Z"),
+        new Date("2026-02-28T23:00:00Z"),
         REFS.applyScheduledSubscriptionUpdate,
         expect.objectContaining({ scheduledUpdateId: "scheduled_update_1" }),
       );
