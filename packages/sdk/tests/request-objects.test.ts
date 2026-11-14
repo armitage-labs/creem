@@ -1,14 +1,14 @@
-import { describe, expect, expectTypeOf, it } from "vitest";
+import { describe, expect, it } from "vitest";
 import { Creem } from "../src/sdk/sdk.js";
 import { HTTPClient } from "../src/lib/http.js";
-import type * as operations from "../src/models/operations/index.js";
 
 /**
  * ENG-2487: every method takes one request object, then the options. A new
  * optional API parameter is therefore a new optional property of the request:
  * it never takes the place of `options` in an existing call, which in 1.x
  * shifted `options` into the new parameter (TypeScript stopped compiling it,
- * JavaScript sent `?dry_run=[object Object]`).
+ * JavaScript sent `?dry_run=[object Object]`). The signatures themselves are
+ * checked by the type checker in tests/types/request-objects.test-d.ts.
  */
 function clientRecording(requests: Request[]): Creem {
   return new Creem({
@@ -23,16 +23,6 @@ function clientRecording(requests: Request[]): Creem {
 }
 
 describe("request objects (ENG-2487)", () => {
-  it("takes the request, then the options, on every changed method", () => {
-    const creem = clientRecording([]);
-
-    expectTypeOf(creem.products.update).parameters.toEqualTypeOf<
-      [operations.UpdateProductRequest, (import("../src/lib/sdks.js").RequestOptions | undefined)?]
-    >();
-    expectTypeOf(creem.products.search).parameter(0).toEqualTypeOf<operations.SearchProductsRequest>();
-    expectTypeOf(creem.transactions.search).parameter(0).toEqualTypeOf<operations.SearchTransactionsRequest>();
-  });
-
   it("sends the request object's query parameters and keeps the options as options", async () => {
     const requests: Request[] = [];
     const creem = clientRecording(requests);
