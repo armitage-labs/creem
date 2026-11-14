@@ -183,6 +183,18 @@ lists them. For example, `products-update` takes
 The `creem` CLI's commands and flags don't change. `subscriptions list --status`
 accepts any status, and a billing type the CLI doesn't know is shown as it is.
 
+## `@creem_io/ingestion`
+
+Ingestion's next minor release depends on `creem` 2. `Ingestion({ client })`
+accepts a client from either major. Two things change for code that names the
+client through ingestion's types:
+
+- `const config: IngestionConfig = { client }` with a `creem` 1.x client no
+  longer compiles. Write `IngestionConfig<typeof client>`, or drop the
+  annotation and let `Ingestion()` infer it.
+- Calls through `config.client` use the 2.0 shapes above, for example
+  `config.client?.customers.retrieve({ customerId: "cust_1" })`.
+
 ## Methods that take only a body
 
 The 19 methods listed above take the request body itself, because their
