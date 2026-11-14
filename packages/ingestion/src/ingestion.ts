@@ -36,17 +36,19 @@ export interface StrategyClientFactory<TClient> {
  * - `strategy(s).cost(fn).ingest(name)` — the chainable builder metering
  *   adapters plug into
  */
-export function Ingestion(config: IngestionConfig): IngestionPipeline {
+export function Ingestion<Client extends IngestionClient = Creem>(
+  config: IngestionConfig<Client>,
+): IngestionPipeline {
   return new IngestionPipeline(config);
 }
 
 export class IngestionPipeline {
   private readonly creem: IngestionClient;
   private readonly delivery: BufferedDelivery;
-  private readonly onError: NonNullable<IngestionConfig["onError"]>;
-  private readonly onWarnings: IngestionConfig["onWarnings"];
+  private readonly onError: NonNullable<IngestionConfig<IngestionClient>["onError"]>;
+  private readonly onWarnings: IngestionConfig<IngestionClient>["onWarnings"];
 
-  constructor(config: IngestionConfig) {
+  constructor(config: IngestionConfig<IngestionClient>) {
     this.creem = config.client ?? new Creem({ apiKey: config.apiKey, serverURL: config.serverURL });
     this.onError = config.onError ?? (() => undefined);
     this.onWarnings = config.onWarnings;
