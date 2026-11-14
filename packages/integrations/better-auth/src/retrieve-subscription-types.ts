@@ -1,3 +1,5 @@
+import type { OpenValue } from "@creem_io/webhook-types";
+
 /**
  * Parameters for retrieving a Creem subscription.
  *
@@ -21,9 +23,10 @@ export interface RetrieveSubscriptionInput {
 /**
  * A response value the API may add to: one of the known values, or a string a
  * newer API sends. creem 2.0 passes such values through instead of failing the
- * response, so a check over every known value needs a fallback branch.
+ * response, so a check over every known value needs a fallback branch. The same
+ * type `@creem_io/webhook-types` uses for webhook payloads.
  */
-export type OpenValue<Known extends string> = Known | (string & {});
+export type { OpenValue };
 
 /**
  * Subscription status values from Creem API.

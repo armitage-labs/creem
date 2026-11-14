@@ -11,9 +11,21 @@
 
 export type Metadata = Record<string, string | number | null>;
 
+/**
+ * A value field Creem may add values to: one of the values this version knows,
+ * or any other string. Creem's payload is passed through unchanged, so a value
+ * added after this version reaches your handler as it is; a `switch` over the
+ * known values needs a `default` branch. Comparisons with a known value still
+ * compile, and editors still suggest the known values.
+ *
+ * Fields that identify an event (`eventType`) or an object (`object`) stay
+ * closed: they select the payload's shape.
+ */
+export type OpenValue<Known extends string> = Known | (string & {});
+
 export interface BaseEntity {
   id: string;
-  mode: "test" | "prod" | "sandbox";
+  mode: OpenValue<"test" | "prod" | "sandbox">;
 }
 
 // ============================================================================
@@ -32,7 +44,7 @@ export interface Checkbox {
 }
 
 export interface CustomField {
-  type: "text" | "checkbox";
+  type: OpenValue<"text" | "checkbox">;
   key: string;
   label: string;
   optional?: boolean;
@@ -60,7 +72,9 @@ export interface CustomerEntity extends BaseEntity {
 export interface FeatureEntity {
   id: string;
   /** Union of all known feature types from both adapters */
-  type: "custom" | "file" | "licenseKey" | "github-repo" | "discord" | "link" | "licence-key";
+  type: OpenValue<
+    "custom" | "file" | "licenseKey" | "github-repo" | "discord" | "link" | "licence-key"
+  >;
   description: string;
 }
 
@@ -73,11 +87,13 @@ export interface ProductEntity extends BaseEntity {
   price: number;
   currency: string;
   /** Union of both spelling variants: betterauth uses "onetime", nextjs uses "one-time" */
-  billing_type: "recurring" | "onetime" | "one-time";
-  billing_period: "every-month" | "every-three-months" | "every-six-months" | "every-year" | "once";
-  status: "active" | "archived";
-  tax_mode: "inclusive" | "exclusive";
-  tax_category: "saas" | "digital-goods-service" | "ebooks";
+  billing_type: OpenValue<"recurring" | "onetime" | "one-time">;
+  billing_period: OpenValue<
+    "every-month" | "every-three-months" | "every-six-months" | "every-year" | "once"
+  >;
+  status: OpenValue<"active" | "archived">;
+  tax_mode: OpenValue<"inclusive" | "exclusive">;
+  tax_category: OpenValue<"saas" | "digital-goods-service" | "ebooks">;
   product_url?: string;
   default_success_url?: string;
   custom_fields?: CustomField[] | null;
@@ -95,10 +111,10 @@ export interface TransactionEntity extends BaseEntity {
   amount_paid?: number;
   discount_amount?: number;
   currency: string;
-  type: "payment" | "invoice";
+  type: OpenValue<"payment" | "invoice">;
   tax_country?: string;
   tax_amount?: number;
-  status:
+  status: OpenValue<
     | "pending"
     | "paid"
     | "refunded"
@@ -106,7 +122,8 @@ export interface TransactionEntity extends BaseEntity {
     | "chargedBack"
     | "uncollectible"
     | "declined"
-    | "void";
+    | "void"
+  >;
   refunded_amount?: number | null;
   order?: string;
   subscription?: string;
@@ -137,8 +154,8 @@ export interface OrderEntity extends BaseEntity {
   fx_amount?: number;
   fx_currency?: string;
   fx_rate?: number;
-  status: "pending" | "paid";
-  type: "recurring" | "onetime";
+  status: OpenValue<"pending" | "paid">;
+  type: OpenValue<"recurring" | "onetime">;
   affiliate?: string;
   created_at: Date;
   updated_at: Date;
@@ -148,9 +165,9 @@ export interface OrderEntity extends BaseEntity {
 // Discount Entity
 // ============================================================================
 
-export type DiscountStatus = "deleted" | "active" | "draft" | "expired" | "scheduled";
-export type DiscountType = "percentage" | "fixed";
-export type DiscountDuration = "forever" | "once" | "repeating";
+export type DiscountStatus = OpenValue<"deleted" | "active" | "draft" | "expired" | "scheduled">;
+export type DiscountType = OpenValue<"percentage" | "fixed">;
+export type DiscountDuration = OpenValue<"forever" | "once" | "repeating">;
 
 export interface DiscountEntity extends BaseEntity {
   object: "discount";
@@ -176,13 +193,13 @@ export interface DiscountEntity extends BaseEntity {
 export interface LicenseInstanceEntity extends BaseEntity {
   object: "license-instance";
   name: string;
-  status: "active" | "deactivated";
+  status: OpenValue<"active" | "deactivated">;
   created_at: Date;
 }
 
 export interface LicenseEntity extends BaseEntity {
   object: "license";
-  status: "inactive" | "active" | "expired" | "disabled";
+  status: OpenValue<"inactive" | "active" | "expired" | "disabled">;
   key: string;
   activation: number;
   activation_limit: number | null;
@@ -194,7 +211,7 @@ export interface LicenseEntity extends BaseEntity {
 export interface ProductFeatureEntity {
   id?: string | null;
   description?: string | null;
-  type?: "custom" | "file" | "licenseKey" | null;
+  type?: OpenValue<"custom" | "file" | "licenseKey"> | null;
   private_note?: string | null;
   file?: {
     files: { id: string; file_name: string; url: string; type: string; size: number }[];
@@ -219,7 +236,7 @@ export interface SubscriptionItemEntity extends BaseEntity {
   updated_at?: Date;
 }
 
-export type SubscriptionStatus =
+export type SubscriptionStatus = OpenValue<
   | "active"
   | "canceled"
   | "expired"
@@ -227,14 +244,15 @@ export type SubscriptionStatus =
   | "unpaid"
   | "paused"
   | "trialing"
-  | "scheduled_cancel";
+  | "scheduled_cancel"
+>;
 
 export interface SubscriptionEntity extends BaseEntity {
   object: "subscription";
   product: ProductEntity | string;
   customer: CustomerEntity | string;
   items?: SubscriptionItemEntity[];
-  collection_method: "charge_automatically";
+  collection_method: OpenValue<"charge_automatically">;
   status: SubscriptionStatus;
   last_transaction_id?: string;
   last_transaction?: TransactionEntity;
@@ -252,7 +270,7 @@ export interface SubscriptionEntity extends BaseEntity {
 // Checkout Entity
 // ============================================================================
 
-export type CheckoutStatus = "pending" | "processing" | "completed" | "expired";
+export type CheckoutStatus = OpenValue<"pending" | "processing" | "completed" | "expired">;
 
 export interface CheckoutEntity extends BaseEntity {
   object: "checkout";
@@ -276,10 +294,10 @@ export interface CheckoutEntity extends BaseEntity {
 
 export interface RefundEntity extends BaseEntity {
   object: "refund";
-  status: "pending" | "succeeded" | "canceled" | "failed";
+  status: OpenValue<"pending" | "succeeded" | "canceled" | "failed">;
   refund_amount: number;
   refund_currency: string;
-  reason: "duplicate" | "fraudulent" | "requested_by_customer" | "other";
+  reason: OpenValue<"duplicate" | "fraudulent" | "requested_by_customer" | "other">;
   transaction: TransactionEntity;
   checkout?: CheckoutEntity | string;
   order?: OrderEntity | string;
