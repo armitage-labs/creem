@@ -121,8 +121,29 @@ export function comparesWithAKnownValue(reason: RefundEntity["reason"]): boolean
   return reason === "duplicate" || reason === "requested_by_customer";
 }
 
-// A `switch` over every known value needs a `default` branch now: without it
-// the function can fall through for a value Creem adds later.
+// The flip side of an open value: a misspelled comparison compiles too.
+export function comparesWithAMisspelledValue(reason: RefundEntity["reason"]): boolean {
+  return reason === "duplicat";
+}
+
+// A `switch` over the known values is no longer exhaustive. A `never`
+// exhaustiveness check no longer compiles...
+export function neverCheckOverTheKnownValues(reason: RefundEntity["reason"]): string {
+  switch (reason) {
+    case "duplicate":
+    case "fraudulent":
+    case "requested_by_customer":
+    case "other":
+      return reason;
+    default: {
+      // @ts-expect-error a reason Creem adds later reaches the default branch
+      const unhandled: never = reason;
+      return unhandled;
+    }
+  }
+}
+
+// ...and neither does a function that returns from every known case.
 // @ts-expect-error TS2366: function lacks ending return statement
 export function labelWithoutDefault(reason: RefundEntity["reason"]): string {
   switch (reason) {

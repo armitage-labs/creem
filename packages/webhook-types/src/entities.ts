@@ -14,9 +14,10 @@ export type Metadata = Record<string, string | number | null>;
 /**
  * A value field Creem may add values to: one of the values this version knows,
  * or any other string. Creem's payload is passed through unchanged, so a value
- * added after this version reaches your handler as it is; a `switch` over the
- * known values needs a `default` branch. Comparisons with a known value still
- * compile, and editors still suggest the known values.
+ * added after this version reaches your handler as it is. A `switch` over the
+ * known values is not exhaustive: a `never` check or a function returning from
+ * every case needs a `default` branch. Comparisons with a known value compile,
+ * editors suggest the known values, and a misspelled value compiles too.
  *
  * Fields that identify an event (`eventType`) or an object (`object`) stay
  * closed: they select the payload's shape.
