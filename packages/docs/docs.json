@@ -128,7 +128,10 @@
                 ]
               },
               "getting-started/dashboard-overview",
-              "getting-started/migrate"
+              {
+                "group": "Migrate",
+                "pages": ["getting-started/migrate", "getting-started/migrate/lemon-squeezy"]
+              }
             ]
           },
           {

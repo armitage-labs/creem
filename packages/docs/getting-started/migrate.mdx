@@ -1,10 +1,16 @@
 ---
-title: 'Migrate to Creem'
-description: 'Migrate your LemonSqueezy store to Creem in minutes using the Creem CLI.'
-keywords: 'lemonsqueezy migration, lemonsqueezy alternative, switch from lemonsqueezy, creem migration'
+title: "Migrate to Creem"
+description: "Migrate your LemonSqueezy store to Creem in minutes using the Creem CLI."
+keywords: "lemonsqueezy migration, lemonsqueezy alternative, switch from lemonsqueezy, creem migration"
 ---
 
 > Get set up on Creem in minutes from an existing store
+
+<Note>
+  Lemon Squeezy stops processing payments on March 31, 2027. To move customers, checkout, webhooks,
+  license keys and subscribers as well as products, follow [Migrate from Lemon
+  Squeezy](/getting-started/migrate/lemon-squeezy).
+</Note>
 
 ## LemonSqueezy
 
@@ -32,6 +38,7 @@ The Creem CLI includes a built-in migration tool to move your LemonSqueezy produ
 
     The CLI will walk you through connecting your LemonSqueezy account, choosing the source store, and importing your product catalog.
     For non-interactive runs, log in to Creem first and pass both `--ls-api-key` and `--ls-store-id`.
+
   </Step>
   <Step title="Verify Your Products">
     Browse your imported products in the interactive TUI:
@@ -45,11 +52,13 @@ The Creem CLI includes a built-in migration tool to move your LemonSqueezy produ
     ```bash
     creem products list --json
     ```
+
   </Step>
 </Steps>
 
 <Note>
-  This tool migrates your product catalog. Active subscriptions cannot be moved automatically. Let existing subscribers naturally renew through Creem as their current billing cycles end.
+  This tool migrates your product catalog. Active subscriptions cannot be moved automatically. Let
+  existing subscribers naturally renew through Creem as their current billing cycles end.
 </Note>
 
 ### Need Help?
