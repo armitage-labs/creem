@@ -130,7 +130,15 @@
               "getting-started/dashboard-overview",
               {
                 "group": "Migrate",
-                "pages": ["getting-started/migrate", "getting-started/migrate/lemon-squeezy"]
+                "pages": [
+                  "getting-started/migrate",
+                  {
+                    "group": "Lemon Squeezy",
+                    "icon": "lemon",
+                    "root": "getting-started/migrate/lemon-squeezy",
+                    "pages": ["getting-started/migrate/lemon-squeezy/technical-guide"]
+                  }
+                ]
               }
             ]
           },
