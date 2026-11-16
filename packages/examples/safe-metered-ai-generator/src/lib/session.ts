@@ -2,6 +2,8 @@ import { headers } from 'next/headers'
 import type { NextRequest } from 'next/server'
 import { NextResponse } from 'next/server'
 import { auth } from './auth'
+import { CustomerOwnedByAnotherUserError } from './creem/customers'
+import { EmailNotVerifiedError } from './wallet'
 
 /** Resolve the current user from the request, or null. */
 export async function getCurrentUser() {
@@ -38,6 +40,18 @@ export function withUser(handler: (req: NextRequest, user: SessionUser) => Promi
   return async (req: NextRequest): Promise<Response> => {
     const user = await getCurrentUser()
     if (!user) return NextResponse.json({ error: 'unauthorized' }, { status: 401 })
-    return handler(req, user)
+    try {
+      return await handler(req, user)
+    } catch (err) {
+      // The two reasons a signed-in user can have no wallet. Both are the
+      // user's to resolve, so answer clearly instead of with a 500.
+      if (err instanceof EmailNotVerifiedError) {
+        return NextResponse.json({ error: 'email_not_verified', message: 'Verify your email address to get your credit wallet.' }, { status: 403 })
+      }
+      if (err instanceof CustomerOwnedByAnotherUserError) {
+        return NextResponse.json({ error: 'wallet_unavailable', message: 'This email is already linked to another account. Please contact support.' }, { status: 409 })
+      }
+      throw err
+    }
   }
 }

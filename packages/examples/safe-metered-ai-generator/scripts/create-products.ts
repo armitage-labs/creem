@@ -1,6 +1,6 @@
 /**
- * Creates the three credit-pack products in Creem and prints the env lines to
- * paste into .env.local.
+ * Creates the three credit-pack products in Creem, each with an "AI generation
+ * credits" feature, and prints the env lines to paste into .env.local.
  *
  *   pnpm products:setup
  *
@@ -42,10 +42,17 @@ async function main() {
         price: pack.priceUsd * 100, // Creem expects the amount in cents.
         currency: 'USD',
         billingType: 'onetime',
+        features: [
+          {
+            type: 'customerCredits',
+            description: `${pack.credits.toLocaleString()} generation credits`,
+            customerCredits: { amount: String(pack.credits), unitLabel: 'credits', requiresModeration: true },
+          },
+        ],
       },
       // Scope the idempotency key to the mode so a re-run in the same mode
       // returns the existing product instead of creating a duplicate.
-      `${pack.envVar}:${isTestMode ? 'test' : 'prod'}`,
+      `${pack.envVar}:credits:${isTestMode ? 'test' : 'prod'}`,
     )
     console.log(`✓ ${pack.name} → ${product.id}`)
     lines.push(`${pack.envVar}="${product.id}"`)

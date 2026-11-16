@@ -3,11 +3,14 @@ import { env } from './env'
 /**
  * Credit packs offered on the pricing page.
  *
- * `productId` links a pack to a one-time product configured in the Creem
- * dashboard. When present, the Buy button opens a real Creem checkout and the
- * wallet is credited from the `checkout.completed` webhook. When absent (e.g.
- * you haven't set up products yet), a dev-only simulated purchase credits the
- * wallet directly so the demo still works end-to-end.
+ * `productId` links a pack to a one-time product in Creem that carries an
+ * "AI generation credits" feature. The Buy button opens a Creem checkout for
+ * it, and Creem adds the product's credits to the buyer's generation wallet
+ * when the payment succeeds. The app does not credit purchases itself.
+ *
+ * `credits` and `priceUsd` here are display copy for the pricing cards. The
+ * amount actually granted is the one set on the product in Creem, so keep the
+ * two in sync (`pnpm products:setup` creates the products from these numbers).
  */
 export type Pack = {
   id: 'starter' | 'pro' | 'studio'
@@ -51,11 +54,8 @@ export function getPack(id: string): Pack | undefined {
   return PACKS.find((p) => p.id === id)
 }
 
-/** Look up a pack by the Creem product id attached to a completed checkout. */
-export function getPackByProductId(productId: string): Pack | undefined {
-  if (!productId) return undefined
-  return PACKS.find((p) => p.productId && p.productId === productId)
-}
+/** Free credits a new user's generation wallet starts with. Set to 0 for none. */
+export const WELCOME_CREDITS = 20
 
 /** Credit cost per generation, by media type. */
 export const GENERATION_COST = {

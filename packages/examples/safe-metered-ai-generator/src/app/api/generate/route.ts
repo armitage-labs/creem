@@ -1,11 +1,11 @@
 import { screenPrompt } from '@/lib/creem/moderation'
-import { InsufficientBalanceError } from '@/lib/creem/types'
+import { InsufficientBalanceError, ModerationDebitError } from '@/lib/creem/types'
 import { pool, query, queryOne } from '@/lib/db'
 import { getGenerator } from '@/lib/generator'
 import { MAX_IMAGE_BYTES, MAX_IMAGE_LABEL, dataUrlByteLength } from '@/lib/limits'
 import { GENERATION_COST, MediaType } from '@/lib/packs'
 import { withUser } from '@/lib/session'
-import { debitForGeneration, getAccountForUser, refundDebit } from '@/lib/wallet'
+import { debitForGeneration, ensureWalletForUser, refundDebit } from '@/lib/wallet'
 import { NextResponse } from 'next/server'
 import { randomUUID } from 'node:crypto'
 import { z } from 'zod'
@@ -59,18 +59,31 @@ export const POST = withUser(async (req, user) => {
   // firing a second model call. Independent generations use different keys and
   // never contend.
   const runGeneration = async () => {
-    // Idempotency: if this key already produced a completed generation, replay it.
+    // Idempotency: one key is one generation. If this key already reached an
+    // outcome that touched credits, replay that outcome. Debiting again under
+    // the same key would be refused by Creem, so a new attempt needs a new key.
     const prior = await queryOne<{ id: string; status: string; result_url: string | null }>(
       `SELECT id, status, result_url FROM generation WHERE user_id=$1 AND idempotency_key=$2 ORDER BY created_at DESC LIMIT 1`,
       [user.id, idempotencyKey],
     )
-    if (prior && prior.status === 'completed') return NextResponse.json({ id: prior.id, status: 'completed', url: prior.result_url, replayed: true })
-    const account = await getAccountForUser(user.id)
-    if (!account) return NextResponse.json({ error: 'no_wallet', message: 'Buy a credit pack to start generating.' }, { status: 402 })
+    if (prior?.status === 'completed') return NextResponse.json({ id: prior.id, status: 'completed', url: prior.result_url, replayed: true })
+    if (prior?.status === 'refunded') {
+      return NextResponse.json(
+        {
+          id: prior.id,
+          status: 'refunded',
+          error: 'generation_failed',
+          message: 'Generation failed - your credits were refunded. Send a new idempotency key to try again.',
+          replayed: true,
+        },
+        { status: 502 },
+      )
+    }
+    const account = await ensureWalletForUser(user)
     if (account.status !== 'active') return NextResponse.json({ error: 'account_' + account.status, message: `Your credit account is ${account.status}.` }, { status: 403 })
     // ---- 1. MODERATE ------------------------------------------------------
     const moderation = await screenPrompt(prompt, `user_${user.id}:gen_${genId}`)
-    if (!moderation.allowed) {
+    if (!moderation.allowed || !moderation.id) {
       await recordGeneration({ genId, userId: user.id, prompt, mediaType, cost, status: 'rejected', decision: moderation.decision, idempotencyKey })
       return NextResponse.json({ id: genId, status: 'rejected', decision: moderation.decision, error: 'prompt_rejected', message: moderation.reason }, { status: 400 })
     }
@@ -83,6 +96,8 @@ export const POST = withUser(async (req, user) => {
         amount: cost,
         reference: `gen:${genId}`,
         idempotencyKey: `debit_${idempotencyKey}`,
+        // Proof the prompt was screened and allowed. One id pays for one debit.
+        moderationId: moderation.id,
       })
       debitTxnId = txn.id
     } catch (err) {
@@ -91,6 +106,22 @@ export const POST = withUser(async (req, user) => {
         return NextResponse.json(
           { id: genId, status: 'insufficient_credits', error: 'insufficient_credits', message: `You need ${cost} credits for this ${mediaType}.` },
           { status: 402 },
+        )
+      }
+      if (err instanceof ModerationDebitError) {
+        // Creem refused the debit because of its moderation result (expired,
+        // already used, ...). Nothing was charged, so treat it as a blocked prompt.
+        console.warn(`[generate] debit refused for ${genId}: ${err.code}`)
+        await recordGeneration({ genId, userId: user.id, prompt, mediaType, cost, status: 'rejected', decision: 'error', idempotencyKey })
+        return NextResponse.json(
+          {
+            id: genId,
+            status: 'rejected',
+            decision: 'error',
+            error: 'prompt_rejected',
+            message: 'Your prompt could not be cleared for generation. No credits were charged. Please try again.',
+          },
+          { status: 400 },
         )
       }
       console.error('[generate] debit failed:', err)
