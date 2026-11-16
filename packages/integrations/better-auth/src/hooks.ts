@@ -362,10 +362,12 @@ async function updateSubscriptionFromEvent(
         where: [{ field: "creemCustomerId", value: customerId }],
       });
 
-      // Find the subscription for this specific product
-      subscription =
-        subscriptions.find((sub: SubscriptionRecord) => sub.productId === productId) ||
-        subscriptions[0];
+      // Only link this product's row if it is not bound to another subscription.
+      subscription = subscriptions.find(
+        (sub: SubscriptionRecord) =>
+          sub.productId === productId &&
+          (!sub.creemSubscriptionId || sub.creemSubscriptionId === subscriptionData.id),
+      );
     }
 
     if (!subscription) {
