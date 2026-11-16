@@ -10,4 +10,4 @@
 - Discounts can name their products by `external_id` (`appliesToProductExternalIds`) and carry their own `externalId`; `appliesToProducts` is no longer required when the other list names a product. Features carry an `externalId`, and products return `abandonedCartRecoveryEnabled`, which `products.update` also takes, along with `customFields`.
 - The `credits.reversed` webhook event: `parseWebhookEventEntity` and `constructWebhookEventEntity` parse it into its own shape, with a `CustomerCreditsReversalEntity` as `object`.
 
-The CLI's `discounts create` and `meters create` take `--idempotency-key`, and `discounts create` accepts a discount whose products are named only in `appliesToProductExternalIds`.
+The CLI's `discounts create` and `meters create` take `--idempotency-key`, and `discounts create` accepts a discount whose products are named only in `appliesToProductExternalIds`. New read-only commands: `product-groups list` (cursor pagination with `--limit`, `--starting-after`, `--ending-before` and `--all`, filtered by `--external-id`), `product-groups get <id>` and `products prices <id>`, which lists a product's price versions.

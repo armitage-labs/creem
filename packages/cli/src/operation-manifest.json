@@ -657,6 +657,101 @@
     "destructive": true
   },
   {
+    "operationId": "listProductPrices",
+    "sdkMethod": "products.listPrices",
+    "cliPath": "products prices",
+    "disposition": "implemented",
+    "description": "List the price versions of a product",
+    "parameters": [
+      {
+        "name": "id",
+        "sdkName": "id",
+        "in": "path",
+        "cliFlagOrArgument": "<id>",
+        "required": true,
+        "schema": {
+          "type": "string"
+        }
+      }
+    ],
+    "pagination": "none",
+    "destructive": false
+  },
+  {
+    "operationId": "listProductGroups",
+    "sdkMethod": "productGroups.list",
+    "cliPath": "product-groups list",
+    "disposition": "implemented",
+    "description": "List product groups",
+    "parameters": [
+      {
+        "name": "limit",
+        "sdkName": "limit",
+        "in": "query",
+        "cliFlagOrArgument": "--limit",
+        "required": false,
+        "schema": {
+          "minimum": 1,
+          "maximum": 100,
+          "type": "number"
+        }
+      },
+      {
+        "name": "starting_after",
+        "sdkName": "startingAfter",
+        "in": "query",
+        "cliFlagOrArgument": "--starting-after",
+        "required": false,
+        "schema": {
+          "type": "string"
+        }
+      },
+      {
+        "name": "ending_before",
+        "sdkName": "endingBefore",
+        "in": "query",
+        "cliFlagOrArgument": "--ending-before",
+        "required": false,
+        "schema": {
+          "type": "string"
+        }
+      },
+      {
+        "name": "external_id",
+        "sdkName": "externalId",
+        "in": "query",
+        "cliFlagOrArgument": "--external-id",
+        "required": false,
+        "schema": {
+          "type": "string"
+        }
+      }
+    ],
+    "pagination": "cursor",
+    "destructive": false
+  },
+  {
+    "operationId": "getProductGroup",
+    "sdkMethod": "productGroups.get",
+    "cliPath": "product-groups get",
+    "disposition": "implemented",
+    "description": "Retrieve a product group",
+    "parameters": [
+      {
+        "name": "id",
+        "sdkName": "id",
+        "in": "path",
+        "cliFlagOrArgument": "<id>",
+        "required": true,
+        "schema": {
+          "type": "string"
+        }
+      }
+    ],
+    "pagination": "none",
+    "destructive": false
+  },
+  {
     "operationId": "listCustomers",
     "sdkMethod": "customers.list",
     "cliPath": "customers list",

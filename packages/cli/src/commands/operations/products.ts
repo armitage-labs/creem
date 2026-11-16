@@ -42,4 +42,12 @@ export const handlers: Record<string, OperationHandler> = {
     );
     return client.products.archive(p, options);
   },
+  listProductPrices: (client, parameters, body, options) => {
+    const p = decode(
+      operations.ListProductPricesRequest$outboundSchema,
+      operations.ListProductPricesRequest$inboundSchema,
+      parameters,
+    );
+    return client.products.listPrices(p, options);
+  },
 };

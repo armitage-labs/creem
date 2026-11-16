@@ -220,6 +220,9 @@ lists them. For example, `products-update` takes
 The `creem` CLI's existing commands and flags don't change; `discounts create`
 and `meters create` gain `--idempotency-key`. `subscriptions list --status`
 accepts any status, and a billing type the CLI doesn't know is shown as it is.
+The new methods have commands: `creem product-groups list` (`--limit`,
+`--starting-after`, `--ending-before`, `--external-id`, `--all`),
+`creem product-groups get <id>` and `creem products prices <id>`.
 
 ## `@creem_io/ingestion`
 

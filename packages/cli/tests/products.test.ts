@@ -101,6 +101,31 @@ it("products archive sends the exact SDK arguments", async () => {
   expect(result.stdout).toBe("");
 });
 
+it("products prices sends the exact SDK arguments and prints the price versions as JSON", async () => {
+  const h = harness();
+  const versions = {
+    items: [{ id: "pver_2" }, { id: "pver_1" }],
+    subscriptionsWithoutPriceVersion: { active: 0 },
+  };
+  const spy = vi.spyOn(h.client.products, "listPrices").mockResolvedValue(versions as never);
+  const result = await h.run(["products", "prices", "prod_1", "--json"]);
+  expect(spy, result.stderr).toHaveBeenCalledExactlyOnceWith(
+    { id: "prod_1" },
+    expect.objectContaining({ retries: { strategy: "none" } }),
+  );
+  expect(result.code, result.stderr).toBe(0);
+  expect(JSON.parse(result.stdout)).toEqual(versions);
+});
+it("products prices requires the product ID and documents it in --help", async () => {
+  const h = harness();
+  const spy = vi.spyOn(h.client.products, "listPrices");
+  const missing = await h.run(["products", "prices", "--json"]);
+  expect(missing.code).toBe(2);
+  expect(spy).not.toHaveBeenCalled();
+  const help = await h.run(["products", "prices", "--help"]);
+  expect(help.code, help.stderr).toBe(0);
+  expect(help.stdout).toContain("prices [options] <id>");
+});
 it("products create passes usagePrices and features through --data untouched", async () => {
   const h = harness();
   const spy = vi.spyOn(h.client.products, "create").mockRejectedValue(new Error("SDK_SENTINEL"));

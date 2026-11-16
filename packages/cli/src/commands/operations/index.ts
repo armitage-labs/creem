@@ -1,4 +1,5 @@
 import { handlers as products } from "./products";
+import { handlers as productGroups } from "./product-groups";
 import { handlers as customers } from "./customers";
 import { handlers as subscriptions } from "./subscriptions";
 import { handlers as checkouts } from "./checkouts";
@@ -15,6 +16,7 @@ import { handlers as meters } from "./meters";
 import { handlers as webhooks } from "./webhooks";
 export const handlers = {
   ...products,
+  ...productGroups,
   ...customers,
   ...subscriptions,
   ...checkouts,
