@@ -126,6 +126,11 @@ export function createResourceCommand(resource: string, context: CliContext): Co
     }
     if (row.pagination !== "none")
       command.option("--all", "Fetch every page from the supplied page/cursor");
+    if (row.cliPath === "products prices")
+      command.addHelpText(
+        "after",
+        "\n--json also returns subscriptionsWithoutPriceVersion: running subscriptions not billed on any listed version.",
+      );
     if (row.cliPath === "subscriptions list")
       command.option(
         "--status <status>",

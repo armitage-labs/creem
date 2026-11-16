@@ -125,6 +125,33 @@ it("products prices requires the product ID and documents it in --help", async (
   const help = await h.run(["products", "prices", "--help"]);
   expect(help.code, help.stderr).toBe(0);
   expect(help.stdout).toContain("prices [options] <id>");
+  expect(help.stdout).toContain("--json also returns subscriptionsWithoutPriceVersion");
+});
+it("products prices table output shows which price version is current", async () => {
+  const h = harness();
+  vi.spyOn(h.client.products, "listPrices").mockResolvedValue({
+    items: [
+      { id: "pver_2", price: 2000, currency: "EUR", current: true },
+      { id: "pver_1", price: 1000, currency: "EUR", current: false },
+    ],
+    subscriptionsWithoutPriceVersion: { active: 0 },
+  } as never);
+  const result = await h.run(["products", "prices", "prod_1", "--output", "table"]);
+  expect(result.code, result.stderr).toBe(0);
+  const rows = result.stdout
+    .split("\n")
+    .filter((line) => line.startsWith("|"))
+    .map((line) =>
+      line
+        .split("|")
+        .slice(1, -1)
+        .map((cell) => cell.trim()),
+    );
+  expect(rows).toEqual([
+    ["id", "price", "currency", "current"],
+    ["pver_2", "2000", "EUR", "true"],
+    ["pver_1", "1000", "EUR", "false"],
+  ]);
 });
 it("products create passes usagePrices and features through --data untouched", async () => {
   const h = harness();
