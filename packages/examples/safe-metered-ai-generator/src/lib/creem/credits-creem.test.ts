@@ -3,7 +3,8 @@ import { randomUUID } from 'node:crypto'
 import { after, describe, test } from 'node:test'
 import { creemClient } from './client'
 import { CreemCreditsProvider } from './credits-creem'
-import { InsufficientBalanceError } from './types'
+import { screenPrompt } from './moderation'
+import { InsufficientBalanceError, ModerationDebitError } from './types'
 
 /**
  * Credits money-path (retries + reversals) - exercised against the REAL Creem
@@ -21,11 +22,11 @@ const bal = (s: string) => Number.parseFloat(s)
 
 describe('CreemCreditsProvider (live)', () => {
   const credits = new CreemCreditsProvider()
-  let accountId: string | null = null
+  const accountIds: string[] = []
 
   after(async () => {
     // Best-effort teardown: leave no open account behind.
-    if (accountId) {
+    for (const accountId of accountIds) {
       await credits.close(accountId).catch((e) => console.warn('[test] account close failed (manual cleanup):', (e as Error).message))
     }
   })
@@ -41,7 +42,7 @@ describe('CreemCreditsProvider (live)', () => {
 
     // A fresh credit account starts at zero.
     const account = await credits.createAccount({ customerId: customer.id, name: 'credits', unitLabel: 'credits' })
-    accountId = account.id
+    accountIds.push(account.id)
     assert.equal(bal((await credits.getBalance(account.id)).balance), 0, 'new account should start at 0')
 
     // Credit 10 -> balance 10.
@@ -72,5 +73,42 @@ describe('CreemCreditsProvider (live)', () => {
     // REVERSALS: reverse the earlier debit -> balance returns to 10.
     await credits.reverse(account.id, debit.id)
     assert.equal(bal((await credits.getBalance(account.id)).balance), 10, 'reversing the 3-debit should restore the balance to 10')
+  })
+
+  test('generation wallet: a debit needs a moderation id, and one id pays for one debit', async () => {
+    const customer = await creemClient.customers.create({
+      email: `aperture-test+${randomUUID().slice(0, 8)}@example.com`,
+      name: 'Aperture Test (safe to delete)',
+    })
+    // The wallet named `generation` is the moderated one. Start it with 10 credits.
+    const wallet = await credits.createAccount({ customerId: customer.id, name: 'generation', unitLabel: 'credits', initialBalance: '10' })
+    accountIds.push(wallet.id)
+    assert.equal(bal((await credits.getBalance(wallet.id)).balance), 10, 'initial balance')
+
+    // No moderation id -> refused, nothing moves.
+    await assert.rejects(
+      () => credits.debit(wallet.id, { amount: '3', reference: 'test:unscreened', idempotencyKey: `test_debit_${randomUUID()}` }),
+      ModerationDebitError,
+      'a debit without a moderation id should raise ModerationDebitError',
+    )
+    assert.equal(bal((await credits.getBalance(wallet.id)).balance), 10, 'refused debit must not change the balance')
+
+    // A screened and allowed prompt pays for one debit.
+    const moderation = await screenPrompt('a watercolor lighthouse at dawn')
+    assert.ok(moderation.allowed && moderation.id, 'a benign prompt should be allowed and carry an id')
+    const debit = await credits.debit(wallet.id, { amount: '3', reference: 'test:spend', idempotencyKey: `test_debit_${randomUUID()}`, moderationId: moderation.id })
+    assert.equal(bal((await credits.getBalance(wallet.id)).balance), 7, 'after debiting 3')
+
+    // The same id cannot pay for a second debit.
+    await assert.rejects(
+      () => credits.debit(wallet.id, { amount: '3', reference: 'test:reuse', idempotencyKey: `test_debit_${randomUUID()}`, moderationId: moderation.id }),
+      ModerationDebitError,
+      'a used moderation id should raise ModerationDebitError',
+    )
+    assert.equal(bal((await credits.getBalance(wallet.id)).balance), 7, 'reused id must not change the balance')
+
+    // A failed generation is refunded by reversing the debit.
+    await credits.reverse(wallet.id, debit.id)
+    assert.equal(bal((await credits.getBalance(wallet.id)).balance), 10, 'reversal restores the balance')
   })
 })

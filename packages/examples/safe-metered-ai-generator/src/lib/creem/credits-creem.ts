@@ -1,7 +1,7 @@
 import type { AccountResponseDto, BalanceResponseDto, EntryResponseDto, TransactionResponseDto } from 'creem/models/components'
-import { CreemError, CustomerCreditsErrorResponseDto } from 'creem/models/errors'
 import { creemClient } from './client'
-import { Balance, CreditAccount, CreditsProvider, InsufficientBalanceError, LedgerEntry, ModerationDebitError, Transaction } from './types'
+import { toDebitError } from './errors'
+import { Balance, CreditAccount, CreditsProvider, LedgerEntry, Transaction } from './types'
 
 /**
  * CreditsProvider backed by the Creem Customer Credits API, using the official
@@ -59,10 +59,7 @@ export class CreemCreditsProvider implements CreditsProvider {
       })
       return toTransaction(txn)
     } catch (err) {
-      const code = errorCode(err)
-      if (code === 'insufficient_balance') throw new InsufficientBalanceError()
-      if (code?.startsWith('moderation_')) throw new ModerationDebitError(code)
-      throw err
+      throw toDebitError(err)
     }
   }
 
@@ -126,19 +123,5 @@ function toTransaction(t: TransactionResponseDto): Transaction {
     reversal_of: t.reversalOf,
     entries: t.entries.map(toLedgerEntry),
     created_at: t.createdAt,
-  }
-}
-
-/** Creem's machine-readable error code (`insufficient_balance`, `moderation_denied`, ...), if any. */
-function errorCode(err: unknown): string | null {
-  if (err instanceof CustomerCreditsErrorResponseDto) return err.error.code
-  // The SDK only types 409 and 422 responses. Other statuses (a 400 for most
-  // `moderation_*` codes) arrive as a plain CreemError with the raw JSON body.
-  if (!(err instanceof CreemError)) return null
-  try {
-    const code: unknown = JSON.parse(err.body)?.error?.code
-    return typeof code === 'string' ? code : null
-  } catch {
-    return null
   }
 }

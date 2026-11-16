@@ -13,7 +13,7 @@ description: "Moderate every prompt, charge prepaid credits per generation, and 
 
 Charging for AI generations in a way that meets [MoR or PSP guidelines](/merchant-of-record/account-reviews/ai-wrapper-compliance) is hard with unmoderated prompts, failed generations and incorrect customer credits deduction. For e.g., Adobe Firefly users [report failed video jobs that produce nothing yet still deduct credits](https://community.adobe.com/t5/adobe-firefly-bugs/credits-are-being-deducted-even-when-video-generation-fails/idi-p/15659871), with one person losing 680 credits across 17 error-filled attempts. Users are bound to get frustrated if charges are made before the provider is sure that the model worked, or before the prompt has been screened. The fix is in the order of generation steps: moderate the prompt, charge the credits with the moderation result attached, generate, and refund automatically if the model fails.
 
-In this guide you build [Aperture](https://github.com/armitage-labs/creem/tree/main/packages/examples/safe-metered-ai-generator), a reference image and video generator that uses Creem for billing and moderation. Each user gets a `generation` credit wallet in the [Customer Credits API](/features/customer-credits/introduction#quick-start) when they sign up, Creem adds purchased credits to it, and every prompt is validated through the [Moderation API](/features/moderation). Each debit carries the ID of the moderation result that cleared its prompt.
+In this guide you build [Aperture](https://github.com/armitage-labs/creem/tree/main/packages/examples/safe-metered-ai-generator), a reference image and video generator that uses Creem for billing and moderation. Each user gets a `generation` credit wallet in the [Customer Credits API](/features/customer-credits/introduction#quick-start) when they sign up and verify their email, Creem adds purchased credits to it, and every prompt is validated through the [Moderation API](/features/moderation). Each debit carries the ID of the moderation result that cleared its prompt.
 
 ## Demo
 
@@ -229,7 +229,7 @@ export async function screenPrompt(prompt: string, externalId?: string): Promise
 
 ## Implement the wallet layer
 
-Every balance change goes through one module, [`src/lib/wallet.ts`](https://github.com/armitage-labs/creem/blob/main/packages/examples/safe-metered-ai-generator/src/lib/wallet.ts) and is used by the routes and the sign-up hook. It calls the Creem API on every generation, and then it mirrors the actions into Postgres for history and auditing.
+Every balance change goes through one module, [`src/lib/wallet.ts`](https://github.com/armitage-labs/creem/blob/main/packages/examples/safe-metered-ai-generator/src/lib/wallet.ts) and is used by the routes and the email verification hook. It calls the Creem API on every generation, and then it mirrors the actions into Postgres for history and auditing.
 
 The wallet layer is comprised of two files:
 
@@ -238,14 +238,20 @@ The wallet layer is comprised of two files:
 
 ### Create the wallet at sign-up
 
-Every user gets a Creem customer and a credit wallet as soon as they sign up. The wallet has to be named `generation`: that name makes it the AI generation wallet, so purchased credits land in it and every debit from it requires a moderation result.
+Every user gets a Creem customer and a credit wallet as soon as they sign up and verify their email. The wallet has to be named `generation`: that name makes it the AI generation wallet, so purchased credits land in it and every debit from it requires a moderation result.
 
 ```ts
 export const GENERATION_WALLET = "generation";
 
-export async function ensureWalletForUser(user: { id: string; email: string; name: string }) {
+export async function ensureWalletForUser(user: {
+  id: string;
+  email: string;
+  name: string;
+  emailVerified: boolean;
+}) {
   const existing = await getAccountForUser(user.id);
   if (existing) return existing;
+  if (!user.emailVerified) throw new EmailNotVerifiedError();
   // ...inside a per-user advisory lock:
   const customer = await findOrCreateCustomer(user); // externalId = your user id
   const account =
@@ -262,22 +268,30 @@ export async function ensureWalletForUser(user: { id: string; email: string; nam
 
 In the code above:
 
-- `findOrCreateCustomer` in [`src/lib/creem/customers.ts`](https://github.com/armitage-labs/creem/blob/main/packages/examples/safe-metered-ai-generator/src/lib/creem/customers.ts) looks the customer up by email and creates it with `externalId` set to the app's user id if it does not exist.
+- `findOrCreateCustomer` in [`src/lib/creem/customers.ts`](https://github.com/armitage-labs/creem/blob/main/packages/examples/safe-metered-ai-generator/src/lib/creem/customers.ts) looks the customer up by email and creates it with `externalId` set to the app's user id if it does not exist. A customer it finds with a different `externalId` belongs to another user of your app and is refused. One without an `externalId` is claimed for this user.
 - `initialBalance` gives new users 20 free credits. Free credits work like paid ones: spending them still requires a moderation result.
 - Creating a wallet has no idempotency key, so the function serializes per-user creation behind a transaction-scoped advisory lock (`pg_advisory_xact_lock`) and re-checks the table inside the lock. Exactly one wallet is created per user.
 
-The function is called from a Better Auth hook in [`src/lib/auth.ts`](https://github.com/armitage-labs/creem/blob/main/packages/examples/safe-metered-ai-generator/src/lib/auth.ts) that runs after a user is created:
+<Warning>
+  Only create the wallet for a verified email. Creem keeps one customer per email and store, so the
+  email is what ties a user to a customer and to its wallet. If you look a customer up by an email
+  nobody has proven they own, anyone who signs up with an existing customer's email gets that
+  customer's wallet and balance.
+</Warning>
+
+The function is called from Better Auth's `afterEmailVerification` hook in [`src/lib/auth.ts`](https://github.com/armitage-labs/creem/blob/main/packages/examples/safe-metered-ai-generator/src/lib/auth.ts). Sign-in requires a verified email, so every signed-in user can have a wallet:
 
 ```ts
-databaseHooks: {
-  user: {
-    create: {
-      after: async (user) => {
-        // A Creem outage must not block sign-up: the routes call
-        // ensureWalletForUser again and create the wallet then.
-        await ensureWalletForUser(user).catch((err) => console.error(err));
-      },
-    },
+emailAndPassword: { enabled: true, requireEmailVerification: true },
+emailVerification: {
+  sendOnSignUp: true,
+  autoSignInAfterVerification: true,
+  // The sample prints the link to the server console. Send a real email here.
+  sendVerificationEmail: async ({ user, url }) => console.log(`Verify ${user.email}: ${url}`),
+  afterEmailVerification: async (user) => {
+    // A Creem outage must not block verification: the routes call
+    // ensureWalletForUser again and create the wallet then.
+    await ensureWalletForUser({ ...user, emailVerified: true }).catch((err) => console.error(err));
   },
 },
 ```
@@ -395,10 +409,10 @@ if (imageDataUrl) {
 
 ### Replay a completed request
 
-The route then checks whether this idempotency key already produced a finished generation. If it did, it returns that result and runs nothing else.
+The route then checks whether this idempotency key already produced a finished generation. If it did, it returns that result and runs nothing else. That includes a generation that failed and was refunded: one key is one generation, and Creem refuses a second debit under the same key, so a client that wants to try again sends a new key.
 
 ```ts
-// Idempotency: if this key already produced a completed generation, replay it.
+// Idempotency: if this key already produced a completed or refunded generation, replay it.
 const prior = await queryOne(
   `SELECT id, status, result_url FROM generation
    WHERE user_id=$1 AND idempotency_key=$2 ORDER BY created_at DESC LIMIT 1`,
@@ -591,7 +605,7 @@ export const PACKS: Pack[] = [
 ];
 ```
 
-Clicking "Buy" calls [`src/app/api/checkout/route.ts`](https://github.com/armitage-labs/creem/blob/main/packages/examples/safe-metered-ai-generator/src/app/api/checkout/route.ts), which opens a Creem checkout for that product and returns the URL. The important line is `customer.id`: the checkout runs as the Creem customer created at sign-up, so the credits land in that user's generation wallet.
+Clicking "Buy" calls [`src/app/api/checkout/route.ts`](https://github.com/armitage-labs/creem/blob/main/packages/examples/safe-metered-ai-generator/src/app/api/checkout/route.ts), which opens a Creem checkout for that product and returns the URL. The important line is `customer.id`: the checkout runs as the Creem customer created for the user, so the credits land in that user's generation wallet.
 
 ```ts
 const wallet = await ensureWalletForUser(user);

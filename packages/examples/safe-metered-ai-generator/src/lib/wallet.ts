@@ -6,7 +6,7 @@ import { pool, query, queryOne } from './db'
 import { WELCOME_CREDITS } from './packs'
 
 /**
- * The wallet layer is the single entry point every route and webhook uses to
+ * The wallet layer is the single entry point every route uses to
  * touch a customer's credit balance. Credits live in the Creem Customer Credits
  * API - the single source of truth - and this layer:
  *   - maps app users to Creem credit accounts (credit_account table),
@@ -25,6 +25,14 @@ export interface WalletAccount {
   accountId: string
   unitLabel: string
   status: 'active' | 'frozen' | 'closed'
+}
+
+/** Thrown when a wallet is requested for a user whose email is not verified. */
+export class EmailNotVerifiedError extends Error {
+  constructor() {
+    super('email_not_verified')
+    this.name = 'EmailNotVerifiedError'
+  }
 }
 
 export async function getAccountForUser(userId: string): Promise<WalletAccount | null> {
@@ -47,13 +55,18 @@ export async function getAccountForUser(userId: string): Promise<WalletAccount |
 
 /**
  * Ensure a Creem customer and a `generation` wallet exist for a user, creating
- * them if needed. Called at sign-up (see lib/auth.ts) and again by the routes.
+ * them if needed. Called once the user's email is verified (see lib/auth.ts)
+ * and again by the routes.
+ *
+ * The customer is looked up by email, so the email must be verified first: an
+ * unverified email would hand its owner's wallet to whoever typed it.
  */
-export async function ensureWalletForUser(user: { id: string; email: string; name: string }): Promise<WalletAccount> {
+export async function ensureWalletForUser(user: { id: string; email: string; name: string; emailVerified: boolean }): Promise<WalletAccount> {
   const userId = user.id
   const existing = await getAccountForUser(userId)
   if (existing) return existing
-  // Sign-up and the user's first request can race here (both call this
+  if (!user.emailVerified) throw new EmailNotVerifiedError()
+  // Email verification and the user's first request can race here (both call this
   // function). Creem's createAccount has no idempotency key, so
   // without coordination both callers would pass the check above and each mint
   // a *separate* Creem wallet - the INSERT's ON CONFLICT dedupes the row but

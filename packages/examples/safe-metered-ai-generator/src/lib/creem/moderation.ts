@@ -65,6 +65,8 @@ export async function screenPrompt(prompt: string, externalId?: string): Promise
     const decision = data.decision
 
     if (decision === 'allow') {
+      // An allow without an id cannot pay for a debit. Fail closed.
+      if (!data.id) return blocked('error', data)
       return { decision: 'allow', allowed: true, id: data.id, raw: data }
     }
     if (decision === 'deny' || decision === 'flag') {

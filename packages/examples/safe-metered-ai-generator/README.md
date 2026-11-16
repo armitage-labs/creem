@@ -47,7 +47,7 @@ startup and lists what is missing (validated with zod in
 | **Moderation**      | [`src/lib/creem/moderation.ts`](src/lib/creem/moderation.ts)                                                 | `creemClient.moderation.screenPrompt`. Blocks on `deny` and `flag`. Fails closed on error/timeout                       |
 | **Generation flow** | [`src/app/api/generate/route.ts`](src/app/api/generate/route.ts)                                             | moderate → debit with the moderation id → generate → return, with idempotency keys and failure reversal                 |
 | **Checkout**        | [`src/app/api/checkout/route.ts`](src/app/api/checkout/route.ts)                                             | Opens a Creem checkout for the pack's product; Creem credits the wallet from the product's credits feature              |
-| **Sign-up**         | [`src/lib/auth.ts`](src/lib/auth.ts)                                                                         | Creates the user's Creem customer and `generation` wallet, with free welcome credits                                    |
+| **Sign-up**         | [`src/lib/auth.ts`](src/lib/auth.ts)                                                                         | Verifies the email, then creates the user's Creem customer and `generation` wallet, with free welcome credits           |
 | **Auth gate**       | [`src/proxy.ts`](src/proxy.ts), [`src/lib/session.ts`](src/lib/session.ts)                                   | Next 16 Proxy is the cookie pre-filter; `withUser()` is the per-route session check                                     |
 | **Ops utilities**   | [`src/app/api/credits/`](src/app/api/credits/)                                                               | Transaction history, freeze / unfreeze, close (audit trail preserved)                                                   |
 | **Auth ↔ customer** | [`@creem_io/better-auth`](https://www.npmjs.com/package/@creem_io/better-auth)                               | Email/password; maps users to Creem customers                                                                           |
@@ -60,7 +60,7 @@ Next.js 16 (App Router)
 ├─ proxy.ts ─ cookie pre-filter on protected /api/* (Next 16 "Proxy",
 │               formerly middleware); rejects requests with no session cookie
 ├─ Better Auth (email/password) + @creem_io/better-auth plugin
-│    · on sign-up → Creem customer + `generation` wallet (+ welcome credits)
+│    · on email verification → Creem customer + `generation` wallet (+ welcome credits)
 │    · no webhook handler: Creem credits purchases from the product's feature
 ├─ withUser() ─ per-route session check   src/lib/session.ts
 ├─ Wallet layer   src/lib/wallet.ts
@@ -78,12 +78,20 @@ session with `withUser()` (Better Auth `getSession`). The cookie check is a fast
 pre-filter; the route check is the real one. Both Next.js and Better Auth
 recommend this split, because a cookie can be forged.
 
-The credit wallet is created when the user **signs up**. A Better Auth
-`databaseHooks.user.create.after` hook calls `ensureWalletForUser`, which
-creates a Creem customer for the user (`externalId` is the app's user id) and
-then a Credit Account named `generation`, with `WELCOME_CREDITS` free credits.
-The routes call the same function as a fallback, so a user whose wallet could
-not be created at sign-up gets it on first use.
+The credit wallet is created when the user **verifies their email**. Better
+Auth's `afterEmailVerification` hook calls `ensureWalletForUser`, which creates
+a Creem customer for the user (`externalId` is the app's user id) and then a
+Credit Account named `generation`, with `WELCOME_CREDITS` free credits. The
+routes call the same function as a fallback, so a user whose wallet could not be
+created then gets it on first use.
+
+Verification is required because the customer is looked up by email. Creem keeps
+one customer per email and store, so without it anyone who signs up with an
+existing customer's email would get that customer's wallet. For the same reason,
+a customer whose `externalId` is another user's id is refused. The demo has no
+mail server: the verification link is printed to the server console. Replace
+`sendVerificationEmail` in `src/lib/auth.ts` with a real email before you go
+live.
 
 The name `generation` is what makes it the moderated AI generation wallet:
 
@@ -129,7 +137,8 @@ pnpm dev
 # http://localhost:3000
 ```
 
-Sign up and generate with the free welcome credits, then buy a pack. Buy opens a
+Sign up, open the verification link printed in the terminal running `pnpm dev`,
+and generate with the free welcome credits, then buy a pack. Buy opens a
 Creem checkout, and Creem adds the pack's credits to the wallet when the payment
 succeeds (see the $0 discount flow below).
 
@@ -210,6 +219,20 @@ The studio has one-click example prompts for each path:
   failure so you can test the refund/reverse path. All are harmless in production
   and defined in [`src/lib/examples.ts`](src/lib/examples.ts) and
   [`src/lib/generator/stub.ts`](src/lib/generator/stub.ts).
+
+## Upgrading from the webhook version
+
+Earlier versions of this sample credited a wallet named `credits` from a
+`checkout.completed` webhook. Rows in `credit_account` from that version still
+point at the old wallet, while purchases now land in `generation`. The sample
+has no migration for this. On an existing database:
+
+1. Clear the mapping: `DELETE FROM credit_account;`. Each user gets a
+   `generation` wallet on their next request. Balances in the old `credits`
+   wallets stay in Creem and are not moved.
+2. Re-run `pnpm products:setup`, so the packs carry the AI generation credits
+   feature.
+3. Existing users have unverified emails and must verify on their next sign-in.
 
 ## Deploy to Vercel
 

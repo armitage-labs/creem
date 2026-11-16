@@ -15,7 +15,8 @@ export const GET = withUser(async (req, user) => {
   const query = Query.safeParse({ at: req.nextUrl.searchParams.get('at') ?? undefined })
   if (!query.success) return NextResponse.json({ error: 'invalid_request', message: query.error.issues[0]?.message }, { status: 400 })
   const at = query.data.at
-  // Normally created at sign-up; this covers users from before that hook existed.
+  // Normally created when the email is verified; this covers a user whose
+  // wallet could not be created then (a Creem outage, for example).
   const account = await ensureWalletForUser(user)
   const balance = await getBalance(user.id, at)
   return NextResponse.json({

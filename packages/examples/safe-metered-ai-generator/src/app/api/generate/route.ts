@@ -59,12 +59,26 @@ export const POST = withUser(async (req, user) => {
   // firing a second model call. Independent generations use different keys and
   // never contend.
   const runGeneration = async () => {
-    // Idempotency: if this key already produced a completed generation, replay it.
+    // Idempotency: one key is one generation. If this key already reached an
+    // outcome that touched credits, replay that outcome. Debiting again under
+    // the same key would be refused by Creem, so a new attempt needs a new key.
     const prior = await queryOne<{ id: string; status: string; result_url: string | null }>(
       `SELECT id, status, result_url FROM generation WHERE user_id=$1 AND idempotency_key=$2 ORDER BY created_at DESC LIMIT 1`,
       [user.id, idempotencyKey],
     )
-    if (prior && prior.status === 'completed') return NextResponse.json({ id: prior.id, status: 'completed', url: prior.result_url, replayed: true })
+    if (prior?.status === 'completed') return NextResponse.json({ id: prior.id, status: 'completed', url: prior.result_url, replayed: true })
+    if (prior?.status === 'refunded') {
+      return NextResponse.json(
+        {
+          id: prior.id,
+          status: 'refunded',
+          error: 'generation_failed',
+          message: 'Generation failed - your credits were refunded. Send a new idempotency key to try again.',
+          replayed: true,
+        },
+        { status: 502 },
+      )
+    }
     const account = await ensureWalletForUser(user)
     if (account.status !== 'active') return NextResponse.json({ error: 'account_' + account.status, message: `Your credit account is ${account.status}.` }, { status: 403 })
     // ---- 1. MODERATE ------------------------------------------------------
@@ -100,7 +114,13 @@ export const POST = withUser(async (req, user) => {
         console.warn(`[generate] debit refused for ${genId}: ${err.code}`)
         await recordGeneration({ genId, userId: user.id, prompt, mediaType, cost, status: 'rejected', decision: 'error', idempotencyKey })
         return NextResponse.json(
-          { id: genId, status: 'rejected', decision: 'error', error: 'prompt_rejected', message: 'Your prompt could not be cleared for generation. No credits were charged. Please try again.' },
+          {
+            id: genId,
+            status: 'rejected',
+            decision: 'error',
+            error: 'prompt_rejected',
+            message: 'Your prompt could not be cleared for generation. No credits were charged. Please try again.',
+          },
           { status: 400 },
         )
       }

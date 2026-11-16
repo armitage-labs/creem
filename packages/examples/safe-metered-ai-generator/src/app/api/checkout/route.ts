@@ -29,10 +29,10 @@ export const POST = withUser(async (req, user) => {
   if (!parsed.success) return NextResponse.json({ error: 'invalid_request' }, { status: 400 })
   const pack = getPack(parsed.data.packId)
   if (!pack) return NextResponse.json({ error: 'unknown_pack' }, { status: 404 })
+  // Check out as the user's existing Creem customer, so the credits land in
+  // the generation wallet they already have.
+  const wallet = await ensureWalletForUser(user)
   try {
-    // Check out as the user's existing Creem customer, so the credits land in
-    // the generation wallet they already have.
-    const wallet = await ensureWalletForUser(user)
     const checkout = await creemClient.checkouts.create({
       productId: pack.productId,
       customer: { id: wallet.creemCustomerId },

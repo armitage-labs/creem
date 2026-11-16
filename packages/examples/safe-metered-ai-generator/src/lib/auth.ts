@@ -8,7 +8,7 @@ import { ensureWalletForUser } from './wallet'
  * Better Auth configured with:
  *   - email/password auth over our Neon Postgres pool,
  *   - the official Creem plugin for checkout,
- *   - a sign-up hook that creates the user's `generation` wallet.
+ *   - email verification, after which the user's `generation` wallet is created.
  *
  * Creem credits purchased packs itself, so there is no webhook handler here.
  */
@@ -18,18 +18,23 @@ export const auth = betterAuth({
   database: pool,
   emailAndPassword: {
     enabled: true,
-    // Demo app: no email server wired up, so don't gate sign-in on verification.
-    requireEmailVerification: false,
+    // The wallet is found through the user's email, so the email has to be
+    // proven before anyone gets a session or a wallet.
+    requireEmailVerification: true,
   },
-  databaseHooks: {
-    user: {
-      create: {
-        after: async (user) => {
-          // A Creem outage must not block sign-up: the routes call
-          // ensureWalletForUser again and create the wallet then.
-          await ensureWalletForUser(user).catch((err) => console.error('[auth] wallet not created at sign-up, will retry on first use:', err))
-        },
-      },
+  emailVerification: {
+    sendOnSignUp: true,
+    sendOnSignIn: true,
+    autoSignInAfterVerification: true,
+    // Demo app: no mail server is wired up, so the link is printed to the
+    // server console. Send a real email here in production.
+    sendVerificationEmail: async ({ user, url }) => {
+      console.log(`\n[auth] Verification link for ${user.email}:\n${url}\n`)
+    },
+    afterEmailVerification: async (user) => {
+      // A Creem outage must not block verification: the routes call
+      // ensureWalletForUser again and create the wallet then.
+      await ensureWalletForUser({ ...user, emailVerified: true }).catch((err) => console.error('[auth] wallet not created after verification, will retry on first use:', err))
     },
   },
   plugins: [
@@ -39,8 +44,9 @@ export const auth = betterAuth({
       testMode: env.isTestMode,
       defaultSuccessUrl: '/success',
       // We only sell one-time credit packs here, not subscriptions, but the
-      // plugin still persists its user/subscription schema. Keep it on so
-      // user.creemCustomerId is synced automatically on first checkout.
+      // migrated schema includes the plugin's user/subscription tables, so
+      // keep this on. The app itself reads the Creem customer id from its own
+      // credit_account table, not from the plugin.
       persistSubscriptions: true,
     }),
   ],
