@@ -1,6 +1,6 @@
 ---
 title: 'Moderation'
-description: 'Screen user prompts against content policies before generating images or videos with your AI models.'
+description: 'Screen the prompt behind every image or video generation against content policies before it reaches your AI model.'
 ---
 
 <Note>
@@ -39,9 +39,9 @@ standing.
 
 <Warning>
   If you operate an AI image or video generation product on Creem and do not
-  integrate the Moderation API on every user prompt, your account is considered
-  out of compliance with the Creem Terms of Service and may be suspended
-  without notice.
+  screen every generation through the Moderation API, your account is
+  considered out of compliance with the Creem Terms of Service and may be
+  suspended without notice.
 </Warning>
 
 ## How it works
@@ -356,8 +356,11 @@ cut your bill by half or more without weakening screening:
 - **Screen the user-supplied text, not your templates.** If your product wraps
   user input in a reusable style or system template, screen only the part the
   user controls — your own static boilerplate bills units on every call.
-  If a generation has no user text at all, screen the prompt that drives it
-  instead. Identical prompts are cached, so repeats cost nothing.
+  If a generation has no user text at all, screen the fixed prompt that drives
+  it instead, such as the template text. For upload-only edits with no prompt,
+  such as upscaling or background removal, screen a short instruction that
+  names the operation, like `upscale 4x`. Repeating a recently screened prompt
+  returns the cached decision and bills `0` units.
 - **Screen incrementally, not cumulatively.** For chat-style products, screen
   each new user message as it arrives. Re-submitting the entire conversation
   history on every turn re-bills everything you already screened.
