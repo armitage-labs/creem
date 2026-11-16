@@ -138,11 +138,11 @@ export type CreateProductRequestEntity = {
    */
   metadata?: { [k: string]: any } | undefined;
   /**
-   * Collect additional information from your customer using custom fields during checkout. Up to 3 fields are supported.
+   * Collect additional information from your customer using custom fields during checkout.
    */
   customFields?: Array<CustomFieldRequestEntity> | undefined;
   /**
-   * DEPRECATED: Use `custom_fields` instead. Collect additional information from your customer using custom fields during checkout. Up to 3 fields are supported.
+   * DEPRECATED: Use `custom_fields` instead. Collect additional information from your customer using custom fields during checkout.
    *
    * @deprecated field: This will be removed in a future release, please migrate away from it as soon as possible.
    */

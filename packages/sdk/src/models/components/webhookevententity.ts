@@ -41,11 +41,23 @@ import {
   CustomerCreditsGrantEntity$outboundSchema,
 } from "./customercreditsgrantentity.js";
 import {
+  CustomerCreditsReversalEntity,
+  CustomerCreditsReversalEntity$inboundSchema,
+  CustomerCreditsReversalEntity$Outbound,
+  CustomerCreditsReversalEntity$outboundSchema,
+} from "./customercreditsreversalentity.js";
+import {
   DisputeEntity,
   DisputeEntity$inboundSchema,
   DisputeEntity$Outbound,
   DisputeEntity$outboundSchema,
 } from "./disputeentity.js";
+import {
+  MarketplaceGrantAskEntity,
+  MarketplaceGrantAskEntity$inboundSchema,
+  MarketplaceGrantAskEntity$Outbound,
+  MarketplaceGrantAskEntity$outboundSchema,
+} from "./marketplacegrantaskentity.js";
 import {
   RefundEntity,
   RefundEntity$inboundSchema,
@@ -398,6 +410,41 @@ export type WebhookEventEntityWebhookSubscriptionActiveEventEntity = {
 /**
  * The event name.
  */
+export const WebhookMarketplaceGrantRequestedEventEntityWebhookEventEntityEventType =
+  {
+    MarketplaceGrantRequested: "marketplace.grant.requested",
+  } as const;
+/**
+ * The event name.
+ */
+export type WebhookMarketplaceGrantRequestedEventEntityWebhookEventEntityEventType =
+  ClosedEnum<
+    typeof WebhookMarketplaceGrantRequestedEventEntityWebhookEventEntityEventType
+  >;
+
+export type WebhookEventEntityWebhookMarketplaceGrantRequestedEventEntity = {
+  /**
+   * Unique identifier for the event.
+   */
+  id: string;
+  /**
+   * The event name.
+   */
+  eventType:
+    WebhookMarketplaceGrantRequestedEventEntityWebhookEventEntityEventType;
+  /**
+   * Timestamp of when the event was created.
+   */
+  createdAt: number;
+  /**
+   * Object related to the event.
+   */
+  object: MarketplaceGrantAskEntity;
+};
+
+/**
+ * The event name.
+ */
 export const WebhookCreditsAutoRechargedEventEntityWebhookEventEntityEventType =
   {
     CreditsAutoRecharged: "credits.auto_recharged",
@@ -427,6 +474,39 @@ export type WebhookEventEntityWebhookCreditsAutoRechargedEventEntity = {
    * Object related to the event.
    */
   object: CustomerCreditsAutoRechargeEntity;
+};
+
+/**
+ * The event name.
+ */
+export const WebhookCreditsReversedEventEntityWebhookEventEntityEventType = {
+  CreditsReversed: "credits.reversed",
+} as const;
+/**
+ * The event name.
+ */
+export type WebhookCreditsReversedEventEntityWebhookEventEntityEventType =
+  ClosedEnum<
+    typeof WebhookCreditsReversedEventEntityWebhookEventEntityEventType
+  >;
+
+export type WebhookEventEntityWebhookCreditsReversedEventEntity = {
+  /**
+   * Unique identifier for the event.
+   */
+  id: string;
+  /**
+   * The event name.
+   */
+  eventType: WebhookCreditsReversedEventEntityWebhookEventEntityEventType;
+  /**
+   * Timestamp of when the event was created.
+   */
+  createdAt: number;
+  /**
+   * Object related to the event.
+   */
+  object: CustomerCreditsReversalEntity;
 };
 
 /**
@@ -648,8 +728,14 @@ export type WebhookEventEntity =
   | (WebhookEventEntityWebhookCreditsConsumedEventEntity & {
     eventType: "credits.consumed";
   })
+  | (WebhookEventEntityWebhookCreditsReversedEventEntity & {
+    eventType: "credits.reversed";
+  })
   | (WebhookEventEntityWebhookCreditsAutoRechargedEventEntity & {
     eventType: "credits.auto_recharged";
+  })
+  | (WebhookEventEntityWebhookMarketplaceGrantRequestedEventEntity & {
+    eventType: "marketplace.grant.requested";
   })
   | (WebhookEventEntityWebhookSubscriptionActiveEventEntity & {
     eventType: "subscription.active";
@@ -1503,6 +1589,88 @@ export function webhookEventEntityWebhookSubscriptionActiveEventEntityFromJSON(
 }
 
 /** @internal */
+export const WebhookMarketplaceGrantRequestedEventEntityWebhookEventEntityEventType$inboundSchema:
+  z.ZodNativeEnum<
+    typeof WebhookMarketplaceGrantRequestedEventEntityWebhookEventEntityEventType
+  > = z.nativeEnum(
+    WebhookMarketplaceGrantRequestedEventEntityWebhookEventEntityEventType,
+  );
+/** @internal */
+export const WebhookMarketplaceGrantRequestedEventEntityWebhookEventEntityEventType$outboundSchema:
+  z.ZodNativeEnum<
+    typeof WebhookMarketplaceGrantRequestedEventEntityWebhookEventEntityEventType
+  > =
+    WebhookMarketplaceGrantRequestedEventEntityWebhookEventEntityEventType$inboundSchema;
+
+/** @internal */
+export const WebhookEventEntityWebhookMarketplaceGrantRequestedEventEntity$inboundSchema:
+  z.ZodType<
+    WebhookEventEntityWebhookMarketplaceGrantRequestedEventEntity,
+    z.ZodTypeDef,
+    unknown
+  > = z.object({
+    id: z.string(),
+    eventType:
+      WebhookMarketplaceGrantRequestedEventEntityWebhookEventEntityEventType$inboundSchema,
+    created_at: z.number(),
+    object: MarketplaceGrantAskEntity$inboundSchema,
+  }).transform((v) => {
+    return remap$(v, {
+      "created_at": "createdAt",
+    });
+  });
+/** @internal */
+export type WebhookEventEntityWebhookMarketplaceGrantRequestedEventEntity$Outbound =
+  {
+    id: string;
+    eventType: string;
+    created_at: number;
+    object: MarketplaceGrantAskEntity$Outbound;
+  };
+
+/** @internal */
+export const WebhookEventEntityWebhookMarketplaceGrantRequestedEventEntity$outboundSchema:
+  z.ZodType<
+    WebhookEventEntityWebhookMarketplaceGrantRequestedEventEntity$Outbound,
+    z.ZodTypeDef,
+    WebhookEventEntityWebhookMarketplaceGrantRequestedEventEntity
+  > = z.object({
+    id: z.string(),
+    eventType:
+      WebhookMarketplaceGrantRequestedEventEntityWebhookEventEntityEventType$outboundSchema,
+    createdAt: z.number(),
+    object: MarketplaceGrantAskEntity$outboundSchema,
+  }).transform((v) => {
+    return remap$(v, {
+      createdAt: "created_at",
+    });
+  });
+
+export function webhookEventEntityWebhookMarketplaceGrantRequestedEventEntityToJSON(
+  webhookEventEntityWebhookMarketplaceGrantRequestedEventEntity:
+    WebhookEventEntityWebhookMarketplaceGrantRequestedEventEntity,
+): string {
+  return JSON.stringify(
+    WebhookEventEntityWebhookMarketplaceGrantRequestedEventEntity$outboundSchema
+      .parse(webhookEventEntityWebhookMarketplaceGrantRequestedEventEntity),
+  );
+}
+export function webhookEventEntityWebhookMarketplaceGrantRequestedEventEntityFromJSON(
+  jsonString: string,
+): SafeParseResult<
+  WebhookEventEntityWebhookMarketplaceGrantRequestedEventEntity,
+  SDKValidationError
+> {
+  return safeParse(
+    jsonString,
+    (x) =>
+      WebhookEventEntityWebhookMarketplaceGrantRequestedEventEntity$inboundSchema
+        .parse(JSON.parse(x)),
+    `Failed to parse 'WebhookEventEntityWebhookMarketplaceGrantRequestedEventEntity' from JSON`,
+  );
+}
+
+/** @internal */
 export const WebhookCreditsAutoRechargedEventEntityWebhookEventEntityEventType$inboundSchema:
   z.ZodNativeEnum<
     typeof WebhookCreditsAutoRechargedEventEntityWebhookEventEntityEventType
@@ -1581,6 +1749,89 @@ export function webhookEventEntityWebhookCreditsAutoRechargedEventEntityFromJSON
       WebhookEventEntityWebhookCreditsAutoRechargedEventEntity$inboundSchema
         .parse(JSON.parse(x)),
     `Failed to parse 'WebhookEventEntityWebhookCreditsAutoRechargedEventEntity' from JSON`,
+  );
+}
+
+/** @internal */
+export const WebhookCreditsReversedEventEntityWebhookEventEntityEventType$inboundSchema:
+  z.ZodNativeEnum<
+    typeof WebhookCreditsReversedEventEntityWebhookEventEntityEventType
+  > = z.nativeEnum(
+    WebhookCreditsReversedEventEntityWebhookEventEntityEventType,
+  );
+/** @internal */
+export const WebhookCreditsReversedEventEntityWebhookEventEntityEventType$outboundSchema:
+  z.ZodNativeEnum<
+    typeof WebhookCreditsReversedEventEntityWebhookEventEntityEventType
+  > =
+    WebhookCreditsReversedEventEntityWebhookEventEntityEventType$inboundSchema;
+
+/** @internal */
+export const WebhookEventEntityWebhookCreditsReversedEventEntity$inboundSchema:
+  z.ZodType<
+    WebhookEventEntityWebhookCreditsReversedEventEntity,
+    z.ZodTypeDef,
+    unknown
+  > = z.object({
+    id: z.string(),
+    eventType:
+      WebhookCreditsReversedEventEntityWebhookEventEntityEventType$inboundSchema,
+    created_at: z.number(),
+    object: CustomerCreditsReversalEntity$inboundSchema,
+  }).transform((v) => {
+    return remap$(v, {
+      "created_at": "createdAt",
+    });
+  });
+/** @internal */
+export type WebhookEventEntityWebhookCreditsReversedEventEntity$Outbound = {
+  id: string;
+  eventType: string;
+  created_at: number;
+  object: CustomerCreditsReversalEntity$Outbound;
+};
+
+/** @internal */
+export const WebhookEventEntityWebhookCreditsReversedEventEntity$outboundSchema:
+  z.ZodType<
+    WebhookEventEntityWebhookCreditsReversedEventEntity$Outbound,
+    z.ZodTypeDef,
+    WebhookEventEntityWebhookCreditsReversedEventEntity
+  > = z.object({
+    id: z.string(),
+    eventType:
+      WebhookCreditsReversedEventEntityWebhookEventEntityEventType$outboundSchema,
+    createdAt: z.number(),
+    object: CustomerCreditsReversalEntity$outboundSchema,
+  }).transform((v) => {
+    return remap$(v, {
+      createdAt: "created_at",
+    });
+  });
+
+export function webhookEventEntityWebhookCreditsReversedEventEntityToJSON(
+  webhookEventEntityWebhookCreditsReversedEventEntity:
+    WebhookEventEntityWebhookCreditsReversedEventEntity,
+): string {
+  return JSON.stringify(
+    WebhookEventEntityWebhookCreditsReversedEventEntity$outboundSchema.parse(
+      webhookEventEntityWebhookCreditsReversedEventEntity,
+    ),
+  );
+}
+export function webhookEventEntityWebhookCreditsReversedEventEntityFromJSON(
+  jsonString: string,
+): SafeParseResult<
+  WebhookEventEntityWebhookCreditsReversedEventEntity,
+  SDKValidationError
+> {
+  return safeParse(
+    jsonString,
+    (x) =>
+      WebhookEventEntityWebhookCreditsReversedEventEntity$inboundSchema.parse(
+        JSON.parse(x),
+      ),
+    `Failed to parse 'WebhookEventEntityWebhookCreditsReversedEventEntity' from JSON`,
   );
 }
 
@@ -2089,9 +2340,15 @@ export const WebhookEventEntity$inboundSchema: z.ZodType<
   ["credits.consumed"]: z.lazy(() =>
     WebhookEventEntityWebhookCreditsConsumedEventEntity$inboundSchema
   ).and(z.object({ eventType: z.literal("credits.consumed") })),
+  ["credits.reversed"]: z.lazy(() =>
+    WebhookEventEntityWebhookCreditsReversedEventEntity$inboundSchema
+  ).and(z.object({ eventType: z.literal("credits.reversed") })),
   ["credits.auto_recharged"]: z.lazy(() =>
     WebhookEventEntityWebhookCreditsAutoRechargedEventEntity$inboundSchema
   ).and(z.object({ eventType: z.literal("credits.auto_recharged") })),
+  ["marketplace.grant.requested"]: z.lazy(() =>
+    WebhookEventEntityWebhookMarketplaceGrantRequestedEventEntity$inboundSchema
+  ).and(z.object({ eventType: z.literal("marketplace.grant.requested") })),
   ["subscription.active"]: z.lazy(() =>
     WebhookEventEntityWebhookSubscriptionActiveEventEntity$inboundSchema
   ).and(z.object({ eventType: z.literal("subscription.active") })),
@@ -2143,8 +2400,14 @@ export type WebhookEventEntity$Outbound =
   | (WebhookEventEntityWebhookCreditsConsumedEventEntity$Outbound & {
     eventType: "credits.consumed";
   })
+  | (WebhookEventEntityWebhookCreditsReversedEventEntity$Outbound & {
+    eventType: "credits.reversed";
+  })
   | (WebhookEventEntityWebhookCreditsAutoRechargedEventEntity$Outbound & {
     eventType: "credits.auto_recharged";
+  })
+  | (WebhookEventEntityWebhookMarketplaceGrantRequestedEventEntity$Outbound & {
+    eventType: "marketplace.grant.requested";
   })
   | (WebhookEventEntityWebhookSubscriptionActiveEventEntity$Outbound & {
     eventType: "subscription.active";
@@ -2202,8 +2465,14 @@ export const WebhookEventEntity$outboundSchema: z.ZodType<
     WebhookEventEntityWebhookCreditsConsumedEventEntity$outboundSchema
   ).and(z.object({ eventType: z.literal("credits.consumed") })),
   z.lazy(() =>
+    WebhookEventEntityWebhookCreditsReversedEventEntity$outboundSchema
+  ).and(z.object({ eventType: z.literal("credits.reversed") })),
+  z.lazy(() =>
     WebhookEventEntityWebhookCreditsAutoRechargedEventEntity$outboundSchema
   ).and(z.object({ eventType: z.literal("credits.auto_recharged") })),
+  z.lazy(() =>
+    WebhookEventEntityWebhookMarketplaceGrantRequestedEventEntity$outboundSchema
+  ).and(z.object({ eventType: z.literal("marketplace.grant.requested") })),
   z.lazy(() =>
     WebhookEventEntityWebhookSubscriptionActiveEventEntity$outboundSchema
   ).and(z.object({ eventType: z.literal("subscription.active") })),

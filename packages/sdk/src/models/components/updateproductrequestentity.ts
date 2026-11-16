@@ -8,6 +8,12 @@ import { safeParse } from "../../lib/schemas.js";
 import { Result as SafeParseResult } from "../../types/fp.js";
 import { SDKValidationError } from "../errors/sdkvalidationerror.js";
 import {
+  CustomFieldRequestEntity,
+  CustomFieldRequestEntity$inboundSchema,
+  CustomFieldRequestEntity$Outbound,
+  CustomFieldRequestEntity$outboundSchema,
+} from "./customfieldrequestentity.js";
+import {
   ProductCurrency,
   ProductCurrency$inboundSchema,
   ProductCurrency$outboundSchema,
@@ -127,9 +133,17 @@ export type UpdateProductRequestEntity = {
    */
   usagePrices?: Array<UsagePriceRequestEntity> | undefined;
   /**
-   * Features granted by purchase. Only `customerCredits` (a credit grant into one of the customer credit buckets) can be managed through the API. The array is the complete set of credit features after the update: omit (or send `null`) to leave features untouched, include `id` to edit in place; credit features missing from the array are removed.
+   * Features granted by purchase. Only `customerCredits` (a credit grant into one of the customer credit buckets) can be managed through the API. The array is the complete set of credit features after the update: omit (or send `null`) to leave features untouched, include `id` to edit in place, or the `external_id` of a stored feature to edit that feature without its `id`; credit features missing from the array are removed.
    */
   features?: Array<ProductFeatureRequestEntity> | undefined;
+  /**
+   * Collect additional information from your customer using custom fields during checkout. The array is the complete set after the update: omit (or send `null`) to leave the custom fields unchanged, send `[]` to remove all.
+   */
+  customFields?: Array<CustomFieldRequestEntity> | null | undefined;
+  /**
+   * Turn abandoned cart recovery for this product on or off. Buyers who abandon checkout get recovery emails, and recovered orders carry the recovery fee. Omit to leave it unchanged.
+   */
+  abandonedCartRecoveryEnabled?: boolean | undefined;
 };
 
 /** @internal */
@@ -159,6 +173,9 @@ export const UpdateProductRequestEntity$inboundSchema: z.ZodType<
   suggested_price: z.number().int().optional(),
   usage_prices: z.array(UsagePriceRequestEntity$inboundSchema).optional(),
   features: z.array(ProductFeatureRequestEntity$inboundSchema).optional(),
+  custom_fields: z.nullable(z.array(CustomFieldRequestEntity$inboundSchema))
+    .optional(),
+  abandoned_cart_recovery_enabled: z.boolean().optional(),
 }).transform((v) => {
   return remap$(v, {
     "image_url": "imageUrl",
@@ -176,6 +193,8 @@ export const UpdateProductRequestEntity$inboundSchema: z.ZodType<
     "pay_what_you_want": "payWhatYouWant",
     "suggested_price": "suggestedPrice",
     "usage_prices": "usagePrices",
+    "custom_fields": "customFields",
+    "abandoned_cart_recovery_enabled": "abandonedCartRecoveryEnabled",
   });
 });
 /** @internal */
@@ -201,6 +220,8 @@ export type UpdateProductRequestEntity$Outbound = {
   suggested_price?: number | undefined;
   usage_prices?: Array<UsagePriceRequestEntity$Outbound> | undefined;
   features?: Array<ProductFeatureRequestEntity$Outbound> | undefined;
+  custom_fields?: Array<CustomFieldRequestEntity$Outbound> | null | undefined;
+  abandoned_cart_recovery_enabled?: boolean | undefined;
 };
 
 /** @internal */
@@ -230,6 +251,9 @@ export const UpdateProductRequestEntity$outboundSchema: z.ZodType<
   suggestedPrice: z.number().int().optional(),
   usagePrices: z.array(UsagePriceRequestEntity$outboundSchema).optional(),
   features: z.array(ProductFeatureRequestEntity$outboundSchema).optional(),
+  customFields: z.nullable(z.array(CustomFieldRequestEntity$outboundSchema))
+    .optional(),
+  abandonedCartRecoveryEnabled: z.boolean().optional(),
 }).transform((v) => {
   return remap$(v, {
     imageUrl: "image_url",
@@ -247,6 +271,8 @@ export const UpdateProductRequestEntity$outboundSchema: z.ZodType<
     payWhatYouWant: "pay_what_you_want",
     suggestedPrice: "suggested_price",
     usagePrices: "usage_prices",
+    customFields: "custom_fields",
+    abandonedCartRecoveryEnabled: "abandoned_cart_recovery_enabled",
   });
 });
 

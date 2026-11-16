@@ -56,7 +56,7 @@ export class Discounts extends ClientSDK {
    * Create promotional discount codes for products. Set percentage or fixed amount discounts with expiration dates.
    */
   async create(
-    request: components.CreateDiscountRequestEntity,
+    request: operations.CreateDiscountRequest,
     options?: RequestOptions,
   ): Promise<components.DiscountEntity> {
     return unwrapAsync(discountsCreate(

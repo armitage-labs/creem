@@ -93,7 +93,7 @@ run();
 
 | Error Type                             | Status Code                            | Content Type                           |
 | -------------------------------------- | -------------------------------------- | -------------------------------------- |
-| errors.CustomerCreditsErrorResponseDto | 409                                    | application/json                       |
+| errors.CustomerCreditsErrorResponseDto | 409, 422                               | application/json                       |
 | errors.APIError                        | 4XX, 5XX                               | \*/\*                                  |
 
 ## listAccounts
@@ -632,7 +632,7 @@ run();
 
 ## debitAccount
 
-Deduct credits from a customer account. Returns the resulting transaction record.
+Deduct credits from a customer account. Returns the resulting transaction record. A debit from a `generation` account (AI generation credits) needs the `moderation_id` of an allowed Moderation API result; on other accounts it is optional. A failed debit does not use up the moderation result.
 
 ### Example Usage
 
@@ -647,10 +647,11 @@ const creem = new Creem({
 async function run() {
   const result = await creem.customerCredits.debitAccount({
     id: "<id>",
-    creditDebitRequestDto: {
+    debitRequestDto: {
       amount: "1000",
       reference: "signup_bonus",
       idempotencyKey: "idem_abc123",
+      moderationId: "3f1c2b9e-8d4a-4c7e-9b1a-2e5f6d7c8a90",
     },
   });
 
@@ -677,10 +678,11 @@ const creem = new CreemCore({
 async function run() {
   const res = await customerCreditsDebitAccount(creem, {
     id: "<id>",
-    creditDebitRequestDto: {
+    debitRequestDto: {
       amount: "1000",
       reference: "signup_bonus",
       idempotencyKey: "idem_abc123",
+      moderationId: "3f1c2b9e-8d4a-4c7e-9b1a-2e5f6d7c8a90",
     },
   });
   if (res.ok) {
@@ -711,7 +713,7 @@ run();
 
 | Error Type                             | Status Code                            | Content Type                           |
 | -------------------------------------- | -------------------------------------- | -------------------------------------- |
-| errors.CustomerCreditsErrorResponseDto | 409                                    | application/json                       |
+| errors.CustomerCreditsErrorResponseDto | 409, 422                               | application/json                       |
 | errors.APIError                        | 4XX, 5XX                               | \*/\*                                  |
 
 ## reverseTransaction
@@ -789,9 +791,10 @@ run();
 
 ### Errors
 
-| Error Type      | Status Code     | Content Type    |
-| --------------- | --------------- | --------------- |
-| errors.APIError | 4XX, 5XX        | \*/\*           |
+| Error Type                             | Status Code                            | Content Type                           |
+| -------------------------------------- | -------------------------------------- | -------------------------------------- |
+| errors.CustomerCreditsErrorResponseDto | 422                                    | application/json                       |
+| errors.APIError                        | 4XX, 5XX                               | \*/\*                                  |
 
 ## closeAccount
 
@@ -869,7 +872,7 @@ run();
 
 ## postTransaction
 
-Post a multi-entry transaction. Entries must balance (total debits must equal total credits).
+Post a multi-entry transaction. Entries must balance (total debits must equal total credits). A transaction cannot debit a `generation` account (AI generation credits): spend those with `POST /v1/customer-credits/accounts/{id}/debit`. A `moderation_id` is optional on a transaction that debits another customer account; one per transaction.
 
 ### Example Usage
 
@@ -892,6 +895,7 @@ async function run() {
         amount: "1000",
       },
     ],
+    moderationId: "3f1c2b9e-8d4a-4c7e-9b1a-2e5f6d7c8a90",
   });
 
   console.log(result);
@@ -925,6 +929,7 @@ async function run() {
         amount: "1000",
       },
     ],
+    moderationId: "3f1c2b9e-8d4a-4c7e-9b1a-2e5f6d7c8a90",
   });
   if (res.ok) {
     const { value: result } = res;
@@ -1174,5 +1179,5 @@ run();
 
 | Error Type                             | Status Code                            | Content Type                           |
 | -------------------------------------- | -------------------------------------- | -------------------------------------- |
-| errors.CustomerCreditsErrorResponseDto | 409                                    | application/json                       |
+| errors.CustomerCreditsErrorResponseDto | 409, 422                               | application/json                       |
 | errors.APIError                        | 4XX, 5XX                               | \*/\*                                  |

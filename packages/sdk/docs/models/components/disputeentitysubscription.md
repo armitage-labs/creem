@@ -33,6 +33,7 @@ const value: components.SubscriptionEntity = {
         id: "feat_abc123",
         type: "githubRepository",
         description: "Access to premium course materials.",
+        externalId: "pro-credits",
         customerCredits: {
           amount: "100",
           unitLabel: "tokens",

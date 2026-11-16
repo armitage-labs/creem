@@ -5,6 +5,7 @@
 import { productsArchive } from "../funcs/productsArchive.js";
 import { productsCreate } from "../funcs/productsCreate.js";
 import { productsGet } from "../funcs/productsGet.js";
+import { productsListPrices } from "../funcs/productsListPrices.js";
 import { productsSearch } from "../funcs/productsSearch.js";
 import { productsUpdate } from "../funcs/productsUpdate.js";
 import { ClientSDK, RequestOptions } from "../lib/sdks.js";
@@ -18,7 +19,7 @@ export class Products extends ClientSDK {
    * List all products
    *
    * @remarks
-   * Search and retrieve a paginated list of products. Filter by status, billing type, and other criteria.
+   * Search and retrieve a paginated list of products. Filter by status or by your own `external_id`.
    */
   async search(
     request: operations.SearchProductsRequest,
@@ -95,6 +96,23 @@ export class Products extends ClientSDK {
     options?: RequestOptions,
   ): Promise<components.ProductEntity> {
     return unwrapAsync(productsArchive(
+      this,
+      request,
+      options,
+    ));
+  }
+
+  /**
+   * List the price versions of a product
+   *
+   * @remarks
+   * List every price version of a product, newest first, with how many running subscriptions sit on each. A price change creates a new version; running subscriptions stay on the version they bought. Archived products can be read too.
+   */
+  async listPrices(
+    request: operations.ListProductPricesRequest,
+    options?: RequestOptions,
+  ): Promise<components.ProductPriceVersionListEntity> {
+    return unwrapAsync(productsListPrices(
       this,
       request,
       options,

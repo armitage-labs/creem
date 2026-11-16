@@ -29,6 +29,7 @@ let value: UpdateProductRequest = {
     features: [
       {
         id: "feat_abc123",
+        externalId: "pro-credits",
         type: "customerCredits",
         description: "500 image credits",
         customerCredits: {
@@ -37,6 +38,21 @@ let value: UpdateProductRequest = {
           bucketName: "images",
           requiresModeration: false,
           resetsEachPeriod: false,
+        },
+      },
+    ],
+    customFields: [
+      {
+        type: "text",
+        key: "companyName",
+        label: "Company Name",
+        text: {
+          maxLength: 200,
+          minLength: 1,
+        },
+        checkbox: {
+          label:
+            "I agree to the [terms and conditions](https://example.com/terms)",
         },
       },
     ],

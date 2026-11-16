@@ -25,6 +25,10 @@ export type ProductFeatureRequestEntity = {
    */
   id?: string | undefined;
   /**
+   * Your own key for this feature, the same in test and live and unique per product: 1 to 255 characters: letters, digits, `_`, `-`, `.` and `:`, case-sensitive. Omit it to leave the key unchanged; send `null` to clear it. On update, an entry without `id` whose `external_id` matches a stored feature edits that feature. An entry with `id` whose key another feature of the product holds, of any type, answers `409` with code `external_id_taken`. An entry without `id` whose key belongs to a feature of another type answers `400` with code `feature_type_mismatch`.
+   */
+  externalId?: string | null | undefined;
+  /**
    * The feature type. Only `customerCredits` can be managed through the API.
    */
   type: ProductFeatureRequestType;
@@ -45,17 +49,20 @@ export const ProductFeatureRequestEntity$inboundSchema: z.ZodType<
   unknown
 > = z.object({
   id: z.string().optional(),
+  external_id: z.nullable(z.string()).optional(),
   type: ProductFeatureRequestType$inboundSchema,
   description: z.string(),
   customer_credits: CustomerCreditsFeatureEntity$inboundSchema,
 }).transform((v) => {
   return remap$(v, {
+    "external_id": "externalId",
     "customer_credits": "customerCredits",
   });
 });
 /** @internal */
 export type ProductFeatureRequestEntity$Outbound = {
   id?: string | undefined;
+  external_id?: string | null | undefined;
   type: string;
   description: string;
   customer_credits: CustomerCreditsFeatureEntity$Outbound;
@@ -68,11 +75,13 @@ export const ProductFeatureRequestEntity$outboundSchema: z.ZodType<
   ProductFeatureRequestEntity
 > = z.object({
   id: z.string().optional(),
+  externalId: z.nullable(z.string()).optional(),
   type: ProductFeatureRequestType$outboundSchema,
   description: z.string(),
   customerCredits: CustomerCreditsFeatureEntity$outboundSchema,
 }).transform((v) => {
   return remap$(v, {
+    externalId: "external_id",
     customerCredits: "customer_credits",
   });
 });

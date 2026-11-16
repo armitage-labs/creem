@@ -14,7 +14,7 @@ export const tool$customerCreditsDebitAccount: ToolDefinition<typeof args> = {
   name: "customer-credits-debit-account",
   description: `Debit an account
 
-Deduct credits from a customer account. Returns the resulting transaction record.`,
+Deduct credits from a customer account. Returns the resulting transaction record. A debit from a \`generation\` account (AI generation credits) needs the \`moderation_id\` of an allowed Moderation API result; on other accounts it is optional. A failed debit does not use up the moderation result.`,
   args,
   tool: async (client, args, ctx) => {
     const [result, apiCall] = await customerCreditsDebitAccount(

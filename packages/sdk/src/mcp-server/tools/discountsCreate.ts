@@ -3,11 +3,11 @@
  */
 
 import { discountsCreate } from "../../funcs/discountsCreate.js";
-import * as components from "../../models/components/index.js";
+import * as operations from "../../models/operations/index.js";
 import { formatResult, ToolDefinition } from "../tools.js";
 
 const args = {
-  request: components.CreateDiscountRequestEntity$inboundSchema,
+  request: operations.CreateDiscountRequest$inboundSchema,
 };
 
 export const tool$discountsCreate: ToolDefinition<typeof args> = {

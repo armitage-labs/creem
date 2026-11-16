@@ -11,13 +11,7 @@ let value: UpdateMeterApiRequestDto = {
   aggregationProperty: "tokens",
   filter: {
     conjunction: "and",
-    clauses: [
-      {
-        property: "tier",
-        operator: "equals",
-        value: "pro",
-      },
-    ],
+    clauses: [],
   },
   externalId: "image-generations",
 };

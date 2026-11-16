@@ -31,12 +31,15 @@ const value: components.WebhookEventEntityWebhookCheckoutCompletedEventEntity =
         features: [
           {
             id: "feat_abc123",
-            type: "customerCredits",
+            type: "githubRepository",
             description: "Access to premium course materials.",
+            externalId: "pro-credits",
             customerCredits: {
               amount: "100",
               unitLabel: "tokens",
               bucketName: "images",
+              requiresModeration: false,
+              resetsEachPeriod: false,
             },
           },
         ],
@@ -67,6 +70,10 @@ const value: components.WebhookEventEntityWebhookCheckoutCompletedEventEntity =
         taxCategory: "saas",
         productUrl: "https://creem.io/product/prod_123123123123",
         defaultSuccessUrl: "https://example.com/?status=successful",
+        externalId: "pro-monthly",
+        metadata: {
+          "plan": "pro",
+        },
         createdAt: new Date("2023-01-01T00:00:00Z"),
         updatedAt: new Date("2023-01-01T00:00:00Z"),
       },
@@ -92,6 +99,7 @@ const value: components.WebhookEventEntityWebhookCheckoutCompletedEventEntity =
         type: "recurring",
         createdAt: new Date("2023-09-13T00:00:00Z"),
         updatedAt: new Date("2023-09-13T00:00:00Z"),
+        recovered: false,
       },
       subscription: {
         id: "<id>",
@@ -145,6 +153,7 @@ const value: components.WebhookEventEntityWebhookCheckoutCompletedEventEntity =
           "userId": "user_123",
           "plan": "pro",
         },
+        recovered: false,
       },
       customer: "<value>",
       successUrl: "https://example.com/return",
@@ -235,6 +244,7 @@ const value: components.WebhookEventEntityWebhookRefundCreatedEventEntity = {
       type: "recurring",
       createdAt: new Date("2023-09-13T00:00:00Z"),
       updatedAt: new Date("2023-09-13T00:00:00Z"),
+      recovered: false,
     },
     subscription: "<value>",
     customer: {
@@ -302,12 +312,15 @@ const value: components.WebhookEventEntityWebhookDisputeCreatedEventEntity = {
         features: [
           {
             id: "feat_abc123",
-            type: "customerCredits",
+            type: "githubRepository",
             description: "Access to premium course materials.",
+            externalId: "pro-credits",
             customerCredits: {
               amount: "100",
               unitLabel: "tokens",
               bucketName: "images",
+              requiresModeration: false,
+              resetsEachPeriod: false,
             },
           },
         ],
@@ -338,6 +351,10 @@ const value: components.WebhookEventEntityWebhookDisputeCreatedEventEntity = {
         taxCategory: "saas",
         productUrl: "https://creem.io/product/prod_123123123123",
         defaultSuccessUrl: "https://example.com/?status=successful",
+        externalId: "pro-monthly",
+        metadata: {
+          "plan": "pro",
+        },
         createdAt: new Date("2023-01-01T00:00:00Z"),
         updatedAt: new Date("2023-01-01T00:00:00Z"),
       },
@@ -364,6 +381,7 @@ const value: components.WebhookEventEntityWebhookDisputeCreatedEventEntity = {
         type: "recurring",
         createdAt: new Date("2023-09-13T00:00:00Z"),
         updatedAt: new Date("2023-09-13T00:00:00Z"),
+        recovered: false,
       },
       subscription: "<value>",
       customer: "<value>",
@@ -421,6 +439,7 @@ const value: components.WebhookEventEntityWebhookDisputeCreatedEventEntity = {
       type: "recurring",
       createdAt: new Date("2023-09-13T00:00:00Z"),
       updatedAt: new Date("2023-09-13T00:00:00Z"),
+      recovered: false,
     },
     subscription: {
       id: "<id>",
@@ -474,6 +493,7 @@ const value: components.WebhookEventEntityWebhookDisputeCreatedEventEntity = {
         "userId": "user_123",
         "plan": "pro",
       },
+      recovered: false,
     },
     customer: "<value>",
     createdAt: 3864.73,
@@ -545,6 +565,30 @@ const value: components.WebhookEventEntityWebhookCreditsConsumedEventEntity = {
 };
 ```
 
+### `components.WebhookEventEntityWebhookCreditsReversedEventEntity`
+
+```typescript
+const value: components.WebhookEventEntityWebhookCreditsReversedEventEntity = {
+  id: "<id>",
+  eventType: "credits.reversed",
+  createdAt: 859.78,
+  object: {
+    id: "<id>",
+    customerId: "<id>",
+    accountId: "<id>",
+    bucketName: "<value>",
+    unitLabel: "<value>",
+    amountMinorUnits: "<value>",
+    balanceAfterMinorUnits: "<value>",
+    reference: "<value>",
+    occurredAt: "<value>",
+    object: "customer_credits_reversal",
+    side: "credit",
+    reversedTransactionId: "<id>",
+  },
+};
+```
+
 ### `components.WebhookEventEntityWebhookCreditsAutoRechargedEventEntity`
 
 ```typescript
@@ -563,6 +607,35 @@ const value:
       currency: "Tenge",
       chargeReference: "<value>",
       reference: "<value>",
+    },
+  };
+```
+
+### `components.WebhookEventEntityWebhookMarketplaceGrantRequestedEventEntity`
+
+```typescript
+const value:
+  components.WebhookEventEntityWebhookMarketplaceGrantRequestedEventEntity = {
+    id: "<id>",
+    eventType: "marketplace.grant.requested",
+    createdAt: 9592.97,
+    object: {
+      grantId: "<id>",
+      operationId: "<id>",
+      action: "revoke_credit",
+      deadlineAt: {},
+      reason: null,
+      listingId: "<id>",
+      productId: "<id>",
+      order: {
+        id: "<id>",
+        status: "<value>",
+        amountMinor: 9030.76,
+        currency: "Egyptian Pound",
+        transactionId: {},
+        paidAt: {},
+      },
+      test: false,
     },
   };
 ```
@@ -592,12 +665,15 @@ const value: components.WebhookEventEntityWebhookSubscriptionActiveEventEntity =
         features: [
           {
             id: "feat_abc123",
-            type: "customerCredits",
+            type: "githubRepository",
             description: "Access to premium course materials.",
+            externalId: "pro-credits",
             customerCredits: {
               amount: "100",
               unitLabel: "tokens",
               bucketName: "images",
+              requiresModeration: false,
+              resetsEachPeriod: false,
             },
           },
         ],
@@ -628,6 +704,10 @@ const value: components.WebhookEventEntityWebhookSubscriptionActiveEventEntity =
         taxCategory: "digital-goods-service",
         productUrl: "https://creem.io/product/prod_123123123123",
         defaultSuccessUrl: "https://example.com/?status=successful",
+        externalId: "pro-monthly",
+        metadata: {
+          "plan": "pro",
+        },
         createdAt: new Date("2023-01-01T00:00:00Z"),
         updatedAt: new Date("2023-01-01T00:00:00Z"),
       },
@@ -678,6 +758,7 @@ const value: components.WebhookEventEntityWebhookSubscriptionActiveEventEntity =
         "userId": "user_123",
         "plan": "pro",
       },
+      recovered: false,
     },
   };
 ```
@@ -707,12 +788,15 @@ const value:
         features: [
           {
             id: "feat_abc123",
-            type: "customerCredits",
+            type: "githubRepository",
             description: "Access to premium course materials.",
+            externalId: "pro-credits",
             customerCredits: {
               amount: "100",
               unitLabel: "tokens",
               bucketName: "images",
+              requiresModeration: false,
+              resetsEachPeriod: false,
             },
           },
         ],
@@ -743,6 +827,10 @@ const value:
         taxCategory: "digital-goods-service",
         productUrl: "https://creem.io/product/prod_123123123123",
         defaultSuccessUrl: "https://example.com/?status=successful",
+        externalId: "pro-monthly",
+        metadata: {
+          "plan": "pro",
+        },
         createdAt: new Date("2023-01-01T00:00:00Z"),
         updatedAt: new Date("2023-01-01T00:00:00Z"),
       },
@@ -793,6 +881,7 @@ const value:
         "userId": "user_123",
         "plan": "pro",
       },
+      recovered: false,
     },
   };
 ```
@@ -822,12 +911,15 @@ const value:
         features: [
           {
             id: "feat_abc123",
-            type: "customerCredits",
+            type: "githubRepository",
             description: "Access to premium course materials.",
+            externalId: "pro-credits",
             customerCredits: {
               amount: "100",
               unitLabel: "tokens",
               bucketName: "images",
+              requiresModeration: false,
+              resetsEachPeriod: false,
             },
           },
         ],
@@ -858,6 +950,10 @@ const value:
         taxCategory: "digital-goods-service",
         productUrl: "https://creem.io/product/prod_123123123123",
         defaultSuccessUrl: "https://example.com/?status=successful",
+        externalId: "pro-monthly",
+        metadata: {
+          "plan": "pro",
+        },
         createdAt: new Date("2023-01-01T00:00:00Z"),
         updatedAt: new Date("2023-01-01T00:00:00Z"),
       },
@@ -908,6 +1004,7 @@ const value:
         "userId": "user_123",
         "plan": "pro",
       },
+      recovered: false,
     },
   };
 ```
@@ -937,12 +1034,15 @@ const value:
         features: [
           {
             id: "feat_abc123",
-            type: "customerCredits",
+            type: "githubRepository",
             description: "Access to premium course materials.",
+            externalId: "pro-credits",
             customerCredits: {
               amount: "100",
               unitLabel: "tokens",
               bucketName: "images",
+              requiresModeration: false,
+              resetsEachPeriod: false,
             },
           },
         ],
@@ -973,6 +1073,10 @@ const value:
         taxCategory: "digital-goods-service",
         productUrl: "https://creem.io/product/prod_123123123123",
         defaultSuccessUrl: "https://example.com/?status=successful",
+        externalId: "pro-monthly",
+        metadata: {
+          "plan": "pro",
+        },
         createdAt: new Date("2023-01-01T00:00:00Z"),
         updatedAt: new Date("2023-01-01T00:00:00Z"),
       },
@@ -1023,6 +1127,7 @@ const value:
         "userId": "user_123",
         "plan": "pro",
       },
+      recovered: false,
     },
   };
 ```
@@ -1051,12 +1156,15 @@ const value: components.WebhookEventEntityWebhookSubscriptionPaidEventEntity = {
       features: [
         {
           id: "feat_abc123",
-          type: "customerCredits",
+          type: "githubRepository",
           description: "Access to premium course materials.",
+          externalId: "pro-credits",
           customerCredits: {
             amount: "100",
             unitLabel: "tokens",
             bucketName: "images",
+            requiresModeration: false,
+            resetsEachPeriod: false,
           },
         },
       ],
@@ -1087,6 +1195,10 @@ const value: components.WebhookEventEntityWebhookSubscriptionPaidEventEntity = {
       taxCategory: "digital-goods-service",
       productUrl: "https://creem.io/product/prod_123123123123",
       defaultSuccessUrl: "https://example.com/?status=successful",
+      externalId: "pro-monthly",
+      metadata: {
+        "plan": "pro",
+      },
       createdAt: new Date("2023-01-01T00:00:00Z"),
       updatedAt: new Date("2023-01-01T00:00:00Z"),
     },
@@ -1137,6 +1249,7 @@ const value: components.WebhookEventEntityWebhookSubscriptionPaidEventEntity = {
       "userId": "user_123",
       "plan": "pro",
     },
+    recovered: false,
   },
 };
 ```
@@ -1166,12 +1279,15 @@ const value:
         features: [
           {
             id: "feat_abc123",
-            type: "customerCredits",
+            type: "githubRepository",
             description: "Access to premium course materials.",
+            externalId: "pro-credits",
             customerCredits: {
               amount: "100",
               unitLabel: "tokens",
               bucketName: "images",
+              requiresModeration: false,
+              resetsEachPeriod: false,
             },
           },
         ],
@@ -1202,6 +1318,10 @@ const value:
         taxCategory: "digital-goods-service",
         productUrl: "https://creem.io/product/prod_123123123123",
         defaultSuccessUrl: "https://example.com/?status=successful",
+        externalId: "pro-monthly",
+        metadata: {
+          "plan": "pro",
+        },
         createdAt: new Date("2023-01-01T00:00:00Z"),
         updatedAt: new Date("2023-01-01T00:00:00Z"),
       },
@@ -1252,6 +1372,7 @@ const value:
         "userId": "user_123",
         "plan": "pro",
       },
+      recovered: false,
     },
   };
 ```
@@ -1281,12 +1402,15 @@ const value: components.WebhookEventEntityWebhookSubscriptionUnpaidEventEntity =
         features: [
           {
             id: "feat_abc123",
-            type: "customerCredits",
+            type: "githubRepository",
             description: "Access to premium course materials.",
+            externalId: "pro-credits",
             customerCredits: {
               amount: "100",
               unitLabel: "tokens",
               bucketName: "images",
+              requiresModeration: false,
+              resetsEachPeriod: false,
             },
           },
         ],
@@ -1317,6 +1441,10 @@ const value: components.WebhookEventEntityWebhookSubscriptionUnpaidEventEntity =
         taxCategory: "digital-goods-service",
         productUrl: "https://creem.io/product/prod_123123123123",
         defaultSuccessUrl: "https://example.com/?status=successful",
+        externalId: "pro-monthly",
+        metadata: {
+          "plan": "pro",
+        },
         createdAt: new Date("2023-01-01T00:00:00Z"),
         updatedAt: new Date("2023-01-01T00:00:00Z"),
       },
@@ -1367,6 +1495,7 @@ const value: components.WebhookEventEntityWebhookSubscriptionUnpaidEventEntity =
         "userId": "user_123",
         "plan": "pro",
       },
+      recovered: false,
     },
   };
 ```
@@ -1396,12 +1525,15 @@ const value: components.WebhookEventEntityWebhookSubscriptionUpdateEventEntity =
         features: [
           {
             id: "feat_abc123",
-            type: "customerCredits",
+            type: "githubRepository",
             description: "Access to premium course materials.",
+            externalId: "pro-credits",
             customerCredits: {
               amount: "100",
               unitLabel: "tokens",
               bucketName: "images",
+              requiresModeration: false,
+              resetsEachPeriod: false,
             },
           },
         ],
@@ -1432,6 +1564,10 @@ const value: components.WebhookEventEntityWebhookSubscriptionUpdateEventEntity =
         taxCategory: "digital-goods-service",
         productUrl: "https://creem.io/product/prod_123123123123",
         defaultSuccessUrl: "https://example.com/?status=successful",
+        externalId: "pro-monthly",
+        metadata: {
+          "plan": "pro",
+        },
         createdAt: new Date("2023-01-01T00:00:00Z"),
         updatedAt: new Date("2023-01-01T00:00:00Z"),
       },
@@ -1482,6 +1618,7 @@ const value: components.WebhookEventEntityWebhookSubscriptionUpdateEventEntity =
         "userId": "user_123",
         "plan": "pro",
       },
+      recovered: false,
     },
   };
 ```
@@ -1511,12 +1648,15 @@ const value:
         features: [
           {
             id: "feat_abc123",
-            type: "customerCredits",
+            type: "githubRepository",
             description: "Access to premium course materials.",
+            externalId: "pro-credits",
             customerCredits: {
               amount: "100",
               unitLabel: "tokens",
               bucketName: "images",
+              requiresModeration: false,
+              resetsEachPeriod: false,
             },
           },
         ],
@@ -1547,6 +1687,10 @@ const value:
         taxCategory: "digital-goods-service",
         productUrl: "https://creem.io/product/prod_123123123123",
         defaultSuccessUrl: "https://example.com/?status=successful",
+        externalId: "pro-monthly",
+        metadata: {
+          "plan": "pro",
+        },
         createdAt: new Date("2023-01-01T00:00:00Z"),
         updatedAt: new Date("2023-01-01T00:00:00Z"),
       },
@@ -1597,6 +1741,7 @@ const value:
         "userId": "user_123",
         "plan": "pro",
       },
+      recovered: false,
     },
   };
 ```
@@ -1626,12 +1771,15 @@ const value: components.WebhookEventEntityWebhookSubscriptionPausedEventEntity =
         features: [
           {
             id: "feat_abc123",
-            type: "customerCredits",
+            type: "githubRepository",
             description: "Access to premium course materials.",
+            externalId: "pro-credits",
             customerCredits: {
               amount: "100",
               unitLabel: "tokens",
               bucketName: "images",
+              requiresModeration: false,
+              resetsEachPeriod: false,
             },
           },
         ],
@@ -1662,6 +1810,10 @@ const value: components.WebhookEventEntityWebhookSubscriptionPausedEventEntity =
         taxCategory: "digital-goods-service",
         productUrl: "https://creem.io/product/prod_123123123123",
         defaultSuccessUrl: "https://example.com/?status=successful",
+        externalId: "pro-monthly",
+        metadata: {
+          "plan": "pro",
+        },
         createdAt: new Date("2023-01-01T00:00:00Z"),
         updatedAt: new Date("2023-01-01T00:00:00Z"),
       },
@@ -1712,6 +1864,7 @@ const value: components.WebhookEventEntityWebhookSubscriptionPausedEventEntity =
         "userId": "user_123",
         "plan": "pro",
       },
+      recovered: false,
     },
   };
 ```

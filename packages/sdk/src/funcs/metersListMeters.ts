@@ -103,6 +103,7 @@ async function $do(
 
   const query = encodeFormQuery({
     "ending_before": payload.ending_before,
+    "external_id": payload.external_id,
     "include_archived": payload.include_archived,
     "limit": payload.limit,
     "starting_after": payload.starting_after,

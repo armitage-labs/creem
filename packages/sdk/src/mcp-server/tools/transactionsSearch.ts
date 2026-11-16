@@ -14,7 +14,7 @@ export const tool$transactionsSearch: ToolDefinition<typeof args> = {
   name: "transactions-search",
   description: `List all transactions
 
-Search and retrieve payment transactions. Filter by customer, product, date range, and status.`,
+Search and retrieve payment transactions. Filter by customer, order, product, status, and creation date range.`,
   args,
   tool: async (client, args, ctx) => {
     const [result, apiCall] = await transactionsSearch(

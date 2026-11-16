@@ -33,7 +33,7 @@ export class Transactions extends ClientSDK {
    * List all transactions
    *
    * @remarks
-   * Search and retrieve payment transactions. Filter by customer, product, date range, and status.
+   * Search and retrieve payment transactions. Filter by customer, order, product, status, and creation date range.
    */
   async search(
     request: operations.SearchTransactionsRequest,

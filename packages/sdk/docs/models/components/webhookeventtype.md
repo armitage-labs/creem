@@ -15,5 +15,5 @@ let value: WebhookEventType = "subscription.trialing";
 ## Values
 
 ```typescript
-"checkout.completed" | "refund.created" | "dispute.created" | "subscription.active" | "subscription.trialing" | "subscription.canceled" | "subscription.scheduled_cancel" | "subscription.paid" | "subscription.expired" | "subscription.unpaid" | "subscription.update" | "subscription.past_due" | "subscription.paused" | "customer_credits.exhausted" | "credits.granted" | "credits.consumed" | "credits.auto_recharged" | Unrecognized<string>
+"checkout.completed" | "refund.created" | "dispute.created" | "subscription.active" | "subscription.trialing" | "subscription.canceled" | "subscription.scheduled_cancel" | "subscription.paid" | "subscription.expired" | "subscription.unpaid" | "subscription.update" | "subscription.past_due" | "subscription.paused" | "customer_credits.exhausted" | "credits.granted" | "credits.consumed" | "credits.reversed" | "credits.auto_recharged" | "marketplace.grant.requested" | Unrecognized<string>
 ```

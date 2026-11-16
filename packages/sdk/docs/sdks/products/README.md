@@ -9,10 +9,11 @@
 * [get](#get) - Get a product by ID
 * [update](#update) - Update a product
 * [archive](#archive) - Archive a product
+* [listPrices](#listprices) - List the price versions of a product
 
 ## search
 
-Search and retrieve a paginated list of products. Filter by status, billing type, and other criteria.
+Search and retrieve a paginated list of products. Filter by status or by your own `external_id`.
 
 ### Example Usage
 
@@ -25,7 +26,9 @@ const creem = new Creem({
 });
 
 async function run() {
-  const result = await creem.products.search({});
+  const result = await creem.products.search({
+    externalId: "pro-monthly",
+  });
 
   for await (const page of result) {
     console.log(page);
@@ -50,7 +53,9 @@ const creem = new CreemCore({
 });
 
 async function run() {
-  const res = await productsSearch(creem, {});
+  const res = await productsSearch(creem, {
+    externalId: "pro-monthly",
+  });
   if (res.ok) {
     const { value: result } = res;
     for await (const page of result) {
@@ -117,6 +122,10 @@ async function run() {
       trialPeriodDays: 7,
       trialPrice: 100,
       defaultSuccessUrl: "https://example.com/?status=successful",
+      externalId: "pro-monthly",
+      metadata: {
+        "plan": "pro",
+      },
       customFields: [
         {
           type: "checkbox",
@@ -151,6 +160,8 @@ async function run() {
             amount: "100",
             unitLabel: "tokens",
             bucketName: "images",
+            requiresModeration: false,
+            resetsEachPeriod: false,
           },
         },
       ],
@@ -197,6 +208,10 @@ async function run() {
       trialPeriodDays: 7,
       trialPrice: 100,
       defaultSuccessUrl: "https://example.com/?status=successful",
+      externalId: "pro-monthly",
+      metadata: {
+        "plan": "pro",
+      },
       customFields: [
         {
           type: "checkbox",
@@ -231,6 +246,8 @@ async function run() {
             amount: "100",
             unitLabel: "tokens",
             bucketName: "images",
+            requiresModeration: false,
+            resetsEachPeriod: false,
           },
         },
       ],
@@ -357,6 +374,10 @@ async function run() {
   const result = await creem.products.update({
     id: "<id>",
     updateProductRequestEntity: {
+      externalId: "pro-monthly",
+      metadata: {
+        "plan": "pro",
+      },
       businessNetPricing: false,
       trialPeriodDays: 7,
       trialPrice: 100,
@@ -380,6 +401,22 @@ async function run() {
             amount: "100",
             unitLabel: "tokens",
             bucketName: "images",
+            requiresModeration: false,
+            resetsEachPeriod: false,
+          },
+        },
+      ],
+      customFields: [
+        {
+          type: "text",
+          key: "companyName",
+          label: "Company Name",
+          text: {
+            maxLength: 200,
+            minLength: 1,
+          },
+          checkbox: {
+            label: "I agree to the [terms and conditions](https://example.com/terms)",
           },
         },
       ],
@@ -410,6 +447,10 @@ async function run() {
   const res = await productsUpdate(creem, {
     id: "<id>",
     updateProductRequestEntity: {
+      externalId: "pro-monthly",
+      metadata: {
+        "plan": "pro",
+      },
       businessNetPricing: false,
       trialPeriodDays: 7,
       trialPrice: 100,
@@ -433,6 +474,22 @@ async function run() {
             amount: "100",
             unitLabel: "tokens",
             bucketName: "images",
+            requiresModeration: false,
+            resetsEachPeriod: false,
+          },
+        },
+      ],
+      customFields: [
+        {
+          type: "text",
+          key: "companyName",
+          label: "Company Name",
+          text: {
+            maxLength: 200,
+            minLength: 1,
+          },
+          checkbox: {
+            label: "I agree to the [terms and conditions](https://example.com/terms)",
           },
         },
       ],
@@ -534,6 +591,79 @@ run();
 ### Response
 
 **Promise\<[components.ProductEntity](../../models/components/productentity.md)\>**
+
+### Errors
+
+| Error Type      | Status Code     | Content Type    |
+| --------------- | --------------- | --------------- |
+| errors.APIError | 4XX, 5XX        | \*/\*           |
+
+## listPrices
+
+List every price version of a product, newest first, with how many running subscriptions sit on each. A price change creates a new version; running subscriptions stay on the version they bought. Archived products can be read too.
+
+### Example Usage
+
+<!-- UsageSnippet language="typescript" operationID="listProductPrices" method="get" path="/v1/products/{id}/prices" -->
+```typescript
+import { Creem } from "creem";
+
+const creem = new Creem({
+  apiKey: process.env["CREEM_API_KEY"] ?? "",
+});
+
+async function run() {
+  const result = await creem.products.listPrices({
+    id: "<id>",
+  });
+
+  console.log(result);
+}
+
+run();
+```
+
+### Standalone function
+
+The standalone function version of this method:
+
+```typescript
+import { CreemCore } from "creem/core.js";
+import { productsListPrices } from "creem/funcs/productsListPrices.js";
+
+// Use `CreemCore` for best tree-shaking performance.
+// You can create one instance of it to use across an application.
+const creem = new CreemCore({
+  apiKey: process.env["CREEM_API_KEY"] ?? "",
+});
+
+async function run() {
+  const res = await productsListPrices(creem, {
+    id: "<id>",
+  });
+  if (res.ok) {
+    const { value: result } = res;
+    console.log(result);
+  } else {
+    console.log("productsListPrices failed:", res.error);
+  }
+}
+
+run();
+```
+
+### Parameters
+
+| Parameter                                                                                                                                                                      | Type                                                                                                                                                                           | Required                                                                                                                                                                       | Description                                                                                                                                                                    |
+| ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| `request`                                                                                                                                                                      | [operations.ListProductPricesRequest](../../models/operations/listproductpricesrequest.md)                                                                                     | :heavy_check_mark:                                                                                                                                                             | The request object to use for the request.                                                                                                                                     |
+| `options`                                                                                                                                                                      | RequestOptions                                                                                                                                                                 | :heavy_minus_sign:                                                                                                                                                             | Used to set various options for making HTTP requests.                                                                                                                          |
+| `options.fetchOptions`                                                                                                                                                         | [RequestInit](https://developer.mozilla.org/en-US/docs/Web/API/Request/Request#options)                                                                                        | :heavy_minus_sign:                                                                                                                                                             | Options that are passed to the underlying HTTP request. This can be used to inject extra headers for examples. All `Request` options, except `method` and `body`, are allowed. |
+| `options.retries`                                                                                                                                                              | [RetryConfig](../../lib/utils/retryconfig.md)                                                                                                                                  | :heavy_minus_sign:                                                                                                                                                             | Enables retrying HTTP requests under certain failure conditions.                                                                                                               |
+
+### Response
+
+**Promise\<[components.ProductPriceVersionListEntity](../../models/components/productpriceversionlistentity.md)\>**
 
 ### Errors
 

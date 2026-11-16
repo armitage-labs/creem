@@ -120,6 +120,10 @@ export type DiscountEntity = {
    * The number of times this discount has been redeemed.
    */
   redeemCount?: number | undefined;
+  /**
+   * Your own key for the discount, unique in your store. `null` when the discount has none.
+   */
+  externalId: string | null;
 };
 
 /** @internal */
@@ -178,6 +182,7 @@ export const DiscountEntity$inboundSchema: z.ZodType<
   duration_in_months: z.number().optional(),
   applies_to_products: z.array(z.string()).optional(),
   redeem_count: z.number().optional(),
+  external_id: z.nullable(z.string()),
 }).transform((v) => {
   return remap$(v, {
     "expiry_date": "expiryDate",
@@ -185,6 +190,7 @@ export const DiscountEntity$inboundSchema: z.ZodType<
     "duration_in_months": "durationInMonths",
     "applies_to_products": "appliesToProducts",
     "redeem_count": "redeemCount",
+    "external_id": "externalId",
   });
 });
 /** @internal */
@@ -205,6 +211,7 @@ export type DiscountEntity$Outbound = {
   duration_in_months?: number | undefined;
   applies_to_products?: Array<string> | undefined;
   redeem_count?: number | undefined;
+  external_id: string | null;
 };
 
 /** @internal */
@@ -229,6 +236,7 @@ export const DiscountEntity$outboundSchema: z.ZodType<
   durationInMonths: z.number().optional(),
   appliesToProducts: z.array(z.string()).optional(),
   redeemCount: z.number().optional(),
+  externalId: z.nullable(z.string()),
 }).transform((v) => {
   return remap$(v, {
     expiryDate: "expiry_date",
@@ -236,6 +244,7 @@ export const DiscountEntity$outboundSchema: z.ZodType<
     durationInMonths: "duration_in_months",
     appliesToProducts: "applies_to_products",
     redeemCount: "redeem_count",
+    externalId: "external_id",
   });
 });
 

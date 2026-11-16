@@ -12,6 +12,7 @@ import { Events } from "./events.js";
 import { Licenses } from "./licenses.js";
 import { Meters } from "./meters.js";
 import { Moderation } from "./moderation.js";
+import { ProductGroups } from "./productgroups.js";
 import { Products } from "./products.js";
 import { Splits } from "./splits.js";
 import { Stats } from "./stats.js";
@@ -48,6 +49,11 @@ export class Creem extends ClientSDK {
   private _discounts?: Discounts;
   get discounts(): Discounts {
     return (this._discounts ??= new Discounts(this._options));
+  }
+
+  private _productGroups?: ProductGroups;
+  get productGroups(): ProductGroups {
+    return (this._productGroups ??= new ProductGroups(this._options));
   }
 
   private _transactions?: Transactions;

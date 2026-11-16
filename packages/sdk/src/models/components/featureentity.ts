@@ -53,6 +53,10 @@ export type FeatureEntity = {
    */
   description: string;
   /**
+   * Your own key for this feature, unique per product. `null` when the feature has none.
+   */
+  externalId: string | null;
+  /**
    * The credit grant behind a `customerCredits` feature. Absent for other feature types.
    */
   customerCredits?: CustomerCredits | null | undefined;
@@ -130,10 +134,12 @@ export const FeatureEntity$inboundSchema: z.ZodType<
   id: z.string(),
   type: ProductFeatureType$inboundSchema,
   description: z.string(),
+  external_id: z.nullable(z.string()),
   customer_credits: z.nullable(z.lazy(() => CustomerCredits$inboundSchema))
     .optional(),
 }).transform((v) => {
   return remap$(v, {
+    "external_id": "externalId",
     "customer_credits": "customerCredits",
   });
 });
@@ -142,6 +148,7 @@ export type FeatureEntity$Outbound = {
   id: string;
   type: string;
   description: string;
+  external_id: string | null;
   customer_credits?: CustomerCredits$Outbound | null | undefined;
 };
 
@@ -154,10 +161,12 @@ export const FeatureEntity$outboundSchema: z.ZodType<
   id: z.string(),
   type: ProductFeatureType$outboundSchema,
   description: z.string(),
+  externalId: z.nullable(z.string()),
   customerCredits: z.nullable(z.lazy(() => CustomerCredits$outboundSchema))
     .optional(),
 }).transform((v) => {
   return remap$(v, {
+    externalId: "external_id",
     customerCredits: "customer_credits",
   });
 });

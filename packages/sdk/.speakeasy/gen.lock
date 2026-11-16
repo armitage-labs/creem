@@ -4,7 +4,7 @@ management:
   docVersion: v1
   speakeasyVersion: 1.797.0
   generationVersion: 2.937.18
-  releaseVersion: 1.13.0
+  releaseVersion: 1.14.0
   repoURL: https://github.com/armitage-labs/creem.git
   repoSubDirectory: packages/sdk
   installationURL: https://github.com/armitage-labs/creem
@@ -144,6 +144,9 @@ trackedFiles:
   docs/models/components/customercreditsfeatureentity.md: {}
   docs/models/components/customercreditsgrantentity.md: {}
   docs/models/components/customercreditsgrantentityobject.md: {}
+  docs/models/components/customercreditsreversalentity.md: {}
+  docs/models/components/customercreditsreversalentityobject.md: {}
+  docs/models/components/customercreditsreversalentityside.md: {}
   docs/models/components/customerentity.md:
     id: 2e9b74ad0ca6
     pristine_git_object: e22cc8d2ac887e6af76d92b025abf0a6e7f936d7
@@ -272,9 +275,15 @@ trackedFiles:
   docs/models/components/productfeaturerequestentity.md: {}
   docs/models/components/productfeaturerequesttype.md: {}
   docs/models/components/productfeaturetype.md: {}
+  docs/models/components/productgroupentity.md: {}
+  docs/models/components/productgrouplistentity.md: {}
+  docs/models/components/productgroupproductentity.md: {}
   docs/models/components/productlistentity.md:
     id: b087b47a2019
     pristine_git_object: 1e5a17f2e6379b4f887ccdbf851af7a50876ea00
+  docs/models/components/productpriceversionentity.md: {}
+  docs/models/components/productpriceversionlistentity.md: {}
+  docs/models/components/productpriceversionpricingmodel.md: {}
   docs/models/components/productrequestbillingperiod.md: {}
   docs/models/components/productrequestbillingtype.md: {}
   docs/models/components/productrequestrecurringinterval.md: {}
@@ -288,6 +297,8 @@ trackedFiles:
   docs/models/components/refundresponseentity.md: {}
   docs/models/components/refundstatus.md: {}
   docs/models/components/reversetransactionrequestdto.md: {}
+  docs/models/components/runningsubscriptioncountsentity.md: {}
+  docs/models/components/runningsubscriptionstatuscountsentity.md: {}
   docs/models/components/screenpromptrequest.md: {}
   docs/models/components/screenpromptresponse.md: {}
   docs/models/components/security.md: {}
@@ -345,6 +356,7 @@ trackedFiles:
     id: a9203ebb8593
     pristine_git_object: 8abb4fde0f967b879213359d6fa986855921a494
   docs/models/components/updatewebhookrequestentity.md: {}
+  docs/models/components/upgradebehavior.md: {}
   docs/models/components/upgradesubscriptionrequestentity.md:
     id: 132bee25b7aa
     pristine_git_object: 6d52464bf587e853311cf9bd5ea2c092333ef4e6
@@ -379,6 +391,9 @@ trackedFiles:
   docs/models/components/webhookcreditsgrantedevententity.md: {}
   docs/models/components/webhookcreditsgrantedevententityeventtype.md: {}
   docs/models/components/webhookcreditsgrantedevententitywebhookevententityeventtype.md: {}
+  docs/models/components/webhookcreditsreversedevententity.md: {}
+  docs/models/components/webhookcreditsreversedevententityeventtype.md: {}
+  docs/models/components/webhookcreditsreversedevententitywebhookevententityeventtype.md: {}
   docs/models/components/webhookcustomercreditsexhaustedevententity.md: {}
   docs/models/components/webhookcustomercreditsexhaustedevententityeventtype.md: {}
   docs/models/components/webhookcustomercreditsexhaustedevententitywebhookevententityeventtype.md: {}
@@ -393,8 +408,10 @@ trackedFiles:
   docs/models/components/webhookevententitywebhookcreditsautorechargedevententity.md: {}
   docs/models/components/webhookevententitywebhookcreditsconsumedevententity.md: {}
   docs/models/components/webhookevententitywebhookcreditsgrantedevententity.md: {}
+  docs/models/components/webhookevententitywebhookcreditsreversedevententity.md: {}
   docs/models/components/webhookevententitywebhookcustomercreditsexhaustedevententity.md: {}
   docs/models/components/webhookevententitywebhookdisputecreatedevententity.md: {}
+  docs/models/components/webhookevententitywebhookmarketplacegrantrequestedevententity.md: {}
   docs/models/components/webhookevententitywebhookrefundcreatedevententity.md: {}
   docs/models/components/webhookevententitywebhooksubscriptionactiveevententity.md: {}
   docs/models/components/webhookevententitywebhooksubscriptioncanceledevententity.md: {}
@@ -410,6 +427,7 @@ trackedFiles:
   docs/models/components/webhooklistentity.md: {}
   docs/models/components/webhookmarketplacegrantrequestedevententity.md: {}
   docs/models/components/webhookmarketplacegrantrequestedevententityeventtype.md: {}
+  docs/models/components/webhookmarketplacegrantrequestedevententitywebhookevententityeventtype.md: {}
   docs/models/components/webhookpendingevententity.md: {}
   docs/models/components/webhookpendingeventlistentity.md: {}
   docs/models/components/webhookrefundcreatedevententity.md: {}
@@ -452,6 +470,7 @@ trackedFiles:
   docs/models/components/webhooksubscriptionupdateevententityeventtype.md: {}
   docs/models/components/webhooksubscriptionupdateevententitywebhookevententityeventtype.md: {}
   docs/models/errors/customercreditserrorresponsedto.md: {}
+  docs/models/errors/toomanyrequestserrorentity.md: {}
   docs/models/errors/usagemeteringerrorapiresponsedto.md: {}
   docs/models/operations/acknowledgewebhookeventrequest.md: {}
   docs/models/operations/archivemeterrequest.md: {}
@@ -460,6 +479,8 @@ trackedFiles:
     id: 838f185094b0
     pristine_git_object: 13ced3d7d373f88b0c13145ce7f7bc656725084e
   docs/models/operations/closecustomercreditsaccountrequest.md: {}
+  docs/models/operations/creatediscountrequest.md: {}
+  docs/models/operations/createmeterrequest.md: {}
   docs/models/operations/createproductrequest.md: {}
   docs/models/operations/creditcustomercreditsaccountrequest.md: {}
   docs/models/operations/currency.md: {}
@@ -476,6 +497,7 @@ trackedFiles:
   docs/models/operations/getmeterconsumedunitsrequest.md: {}
   docs/models/operations/getmeterrequest.md: {}
   docs/models/operations/getmetricssummaryrequest.md: {}
+  docs/models/operations/getproductgrouprequest.md: {}
   docs/models/operations/getproductrequest.md: {}
   docs/models/operations/gettransactionbyidrequest.md:
     id: 0e4013c65303
@@ -506,6 +528,9 @@ trackedFiles:
   docs/models/operations/listmetersrequest.md: {}
   docs/models/operations/listmetersresponse.md: {}
   docs/models/operations/listpendingwebhookeventsrequest.md: {}
+  docs/models/operations/listproductgroupsrequest.md: {}
+  docs/models/operations/listproductgroupsresponse.md: {}
+  docs/models/operations/listproductpricesrequest.md: {}
   docs/models/operations/listsplitsrequest.md: {}
   docs/models/operations/listsplitsresponse.md: {}
   docs/models/operations/listusageeventsrequest.md: {}
@@ -578,6 +603,7 @@ trackedFiles:
     pristine_git_object: 0940a9ab10fc7952917543409c21d0c319d2c9ab
   docs/sdks/meters/README.md: {}
   docs/sdks/moderation/README.md: {}
+  docs/sdks/productgroups/README.md: {}
   docs/sdks/products/README.md:
     id: af06255e12ab
     pristine_git_object: 380264dd8701ed10359bbde1079f8183b4fc0004
@@ -663,9 +689,12 @@ trackedFiles:
   src/funcs/metersUnarchiveMeter.ts: {}
   src/funcs/metersUpdateMeter.ts: {}
   src/funcs/moderationScreenPrompt.ts: {}
+  src/funcs/productGroupsGet.ts: {}
+  src/funcs/productGroupsList.ts: {}
   src/funcs/productsArchive.ts: {}
   src/funcs/productsCreate.ts: {}
   src/funcs/productsGet.ts: {}
+  src/funcs/productsListPrices.ts: {}
   src/funcs/productsSearch.ts: {}
   src/funcs/productsUpdate.ts: {}
   src/funcs/splitsCreate.ts: {}
@@ -835,9 +864,12 @@ trackedFiles:
   src/mcp-server/tools/metersUnarchiveMeter.ts: {}
   src/mcp-server/tools/metersUpdateMeter.ts: {}
   src/mcp-server/tools/moderationScreenPrompt.ts: {}
+  src/mcp-server/tools/productGroupsGet.ts: {}
+  src/mcp-server/tools/productGroupsList.ts: {}
   src/mcp-server/tools/productsArchive.ts: {}
   src/mcp-server/tools/productsCreate.ts: {}
   src/mcp-server/tools/productsGet.ts: {}
+  src/mcp-server/tools/productsListPrices.ts: {}
   src/mcp-server/tools/productsSearch.ts: {}
   src/mcp-server/tools/productsUpdate.ts: {}
   src/mcp-server/tools/splitsCreate.ts: {}
@@ -912,6 +944,7 @@ trackedFiles:
   src/models/components/customercreditsexhaustionentity.ts: {}
   src/models/components/customercreditsfeatureentity.ts: {}
   src/models/components/customercreditsgrantentity.ts: {}
+  src/models/components/customercreditsreversalentity.ts: {}
   src/models/components/customerentity.ts:
     id: 1a7de3219dab
     pristine_git_object: ad6b862892f24506ae9876896a336d38f6ac84b8
@@ -997,9 +1030,15 @@ trackedFiles:
   src/models/components/productfeaturerequestentity.ts: {}
   src/models/components/productfeaturerequesttype.ts: {}
   src/models/components/productfeaturetype.ts: {}
+  src/models/components/productgroupentity.ts: {}
+  src/models/components/productgrouplistentity.ts: {}
+  src/models/components/productgroupproductentity.ts: {}
   src/models/components/productlistentity.ts:
     id: df4238ae8cbf
     pristine_git_object: e670fa2042c4cf4d0652c350597e85fc851ebbcc
+  src/models/components/productpriceversionentity.ts: {}
+  src/models/components/productpriceversionlistentity.ts: {}
+  src/models/components/productpriceversionpricingmodel.ts: {}
   src/models/components/productrequestbillingperiod.ts: {}
   src/models/components/productrequestbillingtype.ts: {}
   src/models/components/productrequestrecurringinterval.ts: {}
@@ -1009,6 +1048,8 @@ trackedFiles:
   src/models/components/refundresponseentity.ts: {}
   src/models/components/refundstatus.ts: {}
   src/models/components/reversetransactionrequestdto.ts: {}
+  src/models/components/runningsubscriptioncountsentity.ts: {}
+  src/models/components/runningsubscriptionstatuscountsentity.ts: {}
   src/models/components/screenpromptrequest.ts: {}
   src/models/components/screenpromptresponse.ts: {}
   src/models/components/security.ts: {}
@@ -1069,6 +1110,7 @@ trackedFiles:
   src/models/components/webhookcreditsautorechargedevententity.ts: {}
   src/models/components/webhookcreditsconsumedevententity.ts: {}
   src/models/components/webhookcreditsgrantedevententity.ts: {}
+  src/models/components/webhookcreditsreversedevententity.ts: {}
   src/models/components/webhookcustomercreditsexhaustedevententity.ts: {}
   src/models/components/webhookdeliverymode.ts: {}
   src/models/components/webhookdisputecreatedevententity.ts: {}
@@ -1113,6 +1155,7 @@ trackedFiles:
   src/models/errors/sdkvalidationerror.ts:
     id: fb6b2b49c445
     pristine_git_object: 6826e1208a5d7b7d310535d18909646522bf0fbd
+  src/models/errors/toomanyrequestserrorentity.ts: {}
   src/models/errors/usagemeteringerrorapiresponsedto.ts: {}
   src/models/operations/acknowledgewebhookevent.ts: {}
   src/models/operations/archivemeter.ts: {}
@@ -1121,6 +1164,8 @@ trackedFiles:
     id: 69393943824c
     pristine_git_object: 2782cba715628f5dd71e890d65206e2e77901242
   src/models/operations/closecustomercreditsaccount.ts: {}
+  src/models/operations/creatediscount.ts: {}
+  src/models/operations/createmeter.ts: {}
   src/models/operations/createproduct.ts: {}
   src/models/operations/creditcustomercreditsaccount.ts: {}
   src/models/operations/debitcustomercreditsaccount.ts: {}
@@ -1137,6 +1182,7 @@ trackedFiles:
   src/models/operations/getmeterconsumedunits.ts: {}
   src/models/operations/getmetricssummary.ts: {}
   src/models/operations/getproduct.ts: {}
+  src/models/operations/getproductgroup.ts: {}
   src/models/operations/gettransactionbyid.ts:
     id: 6948027a052a
     pristine_git_object: 8bb83e0a5f1efcbc99fe37b658f3884459dcbd72
@@ -1160,6 +1206,8 @@ trackedFiles:
   src/models/operations/listlicenseinstances.ts: {}
   src/models/operations/listmeters.ts: {}
   src/models/operations/listpendingwebhookevents.ts: {}
+  src/models/operations/listproductgroups.ts: {}
+  src/models/operations/listproductprices.ts: {}
   src/models/operations/listsplits.ts: {}
   src/models/operations/listusageevents.ts: {}
   src/models/operations/listwebhooks.ts: {}
@@ -1225,6 +1273,7 @@ trackedFiles:
     pristine_git_object: 50db819386729343ddc4aa91f6f85fb82abbce81
   src/sdk/meters.ts: {}
   src/sdk/moderation.ts: {}
+  src/sdk/productgroups.ts: {}
   src/sdk/products.ts:
     id: b199702e5352
     pristine_git_object: eb2dda41175fdea6bc07db049a3f7a9e42045285
@@ -1508,7 +1557,7 @@ examples:
           id: "<id>"
       responses:
         "200":
-          application/json: {"id": "<id>", "mode": "prod", "object": "<value>", "name": "<value>", "description": "This is a sample product description.", "image_url": "https://example.com/image.jpg", "image_urls": ["https://example.com/image.jpg"], "features": [{"id": "feat_abc123", "type": "custom", "description": "Access to premium course materials."}], "usage_prices": [{"id": "price_abc123", "meter_id": "mtr_abc123", "unit_price": 0.002, "free_allowance": 1000, "cap": 50000, "settlement_mode": "prepaid", "target_account": "shared", "target_account_name": "images", "trial_usage_mode": "accrue"}], "price": 400, "currency": "USD", "billing_type": "onetime", "billing_period": "every-six-months", "recurring_interval": "{}", "recurring_interval_count": {}, "trial_period_days": 7, "trial_price": 100, "status": "active", "tax_mode": "inclusive", "business_net_pricing": false, "tax_category": "saas", "product_url": "https://creem.io/product/prod_123123123123", "default_success_url": "https://example.com/?status=successful", "external_id": "pro-monthly", "metadata": {"plan": "pro"}, "created_at": "2023-01-01T00:00:00Z", "updated_at": "2023-01-01T00:00:00Z"}
+          application/json: {"id": "<id>", "mode": "prod", "object": "<value>", "name": "<value>", "description": "This is a sample product description.", "image_url": "https://example.com/image.jpg", "image_urls": ["https://example.com/image.jpg"], "features": [{"id": "feat_abc123", "type": "custom", "description": "Access to premium course materials.", "external_id": "pro-credits"}], "usage_prices": [{"id": "price_abc123", "meter_id": "mtr_abc123", "unit_price": 0.002, "free_allowance": 1000, "cap": 50000, "settlement_mode": "prepaid", "target_account": "shared", "target_account_name": "images", "trial_usage_mode": "accrue"}], "price": 400, "currency": "USD", "billing_type": "onetime", "billing_period": "every-six-months", "recurring_interval": "{}", "recurring_interval_count": {}, "trial_period_days": 7, "trial_price": 100, "status": "active", "tax_mode": "inclusive", "business_net_pricing": false, "tax_category": "saas", "product_url": "https://creem.io/product/prod_123123123123", "default_success_url": "https://example.com/?status=successful", "external_id": "pro-monthly", "metadata": {"plan": "pro"}, "created_at": "2023-01-01T00:00:00Z", "updated_at": "2023-01-01T00:00:00Z"}
   cancelSubscription:
     speakeasy-default-cancel-subscription:
       parameters:
@@ -1520,7 +1569,7 @@ examples:
         application/json: {"mode": "immediate", "onExecute": "cancel"}
       responses:
         "200":
-          application/json: {"id": "<id>", "mode": "test", "object": "subscription", "product": {"id": "<id>", "mode": "test", "object": "{}", "name": "<value>", "description": "This is a sample product description.", "image_url": "https://example.com/image.jpg", "image_urls": ["https://example.com/image.jpg"], "features": [{"id": "<id>", "type": "custom", "description": "Get access to discord server."}], "usage_prices": [{"id": "price_abc123", "meter_id": "mtr_abc123", "unit_price": 0.002, "free_allowance": 1000, "cap": 50000, "settlement_mode": "postpaid", "target_account": "per_unit", "target_account_name": "images", "trial_usage_mode": "accrue"}], "price": 400, "currency": "USD", "billing_type": "recurring", "billing_period": "every-month", "recurring_interval": "month", "recurring_interval_count": 3, "trial_period_days": 7, "trial_price": 100, "status": "archived", "tax_mode": "inclusive", "business_net_pricing": false, "tax_category": "ebooks", "product_url": "https://creem.io/product/prod_123123123123", "default_success_url": "https://example.com/?status=successful", "external_id": "pro-monthly", "metadata": {"plan": "pro"}, "created_at": "2023-01-01T00:00:00Z", "updated_at": "2023-01-01T00:00:00Z"}, "customer": "{\"id\":\"<id>\",\"mode\":\"prod\",\"object\":{},\"email\":\"user@example.com\",\"name\":\"John Doe\",\"country\":\"US\",\"created_at\":\"2023-01-01T00:00:00Z\",\"updated_at\":\"2023-01-01T00:00:00Z\"}", "collection_method": "charge_automatically", "status": "active", "last_transaction_id": "tran_3e6Z6TzvHKdsjEgXnGDEp0", "last_transaction": {"id": "<id>", "mode": "sandbox", "object": "transaction", "amount": 2000, "amount_paid": 2000, "discount_amount": 2000, "currency": "USD", "type": "invoice", "tax_country": "US", "tax_amount": 2000, "status": "declined", "refunded_amount": 2000, "created_at": 174.01}, "last_transaction_date": "2024-09-12T12:34:56Z", "next_transaction_date": "2024-09-12T12:34:56Z", "current_period_start_date": "2024-09-12T12:34:56Z", "current_period_end_date": "2024-09-12T12:34:56Z", "canceled_at": "2024-09-12T12:34:56Z", "created_at": "2024-01-01T00:00:00Z", "updated_at": "2024-09-12T12:34:56Z", "discount": {"id": "dis_3e6Z6TzvHKdsjEgXnGDEp0", "discountCode": "HOLIDAY2024"}, "metadata": {"userId": "user_123", "plan": "pro"}, "recovered": false}
+          application/json: {"id": "<id>", "mode": "test", "object": "subscription", "product": {"id": "<id>", "mode": "test", "object": "{}", "name": "<value>", "description": "This is a sample product description.", "image_url": "https://example.com/image.jpg", "image_urls": ["https://example.com/image.jpg"], "features": [{"id": "<id>", "type": "custom", "description": "Get access to discord server.", "external_id": "pro-credits"}], "usage_prices": [{"id": "price_abc123", "meter_id": "mtr_abc123", "unit_price": 0.002, "free_allowance": 1000, "cap": 50000, "settlement_mode": "postpaid", "target_account": "per_unit", "target_account_name": "images", "trial_usage_mode": "accrue"}], "price": 400, "currency": "USD", "billing_type": "recurring", "billing_period": "every-month", "recurring_interval": "month", "recurring_interval_count": 3, "trial_period_days": 7, "trial_price": 100, "status": "archived", "tax_mode": "inclusive", "business_net_pricing": false, "tax_category": "ebooks", "product_url": "https://creem.io/product/prod_123123123123", "default_success_url": "https://example.com/?status=successful", "external_id": "pro-monthly", "metadata": {"plan": "pro"}, "created_at": "2023-01-01T00:00:00Z", "updated_at": "2023-01-01T00:00:00Z"}, "customer": "{\"id\":\"<id>\",\"mode\":\"prod\",\"object\":{},\"email\":\"user@example.com\",\"name\":\"John Doe\",\"country\":\"US\",\"created_at\":\"2023-01-01T00:00:00Z\",\"updated_at\":\"2023-01-01T00:00:00Z\"}", "collection_method": "charge_automatically", "status": "active", "last_transaction_id": "tran_3e6Z6TzvHKdsjEgXnGDEp0", "last_transaction": {"id": "<id>", "mode": "sandbox", "object": "transaction", "amount": 2000, "amount_paid": 2000, "discount_amount": 2000, "currency": "USD", "type": "invoice", "tax_country": "US", "tax_amount": 2000, "status": "declined", "refunded_amount": 2000, "created_at": 174.01}, "last_transaction_date": "2024-09-12T12:34:56Z", "next_transaction_date": "2024-09-12T12:34:56Z", "current_period_start_date": "2024-09-12T12:34:56Z", "current_period_end_date": "2024-09-12T12:34:56Z", "canceled_at": "2024-09-12T12:34:56Z", "created_at": "2024-01-01T00:00:00Z", "updated_at": "2024-09-12T12:34:56Z", "discount": {"id": "dis_3e6Z6TzvHKdsjEgXnGDEp0", "discountCode": "HOLIDAY2024"}, "metadata": {"userId": "user_123", "plan": "pro"}, "recovered": false}
   closeCustomerCreditsAccount:
     speakeasy-default-close-customer-credits-account:
       parameters:
@@ -1570,10 +1619,12 @@ examples:
         header:
           x-api-key: "<value>"
       requestBody:
-        application/json: {"name": "Holiday Sale", "code": "HOLIDAY2024", "type": "percentage", "amount": 20, "currency": "USD", "percentage": 15, "expiry_date": "2024-12-31T23:59:59Z", "max_redemptions": 100, "duration": "repeating", "duration_in_months": 6, "applies_to_products": ["prod_123", "prod_456"]}
+        application/json: {"name": "Holiday Sale", "code": "HOLIDAY2024", "type": "percentage", "amount": 20, "currency": "USD", "percentage": 15, "expiry_date": "2024-12-31T23:59:59Z", "max_redemptions": 100, "duration": "repeating", "duration_in_months": 6, "applies_to_products": ["prod_123", "prod_456"], "applies_to_product_external_ids": ["pro-monthly"], "external_id": "spring-2026"}
       responses:
         "200":
-          application/json: {"id": "<id>", "mode": "prod", "object": "discount", "status": "active", "name": "Holiday Sale", "code": "HOLIDAY2024", "type": "percentage", "amount": 20, "currency": "USD", "percentage": 15, "expiry_date": "2024-12-31T23:59:59Z", "max_redemptions": 100, "duration": "repeating", "duration_in_months": 6, "applies_to_products": ["prod_123", "prod_456"], "redeem_count": 15}
+          application/json: {"id": "<id>", "mode": "prod", "object": "discount", "status": "active", "name": "Holiday Sale", "code": "HOLIDAY2024", "type": "percentage", "amount": 20, "currency": "USD", "percentage": 15, "expiry_date": "2024-12-31T23:59:59Z", "max_redemptions": 100, "duration": "repeating", "duration_in_months": 6, "applies_to_products": ["prod_123", "prod_456"], "redeem_count": 15, "external_id": "spring-2026"}
+        "429":
+          application/json: {"trace_id": "<id>", "status": 429, "error": "Too Many Requests", "message": ["A discount create with this idempotency key is already in progress. Please retry."], "timestamp": 1053.14}
   createMeter:
     speakeasy-default-create-meter:
       requestBody:
@@ -1599,7 +1650,7 @@ examples:
         application/json: {"name": "<value>", "description": "at through very dishearten knife ashamed baa beret amongst", "image_url": "https://picsum.photos/200/300", "image_urls": ["https://picsum.photos/200/300", "https://picsum.photos/200/301"], "price": 400, "currency": "USD", "billing_type": "recurring", "recurring_interval_count": 1, "business_net_pricing": false, "pay_what_you_want": false, "suggested_price": 1500, "trial_period_days": 7, "trial_price": 100, "default_success_url": "https://example.com/?status=successful", "external_id": "pro-monthly", "metadata": {"plan": "pro"}, "custom_fields": [{"type": "checkbox", "key": "companyName", "label": "Company Name", "text": {"max_length": 200, "min_length": 1}, "checkbox": {"label": "I agree to the [terms and conditions](https://example.com/terms)"}}], "abandoned_cart_recovery_enabled": false, "usage_prices": [{"id": "price_abc123", "meter_id": "mtr_abc123", "unit_price": 0.002, "free_allowance": 1000, "cap": 50000, "settlement_mode": "postpaid", "target_account_name": "images"}], "features": [{"id": "feat_abc123", "type": "customerCredits", "description": "500 image credits", "customer_credits": {"amount": "100", "unit_label": "tokens", "bucket_name": "images", "requires_moderation": false, "resets_each_period": false}}]}
       responses:
         "200":
-          application/json: {"id": "<id>", "mode": "sandbox", "object": "{}", "name": "<value>", "description": "This is a sample product description.", "image_url": "https://example.com/image.jpg", "image_urls": ["https://example.com/image.jpg"], "features": [{"id": "<id>", "type": "licenseKey", "description": "Get access to discord server."}], "usage_prices": [{"id": "price_abc123", "meter_id": "mtr_abc123", "unit_price": 0.002, "free_allowance": 1000, "cap": 50000, "settlement_mode": "prepaid", "target_account": "per_unit", "target_account_name": "images", "trial_usage_mode": "free"}], "price": 400, "currency": "USD", "billing_type": "recurring", "billing_period": "every-month", "recurring_interval": "{}", "recurring_interval_count": {}, "trial_period_days": 7, "trial_price": 100, "status": "archived", "tax_mode": "inclusive", "business_net_pricing": false, "tax_category": "ebooks", "product_url": "https://creem.io/product/prod_123123123123", "default_success_url": "https://example.com/?status=successful", "external_id": "pro-monthly", "metadata": {"plan": "pro"}, "created_at": "2023-01-01T00:00:00Z", "updated_at": "2023-01-01T00:00:00Z"}
+          application/json: {"id": "<id>", "mode": "sandbox", "object": "{}", "name": "<value>", "description": "This is a sample product description.", "image_url": "https://example.com/image.jpg", "image_urls": ["https://example.com/image.jpg"], "features": [{"id": "<id>", "type": "licenseKey", "description": "Get access to discord server.", "external_id": "pro-credits"}], "usage_prices": [{"id": "price_abc123", "meter_id": "mtr_abc123", "unit_price": 0.002, "free_allowance": 1000, "cap": 50000, "settlement_mode": "prepaid", "target_account": "per_unit", "target_account_name": "images", "trial_usage_mode": "free"}], "price": 400, "currency": "USD", "billing_type": "recurring", "billing_period": "every-month", "recurring_interval": "{}", "recurring_interval_count": {}, "trial_period_days": 7, "trial_price": 100, "status": "archived", "tax_mode": "inclusive", "business_net_pricing": false, "tax_category": "ebooks", "product_url": "https://creem.io/product/prod_123123123123", "default_success_url": "https://example.com/?status=successful", "external_id": "pro-monthly", "metadata": {"plan": "pro"}, "created_at": "2023-01-01T00:00:00Z", "updated_at": "2023-01-01T00:00:00Z"}
   createSplit:
     speakeasy-default-create-split:
       requestBody:
@@ -1657,7 +1708,7 @@ examples:
           x-api-key: "<value>"
       responses:
         "200":
-          application/json: {"id": "<id>", "mode": "test", "object": "discount", "status": "active", "name": "Holiday Sale", "code": "HOLIDAY2024", "type": "percentage", "amount": 20, "currency": "USD", "percentage": 15, "expiry_date": "2024-12-31T23:59:59Z", "max_redemptions": 100, "duration": "repeating", "duration_in_months": 6, "applies_to_products": ["prod_123", "prod_456"], "redeem_count": 15}
+          application/json: {"id": "<id>", "mode": "test", "object": "discount", "status": "active", "name": "Holiday Sale", "code": "HOLIDAY2024", "type": "percentage", "amount": 20, "currency": "USD", "percentage": 15, "expiry_date": "2024-12-31T23:59:59Z", "max_redemptions": 100, "duration": "repeating", "duration_in_months": 6, "applies_to_products": ["prod_123", "prod_456"], "redeem_count": 15, "external_id": "spring-2026"}
   deleteSplit:
     speakeasy-default-delete-split:
       parameters:
@@ -1759,7 +1810,15 @@ examples:
           id: "<id>"
       responses:
         "200":
-          application/json: {"id": "<id>", "mode": "sandbox", "object": "<value>", "name": "<value>", "description": "This is a sample product description.", "image_url": "https://example.com/image.jpg", "image_urls": ["https://example.com/image.jpg"], "features": [{"id": "feat_abc123", "type": "file", "description": "Access to premium course materials."}], "usage_prices": [{"id": "price_abc123", "meter_id": "mtr_abc123", "unit_price": 0.002, "free_allowance": 1000, "cap": 50000, "settlement_mode": "postpaid", "target_account": "shared", "target_account_name": "images", "trial_usage_mode": "free"}], "price": 400, "currency": "USD", "billing_type": "recurring", "billing_period": "every-year", "recurring_interval": "{}", "recurring_interval_count": {}, "trial_period_days": 7, "trial_price": 100, "status": "archived", "tax_mode": "exclusive", "business_net_pricing": false, "tax_category": "saas", "product_url": "https://creem.io/product/prod_123123123123", "default_success_url": "https://example.com/?status=successful", "external_id": "pro-monthly", "metadata": {"plan": "pro"}, "created_at": "2023-01-01T00:00:00Z", "updated_at": "2023-01-01T00:00:00Z"}
+          application/json: {"id": "<id>", "mode": "sandbox", "object": "<value>", "name": "<value>", "description": "This is a sample product description.", "image_url": "https://example.com/image.jpg", "image_urls": ["https://example.com/image.jpg"], "features": [{"id": "feat_abc123", "type": "file", "description": "Access to premium course materials.", "external_id": "pro-credits"}], "usage_prices": [{"id": "price_abc123", "meter_id": "mtr_abc123", "unit_price": 0.002, "free_allowance": 1000, "cap": 50000, "settlement_mode": "postpaid", "target_account": "shared", "target_account_name": "images", "trial_usage_mode": "free"}], "price": 400, "currency": "USD", "billing_type": "recurring", "billing_period": "every-year", "recurring_interval": "{}", "recurring_interval_count": {}, "trial_period_days": 7, "trial_price": 100, "status": "archived", "tax_mode": "exclusive", "business_net_pricing": false, "tax_category": "saas", "product_url": "https://creem.io/product/prod_123123123123", "default_success_url": "https://example.com/?status=successful", "external_id": "pro-monthly", "metadata": {"plan": "pro"}, "created_at": "2023-01-01T00:00:00Z", "updated_at": "2023-01-01T00:00:00Z"}
+  getProductGroup:
+    speakeasy-default-get-product-group:
+      parameters:
+        path:
+          id: "<id>"
+      responses:
+        "200":
+          application/json: {"id": "<id>", "mode": "test", "object": "product_group", "name": "<value>", "description": "arrogantly muddy provided eek", "external_id": "<id>", "products": [{"id": "<id>", "external_id": "<id>"}], "upgrades_enabled": false, "upgrade_behavior": "proration-none", "upsells_enabled": false, "is_active": false, "created_at": "2023-01-01T00:00:00Z", "updated_at": "2023-01-01T00:00:00Z"}
   getTransactionById:
     speakeasy-default-get-transaction-by-id:
       parameters:
@@ -1928,6 +1987,23 @@ examples:
       responses:
         "200":
           application/json: {"items": []}
+  listProductGroups:
+    speakeasy-default-list-product-groups:
+      parameters:
+        query:
+          limit: 10
+          external_id: "plans"
+      responses:
+        "200":
+          application/json: {"object": "list", "data": [{"id": "<id>", "mode": "prod", "object": "product_group", "name": "<value>", "description": "ack spice quarrelsome offensively plus", "external_id": "<id>", "products": [{"id": "<id>", "external_id": "<id>"}], "upgrades_enabled": true, "upgrade_behavior": "proration-charge", "upsells_enabled": true, "is_active": true, "created_at": "2023-01-01T00:00:00Z", "updated_at": "2023-01-01T00:00:00Z"}], "has_more": true}
+  listProductPrices:
+    speakeasy-default-list-product-prices:
+      parameters:
+        path:
+          id: "<id>"
+      responses:
+        "200":
+          application/json: {"items": [], "subscriptions_without_price_version": {"total": 9734.94, "by_status": {"active": 9, "trialing": 1, "past_due": 1, "scheduled_cancel": 0, "paused": 1, "unpaid": 0}}}
   listSplits:
     speakeasy-default-list-splits:
       parameters:
@@ -2065,7 +2141,7 @@ examples:
           x-api-key: "<value>"
       responses:
         "200":
-          application/json: {"id": "<id>", "mode": "sandbox", "object": "discount", "status": "active", "name": "Holiday Sale", "code": "HOLIDAY2024", "type": "percentage", "amount": 20, "currency": "USD", "percentage": 15, "expiry_date": "2024-12-31T23:59:59Z", "max_redemptions": 100, "duration": "repeating", "duration_in_months": 6, "applies_to_products": ["prod_123", "prod_456"], "redeem_count": 15}
+          application/json: {"id": "<id>", "mode": "sandbox", "object": "discount", "status": "active", "name": "Holiday Sale", "code": "HOLIDAY2024", "type": "percentage", "amount": 20, "currency": "USD", "percentage": 15, "expiry_date": "2024-12-31T23:59:59Z", "max_redemptions": 100, "duration": "repeating", "duration_in_months": 6, "applies_to_products": ["prod_123", "prod_456"], "redeem_count": 15, "external_id": "spring-2026"}
   retrieveProduct:
     speakeasy-default-retrieve-product:
       parameters:
@@ -2217,10 +2293,10 @@ examples:
         path:
           id: "<id>"
       requestBody:
-        application/json: {"external_id": "pro-monthly", "metadata": {"plan": "pro"}, "business_net_pricing": false, "trial_period_days": 7, "trial_price": 100, "usage_prices": [{"id": "price_abc123", "meter_id": "mtr_abc123", "unit_price": 0.002, "free_allowance": 1000, "cap": 50000, "settlement_mode": "prepaid", "target_account_name": "images"}], "features": [{"id": "feat_abc123", "type": "customerCredits", "description": "500 image credits", "customer_credits": {"amount": "100", "unit_label": "tokens", "bucket_name": "images", "requires_moderation": false, "resets_each_period": false}}]}
+        application/json: {"external_id": "pro-monthly", "metadata": {"plan": "pro"}, "business_net_pricing": false, "trial_period_days": 7, "trial_price": 100, "usage_prices": [{"id": "price_abc123", "meter_id": "mtr_abc123", "unit_price": 0.002, "free_allowance": 1000, "cap": 50000, "settlement_mode": "prepaid", "target_account_name": "images"}], "features": [{"id": "feat_abc123", "type": "customerCredits", "description": "500 image credits", "customer_credits": {"amount": "100", "unit_label": "tokens", "bucket_name": "images", "requires_moderation": false, "resets_each_period": false}}], "custom_fields": [{"type": "text", "key": "companyName", "label": "Company Name", "text": {"max_length": 200, "min_length": 1}, "checkbox": {"label": "I agree to the [terms and conditions](https://example.com/terms)"}}]}
       responses:
         "200":
-          application/json: {"id": "<id>", "mode": "test", "object": "<value>", "name": "<value>", "description": "This is a sample product description.", "image_url": "https://example.com/image.jpg", "image_urls": ["https://example.com/image.jpg"], "features": [{"id": "feat_abc123", "type": "file", "description": "Access to premium course materials."}], "usage_prices": [{"id": "price_abc123", "meter_id": "mtr_abc123", "unit_price": 0.002, "free_allowance": 1000, "cap": 50000, "settlement_mode": "prepaid", "target_account": "shared", "target_account_name": "images", "trial_usage_mode": "free"}], "price": 400, "currency": "USD", "billing_type": "recurring", "billing_period": "every-six-months", "recurring_interval": "{}", "recurring_interval_count": {}, "trial_period_days": 7, "trial_price": 100, "status": "archived", "tax_mode": "inclusive", "business_net_pricing": false, "tax_category": "ebooks", "product_url": "https://creem.io/product/prod_123123123123", "default_success_url": "https://example.com/?status=successful", "external_id": "pro-monthly", "metadata": {"plan": "pro"}, "created_at": "2023-01-01T00:00:00Z", "updated_at": "2023-01-01T00:00:00Z"}
+          application/json: {"id": "<id>", "mode": "test", "object": "<value>", "name": "<value>", "description": "This is a sample product description.", "image_url": "https://example.com/image.jpg", "image_urls": ["https://example.com/image.jpg"], "features": [{"id": "feat_abc123", "type": "file", "description": "Access to premium course materials.", "external_id": "pro-credits"}], "usage_prices": [{"id": "price_abc123", "meter_id": "mtr_abc123", "unit_price": 0.002, "free_allowance": 1000, "cap": 50000, "settlement_mode": "prepaid", "target_account": "shared", "target_account_name": "images", "trial_usage_mode": "free"}], "price": 400, "currency": "USD", "billing_type": "recurring", "billing_period": "every-six-months", "recurring_interval": "{}", "recurring_interval_count": {}, "trial_period_days": 7, "trial_price": 100, "status": "archived", "tax_mode": "inclusive", "business_net_pricing": false, "tax_category": "ebooks", "product_url": "https://creem.io/product/prod_123123123123", "default_success_url": "https://example.com/?status=successful", "external_id": "pro-monthly", "metadata": {"plan": "pro"}, "created_at": "2023-01-01T00:00:00Z", "updated_at": "2023-01-01T00:00:00Z"}
   updateSubscription:
     speakeasy-default-update-subscription:
       parameters:
@@ -2232,7 +2308,7 @@ examples:
         application/json: {"update_behavior": "proration-charge"}
       responses:
         "200":
-          application/json: {"id": "<id>", "mode": "prod", "object": "subscription", "product": {"id": "<id>", "mode": "prod", "object": "{}", "name": "<value>", "description": "This is a sample product description.", "image_url": "https://example.com/image.jpg", "image_urls": ["https://example.com/image.jpg"], "features": [{"id": "<id>", "type": "file", "description": "Get access to discord server."}], "usage_prices": [{"id": "price_abc123", "meter_id": "mtr_abc123", "unit_price": 0.002, "free_allowance": 1000, "cap": 50000, "settlement_mode": "postpaid", "target_account": "per_unit", "target_account_name": "images", "trial_usage_mode": "accrue"}], "price": 400, "currency": "USD", "billing_type": "recurring", "billing_period": "every-month", "recurring_interval": "month", "recurring_interval_count": 3, "trial_period_days": 7, "trial_price": 100, "status": "archived", "tax_mode": "inclusive", "business_net_pricing": false, "tax_category": "ebooks", "product_url": "https://creem.io/product/prod_123123123123", "default_success_url": "https://example.com/?status=successful", "external_id": "pro-monthly", "metadata": {"plan": "pro"}, "created_at": "2023-01-01T00:00:00Z", "updated_at": "2023-01-01T00:00:00Z"}, "customer": "{\"id\":\"<id>\",\"mode\":\"test\",\"object\":{},\"email\":\"user@example.com\",\"name\":\"John Doe\",\"country\":\"US\",\"created_at\":\"2023-01-01T00:00:00Z\",\"updated_at\":\"2023-01-01T00:00:00Z\"}", "collection_method": "charge_automatically", "status": "active", "last_transaction_id": "tran_3e6Z6TzvHKdsjEgXnGDEp0", "last_transaction": {"id": "<id>", "mode": "test", "object": "transaction", "amount": 2000, "amount_paid": 2000, "discount_amount": 2000, "currency": "USD", "type": "invoice", "tax_country": "US", "tax_amount": 2000, "status": "void", "refunded_amount": 2000, "created_at": 8102.12}, "last_transaction_date": "2024-09-12T12:34:56Z", "next_transaction_date": "2024-09-12T12:34:56Z", "current_period_start_date": "2024-09-12T12:34:56Z", "current_period_end_date": "2024-09-12T12:34:56Z", "canceled_at": "2024-09-12T12:34:56Z", "created_at": "2024-01-01T00:00:00Z", "updated_at": "2024-09-12T12:34:56Z", "discount": {"id": "dis_3e6Z6TzvHKdsjEgXnGDEp0", "discountCode": "HOLIDAY2024"}, "metadata": {"userId": "user_123", "plan": "pro"}, "recovered": false}
+          application/json: {"id": "<id>", "mode": "prod", "object": "subscription", "product": {"id": "<id>", "mode": "prod", "object": "{}", "name": "<value>", "description": "This is a sample product description.", "image_url": "https://example.com/image.jpg", "image_urls": ["https://example.com/image.jpg"], "features": [{"id": "<id>", "type": "file", "description": "Get access to discord server.", "external_id": "pro-credits"}], "usage_prices": [{"id": "price_abc123", "meter_id": "mtr_abc123", "unit_price": 0.002, "free_allowance": 1000, "cap": 50000, "settlement_mode": "postpaid", "target_account": "per_unit", "target_account_name": "images", "trial_usage_mode": "accrue"}], "price": 400, "currency": "USD", "billing_type": "recurring", "billing_period": "every-month", "recurring_interval": "month", "recurring_interval_count": 3, "trial_period_days": 7, "trial_price": 100, "status": "archived", "tax_mode": "inclusive", "business_net_pricing": false, "tax_category": "ebooks", "product_url": "https://creem.io/product/prod_123123123123", "default_success_url": "https://example.com/?status=successful", "external_id": "pro-monthly", "metadata": {"plan": "pro"}, "created_at": "2023-01-01T00:00:00Z", "updated_at": "2023-01-01T00:00:00Z"}, "customer": "{\"id\":\"<id>\",\"mode\":\"test\",\"object\":{},\"email\":\"user@example.com\",\"name\":\"John Doe\",\"country\":\"US\",\"created_at\":\"2023-01-01T00:00:00Z\",\"updated_at\":\"2023-01-01T00:00:00Z\"}", "collection_method": "charge_automatically", "status": "active", "last_transaction_id": "tran_3e6Z6TzvHKdsjEgXnGDEp0", "last_transaction": {"id": "<id>", "mode": "test", "object": "transaction", "amount": 2000, "amount_paid": 2000, "discount_amount": 2000, "currency": "USD", "type": "invoice", "tax_country": "US", "tax_amount": 2000, "status": "void", "refunded_amount": 2000, "created_at": 8102.12}, "last_transaction_date": "2024-09-12T12:34:56Z", "next_transaction_date": "2024-09-12T12:34:56Z", "current_period_start_date": "2024-09-12T12:34:56Z", "current_period_end_date": "2024-09-12T12:34:56Z", "canceled_at": "2024-09-12T12:34:56Z", "created_at": "2024-01-01T00:00:00Z", "updated_at": "2024-09-12T12:34:56Z", "discount": {"id": "dis_3e6Z6TzvHKdsjEgXnGDEp0", "discountCode": "HOLIDAY2024"}, "metadata": {"userId": "user_123", "plan": "pro"}, "recovered": false}
   updateWebhook:
     speakeasy-default-update-webhook:
       parameters:

@@ -58,6 +58,7 @@ let value: CreateProductRequest = {
     features: [
       {
         id: "feat_abc123",
+        externalId: "pro-credits",
         type: "customerCredits",
         description: "500 image credits",
         customerCredits: {

@@ -35,7 +35,7 @@ import {
  * List all transactions
  *
  * @remarks
- * Search and retrieve payment transactions. Filter by customer, product, date range, and status.
+ * Search and retrieve payment transactions. Filter by customer, order, product, status, and creation date range.
  */
 export function transactionsSearch(
   client: CreemCore,
@@ -101,11 +101,14 @@ async function $do(
   const path = pathToFunc("/v1/transactions/search")();
 
   const query = encodeFormQuery({
+    "created_after": payload.created_after,
+    "created_before": payload.created_before,
     "customer_id": payload.customer_id,
     "order_id": payload.order_id,
     "page_number": payload.page_number,
     "page_size": payload.page_size,
     "product_id": payload.product_id,
+    "status": payload.status,
   });
 
   const headers = new Headers(compactMap({

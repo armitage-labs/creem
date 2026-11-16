@@ -31,7 +31,7 @@ import { Result } from "../types/fp.js";
  * Debit an account
  *
  * @remarks
- * Deduct credits from a customer account. Returns the resulting transaction record.
+ * Deduct credits from a customer account. Returns the resulting transaction record. A debit from a `generation` account (AI generation credits) needs the `moderation_id` of an allowed Moderation API result; on other accounts it is optional. A failed debit does not use up the moderation result.
  */
 export function customerCreditsDebitAccount(
   client: CreemCore,
@@ -89,9 +89,7 @@ async function $do(
     return [parsed, { status: "invalid" }];
   }
   const payload = parsed.value;
-  const body = encodeJSON("body", payload.CreditDebitRequestDto, {
-    explode: true,
-  });
+  const body = encodeJSON("body", payload.DebitRequestDto, { explode: true });
 
   const pathParams = {
     id: encodeSimple("id", payload.id, {
@@ -171,7 +169,7 @@ async function $do(
     | SDKValidationError
   >(
     M.json(201, components.TransactionResponseDto$inboundSchema),
-    M.jsonErr(409, errors.CustomerCreditsErrorResponseDto$inboundSchema),
+    M.jsonErr([409, 422], errors.CustomerCreditsErrorResponseDto$inboundSchema),
     M.fail([400, 401, 404, "4XX"]),
     M.fail("5XX"),
   )(response, req, { extraFields: responseFields });
