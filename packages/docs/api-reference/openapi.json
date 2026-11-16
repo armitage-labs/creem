@@ -312,6 +312,52 @@
         ]
       }
     },
+    "/v1/products/{id}/prices": {
+      "get": {
+        "operationId": "listProductPrices",
+        "x-speakeasy-name-override": "listPrices",
+        "summary": "List the price versions of a product",
+        "description": "List every price version of a product, newest first, with how many running subscriptions sit on each. A price change creates a new version; running subscriptions stay on the version they bought. Archived products can be read too.",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "description": "The product ID",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successfully retrieved the price versions",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProductPriceVersionListEntity"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Bad Request - Invalid input parameters"
+          },
+          "401": {
+            "description": "Unauthorized - Invalid or missing API key"
+          },
+          "404": {
+            "description": "Not Found - Resource does not exist"
+          }
+        },
+        "tags": ["Products"],
+        "security": [
+          {
+            "ApiKey": []
+          }
+        ]
+      }
+    },
     "/v1/customers/list": {
       "get": {
         "operationId": "listCustomers",
@@ -1690,7 +1736,17 @@
         "x-speakeasy-name-override": "create",
         "summary": "Create a discount.",
         "description": "Create promotional discount codes for products. Set percentage or fixed amount discounts with expiration dates.",
-        "parameters": [],
+        "parameters": [
+          {
+            "name": "Idempotency-Key",
+            "required": false,
+            "in": "header",
+            "description": "Optional key that makes retries return the originally created discount instead of creating a duplicate. Reusing a key with a different body returns the first result, and a key lasts 24 hours. After a failed create whose outcome is unclear, the key answers 429 for up to 5 minutes.",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
         "requestBody": {
           "required": true,
           "description": "Discount creation payload",
@@ -1721,6 +1777,16 @@
           },
           "404": {
             "description": "Not Found - Resource does not exist"
+          },
+          "429": {
+            "description": "A create with this `Idempotency-Key` is in progress, or failed with an unclear outcome less than 5 minutes ago. Retry later.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/TooManyRequestsErrorEntity"
+                }
+              }
+            }
           }
         },
         "tags": ["Discounts"],
@@ -1770,6 +1836,148 @@
           }
         },
         "tags": ["Discounts"],
+        "security": [
+          {
+            "ApiKey": []
+          }
+        ]
+      }
+    },
+    "/v1/product-groups": {
+      "get": {
+        "operationId": "listProductGroups",
+        "x-speakeasy-pagination": {
+          "type": "cursor",
+          "inputs": [
+            {
+              "name": "starting_after",
+              "in": "parameters",
+              "type": "cursor"
+            },
+            {
+              "name": "limit",
+              "in": "parameters",
+              "type": "limit"
+            }
+          ],
+          "outputs": {
+            "nextCursor": "$.data[-1].id",
+            "results": "$.data"
+          }
+        },
+        "x-speakeasy-name-override": "list",
+        "summary": "List product groups",
+        "description": "List your product groups, newest first, as a cursor page. Filter by your own `external_id`.",
+        "parameters": [
+          {
+            "name": "limit",
+            "required": false,
+            "in": "query",
+            "description": "Maximum number of product groups to return",
+            "schema": {
+              "minimum": 1,
+              "maximum": 100,
+              "default": 10,
+              "type": "number"
+            }
+          },
+          {
+            "name": "starting_after",
+            "required": false,
+            "in": "query",
+            "description": "Cursor for forward pagination: the product group ID to start after",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "ending_before",
+            "required": false,
+            "in": "query",
+            "description": "Cursor for backward pagination: the product group ID to end before",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "external_id",
+            "required": false,
+            "in": "query",
+            "description": "Only the product group with this `external_id` (your own key). Case-sensitive, exact match.",
+            "schema": {
+              "example": "plans",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Paginated list of product groups",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProductGroupListEntity"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Bad Request - Invalid input parameters"
+          },
+          "401": {
+            "description": "Unauthorized - Invalid or missing API key"
+          },
+          "404": {
+            "description": "Not Found - Resource does not exist"
+          }
+        },
+        "tags": ["Product Groups"],
+        "security": [
+          {
+            "ApiKey": []
+          }
+        ]
+      }
+    },
+    "/v1/product-groups/{id}": {
+      "get": {
+        "operationId": "getProductGroup",
+        "x-speakeasy-name-override": "get",
+        "summary": "Retrieve a product group",
+        "description": "Get one product group by ID, with its ordered products.",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "description": "The product group ID",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "The product group",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProductGroupEntity"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Bad Request - Invalid input parameters"
+          },
+          "401": {
+            "description": "Unauthorized - Invalid or missing API key"
+          },
+          "404": {
+            "description": "Not Found - Resource does not exist"
+          }
+        },
+        "tags": ["Product Groups"],
         "security": [
           {
             "ApiKey": []
@@ -3114,7 +3322,17 @@
         "x-speakeasy-group": "meters",
         "summary": "Create a meter",
         "description": "Define how a stream of usage events is aggregated into billable units. The unit label doubles as the display unit and as the credit bucket the meter settles into. A duplicate name within the store is rejected with 409 meter_name_taken.",
-        "parameters": [],
+        "parameters": [
+          {
+            "name": "Idempotency-Key",
+            "required": false,
+            "in": "header",
+            "description": "Optional key that makes retries return the originally created meter instead of creating a duplicate. Reusing a key with a different body returns the first result, and a key lasts 24 hours. After a failed create whose outcome is unclear, the key answers 429 for up to 5 minutes.",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
         "requestBody": {
           "required": true,
           "content": {
@@ -3157,6 +3375,16 @@
           },
           "422": {
             "description": "The meter definition is not satisfiable, or the unit label names a bucket reserved for AI generation credits (`generation` or `generation:*`, any casing; code `generation_bucket_reserved`)",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/UsageMeteringErrorApiResponseDto"
+                }
+              }
+            }
+          },
+          "429": {
+            "description": "A create with this `Idempotency-Key` is in progress, or failed with an unclear outcome less than 5 minutes ago. Retry later.",
             "content": {
               "application/json": {
                 "schema": {
@@ -4996,6 +5224,12 @@
             "description": "A brief description of the feature.",
             "example": "Access to premium course materials."
           },
+          "external_id": {
+            "type": "string",
+            "description": "Your own key for this feature, unique per product. `null` when the feature has none.",
+            "example": "pro-credits",
+            "nullable": true
+          },
           "customer_credits": {
             "description": "The credit grant behind a `customerCredits` feature. Absent for other feature types.",
             "nullable": true,
@@ -5006,7 +5240,7 @@
             ]
           }
         },
-        "required": ["id", "type", "description"]
+        "required": ["id", "type", "description", "external_id"]
       },
       "UsagePriceSettlementMode": {
         "type": "string",
@@ -5319,6 +5553,10 @@
               "$ref": "#/components/schemas/CustomField"
             }
           },
+          "abandoned_cart_recovery_enabled": {
+            "type": "boolean",
+            "description": "Whether abandoned cart recovery is on for this product. Not included when the product is embedded in a checkout or subscription."
+          },
           "external_id": {
             "type": "string",
             "description": "Your own key for this product, such as your SKU or internal product id. Creem never sets it. Unique per store, case-sensitive; 1 to 255 characters: letters, digits, `_`, `-`, `.` and `:`. `null` when the product has no key.",
@@ -5583,6 +5821,12 @@
             "description": "Identifier of an existing feature to edit in place (update only). Omit to add a new feature. On update the array replaces the credit features of the product: send the `id` of every feature to keep, as returned on reads; a feature sent without its `id` is added as a new one and the stored feature it stood for is removed.",
             "example": "feat_abc123"
           },
+          "external_id": {
+            "type": "string",
+            "description": "Your own key for this feature, the same in test and live and unique per product: 1 to 255 characters: letters, digits, `_`, `-`, `.` and `:`, case-sensitive. Omit it to leave the key unchanged; send `null` to clear it. On update, an entry without `id` whose `external_id` matches a stored feature edits that feature. An entry with `id` whose key another feature of the product holds, of any type, answers `409` with code `external_id_taken`. An entry without `id` whose key belongs to a feature of another type answers `400` with code `feature_type_mismatch`.",
+            "example": "pro-credits",
+            "nullable": true
+          },
           "type": {
             "example": "customerCredits",
             "$ref": "#/components/schemas/ProductFeatureRequestType"
@@ -5705,14 +5949,14 @@
             "additionalProperties": true
           },
           "custom_fields": {
-            "description": "Collect additional information from your customer using custom fields during checkout. Up to 3 fields are supported.",
+            "description": "Collect additional information from your customer using custom fields during checkout.",
             "type": "array",
             "items": {
               "$ref": "#/components/schemas/CustomFieldRequestEntity"
             }
           },
           "custom_field": {
-            "description": "DEPRECATED: Use `custom_fields` instead. Collect additional information from your customer using custom fields during checkout. Up to 3 fields are supported.",
+            "description": "DEPRECATED: Use `custom_fields` instead. Collect additional information from your customer using custom fields during checkout.",
             "deprecated": true,
             "type": "array",
             "items": {
@@ -5740,6 +5984,156 @@
           }
         },
         "required": ["name", "description", "price", "currency", "billing_type"]
+      },
+      "ProductPriceVersionPricingModel": {
+        "type": "string",
+        "description": "How this version is priced.",
+        "enum": ["standard", "package", "usage_based"]
+      },
+      "RunningSubscriptionStatusCountsEntity": {
+        "type": "object",
+        "properties": {
+          "active": {
+            "type": "number",
+            "description": "Subscriptions in status `active`.",
+            "example": 9
+          },
+          "trialing": {
+            "type": "number",
+            "description": "Subscriptions in status `trialing`.",
+            "example": 1
+          },
+          "past_due": {
+            "type": "number",
+            "description": "Subscriptions in status `past_due`.",
+            "example": 1
+          },
+          "scheduled_cancel": {
+            "type": "number",
+            "description": "Subscriptions in status `scheduled_cancel`.",
+            "example": 0
+          },
+          "paused": {
+            "type": "number",
+            "description": "Subscriptions in status `paused`.",
+            "example": 1
+          },
+          "unpaid": {
+            "type": "number",
+            "description": "Subscriptions in status `unpaid`.",
+            "example": 0
+          }
+        },
+        "required": ["active", "trialing", "past_due", "scheduled_cancel", "paused", "unpaid"]
+      },
+      "RunningSubscriptionCountsEntity": {
+        "type": "object",
+        "properties": {
+          "total": {
+            "type": "number",
+            "description": "Running subscriptions. Canceled, expired, incomplete and error ones are not counted."
+          },
+          "by_status": {
+            "description": "Per status; all six are always present.",
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/RunningSubscriptionStatusCountsEntity"
+              }
+            ]
+          }
+        },
+        "required": ["total", "by_status"]
+      },
+      "ProductPriceVersionEntity": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "description": "Unique identifier of the price version.",
+            "example": "pprice_abc"
+          },
+          "price": {
+            "type": "number",
+            "description": "The price of this version in cents. 1000 = $10.00",
+            "example": 2900
+          },
+          "currency": {
+            "type": "string",
+            "description": "Three-letter ISO currency code, in uppercase.",
+            "example": "EUR"
+          },
+          "billing_type": {
+            "$ref": "#/components/schemas/ProductBillingType"
+          },
+          "billing_period": {
+            "$ref": "#/components/schemas/ProductBillingPeriod"
+          },
+          "recurring_interval": {
+            "type": "string",
+            "description": "Unit of the billing interval (`day`, `week`, `month` or `year`). `null` for a one-time version.",
+            "nullable": true
+          },
+          "recurring_interval_count": {
+            "type": "integer",
+            "description": "Number of `recurring_interval` units per billing cycle. `null` for a one-time version.",
+            "nullable": true
+          },
+          "pricing_model": {
+            "$ref": "#/components/schemas/ProductPriceVersionPricingModel"
+          },
+          "created_at": {
+            "format": "date-time",
+            "type": "string",
+            "description": "When this version was created.",
+            "example": "2023-01-01T00:00:00Z"
+          },
+          "current": {
+            "type": "boolean",
+            "description": "Whether new purchases get it. True on exactly one version in a non-empty list."
+          },
+          "subscriptions": {
+            "description": "Running subscriptions billed on this version. One with items on several versions counts on each.",
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/RunningSubscriptionCountsEntity"
+              }
+            ]
+          }
+        },
+        "required": [
+          "id",
+          "price",
+          "currency",
+          "billing_type",
+          "billing_period",
+          "recurring_interval",
+          "recurring_interval_count",
+          "pricing_model",
+          "created_at",
+          "current",
+          "subscriptions"
+        ]
+      },
+      "ProductPriceVersionListEntity": {
+        "type": "object",
+        "properties": {
+          "items": {
+            "description": "Every price version, newest first. Empty for a legacy product with no price rows. Usage prices are unversioned and not listed.",
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/ProductPriceVersionEntity"
+            }
+          },
+          "subscriptions_without_price_version": {
+            "description": "Running subscriptions not billed on any listed version.",
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/RunningSubscriptionCountsEntity"
+              }
+            ]
+          }
+        },
+        "required": ["items", "subscriptions_without_price_version"]
       },
       "UpdateProductRequestEntity": {
         "type": "object",
@@ -5843,11 +6237,23 @@
             }
           },
           "features": {
-            "description": "Features granted by purchase. Only `customerCredits` (a credit grant into one of the customer credit buckets) can be managed through the API. The array is the complete set of credit features after the update: omit (or send `null`) to leave features untouched, include `id` to edit in place; credit features missing from the array are removed.",
+            "description": "Features granted by purchase. Only `customerCredits` (a credit grant into one of the customer credit buckets) can be managed through the API. The array is the complete set of credit features after the update: omit (or send `null`) to leave features untouched, include `id` to edit in place, or the `external_id` of a stored feature to edit that feature without its `id`; credit features missing from the array are removed.",
             "type": "array",
             "items": {
               "$ref": "#/components/schemas/ProductFeatureRequestEntity"
             }
+          },
+          "custom_fields": {
+            "description": "Collect additional information from your customer using custom fields during checkout. The array is the complete set after the update: omit (or send `null`) to leave the custom fields unchanged, send `[]` to remove all.",
+            "nullable": true,
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/CustomFieldRequestEntity"
+            }
+          },
+          "abandoned_cart_recovery_enabled": {
+            "type": "boolean",
+            "description": "Turn abandoned cart recovery for this product on or off. Buyers who abandon checkout get recovery emails, and recovered orders carry the recovery fee. Omit to leave it unchanged."
           }
         }
       },
@@ -7245,9 +7651,15 @@
             "type": "number",
             "description": "The number of times this discount has been redeemed.",
             "example": 15
+          },
+          "external_id": {
+            "type": "string",
+            "description": "Your own key for the discount, unique in your store. `null` when the discount has none.",
+            "example": "spring-2026",
+            "nullable": true
           }
         },
-        "required": ["id", "mode", "object", "status", "name", "code", "type"]
+        "required": ["id", "mode", "object", "status", "name", "code", "type", "external_id"]
       },
       "DiscountListEntity": {
         "type": "object",
@@ -7332,15 +7744,182 @@
             "example": 6
           },
           "applies_to_products": {
-            "description": "The list of product IDs to which this discount applies.",
+            "description": "The list of product IDs to which this discount applies. The discount covers these products and the ones in `applies_to_product_external_ids`; at least one product is required across both lists.",
             "example": ["prod_123", "prod_456"],
             "type": "array",
             "items": {
               "type": "string"
             }
+          },
+          "applies_to_product_external_ids": {
+            "description": "Products this discount applies to, named by their `external_id`, at most 100. Combined with `applies_to_products`; a key no product of your store has answers `400` with code `reference_not_found`.",
+            "example": ["pro-monthly"],
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "external_id": {
+            "type": "string",
+            "description": "Your own key for the discount, unique in your store: 1 to 255 characters: letters, digits, `_`, `-`, `.` and `:`. Case-sensitive. A key another discount of your store already uses answers `409` with code `external_id_taken`.",
+            "example": "spring-2026"
           }
         },
-        "required": ["name", "type", "duration", "applies_to_products"]
+        "required": ["name", "type", "duration"]
+      },
+      "TooManyRequestsErrorEntity": {
+        "type": "object",
+        "properties": {
+          "trace_id": {
+            "type": "string",
+            "description": "Identifier of this request, for support."
+          },
+          "status": {
+            "type": "number",
+            "description": "The HTTP status code.",
+            "example": 429
+          },
+          "error": {
+            "type": "string",
+            "description": "The HTTP status text.",
+            "example": "Too Many Requests"
+          },
+          "message": {
+            "description": "What went wrong.",
+            "example": [
+              "A discount create with this idempotency key is already in progress. Please retry."
+            ],
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "timestamp": {
+            "type": "number",
+            "description": "When the error occurred, in milliseconds since the Unix epoch."
+          }
+        },
+        "required": ["trace_id", "status", "error", "message", "timestamp"]
+      },
+      "ProductGroupProductEntity": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "description": "The id of the product."
+          },
+          "external_id": {
+            "type": "string",
+            "description": "Your own key for the product, or `null` when it has none.",
+            "nullable": true
+          }
+        },
+        "required": ["id", "external_id"]
+      },
+      "ProductGroupEntity": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "description": "Unique identifier for the object."
+          },
+          "mode": {
+            "$ref": "#/components/schemas/EnvironmentMode"
+          },
+          "object": {
+            "type": "string",
+            "description": "String representing the object's type. Objects of the same type share the same value.",
+            "example": "product_group"
+          },
+          "name": {
+            "type": "string",
+            "description": "The name of the product group."
+          },
+          "description": {
+            "type": "string",
+            "description": "A description of the product group.",
+            "nullable": true
+          },
+          "external_id": {
+            "type": "string",
+            "description": "Your own key for this product group, or `null` when it has none.",
+            "nullable": true
+          },
+          "products": {
+            "description": "The products in the group, in display order. A product is in one group at a time.",
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/ProductGroupProductEntity"
+            }
+          },
+          "upgrades_enabled": {
+            "type": "boolean",
+            "description": "Whether customers can switch between the products of this group."
+          },
+          "upgrade_behavior": {
+            "type": "string",
+            "description": "How a switch between the products is billed, or `null` for the default.",
+            "enum": ["proration-charge-immediately", "proration-charge", "proration-none"],
+            "nullable": true
+          },
+          "upsells_enabled": {
+            "type": "boolean",
+            "description": "Whether the products of this group are offered as checkout upsells."
+          },
+          "is_active": {
+            "type": "boolean",
+            "description": "Whether the product group is active. Stored and returned; it does not yet stop upgrades or upsells."
+          },
+          "created_at": {
+            "format": "date-time",
+            "type": "string",
+            "description": "Creation date of the product group.",
+            "example": "2023-01-01T00:00:00Z"
+          },
+          "updated_at": {
+            "format": "date-time",
+            "type": "string",
+            "description": "Last updated date of the product group.",
+            "example": "2023-01-01T00:00:00Z"
+          }
+        },
+        "required": [
+          "id",
+          "mode",
+          "object",
+          "name",
+          "description",
+          "external_id",
+          "products",
+          "upgrades_enabled",
+          "upgrade_behavior",
+          "upsells_enabled",
+          "is_active",
+          "created_at",
+          "updated_at"
+        ]
+      },
+      "ProductGroupListEntity": {
+        "type": "object",
+        "properties": {
+          "object": {
+            "type": "string",
+            "description": "Object type",
+            "example": "list"
+          },
+          "data": {
+            "description": "The product groups of this page.",
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/ProductGroupEntity"
+            }
+          },
+          "has_more": {
+            "type": "boolean",
+            "description": "Whether more items exist beyond this page."
+          }
+        },
+        "required": ["object", "data", "has_more"]
       },
       "TransactionListEntity": {
         "type": "object",
@@ -9241,6 +9820,7 @@
           "customer_credits.exhausted",
           "credits.granted",
           "credits.consumed",
+          "credits.reversed",
           "credits.auto_recharged",
           "marketplace.grant.requested"
         ]
@@ -10017,7 +10597,7 @@
           },
           "amount_minor_units": {
             "type": "string",
-            "description": "Net amount moved for this bucket, in minor units, serialised as a string to preserve precision. Always positive; the event type carries the direction."
+            "description": "Net amount moved for this bucket, in minor units, serialised as a string to preserve precision. Always positive; the event type carries the direction (on `credits.reversed`, the `side` field)."
           },
           "balance_after_minor_units": {
             "type": "string",
@@ -10103,7 +10683,7 @@
           },
           "amount_minor_units": {
             "type": "string",
-            "description": "Net amount moved for this bucket, in minor units, serialised as a string to preserve precision. Always positive; the event type carries the direction."
+            "description": "Net amount moved for this bucket, in minor units, serialised as a string to preserve precision. Always positive; the event type carries the direction (on `credits.reversed`, the `side` field)."
           },
           "balance_after_minor_units": {
             "type": "string",
@@ -10157,6 +10737,103 @@
             "allOf": [
               {
                 "$ref": "#/components/schemas/CustomerCreditsConsumptionEntity"
+              }
+            ]
+          }
+        },
+        "required": ["id", "eventType", "created_at", "object"],
+        "x-speakeasy-include": true
+      },
+      "CustomerCreditsReversalEntity": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "description": "Ledger transaction id (cct_...) the movement belongs to. One transaction may move several buckets; the pair (id, account_id) identifies this movement uniquely."
+          },
+          "customer_id": {
+            "type": "string",
+            "description": "Identifier of the customer whose bucket moved."
+          },
+          "account_id": {
+            "type": "string",
+            "description": "Ledger account id (cca_...) of the credit bucket that moved."
+          },
+          "bucket_name": {
+            "type": "string",
+            "description": "Name of the credit bucket. Buckets are per customer, and a store may run several (for example one per meter)."
+          },
+          "unit_label": {
+            "type": "string",
+            "description": "Display unit for the bucket (for example \"images\" or \"tokens\")."
+          },
+          "amount_minor_units": {
+            "type": "string",
+            "description": "Net amount moved for this bucket, in minor units, serialised as a string to preserve precision. Always positive; the event type carries the direction (on `credits.reversed`, the `side` field)."
+          },
+          "balance_after_minor_units": {
+            "type": "string",
+            "description": "The bucket's balance immediately after this movement committed, in minor units, serialised as a string to preserve precision."
+          },
+          "reference": {
+            "type": "string",
+            "description": "Reference the ledger transaction was posted under — cross-links the movement to what caused it (an order, a usage aggregation window, an auto-recharge grant)."
+          },
+          "occurred_at": {
+            "type": "string",
+            "description": "ISO-8601 instant the ledger transaction was posted."
+          },
+          "object": {
+            "type": "string",
+            "description": "String representing the object type.",
+            "enum": ["customer_credits_reversal"]
+          },
+          "side": {
+            "type": "string",
+            "description": "Direction of the movement: `credit` raised the balance (for example a reversed debit), `debit` lowered it (for example a reversed grant or a refund clawback).",
+            "enum": ["credit", "debit"]
+          },
+          "reversed_transaction_id": {
+            "type": "string",
+            "description": "Ledger transaction id (cct_...) of the transaction this reversal undid."
+          }
+        },
+        "required": [
+          "id",
+          "customer_id",
+          "account_id",
+          "bucket_name",
+          "unit_label",
+          "amount_minor_units",
+          "balance_after_minor_units",
+          "reference",
+          "occurred_at",
+          "object",
+          "side",
+          "reversed_transaction_id"
+        ]
+      },
+      "WebhookCreditsReversedEventEntity": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "description": "Unique identifier for the event."
+          },
+          "eventType": {
+            "type": "string",
+            "description": "The event name.",
+            "enum": ["credits.reversed"]
+          },
+          "created_at": {
+            "type": "number",
+            "description": "Timestamp of when the event was created."
+          },
+          "object": {
+            "description": "Object related to the event.",
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/CustomerCreditsReversalEntity"
               }
             ]
           }
@@ -10663,6 +11340,9 @@
             "$ref": "#/components/schemas/WebhookCreditsConsumedEventEntity"
           },
           {
+            "$ref": "#/components/schemas/WebhookCreditsReversedEventEntity"
+          },
+          {
             "$ref": "#/components/schemas/WebhookCreditsAutoRechargedEventEntity"
           },
           {
@@ -10708,6 +11388,7 @@
             "customer_credits.exhausted": "#/components/schemas/WebhookCustomerCreditsExhaustedEventEntity",
             "credits.granted": "#/components/schemas/WebhookCreditsGrantedEventEntity",
             "credits.consumed": "#/components/schemas/WebhookCreditsConsumedEventEntity",
+            "credits.reversed": "#/components/schemas/WebhookCreditsReversedEventEntity",
             "credits.auto_recharged": "#/components/schemas/WebhookCreditsAutoRechargedEventEntity",
             "marketplace.grant.requested": "#/components/schemas/WebhookMarketplaceGrantRequestedEventEntity",
             "subscription.active": "#/components/schemas/WebhookSubscriptionActiveEventEntity",

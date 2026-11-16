@@ -374,7 +374,16 @@
               "api-reference/endpoint/get-product",
               "api-reference/endpoint/search-products",
               "api-reference/endpoint/update-product",
-              "api-reference/endpoint/archive-product"
+              "api-reference/endpoint/archive-product",
+              "api-reference/endpoint/list-product-prices"
+            ]
+          },
+          {
+            "group": "Product Groups",
+            "icon": "layer-group",
+            "pages": [
+              "api-reference/endpoint/list-product-groups",
+              "api-reference/endpoint/get-product-group"
             ]
           },
           {
