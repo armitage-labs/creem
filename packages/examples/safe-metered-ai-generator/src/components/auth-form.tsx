@@ -12,6 +12,8 @@ export function AuthForm({ mode }: { mode: 'login' | 'signup' }) {
   const [password, setPassword] = useState('')
   const [error, setError] = useState<string | null>(null)
   const [loading, setLoading] = useState(false)
+  // Set once sign-up succeeded and the user still has to verify their email.
+  const [verifyEmail, setVerifyEmail] = useState<string | null>(null)
 
   const isSignup = mode === 'signup'
 
@@ -20,9 +22,18 @@ export function AuthForm({ mode }: { mode: 'login' | 'signup' }) {
     setError(null)
     setLoading(true)
     try {
-      const res = isSignup ? await signUp.email({ name: name || email.split('@')[0], email, password }) : await signIn.email({ email, password })
+      const res = isSignup
+        ? await signUp.email({ name: name || email.split('@')[0], email, password, callbackURL: '/dashboard' })
+        : await signIn.email({ email, password, callbackURL: '/dashboard' })
       if (res.error) {
-        setError(res.error.message ?? 'Something went wrong.')
+        // Signing in with an unverified email sends a fresh verification link.
+        if (res.error.status === 403) setVerifyEmail(email)
+        else setError(res.error.message ?? 'Something went wrong.')
+        return
+      }
+      // No session yet: the email has to be verified first.
+      if (isSignup) {
+        setVerifyEmail(email)
         return
       }
       router.push('/dashboard')
@@ -65,6 +76,12 @@ export function AuthForm({ mode }: { mode: 'login' | 'signup' }) {
             autoComplete={isSignup ? 'new-password' : 'current-password'}
           />
         </Field>
+
+        {verifyEmail && (
+          <p className="text-ink-2 rounded-lg border border-[var(--rule-strong)] px-3 py-2 text-sm" role="status">
+            Verify <strong>{verifyEmail}</strong> to finish. This demo has no mail server, so the verification link is printed in the server console. Open it and you are signed in.
+          </p>
+        )}
 
         {error && (
           <p
