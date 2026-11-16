@@ -1,5 +1,6 @@
 import { describe, expectTypeOf, it } from "vitest";
 import type { ProductStatus } from "../../src/models/components/productstatus.js";
+import type { Unrecognized } from "../../src/types/unrecognized.js";
 
 /**
  * ENG-2487: response enums are open, so a `switch` over the known values is no
@@ -24,16 +25,25 @@ describe("open response enums", () => {
     expectTypeOf(check).returns.toEqualTypeOf<string>();
   });
 
-  it("a switch with a default branch compiles and sees the unknown value", () => {
+  it("a switch with a default branch compiles, and the default receives the unknown value", () => {
+    expectTypeOf<Unrecognized<string>>().toExtend<ProductStatus>();
     const label = (status: ProductStatus): string => {
       switch (status) {
         case "active":
           return "Active";
+        case "archived":
+          return "Archived";
         default:
+          // With a closed enum this branch would see `never`.
+          expectTypeOf(status).toEqualTypeOf<Unrecognized<string>>();
           return status;
       }
     };
-    expectTypeOf(label).parameter(0).toExtend<string>();
-    expectTypeOf<"active">().toExtend<ProductStatus>();
+    expectTypeOf(label).returns.toEqualTypeOf<string>();
+  });
+
+  it("a misspelled comparison compiles (the flip side MIGRATION.md names)", () => {
+    const isActive = (status: ProductStatus): boolean => status === "actve";
+    expectTypeOf(isActive).returns.toEqualTypeOf<boolean>();
   });
 });
