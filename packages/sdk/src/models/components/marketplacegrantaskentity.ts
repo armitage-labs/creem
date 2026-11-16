@@ -4,7 +4,8 @@
 
 import * as z from "zod/v3";
 import { safeParse } from "../../lib/schemas.js";
-import { ClosedEnum } from "../../types/enums.js";
+import * as openEnums from "../../types/enums.js";
+import { OpenEnum } from "../../types/enums.js";
 import { Result as SafeParseResult } from "../../types/fp.js";
 import { SDKValidationError } from "../errors/sdkvalidationerror.js";
 
@@ -20,7 +21,7 @@ export const Action = {
 /**
  * What is asked: a first key, a top-up of the account the grant names, or (after a refund or chargeback) a revoke: disable that account; revoke_credit: remove the credit of the order named here only, the account and the key stay.
  */
-export type Action = ClosedEnum<typeof Action>;
+export type Action = OpenEnum<typeof Action>;
 
 /**
  * ISO-8601 instant the answer is due; past it the order is refunded. null on a revoke or revoke_credit: they have no deadline.
@@ -39,7 +40,7 @@ export const Reason = {
 /**
  * With a revoke or revoke_credit only: why the account, or that order’s credit, must go.
  */
-export type Reason = ClosedEnum<typeof Reason>;
+export type Reason = OpenEnum<typeof Reason>;
 
 export type TransactionId = {};
 
@@ -100,11 +101,11 @@ export type MarketplaceGrantAskEntity = {
 };
 
 /** @internal */
-export const Action$inboundSchema: z.ZodNativeEnum<typeof Action> = z
-  .nativeEnum(Action);
+export const Action$inboundSchema: z.ZodType<Action, z.ZodTypeDef, unknown> =
+  openEnums.inboundSchema(Action);
 /** @internal */
-export const Action$outboundSchema: z.ZodNativeEnum<typeof Action> =
-  Action$inboundSchema;
+export const Action$outboundSchema: z.ZodType<string, z.ZodTypeDef, Action> =
+  openEnums.outboundSchema(Action);
 
 /** @internal */
 export const DeadlineAt$inboundSchema: z.ZodType<
@@ -136,11 +137,11 @@ export function deadlineAtFromJSON(
 }
 
 /** @internal */
-export const Reason$inboundSchema: z.ZodNativeEnum<typeof Reason> = z
-  .nativeEnum(Reason);
+export const Reason$inboundSchema: z.ZodType<Reason, z.ZodTypeDef, unknown> =
+  openEnums.inboundSchema(Reason);
 /** @internal */
-export const Reason$outboundSchema: z.ZodNativeEnum<typeof Reason> =
-  Reason$inboundSchema;
+export const Reason$outboundSchema: z.ZodType<string, z.ZodTypeDef, Reason> =
+  openEnums.outboundSchema(Reason);
 
 /** @internal */
 export const TransactionId$inboundSchema: z.ZodType<

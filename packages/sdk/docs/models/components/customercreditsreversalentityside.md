@@ -8,10 +8,12 @@ Direction of the movement: `credit` raised the balance (for example a reversed d
 import { CustomerCreditsReversalEntitySide } from "creem/models/components";
 
 let value: CustomerCreditsReversalEntitySide = "debit";
+
+// Open enum: unrecognized values are captured as Unrecognized<string>
 ```
 
 ## Values
 
 ```typescript
-"credit" | "debit"
+"credit" | "debit" | Unrecognized<string>
 ```

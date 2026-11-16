@@ -5,7 +5,8 @@
 import * as z from "zod/v3";
 import { remap as remap$ } from "../../lib/primitives.js";
 import { safeParse } from "../../lib/schemas.js";
-import { ClosedEnum } from "../../types/enums.js";
+import * as openEnums from "../../types/enums.js";
+import { ClosedEnum, OpenEnum } from "../../types/enums.js";
 import { Result as SafeParseResult } from "../../types/fp.js";
 import { SDKValidationError } from "../errors/sdkvalidationerror.js";
 
@@ -32,7 +33,7 @@ export const CustomerCreditsReversalEntitySide = {
 /**
  * Direction of the movement: `credit` raised the balance (for example a reversed debit), `debit` lowered it (for example a reversed grant or a refund clawback).
  */
-export type CustomerCreditsReversalEntitySide = ClosedEnum<
+export type CustomerCreditsReversalEntitySide = OpenEnum<
   typeof CustomerCreditsReversalEntitySide
 >;
 
@@ -97,13 +98,17 @@ export const CustomerCreditsReversalEntityObject$outboundSchema:
     CustomerCreditsReversalEntityObject$inboundSchema;
 
 /** @internal */
-export const CustomerCreditsReversalEntitySide$inboundSchema: z.ZodNativeEnum<
-  typeof CustomerCreditsReversalEntitySide
-> = z.nativeEnum(CustomerCreditsReversalEntitySide);
+export const CustomerCreditsReversalEntitySide$inboundSchema: z.ZodType<
+  CustomerCreditsReversalEntitySide,
+  z.ZodTypeDef,
+  unknown
+> = openEnums.inboundSchema(CustomerCreditsReversalEntitySide);
 /** @internal */
-export const CustomerCreditsReversalEntitySide$outboundSchema: z.ZodNativeEnum<
-  typeof CustomerCreditsReversalEntitySide
-> = CustomerCreditsReversalEntitySide$inboundSchema;
+export const CustomerCreditsReversalEntitySide$outboundSchema: z.ZodType<
+  string,
+  z.ZodTypeDef,
+  CustomerCreditsReversalEntitySide
+> = openEnums.outboundSchema(CustomerCreditsReversalEntitySide);
 
 /** @internal */
 export const CustomerCreditsReversalEntity$inboundSchema: z.ZodType<

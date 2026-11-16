@@ -82,6 +82,60 @@ describe("forward-compatible webhook payloads", () => {
     expect(subscription.value.collectionMethod).toBe("send_invoice");
   });
 
+  it("keeps a reversal side the SDK doesn't know yet on credits.reversed", () => {
+    const event = parseWebhookEventEntity(
+      JSON.stringify({
+        id: "evt_123",
+        eventType: "credits.reversed",
+        created_at: 1700000000,
+        object: {
+          id: "cct_123",
+          customer_id: "cust_123",
+          account_id: "cca_123",
+          bucket_name: "images",
+          unit_label: "images",
+          amount_minor_units: "100",
+          balance_after_minor_units: "900",
+          reference: "ord_123",
+          occurred_at: "2026-01-01T00:00:00Z",
+          object: "customer_credits_reversal",
+          side: "transfer",
+          reversed_transaction_id: "cct_122",
+        },
+      }),
+    );
+
+    expect(event.eventType).toBe("credits.reversed");
+    if (event.eventType !== "credits.reversed") throw new Error("wrong variant");
+    expect(event.object.side).toBe("transfer");
+  });
+
+  it("keeps a grant ask action and reason the SDK doesn't know yet on marketplace.grant.requested", () => {
+    const event = parseWebhookEventEntity(
+      JSON.stringify({
+        id: "evt_123",
+        eventType: "marketplace.grant.requested",
+        created_at: 1700000000,
+        object: {
+          grantId: "grant_123",
+          operationId: "op_123",
+          action: "suspend",
+          deadlineAt: null,
+          reason: "abuse",
+          listingId: "list_123",
+          productId: "prod_123",
+          order: null,
+          test: true,
+        },
+      }),
+    );
+
+    expect(event.eventType).toBe("marketplace.grant.requested");
+    if (event.eventType !== "marketplace.grant.requested") throw new Error("wrong variant");
+    expect(event.object.action).toBe("suspend");
+    expect(event.object.reason).toBe("abuse");
+  });
+
   // The generated open union also falls back to UNKNOWN when a KNOWN event
   // fails validation. That's a malformed payload, not a newer event type, so
   // the parser must still refuse it, as 1.x did.

@@ -24,3 +24,12 @@ actions:
   - target: $.components.schemas.WebhookSubscriptionEntity.properties.discount.properties.duration
     update:
       x-speakeasy-unknown-values: allow
+  - target: $.components.schemas.CustomerCreditsReversalEntity.properties.side
+    update:
+      x-speakeasy-unknown-values: allow
+  - target: $.components.schemas.MarketplaceGrantAskEntity.properties.action
+    update:
+      x-speakeasy-unknown-values: allow
+  - target: $.components.schemas.MarketplaceGrantAskEntity.properties.reason
+    update:
+      x-speakeasy-unknown-values: allow
