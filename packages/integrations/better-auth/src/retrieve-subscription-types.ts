@@ -23,8 +23,9 @@ export interface RetrieveSubscriptionInput {
 /**
  * A response value the API may add to: one of the known values, or a string a
  * newer API sends. creem 2.0 passes such values through instead of failing the
- * response, so a check over every known value needs a fallback branch. The same
- * type `@creem_io/webhook-types` uses for webhook payloads.
+ * response, so a `switch` over the known values is no longer exhaustive and
+ * needs a `default` branch. The same type `@creem_io/webhook-types` uses for
+ * webhook payloads.
  */
 export type { OpenValue };
 
