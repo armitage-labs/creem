@@ -72,16 +72,16 @@ search filters) therefore arrive in minor releases of 2.x.
 | `creem.customers.listLicenses(id, pageNumber, pageSize)` | `creem.customers.listLicenses({ id, pageNumber, pageSize })` |
 | `creem.customers.listSubscriptions(id, pageNumber, pageSize)` | `creem.customers.listSubscriptions({ id, pageNumber, pageSize })` |
 | `creem.customers.retrieve(customerId, email)` | `creem.customers.retrieve({ customerId, email })` |
-| `creem.discounts.create(createDiscountRequestEntity)` | `creem.discounts.create({ createDiscountRequestEntity, idempotencyKey })` |
+| `creem.discounts.create(request)` | `creem.discounts.create({ createDiscountRequestEntity, idempotencyKey })` |
 | `creem.discounts.delete(id)` | `creem.discounts.delete({ id })` |
 | `creem.discounts.get(discountId, discountCode)` | `creem.discounts.get({ discountId, discountCode })` |
 | `creem.discounts.search(pageNumber, pageSize, productId, status, type, createdAfter, createdBefore)` | `creem.discounts.search({ pageNumber, pageSize, productId, status, type, createdAfter, createdBefore })` |
 | `creem.events.listEvents(meterId, customerId, reference, limit, startingAfter)` | `creem.events.listEvents({ meterId, customerId, reference, limit, startingAfter })` |
 | `creem.licenses.listInstances(id, pageNumber, pageSize)` | `creem.licenses.listInstances({ id, pageNumber, pageSize })` |
 | `creem.meters.archiveMeter(id)` | `creem.meters.archiveMeter({ id })` |
+| `creem.meters.createMeter(request)` | `creem.meters.createMeter({ createMeterApiRequestDto, idempotencyKey })` |
 | `creem.meters.getConsumedUnits(id, customerId, at)` | `creem.meters.getConsumedUnits({ id, customerId, at })` |
 | `creem.meters.getMeter(id)` | `creem.meters.getMeter({ id })` |
-| `creem.meters.createMeter(createMeterApiRequestDto)` | `creem.meters.createMeter({ createMeterApiRequestDto, idempotencyKey })` |
 | `creem.meters.listMeters(limit, startingAfter, endingBefore, includeArchived, externalId)` | `creem.meters.listMeters({ limit, startingAfter, endingBefore, includeArchived, externalId })` |
 | `creem.meters.previewExistingMeter(id)` | `creem.meters.previewExistingMeter({ id })` |
 | `creem.meters.unarchiveMeter(id)` | `creem.meters.unarchiveMeter({ id })` |
@@ -118,11 +118,23 @@ next to `idempotencyKey`:
 
 ```ts
 // 1.x
-await creem.discounts.create({ name: "Spring", type: "percentage", percentage: 15, duration: "once" });
+await creem.discounts.create({
+  name: "Spring",
+  type: "percentage",
+  percentage: 15,
+  duration: "once",
+  appliesToProducts: ["prod_123"],
+});
 
 // 2.0
 await creem.discounts.create({
-  createDiscountRequestEntity: { name: "Spring", type: "percentage", percentage: 15, duration: "once" },
+  createDiscountRequestEntity: {
+    name: "Spring",
+    type: "percentage",
+    percentage: 15,
+    duration: "once",
+    appliesToProducts: ["prod_123"],
+  },
   idempotencyKey: "spring-2026",
 });
 ```
