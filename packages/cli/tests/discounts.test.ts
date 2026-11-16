@@ -69,12 +69,14 @@ it("discounts create sends the exact SDK arguments", async () => {
     "--json",
   ]);
   expect(spy, result.stderr).toHaveBeenCalledExactlyOnceWith(
-    expect.objectContaining({
-      name: "Save",
-      percentage: 20,
-      appliesToProducts: ["prod_1", "prod_2"],
-      expiryDate: new Date("2028-01-01"),
-    }),
+    {
+      createDiscountRequestEntity: expect.objectContaining({
+        name: "Save",
+        percentage: 20,
+        appliesToProducts: ["prod_1", "prod_2"],
+        expiryDate: new Date("2028-01-01"),
+      }),
+    },
     expect.objectContaining({ retries: { strategy: "none" } }),
   );
   expect(result.stderr).toContain("SDK_SENTINEL");
@@ -100,15 +102,63 @@ it("discounts create preserves the default and normalization for fixed currencie
 
   await h.run([...baseArgs, "--json"]);
   expect(spy).toHaveBeenLastCalledWith(
-    expect.objectContaining({ amount: 100, currency: "USD" }),
+    {
+      createDiscountRequestEntity: expect.objectContaining({ amount: 100, currency: "USD" }),
+    },
     expect.objectContaining({ retries: { strategy: "none" } }),
   );
 
   await h.run([...baseArgs, "--currency", "eur", "--json"]);
   expect(spy).toHaveBeenLastCalledWith(
-    expect.objectContaining({ amount: 100, currency: "EUR" }),
+    {
+      createDiscountRequestEntity: expect.objectContaining({ amount: 100, currency: "EUR" }),
+    },
     expect.objectContaining({ retries: { strategy: "none" } }),
   );
+});
+it("discounts create sends the idempotency key and accepts products named by external ID", async () => {
+  const h = harness();
+  const spy = vi.spyOn(h.client.discounts, "create").mockRejectedValue(new Error("SDK_SENTINEL"));
+  const result = await h.run([
+    "discounts",
+    "create",
+    "--data",
+    JSON.stringify({
+      name: "Spring",
+      type: "percentage",
+      percentage: 15,
+      duration: "once",
+      appliesToProductExternalIds: ["pro-monthly"],
+    }),
+    "--idempotency-key",
+    "idem-1",
+    "--json",
+  ]);
+  expect(spy, result.stderr).toHaveBeenCalledExactlyOnceWith(
+    {
+      idempotencyKey: "idem-1",
+      createDiscountRequestEntity: expect.objectContaining({
+        name: "Spring",
+        appliesToProductExternalIds: ["pro-monthly"],
+      }),
+    },
+    expect.objectContaining({ retries: { strategy: "none" } }),
+  );
+  expect(result.stderr).toContain("SDK_SENTINEL");
+  expect(result.stdout).toBe("");
+});
+it("discounts create still refuses a discount without any product", async () => {
+  const h = harness();
+  const spy = vi.spyOn(h.client.discounts, "create").mockRejectedValue(new Error("SDK_SENTINEL"));
+  const result = await h.run([
+    "discounts",
+    "create",
+    "--data",
+    JSON.stringify({ name: "None", type: "percentage", percentage: 15, duration: "once" }),
+    "--json",
+  ]);
+  expect(spy).not.toHaveBeenCalled();
+  expect(result.stderr).toContain("Provide at least one product");
 });
 it("discounts delete sends the exact SDK arguments", async () => {
   const h = harness();

@@ -1996,7 +1996,7 @@ describe("registerRoutes", () => {
     expect(response.status).toBe(202);
     expect(debitAccount).toHaveBeenCalledWith({
       id: "cred_acct_1",
-      creditDebitRequestDto: {
+      debitRequestDto: {
         amount: "50",
         reference: "refund:ref_credits",
         idempotencyKey: "creem:refund:ref_credits:credits:prod_credits:50",
@@ -2081,7 +2081,7 @@ describe("registerRoutes", () => {
     expect(response.status).toBe(202);
     expect(debitAccount).toHaveBeenCalledWith({
       id: "cred_acct_1",
-      creditDebitRequestDto: {
+      debitRequestDto: {
         amount: "100",
         reference: "refund:ref_full_credits",
         idempotencyKey:

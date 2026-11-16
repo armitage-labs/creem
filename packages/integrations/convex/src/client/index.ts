@@ -2155,7 +2155,7 @@ export class Creem {
         return await this.tolerateCustomerCreditsResponseValidation(() =>
           this.sdk.customerCredits.debitAccount({
             id: accountId,
-            creditDebitRequestDto: args,
+            debitRequestDto: args,
           }),
         );
       },

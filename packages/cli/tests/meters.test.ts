@@ -15,15 +15,20 @@ it("meters create sends the exact SDK arguments", async () => {
       aggregationProperty: "tokens",
       unitLabel: "tokens",
     }),
+    "--idempotency-key",
+    "idem-1",
     "--json",
   ]);
   expect(spy, result.stderr).toHaveBeenCalledExactlyOnceWith(
-    expect.objectContaining({
-      name: "tokens",
-      eventName: "tokens_used",
-      aggregation: "sum",
-      aggregationProperty: "tokens",
-    }),
+    {
+      idempotencyKey: "idem-1",
+      createMeterApiRequestDto: expect.objectContaining({
+        name: "tokens",
+        eventName: "tokens_used",
+        aggregation: "sum",
+        aggregationProperty: "tokens",
+      }),
+    },
     expect.objectContaining({ retries: { strategy: "none" } }),
   );
   expect(result.stderr).toContain("SDK_SENTINEL");

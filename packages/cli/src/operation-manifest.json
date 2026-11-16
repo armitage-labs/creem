@@ -290,6 +290,10 @@
                 "id": {
                   "type": "string"
                 },
+                "externalId": {
+                  "type": "string",
+                  "nullable": true
+                },
                 "type": {
                   "type": "string",
                   "enum": ["customerCredits"]
@@ -522,6 +526,10 @@
                 "id": {
                   "type": "string"
                 },
+                "externalId": {
+                  "type": "string",
+                  "nullable": true
+                },
                 "type": {
                   "type": "string",
                   "enum": ["customerCredits"]
@@ -555,6 +563,53 @@
               },
               "required": ["type", "description", "customerCredits"]
             }
+          },
+          "customFields": {
+            "nullable": true,
+            "type": "array",
+            "items": {
+              "type": "object",
+              "properties": {
+                "type": {
+                  "type": "string",
+                  "enum": ["text", "checkbox"]
+                },
+                "key": {
+                  "type": "string"
+                },
+                "label": {
+                  "type": "string"
+                },
+                "optional": {
+                  "type": "boolean"
+                },
+                "text": {
+                  "type": "object",
+                  "properties": {
+                    "maxLength": {
+                      "type": "number"
+                    },
+                    "minLength": {
+                      "type": "number"
+                    }
+                  },
+                  "required": []
+                },
+                "checkbox": {
+                  "type": "object",
+                  "properties": {
+                    "label": {
+                      "type": "string"
+                    }
+                  },
+                  "required": []
+                }
+              },
+              "required": ["type", "key", "label"]
+            }
+          },
+          "abandonedCartRecoveryEnabled": {
+            "type": "boolean"
           }
         },
         "required": []
@@ -1555,7 +1610,18 @@
     "cliPath": "discounts create",
     "disposition": "implemented",
     "description": "Create a discount.",
-    "parameters": [],
+    "parameters": [
+      {
+        "name": "Idempotency-Key",
+        "sdkName": "idempotencyKey",
+        "in": "header",
+        "cliFlagOrArgument": "--idempotency-key",
+        "required": false,
+        "schema": {
+          "type": "string"
+        }
+      }
+    ],
     "body": {
       "viaData": true,
       "schema": {
@@ -1599,9 +1665,18 @@
             "items": {
               "type": "string"
             }
+          },
+          "appliesToProductExternalIds": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "externalId": {
+            "type": "string"
           }
         },
-        "required": ["name", "type", "duration", "appliesToProducts"]
+        "required": ["name", "type", "duration"]
       },
       "primaryFlags": {
         "name": "--name",
@@ -2696,6 +2771,9 @@
                 "customerId": {
                   "type": "string"
                 },
+                "externalCustomerId": {
+                  "type": "string"
+                },
                 "eventId": {
                   "type": "string"
                 },
@@ -2705,9 +2783,6 @@
                 "properties": {
                   "type": "object",
                   "additionalProperties": true
-                },
-                "externalCustomerId": {
-                  "type": "string"
                 }
               },
               "required": ["name"]
@@ -2746,6 +2821,9 @@
                 "customerId": {
                   "type": "string"
                 },
+                "externalCustomerId": {
+                  "type": "string"
+                },
                 "eventId": {
                   "type": "string"
                 },
@@ -2755,9 +2833,6 @@
                 "properties": {
                   "type": "object",
                   "additionalProperties": true
-                },
-                "externalCustomerId": {
-                  "type": "string"
                 }
               },
               "required": ["name"]
@@ -2842,7 +2917,18 @@
     "cliPath": "meters create",
     "disposition": "implemented",
     "description": "Create a meter",
-    "parameters": [],
+    "parameters": [
+      {
+        "name": "Idempotency-Key",
+        "sdkName": "idempotencyKey",
+        "in": "header",
+        "cliFlagOrArgument": "--idempotency-key",
+        "required": false,
+        "schema": {
+          "type": "string"
+        }
+      }
+    ],
     "body": {
       "viaData": true,
       "schema": {
@@ -3344,6 +3430,7 @@
                 "customer_credits.exhausted",
                 "credits.granted",
                 "credits.consumed",
+                "credits.reversed",
                 "credits.auto_recharged",
                 "marketplace.grant.requested"
               ]
@@ -3438,6 +3525,7 @@
                 "customer_credits.exhausted",
                 "credits.granted",
                 "credits.consumed",
+                "credits.reversed",
                 "credits.auto_recharged",
                 "marketplace.grant.requested"
               ]
