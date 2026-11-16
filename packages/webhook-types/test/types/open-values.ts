@@ -143,7 +143,8 @@ export function neverCheckOverTheKnownValues(reason: RefundEntity["reason"]): st
   }
 }
 
-// ...and neither does a function that returns from every known case.
+// ...and neither does a function with a declared return type that returns
+// from every known case (TS2366; `noImplicitReturns` gives TS7030 instead).
 // @ts-expect-error TS2366: function lacks ending return statement
 export function labelWithoutDefault(reason: RefundEntity["reason"]): string {
   switch (reason) {
@@ -157,6 +158,27 @@ export function labelWithoutDefault(reason: RefundEntity["reason"]): string {
       return "Other";
   }
 }
+
+// With an inferred return type (and `noImplicitReturns` off, as here) the same
+// function compiles, and its return type gains `undefined`.
+export function labelInferred(reason: RefundEntity["reason"]) {
+  switch (reason) {
+    case "duplicate":
+      return "Duplicate";
+    case "fraudulent":
+      return "Fraudulent";
+    case "requested_by_customer":
+      return "Requested by customer";
+    case "other":
+      return "Other";
+  }
+}
+export type InferredReturnGainsUndefined = Assert<
+  Equal<
+    ReturnType<typeof labelInferred>,
+    "Duplicate" | "Fraudulent" | "Requested by customer" | "Other" | undefined
+  >
+>;
 
 export function labelWithDefault(reason: RefundEntity["reason"]): string {
   switch (reason) {

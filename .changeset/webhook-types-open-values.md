@@ -6,7 +6,7 @@
 
 Webhook payload value fields accept values Creem adds later. A refund's `reason`, a subscription's `status` and `collection_method`, a product's `billing_type`, every `mode`, and the other value fields are now typed as their known values or any other string (the new `OpenValue<Known>` type). The parser already passed such values through unchanged; the types now say so, instead of telling your handler that a value like a new refund reason can't happen.
 
-A `switch` over the known values of one of these fields is no longer exhaustive. A `never` exhaustiveness check (`const unhandled: never = reason`) and a function that returns from every case no longer compile; add a `default` branch. A handler that returns nothing still compiles without one, and a value added later then matches no case, so check those switches too:
+A `switch` over the known values of one of these fields is no longer exhaustive. A `never` exhaustiveness check (`const unhandled: never = reason`) no longer compiles, and neither does a function that returns from every case when its return type is declared or `noImplicitReturns` is on; add a `default` branch. With an inferred return type such a function compiles and its return type gains `undefined`. A handler that returns nothing still compiles without one, and a value added later then matches no case, so check those switches too:
 
 ```ts
 onRefundCreated: async ({ reason }) => {
