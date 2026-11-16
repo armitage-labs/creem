@@ -170,6 +170,10 @@ export type SubscriptionEntity = {
    * Metadata for the subscription in the form of key-value pairs.
    */
   metadata?: { [k: string]: any } | undefined;
+  /**
+   * Whether this subscription was started by a recovered checkout. Present on subscription objects returned by the API; absent from webhook payloads, because recovery is attributed asynchronously right after checkout completion.
+   */
+  recovered?: boolean | undefined;
 };
 
 /** @internal */
@@ -341,6 +345,7 @@ export const SubscriptionEntity$inboundSchema: z.ZodType<
   updated_at: z.string().datetime({ offset: true }).transform(v => new Date(v)),
   discount: z.lazy(() => Discount$inboundSchema).optional(),
   metadata: z.record(z.any()).optional(),
+  recovered: z.boolean().optional(),
 }).transform((v) => {
   return remap$(v, {
     "collection_method": "collectionMethod",
@@ -376,6 +381,7 @@ export type SubscriptionEntity$Outbound = {
   updated_at: string;
   discount?: Discount$Outbound | undefined;
   metadata?: { [k: string]: any } | undefined;
+  recovered?: boolean | undefined;
 };
 
 /** @internal */
@@ -403,6 +409,7 @@ export const SubscriptionEntity$outboundSchema: z.ZodType<
   updatedAt: z.date().transform(v => v.toISOString()),
   discount: z.lazy(() => Discount$outboundSchema).optional(),
   metadata: z.record(z.any()).optional(),
+  recovered: z.boolean().optional(),
 }).transform((v) => {
   return remap$(v, {
     collectionMethod: "collection_method",

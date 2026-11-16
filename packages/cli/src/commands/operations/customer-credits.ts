@@ -71,7 +71,7 @@ export const handlers: Record<string, OperationHandler> = {
     const p = decode(
       operations.DebitCustomerCreditsAccountRequest$outboundSchema,
       operations.DebitCustomerCreditsAccountRequest$inboundSchema,
-      { ...parameters, creditDebitRequestDto: body },
+      { ...parameters, debitRequestDto: body },
     );
     return client.customerCredits.debitAccount(p, options);
   },

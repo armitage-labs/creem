@@ -27,6 +27,10 @@ export type PostTransactionDto = {
    * Array of entries. Must have at least 2 entries and the total debits must equal total credits.
    */
   entries: Array<EntryInputDto>;
+  /**
+   * ID of the Moderation API result (`id` from `POST /v1/moderation/prompt`) that authorizes this spend. Optional, and only allowed on a transaction that debits a customer account; validated and linked whenever sent. A transaction cannot debit a `generation` account (AI generation credits): spend those with `POST /v1/customer-credits/accounts/{id}/debit`. The result must belong to this store, have decision `allow`, be inside its 24-hour window (at most 24 hours old and not dated in the future) and not already be linked to another transaction: each id can be used once. To debit again for the same prompt, screen it again and send the new id. An idempotent replay returns the original transaction and ignores a different `moderation_id`.
+   */
+  moderationId?: string | undefined;
 };
 
 /** @internal */
@@ -38,9 +42,11 @@ export const PostTransactionDto$inboundSchema: z.ZodType<
   reference: z.string(),
   idempotency_key: z.string(),
   entries: z.array(EntryInputDto$inboundSchema),
+  moderation_id: z.string().optional(),
 }).transform((v) => {
   return remap$(v, {
     "idempotency_key": "idempotencyKey",
+    "moderation_id": "moderationId",
   });
 });
 /** @internal */
@@ -48,6 +54,7 @@ export type PostTransactionDto$Outbound = {
   reference: string;
   idempotency_key: string;
   entries: Array<EntryInputDto$Outbound>;
+  moderation_id?: string | undefined;
 };
 
 /** @internal */
@@ -59,9 +66,11 @@ export const PostTransactionDto$outboundSchema: z.ZodType<
   reference: z.string(),
   idempotencyKey: z.string(),
   entries: z.array(EntryInputDto$outboundSchema),
+  moderationId: z.string().optional(),
 }).transform((v) => {
   return remap$(v, {
     idempotencyKey: "idempotency_key",
+    moderationId: "moderation_id",
   });
 });
 

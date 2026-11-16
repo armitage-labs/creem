@@ -1,5 +1,13 @@
 # @creem_io/ingestion
 
+## 0.1.4
+
+### Patch Changes
+
+- 8626f81: Bump creem SDK dependency to 1.13.0
+- Updated dependencies [d7a4947]
+  - creem@1.14.0
+
 ## 0.1.3
 
 ### Patch Changes

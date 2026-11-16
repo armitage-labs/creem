@@ -2,3 +2,4 @@ allowBuilds:
   esbuild: true
 minimumReleaseAgeExclude:
   - tsx@4.23.8
+  - creem@1.14.0

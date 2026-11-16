@@ -32,12 +32,14 @@ const value: components.CheckoutEntity = {
     features: [
       {
         id: "feat_abc123",
-        type: "customerCredits",
+        type: "githubRepository",
         description: "Access to premium course materials.",
         customerCredits: {
           amount: "100",
           unitLabel: "tokens",
           bucketName: "images",
+          requiresModeration: false,
+          resetsEachPeriod: false,
         },
       },
     ],
@@ -68,6 +70,10 @@ const value: components.CheckoutEntity = {
     taxCategory: "saas",
     productUrl: "https://creem.io/product/prod_123123123123",
     defaultSuccessUrl: "https://example.com/?status=successful",
+    externalId: "pro-monthly",
+    metadata: {
+      "plan": "pro",
+    },
     createdAt: new Date("2023-01-01T00:00:00Z"),
     updatedAt: new Date("2023-01-01T00:00:00Z"),
   },
@@ -93,6 +99,7 @@ const value: components.CheckoutEntity = {
     type: "recurring",
     createdAt: new Date("2023-09-13T00:00:00Z"),
     updatedAt: new Date("2023-09-13T00:00:00Z"),
+    recovered: false,
   },
   subscription: "<value>",
   customer: "<value>",

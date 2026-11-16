@@ -25,7 +25,7 @@
         },
         "x-speakeasy-name-override": "search",
         "summary": "List all products",
-        "description": "Search and retrieve a paginated list of products. Filter by status, billing type, and other criteria.",
+        "description": "Search and retrieve a paginated list of products. Filter by status or by your own `external_id`.",
         "parameters": [
           {
             "name": "page_number",
@@ -56,6 +56,16 @@
             "description": "Lifecycle status of the product: `active` or `archived`.",
             "schema": {
               "$ref": "#/components/schemas/ProductStatus"
+            }
+          },
+          {
+            "name": "external_id",
+            "required": false,
+            "in": "query",
+            "description": "Only the product with this `external_id` (your own key). Case-sensitive, exact match.",
+            "schema": {
+              "example": "pro-monthly",
+              "type": "string"
             }
           }
         ],
@@ -135,6 +145,12 @@
           },
           "404": {
             "description": "Not Found - Resource does not exist"
+          },
+          "409": {
+            "description": "Conflict - another product of the store already uses this `external_id` (code `external_id_taken`)"
+          },
+          "422": {
+            "description": "Unprocessable. `generation_bucket_reserved`: a `customerCredits` feature names a reserved bucket (`generation` or `generation:*`, any casing) without `requires_moderation`; grant AI generation credits with `requires_moderation` `true` instead. `bucket_name_not_allowed_with_requires_moderation`: a `customerCredits` feature sends `bucket_name` together with `requires_moderation` `true`. `generation_credits_usage_price_unsupported`: a usage price would settle from a reserved generation bucket (`target_account` `per_unit` with `target_account_name`, or the meter unit, `generation` or `generation:*`); spending generation credits requires a `moderation_id`, which usage settlement does not carry. `credits_reset_requires_subscription`: a `customerCredits` feature sets `resets_each_period` `true` on a one-time product. Nothing is changed."
           }
         },
         "tags": ["Products"],
@@ -236,6 +252,12 @@
           },
           "404": {
             "description": "Not Found - Resource does not exist"
+          },
+          "409": {
+            "description": "Conflict. `external_id_taken`: another product of the store already uses this `external_id`. `usage_price_in_use`: the update would remove a usage price, move it to another meter or change its settlement mode while subscriptions are billed for it or have usage on it that has not settled; `details.affected_subscriptions` counts them (`total`, `by_status`, `unsettled_postpaid_usage`) and `details.reason` is `running_subscriptions`. The same code with `details.reason` `referenced_price` and all counts 0: an ended subscription, a subscription item or an order still references the removed price. Nothing is changed."
+          },
+          "422": {
+            "description": "Unprocessable. `generation_bucket_reserved`: a `customerCredits` feature names a reserved bucket (`generation` or `generation:*`, any casing) without `requires_moderation`; grant AI generation credits with `requires_moderation` `true` instead. `bucket_name_not_allowed_with_requires_moderation`: a `customerCredits` feature sends `bucket_name` together with `requires_moderation` `true`. `generation_credits_usage_price_unsupported`: a usage price would settle from a reserved generation bucket (`target_account` `per_unit` with `target_account_name`, or the meter unit, `generation` or `generation:*`); spending generation credits requires a `moderation_id`, which usage settlement does not carry. `credits_reset_requires_subscription`: a `customerCredits` feature would have `resets_each_period` `true` on a one-time product, also when the update switches a product with the reset on to one-time without turning it off. Nothing is changed."
           }
         },
         "tags": ["Products"],
@@ -994,6 +1016,9 @@
           },
           "404": {
             "description": "Not Found - Resource does not exist"
+          },
+          "422": {
+            "description": "Unprocessable. `generation_credits_plan_change_not_allowed`: the current or new product grants AI generation credits, so the subscription can only change with `update_behavior` `proration-none` to a price with the same billing interval. `details.reason` is `update_behavior` or `billing_period`. Nothing is changed."
           }
         },
         "tags": ["Subscriptions"],
@@ -1051,6 +1076,9 @@
           },
           "404": {
             "description": "Not Found - Resource does not exist"
+          },
+          "422": {
+            "description": "Unprocessable. `generation_credits_plan_change_not_allowed`: the current or new product grants AI generation credits, so the subscription can only change with `update_behavior` `proration-none` to a price with the same billing interval. `details.reason` is `update_behavior` or `billing_period`. Nothing is changed."
           }
         },
         "tags": ["Subscriptions"],
@@ -1820,7 +1848,7 @@
         },
         "x-speakeasy-name-override": "search",
         "summary": "List all transactions",
-        "description": "Search and retrieve payment transactions. Filter by customer, product, date range, and status.",
+        "description": "Search and retrieve payment transactions. Filter by customer, order, product, status, and creation date range.",
         "parameters": [
           {
             "name": "customer_id",
@@ -1873,6 +1901,48 @@
               "example": 10,
               "type": "number"
             }
+          },
+          {
+            "name": "status",
+            "required": false,
+            "in": "query",
+            "description": "Filter transactions by status. `chargeback` (the value responses return for a chargeback) and `chargedBack` are equivalent.",
+            "schema": {
+              "example": "declined",
+              "enum": [
+                "pending",
+                "paid",
+                "refunded",
+                "partialRefund",
+                "chargedBack",
+                "uncollectible",
+                "declined",
+                "canceled",
+                "void",
+                "chargeback"
+              ],
+              "type": "string"
+            }
+          },
+          {
+            "name": "created_after",
+            "required": false,
+            "in": "query",
+            "description": "Filter transactions created at or after this point. A date (`2024-01-01`) means the start of that day in UTC; a date-time needs a UTC offset (`2024-01-01T00:00:00Z`) and at most millisecond precision. In a query string, send a `+` offset as `%2B`.",
+            "schema": {
+              "example": "2024-01-01T00:00:00Z",
+              "type": "string"
+            }
+          },
+          {
+            "name": "created_before",
+            "required": false,
+            "in": "query",
+            "description": "Filter transactions created at or before this point. A date (`2024-12-31`) includes that whole day in UTC; a date-time needs a UTC offset (`2024-12-31T23:59:59Z`) and at most millisecond precision. In a query string, send a `+` offset as `%2B`.",
+            "schema": {
+              "example": "2024-12-31T23:59:59Z",
+              "type": "string"
+            }
           }
         ],
         "responses": {
@@ -1912,6 +1982,16 @@
         "description": "Retrieve aggregated store metrics including counts, revenue, and MRR. When startDate and endDate are provided, totals are filtered to that date range. When interval is also provided, the response includes a periods array with time-series data points grouped by that interval. The periods array starts from the store's first transaction or startDate, whichever is later, to avoid empty leading buckets. All monetary amounts are in cents (integer, no decimals).",
         "parameters": [
           {
+            "name": "currency",
+            "required": false,
+            "in": "query",
+            "description": "Currency the monetary totals are converted to. Defaults to USD when omitted.",
+            "schema": {
+              "enum": ["EUR", "USD"],
+              "type": "string"
+            }
+          },
+          {
             "name": "startDate",
             "required": false,
             "in": "query",
@@ -1936,15 +2016,6 @@
             "description": "Groups time-series data into buckets of this size. Requires startDate and endDate. Returns a periods array with one entry per bucket containing grossRevenue and netRevenue.",
             "schema": {
               "enum": ["day", "week", "month"],
-              "type": "string"
-            }
-          },
-          {
-            "name": "currency",
-            "required": true,
-            "in": "query",
-            "schema": {
-              "enum": ["EUR", "USD"],
               "type": "string"
             }
           }
@@ -2116,6 +2187,16 @@
           },
           "409": {
             "description": "An account with this name (compared case-insensitively) already exists for the customer",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CustomerCreditsErrorResponseDto"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "`generation_bucket_reserved`: the name starts with the reserved `generation:` prefix",
             "content": {
               "application/json": {
                 "schema": {
@@ -2609,7 +2690,7 @@
         "x-speakeasy-name-override": "debitAccount",
         "x-speakeasy-group": "customerCredits",
         "summary": "Debit an account",
-        "description": "Deduct credits from a customer account. Returns the resulting transaction record.",
+        "description": "Deduct credits from a customer account. Returns the resulting transaction record. A debit from a `generation` account (AI generation credits) needs the `moderation_id` of an allowed Moderation API result; on other accounts it is optional. A failed debit does not use up the moderation result.",
         "parameters": [
           {
             "name": "id",
@@ -2625,7 +2706,7 @@
           "content": {
             "application/json": {
               "schema": {
-                "$ref": "#/components/schemas/CreditDebitRequestDto"
+                "$ref": "#/components/schemas/DebitRequestDto"
               }
             }
           }
@@ -2651,7 +2732,17 @@
             "description": "Not Found - Resource does not exist"
           },
           "409": {
-            "description": "Account frozen or closed",
+            "description": "Account frozen or closed, or `moderation_result_already_used`: the moderation result is linked to another transaction",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CustomerCreditsErrorResponseDto"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "`insufficient_balance`, `moderation_denied` (decision `deny`), `moderation_flagged` (decision `flag`: the check did not complete, screen the prompt again) or `moderation_result_expired` (the moderation result is outside its 24-hour window: older than 24 hours or dated in the future)",
             "content": {
               "application/json": {
                 "schema": {
@@ -2715,6 +2806,16 @@
           },
           "404": {
             "description": "Not Found - Resource does not exist"
+          },
+          "422": {
+            "description": "`paid_grant_not_reversible`: credits Creem granted for a payment (order, subscription or auto-refill) into a `generation` account cannot be reversed",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CustomerCreditsErrorResponseDto"
+                }
+              }
+            }
           }
         },
         "tags": ["Customer Credits - Accounts"],
@@ -2787,7 +2888,7 @@
         "x-speakeasy-name-override": "postTransaction",
         "x-speakeasy-group": "customerCredits",
         "summary": "Post a transaction",
-        "description": "Post a multi-entry transaction. Entries must balance (total debits must equal total credits).",
+        "description": "Post a multi-entry transaction. Entries must balance (total debits must equal total credits). A transaction cannot debit a `generation` account (AI generation credits): spend those with `POST /v1/customer-credits/accounts/{id}/debit`. A `moderation_id` is optional on a transaction that debits another customer account; one per transaction.",
         "parameters": [],
         "requestBody": {
           "required": true,
@@ -2820,7 +2921,7 @@
             "description": "Not Found - Resource does not exist"
           },
           "409": {
-            "description": "Account frozen or closed",
+            "description": "Account frozen or closed, or `moderation_result_already_used`: the moderation result is linked to another transaction",
             "content": {
               "application/json": {
                 "schema": {
@@ -2830,7 +2931,7 @@
             }
           },
           "422": {
-            "description": "Unbalanced transaction — debits must equal credits",
+            "description": "Unbalanced transaction — debits must equal credits; `insufficient_balance`; `moderation_denied` (decision `deny`); `moderation_flagged` (decision `flag`: the check did not complete, screen the prompt again); `moderation_result_expired` (outside its 24-hour window: older than 24 hours or dated in the future) or `generation_debit_must_settle_to_store` (a debit from a `generation` account must debit only that account and credit no customer account: spend generation credits with `POST /v1/customer-credits/accounts/{id}/debit`, they cannot be moved to another customer account)",
             "content": {
               "application/json": {
                 "schema": {
@@ -2986,6 +3087,16 @@
                 }
               }
             }
+          },
+          "422": {
+            "description": "`paid_grant_not_reversible`: credits Creem granted for a payment (order, subscription or auto-refill) into a `generation` account cannot be reversed",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CustomerCreditsErrorResponseDto"
+                }
+              }
+            }
           }
         },
         "tags": ["Customer Credits - Transactions"],
@@ -3035,7 +3146,7 @@
             "description": "Not Found - Resource does not exist"
           },
           "409": {
-            "description": "A meter with this name already exists in the store",
+            "description": "A meter with this name already exists in the store, or another meter of the store already uses this `external_id` (code `external_id_taken`)",
             "content": {
               "application/json": {
                 "schema": {
@@ -3045,7 +3156,7 @@
             }
           },
           "422": {
-            "description": "The meter definition is not satisfiable",
+            "description": "The meter definition is not satisfiable, or the unit label names a bucket reserved for AI generation credits (`generation` or `generation:*`, any casing; code `generation_bucket_reserved`)",
             "content": {
               "application/json": {
                 "schema": {
@@ -3128,6 +3239,16 @@
             "schema": {
               "default": false,
               "type": "boolean"
+            }
+          },
+          {
+            "name": "external_id",
+            "required": false,
+            "in": "query",
+            "description": "Only the meter with this `external_id` (your own key). Case-sensitive, exact match. Combine with `include_archived` to find an archived one.",
+            "schema": {
+              "example": "image-generations",
+              "type": "string"
             }
           }
         ],
@@ -3309,7 +3430,7 @@
             "description": "Not Found - Resource does not exist"
           },
           "409": {
-            "description": "The name is already taken, or the definition can no longer be edited",
+            "description": "The name or the `external_id` is already taken (code `external_id_taken` for the key), or the definition can no longer be edited",
             "content": {
               "application/json": {
                 "schema": {
@@ -4822,8 +4943,8 @@
       },
       "ProductFeatureType": {
         "type": "string",
-        "description": "The type of the feature: `custom` (private note), `file` (downloadable files), `licenseKey` (license key), or `customerCredits` (customer credit grant).",
-        "enum": ["custom", "file", "licenseKey", "customerCredits"]
+        "description": "The type of the feature: `custom` (private note), `file` (downloadable files), `licenseKey` (license key), `customerCredits` (customer credit grant), or `githubRepository` (access to a private GitHub repository).",
+        "enum": ["custom", "file", "licenseKey", "customerCredits", "githubRepository"]
       },
       "CustomerCreditsFeatureEntity": {
         "type": "object",
@@ -4844,6 +4965,16 @@
             "description": "The customer-credit bucket this grant funds — the `name` of the customer's credit account. Set it to a meter bucket (e.g. \"images\") so the credits fund a per-unit metered price; otherwise they land in `default` and metered usage cannot spend them. Distinct from `unit_label`, which is only a display label. On UPDATE the field is tri-state: OMIT it to leave the stored bucket unchanged, send `null` to clear it to the shared `default` wallet, or send a name to set it. On CREATE, omitted or null both mean `default`. A present-but-blank value is rejected.",
             "example": "images",
             "nullable": true
+          },
+          "requires_moderation": {
+            "type": "boolean",
+            "description": "When `true`, the credits go to the customer's AI generation wallet: spending them requires a `moderation_id` from the Moderation API. `bucket_name` must be omitted (422 `bucket_name_not_allowed_with_requires_moderation`); that wallet is the reserved `generation` bucket. `generation` and `generation:*` (any casing) cannot be named directly (422 `generation_bucket_reserved`). Defaults to `false` on create; on update, omitting it keeps the stored setting, also when `bucket_name` is sent as `null` (as reads return it); send `false` to move the credits to the shared wallet, or to the `bucket_name` sent with it. Always present on reads.",
+            "example": false
+          },
+          "resets_each_period": {
+            "type": "boolean",
+            "description": "Unused credits from subscription grants expire at each renewal; credits from one-time purchases never expire. The reset runs on every paid subscription transaction of the product: renewals, and also the first paid charge after a trial and plan changes charged immediately. Each time, the part of the previous grant the customer did not spend expires before the new grant lands. Subscription products only (422 `credits_reset_requires_subscription` on a one-time product). Defaults to `false` on create. On update, omitting it keeps the stored setting only when the feature's `id` is sent; a feature sent without `id` is replaced and defaults to `false`. Always present on reads.",
+            "example": false
           }
         },
         "required": ["amount"]
@@ -5188,6 +5319,21 @@
               "$ref": "#/components/schemas/CustomField"
             }
           },
+          "external_id": {
+            "type": "string",
+            "description": "Your own key for this product, such as your SKU or internal product id. Creem never sets it. Unique per store, case-sensitive; 1 to 255 characters: letters, digits, `_`, `-`, `.` and `:`. `null` when the product has no key.",
+            "example": "pro-monthly",
+            "nullable": true
+          },
+          "metadata": {
+            "type": "object",
+            "description": "Key-value pairs for your own use, for example `{ \"plan\": \"pro\" }`. Values are strings or numbers. `null` when the product has none.",
+            "example": {
+              "plan": "pro"
+            },
+            "additionalProperties": true,
+            "nullable": true
+          },
           "created_at": {
             "format": "date-time",
             "type": "string",
@@ -5214,6 +5360,8 @@
           "status",
           "tax_mode",
           "tax_category",
+          "external_id",
+          "metadata",
           "created_at",
           "updated_at"
         ]
@@ -5411,7 +5559,7 @@
           },
           "target_account_name": {
             "type": "string",
-            "description": "Explicit name for the per-unit bucket. Only meaningful with `target_account: per_unit`; defaults to the meter unit label.",
+            "description": "Explicit name for the per-unit bucket. Only meaningful with `target_account: per_unit`; defaults to the meter unit label. The `generation` and `generation:*` buckets (any casing) hold AI generation credits and cannot be used (422 `generation_credits_usage_price_unsupported`).",
             "example": "images",
             "nullable": true
           },
@@ -5432,7 +5580,7 @@
         "properties": {
           "id": {
             "type": "string",
-            "description": "Identifier of an existing feature to edit in place (update only). Omit to add a new feature.",
+            "description": "Identifier of an existing feature to edit in place (update only). Omit to add a new feature. On update the array replaces the credit features of the product: send the `id` of every feature to keep, as returned on reads; a feature sent without its `id` is added as a new one and the stored feature it stood for is removed.",
             "example": "feat_abc123"
           },
           "type": {
@@ -5445,7 +5593,7 @@
             "example": "500 image credits"
           },
           "customer_credits": {
-            "description": "The credit grant this feature carries.",
+            "description": "The credit grant this feature carries. Set `requires_moderation` to `true` to grant into the customer's AI generation wallet; its credits can only be spent with a `moderation_id` from the Moderation API.",
             "allOf": [
               {
                 "$ref": "#/components/schemas/CustomerCreditsFeatureEntity"
@@ -5543,6 +5691,19 @@
             "description": "The URL to which the user will be redirected after successfull payment.",
             "example": "https://example.com/?status=successful"
           },
+          "external_id": {
+            "type": "string",
+            "description": "Your own key for this product, such as your SKU or internal product id. Creem never sets it. Unique per store, case-sensitive; 1 to 255 characters: letters, digits, `_`, `-`, `.` and `:`. A key another product of your store already uses answers `409` with code `external_id_taken`. Omit it for a product without a key.",
+            "example": "pro-monthly"
+          },
+          "metadata": {
+            "type": "object",
+            "description": "Key-value pairs for your own use, for example `{ \"plan\": \"pro\" }`. Values are strings or numbers.",
+            "example": {
+              "plan": "pro"
+            },
+            "additionalProperties": true
+          },
           "custom_fields": {
             "description": "Collect additional information from your customer using custom fields during checkout. Up to 3 fields are supported.",
             "type": "array",
@@ -5605,6 +5766,21 @@
           "default_success_url": {
             "type": "string",
             "description": "Redirect URL after successful payment."
+          },
+          "external_id": {
+            "type": "string",
+            "description": "Your own key for this product, such as your SKU or internal product id. Creem never sets it. Unique per store, case-sensitive; 1 to 255 characters: letters, digits, `_`, `-`, `.` and `:`. Omit it to leave the key unchanged; send `null` to clear it. A key another product of your store already uses answers `409` with code `external_id_taken`.",
+            "example": "pro-monthly",
+            "nullable": true
+          },
+          "metadata": {
+            "type": "object",
+            "description": "Key-value pairs for your own use, for example `{ \"plan\": \"pro\" }`. Values are strings or numbers. Omit it to leave it unchanged; send `null` to clear it. A sent object replaces the whole object.",
+            "example": {
+              "plan": "pro"
+            },
+            "additionalProperties": true,
+            "nullable": true
           },
           "price": {
             "type": "integer",
@@ -5880,6 +6056,11 @@
             "type": "string",
             "description": "Last updated date of the order",
             "example": "2023-09-13T00:00:00Z"
+          },
+          "recovered": {
+            "type": "boolean",
+            "description": "Whether this order came back through abandoned-cart recovery. Present on order objects returned by the API; absent from webhook payloads, because recovery is attributed asynchronously right after checkout completion.",
+            "example": false
           }
         },
         "required": [
@@ -6229,6 +6410,11 @@
               "plan": "pro"
             },
             "additionalProperties": true
+          },
+          "recovered": {
+            "type": "boolean",
+            "description": "Whether this subscription was started by a recovered checkout. Present on subscription objects returned by the API; absent from webhook payloads, because recovery is attributed asynchronously right after checkout completion.",
+            "example": false
           }
         },
         "required": [
@@ -6421,7 +6607,7 @@
           },
           "external_id": {
             "type": "string",
-            "description": "Your own id for this customer. Unique per store; usage ingestion resolves `external_customer_id` against it. Trimmed; letters, digits, `_` and `-` only; at most 255 characters.",
+            "description": "Your own id for this customer. Unique per store; usage ingestion resolves `external_customer_id` against it. Trimmed; letters, digits, `_`, `-`, `.` and `:` only; at most 255 characters.",
             "example": "user-42"
           }
         },
@@ -6455,7 +6641,7 @@
           },
           "external_id": {
             "type": "string",
-            "description": "Your own id for this customer. Unique per store; usage ingestion resolves `external_customer_id` against it. Omit to leave unchanged; send `null` to clear it. Trimmed; letters, digits, `_` and `-` only; at most 255 characters.",
+            "description": "Your own id for this customer. Unique per store; usage ingestion resolves `external_customer_id` against it. Omit to leave unchanged; send `null` to clear it. Trimmed; letters, digits, `_`, `-`, `.` and `:` only; at most 255 characters.",
             "example": "user-42",
             "nullable": true
           }
@@ -6504,7 +6690,7 @@
         "properties": {
           "id": {
             "type": "string",
-            "description": "The id of the item to update."
+            "description": "The id of the existing subscription item to update. Every item you send must include one: items without an id are rejected, because adding new items to a subscription is not supported."
           },
           "product_id": {
             "type": "string",
@@ -6524,7 +6710,7 @@
         "type": "object",
         "properties": {
           "items": {
-            "description": "List of subscription items to update/create. If no item ID is provided, the item will be created.",
+            "description": "List of subscription items to update. Each item must include the id of an existing subscription item; adding new items to a subscription is not supported.",
             "type": "array",
             "items": {
               "$ref": "#/components/schemas/UpsertSubscriptionItemEntity"
@@ -7413,7 +7599,7 @@
         "properties": {
           "name": {
             "type": "string",
-            "description": "Human-readable name for the account (bucket). Unique per customer, compared case-insensitively: `Tokens` and `tokens` are the same account. Surrounding whitespace is trimmed; the spelling you send is preserved on read. Max 100 characters.",
+            "description": "Human-readable name for the account (bucket). Unique per customer, compared case-insensitively: `Tokens` and `tokens` are the same account. Surrounding whitespace is trimmed; the spelling you send is preserved on read. Max 100 characters. `generation` is the moderated generation account: debits from it need a `moderation_id`. Names starting with `generation:` are reserved and refused with 422 `generation_bucket_reserved`.",
             "example": "default",
             "default": "default",
             "maxLength": 100
@@ -7688,6 +7874,12 @@
             "example": "cct_abc123",
             "nullable": true
           },
+          "moderation_id": {
+            "type": "string",
+            "description": "ID of the Moderation API result linked to this transaction, if one was sent with it",
+            "example": "3f1c2b9e-8d4a-4c7e-9b1a-2e5f6d7c8a90",
+            "nullable": true
+          },
           "entries": {
             "description": "Transaction entries",
             "type": "array",
@@ -7700,7 +7892,42 @@
             "description": "Creation timestamp"
           }
         },
-        "required": ["id", "store_id", "reference", "idempotency_key", "entries", "created_at"]
+        "required": [
+          "id",
+          "store_id",
+          "reference",
+          "idempotency_key",
+          "moderation_id",
+          "entries",
+          "created_at"
+        ]
+      },
+      "DebitRequestDto": {
+        "type": "object",
+        "properties": {
+          "amount": {
+            "type": "string",
+            "description": "Amount to credit or debit (string to support large numbers)",
+            "example": "1000"
+          },
+          "reference": {
+            "type": "string",
+            "description": "Your reference ID to link this transaction to an event in your system (e.g. order ID, campaign ID)",
+            "example": "signup_bonus"
+          },
+          "idempotency_key": {
+            "type": "string",
+            "description": "Idempotency key to prevent duplicate transactions",
+            "example": "idem_abc123"
+          },
+          "moderation_id": {
+            "type": "string",
+            "description": "ID of the Moderation API result (`id` from `POST /v1/moderation/prompt`) that authorizes this spend. Required when debiting a `generation` account (AI generation credits), optional on other accounts, and validated and linked whenever sent. The result must belong to this store, have decision `allow`, be inside its 24-hour window (at most 24 hours old and not dated in the future) and not already be linked to another transaction: each id can be used once. To debit again for the same prompt, screen it again and send the new id. An idempotent replay returns the original transaction and ignores a different `moderation_id`.",
+            "example": "3f1c2b9e-8d4a-4c7e-9b1a-2e5f6d7c8a90",
+            "maxLength": 64
+          }
+        },
+        "required": ["amount", "reference", "idempotency_key"]
       },
       "ReverseTransactionRequestDto": {
         "type": "object",
@@ -7753,6 +7980,12 @@
             "items": {
               "$ref": "#/components/schemas/EntryInputDto"
             }
+          },
+          "moderation_id": {
+            "type": "string",
+            "description": "ID of the Moderation API result (`id` from `POST /v1/moderation/prompt`) that authorizes this spend. Optional, and only allowed on a transaction that debits a customer account; validated and linked whenever sent. A transaction cannot debit a `generation` account (AI generation credits): spend those with `POST /v1/customer-credits/accounts/{id}/debit`. The result must belong to this store, have decision `allow`, be inside its 24-hour window (at most 24 hours old and not dated in the future) and not already be linked to another transaction: each id can be used once. To debit again for the same prompt, screen it again and send the new id. An idempotent replay returns the original transaction and ignores a different `moderation_id`.",
+            "example": "3f1c2b9e-8d4a-4c7e-9b1a-2e5f6d7c8a90",
+            "maxLength": 64
           }
         },
         "required": ["reference", "idempotency_key", "entries"]
@@ -7866,6 +8099,11 @@
             "type": "string",
             "description": "Display unit for the metered quantity. Also names the customer-credits bucket the meter settles into.",
             "example": "images"
+          },
+          "external_id": {
+            "type": "string",
+            "description": "Your own key for this meter. Creem never sets it. Unique per store, case-sensitive; 1 to 255 characters: letters, digits, `_`, `-`, `.` and `:`. A key another meter of your store already uses (archived ones too) answers `409` with code `external_id_taken`.",
+            "example": "image-generations"
           }
         },
         "required": ["name", "event_name", "aggregation", "unit_label"]
@@ -7974,6 +8212,12 @@
             "enum": ["active", "archived"],
             "example": "active"
           },
+          "external_id": {
+            "type": "string",
+            "description": "Your own key for this meter (`external_id`), unique per store. `null` when the meter has none.",
+            "nullable": true,
+            "example": "image-generations"
+          },
           "created_at": {
             "type": "string",
             "description": "Creation timestamp (ISO 8601)"
@@ -7993,6 +8237,7 @@
           "filter",
           "unit_label",
           "status",
+          "external_id",
           "created_at",
           "updated_at"
         ]
@@ -8193,6 +8438,12 @@
                 "$ref": "#/components/schemas/MeterFilterApiRequestDto"
               }
             ]
+          },
+          "external_id": {
+            "type": "string",
+            "description": "Your own key for this meter. Creem never sets it. Unique per store, case-sensitive; 1 to 255 characters: letters, digits, `_`, `-`, `.` and `:`. Not part of the definition, so it can change also after the meter has processed usage. Omit to leave unchanged; send `null` to clear it. A key another meter of your store already uses answers `409` with code `external_id_taken`.",
+            "example": "image-generations",
+            "nullable": true
           }
         }
       },
@@ -8245,12 +8496,12 @@
           },
           "customer_id": {
             "type": "string",
-            "description": "The Creem customer this usage is attributed to. Exactly one of `customer_id` / `external_customer_id` is required per event; the id must belong to an existing customer of your store or the whole batch is rejected. Trimmed; letters, digits, `_` and `-` only; at most 255 characters.",
+            "description": "The Creem customer this usage is attributed to. Exactly one of `customer_id` / `external_customer_id` is required per event; the id must belong to an existing customer of your store or the whole batch is rejected. Trimmed; letters, digits, `_`, `-`, `.` and `:` only; at most 255 characters.",
             "example": "cust_abc123"
           },
           "external_customer_id": {
             "type": "string",
-            "description": "Your own id for this customer, resolved to the Creem customer it was registered for via the customers API. Exactly one of `customer_id` / `external_customer_id` is required per event; an id no customer carries rejects the whole batch. Trimmed; letters, digits, `_` and `-` only; at most 255 characters.",
+            "description": "Your own id for this customer, resolved to the Creem customer it was registered for via the customers API. Exactly one of `customer_id` / `external_customer_id` is required per event; an id no customer carries rejects the whole batch. Trimmed; letters, digits, `_`, `-`, `.` and `:` only; at most 255 characters.",
             "example": "user-42"
           },
           "event_id": {
@@ -8265,7 +8516,7 @@
           },
           "properties": {
             "type": "object",
-            "description": "The event's attributes — the ONE bag. Meter filter clauses and aggregation properties (e.g. \"tokens\") resolve their keys here, unprefixed. At most 50 keys, keys at most 40 characters, string and serialized-object values at most 500 characters.",
+            "description": "The event's attributes — the ONE bag. Meter filter clauses and aggregation properties (e.g. \"tokens\") resolve their keys here, unprefixed. Set `subscription_id` to the subscription an event belongs to: postpaid usage tagged with one subscription is never billed on another, and untagged usage while a customer holds two subscriptions billing the same meter postpaid is held for review instead of charged. At most 50 keys, keys at most 40 characters, string and serialized-object values at most 500 characters.",
             "additionalProperties": true,
             "example": {
               "tokens": 1200,
@@ -8990,7 +9241,8 @@
           "customer_credits.exhausted",
           "credits.granted",
           "credits.consumed",
-          "credits.auto_recharged"
+          "credits.auto_recharged",
+          "marketplace.grant.requested"
         ]
       },
       "WebhookEntity": {
@@ -9377,6 +9629,11 @@
               "plan": "pro"
             },
             "additionalProperties": true
+          },
+          "recovered": {
+            "type": "boolean",
+            "description": "Whether this subscription was started by a recovered checkout. Present on subscription objects returned by the API; absent from webhook payloads, because recovery is attributed asynchronously right after checkout completion.",
+            "example": false
           }
         },
         "required": [
@@ -9988,6 +10245,122 @@
         "required": ["id", "eventType", "created_at", "object"],
         "x-speakeasy-include": true
       },
+      "MarketplaceGrantAskOrderEntity": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string"
+          },
+          "status": {
+            "type": "string"
+          },
+          "amountMinor": {
+            "type": "number",
+            "description": "What the buyer was charged, minor units."
+          },
+          "currency": {
+            "type": "string"
+          },
+          "transactionId": {
+            "type": "object",
+            "nullable": true
+          },
+          "paidAt": {
+            "type": "object",
+            "nullable": true
+          }
+        },
+        "required": ["id", "status", "amountMinor", "currency", "transactionId", "paidAt"]
+      },
+      "MarketplaceGrantAskEntity": {
+        "type": "object",
+        "properties": {
+          "grantId": {
+            "type": "string",
+            "description": "The grant this ask belongs to."
+          },
+          "operationId": {
+            "type": "string",
+            "description": "The operation to answer against on the result endpoint."
+          },
+          "action": {
+            "type": "string",
+            "description": "What is asked: a first key, a top-up of the account the grant names, or (after a refund or chargeback) a revoke: disable that account; revoke_credit: remove the credit of the order named here only, the account and the key stay.",
+            "enum": ["provision", "top_up", "revoke", "revoke_credit"]
+          },
+          "deadlineAt": {
+            "type": "object",
+            "description": "ISO-8601 instant the answer is due; past it the order is refunded. null on a revoke or revoke_credit: they have no deadline.",
+            "nullable": true
+          },
+          "reason": {
+            "type": "string",
+            "description": "With a revoke or revoke_credit only: why the account, or that order’s credit, must go.",
+            "enum": ["refund", "chargeback", "undelivered", "test"],
+            "nullable": true
+          },
+          "listingId": {
+            "type": "string",
+            "description": "The marketplace listing the order came through."
+          },
+          "productId": {
+            "type": "string",
+            "description": "The product that was charged."
+          },
+          "order": {
+            "description": "The paid order the ask is for. null on a test ask (test: true) from the review gate, which has no order.",
+            "nullable": true,
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/MarketplaceGrantAskOrderEntity"
+              }
+            ]
+          },
+          "test": {
+            "type": "boolean",
+            "description": "true when the ask is one of the review gate’s test runs before the listing goes live; answer it exactly like a real one. A test provision: a fresh key; grantId and operationId are the run’s id. A test top-up: add credit to the account the test provision created (grantId is that provision run’s id, operationId the top-up run’s) and answer ready with no env. The revoke ask for the test account follows the test top-up, or at once when the test provision failed."
+          }
+        },
+        "required": [
+          "grantId",
+          "operationId",
+          "action",
+          "deadlineAt",
+          "reason",
+          "listingId",
+          "productId",
+          "order",
+          "test"
+        ]
+      },
+      "WebhookMarketplaceGrantRequestedEventEntity": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "description": "Unique identifier for the event."
+          },
+          "eventType": {
+            "type": "string",
+            "description": "The event name.",
+            "enum": ["marketplace.grant.requested"]
+          },
+          "created_at": {
+            "type": "number",
+            "description": "Timestamp of when the event was created."
+          },
+          "object": {
+            "description": "Object related to the event.",
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/MarketplaceGrantAskEntity"
+              }
+            ]
+          }
+        },
+        "required": ["id", "eventType", "created_at", "object"],
+        "x-speakeasy-include": true
+      },
       "WebhookSubscriptionActiveEventEntity": {
         "type": "object",
         "properties": {
@@ -10293,6 +10666,9 @@
             "$ref": "#/components/schemas/WebhookCreditsAutoRechargedEventEntity"
           },
           {
+            "$ref": "#/components/schemas/WebhookMarketplaceGrantRequestedEventEntity"
+          },
+          {
             "$ref": "#/components/schemas/WebhookSubscriptionActiveEventEntity"
           },
           {
@@ -10333,6 +10709,7 @@
             "credits.granted": "#/components/schemas/WebhookCreditsGrantedEventEntity",
             "credits.consumed": "#/components/schemas/WebhookCreditsConsumedEventEntity",
             "credits.auto_recharged": "#/components/schemas/WebhookCreditsAutoRechargedEventEntity",
+            "marketplace.grant.requested": "#/components/schemas/WebhookMarketplaceGrantRequestedEventEntity",
             "subscription.active": "#/components/schemas/WebhookSubscriptionActiveEventEntity",
             "subscription.trialing": "#/components/schemas/WebhookSubscriptionTrialingEventEntity",
             "subscription.canceled": "#/components/schemas/WebhookSubscriptionCanceledEventEntity",

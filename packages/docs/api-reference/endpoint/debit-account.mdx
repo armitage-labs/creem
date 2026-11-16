@@ -1,5 +1,5 @@
 ---
 title: 'Debit an account'
-description: 'Deduct credits from a customer account. Returns the resulting transaction record.'
+description: 'Deduct credits from a customer account. Returns the resulting transaction record. A debit from a `generation` account (AI generation credits) needs the `moderation_id` of an allowed Moderation API result; on other accounts it is optional. A failed debit does not use up the moderation result.'
 openapi: post /v1/customer-credits/accounts/{id}/debit
 ---
