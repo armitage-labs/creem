@@ -90,7 +90,7 @@ Use `createCreemClient()` when the helper functions do not cover the API operati
 import { createCreemClient } from "@creem_io/better-auth/server";
 
 const creem = createCreemClient(creemConfig);
-const subscription = await creem.subscriptions.get("sub_...");
+const subscription = await creem.subscriptions.get({ subscriptionId: "sub_..." });
 ```
 
 For general SDK coverage, see the [TypeScript SDK documentation](/code/sdks/typescript).

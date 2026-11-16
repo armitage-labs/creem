@@ -30,8 +30,11 @@ const creem = new Creem({
 });
 
 // Cancel subscription
-const canceled = await creem.subscriptions.cancel("sub_YOUR_SUBSCRIPTION_ID", {
-  mode: "immediate",
+const canceled = await creem.subscriptions.cancel({
+  id: "sub_YOUR_SUBSCRIPTION_ID",
+  cancelSubscriptionRequestEntity: {
+    mode: "immediate",
+  },
 });
 
 console.log("Subscription canceled:", canceled);
@@ -252,8 +255,11 @@ async function handleCancellation(subscriptionId: string, reason?: string) {
     console.log(`Canceling subscription: ${subscriptionId}`, { reason });
 
     // Cancel the subscription
-    const canceled = await creem.subscriptions.cancel(subscriptionId, {
-      mode: "immediate",
+    const canceled = await creem.subscriptions.cancel({
+      id: subscriptionId,
+      cancelSubscriptionRequestEntity: {
+        mode: "immediate",
+      },
     });
 
     // Send cancellation email to customer when the response includes expanded customer data
