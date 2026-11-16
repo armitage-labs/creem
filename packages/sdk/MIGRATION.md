@@ -140,8 +140,11 @@ instead of failing the whole response. The known values keep their literal
 types, so existing comparisons still compile. A `switch` over the known values
 is no longer exhaustive, because the type now also allows other strings. Two
 patterns stop compiling: a `never` exhaustiveness check
-(`const unhandled: never = product.status`) and a function that returns from
-every case without a `default`. Add a `default` branch:
+(`const unhandled: never = product.status`), and a function that returns from
+every case without a `default` when its return type is declared (and excludes
+`undefined`) or `noImplicitReturns` is on. With an inferred return type and
+`noImplicitReturns` off, that function still compiles, and its return type
+gains `undefined`. Add a `default` branch:
 
 ```ts
 switch (product.status) {
