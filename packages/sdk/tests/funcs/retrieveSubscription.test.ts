@@ -19,7 +19,7 @@ describe("retrieveSubscription", () => {
   it("should handle API authentication errors", async () => {
     try {
       // Attempt to call SDK method with invalid API key
-      await creemWithInvalidKey.subscriptions.get("any-subscription-id");
+      await creemWithInvalidKey.subscriptions.get({ subscriptionId: "any-subscription-id" });
       // If it succeeds, fail the test (we expect it to throw)
       fail("Expected an API error but none was thrown");
     } catch (error) {
@@ -47,7 +47,7 @@ describe("retrieveSubscription", () => {
     });
 
     try {
-      await creemWithInvalidServer.subscriptions.get("any-subscription-id");
+      await creemWithInvalidServer.subscriptions.get({ subscriptionId: "any-subscription-id" });
       fail("Expected network error but none was thrown");
     } catch (error) {
       expect(error).toBeDefined();

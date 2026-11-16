@@ -19,7 +19,7 @@ describe("retrieveCustomer", () => {
   it("should handle API authentication errors", async () => {
     try {
       // Attempt to call SDK method with invalid API key
-      await creemWithInvalidKey.customers.retrieve("any-customer-id");
+      await creemWithInvalidKey.customers.retrieve({ customerId: "any-customer-id" });
       // If it succeeds, fail the test (we expect it to throw)
       fail("Expected an API error but none was thrown");
     } catch (error) {

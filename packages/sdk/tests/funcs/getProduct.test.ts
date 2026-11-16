@@ -22,7 +22,7 @@ describe("getProduct", () => {
   it("should handle API authentication errors", async () => {
     try {
       // Attempt to call SDK method with invalid API key
-      await creemWithInvalidKey.products.get(testProduct.id);
+      await creemWithInvalidKey.products.get({ id: testProduct.id });
       // If it succeeds, fail the test (we expect it to throw)
       fail("Expected an API error but none was thrown");
     } catch (error) {
@@ -57,7 +57,7 @@ describe("getProduct", () => {
 
     try {
       // Use invalid input to trigger validation error
-      await creemWithEmptyKey.products.get(testProduct.id);
+      await creemWithEmptyKey.products.get({ id: testProduct.id });
       fail("Expected validation error but none was thrown");
     } catch (error) {
       expect(error).toBeInstanceOf(Error);

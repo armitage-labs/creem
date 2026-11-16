@@ -22,7 +22,7 @@ describe("retrieveDiscount", () => {
   it("should handle API authentication errors", async () => {
     try {
       // Attempt to call SDK method with invalid API key
-      await creemWithInvalidKey.discounts.get(testDiscount.id);
+      await creemWithInvalidKey.discounts.get({ discountId: testDiscount.id });
       // If it succeeds, fail the test (we expect it to throw)
       fail("Expected an API error but none was thrown");
     } catch (error) {
@@ -95,7 +95,7 @@ describe("retrieveDiscount", () => {
     });
 
     try {
-      await creemWithInvalidServer.discounts.get(testDiscount.id);
+      await creemWithInvalidServer.discounts.get({ discountId: testDiscount.id });
       fail("Expected network error but none was thrown");
     } catch (error) {
       expect(error).toBeDefined();
