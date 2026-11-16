@@ -137,20 +137,27 @@ These methods already took a single request body and are unchanged:
 Enum values in responses (a product's `status`, a ledger entry's `side`, …)
 are now open: a value the API adds later comes through as a plain string
 instead of failing the whole response. The known values keep their literal
-types, so existing comparisons still work. A `switch` that covers every known
-value needs a `default` branch, because the type now also allows other
-strings:
+types, so existing comparisons still compile. A `switch` over the known values
+is no longer exhaustive, because the type now also allows other strings. Two
+patterns stop compiling: a `never` exhaustiveness check
+(`const unhandled: never = product.status`) and a function that returns from
+every case without a `default`. Add a `default` branch:
 
 ```ts
 switch (product.status) {
   case "active":
-    break;
+    return "Active";
   case "archived":
-    break;
+    return "Archived";
   default:
     // a status this SDK version doesn't know yet
+    return product.status;
 }
 ```
+
+A `switch` that returns nothing still compiles without a `default`, and a value
+added later then matches no case, so check those too. The flip side of an open
+value: a misspelled comparison (`status === "actve"`) compiles.
 
 The same holds for webhook payloads parsed with `parseWebhookEventEntity` or
 `constructWebhookEventEntity`, including a subscription's `collectionMethod`
