@@ -89,6 +89,10 @@
     {
       "source": "/getting-started/introduction",
       "destination": "/"
+    },
+    {
+      "source": "/getting-started/migrate",
+      "destination": "/getting-started/migrate/lemon-squeezy"
     }
   ],
   "theme": "mint",
@@ -129,16 +133,9 @@
               },
               "getting-started/dashboard-overview",
               {
-                "group": "Migrate",
-                "pages": [
-                  "getting-started/migrate",
-                  {
-                    "group": "Lemon Squeezy",
-                    "icon": "lemon",
-                    "root": "getting-started/migrate/lemon-squeezy",
-                    "pages": ["getting-started/migrate/lemon-squeezy/technical-guide"]
-                  }
-                ]
+                "group": "Migrate to Creem",
+                "root": "getting-started/migrate/lemon-squeezy",
+                "pages": ["getting-started/migrate/lemon-squeezy/technical-guide"]
               }
             ]
           },

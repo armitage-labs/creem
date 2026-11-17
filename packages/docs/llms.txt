@@ -15,7 +15,6 @@ Append `.md` to any documentation URL to fetch it as raw markdown.
 - [Introduction](https://docs.creem.io/index.md): what Creem is and how the MoR model changes your integration
 - [Quickstart](https://docs.creem.io/getting-started/quickstart.md): create a product and take a first payment
 - [Test mode](https://docs.creem.io/getting-started/test-mode.md): sandbox keys and test cards
-- [Migrate to Creem](https://docs.creem.io/getting-started/migrate.md): moving from another payment provider
 - [Migrate from Lemon Squeezy](https://docs.creem.io/getting-started/migrate/lemon-squeezy.md): move a Lemon Squeezy store before March 31, 2027 with a coding agent, the Creem CLI or Creem's team: why Creem, checks before you start, what moves
 - [Lemon Squeezy migration: technical guide](https://docs.creem.io/getting-started/migrate/lemon-squeezy/technical-guide.md): every step through the API, field and webhook mappings, moving subscribers, and a prompt for coding agents
 
