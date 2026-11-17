@@ -89,6 +89,10 @@
     {
       "source": "/getting-started/introduction",
       "destination": "/"
+    },
+    {
+      "source": "/getting-started/migrate",
+      "destination": "/getting-started/migrate/lemon-squeezy"
     }
   ],
   "theme": "mint",
@@ -128,7 +132,11 @@
                 ]
               },
               "getting-started/dashboard-overview",
-              "getting-started/migrate"
+              {
+                "group": "Migrate to Creem",
+                "root": "getting-started/migrate/lemon-squeezy",
+                "pages": ["getting-started/migrate/lemon-squeezy/technical-guide"]
+              }
             ]
           },
           {
