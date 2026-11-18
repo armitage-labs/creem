@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { parseWebhookEventEntity, webhookEventSchemas } from "../../src/webhooks.js";
+import { parseWebhookEventEntity } from "../../src/webhooks.js";
 import { isUnknown } from "../../src/types/discriminatedUnion.js";
 import { WebhookEventType } from "../../src/models/components/webhookeventtype.js";
 import { SDKValidationError } from "../../src/models/errors/sdkvalidationerror.js";
@@ -201,8 +201,22 @@ describe("forward-compatible webhook payloads", () => {
     );
 
     expect(new Set(Object.values(WebhookEventType))).toEqual(new Set(unionTypes));
-    // The per-type schemas that name the failing field of a malformed payload.
-    expect(new Set(Object.keys(webhookEventSchemas))).toEqual(new Set(unionTypes));
+  });
+
+  it.each(
+    Object.keys(
+      JSON.parse(readFileSync(new URL("../../openapi.json", import.meta.url), "utf8")).components
+        .schemas.WebhookEventEntity.discriminator.mapping,
+    ),
+  )("names the failing fields of a malformed %s payload", (eventType) => {
+    let error: unknown;
+    try {
+      parseWebhookEventEntity(JSON.stringify({ id: "evt_123", eventType, created_at: 1, object: {} }));
+    } catch (e) {
+      error = e;
+    }
+    expect(error).toBeInstanceOf(SDKValidationError);
+    expect((error as SDKValidationError).cause).toBeInstanceOf(z.ZodError);
   });
 
   it.each([
