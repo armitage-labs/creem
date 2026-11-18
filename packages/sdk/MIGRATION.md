@@ -21,6 +21,10 @@ await creem.products.update(
 );
 ```
 
+TypeScript reports a 1.x call when it compiles. In JavaScript, a 1.x call
+throws `SDKValidationError: Input validation failed` before anything is sent,
+so nothing reaches the API.
+
 A method whose parameters are all optional still takes the object, so a call
 without arguments becomes `({})`:
 
