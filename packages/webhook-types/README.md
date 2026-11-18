@@ -57,6 +57,19 @@ any string is allowed.
 The fields that identify an event or an object (`eventType`, `object`) stay
 closed.
 
+## Event types Creem adds later
+
+`parseWebhookEvent` accepts an event type this version doesn't know when its
+`object` is of a kind it knows, and throws `Invalid webhook event` when the
+`object` is of a new kind.
+
+The webhook handlers in `@creem_io/better-auth` and `@creem_io/nextjs` don't
+acknowledge such an event in this release. An unknown event type reaches their
+`switch` default and gets a `400 Unknown event type`, and an event whose
+`parseWebhookEvent` call throws gets a `500`. Either way Creem treats the
+delivery as failed and retries it. `@creem_io/convex` acknowledges an event
+type it doesn't know with a `202`, so Creem doesn't retry it.
+
 ## Development
 
 From the repository root:
