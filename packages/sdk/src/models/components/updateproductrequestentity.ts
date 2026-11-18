@@ -8,6 +8,12 @@ import { safeParse } from "../../lib/schemas.js";
 import { Result as SafeParseResult } from "../../types/fp.js";
 import { SDKValidationError } from "../errors/sdkvalidationerror.js";
 import {
+  CustomFieldRequestEntity,
+  CustomFieldRequestEntity$inboundSchema,
+  CustomFieldRequestEntity$Outbound,
+  CustomFieldRequestEntity$outboundSchema,
+} from "./customfieldrequestentity.js";
+import {
   ProductCurrency,
   ProductCurrency$inboundSchema,
   ProductCurrency$outboundSchema,
@@ -67,6 +73,14 @@ export type UpdateProductRequestEntity = {
    */
   defaultSuccessUrl?: string | undefined;
   /**
+   * Your own key for this product, such as your SKU or internal product id. Creem never sets it. Unique per store, case-sensitive; 1 to 255 characters: letters, digits, `_`, `-`, `.` and `:`. Omit it to leave the key unchanged; send `null` to clear it. A key another product of your store already uses answers `409` with code `external_id_taken`.
+   */
+  externalId?: string | null | undefined;
+  /**
+   * Key-value pairs for your own use, for example `{ "plan": "pro" }`. Values are strings or numbers. Omit it to leave it unchanged; send `null` to clear it. A sent object replaces the whole object.
+   */
+  metadata?: { [k: string]: any } | null | undefined;
+  /**
    * The price of the product in cents. Must be 0 (free product) or at least 100 (one whole unit of the currency).
    */
   price?: number | undefined;
@@ -119,9 +133,17 @@ export type UpdateProductRequestEntity = {
    */
   usagePrices?: Array<UsagePriceRequestEntity> | undefined;
   /**
-   * Features granted by purchase. Only `customerCredits` (a credit grant into one of the customer credit buckets) can be managed through the API. The array is the complete set of credit features after the update: omit (or send `null`) to leave features untouched, include `id` to edit in place; credit features missing from the array are removed.
+   * Features granted by purchase. Only `customerCredits` (a credit grant into one of the customer credit buckets) can be managed through the API. The array is the complete set of credit features after the update: omit (or send `null`) to leave features untouched, include `id` to edit in place, or the `external_id` of a stored feature to edit that feature without its `id`; credit features missing from the array are removed.
    */
   features?: Array<ProductFeatureRequestEntity> | undefined;
+  /**
+   * Collect additional information from your customer using custom fields during checkout. The array is the complete set after the update: omit (or send `null`) to leave the custom fields unchanged, send `[]` to remove all.
+   */
+  customFields?: Array<CustomFieldRequestEntity> | null | undefined;
+  /**
+   * Turn abandoned cart recovery for this product on or off. Buyers who abandon checkout get recovery emails, and recovered orders carry the recovery fee. Omit to leave it unchanged.
+   */
+  abandonedCartRecoveryEnabled?: boolean | undefined;
 };
 
 /** @internal */
@@ -135,6 +157,8 @@ export const UpdateProductRequestEntity$inboundSchema: z.ZodType<
   image_url: z.string().optional(),
   image_urls: z.array(z.string()).optional(),
   default_success_url: z.string().optional(),
+  external_id: z.nullable(z.string()).optional(),
+  metadata: z.nullable(z.record(z.any())).optional(),
   price: z.number().int().optional(),
   currency: ProductCurrency$inboundSchema.optional(),
   billing_type: ProductRequestBillingType$inboundSchema.optional(),
@@ -149,11 +173,15 @@ export const UpdateProductRequestEntity$inboundSchema: z.ZodType<
   suggested_price: z.number().int().optional(),
   usage_prices: z.array(UsagePriceRequestEntity$inboundSchema).optional(),
   features: z.array(ProductFeatureRequestEntity$inboundSchema).optional(),
+  custom_fields: z.nullable(z.array(CustomFieldRequestEntity$inboundSchema))
+    .optional(),
+  abandoned_cart_recovery_enabled: z.boolean().optional(),
 }).transform((v) => {
   return remap$(v, {
     "image_url": "imageUrl",
     "image_urls": "imageUrls",
     "default_success_url": "defaultSuccessUrl",
+    "external_id": "externalId",
     "billing_type": "billingType",
     "billing_period": "billingPeriod",
     "recurring_interval": "recurringInterval",
@@ -165,6 +193,8 @@ export const UpdateProductRequestEntity$inboundSchema: z.ZodType<
     "pay_what_you_want": "payWhatYouWant",
     "suggested_price": "suggestedPrice",
     "usage_prices": "usagePrices",
+    "custom_fields": "customFields",
+    "abandoned_cart_recovery_enabled": "abandonedCartRecoveryEnabled",
   });
 });
 /** @internal */
@@ -174,6 +204,8 @@ export type UpdateProductRequestEntity$Outbound = {
   image_url?: string | undefined;
   image_urls?: Array<string> | undefined;
   default_success_url?: string | undefined;
+  external_id?: string | null | undefined;
+  metadata?: { [k: string]: any } | null | undefined;
   price?: number | undefined;
   currency?: string | undefined;
   billing_type?: string | undefined;
@@ -188,6 +220,8 @@ export type UpdateProductRequestEntity$Outbound = {
   suggested_price?: number | undefined;
   usage_prices?: Array<UsagePriceRequestEntity$Outbound> | undefined;
   features?: Array<ProductFeatureRequestEntity$Outbound> | undefined;
+  custom_fields?: Array<CustomFieldRequestEntity$Outbound> | null | undefined;
+  abandoned_cart_recovery_enabled?: boolean | undefined;
 };
 
 /** @internal */
@@ -201,6 +235,8 @@ export const UpdateProductRequestEntity$outboundSchema: z.ZodType<
   imageUrl: z.string().optional(),
   imageUrls: z.array(z.string()).optional(),
   defaultSuccessUrl: z.string().optional(),
+  externalId: z.nullable(z.string()).optional(),
+  metadata: z.nullable(z.record(z.any())).optional(),
   price: z.number().int().optional(),
   currency: ProductCurrency$outboundSchema.optional(),
   billingType: ProductRequestBillingType$outboundSchema.optional(),
@@ -215,11 +251,15 @@ export const UpdateProductRequestEntity$outboundSchema: z.ZodType<
   suggestedPrice: z.number().int().optional(),
   usagePrices: z.array(UsagePriceRequestEntity$outboundSchema).optional(),
   features: z.array(ProductFeatureRequestEntity$outboundSchema).optional(),
+  customFields: z.nullable(z.array(CustomFieldRequestEntity$outboundSchema))
+    .optional(),
+  abandonedCartRecoveryEnabled: z.boolean().optional(),
 }).transform((v) => {
   return remap$(v, {
     imageUrl: "image_url",
     imageUrls: "image_urls",
     defaultSuccessUrl: "default_success_url",
+    externalId: "external_id",
     billingType: "billing_type",
     billingPeriod: "billing_period",
     recurringInterval: "recurring_interval",
@@ -231,6 +271,8 @@ export const UpdateProductRequestEntity$outboundSchema: z.ZodType<
     payWhatYouWant: "pay_what_you_want",
     suggestedPrice: "suggested_price",
     usagePrices: "usage_prices",
+    customFields: "custom_fields",
+    abandonedCartRecoveryEnabled: "abandoned_cart_recovery_enabled",
   });
 });
 

@@ -86,6 +86,10 @@ export type MeterApiResponseDto = {
    */
   status: MeterApiResponseDtoStatus;
   /**
+   * Your own key for this meter (`external_id`), unique per store. `null` when the meter has none.
+   */
+  externalId: string | null;
+  /**
    * Creation timestamp (ISO 8601)
    */
   createdAt: string;
@@ -136,6 +140,7 @@ export const MeterApiResponseDto$inboundSchema: z.ZodType<
   filter: MeterFilterApiResponseDto$inboundSchema,
   unit_label: z.string(),
   status: MeterApiResponseDtoStatus$inboundSchema,
+  external_id: z.nullable(z.string()),
   created_at: z.string(),
   updated_at: z.string(),
 }).transform((v) => {
@@ -144,6 +149,7 @@ export const MeterApiResponseDto$inboundSchema: z.ZodType<
     "event_name": "eventName",
     "aggregation_property": "aggregationProperty",
     "unit_label": "unitLabel",
+    "external_id": "externalId",
     "created_at": "createdAt",
     "updated_at": "updatedAt",
   });
@@ -159,6 +165,7 @@ export type MeterApiResponseDto$Outbound = {
   filter: MeterFilterApiResponseDto$Outbound;
   unit_label: string;
   status: string;
+  external_id: string | null;
   created_at: string;
   updated_at: string;
 };
@@ -178,6 +185,7 @@ export const MeterApiResponseDto$outboundSchema: z.ZodType<
   filter: MeterFilterApiResponseDto$outboundSchema,
   unitLabel: z.string(),
   status: MeterApiResponseDtoStatus$outboundSchema,
+  externalId: z.nullable(z.string()),
   createdAt: z.string(),
   updatedAt: z.string(),
 }).transform((v) => {
@@ -186,6 +194,7 @@ export const MeterApiResponseDto$outboundSchema: z.ZodType<
     eventName: "event_name",
     aggregationProperty: "aggregation_property",
     unitLabel: "unit_label",
+    externalId: "external_id",
     createdAt: "created_at",
     updatedAt: "updated_at",
   });

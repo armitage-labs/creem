@@ -181,20 +181,26 @@ const creem = new Creem({
 
 async function run() {
   const result = await creem.discounts.create({
-    name: "Holiday Sale",
-    code: "HOLIDAY2024",
-    type: "percentage",
-    amount: 20,
-    currency: "USD",
-    percentage: 15,
-    expiryDate: new Date("2024-12-31T23:59:59Z"),
-    maxRedemptions: 100,
-    duration: "repeating",
-    durationInMonths: 6,
-    appliesToProducts: [
-      "prod_123",
-      "prod_456",
-    ],
+    createDiscountRequestEntity: {
+      name: "Holiday Sale",
+      code: "HOLIDAY2024",
+      type: "percentage",
+      amount: 20,
+      currency: "USD",
+      percentage: 15,
+      expiryDate: new Date("2024-12-31T23:59:59Z"),
+      maxRedemptions: 100,
+      duration: "repeating",
+      durationInMonths: 6,
+      appliesToProducts: [
+        "prod_123",
+        "prod_456",
+      ],
+      appliesToProductExternalIds: [
+        "pro-monthly",
+      ],
+      externalId: "spring-2026",
+    },
   });
 
   console.log(result);
@@ -219,20 +225,26 @@ const creem = new CreemCore({
 
 async function run() {
   const res = await discountsCreate(creem, {
-    name: "Holiday Sale",
-    code: "HOLIDAY2024",
-    type: "percentage",
-    amount: 20,
-    currency: "USD",
-    percentage: 15,
-    expiryDate: new Date("2024-12-31T23:59:59Z"),
-    maxRedemptions: 100,
-    duration: "repeating",
-    durationInMonths: 6,
-    appliesToProducts: [
-      "prod_123",
-      "prod_456",
-    ],
+    createDiscountRequestEntity: {
+      name: "Holiday Sale",
+      code: "HOLIDAY2024",
+      type: "percentage",
+      amount: 20,
+      currency: "USD",
+      percentage: 15,
+      expiryDate: new Date("2024-12-31T23:59:59Z"),
+      maxRedemptions: 100,
+      duration: "repeating",
+      durationInMonths: 6,
+      appliesToProducts: [
+        "prod_123",
+        "prod_456",
+      ],
+      appliesToProductExternalIds: [
+        "pro-monthly",
+      ],
+      externalId: "spring-2026",
+    },
   });
   if (res.ok) {
     const { value: result } = res;
@@ -249,7 +261,7 @@ run();
 
 | Parameter                                                                                                                                                                      | Type                                                                                                                                                                           | Required                                                                                                                                                                       | Description                                                                                                                                                                    |
 | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
-| `request`                                                                                                                                                                      | [components.CreateDiscountRequestEntity](../../models/components/creatediscountrequestentity.md)                                                                               | :heavy_check_mark:                                                                                                                                                             | The request object to use for the request.                                                                                                                                     |
+| `request`                                                                                                                                                                      | [operations.CreateDiscountRequest](../../models/operations/creatediscountrequest.md)                                                                                           | :heavy_check_mark:                                                                                                                                                             | The request object to use for the request.                                                                                                                                     |
 | `options`                                                                                                                                                                      | RequestOptions                                                                                                                                                                 | :heavy_minus_sign:                                                                                                                                                             | Used to set various options for making HTTP requests.                                                                                                                          |
 | `options.fetchOptions`                                                                                                                                                         | [RequestInit](https://developer.mozilla.org/en-US/docs/Web/API/Request/Request#options)                                                                                        | :heavy_minus_sign:                                                                                                                                                             | Options that are passed to the underlying HTTP request. This can be used to inject extra headers for examples. All `Request` options, except `method` and `body`, are allowed. |
 | `options.retries`                                                                                                                                                              | [RetryConfig](../../lib/utils/retryconfig.md)                                                                                                                                  | :heavy_minus_sign:                                                                                                                                                             | Enables retrying HTTP requests under certain failure conditions.                                                                                                               |
@@ -260,9 +272,10 @@ run();
 
 ### Errors
 
-| Error Type      | Status Code     | Content Type    |
-| --------------- | --------------- | --------------- |
-| errors.APIError | 4XX, 5XX        | \*/\*           |
+| Error Type                        | Status Code                       | Content Type                      |
+| --------------------------------- | --------------------------------- | --------------------------------- |
+| errors.TooManyRequestsErrorEntity | 429                               | application/json                  |
+| errors.APIError                   | 4XX, 5XX                          | \*/\*                             |
 
 ## delete
 

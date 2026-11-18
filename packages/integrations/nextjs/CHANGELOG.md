@@ -1,5 +1,13 @@
 # Changelog
 
+## 0.6.5
+
+### Patch Changes
+
+- 8626f81: Bump creem SDK dependency to 1.13.0
+- Updated dependencies [d7a4947]
+  - creem@1.14.0
+
 ## 0.6.4
 
 ### Patch Changes

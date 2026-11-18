@@ -1821,6 +1821,8 @@ describe("registerRoutes", () => {
           status: "active",
           tax_mode: "exclusive",
           tax_category: "saas",
+          external_id: null,
+          metadata: null,
           default_success_url: null,
           created_at: "2026-02-28T07:52:06.979Z",
           updated_at: "2026-02-28T07:52:06.979Z",
@@ -1916,6 +1918,8 @@ describe("registerRoutes", () => {
           status: "active",
           tax_mode: "exclusive",
           tax_category: "saas",
+          external_id: null,
+          metadata: null,
           default_success_url: null,
           created_at: "2026-02-28T07:52:06.979Z",
           updated_at: "2026-02-28T07:52:06.979Z",
@@ -1992,7 +1996,7 @@ describe("registerRoutes", () => {
     expect(response.status).toBe(202);
     expect(debitAccount).toHaveBeenCalledWith({
       id: "cred_acct_1",
-      creditDebitRequestDto: {
+      debitRequestDto: {
         amount: "50",
         reference: "refund:ref_credits",
         idempotencyKey: "creem:refund:ref_credits:credits:prod_credits:50",
@@ -2077,7 +2081,7 @@ describe("registerRoutes", () => {
     expect(response.status).toBe(202);
     expect(debitAccount).toHaveBeenCalledWith({
       id: "cred_acct_1",
-      creditDebitRequestDto: {
+      debitRequestDto: {
         amount: "100",
         reference: "refund:ref_full_credits",
         idempotencyKey:
@@ -2136,6 +2140,8 @@ describe("registerRoutes", () => {
           status: "active",
           tax_mode: "exclusive",
           tax_category: "saas",
+          external_id: null,
+          metadata: null,
           default_success_url: null,
           created_at: "2026-02-28T07:55:24.184Z",
           updated_at: "2026-02-28T07:55:24.184Z",
@@ -2228,6 +2234,8 @@ describe("registerRoutes", () => {
           status: "active",
           tax_mode: "exclusive",
           tax_category: "saas",
+          external_id: null,
+          metadata: null,
           default_success_url: null,
           created_at: "2026-02-28T07:55:55.057Z",
           updated_at: "2026-02-28T07:55:55.057Z",

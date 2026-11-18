@@ -1,4 +1,3 @@
-import * as components from "creem/models/components";
 import * as operations from "creem/models/operations";
 import { decode, type OperationHandler } from "../../lib/operation";
 
@@ -20,12 +19,12 @@ export const handlers: Record<string, OperationHandler> = {
     return client.discounts.get(p, options);
   },
   createDiscount: (client, parameters, body, options) => {
-    const b = decode(
-      components.CreateDiscountRequestEntity$outboundSchema,
-      components.CreateDiscountRequestEntity$inboundSchema,
-      body,
+    const p = decode(
+      operations.CreateDiscountRequest$outboundSchema,
+      operations.CreateDiscountRequest$inboundSchema,
+      { ...parameters, createDiscountRequestEntity: body },
     );
-    return client.discounts.create(b, options);
+    return client.discounts.create(p, options);
   },
   deleteDiscount: (client, parameters, body, options) => {
     const p = decode(

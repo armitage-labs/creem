@@ -80,7 +80,15 @@
     },
     {
       "source": "/code/mcp",
-      "destination": "/ai/for-agents/mcp-server"
+      "destination": "/ai/for-agents/hosted-mcp"
+    },
+    {
+      "source": "/ai/for-agents/mcp-server",
+      "destination": "/ai/for-agents/hosted-mcp"
+    },
+    {
+      "source": "/getting-started/introduction",
+      "destination": "/"
     }
   ],
   "theme": "mint",
@@ -100,7 +108,7 @@
             "group": "Get Started",
             "icon": "rocket",
             "pages": [
-              "getting-started/introduction",
+              "index",
               "getting-started/quickstart",
               "getting-started/test-mode",
               {
@@ -109,7 +117,14 @@
                   "merchant-of-record/account-reviews/account-reviews",
                   "merchant-of-record/account-reviews/re-review-guide",
                   "merchant-of-record/account-reviews/rejected-accounts",
-                  "merchant-of-record/account-reviews/ai-wrapper-compliance"
+                  {
+                    "group": "Gen AI Compliance",
+                    "pages": [
+                      "merchant-of-record/account-reviews/gen-ai-requirements",
+                      "merchant-of-record/account-reviews/gen-ai-technical-integration-guide",
+                      "merchant-of-record/account-reviews/ai-wrapper-compliance"
+                    ]
+                  }
                 ]
               },
               "getting-started/dashboard-overview",
@@ -123,13 +138,17 @@
               "ai/introduction",
               {
                 "group": "For Humans",
-                "pages": ["ai/for-humans/getting-started", "ai/for-humans/cli"]
+                "pages": [
+                  "ai/for-humans/getting-started",
+                  "ai/for-humans/ai-assistants",
+                  "ai/for-humans/cli"
+                ]
               },
               {
                 "group": "For Agents",
                 "pages": [
+                  "ai/for-agents/hosted-mcp",
                   "ai/for-agents/skill-files",
-                  "ai/for-agents/mcp-server",
                   "ai/for-agents/cli",
                   "ai/for-agents/store-monitoring"
                 ]
@@ -355,7 +374,16 @@
               "api-reference/endpoint/get-product",
               "api-reference/endpoint/search-products",
               "api-reference/endpoint/update-product",
-              "api-reference/endpoint/archive-product"
+              "api-reference/endpoint/archive-product",
+              "api-reference/endpoint/list-product-prices"
+            ]
+          },
+          {
+            "group": "Product Groups",
+            "icon": "layer-group",
+            "pages": [
+              "api-reference/endpoint/list-product-groups",
+              "api-reference/endpoint/get-product-group"
             ]
           },
           {

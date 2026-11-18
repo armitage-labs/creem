@@ -30,21 +30,24 @@ const creem = new Creem({
 
 async function run() {
   const result = await creem.meters.createMeter({
-    name: "Image generations",
-    eventName: "image.generated",
-    aggregation: "sum",
-    aggregationProperty: "tokens",
-    filter: {
-      conjunction: "and",
-      clauses: [
-        {
-          property: "tier",
-          operator: "equals",
-          value: "pro",
-        },
-      ],
+    createMeterApiRequestDto: {
+      name: "Image generations",
+      eventName: "image.generated",
+      aggregation: "sum",
+      aggregationProperty: "tokens",
+      filter: {
+        conjunction: "and",
+        clauses: [
+          {
+            property: "tier",
+            operator: "equals",
+            value: "pro",
+          },
+        ],
+      },
+      unitLabel: "images",
+      externalId: "image-generations",
     },
-    unitLabel: "images",
   });
 
   console.log(result);
@@ -69,21 +72,24 @@ const creem = new CreemCore({
 
 async function run() {
   const res = await metersCreateMeter(creem, {
-    name: "Image generations",
-    eventName: "image.generated",
-    aggregation: "sum",
-    aggregationProperty: "tokens",
-    filter: {
-      conjunction: "and",
-      clauses: [
-        {
-          property: "tier",
-          operator: "equals",
-          value: "pro",
-        },
-      ],
+    createMeterApiRequestDto: {
+      name: "Image generations",
+      eventName: "image.generated",
+      aggregation: "sum",
+      aggregationProperty: "tokens",
+      filter: {
+        conjunction: "and",
+        clauses: [
+          {
+            property: "tier",
+            operator: "equals",
+            value: "pro",
+          },
+        ],
+      },
+      unitLabel: "images",
+      externalId: "image-generations",
     },
-    unitLabel: "images",
   });
   if (res.ok) {
     const { value: result } = res;
@@ -100,7 +106,7 @@ run();
 
 | Parameter                                                                                                                                                                      | Type                                                                                                                                                                           | Required                                                                                                                                                                       | Description                                                                                                                                                                    |
 | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
-| `request`                                                                                                                                                                      | [components.CreateMeterApiRequestDto](../../models/components/createmeterapirequestdto.md)                                                                                     | :heavy_check_mark:                                                                                                                                                             | The request object to use for the request.                                                                                                                                     |
+| `request`                                                                                                                                                                      | [operations.CreateMeterRequest](../../models/operations/createmeterrequest.md)                                                                                                 | :heavy_check_mark:                                                                                                                                                             | The request object to use for the request.                                                                                                                                     |
 | `options`                                                                                                                                                                      | RequestOptions                                                                                                                                                                 | :heavy_minus_sign:                                                                                                                                                             | Used to set various options for making HTTP requests.                                                                                                                          |
 | `options.fetchOptions`                                                                                                                                                         | [RequestInit](https://developer.mozilla.org/en-US/docs/Web/API/Request/Request#options)                                                                                        | :heavy_minus_sign:                                                                                                                                                             | Options that are passed to the underlying HTTP request. This can be used to inject extra headers for examples. All `Request` options, except `method` and `body`, are allowed. |
 | `options.retries`                                                                                                                                                              | [RetryConfig](../../lib/utils/retryconfig.md)                                                                                                                                  | :heavy_minus_sign:                                                                                                                                                             | Enables retrying HTTP requests under certain failure conditions.                                                                                                               |
@@ -113,7 +119,7 @@ run();
 
 | Error Type                              | Status Code                             | Content Type                            |
 | --------------------------------------- | --------------------------------------- | --------------------------------------- |
-| errors.UsageMeteringErrorApiResponseDto | 409, 422                                | application/json                        |
+| errors.UsageMeteringErrorApiResponseDto | 409, 422, 429                           | application/json                        |
 | errors.APIError                         | 4XX, 5XX                                | \*/\*                                   |
 
 ## listMeters
@@ -134,6 +140,7 @@ async function run() {
   const result = await creem.meters.listMeters({
     startingAfter: "mtr_abc123",
     endingBefore: "mtr_abc123",
+    externalId: "image-generations",
   });
 
   for await (const page of result) {
@@ -162,6 +169,7 @@ async function run() {
   const res = await metersListMeters(creem, {
     startingAfter: "mtr_abc123",
     endingBefore: "mtr_abc123",
+    externalId: "image-generations",
   });
   if (res.ok) {
     const { value: result } = res;
@@ -399,6 +407,7 @@ async function run() {
           },
         ],
       },
+      externalId: "image-generations",
     },
   });
 
@@ -439,6 +448,7 @@ async function run() {
           },
         ],
       },
+      externalId: "image-generations",
     },
   });
   if (res.ok) {

@@ -17,7 +17,7 @@ import { NextResponse } from 'next/server'
  * cookie gate here, real validation at the data access layer.
  *
  * Note: `/api/auth/*` is deliberately excluded - those endpoints (sign-in,
- * sign-up, the Creem webhook) must stay reachable without a session.
+ * sign-up, email verification) must stay reachable without a session.
  */
 export function proxy(request: NextRequest) {
   const sessionCookie = getSessionCookie(request)
@@ -26,6 +26,6 @@ export function proxy(request: NextRequest) {
 }
 
 export const config = {
-  // Protected API surface only. Keep `/api/auth` out so auth + webhook flows work.
+  // Protected API surface only. Keep `/api/auth` out so the auth flows work.
   matcher: ['/api/checkout', '/api/generate', '/api/generations', '/api/credits/:path*'],
 }

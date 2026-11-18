@@ -97,11 +97,13 @@ export async function getTestDiscount(): Promise<DiscountEntity> {
   console.log("[Test Setup] Creating test discount...");
   
   cachedDiscount = await creem.discounts.create({
-    name: `Test Discount ${Date.now()}`,
-    type: DiscountType.Percentage,
-    percentage: 10,
-    duration: CouponDurationType.Forever,
-    appliesToProducts: [product.id],
+    createDiscountRequestEntity: {
+      name: `Test Discount ${Date.now()}`,
+      type: DiscountType.Percentage,
+      percentage: 10,
+      duration: CouponDurationType.Forever,
+      appliesToProducts: [product.id],
+    },
   });
 
   console.log(`[Test Setup] Created test discount: ${cachedDiscount.id}`);

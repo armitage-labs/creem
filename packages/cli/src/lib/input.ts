@@ -207,8 +207,11 @@ export function validateOperation(
       if (b[k] !== undefined) parseInteger(k, b[k], { min: 1 });
     if (b.duration === "repeating" && !b.durationInMonths)
       throw new CliError("Repeating discounts require --duration-months.");
-    if (!Array.isArray(b.appliesToProducts) || !b.appliesToProducts.length)
-      throw new CliError("Provide at least one product in --products or appliesToProducts.");
+    const listed = (value: unknown) => Array.isArray(value) && value.length > 0;
+    if (!listed(b.appliesToProducts) && !listed(b.appliesToProductExternalIds))
+      throw new CliError(
+        "Provide at least one product in --products, appliesToProducts or appliesToProductExternalIds.",
+      );
   }
   if (row.cliPath === "splits create") {
     const recipients = b.recipients;

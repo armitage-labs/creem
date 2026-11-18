@@ -171,16 +171,19 @@ it("customer-credits debitAccount sends the exact SDK arguments", async () => {
     "ref",
     "--idempotency-key",
     "idem",
+    "--moderation-id",
+    "mod_1",
     "--yes",
     "--json",
   ]);
   expect(spy, result.stderr).toHaveBeenCalledExactlyOnceWith(
     {
       id: "acc_1",
-      creditDebitRequestDto: expect.objectContaining({
+      debitRequestDto: expect.objectContaining({
         amount: "20",
         reference: "ref",
         idempotencyKey: "idem",
+        moderationId: "mod_1",
       }),
     },
     expect.objectContaining({ retries: { strategy: "none" } }),

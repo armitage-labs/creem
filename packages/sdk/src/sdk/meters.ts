@@ -25,7 +25,7 @@ export class Meters extends ClientSDK {
    * Define how a stream of usage events is aggregated into billable units. The unit label doubles as the display unit and as the credit bucket the meter settles into. A duplicate name within the store is rejected with 409 meter_name_taken.
    */
   async createMeter(
-    request: components.CreateMeterApiRequestDto,
+    request: operations.CreateMeterRequest,
     options?: RequestOptions,
   ): Promise<components.MeterApiResponseDto> {
     return unwrapAsync(metersCreateMeter(

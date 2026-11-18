@@ -13,6 +13,7 @@ import {
   customerEntityFromJSON,
   subscriptionEntityFromJSON,
 } from "../src/models/components/index.js";
+import { SDKValidationError } from "../src/models/errors/sdkvalidationerror.js";
 
 const legacySecret = "whsec_test_secret";
 
@@ -82,10 +83,14 @@ describe("CLI webhook feed contract", () => {
       }),
     });
 
-    const result = await client.webhooks.acknowledgeEvent({ id: "wh_fixture", eventId: "evt_fixture", acknowledgeWebhookEventRequestEntity: {
+    const result = await client.webhooks.acknowledgeEvent({
+      id: "wh_fixture",
+      eventId: "evt_fixture",
+      acknowledgeWebhookEventRequestEntity: {
         statusCode: 200,
         responseBody: "OK",
-      } });
+      },
+    });
     expect(result.success).toBe(false);
   });
 });
@@ -119,11 +124,7 @@ const hmacSha256 = async (key: string | Uint8Array, value: string) => {
     ["sign"],
   );
   return new Uint8Array(
-    await crypto.subtle.sign(
-      "HMAC",
-      cryptoKey,
-      toArrayBuffer(textEncoder.encode(value)),
-    ),
+    await crypto.subtle.sign("HMAC", cryptoKey, toArrayBuffer(textEncoder.encode(value))),
   );
 };
 
@@ -133,11 +134,7 @@ const legacySignature = async (payload: string, secret = legacySecret) =>
 const standardSecretBytes = textEncoder.encode("standard-secret");
 const standardSecret = `whsec_${toBase64(standardSecretBytes)}`;
 
-const standardSignature = async (
-  id: string,
-  timestamp: number,
-  payload: string,
-) =>
+const standardSignature = async (id: string, timestamp: number, payload: string) =>
   `v1,${toBase64(await hmacSha256(standardSecretBytes, `${id}.${timestamp}.${payload}`))}`;
 
 describe("webhooks", () => {
@@ -170,11 +167,7 @@ describe("webhooks", () => {
 
   it("rejects invalid legacy signatures", async () => {
     await expect(
-      verifyWebhookSignature(
-        payload,
-        { "creem-signature": "bad" },
-        legacySecret,
-      ),
+      verifyWebhookSignature(payload, { "creem-signature": "bad" }, legacySecret),
     ).rejects.toBeInstanceOf(WebhookVerificationError);
   });
 
@@ -187,11 +180,7 @@ describe("webhooks", () => {
         {
           "webhook-id": "msg_123",
           "webhook-timestamp": String(timestamp),
-          "webhook-signature": await standardSignature(
-            "msg_123",
-            timestamp,
-            payload,
-          ),
+          "webhook-signature": await standardSignature("msg_123", timestamp, payload),
         },
         standardSecret,
       ),
@@ -237,6 +226,8 @@ describe("webhooks", () => {
           status: "active",
           tax_mode: "exclusive",
           tax_category: "saas",
+          external_id: null,
+          metadata: null,
           created_at: "2024-01-01T00:00:00Z",
           updated_at: "2024-01-01T00:00:00Z",
         },
@@ -336,6 +327,8 @@ describe("webhooks", () => {
             status: "active",
             tax_mode: "exclusive",
             tax_category: "saas",
+            external_id: null,
+            metadata: null,
             created_at: "2024-01-01T00:00:00Z",
             updated_at: "2024-01-01T00:00:00Z",
           },
@@ -358,5 +351,43 @@ describe("webhooks", () => {
 
     expect(event.eventType).toBe("subscription.past_due");
     expect(event.object.status).toBe("past_due");
+  });
+
+  const creditsReversed = (object: Record<string, unknown>) =>
+    JSON.stringify({
+      id: "evt_123",
+      eventType: "credits.reversed",
+      created_at: 1700000000,
+      object: {
+        id: "cct_123",
+        customer_id: "cust_123",
+        account_id: "cca_123",
+        bucket_name: "images",
+        unit_label: "images",
+        amount_minor_units: "500",
+        balance_after_minor_units: "1500",
+        reference: "rev_123",
+        occurred_at: "2026-11-16T00:00:00Z",
+        object: "customer_credits_reversal",
+        side: "credit",
+        reversed_transaction_id: "cct_100",
+        ...object,
+      },
+    });
+
+  it("parses a credits.reversed event into its own shape", () => {
+    const event = parseWebhookEventEntity(creditsReversed({}));
+
+    expect(event.eventType).toBe("credits.reversed");
+    if (event.eventType !== "credits.reversed") throw new Error("wrong variant");
+    expect(event.object.side).toBe("credit");
+    expect(event.object.reversedTransactionId).toBe("cct_100");
+    expect(event.object.amountMinorUnits).toBe("500");
+  });
+
+  it("refuses a credits.reversed event whose payload doesn't match it", () => {
+    expect(() =>
+      parseWebhookEventEntity(creditsReversed({ reversed_transaction_id: undefined })),
+    ).toThrow(SDKValidationError);
   });
 });

@@ -50,6 +50,7 @@ export function writeResult(context: CliContext, value: unknown, format: string)
           "balance",
           "price",
           "currency",
+          "current",
           "object",
         ].includes(k),
       )

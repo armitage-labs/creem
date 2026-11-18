@@ -7,16 +7,17 @@ import * as openEnums from "../../types/enums.js";
 import { OpenEnum } from "../../types/enums.js";
 
 /**
- * The type of the feature: `custom` (private note), `file` (downloadable files), `licenseKey` (license key), or `customerCredits` (customer credit grant).
+ * The type of the feature: `custom` (private note), `file` (downloadable files), `licenseKey` (license key), `customerCredits` (customer credit grant), or `githubRepository` (access to a private GitHub repository).
  */
 export const ProductFeatureType = {
   Custom: "custom",
   File: "file",
   LicenseKey: "licenseKey",
   CustomerCredits: "customerCredits",
+  GithubRepository: "githubRepository",
 } as const;
 /**
- * The type of the feature: `custom` (private note), `file` (downloadable files), `licenseKey` (license key), or `customerCredits` (customer credit grant).
+ * The type of the feature: `custom` (private note), `file` (downloadable files), `licenseKey` (license key), `customerCredits` (customer credit grant), or `githubRepository` (access to a private GitHub repository).
  */
 export type ProductFeatureType = OpenEnum<typeof ProductFeatureType>;
 

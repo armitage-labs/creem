@@ -1,4 +1,5 @@
 import { Command } from "commander";
+import type { CreateDiscountRequestEntity } from "creem/models/components";
 import ora from "ora";
 import chalk from "chalk";
 import { password, select } from "@inquirer/prompts";
@@ -898,7 +899,7 @@ async function executeMigration(
 
       try {
         // Build discount creation params
-        const params: Parameters<typeof client.discounts.create>[0] = {
+        const params: CreateDiscountRequestEntity = {
           name: item.creemDiscount.name,
           code: item.creemDiscount.code,
           type: item.creemDiscount.type,
@@ -932,7 +933,7 @@ async function executeMigration(
           params.durationInMonths = item.creemDiscount.durationInMonths;
         }
 
-        const created = await client.discounts.create(params);
+        const created = await client.discounts.create({ createDiscountRequestEntity: params });
         result.created.discounts.push(created.id);
         spinner.succeed(`${progress} Created: ${item.creemDiscount.code}`);
       } catch (error) {

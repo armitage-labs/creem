@@ -176,7 +176,9 @@ const creem = new Creem({
 });
 
 async function run() {
-  const result = await creem.products.search({});
+  const result = await creem.products.search({
+    externalId: "pro-monthly",
+  });
 
   for await (const page of result) {
     console.log(page);
@@ -208,7 +210,9 @@ const creem = new Creem({
 });
 
 async function run() {
-  const result = await creem.products.search({});
+  const result = await creem.products.search({
+    externalId: "pro-monthly",
+  });
 
   for await (const page of result) {
     console.log(page);
@@ -304,6 +308,11 @@ run();
 
 * [screenPrompt](docs/sdks/moderation/README.md#screenprompt) - Screen a prompt
 
+### [ProductGroups](docs/sdks/productgroups/README.md)
+
+* [list](docs/sdks/productgroups/README.md#list) - List product groups
+* [get](docs/sdks/productgroups/README.md#get) - Retrieve a product group
+
 ### [Products](docs/sdks/products/README.md)
 
 * [search](docs/sdks/products/README.md#search) - List all products
@@ -311,6 +320,7 @@ run();
 * [get](docs/sdks/products/README.md#get) - Get a product by ID
 * [update](docs/sdks/products/README.md#update) - Update a product
 * [archive](docs/sdks/products/README.md#archive) - Archive a product
+* [listPrices](docs/sdks/products/README.md#listprices) - List the price versions of a product
 
 ### [Splits](docs/sdks/splits/README.md)
 
@@ -419,9 +429,12 @@ To read more about standalone functions, check [FUNCTIONS.md](./FUNCTIONS.md).
 - [`metersUnarchiveMeter`](docs/sdks/meters/README.md#unarchivemeter) - Unarchive a meter
 - [`metersUpdateMeter`](docs/sdks/meters/README.md#updatemeter) - Update a meter
 - [`moderationScreenPrompt`](docs/sdks/moderation/README.md#screenprompt) - Screen a prompt
+- [`productGroupsGet`](docs/sdks/productgroups/README.md#get) - Retrieve a product group
+- [`productGroupsList`](docs/sdks/productgroups/README.md#list) - List product groups
 - [`productsArchive`](docs/sdks/products/README.md#archive) - Archive a product
 - [`productsCreate`](docs/sdks/products/README.md#create) - Creates a new product.
 - [`productsGet`](docs/sdks/products/README.md#get) - Get a product by ID
+- [`productsListPrices`](docs/sdks/products/README.md#listprices) - List the price versions of a product
 - [`productsSearch`](docs/sdks/products/README.md#search) - List all products
 - [`productsUpdate`](docs/sdks/products/README.md#update) - Update a product
 - [`splitsCreate`](docs/sdks/splits/README.md#create) - Create a split
@@ -471,7 +484,9 @@ const creem = new Creem({
 });
 
 async function run() {
-  const result = await creem.products.search({});
+  const result = await creem.products.search({
+    externalId: "pro-monthly",
+  });
 
   for await (const page of result) {
     console.log(page);
@@ -497,7 +512,9 @@ const creem = new Creem({
 });
 
 async function run() {
-  const result = await creem.products.search({}, {
+  const result = await creem.products.search({
+    externalId: "pro-monthly",
+  }, {
     retries: {
       strategy: "backoff",
       backoff: {
@@ -538,7 +555,9 @@ const creem = new Creem({
 });
 
 async function run() {
-  const result = await creem.products.search({});
+  const result = await creem.products.search({
+    externalId: "pro-monthly",
+  });
 
   for await (const page of result) {
     console.log(page);
@@ -575,9 +594,27 @@ const creem = new Creem({
 
 async function run() {
   try {
-    const result = await creem.customerCredits.createAccount({
-      customerId: "cust_abc123",
-      initialBalance: "300",
+    const result = await creem.discounts.create({
+      createDiscountRequestEntity: {
+        name: "Holiday Sale",
+        code: "HOLIDAY2024",
+        type: "percentage",
+        amount: 20,
+        currency: "USD",
+        percentage: 15,
+        expiryDate: new Date("2024-12-31T23:59:59Z"),
+        maxRedemptions: 100,
+        duration: "repeating",
+        durationInMonths: 6,
+        appliesToProducts: [
+          "prod_123",
+          "prod_456",
+        ],
+        appliesToProductExternalIds: [
+          "pro-monthly",
+        ],
+        externalId: "spring-2026",
+      },
     });
 
     console.log(result);
@@ -590,8 +627,12 @@ async function run() {
       console.log(error.headers);
 
       // Depending on the method different errors may be thrown
-      if (error instanceof errors.CustomerCreditsErrorResponseDto) {
-        console.log(error.data$.error); // components.CustomerCreditsErrorDetailDto
+      if (error instanceof errors.TooManyRequestsErrorEntity) {
+        console.log(error.data$.traceId); // string
+        console.log(error.data$.status); // number
+        console.log(error.data$.error); // string
+        console.log(error.data$.message); // string[]
+        console.log(error.data$.timestamp); // number
       }
     }
   }
@@ -605,7 +646,7 @@ run();
 **Primary error:**
 * [`CreemError`](./src/models/errors/creemerror.ts): The base class for HTTP error responses.
 
-<details><summary>Less common errors (8)</summary>
+<details><summary>Less common errors (9)</summary>
 
 <br />
 
@@ -618,8 +659,9 @@ run();
 
 
 **Inherit from [`CreemError`](./src/models/errors/creemerror.ts)**:
-* [`CustomerCreditsErrorResponseDto`](./src/models/errors/customercreditserrorresponsedto.ts): Applicable to 8 of 79 methods.*
-* [`UsageMeteringErrorApiResponseDto`](./src/models/errors/usagemeteringerrorapiresponsedto.ts): Applicable to 6 of 79 methods.*
+* [`CustomerCreditsErrorResponseDto`](./src/models/errors/customercreditserrorresponsedto.ts): Applicable to 9 of 82 methods.*
+* [`UsageMeteringErrorApiResponseDto`](./src/models/errors/usagemeteringerrorapiresponsedto.ts): Applicable to 6 of 82 methods.*
+* [`TooManyRequestsErrorEntity`](./src/models/errors/toomanyrequestserrorentity.ts): A create with this `Idempotency-Key` is in progress, or failed with an unclear outcome less than 5 minutes ago. Retry later. Status code `429`. Applicable to 1 of 82 methods.*
 * [`ResponseValidationError`](./src/models/errors/responsevalidationerror.ts): Type mismatch between the data returned from the server and the structure expected by the SDK. See `error.rawValue` for the raw value and `error.pretty()` for a nicely formatted multi-line string.
 
 </details>
@@ -650,7 +692,9 @@ const creem = new Creem({
 });
 
 async function run() {
-  const result = await creem.products.search({});
+  const result = await creem.products.search({
+    externalId: "pro-monthly",
+  });
 
   for await (const page of result) {
     console.log(page);
@@ -673,7 +717,9 @@ const creem = new Creem({
 });
 
 async function run() {
-  const result = await creem.products.search({});
+  const result = await creem.products.search({
+    externalId: "pro-monthly",
+  });
 
   for await (const page of result) {
     console.log(page);

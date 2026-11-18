@@ -4,12 +4,12 @@ import { decode, type OperationHandler } from "../../lib/operation";
 
 export const handlers: Record<string, OperationHandler> = {
   createMeter: (client, parameters, body, options) => {
-    const b = decode(
-      components.CreateMeterApiRequestDto$outboundSchema,
-      components.CreateMeterApiRequestDto$inboundSchema,
-      body,
+    const p = decode(
+      operations.CreateMeterRequest$outboundSchema,
+      operations.CreateMeterRequest$inboundSchema,
+      { ...parameters, createMeterApiRequestDto: body },
     );
-    return client.meters.createMeter(b, options);
+    return client.meters.createMeter(p, options);
   },
   listMeters: (client, parameters, body, options) => {
     const p = decode(

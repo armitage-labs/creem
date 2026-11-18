@@ -14,7 +14,7 @@ const creemWithInvalidKey = new Creem({
 describe("searchTransactions", () => {
   it("should handle API authentication errors", async () => {
     try {
-      await creemWithInvalidKey.transactions.search();
+      await creemWithInvalidKey.transactions.search({});
       fail("Expected an API error but none was thrown");
     } catch (error) {
       expect(error).toBeInstanceOf(APIError);
@@ -70,7 +70,7 @@ describe("searchTransactions", () => {
     });
 
     try {
-      await creemWithInvalidServer.transactions.search();
+      await creemWithInvalidServer.transactions.search({});
       fail("Expected network error but none was thrown");
     } catch (error) {
       expect(error).toBeDefined();

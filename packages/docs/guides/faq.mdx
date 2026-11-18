@@ -36,11 +36,13 @@ description: 'Answers to the most common questions about using Creem.'
   <Accordion title="What is the Moderation API and do I need it?">
     The [Moderation API](/features/moderation) is CREEM's prompt screening endpoint. It checks user-submitted text prompts against content policies before your AI model generates output.
 
-    **You need it if** your product generates images or videos from text prompts (regardless of which AI model you use).
+    **You need it if** your product generates or edits images or videos (regardless of which AI model you use). Every generation needs it, including fixed templates, gallery re-runs, upload-only edits and upscaling.
 
-    **You don't need it if** your product only does image upscaling, background removal, audio/music generation, text generation, or other non-generative tasks.
+    **You don't need it if** your product only generates audio, music or text.
 
-    Integration is required starting May 1st, 2026. Usage is billed at $0.30 per 1,000 text units, deducted automatically from your payouts — see the [full documentation](/features/moderation) for pricing details, code examples, and a go-live checklist.
+    Integration is required starting May 1st, 2026. 1 unit costs 0.0003 USD (a unit is 1,000 text characters); fees are deducted automatically from your payouts — see the [full documentation](/features/moderation) for pricing details, code examples, and a go-live checklist.
+
+    Gen AI products must also spend credits through [Customer Credits](/features/customer-credits/introduction), with every spend linked to a moderation result. See [Gen AI Requirements](/merchant-of-record/account-reviews/gen-ai-requirements) and the [Gen AI Technical Integration Guide](/merchant-of-record/account-reviews/gen-ai-technical-integration-guide).
   </Accordion>
 </AccordionGroup>
 
@@ -100,7 +102,9 @@ description: 'Answers to the most common questions about using Creem.'
     As your [Merchant of Record](/merchant-of-record/what-is), Creem handles all tax collection, remittance, and compliance automatically. The correct tax rate (VAT, GST, sales tax) is applied at checkout based on the customer's location. You don't need to register for tax in any country.
   </Accordion>
   <Accordion title="Can B2B customers get a tax exemption?">
-    Creem automatically applies the correct tax treatment based on the customer's location. For EU B2B transactions, if the customer provides a valid **VAT ID** during checkout, reverse charge rules may apply. Full self-service tax-exempt checkout (where B2B customers can input their VAT ID to skip tax) is on our roadmap — contact [support](https://creem.io/contact) if this is critical for your use case.
+    Yes, for cross-border EU business purchases. At checkout, the customer ticks **I'm purchasing as a business** and enters their business name and **VAT / Tax ID**. If the VAT ID is valid and the sale qualifies for the EU reverse charge, no VAT is charged and the customer accounts for VAT in their own country. Their invoice shows their business name and VAT ID alongside Creem's, and states that the reverse charge applies.
+
+    For prices that include tax, a business customer pays the same total by default, with the VAT removed. To charge them the price without VAT instead, turn on **Business customers pay net price** on a one-time product priced with tax included.
   </Accordion>
   <Accordion title="Why are some transactions taxed differently?">
     Tax rates vary by the customer's country, state, and sometimes city. A customer in France pays 20% VAT, while a customer in the US might pay 0-10% sales tax depending on their state. Creem calculates the correct rate automatically.

@@ -26,7 +26,7 @@ export type UpdateCustomerRequestEntity = {
    */
   metadata?: { [k: string]: any } | undefined;
   /**
-   * Your own id for this customer. Unique per store; usage ingestion resolves `external_customer_id` against it. Omit to leave unchanged; send `null` to clear it. Trimmed; letters, digits, `_` and `-` only; at most 255 characters.
+   * Your own id for this customer. Unique per store; usage ingestion resolves `external_customer_id` against it. Omit to leave unchanged; send `null` to clear it. Trimmed; letters, digits, `_`, `-`, `.` and `:` only; at most 255 characters.
    */
   externalId?: string | null | undefined;
 };

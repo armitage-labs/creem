@@ -15,15 +15,20 @@ it("meters create sends the exact SDK arguments", async () => {
       aggregationProperty: "tokens",
       unitLabel: "tokens",
     }),
+    "--idempotency-key",
+    "idem-1",
     "--json",
   ]);
   expect(spy, result.stderr).toHaveBeenCalledExactlyOnceWith(
-    expect.objectContaining({
-      name: "tokens",
-      eventName: "tokens_used",
-      aggregation: "sum",
-      aggregationProperty: "tokens",
-    }),
+    {
+      idempotencyKey: "idem-1",
+      createMeterApiRequestDto: expect.objectContaining({
+        name: "tokens",
+        eventName: "tokens_used",
+        aggregation: "sum",
+        aggregationProperty: "tokens",
+      }),
+    },
     expect.objectContaining({ retries: { strategy: "none" } }),
   );
   expect(result.stderr).toContain("SDK_SENTINEL");
@@ -42,10 +47,12 @@ it("meters list sends the exact SDK arguments", async () => {
     "mtr_1",
     "--include-archived",
     "true",
+    "--external-id",
+    "image-generations",
     "--json",
   ]);
   expect(spy, result.stderr).toHaveBeenCalledExactlyOnceWith(
-    { limit: 7, startingAfter: "mtr_1", includeArchived: true },
+    { limit: 7, startingAfter: "mtr_1", includeArchived: true, externalId: "image-generations" },
     expect.objectContaining({ retries: { strategy: "none" } }),
   );
   expect(result.stderr).toContain("SDK_SENTINEL");

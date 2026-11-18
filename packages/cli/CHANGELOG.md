@@ -1,5 +1,16 @@
 # @creem_io/cli
 
+## 0.10.0
+
+### Minor Changes
+
+- d7a4947: Support the refreshed API: `transactions list` takes `--status`, `--created-after` and `--created-before`, `products list` and `meters list` take `--external-id`, and `customer-credits debit` and `customer-credits transactions create` take `--moderation-id`. Product and meter create/update accept `--external-id`, and products accept `--metadata`.
+
+### Patch Changes
+
+- Updated dependencies [d7a4947]
+  - creem@1.14.0
+
 ## 0.9.0
 
 ### Minor Changes

@@ -26,7 +26,9 @@ export const WebhookEventType = {
   CustomerCreditsExhausted: "customer_credits.exhausted",
   CreditsGranted: "credits.granted",
   CreditsConsumed: "credits.consumed",
+  CreditsReversed: "credits.reversed",
   CreditsAutoRecharged: "credits.auto_recharged",
+  MarketplaceGrantRequested: "marketplace.grant.requested",
 } as const;
 /**
  * The event type carried in the delivery.

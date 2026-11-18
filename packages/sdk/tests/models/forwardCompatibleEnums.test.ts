@@ -16,6 +16,8 @@ const product = {
   status: "active",
   tax_mode: "inclusive",
   tax_category: "saas",
+  external_id: null,
+  metadata: null,
   created_at: "2026-09-05T09:33:00.965Z",
   updated_at: "2026-09-05T09:33:00.965Z",
 };

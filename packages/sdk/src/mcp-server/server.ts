@@ -64,9 +64,12 @@ import { tool$metersPreviewMeter } from "./tools/metersPreviewMeter.js";
 import { tool$metersUnarchiveMeter } from "./tools/metersUnarchiveMeter.js";
 import { tool$metersUpdateMeter } from "./tools/metersUpdateMeter.js";
 import { tool$moderationScreenPrompt } from "./tools/moderationScreenPrompt.js";
+import { tool$productGroupsGet } from "./tools/productGroupsGet.js";
+import { tool$productGroupsList } from "./tools/productGroupsList.js";
 import { tool$productsArchive } from "./tools/productsArchive.js";
 import { tool$productsCreate } from "./tools/productsCreate.js";
 import { tool$productsGet } from "./tools/productsGet.js";
+import { tool$productsListPrices } from "./tools/productsListPrices.js";
 import { tool$productsSearch } from "./tools/productsSearch.js";
 import { tool$productsUpdate } from "./tools/productsUpdate.js";
 import { tool$splitsCreate } from "./tools/splitsCreate.js";
@@ -103,7 +106,7 @@ export function createMCPServer(deps: {
 }) {
   const server = new McpServer({
     name: "Creem",
-    version: "1.13.0",
+    version: "1.14.0",
   });
 
   const client = new CreemCore({
@@ -138,6 +141,7 @@ export function createMCPServer(deps: {
   tool(tool$productsGet);
   tool(tool$productsUpdate);
   tool(tool$productsArchive);
+  tool(tool$productsListPrices);
   tool(tool$customersList);
   tool(tool$customersGetOrders);
   tool(tool$customersListSubscriptions);
@@ -163,6 +167,8 @@ export function createMCPServer(deps: {
   tool(tool$discountsGet);
   tool(tool$discountsCreate);
   tool(tool$discountsDelete);
+  tool(tool$productGroupsList);
+  tool(tool$productGroupsGet);
   tool(tool$transactionsGetById);
   tool(tool$transactionsSearch);
   tool(tool$transactionsRefund);

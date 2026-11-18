@@ -83,7 +83,7 @@ run();
 
 ## search
 
-Search and retrieve payment transactions. Filter by customer, product, date range, and status.
+Search and retrieve payment transactions. Filter by customer, order, product, status, and creation date range.
 
 ### Example Usage
 
@@ -100,6 +100,9 @@ async function run() {
     customerId: "cust_1234567890",
     orderId: "ord_1234567890",
     productId: "prod_1234567890",
+    status: "declined",
+    createdAfter: "2024-01-01T00:00:00Z",
+    createdBefore: "2024-12-31T23:59:59Z",
   });
 
   for await (const page of result) {
@@ -129,6 +132,9 @@ async function run() {
     customerId: "cust_1234567890",
     orderId: "ord_1234567890",
     productId: "prod_1234567890",
+    status: "declined",
+    createdAfter: "2024-01-01T00:00:00Z",
+    createdBefore: "2024-12-31T23:59:59Z",
   });
   if (res.ok) {
     const { value: result } = res;

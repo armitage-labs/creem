@@ -46,12 +46,15 @@ let value: RefundEntity = {
       features: [
         {
           id: "feat_abc123",
-          type: "customerCredits",
+          type: "githubRepository",
           description: "Access to premium course materials.",
+          externalId: "pro-credits",
           customerCredits: {
             amount: "100",
             unitLabel: "tokens",
             bucketName: "images",
+            requiresModeration: false,
+            resetsEachPeriod: false,
           },
         },
       ],
@@ -82,6 +85,10 @@ let value: RefundEntity = {
       taxCategory: "saas",
       productUrl: "https://creem.io/product/prod_123123123123",
       defaultSuccessUrl: "https://example.com/?status=successful",
+      externalId: "pro-monthly",
+      metadata: {
+        "plan": "pro",
+      },
       createdAt: new Date("2023-01-01T00:00:00Z"),
       updatedAt: new Date("2023-01-01T00:00:00Z"),
     },
@@ -108,6 +115,7 @@ let value: RefundEntity = {
       type: "recurring",
       createdAt: new Date("2023-09-13T00:00:00Z"),
       updatedAt: new Date("2023-09-13T00:00:00Z"),
+      recovered: false,
     },
     subscription: "<value>",
     customer: "<value>",
@@ -165,6 +173,7 @@ let value: RefundEntity = {
     type: "recurring",
     createdAt: new Date("2023-09-13T00:00:00Z"),
     updatedAt: new Date("2023-09-13T00:00:00Z"),
+    recovered: false,
   },
   subscription: {
     id: "<id>",
@@ -218,6 +227,7 @@ let value: RefundEntity = {
       "userId": "user_123",
       "plan": "pro",
     },
+    recovered: false,
   },
   customer: "<value>",
   createdAt: 2376.46,

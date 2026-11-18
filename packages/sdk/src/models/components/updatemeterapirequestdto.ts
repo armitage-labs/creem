@@ -50,6 +50,10 @@ export type UpdateMeterApiRequestDto = {
    * New filter. Part of the meter definition (see `aggregation`). Omit to leave unchanged; `null` is rejected — to remove a filter, send one with an empty `clauses` array.
    */
   filter?: MeterFilterApiRequestDto | undefined;
+  /**
+   * Your own key for this meter. Creem never sets it. Unique per store, case-sensitive; 1 to 255 characters: letters, digits, `_`, `-`, `.` and `:`. Not part of the definition, so it can change also after the meter has processed usage. Omit to leave unchanged; send `null` to clear it. A key another meter of your store already uses answers `409` with code `external_id_taken`.
+   */
+  externalId?: string | null | undefined;
 };
 
 /** @internal */
@@ -71,9 +75,11 @@ export const UpdateMeterApiRequestDto$inboundSchema: z.ZodType<
   aggregation: UpdateMeterApiRequestDtoAggregation$inboundSchema.optional(),
   aggregation_property: z.nullable(z.string()).optional(),
   filter: MeterFilterApiRequestDto$inboundSchema.optional(),
+  external_id: z.nullable(z.string()).optional(),
 }).transform((v) => {
   return remap$(v, {
     "aggregation_property": "aggregationProperty",
+    "external_id": "externalId",
   });
 });
 /** @internal */
@@ -82,6 +88,7 @@ export type UpdateMeterApiRequestDto$Outbound = {
   aggregation?: string | undefined;
   aggregation_property?: string | null | undefined;
   filter?: MeterFilterApiRequestDto$Outbound | undefined;
+  external_id?: string | null | undefined;
 };
 
 /** @internal */
@@ -94,9 +101,11 @@ export const UpdateMeterApiRequestDto$outboundSchema: z.ZodType<
   aggregation: UpdateMeterApiRequestDtoAggregation$outboundSchema.optional(),
   aggregationProperty: z.nullable(z.string()).optional(),
   filter: MeterFilterApiRequestDto$outboundSchema.optional(),
+  externalId: z.nullable(z.string()).optional(),
 }).transform((v) => {
   return remap$(v, {
     aggregationProperty: "aggregation_property",
+    externalId: "external_id",
   });
 });
 

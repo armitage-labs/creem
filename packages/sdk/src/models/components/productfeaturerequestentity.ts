@@ -21,9 +21,13 @@ import {
 
 export type ProductFeatureRequestEntity = {
   /**
-   * Identifier of an existing feature to edit in place (update only). Omit to add a new feature.
+   * Identifier of an existing feature to edit in place (update only). Omit to add a new feature. On update the array replaces the credit features of the product: send the `id` of every feature to keep, as returned on reads; a feature sent without its `id` is added as a new one and the stored feature it stood for is removed.
    */
   id?: string | undefined;
+  /**
+   * Your own key for this feature, the same in test and live and unique per product: 1 to 255 characters: letters, digits, `_`, `-`, `.` and `:`, case-sensitive. Omit it to leave the key unchanged; send `null` to clear it. On update, an entry without `id` whose `external_id` matches a stored feature edits that feature. An entry with `id` whose key another feature of the product holds, of any type, answers `409` with code `external_id_taken`. An entry without `id` whose key belongs to a feature of another type answers `400` with code `feature_type_mismatch`.
+   */
+  externalId?: string | null | undefined;
   /**
    * The feature type. Only `customerCredits` can be managed through the API.
    */
@@ -33,7 +37,7 @@ export type ProductFeatureRequestEntity = {
    */
   description: string;
   /**
-   * The credit grant this feature carries.
+   * The credit grant this feature carries. Set `requires_moderation` to `true` to grant into the customer's AI generation wallet; its credits can only be spent with a `moderation_id` from the Moderation API.
    */
   customerCredits: CustomerCreditsFeatureEntity;
 };
@@ -45,17 +49,20 @@ export const ProductFeatureRequestEntity$inboundSchema: z.ZodType<
   unknown
 > = z.object({
   id: z.string().optional(),
+  external_id: z.nullable(z.string()).optional(),
   type: ProductFeatureRequestType$inboundSchema,
   description: z.string(),
   customer_credits: CustomerCreditsFeatureEntity$inboundSchema,
 }).transform((v) => {
   return remap$(v, {
+    "external_id": "externalId",
     "customer_credits": "customerCredits",
   });
 });
 /** @internal */
 export type ProductFeatureRequestEntity$Outbound = {
   id?: string | undefined;
+  external_id?: string | null | undefined;
   type: string;
   description: string;
   customer_credits: CustomerCreditsFeatureEntity$Outbound;
@@ -68,11 +75,13 @@ export const ProductFeatureRequestEntity$outboundSchema: z.ZodType<
   ProductFeatureRequestEntity
 > = z.object({
   id: z.string().optional(),
+  externalId: z.nullable(z.string()).optional(),
   type: ProductFeatureRequestType$outboundSchema,
   description: z.string(),
   customerCredits: CustomerCreditsFeatureEntity$outboundSchema,
 }).transform((v) => {
   return remap$(v, {
+    externalId: "external_id",
     customerCredits: "customer_credits",
   });
 });
