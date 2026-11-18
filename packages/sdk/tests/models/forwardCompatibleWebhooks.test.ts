@@ -1,9 +1,10 @@
 import { describe, expect, it } from "vitest";
-import { parseWebhookEventEntity } from "../../src/webhooks.js";
+import { parseWebhookEventEntity, webhookEventSchemas } from "../../src/webhooks.js";
 import { isUnknown } from "../../src/types/discriminatedUnion.js";
 import { WebhookEventType } from "../../src/models/components/webhookeventtype.js";
 import { SDKValidationError } from "../../src/models/errors/sdkvalidationerror.js";
 import { readFileSync } from "node:fs";
+import * as z from "zod/v3";
 import { subscriptionEntityFromJSON } from "../../src/models/components/index.js";
 
 // ENG-2487: values outside API responses are open too. Webhook payload models
@@ -150,6 +151,49 @@ describe("forward-compatible webhook payloads", () => {
     expect(() => parseWebhookEventEntity(malformed)).toThrow(SDKValidationError);
   });
 
+  it("names the failing field of a known event type whose payload doesn't match it", () => {
+    const malformed = JSON.stringify({
+      id: "evt_123",
+      eventType: "refund.created",
+      created_at: 1700000000,
+      object: {
+        id: "ref_123",
+        mode: "test",
+        object: "refund",
+        status: "succeeded",
+        refund_amount: "not-a-number",
+        refund_currency: "EUR",
+        reason: "duplicate",
+        transaction: {
+          id: "tran_123",
+          mode: "test",
+          object: "transaction",
+          amount: 100,
+          currency: "EUR",
+          type: "payment",
+          status: "refunded",
+          created_at: 1700000000,
+        },
+        created_at: 1700000000,
+      },
+    });
+
+    let error: unknown;
+    try {
+      parseWebhookEventEntity(malformed);
+    } catch (e) {
+      error = e;
+    }
+    expect(error).toBeInstanceOf(SDKValidationError);
+    const validationError = error as SDKValidationError;
+    expect(validationError.message).toContain('Invalid "refund.created" webhook payload');
+    expect(validationError.cause).toBeInstanceOf(z.ZodError);
+    expect((validationError.cause as z.ZodError).issues.map((issue) => issue.path.join("."))).toEqual([
+      "object.refund_amount",
+    ]);
+    expect(validationError.pretty()).toContain("<root>.object.refund_amount");
+  });
+
   it("knows exactly the event types of the webhook union", () => {
     const spec = JSON.parse(readFileSync(new URL("../../openapi.json", import.meta.url), "utf8"));
     const unionTypes = Object.keys(
@@ -157,6 +201,8 @@ describe("forward-compatible webhook payloads", () => {
     );
 
     expect(new Set(Object.values(WebhookEventType))).toEqual(new Set(unionTypes));
+    // The per-type schemas that name the failing field of a malformed payload.
+    expect(new Set(Object.keys(webhookEventSchemas))).toEqual(new Set(unionTypes));
   });
 
   it.each([

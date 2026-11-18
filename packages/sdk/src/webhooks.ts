@@ -1,10 +1,68 @@
+import type * as z from "zod/v3";
 import type { WebhookEventEntity } from "./models/components/webhookevententity.js";
-import { webhookEventEntityFromJSON } from "./models/components/webhookevententity.js";
+import {
+  webhookEventEntityFromJSON,
+  WebhookEventEntityWebhookCheckoutCompletedEventEntity$inboundSchema,
+  WebhookEventEntityWebhookCreditsAutoRechargedEventEntity$inboundSchema,
+  WebhookEventEntityWebhookCreditsConsumedEventEntity$inboundSchema,
+  WebhookEventEntityWebhookCreditsGrantedEventEntity$inboundSchema,
+  WebhookEventEntityWebhookCreditsReversedEventEntity$inboundSchema,
+  WebhookEventEntityWebhookCustomerCreditsExhaustedEventEntity$inboundSchema,
+  WebhookEventEntityWebhookDisputeCreatedEventEntity$inboundSchema,
+  WebhookEventEntityWebhookMarketplaceGrantRequestedEventEntity$inboundSchema,
+  WebhookEventEntityWebhookRefundCreatedEventEntity$inboundSchema,
+  WebhookEventEntityWebhookSubscriptionActiveEventEntity$inboundSchema,
+  WebhookEventEntityWebhookSubscriptionCanceledEventEntity$inboundSchema,
+  WebhookEventEntityWebhookSubscriptionExpiredEventEntity$inboundSchema,
+  WebhookEventEntityWebhookSubscriptionPaidEventEntity$inboundSchema,
+  WebhookEventEntityWebhookSubscriptionPastDueEventEntity$inboundSchema,
+  WebhookEventEntityWebhookSubscriptionPausedEventEntity$inboundSchema,
+  WebhookEventEntityWebhookSubscriptionScheduledCancelEventEntity$inboundSchema,
+  WebhookEventEntityWebhookSubscriptionTrialingEventEntity$inboundSchema,
+  WebhookEventEntityWebhookSubscriptionUnpaidEventEntity$inboundSchema,
+  WebhookEventEntityWebhookSubscriptionUpdateEventEntity$inboundSchema,
+} from "./models/components/webhookevententity.js";
 import { WebhookEventType } from "./models/components/webhookeventtype.js";
 import { SDKValidationError } from "./models/errors/sdkvalidationerror.js";
 
+type KnownWebhookEventType = (typeof WebhookEventType)[keyof typeof WebhookEventType];
+
+/**
+ * @internal
+ * Each known event type's own payload schema. The open union only reports a
+ * failed known variant as UNKNOWN; parsing again with the variant's schema
+ * recovers the ZodError that names the failing field.
+ */
+export const webhookEventSchemas: Readonly<Record<KnownWebhookEventType, z.ZodTypeAny>> = {
+  "checkout.completed": WebhookEventEntityWebhookCheckoutCompletedEventEntity$inboundSchema,
+  "refund.created": WebhookEventEntityWebhookRefundCreatedEventEntity$inboundSchema,
+  "dispute.created": WebhookEventEntityWebhookDisputeCreatedEventEntity$inboundSchema,
+  "subscription.active": WebhookEventEntityWebhookSubscriptionActiveEventEntity$inboundSchema,
+  "subscription.trialing": WebhookEventEntityWebhookSubscriptionTrialingEventEntity$inboundSchema,
+  "subscription.canceled": WebhookEventEntityWebhookSubscriptionCanceledEventEntity$inboundSchema,
+  "subscription.scheduled_cancel":
+    WebhookEventEntityWebhookSubscriptionScheduledCancelEventEntity$inboundSchema,
+  "subscription.paid": WebhookEventEntityWebhookSubscriptionPaidEventEntity$inboundSchema,
+  "subscription.expired": WebhookEventEntityWebhookSubscriptionExpiredEventEntity$inboundSchema,
+  "subscription.unpaid": WebhookEventEntityWebhookSubscriptionUnpaidEventEntity$inboundSchema,
+  "subscription.update": WebhookEventEntityWebhookSubscriptionUpdateEventEntity$inboundSchema,
+  "subscription.past_due": WebhookEventEntityWebhookSubscriptionPastDueEventEntity$inboundSchema,
+  "subscription.paused": WebhookEventEntityWebhookSubscriptionPausedEventEntity$inboundSchema,
+  "customer_credits.exhausted":
+    WebhookEventEntityWebhookCustomerCreditsExhaustedEventEntity$inboundSchema,
+  "credits.granted": WebhookEventEntityWebhookCreditsGrantedEventEntity$inboundSchema,
+  "credits.consumed": WebhookEventEntityWebhookCreditsConsumedEventEntity$inboundSchema,
+  "credits.reversed": WebhookEventEntityWebhookCreditsReversedEventEntity$inboundSchema,
+  "credits.auto_recharged": WebhookEventEntityWebhookCreditsAutoRechargedEventEntity$inboundSchema,
+  "marketplace.grant.requested":
+    WebhookEventEntityWebhookMarketplaceGrantRequestedEventEntity$inboundSchema,
+};
+
 /** The event types this SDK version parses into their own shape. */
 const KNOWN_WEBHOOK_EVENT_TYPES: ReadonlySet<string> = new Set(Object.values(WebhookEventType));
+
+const isKnownWebhookEventType = (eventType: string): eventType is KnownWebhookEventType =>
+  KNOWN_WEBHOOK_EVENT_TYPES.has(eventType);
 
 export type WebhookHeaders =
   | Headers
@@ -268,10 +326,13 @@ export const parseWebhookEventEntity = (
         json,
       );
     }
-    if (KNOWN_WEBHOOK_EVENT_TYPES.has(eventType)) {
+    if (isKnownWebhookEventType(eventType)) {
+      // Parse again with the variant's own schema so the cause names the
+      // failing field, as 1.x did.
+      const variant = webhookEventSchemas[eventType].safeParse(raw);
       throw new SDKValidationError(
         `Invalid "${eventType}" webhook payload`,
-        "the payload doesn't match the schema of its event type",
+        variant.success ? "the payload doesn't match the schema of its event type" : variant.error,
         json,
       );
     }
