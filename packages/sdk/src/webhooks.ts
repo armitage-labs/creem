@@ -24,16 +24,26 @@ import {
 } from "./models/components/webhookevententity.js";
 import { WebhookEventType } from "./models/components/webhookeventtype.js";
 import { SDKValidationError } from "./models/errors/sdkvalidationerror.js";
+import type { Unknown } from "./types/discriminatedUnion.js";
 
-type KnownWebhookEventType = (typeof WebhookEventType)[keyof typeof WebhookEventType];
+/** The variants of the generated webhook union, without its UNKNOWN fallback. */
+type KnownWebhookEvent = Exclude<WebhookEventEntity, Unknown<"eventType">>;
+type KnownWebhookEventType = KnownWebhookEvent["eventType"];
 
 /**
- * @internal
  * Each known event type's own payload schema. The open union only reports a
  * failed known variant as UNKNOWN; parsing again with the variant's schema
- * recovers the ZodError that names the failing field.
+ * recovers the ZodError that names the failing field. Keyed by the generated
+ * union and typed per key, so a missing, extra or swapped entry doesn't compile.
+ * Not exported: it isn't part of the SDK's API.
  */
-export const webhookEventSchemas: Readonly<Record<KnownWebhookEventType, z.ZodTypeAny>> = {
+const webhookEventSchemas: {
+  readonly [K in KnownWebhookEventType]: z.ZodType<
+    Extract<KnownWebhookEvent, { eventType: K }>,
+    z.ZodTypeDef,
+    unknown
+  >;
+} = {
   "checkout.completed": WebhookEventEntityWebhookCheckoutCompletedEventEntity$inboundSchema,
   "refund.created": WebhookEventEntityWebhookRefundCreatedEventEntity$inboundSchema,
   "dispute.created": WebhookEventEntityWebhookDisputeCreatedEventEntity$inboundSchema,

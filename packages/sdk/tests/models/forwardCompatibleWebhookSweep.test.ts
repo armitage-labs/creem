@@ -11,31 +11,52 @@ const spec = JSON.parse(
   readFileSync(new URL("../../openapi.json", import.meta.url), "utf8"),
 );
 const schemas: Record<string, Schema> = spec.components.schemas;
+const refName = (s: Schema): string => s["$ref"].split("/").pop();
 const resolve = (s: Schema | undefined): Schema | undefined => {
-  while (s?.["$ref"]) s = schemas[s["$ref"].split("/").pop()];
+  while (s?.["$ref"]) s = schemas[refName(s)];
   return s;
 };
 type Site = (string | number)[];
 
-function sample(raw: Schema, path: Site, sites: Site[], key = "", depth = 0): unknown {
-  const s = resolve(raw);
+/**
+ * Builds a payload from the schema and records the path of every enum in it.
+ * At a `oneOf`, the branch with properties is followed, so an expandable field
+ * (`customer`, `product`, …) is swept as its nested entity, not as its id. A
+ * schema already on the current path is a cycle and stops there.
+ */
+function sample(raw: Schema, path: Site, sites: Site[], key = "", seen: ReadonlySet<string> = new Set()): unknown {
+  let s: Schema | undefined = raw;
+  let onPath: ReadonlySet<string> = seen;
+  while (s?.["$ref"]) {
+    const name = refName(s);
+    if (onPath.has(name)) return {};
+    onPath = new Set([...onPath, name]);
+    s = schemas[name];
+  }
   if (!s) return null;
   if (s["allOf"]) {
-    return Object.assign({}, ...s["allOf"].map((x: Schema) => sample(x, path, sites, key, depth)));
+    return Object.assign({}, ...s["allOf"].map((x: Schema) => sample(x, path, sites, key, onPath)));
   }
-  if (s["oneOf"] || s["anyOf"]) return sample((s["oneOf"] ?? s["anyOf"])[0], path, sites, key, depth);
+  if (s["oneOf"] || s["anyOf"]) {
+    const branches: Schema[] = s["oneOf"] ?? s["anyOf"];
+    const withProperties = branches.find((branch) => {
+      let b: Schema | undefined = branch;
+      while (b?.["$ref"]) b = schemas[refName(b)];
+      return b?.["properties"] !== undefined || b?.["allOf"] !== undefined;
+    });
+    return sample(withProperties ?? branches[0]!, path, sites, key, onPath);
+  }
   if (s["enum"]) {
     // `eventType` and `object` identify the variant and stay closed.
     if (key !== "eventType" && key !== "object") sites.push(path);
     return s["enum"][0];
   }
   if (s["type"] === "object" || s["properties"]) {
-    if (depth > 6) return {};
     return Object.fromEntries(
-      Object.entries<Schema>(s["properties"] ?? {}).map(([k, v]) => [k, sample(v, [...path, k], sites, k, depth + 1)]),
+      Object.entries<Schema>(s["properties"] ?? {}).map(([k, v]) => [k, sample(v, [...path, k], sites, k, onPath)]),
     );
   }
-  if (s["type"] === "array") return [sample(s["items"], [...path, 0], sites, key, depth + 1)];
+  if (s["type"] === "array") return [sample(s["items"], [...path, 0], sites, key, onPath)];
   if (s["type"] === "string") {
     if (s["format"] === "date-time") return "2026-01-01T00:00:00.000Z";
     return typeof s["example"] === "string" ? s["example"] : "x";
