@@ -1,4 +1,4 @@
-# Features
+# CreateProductRequestEntityFeatures
 
 
 ## Supported Types

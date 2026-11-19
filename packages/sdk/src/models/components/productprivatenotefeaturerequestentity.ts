@@ -7,11 +7,6 @@ import { remap as remap$ } from "../../lib/primitives.js";
 import { safeParse } from "../../lib/schemas.js";
 import { Result as SafeParseResult } from "../../types/fp.js";
 import { SDKValidationError } from "../errors/sdkvalidationerror.js";
-import {
-  ProductPrivateNoteFeatureRequestType,
-  ProductPrivateNoteFeatureRequestType$inboundSchema,
-  ProductPrivateNoteFeatureRequestType$outboundSchema,
-} from "./productprivatenotefeaturerequesttype.js";
 
 export type ProductPrivateNoteFeatureRequestEntity = {
   /**
@@ -25,7 +20,7 @@ export type ProductPrivateNoteFeatureRequestEntity = {
   /**
    * The feature type of a private-note entry.
    */
-  type: ProductPrivateNoteFeatureRequestType;
+  type: "custom";
   /**
    * A brief description of the feature, shown to the customer. Required and not blank on every write, including a stored feature sent back unchanged: a stored feature whose description is blank needs one before it can be sent back.
    */
@@ -44,7 +39,7 @@ export const ProductPrivateNoteFeatureRequestEntity$inboundSchema: z.ZodType<
 > = z.object({
   id: z.string().optional(),
   external_id: z.nullable(z.string()).optional(),
-  type: ProductPrivateNoteFeatureRequestType$inboundSchema,
+  type: z.literal("custom"),
   description: z.string(),
   private_note: z.string(),
 }).transform((v) => {
@@ -57,7 +52,7 @@ export const ProductPrivateNoteFeatureRequestEntity$inboundSchema: z.ZodType<
 export type ProductPrivateNoteFeatureRequestEntity$Outbound = {
   id?: string | undefined;
   external_id?: string | null | undefined;
-  type: string;
+  type: "custom";
   description: string;
   private_note: string;
 };
@@ -70,7 +65,7 @@ export const ProductPrivateNoteFeatureRequestEntity$outboundSchema: z.ZodType<
 > = z.object({
   id: z.string().optional(),
   externalId: z.nullable(z.string()).optional(),
-  type: ProductPrivateNoteFeatureRequestType$outboundSchema,
+  type: z.literal("custom"),
   description: z.string(),
   privateNote: z.string(),
 }).transform((v) => {

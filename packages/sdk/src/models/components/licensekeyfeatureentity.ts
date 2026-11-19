@@ -8,26 +8,11 @@ import { safeParse } from "../../lib/schemas.js";
 import { Result as SafeParseResult } from "../../types/fp.js";
 import { SDKValidationError } from "../errors/sdkvalidationerror.js";
 import {
-  LicenseKeyExpiryInterval,
-  LicenseKeyExpiryInterval$inboundSchema,
-  LicenseKeyExpiryInterval$outboundSchema,
-} from "./licensekeyexpiryinterval.js";
-
-export type LicenseKeyExpiryEntity = {
-  /**
-   * The unit of the license key validity period.
-   */
-  interval: LicenseKeyExpiryInterval;
-  /**
-   * How many `interval`s a license key stays valid after it is issued.
-   */
-  intervalCount: number;
-};
-
-/**
- * How long a license key stays valid after it is issued. `null` for keys that never expire. Each key keeps the expiry it was issued with, so a change applies only to keys issued later.
- */
-export type Expiry = LicenseKeyExpiryEntity;
+  LicenseKeyExpiryEntity,
+  LicenseKeyExpiryEntity$inboundSchema,
+  LicenseKeyExpiryEntity$Outbound,
+  LicenseKeyExpiryEntity$outboundSchema,
+} from "./licensekeyexpiryentity.js";
 
 export type LicenseKeyFeatureEntity = {
   /**
@@ -41,89 +26,13 @@ export type LicenseKeyFeatureEntity = {
 };
 
 /** @internal */
-export const LicenseKeyExpiryEntity$inboundSchema: z.ZodType<
-  LicenseKeyExpiryEntity,
-  z.ZodTypeDef,
-  unknown
-> = z.object({
-  interval: LicenseKeyExpiryInterval$inboundSchema,
-  interval_count: z.number().int(),
-}).transform((v) => {
-  return remap$(v, {
-    "interval_count": "intervalCount",
-  });
-});
-/** @internal */
-export type LicenseKeyExpiryEntity$Outbound = {
-  interval: string;
-  interval_count: number;
-};
-
-/** @internal */
-export const LicenseKeyExpiryEntity$outboundSchema: z.ZodType<
-  LicenseKeyExpiryEntity$Outbound,
-  z.ZodTypeDef,
-  LicenseKeyExpiryEntity
-> = z.object({
-  interval: LicenseKeyExpiryInterval$outboundSchema,
-  intervalCount: z.number().int(),
-}).transform((v) => {
-  return remap$(v, {
-    intervalCount: "interval_count",
-  });
-});
-
-export function licenseKeyExpiryEntityToJSON(
-  licenseKeyExpiryEntity: LicenseKeyExpiryEntity,
-): string {
-  return JSON.stringify(
-    LicenseKeyExpiryEntity$outboundSchema.parse(licenseKeyExpiryEntity),
-  );
-}
-export function licenseKeyExpiryEntityFromJSON(
-  jsonString: string,
-): SafeParseResult<LicenseKeyExpiryEntity, SDKValidationError> {
-  return safeParse(
-    jsonString,
-    (x) => LicenseKeyExpiryEntity$inboundSchema.parse(JSON.parse(x)),
-    `Failed to parse 'LicenseKeyExpiryEntity' from JSON`,
-  );
-}
-
-/** @internal */
-export const Expiry$inboundSchema: z.ZodType<Expiry, z.ZodTypeDef, unknown> = z
-  .lazy(() => LicenseKeyExpiryEntity$inboundSchema);
-/** @internal */
-export type Expiry$Outbound = LicenseKeyExpiryEntity$Outbound;
-
-/** @internal */
-export const Expiry$outboundSchema: z.ZodType<
-  Expiry$Outbound,
-  z.ZodTypeDef,
-  Expiry
-> = z.lazy(() => LicenseKeyExpiryEntity$outboundSchema);
-
-export function expiryToJSON(expiry: Expiry): string {
-  return JSON.stringify(Expiry$outboundSchema.parse(expiry));
-}
-export function expiryFromJSON(
-  jsonString: string,
-): SafeParseResult<Expiry, SDKValidationError> {
-  return safeParse(
-    jsonString,
-    (x) => Expiry$inboundSchema.parse(JSON.parse(x)),
-    `Failed to parse 'Expiry' from JSON`,
-  );
-}
-
-/** @internal */
 export const LicenseKeyFeatureEntity$inboundSchema: z.ZodType<
   LicenseKeyFeatureEntity,
   z.ZodTypeDef,
   unknown
 > = z.object({
   activation_limit: z.nullable(z.number().int()),
-  expiry: z.nullable(z.lazy(() => LicenseKeyExpiryEntity$inboundSchema)),
+  expiry: z.nullable(LicenseKeyExpiryEntity$inboundSchema),
 }).transform((v) => {
   return remap$(v, {
     "activation_limit": "activationLimit",
@@ -142,7 +51,7 @@ export const LicenseKeyFeatureEntity$outboundSchema: z.ZodType<
   LicenseKeyFeatureEntity
 > = z.object({
   activationLimit: z.nullable(z.number().int()),
-  expiry: z.nullable(z.lazy(() => LicenseKeyExpiryEntity$outboundSchema)),
+  expiry: z.nullable(LicenseKeyExpiryEntity$outboundSchema),
 }).transform((v) => {
   return remap$(v, {
     activationLimit: "activation_limit",

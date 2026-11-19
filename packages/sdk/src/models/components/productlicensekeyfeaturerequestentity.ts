@@ -13,11 +13,6 @@ import {
   LicenseKeyFeatureEntity$Outbound,
   LicenseKeyFeatureEntity$outboundSchema,
 } from "./licensekeyfeatureentity.js";
-import {
-  ProductLicenseKeyFeatureRequestType,
-  ProductLicenseKeyFeatureRequestType$inboundSchema,
-  ProductLicenseKeyFeatureRequestType$outboundSchema,
-} from "./productlicensekeyfeaturerequesttype.js";
 
 export type ProductLicenseKeyFeatureRequestEntity = {
   /**
@@ -31,7 +26,7 @@ export type ProductLicenseKeyFeatureRequestEntity = {
   /**
    * The feature type of a license-key entry.
    */
-  type: ProductLicenseKeyFeatureRequestType;
+  type: "licenseKey";
   /**
    * A brief description of the feature, shown to the customer. Required and not blank on every write, including a stored feature sent back unchanged: a stored feature whose description is blank needs one before it can be sent back.
    */
@@ -50,7 +45,7 @@ export const ProductLicenseKeyFeatureRequestEntity$inboundSchema: z.ZodType<
 > = z.object({
   id: z.string().optional(),
   external_id: z.nullable(z.string()).optional(),
-  type: ProductLicenseKeyFeatureRequestType$inboundSchema,
+  type: z.literal("licenseKey"),
   description: z.string(),
   license_key: LicenseKeyFeatureEntity$inboundSchema,
 }).transform((v) => {
@@ -63,7 +58,7 @@ export const ProductLicenseKeyFeatureRequestEntity$inboundSchema: z.ZodType<
 export type ProductLicenseKeyFeatureRequestEntity$Outbound = {
   id?: string | undefined;
   external_id?: string | null | undefined;
-  type: string;
+  type: "licenseKey";
   description: string;
   license_key: LicenseKeyFeatureEntity$Outbound;
 };
@@ -76,7 +71,7 @@ export const ProductLicenseKeyFeatureRequestEntity$outboundSchema: z.ZodType<
 > = z.object({
   id: z.string().optional(),
   externalId: z.nullable(z.string()).optional(),
-  type: ProductLicenseKeyFeatureRequestType$outboundSchema,
+  type: z.literal("licenseKey"),
   description: z.string(),
   licenseKey: LicenseKeyFeatureEntity$outboundSchema,
 }).transform((v) => {

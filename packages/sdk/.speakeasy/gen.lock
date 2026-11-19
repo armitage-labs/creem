@@ -125,6 +125,7 @@ trackedFiles:
   docs/models/components/createproductrequestentity.md:
     id: 8257f878173d
     pristine_git_object: 1a0798d76f055612a9f62df2a317829617cf3d11
+  docs/models/components/createproductrequestentityfeatures.md: {}
   docs/models/components/createrefundrequestentity.md: {}
   docs/models/components/createsplitrecipientrequestentity.md: {}
   docs/models/components/createsplitrequestentity.md: {}
@@ -197,13 +198,11 @@ trackedFiles:
   docs/models/components/environmentmode.md: {}
   docs/models/components/errort.md: {}
   docs/models/components/eventtype.md: {}
-  docs/models/components/expiry.md: {}
   docs/models/components/feature.md: {}
   docs/models/components/featureentity.md:
     id: fe7695d86411
     pristine_git_object: f60f2dcf49c631efa5aa780eaf2b47a80e6b908e
   docs/models/components/featurefileentity.md: {}
-  docs/models/components/features.md: {}
   docs/models/components/fileentity.md: {}
   docs/models/components/fileentityobject.md: {}
   docs/models/components/fileentitypurpose.md: {}
@@ -282,28 +281,28 @@ trackedFiles:
     id: 01b586923dbb
     pristine_git_object: aa473e7b23f86649b6c80f3c5c11569dc6207ab2
   docs/models/components/productfeaturedeletionrequestentity.md: {}
+  docs/models/components/productfeatureeditrequestentity.md: {}
   docs/models/components/productfeaturefileentity.md: {}
   docs/models/components/productfeaturefilerequestentity.md: {}
   docs/models/components/productfeaturerequestentity.md: {}
-  docs/models/components/productfeaturerequesttype.md: {}
   docs/models/components/productfeaturetype.md: {}
+  docs/models/components/productfilefeatureeditrequestentity.md: {}
   docs/models/components/productfilefeatureentity.md: {}
   docs/models/components/productfilefeaturefilesrequestentity.md: {}
   docs/models/components/productfilefeaturerequestentity.md: {}
-  docs/models/components/productfilefeaturerequesttype.md: {}
   docs/models/components/productgroupentity.md: {}
   docs/models/components/productgrouplistentity.md: {}
   docs/models/components/productgroupproductentity.md: {}
+  docs/models/components/productlicensekeyfeatureeditrequestentity.md: {}
   docs/models/components/productlicensekeyfeaturerequestentity.md: {}
-  docs/models/components/productlicensekeyfeaturerequesttype.md: {}
   docs/models/components/productlistentity.md:
     id: b087b47a2019
     pristine_git_object: 1e5a17f2e6379b4f887ccdbf851af7a50876ea00
   docs/models/components/productpriceversionentity.md: {}
   docs/models/components/productpriceversionlistentity.md: {}
   docs/models/components/productpriceversionpricingmodel.md: {}
+  docs/models/components/productprivatenotefeatureeditrequestentity.md: {}
   docs/models/components/productprivatenotefeaturerequestentity.md: {}
-  docs/models/components/productprivatenotefeaturerequesttype.md: {}
   docs/models/components/productrequestbillingperiod.md: {}
   docs/models/components/productrequestbillingtype.md: {}
   docs/models/components/productrequestrecurringinterval.md: {}
@@ -1034,6 +1033,7 @@ trackedFiles:
     pristine_git_object: 3feea4852df433f51d8095c2e9c1c761c7fd1d44
   src/models/components/licenseinstanceentity.ts: {}
   src/models/components/licenseinstancelistentity.ts: {}
+  src/models/components/licensekeyexpiryentity.ts: {}
   src/models/components/licensekeyexpiryinterval.ts: {}
   src/models/components/licensekeyfeatureentity.ts: {}
   src/models/components/licenselistentity.ts: {}
@@ -1070,17 +1070,14 @@ trackedFiles:
   src/models/components/productfeaturefileentity.ts: {}
   src/models/components/productfeaturefilerequestentity.ts: {}
   src/models/components/productfeaturerequestentity.ts: {}
-  src/models/components/productfeaturerequesttype.ts: {}
   src/models/components/productfeaturetype.ts: {}
   src/models/components/productfilefeatureentity.ts: {}
   src/models/components/productfilefeaturefilesrequestentity.ts: {}
   src/models/components/productfilefeaturerequestentity.ts: {}
-  src/models/components/productfilefeaturerequesttype.ts: {}
   src/models/components/productgroupentity.ts: {}
   src/models/components/productgrouplistentity.ts: {}
   src/models/components/productgroupproductentity.ts: {}
   src/models/components/productlicensekeyfeaturerequestentity.ts: {}
-  src/models/components/productlicensekeyfeaturerequesttype.ts: {}
   src/models/components/productlistentity.ts:
     id: df4238ae8cbf
     pristine_git_object: e670fa2042c4cf4d0652c350597e85fc851ebbcc
@@ -1088,7 +1085,6 @@ trackedFiles:
   src/models/components/productpriceversionlistentity.ts: {}
   src/models/components/productpriceversionpricingmodel.ts: {}
   src/models/components/productprivatenotefeaturerequestentity.ts: {}
-  src/models/components/productprivatenotefeaturerequesttype.ts: {}
   src/models/components/productrequestbillingperiod.ts: {}
   src/models/components/productrequestbillingtype.ts: {}
   src/models/components/productrequestrecurringinterval.ts: {}
@@ -2376,7 +2372,7 @@ examples:
         path:
           id: "<id>"
       requestBody:
-        application/json: {"external_id": "pro-monthly", "metadata": {"plan": "pro"}, "business_net_pricing": false, "trial_period_days": 7, "trial_price": 100, "usage_prices": [{"id": "price_abc123", "meter_id": "mtr_abc123", "unit_price": 0.002, "free_allowance": 1000, "cap": 50000, "settlement_mode": "prepaid", "target_account_name": "images"}], "features": [{"id": "feat_abc123", "type": "customerCredits", "description": "500 image credits", "customer_credits": {"amount": "100", "unit_label": "tokens", "bucket_name": "images", "requires_moderation": false, "resets_each_period": false}}], "custom_fields": [{"type": "text", "key": "companyName", "label": "Company Name", "text": {"max_length": 200, "min_length": 1}, "checkbox": {"label": "I agree to the [terms and conditions](https://example.com/terms)"}}]}
+        application/json: {"external_id": "pro-monthly", "metadata": {"plan": "pro"}, "business_net_pricing": false, "trial_period_days": 7, "trial_price": 100, "usage_prices": [{"id": "price_abc123", "meter_id": "mtr_abc123", "unit_price": 0.002, "free_allowance": 1000, "cap": 50000, "settlement_mode": "prepaid", "target_account_name": "images"}], "features": [{"id": "feat_abc123", "type": "customerCredits", "description": "500 image credits", "customer_credits": {"amount": "100", "unit_label": "tokens", "bucket_name": "images", "requires_moderation": false, "resets_each_period": false}, "deleted": false}], "custom_fields": [{"type": "text", "key": "companyName", "label": "Company Name", "text": {"max_length": 200, "min_length": 1}, "checkbox": {"label": "I agree to the [terms and conditions](https://example.com/terms)"}}]}
       responses:
         "200":
           application/json: {"id": "<id>", "mode": "test", "object": "<value>", "name": "<value>", "description": "This is a sample product description.", "image_url": "https://example.com/image.jpg", "image_urls": ["https://example.com/image.jpg"], "features": [{"id": "feat_abc123", "type": "file", "description": "Access to premium course materials.", "external_id": "pro-credits"}], "usage_prices": [{"id": "price_abc123", "meter_id": "mtr_abc123", "unit_price": 0.002, "free_allowance": 1000, "cap": 50000, "settlement_mode": "prepaid", "target_account": "shared", "target_account_name": "images", "trial_usage_mode": "free"}], "price": 400, "currency": "USD", "billing_type": "recurring", "billing_period": "every-six-months", "recurring_interval": "{}", "recurring_interval_count": {}, "trial_period_days": 7, "trial_price": 100, "status": "archived", "tax_mode": "inclusive", "business_net_pricing": false, "tax_category": "ebooks", "product_url": "https://creem.io/product/prod_123123123123", "default_success_url": "https://example.com/?status=successful", "external_id": "pro-monthly", "metadata": {"plan": "pro"}, "created_at": "2023-01-01T00:00:00Z", "updated_at": "2023-01-01T00:00:00Z", "write_result": {"warnings": []}}

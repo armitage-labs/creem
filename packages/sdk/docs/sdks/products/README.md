@@ -404,6 +404,7 @@ async function run() {
             requiresModeration: false,
             resetsEachPeriod: false,
           },
+          deleted: false,
         },
       ],
       customFields: [
@@ -477,6 +478,7 @@ async function run() {
             requiresModeration: false,
             resetsEachPeriod: false,
           },
+          deleted: false,
         },
       ],
       customFields: [

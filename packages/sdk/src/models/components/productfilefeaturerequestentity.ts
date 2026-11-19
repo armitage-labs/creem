@@ -13,11 +13,6 @@ import {
   ProductFileFeatureFilesRequestEntity$Outbound,
   ProductFileFeatureFilesRequestEntity$outboundSchema,
 } from "./productfilefeaturefilesrequestentity.js";
-import {
-  ProductFileFeatureRequestType,
-  ProductFileFeatureRequestType$inboundSchema,
-  ProductFileFeatureRequestType$outboundSchema,
-} from "./productfilefeaturerequesttype.js";
 
 export type ProductFileFeatureRequestEntity = {
   /**
@@ -31,7 +26,7 @@ export type ProductFileFeatureRequestEntity = {
   /**
    * The feature type of a file entry.
    */
-  type: ProductFileFeatureRequestType;
+  type: "file";
   /**
    * A brief description of the feature, shown to the customer. Required and not blank on every write, including a stored feature sent back unchanged: a stored feature whose description is blank needs one before it can be sent back.
    */
@@ -50,7 +45,7 @@ export const ProductFileFeatureRequestEntity$inboundSchema: z.ZodType<
 > = z.object({
   id: z.string().optional(),
   external_id: z.nullable(z.string()).optional(),
-  type: ProductFileFeatureRequestType$inboundSchema,
+  type: z.literal("file"),
   description: z.string(),
   file: ProductFileFeatureFilesRequestEntity$inboundSchema,
 }).transform((v) => {
@@ -62,7 +57,7 @@ export const ProductFileFeatureRequestEntity$inboundSchema: z.ZodType<
 export type ProductFileFeatureRequestEntity$Outbound = {
   id?: string | undefined;
   external_id?: string | null | undefined;
-  type: string;
+  type: "file";
   description: string;
   file: ProductFileFeatureFilesRequestEntity$Outbound;
 };
@@ -75,7 +70,7 @@ export const ProductFileFeatureRequestEntity$outboundSchema: z.ZodType<
 > = z.object({
   id: z.string().optional(),
   externalId: z.nullable(z.string()).optional(),
-  type: ProductFileFeatureRequestType$outboundSchema,
+  type: z.literal("file"),
   description: z.string(),
   file: ProductFileFeatureFilesRequestEntity$outboundSchema,
 }).transform((v) => {

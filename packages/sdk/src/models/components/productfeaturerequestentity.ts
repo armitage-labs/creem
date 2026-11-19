@@ -13,11 +13,6 @@ import {
   CustomerCreditsFeatureEntity$Outbound,
   CustomerCreditsFeatureEntity$outboundSchema,
 } from "./customercreditsfeatureentity.js";
-import {
-  ProductFeatureRequestType,
-  ProductFeatureRequestType$inboundSchema,
-  ProductFeatureRequestType$outboundSchema,
-} from "./productfeaturerequesttype.js";
 
 export type ProductFeatureRequestEntity = {
   /**
@@ -31,7 +26,7 @@ export type ProductFeatureRequestEntity = {
   /**
    * The feature type of a credit grant entry. `licenseKey`, `custom` and `file` entries have their own variants; `githubRepository` features are managed in the dashboard, and an entry of that type answers `400` with code `feature_type_not_writable`.
    */
-  type: ProductFeatureRequestType;
+  type: "customerCredits";
   /**
    * A brief description of the feature, shown to the customer. Required and not blank on every write, including a stored feature sent back unchanged: a stored feature whose description is blank needs one before it can be sent back.
    */
@@ -50,7 +45,7 @@ export const ProductFeatureRequestEntity$inboundSchema: z.ZodType<
 > = z.object({
   id: z.string().optional(),
   external_id: z.nullable(z.string()).optional(),
-  type: ProductFeatureRequestType$inboundSchema,
+  type: z.literal("customerCredits"),
   description: z.string(),
   customer_credits: CustomerCreditsFeatureEntity$inboundSchema,
 }).transform((v) => {
@@ -63,7 +58,7 @@ export const ProductFeatureRequestEntity$inboundSchema: z.ZodType<
 export type ProductFeatureRequestEntity$Outbound = {
   id?: string | undefined;
   external_id?: string | null | undefined;
-  type: string;
+  type: "customerCredits";
   description: string;
   customer_credits: CustomerCreditsFeatureEntity$Outbound;
 };
@@ -76,7 +71,7 @@ export const ProductFeatureRequestEntity$outboundSchema: z.ZodType<
 > = z.object({
   id: z.string().optional(),
   externalId: z.nullable(z.string()).optional(),
-  type: ProductFeatureRequestType$outboundSchema,
+  type: z.literal("customerCredits"),
   description: z.string(),
   customerCredits: CustomerCreditsFeatureEntity$outboundSchema,
 }).transform((v) => {

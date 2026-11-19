@@ -3,10 +3,10 @@
 
 ## Supported Types
 
-### `components.ProductFeatureRequestEntity`
+### `components.ProductFeatureEditRequestEntity`
 
 ```typescript
-const value: components.ProductFeatureRequestEntity = {
+const value: components.ProductFeatureEditRequestEntity = {
   id: "feat_abc123",
   externalId: "pro-credits",
   type: "customerCredits",
@@ -21,10 +21,10 @@ const value: components.ProductFeatureRequestEntity = {
 };
 ```
 
-### `components.ProductLicenseKeyFeatureRequestEntity`
+### `components.ProductLicenseKeyFeatureEditRequestEntity`
 
 ```typescript
-const value: components.ProductLicenseKeyFeatureRequestEntity = {
+const value: components.ProductLicenseKeyFeatureEditRequestEntity = {
   id: "feat_abc123",
   externalId: "pro-license",
   type: "licenseKey",
@@ -39,10 +39,10 @@ const value: components.ProductLicenseKeyFeatureRequestEntity = {
 };
 ```
 
-### `components.ProductPrivateNoteFeatureRequestEntity`
+### `components.ProductPrivateNoteFeatureEditRequestEntity`
 
 ```typescript
-const value: components.ProductPrivateNoteFeatureRequestEntity = {
+const value: components.ProductPrivateNoteFeatureEditRequestEntity = {
   id: "feat_abc123",
   externalId: "welcome-note",
   type: "custom",
@@ -51,10 +51,10 @@ const value: components.ProductPrivateNoteFeatureRequestEntity = {
 };
 ```
 
-### `components.ProductFileFeatureRequestEntity`
+### `components.ProductFileFeatureEditRequestEntity`
 
 ```typescript
-const value: components.ProductFileFeatureRequestEntity = {
+const value: components.ProductFileFeatureEditRequestEntity = {
   id: "feat_abc123",
   externalId: "ebook-downloads",
   type: "file",

@@ -232,11 +232,36 @@ Products take license-key, private-note and file features on `create` and
 `update`, and `products.update` archives or unarchives with `status`. It
 returns a `ProductWriteResponseEntity`: the product as before, plus
 `writeResult.warnings`, so code that reads the result as a `ProductEntity`
-still compiles. An update entry with `deleted: true` removes one feature.
+still compiles.
+
+An update entry with `deleted: true` removes the one feature it names by `id`
+or `externalId`, whatever else the entry carries: a feature read back,
+description and settings included, and marked `deleted: true` is sent as a
+deletion of that feature. Every other entry is an edit or an addition; the edit
+types (`ProductFeatureEditRequestEntity` and its license-key, private-note and
+file counterparts) take `deleted` only as `false`.
+
+```ts
+await creem.products.update({
+  id: "prod_123",
+  updateProductRequestEntity: {
+    features: [{ id: "feat_note", deleted: true }],
+  },
+});
+```
 
 It also knows the `credits.reversed` webhook event: `parseWebhookEventEntity` and
 `constructWebhookEventEntity` parse it into its own shape (`event.object` is a
 `CustomerCreditsReversalEntity`). The 1.x SDK refused that event type.
+
+## Feature types are string literals
+
+The `type` of a feature entry on `products.create` and `products.update` is
+now its string literal (`"customerCredits"`, `"licenseKey"`, `"custom"` or
+`"file"`). 1.x exported the credit entry's type as the one-value enum
+`ProductFeatureRequestType`, which 2.0 removes along with its schemas. Write
+`type: "customerCredits"` where 1.x code used
+`ProductFeatureRequestType.CustomerCredits`.
 
 ## Marketplace grant ask fields are strings
 
