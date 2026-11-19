@@ -55,7 +55,7 @@ export function lemonSqueezyFetch(
   const fetcher = vi.fn(async (input: RequestInfo | URL, init?: RequestInit) => {
     const request = input instanceof Request ? input : new Request(input, init);
     const url = new URL(request.url);
-    if (url.hostname.endsWith("lemonsqueezy.com")) {
+    if (url.hostname === "lemonsqueezy.com" || url.hostname.endsWith(".lemonsqueezy.com")) {
       if (request.method !== "GET") throw new Error(`LS_WRITE_REFUSED ${request.method} ${url}`);
       lsRequests.push(`${url.pathname}${url.search}`);
       if (url.hostname === "app.lemonsqueezy.com") {

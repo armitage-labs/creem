@@ -111,14 +111,25 @@ const NOT_MIGRATED = [
   issue("out_of_scope", "License keys already issued in Lemon Squeezy are not migrated."),
 ];
 
+// Removes tags until none is left: one pass would turn "<<b>b>" into "<b>".
+function stripTags(html: string): string {
+  let text = html;
+  for (;;) {
+    const next = text.replace(/<[^<>]*>/g, "");
+    if (next === text) return next.replace(/[<>]/g, "");
+    text = next;
+  }
+}
+
 /** Converts LS's HTML descriptions to plain text. */
 export function htmlToText(html: string | null | undefined): string {
   if (!html) return "";
-  return html
-    .replace(/<br\s*\/?>/gi, "\n")
-    .replace(/<\/(p|div|li|h[1-6])>/gi, "\n")
-    .replace(/<li[^>]*>/gi, "- ")
-    .replace(/<[^>]+>/g, "")
+  return stripTags(
+    html
+      .replace(/<br\s*\/?>/gi, "\n")
+      .replace(/<\/(p|div|li|h[1-6])>/gi, "\n")
+      .replace(/<li[^>]*>/gi, "- "),
+  )
     .replace(/&nbsp;/g, " ")
     .replace(/&lt;/g, "<")
     .replace(/&gt;/g, ">")

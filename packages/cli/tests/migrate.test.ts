@@ -17,7 +17,7 @@ import {
   LemonSqueezyClient,
   fetchLemonSqueezyCatalog,
 } from "../src/lib/migration/lemon-squeezy/source";
-import { fromLemonSqueezy } from "../src/lib/migration/lemon-squeezy/map";
+import { fromLemonSqueezy, htmlToText } from "../src/lib/migration/lemon-squeezy/map";
 import { readCreemCatalog } from "../src/lib/migration/catalog";
 import { MIGRATION_REPORT_VERSION, migrationExitCode } from "../src/lib/migration/report";
 
@@ -1368,12 +1368,28 @@ describe("writer fixes", () => {
   });
 });
 
+describe("htmlToText", () => {
+  it("leaves no tag behind when tags are nested inside each other", () => {
+    expect(htmlToText("<<script>script>alert(1)<</script>/script><p>Hello</p>")).not.toMatch(
+      /<\/?[a-z]/i,
+    );
+    expect(htmlToText("<<b>b>Bold<</b>/b>")).toBe("Bold");
+  });
+
+  it("keeps an escaped angle bracket as text", () => {
+    expect(htmlToText("<p>1 &lt; 2</p>")).toBe("1 < 2");
+  });
+});
+
 describe("source fixes", () => {
   it("skips a file that can't be downloaded instead of stopping the run", async () => {
     const ls = lemonSqueezyFetch();
     const fetcher = ls.fetcher.getMockImplementation()!;
     ls.fetcher.mockImplementation(async (input, init) => {
-      if (String(input).includes("app.lemonsqueezy.com"))
+      if (
+        new URL(String(input instanceof Request ? input.url : input)).hostname ===
+        "app.lemonsqueezy.com"
+      )
         return new Response("gone", { status: 404 });
       return fetcher(input, init);
     });
@@ -1394,8 +1410,10 @@ describe("source fixes", () => {
 
   it("downloads files from their signed URL without the API key", async () => {
     const { ls } = await lsObjects();
-    const download = ls.fetcher.mock.calls.find(([input]) =>
-      String(input instanceof Request ? input.url : input).includes("app.lemonsqueezy.com"),
+    const download = ls.fetcher.mock.calls.find(
+      ([input]) =>
+        new URL(String(input instanceof Request ? input.url : input)).hostname ===
+        "app.lemonsqueezy.com",
     )!;
     const headers = new Headers(download[1]?.headers);
     expect(headers.get("authorization")).toBeNull();
