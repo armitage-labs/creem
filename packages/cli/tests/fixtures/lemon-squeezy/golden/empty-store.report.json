@@ -140,7 +140,7 @@
       "warnings": [
         {
           "code": "pwyw_recurring_unsupported",
-          "message": "Pay what you want is one-time only in Creem; the subscription gets the fixed minimum price of 500."
+          "message": "Pay what you want is one-time only in Creem; the subscription gets its minimum price, 500 cents, as a fixed price."
         }
       ],
       "error": null,
@@ -218,7 +218,7 @@
       "changes": [],
       "reason": {
         "code": "product_group_write_unavailable",
-        "message": "The public API cannot create product groups yet; create \"Pro Armitage subsription\" with ls_variant_365902, ls_variant_752120 in the dashboard."
+        "message": "The public API cannot create product groups yet; create \"Pro Armitage subsription\" with \"Pro Armitage subsription - top\", \"Pro Armitage subsription - basec\" in the dashboard."
       },
       "warnings": [],
       "error": null,
@@ -230,10 +230,7 @@
         "id": "262308"
       },
       "action": "skip",
-      "members": [
-        "ls_variant_365902",
-        "ls_variant_752120"
-      ]
+      "members": ["ls_variant_365902", "ls_variant_752120"]
     },
     {
       "status": "pending",
@@ -279,7 +276,7 @@
       "warnings": [
         {
           "code": "discount_variants_partially_migrated",
-          "message": "The discount applies only to the migrated variants; ls_variant_910005 are not migrated."
+          "message": "The discount applies only to the migrated variants. Not migrated: ls_variant_910005."
         }
       ],
       "error": null,

@@ -294,7 +294,7 @@ function mapVariant(
       warnings.push(
         issue(
           "pwyw_recurring_unsupported",
-          `Pay what you want is one-time only in Creem; the subscription gets the fixed minimum price of ${amount}.`,
+          `Pay what you want is one-time only in Creem; the subscription gets its minimum price, ${amount} cents, as a fixed price.`,
         ),
       );
     const days = trialDays(price.trial_interval_unit, price.trial_interval_quantity, warnings);
@@ -810,9 +810,11 @@ export function fromLemonSqueezy(
   // ---- product groups: two or more migrated recurring variants of one LS product
   const plannedKeys = new Set(productItems.filter((i) => i.action !== "skip").map((i) => i.key));
   for (const product of productsInOrder) {
-    const members = specs
-      .filter((s) => s.product === product && s.recurring && plannedKeys.has(s.key))
-      .map((s) => s.key);
+    const memberSpecs = specs.filter(
+      (s) => s.product === product && s.recurring && plannedKeys.has(s.key),
+    );
+    const members = memberSpecs.map((s) => s.key);
+    const memberNames = memberSpecs.map((s) => `"${s.create.name}"`).join(", ");
     if (members.length < 2) continue;
     const key = productKey(product.id);
     const item = newItem({
@@ -832,12 +834,12 @@ export function fromLemonSqueezy(
       else
         item.reason = issue(
           "product_group_write_unavailable",
-          `The public API cannot update product groups yet; set its products to ${members.join(", ")} in the dashboard.`,
+          `The public API cannot update product groups yet; set its products to ${memberNames} in the dashboard.`,
         );
     } else
       item.reason = issue(
         "product_group_write_unavailable",
-        `The public API cannot create product groups yet; create "${product.attributes.name}" with ${members.join(", ")} in the dashboard.`,
+        `The public API cannot create product groups yet; create "${product.attributes.name}" with ${memberNames} in the dashboard.`,
       );
     groupItems.push(item);
   }
@@ -1052,7 +1054,7 @@ function planDiscount(
       item.warnings.push(
         issue(
           "discount_variants_partially_migrated",
-          `The discount applies only to the migrated variants; ${missing.join(", ")} are not migrated.`,
+          `The discount applies only to the migrated variants. Not migrated: ${missing.join(", ")}.`,
         ),
       );
   }

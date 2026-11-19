@@ -197,9 +197,7 @@
         "maxRedemptions": 100,
         "expiryDate": "2027-03-01T00:00:00.000Z",
         "externalId": "ls_discount_930002",
-        "appliesToProductExternalIds": [
-          "ls_variant_910007"
-        ]
+        "appliesToProductExternalIds": ["ls_variant_910007"]
       }
     }
   }

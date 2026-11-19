@@ -594,3 +594,165 @@ it("migration automation fails before any prompt or fetch when approval or crede
   expect(JSON.parse(noKey.stderr).error.message).toContain("--ls-api-key");
   expect(fetcher).not.toHaveBeenCalled();
 });
+
+describe("creem migrate lemon-squeezy", () => {
+  const LS_KEY = "ls_fixture_secret_key";
+  const base = ["migrate", "lemon-squeezy", "--ls-api-key", LS_KEY, "--ls-store-id", LS_STORE_ID];
+  function setup(
+    options: { isTTY?: boolean; confirm?: (message: string) => Promise<boolean> } = {},
+  ) {
+    const ls = lemonSqueezyFetch();
+    vi.stubGlobal("fetch", ls.fetcher);
+    const creem = fakeCreem();
+    const confirm = vi.fn(options.confirm ?? (async () => false));
+    const h = harness(creem.client, { isTTY: options.isTTY ?? false, confirm });
+    return { ls, creem, h, confirm };
+  }
+
+  it("--json without --yes prints the plan as a versioned report and writes nothing", async () => {
+    const { creem, h, ls } = setup();
+    const consoleLog = vi.spyOn(console, "log");
+    const r = await h.run(["--json", ...base]);
+    expect(r.code, r.stderr).toBe(0);
+    const report = JSON.parse(r.stdout);
+    expect(report).toMatchObject({
+      schema: "creem.migration_report",
+      version: 1,
+      mode: "plan",
+      source: { provider: "lemon_squeezy", store_id: LS_STORE_ID, currency: "EUR" },
+    });
+    expect(report.summary).toMatchObject({ create: 10, skip: 5 });
+    expect(creem.writes()).toEqual([]);
+    expect(ls.slotPosts).toEqual([]);
+    expect(consoleLog).not.toHaveBeenCalled();
+  });
+
+  it("--dry-run prints the plan and writes nothing", async () => {
+    const { creem, h } = setup();
+    const r = await h.run([...base, "--dry-run"]);
+    expect(r.code, r.stderr).toBe(0);
+    expect(r.stdout).toContain("ls_variant_752120");
+    expect(r.stdout).toContain("Dry run");
+    expect(creem.writes()).toEqual([]);
+  });
+
+  it("--dry-run --json reports mode dry_run", async () => {
+    const { h } = setup();
+    const r = await h.run(["--json", ...base, "--dry-run"]);
+    expect(JSON.parse(r.stdout).mode).toBe("dry_run");
+  });
+
+  it("prints the plan before asking, and writes nothing when the merchant declines", async () => {
+    let stdoutAtConfirm = "";
+    const { creem, h, confirm } = setup({
+      isTTY: true,
+      confirm: async () => {
+        stdoutAtConfirm = h.stdout();
+        return false;
+      },
+    });
+    const r = await h.run(base);
+    expect(confirm).toHaveBeenCalledOnce();
+    expect(stdoutAtConfirm).toContain("ls_variant_752120");
+    expect(stdoutAtConfirm).toContain("Create");
+    expect(r.code).toBe(2);
+    expect(creem.writes()).toEqual([]);
+  });
+
+  it("--yes runs the plan, prints the run report, and a second run writes nothing", async () => {
+    const { creem, h } = setup();
+    const first = await h.run(["--json", ...base, "--yes"]);
+    expect(first.code, first.stderr).toBe(0);
+    const report = JSON.parse(first.stdout);
+    expect(report.mode).toBe("run");
+    expect(report.summary).toMatchObject({ create: 10, failed: 0 });
+    expect(creem.state.products).toHaveLength(7);
+    const writes = creem.writes().length;
+    const second = await h.run(["--json", ...base, "--yes"]);
+    expect(second.code, second.stderr).toBe(0);
+    expect(JSON.parse(second.stdout).summary).toMatchObject({ create: 0, update: 0 });
+    expect(creem.writes()).toHaveLength(writes);
+  });
+
+  it("never sends the Lemon Squeezy key to Creem", async () => {
+    const { creem, h } = setup();
+    await h.run(["--json", ...base, "--yes"]);
+    expect(JSON.stringify(creem.calls)).not.toContain(LS_KEY);
+  });
+
+  it("exits 6 when an item fails, after running the rest", async () => {
+    const { creem, h } = setup();
+    creem.fail((c) => c.method === "POST" && c.body?.code === "APPFIVE", 400, {
+      code: "reference_not_found",
+      message: "nope",
+    });
+    const r = await h.run(["--json", ...base, "--yes"]);
+    expect(r.code).toBe(6);
+    const report = JSON.parse(r.stdout);
+    expect(report.items.find((i: any) => i.key === "ls_discount_930002")).toMatchObject({
+      status: "failed",
+      error: { code: "reference_not_found", status: 400 },
+    });
+    expect(report.items.find((i: any) => i.key === "ls_discount_930001").status).toBe("done");
+  });
+
+  it("refuses to write when the source could not be read completely (exit 4)", async () => {
+    const { creem, h, ls } = setup();
+    const fetcher = ls.fetcher.getMockImplementation()!;
+    ls.fetcher.mockImplementation(async (input, init) => {
+      if (String(input).includes("filter%5Bproduct_id%5D=900003"))
+        return Response.json({ errors: [{ status: "403" }] }, { status: 403 });
+      return fetcher(input, init);
+    });
+    const r = await h.run(["--json", ...base, "--yes"]);
+    expect(r.code).toBe(4);
+    expect(JSON.parse(r.stdout).fetch_failures).toEqual([
+      { kind: "variants of product 900003", message: expect.stringContaining("403") },
+    ]);
+    expect(creem.writes()).toEqual([]);
+  });
+
+  it("says what it migrates, and never that customers are migrated", async () => {
+    const { h } = setup();
+    const r = await h.run([...base, "--dry-run"]);
+    expect(r.stdout).toMatch(/products, product groups, discounts, license keys and files/i);
+    expect(r.stdout).toMatch(/customers.*not migrated/i);
+    expect(r.stdout).not.toMatch(/customers (will be|are) (created|migrated)/i);
+    const help = await h.run(["migrate", "lemon-squeezy", "--help"]);
+    expect(help.stdout).not.toMatch(/customers/i);
+  });
+
+  it("asks before adopting an unkeyed product in a terminal, and --adopt accepts proposals", async () => {
+    const existing = productJson("prod_old", {
+      name: "Desktop App",
+      price: 4900,
+      description: "The desktop app with a license key.",
+      tax_category: "digital-goods-service",
+    });
+    const ls = lemonSqueezyFetch();
+    vi.stubGlobal("fetch", ls.fetcher);
+    const creem = fakeCreem({ products: [existing] });
+    const messages: string[] = [];
+    const h = harness(creem.client, {
+      isTTY: true,
+      confirm: vi.fn(async (message: string) => {
+        messages.push(message);
+        return message.includes("prod_old");
+      }),
+    });
+    const r = await h.run([...base, "--yes"]);
+    expect(r.code, r.stderr).toBe(0);
+    expect(messages).toEqual([expect.stringContaining("prod_old")]);
+    expect(creem.state.products.find((p) => p.id === "prod_old")!.external_id).toBe(
+      "ls_variant_910007",
+    );
+
+    const auto = fakeCreem({ products: [existing] });
+    const h2 = harness(auto.client);
+    const r2 = await h2.run(["--json", ...base, "--yes", "--adopt"]);
+    expect(r2.code, r2.stderr).toBe(0);
+    expect(auto.state.products.find((p) => p.id === "prod_old")!.external_id).toBe(
+      "ls_variant_910007",
+    );
+  });
+});
