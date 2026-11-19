@@ -211,7 +211,8 @@ export function fakeCreem(initial: Partial<CreemState> = {}) {
   const respond = async (request: Request): Promise<Response> => {
     const url = new URL(request.url);
     const path = url.pathname;
-    const body = request.method === "GET" ? undefined : ((await request.json()) as Json);
+    const text = request.method === "GET" ? "" : await request.text();
+    const body = text ? (JSON.parse(text) as Json) : request.method === "GET" ? undefined : {};
     const call: CreemCall = { method: request.method, path, ...(body ? { body } : {}) };
     calls.push(call);
     const failure = failures.find((f) => f.match(call));

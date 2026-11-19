@@ -247,7 +247,8 @@ export class LemonSqueezyClient {
       for await (const chunk of response.body as unknown as AsyncIterable<Uint8Array>) {
         hash.update(chunk);
         size += chunk.length;
-        if (!out.write(chunk)) await new Promise((resolve) => out.once("drain", resolve));
+        if (!out.write(chunk))
+          await new Promise<void>((resolve) => out.once("drain", () => resolve()));
       }
     } finally {
       await new Promise<void>((resolve, reject) =>
