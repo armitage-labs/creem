@@ -18,6 +18,10 @@ import { redact } from "../../errors";
  * - A `pending` variant is the hidden default of a product that has other
  *   variants.
  * - A discount's `variants` relationship lists the variants it is limited to.
+ *   This one is from the LS API reference only: the test store has no limited
+ *   discount, so a hand-written fixture covers it.
+ * - A file's `download_url` is a signed URL that expires after an hour; it is
+ *   fetched without the API key.
  */
 
 export interface LSResource<A, R = Record<string, LSRelationship>> {
@@ -124,6 +128,8 @@ export interface LemonSqueezyObjects {
   prices: LSPrice[];
   files: LSFile[];
   fileDigests: Record<string, FileDigest>;
+  /** Files whose download failed, by file id: each is skipped on its own. */
+  fileFailures: Record<string, string>;
   discounts: LSDiscount[];
   discountsExcluded: boolean;
 }
@@ -189,13 +195,16 @@ export class LemonSqueezyClient {
     if (ms > 0) await new Promise((resolve) => setTimeout(resolve, ms));
   }
 
-  private async get(url: string, accept: string): Promise<Response> {
+  /** A GET with retries; `withKey: false` leaves the API key out (signed URLs). */
+  private async get(url: string, accept: string, withKey = true): Promise<Response> {
     let lastError: Error | undefined;
     for (let attempt = 1; attempt <= this.attempts; attempt++) {
       try {
         const response = await this.fetcher(url, {
           method: "GET",
-          headers: { Accept: accept, Authorization: `Bearer ${this.apiKey}` },
+          headers: withKey
+            ? { Accept: accept, Authorization: `Bearer ${this.apiKey}` }
+            : { Accept: accept },
         });
         if (response.ok) return response;
         const text = redact(await response.text(), [this.apiKey]);
@@ -236,9 +245,12 @@ export class LemonSqueezyClient {
     return (await this.list<LSStore>("/stores")).data;
   }
 
-  /** Downloads a file to `path` and hashes it on the way. */
+  /**
+   * Downloads a file from its signed URL to `path` and hashes it on the way.
+   * The URL comes from API data, so the API key is never sent with it.
+   */
   async download(url: string, path: string): Promise<{ sha256: string; size: number }> {
-    const response = await this.get(url, "*/*");
+    const response = await this.get(url, "*/*", false);
     if (!response.body) throw new Error("Lemon Squeezy file download returned no body");
     const hash = createHash("sha256");
     const out = createWriteStream(path);
@@ -284,6 +296,7 @@ export async function fetchLemonSqueezyCatalog(
     prices: [],
     files: [],
     fileDigests: {},
+    fileFailures: {},
     discounts: [],
     discountsExcluded: options.excludeDiscounts,
   };
@@ -332,7 +345,8 @@ export async function fetchLemonSqueezyCatalog(
         path,
       };
     } catch (error) {
-      failures.push({ kind: `file ${file.id}`, message: errorMessage(error) });
+      // One file that can't be downloaded skips that file, not the run.
+      objects.fileFailures[file.id] = errorMessage(error);
     }
   }
   return { objects, failures };

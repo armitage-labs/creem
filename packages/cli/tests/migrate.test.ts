@@ -49,6 +49,25 @@ async function lsObjects(
   return { ...result, ls };
 }
 const emptyCatalog = { products: [], productGroups: [], discounts: [] };
+const FILE_ID = "00000000-0000-4000-8000-000000920001";
+
+async function migrate(
+  creem: ReturnType<typeof fakeCreem>,
+  options: Parameters<typeof lsObjects>[0] & {
+    adoption?: Record<string, string>;
+  } = {},
+) {
+  const { objects } = await lsObjects(options);
+  const catalog = await readCreemCatalog(creem.client);
+  const plan = fromLemonSqueezy(objects, catalog, { now: NOW, adoption: options.adoption });
+  const slot = lemonSqueezyFetch();
+  const report = await executeMigration(creem.client, plan, {
+    files: objects.fileDigests,
+    fetch: slot.fetcher,
+    delayMs: 0,
+  });
+  return { plan, report, slotPosts: slot.slotPosts };
+}
 
 describe("Lemon Squeezy source", () => {
   it("reads the store's catalog with GETs only, scoped to the store, and never customers", async () => {
@@ -503,25 +522,6 @@ describe("Creem catalog reader", () => {
 });
 
 describe("executeMigration", () => {
-  const FILE_ID = "00000000-0000-4000-8000-000000920001";
-  async function migrate(
-    creem: ReturnType<typeof fakeCreem>,
-    options: Parameters<typeof lsObjects>[0] & {
-      adoption?: { accepted?: string[]; declined?: string[] };
-    } = {},
-  ) {
-    const { objects } = await lsObjects(options);
-    const catalog = await readCreemCatalog(creem.client);
-    const plan = fromLemonSqueezy(objects, catalog, { now: NOW, adoption: options.adoption });
-    const slot = lemonSqueezyFetch();
-    const report = await executeMigration(creem.client, plan, {
-      files: objects.fileDigests,
-      fetch: slot.fetcher,
-      delayMs: 0,
-    });
-    return { plan, report, slotPosts: slot.slotPosts };
-  }
-
   it("uploads files, then creates products and discounts, and reports every item done", async () => {
     const creem = fakeCreem();
     const { report, slotPosts } = await migrate(creem);
@@ -690,7 +690,8 @@ describe("executeMigration", () => {
     expect(pending.plan.report.proposals).toEqual([
       expect.objectContaining({
         id: "adopt:ls_variant_910007",
-        creem_id: "prod_old",
+        candidates: [expect.objectContaining({ creem_id: "prod_old" })],
+        creem_id: null,
         decision: "pending",
       }),
     ]);
@@ -700,7 +701,7 @@ describe("executeMigration", () => {
     });
 
     const creem = fakeCreem({ products: [existing] });
-    const adopted = await migrate(creem, { adoption: { accepted: ["adopt:ls_variant_910007"] } });
+    const adopted = await migrate(creem, { adoption: { "adopt:ls_variant_910007": "prod_old" } });
     const writes = creem.writes().map((c) => `${c.method} ${c.path}`);
     expect(writes[0]).toBe("PATCH /v1/products/prod_old");
     expect(creem.writes()[0].body).toEqual({ external_id: "ls_variant_910007" });
@@ -713,7 +714,7 @@ describe("executeMigration", () => {
     });
 
     const fresh = fakeCreem({ products: [existing] });
-    await migrate(fresh, { adoption: { declined: ["adopt:ls_variant_910007"] } });
+    await migrate(fresh, { adoption: { "adopt:ls_variant_910007": "new" } });
     expect(fresh.state.products.filter((p) => p.name === "Desktop App")).toHaveLength(2);
   });
 
@@ -744,7 +745,7 @@ describe("executeMigration", () => {
       message: "taken",
     });
     const { report } = await migrate(creem, {
-      adoption: { accepted: ["adopt:ls_variant_910007"] },
+      adoption: { "adopt:ls_variant_910007": "prod_old" },
     });
     expect(report.items.find((i) => i.key === "ls_variant_910007")).toMatchObject({
       status: "failed",
@@ -795,7 +796,7 @@ it("migration automation fails before any prompt or fetch when approval or crede
   const denied = await h.run(["migrate", "lemon-squeezy"]);
   expect(denied.code).toBe(2);
   const noKey = await h.run(["migrate", "lemon-squeezy", "--json"]);
-  expect(noKey.code).toBe(3);
+  expect(noKey.code).toBe(2);
   expect(JSON.parse(noKey.stderr).error.message).toContain("--ls-api-key");
   expect(fetcher).not.toHaveBeenCalled();
 });
@@ -959,5 +960,550 @@ describe("creem migrate lemon-squeezy", () => {
     expect(auto.state.products.find((p) => p.id === "prod_old")!.external_id).toBe(
       "ls_variant_910007",
     );
+  });
+});
+
+// ---- review round 2
+
+async function planFrom(
+  edit: (docs: ReturnType<typeof lemonSqueezyDocs>) => void = () => {},
+  catalog: Record<string, unknown[]> = emptyCatalog,
+  adoption?: Record<string, string>,
+) {
+  const docs = lemonSqueezyDocs();
+  edit(docs);
+  const { objects } = await lsObjects({ docs });
+  return fromLemonSqueezy(objects, { ...emptyCatalog, ...catalog } as never, {
+    now: NOW,
+    adoption,
+  });
+}
+const findItem = (p: { report: { items: any[] } }, key: string) =>
+  p.report.items.find((i) => i.key === key);
+const lsPrice = (docs: ReturnType<typeof lemonSqueezyDocs>, productId: string) =>
+  docs.variants.get(productId)!.included!.find((r: any) => r.type === "prices").attributes;
+const desktopApp = (id: string, fields: Record<string, unknown> = {}) =>
+  productJson(id, {
+    name: "Desktop App",
+    price: 4900,
+    description: "The desktop app with a license key.",
+    tax_category: "digital-goods-service",
+    ...fields,
+  });
+
+describe("adoption proposals (candidate rule)", () => {
+  it("proposes a product whose name differs only in case and spacing, and shows the differences", async () => {
+    const creem = fakeCreem({
+      products: [desktopApp("prod_usd", { name: "  desktop   APP ", currency: "USD" })],
+    });
+    const p = await planFrom(undefined, await readCreemCatalog(creem.client));
+    expect(p.report.proposals).toEqual([
+      expect.objectContaining({
+        id: "adopt:ls_variant_910007",
+        key: "ls_variant_910007",
+        decision: "pending",
+        candidates: [
+          {
+            creem_id: "prod_usd",
+            creem_name: "  desktop   APP ",
+            differences: expect.arrayContaining([expect.stringContaining("currency")]),
+          },
+        ],
+      }),
+    ]);
+    expect(findItem(p, "ls_variant_910007")).toMatchObject({
+      action: "skip",
+      creem_id: "prod_usd",
+      reason: { code: "adoption_unconfirmed" },
+    });
+    expect(p.requests.filter((r) => r.key === "ls_variant_910007")).toEqual([]);
+  });
+
+  it("makes several look-alike products one proposal with every candidate, never a silent create", async () => {
+    const creem = fakeCreem({
+      products: [
+        desktopApp("prod_a", { status: "archived" }),
+        desktopApp("prod_b", { billing_type: "recurring", billing_period: "every-month" }),
+        desktopApp("prod_c"),
+      ],
+    });
+    const catalog = await readCreemCatalog(creem.client);
+    const pending = await planFrom(undefined, catalog);
+    expect(pending.report.proposals).toHaveLength(1);
+    expect(pending.report.proposals[0].candidates.map((c) => c.creem_id)).toEqual([
+      "prod_c",
+      "prod_a",
+      "prod_b",
+    ]);
+    expect(findItem(pending, "ls_variant_910007")).toMatchObject({
+      action: "skip",
+      creem_id: null,
+      reason: { code: "adoption_unconfirmed" },
+    });
+    expect(pending.requests.filter((r) => r.key === "ls_variant_910007")).toEqual([]);
+
+    const chosen = await planFrom(undefined, catalog, { "adopt:ls_variant_910007": "prod_b" });
+    expect(chosen.requests[0]).toEqual({
+      type: "adopt_product",
+      key: "ls_variant_910007",
+      request: { id: "prod_b", updateProductRequestEntity: { externalId: "ls_variant_910007" } },
+    });
+    expect(chosen.report.proposals[0]).toMatchObject({ decision: "accepted", creem_id: "prod_b" });
+
+    const fresh = await planFrom(undefined, catalog, { "adopt:ls_variant_910007": "new" });
+    expect(fresh.requests.find((r) => r.key === "ls_variant_910007")!.type).toBe("create_product");
+  });
+
+  it("keeps a proposal pending when the answer names no candidate", async () => {
+    const creem = fakeCreem({ products: [desktopApp("prod_a")] });
+    const p = await planFrom(undefined, await readCreemCatalog(creem.client), {
+      "adopt:ls_variant_910007": "prod_unknown",
+    });
+    expect(p.report.proposals[0].decision).toBe("pending");
+    expect(findItem(p, "ls_variant_910007").warnings.map((w: any) => w.code)).toContain(
+      "adoption_choice_unknown",
+    );
+  });
+});
+
+describe("mapping fixes", () => {
+  it("adds the license-key feature to a stored product that has none, also for unlimited keys", async () => {
+    const docs = lemonSqueezyDocs();
+    Object.assign(docs.variants.get("900007")!.data[0].attributes, {
+      is_license_limit_unlimited: true,
+      is_license_length_unlimited: true,
+    });
+    const creem = fakeCreem();
+    await migrate(creem, { docs });
+    const app = creem.state.products.find((p) => p.external_id === "ls_variant_910007")!;
+    app.features = [];
+    const { plan } = await migrate(creem, { docs });
+    expect(findItem(plan, "ls_variant_910007")).toMatchObject({
+      action: "update",
+      changes: ["features.license_key"],
+    });
+    expect(app.features).toEqual([
+      expect.objectContaining({ type: "licenseKey", external_id: "ls_license_key" }),
+    ]);
+  });
+
+  it("warns, every run, that a removed pay-what-you-want suggestion can't be cleared", async () => {
+    const creem = fakeCreem();
+    await migrate(creem);
+    const docs = lemonSqueezyDocs();
+    lsPrice(docs, "900003").suggested_price = null;
+    for (let run = 0; run < 2; run++) {
+      const before = creem.writes().length;
+      const { plan } = await migrate(creem, { docs });
+      expect(findItem(plan, "ls_variant_910003")).toMatchObject({
+        action: "unchanged",
+        warnings: [expect.objectContaining({ code: "pwyw_suggestion_not_clearable" })],
+      });
+      expect(creem.writes()).toHaveLength(before);
+    }
+    const tipJar = creem.state.products.find((p) => p.external_id === "ls_variant_910003")!;
+    expect(tipJar.metadata.ls_pwyw_suggested_price).toBe(900);
+  });
+
+  it.each([0, 50])("skips pay what you want with a minimum of %i cents", async (min) => {
+    const p = await planFrom((docs) => {
+      Object.assign(lsPrice(docs, "900003"), { min_price: min, unit_price: min });
+    });
+    expect(findItem(p, "ls_variant_910003")).toMatchObject({
+      action: "skip",
+      reason: { code: "pwyw_minimum_below_100" },
+    });
+  });
+
+  it("skips a discount code longer than 14 characters and shortens a name longer than 40", async () => {
+    const p = await planFrom((docs) => {
+      docs.discounts.data[0].attributes.code = "SUMMERSALE2026XL";
+      docs.discounts.data[1].attributes.name = "Five off the desktop app for early supporters";
+    });
+    expect(findItem(p, "ls_discount_930001")).toMatchObject({
+      action: "skip",
+      reason: { code: "discount_code_too_long" },
+    });
+    const body = (p.requests.find((r) => r.key === "ls_discount_930002")!.request as any)
+      .createDiscountRequestEntity;
+    expect(body.name).toBe("Five off the desktop app for early suppo");
+    expect(findItem(p, "ls_discount_930002").warnings.map((w: any) => w.code)).toContain(
+      "discount_name_truncated",
+    );
+  });
+
+  it("skips a draft variant", async () => {
+    const p = await planFrom((docs) => {
+      docs.variants.get("262308")!.data.find((v: any) => v.id === "365902").attributes.status =
+        "draft";
+    });
+    expect(findItem(p, "ls_variant_365902")).toMatchObject({
+      action: "skip",
+      reason: { code: "variant_draft" },
+    });
+  });
+
+  it("reports keyed Creem products whose variant is gone or no longer migrated as orphaned", async () => {
+    const creem = fakeCreem({
+      products: [productJson("prod_gone", { name: "Old plan", external_id: "ls_variant_999999" })],
+    });
+    await migrate(creem);
+    const pro = creem.state.products.find((p) => p.external_id === "ls_variant_365902")!;
+    const p = await planFrom(
+      (docs) => {
+        docs.variants.get("262308")!.data.find((v: any) => v.id === "365902").attributes.status =
+          "draft";
+      },
+      await readCreemCatalog(creem.client),
+    );
+    expect(findItem(p, "ls_variant_365902")).toMatchObject({
+      action: "skip",
+      creem_id: pro.id,
+      warnings: [expect.objectContaining({ code: "orphaned" })],
+    });
+    expect(findItem(p, "ls_variant_999999")).toMatchObject({
+      kind: "product",
+      action: "skip",
+      creem_id: "prod_gone",
+      source: { type: "variant", id: "999999" },
+      warnings: [expect.objectContaining({ code: "orphaned" })],
+    });
+  });
+
+  it("gives an adopted product's own keyless license-key and file features the keys, instead of adding second ones", async () => {
+    const digest = createHash("sha256").update(FILE_BYTES).digest("base64");
+    const creem = fakeCreem({
+      products: [
+        desktopApp("prod_old", {
+          features: [
+            {
+              id: "feat_lk",
+              type: "licenseKey",
+              description: "Your key",
+              external_id: null,
+              license_key: { activation_limit: 1, expiry: null },
+            },
+          ],
+        }),
+        productJson("prod_icons", {
+          name: "Icon Pack",
+          price: 0,
+          description: "200 icons & a Figma file.",
+          features: [
+            {
+              id: "feat_files",
+              type: "file",
+              description: "Downloads",
+              external_id: null,
+              file: {
+                files: [
+                  {
+                    id: "file_mine",
+                    file_name: "icons.zip",
+                    type: "application/zip",
+                    size: FILE_BYTES.length,
+                    url: "https://x",
+                  },
+                  {
+                    id: "file_extra",
+                    file_name: "readme.pdf",
+                    type: "application/pdf",
+                    size: 9,
+                    url: "https://x",
+                  },
+                ],
+              },
+            },
+          ],
+        }),
+      ],
+      files: [
+        {
+          id: "file_mine",
+          filename: "icons.zip",
+          content_type: "application/zip",
+          size: FILE_BYTES.length,
+        },
+        { id: "file_extra", filename: "readme.pdf", content_type: "application/pdf", size: 9 },
+      ],
+    });
+    const { plan, slotPosts } = await migrate(creem, {
+      adoption: {
+        "adopt:ls_variant_910007": "prod_old",
+        "adopt:ls_variant_910001": "prod_icons",
+      },
+    });
+    const app = creem.state.products.find((p) => p.id === "prod_old")!;
+    expect(app.features).toEqual([
+      expect.objectContaining({
+        id: "feat_lk",
+        external_id: "ls_license_key",
+        license_key: { activation_limit: 3, expiry: { interval: "year", interval_count: 1 } },
+      }),
+    ]);
+    expect(findItem(plan, "ls_variant_910007").warnings.map((w: any) => w.code)).toContain(
+      "feature_adopted",
+    );
+    const icons = creem.state.products.find((p) => p.id === "prod_icons")!;
+    expect(slotPosts).toEqual([]);
+    expect(icons.features).toEqual([
+      expect.objectContaining({
+        id: "feat_files",
+        external_id: "ls_file_920001",
+        file: {
+          files: [
+            expect.objectContaining({ id: "file_mine" }),
+            expect.objectContaining({ id: "file_extra" }),
+          ],
+        },
+      }),
+    ]);
+    expect(icons.metadata).toMatchObject({
+      ls_file_920001_sha256: digest,
+      ls_file_920001_file_id: "file_mine",
+    });
+    const again = await migrate(creem);
+    expect(again.plan.requests).toEqual([]);
+  });
+});
+
+describe("writer fixes", () => {
+  it("attaches a discount to 120 migrated variants without passing 100 keys in one request", async () => {
+    const docs = lemonSqueezyDocs();
+    docs.products.data.push({
+      type: "products",
+      id: "900008",
+      attributes: { store_id: 86325, name: "Fonts", description: "A font", status: "published" },
+    });
+    const template = docs.variants.get("900007")!.data[0];
+    docs.variants.set("900008", {
+      data: Array.from({ length: 120 }, (_, i) => ({
+        type: "variants",
+        id: String(980000 + i),
+        attributes: {
+          ...template.attributes,
+          product_id: 900008,
+          name: `Weight ${i}`,
+          has_license_keys: false,
+          status: "published",
+          sort: i,
+        },
+      })),
+    });
+    const creem = fakeCreem();
+    const { report } = await migrate(creem, { docs });
+    expect(report.items.filter((i) => i.status === "failed")).toEqual([]);
+    const launch = creem.state.discounts.find((d) => d.external_id === "ls_discount_930001")!;
+    expect(launch.applies_to_products).toHaveLength(127);
+    for (const call of creem.writes().filter((c) => c.path.startsWith("/v1/discounts")))
+      expect((call.body!.applies_to_product_external_ids ?? []).length).toBeLessThanOrEqual(100);
+    const second = await migrate(creem, { docs });
+    expect(second.plan.requests).toEqual([]);
+  });
+
+  it("keeps the products the merchant added to a migrated discount", async () => {
+    const creem = fakeCreem();
+    await migrate(creem);
+    creem.state.products.push(productJson("prod_mine", { external_id: "my_bundle" }));
+    creem.state.products.push(productJson("prod_unkeyed"));
+    const appFive = creem.state.discounts.find((d) => d.external_id === "ls_discount_930002")!;
+    appFive.applies_to_products.push("prod_mine", "prod_unkeyed");
+    const unchanged = await migrate(creem);
+    expect(findItem(unchanged.plan, "ls_discount_930002").action).toBe("unchanged");
+
+    const docs = lemonSqueezyDocs();
+    docs.discounts.data[1].relationships.variants.data.push({ type: "variants", id: "910003" });
+    const { report } = await migrate(creem, { docs });
+    expect(findItem({ report }, "ls_discount_930002")).toMatchObject({
+      action: "update",
+      status: "done",
+    });
+    const tipJar = creem.state.products.find((p) => p.external_id === "ls_variant_910003")!;
+    const app = creem.state.products.find((p) => p.external_id === "ls_variant_910007")!;
+    expect([...appFive.applies_to_products].sort()).toEqual(
+      ["prod_mine", "prod_unkeyed", tipJar.id, app.id].sort(),
+    );
+  });
+
+  it("reports an uploaded file that its failed product write left unattached", async () => {
+    const creem = fakeCreem();
+    creem.fail((c) => c.method === "POST" && c.body?.external_id === "ls_variant_910001", 500, {
+      code: "internal_error",
+      message: "boom",
+    });
+    const { report } = await migrate(creem);
+    expect(findItem({ report }, "ls_file_920001")).toMatchObject({
+      status: "done",
+      creem_id: "file_1",
+      warnings: [expect.objectContaining({ code: "file_not_attached" })],
+    });
+    expect(findItem({ report }, "ls_variant_910001").status).toBe("failed");
+  });
+
+  it("keeps the merchant's extra files in the migrated file feature when the file changes", async () => {
+    const creem = fakeCreem();
+    await migrate(creem);
+    const iconPack = creem.state.products.find((p) => p.external_id === "ls_variant_910001")!;
+    creem.state.files.push({
+      id: "file_extra",
+      filename: "readme.pdf",
+      content_type: "application/pdf",
+      size: 9,
+    });
+    iconPack.features[0].file.files.push({
+      id: "file_extra",
+      file_name: "readme.pdf",
+      type: "application/pdf",
+      size: 9,
+    });
+    const unchanged = await migrate(creem);
+    expect(unchanged.plan.requests).toEqual([]);
+    await migrate(creem, { files: { [FILE_ID]: Buffer.from("v2") } });
+    expect(iconPack.features[0].file.files.map((f: any) => f.id)).toEqual([
+      expect.not.stringMatching(/^file_1$/),
+      "file_extra",
+    ]);
+  });
+});
+
+describe("source fixes", () => {
+  it("skips a file that can't be downloaded instead of stopping the run", async () => {
+    const ls = lemonSqueezyFetch();
+    const fetcher = ls.fetcher.getMockImplementation()!;
+    ls.fetcher.mockImplementation(async (input, init) => {
+      if (String(input).includes("app.lemonsqueezy.com"))
+        return new Response("gone", { status: 404 });
+      return fetcher(input, init);
+    });
+    const client = new LemonSqueezyClient("ls_fixture_key", { fetch: ls.fetcher, delayMs: 0 });
+    const { objects, failures } = await fetchLemonSqueezyCatalog(client, {
+      storeId: LS_STORE_ID,
+      excludeDiscounts: false,
+      downloadDir,
+    });
+    expect(failures).toEqual([]);
+    const p = fromLemonSqueezy(objects, emptyCatalog, { now: NOW });
+    expect(findItem(p, "ls_file_920001")).toMatchObject({
+      action: "skip",
+      reason: { code: "file_not_downloaded", message: expect.stringContaining("404") },
+    });
+    expect(findItem(p, "ls_variant_910001").action).toBe("create");
+  });
+
+  it("downloads files from their signed URL without the API key", async () => {
+    const { ls } = await lsObjects();
+    const download = ls.fetcher.mock.calls.find(([input]) =>
+      String(input instanceof Request ? input.url : input).includes("app.lemonsqueezy.com"),
+    )!;
+    const headers = new Headers(download[1]?.headers);
+    expect(headers.get("authorization")).toBeNull();
+  });
+});
+
+describe("creem migrate lemon-squeezy, review round 2", () => {
+  const LS_KEY = "ls_fixture_secret_key";
+  const base = ["migrate", "lemon-squeezy", "--ls-api-key", LS_KEY, "--ls-store-id", LS_STORE_ID];
+  function setup(
+    products: Record<string, unknown>[] = [],
+    options: { isTTY?: boolean; confirm?: (message: string) => Promise<boolean> } = {},
+  ) {
+    const ls = lemonSqueezyFetch();
+    vi.stubGlobal("fetch", ls.fetcher);
+    const creem = fakeCreem({ products });
+    const confirm = vi.fn(options.confirm ?? (async () => false));
+    const h = harness(creem.client, { isTTY: options.isTTY ?? false, confirm });
+    return { ls, creem, h, confirm };
+  }
+
+  it("--json --yes writes nothing while an adoption proposal is unanswered (exit 7)", async () => {
+    const { creem, h } = setup([desktopApp("prod_old")]);
+    const r = await h.run(["--json", ...base, "--yes"]);
+    expect(r.code).toBe(7);
+    expect(creem.writes()).toEqual([]);
+    const report = JSON.parse(r.stdout);
+    expect(report.proposals).toEqual([
+      expect.objectContaining({ key: "ls_variant_910007", decision: "pending" }),
+    ]);
+    const error = JSON.parse(r.stderr).error;
+    expect(error.message).toContain("ls_variant_910007");
+    expect(error.suggestion ?? error.hint ?? JSON.stringify(error)).toMatch(/--adopt/);
+  });
+
+  it("without --json, lists the unanswered proposals and writes nothing (exit 7)", async () => {
+    const { creem, h } = setup([desktopApp("prod_old")]);
+    const r = await h.run([...base, "--yes"]);
+    expect(r.code).toBe(7);
+    expect(creem.writes()).toEqual([]);
+    expect(r.stdout).toContain("prod_old");
+    expect(r.stderr).toMatch(/--adopt/);
+  });
+
+  it("--adopt <key>=<id> picks one of several candidates, and <key>=new creates a new product", async () => {
+    const both = [desktopApp("prod_a"), desktopApp("prod_b")];
+    const picked = setup(both);
+    const r = await picked.h.run([
+      "--json",
+      ...base,
+      "--yes",
+      "--adopt",
+      "ls_variant_910007=prod_b",
+    ]);
+    expect(r.code, r.stderr).toBe(0);
+    expect(picked.creem.state.products.find((p) => p.id === "prod_b")!.external_id).toBe(
+      "ls_variant_910007",
+    );
+    expect(picked.creem.state.products.find((p) => p.id === "prod_a")!.external_id).toBeNull();
+
+    const fresh = setup(both);
+    const r2 = await fresh.h.run(["--json", ...base, "--yes", "--adopt", "ls_variant_910007=new"]);
+    expect(r2.code, r2.stderr).toBe(0);
+    expect(fresh.creem.state.products.filter((p) => p.name === "Desktop App")).toHaveLength(3);
+
+    const plain = setup(both);
+    const r3 = await plain.h.run(["--json", ...base, "--yes", "--adopt"]);
+    expect(r3.code).toBe(7);
+    expect(plain.creem.writes()).toEqual([]);
+  });
+
+  it("asks about each candidate in a terminal, and Ctrl-C there cancels the migration", async () => {
+    const asked: string[] = [];
+    const { creem, h } = setup([desktopApp("prod_a"), desktopApp("prod_b")], {
+      isTTY: true,
+      confirm: async (message) => {
+        asked.push(message);
+        return message.includes("prod_b") || message.includes("Write this plan");
+      },
+    });
+    const r = await h.run([...base]);
+    expect(r.code, r.stderr).toBe(0);
+    expect(asked.slice(0, 2)).toEqual([
+      expect.stringContaining("prod_a"),
+      expect.stringContaining("prod_b"),
+    ]);
+    expect(creem.state.products.find((p) => p.id === "prod_b")!.external_id).toBe(
+      "ls_variant_910007",
+    );
+
+    const canceled = setup([desktopApp("prod_a")], {
+      isTTY: true,
+      confirm: async () => {
+        throw Object.assign(new Error("User force closed the prompt with SIGINT"), {
+          name: "ExitPromptError",
+        });
+      },
+    });
+    const r2 = await canceled.h.run([...base]);
+    expect(r2.code).toBe(2);
+    expect(r2.stderr).toContain("Migration canceled.");
+    expect(canceled.creem.writes()).toEqual([]);
+  });
+
+  it("says what is still open instead of 'already matches' when nothing is left to write", async () => {
+    const { h } = setup();
+    await h.run(["--json", ...base, "--yes"]);
+    const r = await h.run([...base, "--yes"]);
+    expect(r.code, r.stderr).toBe(0);
+    expect(r.stdout).not.toContain("already matches");
+    expect(r.stdout).toMatch(/product group/i);
   });
 });

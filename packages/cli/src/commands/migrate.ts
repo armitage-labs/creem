@@ -8,7 +8,11 @@ import { createContext, type CliContext } from "../lib/context";
 import { CliError } from "../lib/errors";
 import { parseInteger } from "../lib/input";
 import { readCreemCatalog } from "../lib/migration/catalog";
-import { fromLemonSqueezy, type MigrationPlan } from "../lib/migration/lemon-squeezy/map";
+import {
+  ADOPT_NEW,
+  fromLemonSqueezy,
+  type MigrationPlan,
+} from "../lib/migration/lemon-squeezy/map";
 import {
   LemonSqueezyClient,
   fetchLemonSqueezyCatalog,
@@ -17,6 +21,7 @@ import {
 import {
   MIGRATION_EXIT_CODES,
   migrationExitCode,
+  type AdoptionProposal,
   type MigrationItem,
   type MigrationReport,
 } from "../lib/migration/report";
@@ -81,12 +86,18 @@ function formatReport(report: MigrationReport, environment: string): string[] {
   }
   const pending = report.proposals.filter((p) => p.decision === "pending");
   if (pending.length) {
-    lines.push("", chalk.bold("Adoption proposals (not confirmed)"));
-    for (const proposal of pending)
-      lines.push(
-        `  ${proposal.creem_id} "${proposal.creem_name}" → ${proposal.key} (${proposal.match})`,
-      );
-    lines.push(chalk.dim("  Confirm them in a terminal, or pass --adopt to accept them all."));
+    lines.push("", chalk.bold("Adoption proposals (unanswered)"));
+    for (const proposal of pending) {
+      lines.push(`  ${proposal.key}  ${proposal.name}`);
+      for (const candidate of proposal.candidates)
+        lines.push(
+          `      ${candidate.creem_id} "${candidate.creem_name}"` +
+            (candidate.differences.length
+              ? chalk.dim(` (${candidate.differences.join("; ")})`)
+              : ""),
+        );
+    }
+    lines.push(chalk.dim(`  ${ADOPT_HINT}`));
   }
   lines.push(
     "",
@@ -102,6 +113,43 @@ function formatReport(report: MigrationReport, environment: string): string[] {
   return lines;
 }
 
+const ADOPT_HINT =
+  "Answer them in a terminal, or with --adopt <key>=<creem id> to adopt one, --adopt <key>=new to create a new one, or --adopt alone to adopt every proposal that has one candidate.";
+
+/** Parses `--adopt` values: `<key>=<creem id>` or `<key>=new`, by proposal id. */
+function adoptAnswers(values: string[]): Record<string, string> {
+  const answers: Record<string, string> = {};
+  for (const value of values) {
+    const match = /^([^=\s]+)=([^=\s]+)$/.exec(value);
+    if (!match)
+      throw new CliError(
+        `--adopt takes <key>=<creem id> or <key>=new, not "${value}".`,
+        MIGRATION_EXIT_CODES.usage,
+      );
+    answers[`adopt:${match[1]}`] = match[2];
+  }
+  return answers;
+}
+
+/** Asks about each candidate in turn; no to all of them creates a new object. */
+async function askAdoption(context: CliContext, proposal: AdoptionProposal): Promise<string> {
+  for (const candidate of proposal.candidates) {
+    const differences = candidate.differences.length
+      ? `differs: ${candidate.differences.join("; ")}`
+      : "no differences";
+    let yes: boolean;
+    try {
+      yes = await context.confirm(
+        `Adopt Creem ${proposal.kind} ${candidate.creem_id} "${candidate.creem_name}" as ${proposal.key} (${proposal.name})? (${differences})`,
+      );
+    } catch {
+      throw new CliError("Migration canceled.");
+    }
+    if (yes) return candidate.creem_id;
+  }
+  return ADOPT_NEW;
+}
+
 function createLemonSqueezyCommand(context: CliContext): Command {
   const command = addGlobalOptions(
     new Command("lemon-squeezy").description(
@@ -112,7 +160,10 @@ function createLemonSqueezyCommand(context: CliContext): Command {
     .option("--ls-store-id <id>", "Lemon Squeezy store ID to migrate from")
     .option("--dry-run", "Print the plan and write nothing")
     .option("--exclude-discounts", "Skip migrating discounts entirely")
-    .option("--adopt", "Accept every proposal to adopt an existing Creem object without a key")
+    .option(
+      "--adopt [answers...]",
+      "Answer adoption proposals: <key>=<creem id> adopts that object, <key>=new creates a new one; alone, adopts every proposal with one candidate",
+    )
     .action(
       async (
         localOptions: {
@@ -120,7 +171,7 @@ function createLemonSqueezyCommand(context: CliContext): Command {
           lsStoreId?: string;
           dryRun?: boolean;
           excludeDiscounts?: boolean;
-          adopt?: boolean;
+          adopt?: boolean | string[];
         },
         cmd: Command,
       ) => {
@@ -130,6 +181,8 @@ function createLemonSqueezyCommand(context: CliContext): Command {
         if (!context.isTTY && !options.dryRun && !json && !globals.yes)
           throw new CliError("Migration requires --yes in non-interactive mode.");
         if (options.lsStoreId) parseInteger("--ls-store-id", options.lsStoreId, { min: 1 });
+        const adoptAll = options.adopt === true;
+        const answers = adoptAnswers(Array.isArray(options.adopt) ? options.adopt : []);
         const print = (line = "") => {
           if (!json) context.stdout(line + "\n");
         };
@@ -140,7 +193,10 @@ function createLemonSqueezyCommand(context: CliContext): Command {
         let lsApiKey = options.lsApiKey;
         if (!lsApiKey) {
           if (!context.isTTY || json)
-            throw new CliError("Supply --ls-api-key for non-interactive migration.", 3);
+            throw new CliError(
+              "Supply --ls-api-key for non-interactive migration.",
+              MIGRATION_EXIT_CODES.usage,
+            );
           try {
             lsApiKey = await password({
               message: "Enter your Lemon Squeezy API key:",
@@ -222,23 +278,22 @@ function createLemonSqueezyCommand(context: CliContext): Command {
           print(chalk.dim("Reading the Creem catalog…"));
           const catalog = await readCreemCatalog(client);
           const now = new Date();
-          let plan: MigrationPlan = fromLemonSqueezy(objects, catalog, { now });
-
           // Adoption: an existing Creem object without a key is taken over only
-          // when the merchant confirms it (or passes --adopt).
-          if (plan.report.proposals.length) {
-            const accepted: string[] = [];
-            const declined: string[] = [];
-            for (const proposal of plan.report.proposals) {
-              if (options.adopt) accepted.push(proposal.id);
-              else if (context.isTTY && !json && !options.dryRun) {
-                const yes = await context.confirm(
-                  `Adopt Creem ${proposal.kind} ${proposal.creem_id} "${proposal.creem_name}" as ${proposal.key}? (${proposal.match}; no creates a new one)`,
-                );
-                (yes ? accepted : declined).push(proposal.id);
-              }
-            }
-            plan = fromLemonSqueezy(objects, catalog, { now, adoption: { accepted, declined } });
+          // when the merchant answers its proposal; --yes never does. Each answer
+          // re-plans, so a candidate adopted once isn't offered again.
+          const ask = context.isTTY && !json && !options.dryRun;
+          const asked = new Set<string>();
+          let plan: MigrationPlan;
+          for (;;) {
+            plan = fromLemonSqueezy(objects, catalog, { now, adoption: answers });
+            const next = plan.report.proposals.find(
+              (p) => p.decision === "pending" && !asked.has(p.id) && !(p.id in answers),
+            );
+            if (!next) break;
+            asked.add(next.id);
+            if (adoptAll && next.candidates.length === 1)
+              answers[next.id] = next.candidates[0].creem_id;
+            else if (ask) answers[next.id] = await askAdoption(context, next);
           }
           plan.report.fetch_failures = failures;
           const environment = context.environment().toUpperCase();
@@ -270,14 +325,42 @@ function createLemonSqueezyCommand(context: CliContext): Command {
               "Re-run when Lemon Squeezy answers again.",
             );
           }
+          const unanswered = plan.report.proposals.filter((p) => p.decision === "pending");
+          if (unanswered.length) {
+            if (json) writeResult(context, plan.report, "json");
+            throw new CliError(
+              `Nothing was written: ${unanswered.length} adoption proposal(s) are unanswered (${unanswered.map((p) => p.key).join(", ")}).`,
+              MIGRATION_EXIT_CODES.adoptionPending,
+              ADOPT_HINT,
+            );
+          }
           if (!plan.requests.length) {
             plan.report.mode = "run";
             if (json) writeResult(context, plan.report, "json");
-            else print(chalk.green("Creem already matches Lemon Squeezy: nothing to write."));
+            else {
+              const open = plan.report.items.filter(
+                (i) => i.reason?.code === "product_group_write_unavailable",
+              );
+              if (open.length) {
+                print(chalk.green("Nothing to write through the API."));
+                print(
+                  chalk.dim(
+                    `Still to do: set up ${open.length} product group(s) listed above in the Creem dashboard.`,
+                  ),
+                );
+              } else print(chalk.green("Creem already matches Lemon Squeezy: nothing to write."));
+            }
             return;
           }
-          if (!globals.yes && !(await context.confirm(`${environment}: Write this plan to Creem?`)))
+          let write: boolean;
+          try {
+            write =
+              Boolean(globals.yes) ||
+              (await context.confirm(`${environment}: Write this plan to Creem?`));
+          } catch {
             throw new CliError("Migration canceled.");
+          }
+          if (!write) throw new CliError("Migration canceled.");
 
           print(chalk.bold("Writing…"));
           const report = await executeMigration(client, plan, {
@@ -335,7 +418,7 @@ ${chalk.dim("Options:")}
   --ls-store-id <id>      Lemon Squeezy store ID to migrate from
   --json                  Print the migration report as JSON (with --yes, run it)
   --exclude-discounts     Skip migrating discounts entirely
-  --adopt                 Adopt existing Creem objects without a key that match
+  --adopt [key=id|new]    Answer adoption proposals (alone: adopt every single match)
   --yes                   Write without asking
 
 ${chalk.dim("Examples:")}

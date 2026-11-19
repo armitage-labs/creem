@@ -190,6 +190,20 @@ function storeFeatures(
   return features;
 }
 
+/** The DTO limits of `CreateDiscountRequestEntity` / `UpdateDiscountRequestEntity`. */
+function invalidDiscount(b: Json): Json | undefined {
+  if (typeof b.code === "string" && b.code.length > 14)
+    return { code: "validation_error", message: "Code cannot be longer than 14 characters" };
+  if (typeof b.name === "string" && b.name.length > 40)
+    return { code: "validation_error", message: "Name cannot be longer than 40 characters" };
+  if ((b.applies_to_product_external_ids ?? []).length > 100)
+    return {
+      code: "validation_error",
+      message: "applies_to_product_external_ids must contain no more than 100 elements",
+    };
+  return undefined;
+}
+
 function productResponse(product: Json) {
   return product;
 }
@@ -297,6 +311,8 @@ export function fakeCreem(initial: Partial<CreemState> = {}) {
     }
     if (request.method === "POST" && path === "/v1/discounts") {
       const b = body!;
+      const invalid = invalidDiscount(b);
+      if (invalid) return Response.json(invalid, { status: 400 });
       const ids: string[] = [...(b.applies_to_products ?? [])];
       for (const key of b.applies_to_product_external_ids ?? []) {
         const product = state.products.find((p) => p.external_id === key);
@@ -330,6 +346,8 @@ export function fakeCreem(initial: Partial<CreemState> = {}) {
       const discount = state.discounts.find((d) => d.id === discountMatch[1]);
       if (!discount) return Response.json({ code: "not_found" }, { status: 404 });
       const b = body!;
+      const invalid = invalidDiscount(b);
+      if (invalid) return Response.json(invalid, { status: 400 });
       const fixed = ["amount", "percentage", "type", "currency", "duration", "duration_in_months"];
       if (discount.redeem_count > 0 && fixed.some((k) => k in b && b[k] !== discount[k]))
         return Response.json(

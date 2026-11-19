@@ -66,20 +66,31 @@ export interface MigrationPlan {
 export interface FromLemonSqueezyOptions {
   /** Expired discounts are skipped relative to this time. */
   now: Date;
-  /** Decisions on adoption proposals, by proposal id. Undecided proposals skip their item. */
-  adoption?: { accepted?: string[]; declined?: string[] };
+  /**
+   * Answers to adoption proposals, by proposal id (`adopt:<key>`): the Creem id
+   * of the candidate to adopt, or `new` to create a new object. A proposal
+   * without an answer stays pending and skips its item.
+   */
+  adoption?: Record<string, string>;
 }
 
 export const UPLOAD_PREFIX = "upload:";
 export const LICENSE_KEY_FEATURE_KEY = "ls_license_key";
+/** The answer to an adoption proposal that creates a new object instead. */
+export const ADOPT_NEW = "new";
 const PWYW_METADATA_KEY = "ls_pwyw_suggested_price";
-const OWNED_METADATA = /^ls_(file_\d+_sha256|pwyw_suggested_price)$/;
+const OWNED_METADATA = /^ls_(file_\d+_(sha256|file_id)|pwyw_suggested_price)$/;
+const DISCOUNT_CODE_MAX = 14;
+const DISCOUNT_NAME_MAX = 40;
 
 export const variantKey = (id: string) => `ls_variant_${id}`;
 export const productKey = (id: string) => `ls_product_${id}`;
 export const discountKey = (id: string) => `ls_discount_${id}`;
 export const fileKey = (id: string) => `ls_file_${id}`;
 const fileShaKey = (id: string) => `ls_file_${id}_sha256`;
+/** The Creem file that stands for an LS file in its feature (`upload:<key>` until uploaded). */
+const fileIdKey = (id: string) => `ls_file_${id}_file_id`;
+const LS_VARIANT_KEY = /^ls_variant_\d+$/;
 
 const issue = (code: string, message: string): MigrationIssue => ({ code, message });
 
@@ -196,6 +207,8 @@ interface ProductSpec {
   create: CreateProductBody;
   licenseKey?: LicenseKeyFeatureEntity;
   files: FileSpec[];
+  /** LS files of the variant this run doesn't write (draft, not downloaded). */
+  otherFileIds: string[];
   ownedMetadata: Record<string, string | number>;
   item: MigrationItem;
 }
@@ -304,6 +317,15 @@ function mapVariant(
         issue("setup_fee_unsupported", "The setup fee is not migrated: Creem has no setup fees."),
       );
   } else if (pwyw) {
+    // Creem refuses a pay-what-you-want minimum below 100. Free with no way to
+    // pay, or a forced 1.00, would both change the merchant's terms.
+    if (amount < 100)
+      return {
+        skip: issue(
+          "pwyw_minimum_below_100",
+          `Creem's pay what you want starts at a minimum of 100; this one is ${amount}. Set the product up in Creem.`,
+        ),
+      };
     body.payWhatYouWant = true;
     const suggested = price.suggested_price ?? 0;
     if (suggested >= 100 && suggested >= amount) body.suggestedPrice = suggested;
@@ -346,6 +368,8 @@ function sameLicense(
   a: LicenseKeyFeatureEntity | undefined,
   b: LicenseKeyFeatureEntity | undefined,
 ) {
+  // A missing feature is never the same as one, even with every setting unlimited.
+  if (!a || !b) return false;
   return (
     (a?.activationLimit ?? null) === (b?.activationLimit ?? null) &&
     (a?.expiry?.interval ?? null) === (b?.expiry?.interval ?? null) &&
@@ -372,27 +396,71 @@ function keepFeature(feature: FeatureEntity): UpdateFeature | undefined {
   return undefined;
 }
 
-function fileFeature(spec: FileSpec, fileId: string, id?: string): CreateFeature & UpdateFeature {
+/** The file feature of one LS file, as planned against the stored product. */
+interface FilePlan {
+  spec: FileSpec;
+  /** The stored feature it writes, if any (keyed, or the merchant's adopted one). */
+  featureId?: string;
+  description: string;
+  /** The Creem file for the LS file: a stored id, or `upload:<key>`. */
+  fileId: string;
+  /** The merchant's other files in the feature, kept. */
+  extras: { id: string }[];
+  changed: boolean;
+}
+
+function fileFeature(plan: FilePlan): CreateFeature & UpdateFeature {
   return {
-    ...(id ? { id } : {}),
+    ...(plan.featureId ? { id: plan.featureId } : {}),
     type: "file",
-    externalId: spec.key,
-    description: spec.file.attributes.name,
-    file: { files: [{ id: fileId }] },
+    externalId: plan.spec.key,
+    description: plan.description,
+    file: { files: [{ id: plan.fileId }, ...plan.extras] },
   };
 }
 
 function licenseFeature(
   license: LicenseKeyFeatureEntity,
   id?: string,
+  description = "License key",
 ): CreateFeature & UpdateFeature {
   return {
     ...(id ? { id } : {}),
     type: "licenseKey",
     externalId: LICENSE_KEY_FEATURE_KEY,
-    description: "License key",
+    description,
     licenseKey: license,
   };
+}
+
+/** Names match ignoring case and spacing (ADR § 2.10 candidate rule). */
+function sameName(a: string | null | undefined, b: string): boolean {
+  const normalize = (name: string) => name.trim().replace(/\s+/g, " ").toLowerCase();
+  return normalize(a ?? "") === normalize(b);
+}
+
+/** How a candidate differs from the product a variant maps to: shown, never matched on. */
+function productDifferences(p: ProductEntity, create: CreateProductBody): string[] {
+  const differences: string[] = [];
+  const ls = (value: unknown) => ` (Lemon Squeezy: ${String(value)})`;
+  if (p.name !== create.name) differences.push(`name "${p.name}"${ls(`"${create.name}"`)}`);
+  if (p.price !== create.price) differences.push(`price ${p.price}${ls(create.price)}`);
+  if (p.currency.toUpperCase() !== create.currency)
+    differences.push(`currency ${p.currency}${ls(create.currency)}`);
+  if (p.billingType !== create.billingType)
+    differences.push(`billing type ${p.billingType}${ls(create.billingType)}`);
+  else if (create.billingType === "recurring" && p.billingPeriod !== create.billingPeriod)
+    differences.push(`billing period ${p.billingPeriod}${ls(create.billingPeriod)}`);
+  if (p.status === "archived") differences.push("archived");
+  return differences;
+}
+
+/** Candidates in order: same billing type, then active before archived, then closest price. */
+function rankProducts(create: CreateProductBody) {
+  return (a: ProductEntity, b: ProductEntity) =>
+    Number(a.billingType !== create.billingType) - Number(b.billingType !== create.billingType) ||
+    Number(a.status === "archived") - Number(b.status === "archived") ||
+    Math.abs(a.price - create.price) - Math.abs(b.price - create.price);
 }
 
 function isoDate(value: Date | string | null | undefined): string | null {
@@ -414,8 +482,9 @@ export function fromLemonSqueezy(
   const currency = objects.store.attributes.currency.toUpperCase();
   if (currency !== "USD" && currency !== "EUR")
     throw new Error(`Lemon Squeezy store currency ${currency} is not USD or EUR`);
-  const accepted = new Set(options.adoption?.accepted ?? []);
-  const declined = new Set(options.adoption?.declined ?? []);
+  const decisions = options.adoption ?? {};
+  /** Candidates an earlier item adopted. */
+  const claimed = new Set<string>();
   const prices = new Map(objects.prices.map((p) => [p.id, p]));
   const productsByKey = new Map<string, ProductEntity>();
   for (const product of creemCatalog.products)
@@ -426,7 +495,6 @@ export function fromLemonSqueezy(
   const groupsByKey = new Map<string, ProductGroupEntity>();
   for (const group of creemCatalog.productGroups)
     if (group.externalId) groupsByKey.set(group.externalId, group);
-  const proposed = new Set<string>();
   const proposals: AdoptionProposal[] = [];
 
   const adoptRequests: MigrationRequest[] = [];
@@ -438,46 +506,73 @@ export function fromLemonSqueezy(
   const fileItems: MigrationItem[] = [];
   const discountItems: MigrationItem[] = [];
 
-  /** Finds the Creem object a key matches, or proposes one without a key. */
-  function match<T extends { id: string; externalId: string | null }>(
+  /**
+   * Finds the Creem object a key matches. Without one, the look-alikes without
+   * a key become one proposal (ADR § 2.6): adopted only when the answer names
+   * one of them, a new object when it is `new`, and pending otherwise.
+   */
+  function match<T extends { id: string; externalId: string | null; name?: string }>(
     kind: "product" | "discount",
     key: string,
     byKey: Map<string, T>,
-    candidates: T[],
-    describe: (candidate: T) => string,
+    lookalikes: T[],
+    differences: (candidate: T) => string[],
     item: MigrationItem,
-  ): { existing?: T; pending?: boolean } {
+  ): { existing?: T; pending?: T[] } {
     const existing = byKey.get(key);
     if (existing) return { existing };
-    const unclaimed = candidates.filter((c) => !c.externalId && !proposed.has(c.id));
-    if (unclaimed.length !== 1) {
-      if (unclaimed.length > 1)
-        item.warnings.push(
-          issue(
-            "adoption_ambiguous",
-            `${unclaimed.length} Creem ${kind}s without a key look like this one; none is adopted.`,
-          ),
-        );
-      return {};
-    }
-    const candidate = unclaimed[0];
-    proposed.add(candidate.id);
+    const open = lookalikes.filter((c) => !c.externalId && !claimed.has(c.id));
+    if (!open.length) return {};
     const id = `adopt:${key}`;
-    const decision = accepted.has(id) ? "accepted" : declined.has(id) ? "declined" : "pending";
-    proposals.push({
+    const answer = decisions[id];
+    const proposal: AdoptionProposal = {
       id,
       kind,
       key,
-      creem_id: candidate.id,
-      creem_name: (candidate as { name?: string }).name ?? "",
-      match: describe(candidate),
-      decision,
-    });
-    if (decision === "declined") return {};
-    if (decision === "pending") return { pending: true, existing: candidate };
-    item.adopted_from = candidate.id;
+      name: item.name,
+      candidates: open.map((c) => ({
+        creem_id: c.id,
+        creem_name: c.name ?? "",
+        differences: differences(c),
+      })),
+      decision: "pending",
+      creem_id: null,
+    };
+    proposals.push(proposal);
+    if (answer === ADOPT_NEW) {
+      proposal.decision = "declined";
+      return {};
+    }
+    const chosen = open.find((c) => c.id === answer);
+    if (!chosen) {
+      if (answer)
+        item.warnings.push(
+          issue(
+            "adoption_choice_unknown",
+            `${answer} is not one of the candidates (${open.map((c) => c.id).join(", ")}); the proposal stays unanswered.`,
+          ),
+        );
+      return { pending: open };
+    }
+    claimed.add(chosen.id);
+    proposal.decision = "accepted";
+    proposal.creem_id = chosen.id;
+    item.adopted_from = chosen.id;
     item.changes.push("external_id");
-    return { existing: candidate };
+    return { existing: chosen };
+  }
+
+  /** The skip reason of an item whose proposal waits for an answer. */
+  function unconfirmed(kind: "product" | "discount", key: string, pending: { id: string }[]) {
+    const ids = pending.map((c) => c.id);
+    const what =
+      ids.length === 1
+        ? `Creem ${kind} ${ids[0]} has no key and looks like this one.`
+        : `${ids.length} Creem ${kind}s without a key look like this one (${ids.join(", ")}).`;
+    return issue(
+      "adoption_unconfirmed",
+      `${what} Answer the proposal: adopt one (in a terminal, or with --adopt ${key}=<creem id>) or create a new ${kind} (--adopt ${key}=new).`,
+    );
   }
 
   // ---- products
@@ -516,6 +611,11 @@ export function fromLemonSqueezy(
           "ls_default_variant",
           "The hidden default variant of a product with other variants is not sold on its own.",
         );
+        mapped.push({ variant, item });
+        continue;
+      }
+      if (variant.attributes.status === "draft") {
+        item.reason = issue("variant_draft", "Draft variants are not sold in Lemon Squeezy.");
         mapped.push({ variant, item });
         continue;
       }
@@ -563,6 +663,7 @@ export function fromLemonSqueezy(
       const ownedMeta: Record<string, string | number> = {};
       if (create.payWhatYouWant) ownedMeta[PWYW_METADATA_KEY] = create.suggestedPrice ?? 0;
       const files: FileSpec[] = [];
+      const otherFileIds: string[] = [];
       for (const file of filesByVariant.get(variant.id) ?? []) {
         const fileItem = newItem({
           kind: "file",
@@ -575,10 +676,16 @@ export function fromLemonSqueezy(
         const digest = objects.fileDigests[file.id];
         if (file.attributes.status !== "published") {
           fileItem.reason = issue("file_not_published", "Draft files are not delivered to buyers.");
+          otherFileIds.push(file.id);
           continue;
         }
         if (!digest) {
-          fileItem.reason = issue("file_not_downloaded", "The file could not be downloaded.");
+          const why = objects.fileFailures?.[file.id];
+          fileItem.reason = issue(
+            "file_not_downloaded",
+            `The file could not be downloaded${why ? `: ${why}` : ""}. Re-run to retry it.`,
+          );
+          otherFileIds.push(file.id);
           continue;
         }
         files.push({
@@ -588,7 +695,6 @@ export function fromLemonSqueezy(
           size: digest.size,
           contentType: digest.contentType,
         });
-        ownedMeta[fileShaKey(file.id)] = digest.sha256;
       }
       specs.push({
         key,
@@ -598,6 +704,7 @@ export function fromLemonSqueezy(
         create,
         licenseKey: licenseKeyFeature(variant),
         files,
+        otherFileIds,
         ownedMetadata: ownedMeta,
         item,
       });
@@ -611,74 +718,138 @@ export function fromLemonSqueezy(
       "product",
       spec.key,
       productsByKey,
-      creemCatalog.products.filter(
-        (p) =>
-          p.status !== "archived" &&
-          p.name === create.name &&
-          p.currency.toUpperCase() === create.currency &&
-          p.billingType === create.billingType,
-      ),
-      (p) => `same name, currency and billing type as ${p.id}`,
+      creemCatalog.products.filter((p) => sameName(p.name, create.name)).sort(rankProducts(create)),
+      (p) => productDifferences(p, create),
       item,
     );
     if (found.pending) {
       item.action = "skip";
-      item.creem_id = found.existing!.id;
-      item.reason = issue(
-        "adoption_unconfirmed",
-        `Creem product ${found.existing!.id} has no key and looks like this variant. Confirm adopting it (interactively or with --adopt); declining creates a new product.`,
-      );
+      item.creem_id = found.pending.length === 1 ? found.pending[0].id : null;
+      item.reason = unconfirmed("product", spec.key, found.pending);
       for (const f of spec.files) {
         const fileItem = fileItems.find((i) => i.key === f.key)!;
         fileItem.reason = issue(
           "adoption_unconfirmed",
-          `Its product waits for the decision on adopting ${found.existing!.id}.`,
+          `Its product ${spec.key} waits for the answer to its adoption proposal.`,
         );
       }
       continue;
     }
     const existing = found.existing;
-    const fileIds = new Map<string, string>();
-    const fileFeatures = new Map<string, FeatureEntity>();
-    for (const feature of existing?.features ?? [])
-      if (feature.type === "file" && feature.externalId)
-        fileFeatures.set(feature.externalId, feature);
+    const stored = existing?.features ?? [];
     const { owned: storedOwned, other: otherMeta } = ownedMetadata(existing?.metadata);
+    const ownedMeta: Record<string, string | number> = { ...spec.ownedMetadata };
+    // LS files this run doesn't write (draft, not downloaded) keep their state.
+    for (const id of spec.otherFileIds)
+      for (const key of [fileShaKey(id), fileIdKey(id)])
+        if (typeof storedOwned[key] === "string" || typeof storedOwned[key] === "number")
+          ownedMeta[key] = storedOwned[key] as string | number;
+
+    // ---- files: each LS file is one file feature keyed `ls_file_<id>`
+    const keyedFiles = new Map<string, FeatureEntity>();
+    for (const feature of stored)
+      if (feature.type === "file" && feature.externalId)
+        keyedFiles.set(feature.externalId, feature);
+    const adoptedFeatures = new Set<string>();
+    const filePlans: FilePlan[] = [];
     for (const f of spec.files) {
-      const stored = fileFeatures.get(f.key);
-      const storedId = stored?.file?.files.length === 1 ? stored.file.files[0].id : undefined;
       const fileItem = fileItems.find((i) => i.key === f.key)!;
-      if (storedId && storedOwned[fileShaKey(f.file.id)] === f.sha256) {
-        fileIds.set(f.key, storedId);
-        fileItem.action = "unchanged";
-        fileItem.creem_id = storedId;
-        continue;
+      const lsName = f.file.attributes.name;
+      let feature = keyedFiles.get(f.key);
+      let adoptedFeature = false;
+      if (!feature && existing) {
+        // A keyless file feature of the merchant's that holds a file of this name.
+        const named = stored.filter(
+          (s) =>
+            s.type === "file" &&
+            !s.externalId &&
+            !adoptedFeatures.has(s.id) &&
+            s.file?.files.some((x) => x.fileName === lsName),
+        );
+        if (named.length > 1) {
+          fileItem.reason = issue(
+            "file_feature_ambiguous",
+            `${named.length} file features without a key hold a file named ${lsName}; none is changed and none is added. Give the right one the key ${f.key} in Creem.`,
+          );
+          for (const key of [fileShaKey(f.file.id), fileIdKey(f.file.id)])
+            if (storedOwned[key] !== undefined) ownedMeta[key] = storedOwned[key] as string;
+          continue;
+        }
+        if (named.length === 1) {
+          feature = named[0];
+          adoptedFeature = true;
+          adoptedFeatures.add(feature.id);
+        }
       }
-      fileItem.action = storedId ? "update" : "create";
-      fileItem.status = "pending";
-      if (storedId) fileItem.changes.push("sha256");
-      uploadRequests.push({
-        type: "upload_file",
-        key: f.key,
-        lsFileId: f.file.id,
-        request: {
-          purpose: "product_file",
-          filename: f.file.attributes.name,
-          contentType: f.contentType,
-          size: f.size,
-          sha256: f.sha256,
-        },
+      const files = feature?.file?.files ?? [];
+      const storedSha = storedOwned[fileShaKey(f.file.id)];
+      let ours = files.find((x) => x.id === storedOwned[fileIdKey(f.file.id)]);
+      if (!ours) {
+        const named = files.filter((x) => x.fileName === lsName);
+        if (named.length === 1) ours = named[0];
+        else if (files.length === 1 && !adoptedFeature) ours = files[0];
+      }
+      // Without a recorded SHA-256 (a feature the merchant made), same name and size count as the same file.
+      const sameBytes =
+        ours !== undefined &&
+        (storedSha === undefined
+          ? ours.fileName === lsName && ours.size === f.size
+          : storedSha === f.sha256);
+      // A file of the merchant's own feature that differs is kept; the LS file goes next to it.
+      if (adoptedFeature && !sameBytes) ours = undefined;
+      let fileId: string;
+      if (ours && sameBytes) {
+        fileId = ours.id;
+        fileItem.action = "unchanged";
+        fileItem.creem_id = ours.id;
+      } else {
+        fileId = `${UPLOAD_PREFIX}${f.key}`;
+        fileItem.action = ours ? "update" : "create";
+        fileItem.status = "pending";
+        if (ours) fileItem.changes.push("sha256");
+        uploadRequests.push({
+          type: "upload_file",
+          key: f.key,
+          lsFileId: f.file.id,
+          request: {
+            purpose: "product_file",
+            filename: lsName,
+            contentType: f.contentType,
+            size: f.size,
+            sha256: f.sha256,
+          },
+        });
+      }
+      ownedMeta[fileShaKey(f.file.id)] = f.sha256;
+      ownedMeta[fileIdKey(f.file.id)] = fileId;
+      // A stored feature keeps its description, so the merchant's wording stays.
+      const description = feature ? feature.description : lsName;
+      filePlans.push({
+        spec: f,
+        featureId: feature?.id,
+        description,
+        fileId,
+        extras: files.filter((x) => x !== ours).map((x) => ({ id: x.id })),
+        changed: !feature || adoptedFeature || ours?.id !== fileId,
       });
-      fileIds.set(f.key, `${UPLOAD_PREFIX}${f.key}`);
+      if (adoptedFeature && feature)
+        item.warnings.push(
+          issue(
+            "feature_adopted",
+            ours
+              ? `File feature ${feature.id} gets the key ${f.key}; its file ${ours.fileName} (same name and size) stands for the Lemon Squeezy file.`
+              : `File feature ${feature.id} gets the key ${f.key}, and the Lemon Squeezy file is added next to its files.`,
+          ),
+        );
     }
 
     if (!existing) {
       const body: CreateProductBody = { ...create };
       const features: CreateFeature[] = [];
       if (spec.licenseKey) features.push(licenseFeature(spec.licenseKey));
-      for (const f of spec.files) features.push(fileFeature(f, fileIds.get(f.key)!));
+      for (const p of filePlans) features.push(fileFeature(p));
       if (features.length) body.features = features;
-      if (Object.keys(spec.ownedMetadata).length) body.metadata = { ...spec.ownedMetadata };
+      if (Object.keys(ownedMeta).length) body.metadata = { ...ownedMeta };
       item.action = "create";
       item.status = "pending";
       productRequests.push({
@@ -742,11 +913,26 @@ export function fromLemonSqueezy(
       item.warnings.push(
         issue("creem_product_archived", "The Creem product is archived; it stays archived."),
       );
-    if (!sameRecord(storedOwned, spec.ownedMetadata)) {
-      set("metadata", { ...otherMeta, ...spec.ownedMetadata }, "metadata");
-      if (
-        (storedOwned[PWYW_METADATA_KEY] ?? null) !== (spec.ownedMetadata[PWYW_METADATA_KEY] ?? null)
-      ) {
+    // The API can't clear a suggested price (`suggested_price: null` is refused),
+    // so a removed suggestion is not recorded as done and is reported every run.
+    const storedSuggestion = storedOwned[PWYW_METADATA_KEY];
+    if (
+      create.payWhatYouWant &&
+      create.suggestedPrice === undefined &&
+      typeof storedSuggestion === "number" &&
+      storedSuggestion > 0
+    ) {
+      ownedMeta[PWYW_METADATA_KEY] = storedSuggestion;
+      item.warnings.push(
+        issue(
+          "pwyw_suggestion_not_clearable",
+          `Lemon Squeezy no longer suggests a price, and the API can't remove Creem's suggested price of ${storedSuggestion}. Remove it in the dashboard; this warning repeats on every run.`,
+        ),
+      );
+    }
+    if (!sameRecord(storedOwned, ownedMeta)) {
+      set("metadata", { ...otherMeta, ...ownedMeta }, "metadata");
+      if ((storedOwned[PWYW_METADATA_KEY] ?? null) !== (ownedMeta[PWYW_METADATA_KEY] ?? null)) {
         update.payWhatYouWant = Boolean(create.payWhatYouWant);
         if (create.suggestedPrice !== undefined) update.suggestedPrice = create.suggestedPrice;
         changes.push("pay_what_you_want");
@@ -756,42 +942,60 @@ export function fromLemonSqueezy(
     // Features: a PATCH replaces the features of each type it names, so every
     // other stored feature of that type is sent back unchanged.
     const features: UpdateFeature[] = [];
-    const stored = existing.features ?? [];
-    const storedLicense = stored.find(
+    const keyedLicense = stored.find(
       (f) => f.type === "licenseKey" && f.externalId === LICENSE_KEY_FEATURE_KEY,
     );
-    if (spec.licenseKey && !sameLicense(storedLicense?.licenseKey, spec.licenseKey)) {
-      features.push(licenseFeature(spec.licenseKey, storedLicense?.id));
-      for (const f of stored)
-        if (f.type === "licenseKey" && f !== storedLicense) features.push(keepFeature(f)!);
-      changes.push("features.license_key");
-    } else if (!spec.licenseKey && storedLicense)
+    if (spec.licenseKey) {
+      const licenses = stored.filter((f) => f.type === "licenseKey");
+      const keyless = licenses.filter((f) => !f.externalId);
+      // Without the keyed feature, the merchant's only keyless one gets the key.
+      const target = keyedLicense ?? (keyless.length === 1 ? keyless[0] : undefined);
+      if (!target && licenses.length)
+        item.warnings.push(
+          issue(
+            "license_key_feature_ambiguous",
+            `The Creem product has license-key features, none with the key ${LICENSE_KEY_FEATURE_KEY}; none is changed and none is added. Give the one buyers should get the key ${LICENSE_KEY_FEATURE_KEY} in Creem.`,
+          ),
+        );
+      else if (
+        !target ||
+        target !== keyedLicense ||
+        !sameLicense(target.licenseKey, spec.licenseKey)
+      ) {
+        features.push(
+          // A stored feature keeps its description, so the merchant's wording stays.
+          licenseFeature(spec.licenseKey, target?.id, target?.description),
+        );
+        for (const f of licenses) if (f !== target) features.push(keepFeature(f)!);
+        changes.push("features.license_key");
+        if (target && target !== keyedLicense)
+          item.warnings.push(
+            issue(
+              "feature_adopted",
+              `License-key feature ${target.id} gets the key ${LICENSE_KEY_FEATURE_KEY} and the Lemon Squeezy settings.`,
+            ),
+          );
+      }
+    } else if (keyedLicense)
       item.warnings.push(
         issue(
           "stale_feature_kept",
           "The variant no longer has license keys; the Creem license-key feature is kept. Remove it in Creem if you want to.",
         ),
       );
-    const wantedFiles = new Set(spec.files.map((f) => f.key));
-    const fileChanged = spec.files.some((f) => {
-      const storedFeature = fileFeatures.get(f.key);
-      return (
-        !storedFeature ||
-        storedFeature.description !== f.file.attributes.name ||
-        fileIds.get(f.key) !== storedFeature.file?.files[0]?.id ||
-        storedFeature.file?.files.length !== 1
-      );
-    });
-    if (fileChanged) {
-      for (const f of spec.files)
-        features.push(fileFeature(f, fileIds.get(f.key)!, fileFeatures.get(f.key)?.id));
+    if (filePlans.some((p) => p.changed)) {
+      for (const p of filePlans) features.push(fileFeature(p));
+      const planned = new Set(filePlans.map((p) => p.featureId).filter(Boolean));
       for (const f of stored)
-        if (f.type === "file" && !(f.externalId && wantedFiles.has(f.externalId)))
-          features.push(keepFeature(f)!);
+        if (f.type === "file" && !planned.has(f.id)) features.push(keepFeature(f)!);
       changes.push("features.file");
     }
-    for (const [key] of fileFeatures)
-      if (/^ls_file_\d+$/.test(key) && !wantedFiles.has(key))
+    const lsFileKeys = new Set([
+      ...spec.files.map((f) => f.key),
+      ...spec.otherFileIds.map(fileKey),
+    ]);
+    for (const [key] of keyedFiles)
+      if (/^ls_file_\d+$/.test(key) && !lsFileKeys.has(key))
         item.warnings.push(
           issue(
             "stale_feature_kept",
@@ -812,6 +1016,36 @@ export function fromLemonSqueezy(
       item.action = "update";
       item.status = "pending";
     } else item.action = "unchanged";
+  }
+
+  // ---- orphans: keyed Creem products this run doesn't migrate still sell
+  const itemKeys = new Set(productItems.map((i) => i.key));
+  const orphaned = (id: string) =>
+    issue(
+      "orphaned",
+      `Creem product ${id} has this key and stays as it is, so it can still be sold. Archive it in Creem if it shouldn't be.`,
+    );
+  for (const item of productItems) {
+    const stored = item.action === "skip" ? productsByKey.get(item.key) : undefined;
+    if (!stored) continue;
+    item.creem_id = stored.id;
+    if (stored.status !== "archived") item.warnings.push(orphaned(stored.id));
+  }
+  for (const product of creemCatalog.products) {
+    const id = /^ls_variant_(\d+)$/.exec(product.externalId ?? "")?.[1];
+    if (!id || itemKeys.has(product.externalId!) || product.status === "archived") continue;
+    productItems.push(
+      newItem({
+        kind: "product",
+        key: product.externalId!,
+        name: product.name,
+        source: { type: "variant", id },
+        action: "skip",
+        creem_id: product.id,
+        reason: issue("variant_not_found", `This Lemon Squeezy store has no variant ${id}.`),
+        warnings: [orphaned(product.id)],
+      }),
+    );
   }
 
   // ---- product groups: two or more migrated recurring variants of one LS product
@@ -858,6 +1092,8 @@ export function fromLemonSqueezy(
   const keyOfProductId = new Map(
     creemCatalog.products.filter((p) => p.externalId).map((p) => [p.id, p.externalId as string]),
   );
+  for (const item of productItems)
+    if (item.adopted_from) keyOfProductId.set(item.adopted_from, item.key);
   for (const discount of objects.discounts) {
     const item = newItem({
       kind: "discount",
@@ -876,15 +1112,12 @@ export function fromLemonSqueezy(
       creemCatalog.discounts.filter(
         (d) => d.code.toUpperCase() === discount.attributes.code.toUpperCase(),
       ),
-      (d) => `same code as ${d.id}`,
+      (d) => discountDifferences(d, planned),
       item,
     );
     if (found.pending) {
-      item.creem_id = found.existing!.id;
-      item.reason = issue(
-        "adoption_unconfirmed",
-        `Creem discount ${found.existing!.id} has the same code and no key. Confirm adopting it (interactively or with --adopt).`,
-      );
+      item.creem_id = found.pending.length === 1 ? found.pending[0].id : null;
+      item.reason = unconfirmed("discount", item.key, found.pending);
       continue;
     }
     const existing = found.existing;
@@ -968,9 +1201,15 @@ export function fromLemonSqueezy(
       update.expiryDate = planned.expiryDate ?? null;
       changes.push("expiry_date");
     }
-    const storedKeys = (existing.appliesToProducts ?? []).map((id) => keyOfProductId.get(id) ?? id);
+    // Only the migrated products (`ls_variant_*`) are compared and replaced;
+    // the products the merchant added are sent back.
+    const storedIds = existing.appliesToProducts ?? [];
+    const isMigrated = (id: string) => LS_VARIANT_KEY.test(keyOfProductId.get(id) ?? "");
+    const storedKeys = new Set(storedIds.filter(isMigrated).map((id) => keyOfProductId.get(id)!));
+    const merchantIds = storedIds.filter((id) => !isMigrated(id));
     const wanted = planned.appliesToProductExternalIds ?? [];
-    if (storedKeys.length !== wanted.length || !wanted.every((k) => storedKeys.includes(k))) {
+    if (storedKeys.size !== new Set(wanted).size || !wanted.every((k) => storedKeys.has(k))) {
+      if (merchantIds.length) update.appliesToProducts = merchantIds;
       update.appliesToProductExternalIds = wanted;
       changes.push("applies_to_products");
     }
@@ -1033,6 +1272,13 @@ function planDiscount(
     item.reason = issue("discount_not_published", `The discount is ${a.status}, not published.`);
     return undefined;
   }
+  if (a.code.length > DISCOUNT_CODE_MAX) {
+    item.reason = issue(
+      "discount_code_too_long",
+      `Creem codes have at most ${DISCOUNT_CODE_MAX} characters; ${a.code} has ${a.code.length}. Create it in Creem with a shorter code.`,
+    );
+    return undefined;
+  }
   if (a.expires_at && new Date(a.expires_at).getTime() <= now.getTime()) {
     item.reason = issue("discount_expired", `The discount expired at ${a.expires_at}.`);
     return undefined;
@@ -1084,8 +1330,18 @@ function planDiscount(
         `The discount starts at ${a.starts_at} in Lemon Squeezy; Creem discounts are valid at once.`,
       ),
     );
+  let name = a.name;
+  if (name.length > DISCOUNT_NAME_MAX) {
+    name = name.slice(0, DISCOUNT_NAME_MAX).trimEnd();
+    item.warnings.push(
+      issue(
+        "discount_name_truncated",
+        `Creem discount names have at most ${DISCOUNT_NAME_MAX} characters; the name becomes "${name}".`,
+      ),
+    );
+  }
   const body: CreateDiscountBody = {
-    name: a.name,
+    name,
     code: a.code,
     type: a.amount_type === "percent" ? "percentage" : "fixed",
     ...(a.amount_type === "percent" ? { percentage: a.amount } : { amount: a.amount, currency }),
@@ -1097,4 +1353,21 @@ function planDiscount(
   body.externalId = discountKey(discount.id);
   body.appliesToProductExternalIds = applies;
   return body;
+}
+
+/** How a candidate discount differs from the planned one: shown, never matched on. */
+function discountDifferences(d: DiscountEntity, planned: CreateDiscountBody): string[] {
+  const differences: string[] = [];
+  const ls = (value: unknown) => ` (Lemon Squeezy: ${String(value)})`;
+  if (d.code !== planned.code) differences.push(`code ${d.code}${ls(planned.code)}`);
+  if (d.name !== planned.name) differences.push(`name "${d.name}"${ls(`"${planned.name}"`)}`);
+  const value = (type: string, percentage?: number | null, amount?: number | null) =>
+    type === "percentage" ? `${percentage}%` : `${amount}`;
+  const stored = value(d.type, d.percentage, d.amount);
+  const wanted = value(planned.type, planned.percentage, planned.amount);
+  if (d.type !== planned.type || stored !== wanted)
+    differences.push(`${d.type} ${stored}${ls(`${planned.type} ${wanted}`)}`);
+  if (d.duration !== planned.duration)
+    differences.push(`duration ${d.duration}${ls(planned.duration)}`);
+  return differences;
 }

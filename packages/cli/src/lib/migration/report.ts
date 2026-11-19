@@ -10,7 +10,7 @@ export const MIGRATION_REPORT_VERSION = 1;
 
 /**
  * Exit codes of a migration. 0–5 keep their meaning across the CLI
- * (`describeError`); 6 is specific to migrations.
+ * (`describeError`); 6 and 7 are specific to migrations.
  */
 export const MIGRATION_EXIT_CODES = {
   /** Every item is created, updated, unchanged or skipped by a mapping rule. */
@@ -27,6 +27,11 @@ export const MIGRATION_EXIT_CODES = {
   network: 5,
   /** The run finished, and at least one item failed. Re-run to retry them. */
   itemsFailed: 6,
+  /**
+   * At least one adoption proposal is unanswered (`proposals[].decision` is
+   * `pending`), so nothing was written. Answer it in a terminal or with `--adopt`.
+   */
+  adoptionPending: 7,
 } as const;
 
 export type MigrationItemKind = "product" | "product_group" | "discount" | "file";
@@ -69,14 +74,33 @@ export interface MigrationItem {
 }
 
 /** An existing Creem object without a key that looks like a source object. */
-export interface AdoptionProposal {
-  id: string;
-  kind: "product" | "discount";
-  key: string;
+export interface AdoptionCandidate {
   creem_id: string;
   creem_name: string;
-  match: string;
+  /** How the Creem object differs from what the source maps to; shown, never matched on. */
+  differences: string[];
+}
+
+/**
+ * Existing Creem objects without a key that look like a source object: same
+ * kind and the same name ignoring case and spacing (products), or the same
+ * code ignoring case (discounts). Never preselected: the run stops until each
+ * proposal is answered (`accepted` with one candidate, or `declined` to create
+ * a new object).
+ */
+export interface AdoptionProposal {
+  /** `adopt:<key>`. */
+  id: string;
+  kind: "product" | "discount";
+  /** The key the adopted object gets. */
+  key: string;
+  /** The source object's name. */
+  name: string;
+  /** Ranked: same billing type first, then active before archived, then closest price. */
+  candidates: AdoptionCandidate[];
   decision: "pending" | "accepted" | "declined";
+  /** The adopted candidate, once accepted. */
+  creem_id: string | null;
 }
 
 export interface MigrationReport {
@@ -127,6 +151,8 @@ export function summarize(items: MigrationItem[]): MigrationSummary {
 
 export function migrationExitCode(report: MigrationReport): number {
   if (report.fetch_failures.length) return MIGRATION_EXIT_CODES.sourceIncomplete;
+  if (report.mode !== "run" && report.proposals.some((p) => p.decision === "pending"))
+    return MIGRATION_EXIT_CODES.adoptionPending;
   if (report.items.some((item) => item.status === "failed"))
     return MIGRATION_EXIT_CODES.itemsFailed;
   return MIGRATION_EXIT_CODES.ok;

@@ -78,12 +78,17 @@ export async function executeMigration(
   };
   const uploaded = new Map<string, string>();
   const failedKeys = new Set<string>();
-  // Products that exist in Creem after the run: matched ones, and those written now.
-  const productKeys = new Set(
+  // Products that exist in Creem after the run, by key: matched ones, and those written now.
+  const productIds = new Map(
     report.items
-      .filter((i) => i.kind === "product" && (i.action === "unchanged" || i.action === "update"))
-      .map((i) => i.key),
+      .filter(
+        (i) =>
+          i.kind === "product" && i.creem_id && (i.action === "unchanged" || i.action === "update"),
+      )
+      .map((i) => [i.key, i.creem_id as string]),
   );
+  // Uploaded files a product write names, so a failed write can report them unattached.
+  const uploadsOf = new Map<string, string[]>();
   const fail = (item: MigrationItem, error: MigrationError) => {
     item.status = "failed";
     item.error = error;
@@ -93,45 +98,65 @@ export async function executeMigration(
     if (options.delayMs) await new Promise((resolve) => setTimeout(resolve, options.delayMs));
   };
 
-  /** Swaps `upload:<key>` file ids for uploaded ones; false if an upload failed. */
-  const resolveFiles = (features: unknown[] | undefined, item: MigrationItem): boolean => {
-    for (const feature of features ?? []) {
+  /**
+   * Swaps `upload:<key>` file ids, in features and in metadata, for uploaded
+   * ones; false if an upload failed.
+   */
+  const resolveFiles = (
+    body: { features?: unknown[]; metadata?: Record<string, unknown> | null },
+    item: MigrationItem,
+  ): boolean => {
+    const keys: string[] = [];
+    const resolve = (value: string): string | undefined => {
+      const key = value.slice(UPLOAD_PREFIX.length);
+      const id = uploaded.get(key);
+      if (!id) {
+        fail(item, {
+          code: "dependency_failed",
+          message: `The upload of ${key} failed, so the product was not written.`,
+          status: null,
+          hint: "Re-run the migration to retry.",
+        });
+        return undefined;
+      }
+      if (!keys.includes(key)) keys.push(key);
+      return id;
+    };
+    for (const [name, value] of Object.entries(body.metadata ?? {})) {
+      if (typeof value !== "string" || !value.startsWith(UPLOAD_PREFIX)) continue;
+      const id = resolve(value);
+      if (!id) return false;
+      body.metadata![name] = id;
+    }
+    for (const feature of body.features ?? []) {
       if (!isRecord(feature) || feature.type !== "file" || !isRecord(feature.file)) continue;
       const files = Array.isArray(feature.file.files) ? feature.file.files : [];
       for (const file of files) {
         if (!isRecord(file) || typeof file.id !== "string" || !file.id.startsWith(UPLOAD_PREFIX))
           continue;
-        const key = file.id.slice(UPLOAD_PREFIX.length);
-        const id = uploaded.get(key);
-        if (!id) {
-          fail(item, {
-            code: "dependency_failed",
-            message: `The upload of ${key} failed, so the product was not written.`,
-            status: null,
-            hint: "Re-run the migration to retry.",
-          });
-          return false;
-        }
+        const id = resolve(file.id);
+        if (!id) return false;
         file.id = id;
       }
     }
+    uploadsOf.set(item.key, keys);
     return true;
   };
 
-  /** Drops products that do not exist after this run from a discount's keys. */
-  const resolveProducts = (
-    keys: string[] | undefined,
-    item: MigrationItem,
-  ): string[] | undefined => {
-    if (!keys) return keys;
-    const kept = keys.filter((key) => productKeys.has(key));
-    const dropped = keys.filter((key) => !productKeys.has(key));
+  /**
+   * Turns a discount's product keys into Creem ids (`applies_to_products` has
+   * no size limit; `applies_to_product_external_ids` takes at most 100), and
+   * drops the products that do not exist after this run.
+   */
+  const resolveProducts = (keys: string[] | undefined, item: MigrationItem): string[] => {
+    const kept = (keys ?? []).filter((key) => productIds.has(key));
+    const dropped = (keys ?? []).filter((key) => !productIds.has(key));
     if (dropped.length)
       item.warnings.push({
         code: "product_not_written",
         message: `Left out of the discount because they were not written: ${dropped.join(", ")}. Re-run to add them.`,
       });
-    return kept;
+    return kept.map((key) => productIds.get(key)!);
   };
 
   for (const original of plan.requests) {
@@ -170,28 +195,29 @@ export async function executeMigration(
         }
         case "create_product": {
           const body = request.request.createProductRequestEntity;
-          if (!resolveFiles(body.features, item)) continue;
+          if (!resolveFiles(body, item)) continue;
           const product = await client.products.create({
             createProductRequestEntity: body,
             idempotencyKey: idempotencyKey(request.key, body),
           });
           item.creem_id = product.id;
-          productKeys.add(request.key);
+          productIds.set(request.key, product.id);
           break;
         }
         case "update_product": {
           const body = request.request.updateProductRequestEntity;
-          if (!resolveFiles(body.features, item)) continue;
+          if (!resolveFiles(body, item)) continue;
           await client.products.update(request.request);
           break;
         }
         case "create_discount": {
           const body = request.request.createDiscountRequestEntity;
-          body.appliesToProductExternalIds = resolveProducts(
-            body.appliesToProductExternalIds,
-            item,
-          );
-          if (!body.appliesToProductExternalIds?.length) {
+          body.appliesToProducts = [
+            ...(body.appliesToProducts ?? []),
+            ...resolveProducts(body.appliesToProductExternalIds, item),
+          ];
+          delete body.appliesToProductExternalIds;
+          if (!body.appliesToProducts.length) {
             fail(item, {
               code: "dependency_failed",
               message: "None of the discount's products was written.",
@@ -210,11 +236,11 @@ export async function executeMigration(
         case "update_discount": {
           const body = request.request.updateDiscountRequestEntity;
           if (body.appliesToProductExternalIds) {
-            body.appliesToProductExternalIds = resolveProducts(
-              body.appliesToProductExternalIds,
-              item,
-            );
-            if (!body.appliesToProductExternalIds?.length) delete body.appliesToProductExternalIds;
+            const ids = resolveProducts(body.appliesToProductExternalIds, item);
+            delete body.appliesToProductExternalIds;
+            // Without one migrated product written, the stored set stays as it is.
+            if (ids.length) body.appliesToProducts = [...(body.appliesToProducts ?? []), ...ids];
+            else delete body.appliesToProducts;
           }
           if (!Object.keys(body).length) break;
           await client.discounts.update(request.request);
@@ -223,12 +249,26 @@ export async function executeMigration(
       }
     } catch (error) {
       fail(item, migrationError(error, secrets));
-      // Without its key, an adopted product can't be named in a discount.
-      if (request.type === "adopt_product") productKeys.delete(request.key);
+      // Without its key, an adopted product isn't the migrated one in a discount.
+      if (request.type === "adopt_product") productIds.delete(request.key);
       if (request.type === "adopt_product" || request.type === "adopt_discount")
         item.error!.message = `Adopting ${request.request.id} failed: ${item.error!.message}`;
     }
     await pause();
+  }
+  // The API can't look files up, so a confirmed upload whose product write
+  // failed is uploaded again by the next run. The unattached copy is never
+  // delivered to buyers; it is reported so the duplicate is known.
+  for (const [productKey, fileKeys] of uploadsOf) {
+    if (!failedKeys.has(productKey)) continue;
+    for (const key of fileKeys) {
+      const fileItem = items.get(`file:${key}`);
+      if (!fileItem) continue;
+      fileItem.warnings.push({
+        code: "file_not_attached",
+        message: `File ${uploaded.get(key)} was uploaded, but its product ${productKey} was not written, so it is attached to nothing and never delivered. The API can't look files up, so the next run uploads it again.`,
+      });
+    }
   }
   for (const item of report.items) if (item.status === "pending") item.status = "done";
   report.summary = summarize(report.items);
