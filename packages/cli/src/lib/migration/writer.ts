@@ -3,7 +3,12 @@ import { openAsBlob } from "node:fs";
 import type { Creem } from "creem";
 import { describeError } from "../errors";
 import { isRecord } from "../operation";
-import { UPLOAD_PREFIX, type MigrationPlan, type MigrationRequest } from "./lemon-squeezy/map";
+import {
+  FILE_ID_METADATA,
+  UPLOAD_PREFIX,
+  type MigrationPlan,
+  type MigrationRequest,
+} from "./lemon-squeezy/map";
 import { summarize, type MigrationError, type MigrationItem, type MigrationReport } from "./report";
 
 export interface ExecuteOptions {
@@ -60,6 +65,10 @@ export async function executeMigration(
   plan: MigrationPlan,
   options: ExecuteOptions,
 ): Promise<MigrationReport> {
+  if (plan.answerErrors.length)
+    throw new Error(
+      `The plan has adoption answers that can't be applied: ${plan.answerErrors.map((e) => e.message).join(" ")}`,
+    );
   const report: MigrationReport = structuredClone(plan.report);
   report.mode = "run";
   const secrets = options.secrets ?? [];
@@ -99,48 +108,50 @@ export async function executeMigration(
   };
 
   /**
-   * Swaps `upload:<key>` file ids, in features and in metadata, for uploaded
-   * ones; false if an upload failed.
+   * Swaps `upload:<key>` file ids for uploaded ones: in file features, and in
+   * the migrator's own `ls_file_<id>_file_id` metadata keys (the merchant's
+   * metadata is sent back as it is). False if an upload failed; every upload
+   * that did resolve is still recorded, so a failed write reports it unattached.
    */
   const resolveFiles = (
     body: { features?: unknown[]; metadata?: Record<string, unknown> | null },
     item: MigrationItem,
   ): boolean => {
     const keys: string[] = [];
-    const resolve = (value: string): string | undefined => {
+    const missing: string[] = [];
+    const resolve = (value: string): string => {
       const key = value.slice(UPLOAD_PREFIX.length);
       const id = uploaded.get(key);
       if (!id) {
-        fail(item, {
-          code: "dependency_failed",
-          message: `The upload of ${key} failed, so the product was not written.`,
-          status: null,
-          hint: "Re-run the migration to retry.",
-        });
-        return undefined;
+        if (!missing.includes(key)) missing.push(key);
+        return value;
       }
       if (!keys.includes(key)) keys.push(key);
       return id;
     };
-    for (const [name, value] of Object.entries(body.metadata ?? {})) {
-      if (typeof value !== "string" || !value.startsWith(UPLOAD_PREFIX)) continue;
-      const id = resolve(value);
-      if (!id) return false;
-      body.metadata![name] = id;
-    }
+    for (const [name, value] of Object.entries(body.metadata ?? {}))
+      if (
+        FILE_ID_METADATA.test(name) &&
+        typeof value === "string" &&
+        value.startsWith(UPLOAD_PREFIX)
+      )
+        body.metadata![name] = resolve(value);
     for (const feature of body.features ?? []) {
       if (!isRecord(feature) || feature.type !== "file" || !isRecord(feature.file)) continue;
       const files = Array.isArray(feature.file.files) ? feature.file.files : [];
-      for (const file of files) {
-        if (!isRecord(file) || typeof file.id !== "string" || !file.id.startsWith(UPLOAD_PREFIX))
-          continue;
-        const id = resolve(file.id);
-        if (!id) return false;
-        file.id = id;
-      }
+      for (const file of files)
+        if (isRecord(file) && typeof file.id === "string" && file.id.startsWith(UPLOAD_PREFIX))
+          file.id = resolve(file.id);
     }
     uploadsOf.set(item.key, keys);
-    return true;
+    if (!missing.length) return true;
+    fail(item, {
+      code: "dependency_failed",
+      message: `The upload of ${missing.join(", ")} failed, so the product was not written.`,
+      status: null,
+      hint: "Re-run the migration to retry.",
+    });
+    return false;
   };
 
   /**

@@ -17,7 +17,12 @@ export const MIGRATION_EXIT_CODES = {
   ok: 0,
   /** Unexpected failure. */
   unexpected: 1,
-  /** Invalid flags or input, a missing `--yes`, or a declined confirmation. */
+  /**
+   * Invalid flags or input, a missing `--yes`, or a declined confirmation. Also
+   * an `--adopt` answer that can't be applied (no item with that key, an unknown
+   * or keyed Creem object, or a candidate another answer already claims):
+   * checked before anything is written or asked.
+   */
   usage: 2,
   /** The source or Creem API key was refused. */
   auth: 3,
@@ -30,6 +35,8 @@ export const MIGRATION_EXIT_CODES = {
   /**
    * At least one adoption proposal is unanswered (`proposals[].decision` is
    * `pending`), so nothing was written. Answer it in a terminal or with `--adopt`.
+   * A preview (`--dry-run`, or `--json` without `--yes`) exits 7 too, so a script
+   * knows the run would stop; exit 4 takes priority.
    */
   adoptionPending: 7,
 } as const;

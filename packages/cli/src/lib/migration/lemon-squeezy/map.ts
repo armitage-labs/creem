@@ -61,6 +61,11 @@ export type MigrationRequest =
 export interface MigrationPlan {
   requests: MigrationRequest[];
   report: MigrationReport;
+  /**
+   * Adoption answers that answer nothing or can't be applied (`adoption_answer_invalid`).
+   * The plan must not run while there are any: the command stops with exit 2.
+   */
+  answerErrors: MigrationIssue[];
 }
 
 export interface FromLemonSqueezyOptions {
@@ -69,7 +74,10 @@ export interface FromLemonSqueezyOptions {
   /**
    * Answers to adoption proposals, by proposal id (`adopt:<key>`): the Creem id
    * of the candidate to adopt, or `new` to create a new object. A proposal
-   * without an answer stays pending and skips its item.
+   * without an answer stays pending and skips its item. An answer may also name
+   * an unkeyed object of the same kind that isn't a look-alike (a renamed
+   * product). Any other answer, or one for a key the run doesn't migrate, is an
+   * `answerErrors` entry.
    */
   adoption?: Record<string, string>;
 }
@@ -90,6 +98,8 @@ export const fileKey = (id: string) => `ls_file_${id}`;
 const fileShaKey = (id: string) => `ls_file_${id}_sha256`;
 /** The Creem file that stands for an LS file in its feature (`upload:<key>` until uploaded). */
 const fileIdKey = (id: string) => `ls_file_${id}_file_id`;
+/** The metadata keys the writer may resolve `upload:<key>` in; never the merchant's. */
+export const FILE_ID_METADATA = /^ls_file_\d+_file_id$/;
 const LS_VARIANT_KEY = /^ls_variant_\d+$/;
 
 const issue = (code: string, message: string): MigrationIssue => ({ code, message });
@@ -449,8 +459,20 @@ function productDifferences(p: ProductEntity, create: CreateProductBody): string
     differences.push(`currency ${p.currency}${ls(create.currency)}`);
   if (p.billingType !== create.billingType)
     differences.push(`billing type ${p.billingType}${ls(create.billingType)}`);
-  else if (create.billingType === "recurring" && p.billingPeriod !== create.billingPeriod)
-    differences.push(`billing period ${p.billingPeriod}${ls(create.billingPeriod)}`);
+  else if (create.billingType === "recurring") {
+    const period = (
+      billingPeriod: string | undefined,
+      interval: string | null | undefined,
+      count: number | null | undefined,
+    ) => (billingPeriod === "custom" ? `custom every ${count ?? 1} ${interval}(s)` : billingPeriod);
+    const stored = period(p.billingPeriod, p.recurringInterval, p.recurringIntervalCount);
+    const wanted = period(
+      create.billingPeriod,
+      create.recurringInterval,
+      create.recurringIntervalCount,
+    );
+    if (stored !== wanted) differences.push(`billing period ${stored}${ls(wanted)}`);
+  }
   if (p.status === "archived") differences.push("archived");
   return differences;
 }
@@ -483,8 +505,19 @@ export function fromLemonSqueezy(
   if (currency !== "USD" && currency !== "EUR")
     throw new Error(`Lemon Squeezy store currency ${currency} is not USD or EUR`);
   const decisions = options.adoption ?? {};
-  /** Candidates an earlier item adopted. */
-  const claimed = new Set<string>();
+  /** Candidates an earlier item adopted, with the key they got. */
+  const claimed = new Map<string, string>();
+  /** Answers some item looked at; the others answer nothing. */
+  const consulted = new Set<string>();
+  const answerErrors: MigrationIssue[] = [];
+  const rejectAnswer = (key: string, message: string) => {
+    const error = issue(
+      "adoption_answer_invalid",
+      `--adopt ${key}=${decisions[`adopt:${key}`]}: ${message}`,
+    );
+    answerErrors.push(error);
+    return error;
+  };
   const prices = new Map(objects.prices.map((p) => [p.id, p]));
   const productsByKey = new Map<string, ProductEntity>();
   for (const product of creemCatalog.products)
@@ -509,28 +542,60 @@ export function fromLemonSqueezy(
   /**
    * Finds the Creem object a key matches. Without one, the look-alikes without
    * a key become one proposal (ADR § 2.6): adopted only when the answer names
-   * one of them, a new object when it is `new`, and pending otherwise.
+   * one of them (or another unkeyed object of the kind), a new object when it
+   * is `new`, and pending otherwise. An answer that can't be applied rejects
+   * the item.
    */
   function match<T extends { id: string; externalId: string | null; name?: string }>(
     kind: "product" | "discount",
     key: string,
     byKey: Map<string, T>,
+    all: T[],
     lookalikes: T[],
     differences: (candidate: T) => string[],
     item: MigrationItem,
-  ): { existing?: T; pending?: T[] } {
-    const existing = byKey.get(key);
-    if (existing) return { existing };
-    const open = lookalikes.filter((c) => !c.externalId && !claimed.has(c.id));
-    if (!open.length) return {};
+  ): { existing?: T; pending?: T[]; rejected?: MigrationIssue } {
     const id = `adopt:${key}`;
     const answer = decisions[id];
+    if (answer !== undefined) consulted.add(id);
+    const existing = byKey.get(key);
+    if (existing) {
+      // The same answers re-run cleanly: the adopted or created object has the key now.
+      if (answer !== undefined && answer !== ADOPT_NEW && answer !== existing.id)
+        return {
+          rejected: rejectAnswer(
+            key,
+            `Creem ${kind} ${existing.id} already has the key ${key}, so ${answer} can't get it.`,
+          ),
+        };
+      return { existing };
+    }
+    const open = lookalikes.filter((c) => !c.externalId && !claimed.has(c.id));
+    let chosen: T | undefined;
+    if (answer !== undefined && answer !== ADOPT_NEW) {
+      chosen = open.find((c) => c.id === answer);
+      if (!chosen) {
+        const named = all.find((c) => c.id === answer);
+        const problem = !named
+          ? `there is no Creem ${kind} ${answer}.`
+          : named.externalId
+            ? `Creem ${kind} ${answer} already has the key ${named.externalId}.`
+            : claimed.has(answer)
+              ? `Creem ${kind} ${answer} is already adopted as ${claimed.get(answer)}; two keys can't adopt one ${kind}.`
+              : undefined;
+        if (problem) return { rejected: rejectAnswer(key, problem) };
+        // An unkeyed object the merchant named that isn't a look-alike (renamed).
+        chosen = named;
+      }
+    }
+    if (!open.length && !chosen) return {};
+    const candidates = chosen && !open.includes(chosen) ? [chosen, ...open] : open;
     const proposal: AdoptionProposal = {
       id,
       kind,
       key,
       name: item.name,
-      candidates: open.map((c) => ({
+      candidates: candidates.map((c) => ({
         creem_id: c.id,
         creem_name: c.name ?? "",
         differences: differences(c),
@@ -543,18 +608,8 @@ export function fromLemonSqueezy(
       proposal.decision = "declined";
       return {};
     }
-    const chosen = open.find((c) => c.id === answer);
-    if (!chosen) {
-      if (answer)
-        item.warnings.push(
-          issue(
-            "adoption_choice_unknown",
-            `${answer} is not one of the candidates (${open.map((c) => c.id).join(", ")}); the proposal stays unanswered.`,
-          ),
-        );
-      return { pending: open };
-    }
-    claimed.add(chosen.id);
+    if (!chosen) return { pending: open };
+    claimed.set(chosen.id, key);
     proposal.decision = "accepted";
     proposal.creem_id = chosen.id;
     item.adopted_from = chosen.id;
@@ -718,10 +773,21 @@ export function fromLemonSqueezy(
       "product",
       spec.key,
       productsByKey,
+      creemCatalog.products,
       creemCatalog.products.filter((p) => sameName(p.name, create.name)).sort(rankProducts(create)),
       (p) => productDifferences(p, create),
       item,
     );
+    if (found.rejected) {
+      item.action = "skip";
+      item.reason = found.rejected;
+      for (const f of spec.files)
+        fileItems.find((i) => i.key === f.key)!.reason = issue(
+          "adoption_answer_invalid",
+          `Its product ${spec.key} has an adoption answer that can't be applied.`,
+        );
+      continue;
+    }
     if (found.pending) {
       item.action = "skip";
       item.creem_id = found.pending.length === 1 ? found.pending[0].id : null;
@@ -782,21 +848,14 @@ export function fromLemonSqueezy(
         }
       }
       const files = feature?.file?.files ?? [];
-      const storedSha = storedOwned[fileShaKey(f.file.id)];
-      let ours = files.find((x) => x.id === storedOwned[fileIdKey(f.file.id)]);
-      if (!ours) {
-        const named = files.filter((x) => x.fileName === lsName);
-        if (named.length === 1) ours = named[0];
-        else if (files.length === 1 && !adoptedFeature) ours = files[0];
-      }
-      // Without a recorded SHA-256 (a feature the merchant made), same name and size count as the same file.
-      const sameBytes =
-        ours !== undefined &&
-        (storedSha === undefined
-          ? ours.fileName === lsName && ours.size === f.size
-          : storedSha === f.sha256);
-      // A file of the merchant's own feature that differs is kept; the LS file goes next to it.
-      if (adoptedFeature && !sameBytes) ours = undefined;
+      // Only the file the migrator recorded stands for the LS file, and only its
+      // recorded SHA-256 says its bytes. The API can't show a file's bytes, so a
+      // merchant's file (even one with the same name and size) is never taken
+      // as the LS file: the LS file is uploaded next to it, and it stays.
+      const recordedId = storedOwned[fileIdKey(f.file.id)];
+      const ours = files.find((x) => x.id === recordedId);
+      const sameBytes = ours !== undefined && storedOwned[fileShaKey(f.file.id)] === f.sha256;
+      const lookalikes = files.filter((x) => x !== ours && x.fileName === lsName);
       let fileId: string;
       if (ours && sameBytes) {
         fileId = ours.id;
@@ -807,6 +866,13 @@ export function fromLemonSqueezy(
         fileItem.action = ours ? "update" : "create";
         fileItem.status = "pending";
         if (ours) fileItem.changes.push("sha256");
+        for (const x of lookalikes)
+          item.warnings.push(
+            issue(
+              "file_kept_unverified",
+              `${x.id} (${x.fileName}) has the Lemon Squeezy file's name, but the API can't show its bytes, so the Lemon Squeezy file is uploaded next to it and it stays. Remove one in Creem if they are the same.`,
+            ),
+          );
         uploadRequests.push({
           type: "upload_file",
           key: f.key,
@@ -836,9 +902,7 @@ export function fromLemonSqueezy(
         item.warnings.push(
           issue(
             "feature_adopted",
-            ours
-              ? `File feature ${feature.id} gets the key ${f.key}; its file ${ours.fileName} (same name and size) stands for the Lemon Squeezy file.`
-              : `File feature ${feature.id} gets the key ${f.key}, and the Lemon Squeezy file is added next to its files.`,
+            `File feature ${feature.id} gets the key ${f.key}, and the Lemon Squeezy file is added next to its files.`,
           ),
         );
     }
@@ -1109,12 +1173,17 @@ export function fromLemonSqueezy(
       "discount",
       item.key,
       discountsByKey,
+      creemCatalog.discounts,
       creemCatalog.discounts.filter(
         (d) => d.code.toUpperCase() === discount.attributes.code.toUpperCase(),
       ),
       (d) => discountDifferences(d, planned),
       item,
     );
+    if (found.rejected) {
+      item.reason = found.rejected;
+      continue;
+    }
     if (found.pending) {
       item.creem_id = found.pending.length === 1 ? found.pending[0].id : null;
       item.reason = unconfirmed("discount", item.key, found.pending);
@@ -1201,18 +1270,32 @@ export function fromLemonSqueezy(
       update.expiryDate = planned.expiryDate ?? null;
       changes.push("expiry_date");
     }
-    // Only the migrated products (`ls_variant_*`) are compared and replaced;
-    // the products the merchant added are sent back.
+    // The API keeps no record of which products the migrator put on a
+    // discount, so it can't tell a variant LS dropped from one the merchant
+    // added. The set only grows: missing migrated products are added, every
+    // stored product is sent back, and LS-keyed ones LS doesn't list are
+    // reported, never removed.
     const storedIds = existing.appliesToProducts ?? [];
-    const isMigrated = (id: string) => LS_VARIANT_KEY.test(keyOfProductId.get(id) ?? "");
-    const storedKeys = new Set(storedIds.filter(isMigrated).map((id) => keyOfProductId.get(id)!));
-    const merchantIds = storedIds.filter((id) => !isMigrated(id));
+    const storedKeys = new Set(
+      storedIds
+        .map((id) => keyOfProductId.get(id))
+        .filter((k): k is string => k !== undefined && LS_VARIANT_KEY.test(k)),
+    );
     const wanted = planned.appliesToProductExternalIds ?? [];
-    if (storedKeys.size !== new Set(wanted).size || !wanted.every((k) => storedKeys.has(k))) {
-      if (merchantIds.length) update.appliesToProducts = merchantIds;
-      update.appliesToProductExternalIds = wanted;
+    const missing = wanted.filter((k) => !storedKeys.has(k));
+    const unlisted = [...storedKeys].filter((k) => !wanted.includes(k));
+    if (missing.length) {
+      if (storedIds.length) update.appliesToProducts = [...storedIds];
+      update.appliesToProductExternalIds = missing;
       changes.push("applies_to_products");
     }
+    if (unlisted.length)
+      item.warnings.push(
+        issue(
+          "discount_product_kept",
+          `Lemon Squeezy doesn't apply this discount to ${unlisted.join(", ")}. The migrator can't tell whether Lemon Squeezy dropped them or you added them in Creem, so they stay; remove them in Creem if the discount shouldn't apply. This warning repeats on every run.`,
+        ),
+      );
     if (changes.length) {
       item.changes.push(...changes);
       item.action = "update";
@@ -1227,6 +1310,13 @@ export function fromLemonSqueezy(
       item.status = "pending";
     } else item.action = "unchanged";
   }
+
+  for (const id of Object.keys(decisions))
+    if (!consulted.has(id))
+      rejectAnswer(
+        id.slice("adopt:".length),
+        "the run migrates nothing with this key (a typo, or an item skipped by a mapping rule: see its reason in the plan).",
+      );
 
   const items = [...productItems, ...groupItems, ...fileItems, ...discountItems];
   const notMigrated = ["customers", "subscriptions", "orders", "license_keys"].map(
@@ -1256,6 +1346,7 @@ export function fromLemonSqueezy(
   return {
     requests: [...adoptRequests, ...uploadRequests, ...productRequests, ...discountRequests],
     report,
+    answerErrors,
   };
 }
 

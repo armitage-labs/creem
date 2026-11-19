@@ -116,6 +116,9 @@ function formatReport(report: MigrationReport, environment: string): string[] {
 const ADOPT_HINT =
   "Answer them in a terminal, or with --adopt <key>=<creem id> to adopt one, --adopt <key>=new to create a new one, or --adopt alone to adopt every proposal that has one candidate.";
 
+const pendingCount = (report: MigrationReport) =>
+  report.proposals.filter((p) => p.decision === "pending").length;
+
 /** Parses `--adopt` values: `<key>=<creem id>` or `<key>=new`, by proposal id. */
 function adoptAnswers(values: string[]): Record<string, string> {
   const answers: Record<string, string> = {};
@@ -286,6 +289,13 @@ function createLemonSqueezyCommand(context: CliContext): Command {
           let plan: MigrationPlan;
           for (;;) {
             plan = fromLemonSqueezy(objects, catalog, { now, adoption: answers });
+            // An --adopt answer that can't be applied stops the run before any question.
+            if (plan.answerErrors.length)
+              throw new CliError(
+                `Nothing was written: ${plan.answerErrors.map((e) => e.message).join(" ")}`,
+                MIGRATION_EXIT_CODES.usage,
+                "Each --adopt answer names a key from the plan and one of its candidates, an unkeyed Creem object of the same kind, or new.",
+              );
             const next = plan.report.proposals.find(
               (p) => p.decision === "pending" && !asked.has(p.id) && !(p.id in answers),
             );
@@ -306,11 +316,18 @@ function createLemonSqueezyCommand(context: CliContext): Command {
               print();
               print(chalk.yellow.bold("Dry run: nothing was written."));
             }
-            if (failures.length)
+            const exitCode = migrationExitCode(plan.report);
+            if (exitCode === MIGRATION_EXIT_CODES.sourceIncomplete)
               throw new CliError(
                 "The plan is incomplete because some Lemon Squeezy data could not be read.",
                 MIGRATION_EXIT_CODES.sourceIncomplete,
                 "Re-run when Lemon Squeezy answers again.",
+              );
+            if (exitCode === MIGRATION_EXIT_CODES.adoptionPending)
+              throw new CliError(
+                `${pendingCount(plan.report)} adoption proposal(s) are unanswered; a run would write nothing until they are answered.`,
+                MIGRATION_EXIT_CODES.adoptionPending,
+                ADOPT_HINT,
               );
             return;
           }
