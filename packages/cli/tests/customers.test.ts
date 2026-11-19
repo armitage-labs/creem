@@ -118,6 +118,17 @@ it("customers create sends the exact SDK arguments", async () => {
   expect(result.stderr).toContain("SDK_SENTINEL");
   expect(result.stdout).toBe("");
 });
+it("customers create sends a customer without --name", async () => {
+  const h = harness();
+  const spy = vi.spyOn(h.client.customers, "create").mockRejectedValue(new Error("SDK_SENTINEL"));
+  const result = await h.run(["customers", "create", "--email", "person@example.com", "--json"]);
+  expect(spy, result.stderr).toHaveBeenCalledExactlyOnceWith(
+    { email: "person@example.com" },
+    expect.objectContaining({ retries: { strategy: "none" } }),
+  );
+  expect(result.stderr).toContain("SDK_SENTINEL");
+  expect(result.stdout).toBe("");
+});
 it("customers update sends the exact SDK arguments", async () => {
   const h = harness();
   const spy = vi.spyOn(h.client.customers, "update").mockRejectedValue(new Error("SDK_SENTINEL"));
