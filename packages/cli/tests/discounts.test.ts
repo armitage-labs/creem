@@ -294,20 +294,23 @@ it.each([
 it.each([
   ["create", ["--name", "X", "--type", "percentage", "--duration", "once", "--products", "prod_1"]],
   ["update", ["disc_1", "--yes"]],
-])("discounts %s refuses a percentage outside 1 to 100", async (command, args) => {
-  for (const percentage of ["0.5", "100.5", "abc"]) {
-    const h = harness();
-    const spy = vi.spyOn(h.client.discounts, command as "create" | "update");
-    const result = await h.run([
-      "discounts",
-      command,
-      ...args,
-      "--percentage",
-      percentage,
-      "--json",
-    ]);
-    expect(result.code, percentage).toBe(2);
-    expect(spy).not.toHaveBeenCalled();
-    expect(result.stderr).toContain("percentage");
-  }
-});
+])(
+  "discounts %s refuses a percentage that is not a plain decimal from 1 to 100",
+  async (command, args) => {
+    for (const percentage of ["0.5", "100.5", "abc", "0x1A", "1e1", " 50"]) {
+      const h = harness();
+      const spy = vi.spyOn(h.client.discounts, command as "create" | "update");
+      const result = await h.run([
+        "discounts",
+        command,
+        ...args,
+        "--percentage",
+        percentage,
+        "--json",
+      ]);
+      expect(result.code, percentage).toBe(2);
+      expect(spy).not.toHaveBeenCalled();
+      expect(result.stderr).toContain("percentage");
+    }
+  },
+);

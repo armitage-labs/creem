@@ -74,8 +74,14 @@ export function parsePercentage(
 ): number {
   const min = bounds.min ?? 1;
   const max = bounds.max ?? 100;
-  const n = typeof value === "number" || typeof value === "string" ? Number(value) : NaN;
-  if (value === "" || !Number.isFinite(n) || n < min || n > max)
+  // A string must be a plain decimal: Number() would also take "0x1A", "1e1" and padding.
+  const n =
+    typeof value === "number"
+      ? value
+      : typeof value === "string" && /^\d+(\.\d+)?$/.test(value)
+        ? Number(value)
+        : NaN;
+  if (!Number.isFinite(n) || n < min || n > max)
     throw new CliError(`${name} must be a number between ${min} and ${max}.`);
   return n;
 }

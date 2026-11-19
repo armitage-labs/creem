@@ -235,11 +235,13 @@ returns a `ProductWriteResponseEntity`: the product as before, plus
 still compiles.
 
 An update entry with `deleted: true` removes the one feature it names by `id`
-or `externalId`, whatever else the entry carries: a feature read back,
-description and settings included, and marked `deleted: true` is sent as a
-deletion of that feature. Every other entry is an edit or an addition; the edit
-types (`ProductFeatureEditRequestEntity` and its license-key, private-note and
-file counterparts) take `deleted` only as `false`.
+or `externalId`. In TypeScript, write it as `{ id, deleted: true }` (or
+`{ externalId, type, deleted: true }`): the type accepts nothing else on a
+deletion, so a feature read back and marked `deleted: true` doesn't compile.
+An untyped entry with more fields is still sent as a deletion, never as an
+edit. Every other entry is an edit or an addition; the edit types
+(`ProductFeatureEditRequestEntity` and its license-key, private-note and file
+counterparts) take `deleted` only as `false`.
 
 ```ts
 await creem.products.update({
