@@ -321,6 +321,171 @@ describe("fromLemonSqueezy against an empty Creem store", () => {
   });
 });
 
+describe("fromLemonSqueezy edge rules", () => {
+  async function planWith(
+    edit: (docs: ReturnType<typeof lemonSqueezyDocs>) => void,
+    catalog = emptyCatalog,
+  ) {
+    const docs = lemonSqueezyDocs();
+    edit(docs);
+    const { objects } = await lsObjects({ docs });
+    return fromLemonSqueezy(objects, catalog as never, { now: NOW });
+  }
+  const price = (docs: ReturnType<typeof lemonSqueezyDocs>, productId: string) =>
+    docs.variants.get(productId)!.included!.find((r: any) => r.type === "prices").attributes;
+  const itemOf = (p: { report: { items: any[] } }, key: string) =>
+    p.report.items.find((i) => i.key === key);
+
+  it.each([
+    ["month", 30, "billing_interval_unsupported"],
+    ["year", 4, "billing_interval_unsupported"],
+    ["day", 400, "billing_interval_unsupported"],
+  ])("skips billing every %s × %i", async (unit, count, code) => {
+    const p = await planWith((docs) => {
+      Object.assign(price(docs, "900006"), {
+        renewal_interval_unit: unit,
+        renewal_interval_quantity: count,
+      });
+    });
+    expect(itemOf(p, "ls_variant_910006")).toMatchObject({ action: "skip", reason: { code } });
+  });
+
+  it("maps every two months to a custom period and every day to the preset", async () => {
+    const p = await planWith((docs) => {
+      Object.assign(price(docs, "900006"), {
+        renewal_interval_unit: "month",
+        renewal_interval_quantity: 2,
+      });
+      Object.assign(price(docs, "900004"), {
+        renewal_interval_unit: "day",
+        renewal_interval_quantity: 1,
+      });
+    });
+    const body = (key: string) =>
+      (p.requests.find((r) => r.key === key)!.request as any).createProductRequestEntity;
+    expect(body("ls_variant_910006")).toMatchObject({
+      billingPeriod: "custom",
+      recurringInterval: "month",
+      recurringIntervalCount: 2,
+    });
+    expect(body("ls_variant_910004")).toMatchObject({ billingPeriod: "every-day" });
+    expect(body("ls_variant_910004").recurringInterval).toBeUndefined();
+  });
+
+  it("skips a price between 1 and 99 cents, and warns about a trial in months", async () => {
+    const p = await planWith((docs) => {
+      price(docs, "900007").unit_price = 50;
+      Object.assign(price(docs, "900006"), {
+        trial_interval_unit: "month",
+        trial_interval_quantity: 1,
+      });
+    });
+    expect(itemOf(p, "ls_variant_910007")).toMatchObject({
+      reason: { code: "price_below_minimum" },
+    });
+    expect(
+      (p.requests.find((r) => r.key === "ls_variant_910006")!.request as any)
+        .createProductRequestEntity.trialPeriodDays,
+    ).toBe(30);
+    expect(itemOf(p, "ls_variant_910006").warnings.map((w: any) => w.code)).toEqual([
+      "trial_not_in_days",
+    ]);
+  });
+
+  it("gives an ebook subscription the digital goods tax category with a warning", async () => {
+    const p = await planWith((docs) => {
+      price(docs, "900006").tax_code = "ebook";
+    });
+    expect(
+      (p.requests.find((r) => r.key === "ls_variant_910006")!.request as any)
+        .createProductRequestEntity.taxCategory,
+    ).toBe("digital-goods-service");
+    expect(itemOf(p, "ls_variant_910006").warnings.map((w: any) => w.code)).toContain(
+      "tax_category_changed",
+    );
+  });
+
+  it("maps unlimited license keys and activations to null", async () => {
+    const p = await planWith((docs) => {
+      Object.assign(docs.variants.get("900007")!.data[0].attributes, {
+        is_license_limit_unlimited: true,
+        is_license_length_unlimited: true,
+      });
+    });
+    expect(
+      (p.requests.find((r) => r.key === "ls_variant_910007")!.request as any)
+        .createProductRequestEntity.features[0].licenseKey,
+    ).toEqual({ activationLimit: null, expiry: null });
+  });
+
+  it("keeps a limited discount skipped when LS does not say which variants it covers", async () => {
+    const p = await planWith((docs) => {
+      delete docs.discounts.data[1].relationships.variants.data;
+    });
+    expect(itemOf(p, "ls_discount_930002")).toMatchObject({
+      action: "skip",
+      reason: { code: "limited_discount_variants_unknown" },
+    });
+  });
+
+  it("skips an expired discount, and one whose code another Creem discount already uses", async () => {
+    const taken = {
+      id: "disc_other",
+      code: "LAUNCH20",
+      name: "Other",
+      externalId: "something_else",
+      type: "percentage",
+      percentage: 5,
+      status: "active",
+      mode: "test",
+      object: "discount",
+    };
+    const p = await planWith(
+      (docs) => {
+        docs.discounts.data[1].attributes.expires_at = "2026-01-01T00:00:00.000000Z";
+      },
+      { ...emptyCatalog, discounts: [taken] },
+    );
+    expect(itemOf(p, "ls_discount_930002")).toMatchObject({ reason: { code: "discount_expired" } });
+    expect(itemOf(p, "ls_discount_930001")).toMatchObject({
+      reason: { code: "code_taken" },
+      creem_id: "disc_other",
+    });
+  });
+
+  it("applies an unlimited discount to products that already exist from an earlier run", async () => {
+    const creem = fakeCreem();
+    const { objects } = await lsObjects();
+    const first = fromLemonSqueezy(objects, emptyCatalog, { now: NOW });
+    await executeMigration(creem.client, first, {
+      files: objects.fileDigests,
+      fetch: lemonSqueezyFetch().fetcher,
+      delayMs: 0,
+    });
+    creem.state.discounts = creem.state.discounts.filter((d) => d.code !== "LAUNCH20");
+    const second = fromLemonSqueezy(objects, await readCreemCatalog(creem.client), { now: NOW });
+    expect(second.requests).toEqual([
+      expect.objectContaining({
+        type: "create_discount",
+        key: "ls_discount_930001",
+        request: {
+          createDiscountRequestEntity: expect.objectContaining({
+            appliesToProductExternalIds: [
+              "ls_variant_365902",
+              "ls_variant_752120",
+              "ls_variant_910001",
+              "ls_variant_910003",
+              "ls_variant_910004",
+              "ls_variant_910006",
+              "ls_variant_910007",
+            ],
+          }),
+        },
+      }),
+    ]);
+  });
+});
+
 describe("Creem catalog reader", () => {
   it("reads products, product groups and discounts page by page", async () => {
     const creem = fakeCreem({

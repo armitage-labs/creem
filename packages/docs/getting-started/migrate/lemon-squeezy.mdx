@@ -124,7 +124,7 @@ This works with Claude Code, Codex, Cursor or any coding agent that can read web
 
 ## With the Creem CLI
 
-For your catalog alone, the [Creem CLI](/code/cli) copies products and discount codes in one command. It reads your Lemon Squeezy store, shows a plan, and creates the products and codes in the Creem store you're logged in to.
+For your catalog, the [Creem CLI](/code/cli) copies products, discount codes, license key settings and files in one command. It reads your Lemon Squeezy store and the Creem store you're logged in to, prints a plan of what it creates, updates and skips, and writes only after you confirm. Your Lemon Squeezy API key stays on your machine.
 
 ```bash
 brew tap armitage-labs/creem
@@ -134,27 +134,46 @@ creem migrate lemon-squeezy --dry-run
 creem migrate lemon-squeezy
 ```
 
-| Option                | What it does                             |
-| --------------------- | ---------------------------------------- |
-| `--ls-api-key <key>`  | Your Lemon Squeezy API key               |
-| `--ls-store-id <id>`  | The Lemon Squeezy store to read          |
-| `--dry-run`           | Shows the plan without creating anything |
-| `--exclude-discounts` | Copies products only                     |
+| Option                | What it does                                                                  |
+| --------------------- | ----------------------------------------------------------------------------- |
+| `--ls-api-key <key>`  | Your Lemon Squeezy API key                                                    |
+| `--ls-store-id <id>`  | The Lemon Squeezy store to read                                               |
+| `--dry-run`           | Prints the plan and writes nothing                                            |
+| `--yes`               | Writes without asking. Required when no terminal is attached                  |
+| `--adopt`             | Accepts every proposal to adopt an existing Creem product or discount (below) |
+| `--exclude-discounts` | Copies everything except discount codes                                       |
+| `--json`              | Prints the plan as a JSON report. With `--yes`, runs it and prints the result |
 
-What the CLI copies, and what you finish by hand:
+### Running it again
 
-- One product per variant that has a price, with name, price, currency, one-time or recurring, and billing period.
-- Published discount codes, applied to all the products it created. Codes limited to some products are skipped.
-- It sets every product's tax category to `saas`, copies descriptions as HTML, gives pay-what-you-want variants a fixed price (the minimum or suggested price), and doesn't copy images, trials, files, license key settings or customers.
-- It skips variants without a price and billing cadences other than monthly, every 3 or 6 months and yearly.
+Every object the CLI writes carries a key in `external_id`: `ls_variant_<id>` for products and `ls_discount_<id>` for discounts. A second run finds them by that key, updates what changed in Lemon Squeezy and leaves the rest alone, so a run that stopped halfway, or a run in test mode followed by one with a live key, is safe to repeat. When nothing changed, the plan lists every item as unchanged and nothing is written.
 
-Fix those fields with [`PATCH /v1/products/{id}`](/api-reference/endpoint/update-product) or in the dashboard. The [technical guide](/getting-started/migrate/lemon-squeezy/technical-guide#3-rebuild-your-catalog) has the field mapping, and covers customers, checkout and webhooks, which the CLI doesn't move.
+A Creem product without a key that has the same name, currency and billing type as a variant, or a discount with the same code, is proposed for adoption. In a terminal the CLI asks about each one: yes gives it the key, no creates a new product. Without a terminal, pass `--adopt` to accept them, or the item is skipped.
+
+### What the CLI copies
+
+- One product per variant: name (product name plus variant name when a product has several), description as plain text, price and currency, one-time or recurring, billing cycle (weekly and other cycles become a custom cycle), trial in days, and tax category.
+- Free one-time variants as free products, and pay-what-you-want one-time variants with their minimum and suggested price.
+- License key settings as a license key feature, with the activation limit and expiry.
+- Files as file downloads on the product. A re-run uploads a file again only when its contents changed.
+- Published discount codes. A code limited to some variants applies to those products; any other code applies to every migrated product.
+
+It skips, with the reason in the plan: free subscriptions, usage-based and tiered prices, billing cycles Creem doesn't support, draft and expired discount codes, and the hidden default variant of a product that has other variants. Pay-what-you-want subscriptions get their minimum price as a fixed price, because pay what you want is one-time only in Creem. Images aren't copied.
+
+The plan also lists the product groups to create: one per Lemon Squeezy product with two or more subscription variants, so customers can switch between them. The API can't create product groups yet, so create those in the dashboard. Customers, subscriptions, orders and issued license keys aren't migrated; the [technical guide](/getting-started/migrate/lemon-squeezy/technical-guide) covers them.
+
+<Warning>
+  Each run, dry runs included, downloads every published file once to compare it with the copy in
+  Creem. Lemon Squeezy allows 10 downloads of a file per day from one IP address.
+</Warning>
+
+With `--json`, the report lists every item with its action, its Creem ID, and the reason or error. The exit code is `0` when every item went through, `4` when part of the Lemon Squeezy store couldn't be read (nothing is written then), and `6` when the run finished with failed items. Fix what the report names and run the command again.
 
 ## What moves
 
-| Moves to Creem                                                                                                                                                     | Doesn't move yet                                                                                          |
-| ------------------------------------------------------------------------------------------------------------------------------------------------------------------ | --------------------------------------------------------------------------------------------------------- |
-| Products and prices, discount codes, customers, webhooks and checkout links. File downloads, license key settings and affiliates are set up again in the dashboard | Active subscriptions and saved cards, existing license keys, order history and affiliate referral history |
+| Moves to Creem                                                                                                                                                                     | Doesn't move yet                                                                                          |
+| ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | --------------------------------------------------------------------------------------------------------- |
+| Products and prices, discount codes, license key settings, file downloads, customers, webhooks and checkout links. Product groups and affiliates are set up again in the dashboard | Active subscriptions and saved cards, existing license keys, order history and affiliate referral history |
 
 **Existing subscribers** move one at a time: each one checks out once on Creem, close to their Lemon Squeezy renewal date, so nobody pays twice. A direct import that keeps their renewal date is in development. See [Move existing subscribers](/getting-started/migrate/lemon-squeezy/technical-guide#6-move-existing-subscribers).
 
