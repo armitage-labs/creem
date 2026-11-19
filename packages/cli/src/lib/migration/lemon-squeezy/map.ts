@@ -628,6 +628,13 @@ export function fromLemonSqueezy(
         "adoption_unconfirmed",
         `Creem product ${found.existing!.id} has no key and looks like this variant. Confirm adopting it (interactively or with --adopt); declining creates a new product.`,
       );
+      for (const f of spec.files) {
+        const fileItem = fileItems.find((i) => i.key === f.key)!;
+        fileItem.reason = issue(
+          "adoption_unconfirmed",
+          `Its product waits for the decision on adopting ${found.existing!.id}.`,
+        );
+      }
       continue;
     }
     const existing = found.existing;

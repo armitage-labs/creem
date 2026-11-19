@@ -230,7 +230,10 @@
         "id": "262308"
       },
       "action": "skip",
-      "members": ["ls_variant_365902", "ls_variant_752120"]
+      "members": [
+        "ls_variant_365902",
+        "ls_variant_752120"
+      ]
     },
     {
       "status": "pending",

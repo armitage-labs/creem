@@ -223,6 +223,8 @@ export async function executeMigration(
       }
     } catch (error) {
       fail(item, migrationError(error, secrets));
+      // Without its key, an adopted product can't be named in a discount.
+      if (request.type === "adopt_product") productKeys.delete(request.key);
       if (request.type === "adopt_product" || request.type === "adopt_discount")
         item.error!.message = `Adopting ${request.request.id} failed: ${item.error!.message}`;
     }

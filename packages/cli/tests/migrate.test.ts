@@ -717,6 +717,46 @@ describe("executeMigration", () => {
     expect(fresh.state.products.filter((p) => p.name === "Desktop App")).toHaveLength(2);
   });
 
+  it("skips the files of a product that waits for an adoption decision, with the reason", async () => {
+    const existing = productJson("prod_icons", {
+      name: "Icon Pack",
+      price: 0,
+      description: "200 icons & a Figma file.",
+    });
+    const { plan } = await migrate(fakeCreem({ products: [existing] }));
+    expect(plan.report.items.find((i) => i.key === "ls_file_920001")).toMatchObject({
+      action: "skip",
+      reason: { code: "adoption_unconfirmed" },
+    });
+    expect(plan.requests.filter((r) => r.type === "upload_file")).toEqual([]);
+  });
+
+  it("leaves a product whose adoption failed out of the discounts", async () => {
+    const existing = productJson("prod_old", {
+      name: "Desktop App",
+      price: 4900,
+      description: "The desktop app with a license key.",
+      tax_category: "digital-goods-service",
+    });
+    const creem = fakeCreem({ products: [existing] });
+    creem.fail((c) => c.method === "PATCH" && c.path === "/v1/products/prod_old", 409, {
+      code: "external_id_taken",
+      message: "taken",
+    });
+    const { report } = await migrate(creem, {
+      adoption: { accepted: ["adopt:ls_variant_910007"] },
+    });
+    expect(report.items.find((i) => i.key === "ls_variant_910007")).toMatchObject({
+      status: "failed",
+      error: { code: "external_id_taken" },
+    });
+    expect(report.items.find((i) => i.key === "ls_discount_930002")).toMatchObject({
+      status: "failed",
+      error: { code: "dependency_failed" },
+    });
+    expect(creem.writes().filter((c) => c.path === "/v1/discounts")).toHaveLength(1);
+  });
+
   it("keeps the merchant's own file features when it replaces the file features", async () => {
     const creem = fakeCreem();
     await migrate(creem);
