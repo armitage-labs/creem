@@ -6,13 +6,13 @@ import * as z from "zod/v3";
 import { ClosedEnum } from "../../types/enums.js";
 
 /**
- * The feature type. Only `customerCredits` can be managed through the API.
+ * The feature type of a credit grant entry. `licenseKey`, `custom` and `file` entries have their own variants; `githubRepository` features are managed in the dashboard, and an entry of that type answers `400` with code `feature_type_not_writable`.
  */
 export const ProductFeatureRequestType = {
   CustomerCredits: "customerCredits",
 } as const;
 /**
- * The feature type. Only `customerCredits` can be managed through the API.
+ * The feature type of a credit grant entry. `licenseKey`, `custom` and `file` entries have their own variants; `githubRepository` features are managed in the dashboard, and an entry of that type answers `400` with code `feature_type_not_writable`.
  */
 export type ProductFeatureRequestType = ClosedEnum<
   typeof ProductFeatureRequestType

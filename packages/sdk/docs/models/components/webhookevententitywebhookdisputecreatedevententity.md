@@ -58,6 +58,18 @@ let value: WebhookEventEntityWebhookDisputeCreatedEventEntity = {
               requiresModeration: false,
               resetsEachPeriod: false,
             },
+            licenseKey: {
+              activationLimit: 3,
+              expiry: {
+                interval: "month",
+                intervalCount: 1,
+              },
+            },
+            privateNote:
+              "Thanks for your purchase! Your access code is XYZ123.",
+            file: {
+              files: [],
+            },
           },
         ],
         usagePrices: [
@@ -67,7 +79,7 @@ let value: WebhookEventEntityWebhookDisputeCreatedEventEntity = {
             unitPrice: 0.002,
             freeAllowance: 1000,
             cap: 50000,
-            settlementMode: "postpaid",
+            settlementMode: "prepaid",
             targetAccount: "per_unit",
             targetAccountName: "images",
             trialUsageMode: "free",
@@ -96,6 +108,7 @@ let value: WebhookEventEntityWebhookDisputeCreatedEventEntity = {
       },
       units: 1,
       customPrice: 1500,
+      trialPeriodDays: 92,
       order: {
         id: "<id>",
         mode: "prod",

@@ -41,6 +41,18 @@ const value: components.WebhookEventEntityWebhookCheckoutCompletedEventEntity =
               requiresModeration: false,
               resetsEachPeriod: false,
             },
+            licenseKey: {
+              activationLimit: 3,
+              expiry: {
+                interval: "month",
+                intervalCount: 1,
+              },
+            },
+            privateNote:
+              "Thanks for your purchase! Your access code is XYZ123.",
+            file: {
+              files: [],
+            },
           },
         ],
         usagePrices: [
@@ -50,7 +62,7 @@ const value: components.WebhookEventEntityWebhookCheckoutCompletedEventEntity =
             unitPrice: 0.002,
             freeAllowance: 1000,
             cap: 50000,
-            settlementMode: "postpaid",
+            settlementMode: "prepaid",
             targetAccount: "per_unit",
             targetAccountName: "images",
             trialUsageMode: "free",
@@ -78,6 +90,7 @@ const value: components.WebhookEventEntityWebhookCheckoutCompletedEventEntity =
         updatedAt: new Date("2023-01-01T00:00:00Z"),
       },
       customPrice: 1500,
+      trialPeriodDays: 92,
       order: {
         id: "<id>",
         mode: "prod",
@@ -322,6 +335,18 @@ const value: components.WebhookEventEntityWebhookDisputeCreatedEventEntity = {
               requiresModeration: false,
               resetsEachPeriod: false,
             },
+            licenseKey: {
+              activationLimit: 3,
+              expiry: {
+                interval: "month",
+                intervalCount: 1,
+              },
+            },
+            privateNote:
+              "Thanks for your purchase! Your access code is XYZ123.",
+            file: {
+              files: [],
+            },
           },
         ],
         usagePrices: [
@@ -331,7 +356,7 @@ const value: components.WebhookEventEntityWebhookDisputeCreatedEventEntity = {
             unitPrice: 0.002,
             freeAllowance: 1000,
             cap: 50000,
-            settlementMode: "postpaid",
+            settlementMode: "prepaid",
             targetAccount: "per_unit",
             targetAccountName: "images",
             trialUsageMode: "free",
@@ -360,6 +385,7 @@ const value: components.WebhookEventEntityWebhookDisputeCreatedEventEntity = {
       },
       units: 1,
       customPrice: 1500,
+      trialPeriodDays: 92,
       order: {
         id: "<id>",
         mode: "prod",
@@ -623,7 +649,7 @@ const value:
       grantId: "<id>",
       operationId: "<id>",
       action: "revoke_credit",
-      deadlineAt: {},
+      deadlineAt: "<value>",
       reason: null,
       listingId: "<id>",
       productId: "<id>",
@@ -632,8 +658,8 @@ const value:
         status: "<value>",
         amountMinor: 9030.76,
         currency: "Egyptian Pound",
-        transactionId: {},
-        paidAt: {},
+        transactionId: "<id>",
+        paidAt: "<value>",
       },
       test: false,
     },
@@ -675,6 +701,18 @@ const value: components.WebhookEventEntityWebhookSubscriptionActiveEventEntity =
               requiresModeration: false,
               resetsEachPeriod: false,
             },
+            licenseKey: {
+              activationLimit: 3,
+              expiry: {
+                interval: "month",
+                intervalCount: 1,
+              },
+            },
+            privateNote:
+              "Thanks for your purchase! Your access code is XYZ123.",
+            file: {
+              files: [],
+            },
           },
         ],
         usagePrices: [
@@ -684,7 +722,7 @@ const value: components.WebhookEventEntityWebhookSubscriptionActiveEventEntity =
             unitPrice: 0.002,
             freeAllowance: 1000,
             cap: 50000,
-            settlementMode: "postpaid",
+            settlementMode: "prepaid",
             targetAccount: "per_unit",
             targetAccountName: "images",
             trialUsageMode: "free",
@@ -798,6 +836,18 @@ const value:
               requiresModeration: false,
               resetsEachPeriod: false,
             },
+            licenseKey: {
+              activationLimit: 3,
+              expiry: {
+                interval: "month",
+                intervalCount: 1,
+              },
+            },
+            privateNote:
+              "Thanks for your purchase! Your access code is XYZ123.",
+            file: {
+              files: [],
+            },
           },
         ],
         usagePrices: [
@@ -807,7 +857,7 @@ const value:
             unitPrice: 0.002,
             freeAllowance: 1000,
             cap: 50000,
-            settlementMode: "postpaid",
+            settlementMode: "prepaid",
             targetAccount: "per_unit",
             targetAccountName: "images",
             trialUsageMode: "free",
@@ -921,6 +971,18 @@ const value:
               requiresModeration: false,
               resetsEachPeriod: false,
             },
+            licenseKey: {
+              activationLimit: 3,
+              expiry: {
+                interval: "month",
+                intervalCount: 1,
+              },
+            },
+            privateNote:
+              "Thanks for your purchase! Your access code is XYZ123.",
+            file: {
+              files: [],
+            },
           },
         ],
         usagePrices: [
@@ -930,7 +992,7 @@ const value:
             unitPrice: 0.002,
             freeAllowance: 1000,
             cap: 50000,
-            settlementMode: "postpaid",
+            settlementMode: "prepaid",
             targetAccount: "per_unit",
             targetAccountName: "images",
             trialUsageMode: "free",
@@ -1044,6 +1106,18 @@ const value:
               requiresModeration: false,
               resetsEachPeriod: false,
             },
+            licenseKey: {
+              activationLimit: 3,
+              expiry: {
+                interval: "month",
+                intervalCount: 1,
+              },
+            },
+            privateNote:
+              "Thanks for your purchase! Your access code is XYZ123.",
+            file: {
+              files: [],
+            },
           },
         ],
         usagePrices: [
@@ -1053,7 +1127,7 @@ const value:
             unitPrice: 0.002,
             freeAllowance: 1000,
             cap: 50000,
-            settlementMode: "postpaid",
+            settlementMode: "prepaid",
             targetAccount: "per_unit",
             targetAccountName: "images",
             trialUsageMode: "free",
@@ -1166,6 +1240,17 @@ const value: components.WebhookEventEntityWebhookSubscriptionPaidEventEntity = {
             requiresModeration: false,
             resetsEachPeriod: false,
           },
+          licenseKey: {
+            activationLimit: 3,
+            expiry: {
+              interval: "month",
+              intervalCount: 1,
+            },
+          },
+          privateNote: "Thanks for your purchase! Your access code is XYZ123.",
+          file: {
+            files: [],
+          },
         },
       ],
       usagePrices: [
@@ -1175,7 +1260,7 @@ const value: components.WebhookEventEntityWebhookSubscriptionPaidEventEntity = {
           unitPrice: 0.002,
           freeAllowance: 1000,
           cap: 50000,
-          settlementMode: "postpaid",
+          settlementMode: "prepaid",
           targetAccount: "per_unit",
           targetAccountName: "images",
           trialUsageMode: "free",
@@ -1289,6 +1374,18 @@ const value:
               requiresModeration: false,
               resetsEachPeriod: false,
             },
+            licenseKey: {
+              activationLimit: 3,
+              expiry: {
+                interval: "month",
+                intervalCount: 1,
+              },
+            },
+            privateNote:
+              "Thanks for your purchase! Your access code is XYZ123.",
+            file: {
+              files: [],
+            },
           },
         ],
         usagePrices: [
@@ -1298,7 +1395,7 @@ const value:
             unitPrice: 0.002,
             freeAllowance: 1000,
             cap: 50000,
-            settlementMode: "postpaid",
+            settlementMode: "prepaid",
             targetAccount: "per_unit",
             targetAccountName: "images",
             trialUsageMode: "free",
@@ -1412,6 +1509,18 @@ const value: components.WebhookEventEntityWebhookSubscriptionUnpaidEventEntity =
               requiresModeration: false,
               resetsEachPeriod: false,
             },
+            licenseKey: {
+              activationLimit: 3,
+              expiry: {
+                interval: "month",
+                intervalCount: 1,
+              },
+            },
+            privateNote:
+              "Thanks for your purchase! Your access code is XYZ123.",
+            file: {
+              files: [],
+            },
           },
         ],
         usagePrices: [
@@ -1421,7 +1530,7 @@ const value: components.WebhookEventEntityWebhookSubscriptionUnpaidEventEntity =
             unitPrice: 0.002,
             freeAllowance: 1000,
             cap: 50000,
-            settlementMode: "postpaid",
+            settlementMode: "prepaid",
             targetAccount: "per_unit",
             targetAccountName: "images",
             trialUsageMode: "free",
@@ -1535,6 +1644,18 @@ const value: components.WebhookEventEntityWebhookSubscriptionUpdateEventEntity =
               requiresModeration: false,
               resetsEachPeriod: false,
             },
+            licenseKey: {
+              activationLimit: 3,
+              expiry: {
+                interval: "month",
+                intervalCount: 1,
+              },
+            },
+            privateNote:
+              "Thanks for your purchase! Your access code is XYZ123.",
+            file: {
+              files: [],
+            },
           },
         ],
         usagePrices: [
@@ -1544,7 +1665,7 @@ const value: components.WebhookEventEntityWebhookSubscriptionUpdateEventEntity =
             unitPrice: 0.002,
             freeAllowance: 1000,
             cap: 50000,
-            settlementMode: "postpaid",
+            settlementMode: "prepaid",
             targetAccount: "per_unit",
             targetAccountName: "images",
             trialUsageMode: "free",
@@ -1658,6 +1779,18 @@ const value:
               requiresModeration: false,
               resetsEachPeriod: false,
             },
+            licenseKey: {
+              activationLimit: 3,
+              expiry: {
+                interval: "month",
+                intervalCount: 1,
+              },
+            },
+            privateNote:
+              "Thanks for your purchase! Your access code is XYZ123.",
+            file: {
+              files: [],
+            },
           },
         ],
         usagePrices: [
@@ -1667,7 +1800,7 @@ const value:
             unitPrice: 0.002,
             freeAllowance: 1000,
             cap: 50000,
-            settlementMode: "postpaid",
+            settlementMode: "prepaid",
             targetAccount: "per_unit",
             targetAccountName: "images",
             trialUsageMode: "free",
@@ -1781,6 +1914,18 @@ const value: components.WebhookEventEntityWebhookSubscriptionPausedEventEntity =
               requiresModeration: false,
               resetsEachPeriod: false,
             },
+            licenseKey: {
+              activationLimit: 3,
+              expiry: {
+                interval: "month",
+                intervalCount: 1,
+              },
+            },
+            privateNote:
+              "Thanks for your purchase! Your access code is XYZ123.",
+            file: {
+              files: [],
+            },
           },
         ],
         usagePrices: [
@@ -1790,7 +1935,7 @@ const value: components.WebhookEventEntityWebhookSubscriptionPausedEventEntity =
             unitPrice: 0.002,
             freeAllowance: 1000,
             cap: 50000,
-            settlementMode: "postpaid",
+            settlementMode: "prepaid",
             targetAccount: "per_unit",
             targetAccountName: "images",
             trialUsageMode: "free",

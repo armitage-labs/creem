@@ -28,7 +28,7 @@ export type CreateDiscountRequestEntity = {
    */
   code?: string | undefined;
   /**
-   * The type of the discount, either "percentage" or "fixed".
+   * The type of the discount. Fixed once the discount has been redeemed, or while a checkout confirmed with it in the last 7 days holds it (`409` `discount_redeemed`); the same applies to `amount`, `percentage`, `currency`, `duration` and `duration_in_months`. Changing it needs the new `amount` or `percentage`.
    */
   type: DiscountType;
   /**
@@ -52,7 +52,7 @@ export type CreateDiscountRequestEntity = {
    */
   maxRedemptions?: number | undefined;
   /**
-   * The duration type for the discount.
+   * The duration type. Fixed once the discount has been redeemed.
    */
   duration: CouponDurationType;
   /**

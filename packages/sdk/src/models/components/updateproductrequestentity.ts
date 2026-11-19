@@ -19,11 +19,35 @@ import {
   ProductCurrency$outboundSchema,
 } from "./productcurrency.js";
 import {
+  ProductFeatureDeletionRequestEntity,
+  ProductFeatureDeletionRequestEntity$inboundSchema,
+  ProductFeatureDeletionRequestEntity$Outbound,
+  ProductFeatureDeletionRequestEntity$outboundSchema,
+} from "./productfeaturedeletionrequestentity.js";
+import {
   ProductFeatureRequestEntity,
   ProductFeatureRequestEntity$inboundSchema,
   ProductFeatureRequestEntity$Outbound,
   ProductFeatureRequestEntity$outboundSchema,
 } from "./productfeaturerequestentity.js";
+import {
+  ProductFileFeatureRequestEntity,
+  ProductFileFeatureRequestEntity$inboundSchema,
+  ProductFileFeatureRequestEntity$Outbound,
+  ProductFileFeatureRequestEntity$outboundSchema,
+} from "./productfilefeaturerequestentity.js";
+import {
+  ProductLicenseKeyFeatureRequestEntity,
+  ProductLicenseKeyFeatureRequestEntity$inboundSchema,
+  ProductLicenseKeyFeatureRequestEntity$Outbound,
+  ProductLicenseKeyFeatureRequestEntity$outboundSchema,
+} from "./productlicensekeyfeaturerequestentity.js";
+import {
+  ProductPrivateNoteFeatureRequestEntity,
+  ProductPrivateNoteFeatureRequestEntity$inboundSchema,
+  ProductPrivateNoteFeatureRequestEntity$Outbound,
+  ProductPrivateNoteFeatureRequestEntity$outboundSchema,
+} from "./productprivatenotefeaturerequestentity.js";
 import {
   ProductRequestBillingPeriod,
   ProductRequestBillingPeriod$inboundSchema,
@@ -40,6 +64,11 @@ import {
   ProductRequestRecurringInterval$outboundSchema,
 } from "./productrequestrecurringinterval.js";
 import {
+  ProductStatus,
+  ProductStatus$inboundSchema,
+  ProductStatus$outboundSchema,
+} from "./productstatus.js";
+import {
   TaxMode,
   TaxMode$inboundSchema,
   TaxMode$outboundSchema,
@@ -50,6 +79,13 @@ import {
   UsagePriceRequestEntity$Outbound,
   UsagePriceRequestEntity$outboundSchema,
 } from "./usagepricerequestentity.js";
+
+export type UpdateProductRequestEntityFeatures =
+  | ProductFeatureRequestEntity
+  | ProductLicenseKeyFeatureRequestEntity
+  | ProductPrivateNoteFeatureRequestEntity
+  | ProductFileFeatureRequestEntity
+  | ProductFeatureDeletionRequestEntity;
 
 export type UpdateProductRequestEntity = {
   /**
@@ -133,9 +169,17 @@ export type UpdateProductRequestEntity = {
    */
   usagePrices?: Array<UsagePriceRequestEntity> | undefined;
   /**
-   * Features granted by purchase. Only `customerCredits` (a credit grant into one of the customer credit buckets) can be managed through the API. The array is the complete set of credit features after the update: omit (or send `null`) to leave features untouched, include `id` to edit in place, or the `external_id` of a stored feature to edit that feature without its `id`; credit features missing from the array are removed.
+   * Features granted by purchase: `customerCredits` (a credit grant into one of the customer credit buckets), `licenseKey` (a license key per purchased unit), `custom` (a private note) and `file` (files buyers download, named by the ids of confirmed uploads from `POST /v1/files`). Omit (or send `null`) to leave features untouched. Otherwise the request replaces only the feature types it contains: for each of them, the entries are the complete set of that type after the update. Include `id` to edit in place, or the `external_id` of a stored feature to edit that feature without its `id`; features of that type missing from the array are removed. Types the array does not contain stay as they are, and `[]` removes the credit features and nothing else. An entry with `deleted: true` removes the one feature it names by `id` or `external_id`; it is the only way to remove the last feature of a type. Each refusal changes nothing: `400` `feature_type_mismatch` (an `id` or `external_id` of a feature of another type), `400` `feature_not_found` (an `id`, or a deletion, that names no feature of the product), `400` `feature_type_not_writable` (a `githubRepository` entry or deletion; those are managed in the dashboard), `400` `reference_not_found` (a file id that is unknown, of another store, or of an upload that was never confirmed), `400` `file_location_invalid` (a file of the store that is not stored under its own product-file key), and `409` `license_keys_issued` (removing a license-key feature whose keys customers hold; `details.issued_keys` counts them). Editing a license-key feature in place keeps its issued keys: a new `activation_limit` applies to them at once, a new `expiry` only to keys issued later. Removing a `file` feature, or a file from it, removes the download for every past buyer, as in the dashboard; adding it again restores it.
    */
-  features?: Array<ProductFeatureRequestEntity> | undefined;
+  features?:
+    | Array<
+      | ProductFeatureRequestEntity
+      | ProductLicenseKeyFeatureRequestEntity
+      | ProductPrivateNoteFeatureRequestEntity
+      | ProductFileFeatureRequestEntity
+      | ProductFeatureDeletionRequestEntity
+    >
+    | undefined;
   /**
    * Collect additional information from your customer using custom fields during checkout. The array is the complete set after the update: omit (or send `null`) to leave the custom fields unchanged, send `[]` to remove all.
    */
@@ -144,7 +188,64 @@ export type UpdateProductRequestEntity = {
    * Turn abandoned cart recovery for this product on or off. Buyers who abandon checkout get recovery emails, and recovered orders carry the recovery fee. Omit to leave it unchanged.
    */
   abandonedCartRecoveryEnabled?: boolean | undefined;
+  /**
+   * Lifecycle status of the product: `active` or `archived`.
+   */
+  status?: ProductStatus | undefined;
 };
+
+/** @internal */
+export const UpdateProductRequestEntityFeatures$inboundSchema: z.ZodType<
+  UpdateProductRequestEntityFeatures,
+  z.ZodTypeDef,
+  unknown
+> = z.union([
+  ProductFeatureRequestEntity$inboundSchema,
+  ProductLicenseKeyFeatureRequestEntity$inboundSchema,
+  ProductPrivateNoteFeatureRequestEntity$inboundSchema,
+  ProductFileFeatureRequestEntity$inboundSchema,
+  ProductFeatureDeletionRequestEntity$inboundSchema,
+]);
+/** @internal */
+export type UpdateProductRequestEntityFeatures$Outbound =
+  | ProductFeatureRequestEntity$Outbound
+  | ProductLicenseKeyFeatureRequestEntity$Outbound
+  | ProductPrivateNoteFeatureRequestEntity$Outbound
+  | ProductFileFeatureRequestEntity$Outbound
+  | ProductFeatureDeletionRequestEntity$Outbound;
+
+/** @internal */
+export const UpdateProductRequestEntityFeatures$outboundSchema: z.ZodType<
+  UpdateProductRequestEntityFeatures$Outbound,
+  z.ZodTypeDef,
+  UpdateProductRequestEntityFeatures
+> = z.union([
+  ProductFeatureRequestEntity$outboundSchema,
+  ProductLicenseKeyFeatureRequestEntity$outboundSchema,
+  ProductPrivateNoteFeatureRequestEntity$outboundSchema,
+  ProductFileFeatureRequestEntity$outboundSchema,
+  ProductFeatureDeletionRequestEntity$outboundSchema,
+]);
+
+export function updateProductRequestEntityFeaturesToJSON(
+  updateProductRequestEntityFeatures: UpdateProductRequestEntityFeatures,
+): string {
+  return JSON.stringify(
+    UpdateProductRequestEntityFeatures$outboundSchema.parse(
+      updateProductRequestEntityFeatures,
+    ),
+  );
+}
+export function updateProductRequestEntityFeaturesFromJSON(
+  jsonString: string,
+): SafeParseResult<UpdateProductRequestEntityFeatures, SDKValidationError> {
+  return safeParse(
+    jsonString,
+    (x) =>
+      UpdateProductRequestEntityFeatures$inboundSchema.parse(JSON.parse(x)),
+    `Failed to parse 'UpdateProductRequestEntityFeatures' from JSON`,
+  );
+}
 
 /** @internal */
 export const UpdateProductRequestEntity$inboundSchema: z.ZodType<
@@ -172,10 +273,19 @@ export const UpdateProductRequestEntity$inboundSchema: z.ZodType<
   pay_what_you_want: z.boolean().optional(),
   suggested_price: z.number().int().optional(),
   usage_prices: z.array(UsagePriceRequestEntity$inboundSchema).optional(),
-  features: z.array(ProductFeatureRequestEntity$inboundSchema).optional(),
+  features: z.array(
+    z.union([
+      ProductFeatureRequestEntity$inboundSchema,
+      ProductLicenseKeyFeatureRequestEntity$inboundSchema,
+      ProductPrivateNoteFeatureRequestEntity$inboundSchema,
+      ProductFileFeatureRequestEntity$inboundSchema,
+      ProductFeatureDeletionRequestEntity$inboundSchema,
+    ]),
+  ).optional(),
   custom_fields: z.nullable(z.array(CustomFieldRequestEntity$inboundSchema))
     .optional(),
   abandoned_cart_recovery_enabled: z.boolean().optional(),
+  status: ProductStatus$inboundSchema.optional(),
 }).transform((v) => {
   return remap$(v, {
     "image_url": "imageUrl",
@@ -219,9 +329,18 @@ export type UpdateProductRequestEntity$Outbound = {
   pay_what_you_want?: boolean | undefined;
   suggested_price?: number | undefined;
   usage_prices?: Array<UsagePriceRequestEntity$Outbound> | undefined;
-  features?: Array<ProductFeatureRequestEntity$Outbound> | undefined;
+  features?:
+    | Array<
+      | ProductFeatureRequestEntity$Outbound
+      | ProductLicenseKeyFeatureRequestEntity$Outbound
+      | ProductPrivateNoteFeatureRequestEntity$Outbound
+      | ProductFileFeatureRequestEntity$Outbound
+      | ProductFeatureDeletionRequestEntity$Outbound
+    >
+    | undefined;
   custom_fields?: Array<CustomFieldRequestEntity$Outbound> | null | undefined;
   abandoned_cart_recovery_enabled?: boolean | undefined;
+  status?: string | undefined;
 };
 
 /** @internal */
@@ -250,10 +369,19 @@ export const UpdateProductRequestEntity$outboundSchema: z.ZodType<
   payWhatYouWant: z.boolean().optional(),
   suggestedPrice: z.number().int().optional(),
   usagePrices: z.array(UsagePriceRequestEntity$outboundSchema).optional(),
-  features: z.array(ProductFeatureRequestEntity$outboundSchema).optional(),
+  features: z.array(
+    z.union([
+      ProductFeatureRequestEntity$outboundSchema,
+      ProductLicenseKeyFeatureRequestEntity$outboundSchema,
+      ProductPrivateNoteFeatureRequestEntity$outboundSchema,
+      ProductFileFeatureRequestEntity$outboundSchema,
+      ProductFeatureDeletionRequestEntity$outboundSchema,
+    ]),
+  ).optional(),
   customFields: z.nullable(z.array(CustomFieldRequestEntity$outboundSchema))
     .optional(),
   abandonedCartRecoveryEnabled: z.boolean().optional(),
+  status: ProductStatus$outboundSchema.optional(),
 }).transform((v) => {
   return remap$(v, {
     imageUrl: "image_url",

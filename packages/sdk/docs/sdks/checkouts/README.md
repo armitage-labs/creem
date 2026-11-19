@@ -99,6 +99,7 @@ async function run() {
     productId: "prod_1234567890",
     units: 1,
     customPrice: 1500,
+    trialPeriodDays: 92,
     discountCode: "SUMMER2024",
     affiliateCode: "aff_abc123",
     customer: {
@@ -152,6 +153,7 @@ async function run() {
     productId: "prod_1234567890",
     units: 1,
     customPrice: 1500,
+    trialPeriodDays: 92,
     discountCode: "SUMMER2024",
     affiliateCode: "aff_abc123",
     customer: {

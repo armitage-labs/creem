@@ -47,9 +47,12 @@ import { tool$discountsCreate } from "./tools/discountsCreate.js";
 import { tool$discountsDelete } from "./tools/discountsDelete.js";
 import { tool$discountsGet } from "./tools/discountsGet.js";
 import { tool$discountsSearch } from "./tools/discountsSearch.js";
+import { tool$discountsUpdate } from "./tools/discountsUpdate.js";
 import { tool$eventsIngestEvents } from "./tools/eventsIngestEvents.js";
 import { tool$eventsListEvents } from "./tools/eventsListEvents.js";
 import { tool$eventsPreviewEvents } from "./tools/eventsPreviewEvents.js";
+import { tool$filesConfirmUpload } from "./tools/filesConfirmUpload.js";
+import { tool$filesCreateUpload } from "./tools/filesCreateUpload.js";
 import { tool$licensesActivate } from "./tools/licensesActivate.js";
 import { tool$licensesDeactivate } from "./tools/licensesDeactivate.js";
 import { tool$licensesListInstances } from "./tools/licensesListInstances.js";
@@ -166,6 +169,7 @@ export function createMCPServer(deps: {
   tool(tool$discountsSearch);
   tool(tool$discountsGet);
   tool(tool$discountsCreate);
+  tool(tool$discountsUpdate);
   tool(tool$discountsDelete);
   tool(tool$productGroupsList);
   tool(tool$productGroupsGet);
@@ -218,6 +222,8 @@ export function createMCPServer(deps: {
   tool(tool$webhooksGetSecret);
   tool(tool$webhooksListPendingEvents);
   tool(tool$webhooksAcknowledgeEvent);
+  tool(tool$filesCreateUpload);
+  tool(tool$filesConfirmUpload);
 
   return server;
 }

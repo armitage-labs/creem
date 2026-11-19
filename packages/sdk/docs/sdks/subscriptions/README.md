@@ -160,7 +160,7 @@ run();
 
 ## cancel
 
-Cancel an active subscription immediately or schedule cancellation at period end.
+Cancel a subscription immediately or schedule cancellation at period end.
 
 ### Example Usage
 

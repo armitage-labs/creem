@@ -56,7 +56,7 @@ export class Subscriptions extends ClientSDK {
    * Cancel a subscription.
    *
    * @remarks
-   * Cancel an active subscription immediately or schedule cancellation at period end.
+   * Cancel a subscription immediately or schedule cancellation at period end.
    */
   async cancel(
     request: operations.CancelSubscriptionRequest,

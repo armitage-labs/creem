@@ -222,10 +222,31 @@ the API answers it with a `400`.
 - `creem.productGroups.list({ limit, startingAfter, endingBefore, externalId })`
   and `creem.productGroups.get({ id })`
 - `creem.products.listPrices({ id })`, the price versions of a product
+- `creem.discounts.update({ id, updateDiscountRequestEntity })`
+- `creem.files.createUpload(request)` and `creem.files.confirmUpload({ id })`:
+  `createUpload` returns where and how to upload a file's bytes, and
+  `confirmUpload` turns the finished upload into a file a product's `file`
+  feature can name
 
-and knows the `credits.reversed` webhook event: `parseWebhookEventEntity` and
+Products take license-key, private-note and file features on `create` and
+`update`, and `products.update` archives or unarchives with `status`. It
+returns a `ProductWriteResponseEntity`: the product as before, plus
+`writeResult.warnings`, so code that reads the result as a `ProductEntity`
+still compiles. An update entry with `deleted: true` removes one feature.
+
+It also knows the `credits.reversed` webhook event: `parseWebhookEventEntity` and
 `constructWebhookEventEntity` parse it into its own shape (`event.object` is a
 `CustomerCreditsReversalEntity`). The 1.x SDK refused that event type.
+
+## Marketplace grant ask fields are strings
+
+In the `marketplace.grant.requested` webhook, `object.deadlineAt`,
+`object.order.transactionId` and `object.order.paidAt` are now
+`string | null` (an ISO-8601 instant for the two dates). 1.x typed them as
+the empty object types `DeadlineAt`, `TransactionId` and `PaidAt`, which
+2.0 removes along with their schemas and `…ToJSON`/`…FromJSON` helpers. A
+1.x SDK fails to parse an event that carries a value in one of these fields;
+read them as strings instead.
 
 ## MCP server and CLI
 
@@ -238,7 +259,9 @@ and `meters create` gain `--idempotency-key`. `subscriptions list --status`
 accepts any status, and a billing type the CLI doesn't know is shown as it is.
 The new methods have commands: `creem product-groups list` (`--limit`,
 `--starting-after`, `--ending-before`, `--external-id`, `--all`),
-`creem product-groups get <id>` and `creem products prices <id>`.
+`creem product-groups get <id>`, `creem products prices <id>`,
+`creem discounts update <id>`, `creem files create-upload` and
+`creem files confirm-upload <id>`.
 
 ## `@creem_io/ingestion`
 
@@ -254,7 +277,7 @@ client through ingestion's types:
 
 ## Methods that take only a body
 
-The 17 methods listed above take the request body itself, because their
+The 17 methods listed above, and `creem.files.createUpload(request)`, take the request body itself, because their
 operations have no other parameter. If one of those operations gains its first
 query or header parameter, the generator wraps its body in a request object
 (like `updateProductRequestEntity` above), which changes the call. Adding a

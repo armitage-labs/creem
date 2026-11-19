@@ -25,6 +25,24 @@ import {
   ProductFeatureRequestEntity$outboundSchema,
 } from "./productfeaturerequestentity.js";
 import {
+  ProductFileFeatureRequestEntity,
+  ProductFileFeatureRequestEntity$inboundSchema,
+  ProductFileFeatureRequestEntity$Outbound,
+  ProductFileFeatureRequestEntity$outboundSchema,
+} from "./productfilefeaturerequestentity.js";
+import {
+  ProductLicenseKeyFeatureRequestEntity,
+  ProductLicenseKeyFeatureRequestEntity$inboundSchema,
+  ProductLicenseKeyFeatureRequestEntity$Outbound,
+  ProductLicenseKeyFeatureRequestEntity$outboundSchema,
+} from "./productlicensekeyfeaturerequestentity.js";
+import {
+  ProductPrivateNoteFeatureRequestEntity,
+  ProductPrivateNoteFeatureRequestEntity$inboundSchema,
+  ProductPrivateNoteFeatureRequestEntity$Outbound,
+  ProductPrivateNoteFeatureRequestEntity$outboundSchema,
+} from "./productprivatenotefeaturerequestentity.js";
+import {
   ProductRequestBillingPeriod,
   ProductRequestBillingPeriod$inboundSchema,
   ProductRequestBillingPeriod$outboundSchema,
@@ -55,6 +73,12 @@ import {
   UsagePriceRequestEntity$Outbound,
   UsagePriceRequestEntity$outboundSchema,
 } from "./usagepricerequestentity.js";
+
+export type Features =
+  | (ProductFeatureRequestEntity & { type: "customerCredits" })
+  | (ProductLicenseKeyFeatureRequestEntity & { type: "licenseKey" })
+  | (ProductPrivateNoteFeatureRequestEntity & { type: "custom" })
+  | (ProductFileFeatureRequestEntity & { type: "file" });
 
 export type CreateProductRequestEntity = {
   /**
@@ -156,10 +180,76 @@ export type CreateProductRequestEntity = {
    */
   usagePrices?: Array<UsagePriceRequestEntity> | undefined;
   /**
-   * Features granted by purchase. Only `customerCredits` (a credit grant into one of the customer credit buckets) can be managed through the API.
+   * Features granted by purchase: `customerCredits` (a credit grant into one of the customer credit buckets), `licenseKey` (a license key per purchased unit), `custom` (a private note) and `file` (files buyers download, named by the ids of confirmed uploads from `POST /v1/files`). A file id that is unknown, of another store, or of an upload that was never confirmed answers `400` with code `reference_not_found`; a file of the store that is not stored under its own product-file key answers `400` with code `file_location_invalid`. `githubRepository` features are managed in the dashboard: an entry of that type answers `400` with code `feature_type_not_writable`.
    */
-  features?: Array<ProductFeatureRequestEntity> | undefined;
+  features?:
+    | Array<
+      | (ProductFeatureRequestEntity & { type: "customerCredits" })
+      | (ProductLicenseKeyFeatureRequestEntity & { type: "licenseKey" })
+      | (ProductPrivateNoteFeatureRequestEntity & { type: "custom" })
+      | (ProductFileFeatureRequestEntity & { type: "file" })
+    >
+    | undefined;
 };
+
+/** @internal */
+export const Features$inboundSchema: z.ZodType<
+  Features,
+  z.ZodTypeDef,
+  unknown
+> = z.union([
+  ProductFeatureRequestEntity$inboundSchema.and(
+    z.object({ type: z.literal("customerCredits") }),
+  ),
+  ProductLicenseKeyFeatureRequestEntity$inboundSchema.and(
+    z.object({ type: z.literal("licenseKey") }),
+  ),
+  ProductPrivateNoteFeatureRequestEntity$inboundSchema.and(
+    z.object({ type: z.literal("custom") }),
+  ),
+  ProductFileFeatureRequestEntity$inboundSchema.and(
+    z.object({ type: z.literal("file") }),
+  ),
+]);
+/** @internal */
+export type Features$Outbound =
+  | (ProductFeatureRequestEntity$Outbound & { type: "customerCredits" })
+  | (ProductLicenseKeyFeatureRequestEntity$Outbound & { type: "licenseKey" })
+  | (ProductPrivateNoteFeatureRequestEntity$Outbound & { type: "custom" })
+  | (ProductFileFeatureRequestEntity$Outbound & { type: "file" });
+
+/** @internal */
+export const Features$outboundSchema: z.ZodType<
+  Features$Outbound,
+  z.ZodTypeDef,
+  Features
+> = z.union([
+  ProductFeatureRequestEntity$outboundSchema.and(
+    z.object({ type: z.literal("customerCredits") }),
+  ),
+  ProductLicenseKeyFeatureRequestEntity$outboundSchema.and(
+    z.object({ type: z.literal("licenseKey") }),
+  ),
+  ProductPrivateNoteFeatureRequestEntity$outboundSchema.and(
+    z.object({ type: z.literal("custom") }),
+  ),
+  ProductFileFeatureRequestEntity$outboundSchema.and(
+    z.object({ type: z.literal("file") }),
+  ),
+]);
+
+export function featuresToJSON(features: Features): string {
+  return JSON.stringify(Features$outboundSchema.parse(features));
+}
+export function featuresFromJSON(
+  jsonString: string,
+): SafeParseResult<Features, SDKValidationError> {
+  return safeParse(
+    jsonString,
+    (x) => Features$inboundSchema.parse(JSON.parse(x)),
+    `Failed to parse 'Features' from JSON`,
+  );
+}
 
 /** @internal */
 export const CreateProductRequestEntity$inboundSchema: z.ZodType<
@@ -191,7 +281,22 @@ export const CreateProductRequestEntity$inboundSchema: z.ZodType<
   custom_field: z.array(CustomFieldRequestEntity$inboundSchema).optional(),
   abandoned_cart_recovery_enabled: z.boolean().default(false),
   usage_prices: z.array(UsagePriceRequestEntity$inboundSchema).optional(),
-  features: z.array(ProductFeatureRequestEntity$inboundSchema).optional(),
+  features: z.array(
+    z.union([
+      ProductFeatureRequestEntity$inboundSchema.and(
+        z.object({ type: z.literal("customerCredits") }),
+      ),
+      ProductLicenseKeyFeatureRequestEntity$inboundSchema.and(
+        z.object({ type: z.literal("licenseKey") }),
+      ),
+      ProductPrivateNoteFeatureRequestEntity$inboundSchema.and(
+        z.object({ type: z.literal("custom") }),
+      ),
+      ProductFileFeatureRequestEntity$inboundSchema.and(
+        z.object({ type: z.literal("file") }),
+      ),
+    ]),
+  ).optional(),
 }).transform((v) => {
   return remap$(v, {
     "image_url": "imageUrl",
@@ -241,7 +346,16 @@ export type CreateProductRequestEntity$Outbound = {
   custom_field?: Array<CustomFieldRequestEntity$Outbound> | undefined;
   abandoned_cart_recovery_enabled: boolean;
   usage_prices?: Array<UsagePriceRequestEntity$Outbound> | undefined;
-  features?: Array<ProductFeatureRequestEntity$Outbound> | undefined;
+  features?:
+    | Array<
+      | (ProductFeatureRequestEntity$Outbound & { type: "customerCredits" })
+      | (ProductLicenseKeyFeatureRequestEntity$Outbound & {
+        type: "licenseKey";
+      })
+      | (ProductPrivateNoteFeatureRequestEntity$Outbound & { type: "custom" })
+      | (ProductFileFeatureRequestEntity$Outbound & { type: "file" })
+    >
+    | undefined;
 };
 
 /** @internal */
@@ -274,7 +388,22 @@ export const CreateProductRequestEntity$outboundSchema: z.ZodType<
   customField: z.array(CustomFieldRequestEntity$outboundSchema).optional(),
   abandonedCartRecoveryEnabled: z.boolean().default(false),
   usagePrices: z.array(UsagePriceRequestEntity$outboundSchema).optional(),
-  features: z.array(ProductFeatureRequestEntity$outboundSchema).optional(),
+  features: z.array(
+    z.union([
+      ProductFeatureRequestEntity$outboundSchema.and(
+        z.object({ type: z.literal("customerCredits") }),
+      ),
+      ProductLicenseKeyFeatureRequestEntity$outboundSchema.and(
+        z.object({ type: z.literal("licenseKey") }),
+      ),
+      ProductPrivateNoteFeatureRequestEntity$outboundSchema.and(
+        z.object({ type: z.literal("custom") }),
+      ),
+      ProductFileFeatureRequestEntity$outboundSchema.and(
+        z.object({ type: z.literal("file") }),
+      ),
+    ]),
+  ).optional(),
 }).transform((v) => {
   return remap$(v, {
     imageUrl: "image_url",

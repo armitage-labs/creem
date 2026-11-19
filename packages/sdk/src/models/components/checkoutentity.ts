@@ -428,6 +428,10 @@ export type CheckoutEntity = {
    */
   customPrice?: number | undefined;
   /**
+   * The free-trial length in days this checkout was created with, overriding the product's trial. Only present when the checkout was created with a trial_period_days.
+   */
+  trialPeriodDays?: number | undefined;
+  /**
    * The order associated with the checkout session.
    */
   order?: OrderEntity | undefined;
@@ -1157,6 +1161,7 @@ export const CheckoutEntity$inboundSchema: z.ZodType<
   product: z.union([ProductEntity$inboundSchema, z.string()]),
   units: z.number().default(1),
   custom_price: z.number().int().optional(),
+  trial_period_days: z.number().int().optional(),
   order: OrderEntity$inboundSchema.optional(),
   subscription: z.union([SubscriptionEntity$inboundSchema, z.string()])
     .optional(),
@@ -1172,6 +1177,7 @@ export const CheckoutEntity$inboundSchema: z.ZodType<
   return remap$(v, {
     "request_id": "requestId",
     "custom_price": "customPrice",
+    "trial_period_days": "trialPeriodDays",
     "custom_fields": "customFields",
     "checkout_url": "checkoutUrl",
     "success_url": "successUrl",
@@ -1188,6 +1194,7 @@ export type CheckoutEntity$Outbound = {
   product: ProductEntity$Outbound | string;
   units: number;
   custom_price?: number | undefined;
+  trial_period_days?: number | undefined;
   order?: OrderEntity$Outbound | undefined;
   subscription?: SubscriptionEntity$Outbound | string | undefined;
   customer?: CustomerEntity$Outbound | string | undefined;
@@ -1214,6 +1221,7 @@ export const CheckoutEntity$outboundSchema: z.ZodType<
   product: z.union([ProductEntity$outboundSchema, z.string()]),
   units: z.number().default(1),
   customPrice: z.number().int().optional(),
+  trialPeriodDays: z.number().int().optional(),
   order: OrderEntity$outboundSchema.optional(),
   subscription: z.union([SubscriptionEntity$outboundSchema, z.string()])
     .optional(),
@@ -1229,6 +1237,7 @@ export const CheckoutEntity$outboundSchema: z.ZodType<
   return remap$(v, {
     requestId: "request_id",
     customPrice: "custom_price",
+    trialPeriodDays: "trial_period_days",
     customFields: "custom_fields",
     checkoutUrl: "checkout_url",
     successUrl: "success_url",

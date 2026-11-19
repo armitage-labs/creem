@@ -31,6 +31,18 @@ let value: SearchProductsResponse = {
               requiresModeration: false,
               resetsEachPeriod: false,
             },
+            licenseKey: {
+              activationLimit: 3,
+              expiry: {
+                interval: "month",
+                intervalCount: 1,
+              },
+            },
+            privateNote:
+              "Thanks for your purchase! Your access code is XYZ123.",
+            file: {
+              files: [],
+            },
           },
         ],
         usagePrices: [
@@ -40,7 +52,7 @@ let value: SearchProductsResponse = {
             unitPrice: 0.002,
             freeAllowance: 1000,
             cap: 50000,
-            settlementMode: "postpaid",
+            settlementMode: "prepaid",
             targetAccount: "per_unit",
             targetAccountName: "images",
             trialUsageMode: "free",
@@ -49,7 +61,7 @@ let value: SearchProductsResponse = {
         price: 400,
         currency: "USD",
         billingType: "recurring",
-        billingPeriod: "once",
+        billingPeriod: "every-three-months",
         recurringInterval: "month",
         recurringIntervalCount: 3,
         trialPeriodDays: 7,
@@ -57,7 +69,7 @@ let value: SearchProductsResponse = {
         status: "active",
         taxMode: "inclusive",
         businessNetPricing: false,
-        taxCategory: "saas",
+        taxCategory: "digital-goods-service",
         productUrl: "https://creem.io/product/prod_123123123123",
         defaultSuccessUrl: "https://example.com/?status=successful",
         externalId: "pro-monthly",

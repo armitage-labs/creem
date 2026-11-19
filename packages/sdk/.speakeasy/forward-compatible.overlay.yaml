@@ -33,3 +33,6 @@ actions:
   - target: $.components.schemas.MarketplaceGrantAskEntity.properties.reason
     update:
       x-speakeasy-unknown-values: allow
+  - target: $.components.schemas.FileEntity.properties.purpose
+    update:
+      x-speakeasy-unknown-values: allow

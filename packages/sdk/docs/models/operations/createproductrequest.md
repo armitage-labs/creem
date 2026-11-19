@@ -57,17 +57,9 @@ let value: CreateProductRequest = {
     ],
     features: [
       {
-        id: "feat_abc123",
-        externalId: "pro-credits",
-        type: "customerCredits",
-        description: "500 image credits",
-        customerCredits: {
-          amount: "100",
-          unitLabel: "tokens",
-          bucketName: "images",
-          requiresModeration: false,
-          resetsEachPeriod: false,
-        },
+        type: "custom",
+        description: "Private note",
+        privateNote: "Thanks for your purchase! Your access code is XYZ123.",
       },
     ],
   },

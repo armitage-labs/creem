@@ -9,6 +9,7 @@ import { CustomerCredits } from "./customercredits.js";
 import { Customers } from "./customers.js";
 import { Discounts } from "./discounts.js";
 import { Events } from "./events.js";
+import { Files } from "./files.js";
 import { Licenses } from "./licenses.js";
 import { Meters } from "./meters.js";
 import { Moderation } from "./moderation.js";
@@ -99,5 +100,10 @@ export class Creem extends ClientSDK {
   private _webhooks?: Webhooks;
   get webhooks(): Webhooks {
     return (this._webhooks ??= new Webhooks(this._options));
+  }
+
+  private _files?: Files;
+  get files(): Files {
+    return (this._files ??= new Files(this._options));
   }
 }

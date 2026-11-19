@@ -6,7 +6,7 @@ import * as z from "zod/v3";
 import { ClosedEnum } from "../../types/enums.js";
 
 /**
- * The duration type for the discount.
+ * The duration type. Fixed once the discount has been redeemed.
  */
 export const CouponDurationType = {
   Forever: "forever",
@@ -14,7 +14,7 @@ export const CouponDurationType = {
   Repeating: "repeating",
 } as const;
 /**
- * The duration type for the discount.
+ * The duration type. Fixed once the discount has been redeemed.
  */
 export type CouponDurationType = ClosedEnum<typeof CouponDurationType>;
 

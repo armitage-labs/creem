@@ -14,7 +14,7 @@ export const tool$productsUpdate: ToolDefinition<typeof args> = {
   name: "products-update",
   description: `Update a product
 
-Update a product. Only supplied fields change; a price change mints a new default price.`,
+Update a product. Only supplied fields change; a price change mints a new default price. \`status\` archives (\`archived\`, the same as \`DELETE /v1/products/{id}\`) or unarchives (\`active\`) the product. The product comes back with \`write_result\`, whose \`warnings\` list things to know about the write.`,
   args,
   tool: async (client, args, ctx) => {
     const [result, apiCall] = await productsUpdate(

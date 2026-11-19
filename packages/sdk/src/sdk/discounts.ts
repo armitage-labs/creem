@@ -6,6 +6,7 @@ import { discountsCreate } from "../funcs/discountsCreate.js";
 import { discountsDelete } from "../funcs/discountsDelete.js";
 import { discountsGet } from "../funcs/discountsGet.js";
 import { discountsSearch } from "../funcs/discountsSearch.js";
+import { discountsUpdate } from "../funcs/discountsUpdate.js";
 import { ClientSDK, RequestOptions } from "../lib/sdks.js";
 import * as components from "../models/components/index.js";
 import * as operations from "../models/operations/index.js";
@@ -60,6 +61,23 @@ export class Discounts extends ClientSDK {
     options?: RequestOptions,
   ): Promise<components.DiscountEntity> {
     return unwrapAsync(discountsCreate(
+      this,
+      request,
+      options,
+    ));
+  }
+
+  /**
+   * Update a discount.
+   *
+   * @remarks
+   * Update a discount. Only supplied fields change; the code never does. Once redeemed, its amount, type, currency and duration are fixed. A discount with a Stripe coupon also keeps its expiry, redemption limit and products; a name change renames the coupon.
+   */
+  async update(
+    request: operations.UpdateDiscountRequest,
+    options?: RequestOptions,
+  ): Promise<components.DiscountEntity> {
+    return unwrapAsync(discountsUpdate(
       this,
       request,
       options,

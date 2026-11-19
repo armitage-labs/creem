@@ -72,12 +72,12 @@ export class Products extends ClientSDK {
    * Update a product
    *
    * @remarks
-   * Update a product. Only supplied fields change; a price change mints a new default price.
+   * Update a product. Only supplied fields change; a price change mints a new default price. `status` archives (`archived`, the same as `DELETE /v1/products/{id}`) or unarchives (`active`) the product. The product comes back with `write_result`, whose `warnings` list things to know about the write.
    */
   async update(
     request: operations.UpdateProductRequest,
     options?: RequestOptions,
-  ): Promise<components.ProductEntity> {
+  ): Promise<components.ProductWriteResponseEntity> {
     return unwrapAsync(productsUpdate(
       this,
       request,

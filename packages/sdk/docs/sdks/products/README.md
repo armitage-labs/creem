@@ -358,7 +358,7 @@ run();
 
 ## update
 
-Update a product. Only supplied fields change; a price change mints a new default price.
+Update a product. Only supplied fields change; a price change mints a new default price. `status` archives (`archived`, the same as `DELETE /v1/products/{id}`) or unarchives (`active`) the product. The product comes back with `write_result`, whose `warnings` list things to know about the write.
 
 ### Example Usage
 
@@ -517,7 +517,7 @@ run();
 
 ### Response
 
-**Promise\<[components.ProductEntity](../../models/components/productentity.md)\>**
+**Promise\<[components.ProductWriteResponseEntity](../../models/components/productwriteresponseentity.md)\>**
 
 ### Errors
 

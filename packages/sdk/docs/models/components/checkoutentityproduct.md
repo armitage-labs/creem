@@ -37,6 +37,17 @@ const value: components.ProductEntity = {
         requiresModeration: false,
         resetsEachPeriod: false,
       },
+      licenseKey: {
+        activationLimit: 3,
+        expiry: {
+          interval: "month",
+          intervalCount: 1,
+        },
+      },
+      privateNote: "Thanks for your purchase! Your access code is XYZ123.",
+      file: {
+        files: [],
+      },
     },
   ],
   usagePrices: [
@@ -46,7 +57,7 @@ const value: components.ProductEntity = {
       unitPrice: 0.002,
       freeAllowance: 1000,
       cap: 50000,
-      settlementMode: "postpaid",
+      settlementMode: "prepaid",
       targetAccount: "per_unit",
       targetAccountName: "images",
       trialUsageMode: "free",

@@ -21,7 +21,7 @@ import {
 
 export type ProductFeatureRequestEntity = {
   /**
-   * Identifier of an existing feature to edit in place (update only). Omit to add a new feature. On update the array replaces the credit features of the product: send the `id` of every feature to keep, as returned on reads; a feature sent without its `id` is added as a new one and the stored feature it stood for is removed.
+   * Identifier of an existing feature to edit in place (update only). Omit to add a new feature. On update the array replaces the features of each type it contains: send the `id` of every feature to keep, as returned on reads; a feature sent without its `id` is added as a new one and the stored feature it stood for is removed. An `id` that is not one of the product features answers `400` with code `feature_not_found`; an `id` of a feature of another type answers `400` with code `feature_type_mismatch`.
    */
   id?: string | undefined;
   /**
@@ -29,11 +29,11 @@ export type ProductFeatureRequestEntity = {
    */
   externalId?: string | null | undefined;
   /**
-   * The feature type. Only `customerCredits` can be managed through the API.
+   * The feature type of a credit grant entry. `licenseKey`, `custom` and `file` entries have their own variants; `githubRepository` features are managed in the dashboard, and an entry of that type answers `400` with code `feature_type_not_writable`.
    */
   type: ProductFeatureRequestType;
   /**
-   * A brief description of the feature, shown to the customer.
+   * A brief description of the feature, shown to the customer. Required and not blank on every write, including a stored feature sent back unchanged: a stored feature whose description is blank needs one before it can be sent back.
    */
   description: string;
   /**

@@ -90,6 +90,10 @@ export type MeterApiResponseDto = {
    */
   externalId: string | null;
   /**
+   * Whether the meter is locked. A meter locks once it has processed usage or has an associated purchase; an update that changes a locked meter's definition is refused with 409. A lock freezes the filter and aggregation. `event_name` and `unit_label` can't be changed on any meter; `name` and `external_id` stay changeable. Aggregation runs asynchronously, so a meter can lock between a read that says `false` and the next update.
+   */
+  locked: boolean;
+  /**
    * Creation timestamp (ISO 8601)
    */
   createdAt: string;
@@ -141,6 +145,7 @@ export const MeterApiResponseDto$inboundSchema: z.ZodType<
   unit_label: z.string(),
   status: MeterApiResponseDtoStatus$inboundSchema,
   external_id: z.nullable(z.string()),
+  locked: z.boolean(),
   created_at: z.string(),
   updated_at: z.string(),
 }).transform((v) => {
@@ -166,6 +171,7 @@ export type MeterApiResponseDto$Outbound = {
   unit_label: string;
   status: string;
   external_id: string | null;
+  locked: boolean;
   created_at: string;
   updated_at: string;
 };
@@ -186,6 +192,7 @@ export const MeterApiResponseDto$outboundSchema: z.ZodType<
   unitLabel: z.string(),
   status: MeterApiResponseDtoStatus$outboundSchema,
   externalId: z.nullable(z.string()),
+  locked: z.boolean(),
   createdAt: z.string(),
   updatedAt: z.string(),
 }).transform((v) => {

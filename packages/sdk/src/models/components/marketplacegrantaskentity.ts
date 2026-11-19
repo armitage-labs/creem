@@ -24,11 +24,6 @@ export const Action = {
 export type Action = OpenEnum<typeof Action>;
 
 /**
- * ISO-8601 instant the answer is due; past it the order is refunded. null on a revoke or revoke_credit: they have no deadline.
- */
-export type DeadlineAt = {};
-
-/**
  * With a revoke or revoke_credit only: why the account, or that order’s credit, must go.
  */
 export const Reason = {
@@ -42,10 +37,6 @@ export const Reason = {
  */
 export type Reason = OpenEnum<typeof Reason>;
 
-export type TransactionId = {};
-
-export type PaidAt = {};
-
 /**
  * The paid order the ask is for. null on a test ask (test: true) from the review gate, which has no order.
  */
@@ -57,8 +48,14 @@ export type MarketplaceGrantAskEntityOrder = {
    */
   amountMinor: number;
   currency: string;
-  transactionId: TransactionId | null;
-  paidAt: PaidAt | null;
+  /**
+   * The id of the transaction that paid the order; null when none is recorded.
+   */
+  transactionId: string | null;
+  /**
+   * ISO-8601 instant the order was paid; null when no paying transaction is recorded.
+   */
+  paidAt: string | null;
 };
 
 export type MarketplaceGrantAskEntity = {
@@ -77,7 +74,7 @@ export type MarketplaceGrantAskEntity = {
   /**
    * ISO-8601 instant the answer is due; past it the order is refunded. null on a revoke or revoke_credit: they have no deadline.
    */
-  deadlineAt: DeadlineAt | null;
+  deadlineAt: string | null;
   /**
    * With a revoke or revoke_credit only: why the account, or that order’s credit, must go.
    */
@@ -108,95 +105,11 @@ export const Action$outboundSchema: z.ZodType<string, z.ZodTypeDef, Action> =
   openEnums.outboundSchema(Action);
 
 /** @internal */
-export const DeadlineAt$inboundSchema: z.ZodType<
-  DeadlineAt,
-  z.ZodTypeDef,
-  unknown
-> = z.object({});
-/** @internal */
-export type DeadlineAt$Outbound = {};
-
-/** @internal */
-export const DeadlineAt$outboundSchema: z.ZodType<
-  DeadlineAt$Outbound,
-  z.ZodTypeDef,
-  DeadlineAt
-> = z.object({});
-
-export function deadlineAtToJSON(deadlineAt: DeadlineAt): string {
-  return JSON.stringify(DeadlineAt$outboundSchema.parse(deadlineAt));
-}
-export function deadlineAtFromJSON(
-  jsonString: string,
-): SafeParseResult<DeadlineAt, SDKValidationError> {
-  return safeParse(
-    jsonString,
-    (x) => DeadlineAt$inboundSchema.parse(JSON.parse(x)),
-    `Failed to parse 'DeadlineAt' from JSON`,
-  );
-}
-
-/** @internal */
 export const Reason$inboundSchema: z.ZodType<Reason, z.ZodTypeDef, unknown> =
   openEnums.inboundSchema(Reason);
 /** @internal */
 export const Reason$outboundSchema: z.ZodType<string, z.ZodTypeDef, Reason> =
   openEnums.outboundSchema(Reason);
-
-/** @internal */
-export const TransactionId$inboundSchema: z.ZodType<
-  TransactionId,
-  z.ZodTypeDef,
-  unknown
-> = z.object({});
-/** @internal */
-export type TransactionId$Outbound = {};
-
-/** @internal */
-export const TransactionId$outboundSchema: z.ZodType<
-  TransactionId$Outbound,
-  z.ZodTypeDef,
-  TransactionId
-> = z.object({});
-
-export function transactionIdToJSON(transactionId: TransactionId): string {
-  return JSON.stringify(TransactionId$outboundSchema.parse(transactionId));
-}
-export function transactionIdFromJSON(
-  jsonString: string,
-): SafeParseResult<TransactionId, SDKValidationError> {
-  return safeParse(
-    jsonString,
-    (x) => TransactionId$inboundSchema.parse(JSON.parse(x)),
-    `Failed to parse 'TransactionId' from JSON`,
-  );
-}
-
-/** @internal */
-export const PaidAt$inboundSchema: z.ZodType<PaidAt, z.ZodTypeDef, unknown> = z
-  .object({});
-/** @internal */
-export type PaidAt$Outbound = {};
-
-/** @internal */
-export const PaidAt$outboundSchema: z.ZodType<
-  PaidAt$Outbound,
-  z.ZodTypeDef,
-  PaidAt
-> = z.object({});
-
-export function paidAtToJSON(paidAt: PaidAt): string {
-  return JSON.stringify(PaidAt$outboundSchema.parse(paidAt));
-}
-export function paidAtFromJSON(
-  jsonString: string,
-): SafeParseResult<PaidAt, SDKValidationError> {
-  return safeParse(
-    jsonString,
-    (x) => PaidAt$inboundSchema.parse(JSON.parse(x)),
-    `Failed to parse 'PaidAt' from JSON`,
-  );
-}
 
 /** @internal */
 export const MarketplaceGrantAskEntityOrder$inboundSchema: z.ZodType<
@@ -208,8 +121,8 @@ export const MarketplaceGrantAskEntityOrder$inboundSchema: z.ZodType<
   status: z.string(),
   amountMinor: z.number(),
   currency: z.string(),
-  transactionId: z.nullable(z.lazy(() => TransactionId$inboundSchema)),
-  paidAt: z.nullable(z.lazy(() => PaidAt$inboundSchema)),
+  transactionId: z.nullable(z.string()),
+  paidAt: z.nullable(z.string()),
 });
 /** @internal */
 export type MarketplaceGrantAskEntityOrder$Outbound = {
@@ -217,8 +130,8 @@ export type MarketplaceGrantAskEntityOrder$Outbound = {
   status: string;
   amountMinor: number;
   currency: string;
-  transactionId: TransactionId$Outbound | null;
-  paidAt: PaidAt$Outbound | null;
+  transactionId: string | null;
+  paidAt: string | null;
 };
 
 /** @internal */
@@ -231,8 +144,8 @@ export const MarketplaceGrantAskEntityOrder$outboundSchema: z.ZodType<
   status: z.string(),
   amountMinor: z.number(),
   currency: z.string(),
-  transactionId: z.nullable(z.lazy(() => TransactionId$outboundSchema)),
-  paidAt: z.nullable(z.lazy(() => PaidAt$outboundSchema)),
+  transactionId: z.nullable(z.string()),
+  paidAt: z.nullable(z.string()),
 });
 
 export function marketplaceGrantAskEntityOrderToJSON(
@@ -263,7 +176,7 @@ export const MarketplaceGrantAskEntity$inboundSchema: z.ZodType<
   grantId: z.string(),
   operationId: z.string(),
   action: Action$inboundSchema,
-  deadlineAt: z.nullable(z.lazy(() => DeadlineAt$inboundSchema)),
+  deadlineAt: z.nullable(z.string()),
   reason: z.nullable(Reason$inboundSchema),
   listingId: z.string(),
   productId: z.string(),
@@ -275,7 +188,7 @@ export type MarketplaceGrantAskEntity$Outbound = {
   grantId: string;
   operationId: string;
   action: string;
-  deadlineAt: DeadlineAt$Outbound | null;
+  deadlineAt: string | null;
   reason: string | null;
   listingId: string;
   productId: string;
@@ -292,7 +205,7 @@ export const MarketplaceGrantAskEntity$outboundSchema: z.ZodType<
   grantId: z.string(),
   operationId: z.string(),
   action: Action$outboundSchema,
-  deadlineAt: z.nullable(z.lazy(() => DeadlineAt$outboundSchema)),
+  deadlineAt: z.nullable(z.string()),
   reason: z.nullable(Reason$outboundSchema),
   listingId: z.string(),
   productId: z.string(),

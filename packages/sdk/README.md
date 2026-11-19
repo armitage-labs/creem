@@ -277,6 +277,7 @@ run();
 * [search](docs/sdks/discounts/README.md#search) - Search discounts
 * [get](docs/sdks/discounts/README.md#get) - Retrieve discount
 * [create](docs/sdks/discounts/README.md#create) - Create a discount.
+* [update](docs/sdks/discounts/README.md#update) - Update a discount.
 * [delete](docs/sdks/discounts/README.md#delete) - Delete a discount.
 
 ### [Events](docs/sdks/events/README.md)
@@ -284,6 +285,11 @@ run();
 * [ingestEvents](docs/sdks/events/README.md#ingestevents) - Ingest usage events
 * [previewEvents](docs/sdks/events/README.md#previewevents) - Preview usage events
 * [listEvents](docs/sdks/events/README.md#listevents) - List usage events
+
+### [Files](docs/sdks/files/README.md)
+
+* [createUpload](docs/sdks/files/README.md#createupload) - Upload a file
+* [confirmUpload](docs/sdks/files/README.md#confirmupload) - Confirm an uploaded file
 
 ### [Licenses](docs/sdks/licenses/README.md)
 
@@ -412,9 +418,12 @@ To read more about standalone functions, check [FUNCTIONS.md](./FUNCTIONS.md).
 - [`discountsDelete`](docs/sdks/discounts/README.md#delete) - Delete a discount.
 - [`discountsGet`](docs/sdks/discounts/README.md#get) - Retrieve discount
 - [`discountsSearch`](docs/sdks/discounts/README.md#search) - Search discounts
+- [`discountsUpdate`](docs/sdks/discounts/README.md#update) - Update a discount.
 - [`eventsIngestEvents`](docs/sdks/events/README.md#ingestevents) - Ingest usage events
 - [`eventsListEvents`](docs/sdks/events/README.md#listevents) - List usage events
 - [`eventsPreviewEvents`](docs/sdks/events/README.md#previewevents) - Preview usage events
+- [`filesConfirmUpload`](docs/sdks/files/README.md#confirmupload) - Confirm an uploaded file
+- [`filesCreateUpload`](docs/sdks/files/README.md#createupload) - Upload a file
 - [`licensesActivate`](docs/sdks/licenses/README.md#activate) - Activates a license key.
 - [`licensesDeactivate`](docs/sdks/licenses/README.md#deactivate) - Deactivate a license key instance.
 - [`licensesListInstances`](docs/sdks/licenses/README.md#listinstances) - List license instances.
@@ -659,9 +668,9 @@ run();
 
 
 **Inherit from [`CreemError`](./src/models/errors/creemerror.ts)**:
-* [`CustomerCreditsErrorResponseDto`](./src/models/errors/customercreditserrorresponsedto.ts): Applicable to 9 of 82 methods.*
-* [`UsageMeteringErrorApiResponseDto`](./src/models/errors/usagemeteringerrorapiresponsedto.ts): Applicable to 6 of 82 methods.*
-* [`TooManyRequestsErrorEntity`](./src/models/errors/toomanyrequestserrorentity.ts): A create with this `Idempotency-Key` is in progress, or failed with an unclear outcome less than 5 minutes ago. Retry later. Status code `429`. Applicable to 1 of 82 methods.*
+* [`CustomerCreditsErrorResponseDto`](./src/models/errors/customercreditserrorresponsedto.ts): Applicable to 9 of 85 methods.*
+* [`UsageMeteringErrorApiResponseDto`](./src/models/errors/usagemeteringerrorapiresponsedto.ts): Applicable to 6 of 85 methods.*
+* [`TooManyRequestsErrorEntity`](./src/models/errors/toomanyrequestserrorentity.ts): A create with this `Idempotency-Key` is in progress, or failed with an unclear outcome less than 5 minutes ago. Retry later. Status code `429`. Applicable to 1 of 85 methods.*
 * [`ResponseValidationError`](./src/models/errors/responsevalidationerror.ts): Type mismatch between the data returned from the server and the structure expected by the SDK. See `error.rawValue` for the raw value and `error.pretty()` for a nicely formatted multi-line string.
 
 </details>

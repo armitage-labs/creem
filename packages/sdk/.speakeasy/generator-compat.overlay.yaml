@@ -1,0 +1,40 @@
+overlay: 1.0.0
+info:
+  title: Contract shapes the generator handles badly
+  version: 1.0.0
+# ENG-2487: two shapes in the live contract that Speakeasy turns into a wrong
+# SDK. Each action keeps what the API accepts; the API keeps validating the
+# original schema.
+actions:
+  # Speakeasy skips an operation whose schema uses `not` ("not schemas
+  # unsupported"), which dropped products.update from the SDK. Each edit variant
+  # of UpdateProductRequestEntity.features carries `not: {deleted: true}` to
+  # keep a deletion out of it. The variants already require `description` and
+  # their type-specific object, which a deletion entry
+  # ({id | external_id, type?, deleted: true}) never has, so the union still
+  # tells them apart without it.
+  - target: $.components.schemas.UpdateProductRequestEntity.properties.features.items.oneOf[*].not
+    remove: true
+  # expiry is "a LicenseKeyExpiryEntity or null", written as a oneOf with an
+  # object branch whose only value is null. Speakeasy generates that branch as
+  # an empty object type (`Two = {}`), which would let callers send `{}`, a value
+  # the API rejects. Dropping the branch and marking the property nullable gives
+  # `LicenseKeyExpiryEntity | null`.
+  - target: $.components.schemas.LicenseKeyFeatureEntity.properties.expiry.oneOf[1]
+    remove: true
+  - target: $.components.schemas.LicenseKeyFeatureEntity.properties.expiry
+    update:
+      nullable: true
+  # New inline enums get names from the generator's collision rules: the file
+  # `object` enum took `ObjectT`, which until now named the
+  # CustomerCreditsExhaustionEntity `object` enum, and that one was renamed.
+  # Explicit names keep the existing ones where they were.
+  - target: $.components.schemas.FileEntity.properties.object
+    update:
+      title: FileEntityObject
+  - target: $.components.schemas.CreateFileUploadRequestEntity.properties.purpose
+    update:
+      title: FileUploadPurpose
+  - target: $.components.schemas.FileEntity.properties.purpose
+    update:
+      title: FileEntityPurpose
