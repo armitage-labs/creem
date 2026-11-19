@@ -3,7 +3,8 @@
  */
 
 import * as z from "zod/v3";
-import { ClosedEnum } from "../../types/enums.js";
+import * as openEnums from "../../types/enums.js";
+import { OpenEnum } from "../../types/enums.js";
 
 /**
  * Credit bucket a prepaid charge debits: `shared` (the customer default wallet) or `per_unit` (a bucket named after the meter unit label, or `target_account_name`). Defaults to `shared`.
@@ -15,15 +16,17 @@ export const UsagePriceTargetAccount = {
 /**
  * Credit bucket a prepaid charge debits: `shared` (the customer default wallet) or `per_unit` (a bucket named after the meter unit label, or `target_account_name`). Defaults to `shared`.
  */
-export type UsagePriceTargetAccount = ClosedEnum<
-  typeof UsagePriceTargetAccount
->;
+export type UsagePriceTargetAccount = OpenEnum<typeof UsagePriceTargetAccount>;
 
 /** @internal */
-export const UsagePriceTargetAccount$inboundSchema: z.ZodNativeEnum<
-  typeof UsagePriceTargetAccount
-> = z.nativeEnum(UsagePriceTargetAccount);
+export const UsagePriceTargetAccount$inboundSchema: z.ZodType<
+  UsagePriceTargetAccount,
+  z.ZodTypeDef,
+  unknown
+> = openEnums.inboundSchema(UsagePriceTargetAccount);
 /** @internal */
-export const UsagePriceTargetAccount$outboundSchema: z.ZodNativeEnum<
-  typeof UsagePriceTargetAccount
-> = UsagePriceTargetAccount$inboundSchema;
+export const UsagePriceTargetAccount$outboundSchema: z.ZodType<
+  string,
+  z.ZodTypeDef,
+  UsagePriceTargetAccount
+> = openEnums.outboundSchema(UsagePriceTargetAccount);

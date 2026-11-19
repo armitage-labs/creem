@@ -9,7 +9,7 @@ export const handlers: Record<string, OperationHandler> = {
       operations.ListWebhooksRequest$inboundSchema,
       parameters,
     );
-    return client.webhooks.list(p.pageNumber, p.pageSize, options);
+    return client.webhooks.list(p, options);
   },
   createWebhook: (client, parameters, body, options) => {
     const b = decode(
@@ -25,7 +25,7 @@ export const handlers: Record<string, OperationHandler> = {
       operations.GetWebhookRequest$inboundSchema,
       parameters,
     );
-    return client.webhooks.get(p.id, options);
+    return client.webhooks.get(p, options);
   },
   updateWebhook: (client, parameters, body, options) => {
     const p = decode(
@@ -33,12 +33,7 @@ export const handlers: Record<string, OperationHandler> = {
       operations.UpdateWebhookRequest$inboundSchema,
       { ...parameters, updateWebhookRequestEntity: body },
     );
-    const b = decode(
-      components.UpdateWebhookRequestEntity$outboundSchema,
-      components.UpdateWebhookRequestEntity$inboundSchema,
-      body,
-    );
-    return client.webhooks.update(p.id, b, options);
+    return client.webhooks.update(p, options);
   },
   deleteWebhook: (client, parameters, body, options) => {
     const p = decode(
@@ -46,7 +41,7 @@ export const handlers: Record<string, OperationHandler> = {
       operations.DeleteWebhookRequest$inboundSchema,
       parameters,
     );
-    return client.webhooks.delete(p.id, options);
+    return client.webhooks.delete(p, options);
   },
   getWebhookSecret: (client, parameters, body, options) => {
     const p = decode(
@@ -54,7 +49,7 @@ export const handlers: Record<string, OperationHandler> = {
       operations.GetWebhookSecretRequest$inboundSchema,
       parameters,
     );
-    return client.webhooks.getSecret(p.id, options);
+    return client.webhooks.getSecret(p, options);
   },
   listPendingWebhookEvents: (client, parameters, body, options) => {
     const p = decode(
@@ -62,7 +57,7 @@ export const handlers: Record<string, OperationHandler> = {
       operations.ListPendingWebhookEventsRequest$inboundSchema,
       parameters,
     );
-    return client.webhooks.listPendingEvents(p.id, p.limit, options);
+    return client.webhooks.listPendingEvents(p, options);
   },
   acknowledgeWebhookEvent: (client, parameters, body, options) => {
     const p = decode(
@@ -70,11 +65,6 @@ export const handlers: Record<string, OperationHandler> = {
       operations.AcknowledgeWebhookEventRequest$inboundSchema,
       { ...parameters, acknowledgeWebhookEventRequestEntity: body },
     );
-    const b = decode(
-      components.AcknowledgeWebhookEventRequestEntity$outboundSchema,
-      components.AcknowledgeWebhookEventRequestEntity$inboundSchema,
-      body,
-    );
-    return client.webhooks.acknowledgeEvent(p.id, p.eventId, b, options);
+    return client.webhooks.acknowledgeEvent(p, options);
   },
 };

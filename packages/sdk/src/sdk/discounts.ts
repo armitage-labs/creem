@@ -6,6 +6,7 @@ import { discountsCreate } from "../funcs/discountsCreate.js";
 import { discountsDelete } from "../funcs/discountsDelete.js";
 import { discountsGet } from "../funcs/discountsGet.js";
 import { discountsSearch } from "../funcs/discountsSearch.js";
+import { discountsUpdate } from "../funcs/discountsUpdate.js";
 import { ClientSDK, RequestOptions } from "../lib/sdks.js";
 import * as components from "../models/components/index.js";
 import * as operations from "../models/operations/index.js";
@@ -20,26 +21,14 @@ export class Discounts extends ClientSDK {
    * Search and list discount codes for a store with filters and pagination.
    */
   async search(
-    pageNumber?: number | undefined,
-    pageSize?: number | undefined,
-    productId?: string | undefined,
-    status?: operations.Status | undefined,
-    type?: operations.Type | undefined,
-    createdAfter?: string | undefined,
-    createdBefore?: string | undefined,
+    request: operations.SearchDiscountsRequest,
     options?: RequestOptions,
   ): Promise<
     PageIterator<operations.SearchDiscountsResponse, { page: number }>
   > {
     return unwrapResultIterator(discountsSearch(
       this,
-      pageNumber,
-      pageSize,
-      productId,
-      status,
-      type,
-      createdAfter,
-      createdBefore,
+      request,
       options,
     ));
   }
@@ -51,14 +40,12 @@ export class Discounts extends ClientSDK {
    * Retrieve discount code details by ID or code. Check usage limits, expiration, and discount amount.
    */
   async get(
-    discountId?: string | undefined,
-    discountCode?: string | undefined,
+    request: operations.RetrieveDiscountRequest,
     options?: RequestOptions,
   ): Promise<components.DiscountEntity> {
     return unwrapAsync(discountsGet(
       this,
-      discountId,
-      discountCode,
+      request,
       options,
     ));
   }
@@ -70,10 +57,27 @@ export class Discounts extends ClientSDK {
    * Create promotional discount codes for products. Set percentage or fixed amount discounts with expiration dates.
    */
   async create(
-    request: components.CreateDiscountRequestEntity,
+    request: operations.CreateDiscountRequest,
     options?: RequestOptions,
   ): Promise<components.DiscountEntity> {
     return unwrapAsync(discountsCreate(
+      this,
+      request,
+      options,
+    ));
+  }
+
+  /**
+   * Update a discount.
+   *
+   * @remarks
+   * Update a discount. Only supplied fields change; the code never does. Once redeemed, its amount, type, currency and duration are fixed. A discount with a Stripe coupon also keeps its expiry, redemption limit and products; a name change renames the coupon.
+   */
+  async update(
+    request: operations.UpdateDiscountRequest,
+    options?: RequestOptions,
+  ): Promise<components.DiscountEntity> {
+    return unwrapAsync(discountsUpdate(
       this,
       request,
       options,
@@ -87,12 +91,12 @@ export class Discounts extends ClientSDK {
    * Permanently delete a discount code. Prevent further usage of the discount.
    */
   async delete(
-    id: string,
+    request: operations.DeleteDiscountRequest,
     options?: RequestOptions,
   ): Promise<components.DiscountEntity> {
     return unwrapAsync(discountsDelete(
       this,
-      id,
+      request,
       options,
     ));
   }

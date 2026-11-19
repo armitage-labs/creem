@@ -28,7 +28,7 @@ export type CreateDiscountRequestEntity = {
    */
   code?: string | undefined;
   /**
-   * The type of the discount, either "percentage" or "fixed".
+   * The type of the discount. Fixed once the discount has been redeemed, or while a checkout confirmed with it in the last 7 days holds it (`409` `discount_redeemed`); the same applies to `amount`, `percentage`, `currency`, `duration` and `duration_in_months`. Changing it needs the new `amount` or `percentage`.
    */
   type: DiscountType;
   /**
@@ -52,7 +52,7 @@ export type CreateDiscountRequestEntity = {
    */
   maxRedemptions?: number | undefined;
   /**
-   * The duration type for the discount.
+   * The duration type. Fixed once the discount has been redeemed.
    */
   duration: CouponDurationType;
   /**
@@ -60,9 +60,17 @@ export type CreateDiscountRequestEntity = {
    */
   durationInMonths?: number | undefined;
   /**
-   * The list of product IDs to which this discount applies.
+   * The list of product IDs to which this discount applies. The discount covers these products and the ones in `applies_to_product_external_ids`; at least one product is required across both lists.
    */
-  appliesToProducts: Array<string>;
+  appliesToProducts?: Array<string> | undefined;
+  /**
+   * Products this discount applies to, named by their `external_id`, at most 100. Combined with `applies_to_products`; a key no product of your store has answers `400` with code `reference_not_found`.
+   */
+  appliesToProductExternalIds?: Array<string> | undefined;
+  /**
+   * Your own key for the discount, unique in your store: 1 to 255 characters: letters, digits, `_`, `-`, `.` and `:`. Case-sensitive. A key another discount of your store already uses answers `409` with code `external_id_taken`.
+   */
+  externalId?: string | undefined;
 };
 
 /** @internal */
@@ -82,13 +90,17 @@ export const CreateDiscountRequestEntity$inboundSchema: z.ZodType<
   max_redemptions: z.number().optional(),
   duration: CouponDurationType$inboundSchema,
   duration_in_months: z.number().optional(),
-  applies_to_products: z.array(z.string()),
+  applies_to_products: z.array(z.string()).optional(),
+  applies_to_product_external_ids: z.array(z.string()).optional(),
+  external_id: z.string().optional(),
 }).transform((v) => {
   return remap$(v, {
     "expiry_date": "expiryDate",
     "max_redemptions": "maxRedemptions",
     "duration_in_months": "durationInMonths",
     "applies_to_products": "appliesToProducts",
+    "applies_to_product_external_ids": "appliesToProductExternalIds",
+    "external_id": "externalId",
   });
 });
 /** @internal */
@@ -103,7 +115,9 @@ export type CreateDiscountRequestEntity$Outbound = {
   max_redemptions?: number | undefined;
   duration: string;
   duration_in_months?: number | undefined;
-  applies_to_products: Array<string>;
+  applies_to_products?: Array<string> | undefined;
+  applies_to_product_external_ids?: Array<string> | undefined;
+  external_id?: string | undefined;
 };
 
 /** @internal */
@@ -122,13 +136,17 @@ export const CreateDiscountRequestEntity$outboundSchema: z.ZodType<
   maxRedemptions: z.number().optional(),
   duration: CouponDurationType$outboundSchema,
   durationInMonths: z.number().optional(),
-  appliesToProducts: z.array(z.string()),
+  appliesToProducts: z.array(z.string()).optional(),
+  appliesToProductExternalIds: z.array(z.string()).optional(),
+  externalId: z.string().optional(),
 }).transform((v) => {
   return remap$(v, {
     expiryDate: "expiry_date",
     maxRedemptions: "max_redemptions",
     durationInMonths: "duration_in_months",
     appliesToProducts: "applies_to_products",
+    appliesToProductExternalIds: "applies_to_product_external_ids",
+    externalId: "external_id",
   });
 });
 

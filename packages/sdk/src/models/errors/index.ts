@@ -8,4 +8,5 @@ export * from "./customercreditserrorresponsedto.js";
 export * from "./httpclienterrors.js";
 export * from "./responsevalidationerror.js";
 export * from "./sdkvalidationerror.js";
+export * from "./toomanyrequestserrorentity.js";
 export * from "./usagemeteringerrorapiresponsedto.js";

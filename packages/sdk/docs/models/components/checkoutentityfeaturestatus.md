@@ -8,10 +8,12 @@ The status of the license instance.
 import { CheckoutEntityFeatureStatus } from "creem/models/components";
 
 let value: CheckoutEntityFeatureStatus = "active";
+
+// Open enum: unrecognized values are captured as Unrecognized<string>
 ```
 
 ## Values
 
 ```typescript
-"active" | "deactivated"
+"active" | "deactivated" | Unrecognized<string>
 ```

@@ -31,7 +31,7 @@ export type CustomerEntity = {
    */
   email: string;
   /**
-   * Customer name.
+   * Customer name. An empty string when the customer has no name yet, for example one created through the API without a name. Their next checkout fills it in.
    */
   name?: string | null | undefined;
   /**

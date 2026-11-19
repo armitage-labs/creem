@@ -284,45 +284,7 @@
           },
           "features": {
             "type": "array",
-            "items": {
-              "type": "object",
-              "properties": {
-                "id": {
-                  "type": "string"
-                },
-                "type": {
-                  "type": "string",
-                  "enum": ["customerCredits"]
-                },
-                "description": {
-                  "type": "string"
-                },
-                "customerCredits": {
-                  "type": "object",
-                  "properties": {
-                    "amount": {
-                      "type": "string"
-                    },
-                    "unitLabel": {
-                      "type": "string",
-                      "nullable": true
-                    },
-                    "bucketName": {
-                      "type": "string",
-                      "nullable": true
-                    },
-                    "requiresModeration": {
-                      "type": "boolean"
-                    },
-                    "resetsEachPeriod": {
-                      "type": "boolean"
-                    }
-                  },
-                  "required": ["amount"]
-                }
-              },
-              "required": ["type", "description", "customerCredits"]
-            }
+            "items": {}
           }
         },
         "required": ["name", "description", "price", "currency", "billingType"]
@@ -516,45 +478,58 @@
           },
           "features": {
             "type": "array",
+            "items": {}
+          },
+          "customFields": {
+            "nullable": true,
+            "type": "array",
             "items": {
               "type": "object",
               "properties": {
-                "id": {
-                  "type": "string"
-                },
                 "type": {
                   "type": "string",
-                  "enum": ["customerCredits"]
+                  "enum": ["text", "checkbox"]
                 },
-                "description": {
+                "key": {
                   "type": "string"
                 },
-                "customerCredits": {
+                "label": {
+                  "type": "string"
+                },
+                "optional": {
+                  "type": "boolean"
+                },
+                "text": {
                   "type": "object",
                   "properties": {
-                    "amount": {
-                      "type": "string"
+                    "maxLength": {
+                      "type": "number"
                     },
-                    "unitLabel": {
-                      "type": "string",
-                      "nullable": true
-                    },
-                    "bucketName": {
-                      "type": "string",
-                      "nullable": true
-                    },
-                    "requiresModeration": {
-                      "type": "boolean"
-                    },
-                    "resetsEachPeriod": {
-                      "type": "boolean"
+                    "minLength": {
+                      "type": "number"
                     }
                   },
-                  "required": ["amount"]
+                  "required": []
+                },
+                "checkbox": {
+                  "type": "object",
+                  "properties": {
+                    "label": {
+                      "type": "string"
+                    }
+                  },
+                  "required": []
                 }
               },
-              "required": ["type", "description", "customerCredits"]
+              "required": ["type", "key", "label"]
             }
+          },
+          "abandonedCartRecoveryEnabled": {
+            "type": "boolean"
+          },
+          "status": {
+            "type": "string",
+            "enum": ["active", "archived"]
           }
         },
         "required": []
@@ -600,6 +575,101 @@
     ],
     "pagination": "none",
     "destructive": true
+  },
+  {
+    "operationId": "listProductPrices",
+    "sdkMethod": "products.listPrices",
+    "cliPath": "products prices",
+    "disposition": "implemented",
+    "description": "List the price versions of a product",
+    "parameters": [
+      {
+        "name": "id",
+        "sdkName": "id",
+        "in": "path",
+        "cliFlagOrArgument": "<id>",
+        "required": true,
+        "schema": {
+          "type": "string"
+        }
+      }
+    ],
+    "pagination": "none",
+    "destructive": false
+  },
+  {
+    "operationId": "listProductGroups",
+    "sdkMethod": "productGroups.list",
+    "cliPath": "product-groups list",
+    "disposition": "implemented",
+    "description": "List product groups",
+    "parameters": [
+      {
+        "name": "limit",
+        "sdkName": "limit",
+        "in": "query",
+        "cliFlagOrArgument": "--limit",
+        "required": false,
+        "schema": {
+          "minimum": 1,
+          "maximum": 100,
+          "type": "number"
+        }
+      },
+      {
+        "name": "starting_after",
+        "sdkName": "startingAfter",
+        "in": "query",
+        "cliFlagOrArgument": "--starting-after",
+        "required": false,
+        "schema": {
+          "type": "string"
+        }
+      },
+      {
+        "name": "ending_before",
+        "sdkName": "endingBefore",
+        "in": "query",
+        "cliFlagOrArgument": "--ending-before",
+        "required": false,
+        "schema": {
+          "type": "string"
+        }
+      },
+      {
+        "name": "external_id",
+        "sdkName": "externalId",
+        "in": "query",
+        "cliFlagOrArgument": "--external-id",
+        "required": false,
+        "schema": {
+          "type": "string"
+        }
+      }
+    ],
+    "pagination": "cursor",
+    "destructive": false
+  },
+  {
+    "operationId": "getProductGroup",
+    "sdkMethod": "productGroups.get",
+    "cliPath": "product-groups get",
+    "disposition": "implemented",
+    "description": "Retrieve a product group",
+    "parameters": [
+      {
+        "name": "id",
+        "sdkName": "id",
+        "in": "path",
+        "cliFlagOrArgument": "<id>",
+        "required": true,
+        "schema": {
+          "type": "string"
+        }
+      }
+    ],
+    "pagination": "none",
+    "destructive": false
   },
   {
     "operationId": "listCustomers",
@@ -810,9 +880,12 @@
           },
           "externalId": {
             "type": "string"
+          },
+          "country": {
+            "type": "string"
           }
         },
-        "required": ["email", "name"]
+        "required": ["email"]
       },
       "primaryFlags": {
         "email": "--email",
@@ -852,6 +925,9 @@
           "externalId": {
             "type": "string",
             "nullable": true
+          },
+          "country": {
+            "type": "string"
           }
         },
         "required": ["customerId"]
@@ -1172,6 +1248,11 @@
           },
           "customPrice": {
             "type": "integer"
+          },
+          "trialPeriodDays": {
+            "type": "integer",
+            "minimum": 1,
+            "maximum": 400
           },
           "discountCode": {
             "type": "string"
@@ -1555,7 +1636,18 @@
     "cliPath": "discounts create",
     "disposition": "implemented",
     "description": "Create a discount.",
-    "parameters": [],
+    "parameters": [
+      {
+        "name": "Idempotency-Key",
+        "sdkName": "idempotencyKey",
+        "in": "header",
+        "cliFlagOrArgument": "--idempotency-key",
+        "required": false,
+        "schema": {
+          "type": "string"
+        }
+      }
+    ],
     "body": {
       "viaData": true,
       "schema": {
@@ -1599,9 +1691,18 @@
             "items": {
               "type": "string"
             }
+          },
+          "appliesToProductExternalIds": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "externalId": {
+            "type": "string"
           }
         },
-        "required": ["name", "type", "duration", "appliesToProducts"]
+        "required": ["name", "type", "duration"]
       },
       "primaryFlags": {
         "name": "--name",
@@ -1619,6 +1720,104 @@
     },
     "pagination": "none",
     "destructive": false
+  },
+  {
+    "operationId": "updateDiscount",
+    "sdkMethod": "discounts.update",
+    "cliPath": "discounts update",
+    "disposition": "implemented",
+    "description": "Update a discount.",
+    "parameters": [
+      {
+        "name": "id",
+        "sdkName": "id",
+        "in": "path",
+        "cliFlagOrArgument": "<id>",
+        "required": true,
+        "schema": {
+          "type": "string"
+        }
+      }
+    ],
+    "body": {
+      "viaData": true,
+      "schema": {
+        "type": "object",
+        "properties": {
+          "name": {
+            "type": "string"
+          },
+          "type": {
+            "type": "string",
+            "enum": ["percentage", "fixed"]
+          },
+          "amount": {
+            "type": "integer",
+            "minimum": 2
+          },
+          "percentage": {
+            "type": "number",
+            "minimum": 1,
+            "maximum": 100
+          },
+          "currency": {
+            "type": "string"
+          },
+          "expiryDate": {
+            "format": "date-time",
+            "type": "string",
+            "nullable": true
+          },
+          "maxRedemptions": {
+            "type": "integer",
+            "nullable": true,
+            "minimum": 1,
+            "maximum": 2147483647
+          },
+          "duration": {
+            "type": "string",
+            "enum": ["forever", "once", "repeating"]
+          },
+          "durationInMonths": {
+            "type": "integer",
+            "nullable": true,
+            "minimum": 1,
+            "maximum": 1200
+          },
+          "appliesToProducts": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "appliesToProductExternalIds": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "externalId": {
+            "type": "string",
+            "nullable": true
+          }
+        },
+        "required": []
+      },
+      "primaryFlags": {
+        "name": "--name",
+        "type": "--type",
+        "amount": "--amount",
+        "currency": "--currency",
+        "percentage": "--percentage",
+        "expiryDate": "--expires",
+        "maxRedemptions": "--max-redemptions",
+        "duration": "--duration",
+        "durationInMonths": "--duration-months",
+        "appliesToProducts": "--products"
+      }
+    },
+    "pagination": "none",
+    "destructive": true
   },
   {
     "operationId": "deleteDiscount",
@@ -2696,6 +2895,9 @@
                 "customerId": {
                   "type": "string"
                 },
+                "externalCustomerId": {
+                  "type": "string"
+                },
                 "eventId": {
                   "type": "string"
                 },
@@ -2705,9 +2907,6 @@
                 "properties": {
                   "type": "object",
                   "additionalProperties": true
-                },
-                "externalCustomerId": {
-                  "type": "string"
                 }
               },
               "required": ["name"]
@@ -2746,6 +2945,9 @@
                 "customerId": {
                   "type": "string"
                 },
+                "externalCustomerId": {
+                  "type": "string"
+                },
                 "eventId": {
                   "type": "string"
                 },
@@ -2755,9 +2957,6 @@
                 "properties": {
                   "type": "object",
                   "additionalProperties": true
-                },
-                "externalCustomerId": {
-                  "type": "string"
                 }
               },
               "required": ["name"]
@@ -2842,7 +3041,18 @@
     "cliPath": "meters create",
     "disposition": "implemented",
     "description": "Create a meter",
-    "parameters": [],
+    "parameters": [
+      {
+        "name": "Idempotency-Key",
+        "sdkName": "idempotencyKey",
+        "in": "header",
+        "cliFlagOrArgument": "--idempotency-key",
+        "required": false,
+        "schema": {
+          "type": "string"
+        }
+      }
+    ],
     "body": {
       "viaData": true,
       "schema": {
@@ -3344,6 +3554,7 @@
                 "customer_credits.exhausted",
                 "credits.granted",
                 "credits.consumed",
+                "credits.reversed",
                 "credits.auto_recharged",
                 "marketplace.grant.requested"
               ]
@@ -3438,6 +3649,7 @@
                 "customer_credits.exhausted",
                 "credits.granted",
                 "credits.consumed",
+                "credits.reversed",
                 "credits.auto_recharged",
                 "marketplace.grant.requested"
               ]
@@ -3580,6 +3792,72 @@
         "required": ["statusCode"]
       }
     },
+    "pagination": "none",
+    "destructive": false
+  },
+  {
+    "operationId": "createFileUpload",
+    "sdkMethod": "files.createUpload",
+    "cliPath": "files create-upload",
+    "disposition": "implemented",
+    "description": "Upload a file",
+    "parameters": [],
+    "body": {
+      "viaData": true,
+      "schema": {
+        "type": "object",
+        "properties": {
+          "purpose": {
+            "type": "string",
+            "enum": ["product_file"]
+          },
+          "filename": {
+            "type": "string"
+          },
+          "contentType": {
+            "type": "string"
+          },
+          "size": {
+            "type": "integer",
+            "format": "int64",
+            "minimum": 1,
+            "maximum": 5368709120
+          },
+          "sha256": {
+            "type": "string"
+          }
+        },
+        "required": ["purpose", "filename", "contentType", "size", "sha256"]
+      },
+      "primaryFlags": {
+        "purpose": "--purpose",
+        "filename": "--filename",
+        "contentType": "--content-type",
+        "size": "--size",
+        "sha256": "--sha256"
+      }
+    },
+    "pagination": "none",
+    "destructive": false
+  },
+  {
+    "operationId": "confirmFileUpload",
+    "sdkMethod": "files.confirmUpload",
+    "cliPath": "files confirm-upload",
+    "disposition": "implemented",
+    "description": "Confirm an uploaded file",
+    "parameters": [
+      {
+        "name": "id",
+        "sdkName": "id",
+        "in": "path",
+        "cliFlagOrArgument": "<id>",
+        "required": true,
+        "schema": {
+          "type": "string"
+        }
+      }
+    ],
     "pagination": "none",
     "destructive": false
   }

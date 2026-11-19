@@ -31,12 +31,11 @@ import { Result } from "../types/fp.js";
  * Update a meter
  *
  * @remarks
- * Rename a meter and/or revise its definition. A rename is always allowed — the name is a label no aggregate depends on — but it must stay unique within the store (409 meter_name_taken). Definition changes (filter, aggregation, aggregation_property) are only accepted while the meter has processed no usage and has no associated purchase; otherwise the request is rejected with 409, because editing the definition would silently rewrite what already-recorded usage means. Send aggregation_property as null to clear it; omit it to leave it unchanged.
+ * Rename a meter and/or revise its definition. A rename is always allowed — the name is a label no aggregate depends on — but it must stay unique within the store (409 meter_name_taken). Definition changes (filter, aggregation, aggregation_property) are only accepted while the meter has processed no usage and has no associated purchase; otherwise the request is rejected with 409, because editing the definition would silently rewrite what already-recorded usage means. The `locked` field on a meter shows this before you update it, though a meter can lock between that read and the update, because aggregation runs asynchronously. Send aggregation_property as null to clear it; omit it to leave it unchanged.
  */
 export function metersUpdateMeter(
   client: CreemCore,
-  id: string,
-  updateMeterApiRequestDto: components.UpdateMeterApiRequestDto,
+  request: operations.UpdateMeterRequest,
   options?: RequestOptions,
 ): APIPromise<
   Result<
@@ -54,16 +53,14 @@ export function metersUpdateMeter(
 > {
   return new APIPromise($do(
     client,
-    id,
-    updateMeterApiRequestDto,
+    request,
     options,
   ));
 }
 
 async function $do(
   client: CreemCore,
-  id: string,
-  updateMeterApiRequestDto: components.UpdateMeterApiRequestDto,
+  request: operations.UpdateMeterRequest,
   options?: RequestOptions,
 ): Promise<
   [
@@ -82,13 +79,8 @@ async function $do(
     APICall,
   ]
 > {
-  const input: operations.UpdateMeterRequest = {
-    id: id,
-    updateMeterApiRequestDto: updateMeterApiRequestDto,
-  };
-
   const parsed = safeParse(
-    input,
+    request,
     (value) => operations.UpdateMeterRequest$outboundSchema.parse(value),
     "Input validation failed",
   );

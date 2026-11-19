@@ -8,6 +8,8 @@ on:
       - "packages/sdk/openapi.json"
       - "packages/sdk/.speakeasy/gen.yaml"
       - "packages/sdk/.speakeasy/workflow.yaml"
+      - "packages/sdk/.speakeasy/forward-compatible.overlay.yaml"
+      - "packages/sdk/.speakeasy/generator-compat.overlay.yaml"
       - ".github/workflows/sdk-generation.yml"
 
 permissions:

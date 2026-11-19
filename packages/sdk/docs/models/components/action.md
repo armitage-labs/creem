@@ -8,10 +8,12 @@ What is asked: a first key, a top-up of the account the grant names, or (after a
 import { Action } from "creem/models/components";
 
 let value: Action = "revoke_credit";
+
+// Open enum: unrecognized values are captured as Unrecognized<string>
 ```
 
 ## Values
 
 ```typescript
-"provision" | "top_up" | "revoke" | "revoke_credit"
+"provision" | "top_up" | "revoke" | "revoke_credit" | Unrecognized<string>
 ```

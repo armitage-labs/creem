@@ -3,7 +3,8 @@
  */
 
 import * as z from "zod/v3";
-import { ClosedEnum } from "../../types/enums.js";
+import * as openEnums from "../../types/enums.js";
+import { OpenEnum } from "../../types/enums.js";
 
 /**
  * The type of transaction. payment(one time payments) and invoice(subscription)
@@ -15,13 +16,17 @@ export const TransactionType = {
 /**
  * The type of transaction. payment(one time payments) and invoice(subscription)
  */
-export type TransactionType = ClosedEnum<typeof TransactionType>;
+export type TransactionType = OpenEnum<typeof TransactionType>;
 
 /** @internal */
-export const TransactionType$inboundSchema: z.ZodNativeEnum<
-  typeof TransactionType
-> = z.nativeEnum(TransactionType);
+export const TransactionType$inboundSchema: z.ZodType<
+  TransactionType,
+  z.ZodTypeDef,
+  unknown
+> = openEnums.inboundSchema(TransactionType);
 /** @internal */
-export const TransactionType$outboundSchema: z.ZodNativeEnum<
-  typeof TransactionType
-> = TransactionType$inboundSchema;
+export const TransactionType$outboundSchema: z.ZodType<
+  string,
+  z.ZodTypeDef,
+  TransactionType
+> = openEnums.outboundSchema(TransactionType);

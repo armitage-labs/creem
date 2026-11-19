@@ -91,7 +91,9 @@ export function getSubscriptionsTuiDescriptor(
       },
     ],
     fetchPage: async (page, pageSize) => {
-      const { result } = await context.client({}).subscriptions.search(page, pageSize);
+      const { result } = await context
+        .client({})
+        .subscriptions.search({ pageNumber: page, pageSize: pageSize });
       return {
         items: result.items,
         hasMore: result.pagination.currentPage < result.pagination.totalPages,
@@ -108,7 +110,10 @@ export function getSubscriptionsTuiDescriptor(
         destructive: true,
         execute: async (item) => {
           const client = context.client({});
-          await client.subscriptions.cancel(item!.id, { mode: "immediate" });
+          await client.subscriptions.cancel({
+            id: item!.id,
+            cancelSubscriptionRequestEntity: { mode: "immediate" },
+          });
           return {
             success: true,
             message: "Subscription canceled",
@@ -123,7 +128,7 @@ export function getSubscriptionsTuiDescriptor(
         destructive: true,
         execute: async (item) => {
           const client = context.client({});
-          await client.subscriptions.pause(item!.id);
+          await client.subscriptions.pause({ id: item!.id });
           return {
             success: true,
             message: "Subscription paused",
@@ -137,7 +142,7 @@ export function getSubscriptionsTuiDescriptor(
         requiresSelection: true,
         execute: async (item) => {
           const client = context.client({});
-          await client.subscriptions.resume(item!.id);
+          await client.subscriptions.resume({ id: item!.id });
           return {
             success: true,
             message: "Subscription resumed",

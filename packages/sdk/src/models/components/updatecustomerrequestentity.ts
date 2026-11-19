@@ -29,6 +29,10 @@ export type UpdateCustomerRequestEntity = {
    * Your own id for this customer. Unique per store; usage ingestion resolves `external_customer_id` against it. Omit to leave unchanged; send `null` to clear it. Trimmed; letters, digits, `_`, `-`, `.` and `:` only; at most 255 characters.
    */
   externalId?: string | null | undefined;
+  /**
+   * The customer’s country, as an ISO 3166-1 alpha-2 code. Case-insensitive; stored upper-case. The customer portal uses it as the country of the payment form when the customer adds or updates a card. Omit to leave unchanged. This endpoint changes it but never clears it, so `null` is refused. The next checkout that carries a billing country replaces it; a checkout without one keeps it.
+   */
+  country?: string | undefined;
 };
 
 /** @internal */
@@ -42,6 +46,7 @@ export const UpdateCustomerRequestEntity$inboundSchema: z.ZodType<
   email: z.string().optional(),
   metadata: z.record(z.any()).optional(),
   external_id: z.nullable(z.string()).optional(),
+  country: z.string().optional(),
 }).transform((v) => {
   return remap$(v, {
     "customer_id": "customerId",
@@ -55,6 +60,7 @@ export type UpdateCustomerRequestEntity$Outbound = {
   email?: string | undefined;
   metadata?: { [k: string]: any } | undefined;
   external_id?: string | null | undefined;
+  country?: string | undefined;
 };
 
 /** @internal */
@@ -68,6 +74,7 @@ export const UpdateCustomerRequestEntity$outboundSchema: z.ZodType<
   email: z.string().optional(),
   metadata: z.record(z.any()).optional(),
   externalId: z.nullable(z.string()).optional(),
+  country: z.string().optional(),
 }).transform((v) => {
   return remap$(v, {
     customerId: "customer_id",

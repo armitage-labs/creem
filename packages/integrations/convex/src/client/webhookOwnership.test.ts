@@ -1,5 +1,6 @@
 /// <reference types="vite/client" />
-import { beforeEach, describe, expect, it } from "vitest";
+import { beforeEach, describe, expect, it, vi } from "vitest";
+import { inspect } from "node:util";
 import { convexTest } from "convex-test";
 import type { FunctionReference } from "convex/server";
 import { Creem } from "./index.js";
@@ -443,5 +444,63 @@ describe("webhook side effects follow the stored owner", () => {
     expect(
       (await t.query(api.lib.getSubscription, { id: "sub_org" }))?.entityId,
     ).toBe(ORG);
+  });
+
+  // ENG-2487: creem 2 returns an event type it doesn't know as its unknown
+  // variant instead of failing the parse. The route acknowledges it, like a
+  // known event without a handler, so Creem doesn't retry it forever.
+  it("acknowledges an event type the SDK doesn't know yet and changes nothing", async () => {
+    const response = await send(
+      JSON.stringify({
+        id: "evt_new_kind",
+        eventType: "invoice.finalized",
+        created_at: 1780000000000,
+        object: { id: "inv_1", metadata: { convexBillingEntityId: USER } },
+      }),
+    );
+
+    expect(response.status).toBe(202);
+    await expectUserUntouched();
+  });
+
+  it("still refuses a known event type whose payload doesn't match it", async () => {
+    const response = await send(
+      JSON.stringify({
+        id: "evt_broken_cancel",
+        eventType: "subscription.canceled",
+        created_at: 1780000000000,
+        object: { id: "sub_org" },
+      }),
+    );
+
+    // A 4xx keeps Creem retrying, instead of dropping a real cancellation.
+    expect(response.status).toBe(400);
+    await expectUserUntouched();
+  });
+
+  it("logs no payload data when it refuses a malformed webhook", async () => {
+    const logged: unknown[][] = [];
+    const spy = vi
+      .spyOn(console, "error")
+      .mockImplementation((...args: unknown[]) => void logged.push(args));
+    try {
+      const response = await send(
+        JSON.stringify({
+          id: "evt_broken_cancel",
+          eventType: "subscription.canceled",
+          created_at: 1780000000000,
+          object: { id: "sub_org", customer: { email: "buyer@example.com" } },
+        }),
+      );
+      expect(response.status).toBe(400);
+    } finally {
+      spy.mockRestore();
+    }
+
+    const text = logged
+      .flat()
+      .map((value) => (value instanceof Error ? inspect(value) : String(value)))
+      .join("\n");
+    expect(text).not.toContain("buyer@example.com");
   });
 });

@@ -22,7 +22,7 @@ describe("retrieveCheckout", () => {
   it("should handle API authentication errors", async () => {
     try {
       // Attempt to call SDK method with invalid API key
-      await creemWithInvalidKey.checkouts.retrieve(testCheckout.id);
+      await creemWithInvalidKey.checkouts.retrieve({ checkoutId: testCheckout.id });
       // If it succeeds, fail the test (we expect it to throw)
       fail("Expected an API error but none was thrown");
     } catch (error) {
@@ -33,7 +33,7 @@ describe("retrieveCheckout", () => {
   });
 
   it("should retrieve a checkout session successfully", async () => {
-    const result = await creem.checkouts.retrieve(testCheckout.id);
+    const result = await creem.checkouts.retrieve({ checkoutId: testCheckout.id });
 
     // Test the response structure and content
     expect(result).toHaveProperty("id", testCheckout.id);
@@ -51,7 +51,7 @@ describe("retrieveCheckout", () => {
     });
 
     try {
-      await creemWithEmptyKey.checkouts.retrieve(testCheckout.id);
+      await creemWithEmptyKey.checkouts.retrieve({ checkoutId: testCheckout.id });
       fail("Expected validation error but none was thrown");
     } catch (error) {
       expect(error).toBeInstanceOf(Error);
@@ -60,7 +60,7 @@ describe("retrieveCheckout", () => {
 
   it("should handle request errors with invalid checkout ID", async () => {
     try {
-      await creem.checkouts.retrieve("non-existent-checkout-id");
+      await creem.checkouts.retrieve({ checkoutId: "non-existent-checkout-id" });
       fail("Expected error with invalid checkout ID but none was thrown");
     } catch (error) {
       expect(error).toBeDefined();
@@ -76,7 +76,7 @@ describe("retrieveCheckout", () => {
     });
 
     try {
-      await creemWithInvalidServer.checkouts.retrieve(testCheckout.id);
+      await creemWithInvalidServer.checkouts.retrieve({ checkoutId: testCheckout.id });
       fail("Expected network error but none was thrown");
     } catch (error) {
       expect(error).toBeDefined();

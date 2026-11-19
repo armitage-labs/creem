@@ -30,22 +30,24 @@ const creem = new Creem({
 
 async function run() {
   const result = await creem.meters.createMeter({
-    name: "Image generations",
-    eventName: "image.generated",
-    aggregation: "sum",
-    aggregationProperty: "tokens",
-    filter: {
-      conjunction: "and",
-      clauses: [
-        {
-          property: "tier",
-          operator: "equals",
-          value: "pro",
-        },
-      ],
+    createMeterApiRequestDto: {
+      name: "Image generations",
+      eventName: "image.generated",
+      aggregation: "sum",
+      aggregationProperty: "tokens",
+      filter: {
+        conjunction: "and",
+        clauses: [
+          {
+            property: "tier",
+            operator: "equals",
+            value: "pro",
+          },
+        ],
+      },
+      unitLabel: "images",
+      externalId: "image-generations",
     },
-    unitLabel: "images",
-    externalId: "image-generations",
   });
 
   console.log(result);
@@ -70,22 +72,24 @@ const creem = new CreemCore({
 
 async function run() {
   const res = await metersCreateMeter(creem, {
-    name: "Image generations",
-    eventName: "image.generated",
-    aggregation: "sum",
-    aggregationProperty: "tokens",
-    filter: {
-      conjunction: "and",
-      clauses: [
-        {
-          property: "tier",
-          operator: "equals",
-          value: "pro",
-        },
-      ],
+    createMeterApiRequestDto: {
+      name: "Image generations",
+      eventName: "image.generated",
+      aggregation: "sum",
+      aggregationProperty: "tokens",
+      filter: {
+        conjunction: "and",
+        clauses: [
+          {
+            property: "tier",
+            operator: "equals",
+            value: "pro",
+          },
+        ],
+      },
+      unitLabel: "images",
+      externalId: "image-generations",
     },
-    unitLabel: "images",
-    externalId: "image-generations",
   });
   if (res.ok) {
     const { value: result } = res;
@@ -102,7 +106,7 @@ run();
 
 | Parameter                                                                                                                                                                      | Type                                                                                                                                                                           | Required                                                                                                                                                                       | Description                                                                                                                                                                    |
 | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
-| `request`                                                                                                                                                                      | [components.CreateMeterApiRequestDto](../../models/components/createmeterapirequestdto.md)                                                                                     | :heavy_check_mark:                                                                                                                                                             | The request object to use for the request.                                                                                                                                     |
+| `request`                                                                                                                                                                      | [operations.CreateMeterRequest](../../models/operations/createmeterrequest.md)                                                                                                 | :heavy_check_mark:                                                                                                                                                             | The request object to use for the request.                                                                                                                                     |
 | `options`                                                                                                                                                                      | RequestOptions                                                                                                                                                                 | :heavy_minus_sign:                                                                                                                                                             | Used to set various options for making HTTP requests.                                                                                                                          |
 | `options.fetchOptions`                                                                                                                                                         | [RequestInit](https://developer.mozilla.org/en-US/docs/Web/API/Request/Request#options)                                                                                        | :heavy_minus_sign:                                                                                                                                                             | Options that are passed to the underlying HTTP request. This can be used to inject extra headers for examples. All `Request` options, except `method` and `body`, are allowed. |
 | `options.retries`                                                                                                                                                              | [RetryConfig](../../lib/utils/retryconfig.md)                                                                                                                                  | :heavy_minus_sign:                                                                                                                                                             | Enables retrying HTTP requests under certain failure conditions.                                                                                                               |
@@ -115,7 +119,7 @@ run();
 
 | Error Type                              | Status Code                             | Content Type                            |
 | --------------------------------------- | --------------------------------------- | --------------------------------------- |
-| errors.UsageMeteringErrorApiResponseDto | 409, 422                                | application/json                        |
+| errors.UsageMeteringErrorApiResponseDto | 409, 422, 429                           | application/json                        |
 | errors.APIError                         | 4XX, 5XX                                | \*/\*                                   |
 
 ## listMeters
@@ -133,7 +137,11 @@ const creem = new Creem({
 });
 
 async function run() {
-  const result = await creem.meters.listMeters(10, "mtr_abc123", "mtr_abc123", false, "image-generations");
+  const result = await creem.meters.listMeters({
+    startingAfter: "mtr_abc123",
+    endingBefore: "mtr_abc123",
+    externalId: "image-generations",
+  });
 
   for await (const page of result) {
     console.log(page);
@@ -158,7 +166,11 @@ const creem = new CreemCore({
 });
 
 async function run() {
-  const res = await metersListMeters(creem, 10, "mtr_abc123", "mtr_abc123", false, "image-generations");
+  const res = await metersListMeters(creem, {
+    startingAfter: "mtr_abc123",
+    endingBefore: "mtr_abc123",
+    externalId: "image-generations",
+  });
   if (res.ok) {
     const { value: result } = res;
     for await (const page of result) {
@@ -174,16 +186,12 @@ run();
 
 ### Parameters
 
-| Parameter                                                                                                                                                                      | Type                                                                                                                                                                           | Required                                                                                                                                                                       | Description                                                                                                                                                                    | Example                                                                                                                                                                        |
-| ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
-| `limit`                                                                                                                                                                        | *number*                                                                                                                                                                       | :heavy_minus_sign:                                                                                                                                                             | Maximum number of meters to return                                                                                                                                             |                                                                                                                                                                                |
-| `startingAfter`                                                                                                                                                                | *string*                                                                                                                                                                       | :heavy_minus_sign:                                                                                                                                                             | Cursor for forward pagination — meter ID to start after                                                                                                                        | mtr_abc123                                                                                                                                                                     |
-| `endingBefore`                                                                                                                                                                 | *string*                                                                                                                                                                       | :heavy_minus_sign:                                                                                                                                                             | Cursor for backward pagination — meter ID to end before                                                                                                                        | mtr_abc123                                                                                                                                                                     |
-| `includeArchived`                                                                                                                                                              | *boolean*                                                                                                                                                                      | :heavy_minus_sign:                                                                                                                                                             | Include archived meters in the page. Defaults to false — archived meters are hidden.                                                                                           |                                                                                                                                                                                |
-| `externalId`                                                                                                                                                                   | *string*                                                                                                                                                                       | :heavy_minus_sign:                                                                                                                                                             | Only the meter with this `external_id` (your own key). Case-sensitive, exact match. Combine with `include_archived` to find an archived one.                                   | image-generations                                                                                                                                                              |
-| `options`                                                                                                                                                                      | RequestOptions                                                                                                                                                                 | :heavy_minus_sign:                                                                                                                                                             | Used to set various options for making HTTP requests.                                                                                                                          |                                                                                                                                                                                |
-| `options.fetchOptions`                                                                                                                                                         | [RequestInit](https://developer.mozilla.org/en-US/docs/Web/API/Request/Request#options)                                                                                        | :heavy_minus_sign:                                                                                                                                                             | Options that are passed to the underlying HTTP request. This can be used to inject extra headers for examples. All `Request` options, except `method` and `body`, are allowed. |                                                                                                                                                                                |
-| `options.retries`                                                                                                                                                              | [RetryConfig](../../lib/utils/retryconfig.md)                                                                                                                                  | :heavy_minus_sign:                                                                                                                                                             | Enables retrying HTTP requests under certain failure conditions.                                                                                                               |                                                                                                                                                                                |
+| Parameter                                                                                                                                                                      | Type                                                                                                                                                                           | Required                                                                                                                                                                       | Description                                                                                                                                                                    |
+| ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| `request`                                                                                                                                                                      | [operations.ListMetersRequest](../../models/operations/listmetersrequest.md)                                                                                                   | :heavy_check_mark:                                                                                                                                                             | The request object to use for the request.                                                                                                                                     |
+| `options`                                                                                                                                                                      | RequestOptions                                                                                                                                                                 | :heavy_minus_sign:                                                                                                                                                             | Used to set various options for making HTTP requests.                                                                                                                          |
+| `options.fetchOptions`                                                                                                                                                         | [RequestInit](https://developer.mozilla.org/en-US/docs/Web/API/Request/Request#options)                                                                                        | :heavy_minus_sign:                                                                                                                                                             | Options that are passed to the underlying HTTP request. This can be used to inject extra headers for examples. All `Request` options, except `method` and `body`, are allowed. |
+| `options.retries`                                                                                                                                                              | [RetryConfig](../../lib/utils/retryconfig.md)                                                                                                                                  | :heavy_minus_sign:                                                                                                                                                             | Enables retrying HTTP requests under certain failure conditions.                                                                                                               |
 
 ### Response
 
@@ -310,7 +318,9 @@ const creem = new Creem({
 });
 
 async function run() {
-  const result = await creem.meters.getMeter("<id>");
+  const result = await creem.meters.getMeter({
+    id: "<id>",
+  });
 
   console.log(result);
 }
@@ -333,7 +343,9 @@ const creem = new CreemCore({
 });
 
 async function run() {
-  const res = await metersGetMeter(creem, "<id>");
+  const res = await metersGetMeter(creem, {
+    id: "<id>",
+  });
   if (res.ok) {
     const { value: result } = res;
     console.log(result);
@@ -349,7 +361,7 @@ run();
 
 | Parameter                                                                                                                                                                      | Type                                                                                                                                                                           | Required                                                                                                                                                                       | Description                                                                                                                                                                    |
 | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
-| `id`                                                                                                                                                                           | *string*                                                                                                                                                                       | :heavy_check_mark:                                                                                                                                                             | N/A                                                                                                                                                                            |
+| `request`                                                                                                                                                                      | [operations.GetMeterRequest](../../models/operations/getmeterrequest.md)                                                                                                       | :heavy_check_mark:                                                                                                                                                             | The request object to use for the request.                                                                                                                                     |
 | `options`                                                                                                                                                                      | RequestOptions                                                                                                                                                                 | :heavy_minus_sign:                                                                                                                                                             | Used to set various options for making HTTP requests.                                                                                                                          |
 | `options.fetchOptions`                                                                                                                                                         | [RequestInit](https://developer.mozilla.org/en-US/docs/Web/API/Request/Request#options)                                                                                        | :heavy_minus_sign:                                                                                                                                                             | Options that are passed to the underlying HTTP request. This can be used to inject extra headers for examples. All `Request` options, except `method` and `body`, are allowed. |
 | `options.retries`                                                                                                                                                              | [RetryConfig](../../lib/utils/retryconfig.md)                                                                                                                                  | :heavy_minus_sign:                                                                                                                                                             | Enables retrying HTTP requests under certain failure conditions.                                                                                                               |
@@ -366,7 +378,7 @@ run();
 
 ## updateMeter
 
-Rename a meter and/or revise its definition. A rename is always allowed — the name is a label no aggregate depends on — but it must stay unique within the store (409 meter_name_taken). Definition changes (filter, aggregation, aggregation_property) are only accepted while the meter has processed no usage and has no associated purchase; otherwise the request is rejected with 409, because editing the definition would silently rewrite what already-recorded usage means. Send aggregation_property as null to clear it; omit it to leave it unchanged.
+Rename a meter and/or revise its definition. A rename is always allowed — the name is a label no aggregate depends on — but it must stay unique within the store (409 meter_name_taken). Definition changes (filter, aggregation, aggregation_property) are only accepted while the meter has processed no usage and has no associated purchase; otherwise the request is rejected with 409, because editing the definition would silently rewrite what already-recorded usage means. The `locked` field on a meter shows this before you update it, though a meter can lock between that read and the update, because aggregation runs asynchronously. Send aggregation_property as null to clear it; omit it to leave it unchanged.
 
 ### Example Usage
 
@@ -379,21 +391,24 @@ const creem = new Creem({
 });
 
 async function run() {
-  const result = await creem.meters.updateMeter("<id>", {
-    name: "Image generations (v2)",
-    aggregation: "sum",
-    aggregationProperty: "tokens",
-    filter: {
-      conjunction: "and",
-      clauses: [
-        {
-          property: "tier",
-          operator: "equals",
-          value: "pro",
-        },
-      ],
+  const result = await creem.meters.updateMeter({
+    id: "<id>",
+    updateMeterApiRequestDto: {
+      name: "Image generations (v2)",
+      aggregation: "sum",
+      aggregationProperty: "tokens",
+      filter: {
+        conjunction: "and",
+        clauses: [
+          {
+            property: "tier",
+            operator: "equals",
+            value: "pro",
+          },
+        ],
+      },
+      externalId: "image-generations",
     },
-    externalId: "image-generations",
   });
 
   console.log(result);
@@ -417,21 +432,24 @@ const creem = new CreemCore({
 });
 
 async function run() {
-  const res = await metersUpdateMeter(creem, "<id>", {
-    name: "Image generations (v2)",
-    aggregation: "sum",
-    aggregationProperty: "tokens",
-    filter: {
-      conjunction: "and",
-      clauses: [
-        {
-          property: "tier",
-          operator: "equals",
-          value: "pro",
-        },
-      ],
+  const res = await metersUpdateMeter(creem, {
+    id: "<id>",
+    updateMeterApiRequestDto: {
+      name: "Image generations (v2)",
+      aggregation: "sum",
+      aggregationProperty: "tokens",
+      filter: {
+        conjunction: "and",
+        clauses: [
+          {
+            property: "tier",
+            operator: "equals",
+            value: "pro",
+          },
+        ],
+      },
+      externalId: "image-generations",
     },
-    externalId: "image-generations",
   });
   if (res.ok) {
     const { value: result } = res;
@@ -448,8 +466,7 @@ run();
 
 | Parameter                                                                                                                                                                      | Type                                                                                                                                                                           | Required                                                                                                                                                                       | Description                                                                                                                                                                    |
 | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
-| `id`                                                                                                                                                                           | *string*                                                                                                                                                                       | :heavy_check_mark:                                                                                                                                                             | N/A                                                                                                                                                                            |
-| `updateMeterApiRequestDto`                                                                                                                                                     | [components.UpdateMeterApiRequestDto](../../models/components/updatemeterapirequestdto.md)                                                                                     | :heavy_check_mark:                                                                                                                                                             | N/A                                                                                                                                                                            |
+| `request`                                                                                                                                                                      | [operations.UpdateMeterRequest](../../models/operations/updatemeterrequest.md)                                                                                                 | :heavy_check_mark:                                                                                                                                                             | The request object to use for the request.                                                                                                                                     |
 | `options`                                                                                                                                                                      | RequestOptions                                                                                                                                                                 | :heavy_minus_sign:                                                                                                                                                             | Used to set various options for making HTTP requests.                                                                                                                          |
 | `options.fetchOptions`                                                                                                                                                         | [RequestInit](https://developer.mozilla.org/en-US/docs/Web/API/Request/Request#options)                                                                                        | :heavy_minus_sign:                                                                                                                                                             | Options that are passed to the underlying HTTP request. This can be used to inject extra headers for examples. All `Request` options, except `method` and `body`, are allowed. |
 | `options.retries`                                                                                                                                                              | [RetryConfig](../../lib/utils/retryconfig.md)                                                                                                                                  | :heavy_minus_sign:                                                                                                                                                             | Enables retrying HTTP requests under certain failure conditions.                                                                                                               |
@@ -480,7 +497,9 @@ const creem = new Creem({
 });
 
 async function run() {
-  const result = await creem.meters.previewExistingMeter("<id>");
+  const result = await creem.meters.previewExistingMeter({
+    id: "<id>",
+  });
 
   console.log(result);
 }
@@ -503,7 +522,9 @@ const creem = new CreemCore({
 });
 
 async function run() {
-  const res = await metersPreviewExistingMeter(creem, "<id>");
+  const res = await metersPreviewExistingMeter(creem, {
+    id: "<id>",
+  });
   if (res.ok) {
     const { value: result } = res;
     console.log(result);
@@ -519,7 +540,7 @@ run();
 
 | Parameter                                                                                                                                                                      | Type                                                                                                                                                                           | Required                                                                                                                                                                       | Description                                                                                                                                                                    |
 | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
-| `id`                                                                                                                                                                           | *string*                                                                                                                                                                       | :heavy_check_mark:                                                                                                                                                             | N/A                                                                                                                                                                            |
+| `request`                                                                                                                                                                      | [operations.PreviewExistingMeterRequest](../../models/operations/previewexistingmeterrequest.md)                                                                               | :heavy_check_mark:                                                                                                                                                             | The request object to use for the request.                                                                                                                                     |
 | `options`                                                                                                                                                                      | RequestOptions                                                                                                                                                                 | :heavy_minus_sign:                                                                                                                                                             | Used to set various options for making HTTP requests.                                                                                                                          |
 | `options.fetchOptions`                                                                                                                                                         | [RequestInit](https://developer.mozilla.org/en-US/docs/Web/API/Request/Request#options)                                                                                        | :heavy_minus_sign:                                                                                                                                                             | Options that are passed to the underlying HTTP request. This can be used to inject extra headers for examples. All `Request` options, except `method` and `body`, are allowed. |
 | `options.retries`                                                                                                                                                              | [RetryConfig](../../lib/utils/retryconfig.md)                                                                                                                                  | :heavy_minus_sign:                                                                                                                                                             | Enables retrying HTTP requests under certain failure conditions.                                                                                                               |
@@ -549,7 +570,11 @@ const creem = new Creem({
 });
 
 async function run() {
-  const result = await creem.meters.getConsumedUnits("<id>", "cust_abc123", "2026-08-15T00:00:00.000Z");
+  const result = await creem.meters.getConsumedUnits({
+    id: "<id>",
+    customerId: "cust_abc123",
+    at: "2026-08-15T00:00:00.000Z",
+  });
 
   console.log(result);
 }
@@ -572,7 +597,11 @@ const creem = new CreemCore({
 });
 
 async function run() {
-  const res = await metersGetConsumedUnits(creem, "<id>", "cust_abc123", "2026-08-15T00:00:00.000Z");
+  const res = await metersGetConsumedUnits(creem, {
+    id: "<id>",
+    customerId: "cust_abc123",
+    at: "2026-08-15T00:00:00.000Z",
+  });
   if (res.ok) {
     const { value: result } = res;
     console.log(result);
@@ -586,14 +615,12 @@ run();
 
 ### Parameters
 
-| Parameter                                                                                                                                                                                                                    | Type                                                                                                                                                                                                                         | Required                                                                                                                                                                                                                     | Description                                                                                                                                                                                                                  | Example                                                                                                                                                                                                                      |
-| ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `id`                                                                                                                                                                                                                         | *string*                                                                                                                                                                                                                     | :heavy_check_mark:                                                                                                                                                                                                           | N/A                                                                                                                                                                                                                          |                                                                                                                                                                                                                              |
-| `customerId`                                                                                                                                                                                                                 | *string*                                                                                                                                                                                                                     | :heavy_check_mark:                                                                                                                                                                                                           | The customer whose consumption is read                                                                                                                                                                                       | cust_abc123                                                                                                                                                                                                                  |
-| `at`                                                                                                                                                                                                                         | *string*                                                                                                                                                                                                                     | :heavy_minus_sign:                                                                                                                                                                                                           | ISO 8601 instant. When present, the consumption is replayed from the raw events as of that point in time, within the billing period that contains it. When absent, the current billing period’s projected total is returned. | 2026-08-15T00:00:00.000Z                                                                                                                                                                                                     |
-| `options`                                                                                                                                                                                                                    | RequestOptions                                                                                                                                                                                                               | :heavy_minus_sign:                                                                                                                                                                                                           | Used to set various options for making HTTP requests.                                                                                                                                                                        |                                                                                                                                                                                                                              |
-| `options.fetchOptions`                                                                                                                                                                                                       | [RequestInit](https://developer.mozilla.org/en-US/docs/Web/API/Request/Request#options)                                                                                                                                      | :heavy_minus_sign:                                                                                                                                                                                                           | Options that are passed to the underlying HTTP request. This can be used to inject extra headers for examples. All `Request` options, except `method` and `body`, are allowed.                                               |                                                                                                                                                                                                                              |
-| `options.retries`                                                                                                                                                                                                            | [RetryConfig](../../lib/utils/retryconfig.md)                                                                                                                                                                                | :heavy_minus_sign:                                                                                                                                                                                                           | Enables retrying HTTP requests under certain failure conditions.                                                                                                                                                             |                                                                                                                                                                                                                              |
+| Parameter                                                                                                                                                                      | Type                                                                                                                                                                           | Required                                                                                                                                                                       | Description                                                                                                                                                                    |
+| ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| `request`                                                                                                                                                                      | [operations.GetMeterConsumedUnitsRequest](../../models/operations/getmeterconsumedunitsrequest.md)                                                                             | :heavy_check_mark:                                                                                                                                                             | The request object to use for the request.                                                                                                                                     |
+| `options`                                                                                                                                                                      | RequestOptions                                                                                                                                                                 | :heavy_minus_sign:                                                                                                                                                             | Used to set various options for making HTTP requests.                                                                                                                          |
+| `options.fetchOptions`                                                                                                                                                         | [RequestInit](https://developer.mozilla.org/en-US/docs/Web/API/Request/Request#options)                                                                                        | :heavy_minus_sign:                                                                                                                                                             | Options that are passed to the underlying HTTP request. This can be used to inject extra headers for examples. All `Request` options, except `method` and `body`, are allowed. |
+| `options.retries`                                                                                                                                                              | [RetryConfig](../../lib/utils/retryconfig.md)                                                                                                                                  | :heavy_minus_sign:                                                                                                                                                             | Enables retrying HTTP requests under certain failure conditions.                                                                                                               |
 
 ### Response
 
@@ -620,7 +647,9 @@ const creem = new Creem({
 });
 
 async function run() {
-  const result = await creem.meters.archiveMeter("<id>");
+  const result = await creem.meters.archiveMeter({
+    id: "<id>",
+  });
 
   console.log(result);
 }
@@ -643,7 +672,9 @@ const creem = new CreemCore({
 });
 
 async function run() {
-  const res = await metersArchiveMeter(creem, "<id>");
+  const res = await metersArchiveMeter(creem, {
+    id: "<id>",
+  });
   if (res.ok) {
     const { value: result } = res;
     console.log(result);
@@ -659,7 +690,7 @@ run();
 
 | Parameter                                                                                                                                                                      | Type                                                                                                                                                                           | Required                                                                                                                                                                       | Description                                                                                                                                                                    |
 | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
-| `id`                                                                                                                                                                           | *string*                                                                                                                                                                       | :heavy_check_mark:                                                                                                                                                             | N/A                                                                                                                                                                            |
+| `request`                                                                                                                                                                      | [operations.ArchiveMeterRequest](../../models/operations/archivemeterrequest.md)                                                                                               | :heavy_check_mark:                                                                                                                                                             | The request object to use for the request.                                                                                                                                     |
 | `options`                                                                                                                                                                      | RequestOptions                                                                                                                                                                 | :heavy_minus_sign:                                                                                                                                                             | Used to set various options for making HTTP requests.                                                                                                                          |
 | `options.fetchOptions`                                                                                                                                                         | [RequestInit](https://developer.mozilla.org/en-US/docs/Web/API/Request/Request#options)                                                                                        | :heavy_minus_sign:                                                                                                                                                             | Options that are passed to the underlying HTTP request. This can be used to inject extra headers for examples. All `Request` options, except `method` and `body`, are allowed. |
 | `options.retries`                                                                                                                                                              | [RetryConfig](../../lib/utils/retryconfig.md)                                                                                                                                  | :heavy_minus_sign:                                                                                                                                                             | Enables retrying HTTP requests under certain failure conditions.                                                                                                               |
@@ -690,7 +721,9 @@ const creem = new Creem({
 });
 
 async function run() {
-  const result = await creem.meters.unarchiveMeter("<id>");
+  const result = await creem.meters.unarchiveMeter({
+    id: "<id>",
+  });
 
   console.log(result);
 }
@@ -713,7 +746,9 @@ const creem = new CreemCore({
 });
 
 async function run() {
-  const res = await metersUnarchiveMeter(creem, "<id>");
+  const res = await metersUnarchiveMeter(creem, {
+    id: "<id>",
+  });
   if (res.ok) {
     const { value: result } = res;
     console.log(result);
@@ -729,7 +764,7 @@ run();
 
 | Parameter                                                                                                                                                                      | Type                                                                                                                                                                           | Required                                                                                                                                                                       | Description                                                                                                                                                                    |
 | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
-| `id`                                                                                                                                                                           | *string*                                                                                                                                                                       | :heavy_check_mark:                                                                                                                                                             | N/A                                                                                                                                                                            |
+| `request`                                                                                                                                                                      | [operations.UnarchiveMeterRequest](../../models/operations/unarchivemeterrequest.md)                                                                                           | :heavy_check_mark:                                                                                                                                                             | The request object to use for the request.                                                                                                                                     |
 | `options`                                                                                                                                                                      | RequestOptions                                                                                                                                                                 | :heavy_minus_sign:                                                                                                                                                             | Used to set various options for making HTTP requests.                                                                                                                          |
 | `options.fetchOptions`                                                                                                                                                         | [RequestInit](https://developer.mozilla.org/en-US/docs/Web/API/Request/Request#options)                                                                                        | :heavy_minus_sign:                                                                                                                                                             | Options that are passed to the underlying HTTP request. This can be used to inject extra headers for examples. All `Request` options, except `method` and `body`, are allowed. |
 | `options.retries`                                                                                                                                                              | [RetryConfig](../../lib/utils/retryconfig.md)                                                                                                                                  | :heavy_minus_sign:                                                                                                                                                             | Enables retrying HTTP requests under certain failure conditions.                                                                                                               |

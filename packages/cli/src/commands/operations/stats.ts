@@ -8,6 +8,6 @@ export const handlers: Record<string, OperationHandler> = {
       operations.GetMetricsSummaryRequest$inboundSchema,
       parameters,
     );
-    return client.stats.getSummary(p.currency, p.startDate, p.endDate, p.interval, options);
+    return client.stats.getSummary(p, options);
   },
 };

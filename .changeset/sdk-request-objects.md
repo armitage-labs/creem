@@ -1,0 +1,15 @@
+---
+"creem": major
+"@creem_io/cli": patch
+"@creem_io/convex": minor
+---
+
+Every SDK method now takes one request object, then the optional `RequestOptions`: `creem.products.update({ id, updateProductRequestEntity }, options)` instead of `creem.products.update(id, body, options)`. The HTTP API doesn't change. Why: with positional arguments, a new optional API parameter was inserted before `options`, so existing calls stopped compiling (and in JavaScript sent the options object as that parameter). With a request object, a new parameter of an operation that already has one is a new optional property and no call changes, so upcoming parameters such as `dry_run`, `If-None-Match` and `If-Match` on those operations arrive in minor releases. The 17 methods that take only a body keep taking it; the migration guide says what changes if one of them gains a parameter.
+
+- A method whose parameters are all optional still takes the object: `creem.products.search()` becomes `creem.products.search({})`.
+- The bundled MCP server's tools take the same request object (`{ "request": { … } }`).
+- The CLI moves to the new signatures; its existing commands and flags don't change. `subscriptions list --status` accepts any status, and a billing type the CLI doesn't know is shown as it is instead of as recurring.
+- Response enums are open: a value the API adds later comes through as a string instead of failing the response. The same holds for webhook payloads parsed with `parseWebhookEventEntity` / `constructWebhookEventEntity`, and an unknown event type comes back as the unknown variant (`eventType: "UNKNOWN"`, the payload in `raw`) instead of throwing. A known event type whose payload doesn't match its schema, or a payload without an `eventType`, still throws. So new values and new webhook event types are minor releases from now on. A `switch` over the known values is no longer exhaustive: a `never` exhaustiveness check no longer compiles, and neither does a function that returns from every case when its return type is declared or `noImplicitReturns` is on (with an inferred return type it compiles and its return type gains `undefined`). Add a `default` branch.
+- `@creem_io/convex` calls the new signatures and now needs `creem` 2 as its peer dependency (`^2.0.0`); its component API doesn't change, except that a credit entry's `side` is typed as a string, because the SDK now passes a side the API adds later through. The webhook route acknowledges an event type it doesn't know with `202` instead of answering `400`, so Creem stops retrying it. A malformed payload of a known event type, or one without an `eventType`, still gets `400`, and the route and the `parseSubscription` / `parseCheckout` / `parseProduct` / `parseRefund` helpers log only what failed, not the payload. `parseGeneratedWebhookEvent` now parses with the SDK's `parseWebhookEventEntity`, so it follows the same rules.
+
+`packages/sdk/MIGRATION.md` lists every changed method next to its new form.

@@ -1,3 +1,5 @@
+import type { OpenValue } from "./retrieve-subscription-types.js";
+
 /**
  * Parameters for searching Creem transactions.
  *
@@ -60,7 +62,7 @@ export interface TransactionData {
   /** Unique transaction identifier */
   id: string;
   /** Environment mode */
-  mode: "test" | "prod" | "sandbox";
+  mode: OpenValue<"test" | "prod" | "sandbox">;
   /** String representing the object's type */
   object: "transaction";
   /** The transaction amount in cents. 1000 = $10.00 */
@@ -72,13 +74,13 @@ export interface TransactionData {
   /** Three-letter ISO currency code, in uppercase */
   currency: string;
   /** The type of transaction: payment (one time) or invoice (subscription) */
-  type: "payment" | "invoice";
+  type: OpenValue<"payment" | "invoice">;
   /** The ISO alpha-2 country code where tax is collected */
   taxCountry?: string;
   /** The sale tax amount in cents. 1000 = $10.00 */
   taxAmount?: number;
   /** Status of the transaction */
-  status:
+  status: OpenValue<
     | "pending"
     | "paid"
     | "refunded"
@@ -86,7 +88,8 @@ export interface TransactionData {
     | "chargedBack"
     | "uncollectible"
     | "declined"
-    | "void";
+    | "void"
+  >;
   /** The amount that has been refunded in cents. 1000 = $10.00 */
   refundedAmount?: number | null;
   /** The order ID associated with the transaction */

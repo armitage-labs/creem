@@ -71,18 +71,14 @@ export class Licenses extends ClientSDK {
    * Retrieve a paginated list of instances (activations) for a license key. Use an instance id from this list to deactivate it via the deactivate endpoint.
    */
   async listInstances(
-    id: string,
-    pageNumber?: number | undefined,
-    pageSize?: number | undefined,
+    request: operations.ListLicenseInstancesRequest,
     options?: RequestOptions,
   ): Promise<
     PageIterator<operations.ListLicenseInstancesResponse, { page: number }>
   > {
     return unwrapResultIterator(licensesListInstances(
       this,
-      id,
-      pageNumber,
-      pageSize,
+      request,
       options,
     ));
   }

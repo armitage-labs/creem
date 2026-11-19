@@ -5,7 +5,8 @@
 import * as z from "zod/v3";
 import { remap as remap$ } from "../../lib/primitives.js";
 import { safeParse } from "../../lib/schemas.js";
-import { ClosedEnum } from "../../types/enums.js";
+import * as openEnums from "../../types/enums.js";
+import { OpenEnum } from "../../types/enums.js";
 import { Result as SafeParseResult } from "../../types/fp.js";
 import { SDKValidationError } from "../errors/sdkvalidationerror.js";
 
@@ -19,7 +20,7 @@ export const Side = {
 /**
  * Debit or credit side
  */
-export type Side = ClosedEnum<typeof Side>;
+export type Side = OpenEnum<typeof Side>;
 
 export type EntryResponseDto = {
   /**
@@ -49,12 +50,11 @@ export type EntryResponseDto = {
 };
 
 /** @internal */
-export const Side$inboundSchema: z.ZodNativeEnum<typeof Side> = z.nativeEnum(
-  Side,
-);
+export const Side$inboundSchema: z.ZodType<Side, z.ZodTypeDef, unknown> =
+  openEnums.inboundSchema(Side);
 /** @internal */
-export const Side$outboundSchema: z.ZodNativeEnum<typeof Side> =
-  Side$inboundSchema;
+export const Side$outboundSchema: z.ZodType<string, z.ZodTypeDef, Side> =
+  openEnums.outboundSchema(Side);
 
 /** @internal */
 export const EntryResponseDto$inboundSchema: z.ZodType<

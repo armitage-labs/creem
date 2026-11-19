@@ -25,7 +25,8 @@
   ],
   "scripts": {
     "build": "tsup",
-    "typecheck": "tsc --noEmit",
+    "typecheck": "tsc --noEmit && tsc --noEmit -p tsconfig.type-tests.json",
+    "test": "tsc --noEmit -p tsconfig.type-tests.json",
     "check:package": "publint --strict --pack pnpm && attw --pack .",
     "prepublishOnly": "npm run build"
   },

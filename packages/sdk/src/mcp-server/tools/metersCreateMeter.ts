@@ -3,11 +3,11 @@
  */
 
 import { metersCreateMeter } from "../../funcs/metersCreateMeter.js";
-import * as components from "../../models/components/index.js";
+import * as operations from "../../models/operations/index.js";
 import { formatResult, ToolDefinition } from "../tools.js";
 
 const args = {
-  request: components.CreateMeterApiRequestDto$inboundSchema,
+  request: operations.CreateMeterRequest$inboundSchema,
 };
 
 export const tool$metersCreateMeter: ToolDefinition<typeof args> = {

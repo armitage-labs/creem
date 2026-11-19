@@ -3,7 +3,8 @@
  */
 
 import * as z from "zod/v3";
-import { ClosedEnum } from "../../types/enums.js";
+import * as openEnums from "../../types/enums.js";
+import { OpenEnum } from "../../types/enums.js";
 
 /**
  * The type of the field.
@@ -15,13 +16,17 @@ export const CustomFieldType = {
 /**
  * The type of the field.
  */
-export type CustomFieldType = ClosedEnum<typeof CustomFieldType>;
+export type CustomFieldType = OpenEnum<typeof CustomFieldType>;
 
 /** @internal */
-export const CustomFieldType$inboundSchema: z.ZodNativeEnum<
-  typeof CustomFieldType
-> = z.nativeEnum(CustomFieldType);
+export const CustomFieldType$inboundSchema: z.ZodType<
+  CustomFieldType,
+  z.ZodTypeDef,
+  unknown
+> = openEnums.inboundSchema(CustomFieldType);
 /** @internal */
-export const CustomFieldType$outboundSchema: z.ZodNativeEnum<
-  typeof CustomFieldType
-> = CustomFieldType$inboundSchema;
+export const CustomFieldType$outboundSchema: z.ZodType<
+  string,
+  z.ZodTypeDef,
+  CustomFieldType
+> = openEnums.outboundSchema(CustomFieldType);

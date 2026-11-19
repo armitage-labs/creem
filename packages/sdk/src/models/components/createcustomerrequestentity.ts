@@ -14,9 +14,9 @@ export type CreateCustomerRequestEntity = {
    */
   email: string;
   /**
-   * The full name of the customer.
+   * The full name of the customer. Optional: omit it (or send an empty string) to create a customer without a name, or to keep an existing customer's name unchanged. Their next checkout fills it in.
    */
-  name: string;
+  name?: string | undefined;
   /**
    * Additional metadata for the customer.
    */
@@ -25,6 +25,10 @@ export type CreateCustomerRequestEntity = {
    * Your own id for this customer. Unique per store; usage ingestion resolves `external_customer_id` against it. Trimmed; letters, digits, `_`, `-`, `.` and `:` only; at most 255 characters.
    */
   externalId?: string | undefined;
+  /**
+   * The customer’s country, as an ISO 3166-1 alpha-2 code. Case-insensitive; stored upper-case. The customer portal uses it as the country of the payment form when the customer adds or updates a card. Set only when the customer has no country yet: an existing customer’s country is kept (change it with `PATCH /v1/customers`). The next checkout that carries a billing country replaces it; a checkout without one keeps it.
+   */
+  country?: string | undefined;
 };
 
 /** @internal */
@@ -34,9 +38,10 @@ export const CreateCustomerRequestEntity$inboundSchema: z.ZodType<
   unknown
 > = z.object({
   email: z.string(),
-  name: z.string(),
+  name: z.string().optional(),
   metadata: z.record(z.any()).optional(),
   external_id: z.string().optional(),
+  country: z.string().optional(),
 }).transform((v) => {
   return remap$(v, {
     "external_id": "externalId",
@@ -45,9 +50,10 @@ export const CreateCustomerRequestEntity$inboundSchema: z.ZodType<
 /** @internal */
 export type CreateCustomerRequestEntity$Outbound = {
   email: string;
-  name: string;
+  name?: string | undefined;
   metadata?: { [k: string]: any } | undefined;
   external_id?: string | undefined;
+  country?: string | undefined;
 };
 
 /** @internal */
@@ -57,9 +63,10 @@ export const CreateCustomerRequestEntity$outboundSchema: z.ZodType<
   CreateCustomerRequestEntity
 > = z.object({
   email: z.string(),
-  name: z.string(),
+  name: z.string().optional(),
   metadata: z.record(z.any()).optional(),
   externalId: z.string().optional(),
+  country: z.string().optional(),
 }).transform((v) => {
   return remap$(v, {
     externalId: "external_id",

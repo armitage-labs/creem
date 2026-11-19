@@ -35,8 +35,7 @@ import { Result } from "../types/fp.js";
  */
 export function customerCreditsReverseTransaction(
   client: CreemCore,
-  id: string,
-  reverseTransactionRequestDto: components.ReverseTransactionRequestDto,
+  request: operations.ReverseCustomerCreditsAccountTransactionRequest,
   options?: RequestOptions,
 ): APIPromise<
   Result<
@@ -54,16 +53,14 @@ export function customerCreditsReverseTransaction(
 > {
   return new APIPromise($do(
     client,
-    id,
-    reverseTransactionRequestDto,
+    request,
     options,
   ));
 }
 
 async function $do(
   client: CreemCore,
-  id: string,
-  reverseTransactionRequestDto: components.ReverseTransactionRequestDto,
+  request: operations.ReverseCustomerCreditsAccountTransactionRequest,
   options?: RequestOptions,
 ): Promise<
   [
@@ -82,13 +79,8 @@ async function $do(
     APICall,
   ]
 > {
-  const input: operations.ReverseCustomerCreditsAccountTransactionRequest = {
-    id: id,
-    reverseTransactionRequestDto: reverseTransactionRequestDto,
-  };
-
   const parsed = safeParse(
-    input,
+    request,
     (value) =>
       operations.ReverseCustomerCreditsAccountTransactionRequest$outboundSchema
         .parse(value),

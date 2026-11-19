@@ -382,7 +382,24 @@
               "api-reference/endpoint/get-product",
               "api-reference/endpoint/search-products",
               "api-reference/endpoint/update-product",
-              "api-reference/endpoint/archive-product"
+              "api-reference/endpoint/archive-product",
+              "api-reference/endpoint/list-product-prices"
+            ]
+          },
+          {
+            "group": "Product Groups",
+            "icon": "layer-group",
+            "pages": [
+              "api-reference/endpoint/list-product-groups",
+              "api-reference/endpoint/get-product-group"
+            ]
+          },
+          {
+            "group": "Files",
+            "icon": "file",
+            "pages": [
+              "api-reference/endpoint/create-file-upload",
+              "api-reference/endpoint/confirm-file-upload"
             ]
           },
           {
@@ -430,6 +447,7 @@
             "icon": "tag",
             "pages": [
               "api-reference/endpoint/create-discount-code",
+              "api-reference/endpoint/update-discount-code",
               "api-reference/endpoint/delete-discount-code",
               "api-reference/endpoint/get-discount-code",
               "api-reference/endpoint/search-discounts"
