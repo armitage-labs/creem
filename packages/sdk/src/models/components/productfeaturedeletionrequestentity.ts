@@ -16,7 +16,7 @@ export type ProductFeatureDeletionRequestEntity = {
   /**
    * Your own key of the feature to remove, used when `id` is omitted.
    */
-  externalId?: string | undefined;
+  externalId?: string | null | undefined;
   /**
    * Optional. When sent, it must be the stored feature type, or the request answers `400` with code `feature_type_mismatch`.
    */
@@ -34,7 +34,7 @@ export const ProductFeatureDeletionRequestEntity$inboundSchema: z.ZodType<
   unknown
 > = z.object({
   id: z.string().optional(),
-  external_id: z.string().optional(),
+  external_id: z.nullable(z.string()).optional(),
   type: z.string().optional(),
   deleted: z.literal(true),
 }).transform((v) => {
@@ -45,7 +45,7 @@ export const ProductFeatureDeletionRequestEntity$inboundSchema: z.ZodType<
 /** @internal */
 export type ProductFeatureDeletionRequestEntity$Outbound = {
   id?: string | undefined;
-  external_id?: string | undefined;
+  external_id?: string | null | undefined;
   type?: string | undefined;
   deleted: true;
 };
@@ -57,7 +57,7 @@ export const ProductFeatureDeletionRequestEntity$outboundSchema: z.ZodType<
   ProductFeatureDeletionRequestEntity
 > = z.object({
   id: z.string().optional(),
-  externalId: z.string().optional(),
+  externalId: z.nullable(z.string()).optional(),
   type: z.string().optional(),
   deleted: z.literal(true),
 }).transform((v) => {

@@ -90,6 +90,31 @@ describe("product feature writes", () => {
     ]);
   });
 
+  // A feature read back from the API carries `externalId: null` when it has no
+  // key of its own; marked `deleted: true`, it is still a deletion.
+  it("sends and reads a read-back entry with externalId: null and deleted: true as a deletion", () => {
+    const readBack = [
+      { id: "feat_note", externalId: null, type: "custom", description: "Note", privateNote: "Hi", deleted: true },
+      { id: "feat_key", externalId: null, type: "licenseKey", description: "Key", licenseKey: { activationLimit: 3, expiry: null }, deleted: true },
+      { id: "feat_file", externalId: null, type: "file", description: "E-book", file: { files: [{ id: "file_abc" }] }, deleted: true },
+      { id: "feat_credits", externalId: null, type: "customerCredits", description: "Credits", customerCredits: { amount: "100" }, deleted: true },
+    ];
+    const wire = [
+      { id: "feat_note", external_id: null, type: "custom", deleted: true },
+      { id: "feat_key", external_id: null, type: "licenseKey", deleted: true },
+      { id: "feat_file", external_id: null, type: "file", deleted: true },
+      { id: "feat_credits", external_id: null, type: "customerCredits", deleted: true },
+    ];
+
+    expect(UpdateProductRequestEntity$outboundSchema.parse({ features: readBack }).features).toEqual(wire);
+    expect(UpdateProductRequestEntity$inboundSchema.parse({ features: wire }).features).toEqual([
+      { id: "feat_note", externalId: null, type: "custom", deleted: true },
+      { id: "feat_key", externalId: null, type: "licenseKey", deleted: true },
+      { id: "feat_file", externalId: null, type: "file", deleted: true },
+      { id: "feat_credits", externalId: null, type: "customerCredits", deleted: true },
+    ]);
+  });
+
   it("sends an entry with deleted: false as an edit", () => {
     const body = UpdateProductRequestEntity$outboundSchema.parse({
       features: [

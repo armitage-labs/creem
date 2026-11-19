@@ -110,3 +110,10 @@ actions:
   - target: $.components.schemas.UpdateProductRequestEntity.properties.features.items
     update:
       title: UpdateProductRequestEntityFeatures
+  # A feature read back from the API carries `external_id: null` when it has no
+  # key of its own, and the API accepts that entry, marked `deleted: true`, as a
+  # deletion. The contract types the deletion's `external_id` as a plain string,
+  # so the SDK refused it.
+  - target: $.components.schemas.ProductFeatureDeletionRequestEntity.properties.external_id
+    update:
+      nullable: true
