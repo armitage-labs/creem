@@ -1,5 +1,5 @@
 ---
 title: 'Upload a file'
-description: 'Request an upload for a file of up to 5 GB, post the bytes to the returned URL, then confirm it.'
+description: 'Request an upload for a file of any type up to 5 GB, with its SHA-256. Post the file to `upload_url` with `upload_fields` before `expires_at`, then confirm it with `POST /v1/files/{id}/confirm`. Storage refuses bytes that do not match `sha256`, files are private, and buyers always download them as attachments.'
 openapi: post /v1/files
 ---

@@ -1,5 +1,5 @@
 ---
 title: 'Update a discount'
-description: 'Change a discount. Only the fields you send change; the code never does, and a redeemed discount keeps its amount, type, currency and duration.'
+description: 'Update a discount. Only supplied fields change; the code never does. Once redeemed, its amount, type, currency and duration are fixed. A discount with a Stripe coupon also keeps its expiry, redemption limit and products; a name change renames the coupon.'
 openapi: patch /v1/discounts/{id}
 ---
