@@ -1,0 +1,348 @@
+{
+  "schema": "creem.migration_report",
+  "version": 1,
+  "source": {
+    "provider": "lemon_squeezy",
+    "store_id": "86325",
+    "store_name": "Armitage",
+    "currency": "EUR"
+  },
+  "mode": "plan",
+  "summary": {
+    "create": 10,
+    "update": 0,
+    "unchanged": 0,
+    "skip": 5,
+    "failed": 0,
+    "warnings": 2
+  },
+  "items": [
+    {
+      "status": null,
+      "creem_id": null,
+      "adopted_from": null,
+      "changes": [],
+      "reason": {
+        "code": "ls_default_variant",
+        "message": "The hidden default variant of a product with other variants is not sold on its own."
+      },
+      "warnings": [],
+      "error": null,
+      "kind": "product",
+      "key": "ls_variant_752122",
+      "name": "Pro Armitage subsription - Default",
+      "source": {
+        "type": "variant",
+        "id": "752122",
+        "product_id": "262308"
+      },
+      "action": "skip"
+    },
+    {
+      "status": "pending",
+      "creem_id": null,
+      "adopted_from": null,
+      "changes": [],
+      "reason": null,
+      "warnings": [],
+      "error": null,
+      "kind": "product",
+      "key": "ls_variant_365902",
+      "name": "Pro Armitage subsription - top",
+      "source": {
+        "type": "variant",
+        "id": "365902",
+        "product_id": "262308"
+      },
+      "action": "create"
+    },
+    {
+      "status": "pending",
+      "creem_id": null,
+      "adopted_from": null,
+      "changes": [],
+      "reason": null,
+      "warnings": [],
+      "error": null,
+      "kind": "product",
+      "key": "ls_variant_752120",
+      "name": "Pro Armitage subsription - basec",
+      "source": {
+        "type": "variant",
+        "id": "752120",
+        "product_id": "262308"
+      },
+      "action": "create"
+    },
+    {
+      "status": "pending",
+      "creem_id": null,
+      "adopted_from": null,
+      "changes": [],
+      "reason": null,
+      "warnings": [],
+      "error": null,
+      "kind": "product",
+      "key": "ls_variant_910001",
+      "name": "Icon Pack",
+      "source": {
+        "type": "variant",
+        "id": "910001",
+        "product_id": "900001"
+      },
+      "action": "create"
+    },
+    {
+      "status": null,
+      "creem_id": null,
+      "adopted_from": null,
+      "changes": [],
+      "reason": {
+        "code": "free_recurring_unsupported",
+        "message": "Creem refuses a recurring product at price 0."
+      },
+      "warnings": [],
+      "error": null,
+      "kind": "product",
+      "key": "ls_variant_910002",
+      "name": "Community",
+      "source": {
+        "type": "variant",
+        "id": "910002",
+        "product_id": "900002"
+      },
+      "action": "skip"
+    },
+    {
+      "status": "pending",
+      "creem_id": null,
+      "adopted_from": null,
+      "changes": [],
+      "reason": null,
+      "warnings": [],
+      "error": null,
+      "kind": "product",
+      "key": "ls_variant_910003",
+      "name": "Tip Jar",
+      "source": {
+        "type": "variant",
+        "id": "910003",
+        "product_id": "900003"
+      },
+      "action": "create"
+    },
+    {
+      "status": "pending",
+      "creem_id": null,
+      "adopted_from": null,
+      "changes": [],
+      "reason": null,
+      "warnings": [
+        {
+          "code": "pwyw_recurring_unsupported",
+          "message": "Pay what you want is one-time only in Creem; the subscription gets the fixed minimum price of 500."
+        }
+      ],
+      "error": null,
+      "kind": "product",
+      "key": "ls_variant_910004",
+      "name": "Supporter",
+      "source": {
+        "type": "variant",
+        "id": "910004",
+        "product_id": "900004"
+      },
+      "action": "create"
+    },
+    {
+      "status": null,
+      "creem_id": null,
+      "adopted_from": null,
+      "changes": [],
+      "reason": {
+        "code": "usage_price_without_base_price",
+        "message": "Usage-based (metered) prices are not migrated: Creem has no base price to attach the usage to."
+      },
+      "warnings": [],
+      "error": null,
+      "kind": "product",
+      "key": "ls_variant_910005",
+      "name": "API Calls",
+      "source": {
+        "type": "variant",
+        "id": "910005",
+        "product_id": "900005"
+      },
+      "action": "skip"
+    },
+    {
+      "status": "pending",
+      "creem_id": null,
+      "adopted_from": null,
+      "changes": [],
+      "reason": null,
+      "warnings": [],
+      "error": null,
+      "kind": "product",
+      "key": "ls_variant_910006",
+      "name": "Weekly Digest",
+      "source": {
+        "type": "variant",
+        "id": "910006",
+        "product_id": "900006"
+      },
+      "action": "create"
+    },
+    {
+      "status": "pending",
+      "creem_id": null,
+      "adopted_from": null,
+      "changes": [],
+      "reason": null,
+      "warnings": [],
+      "error": null,
+      "kind": "product",
+      "key": "ls_variant_910007",
+      "name": "Desktop App",
+      "source": {
+        "type": "variant",
+        "id": "910007",
+        "product_id": "900007"
+      },
+      "action": "create"
+    },
+    {
+      "status": null,
+      "creem_id": null,
+      "adopted_from": null,
+      "changes": [],
+      "reason": {
+        "code": "product_group_write_unavailable",
+        "message": "The public API cannot create product groups yet; create \"Pro Armitage subsription\" with ls_variant_365902, ls_variant_752120 in the dashboard."
+      },
+      "warnings": [],
+      "error": null,
+      "kind": "product_group",
+      "key": "ls_product_262308",
+      "name": "Pro Armitage subsription",
+      "source": {
+        "type": "product",
+        "id": "262308"
+      },
+      "action": "skip",
+      "members": [
+        "ls_variant_365902",
+        "ls_variant_752120"
+      ]
+    },
+    {
+      "status": "pending",
+      "creem_id": null,
+      "adopted_from": null,
+      "changes": [],
+      "reason": null,
+      "warnings": [],
+      "error": null,
+      "kind": "file",
+      "key": "ls_file_920001",
+      "name": "icons.zip",
+      "source": {
+        "type": "file",
+        "id": "920001",
+        "product_id": "900001"
+      },
+      "action": "create"
+    },
+    {
+      "status": "pending",
+      "creem_id": null,
+      "adopted_from": null,
+      "changes": [],
+      "reason": null,
+      "warnings": [],
+      "error": null,
+      "kind": "discount",
+      "key": "ls_discount_930001",
+      "name": "LAUNCH20",
+      "source": {
+        "type": "discount",
+        "id": "930001"
+      },
+      "action": "create"
+    },
+    {
+      "status": "pending",
+      "creem_id": null,
+      "adopted_from": null,
+      "changes": [],
+      "reason": null,
+      "warnings": [
+        {
+          "code": "discount_variants_partially_migrated",
+          "message": "The discount applies only to the migrated variants; ls_variant_910005 are not migrated."
+        }
+      ],
+      "error": null,
+      "kind": "discount",
+      "key": "ls_discount_930002",
+      "name": "APPFIVE",
+      "source": {
+        "type": "discount",
+        "id": "930002"
+      },
+      "action": "create"
+    },
+    {
+      "status": null,
+      "creem_id": null,
+      "adopted_from": null,
+      "changes": [],
+      "reason": {
+        "code": "discount_not_published",
+        "message": "The discount is draft, not published."
+      },
+      "warnings": [],
+      "error": null,
+      "kind": "discount",
+      "key": "ls_discount_930003",
+      "name": "DRAFT10",
+      "source": {
+        "type": "discount",
+        "id": "930003"
+      },
+      "action": "skip"
+    }
+  ],
+  "proposals": [],
+  "not_migrated": [
+    {
+      "kind": "customers",
+      "reason": {
+        "code": "out_of_scope",
+        "message": "Customers are not migrated: the migrator reads no customers."
+      }
+    },
+    {
+      "kind": "subscriptions",
+      "reason": {
+        "code": "out_of_scope",
+        "message": "Subscriptions are not migrated; move subscribers as the guide describes."
+      }
+    },
+    {
+      "kind": "orders",
+      "reason": {
+        "code": "out_of_scope",
+        "message": "Orders are not migrated; export them from Lemon Squeezy."
+      }
+    },
+    {
+      "kind": "license_keys",
+      "reason": {
+        "code": "out_of_scope",
+        "message": "License keys already issued in Lemon Squeezy are not migrated."
+      }
+    }
+  ],
+  "fetch_failures": []
+}

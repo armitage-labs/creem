@@ -1,0 +1,85 @@
+{
+  "meta": {
+    "page": {
+      "currentPage": 1,
+      "from": 1,
+      "lastPage": 1,
+      "perPage": 100,
+      "to": 1,
+      "total": 1
+    }
+  },
+  "data": [
+    {
+      "type": "stores",
+      "id": "86325",
+      "attributes": {
+        "name": "Armitage",
+        "slug": "armitage",
+        "domain": "armitage.lemonsqueezy.com",
+        "url": "https://armitage.lemonsqueezy.com",
+        "avatar_url": null,
+        "plan": "free",
+        "country": "EE",
+        "country_nicename": "Estonia",
+        "currency": "EUR",
+        "total_sales": 0,
+        "total_revenue": 0,
+        "thirty_day_sales": 0,
+        "thirty_day_revenue": 0,
+        "created_at": "2024-05-02T23:39:23.000000Z",
+        "updated_at": "2024-05-02T23:39:23.000000Z"
+      },
+      "relationships": {
+        "products": {
+          "links": {
+            "related": "https://api.lemonsqueezy.com/v1/stores/86325/products",
+            "self": "https://api.lemonsqueezy.com/v1/stores/86325/relationships/products"
+          }
+        },
+        "orders": {
+          "links": {
+            "related": "https://api.lemonsqueezy.com/v1/stores/86325/orders",
+            "self": "https://api.lemonsqueezy.com/v1/stores/86325/relationships/orders"
+          }
+        },
+        "subscriptions": {
+          "links": {
+            "related": "https://api.lemonsqueezy.com/v1/stores/86325/subscriptions",
+            "self": "https://api.lemonsqueezy.com/v1/stores/86325/relationships/subscriptions"
+          }
+        },
+        "discounts": {
+          "links": {
+            "related": "https://api.lemonsqueezy.com/v1/stores/86325/discounts",
+            "self": "https://api.lemonsqueezy.com/v1/stores/86325/relationships/discounts"
+          }
+        },
+        "license-keys": {
+          "links": {
+            "related": "https://api.lemonsqueezy.com/v1/stores/86325/license-keys",
+            "self": "https://api.lemonsqueezy.com/v1/stores/86325/relationships/license-keys"
+          }
+        },
+        "webhooks": {
+          "links": {
+            "related": "https://api.lemonsqueezy.com/v1/stores/86325/webhooks",
+            "self": "https://api.lemonsqueezy.com/v1/stores/86325/relationships/webhooks"
+          }
+        },
+        "affiliates": {
+          "links": {
+            "related": "https://api.lemonsqueezy.com/v1/stores/86325/affiliates",
+            "self": "https://api.lemonsqueezy.com/v1/stores/86325/relationships/affiliates"
+          }
+        }
+      },
+      "links": {
+        "self": "https://api.lemonsqueezy.com/v1/stores/86325"
+      }
+    }
+  ],
+  "links": {
+    "next": null
+  }
+}
