@@ -249,3 +249,65 @@ it("discounts update requires the discount ID and documents its flags", async ()
   for (const flag of ["<id>", "--data", "--name", "--percentage", "--expires", "--products"])
     expect(help.stdout).toContain(flag);
 });
+// The API takes a percentage from 1 to 100, fractions included, on create and
+// update alike.
+it.each([
+  ["a flag", ["--percentage", "12.5"]],
+  [
+    "--data",
+    [
+      "--data",
+      JSON.stringify({
+        name: "Half",
+        type: "percentage",
+        percentage: 12.5,
+        duration: "once",
+        appliesToProducts: ["prod_1"],
+      }),
+    ],
+  ],
+])("discounts create sends a fractional percentage from %s", async (_from, args) => {
+  const h = harness();
+  const spy = vi.spyOn(h.client.discounts, "create").mockRejectedValue(new Error("SDK_SENTINEL"));
+  const flags =
+    args[0] === "--percentage"
+      ? ["--name", "Half", "--type", "percentage", "--duration", "once", "--products", "prod_1"]
+      : [];
+  const result = await h.run(["discounts", "create", ...flags, ...args, "--json"]);
+  expect(spy, result.stderr).toHaveBeenCalledExactlyOnceWith(
+    { createDiscountRequestEntity: expect.objectContaining({ percentage: 12.5 }) },
+    expect.objectContaining({ retries: { strategy: "none" } }),
+  );
+});
+it.each([
+  ["a flag", ["--percentage", "12.5"]],
+  ["--data", ["--data", JSON.stringify({ percentage: 12.5 })]],
+])("discounts update sends a fractional percentage from %s", async (_from, args) => {
+  const h = harness();
+  const spy = vi.spyOn(h.client.discounts, "update").mockRejectedValue(new Error("SDK_SENTINEL"));
+  const result = await h.run(["discounts", "update", "disc_1", ...args, "--yes", "--json"]);
+  expect(spy, result.stderr).toHaveBeenCalledExactlyOnceWith(
+    { id: "disc_1", updateDiscountRequestEntity: { percentage: 12.5 } },
+    expect.objectContaining({ retries: { strategy: "none" } }),
+  );
+});
+it.each([
+  ["create", ["--name", "X", "--type", "percentage", "--duration", "once", "--products", "prod_1"]],
+  ["update", ["disc_1", "--yes"]],
+])("discounts %s refuses a percentage outside 1 to 100", async (command, args) => {
+  for (const percentage of ["0.5", "100.5", "abc"]) {
+    const h = harness();
+    const spy = vi.spyOn(h.client.discounts, command as "create" | "update");
+    const result = await h.run([
+      "discounts",
+      command,
+      ...args,
+      "--percentage",
+      percentage,
+      "--json",
+    ]);
+    expect(result.code, percentage).toBe(2);
+    expect(spy).not.toHaveBeenCalled();
+    expect(result.stderr).toContain("percentage");
+  }
+});

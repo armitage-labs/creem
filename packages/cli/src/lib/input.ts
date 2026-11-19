@@ -66,6 +66,19 @@ export async function readData(
     throw new CliError("--data must contain a JSON object using SDK camelCase field names.");
   return data;
 }
+// A percentage from 1 to 100 unless the schema says otherwise; fractions allowed.
+export function parsePercentage(
+  name: string,
+  value: unknown,
+  bounds: { min?: number | undefined; max?: number | undefined } = {},
+): number {
+  const min = bounds.min ?? 1;
+  const max = bounds.max ?? 100;
+  const n = typeof value === "number" || typeof value === "string" ? Number(value) : NaN;
+  if (value === "" || !Number.isFinite(n) || n < min || n > max)
+    throw new CliError(`${name} must be a number between ${min} and ${max}.`);
+  return n;
+}
 export function parseKeyValue(values: string[]): Record<string, string> {
   const entries = values.map((value) => {
     const i = value.indexOf("=");
@@ -77,13 +90,11 @@ export function parseKeyValue(values: string[]): Record<string, string> {
 export function parseInput(name: string, value: unknown, schema: InputSchema): unknown {
   if (schema.enum) return parseEnum(name, value, schema.enum);
   if (schema.type === "integer" || schema.type === "number") {
-    // Split percentages may be fractional; other numeric CLI inputs are integer units.
-    if (name.includes("recipients") && name.endsWith("amount")) {
-      const n = Number(value);
-      if (!Number.isFinite(n) || n < 1 || n > 100)
-        throw new CliError(`${name} must be between 1 and 100.`);
-      return n;
-    }
+    // Percentages may be fractional (split amounts, discount percentages);
+    // other numeric CLI inputs are integer units.
+    if (name.includes("recipients") && name.endsWith("amount")) return parsePercentage(name, value);
+    if (/(?:^|\.)percentage$/.test(name))
+      return parsePercentage(name, value, { min: schema.minimum, max: schema.maximum });
     return parseInteger(name, value, { min: schema.minimum, max: schema.maximum });
   }
   if (schema.type === "boolean") {
@@ -202,7 +213,7 @@ export function validateOperation(
       parseInteger("amount", b.amount, { min: 1 });
       if (!b.currency) throw new CliError("Fixed discounts require --currency.");
     }
-    if (b.type === "percentage") parseInteger("percentage", b.percentage, { min: 1, max: 100 });
+    if (b.type === "percentage") parsePercentage("percentage", b.percentage);
     for (const k of ["maxRedemptions", "durationInMonths"])
       if (b[k] !== undefined) parseInteger(k, b[k], { min: 1 });
     if (b.duration === "repeating" && !b.durationInMonths)
