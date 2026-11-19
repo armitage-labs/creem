@@ -171,3 +171,81 @@ it("discounts delete sends the exact SDK arguments", async () => {
   expect(result.stderr).toContain("SDK_SENTINEL");
   expect(result.stdout).toBe("");
 });
+
+it("discounts update sends the exact SDK arguments", async () => {
+  const h = harness();
+  const spy = vi.spyOn(h.client.discounts, "update").mockRejectedValue(new Error("SDK_SENTINEL"));
+  const result = await h.run([
+    "discounts",
+    "update",
+    "disc_1",
+    "--name",
+    "Spring",
+    "--percentage",
+    "25",
+    "--max-redemptions",
+    "100",
+    "--products",
+    "prod_1,prod_2",
+    "--expires",
+    "2028-01-01",
+    "--yes",
+    "--json",
+  ]);
+  expect(spy, result.stderr).toHaveBeenCalledExactlyOnceWith(
+    {
+      id: "disc_1",
+      updateDiscountRequestEntity: {
+        name: "Spring",
+        percentage: 25,
+        maxRedemptions: 100,
+        appliesToProducts: ["prod_1", "prod_2"],
+        expiryDate: new Date("2028-01-01"),
+      },
+    },
+    expect.objectContaining({ retries: { strategy: "none" } }),
+  );
+  expect(result.stderr).toContain("SDK_SENTINEL");
+  expect(result.stdout).toBe("");
+});
+it("discounts update takes the body from --data, including null to clear a field", async () => {
+  const h = harness();
+  const spy = vi.spyOn(h.client.discounts, "update").mockRejectedValue(new Error("SDK_SENTINEL"));
+  const result = await h.run([
+    "discounts",
+    "update",
+    "disc_1",
+    "--data",
+    JSON.stringify({ maxRedemptions: null, externalId: "spring-2028" }),
+    "--yes",
+    "--json",
+  ]);
+  expect(spy, result.stderr).toHaveBeenCalledExactlyOnceWith(
+    {
+      id: "disc_1",
+      updateDiscountRequestEntity: { maxRedemptions: null, externalId: "spring-2028" },
+    },
+    expect.objectContaining({ retries: { strategy: "none" } }),
+  );
+});
+it("discounts update asks before changing a live discount", async () => {
+  const confirm = vi.fn(async () => false);
+  const h = harness(undefined, { isTTY: true, confirm, environment: () => "live" });
+  const spy = vi.spyOn(h.client.discounts, "update");
+  const result = await h.run(["discounts", "update", "disc_1", "--name", "Spring"]);
+  expect(confirm).toHaveBeenCalledWith("LIVE: discounts update disc_1?");
+  expect(spy).not.toHaveBeenCalled();
+  // A declined confirmation exits 2, as in safety.test.ts.
+  expect(result.code).toBe(2);
+});
+it("discounts update requires the discount ID and documents its flags", async () => {
+  const h = harness();
+  const spy = vi.spyOn(h.client.discounts, "update");
+  const missing = await h.run(["discounts", "update", "--name", "Spring", "--yes", "--json"]);
+  expect(missing.code).toBe(2);
+  expect(spy).not.toHaveBeenCalled();
+  const help = await h.run(["discounts", "update", "--help"]);
+  expect(help.code, help.stderr).toBe(0);
+  for (const flag of ["<id>", "--data", "--name", "--percentage", "--expires", "--products"])
+    expect(help.stdout).toContain(flag);
+});

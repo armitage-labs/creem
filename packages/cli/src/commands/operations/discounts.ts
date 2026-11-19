@@ -26,6 +26,14 @@ export const handlers: Record<string, OperationHandler> = {
     );
     return client.discounts.create(p, options);
   },
+  updateDiscount: (client, parameters, body, options) => {
+    const p = decode(
+      operations.UpdateDiscountRequest$outboundSchema,
+      operations.UpdateDiscountRequest$inboundSchema,
+      { ...parameters, updateDiscountRequestEntity: body },
+    );
+    return client.discounts.update(p, options);
+  },
   deleteDiscount: (client, parameters, body, options) => {
     const p = decode(
       operations.DeleteDiscountRequest$outboundSchema,

@@ -284,49 +284,7 @@
           },
           "features": {
             "type": "array",
-            "items": {
-              "type": "object",
-              "properties": {
-                "id": {
-                  "type": "string"
-                },
-                "externalId": {
-                  "type": "string",
-                  "nullable": true
-                },
-                "type": {
-                  "type": "string",
-                  "enum": ["customerCredits"]
-                },
-                "description": {
-                  "type": "string"
-                },
-                "customerCredits": {
-                  "type": "object",
-                  "properties": {
-                    "amount": {
-                      "type": "string"
-                    },
-                    "unitLabel": {
-                      "type": "string",
-                      "nullable": true
-                    },
-                    "bucketName": {
-                      "type": "string",
-                      "nullable": true
-                    },
-                    "requiresModeration": {
-                      "type": "boolean"
-                    },
-                    "resetsEachPeriod": {
-                      "type": "boolean"
-                    }
-                  },
-                  "required": ["amount"]
-                }
-              },
-              "required": ["type", "description", "customerCredits"]
-            }
+            "items": {}
           }
         },
         "required": ["name", "description", "price", "currency", "billingType"]
@@ -520,49 +478,7 @@
           },
           "features": {
             "type": "array",
-            "items": {
-              "type": "object",
-              "properties": {
-                "id": {
-                  "type": "string"
-                },
-                "externalId": {
-                  "type": "string",
-                  "nullable": true
-                },
-                "type": {
-                  "type": "string",
-                  "enum": ["customerCredits"]
-                },
-                "description": {
-                  "type": "string"
-                },
-                "customerCredits": {
-                  "type": "object",
-                  "properties": {
-                    "amount": {
-                      "type": "string"
-                    },
-                    "unitLabel": {
-                      "type": "string",
-                      "nullable": true
-                    },
-                    "bucketName": {
-                      "type": "string",
-                      "nullable": true
-                    },
-                    "requiresModeration": {
-                      "type": "boolean"
-                    },
-                    "resetsEachPeriod": {
-                      "type": "boolean"
-                    }
-                  },
-                  "required": ["amount"]
-                }
-              },
-              "required": ["type", "description", "customerCredits"]
-            }
+            "items": {}
           },
           "customFields": {
             "nullable": true,
@@ -610,6 +526,10 @@
           },
           "abandonedCartRecoveryEnabled": {
             "type": "boolean"
+          },
+          "status": {
+            "type": "string",
+            "enum": ["active", "archived"]
           }
         },
         "required": []
@@ -960,9 +880,12 @@
           },
           "externalId": {
             "type": "string"
+          },
+          "country": {
+            "type": "string"
           }
         },
-        "required": ["email", "name"]
+        "required": ["email"]
       },
       "primaryFlags": {
         "email": "--email",
@@ -1002,6 +925,9 @@
           "externalId": {
             "type": "string",
             "nullable": true
+          },
+          "country": {
+            "type": "string"
           }
         },
         "required": ["customerId"]
@@ -1322,6 +1248,11 @@
           },
           "customPrice": {
             "type": "integer"
+          },
+          "trialPeriodDays": {
+            "type": "integer",
+            "minimum": 1,
+            "maximum": 400
           },
           "discountCode": {
             "type": "string"
@@ -1789,6 +1720,104 @@
     },
     "pagination": "none",
     "destructive": false
+  },
+  {
+    "operationId": "updateDiscount",
+    "sdkMethod": "discounts.update",
+    "cliPath": "discounts update",
+    "disposition": "implemented",
+    "description": "Update a discount.",
+    "parameters": [
+      {
+        "name": "id",
+        "sdkName": "id",
+        "in": "path",
+        "cliFlagOrArgument": "<id>",
+        "required": true,
+        "schema": {
+          "type": "string"
+        }
+      }
+    ],
+    "body": {
+      "viaData": true,
+      "schema": {
+        "type": "object",
+        "properties": {
+          "name": {
+            "type": "string"
+          },
+          "type": {
+            "type": "string",
+            "enum": ["percentage", "fixed"]
+          },
+          "amount": {
+            "type": "integer",
+            "minimum": 2
+          },
+          "percentage": {
+            "type": "number",
+            "minimum": 1,
+            "maximum": 100
+          },
+          "currency": {
+            "type": "string"
+          },
+          "expiryDate": {
+            "format": "date-time",
+            "type": "string",
+            "nullable": true
+          },
+          "maxRedemptions": {
+            "type": "integer",
+            "nullable": true,
+            "minimum": 1,
+            "maximum": 2147483647
+          },
+          "duration": {
+            "type": "string",
+            "enum": ["forever", "once", "repeating"]
+          },
+          "durationInMonths": {
+            "type": "integer",
+            "nullable": true,
+            "minimum": 1,
+            "maximum": 1200
+          },
+          "appliesToProducts": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "appliesToProductExternalIds": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "externalId": {
+            "type": "string",
+            "nullable": true
+          }
+        },
+        "required": []
+      },
+      "primaryFlags": {
+        "name": "--name",
+        "type": "--type",
+        "amount": "--amount",
+        "currency": "--currency",
+        "percentage": "--percentage",
+        "expiryDate": "--expires",
+        "maxRedemptions": "--max-redemptions",
+        "duration": "--duration",
+        "durationInMonths": "--duration-months",
+        "appliesToProducts": "--products"
+      }
+    },
+    "pagination": "none",
+    "destructive": true
   },
   {
     "operationId": "deleteDiscount",
@@ -3763,6 +3792,72 @@
         "required": ["statusCode"]
       }
     },
+    "pagination": "none",
+    "destructive": false
+  },
+  {
+    "operationId": "createFileUpload",
+    "sdkMethod": "files.createUpload",
+    "cliPath": "files create-upload",
+    "disposition": "implemented",
+    "description": "Upload a file",
+    "parameters": [],
+    "body": {
+      "viaData": true,
+      "schema": {
+        "type": "object",
+        "properties": {
+          "purpose": {
+            "type": "string",
+            "enum": ["product_file"]
+          },
+          "filename": {
+            "type": "string"
+          },
+          "contentType": {
+            "type": "string"
+          },
+          "size": {
+            "type": "integer",
+            "format": "int64",
+            "minimum": 1,
+            "maximum": 5368709120
+          },
+          "sha256": {
+            "type": "string"
+          }
+        },
+        "required": ["purpose", "filename", "contentType", "size", "sha256"]
+      },
+      "primaryFlags": {
+        "purpose": "--purpose",
+        "filename": "--filename",
+        "contentType": "--content-type",
+        "size": "--size",
+        "sha256": "--sha256"
+      }
+    },
+    "pagination": "none",
+    "destructive": false
+  },
+  {
+    "operationId": "confirmFileUpload",
+    "sdkMethod": "files.confirmUpload",
+    "cliPath": "files confirm-upload",
+    "disposition": "implemented",
+    "description": "Confirm an uploaded file",
+    "parameters": [
+      {
+        "name": "id",
+        "sdkName": "id",
+        "in": "path",
+        "cliFlagOrArgument": "<id>",
+        "required": true,
+        "schema": {
+          "type": "string"
+        }
+      }
+    ],
     "pagination": "none",
     "destructive": false
   }

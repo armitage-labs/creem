@@ -14,6 +14,7 @@ import { handlers as splits } from "./splits";
 import { handlers as events } from "./events";
 import { handlers as meters } from "./meters";
 import { handlers as webhooks } from "./webhooks";
+import { handlers as files } from "./files";
 export const handlers = {
   ...products,
   ...productGroups,
@@ -31,4 +32,5 @@ export const handlers = {
   ...events,
   ...meters,
   ...webhooks,
+  ...files,
 };
