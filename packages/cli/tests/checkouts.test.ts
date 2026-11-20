@@ -5,7 +5,7 @@ it("checkouts retrieve sends the exact SDK arguments", async () => {
   const spy = vi.spyOn(h.client.checkouts, "retrieve").mockRejectedValue(new Error("SDK_SENTINEL"));
   const result = await h.run(["checkouts", "get", "ch_1", "--json"]);
   expect(spy, result.stderr).toHaveBeenCalledExactlyOnceWith(
-    "ch_1",
+    { checkoutId: "ch_1" },
     expect.objectContaining({ retries: { strategy: "none" } }),
   );
   expect(result.stderr).toContain("SDK_SENTINEL");

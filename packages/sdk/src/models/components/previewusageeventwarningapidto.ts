@@ -4,7 +4,8 @@
 
 import * as z from "zod/v3";
 import { safeParse } from "../../lib/schemas.js";
-import { ClosedEnum } from "../../types/enums.js";
+import * as openEnums from "../../types/enums.js";
+import { OpenEnum } from "../../types/enums.js";
 import { Result as SafeParseResult } from "../../types/fp.js";
 import { SDKValidationError } from "../errors/sdkvalidationerror.js";
 
@@ -19,7 +20,7 @@ export const PreviewUsageEventWarningApiDtoCode = {
 /**
  * Warning code — same set as ingest warnings
  */
-export type PreviewUsageEventWarningApiDtoCode = ClosedEnum<
+export type PreviewUsageEventWarningApiDtoCode = OpenEnum<
   typeof PreviewUsageEventWarningApiDtoCode
 >;
 
@@ -35,13 +36,17 @@ export type PreviewUsageEventWarningApiDto = {
 };
 
 /** @internal */
-export const PreviewUsageEventWarningApiDtoCode$inboundSchema: z.ZodNativeEnum<
-  typeof PreviewUsageEventWarningApiDtoCode
-> = z.nativeEnum(PreviewUsageEventWarningApiDtoCode);
+export const PreviewUsageEventWarningApiDtoCode$inboundSchema: z.ZodType<
+  PreviewUsageEventWarningApiDtoCode,
+  z.ZodTypeDef,
+  unknown
+> = openEnums.inboundSchema(PreviewUsageEventWarningApiDtoCode);
 /** @internal */
-export const PreviewUsageEventWarningApiDtoCode$outboundSchema: z.ZodNativeEnum<
-  typeof PreviewUsageEventWarningApiDtoCode
-> = PreviewUsageEventWarningApiDtoCode$inboundSchema;
+export const PreviewUsageEventWarningApiDtoCode$outboundSchema: z.ZodType<
+  string,
+  z.ZodTypeDef,
+  PreviewUsageEventWarningApiDtoCode
+> = openEnums.outboundSchema(PreviewUsageEventWarningApiDtoCode);
 
 /** @internal */
 export const PreviewUsageEventWarningApiDto$inboundSchema: z.ZodType<

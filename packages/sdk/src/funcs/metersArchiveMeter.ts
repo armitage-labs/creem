@@ -35,7 +35,7 @@ import { Result } from "../types/fp.js";
  */
 export function metersArchiveMeter(
   client: CreemCore,
-  id: string,
+  request: operations.ArchiveMeterRequest,
   options?: RequestOptions,
 ): APIPromise<
   Result<
@@ -53,14 +53,14 @@ export function metersArchiveMeter(
 > {
   return new APIPromise($do(
     client,
-    id,
+    request,
     options,
   ));
 }
 
 async function $do(
   client: CreemCore,
-  id: string,
+  request: operations.ArchiveMeterRequest,
   options?: RequestOptions,
 ): Promise<
   [
@@ -79,12 +79,8 @@ async function $do(
     APICall,
   ]
 > {
-  const input: operations.ArchiveMeterRequest = {
-    id: id,
-  };
-
   const parsed = safeParse(
-    input,
+    request,
     (value) => operations.ArchiveMeterRequest$outboundSchema.parse(value),
     "Input validation failed",
   );

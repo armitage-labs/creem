@@ -34,10 +34,7 @@ import { Result } from "../types/fp.js";
  */
 export function webhooksAcknowledgeEvent(
   client: CreemCore,
-  id: string,
-  eventId: string,
-  acknowledgeWebhookEventRequestEntity:
-    components.AcknowledgeWebhookEventRequestEntity,
+  request: operations.AcknowledgeWebhookEventRequest,
   options?: RequestOptions,
 ): APIPromise<
   Result<
@@ -54,19 +51,14 @@ export function webhooksAcknowledgeEvent(
 > {
   return new APIPromise($do(
     client,
-    id,
-    eventId,
-    acknowledgeWebhookEventRequestEntity,
+    request,
     options,
   ));
 }
 
 async function $do(
   client: CreemCore,
-  id: string,
-  eventId: string,
-  acknowledgeWebhookEventRequestEntity:
-    components.AcknowledgeWebhookEventRequestEntity,
+  request: operations.AcknowledgeWebhookEventRequest,
   options?: RequestOptions,
 ): Promise<
   [
@@ -84,14 +76,8 @@ async function $do(
     APICall,
   ]
 > {
-  const input: operations.AcknowledgeWebhookEventRequest = {
-    id: id,
-    eventId: eventId,
-    acknowledgeWebhookEventRequestEntity: acknowledgeWebhookEventRequestEntity,
-  };
-
   const parsed = safeParse(
-    input,
+    request,
     (value) =>
       operations.AcknowledgeWebhookEventRequest$outboundSchema.parse(value),
     "Input validation failed",

@@ -5,7 +5,7 @@ it("subscriptions get sends the exact SDK arguments", async () => {
   const spy = vi.spyOn(h.client.subscriptions, "get").mockRejectedValue(new Error("SDK_SENTINEL"));
   const result = await h.run(["subscriptions", "get", "sub_1", "--json"]);
   expect(spy, result.stderr).toHaveBeenCalledExactlyOnceWith(
-    "sub_1",
+    { subscriptionId: "sub_1" },
     expect.objectContaining({ retries: { strategy: "none" } }),
   );
   expect(result.stderr).toContain("SDK_SENTINEL");
@@ -18,8 +18,7 @@ it("subscriptions search sends the exact SDK arguments", async () => {
     .mockRejectedValue(new Error("SDK_SENTINEL"));
   const result = await h.run(["subscriptions", "list", "--page", "2", "--limit", "3", "--json"]);
   expect(spy, result.stderr).toHaveBeenCalledExactlyOnceWith(
-    2,
-    3,
+    { pageNumber: 2, pageSize: 3 },
     expect.objectContaining({ retries: { strategy: "none" } }),
   );
   expect(result.stderr).toContain("SDK_SENTINEL");
@@ -41,8 +40,13 @@ it("subscriptions cancel sends the exact SDK arguments", async () => {
     "--json",
   ]);
   expect(spy, result.stderr).toHaveBeenCalledExactlyOnceWith(
-    "sub_1",
-    expect.objectContaining({ mode: "scheduled", onExecute: "pause" }),
+    {
+      id: "sub_1",
+      cancelSubscriptionRequestEntity: expect.objectContaining({
+        mode: "scheduled",
+        onExecute: "pause",
+      }),
+    },
     expect.objectContaining({ retries: { strategy: "none" } }),
   );
   expect(result.stderr).toContain("SDK_SENTINEL");
@@ -55,8 +59,10 @@ it("subscriptions cancel preserves immediate mode when --mode is omitted", async
     .mockRejectedValue(new Error("SDK_SENTINEL"));
   const result = await h.run(["subscriptions", "cancel", "sub_1", "--yes", "--json"]);
   expect(spy, result.stderr).toHaveBeenCalledExactlyOnceWith(
-    "sub_1",
-    expect.objectContaining({ mode: "immediate" }),
+    {
+      id: "sub_1",
+      cancelSubscriptionRequestEntity: expect.objectContaining({ mode: "immediate" }),
+    },
     expect.objectContaining({ retries: { strategy: "none" } }),
   );
   expect(result.stderr).toContain("SDK_SENTINEL");
@@ -79,11 +85,13 @@ it("subscriptions update sends the exact SDK arguments", async () => {
     "--json",
   ]);
   expect(spy, result.stderr).toHaveBeenCalledExactlyOnceWith(
-    "sub_1",
-    expect.objectContaining({
-      items: [{ id: "item_1", units: 2 }],
-      updateBehavior: "proration-none",
-    }),
+    {
+      id: "sub_1",
+      updateSubscriptionRequestEntity: expect.objectContaining({
+        items: [{ id: "item_1", units: 2 }],
+        updateBehavior: "proration-none",
+      }),
+    },
     expect.objectContaining({ retries: { strategy: "none" } }),
   );
   expect(result.stderr).toContain("SDK_SENTINEL");
@@ -104,8 +112,10 @@ it("subscriptions upgrade sends the exact SDK arguments", async () => {
     "--json",
   ]);
   expect(spy, result.stderr).toHaveBeenCalledExactlyOnceWith(
-    "sub_1",
-    expect.objectContaining({ productId: "prod_1" }),
+    {
+      id: "sub_1",
+      upgradeSubscriptionRequestEntity: expect.objectContaining({ productId: "prod_1" }),
+    },
     expect.objectContaining({ retries: { strategy: "none" } }),
   );
   expect(result.stderr).toContain("SDK_SENTINEL");
@@ -118,7 +128,7 @@ it("subscriptions pause sends the exact SDK arguments", async () => {
     .mockRejectedValue(new Error("SDK_SENTINEL"));
   const result = await h.run(["subscriptions", "pause", "sub_1", "--yes", "--json"]);
   expect(spy, result.stderr).toHaveBeenCalledExactlyOnceWith(
-    "sub_1",
+    { id: "sub_1" },
     expect.objectContaining({ retries: { strategy: "none" } }),
   );
   expect(result.stderr).toContain("SDK_SENTINEL");
@@ -131,7 +141,7 @@ it("subscriptions resume sends the exact SDK arguments", async () => {
     .mockRejectedValue(new Error("SDK_SENTINEL"));
   const result = await h.run(["subscriptions", "resume", "sub_1", "--json"]);
   expect(spy, result.stderr).toHaveBeenCalledExactlyOnceWith(
-    "sub_1",
+    { id: "sub_1" },
     expect.objectContaining({ retries: { strategy: "none" } }),
   );
   expect(result.stderr).toContain("SDK_SENTINEL");

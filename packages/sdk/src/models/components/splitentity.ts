@@ -5,7 +5,8 @@
 import * as z from "zod/v3";
 import { remap as remap$ } from "../../lib/primitives.js";
 import { safeParse } from "../../lib/schemas.js";
-import { ClosedEnum } from "../../types/enums.js";
+import * as openEnums from "../../types/enums.js";
+import { OpenEnum } from "../../types/enums.js";
 import { Result as SafeParseResult } from "../../types/fp.js";
 import { SDKValidationError } from "../errors/sdkvalidationerror.js";
 import {
@@ -30,7 +31,7 @@ export const SplitEntityType = {
 /**
  * What the split applies to: `store` (every payment to the store) or `product` (payments for a specific product).
  */
-export type SplitEntityType = ClosedEnum<typeof SplitEntityType>;
+export type SplitEntityType = OpenEnum<typeof SplitEntityType>;
 
 export type SplitEntity = {
   /**
@@ -76,13 +77,17 @@ export type SplitEntity = {
 };
 
 /** @internal */
-export const SplitEntityType$inboundSchema: z.ZodNativeEnum<
-  typeof SplitEntityType
-> = z.nativeEnum(SplitEntityType);
+export const SplitEntityType$inboundSchema: z.ZodType<
+  SplitEntityType,
+  z.ZodTypeDef,
+  unknown
+> = openEnums.inboundSchema(SplitEntityType);
 /** @internal */
-export const SplitEntityType$outboundSchema: z.ZodNativeEnum<
-  typeof SplitEntityType
-> = SplitEntityType$inboundSchema;
+export const SplitEntityType$outboundSchema: z.ZodType<
+  string,
+  z.ZodTypeDef,
+  SplitEntityType
+> = openEnums.outboundSchema(SplitEntityType);
 
 /** @internal */
 export const SplitEntity$inboundSchema: z.ZodType<

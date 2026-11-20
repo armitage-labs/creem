@@ -6,14 +6,14 @@ import * as z from "zod/v3";
 import { ClosedEnum } from "../../types/enums.js";
 
 /**
- * The type of the discount, either "percentage" or "fixed".
+ * The type of the discount. Fixed once the discount has been redeemed, or while a checkout confirmed with it in the last 7 days holds it (`409` `discount_redeemed`); the same applies to `amount`, `percentage`, `currency`, `duration` and `duration_in_months`. Changing it needs the new `amount` or `percentage`.
  */
 export const DiscountType = {
   Percentage: "percentage",
   Fixed: "fixed",
 } as const;
 /**
- * The type of the discount, either "percentage" or "fixed".
+ * The type of the discount. Fixed once the discount has been redeemed, or while a checkout confirmed with it in the last 7 days holds it (`409` `discount_redeemed`); the same applies to `amount`, `percentage`, `currency`, `duration` and `duration_in_months`. Changing it needs the new `amount` or `percentage`.
  */
 export type DiscountType = ClosedEnum<typeof DiscountType>;
 

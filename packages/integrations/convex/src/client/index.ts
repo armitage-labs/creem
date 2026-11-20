@@ -13,6 +13,7 @@ import {
   constructWebhookEventEntity,
   WebhookVerificationError,
 } from "creem/webhooks";
+import { SDKValidationError } from "creem/models/errors";
 import { getEntityId } from "./helpers.js";
 import {
   type CreemWebhookEvent,
@@ -601,7 +602,9 @@ export class Creem {
 
     // Read through to Creem: the local record only keeps the first address it
     // saw, and an address changed in the Creem dashboard never reaches it.
-    const creemCustomer = await this.sdk.customers.retrieve(customer.id);
+    const creemCustomer = await this.sdk.customers.retrieve({
+      customerId: customer.id,
+    });
     return { status: "ok", email: creemCustomer.email };
   }
 
@@ -641,7 +644,9 @@ export class Creem {
     // Read the address back with Creem's `updated_at` and let the mirror keep
     // only the newest readback. Overlapping saves can finish in any order;
     // mirroring each response as it arrives could store an older address.
-    const current = await this.sdk.customers.retrieve(customer.id);
+    const current = await this.sdk.customers.retrieve({
+      customerId: customer.id,
+    });
     await ctx.runMutation(this.component.lib.setCustomerEmail, {
       entityId,
       customerId: customer.id,
@@ -998,10 +1003,10 @@ export class Creem {
       throw new ConvexError(CUSTOMER_CHECKOUT_REQUIRED_ERROR);
     }
     // Try to find existing default account
-    const accounts = await this.sdk.customerCredits.listAccounts(
-      10,
-      customer.id,
-    );
+    const accounts = await this.sdk.customerCredits.listAccounts({
+      limit: 10,
+      customerId: customer.id,
+    });
     const accountData = getCustomerCreditAccounts(accounts);
     const existing = accountData.find(
       (a) => a.name === "default" || a.name === "credits",
@@ -1022,10 +1027,10 @@ export class Creem {
     { createIfMissing = true }: { createIfMissing?: boolean } = {},
   ): Promise<string | null> {
     const accountName = grant?.accountName ?? "credits";
-    const accounts = await this.sdk.customerCredits.listAccounts(
-      10,
-      customerId,
-    );
+    const accounts = await this.sdk.customerCredits.listAccounts({
+      limit: 10,
+      customerId: customerId,
+    });
     const accountData = getCustomerCreditAccounts(accounts);
     const existing = accountData.find((a) => a.name === accountName);
     if (existing) return existing.id;
@@ -1979,13 +1984,13 @@ export class Creem {
           return emptyPage;
         }
 
-        const page = await this.sdk.transactions.search(
-          customer.id,
-          orderId,
-          productId,
-          pageNumber,
-          pageSize,
-        );
+        const page = await this.sdk.transactions.search({
+          customerId: customer.id,
+          orderId: orderId,
+          productId: productId,
+          pageNumber: pageNumber,
+          pageSize: pageSize,
+        });
         const result = unwrapTransactionSearchPage(page);
         return {
           items: (result.items ?? []).map((transaction) => ({
@@ -2128,14 +2133,19 @@ export class Creem {
         });
       },
       getBalance: async (accountId: string) => {
-        return await this.sdk.customerCredits.getAccountBalance(accountId);
+        return await this.sdk.customerCredits.getAccountBalance({
+          id: accountId,
+        });
       },
       credit: async (
         accountId: string,
         args: { amount: string; reference: string; idempotencyKey: string },
       ) => {
         return await this.tolerateCustomerCreditsResponseValidation(() =>
-          this.sdk.customerCredits.creditAccount(accountId, args),
+          this.sdk.customerCredits.creditAccount({
+            id: accountId,
+            creditDebitRequestDto: args,
+          }),
         );
       },
       debit: async (
@@ -2143,7 +2153,10 @@ export class Creem {
         args: { amount: string; reference: string; idempotencyKey: string },
       ) => {
         return await this.tolerateCustomerCreditsResponseValidation(() =>
-          this.sdk.customerCredits.debitAccount(accountId, args),
+          this.sdk.customerCredits.debitAccount({
+            id: accountId,
+            debitRequestDto: args,
+          }),
         );
       },
       listEntries: async (
@@ -2151,14 +2164,17 @@ export class Creem {
         limit?: number,
         startingAfter?: string,
       ) => {
-        return await this.sdk.customerCredits.listEntries(
-          accountId,
-          limit,
-          startingAfter,
-        );
+        return await this.sdk.customerCredits.listEntries({
+          id: accountId,
+          limit: limit,
+          startingAfter: startingAfter,
+        });
       },
       listAccounts: async (customerId?: string, limit?: number) => {
-        return await this.sdk.customerCredits.listAccounts(limit, customerId);
+        return await this.sdk.customerCredits.listAccounts({
+          limit: limit,
+          customerId: customerId,
+        });
       },
     };
   }
@@ -2603,8 +2619,33 @@ export class Creem {
             console.error(error);
             return new Response("Forbidden", { status: 403 });
           }
-          console.error(error);
+          // The parse error carries the payload, which holds customer PII
+          // (email, name, country): log what failed, not the error itself.
+          console.error(
+            "[creem-webhook] refused an invalid payload:",
+            error instanceof SDKValidationError
+              ? error.rawMessage
+              : error instanceof Error
+                ? error.name
+                : "unknown error",
+          );
           return new Response("Bad Request", { status: 400 });
+        }
+
+        if (event.eventType === "UNKNOWN") {
+          // An event type this SDK version doesn't know (creem 2 returns it as
+          // its unknown variant instead of failing the parse). Nothing here
+          // handles it, so acknowledge it like a known event without a
+          // handler; a 4xx would only make Creem retry it.
+          const raw = (
+            event.raw && typeof event.raw === "object" ? event.raw : {}
+          ) as { id?: unknown; eventType?: unknown };
+          console.log(
+            `[creem-webhook] eventType=${String(raw.eventType ?? "unknown")}`,
+            `id=${String(raw.id ?? "unknown")}`,
+            "not handled by this version",
+          );
+          return new Response("Accepted", { status: 202 });
         }
 
         const eventType = getEventType(event);

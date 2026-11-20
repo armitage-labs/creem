@@ -3,7 +3,8 @@
  */
 
 import * as z from "zod/v3";
-import { ClosedEnum } from "../../types/enums.js";
+import * as openEnums from "../../types/enums.js";
+import { OpenEnum } from "../../types/enums.js";
 
 /**
  * The event type carried in the delivery.
@@ -25,19 +26,24 @@ export const WebhookEventType = {
   CustomerCreditsExhausted: "customer_credits.exhausted",
   CreditsGranted: "credits.granted",
   CreditsConsumed: "credits.consumed",
+  CreditsReversed: "credits.reversed",
   CreditsAutoRecharged: "credits.auto_recharged",
   MarketplaceGrantRequested: "marketplace.grant.requested",
 } as const;
 /**
  * The event type carried in the delivery.
  */
-export type WebhookEventType = ClosedEnum<typeof WebhookEventType>;
+export type WebhookEventType = OpenEnum<typeof WebhookEventType>;
 
 /** @internal */
-export const WebhookEventType$inboundSchema: z.ZodNativeEnum<
-  typeof WebhookEventType
-> = z.nativeEnum(WebhookEventType);
+export const WebhookEventType$inboundSchema: z.ZodType<
+  WebhookEventType,
+  z.ZodTypeDef,
+  unknown
+> = openEnums.inboundSchema(WebhookEventType);
 /** @internal */
-export const WebhookEventType$outboundSchema: z.ZodNativeEnum<
-  typeof WebhookEventType
-> = WebhookEventType$inboundSchema;
+export const WebhookEventType$outboundSchema: z.ZodType<
+  string,
+  z.ZodTypeDef,
+  WebhookEventType
+> = openEnums.outboundSchema(WebhookEventType);

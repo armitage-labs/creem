@@ -24,14 +24,12 @@ export class Webhooks extends ClientSDK {
    * List the webhook endpoints configured for your store.
    */
   async list(
-    pageNumber?: number | undefined,
-    pageSize?: number | undefined,
+    request: operations.ListWebhooksRequest,
     options?: RequestOptions,
   ): Promise<PageIterator<operations.ListWebhooksResponse, { page: number }>> {
     return unwrapResultIterator(webhooksList(
       this,
-      pageNumber,
-      pageSize,
+      request,
       options,
     ));
   }
@@ -60,12 +58,12 @@ export class Webhooks extends ClientSDK {
    * Retrieve a webhook endpoint by ID.
    */
   async get(
-    id: string,
+    request: operations.GetWebhookRequest,
     options?: RequestOptions,
   ): Promise<components.WebhookEntity> {
     return unwrapAsync(webhooksGet(
       this,
-      id,
+      request,
       options,
     ));
   }
@@ -77,14 +75,12 @@ export class Webhooks extends ClientSDK {
    * Update the URL, name, status or event filter of a webhook endpoint. Only supplied fields change.
    */
   async update(
-    id: string,
-    updateWebhookRequestEntity: components.UpdateWebhookRequestEntity,
+    request: operations.UpdateWebhookRequest,
     options?: RequestOptions,
   ): Promise<components.WebhookEntity> {
     return unwrapAsync(webhooksUpdate(
       this,
-      id,
-      updateWebhookRequestEntity,
+      request,
       options,
     ));
   }
@@ -96,12 +92,12 @@ export class Webhooks extends ClientSDK {
    * Permanently delete a webhook endpoint and its delivery history. To pause deliveries without losing the configuration, update the status to disabled instead.
    */
   async delete(
-    id: string,
+    request: operations.DeleteWebhookRequest,
     options?: RequestOptions,
   ): Promise<components.WebhookEntity> {
     return unwrapAsync(webhooksDelete(
       this,
-      id,
+      request,
       options,
     ));
   }
@@ -113,12 +109,12 @@ export class Webhooks extends ClientSDK {
    * Retrieve the signing secret for a webhook endpoint, used to verify delivery signatures.
    */
   async getSecret(
-    id: string,
+    request: operations.GetWebhookSecretRequest,
     options?: RequestOptions,
   ): Promise<components.WebhookSecretEntity> {
     return unwrapAsync(webhooksGetSecret(
       this,
-      id,
+      request,
       options,
     ));
   }
@@ -130,14 +126,12 @@ export class Webhooks extends ClientSDK {
    * Events recorded for a `cli` delivery-mode endpoint that have not been acknowledged yet, oldest first. Each item carries the exact request body and headers an HTTP delivery would send. Forward them to your local server, then acknowledge each event with the status it returned. Only valid for endpoints created with `delivery_mode: cli`.
    */
   async listPendingEvents(
-    id: string,
-    limit?: number | undefined,
+    request: operations.ListPendingWebhookEventsRequest,
     options?: RequestOptions,
   ): Promise<components.WebhookPendingEventListEntity> {
     return unwrapAsync(webhooksListPendingEvents(
       this,
-      id,
-      limit,
+      request,
       options,
     ));
   }
@@ -149,17 +143,12 @@ export class Webhooks extends ClientSDK {
    * Report the status your local server returned for an event from the pending feed. Any 2xx marks the delivery successful; anything else records a failure. Acknowledged events leave the pending feed and appear in the dashboard event log with the reported result. Only valid for endpoints created with `delivery_mode: cli`.
    */
   async acknowledgeEvent(
-    id: string,
-    eventId: string,
-    acknowledgeWebhookEventRequestEntity:
-      components.AcknowledgeWebhookEventRequestEntity,
+    request: operations.AcknowledgeWebhookEventRequest,
     options?: RequestOptions,
   ): Promise<components.WebhookEventAckEntity> {
     return unwrapAsync(webhooksAcknowledgeEvent(
       this,
-      id,
-      eventId,
-      acknowledgeWebhookEventRequestEntity,
+      request,
       options,
     ));
   }

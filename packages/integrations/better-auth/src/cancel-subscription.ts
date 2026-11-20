@@ -84,7 +84,7 @@ const createCancelSubscriptionHandler = (creem: Creem, options: CreemOptions) =>
 
       logger.debug(`[creem] Cancelling subscription: ${subscriptionId}`);
 
-      await creem.subscriptions.cancel(subscriptionId, {});
+      await creem.subscriptions.cancel({ id: subscriptionId, cancelSubscriptionRequestEntity: {} });
 
       return ctx.json({
         success: true,

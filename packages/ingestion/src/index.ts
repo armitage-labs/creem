@@ -11,6 +11,7 @@ export type {
   EventProperties,
   IngestResult,
   IngestWarnings,
+  IngestionClient,
   IngestionConfig,
   IngestionCustomer,
   IngestionError,

@@ -13,23 +13,22 @@ import {
   CustomerCreditsFeatureEntity$Outbound,
   CustomerCreditsFeatureEntity$outboundSchema,
 } from "./customercreditsfeatureentity.js";
-import {
-  ProductFeatureRequestType,
-  ProductFeatureRequestType$inboundSchema,
-  ProductFeatureRequestType$outboundSchema,
-} from "./productfeaturerequesttype.js";
 
 export type ProductFeatureRequestEntity = {
   /**
-   * Identifier of an existing feature to edit in place (update only). Omit to add a new feature. On update the array replaces the credit features of the product: send the `id` of every feature to keep, as returned on reads; a feature sent without its `id` is added as a new one and the stored feature it stood for is removed.
+   * Identifier of an existing feature to edit in place (update only). Omit to add a new feature. On update the array replaces the features of each type it contains: send the `id` of every feature to keep, as returned on reads; a feature sent without its `id` is added as a new one and the stored feature it stood for is removed. An `id` that is not one of the product features answers `400` with code `feature_not_found`; an `id` of a feature of another type answers `400` with code `feature_type_mismatch`.
    */
   id?: string | undefined;
   /**
-   * The feature type. Only `customerCredits` can be managed through the API.
+   * Your own key for this feature, the same in test and live and unique per product: 1 to 255 characters: letters, digits, `_`, `-`, `.` and `:`, case-sensitive. Omit it to leave the key unchanged; send `null` to clear it. On update, an entry without `id` whose `external_id` matches a stored feature edits that feature. An entry with `id` whose key another feature of the product holds, of any type, answers `409` with code `external_id_taken`. An entry without `id` whose key belongs to a feature of another type answers `400` with code `feature_type_mismatch`.
    */
-  type: ProductFeatureRequestType;
+  externalId?: string | null | undefined;
   /**
-   * A brief description of the feature, shown to the customer.
+   * The feature type of a credit grant entry. `licenseKey`, `custom` and `file` entries have their own variants; `githubRepository` features are managed in the dashboard, and an entry of that type answers `400` with code `feature_type_not_writable`.
+   */
+  type: "customerCredits";
+  /**
+   * A brief description of the feature, shown to the customer. Required and not blank on every write, including a stored feature sent back unchanged: a stored feature whose description is blank needs one before it can be sent back.
    */
   description: string;
   /**
@@ -45,18 +44,21 @@ export const ProductFeatureRequestEntity$inboundSchema: z.ZodType<
   unknown
 > = z.object({
   id: z.string().optional(),
-  type: ProductFeatureRequestType$inboundSchema,
+  external_id: z.nullable(z.string()).optional(),
+  type: z.literal("customerCredits"),
   description: z.string(),
   customer_credits: CustomerCreditsFeatureEntity$inboundSchema,
 }).transform((v) => {
   return remap$(v, {
+    "external_id": "externalId",
     "customer_credits": "customerCredits",
   });
 });
 /** @internal */
 export type ProductFeatureRequestEntity$Outbound = {
   id?: string | undefined;
-  type: string;
+  external_id?: string | null | undefined;
+  type: "customerCredits";
   description: string;
   customer_credits: CustomerCreditsFeatureEntity$Outbound;
 };
@@ -68,11 +70,13 @@ export const ProductFeatureRequestEntity$outboundSchema: z.ZodType<
   ProductFeatureRequestEntity
 > = z.object({
   id: z.string().optional(),
-  type: ProductFeatureRequestType$outboundSchema,
+  externalId: z.nullable(z.string()).optional(),
+  type: z.literal("customerCredits"),
   description: z.string(),
   customerCredits: CustomerCreditsFeatureEntity$outboundSchema,
 }).transform((v) => {
   return remap$(v, {
+    externalId: "external_id",
     customerCredits: "customer_credits",
   });
 });

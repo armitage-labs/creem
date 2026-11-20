@@ -112,6 +112,19 @@ export function normalizeSchema(schema, spec) {
   if (schema.items) out.items = normalizeSchema(schema.items, spec);
   return out;
 }
+// Speakeasy lowercases resource file names (customercredits.ts, productgroups.ts),
+// so the group a method is called through comes from the client's accessor in
+// sdk.ts (`get productGroups(): ProductGroups`), matched by class name.
+export function sdkMethodList(files, sdkSource) {
+  const groups = new Map(
+    [...sdkSource.matchAll(/\bget (\w+)\(\): (\w+) \{/g)].map(([, getter, cls]) => [cls, getter]),
+  );
+  return files.flatMap(({ name, source }) => {
+    const cls = source.match(/\bexport class (\w+)/)?.[1];
+    const group = groups.get(cls) ?? name.replace(".ts", "");
+    return [...source.matchAll(/\basync (\w+)\(/g)].map((m) => `${group}.${m[1]}`);
+  });
+}
 export function checkParity({
   spec,
   manifest,
@@ -124,18 +137,15 @@ export function checkParity({
   spec ??= JSON.parse(readFileSync(resolve(root, "../sdk/openapi.json"), "utf8"));
   manifest ??= JSON.parse(readFileSync(resolve(root, "src/operation-manifest.json"), "utf8"));
   program ??= require("../dist/program.js").createProgram();
+  const sdkDir = resolve(root, "../sdk/src/sdk");
   const methods =
     sdkMethods ??
-    readdirSync(resolve(root, "../sdk/src/sdk"))
-      .filter((f) => f.endsWith(".ts"))
-      .flatMap((file) => {
-        const group = file === "customercredits.ts" ? "customerCredits" : file.replace(".ts", "");
-        return [
-          ...readFileSync(resolve(root, "../sdk/src/sdk", file), "utf8").matchAll(
-            /\basync (\w+)\(/g,
-          ),
-        ].map((m) => `${group}.${m[1]}`);
-      });
+    sdkMethodList(
+      readdirSync(sdkDir)
+        .filter((f) => f.endsWith(".ts"))
+        .map((name) => ({ name, source: readFileSync(resolve(sdkDir, name), "utf8") })),
+      readFileSync(resolve(sdkDir, "sdk.ts"), "utf8"),
+    );
   const sources =
     handlerSources ??
     readdirSync(resolve(root, "src/commands/operations"))

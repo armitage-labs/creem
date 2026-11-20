@@ -42,7 +42,7 @@ export function getCustomersTuiDescriptor(context: CliContext): TuiModuleDescrip
     ],
     fetchPage: async (page: number, pageSize: number) => {
       const client = context.client({});
-      const result = await client.customers.list(page, pageSize);
+      const result = await client.customers.list({ pageNumber: page, pageSize: pageSize });
       const { items, pagination } = result.result;
       return {
         items,

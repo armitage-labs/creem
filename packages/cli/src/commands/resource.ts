@@ -1,12 +1,11 @@
 import { Command, Option } from "commander";
-import { SubscriptionStatus } from "creem/models/components";
 import { operationManifest, type OperationMapping, type InputSchema } from "../operation-manifest";
 import type { CliContext } from "../lib/context";
 import { handlers } from "./operations";
 import {
   parseInput,
   parseInteger,
-  parseEnum,
+  parseNonEmpty,
   parseJsonValue,
   parseKeyValue,
   readData,
@@ -127,11 +126,17 @@ export function createResourceCommand(resource: string, context: CliContext): Co
     }
     if (row.pagination !== "none")
       command.option("--all", "Fetch every page from the supplied page/cursor");
+    if (row.cliPath === "products prices")
+      command.addHelpText(
+        "after",
+        "\n--json also returns subscriptionsWithoutPriceVersion: running subscriptions not billed on any listed version.",
+      );
     if (row.cliPath === "subscriptions list")
       command.option(
         "--status <status>",
         "Client-side filter across all pages (cannot combine with --page/--limit)",
-        (v) => parseEnum("status", v, Object.values(SubscriptionStatus)),
+        // Any non-empty status: the API can add statuses this CLI doesn't know yet.
+        (v) => parseNonEmpty("status", v),
       );
     command.action(async (...args: unknown[]) => {
       const cmd = args.at(-1) as Command;
