@@ -1,0 +1,131 @@
+{
+  "meta": {
+    "page": {
+      "currentPage": 1,
+      "from": 1,
+      "lastPage": 1,
+      "perPage": 100,
+      "to": 3,
+      "total": 3
+    }
+  },
+  "data": [
+    {
+      "type": "discounts",
+      "id": "930001",
+      "attributes": {
+        "store_id": 86325,
+        "name": "Launch",
+        "code": "LAUNCH20",
+        "amount": 20,
+        "amount_type": "percent",
+        "is_limited_to_products": false,
+        "is_limited_redemptions": false,
+        "max_redemptions": 0,
+        "starts_at": null,
+        "expires_at": null,
+        "duration": "repeating",
+        "duration_in_months": 3,
+        "status": "published",
+        "status_formatted": "Published",
+        "created_at": "2026-11-19T10:00:00.000000Z",
+        "updated_at": "2026-11-19T10:00:00.000000Z",
+        "test_mode": true
+      },
+      "relationships": {
+        "store": {
+          "links": {}
+        },
+        "variants": {
+          "links": {},
+          "data": []
+        },
+        "discount-redemptions": {
+          "links": {}
+        }
+      }
+    },
+    {
+      "type": "discounts",
+      "id": "930002",
+      "attributes": {
+        "store_id": 86325,
+        "name": "App five off",
+        "code": "APPFIVE",
+        "amount": 500,
+        "amount_type": "fixed",
+        "is_limited_to_products": true,
+        "is_limited_redemptions": true,
+        "max_redemptions": 100,
+        "starts_at": null,
+        "expires_at": "2027-03-01T00:00:00.000000Z",
+        "duration": "once",
+        "duration_in_months": 1,
+        "status": "published",
+        "status_formatted": "Published",
+        "created_at": "2026-11-19T10:00:00.000000Z",
+        "updated_at": "2026-11-19T10:00:00.000000Z",
+        "test_mode": true
+      },
+      "relationships": {
+        "store": {
+          "links": {}
+        },
+        "variants": {
+          "links": {},
+          "data": [
+            {
+              "type": "variants",
+              "id": "910007"
+            },
+            {
+              "type": "variants",
+              "id": "910005"
+            }
+          ]
+        },
+        "discount-redemptions": {
+          "links": {}
+        }
+      }
+    },
+    {
+      "type": "discounts",
+      "id": "930003",
+      "attributes": {
+        "store_id": 86325,
+        "name": "Draft",
+        "code": "DRAFT10",
+        "amount": 10,
+        "amount_type": "percent",
+        "is_limited_to_products": false,
+        "is_limited_redemptions": false,
+        "max_redemptions": 0,
+        "starts_at": null,
+        "expires_at": null,
+        "duration": "once",
+        "duration_in_months": 1,
+        "status": "draft",
+        "status_formatted": "Draft",
+        "created_at": "2026-11-19T10:00:00.000000Z",
+        "updated_at": "2026-11-19T10:00:00.000000Z",
+        "test_mode": true
+      },
+      "relationships": {
+        "store": {
+          "links": {}
+        },
+        "variants": {
+          "links": {},
+          "data": []
+        },
+        "discount-redemptions": {
+          "links": {}
+        }
+      }
+    }
+  ],
+  "links": {
+    "next": null
+  }
+}

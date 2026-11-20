@@ -1,0 +1,310 @@
+{
+  "meta": {
+    "page": {
+      "currentPage": 1,
+      "from": 1,
+      "lastPage": 1,
+      "perPage": 100,
+      "to": 3,
+      "total": 3
+    }
+  },
+  "data": [
+    {
+      "type": "variants",
+      "id": "752122",
+      "attributes": {
+        "price": 1400,
+        "is_subscription": true,
+        "interval": "year",
+        "interval_count": 1,
+        "has_free_trial": false,
+        "trial_interval": "day",
+        "trial_interval_count": 30,
+        "pay_what_you_want": false,
+        "min_price": 0,
+        "suggested_price": 0,
+        "product_id": 262308,
+        "name": "Default",
+        "slug": "2c8bfbef-4745-4362-b5dd-72957580ff44",
+        "description": "",
+        "links": [],
+        "has_license_keys": false,
+        "license_activation_limit": 5,
+        "is_license_limit_unlimited": false,
+        "license_length_value": 1,
+        "license_length_unit": "years",
+        "is_license_length_unlimited": false,
+        "sort": 1,
+        "status": "pending",
+        "status_formatted": "Pending",
+        "created_at": "2025-04-07T13:26:28.000000Z",
+        "updated_at": "2025-04-07T13:26:28.000000Z",
+        "test_mode": true
+      },
+      "relationships": {
+        "product": {
+          "links": {
+            "related": "https://api.lemonsqueezy.com/v1/variants/752122/product",
+            "self": "https://api.lemonsqueezy.com/v1/variants/752122/relationships/product"
+          }
+        },
+        "files": {
+          "links": {
+            "related": "https://api.lemonsqueezy.com/v1/variants/752122/files",
+            "self": "https://api.lemonsqueezy.com/v1/variants/752122/relationships/files"
+          },
+          "data": []
+        },
+        "price-model": {
+          "links": {
+            "related": "https://api.lemonsqueezy.com/v1/variants/752122/price-model",
+            "self": "https://api.lemonsqueezy.com/v1/variants/752122/relationships/price-model"
+          },
+          "data": {
+            "type": "prices",
+            "id": "1155483"
+          }
+        }
+      },
+      "links": {
+        "self": "https://api.lemonsqueezy.com/v1/variants/752122"
+      }
+    },
+    {
+      "type": "variants",
+      "id": "365902",
+      "attributes": {
+        "price": 1400,
+        "is_subscription": true,
+        "interval": "year",
+        "interval_count": 1,
+        "has_free_trial": false,
+        "trial_interval": "day",
+        "trial_interval_count": 30,
+        "pay_what_you_want": false,
+        "min_price": 0,
+        "suggested_price": 0,
+        "product_id": 262308,
+        "name": "top",
+        "slug": "62258f4a-6b7e-4f86-a917-1dcd7314c12f",
+        "description": "<p>fafafafa</p>",
+        "links": [],
+        "has_license_keys": false,
+        "license_activation_limit": 5,
+        "is_license_limit_unlimited": false,
+        "license_length_value": 1,
+        "license_length_unit": "years",
+        "is_license_length_unlimited": false,
+        "sort": 2,
+        "status": "published",
+        "status_formatted": "Published",
+        "created_at": "2024-05-05T09:00:06.000000Z",
+        "updated_at": "2025-04-07T13:25:28.000000Z",
+        "test_mode": true
+      },
+      "relationships": {
+        "product": {
+          "links": {
+            "related": "https://api.lemonsqueezy.com/v1/variants/365902/product",
+            "self": "https://api.lemonsqueezy.com/v1/variants/365902/relationships/product"
+          }
+        },
+        "files": {
+          "links": {
+            "related": "https://api.lemonsqueezy.com/v1/variants/365902/files",
+            "self": "https://api.lemonsqueezy.com/v1/variants/365902/relationships/files"
+          },
+          "data": []
+        },
+        "price-model": {
+          "links": {
+            "related": "https://api.lemonsqueezy.com/v1/variants/365902/price-model",
+            "self": "https://api.lemonsqueezy.com/v1/variants/365902/relationships/price-model"
+          },
+          "data": {
+            "type": "prices",
+            "id": "1155479"
+          }
+        }
+      },
+      "links": {
+        "self": "https://api.lemonsqueezy.com/v1/variants/365902"
+      }
+    },
+    {
+      "type": "variants",
+      "id": "752120",
+      "attributes": {
+        "price": 400,
+        "is_subscription": true,
+        "interval": "month",
+        "interval_count": 1,
+        "has_free_trial": false,
+        "trial_interval": "day",
+        "trial_interval_count": 30,
+        "pay_what_you_want": false,
+        "min_price": 0,
+        "suggested_price": 0,
+        "product_id": 262308,
+        "name": "basec",
+        "slug": "44f5d0a2-550f-4aee-a0e0-a0efff2f88e4",
+        "description": "<p>basec</p>",
+        "links": [],
+        "has_license_keys": false,
+        "license_activation_limit": 5,
+        "is_license_limit_unlimited": false,
+        "license_length_value": 1,
+        "license_length_unit": "years",
+        "is_license_length_unlimited": false,
+        "sort": 3,
+        "status": "published",
+        "status_formatted": "Published",
+        "created_at": "2025-04-07T13:25:46.000000Z",
+        "updated_at": "2025-04-07T13:26:24.000000Z",
+        "test_mode": true
+      },
+      "relationships": {
+        "product": {
+          "links": {
+            "related": "https://api.lemonsqueezy.com/v1/variants/752120/product",
+            "self": "https://api.lemonsqueezy.com/v1/variants/752120/relationships/product"
+          }
+        },
+        "files": {
+          "links": {
+            "related": "https://api.lemonsqueezy.com/v1/variants/752120/files",
+            "self": "https://api.lemonsqueezy.com/v1/variants/752120/relationships/files"
+          },
+          "data": []
+        },
+        "price-model": {
+          "links": {
+            "related": "https://api.lemonsqueezy.com/v1/variants/752120/price-model",
+            "self": "https://api.lemonsqueezy.com/v1/variants/752120/relationships/price-model"
+          },
+          "data": {
+            "type": "prices",
+            "id": "1155482"
+          }
+        }
+      },
+      "links": {
+        "self": "https://api.lemonsqueezy.com/v1/variants/752120"
+      }
+    }
+  ],
+  "included": [
+    {
+      "type": "prices",
+      "id": "1155483",
+      "attributes": {
+        "variant_id": 752122,
+        "category": "subscription",
+        "scheme": "standard",
+        "usage_aggregation": null,
+        "unit_price": 1400,
+        "unit_price_decimal": null,
+        "setup_fee_enabled": false,
+        "setup_fee": null,
+        "package_size": 1,
+        "tiers": null,
+        "renewal_interval_unit": "year",
+        "renewal_interval_quantity": 1,
+        "trial_interval_unit": null,
+        "trial_interval_quantity": null,
+        "min_price": null,
+        "suggested_price": null,
+        "tax_code": "saas",
+        "created_at": "2025-04-07T13:26:28.000000Z",
+        "updated_at": "2025-04-07T13:26:28.000000Z"
+      },
+      "relationships": {
+        "variant": {
+          "links": {
+            "related": "https://api.lemonsqueezy.com/v1/prices/1155483/variant",
+            "self": "https://api.lemonsqueezy.com/v1/prices/1155483/relationships/variant"
+          }
+        }
+      },
+      "links": {
+        "self": "https://api.lemonsqueezy.com/v1/prices/1155483"
+      }
+    },
+    {
+      "type": "prices",
+      "id": "1155479",
+      "attributes": {
+        "variant_id": 365902,
+        "category": "subscription",
+        "scheme": "standard",
+        "usage_aggregation": null,
+        "unit_price": 1400,
+        "unit_price_decimal": null,
+        "setup_fee_enabled": false,
+        "setup_fee": null,
+        "package_size": 1,
+        "tiers": null,
+        "renewal_interval_unit": "year",
+        "renewal_interval_quantity": 1,
+        "trial_interval_unit": null,
+        "trial_interval_quantity": null,
+        "min_price": null,
+        "suggested_price": null,
+        "tax_code": "saas",
+        "created_at": "2025-04-07T13:25:28.000000Z",
+        "updated_at": "2025-04-07T13:25:28.000000Z"
+      },
+      "relationships": {
+        "variant": {
+          "links": {
+            "related": "https://api.lemonsqueezy.com/v1/prices/1155479/variant",
+            "self": "https://api.lemonsqueezy.com/v1/prices/1155479/relationships/variant"
+          }
+        }
+      },
+      "links": {
+        "self": "https://api.lemonsqueezy.com/v1/prices/1155479"
+      }
+    },
+    {
+      "type": "prices",
+      "id": "1155482",
+      "attributes": {
+        "variant_id": 752120,
+        "category": "subscription",
+        "scheme": "standard",
+        "usage_aggregation": null,
+        "unit_price": 400,
+        "unit_price_decimal": null,
+        "setup_fee_enabled": false,
+        "setup_fee": null,
+        "package_size": 1,
+        "tiers": null,
+        "renewal_interval_unit": "month",
+        "renewal_interval_quantity": 1,
+        "trial_interval_unit": null,
+        "trial_interval_quantity": null,
+        "min_price": null,
+        "suggested_price": null,
+        "tax_code": "saas",
+        "created_at": "2025-04-07T13:26:24.000000Z",
+        "updated_at": "2025-04-07T13:27:15.000000Z"
+      },
+      "relationships": {
+        "variant": {
+          "links": {
+            "related": "https://api.lemonsqueezy.com/v1/prices/1155482/variant",
+            "self": "https://api.lemonsqueezy.com/v1/prices/1155482/relationships/variant"
+          }
+        }
+      },
+      "links": {
+        "self": "https://api.lemonsqueezy.com/v1/prices/1155482"
+      }
+    }
+  ],
+  "links": {
+    "next": null
+  }
+}

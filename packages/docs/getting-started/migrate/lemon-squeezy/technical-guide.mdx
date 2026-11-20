@@ -53,8 +53,8 @@ flowchart LR
 | Pay what you want                                | API. The product price is the minimum, with an optional suggested price                                                                              |
 | Descriptions                                     | API, after converting the HTML to Markdown                                                                                                           |
 | Product images                                   | API by URL, then re-upload in the dashboard                                                                                                          |
-| Files                                            | Dashboard: [file downloads](/features/addons/file-downloads)                                                                                         |
-| License key settings                             | Dashboard: [license keys](/features/addons/licenses)                                                                                                 |
+| Files                                            | API: upload, then attach as a [file download](/features/addons/file-downloads) feature                                                               |
+| License key settings                             | API: a [license key](/features/addons/licenses) feature with the activation limit and expiry                                                         |
 | Discount codes                                   | API                                                                                                                                                  |
 | Customers                                        | API: name, email, your own ID and metadata                                                                                                           |
 | Affiliates                                       | Create the program in the dashboard, then [invite each affiliate by API](/guides/affiliate-program-via-api)                                          |
@@ -173,14 +173,18 @@ The full field mapping is in the [reference](#products-and-variants) at the end 
 
 ### Files and license keys
 
-Set these up in the dashboard, product by product: upload each file under [file downloads](/features/addons/file-downloads), and turn on [license keys](/features/addons/licenses) with the activation limit and expiry the variant had (`license_activation_limit`, `license_length_value`, `license_length_unit`). The API can't attach files or license key settings to a product yet.
+Both are product features, set with the product's `features` on [create](/api-reference/endpoint/create-product) or [update](/api-reference/endpoint/update-product); the [Creem CLI](/getting-started/migrate/lemon-squeezy#with-the-creem-cli) does this for you.
+
+- **Files.** Download each file from its `download_url`, request an upload with [`POST /v1/files`](/api-reference/endpoint/create-file-upload) and the file's SHA-256, post the bytes to the returned `upload_url` with `upload_fields`, then [confirm the upload](/api-reference/endpoint/confirm-file-upload). Attach the confirmed file's ID as a `file` feature.
+- **License keys.** Add a `licenseKey` feature with the activation limit and expiry the variant had (`license_activation_limit`, `license_length_value`, `license_length_unit`); unlimited is `null`.
+- **Updates.** An update replaces the product's features of each type it names, so send back the features of that type you want to keep, with their `id`.
 
 ### Discount codes
 
 Create each code with [`POST /v1/discounts`](/api-reference/endpoint/create-discount-code). The field mapping is in the [reference](#discount-codes). Mind these differences:
 
-- `applies_to_products` is required. A Lemon Squeezy code that applies to everything must list every Creem product, and products you create later aren't covered.
-- Discounts can't be edited through the API. To change one, delete it and create it again.
+- A code applies to the products you name, by ID in `applies_to_products` or by `external_id` in `applies_to_product_external_ids` (at most 100); one of them must name at least one product. A Lemon Squeezy code that applies to everything must list every Creem product, and products you create later aren't covered.
+- [Update a code](/api-reference/endpoint/update-discount-code) with `PATCH /v1/discounts/{id}`. Once it has been redeemed, its amount, type, currency and duration are fixed, and changing them answers `409` with `discount_redeemed`; create a new code for new terms.
 - A code can exist only once. A second create with the same code fails with "The code has already been taken", so check with [search discounts](/api-reference/endpoint/search-discounts) before a re-run.
 - Lemon Squeezy's start date and draft status have no equivalent. A repeating discount applies to subscriptions only.
 - Creem counts redemptions from zero. If the Lemon Squeezy code had a limit, set `max_redemptions` to what's left.
@@ -401,7 +405,7 @@ hand.
 
 ## Use the Creem CLI
 
-For the catalog alone, the Creem CLI copies products and discount codes in one command. See [With the Creem CLI](/getting-started/migrate/lemon-squeezy#with-the-creem-cli) for the commands and the fields to fix after a run. Prefer help? Email support@creem.io and our team can run the migration with you.
+For the catalog, the Creem CLI copies products, discount codes, license key settings and files in one command, keyed by `external_id` so you can run it again. See [With the Creem CLI](/getting-started/migrate/lemon-squeezy#with-the-creem-cli) for the commands and what it skips. Prefer help? Email support@creem.io and our team can run the migration with you.
 
 ## Reference
 
@@ -422,7 +426,7 @@ For the catalog alone, the Creem CLI copies products and discount codes in one c
 | ------------------- | ------------------------------------------------------- |
 | Product and variant | Product, one per variant                                |
 | Price               | The product's price                                     |
-| File                | File download on the product (dashboard)                |
+| File                | File download feature on the product                    |
 | Discount            | Discount code                                           |
 | Customer            | Customer                                                |
 | Order               | Not imported. Creem creates orders for its own payments |
@@ -448,7 +452,7 @@ For the catalog alone, the Creem CLI copies products and discount codes in one c
 | Price `tax_code`: `saas`, `eservice`, `ebook`                      | `tax_category`: `saas`, `digital-goods-service`, `ebooks`          | Confirm `eservice` products                                                                                                                                                                                             |
 | Tax-inclusive prices                                               | `tax_mode`                                                         | `inclusive` or `exclusive`                                                                                                                                                                                              |
 | `large_thumb_url`                                                  | `image_url`                                                        | Re-upload the image in the dashboard                                                                                                                                                                                    |
-| `has_license_keys`, `license_activation_limit`, `license_length_*` | License keys (dashboard)                                           |                                                                                                                                                                                                                         |
+| `has_license_keys`, `license_activation_limit`, `license_length_*` | `features`: a `licenseKey` feature                                 |                                                                                                                                                                                                                         |
 | Variant ID                                                         | `external_id`                                                      | Unique per store                                                                                                                                                                                                        |
 | Product, variant and price IDs                                     | `metadata`                                                         | For your own reconciliation                                                                                                                                                                                             |
 | `buy_now_url`                                                      | `product_url`                                                      | Returned when the product is created                                                                                                                                                                                    |
@@ -465,7 +469,7 @@ For the catalog alone, the Creem CLI copies products and discount codes in one c
 | `duration_in_months`                        | `duration_in_months`                                         |
 | `is_limited_redemptions`, `max_redemptions` | `max_redemptions`, minus the redemptions already used        |
 | `expires_at`                                | `expiry_date`                                                |
-| `is_limited_to_products` and its variants   | `applies_to_products`, required                              |
+| `is_limited_to_products` and its variants   | `applies_to_products` or `applies_to_product_external_ids`   |
 | `starts_at`, draft status                   | No equivalent                                                |
 
 ### Customers

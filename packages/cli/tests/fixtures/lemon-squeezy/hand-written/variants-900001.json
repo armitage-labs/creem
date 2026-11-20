@@ -1,0 +1,117 @@
+{
+  "meta": {
+    "page": {
+      "currentPage": 1,
+      "from": 1,
+      "lastPage": 1,
+      "perPage": 100,
+      "to": 1,
+      "total": 1
+    }
+  },
+  "data": [
+    {
+      "type": "variants",
+      "id": "910001",
+      "attributes": {
+        "price": 0,
+        "is_subscription": false,
+        "interval": null,
+        "interval_count": null,
+        "has_free_trial": false,
+        "trial_interval": "day",
+        "trial_interval_count": 30,
+        "pay_what_you_want": false,
+        "min_price": 0,
+        "suggested_price": 0,
+        "product_id": 900001,
+        "name": "Default",
+        "slug": "fixture-910001",
+        "description": null,
+        "links": [],
+        "has_license_keys": false,
+        "license_activation_limit": 5,
+        "is_license_limit_unlimited": false,
+        "license_length_value": 1,
+        "license_length_unit": "years",
+        "is_license_length_unlimited": false,
+        "sort": 1,
+        "status": "pending",
+        "status_formatted": "Pending",
+        "created_at": "2026-11-19T10:00:00.000000Z",
+        "updated_at": "2026-11-19T10:00:00.000000Z",
+        "test_mode": true
+      },
+      "relationships": {
+        "product": {
+          "links": {}
+        },
+        "files": {
+          "links": {},
+          "data": [
+            {
+              "type": "files",
+              "id": "920001"
+            }
+          ]
+        },
+        "price-model": {
+          "links": {},
+          "data": {
+            "type": "prices",
+            "id": "1010001"
+          }
+        }
+      }
+    }
+  ],
+  "included": [
+    {
+      "type": "prices",
+      "id": "1010001",
+      "attributes": {
+        "variant_id": 910001,
+        "category": "lead_magnet",
+        "scheme": "standard",
+        "usage_aggregation": null,
+        "unit_price": 0,
+        "unit_price_decimal": null,
+        "setup_fee_enabled": null,
+        "setup_fee": null,
+        "package_size": 1,
+        "tiers": null,
+        "renewal_interval_unit": null,
+        "renewal_interval_quantity": null,
+        "trial_interval_unit": null,
+        "trial_interval_quantity": null,
+        "min_price": null,
+        "suggested_price": null,
+        "tax_code": "saas",
+        "created_at": "2026-11-19T10:00:00.000000Z",
+        "updated_at": "2026-11-19T10:00:00.000000Z"
+      }
+    },
+    {
+      "type": "files",
+      "id": "920001",
+      "attributes": {
+        "variant_id": 910001,
+        "identifier": "00000000-0000-4000-8000-000000920001",
+        "name": "icons.zip",
+        "extension": "zip",
+        "download_url": "https://app.lemonsqueezy.com/download/00000000-0000-4000-8000-000000920001?expires=1795600000&signature=fixture",
+        "size": 24,
+        "size_formatted": "24 B",
+        "version": "1.0.0",
+        "sort": 1,
+        "status": "published",
+        "createdAt": "2026-11-19T10:00:00.000000Z",
+        "updatedAt": "2026-11-19T10:00:00.000000Z",
+        "test_mode": true
+      }
+    }
+  ],
+  "links": {
+    "next": null
+  }
+}

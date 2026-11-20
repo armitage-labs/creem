@@ -25,6 +25,8 @@ export function harness(
   return {
     client,
     context,
+    /** Everything written to stdout so far in the current run. */
+    stdout: () => stdout,
     run: async (args: string[]) => {
       stdout = "";
       stderr = "";

@@ -1,0 +1,93 @@
+{
+  "meta": {
+    "page": {
+      "currentPage": 1,
+      "from": 1,
+      "lastPage": 1,
+      "perPage": 100,
+      "to": 1,
+      "total": 1
+    }
+  },
+  "data": [
+    {
+      "type": "variants",
+      "id": "910003",
+      "attributes": {
+        "price": 0,
+        "is_subscription": false,
+        "interval": null,
+        "interval_count": null,
+        "has_free_trial": false,
+        "trial_interval": "day",
+        "trial_interval_count": 30,
+        "pay_what_you_want": true,
+        "min_price": 300,
+        "suggested_price": 900,
+        "product_id": 900003,
+        "name": "Default",
+        "slug": "fixture-910003",
+        "description": null,
+        "links": [],
+        "has_license_keys": false,
+        "license_activation_limit": 5,
+        "is_license_limit_unlimited": false,
+        "license_length_value": 1,
+        "license_length_unit": "years",
+        "is_license_length_unlimited": false,
+        "sort": 1,
+        "status": "pending",
+        "status_formatted": "Pending",
+        "created_at": "2026-11-19T10:00:00.000000Z",
+        "updated_at": "2026-11-19T10:00:00.000000Z",
+        "test_mode": true
+      },
+      "relationships": {
+        "product": {
+          "links": {}
+        },
+        "files": {
+          "links": {},
+          "data": []
+        },
+        "price-model": {
+          "links": {},
+          "data": {
+            "type": "prices",
+            "id": "1010003"
+          }
+        }
+      }
+    }
+  ],
+  "included": [
+    {
+      "type": "prices",
+      "id": "1010003",
+      "attributes": {
+        "variant_id": 910003,
+        "category": "pwyw",
+        "scheme": "standard",
+        "usage_aggregation": null,
+        "unit_price": 300,
+        "unit_price_decimal": null,
+        "setup_fee_enabled": null,
+        "setup_fee": null,
+        "package_size": 1,
+        "tiers": null,
+        "renewal_interval_unit": null,
+        "renewal_interval_quantity": null,
+        "trial_interval_unit": null,
+        "trial_interval_quantity": null,
+        "min_price": 300,
+        "suggested_price": 900,
+        "tax_code": "saas",
+        "created_at": "2026-11-19T10:00:00.000000Z",
+        "updated_at": "2026-11-19T10:00:00.000000Z"
+      }
+    }
+  ],
+  "links": {
+    "next": null
+  }
+}
