@@ -1197,7 +1197,9 @@ export function fromLemonSqueezy(
       const stored = discountsByKey.get(item.key);
       if (stored) {
         item.creem_id = stored.id;
-        if (stored.status === "active") item.warnings.push(stillRedeemable(stored.id));
+        // An unread count says nothing about whether LS still sells the code.
+        const unknown = item.reason?.code === "discount_redemptions_unknown";
+        if (stored.status === "active" && !unknown) item.warnings.push(stillRedeemable(stored.id));
       }
       continue;
     }
@@ -1294,8 +1296,21 @@ export function fromLemonSqueezy(
       update.durationInMonths = planned.durationInMonths;
       changes.push("duration_in_months");
     }
-    if ((existing.maxRedemptions ?? null) !== (planned.maxRedemptions ?? null)) {
-      update.maxRedemptions = planned.maxRedemptions ?? null;
+    // Creem refuses a limit below its own redemptions (409). Once both stores
+    // together used the LS cap, the limit is what Creem redeemed: no more.
+    let maxRedemptions = planned.maxRedemptions ?? null;
+    const redeemed = existing.redeemCount ?? 0;
+    if (maxRedemptions !== null && redeemed > maxRedemptions) {
+      item.warnings.push(
+        issue(
+          "discount_redemptions_exhausted",
+          `Lemon Squeezy and Creem together used the redemption limit, so the Creem limit becomes its ${redeemed} redemptions so far and the code can't be redeemed again.`,
+        ),
+      );
+      maxRedemptions = redeemed;
+    }
+    if ((existing.maxRedemptions ?? null) !== maxRedemptions) {
+      update.maxRedemptions = maxRedemptions;
       changes.push("max_redemptions");
     }
     if (isoDate(existing.expiryDate) !== isoDate(planned.expiryDate)) {
@@ -1345,7 +1360,7 @@ export function fromLemonSqueezy(
 
   // Keyed Creem discounts whose LS discount is gone. Not with
   // --exclude-discounts: then every keyed discount would look gone.
-  if (!objects.discountsExcluded) {
+  if (!objects.discountsExcluded && !objects.discountsUnread) {
     const discountKeys = new Set(discountItems.map((i) => i.key));
     for (const d of creemCatalog.discounts) {
       const id = /^ls_discount_(\d+)$/.exec(d.externalId ?? "")?.[1];

@@ -2062,3 +2062,90 @@ describe("redemption counts: review round", () => {
     expect(update.updateDiscountRequestEntity.maxRedemptions).toBe(10);
   });
 });
+
+describe("redemption counts: review round 2", () => {
+  it("never sets the Creem limit below what Creem already redeemed, and says the cap is used up", async () => {
+    const docs = lemonSqueezyDocs();
+    docs.redemptions["930002"] = 90;
+    const creem = fakeCreem();
+    await migrate(creem, { docs });
+    const stored = creem.state.discounts.find((d) => d.code === "APPFIVE")!;
+    stored.redeem_count = 8;
+    docs.redemptions["930002"] = 95;
+    const { plan, report } = await migrate(creem, { docs });
+    const update = plan.requests.find(
+      (r) => r.key === "ls_discount_930002" && r.type === "update_discount",
+    )!.request as any;
+    expect(update.updateDiscountRequestEntity).toEqual({ maxRedemptions: 8 });
+    expect(findItem({ report }, "ls_discount_930002")).toMatchObject({
+      status: "done",
+      warnings: expect.arrayContaining([
+        expect.objectContaining({ code: "discount_redemptions_exhausted" }),
+      ]),
+    });
+    expect(stored.max_redemptions).toBe(8);
+    const again = await migrate(creem, { docs });
+    expect(findItem(again, "ls_discount_930002").action).toBe("unchanged");
+  });
+
+  it("claims no discount is missing in LS when the discounts couldn't be read", async () => {
+    const creem = fakeCreem();
+    await migrate(creem);
+    const ls = lemonSqueezyFetch();
+    const fetcher = ls.fetcher.getMockImplementation()!;
+    ls.fetcher.mockImplementation(async (input, init) => {
+      if (
+        new URL(String(input instanceof Request ? input.url : input)).pathname === "/v1/discounts"
+      )
+        return new Response("down", { status: 503 });
+      return fetcher(input, init);
+    });
+    const client = new LemonSqueezyClient("ls_fixture_key", { fetch: ls.fetcher, delayMs: 0 });
+    const { objects, failures } = await fetchLemonSqueezyCatalog(client, {
+      storeId: LS_STORE_ID,
+      excludeDiscounts: false,
+      downloadDir,
+    });
+    expect(failures.map((f) => f.kind)).toEqual(["discounts"]);
+    const p = fromLemonSqueezy(objects, await readCreemCatalog(creem.client), { now: NOW });
+    expect(p.report.items.filter((i) => i.kind === "discount")).toEqual([]);
+  });
+
+  it("doesn't call a keyed discount orphaned when only its count couldn't be read", async () => {
+    const creem = fakeCreem();
+    await migrate(creem);
+    const ls = lemonSqueezyFetch();
+    const fetcher = ls.fetcher.getMockImplementation()!;
+    ls.fetcher.mockImplementation(async (input, init) => {
+      if (String(input instanceof Request ? input.url : input).includes("discount-redemptions"))
+        return new Response("nope", { status: 403 });
+      return fetcher(input, init);
+    });
+    const client = new LemonSqueezyClient("ls_fixture_key", { fetch: ls.fetcher, delayMs: 0 });
+    const { objects } = await fetchLemonSqueezyCatalog(client, {
+      storeId: LS_STORE_ID,
+      excludeDiscounts: false,
+      downloadDir,
+    });
+    const p = fromLemonSqueezy(objects, await readCreemCatalog(creem.client), { now: NOW });
+    expect(findItem(p, "ls_discount_930002")).toMatchObject({
+      action: "skip",
+      reason: { code: "discount_redemptions_unknown" },
+      warnings: [],
+    });
+  });
+
+  it("reads no count for a limited code that is a draft or expired", async () => {
+    const docs = lemonSqueezyDocs();
+    const appFive = docs.discounts.data.find((d) => d.id === "930002")!;
+    for (const attributes of [
+      { ...appFive.attributes, status: "draft" },
+      { ...appFive.attributes, expires_at: "2020-01-01T00:00:00.000Z" },
+    ]) {
+      appFive.attributes = attributes;
+      const { ls, failures } = await lsObjects({ docs });
+      expect(failures).toEqual([]);
+      expect(ls.lsRequests.some((r) => r.startsWith("/v1/discount-redemptions"))).toBe(false);
+    }
+  });
+});

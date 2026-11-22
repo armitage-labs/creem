@@ -138,6 +138,8 @@ export interface LemonSqueezyObjects {
    * what's left carries over. A missing count is a fetch failure.
    */
   discountRedemptions: Record<string, number>;
+  /** The discount list couldn't be read: no discount is known to be gone from LS. */
+  discountsUnread?: boolean;
 }
 
 export interface FetchFailure {
@@ -354,10 +356,14 @@ export async function fetchLemonSqueezyCatalog(
       ).data;
     } catch (error) {
       failures.push({ kind: "discounts", message: errorMessage(error) });
+      objects.discountsUnread = true;
     }
     // Only the page meta's total is read: a redemption row carries order data.
     for (const discount of objects.discounts) {
-      if (!discount.attributes.is_limited_redemptions) continue;
+      const a = discount.attributes;
+      // A draft or expired code is skipped anyway, so its count isn't needed.
+      const expired = a.expires_at != null && new Date(a.expires_at).getTime() <= Date.now();
+      if (!a.is_limited_redemptions || a.status !== "published" || expired) continue;
       try {
         objects.discountRedemptions[discount.id] = await client.count("/discount-redemptions", {
           "filter[discount_id]": discount.id,

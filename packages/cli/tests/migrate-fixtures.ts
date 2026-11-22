@@ -358,6 +358,14 @@ export function fakeCreem(initial: Partial<CreemState> = {}) {
       const invalid = invalidDiscount(b);
       if (invalid) return Response.json(invalid, { status: 400 });
       const fixed = ["amount", "percentage", "type", "currency", "duration", "duration_in_months"];
+      if (typeof b.max_redemptions === "number" && b.max_redemptions < (discount.redeem_count ?? 0))
+        return Response.json(
+          {
+            code: "max_redemptions_below_redeemed",
+            message: "The limit is below the redemptions so far.",
+          },
+          { status: 409 },
+        );
       if (discount.redeem_count > 0 && fixed.some((k) => k in b && b[k] !== discount[k]))
         return Response.json(
           { code: "discount_redeemed", message: "The discount has been redeemed." },
