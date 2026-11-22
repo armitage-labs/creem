@@ -1949,3 +1949,116 @@ describe("limited discounts carry over only the redemptions LS has left", () => 
     });
   });
 });
+
+describe("redemption counts: review round", () => {
+  const LS_KEY = "ls_fixture_secret_key";
+  const base = ["migrate", "lemon-squeezy", "--ls-api-key", LS_KEY, "--ls-store-id", LS_STORE_ID];
+  const failCounts = (ls: ReturnType<typeof lemonSqueezyFetch>, response: () => Response) => {
+    const fetcher = ls.fetcher.getMockImplementation()!;
+    ls.fetcher.mockImplementation(async (input, init) => {
+      if (String(input instanceof Request ? input.url : input).includes("discount-redemptions"))
+        return response();
+      return fetcher(input, init);
+    });
+  };
+
+  it("exits 4 and writes nothing when a count can't be read, even with an --adopt answer for that discount", async () => {
+    const creem = fakeCreem();
+    await migrate(creem);
+    const appFive = creem.state.discounts.find((d) => d.code === "APPFIVE")!;
+    appFive.external_id = null;
+    const writesBefore = creem.writes().length;
+    const ls = lemonSqueezyFetch();
+    failCounts(ls, () => new Response("nope", { status: 403 }));
+    vi.stubGlobal("fetch", ls.fetcher);
+    const confirm = vi.fn(async () => true);
+    const h = harness(creem.client, { isTTY: false, confirm });
+    const r = await h.run([
+      "--json",
+      ...base,
+      "--yes",
+      "--adopt",
+      `ls_discount_930002=${appFive.id}`,
+    ]);
+    expect(r.code).toBe(4);
+    expect(JSON.parse(r.stdout).fetch_failures).toEqual([
+      { kind: "redemptions of discount 930002", message: expect.stringContaining("403") },
+    ]);
+    expect(creem.writes()).toHaveLength(writesBefore);
+  });
+
+  it("asks no adoption question in a terminal when the read is incomplete, and exits 4", async () => {
+    const creem = fakeCreem();
+    await migrate(creem);
+    // An unkeyed product stays an adoption proposal even when the discount read fails.
+    creem.state.products.find((p) => p.external_id === "ls_variant_910007")!.external_id = null;
+    const writesBefore = creem.writes().length;
+    const ls = lemonSqueezyFetch();
+    failCounts(ls, () => new Response("nope", { status: 403 }));
+    vi.stubGlobal("fetch", ls.fetcher);
+    const confirm = vi.fn(async () => true);
+    const h = harness(creem.client, { isTTY: true, confirm });
+    const r = await h.run(base);
+    expect(r.code).toBe(4);
+    expect(confirm).not.toHaveBeenCalled();
+    expect(creem.writes()).toHaveLength(writesBefore);
+  });
+
+  it.each([
+    ["no meta", {}],
+    ["no total", { meta: { page: {} } }],
+    ["a negative total", { meta: { page: { total: -1 } } }],
+    ["a string total", { meta: { page: { total: "3" } } }],
+  ])("treats a count response with %s as a fetch failure", async (_, extra) => {
+    const ls = lemonSqueezyFetch();
+    failCounts(ls, () => Response.json({ data: [], links: { next: null }, ...extra }));
+    const client = new LemonSqueezyClient("ls_fixture_key", { fetch: ls.fetcher, delayMs: 0 });
+    const { objects, failures } = await fetchLemonSqueezyCatalog(client, {
+      storeId: LS_STORE_ID,
+      excludeDiscounts: false,
+      downloadDir,
+    });
+    expect(failures).toEqual([
+      { kind: "redemptions of discount 930002", message: expect.stringContaining("no count") },
+    ]);
+    expect(objects.discountRedemptions).toEqual({});
+  });
+
+  it("never gives back redemptions used in Creem: the cap is what LS left, whatever Creem counted", async () => {
+    const docs = lemonSqueezyDocs();
+    docs.redemptions["930002"] = 90;
+    const creem = fakeCreem();
+    await migrate(creem, { docs });
+    const stored = creem.state.discounts.find((d) => d.code === "APPFIVE")!;
+    stored.redeem_count = 3;
+    const plan = async () => {
+      const { objects } = await lsObjects({ docs });
+      return fromLemonSqueezy(objects, await readCreemCatalog(creem.client), { now: NOW });
+    };
+    expect(findItem(await plan(), "ls_discount_930002").action).toBe("unchanged");
+    docs.redemptions["930002"] = 95;
+    const p = await plan();
+    const update = p.requests.find((r) => r.key === "ls_discount_930002")!.request as any;
+    expect(update.updateDiscountRequestEntity).toEqual({ maxRedemptions: 5 });
+  });
+
+  it("adopts an unkeyed Creem code with Creem redemptions and sets the cap to what LS left", async () => {
+    const docs = lemonSqueezyDocs();
+    docs.redemptions["930002"] = 90;
+    const creem = fakeCreem();
+    await migrate(creem, { docs });
+    const stored = creem.state.discounts.find((d) => d.code === "APPFIVE")!;
+    stored.external_id = null;
+    stored.redeem_count = 2;
+    stored.max_redemptions = 50;
+    const { objects } = await lsObjects({ docs });
+    const p = fromLemonSqueezy(objects, await readCreemCatalog(creem.client), {
+      now: NOW,
+      adoption: { "adopt:ls_discount_930002": stored.id },
+    });
+    const update = p.requests.find(
+      (r) => r.key === "ls_discount_930002" && r.type === "update_discount",
+    )!.request as any;
+    expect(update.updateDiscountRequestEntity.maxRedemptions).toBe(10);
+  });
+});

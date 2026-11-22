@@ -289,6 +289,9 @@ function createLemonSqueezyCommand(context: CliContext): Command {
           let plan: MigrationPlan;
           for (;;) {
             plan = fromLemonSqueezy(objects, catalog, { now, adoption: answers });
+            // An incomplete read writes nothing (exit 4 below), so nothing is asked, and an
+            // answer for an item the read couldn't plan isn't taken for a wrong answer.
+            if (failures.length) break;
             // An --adopt answer that can't be applied stops the run before any question.
             if (plan.answerErrors.length)
               throw new CliError(
