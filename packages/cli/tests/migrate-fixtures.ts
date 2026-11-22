@@ -36,6 +36,8 @@ export function lemonSqueezyDocs() {
     products: { ...products, data: [...products.data, ...handWritten.data] },
     variants,
     discounts: read("hand-written/discounts.json"),
+    /** Redemptions already used in LS, by discount id; 0 when absent. */
+    redemptions: {} as Record<string, number>,
   };
 }
 
@@ -80,6 +82,13 @@ export function lemonSqueezyFetch(
         if (url.searchParams.get("filter[store_id]") !== LS_STORE_ID)
           throw new Error(`UNSCOPED_DISCOUNTS ${url}`);
         return page(docs.discounts);
+      }
+      if (path === "/discount-redemptions") {
+        const discountId = url.searchParams.get("filter[discount_id]");
+        if (!discountId) throw new Error(`UNSCOPED_REDEMPTIONS ${url}`);
+        // Only the page meta's total is read; a redemption row carries order data.
+        const total = docs.redemptions[discountId] ?? 0;
+        return page({ data: [], meta: { page: { currentPage: 1, perPage: 1, total } } });
       }
       if (/^\/(customers|subscriptions|orders|files)/.test(path))
         throw new Error(`UNEXPECTED_LS_FETCH ${path}`);

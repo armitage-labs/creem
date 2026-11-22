@@ -132,6 +132,12 @@ export interface LemonSqueezyObjects {
   fileFailures: Record<string, string>;
   discounts: LSDiscount[];
   discountsExcluded: boolean;
+  /**
+   * Redemptions LS has used, by id, for each limited discount. LS's
+   * `max_redemptions` is a lifetime cap and Creem counts from zero, so only
+   * what's left carries over. A missing count is a fetch failure.
+   */
+  discountRedemptions: Record<string, number>;
 }
 
 export interface FetchFailure {
@@ -143,6 +149,7 @@ interface JsonApiPage<T> {
   data: T[];
   included?: LSResource<unknown>[];
   links?: { next?: string | null };
+  meta?: { page?: { total?: unknown } };
 }
 
 const CONTENT_TYPES: Record<string, string> = {
@@ -241,6 +248,19 @@ export class LemonSqueezyClient {
     }
   }
 
+  /** How many resources a JSON:API list has, from one page of size 1. */
+  async count(path: string, params: Record<string, string>): Promise<number> {
+    const url = new URL(`${this.baseUrl}${path}`);
+    url.searchParams.set("page[number]", "1");
+    url.searchParams.set("page[size]", "1");
+    for (const [key, value] of Object.entries(params)) url.searchParams.set(key, value);
+    const response = await this.get(url.toString(), "application/vnd.api+json");
+    const total = ((await response.json()) as JsonApiPage<unknown>).meta?.page?.total;
+    if (typeof total !== "number" || !Number.isInteger(total) || total < 0)
+      throw new Error(`Lemon Squeezy returned no count for ${path}`);
+    return total;
+  }
+
   async stores(): Promise<LSStore[]> {
     return (await this.list<LSStore>("/stores")).data;
   }
@@ -277,7 +297,8 @@ function errorMessage(error: unknown): string {
 
 /**
  * Reads the catalog of one LS store: products, their variants with price
- * models and files, and (unless excluded) discounts with their variants. File
+ * models and files, and (unless excluded) discounts with their variants and,
+ * for a limited one, its used redemption count. File
  * bytes are downloaded into `downloadDir` and hashed. Customers, subscriptions
  * and orders are never fetched.
  */
@@ -299,6 +320,7 @@ export async function fetchLemonSqueezyCatalog(
     fileFailures: {},
     discounts: [],
     discountsExcluded: options.excludeDiscounts,
+    discountRedemptions: {},
   };
   try {
     objects.products = (
@@ -332,6 +354,20 @@ export async function fetchLemonSqueezyCatalog(
       ).data;
     } catch (error) {
       failures.push({ kind: "discounts", message: errorMessage(error) });
+    }
+    // Only the page meta's total is read: a redemption row carries order data.
+    for (const discount of objects.discounts) {
+      if (!discount.attributes.is_limited_redemptions) continue;
+      try {
+        objects.discountRedemptions[discount.id] = await client.count("/discount-redemptions", {
+          "filter[discount_id]": discount.id,
+        });
+      } catch (error) {
+        failures.push({
+          kind: `redemptions of discount ${discount.id}`,
+          message: errorMessage(error),
+        });
+      }
     }
   }
   for (const file of objects.files) {

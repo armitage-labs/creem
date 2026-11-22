@@ -1169,6 +1169,13 @@ export function fromLemonSqueezy(
   );
   for (const item of productItems)
     if (item.adopted_from) keyOfProductId.set(item.adopted_from, item.key);
+  // Like a product orphan: a keyed Creem discount this run doesn't migrate still
+  // redeems. Reported, never expired: that would be a write nobody asked for.
+  const stillRedeemable = (id: string) =>
+    issue(
+      "orphaned",
+      `Creem discount ${id} has this key and stays active, so buyers can still redeem it. Expire or delete it in Creem if they shouldn't.`,
+    );
   for (const discount of objects.discounts) {
     const item = newItem({
       kind: "discount",
@@ -1178,8 +1185,22 @@ export function fromLemonSqueezy(
       action: "skip",
     });
     discountItems.push(item);
-    const planned = planDiscount(discount, currency, options.now, migratedKeys, item);
-    if (!planned) continue;
+    const planned = planDiscount(
+      discount,
+      currency,
+      options.now,
+      migratedKeys,
+      objects.discountRedemptions?.[discount.id],
+      item,
+    );
+    if (!planned) {
+      const stored = discountsByKey.get(item.key);
+      if (stored) {
+        item.creem_id = stored.id;
+        if (stored.status === "active") item.warnings.push(stillRedeemable(stored.id));
+      }
+      continue;
+    }
     const found = match(
       "discount",
       item.key,
@@ -1322,6 +1343,28 @@ export function fromLemonSqueezy(
     } else item.action = "unchanged";
   }
 
+  // Keyed Creem discounts whose LS discount is gone. Not with
+  // --exclude-discounts: then every keyed discount would look gone.
+  if (!objects.discountsExcluded) {
+    const discountKeys = new Set(discountItems.map((i) => i.key));
+    for (const d of creemCatalog.discounts) {
+      const id = /^ls_discount_(\d+)$/.exec(d.externalId ?? "")?.[1];
+      if (!id || discountKeys.has(d.externalId!) || d.status !== "active") continue;
+      discountItems.push(
+        newItem({
+          kind: "discount",
+          key: d.externalId!,
+          name: d.code,
+          source: { type: "discount", id },
+          action: "skip",
+          creem_id: d.id,
+          reason: issue("discount_not_found", `This Lemon Squeezy store has no discount ${id}.`),
+          warnings: [stillRedeemable(d.id)],
+        }),
+      );
+    }
+  }
+
   for (const id of Object.keys(decisions))
     if (!consulted.has(id))
       rejectAnswer(
@@ -1367,6 +1410,7 @@ function planDiscount(
   currency: "USD" | "EUR",
   now: Date,
   migratedKeys: string[],
+  redeemed: number | undefined,
   item: MigrationItem,
 ): CreateDiscountBody | undefined {
   const a = discount.attributes;
@@ -1384,6 +1428,26 @@ function planDiscount(
   if (a.expires_at && new Date(a.expires_at).getTime() <= now.getTime()) {
     item.reason = issue("discount_expired", `The discount expired at ${a.expires_at}.`);
     return undefined;
+  }
+  // LS's cap is for the code's lifetime and Creem counts from zero: only what's
+  // left carries over. While LS still sells, a re-run lowers it to match.
+  let remaining: number | undefined;
+  if (a.is_limited_redemptions && a.max_redemptions) {
+    if (redeemed === undefined) {
+      item.reason = issue(
+        "discount_redemptions_unknown",
+        "The discount has a redemption limit, and Lemon Squeezy did not say how many are used.",
+      );
+      return undefined;
+    }
+    remaining = a.max_redemptions - redeemed;
+    if (remaining <= 0) {
+      item.reason = issue(
+        "discount_used_up",
+        `All ${a.max_redemptions} redemptions are used in Lemon Squeezy.`,
+      );
+      return undefined;
+    }
   }
   let applies = migratedKeys;
   if (a.is_limited_to_products) {
@@ -1450,7 +1514,7 @@ function planDiscount(
     duration: a.duration,
   };
   if (a.duration === "repeating") body.durationInMonths = a.duration_in_months ?? 1;
-  if (a.is_limited_redemptions && a.max_redemptions) body.maxRedemptions = a.max_redemptions;
+  if (remaining !== undefined) body.maxRedemptions = remaining;
   if (a.expires_at) body.expiryDate = new Date(a.expires_at);
   body.externalId = discountKey(discount.id);
   body.appliesToProductExternalIds = applies;
