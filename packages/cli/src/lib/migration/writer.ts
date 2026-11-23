@@ -449,9 +449,16 @@ export async function checkMigration(
     });
   }
 
+  // An adopted product gets its key only when its PATCH runs, so a dry run can't
+  // find it by key either: it counts as created here.
   created = new Set(
     report.items
-      .filter((i) => i.kind === "product" && i.action === "create" && i.status !== "failed")
+      .filter(
+        (i) =>
+          i.kind === "product" &&
+          (i.action === "create" || i.adopted_from) &&
+          i.status !== "failed",
+      )
       .map((i) => i.key),
   );
 
@@ -500,6 +507,19 @@ export async function checkMigration(
     const request = structuredClone(original);
     const item = itemOf(request);
     if (item.status === "failed") continue;
+    // A write that names a product this run creates or adopts changes once that
+    // product exists, whatever its dry run answers now: it is kept (`partial`).
+    // Read from the full request, not the preview, which may leave keys out.
+    const named =
+      request.type === "upsert_product_group"
+        ? (request.request.createProductGroupRequestEntity.products ?? []).flatMap((p) =>
+            "externalId" in p ? [p.externalId] : [],
+          )
+        : ((request.type === "upsert_discount"
+            ? request.request.createDiscountRequestEntity
+            : request.request.updateDiscountRequestEntity
+          ).appliesToProductExternalIds ?? []);
+    let partial = named.some((key) => created.has(key));
     if (request.type !== "upsert_product_group") {
       const body =
         request.type === "upsert_discount"
@@ -511,10 +531,11 @@ export async function checkMigration(
           ...(body.appliesToProducts ?? []),
           ...keys.filter((k) => storedIds.has(k)).map((k) => storedIds.get(k)!),
         ];
-        // Keys of products this run creates; the API takes 100, enough for a preview.
-        body.appliesToProductExternalIds = keys
-          .filter((k) => !storedIds.has(k))
-          .slice(0, VALIDATE_BATCH_SIZE);
+        // Keys of products this run creates; the API takes 100. A preview cut
+        // there can't see the rest, so its answer is partial.
+        const unknown = keys.filter((k) => !storedIds.has(k));
+        body.appliesToProductExternalIds = unknown.slice(0, VALIDATE_BATCH_SIZE);
+        if (unknown.length > VALIDATE_BATCH_SIZE) partial = true;
         if (!body.appliesToProductExternalIds.length) delete body.appliesToProductExternalIds;
       }
     }
@@ -524,7 +545,7 @@ export async function checkMigration(
         item,
         { id: answer.id, result: answer.writeResult.result },
         answer.writeResult.warnings,
-        false,
+        partial,
       );
     } catch (error) {
       if (error instanceof DryRunIgnoredError) throw error;

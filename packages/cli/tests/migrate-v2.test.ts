@@ -15,6 +15,7 @@ import {
 import {
   CreemCheckError,
   DryRunIgnoredError,
+  RateLimitWaitError,
   checkMigration,
   executeMigration,
 } from "../src/lib/migration/writer";
@@ -898,5 +899,104 @@ describe("ENG-2972 review: the dry-run safety nets", () => {
         message: expect.stringContaining("ls_variant_910007"),
       }),
     );
+  });
+});
+
+/** Plans, checks and runs against the current stores, with LS changes and adoption answers. */
+async function migrateWith(
+  creem: ReturnType<typeof fakeCreem>,
+  options: {
+    adoption?: Record<string, string>;
+    change?: (objects: Awaited<ReturnType<typeof lsObjects>>) => void;
+    beforeRun?: () => void;
+    force?: boolean;
+  } = {},
+) {
+  const objects = await lsObjects();
+  options.change?.(objects);
+  const plan = fromLemonSqueezy(objects, await readCreemCatalog(creem.client), {
+    now: NOW,
+    adoption: options.adoption,
+  });
+  const checked = await checkMigration(creem.client, plan, {});
+  options.beforeRun?.();
+  const report = await executeMigration(creem.client, checked, {
+    files: objects.fileDigests,
+    fetch: lemonSqueezyFetch().fetcher,
+    delayMs: 0,
+    force: options.force,
+  });
+  return { plan, checked, report };
+}
+
+/** LS publishes another subscription variant of the "Pro" product (ls_product_262308). */
+const addVariant =
+  (...ids: string[]) =>
+  (objects: Awaited<ReturnType<typeof lsObjects>>) => {
+    for (const id of ids) {
+      const variant = structuredClone(objects.variants.find((v) => v.id === "752120")!);
+      variant.id = id;
+      variant.attributes.name = `Added tier ${id}`;
+      objects.variants.push(variant);
+    }
+  };
+
+const groupKeys = (creem: ReturnType<typeof fakeCreem>) =>
+  creem.state.productGroups[0].products.map((p: { external_id: string | null }) => p.external_id);
+
+describe("ENG-2972 re-check: a group that gains a product adopted in the same run", () => {
+  it("writes the group after the adoption, and a re-run writes nothing", async () => {
+    const creem = fakeCreem(V1_STORE);
+    await migrate(creem);
+    creem.state.products.push(productJson("prod_dash", { name: "Dashboard tier" }));
+    const adoption = { "adopt:ls_variant_999001": "prod_dash" };
+    const first = await migrateWith(creem, { adoption, change: addVariant("999001") });
+    expect(first.checked.report.items.find((i) => i.key === "ls_product_262308")).toMatchObject({
+      action: "update",
+      status: "pending",
+    });
+    expect(first.report.summary.failed).toBe(0);
+    expect(creem.state.productGroups[0].products.map((p: { id: string }) => p.id)).toContain(
+      "prod_dash",
+    );
+    expect(groupKeys(creem)).toEqual([
+      "ls_variant_365902",
+      "ls_variant_752120",
+      "ls_variant_999001",
+    ]);
+
+    const before = creem.writes().length;
+    const again = await migrateWith(creem, { change: addVariant("999001") });
+    expect(again.report.items.find((i) => i.key === "ls_product_262308")!.action).toBe("unchanged");
+    expect(creem.writes().slice(before).map(describeCall)).toEqual([]);
+  });
+});
+
+describe("ENG-2972 re-check: a discount preview truncated at 100 unknown keys", () => {
+  it("keeps a valid addition after the first 100 refused ones, and writes it with --force", async () => {
+    const creem = fakeCreem(V1_STORE);
+    const ids = Array.from({ length: 101 }, (_, i) => String(999000 + i));
+    const objects = await lsObjects();
+    addVariant(...ids)(objects);
+    const plan = fromLemonSqueezy(objects, await readCreemCatalog(creem.client), { now: NOW });
+    plan.requests = plan.requests.filter((r) => r.type !== "upsert_product_group");
+    for (const id of ids.slice(0, 100))
+      creem.refuse(`ls_variant_${id}`, 409, "license_keys_issued");
+    const result = await checkMigration(creem.client, plan, {});
+    expect(result.report.items.find((i) => i.key === "ls_discount_930001")).toMatchObject({
+      action: "update",
+      status: "pending",
+    });
+    await executeMigration(creem.client, result, {
+      files: objects.fileDigests,
+      fetch: lemonSqueezyFetch().fetcher,
+      delayMs: 0,
+      force: true,
+    });
+    const last = creem.state.products.find((p) => p.external_id === "ls_variant_999100")!;
+    expect(
+      creem.state.discounts.find((d) => d.external_id === "ls_discount_930001")!
+        .applies_to_products,
+    ).toContain(last.id);
   });
 });
