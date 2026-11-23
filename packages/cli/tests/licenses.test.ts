@@ -99,3 +99,18 @@ it("never prints the license key: an error that echoes it shows [REDACTED]", asy
   expect(result.stderr).toContain("License key [REDACTED] is not valid");
   expect(result.stderr).not.toContain("license-secret-42");
 });
+it("redacts a --key that Commander echoes while parsing, before the command runs", async () => {
+  const h = harness();
+  // The key pasted where --output's value belongs: Commander's own error quotes it.
+  const result = await h.run([
+    "licenses",
+    "validate",
+    "--key",
+    "license-secret-42",
+    "--output",
+    "license-secret-42",
+  ]);
+  expect(result.code).toBe(2);
+  expect(result.stderr).toContain("argument '[REDACTED]' is invalid");
+  expect(result.stderr).not.toContain("license-secret-42");
+});
