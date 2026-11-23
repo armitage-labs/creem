@@ -1164,6 +1164,13 @@ export function fromLemonSqueezy(
     );
   }
 
+  // A Creem product's key after this run: its own, or the one its adoption gives it.
+  const keyOfProductId = new Map(
+    creemCatalog.products.filter((p) => p.externalId).map((p) => [p.id, p.externalId as string]),
+  );
+  for (const item of productItems)
+    if (item.adopted_from) keyOfProductId.set(item.adopted_from, item.key);
+
   // ---- product groups: two or more migrated recurring variants of one LS product
   const plannedKeys = new Set(productItems.filter((i) => i.action !== "skip").map((i) => i.key));
   for (const product of productsInOrder) {
@@ -1188,18 +1195,34 @@ export function fromLemonSqueezy(
     groupItems.push(item);
     if (existing) {
       item.creem_id = existing.id;
-      // The migrator owns the members with a variant key. A member without one
-      // is the merchant's: it stays, after the Lemon Squeezy members, so a
-      // re-run never removes it.
-      const stored = existing.products
-        .map((p) => p.externalId ?? "")
-        .filter((k) => LS_VARIANT_KEY.test(k));
-      const merchants = existing.products.filter((p) => !LS_VARIANT_KEY.test(p.externalId ?? ""));
+      // Like a discount's products, the members only grow: the API keeps no
+      // record of which members the migrator added, so it can't tell a variant
+      // LS dropped from one the merchant added. This LS product's variants come
+      // first, in LS order; every other stored member stays after them, by id
+      // (named once: a member this run adopts is one of the LS members).
+      const wanted = new Set(members);
+      const keyOf = (p: { id: string; externalId?: string | null }) =>
+        p.externalId ?? keyOfProductId.get(p.id) ?? null;
+      const stored = existing.products.map(keyOf).filter((k) => k !== null && wanted.has(k));
+      const others = existing.products.filter((p) => {
+        const k = keyOf(p);
+        return k === null || !wanted.has(k);
+      });
+      const kept = others
+        .map(keyOf)
+        .filter((k): k is string => k !== null && LS_VARIANT_KEY.test(k));
+      if (kept.length)
+        item.warnings.push(
+          issue(
+            "group_product_kept",
+            `Lemon Squeezy doesn't list ${kept.join(", ")} in this product. The migrator can't tell whether Lemon Squeezy dropped them or you added them in Creem, so they stay in the group; remove them in Creem if they shouldn't be in it. This warning repeats on every run.`,
+          ),
+        );
       if (stored.length === members.length && stored.every((k, i) => k === members[i])) {
         item.action = "unchanged";
         continue;
       }
-      products.push(...merchants.map((p) => ({ id: p.id })));
+      products.push(...others.map((p) => ({ id: p.id })));
       // `products` is the complete ordered list; the merchant's name stays.
       item.action = "update";
       item.changes.push("products");
@@ -1220,11 +1243,6 @@ export function fromLemonSqueezy(
   const migratedKeys = productItems
     .filter((i) => i.action === "create" || i.action === "update" || i.action === "unchanged")
     .map((i) => i.key);
-  const keyOfProductId = new Map(
-    creemCatalog.products.filter((p) => p.externalId).map((p) => [p.id, p.externalId as string]),
-  );
-  for (const item of productItems)
-    if (item.adopted_from) keyOfProductId.set(item.adopted_from, item.key);
   // Like a product orphan: a keyed Creem discount this run doesn't migrate still
   // redeems. Reported, never expired: that would be a write nobody asked for.
   const stillRedeemable = (id: string) =>

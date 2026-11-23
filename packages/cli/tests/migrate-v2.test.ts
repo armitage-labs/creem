@@ -1029,3 +1029,58 @@ describe("ENG-2972 re-check: a failed adoption is never offered to discounts or 
     ).not.toContain(icon.id);
   });
 });
+
+describe("ENG-2972 re-check: the migrator never removes a group member", () => {
+  it("keeps a merchant-added member with a variant key of another LS product, with a warning", async () => {
+    const creem = fakeCreem(V1_STORE);
+    await migrate(creem);
+    const team = creem.state.products.find((p) => p.external_id === "ls_variant_910007")!;
+    creem.state.productGroups[0].products.push({ id: team.id, external_id: team.external_id });
+
+    const again = await migrate(creem);
+    const group = again.report.items.find((i) => i.key === "ls_product_262308")!;
+    expect(group.action).toBe("unchanged");
+    expect(group.warnings).toEqual([expect.objectContaining({ code: "group_product_kept" })]);
+    expect(group.warnings[0].message).toContain("ls_variant_910007");
+    expect(groupKeys(creem)).toContain("ls_variant_910007");
+
+    await migrateWith(creem, { change: addVariant("999001") });
+    expect(groupKeys(creem)).toEqual([
+      "ls_variant_365902",
+      "ls_variant_752120",
+      "ls_variant_999001",
+      "ls_variant_910007",
+    ]);
+  });
+
+  it("keeps a keyed member Lemon Squeezy no longer lists, with a warning", async () => {
+    const creem = fakeCreem(V1_STORE);
+    await migrate(creem);
+    creem.state.products.push(
+      productJson("prod_gone", { name: "Retired tier", external_id: "ls_variant_888888" }),
+    );
+    creem.state.productGroups[0].products.push({
+      id: "prod_gone",
+      external_id: "ls_variant_888888",
+    });
+    const again = await migrate(creem);
+    const group = again.report.items.find((i) => i.key === "ls_product_262308")!;
+    expect(group.action).toBe("unchanged");
+    expect(group.warnings.map((w) => w.code)).toEqual(["group_product_kept"]);
+    expect(group.warnings[0].message).toContain("ls_variant_888888");
+    expect(groupKeys(creem)).toContain("ls_variant_888888");
+  });
+
+  it("still restores the Lemon Squeezy order when the members were reordered", async () => {
+    const creem = fakeCreem(V1_STORE);
+    await migrate(creem);
+    creem.state.productGroups[0].products.reverse();
+    const again = await migrate(creem);
+    expect(again.report.items.find((i) => i.key === "ls_product_262308")).toMatchObject({
+      action: "update",
+      changes: ["products"],
+      status: "done",
+    });
+    expect(groupKeys(creem)).toEqual(["ls_variant_365902", "ls_variant_752120"]);
+  });
+});
