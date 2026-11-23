@@ -211,3 +211,31 @@ it("catalog validate sends the --data batch to catalog.validate", async () => {
   expect(spy).toHaveBeenCalledExactlyOnceWith(batch, expect.anything());
   expect(JSON.parse(result.stdout)).toMatchObject({ valid: true });
 });
+
+it.each([
+  ["products", "create"],
+  ["products", "update"],
+  ["discounts", "create"],
+  ["discounts", "update"],
+  ["meters", "create"],
+  ["product-groups", "create"],
+  ["product-groups", "update"],
+])(
+  "%s %s --help explains --dry-run and --if-none-match instead of naming the SDK field",
+  async (resource, command) => {
+    const result = await harness().run([resource, command, "--help"]);
+    expect(result.code, result.stderr).toBe(0);
+    const line = (flag: string) => result.stdout.split("\n").find((l) => l.trim().startsWith(flag));
+    expect(line("--dry-run")).toMatch(/^\s*--dry-run\s+Check the write/);
+    expect(result.stdout).not.toMatch(/dryRun|ifNoneMatch/);
+    if (command === "create")
+      expect(line("--if-none-match")).toMatch(/--if-none-match <value>\s+\S+/);
+  },
+);
+
+it("--dry-run alone is a dry run", async () => {
+  const h = harness();
+  const spy = vi.spyOn(h.client.products, "update").mockRejectedValue(new Error("SDK_SENTINEL"));
+  await h.run(["products", "update", "prod_1", "--name", "X", "--dry-run", "--json", "--yes"]);
+  expect(spy.mock.calls[0][0]).toMatchObject({ id: "prod_1", dryRun: true });
+});

@@ -51,8 +51,25 @@ export function outputFormat(command: Command): string {
 function attribute(flag: string): string {
   return flag.replace(/^--/, "").replace(/-([a-z])/g, (_m, c: string) => c.toUpperCase());
 }
+/** Help for the write parameters whose SDK name says nothing on its own. */
+const PARAMETER_HELP: Record<string, string> = {
+  ifNoneMatch:
+    "Send * to create only: an object with the same external ID answers 412 instead of being updated",
+};
+
 function addInputFlag(command: Command, flag: string, schema: InputSchema, name: string): void {
   if (command.options.some((o) => o.long === flag)) return;
+  if (name === "dryRun") {
+    command.option(
+      flag,
+      "Check the write and change nothing: Creem answers what it would do (write_result.dry_run: true)",
+    );
+    return;
+  }
+  if (PARAMETER_HELP[name]) {
+    command.option(`${flag} <value>`, PARAMETER_HELP[name], (v) => parseInput(name, v, schema));
+    return;
+  }
   const type = schema.type;
   const description = `${name}${schema.enum ? ` (${schema.enum.join("|")})` : ""}${type === "array" ? " (repeatable; JSON for objects)" : ""}`;
   if (type === "array" || name === "metadata")
