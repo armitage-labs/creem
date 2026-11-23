@@ -64,11 +64,45 @@ For transactions recovered through abandoned cart functionality, an additional *
 
 These additional fees help cover the specialized infrastructure and processing costs associated with these advanced features.
 
+## Currency Conversion Fee
+
+When a customer pays in their local currency and it differs from your product's currency, the price is converted at the market rate plus a **2% currency conversion fee**. The customer pays this fee, and it is shown to them at checkout (for example, "1 USD = 10.00 SEK + 2% conversion fee"). This fee covers currency fluctuations and the costs of supporting local currencies.
+
+No currency conversion fee applies between USD and EUR, or when the customer pays in your product's currency.
+
+The platform fee is calculated on the converted product price, without the currency conversion fee. Your balance is credited in the currency the customer paid in.
+
+Here's an example breakdown where someone in Sweden buys a $20.00 product and pays in SEK. The rate is an example, and tax is left out to keep it simple.
+
+| Description                                                 | Amount            |
+| ----------------------------------------------------------- | ----------------- |
+| Product price                                               | $20.00            |
+| Market rate (example)                                       | 1 USD = 10.00 SEK |
+| Converted product price                                     | 200.00 SEK        |
+| Currency conversion fee (2%)                                | 4.00 SEK          |
+| Total paid by the customer                                  | 204.00 SEK        |
+| Platform fee (3.9% + 0.40c, on 200.00 SEK)                  | 11.80 SEK         |
+| Net profit (total - currency conversion fee - platform fee) | 188.20 SEK        |
+
 ## Payout Fees
 
 Creem charges 7 USD/EUR or 1% of the payout amount, whichever is higher, to cover bank transfer costs.
-Conversion rates are automatically applied by our banking partners if your registered bank account uses a different currency than the one you charge customers in.
+Conversion rates are automatically applied by our banking partners if your registered bank account uses a different currency than your USD or EUR balance.
 In that case, a small conversion fee from our Partners will be applied, which is outside of our control.
+
+### Converting Local Currency Balances
+
+Payouts are made from your USD and EUR balances. If you have a balance in another currency (for example, SEK from customers who paid in their local currency), convert it to USD or EUR on your **Balances** page before you request a payout.
+
+The conversion uses the market rate plus a **2% currency conversion fee**. Before you confirm, you see the rate, the fee, and the amount you will receive. The converted amount is added to your USD or EUR balance and is paid out with your next payout.
+
+**Example:**
+
+- SEK balance: 188.20 SEK
+- Currency conversion fee (2%): 3.76 SEK
+- Amount converted: 184.44 SEK
+- Market rate (example): 1 SEK = 0.10 USD
+- Added to your USD balance: $18.44
 
 ### Stablecoin Payouts (USDC via Polygon)
 
