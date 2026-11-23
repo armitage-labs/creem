@@ -22,13 +22,15 @@
       },
       "construct": [
         "(options?: import(\"<sdk>/lib/config\").SDKOptions) => import(\"<sdk>/sdk/sdk\").Creem"
-      ]
+      ],
+      "ref": "import(\"<sdk>/sdk/sdk\").Creem"
     },
     "Fetcher": {
       "properties": {},
       "signatures": [
         "(input: RequestInfo | URL, init?: RequestInit | undefined) => Promise<Response>"
-      ]
+      ],
+      "ref": "import(\"<sdk>/lib/http\").Fetcher"
     },
     "files": null,
     "HTTPClient": {
@@ -40,12 +42,14 @@
       },
       "construct": [
         "(options?: import(\"<sdk>/lib/http\").HTTPClientOptions) => import(\"<sdk>/lib/http\").HTTPClient"
-      ]
+      ],
+      "ref": "import(\"<sdk>/lib/http\").HTTPClient"
     },
     "HTTPClientOptions": {
       "properties": {
         "fetcher?": "import(\"<sdk>/lib/http\").Fetcher | undefined"
-      }
+      },
+      "ref": "import(\"<sdk>/lib/http\").HTTPClientOptions"
     },
     "SDK_METADATA": null,
     "SDKOptions": {
@@ -58,7 +62,8 @@
         "serverURL?": "string | undefined",
         "timeoutMs?": "number | undefined",
         "userAgent?": "string | undefined"
-      }
+      },
+      "ref": "import(\"<sdk>/lib/config\").SDKOptions"
     },
     "ServerList": {
       "enum": {
@@ -82,7 +87,8 @@
         "data": "import(\"<sdk>/models/components/accountresponsedto\").AccountResponseDto[]",
         "hasMore": "boolean",
         "object": "string"
-      }
+      },
+      "ref": "import(\"<sdk>/models/components/accountlistresponsedto\").AccountListResponseDto"
     },
     "AccountListResponseDto$inboundSchema": null,
     "AccountListResponseDto$Outbound": null,
@@ -103,7 +109,8 @@
         "storeId": "string",
         "unitLabel": "string",
         "updatedAt": "string"
-      }
+      },
+      "ref": "import(\"<sdk>/models/components/accountresponsedto\").AccountResponseDto"
     },
     "AccountResponseDto$inboundSchema": null,
     "AccountResponseDto$Outbound": null,
@@ -122,7 +129,8 @@
         "\"closed\"",
         "\"frozen\"",
         "import(\"<sdk>/types/unrecognized\").Unrecognized<string>"
-      ]
+      ],
+      "ref": "import(\"<sdk>/models/components/accountresponsedto\").AccountResponseDtoStatus"
     },
     "AccountResponseDtoStatus$inboundSchema": null,
     "AccountResponseDtoStatus$outboundSchema": null,
@@ -133,7 +141,8 @@
       "properties": {
         "responseBody?": "string | undefined",
         "statusCode": "number"
-      }
+      },
+      "ref": "import(\"<sdk>/models/components/acknowledgewebhookeventrequestentity\").AcknowledgeWebhookEventRequestEntity"
     },
     "AcknowledgeWebhookEventRequestEntity$inboundSchema": null,
     "AcknowledgeWebhookEventRequestEntity$Outbound": null,
@@ -157,7 +166,8 @@
         "\"revoke_credit\"",
         "\"top_up\"",
         "import(\"<sdk>/types/unrecognized\").Unrecognized<string>"
-      ]
+      ],
+      "ref": "import(\"<sdk>/models/components/marketplacegrantaskentity\").Action"
     },
     "Action$inboundSchema": null,
     "Action$outboundSchema": null,
@@ -165,7 +175,8 @@
       "properties": {
         "instanceName": "string",
         "key": "string"
-      }
+      },
+      "ref": "import(\"<sdk>/models/components/activatelicenserequestentity\").ActivateLicenseRequestEntity"
     },
     "ActivateLicenseRequestEntity$inboundSchema": null,
     "ActivateLicenseRequestEntity$Outbound": null,
@@ -190,7 +201,8 @@
         "referralCode": "string",
         "referralLink": "string",
         "status": "string"
-      }
+      },
+      "ref": "import(\"<sdk>/models/components/affiliateentity\").AffiliateEntity"
     },
     "AffiliateEntity$inboundSchema": null,
     "AffiliateEntity$Outbound": null,
@@ -210,7 +222,8 @@
         "name?": "string | null | undefined",
         "object": "string",
         "status": "string"
-      }
+      },
+      "ref": "import(\"<sdk>/models/components/affiliateinviteentity\").AffiliateInviteEntity"
     },
     "AffiliateInviteEntity$inboundSchema": null,
     "AffiliateInviteEntity$Outbound": null,
@@ -225,7 +238,8 @@
       "properties": {
         "items": "import(\"<sdk>/models/components/affiliateinviteentity\").AffiliateInviteEntity[]",
         "pagination": "import(\"<sdk>/models/components/paginationentity\").PaginationEntity"
-      }
+      },
+      "ref": "import(\"<sdk>/models/components/affiliateinvitelistentity\").AffiliateInviteListEntity"
     },
     "AffiliateInviteListEntity$inboundSchema": null,
     "AffiliateInviteListEntity$Outbound": null,
@@ -240,7 +254,8 @@
       "properties": {
         "items": "import(\"<sdk>/models/components/affiliateentity\").AffiliateEntity[]",
         "pagination": "import(\"<sdk>/models/components/paginationentity\").PaginationEntity"
-      }
+      },
+      "ref": "import(\"<sdk>/models/components/affiliatelistentity\").AffiliateListEntity"
     },
     "AffiliateListEntity$inboundSchema": null,
     "AffiliateListEntity$Outbound": null,
@@ -267,7 +282,8 @@
         "\"min\"",
         "\"sum\"",
         "\"unique\""
-      ]
+      ],
+      "ref": "import(\"<sdk>/models/components/createmeterapirequestdto\").Aggregation"
     },
     "Aggregation$inboundSchema": null,
     "Aggregation$outboundSchema": null,
@@ -276,7 +292,8 @@
         "asOf?": "string | undefined",
         "balance": "string",
         "updatedAt?": "string | undefined"
-      }
+      },
+      "ref": "import(\"<sdk>/models/components/balanceresponsedto\").BalanceResponseDto"
     },
     "BalanceResponseDto$inboundSchema": null,
     "BalanceResponseDto$Outbound": null,
@@ -291,7 +308,8 @@
       "properties": {
         "mode?": "import(\"<sdk>/models/components/cancelsubscriptionrequestentity\").Mode | undefined",
         "onExecute?": "import(\"<sdk>/models/components/cancelsubscriptionrequestentity\").OnExecute | undefined"
-      }
+      },
+      "ref": "import(\"<sdk>/models/components/cancelsubscriptionrequestentity\").CancelSubscriptionRequestEntity"
     },
     "CancelSubscriptionRequestEntity$inboundSchema": null,
     "CancelSubscriptionRequestEntity$Outbound": null,
@@ -306,7 +324,8 @@
       "properties": {
         "label?": "string | null | undefined",
         "value?": "boolean | null | undefined"
-      }
+      },
+      "ref": "import(\"<sdk>/models/components/customfield\").Checkbox"
     },
     "Checkbox$inboundSchema": null,
     "Checkbox$Outbound": null,
@@ -314,7 +333,8 @@
     "CheckboxFieldConfig": {
       "properties": {
         "label?": "string | undefined"
-      }
+      },
+      "ref": "import(\"<sdk>/models/components/checkboxfieldconfig\").CheckboxFieldConfig"
     },
     "CheckboxFieldConfig$inboundSchema": null,
     "CheckboxFieldConfig$Outbound": null,
@@ -335,7 +355,8 @@
       "union": [
         "import(\"<sdk>/models/components/checkoutentity\").CheckoutEntity",
         "string"
-      ]
+      ],
+      "ref": "import(\"<sdk>/models/components/refundentity\").Checkout"
     },
     "Checkout$inboundSchema": null,
     "Checkout$Outbound": null,
@@ -361,7 +382,8 @@
         "successUrl?": "string | null | undefined",
         "trialPeriodDays?": "number | undefined",
         "units?": "number | undefined"
-      }
+      },
+      "ref": "import(\"<sdk>/models/components/checkoutentity\").CheckoutEntity"
     },
     "CheckoutEntity$inboundSchema": null,
     "CheckoutEntity$Outbound": null,
@@ -370,7 +392,8 @@
       "union": [
         "import(\"<sdk>/models/components/customerentity\").CustomerEntity",
         "string"
-      ]
+      ],
+      "ref": "import(\"<sdk>/models/components/checkoutentity\").CheckoutEntityCustomer"
     },
     "CheckoutEntityCustomer$inboundSchema": null,
     "CheckoutEntityCustomer$Outbound": null,
@@ -382,7 +405,8 @@
         "requiresModeration?": "boolean | undefined",
         "resetsEachPeriod?": "boolean | undefined",
         "unitLabel?": "string | null | undefined"
-      }
+      },
+      "ref": "import(\"<sdk>/models/components/checkoutentity\").CheckoutEntityCustomerCredits"
     },
     "CheckoutEntityCustomerCredits$inboundSchema": null,
     "CheckoutEntityCustomerCredits$Outbound": null,
@@ -408,7 +432,8 @@
         "id?": "string | undefined",
         "name?": "string | undefined",
         "type?": "import(\"<sdk>/models/components/checkoutentity\").CheckoutEntityType | undefined"
-      }
+      },
+      "ref": "import(\"<sdk>/models/components/checkoutentity\").CheckoutEntityDiscount"
     },
     "CheckoutEntityDiscount$inboundSchema": null,
     "CheckoutEntityDiscount$Outbound": null,
@@ -430,7 +455,8 @@
         "\"once\"",
         "\"repeating\"",
         "import(\"<sdk>/types/unrecognized\").Unrecognized<string>"
-      ]
+      ],
+      "ref": "import(\"<sdk>/models/components/checkoutentity\").CheckoutEntityDuration"
     },
     "CheckoutEntityDuration$inboundSchema": null,
     "CheckoutEntityDuration$outboundSchema": null,
@@ -442,7 +468,8 @@
         "name": "string",
         "object": "string",
         "status": "import(\"<sdk>/models/components/checkoutentity\").CheckoutEntityFeatureStatus"
-      }
+      },
+      "ref": "import(\"<sdk>/models/components/checkoutentity\").CheckoutEntityFeatureInstance"
     },
     "CheckoutEntityFeatureInstance$inboundSchema": null,
     "CheckoutEntityFeatureInstance$Outbound": null,
@@ -462,7 +489,8 @@
         "\"active\"",
         "\"deactivated\"",
         "import(\"<sdk>/types/unrecognized\").Unrecognized<string>"
-      ]
+      ],
+      "ref": "import(\"<sdk>/models/components/checkoutentity\").CheckoutEntityFeatureStatus"
     },
     "CheckoutEntityFeatureStatus$inboundSchema": null,
     "CheckoutEntityFeatureStatus$outboundSchema": null,
@@ -477,7 +505,8 @@
         "name": "string",
         "object": "string",
         "status": "import(\"<sdk>/models/components/checkoutentity\").CheckoutEntityStatus"
-      }
+      },
+      "ref": "import(\"<sdk>/models/components/checkoutentity\").CheckoutEntityInstance"
     },
     "CheckoutEntityInstance$inboundSchema": null,
     "CheckoutEntityInstance$Outbound": null,
@@ -492,7 +521,8 @@
       "union": [
         "import(\"<sdk>/models/components/productentity\").ProductEntity",
         "string"
-      ]
+      ],
+      "ref": "import(\"<sdk>/models/components/checkoutentity\").CheckoutEntityProduct"
     },
     "CheckoutEntityProduct$inboundSchema": null,
     "CheckoutEntityProduct$Outbound": null,
@@ -512,7 +542,8 @@
         "\"active\"",
         "\"deactivated\"",
         "import(\"<sdk>/types/unrecognized\").Unrecognized<string>"
-      ]
+      ],
+      "ref": "import(\"<sdk>/models/components/checkoutentity\").CheckoutEntityStatus"
     },
     "CheckoutEntityStatus$inboundSchema": null,
     "CheckoutEntityStatus$outboundSchema": null,
@@ -528,7 +559,8 @@
         "\"fixed\"",
         "\"percentage\"",
         "import(\"<sdk>/types/unrecognized\").Unrecognized<string>"
-      ]
+      ],
+      "ref": "import(\"<sdk>/models/components/checkoutentity\").CheckoutEntityType"
     },
     "CheckoutEntityType$inboundSchema": null,
     "CheckoutEntityType$outboundSchema": null,
@@ -549,7 +581,8 @@
         "\"no_matching_meter\"",
         "\"timestamp_outside_late_window\"",
         "import(\"<sdk>/types/unrecognized\").Unrecognized<string>"
-      ]
+      ],
+      "ref": "import(\"<sdk>/models/components/ingestusageeventwarningapidto\").Code"
     },
     "Code$inboundSchema": null,
     "Code$outboundSchema": null,
@@ -564,7 +597,8 @@
         "object": "string",
         "sale?": "string | null | undefined",
         "status": "import(\"<sdk>/models/components/commissionstatus\").CommissionStatus"
-      }
+      },
+      "ref": "import(\"<sdk>/models/components/commissionentity\").CommissionEntity"
     },
     "CommissionEntity$inboundSchema": null,
     "CommissionEntity$Outbound": null,
@@ -579,7 +613,8 @@
       "properties": {
         "items": "import(\"<sdk>/models/components/commissionentity\").CommissionEntity[]",
         "pagination": "import(\"<sdk>/models/components/paginationentity\").PaginationEntity"
-      }
+      },
+      "ref": "import(\"<sdk>/models/components/commissionlistentity\").CommissionListEntity"
     },
     "CommissionListEntity$inboundSchema": null,
     "CommissionListEntity$Outbound": null,
@@ -601,7 +636,8 @@
         "\"paid\"",
         "\"pending\"",
         "import(\"<sdk>/types/unrecognized\").Unrecognized<string>"
-      ]
+      ],
+      "ref": "import(\"<sdk>/models/components/commissionstatus\").CommissionStatus"
     },
     "CommissionStatus$inboundSchema": null,
     "CommissionStatus$outboundSchema": null,
@@ -613,7 +649,8 @@
       "union": [
         "\"and\"",
         "\"or\""
-      ]
+      ],
+      "ref": "import(\"<sdk>/models/components/meterfilterapirequestdto\").Conjunction"
     },
     "Conjunction$inboundSchema": null,
     "Conjunction$outboundSchema": null,
@@ -627,7 +664,8 @@
         "\"forever\"",
         "\"once\"",
         "\"repeating\""
-      ]
+      ],
+      "ref": "import(\"<sdk>/models/components/coupondurationtype\").CouponDurationType"
     },
     "CouponDurationType$inboundSchema": null,
     "CouponDurationType$outboundSchema": null,
@@ -637,7 +675,8 @@
         "initialBalance?": "string | undefined",
         "name?": "string | undefined",
         "unitLabel?": "string | undefined"
-      }
+      },
+      "ref": "import(\"<sdk>/models/components/createaccountdto\").CreateAccountDto"
     },
     "CreateAccountDto$inboundSchema": null,
     "CreateAccountDto$Outbound": null,
@@ -653,7 +692,8 @@
         "email": "string",
         "name": "string",
         "programId?": "string | null | undefined"
-      }
+      },
+      "ref": "import(\"<sdk>/models/components/createaffiliateinviterequestentity\").CreateAffiliateInviteRequestEntity"
     },
     "CreateAffiliateInviteRequestEntity$inboundSchema": null,
     "CreateAffiliateInviteRequestEntity$Outbound": null,
@@ -678,7 +718,8 @@
         "successUrl?": "string | undefined",
         "trialPeriodDays?": "number | undefined",
         "units?": "number | undefined"
-      }
+      },
+      "ref": "import(\"<sdk>/models/components/createcheckoutrequest\").CreateCheckoutRequest"
     },
     "CreateCheckoutRequest$inboundSchema": null,
     "CreateCheckoutRequest$Outbound": null,
@@ -692,7 +733,8 @@
     "CreateCustomerPortalLinkRequestEntity": {
       "properties": {
         "customerId": "string"
-      }
+      },
+      "ref": "import(\"<sdk>/models/components/createcustomerportallinkrequestentity\").CreateCustomerPortalLinkRequestEntity"
     },
     "CreateCustomerPortalLinkRequestEntity$inboundSchema": null,
     "CreateCustomerPortalLinkRequestEntity$Outbound": null,
@@ -710,7 +752,8 @@
         "externalId?": "string | undefined",
         "metadata?": "{ [k: string]: any; } | undefined",
         "name?": "string | undefined"
-      }
+      },
+      "ref": "import(\"<sdk>/models/components/createcustomerrequestentity\").CreateCustomerRequestEntity"
     },
     "CreateCustomerRequestEntity$inboundSchema": null,
     "CreateCustomerRequestEntity$Outbound": null,
@@ -736,7 +779,8 @@
         "name": "string",
         "percentage?": "number | undefined",
         "type": "import(\"<sdk>/models/components/discounttype\").DiscountType"
-      }
+      },
+      "ref": "import(\"<sdk>/models/components/creatediscountrequestentity\").CreateDiscountRequestEntity"
     },
     "CreateDiscountRequestEntity$inboundSchema": null,
     "CreateDiscountRequestEntity$Outbound": null,
@@ -754,7 +798,8 @@
         "purpose": "\"product_file\"",
         "sha256": "string",
         "size": "number"
-      }
+      },
+      "ref": "import(\"<sdk>/models/components/createfileuploadrequestentity\").CreateFileUploadRequestEntity"
     },
     "CreateFileUploadRequestEntity$inboundSchema": null,
     "CreateFileUploadRequestEntity$Outbound": null,
@@ -774,7 +819,8 @@
         "filter?": "import(\"<sdk>/models/components/meterfilterapirequestdto\").MeterFilterApiRequestDto | undefined",
         "name": "string",
         "unitLabel": "string"
-      }
+      },
+      "ref": "import(\"<sdk>/models/components/createmeterapirequestdto\").CreateMeterApiRequestDto"
     },
     "CreateMeterApiRequestDto$inboundSchema": null,
     "CreateMeterApiRequestDto$Outbound": null,
@@ -812,7 +858,8 @@
         "trialPeriodDays?": "number | undefined",
         "trialPrice?": "number | undefined",
         "usagePrices?": "import(\"<sdk>/models/components/usagepricerequestentity\").UsagePriceRequestEntity[] | undefined"
-      }
+      },
+      "ref": "import(\"<sdk>/models/components/createproductrequestentity\").CreateProductRequestEntity"
     },
     "CreateProductRequestEntity$inboundSchema": null,
     "CreateProductRequestEntity$Outbound": null,
@@ -823,7 +870,8 @@
         "import(\"<sdk>/models/components/productfilefeaturerequestentity\").ProductFileFeatureRequestEntity",
         "import(\"<sdk>/models/components/productlicensekeyfeaturerequestentity\").ProductLicenseKeyFeatureRequestEntity",
         "import(\"<sdk>/models/components/productprivatenotefeaturerequestentity\").ProductPrivateNoteFeatureRequestEntity"
-      ]
+      ],
+      "ref": "import(\"<sdk>/models/components/createproductrequestentity\").CreateProductRequestEntityFeatures"
     },
     "CreateProductRequestEntityFeatures$inboundSchema": null,
     "CreateProductRequestEntityFeatures$Outbound": null,
@@ -843,7 +891,8 @@
     "CreateRefundRequestEntity": {
       "properties": {
         "transactionId": "string"
-      }
+      },
+      "ref": "import(\"<sdk>/models/components/createrefundrequestentity\").CreateRefundRequestEntity"
     },
     "CreateRefundRequestEntity$inboundSchema": null,
     "CreateRefundRequestEntity$Outbound": null,
@@ -859,7 +908,8 @@
         "amount": "number",
         "recipientReference": "string",
         "recipientType": "import(\"<sdk>/models/components/createsplitrecipientrequestentity\").RecipientType"
-      }
+      },
+      "ref": "import(\"<sdk>/models/components/createsplitrecipientrequestentity\").CreateSplitRecipientRequestEntity"
     },
     "CreateSplitRecipientRequestEntity$inboundSchema": null,
     "CreateSplitRecipientRequestEntity$Outbound": null,
@@ -876,7 +926,8 @@
         "recipients": "import(\"<sdk>/models/components/createsplitrecipientrequestentity\").CreateSplitRecipientRequestEntity[]",
         "type": "import(\"<sdk>/models/components/createsplitrequestentity\").CreateSplitRequestEntityType",
         "typeReference": "string"
-      }
+      },
+      "ref": "import(\"<sdk>/models/components/createsplitrequestentity\").CreateSplitRequestEntity"
     },
     "CreateSplitRequestEntity$inboundSchema": null,
     "CreateSplitRequestEntity$Outbound": null,
@@ -895,7 +946,8 @@
       "union": [
         "\"product\"",
         "\"store\""
-      ]
+      ],
+      "ref": "import(\"<sdk>/models/components/createsplitrequestentity\").CreateSplitRequestEntityType"
     },
     "CreateSplitRequestEntityType$inboundSchema": null,
     "CreateSplitRequestEntityType$outboundSchema": null,
@@ -905,7 +957,8 @@
         "events?": "import(\"<sdk>/models/components/webhookeventtype\").WebhookEventType[] | undefined",
         "name?": "string | undefined",
         "url?": "string | undefined"
-      }
+      },
+      "ref": "import(\"<sdk>/models/components/createwebhookrequestentity\").CreateWebhookRequestEntity"
     },
     "CreateWebhookRequestEntity$inboundSchema": null,
     "CreateWebhookRequestEntity$Outbound": null,
@@ -921,7 +974,8 @@
         "amount": "string",
         "idempotencyKey": "string",
         "reference": "string"
-      }
+      },
+      "ref": "import(\"<sdk>/models/components/creditdebitrequestdto\").CreditDebitRequestDto"
     },
     "CreditDebitRequestDto$inboundSchema": null,
     "CreditDebitRequestDto$Outbound": null,
@@ -936,7 +990,8 @@
       "union": [
         "import(\"<sdk>/models/components/customerentity\").CustomerEntity",
         "string"
-      ]
+      ],
+      "ref": "import(\"<sdk>/models/components/subscriptionentity\").Customer"
     },
     "Customer$inboundSchema": null,
     "Customer$Outbound": null,
@@ -948,7 +1003,8 @@
         "requiresModeration?": "boolean | undefined",
         "resetsEachPeriod?": "boolean | undefined",
         "unitLabel?": "string | null | undefined"
-      }
+      },
+      "ref": "import(\"<sdk>/models/components/featureentity\").CustomerCredits"
     },
     "CustomerCredits$inboundSchema": null,
     "CustomerCredits$Outbound": null,
@@ -964,7 +1020,8 @@
         "object": "\"customer_credits_auto_recharge\"",
         "reference": "string",
         "unitLabel": "string"
-      }
+      },
+      "ref": "import(\"<sdk>/models/components/customercreditsautorechargeentity\").CustomerCreditsAutoRechargeEntity"
     },
     "CustomerCreditsAutoRechargeEntity$inboundSchema": null,
     "CustomerCreditsAutoRechargeEntity$Outbound": null,
@@ -976,7 +1033,8 @@
       "enum": {
         "CustomerCreditsAutoRecharge": "customer_credits_auto_recharge"
       },
-      "text": "\"customer_credits_auto_recharge\""
+      "text": "\"customer_credits_auto_recharge\"",
+      "ref": "import(\"<sdk>/models/components/customercreditsautorechargeentity\").CustomerCreditsAutoRechargeEntityObject"
     },
     "CustomerCreditsAutoRechargeEntityObject$inboundSchema": null,
     "CustomerCreditsAutoRechargeEntityObject$outboundSchema": null,
@@ -995,7 +1053,8 @@
         "occurredAt": "string",
         "reference": "string",
         "unitLabel": "string"
-      }
+      },
+      "ref": "import(\"<sdk>/models/components/customercreditsconsumptionentity\").CustomerCreditsConsumptionEntity"
     },
     "CustomerCreditsConsumptionEntity$inboundSchema": null,
     "CustomerCreditsConsumptionEntity$Outbound": null,
@@ -1007,7 +1066,8 @@
       "enum": {
         "CustomerCreditsConsumption": "customer_credits_consumption"
       },
-      "text": "\"customer_credits_consumption\""
+      "text": "\"customer_credits_consumption\"",
+      "ref": "import(\"<sdk>/models/components/customercreditsconsumptionentity\").CustomerCreditsConsumptionEntityObject"
     },
     "CustomerCreditsConsumptionEntityObject$inboundSchema": null,
     "CustomerCreditsConsumptionEntityObject$outboundSchema": null,
@@ -1021,7 +1081,8 @@
         "param?": "string | null | undefined",
         "requestId": "string",
         "type": "import(\"<sdk>/models/components/customercreditserrordetaildto\").CustomerCreditsErrorDetailDtoType"
-      }
+      },
+      "ref": "import(\"<sdk>/models/components/customercreditserrordetaildto\").CustomerCreditsErrorDetailDto"
     },
     "CustomerCreditsErrorDetailDto$inboundSchema": null,
     "CustomerCreditsErrorDetailDto$Outbound": null,
@@ -1045,7 +1106,8 @@
         "\"invalid_request_error\"",
         "\"rate_limit_error\"",
         "import(\"<sdk>/types/unrecognized\").Unrecognized<string>"
-      ]
+      ],
+      "ref": "import(\"<sdk>/models/components/customercreditserrordetaildto\").CustomerCreditsErrorDetailDtoType"
     },
     "CustomerCreditsErrorDetailDtoType$inboundSchema": null,
     "CustomerCreditsErrorDetailDtoType$outboundSchema": null,
@@ -1058,7 +1120,8 @@
         "occurredAt": "string",
         "shortfallMinorUnits": "string",
         "unitLabel": "string"
-      }
+      },
+      "ref": "import(\"<sdk>/models/components/customercreditsexhaustionentity\").CustomerCreditsExhaustionEntity"
     },
     "CustomerCreditsExhaustionEntity$inboundSchema": null,
     "CustomerCreditsExhaustionEntity$Outbound": null,
@@ -1076,7 +1139,8 @@
         "requiresModeration?": "boolean | undefined",
         "resetsEachPeriod?": "boolean | undefined",
         "unitLabel?": "string | null | undefined"
-      }
+      },
+      "ref": "import(\"<sdk>/models/components/customercreditsfeatureentity\").CustomerCreditsFeatureEntity"
     },
     "CustomerCreditsFeatureEntity$inboundSchema": null,
     "CustomerCreditsFeatureEntity$Outbound": null,
@@ -1102,7 +1166,8 @@
         "occurredAt": "string",
         "reference": "string",
         "unitLabel": "string"
-      }
+      },
+      "ref": "import(\"<sdk>/models/components/customercreditsgrantentity\").CustomerCreditsGrantEntity"
     },
     "CustomerCreditsGrantEntity$inboundSchema": null,
     "CustomerCreditsGrantEntity$Outbound": null,
@@ -1114,7 +1179,8 @@
       "enum": {
         "CustomerCreditsGrant": "customer_credits_grant"
       },
-      "text": "\"customer_credits_grant\""
+      "text": "\"customer_credits_grant\"",
+      "ref": "import(\"<sdk>/models/components/customercreditsgrantentity\").CustomerCreditsGrantEntityObject"
     },
     "CustomerCreditsGrantEntityObject$inboundSchema": null,
     "CustomerCreditsGrantEntityObject$outboundSchema": null,
@@ -1135,7 +1201,8 @@
         "reversedTransactionId": "string",
         "side": "import(\"<sdk>/models/components/customercreditsreversalentity\").CustomerCreditsReversalEntitySide",
         "unitLabel": "string"
-      }
+      },
+      "ref": "import(\"<sdk>/models/components/customercreditsreversalentity\").CustomerCreditsReversalEntity"
     },
     "CustomerCreditsReversalEntity$inboundSchema": null,
     "CustomerCreditsReversalEntity$Outbound": null,
@@ -1147,7 +1214,8 @@
       "enum": {
         "CustomerCreditsReversal": "customer_credits_reversal"
       },
-      "text": "\"customer_credits_reversal\""
+      "text": "\"customer_credits_reversal\"",
+      "ref": "import(\"<sdk>/models/components/customercreditsreversalentity\").CustomerCreditsReversalEntityObject"
     },
     "CustomerCreditsReversalEntityObject$inboundSchema": null,
     "CustomerCreditsReversalEntityObject$outboundSchema": null,
@@ -1160,7 +1228,8 @@
         "\"credit\"",
         "\"debit\"",
         "import(\"<sdk>/types/unrecognized\").Unrecognized<string>"
-      ]
+      ],
+      "ref": "import(\"<sdk>/models/components/customercreditsreversalentity\").CustomerCreditsReversalEntitySide"
     },
     "CustomerCreditsReversalEntitySide$inboundSchema": null,
     "CustomerCreditsReversalEntitySide$outboundSchema": null,
@@ -1182,7 +1251,8 @@
         "name?": "string | null | undefined",
         "object": "string",
         "updatedAt": "Date"
-      }
+      },
+      "ref": "import(\"<sdk>/models/components/customerentity\").CustomerEntity"
     },
     "CustomerEntity$inboundSchema": null,
     "CustomerEntity$Outbound": null,
@@ -1199,7 +1269,8 @@
     "CustomerLinksEntity": {
       "properties": {
         "customerPortalLink": "string"
-      }
+      },
+      "ref": "import(\"<sdk>/models/components/customerlinksentity\").CustomerLinksEntity"
     },
     "CustomerLinksEntity$inboundSchema": null,
     "CustomerLinksEntity$Outbound": null,
@@ -1214,7 +1285,8 @@
       "properties": {
         "items": "import(\"<sdk>/models/components/customerentity\").CustomerEntity[]",
         "pagination": "import(\"<sdk>/models/components/paginationentity\").PaginationEntity"
-      }
+      },
+      "ref": "import(\"<sdk>/models/components/customerlistentity\").CustomerListEntity"
     },
     "CustomerListEntity$inboundSchema": null,
     "CustomerListEntity$Outbound": null,
@@ -1230,7 +1302,8 @@
         "email?": "string | undefined",
         "id?": "string | undefined",
         "name?": "string | undefined"
-      }
+      },
+      "ref": "import(\"<sdk>/models/components/customerrequestentity\").CustomerRequestEntity"
     },
     "CustomerRequestEntity$inboundSchema": null,
     "CustomerRequestEntity$Outbound": null,
@@ -1252,7 +1325,8 @@
         "optional?": "boolean | null | undefined",
         "text?": "import(\"<sdk>/models/components/customfield\").Text | null | undefined",
         "type": "import(\"<sdk>/models/components/customfieldtype\").CustomFieldType"
-      }
+      },
+      "ref": "import(\"<sdk>/models/components/customfield\").CustomField"
     },
     "CustomField$inboundSchema": null,
     "CustomField$Outbound": null,
@@ -1268,7 +1342,8 @@
         "optional?": "boolean | undefined",
         "text?": "import(\"<sdk>/models/components/textfieldconfig\").TextFieldConfig | undefined",
         "type": "import(\"<sdk>/models/components/customfieldrequesttype\").CustomFieldRequestType"
-      }
+      },
+      "ref": "import(\"<sdk>/models/components/customfieldrequestentity\").CustomFieldRequestEntity"
     },
     "CustomFieldRequestEntity$inboundSchema": null,
     "CustomFieldRequestEntity$Outbound": null,
@@ -1287,7 +1362,8 @@
       "union": [
         "\"checkbox\"",
         "\"text\""
-      ]
+      ],
+      "ref": "import(\"<sdk>/models/components/customfieldrequesttype\").CustomFieldRequestType"
     },
     "CustomFieldRequestType$inboundSchema": null,
     "CustomFieldRequestType$outboundSchema": null,
@@ -1303,7 +1379,8 @@
         "\"checkbox\"",
         "\"text\"",
         "import(\"<sdk>/types/unrecognized\").Unrecognized<string>"
-      ]
+      ],
+      "ref": "import(\"<sdk>/models/components/customfieldtype\").CustomFieldType"
     },
     "CustomFieldType$inboundSchema": null,
     "CustomFieldType$outboundSchema": null,
@@ -1311,7 +1388,8 @@
       "properties": {
         "instanceId": "string",
         "key": "string"
-      }
+      },
+      "ref": "import(\"<sdk>/models/components/deactivatelicenserequestentity\").DeactivateLicenseRequestEntity"
     },
     "DeactivateLicenseRequestEntity$inboundSchema": null,
     "DeactivateLicenseRequestEntity$Outbound": null,
@@ -1328,7 +1406,8 @@
         "idempotencyKey": "string",
         "moderationId?": "string | undefined",
         "reference": "string"
-      }
+      },
+      "ref": "import(\"<sdk>/models/components/debitrequestdto\").DebitRequestDto"
     },
     "DebitRequestDto$inboundSchema": null,
     "DebitRequestDto$Outbound": null,
@@ -1350,7 +1429,8 @@
         "\"deny\"",
         "\"flag\"",
         "import(\"<sdk>/types/unrecognized\").Unrecognized<string>"
-      ]
+      ],
+      "ref": "import(\"<sdk>/models/components/screenpromptresponse\").Decision"
     },
     "Decision$inboundSchema": null,
     "Decision$outboundSchema": null,
@@ -1363,7 +1443,8 @@
         "id?": "string | undefined",
         "name?": "string | undefined",
         "type?": "import(\"<sdk>/models/components/subscriptionentity\").SubscriptionEntityType | undefined"
-      }
+      },
+      "ref": "import(\"<sdk>/models/components/subscriptionentity\").Discount"
     },
     "Discount$inboundSchema": null,
     "Discount$Outbound": null,
@@ -1387,7 +1468,8 @@
         "redeemCount?": "number | undefined",
         "status": "import(\"<sdk>/models/components/discountentity\").DiscountEntityStatus",
         "type": "import(\"<sdk>/models/components/discountentity\").Type"
-      }
+      },
+      "ref": "import(\"<sdk>/models/components/discountentity\").DiscountEntity"
     },
     "DiscountEntity$inboundSchema": null,
     "DiscountEntity$Outbound": null,
@@ -1410,7 +1492,8 @@
         "\"expired\"",
         "\"scheduled\"",
         "import(\"<sdk>/types/unrecognized\").Unrecognized<string>"
-      ]
+      ],
+      "ref": "import(\"<sdk>/models/components/discountentity\").DiscountEntityStatus"
     },
     "DiscountEntityStatus$inboundSchema": null,
     "DiscountEntityStatus$outboundSchema": null,
@@ -1424,7 +1507,8 @@
       "properties": {
         "items": "import(\"<sdk>/models/components/discountentity\").DiscountEntity[]",
         "pagination": "import(\"<sdk>/models/components/paginationentity\").PaginationEntity"
-      }
+      },
+      "ref": "import(\"<sdk>/models/components/discountlistentity\").DiscountListEntity"
     },
     "DiscountListEntity$inboundSchema": null,
     "DiscountListEntity$Outbound": null,
@@ -1446,7 +1530,8 @@
       "union": [
         "\"fixed\"",
         "\"percentage\""
-      ]
+      ],
+      "ref": "import(\"<sdk>/models/components/discounttype\").DiscountType"
     },
     "DiscountType$inboundSchema": null,
     "DiscountType$outboundSchema": null,
@@ -1463,7 +1548,8 @@
         "order?": "string | import(\"<sdk>/models/components/orderentity\").OrderEntity | undefined",
         "subscription?": "string | import(\"<sdk>/models/components/subscriptionentity\").SubscriptionEntity | undefined",
         "transaction": "import(\"<sdk>/models/components/transactionentity\").TransactionEntity"
-      }
+      },
+      "ref": "import(\"<sdk>/models/components/disputeentity\").DisputeEntity"
     },
     "DisputeEntity$inboundSchema": null,
     "DisputeEntity$Outbound": null,
@@ -1472,7 +1558,8 @@
       "union": [
         "import(\"<sdk>/models/components/checkoutentity\").CheckoutEntity",
         "string"
-      ]
+      ],
+      "ref": "import(\"<sdk>/models/components/disputeentity\").DisputeEntityCheckout"
     },
     "DisputeEntityCheckout$inboundSchema": null,
     "DisputeEntityCheckout$Outbound": null,
@@ -1487,7 +1574,8 @@
       "union": [
         "import(\"<sdk>/models/components/customerentity\").CustomerEntity",
         "string"
-      ]
+      ],
+      "ref": "import(\"<sdk>/models/components/disputeentity\").DisputeEntityCustomer"
     },
     "DisputeEntityCustomer$inboundSchema": null,
     "DisputeEntityCustomer$Outbound": null,
@@ -1505,7 +1593,8 @@
       "union": [
         "import(\"<sdk>/models/components/orderentity\").OrderEntity",
         "string"
-      ]
+      ],
+      "ref": "import(\"<sdk>/models/components/disputeentity\").DisputeEntityOrder"
     },
     "DisputeEntityOrder$inboundSchema": null,
     "DisputeEntityOrder$Outbound": null,
@@ -1520,7 +1609,8 @@
       "union": [
         "import(\"<sdk>/models/components/subscriptionentity\").SubscriptionEntity",
         "string"
-      ]
+      ],
+      "ref": "import(\"<sdk>/models/components/disputeentity\").DisputeEntitySubscription"
     },
     "DisputeEntitySubscription$inboundSchema": null,
     "DisputeEntitySubscription$Outbound": null,
@@ -1545,7 +1635,8 @@
         "\"once\"",
         "\"repeating\"",
         "import(\"<sdk>/types/unrecognized\").Unrecognized<string>"
-      ]
+      ],
+      "ref": "import(\"<sdk>/models/components/discountentity\").Duration"
     },
     "Duration$inboundSchema": null,
     "Duration$outboundSchema": null,
@@ -1554,7 +1645,8 @@
         "accountId": "string",
         "amount": "string",
         "side": "import(\"<sdk>/models/components/entryinputdto\").EntryInputDtoSide"
-      }
+      },
+      "ref": "import(\"<sdk>/models/components/entryinputdto\").EntryInputDto"
     },
     "EntryInputDto$inboundSchema": null,
     "EntryInputDto$Outbound": null,
@@ -1570,7 +1662,8 @@
       "union": [
         "\"credit\"",
         "\"debit\""
-      ]
+      ],
+      "ref": "import(\"<sdk>/models/components/entryinputdto\").EntryInputDtoSide"
     },
     "EntryInputDtoSide$inboundSchema": null,
     "EntryInputDtoSide$outboundSchema": null,
@@ -1582,7 +1675,8 @@
         "data": "import(\"<sdk>/models/components/entryresponsedto\").EntryResponseDto[]",
         "hasMore": "boolean",
         "object": "string"
-      }
+      },
+      "ref": "import(\"<sdk>/models/components/entrylistresponsedto\").EntryListResponseDto"
     },
     "EntryListResponseDto$inboundSchema": null,
     "EntryListResponseDto$Outbound": null,
@@ -1601,7 +1695,8 @@
         "id": "string",
         "side": "import(\"<sdk>/models/components/entryresponsedto\").Side",
         "transactionId": "string"
-      }
+      },
+      "ref": "import(\"<sdk>/models/components/entryresponsedto\").EntryResponseDto"
     },
     "EntryResponseDto$inboundSchema": null,
     "EntryResponseDto$Outbound": null,
@@ -1623,7 +1718,8 @@
         "\"sandbox\"",
         "\"test\"",
         "import(\"<sdk>/types/unrecognized\").Unrecognized<string>"
-      ]
+      ],
+      "ref": "import(\"<sdk>/models/components/environmentmode\").EnvironmentMode"
     },
     "EnvironmentMode$inboundSchema": null,
     "EnvironmentMode$outboundSchema": null,
@@ -1635,7 +1731,8 @@
         "code": "string",
         "message": "string",
         "param?": "string | null | undefined"
-      }
+      },
+      "ref": "import(\"<sdk>/models/components/previewusageeventreportapidto\").ErrorT"
     },
     "ErrorT$inboundSchema": null,
     "ErrorT$Outbound": null,
@@ -1647,7 +1744,8 @@
       "enum": {
         "CheckoutCompleted": "checkout.completed"
       },
-      "text": "\"checkout.completed\""
+      "text": "\"checkout.completed\"",
+      "ref": "import(\"<sdk>/models/components/webhookcheckoutcompletedevententity\").EventType"
     },
     "EventType$inboundSchema": null,
     "EventType$outboundSchema": null,
@@ -1661,7 +1759,8 @@
         "licenseKey?": "import(\"<sdk>/models/components/checkoutentity\").LicenseKey | null | undefined",
         "privateNote?": "string | null | undefined",
         "type?": "import(\"<sdk>/models/components/productfeaturetype\").ProductFeatureType | undefined"
-      }
+      },
+      "ref": "import(\"<sdk>/models/components/checkoutentity\").Feature"
     },
     "Feature$inboundSchema": null,
     "Feature$Outbound": null,
@@ -1676,7 +1775,8 @@
         "licenseKey?": "import(\"<sdk>/models/components/licensekeyfeatureentity\").LicenseKeyFeatureEntity | undefined",
         "privateNote?": "string | undefined",
         "type": "import(\"<sdk>/models/components/productfeaturetype\").ProductFeatureType"
-      }
+      },
+      "ref": "import(\"<sdk>/models/components/featureentity\").FeatureEntity"
     },
     "FeatureEntity$inboundSchema": null,
     "FeatureEntity$Outbound": null,
@@ -1694,7 +1794,8 @@
         "size": "number",
         "type": "string",
         "url": "string"
-      }
+      },
+      "ref": "import(\"<sdk>/models/components/featurefileentity\").FeatureFileEntity"
     },
     "FeatureFileEntity$inboundSchema": null,
     "FeatureFileEntity$Outbound": null,
@@ -1721,7 +1822,8 @@
         "purpose": "import(\"<sdk>/models/components/fileentity\").FileEntityPurpose",
         "sha256": "string | null",
         "size": "number"
-      }
+      },
+      "ref": "import(\"<sdk>/models/components/fileentity\").FileEntity"
     },
     "FileEntity$inboundSchema": null,
     "FileEntity$Outbound": null,
@@ -1733,7 +1835,8 @@
       "enum": {
         "File": "file"
       },
-      "text": "\"file\""
+      "text": "\"file\"",
+      "ref": "import(\"<sdk>/models/components/fileentity\").FileEntityObject"
     },
     "FileEntityObject$inboundSchema": null,
     "FileEntityObject$outboundSchema": null,
@@ -1744,7 +1847,8 @@
       "union": [
         "\"product_file\"",
         "import(\"<sdk>/types/unrecognized\").Unrecognized<string>"
-      ]
+      ],
+      "ref": "import(\"<sdk>/models/components/fileentity\").FileEntityPurpose"
     },
     "FileEntityPurpose$inboundSchema": null,
     "FileEntityPurpose$outboundSchema": null,
@@ -1757,7 +1861,8 @@
     "FileT": {
       "properties": {
         "files": "import(\"<sdk>/models/components/featurefileentity\").FeatureFileEntity[]"
-      }
+      },
+      "ref": "import(\"<sdk>/models/components/checkoutentity\").FileT"
     },
     "FileT$inboundSchema": null,
     "FileT$Outbound": null,
@@ -1771,7 +1876,8 @@
         "id": "string",
         "uploadFields": "{ [k: string]: string; }",
         "uploadUrl": "string"
-      }
+      },
+      "ref": "import(\"<sdk>/models/components/fileuploadentity\").FileUploadEntity"
     },
     "FileUploadEntity$inboundSchema": null,
     "FileUploadEntity$Outbound": null,
@@ -1786,7 +1892,8 @@
       "enum": {
         "ProductFile": "product_file"
       },
-      "text": "\"product_file\""
+      "text": "\"product_file\"",
+      "ref": "import(\"<sdk>/models/components/createfileuploadrequestentity\").FileUploadPurpose"
     },
     "FileUploadPurpose$inboundSchema": null,
     "FileUploadPurpose$outboundSchema": null,
@@ -1795,7 +1902,8 @@
         "operator": "import(\"<sdk>/models/components/filterclauseapirequestdto\").Operator",
         "property": "string",
         "value": "string | number | boolean"
-      }
+      },
+      "ref": "import(\"<sdk>/models/components/filterclauseapirequestdto\").FilterClauseApiRequestDto"
     },
     "FilterClauseApiRequestDto$inboundSchema": null,
     "FilterClauseApiRequestDto$Outbound": null,
@@ -1811,7 +1919,8 @@
         "operator": "string",
         "property": "string",
         "value": "string | number | boolean"
-      }
+      },
+      "ref": "import(\"<sdk>/models/components/filterclauseapiresponsedto\").FilterClauseApiResponseDto"
     },
     "FilterClauseApiResponseDto$inboundSchema": null,
     "FilterClauseApiResponseDto$Outbound": null,
@@ -1828,7 +1937,8 @@
         "number",
         "string",
         "true"
-      ]
+      ],
+      "ref": "import(\"<sdk>/models/components/filterclauseapiresponsedto\").FilterClauseApiResponseDtoValue"
     },
     "FilterClauseApiResponseDtoValue$inboundSchema": null,
     "FilterClauseApiResponseDtoValue$Outbound": null,
@@ -1847,7 +1957,8 @@
         "name": "string",
         "properties?": "{ [k: string]: any; } | undefined",
         "timestamp?": "string | undefined"
-      }
+      },
+      "ref": "import(\"<sdk>/models/components/ingestusageeventapirequestdto\").IngestUsageEventApiRequestDto"
     },
     "IngestUsageEventApiRequestDto$inboundSchema": null,
     "IngestUsageEventApiRequestDto$Outbound": null,
@@ -1861,7 +1972,8 @@
     "IngestUsageEventsApiRequestDto": {
       "properties": {
         "events": "import(\"<sdk>/models/components/ingestusageeventapirequestdto\").IngestUsageEventApiRequestDto[]"
-      }
+      },
+      "ref": "import(\"<sdk>/models/components/ingestusageeventsapirequestdto\").IngestUsageEventsApiRequestDto"
     },
     "IngestUsageEventsApiRequestDto$inboundSchema": null,
     "IngestUsageEventsApiRequestDto$Outbound": null,
@@ -1877,7 +1989,8 @@
         "accepted": "number",
         "eventIds": "string[]",
         "warnings?": "import(\"<sdk>/models/components/ingestusageeventwarningapidto\").IngestUsageEventWarningApiDto[] | undefined"
-      }
+      },
+      "ref": "import(\"<sdk>/models/components/ingestusageeventsapiresponsedto\").IngestUsageEventsApiResponseDto"
     },
     "IngestUsageEventsApiResponseDto$inboundSchema": null,
     "IngestUsageEventsApiResponseDto$Outbound": null,
@@ -1893,7 +2006,8 @@
         "code": "import(\"<sdk>/models/components/ingestusageeventwarningapidto\").Code",
         "index": "number",
         "message": "string"
-      }
+      },
+      "ref": "import(\"<sdk>/models/components/ingestusageeventwarningapidto\").IngestUsageEventWarningApiDto"
     },
     "IngestUsageEventWarningApiDto$inboundSchema": null,
     "IngestUsageEventWarningApiDto$Outbound": null,
@@ -1912,7 +2026,8 @@
         "name": "string",
         "object": "string",
         "status": "import(\"<sdk>/models/components/licenseentity\").LicenseEntityStatus"
-      }
+      },
+      "ref": "import(\"<sdk>/models/components/licenseentity\").Instance"
     },
     "Instance$inboundSchema": null,
     "Instance$Outbound": null,
@@ -1934,7 +2049,8 @@
         "\"pending\"",
         "\"revoked\"",
         "import(\"<sdk>/types/unrecognized\").Unrecognized<string>"
-      ]
+      ],
+      "ref": "import(\"<sdk>/models/components/splitrecipiententity\").InviteStatus"
     },
     "InviteStatus$inboundSchema": null,
     "InviteStatus$outboundSchema": null,
@@ -1951,7 +2067,8 @@
         "object": "string",
         "productId": "string",
         "status": "import(\"<sdk>/models/components/licensestatus\").LicenseStatus"
-      }
+      },
+      "ref": "import(\"<sdk>/models/components/checkoutentity\").License"
     },
     "License$inboundSchema": null,
     "License$Outbound": null,
@@ -1969,7 +2086,8 @@
         "object": "string",
         "productId": "string",
         "status": "import(\"<sdk>/models/components/licensestatus\").LicenseStatus"
-      }
+      },
+      "ref": "import(\"<sdk>/models/components/licenseentity\").LicenseEntity"
     },
     "LicenseEntity$inboundSchema": null,
     "LicenseEntity$Outbound": null,
@@ -1986,7 +2104,8 @@
         "\"active\"",
         "\"deactivated\"",
         "import(\"<sdk>/types/unrecognized\").Unrecognized<string>"
-      ]
+      ],
+      "ref": "import(\"<sdk>/models/components/licenseentity\").LicenseEntityStatus"
     },
     "LicenseEntityStatus$inboundSchema": null,
     "LicenseEntityStatus$outboundSchema": null,
@@ -2004,7 +2123,8 @@
         "name": "string",
         "object": "string",
         "status": "import(\"<sdk>/models/components/licenseinstanceentity\").LicenseInstanceEntityStatus"
-      }
+      },
+      "ref": "import(\"<sdk>/models/components/licenseinstanceentity\").LicenseInstanceEntity"
     },
     "LicenseInstanceEntity$inboundSchema": null,
     "LicenseInstanceEntity$Outbound": null,
@@ -2021,7 +2141,8 @@
         "\"active\"",
         "\"deactivated\"",
         "import(\"<sdk>/types/unrecognized\").Unrecognized<string>"
-      ]
+      ],
+      "ref": "import(\"<sdk>/models/components/licenseinstanceentity\").LicenseInstanceEntityStatus"
     },
     "LicenseInstanceEntityStatus$inboundSchema": null,
     "LicenseInstanceEntityStatus$outboundSchema": null,
@@ -2032,7 +2153,8 @@
       "properties": {
         "items": "import(\"<sdk>/models/components/licenseinstanceentity\").LicenseInstanceEntity[]",
         "pagination": "import(\"<sdk>/models/components/paginationentity\").PaginationEntity"
-      }
+      },
+      "ref": "import(\"<sdk>/models/components/licenseinstancelistentity\").LicenseInstanceListEntity"
     },
     "LicenseInstanceListEntity$inboundSchema": null,
     "LicenseInstanceListEntity$Outbound": null,
@@ -2056,7 +2178,8 @@
         "object": "string",
         "productId": "string",
         "status": "import(\"<sdk>/models/components/licensestatus\").LicenseStatus"
-      }
+      },
+      "ref": "import(\"<sdk>/models/components/checkoutentity\").LicenseKey"
     },
     "LicenseKey$inboundSchema": null,
     "LicenseKey$Outbound": null,
@@ -2065,7 +2188,8 @@
       "properties": {
         "interval": "import(\"<sdk>/models/components/licensekeyexpiryinterval\").LicenseKeyExpiryInterval",
         "intervalCount": "number"
-      }
+      },
+      "ref": "import(\"<sdk>/models/components/licensekeyexpiryentity\").LicenseKeyExpiryEntity"
     },
     "LicenseKeyExpiryEntity$inboundSchema": null,
     "LicenseKeyExpiryEntity$Outbound": null,
@@ -2087,7 +2211,8 @@
         "\"month\"",
         "\"year\"",
         "import(\"<sdk>/types/unrecognized\").Unrecognized<string>"
-      ]
+      ],
+      "ref": "import(\"<sdk>/models/components/licensekeyexpiryinterval\").LicenseKeyExpiryInterval"
     },
     "LicenseKeyExpiryInterval$inboundSchema": null,
     "LicenseKeyExpiryInterval$outboundSchema": null,
@@ -2095,7 +2220,8 @@
       "properties": {
         "activationLimit": "number | null",
         "expiry": "import(\"<sdk>/models/components/licensekeyexpiryentity\").LicenseKeyExpiryEntity | null"
-      }
+      },
+      "ref": "import(\"<sdk>/models/components/licensekeyfeatureentity\").LicenseKeyFeatureEntity"
     },
     "LicenseKeyFeatureEntity$inboundSchema": null,
     "LicenseKeyFeatureEntity$Outbound": null,
@@ -2116,7 +2242,8 @@
       "properties": {
         "items": "import(\"<sdk>/models/components/licenseentity\").LicenseEntity[]",
         "pagination": "import(\"<sdk>/models/components/paginationentity\").PaginationEntity"
-      }
+      },
+      "ref": "import(\"<sdk>/models/components/licenselistentity\").LicenseListEntity"
     },
     "LicenseListEntity$inboundSchema": null,
     "LicenseListEntity$Outbound": null,
@@ -2140,7 +2267,8 @@
         "\"expired\"",
         "\"inactive\"",
         "import(\"<sdk>/types/unrecognized\").Unrecognized<string>"
-      ]
+      ],
+      "ref": "import(\"<sdk>/models/components/licensestatus\").LicenseStatus"
     },
     "LicenseStatus$inboundSchema": null,
     "LicenseStatus$outboundSchema": null,
@@ -2158,7 +2286,8 @@
         "productId": "string",
         "reason": "import(\"<sdk>/models/components/marketplacegrantaskentity\").Reason | null",
         "test": "boolean"
-      }
+      },
+      "ref": "import(\"<sdk>/models/components/marketplacegrantaskentity\").MarketplaceGrantAskEntity"
     },
     "MarketplaceGrantAskEntity$inboundSchema": null,
     "MarketplaceGrantAskEntity$Outbound": null,
@@ -2174,7 +2303,8 @@
         "paidAt": "string | null",
         "status": "string",
         "transactionId": "string | null"
-      }
+      },
+      "ref": "import(\"<sdk>/models/components/marketplacegrantaskentity\").MarketplaceGrantAskEntityOrder"
     },
     "MarketplaceGrantAskEntityOrder$inboundSchema": null,
     "MarketplaceGrantAskEntityOrder$Outbound": null,
@@ -2203,7 +2333,8 @@
         "storeId": "string",
         "unitLabel": "string",
         "updatedAt": "string"
-      }
+      },
+      "ref": "import(\"<sdk>/models/components/meterapiresponsedto\").MeterApiResponseDto"
     },
     "MeterApiResponseDto$inboundSchema": null,
     "MeterApiResponseDto$Outbound": null,
@@ -2225,7 +2356,8 @@
         "\"sum\"",
         "\"unique\"",
         "import(\"<sdk>/types/unrecognized\").Unrecognized<string>"
-      ]
+      ],
+      "ref": "import(\"<sdk>/models/components/meterapiresponsedto\").MeterApiResponseDtoAggregation"
     },
     "MeterApiResponseDtoAggregation$inboundSchema": null,
     "MeterApiResponseDtoAggregation$outboundSchema": null,
@@ -2241,7 +2373,8 @@
         "\"active\"",
         "\"archived\"",
         "import(\"<sdk>/types/unrecognized\").Unrecognized<string>"
-      ]
+      ],
+      "ref": "import(\"<sdk>/models/components/meterapiresponsedto\").MeterApiResponseDtoStatus"
     },
     "MeterApiResponseDtoStatus$inboundSchema": null,
     "MeterApiResponseDtoStatus$outboundSchema": null,
@@ -2257,7 +2390,8 @@
         "periodStart": "string",
         "units": "string",
         "updatedAt": "string | null"
-      }
+      },
+      "ref": "import(\"<sdk>/models/components/meterconsumedunitsapiresponsedto\").MeterConsumedUnitsApiResponseDto"
     },
     "MeterConsumedUnitsApiResponseDto$inboundSchema": null,
     "MeterConsumedUnitsApiResponseDto$Outbound": null,
@@ -2272,7 +2406,8 @@
       "properties": {
         "clauses": "import(\"<sdk>/models/components/filterclauseapirequestdto\").FilterClauseApiRequestDto[]",
         "conjunction": "import(\"<sdk>/models/components/meterfilterapirequestdto\").Conjunction"
-      }
+      },
+      "ref": "import(\"<sdk>/models/components/meterfilterapirequestdto\").MeterFilterApiRequestDto"
     },
     "MeterFilterApiRequestDto$inboundSchema": null,
     "MeterFilterApiRequestDto$Outbound": null,
@@ -2287,7 +2422,8 @@
       "properties": {
         "clauses": "import(\"<sdk>/models/components/filterclauseapiresponsedto\").FilterClauseApiResponseDto[]",
         "conjunction": "import(\"<sdk>/models/components/meterfilterapiresponsedto\").MeterFilterApiResponseDtoConjunction"
-      }
+      },
+      "ref": "import(\"<sdk>/models/components/meterfilterapiresponsedto\").MeterFilterApiResponseDto"
     },
     "MeterFilterApiResponseDto$inboundSchema": null,
     "MeterFilterApiResponseDto$Outbound": null,
@@ -2301,7 +2437,8 @@
         "\"and\"",
         "\"or\"",
         "import(\"<sdk>/types/unrecognized\").Unrecognized<string>"
-      ]
+      ],
+      "ref": "import(\"<sdk>/models/components/meterfilterapiresponsedto\").MeterFilterApiResponseDtoConjunction"
     },
     "MeterFilterApiResponseDtoConjunction$inboundSchema": null,
     "MeterFilterApiResponseDtoConjunction$outboundSchema": null,
@@ -2316,7 +2453,8 @@
         "data": "import(\"<sdk>/models/components/meterapiresponsedto\").MeterApiResponseDto[]",
         "hasMore": "boolean",
         "object": "string"
-      }
+      },
+      "ref": "import(\"<sdk>/models/components/meterlistapiresponsedto\").MeterListApiResponseDto"
     },
     "MeterListApiResponseDto$inboundSchema": null,
     "MeterListApiResponseDto$Outbound": null,
@@ -2333,7 +2471,8 @@
         "distinctCustomers": "number",
         "matchedEvents": "number",
         "units": "string"
-      }
+      },
+      "ref": "import(\"<sdk>/models/components/meterpreviewapiresponsedto\").MeterPreviewApiResponseDto"
     },
     "MeterPreviewApiResponseDto$inboundSchema": null,
     "MeterPreviewApiResponseDto$Outbound": null,
@@ -2349,7 +2488,8 @@
         "date": "string",
         "eventCount": "number",
         "value": "string"
-      }
+      },
+      "ref": "import(\"<sdk>/models/components/meterpreviewdailyapiresponsedto\").MeterPreviewDailyApiResponseDto"
     },
     "MeterPreviewDailyApiResponseDto$inboundSchema": null,
     "MeterPreviewDailyApiResponseDto$Outbound": null,
@@ -2368,7 +2508,8 @@
       "union": [
         "\"immediate\"",
         "\"scheduled\""
-      ]
+      ],
+      "ref": "import(\"<sdk>/models/components/cancelsubscriptionrequestentity\").Mode"
     },
     "Mode$inboundSchema": null,
     "Mode$outboundSchema": null,
@@ -2376,7 +2517,8 @@
       "enum": {
         "CustomerCreditsExhaustion": "customer_credits_exhaustion"
       },
-      "text": "\"customer_credits_exhaustion\""
+      "text": "\"customer_credits_exhaustion\"",
+      "ref": "import(\"<sdk>/models/components/customercreditsexhaustionentity\").ObjectT"
     },
     "ObjectT$inboundSchema": null,
     "ObjectT$outboundSchema": null,
@@ -2388,7 +2530,8 @@
       "union": [
         "\"cancel\"",
         "\"pause\""
-      ]
+      ],
+      "ref": "import(\"<sdk>/models/components/cancelsubscriptionrequestentity\").OnExecute"
     },
     "OnExecute$inboundSchema": null,
     "OnExecute$outboundSchema": null,
@@ -2412,7 +2555,8 @@
         "\"lte\"",
         "\"not_contains\"",
         "\"not_equals\""
-      ]
+      ],
+      "ref": "import(\"<sdk>/models/components/filterclauseapirequestdto\").Operator"
     },
     "Operator$inboundSchema": null,
     "Operator$outboundSchema": null,
@@ -2420,7 +2564,8 @@
       "union": [
         "import(\"<sdk>/models/components/orderentity\").OrderEntity",
         "string"
-      ]
+      ],
+      "ref": "import(\"<sdk>/models/components/refundentity\").Order"
     },
     "Order$inboundSchema": null,
     "Order$Outbound": null,
@@ -2450,7 +2595,8 @@
         "transaction?": "string | null | undefined",
         "type": "import(\"<sdk>/models/components/ordertype\").OrderType",
         "updatedAt": "Date"
-      }
+      },
+      "ref": "import(\"<sdk>/models/components/orderentity\").OrderEntity"
     },
     "OrderEntity$inboundSchema": null,
     "OrderEntity$Outbound": null,
@@ -2468,7 +2614,8 @@
       "properties": {
         "items": "import(\"<sdk>/models/components/orderentity\").OrderEntity[]",
         "pagination": "import(\"<sdk>/models/components/paginationentity\").PaginationEntity"
-      }
+      },
+      "ref": "import(\"<sdk>/models/components/orderlistentity\").OrderListEntity"
     },
     "OrderListEntity$inboundSchema": null,
     "OrderListEntity$Outbound": null,
@@ -2488,7 +2635,8 @@
         "\"paid\"",
         "\"pending\"",
         "import(\"<sdk>/types/unrecognized\").Unrecognized<string>"
-      ]
+      ],
+      "ref": "import(\"<sdk>/models/components/orderstatus\").OrderStatus"
     },
     "OrderStatus$inboundSchema": null,
     "OrderStatus$outboundSchema": null,
@@ -2504,7 +2652,8 @@
         "\"onetime\"",
         "\"recurring\"",
         "import(\"<sdk>/types/unrecognized\").Unrecognized<string>"
-      ]
+      ],
+      "ref": "import(\"<sdk>/models/components/ordertype\").OrderType"
     },
     "OrderType$inboundSchema": null,
     "OrderType$outboundSchema": null,
@@ -2515,7 +2664,8 @@
         "prevPage": "number | null",
         "totalPages": "number",
         "totalRecords": "number"
-      }
+      },
+      "ref": "import(\"<sdk>/models/components/paginationentity\").PaginationEntity"
     },
     "PaginationEntity$inboundSchema": null,
     "PaginationEntity$Outbound": null,
@@ -2532,7 +2682,8 @@
         "idempotencyKey": "string",
         "moderationId?": "string | undefined",
         "reference": "string"
-      }
+      },
+      "ref": "import(\"<sdk>/models/components/posttransactiondto\").PostTransactionDto"
     },
     "PostTransactionDto$inboundSchema": null,
     "PostTransactionDto$Outbound": null,
@@ -2550,7 +2701,8 @@
         "eventName": "string",
         "filter?": "import(\"<sdk>/models/components/meterfilterapirequestdto\").MeterFilterApiRequestDto | undefined",
         "unitLabel?": "string | undefined"
-      }
+      },
+      "ref": "import(\"<sdk>/models/components/previewmeterapirequestdto\").PreviewMeterApiRequestDto"
     },
     "PreviewMeterApiRequestDto$inboundSchema": null,
     "PreviewMeterApiRequestDto$Outbound": null,
@@ -2571,7 +2723,8 @@
         "\"min\"",
         "\"sum\"",
         "\"unique\""
-      ]
+      ],
+      "ref": "import(\"<sdk>/models/components/previewmeterapirequestdto\").PreviewMeterApiRequestDtoAggregation"
     },
     "PreviewMeterApiRequestDtoAggregation$inboundSchema": null,
     "PreviewMeterApiRequestDtoAggregation$outboundSchema": null,
@@ -2590,7 +2743,8 @@
         "matchedMeters": "string[]",
         "valid": "boolean",
         "warnings": "import(\"<sdk>/models/components/previewusageeventwarningapidto\").PreviewUsageEventWarningApiDto[]"
-      }
+      },
+      "ref": "import(\"<sdk>/models/components/previewusageeventreportapidto\").PreviewUsageEventReportApiDto"
     },
     "PreviewUsageEventReportApiDto$inboundSchema": null,
     "PreviewUsageEventReportApiDto$Outbound": null,
@@ -2605,7 +2759,8 @@
       "properties": {
         "events": "import(\"<sdk>/models/components/previewusageeventreportapidto\").PreviewUsageEventReportApiDto[]",
         "valid": "boolean"
-      }
+      },
+      "ref": "import(\"<sdk>/models/components/previewusageeventsapiresponsedto\").PreviewUsageEventsApiResponseDto"
     },
     "PreviewUsageEventsApiResponseDto$inboundSchema": null,
     "PreviewUsageEventsApiResponseDto$Outbound": null,
@@ -2620,7 +2775,8 @@
       "properties": {
         "code": "import(\"<sdk>/models/components/previewusageeventwarningapidto\").PreviewUsageEventWarningApiDtoCode",
         "message": "string"
-      }
+      },
+      "ref": "import(\"<sdk>/models/components/previewusageeventwarningapidto\").PreviewUsageEventWarningApiDto"
     },
     "PreviewUsageEventWarningApiDto$inboundSchema": null,
     "PreviewUsageEventWarningApiDto$Outbound": null,
@@ -2636,7 +2792,8 @@
         "\"no_matching_meter\"",
         "\"timestamp_outside_late_window\"",
         "import(\"<sdk>/types/unrecognized\").Unrecognized<string>"
-      ]
+      ],
+      "ref": "import(\"<sdk>/models/components/previewusageeventwarningapidto\").PreviewUsageEventWarningApiDtoCode"
     },
     "PreviewUsageEventWarningApiDtoCode$inboundSchema": null,
     "PreviewUsageEventWarningApiDtoCode$outboundSchema": null,
@@ -2650,7 +2807,8 @@
       "union": [
         "import(\"<sdk>/models/components/productentity\").ProductEntity",
         "string"
-      ]
+      ],
+      "ref": "import(\"<sdk>/models/components/subscriptionentity\").Product"
     },
     "Product$inboundSchema": null,
     "Product$Outbound": null,
@@ -2674,7 +2832,8 @@
         "\"every-year\"",
         "\"once\"",
         "import(\"<sdk>/types/unrecognized\").Unrecognized<string>"
-      ]
+      ],
+      "ref": "import(\"<sdk>/models/components/productbillingperiod\").ProductBillingPeriod"
     },
     "ProductBillingPeriod$inboundSchema": null,
     "ProductBillingPeriod$outboundSchema": null,
@@ -2687,7 +2846,8 @@
         "\"onetime\"",
         "\"recurring\"",
         "import(\"<sdk>/types/unrecognized\").Unrecognized<string>"
-      ]
+      ],
+      "ref": "import(\"<sdk>/models/components/productbillingtype\").ProductBillingType"
     },
     "ProductBillingType$inboundSchema": null,
     "ProductBillingType$outboundSchema": null,
@@ -2699,7 +2859,8 @@
       "union": [
         "\"EUR\"",
         "\"USD\""
-      ]
+      ],
+      "ref": "import(\"<sdk>/models/components/productcurrency\").ProductCurrency"
     },
     "ProductCurrency$inboundSchema": null,
     "ProductCurrency$outboundSchema": null,
@@ -2734,7 +2895,8 @@
         "trialPrice?": "number | null | undefined",
         "updatedAt": "Date",
         "usagePrices?": "import(\"<sdk>/models/components/usagepriceentity\").UsagePriceEntity[] | undefined"
-      }
+      },
+      "ref": "import(\"<sdk>/models/components/productentity\").ProductEntity"
     },
     "ProductEntity$inboundSchema": null,
     "ProductEntity$Outbound": null,
@@ -2751,7 +2913,8 @@
         "externalId?": "string | null | undefined",
         "id?": "string | undefined",
         "type?": "string | undefined"
-      }
+      },
+      "ref": "import(\"<sdk>/models/components/productfeaturedeletionrequestentity\").ProductFeatureDeletionRequestEntity"
     },
     "ProductFeatureDeletionRequestEntity$inboundSchema": null,
     "ProductFeatureDeletionRequestEntity$Outbound": null,
@@ -2770,7 +2933,8 @@
         "externalId?": "string | null | undefined",
         "id?": "string | undefined",
         "type": "\"customerCredits\""
-      }
+      },
+      "ref": "import(\"<sdk>/models/components/updateproductrequestentity\").ProductFeatureEditRequestEntity"
     },
     "ProductFeatureEditRequestEntity$inboundSchema": null,
     "ProductFeatureEditRequestEntity$Outbound": null,
@@ -2787,7 +2951,8 @@
         "id": "string",
         "size": "number",
         "type": "string"
-      }
+      },
+      "ref": "import(\"<sdk>/models/components/productfeaturefileentity\").ProductFeatureFileEntity"
     },
     "ProductFeatureFileEntity$inboundSchema": null,
     "ProductFeatureFileEntity$Outbound": null,
@@ -2804,7 +2969,8 @@
         "id": "string",
         "size?": "number | undefined",
         "type?": "string | undefined"
-      }
+      },
+      "ref": "import(\"<sdk>/models/components/productfeaturefilerequestentity\").ProductFeatureFileRequestEntity"
     },
     "ProductFeatureFileRequestEntity$inboundSchema": null,
     "ProductFeatureFileRequestEntity$Outbound": null,
@@ -2822,7 +2988,8 @@
         "externalId?": "string | null | undefined",
         "id?": "string | undefined",
         "type": "\"customerCredits\""
-      }
+      },
+      "ref": "import(\"<sdk>/models/components/productfeaturerequestentity\").ProductFeatureRequestEntity"
     },
     "ProductFeatureRequestEntity$inboundSchema": null,
     "ProductFeatureRequestEntity$Outbound": null,
@@ -2848,7 +3015,8 @@
         "\"githubRepository\"",
         "\"licenseKey\"",
         "import(\"<sdk>/types/unrecognized\").Unrecognized<string>"
-      ]
+      ],
+      "ref": "import(\"<sdk>/models/components/productfeaturetype\").ProductFeatureType"
     },
     "ProductFeatureType$inboundSchema": null,
     "ProductFeatureType$outboundSchema": null,
@@ -2860,7 +3028,8 @@
         "file": "import(\"<sdk>/models/components/productfilefeaturefilesrequestentity\").ProductFileFeatureFilesRequestEntity",
         "id?": "string | undefined",
         "type": "\"file\""
-      }
+      },
+      "ref": "import(\"<sdk>/models/components/updateproductrequestentity\").ProductFileFeatureEditRequestEntity"
     },
     "ProductFileFeatureEditRequestEntity$inboundSchema": null,
     "ProductFileFeatureEditRequestEntity$Outbound": null,
@@ -2874,7 +3043,8 @@
     "ProductFileFeatureEntity": {
       "properties": {
         "files": "import(\"<sdk>/models/components/productfeaturefileentity\").ProductFeatureFileEntity[]"
-      }
+      },
+      "ref": "import(\"<sdk>/models/components/productfilefeatureentity\").ProductFileFeatureEntity"
     },
     "ProductFileFeatureEntity$inboundSchema": null,
     "ProductFileFeatureEntity$Outbound": null,
@@ -2888,7 +3058,8 @@
     "ProductFileFeatureFilesRequestEntity": {
       "properties": {
         "files": "import(\"<sdk>/models/components/productfeaturefilerequestentity\").ProductFeatureFileRequestEntity[]"
-      }
+      },
+      "ref": "import(\"<sdk>/models/components/productfilefeaturefilesrequestentity\").ProductFileFeatureFilesRequestEntity"
     },
     "ProductFileFeatureFilesRequestEntity$inboundSchema": null,
     "ProductFileFeatureFilesRequestEntity$Outbound": null,
@@ -2906,7 +3077,8 @@
         "file": "import(\"<sdk>/models/components/productfilefeaturefilesrequestentity\").ProductFileFeatureFilesRequestEntity",
         "id?": "string | undefined",
         "type": "\"file\""
-      }
+      },
+      "ref": "import(\"<sdk>/models/components/productfilefeaturerequestentity\").ProductFileFeatureRequestEntity"
     },
     "ProductFileFeatureRequestEntity$inboundSchema": null,
     "ProductFileFeatureRequestEntity$Outbound": null,
@@ -2935,7 +3107,8 @@
         "upgradeBehavior": "import(\"<sdk>/models/components/productgroupentity\").UpgradeBehavior | null",
         "upgradesEnabled": "boolean",
         "upsellsEnabled": "boolean"
-      }
+      },
+      "ref": "import(\"<sdk>/models/components/productgroupentity\").ProductGroupEntity"
     },
     "ProductGroupEntity$inboundSchema": null,
     "ProductGroupEntity$Outbound": null,
@@ -2951,7 +3124,8 @@
         "data": "import(\"<sdk>/models/components/productgroupentity\").ProductGroupEntity[]",
         "hasMore": "boolean",
         "object": "string"
-      }
+      },
+      "ref": "import(\"<sdk>/models/components/productgrouplistentity\").ProductGroupListEntity"
     },
     "ProductGroupListEntity$inboundSchema": null,
     "ProductGroupListEntity$Outbound": null,
@@ -2966,7 +3140,8 @@
       "properties": {
         "externalId": "string | null",
         "id": "string"
-      }
+      },
+      "ref": "import(\"<sdk>/models/components/productgroupproductentity\").ProductGroupProductEntity"
     },
     "ProductGroupProductEntity$inboundSchema": null,
     "ProductGroupProductEntity$Outbound": null,
@@ -2985,7 +3160,8 @@
         "id?": "string | undefined",
         "licenseKey": "import(\"<sdk>/models/components/licensekeyfeatureentity\").LicenseKeyFeatureEntity",
         "type": "\"licenseKey\""
-      }
+      },
+      "ref": "import(\"<sdk>/models/components/updateproductrequestentity\").ProductLicenseKeyFeatureEditRequestEntity"
     },
     "ProductLicenseKeyFeatureEditRequestEntity$inboundSchema": null,
     "ProductLicenseKeyFeatureEditRequestEntity$Outbound": null,
@@ -3003,7 +3179,8 @@
         "id?": "string | undefined",
         "licenseKey": "import(\"<sdk>/models/components/licensekeyfeatureentity\").LicenseKeyFeatureEntity",
         "type": "\"licenseKey\""
-      }
+      },
+      "ref": "import(\"<sdk>/models/components/productlicensekeyfeaturerequestentity\").ProductLicenseKeyFeatureRequestEntity"
     },
     "ProductLicenseKeyFeatureRequestEntity$inboundSchema": null,
     "ProductLicenseKeyFeatureRequestEntity$Outbound": null,
@@ -3018,7 +3195,8 @@
       "properties": {
         "items": "import(\"<sdk>/models/components/productentity\").ProductEntity[]",
         "pagination": "import(\"<sdk>/models/components/paginationentity\").PaginationEntity"
-      }
+      },
+      "ref": "import(\"<sdk>/models/components/productlistentity\").ProductListEntity"
     },
     "ProductListEntity$inboundSchema": null,
     "ProductListEntity$Outbound": null,
@@ -3042,7 +3220,8 @@
         "recurringInterval": "string | null",
         "recurringIntervalCount": "number | null",
         "subscriptions": "import(\"<sdk>/models/components/runningsubscriptioncountsentity\").RunningSubscriptionCountsEntity"
-      }
+      },
+      "ref": "import(\"<sdk>/models/components/productpriceversionentity\").ProductPriceVersionEntity"
     },
     "ProductPriceVersionEntity$inboundSchema": null,
     "ProductPriceVersionEntity$Outbound": null,
@@ -3057,7 +3236,8 @@
       "properties": {
         "items": "import(\"<sdk>/models/components/productpriceversionentity\").ProductPriceVersionEntity[]",
         "subscriptionsWithoutPriceVersion": "import(\"<sdk>/models/components/runningsubscriptioncountsentity\").RunningSubscriptionCountsEntity"
-      }
+      },
+      "ref": "import(\"<sdk>/models/components/productpriceversionlistentity\").ProductPriceVersionListEntity"
     },
     "ProductPriceVersionListEntity$inboundSchema": null,
     "ProductPriceVersionListEntity$Outbound": null,
@@ -3079,7 +3259,8 @@
         "\"standard\"",
         "\"usage_based\"",
         "import(\"<sdk>/types/unrecognized\").Unrecognized<string>"
-      ]
+      ],
+      "ref": "import(\"<sdk>/models/components/productpriceversionpricingmodel\").ProductPriceVersionPricingModel"
     },
     "ProductPriceVersionPricingModel$inboundSchema": null,
     "ProductPriceVersionPricingModel$outboundSchema": null,
@@ -3091,7 +3272,8 @@
         "id?": "string | undefined",
         "privateNote": "string",
         "type": "\"custom\""
-      }
+      },
+      "ref": "import(\"<sdk>/models/components/updateproductrequestentity\").ProductPrivateNoteFeatureEditRequestEntity"
     },
     "ProductPrivateNoteFeatureEditRequestEntity$inboundSchema": null,
     "ProductPrivateNoteFeatureEditRequestEntity$Outbound": null,
@@ -3109,7 +3291,8 @@
         "id?": "string | undefined",
         "privateNote": "string",
         "type": "\"custom\""
-      }
+      },
+      "ref": "import(\"<sdk>/models/components/productprivatenotefeaturerequestentity\").ProductPrivateNoteFeatureRequestEntity"
     },
     "ProductPrivateNoteFeatureRequestEntity$inboundSchema": null,
     "ProductPrivateNoteFeatureRequestEntity$Outbound": null,
@@ -3138,7 +3321,8 @@
         "\"every-three-months\"",
         "\"every-year\"",
         "\"once\""
-      ]
+      ],
+      "ref": "import(\"<sdk>/models/components/productrequestbillingperiod\").ProductRequestBillingPeriod"
     },
     "ProductRequestBillingPeriod$inboundSchema": null,
     "ProductRequestBillingPeriod$outboundSchema": null,
@@ -3150,7 +3334,8 @@
       "union": [
         "\"onetime\"",
         "\"recurring\""
-      ]
+      ],
+      "ref": "import(\"<sdk>/models/components/productrequestbillingtype\").ProductRequestBillingType"
     },
     "ProductRequestBillingType$inboundSchema": null,
     "ProductRequestBillingType$outboundSchema": null,
@@ -3166,7 +3351,8 @@
         "\"month\"",
         "\"week\"",
         "\"year\""
-      ]
+      ],
+      "ref": "import(\"<sdk>/models/components/productrequestrecurringinterval\").ProductRequestRecurringInterval"
     },
     "ProductRequestRecurringInterval$inboundSchema": null,
     "ProductRequestRecurringInterval$outboundSchema": null,
@@ -3179,7 +3365,8 @@
         "\"active\"",
         "\"archived\"",
         "import(\"<sdk>/types/unrecognized\").Unrecognized<string>"
-      ]
+      ],
+      "ref": "import(\"<sdk>/models/components/productstatus\").ProductStatus"
     },
     "ProductStatus$inboundSchema": null,
     "ProductStatus$outboundSchema": null,
@@ -3190,7 +3377,8 @@
       "properties": {
         "byStatus": "{ [k: string]: number; }",
         "total": "number"
-      }
+      },
+      "ref": "import(\"<sdk>/models/components/productwriteimpactentity\").ProductWriteImpactEntity"
     },
     "ProductWriteImpactEntity$inboundSchema": null,
     "ProductWriteImpactEntity$Outbound": null,
@@ -3233,7 +3421,8 @@
         "updatedAt": "Date",
         "usagePrices?": "import(\"<sdk>/models/components/usagepriceentity\").UsagePriceEntity[] | undefined",
         "writeResult": "import(\"<sdk>/models/components/productwriteresultentity\").ProductWriteResultEntity"
-      }
+      },
+      "ref": "import(\"<sdk>/models/components/productwriteresponseentity\").ProductWriteResponseEntity"
     },
     "ProductWriteResponseEntity$inboundSchema": null,
     "ProductWriteResponseEntity$Outbound": null,
@@ -3247,7 +3436,8 @@
     "ProductWriteResultEntity": {
       "properties": {
         "warnings": "import(\"<sdk>/models/components/productwritewarningentity\").ProductWriteWarningEntity[]"
-      }
+      },
+      "ref": "import(\"<sdk>/models/components/productwriteresultentity\").ProductWriteResultEntity"
     },
     "ProductWriteResultEntity$inboundSchema": null,
     "ProductWriteResultEntity$Outbound": null,
@@ -3263,7 +3453,8 @@
         "code": "string",
         "impact?": "import(\"<sdk>/models/components/productwriteimpactentity\").ProductWriteImpactEntity | undefined",
         "path": "string"
-      }
+      },
+      "ref": "import(\"<sdk>/models/components/productwritewarningentity\").ProductWriteWarningEntity"
     },
     "ProductWriteWarningEntity$inboundSchema": null,
     "ProductWriteWarningEntity$Outbound": null,
@@ -3287,7 +3478,8 @@
         "\"test\"",
         "\"undelivered\"",
         "import(\"<sdk>/types/unrecognized\").Unrecognized<string>"
-      ]
+      ],
+      "ref": "import(\"<sdk>/models/components/marketplacegrantaskentity\").Reason"
     },
     "Reason$inboundSchema": null,
     "Reason$outboundSchema": null,
@@ -3299,7 +3491,8 @@
       "union": [
         "\"email\"",
         "\"store\""
-      ]
+      ],
+      "ref": "import(\"<sdk>/models/components/createsplitrecipientrequestentity\").RecipientType"
     },
     "RecipientType$inboundSchema": null,
     "RecipientType$outboundSchema": null,
@@ -3318,7 +3511,8 @@
         "status": "import(\"<sdk>/models/components/refundstatus\").RefundStatus",
         "subscription?": "string | import(\"<sdk>/models/components/subscriptionentity\").SubscriptionEntity | undefined",
         "transaction": "import(\"<sdk>/models/components/transactionentity\").TransactionEntity"
-      }
+      },
+      "ref": "import(\"<sdk>/models/components/refundentity\").RefundEntity"
     },
     "RefundEntity$inboundSchema": null,
     "RefundEntity$Outbound": null,
@@ -3327,7 +3521,8 @@
       "union": [
         "import(\"<sdk>/models/components/customerentity\").CustomerEntity",
         "string"
-      ]
+      ],
+      "ref": "import(\"<sdk>/models/components/refundentity\").RefundEntityCustomer"
     },
     "RefundEntityCustomer$inboundSchema": null,
     "RefundEntityCustomer$Outbound": null,
@@ -3345,7 +3540,8 @@
       "union": [
         "import(\"<sdk>/models/components/subscriptionentity\").SubscriptionEntity",
         "string"
-      ]
+      ],
+      "ref": "import(\"<sdk>/models/components/refundentity\").RefundEntitySubscription"
     },
     "RefundEntitySubscription$inboundSchema": null,
     "RefundEntitySubscription$Outbound": null,
@@ -3372,14 +3568,16 @@
         "\"other\"",
         "\"requested_by_customer\"",
         "import(\"<sdk>/types/unrecognized\").Unrecognized<string>"
-      ]
+      ],
+      "ref": "import(\"<sdk>/models/components/refundreason\").RefundReason"
     },
     "RefundReason$inboundSchema": null,
     "RefundReason$outboundSchema": null,
     "RefundResponseEntity": {
       "properties": {
         "status": "import(\"<sdk>/models/components/refundstatus\").RefundStatus"
-      }
+      },
+      "ref": "import(\"<sdk>/models/components/refundresponseentity\").RefundResponseEntity"
     },
     "RefundResponseEntity$inboundSchema": null,
     "RefundResponseEntity$Outbound": null,
@@ -3405,14 +3603,16 @@
         "\"requiresAction\"",
         "\"succeeded\"",
         "import(\"<sdk>/types/unrecognized\").Unrecognized<string>"
-      ]
+      ],
+      "ref": "import(\"<sdk>/models/components/refundstatus\").RefundStatus"
     },
     "RefundStatus$inboundSchema": null,
     "RefundStatus$outboundSchema": null,
     "ReverseTransactionRequestDto": {
       "properties": {
         "transactionId": "string"
-      }
+      },
+      "ref": "import(\"<sdk>/models/components/reversetransactionrequestdto\").ReverseTransactionRequestDto"
     },
     "ReverseTransactionRequestDto$inboundSchema": null,
     "ReverseTransactionRequestDto$Outbound": null,
@@ -3427,7 +3627,8 @@
       "properties": {
         "byStatus": "import(\"<sdk>/models/components/runningsubscriptionstatuscountsentity\").RunningSubscriptionStatusCountsEntity",
         "total": "number"
-      }
+      },
+      "ref": "import(\"<sdk>/models/components/runningsubscriptioncountsentity\").RunningSubscriptionCountsEntity"
     },
     "RunningSubscriptionCountsEntity$inboundSchema": null,
     "RunningSubscriptionCountsEntity$Outbound": null,
@@ -3446,7 +3647,8 @@
         "scheduledCancel": "number",
         "trialing": "number",
         "unpaid": "number"
-      }
+      },
+      "ref": "import(\"<sdk>/models/components/runningsubscriptionstatuscountsentity\").RunningSubscriptionStatusCountsEntity"
     },
     "RunningSubscriptionStatusCountsEntity$inboundSchema": null,
     "RunningSubscriptionStatusCountsEntity$Outbound": null,
@@ -3461,7 +3663,8 @@
       "properties": {
         "externalId?": "string | undefined",
         "prompt": "string"
-      }
+      },
+      "ref": "import(\"<sdk>/models/components/screenpromptrequest\").ScreenPromptRequest"
     },
     "ScreenPromptRequest$inboundSchema": null,
     "ScreenPromptRequest$Outbound": null,
@@ -3480,7 +3683,8 @@
         "object": "string",
         "prompt": "string",
         "usage": "import(\"<sdk>/models/components/usageentity\").UsageEntity"
-      }
+      },
+      "ref": "import(\"<sdk>/models/components/screenpromptresponse\").ScreenPromptResponse"
     },
     "ScreenPromptResponse$inboundSchema": null,
     "ScreenPromptResponse$Outbound": null,
@@ -3494,7 +3698,8 @@
     "Security": {
       "properties": {
         "apiKey?": "string | undefined"
-      }
+      },
+      "ref": "import(\"<sdk>/models/components/security\").Security"
     },
     "Security$inboundSchema": null,
     "Security$Outbound": null,
@@ -3514,7 +3719,8 @@
         "\"credit\"",
         "\"debit\"",
         "import(\"<sdk>/types/unrecognized\").Unrecognized<string>"
-      ]
+      ],
+      "ref": "import(\"<sdk>/models/components/entryresponsedto\").Side"
     },
     "Side$inboundSchema": null,
     "Side$outboundSchema": null,
@@ -3530,7 +3736,8 @@
         "storeId": "string",
         "type": "import(\"<sdk>/models/components/splitentity\").SplitEntityType",
         "typeReference": "string"
-      }
+      },
+      "ref": "import(\"<sdk>/models/components/splitentity\").SplitEntity"
     },
     "SplitEntity$inboundSchema": null,
     "SplitEntity$Outbound": null,
@@ -3550,7 +3757,8 @@
         "\"product\"",
         "\"store\"",
         "import(\"<sdk>/types/unrecognized\").Unrecognized<string>"
-      ]
+      ],
+      "ref": "import(\"<sdk>/models/components/splitentity\").SplitEntityType"
     },
     "SplitEntityType$inboundSchema": null,
     "SplitEntityType$outboundSchema": null,
@@ -3558,7 +3766,8 @@
       "properties": {
         "items": "import(\"<sdk>/models/components/splitentity\").SplitEntity[]",
         "pagination": "import(\"<sdk>/models/components/paginationentity\").PaginationEntity"
-      }
+      },
+      "ref": "import(\"<sdk>/models/components/splitlistentity\").SplitListEntity"
     },
     "SplitListEntity$inboundSchema": null,
     "SplitListEntity$Outbound": null,
@@ -3577,7 +3786,8 @@
         "recipientReference": "string",
         "recipientType": "import(\"<sdk>/models/components/splitrecipiententity\").SplitRecipientEntityRecipientType",
         "type": "import(\"<sdk>/models/components/splitrecipiententity\").SplitRecipientEntityType"
-      }
+      },
+      "ref": "import(\"<sdk>/models/components/splitrecipiententity\").SplitRecipientEntity"
     },
     "SplitRecipientEntity$inboundSchema": null,
     "SplitRecipientEntity$Outbound": null,
@@ -3596,7 +3806,8 @@
         "\"store\"",
         "\"user\"",
         "import(\"<sdk>/types/unrecognized\").Unrecognized<string>"
-      ]
+      ],
+      "ref": "import(\"<sdk>/models/components/splitrecipiententity\").SplitRecipientEntityRecipientType"
     },
     "SplitRecipientEntityRecipientType$inboundSchema": null,
     "SplitRecipientEntityRecipientType$outboundSchema": null,
@@ -3612,7 +3823,8 @@
         "\"fixed\"",
         "\"percentage\"",
         "import(\"<sdk>/types/unrecognized\").Unrecognized<string>"
-      ]
+      ],
+      "ref": "import(\"<sdk>/models/components/splitrecipiententity\").SplitRecipientEntityType"
     },
     "SplitRecipientEntityType$inboundSchema": null,
     "SplitRecipientEntityType$outboundSchema": null,
@@ -3621,7 +3833,8 @@
         "grossRevenue": "number",
         "netRevenue": "number",
         "timestamp": "number"
-      }
+      },
+      "ref": "import(\"<sdk>/models/components/statsmetricperiodentity\").StatsMetricPeriodEntity"
     },
     "StatsMetricPeriodEntity$inboundSchema": null,
     "StatsMetricPeriodEntity$Outbound": null,
@@ -3643,7 +3856,8 @@
         "totalProducts": "number",
         "totalRevenue": "number",
         "totalSubscriptions": "number"
-      }
+      },
+      "ref": "import(\"<sdk>/models/components/statsmetrictotalsentity\").StatsMetricTotalsEntity"
     },
     "StatsMetricTotalsEntity$inboundSchema": null,
     "StatsMetricTotalsEntity$Outbound": null,
@@ -3658,7 +3872,8 @@
       "properties": {
         "periods?": "import(\"<sdk>/models/components/statsmetricperiodentity\").StatsMetricPeriodEntity[] | undefined",
         "totals": "import(\"<sdk>/models/components/statsmetrictotalsentity\").StatsMetricTotalsEntity"
-      }
+      },
+      "ref": "import(\"<sdk>/models/components/statssummaryentity\").StatsSummaryEntity"
     },
     "StatsSummaryEntity$inboundSchema": null,
     "StatsSummaryEntity$Outbound": null,
@@ -3682,7 +3897,8 @@
         "\"pending\"",
         "\"processing\"",
         "import(\"<sdk>/types/unrecognized\").Unrecognized<string>"
-      ]
+      ],
+      "ref": "import(\"<sdk>/models/components/checkoutentity\").Status"
     },
     "Status$inboundSchema": null,
     "Status$outboundSchema": null,
@@ -3690,7 +3906,8 @@
       "union": [
         "import(\"<sdk>/models/components/subscriptionentity\").SubscriptionEntity",
         "string"
-      ]
+      ],
+      "ref": "import(\"<sdk>/models/components/checkoutentity\").Subscription"
     },
     "Subscription$inboundSchema": null,
     "Subscription$Outbound": null,
@@ -3702,7 +3919,8 @@
       "union": [
         "\"charge_automatically\"",
         "import(\"<sdk>/types/unrecognized\").Unrecognized<string>"
-      ]
+      ],
+      "ref": "import(\"<sdk>/models/components/subscriptioncollectionmethod\").SubscriptionCollectionMethod"
     },
     "SubscriptionCollectionMethod$inboundSchema": null,
     "SubscriptionCollectionMethod$outboundSchema": null,
@@ -3728,7 +3946,8 @@
         "recovered?": "boolean | undefined",
         "status": "import(\"<sdk>/models/components/subscriptionstatus\").SubscriptionStatus",
         "updatedAt": "Date"
-      }
+      },
+      "ref": "import(\"<sdk>/models/components/subscriptionentity\").SubscriptionEntity"
     },
     "SubscriptionEntity$inboundSchema": null,
     "SubscriptionEntity$Outbound": null,
@@ -3744,7 +3963,8 @@
         "\"once\"",
         "\"repeating\"",
         "import(\"<sdk>/types/unrecognized\").Unrecognized<string>"
-      ]
+      ],
+      "ref": "import(\"<sdk>/models/components/subscriptionentity\").SubscriptionEntityDuration"
     },
     "SubscriptionEntityDuration$inboundSchema": null,
     "SubscriptionEntityDuration$outboundSchema": null,
@@ -3763,7 +3983,8 @@
         "\"fixed\"",
         "\"percentage\"",
         "import(\"<sdk>/types/unrecognized\").Unrecognized<string>"
-      ]
+      ],
+      "ref": "import(\"<sdk>/models/components/subscriptionentity\").SubscriptionEntityType"
     },
     "SubscriptionEntityType$inboundSchema": null,
     "SubscriptionEntityType$outboundSchema": null,
@@ -3778,7 +3999,8 @@
         "priceId?": "string | undefined",
         "productId?": "string | undefined",
         "units?": "number | null | undefined"
-      }
+      },
+      "ref": "import(\"<sdk>/models/components/subscriptionitementity\").SubscriptionItemEntity"
     },
     "SubscriptionItemEntity$inboundSchema": null,
     "SubscriptionItemEntity$Outbound": null,
@@ -3793,7 +4015,8 @@
       "properties": {
         "items": "import(\"<sdk>/models/components/subscriptionentity\").SubscriptionEntity[]",
         "pagination": "import(\"<sdk>/models/components/paginationentity\").PaginationEntity"
-      }
+      },
+      "ref": "import(\"<sdk>/models/components/subscriptionlistentity\").SubscriptionListEntity"
     },
     "SubscriptionListEntity$inboundSchema": null,
     "SubscriptionListEntity$Outbound": null,
@@ -3823,7 +4046,8 @@
         "\"trialing\"",
         "\"unpaid\"",
         "import(\"<sdk>/types/unrecognized\").Unrecognized<string>"
-      ]
+      ],
+      "ref": "import(\"<sdk>/models/components/subscriptionstatus\").SubscriptionStatus"
     },
     "SubscriptionStatus$inboundSchema": null,
     "SubscriptionStatus$outboundSchema": null,
@@ -3841,7 +4065,8 @@
         "\"ebooks\"",
         "\"saas\"",
         "import(\"<sdk>/types/unrecognized\").Unrecognized<string>"
-      ]
+      ],
+      "ref": "import(\"<sdk>/models/components/taxcategory\").TaxCategory"
     },
     "TaxCategory$inboundSchema": null,
     "TaxCategory$outboundSchema": null,
@@ -3854,7 +4079,8 @@
         "\"exclusive\"",
         "\"inclusive\"",
         "import(\"<sdk>/types/unrecognized\").Unrecognized<string>"
-      ]
+      ],
+      "ref": "import(\"<sdk>/models/components/taxmode\").TaxMode"
     },
     "TaxMode$inboundSchema": null,
     "TaxMode$outboundSchema": null,
@@ -3863,7 +4089,8 @@
         "maxLength?": "number | null | undefined",
         "minimumLength?": "number | null | undefined",
         "value?": "string | null | undefined"
-      }
+      },
+      "ref": "import(\"<sdk>/models/components/customfield\").Text"
     },
     "Text$inboundSchema": null,
     "Text$Outbound": null,
@@ -3872,7 +4099,8 @@
       "properties": {
         "maxLength?": "number | undefined",
         "minLength?": "number | undefined"
-      }
+      },
+      "ref": "import(\"<sdk>/models/components/textfieldconfig\").TextFieldConfig"
     },
     "TextFieldConfig$inboundSchema": null,
     "TextFieldConfig$Outbound": null,
@@ -3910,7 +4138,8 @@
         "taxAmount?": "number | null | undefined",
         "taxCountry?": "string | null | undefined",
         "type": "import(\"<sdk>/models/components/transactiontype\").TransactionType"
-      }
+      },
+      "ref": "import(\"<sdk>/models/components/transactionentity\").TransactionEntity"
     },
     "TransactionEntity$inboundSchema": null,
     "TransactionEntity$Outbound": null,
@@ -3925,7 +4154,8 @@
       "properties": {
         "items": "import(\"<sdk>/models/components/transactionentity\").TransactionEntity[]",
         "pagination": "import(\"<sdk>/models/components/paginationentity\").PaginationEntity"
-      }
+      },
+      "ref": "import(\"<sdk>/models/components/transactionlistentity\").TransactionListEntity"
     },
     "TransactionListEntity$inboundSchema": null,
     "TransactionListEntity$Outbound": null,
@@ -3941,7 +4171,8 @@
         "data": "import(\"<sdk>/models/components/transactionresponsedto\").TransactionResponseDto[]",
         "hasMore": "boolean",
         "object": "string"
-      }
+      },
+      "ref": "import(\"<sdk>/models/components/transactionlistresponsedto\").TransactionListResponseDto"
     },
     "TransactionListResponseDto$inboundSchema": null,
     "TransactionListResponseDto$Outbound": null,
@@ -3962,7 +4193,8 @@
         "reference": "string",
         "reversalOf?": "string | null | undefined",
         "storeId": "string"
-      }
+      },
+      "ref": "import(\"<sdk>/models/components/transactionresponsedto\").TransactionResponseDto"
     },
     "TransactionResponseDto$inboundSchema": null,
     "TransactionResponseDto$Outbound": null,
@@ -3996,7 +4228,8 @@
         "\"uncollectible\"",
         "\"void\"",
         "import(\"<sdk>/types/unrecognized\").Unrecognized<string>"
-      ]
+      ],
+      "ref": "import(\"<sdk>/models/components/transactionstatus\").TransactionStatus"
     },
     "TransactionStatus$inboundSchema": null,
     "TransactionStatus$outboundSchema": null,
@@ -4009,7 +4242,8 @@
         "\"invoice\"",
         "\"payment\"",
         "import(\"<sdk>/types/unrecognized\").Unrecognized<string>"
-      ]
+      ],
+      "ref": "import(\"<sdk>/models/components/transactiontype\").TransactionType"
     },
     "TransactionType$inboundSchema": null,
     "TransactionType$outboundSchema": null,
@@ -4022,7 +4256,8 @@
         "\"fixed\"",
         "\"percentage\"",
         "import(\"<sdk>/types/unrecognized\").Unrecognized<string>"
-      ]
+      ],
+      "ref": "import(\"<sdk>/models/components/discountentity\").Type"
     },
     "Type$inboundSchema": null,
     "Type$outboundSchema": null,
@@ -4036,7 +4271,8 @@
         "\"proration-charge\"",
         "\"proration-charge-immediately\"",
         "\"proration-none\""
-      ]
+      ],
+      "ref": "import(\"<sdk>/models/components/updatesubscriptionrequestentity\").UpdateBehavior"
     },
     "UpdateBehavior$inboundSchema": null,
     "UpdateBehavior$outboundSchema": null,
@@ -4048,7 +4284,8 @@
         "externalId?": "string | null | undefined",
         "metadata?": "{ [k: string]: any; } | undefined",
         "name?": "string | undefined"
-      }
+      },
+      "ref": "import(\"<sdk>/models/components/updatecustomerrequestentity\").UpdateCustomerRequestEntity"
     },
     "UpdateCustomerRequestEntity$inboundSchema": null,
     "UpdateCustomerRequestEntity$Outbound": null,
@@ -4073,7 +4310,8 @@
         "name?": "string | undefined",
         "percentage?": "number | undefined",
         "type?": "import(\"<sdk>/models/components/discounttype\").DiscountType | undefined"
-      }
+      },
+      "ref": "import(\"<sdk>/models/components/updatediscountrequestentity\").UpdateDiscountRequestEntity"
     },
     "UpdateDiscountRequestEntity$inboundSchema": null,
     "UpdateDiscountRequestEntity$Outbound": null,
@@ -4091,7 +4329,8 @@
         "externalId?": "string | null | undefined",
         "filter?": "import(\"<sdk>/models/components/meterfilterapirequestdto\").MeterFilterApiRequestDto | undefined",
         "name?": "string | undefined"
-      }
+      },
+      "ref": "import(\"<sdk>/models/components/updatemeterapirequestdto\").UpdateMeterApiRequestDto"
     },
     "UpdateMeterApiRequestDto$inboundSchema": null,
     "UpdateMeterApiRequestDto$Outbound": null,
@@ -4112,7 +4351,8 @@
         "\"min\"",
         "\"sum\"",
         "\"unique\""
-      ]
+      ],
+      "ref": "import(\"<sdk>/models/components/updatemeterapirequestdto\").UpdateMeterApiRequestDtoAggregation"
     },
     "UpdateMeterApiRequestDtoAggregation$inboundSchema": null,
     "UpdateMeterApiRequestDtoAggregation$outboundSchema": null,
@@ -4148,7 +4388,8 @@
         "trialPeriodDays?": "number | null | undefined",
         "trialPrice?": "number | null | undefined",
         "usagePrices?": "import(\"<sdk>/models/components/usagepricerequestentity\").UsagePriceRequestEntity[] | undefined"
-      }
+      },
+      "ref": "import(\"<sdk>/models/components/updateproductrequestentity\").UpdateProductRequestEntity"
     },
     "UpdateProductRequestEntity$inboundSchema": null,
     "UpdateProductRequestEntity$Outbound": null,
@@ -4160,7 +4401,8 @@
         "import(\"<sdk>/models/components/updateproductrequestentity\").ProductFileFeatureEditRequestEntity",
         "import(\"<sdk>/models/components/updateproductrequestentity\").ProductLicenseKeyFeatureEditRequestEntity",
         "import(\"<sdk>/models/components/updateproductrequestentity\").ProductPrivateNoteFeatureEditRequestEntity"
-      ]
+      ],
+      "ref": "import(\"<sdk>/models/components/updateproductrequestentity\").UpdateProductRequestEntityFeatures"
     },
     "UpdateProductRequestEntityFeatures$inboundSchema": null,
     "UpdateProductRequestEntityFeatures$Outbound": null,
@@ -4181,7 +4423,8 @@
       "properties": {
         "items?": "import(\"<sdk>/models/components/upsertsubscriptionitementity\").UpsertSubscriptionItemEntity[] | undefined",
         "updateBehavior?": "import(\"<sdk>/models/components/updatesubscriptionrequestentity\").UpdateBehavior | undefined"
-      }
+      },
+      "ref": "import(\"<sdk>/models/components/updatesubscriptionrequestentity\").UpdateSubscriptionRequestEntity"
     },
     "UpdateSubscriptionRequestEntity$inboundSchema": null,
     "UpdateSubscriptionRequestEntity$Outbound": null,
@@ -4198,7 +4441,8 @@
         "name?": "string | null | undefined",
         "status?": "import(\"<sdk>/models/components/webhookstatus\").WebhookStatus | undefined",
         "url?": "string | undefined"
-      }
+      },
+      "ref": "import(\"<sdk>/models/components/updatewebhookrequestentity\").UpdateWebhookRequestEntity"
     },
     "UpdateWebhookRequestEntity$inboundSchema": null,
     "UpdateWebhookRequestEntity$Outbound": null,
@@ -4220,7 +4464,8 @@
         "\"proration-charge-immediately\"",
         "\"proration-none\"",
         "import(\"<sdk>/types/unrecognized\").Unrecognized<string>"
-      ]
+      ],
+      "ref": "import(\"<sdk>/models/components/productgroupentity\").UpgradeBehavior"
     },
     "UpgradeBehavior$inboundSchema": null,
     "UpgradeBehavior$outboundSchema": null,
@@ -4228,7 +4473,8 @@
       "properties": {
         "productId": "string",
         "updateBehavior?": "import(\"<sdk>/models/components/upgradesubscriptionrequestentity\").UpgradeSubscriptionRequestEntityUpdateBehavior | undefined"
-      }
+      },
+      "ref": "import(\"<sdk>/models/components/upgradesubscriptionrequestentity\").UpgradeSubscriptionRequestEntity"
     },
     "UpgradeSubscriptionRequestEntity$inboundSchema": null,
     "UpgradeSubscriptionRequestEntity$Outbound": null,
@@ -4249,7 +4495,8 @@
         "\"proration-charge\"",
         "\"proration-charge-immediately\"",
         "\"proration-none\""
-      ]
+      ],
+      "ref": "import(\"<sdk>/models/components/upgradesubscriptionrequestentity\").UpgradeSubscriptionRequestEntityUpdateBehavior"
     },
     "UpgradeSubscriptionRequestEntityUpdateBehavior$inboundSchema": null,
     "UpgradeSubscriptionRequestEntityUpdateBehavior$outboundSchema": null,
@@ -4259,7 +4506,8 @@
         "priceId?": "string | undefined",
         "productId?": "string | undefined",
         "units?": "number | undefined"
-      }
+      },
+      "ref": "import(\"<sdk>/models/components/upsertsubscriptionitementity\").UpsertSubscriptionItemEntity"
     },
     "UpsertSubscriptionItemEntity$inboundSchema": null,
     "UpsertSubscriptionItemEntity$Outbound": null,
@@ -4273,7 +4521,8 @@
     "UsageEntity": {
       "properties": {
         "units": "number"
-      }
+      },
+      "ref": "import(\"<sdk>/models/components/usageentity\").UsageEntity"
     },
     "UsageEntity$inboundSchema": null,
     "UsageEntity$Outbound": null,
@@ -4294,7 +4543,8 @@
         "name": "string",
         "properties": "{ [k: string]: any; }",
         "timestamp": "string"
-      }
+      },
+      "ref": "import(\"<sdk>/models/components/usageeventapiresponsedto\").UsageEventApiResponseDto"
     },
     "UsageEventApiResponseDto$inboundSchema": null,
     "UsageEventApiResponseDto$Outbound": null,
@@ -4310,7 +4560,8 @@
         "data": "import(\"<sdk>/models/components/usageeventapiresponsedto\").UsageEventApiResponseDto[]",
         "hasMore": "boolean",
         "object": "string"
-      }
+      },
+      "ref": "import(\"<sdk>/models/components/usageeventlistapiresponsedto\").UsageEventListApiResponseDto"
     },
     "UsageEventListApiResponseDto$inboundSchema": null,
     "UsageEventListApiResponseDto$Outbound": null,
@@ -4329,7 +4580,8 @@
         "param?": "string | null | undefined",
         "requestId": "string",
         "type": "import(\"<sdk>/models/components/usagemeteringerrordetailapidto\").UsageMeteringErrorDetailApiDtoType"
-      }
+      },
+      "ref": "import(\"<sdk>/models/components/usagemeteringerrordetailapidto\").UsageMeteringErrorDetailApiDto"
     },
     "UsageMeteringErrorDetailApiDto$inboundSchema": null,
     "UsageMeteringErrorDetailApiDto$Outbound": null,
@@ -4353,7 +4605,8 @@
         "\"invalid_request_error\"",
         "\"rate_limit_error\"",
         "import(\"<sdk>/types/unrecognized\").Unrecognized<string>"
-      ]
+      ],
+      "ref": "import(\"<sdk>/models/components/usagemeteringerrordetailapidto\").UsageMeteringErrorDetailApiDtoType"
     },
     "UsageMeteringErrorDetailApiDtoType$inboundSchema": null,
     "UsageMeteringErrorDetailApiDtoType$outboundSchema": null,
@@ -4368,7 +4621,8 @@
         "targetAccountName?": "string | null | undefined",
         "trialUsageMode": "import(\"<sdk>/models/components/usagepricetrialusagemode\").UsagePriceTrialUsageMode",
         "unitPrice": "number"
-      }
+      },
+      "ref": "import(\"<sdk>/models/components/usagepriceentity\").UsagePriceEntity"
     },
     "UsagePriceEntity$inboundSchema": null,
     "UsagePriceEntity$Outbound": null,
@@ -4390,7 +4644,8 @@
         "targetAccountName?": "string | null | undefined",
         "trialUsageMode?": "import(\"<sdk>/models/components/usagepricetrialusagemode\").UsagePriceTrialUsageMode | undefined",
         "unitPrice": "number"
-      }
+      },
+      "ref": "import(\"<sdk>/models/components/usagepricerequestentity\").UsagePriceRequestEntity"
     },
     "UsagePriceRequestEntity$inboundSchema": null,
     "UsagePriceRequestEntity$Outbound": null,
@@ -4410,7 +4665,8 @@
         "\"postpaid\"",
         "\"prepaid\"",
         "import(\"<sdk>/types/unrecognized\").Unrecognized<string>"
-      ]
+      ],
+      "ref": "import(\"<sdk>/models/components/usagepricesettlementmode\").UsagePriceSettlementMode"
     },
     "UsagePriceSettlementMode$inboundSchema": null,
     "UsagePriceSettlementMode$outboundSchema": null,
@@ -4423,7 +4679,8 @@
         "\"per_unit\"",
         "\"shared\"",
         "import(\"<sdk>/types/unrecognized\").Unrecognized<string>"
-      ]
+      ],
+      "ref": "import(\"<sdk>/models/components/usagepricetargetaccount\").UsagePriceTargetAccount"
     },
     "UsagePriceTargetAccount$inboundSchema": null,
     "UsagePriceTargetAccount$outboundSchema": null,
@@ -4436,7 +4693,8 @@
         "\"accrue\"",
         "\"free\"",
         "import(\"<sdk>/types/unrecognized\").Unrecognized<string>"
-      ]
+      ],
+      "ref": "import(\"<sdk>/models/components/usagepricetrialusagemode\").UsagePriceTrialUsageMode"
     },
     "UsagePriceTrialUsageMode$inboundSchema": null,
     "UsagePriceTrialUsageMode$outboundSchema": null,
@@ -4444,7 +4702,8 @@
       "properties": {
         "instanceId": "string",
         "key": "string"
-      }
+      },
+      "ref": "import(\"<sdk>/models/components/validatelicenserequestentity\").ValidateLicenseRequestEntity"
     },
     "ValidateLicenseRequestEntity$inboundSchema": null,
     "ValidateLicenseRequestEntity$Outbound": null,
@@ -4461,7 +4720,8 @@
         "number",
         "string",
         "true"
-      ]
+      ],
+      "ref": "import(\"<sdk>/models/components/filterclauseapirequestdto\").Value"
     },
     "Value$inboundSchema": null,
     "Value$Outbound": null,
@@ -4478,7 +4738,8 @@
         "eventType": "\"checkout.completed\"",
         "id": "string",
         "object": "import(\"<sdk>/models/components/checkoutentity\").CheckoutEntity"
-      }
+      },
+      "ref": "import(\"<sdk>/models/components/webhookcheckoutcompletedevententity\").WebhookCheckoutCompletedEventEntity"
     },
     "WebhookCheckoutCompletedEventEntity$inboundSchema": null,
     "WebhookCheckoutCompletedEventEntity$Outbound": null,
@@ -4487,7 +4748,8 @@
       "enum": {
         "CheckoutCompleted": "checkout.completed"
       },
-      "text": "\"checkout.completed\""
+      "text": "\"checkout.completed\"",
+      "ref": "import(\"<sdk>/models/components/webhookevententity\").WebhookCheckoutCompletedEventEntityEventType"
     },
     "WebhookCheckoutCompletedEventEntityEventType$inboundSchema": null,
     "WebhookCheckoutCompletedEventEntityEventType$outboundSchema": null,
@@ -4503,7 +4765,8 @@
         "eventType": "\"credits.auto_recharged\"",
         "id": "string",
         "object": "import(\"<sdk>/models/components/customercreditsautorechargeentity\").CustomerCreditsAutoRechargeEntity"
-      }
+      },
+      "ref": "import(\"<sdk>/models/components/webhookcreditsautorechargedevententity\").WebhookCreditsAutoRechargedEventEntity"
     },
     "WebhookCreditsAutoRechargedEventEntity$inboundSchema": null,
     "WebhookCreditsAutoRechargedEventEntity$Outbound": null,
@@ -4512,7 +4775,8 @@
       "enum": {
         "CreditsAutoRecharged": "credits.auto_recharged"
       },
-      "text": "\"credits.auto_recharged\""
+      "text": "\"credits.auto_recharged\"",
+      "ref": "import(\"<sdk>/models/components/webhookcreditsautorechargedevententity\").WebhookCreditsAutoRechargedEventEntityEventType"
     },
     "WebhookCreditsAutoRechargedEventEntityEventType$inboundSchema": null,
     "WebhookCreditsAutoRechargedEventEntityEventType$outboundSchema": null,
@@ -4526,7 +4790,8 @@
       "enum": {
         "CreditsAutoRecharged": "credits.auto_recharged"
       },
-      "text": "\"credits.auto_recharged\""
+      "text": "\"credits.auto_recharged\"",
+      "ref": "import(\"<sdk>/models/components/webhookevententity\").WebhookCreditsAutoRechargedEventEntityWebhookEventEntityEventType"
     },
     "WebhookCreditsAutoRechargedEventEntityWebhookEventEntityEventType$inboundSchema": null,
     "WebhookCreditsAutoRechargedEventEntityWebhookEventEntityEventType$outboundSchema": null,
@@ -4536,7 +4801,8 @@
         "eventType": "\"credits.consumed\"",
         "id": "string",
         "object": "import(\"<sdk>/models/components/customercreditsconsumptionentity\").CustomerCreditsConsumptionEntity"
-      }
+      },
+      "ref": "import(\"<sdk>/models/components/webhookcreditsconsumedevententity\").WebhookCreditsConsumedEventEntity"
     },
     "WebhookCreditsConsumedEventEntity$inboundSchema": null,
     "WebhookCreditsConsumedEventEntity$Outbound": null,
@@ -4545,7 +4811,8 @@
       "enum": {
         "CreditsConsumed": "credits.consumed"
       },
-      "text": "\"credits.consumed\""
+      "text": "\"credits.consumed\"",
+      "ref": "import(\"<sdk>/models/components/webhookcreditsconsumedevententity\").WebhookCreditsConsumedEventEntityEventType"
     },
     "WebhookCreditsConsumedEventEntityEventType$inboundSchema": null,
     "WebhookCreditsConsumedEventEntityEventType$outboundSchema": null,
@@ -4559,7 +4826,8 @@
       "enum": {
         "CreditsConsumed": "credits.consumed"
       },
-      "text": "\"credits.consumed\""
+      "text": "\"credits.consumed\"",
+      "ref": "import(\"<sdk>/models/components/webhookevententity\").WebhookCreditsConsumedEventEntityWebhookEventEntityEventType"
     },
     "WebhookCreditsConsumedEventEntityWebhookEventEntityEventType$inboundSchema": null,
     "WebhookCreditsConsumedEventEntityWebhookEventEntityEventType$outboundSchema": null,
@@ -4569,7 +4837,8 @@
         "eventType": "\"credits.granted\"",
         "id": "string",
         "object": "import(\"<sdk>/models/components/customercreditsgrantentity\").CustomerCreditsGrantEntity"
-      }
+      },
+      "ref": "import(\"<sdk>/models/components/webhookcreditsgrantedevententity\").WebhookCreditsGrantedEventEntity"
     },
     "WebhookCreditsGrantedEventEntity$inboundSchema": null,
     "WebhookCreditsGrantedEventEntity$Outbound": null,
@@ -4578,7 +4847,8 @@
       "enum": {
         "CreditsGranted": "credits.granted"
       },
-      "text": "\"credits.granted\""
+      "text": "\"credits.granted\"",
+      "ref": "import(\"<sdk>/models/components/webhookcreditsgrantedevententity\").WebhookCreditsGrantedEventEntityEventType"
     },
     "WebhookCreditsGrantedEventEntityEventType$inboundSchema": null,
     "WebhookCreditsGrantedEventEntityEventType$outboundSchema": null,
@@ -4592,7 +4862,8 @@
       "enum": {
         "CreditsGranted": "credits.granted"
       },
-      "text": "\"credits.granted\""
+      "text": "\"credits.granted\"",
+      "ref": "import(\"<sdk>/models/components/webhookevententity\").WebhookCreditsGrantedEventEntityWebhookEventEntityEventType"
     },
     "WebhookCreditsGrantedEventEntityWebhookEventEntityEventType$inboundSchema": null,
     "WebhookCreditsGrantedEventEntityWebhookEventEntityEventType$outboundSchema": null,
@@ -4602,7 +4873,8 @@
         "eventType": "\"credits.reversed\"",
         "id": "string",
         "object": "import(\"<sdk>/models/components/customercreditsreversalentity\").CustomerCreditsReversalEntity"
-      }
+      },
+      "ref": "import(\"<sdk>/models/components/webhookcreditsreversedevententity\").WebhookCreditsReversedEventEntity"
     },
     "WebhookCreditsReversedEventEntity$inboundSchema": null,
     "WebhookCreditsReversedEventEntity$Outbound": null,
@@ -4611,7 +4883,8 @@
       "enum": {
         "CreditsReversed": "credits.reversed"
       },
-      "text": "\"credits.reversed\""
+      "text": "\"credits.reversed\"",
+      "ref": "import(\"<sdk>/models/components/webhookcreditsreversedevententity\").WebhookCreditsReversedEventEntityEventType"
     },
     "WebhookCreditsReversedEventEntityEventType$inboundSchema": null,
     "WebhookCreditsReversedEventEntityEventType$outboundSchema": null,
@@ -4625,7 +4898,8 @@
       "enum": {
         "CreditsReversed": "credits.reversed"
       },
-      "text": "\"credits.reversed\""
+      "text": "\"credits.reversed\"",
+      "ref": "import(\"<sdk>/models/components/webhookevententity\").WebhookCreditsReversedEventEntityWebhookEventEntityEventType"
     },
     "WebhookCreditsReversedEventEntityWebhookEventEntityEventType$inboundSchema": null,
     "WebhookCreditsReversedEventEntityWebhookEventEntityEventType$outboundSchema": null,
@@ -4635,7 +4909,8 @@
         "eventType": "\"customer_credits.exhausted\"",
         "id": "string",
         "object": "import(\"<sdk>/models/components/customercreditsexhaustionentity\").CustomerCreditsExhaustionEntity"
-      }
+      },
+      "ref": "import(\"<sdk>/models/components/webhookcustomercreditsexhaustedevententity\").WebhookCustomerCreditsExhaustedEventEntity"
     },
     "WebhookCustomerCreditsExhaustedEventEntity$inboundSchema": null,
     "WebhookCustomerCreditsExhaustedEventEntity$Outbound": null,
@@ -4644,7 +4919,8 @@
       "enum": {
         "CustomerCreditsExhausted": "customer_credits.exhausted"
       },
-      "text": "\"customer_credits.exhausted\""
+      "text": "\"customer_credits.exhausted\"",
+      "ref": "import(\"<sdk>/models/components/webhookcustomercreditsexhaustedevententity\").WebhookCustomerCreditsExhaustedEventEntityEventType"
     },
     "WebhookCustomerCreditsExhaustedEventEntityEventType$inboundSchema": null,
     "WebhookCustomerCreditsExhaustedEventEntityEventType$outboundSchema": null,
@@ -4658,7 +4934,8 @@
       "enum": {
         "CustomerCreditsExhausted": "customer_credits.exhausted"
       },
-      "text": "\"customer_credits.exhausted\""
+      "text": "\"customer_credits.exhausted\"",
+      "ref": "import(\"<sdk>/models/components/webhookevententity\").WebhookCustomerCreditsExhaustedEventEntityWebhookEventEntityEventType"
     },
     "WebhookCustomerCreditsExhaustedEventEntityWebhookEventEntityEventType$inboundSchema": null,
     "WebhookCustomerCreditsExhaustedEventEntityWebhookEventEntityEventType$outboundSchema": null,
@@ -4671,7 +4948,8 @@
         "\"cli\"",
         "\"http\"",
         "import(\"<sdk>/types/unrecognized\").Unrecognized<string>"
-      ]
+      ],
+      "ref": "import(\"<sdk>/models/components/webhookdeliverymode\").WebhookDeliveryMode"
     },
     "WebhookDeliveryMode$inboundSchema": null,
     "WebhookDeliveryMode$outboundSchema": null,
@@ -4681,7 +4959,8 @@
         "eventType": "\"dispute.created\"",
         "id": "string",
         "object": "import(\"<sdk>/models/components/disputeentity\").DisputeEntity"
-      }
+      },
+      "ref": "import(\"<sdk>/models/components/webhookdisputecreatedevententity\").WebhookDisputeCreatedEventEntity"
     },
     "WebhookDisputeCreatedEventEntity$inboundSchema": null,
     "WebhookDisputeCreatedEventEntity$Outbound": null,
@@ -4690,7 +4969,8 @@
       "enum": {
         "DisputeCreated": "dispute.created"
       },
-      "text": "\"dispute.created\""
+      "text": "\"dispute.created\"",
+      "ref": "import(\"<sdk>/models/components/webhookdisputecreatedevententity\").WebhookDisputeCreatedEventEntityEventType"
     },
     "WebhookDisputeCreatedEventEntityEventType$inboundSchema": null,
     "WebhookDisputeCreatedEventEntityEventType$outboundSchema": null,
@@ -4704,7 +4984,8 @@
       "enum": {
         "DisputeCreated": "dispute.created"
       },
-      "text": "\"dispute.created\""
+      "text": "\"dispute.created\"",
+      "ref": "import(\"<sdk>/models/components/webhookevententity\").WebhookDisputeCreatedEventEntityWebhookEventEntityEventType"
     },
     "WebhookDisputeCreatedEventEntityWebhookEventEntityEventType$inboundSchema": null,
     "WebhookDisputeCreatedEventEntityWebhookEventEntityEventType$outboundSchema": null,
@@ -4720,7 +5001,8 @@
         "status": "import(\"<sdk>/models/components/webhookstatus\").WebhookStatus",
         "storeId": "string",
         "url": "string"
-      }
+      },
+      "ref": "import(\"<sdk>/models/components/webhookentity\").WebhookEntity"
     },
     "WebhookEntity$inboundSchema": null,
     "WebhookEntity$Outbound": null,
@@ -4736,7 +5018,8 @@
         "id": "string",
         "object": "string",
         "success": "boolean"
-      }
+      },
+      "ref": "import(\"<sdk>/models/components/webhookeventackentity\").WebhookEventAckEntity"
     },
     "WebhookEventAckEntity$inboundSchema": null,
     "WebhookEventAckEntity$Outbound": null,
@@ -4769,7 +5052,8 @@
         "import(\"<sdk>/models/components/webhookevententity\").WebhookEventEntityWebhookSubscriptionUnpaidEventEntity & { eventType: \"subscription.unpaid\"; }",
         "import(\"<sdk>/models/components/webhookevententity\").WebhookEventEntityWebhookSubscriptionUpdateEventEntity & { eventType: \"subscription.update\"; }",
         "import(\"<sdk>/types/discriminatedUnion\").Unknown<\"eventType\", \"UNKNOWN\">"
-      ]
+      ],
+      "ref": "import(\"<sdk>/models/components/webhookevententity\").WebhookEventEntity"
     },
     "WebhookEventEntity$inboundSchema": null,
     "WebhookEventEntity$Outbound": null,
@@ -4786,7 +5070,8 @@
         "eventType": "\"checkout.completed\"",
         "id": "string",
         "object": "import(\"<sdk>/models/components/checkoutentity\").CheckoutEntity"
-      }
+      },
+      "ref": "import(\"<sdk>/models/components/webhookevententity\").WebhookEventEntityWebhookCheckoutCompletedEventEntity"
     },
     "WebhookEventEntityWebhookCheckoutCompletedEventEntity$inboundSchema": null,
     "WebhookEventEntityWebhookCheckoutCompletedEventEntity$Outbound": null,
@@ -4803,7 +5088,8 @@
         "eventType": "\"credits.auto_recharged\"",
         "id": "string",
         "object": "import(\"<sdk>/models/components/customercreditsautorechargeentity\").CustomerCreditsAutoRechargeEntity"
-      }
+      },
+      "ref": "import(\"<sdk>/models/components/webhookevententity\").WebhookEventEntityWebhookCreditsAutoRechargedEventEntity"
     },
     "WebhookEventEntityWebhookCreditsAutoRechargedEventEntity$inboundSchema": null,
     "WebhookEventEntityWebhookCreditsAutoRechargedEventEntity$Outbound": null,
@@ -4820,7 +5106,8 @@
         "eventType": "\"credits.consumed\"",
         "id": "string",
         "object": "import(\"<sdk>/models/components/customercreditsconsumptionentity\").CustomerCreditsConsumptionEntity"
-      }
+      },
+      "ref": "import(\"<sdk>/models/components/webhookevententity\").WebhookEventEntityWebhookCreditsConsumedEventEntity"
     },
     "WebhookEventEntityWebhookCreditsConsumedEventEntity$inboundSchema": null,
     "WebhookEventEntityWebhookCreditsConsumedEventEntity$Outbound": null,
@@ -4837,7 +5124,8 @@
         "eventType": "\"credits.granted\"",
         "id": "string",
         "object": "import(\"<sdk>/models/components/customercreditsgrantentity\").CustomerCreditsGrantEntity"
-      }
+      },
+      "ref": "import(\"<sdk>/models/components/webhookevententity\").WebhookEventEntityWebhookCreditsGrantedEventEntity"
     },
     "WebhookEventEntityWebhookCreditsGrantedEventEntity$inboundSchema": null,
     "WebhookEventEntityWebhookCreditsGrantedEventEntity$Outbound": null,
@@ -4854,7 +5142,8 @@
         "eventType": "\"credits.reversed\"",
         "id": "string",
         "object": "import(\"<sdk>/models/components/customercreditsreversalentity\").CustomerCreditsReversalEntity"
-      }
+      },
+      "ref": "import(\"<sdk>/models/components/webhookevententity\").WebhookEventEntityWebhookCreditsReversedEventEntity"
     },
     "WebhookEventEntityWebhookCreditsReversedEventEntity$inboundSchema": null,
     "WebhookEventEntityWebhookCreditsReversedEventEntity$Outbound": null,
@@ -4871,7 +5160,8 @@
         "eventType": "\"customer_credits.exhausted\"",
         "id": "string",
         "object": "import(\"<sdk>/models/components/customercreditsexhaustionentity\").CustomerCreditsExhaustionEntity"
-      }
+      },
+      "ref": "import(\"<sdk>/models/components/webhookevententity\").WebhookEventEntityWebhookCustomerCreditsExhaustedEventEntity"
     },
     "WebhookEventEntityWebhookCustomerCreditsExhaustedEventEntity$inboundSchema": null,
     "WebhookEventEntityWebhookCustomerCreditsExhaustedEventEntity$Outbound": null,
@@ -4888,7 +5178,8 @@
         "eventType": "\"dispute.created\"",
         "id": "string",
         "object": "import(\"<sdk>/models/components/disputeentity\").DisputeEntity"
-      }
+      },
+      "ref": "import(\"<sdk>/models/components/webhookevententity\").WebhookEventEntityWebhookDisputeCreatedEventEntity"
     },
     "WebhookEventEntityWebhookDisputeCreatedEventEntity$inboundSchema": null,
     "WebhookEventEntityWebhookDisputeCreatedEventEntity$Outbound": null,
@@ -4905,7 +5196,8 @@
         "eventType": "\"marketplace.grant.requested\"",
         "id": "string",
         "object": "import(\"<sdk>/models/components/marketplacegrantaskentity\").MarketplaceGrantAskEntity"
-      }
+      },
+      "ref": "import(\"<sdk>/models/components/webhookevententity\").WebhookEventEntityWebhookMarketplaceGrantRequestedEventEntity"
     },
     "WebhookEventEntityWebhookMarketplaceGrantRequestedEventEntity$inboundSchema": null,
     "WebhookEventEntityWebhookMarketplaceGrantRequestedEventEntity$Outbound": null,
@@ -4922,7 +5214,8 @@
         "eventType": "\"refund.created\"",
         "id": "string",
         "object": "import(\"<sdk>/models/components/refundentity\").RefundEntity"
-      }
+      },
+      "ref": "import(\"<sdk>/models/components/webhookevententity\").WebhookEventEntityWebhookRefundCreatedEventEntity"
     },
     "WebhookEventEntityWebhookRefundCreatedEventEntity$inboundSchema": null,
     "WebhookEventEntityWebhookRefundCreatedEventEntity$Outbound": null,
@@ -4939,7 +5232,8 @@
         "eventType": "\"subscription.active\"",
         "id": "string",
         "object": "import(\"<sdk>/models/components/webhooksubscriptionentity\").WebhookSubscriptionEntity"
-      }
+      },
+      "ref": "import(\"<sdk>/models/components/webhookevententity\").WebhookEventEntityWebhookSubscriptionActiveEventEntity"
     },
     "WebhookEventEntityWebhookSubscriptionActiveEventEntity$inboundSchema": null,
     "WebhookEventEntityWebhookSubscriptionActiveEventEntity$Outbound": null,
@@ -4956,7 +5250,8 @@
         "eventType": "\"subscription.canceled\"",
         "id": "string",
         "object": "import(\"<sdk>/models/components/webhooksubscriptionentity\").WebhookSubscriptionEntity"
-      }
+      },
+      "ref": "import(\"<sdk>/models/components/webhookevententity\").WebhookEventEntityWebhookSubscriptionCanceledEventEntity"
     },
     "WebhookEventEntityWebhookSubscriptionCanceledEventEntity$inboundSchema": null,
     "WebhookEventEntityWebhookSubscriptionCanceledEventEntity$Outbound": null,
@@ -4973,7 +5268,8 @@
         "eventType": "\"subscription.expired\"",
         "id": "string",
         "object": "import(\"<sdk>/models/components/webhooksubscriptionentity\").WebhookSubscriptionEntity"
-      }
+      },
+      "ref": "import(\"<sdk>/models/components/webhookevententity\").WebhookEventEntityWebhookSubscriptionExpiredEventEntity"
     },
     "WebhookEventEntityWebhookSubscriptionExpiredEventEntity$inboundSchema": null,
     "WebhookEventEntityWebhookSubscriptionExpiredEventEntity$Outbound": null,
@@ -4990,7 +5286,8 @@
         "eventType": "\"subscription.paid\"",
         "id": "string",
         "object": "import(\"<sdk>/models/components/webhooksubscriptionentity\").WebhookSubscriptionEntity"
-      }
+      },
+      "ref": "import(\"<sdk>/models/components/webhookevententity\").WebhookEventEntityWebhookSubscriptionPaidEventEntity"
     },
     "WebhookEventEntityWebhookSubscriptionPaidEventEntity$inboundSchema": null,
     "WebhookEventEntityWebhookSubscriptionPaidEventEntity$Outbound": null,
@@ -5007,7 +5304,8 @@
         "eventType": "\"subscription.past_due\"",
         "id": "string",
         "object": "import(\"<sdk>/models/components/webhooksubscriptionentity\").WebhookSubscriptionEntity"
-      }
+      },
+      "ref": "import(\"<sdk>/models/components/webhookevententity\").WebhookEventEntityWebhookSubscriptionPastDueEventEntity"
     },
     "WebhookEventEntityWebhookSubscriptionPastDueEventEntity$inboundSchema": null,
     "WebhookEventEntityWebhookSubscriptionPastDueEventEntity$Outbound": null,
@@ -5024,7 +5322,8 @@
         "eventType": "\"subscription.paused\"",
         "id": "string",
         "object": "import(\"<sdk>/models/components/webhooksubscriptionentity\").WebhookSubscriptionEntity"
-      }
+      },
+      "ref": "import(\"<sdk>/models/components/webhookevententity\").WebhookEventEntityWebhookSubscriptionPausedEventEntity"
     },
     "WebhookEventEntityWebhookSubscriptionPausedEventEntity$inboundSchema": null,
     "WebhookEventEntityWebhookSubscriptionPausedEventEntity$Outbound": null,
@@ -5041,7 +5340,8 @@
         "eventType": "\"subscription.scheduled_cancel\"",
         "id": "string",
         "object": "import(\"<sdk>/models/components/webhooksubscriptionentity\").WebhookSubscriptionEntity"
-      }
+      },
+      "ref": "import(\"<sdk>/models/components/webhookevententity\").WebhookEventEntityWebhookSubscriptionScheduledCancelEventEntity"
     },
     "WebhookEventEntityWebhookSubscriptionScheduledCancelEventEntity$inboundSchema": null,
     "WebhookEventEntityWebhookSubscriptionScheduledCancelEventEntity$Outbound": null,
@@ -5058,7 +5358,8 @@
         "eventType": "\"subscription.trialing\"",
         "id": "string",
         "object": "import(\"<sdk>/models/components/webhooksubscriptionentity\").WebhookSubscriptionEntity"
-      }
+      },
+      "ref": "import(\"<sdk>/models/components/webhookevententity\").WebhookEventEntityWebhookSubscriptionTrialingEventEntity"
     },
     "WebhookEventEntityWebhookSubscriptionTrialingEventEntity$inboundSchema": null,
     "WebhookEventEntityWebhookSubscriptionTrialingEventEntity$Outbound": null,
@@ -5075,7 +5376,8 @@
         "eventType": "\"subscription.unpaid\"",
         "id": "string",
         "object": "import(\"<sdk>/models/components/webhooksubscriptionentity\").WebhookSubscriptionEntity"
-      }
+      },
+      "ref": "import(\"<sdk>/models/components/webhookevententity\").WebhookEventEntityWebhookSubscriptionUnpaidEventEntity"
     },
     "WebhookEventEntityWebhookSubscriptionUnpaidEventEntity$inboundSchema": null,
     "WebhookEventEntityWebhookSubscriptionUnpaidEventEntity$Outbound": null,
@@ -5092,7 +5394,8 @@
         "eventType": "\"subscription.update\"",
         "id": "string",
         "object": "import(\"<sdk>/models/components/webhooksubscriptionentity\").WebhookSubscriptionEntity"
-      }
+      },
+      "ref": "import(\"<sdk>/models/components/webhookevententity\").WebhookEventEntityWebhookSubscriptionUpdateEventEntity"
     },
     "WebhookEventEntityWebhookSubscriptionUpdateEventEntity$inboundSchema": null,
     "WebhookEventEntityWebhookSubscriptionUpdateEventEntity$Outbound": null,
@@ -5146,7 +5449,8 @@
         "\"subscription.unpaid\"",
         "\"subscription.update\"",
         "import(\"<sdk>/types/unrecognized\").Unrecognized<string>"
-      ]
+      ],
+      "ref": "import(\"<sdk>/models/components/webhookeventtype\").WebhookEventType"
     },
     "WebhookEventType$inboundSchema": null,
     "WebhookEventType$outboundSchema": null,
@@ -5154,7 +5458,8 @@
       "properties": {
         "items": "import(\"<sdk>/models/components/webhookentity\").WebhookEntity[]",
         "pagination": "import(\"<sdk>/models/components/paginationentity\").PaginationEntity"
-      }
+      },
+      "ref": "import(\"<sdk>/models/components/webhooklistentity\").WebhookListEntity"
     },
     "WebhookListEntity$inboundSchema": null,
     "WebhookListEntity$Outbound": null,
@@ -5171,7 +5476,8 @@
         "eventType": "\"marketplace.grant.requested\"",
         "id": "string",
         "object": "import(\"<sdk>/models/components/marketplacegrantaskentity\").MarketplaceGrantAskEntity"
-      }
+      },
+      "ref": "import(\"<sdk>/models/components/webhookmarketplacegrantrequestedevententity\").WebhookMarketplaceGrantRequestedEventEntity"
     },
     "WebhookMarketplaceGrantRequestedEventEntity$inboundSchema": null,
     "WebhookMarketplaceGrantRequestedEventEntity$Outbound": null,
@@ -5180,7 +5486,8 @@
       "enum": {
         "MarketplaceGrantRequested": "marketplace.grant.requested"
       },
-      "text": "\"marketplace.grant.requested\""
+      "text": "\"marketplace.grant.requested\"",
+      "ref": "import(\"<sdk>/models/components/webhookmarketplacegrantrequestedevententity\").WebhookMarketplaceGrantRequestedEventEntityEventType"
     },
     "WebhookMarketplaceGrantRequestedEventEntityEventType$inboundSchema": null,
     "WebhookMarketplaceGrantRequestedEventEntityEventType$outboundSchema": null,
@@ -5194,7 +5501,8 @@
       "enum": {
         "MarketplaceGrantRequested": "marketplace.grant.requested"
       },
-      "text": "\"marketplace.grant.requested\""
+      "text": "\"marketplace.grant.requested\"",
+      "ref": "import(\"<sdk>/models/components/webhookevententity\").WebhookMarketplaceGrantRequestedEventEntityWebhookEventEntityEventType"
     },
     "WebhookMarketplaceGrantRequestedEventEntityWebhookEventEntityEventType$inboundSchema": null,
     "WebhookMarketplaceGrantRequestedEventEntityWebhookEventEntityEventType$outboundSchema": null,
@@ -5206,7 +5514,8 @@
         "headers": "{ [k: string]: string; }",
         "id": "string",
         "object": "string"
-      }
+      },
+      "ref": "import(\"<sdk>/models/components/webhookpendingevententity\").WebhookPendingEventEntity"
     },
     "WebhookPendingEventEntity$inboundSchema": null,
     "WebhookPendingEventEntity$Outbound": null,
@@ -5220,7 +5529,8 @@
     "WebhookPendingEventListEntity": {
       "properties": {
         "items": "import(\"<sdk>/models/components/webhookpendingevententity\").WebhookPendingEventEntity[]"
-      }
+      },
+      "ref": "import(\"<sdk>/models/components/webhookpendingeventlistentity\").WebhookPendingEventListEntity"
     },
     "WebhookPendingEventListEntity$inboundSchema": null,
     "WebhookPendingEventListEntity$Outbound": null,
@@ -5237,7 +5547,8 @@
         "eventType": "\"refund.created\"",
         "id": "string",
         "object": "import(\"<sdk>/models/components/refundentity\").RefundEntity"
-      }
+      },
+      "ref": "import(\"<sdk>/models/components/webhookrefundcreatedevententity\").WebhookRefundCreatedEventEntity"
     },
     "WebhookRefundCreatedEventEntity$inboundSchema": null,
     "WebhookRefundCreatedEventEntity$Outbound": null,
@@ -5246,7 +5557,8 @@
       "enum": {
         "RefundCreated": "refund.created"
       },
-      "text": "\"refund.created\""
+      "text": "\"refund.created\"",
+      "ref": "import(\"<sdk>/models/components/webhookrefundcreatedevententity\").WebhookRefundCreatedEventEntityEventType"
     },
     "WebhookRefundCreatedEventEntityEventType$inboundSchema": null,
     "WebhookRefundCreatedEventEntityEventType$outboundSchema": null,
@@ -5260,14 +5572,16 @@
       "enum": {
         "RefundCreated": "refund.created"
       },
-      "text": "\"refund.created\""
+      "text": "\"refund.created\"",
+      "ref": "import(\"<sdk>/models/components/webhookevententity\").WebhookRefundCreatedEventEntityWebhookEventEntityEventType"
     },
     "WebhookRefundCreatedEventEntityWebhookEventEntityEventType$inboundSchema": null,
     "WebhookRefundCreatedEventEntityWebhookEventEntityEventType$outboundSchema": null,
     "WebhookSecretEntity": {
       "properties": {
         "secret": "string"
-      }
+      },
+      "ref": "import(\"<sdk>/models/components/webhooksecretentity\").WebhookSecretEntity"
     },
     "WebhookSecretEntity$inboundSchema": null,
     "WebhookSecretEntity$Outbound": null,
@@ -5287,7 +5601,8 @@
         "\"disabled\"",
         "\"enabled\"",
         "import(\"<sdk>/types/unrecognized\").Unrecognized<string>"
-      ]
+      ],
+      "ref": "import(\"<sdk>/models/components/webhookstatus\").WebhookStatus"
     },
     "WebhookStatus$inboundSchema": null,
     "WebhookStatus$outboundSchema": null,
@@ -5297,7 +5612,8 @@
         "eventType": "\"subscription.active\"",
         "id": "string",
         "object": "import(\"<sdk>/models/components/webhooksubscriptionentity\").WebhookSubscriptionEntity"
-      }
+      },
+      "ref": "import(\"<sdk>/models/components/webhooksubscriptionactiveevententity\").WebhookSubscriptionActiveEventEntity"
     },
     "WebhookSubscriptionActiveEventEntity$inboundSchema": null,
     "WebhookSubscriptionActiveEventEntity$Outbound": null,
@@ -5306,7 +5622,8 @@
       "enum": {
         "SubscriptionActive": "subscription.active"
       },
-      "text": "\"subscription.active\""
+      "text": "\"subscription.active\"",
+      "ref": "import(\"<sdk>/models/components/webhooksubscriptionactiveevententity\").WebhookSubscriptionActiveEventEntityEventType"
     },
     "WebhookSubscriptionActiveEventEntityEventType$inboundSchema": null,
     "WebhookSubscriptionActiveEventEntityEventType$outboundSchema": null,
@@ -5320,7 +5637,8 @@
       "enum": {
         "SubscriptionActive": "subscription.active"
       },
-      "text": "\"subscription.active\""
+      "text": "\"subscription.active\"",
+      "ref": "import(\"<sdk>/models/components/webhookevententity\").WebhookSubscriptionActiveEventEntityWebhookEventEntityEventType"
     },
     "WebhookSubscriptionActiveEventEntityWebhookEventEntityEventType$inboundSchema": null,
     "WebhookSubscriptionActiveEventEntityWebhookEventEntityEventType$outboundSchema": null,
@@ -5330,7 +5648,8 @@
         "eventType": "\"subscription.canceled\"",
         "id": "string",
         "object": "import(\"<sdk>/models/components/webhooksubscriptionentity\").WebhookSubscriptionEntity"
-      }
+      },
+      "ref": "import(\"<sdk>/models/components/webhooksubscriptioncanceledevententity\").WebhookSubscriptionCanceledEventEntity"
     },
     "WebhookSubscriptionCanceledEventEntity$inboundSchema": null,
     "WebhookSubscriptionCanceledEventEntity$Outbound": null,
@@ -5339,7 +5658,8 @@
       "enum": {
         "SubscriptionCanceled": "subscription.canceled"
       },
-      "text": "\"subscription.canceled\""
+      "text": "\"subscription.canceled\"",
+      "ref": "import(\"<sdk>/models/components/webhooksubscriptioncanceledevententity\").WebhookSubscriptionCanceledEventEntityEventType"
     },
     "WebhookSubscriptionCanceledEventEntityEventType$inboundSchema": null,
     "WebhookSubscriptionCanceledEventEntityEventType$outboundSchema": null,
@@ -5353,7 +5673,8 @@
       "enum": {
         "SubscriptionCanceled": "subscription.canceled"
       },
-      "text": "\"subscription.canceled\""
+      "text": "\"subscription.canceled\"",
+      "ref": "import(\"<sdk>/models/components/webhookevententity\").WebhookSubscriptionCanceledEventEntityWebhookEventEntityEventType"
     },
     "WebhookSubscriptionCanceledEventEntityWebhookEventEntityEventType$inboundSchema": null,
     "WebhookSubscriptionCanceledEventEntityWebhookEventEntityEventType$outboundSchema": null,
@@ -5379,7 +5700,8 @@
         "recovered?": "boolean | undefined",
         "status": "import(\"<sdk>/models/components/subscriptionstatus\").SubscriptionStatus",
         "updatedAt": "Date"
-      }
+      },
+      "ref": "import(\"<sdk>/models/components/webhooksubscriptionentity\").WebhookSubscriptionEntity"
     },
     "WebhookSubscriptionEntity$inboundSchema": null,
     "WebhookSubscriptionEntity$Outbound": null,
@@ -5393,7 +5715,8 @@
         "id?": "string | undefined",
         "name?": "string | undefined",
         "type?": "import(\"<sdk>/models/components/webhooksubscriptionentity\").WebhookSubscriptionEntityType | undefined"
-      }
+      },
+      "ref": "import(\"<sdk>/models/components/webhooksubscriptionentity\").WebhookSubscriptionEntityDiscount"
     },
     "WebhookSubscriptionEntityDiscount$inboundSchema": null,
     "WebhookSubscriptionEntityDiscount$Outbound": null,
@@ -5415,7 +5738,8 @@
         "\"once\"",
         "\"repeating\"",
         "import(\"<sdk>/types/unrecognized\").Unrecognized<string>"
-      ]
+      ],
+      "ref": "import(\"<sdk>/models/components/webhooksubscriptionentity\").WebhookSubscriptionEntityDuration"
     },
     "WebhookSubscriptionEntityDuration$inboundSchema": null,
     "WebhookSubscriptionEntityDuration$outboundSchema": null,
@@ -5434,7 +5758,8 @@
         "\"fixed\"",
         "\"percentage\"",
         "import(\"<sdk>/types/unrecognized\").Unrecognized<string>"
-      ]
+      ],
+      "ref": "import(\"<sdk>/models/components/webhooksubscriptionentity\").WebhookSubscriptionEntityType"
     },
     "WebhookSubscriptionEntityType$inboundSchema": null,
     "WebhookSubscriptionEntityType$outboundSchema": null,
@@ -5444,7 +5769,8 @@
         "eventType": "\"subscription.expired\"",
         "id": "string",
         "object": "import(\"<sdk>/models/components/webhooksubscriptionentity\").WebhookSubscriptionEntity"
-      }
+      },
+      "ref": "import(\"<sdk>/models/components/webhooksubscriptionexpiredevententity\").WebhookSubscriptionExpiredEventEntity"
     },
     "WebhookSubscriptionExpiredEventEntity$inboundSchema": null,
     "WebhookSubscriptionExpiredEventEntity$Outbound": null,
@@ -5453,7 +5779,8 @@
       "enum": {
         "SubscriptionExpired": "subscription.expired"
       },
-      "text": "\"subscription.expired\""
+      "text": "\"subscription.expired\"",
+      "ref": "import(\"<sdk>/models/components/webhooksubscriptionexpiredevententity\").WebhookSubscriptionExpiredEventEntityEventType"
     },
     "WebhookSubscriptionExpiredEventEntityEventType$inboundSchema": null,
     "WebhookSubscriptionExpiredEventEntityEventType$outboundSchema": null,
@@ -5467,7 +5794,8 @@
       "enum": {
         "SubscriptionExpired": "subscription.expired"
       },
-      "text": "\"subscription.expired\""
+      "text": "\"subscription.expired\"",
+      "ref": "import(\"<sdk>/models/components/webhookevententity\").WebhookSubscriptionExpiredEventEntityWebhookEventEntityEventType"
     },
     "WebhookSubscriptionExpiredEventEntityWebhookEventEntityEventType$inboundSchema": null,
     "WebhookSubscriptionExpiredEventEntityWebhookEventEntityEventType$outboundSchema": null,
@@ -5477,7 +5805,8 @@
         "eventType": "\"subscription.paid\"",
         "id": "string",
         "object": "import(\"<sdk>/models/components/webhooksubscriptionentity\").WebhookSubscriptionEntity"
-      }
+      },
+      "ref": "import(\"<sdk>/models/components/webhooksubscriptionpaidevententity\").WebhookSubscriptionPaidEventEntity"
     },
     "WebhookSubscriptionPaidEventEntity$inboundSchema": null,
     "WebhookSubscriptionPaidEventEntity$Outbound": null,
@@ -5486,7 +5815,8 @@
       "enum": {
         "SubscriptionPaid": "subscription.paid"
       },
-      "text": "\"subscription.paid\""
+      "text": "\"subscription.paid\"",
+      "ref": "import(\"<sdk>/models/components/webhooksubscriptionpaidevententity\").WebhookSubscriptionPaidEventEntityEventType"
     },
     "WebhookSubscriptionPaidEventEntityEventType$inboundSchema": null,
     "WebhookSubscriptionPaidEventEntityEventType$outboundSchema": null,
@@ -5500,7 +5830,8 @@
       "enum": {
         "SubscriptionPaid": "subscription.paid"
       },
-      "text": "\"subscription.paid\""
+      "text": "\"subscription.paid\"",
+      "ref": "import(\"<sdk>/models/components/webhookevententity\").WebhookSubscriptionPaidEventEntityWebhookEventEntityEventType"
     },
     "WebhookSubscriptionPaidEventEntityWebhookEventEntityEventType$inboundSchema": null,
     "WebhookSubscriptionPaidEventEntityWebhookEventEntityEventType$outboundSchema": null,
@@ -5510,7 +5841,8 @@
         "eventType": "\"subscription.past_due\"",
         "id": "string",
         "object": "import(\"<sdk>/models/components/webhooksubscriptionentity\").WebhookSubscriptionEntity"
-      }
+      },
+      "ref": "import(\"<sdk>/models/components/webhooksubscriptionpastdueevententity\").WebhookSubscriptionPastDueEventEntity"
     },
     "WebhookSubscriptionPastDueEventEntity$inboundSchema": null,
     "WebhookSubscriptionPastDueEventEntity$Outbound": null,
@@ -5519,7 +5851,8 @@
       "enum": {
         "SubscriptionPastDue": "subscription.past_due"
       },
-      "text": "\"subscription.past_due\""
+      "text": "\"subscription.past_due\"",
+      "ref": "import(\"<sdk>/models/components/webhooksubscriptionpastdueevententity\").WebhookSubscriptionPastDueEventEntityEventType"
     },
     "WebhookSubscriptionPastDueEventEntityEventType$inboundSchema": null,
     "WebhookSubscriptionPastDueEventEntityEventType$outboundSchema": null,
@@ -5533,7 +5866,8 @@
       "enum": {
         "SubscriptionPastDue": "subscription.past_due"
       },
-      "text": "\"subscription.past_due\""
+      "text": "\"subscription.past_due\"",
+      "ref": "import(\"<sdk>/models/components/webhookevententity\").WebhookSubscriptionPastDueEventEntityWebhookEventEntityEventType"
     },
     "WebhookSubscriptionPastDueEventEntityWebhookEventEntityEventType$inboundSchema": null,
     "WebhookSubscriptionPastDueEventEntityWebhookEventEntityEventType$outboundSchema": null,
@@ -5543,7 +5877,8 @@
         "eventType": "\"subscription.paused\"",
         "id": "string",
         "object": "import(\"<sdk>/models/components/webhooksubscriptionentity\").WebhookSubscriptionEntity"
-      }
+      },
+      "ref": "import(\"<sdk>/models/components/webhooksubscriptionpausedevententity\").WebhookSubscriptionPausedEventEntity"
     },
     "WebhookSubscriptionPausedEventEntity$inboundSchema": null,
     "WebhookSubscriptionPausedEventEntity$Outbound": null,
@@ -5552,7 +5887,8 @@
       "enum": {
         "SubscriptionPaused": "subscription.paused"
       },
-      "text": "\"subscription.paused\""
+      "text": "\"subscription.paused\"",
+      "ref": "import(\"<sdk>/models/components/webhooksubscriptionpausedevententity\").WebhookSubscriptionPausedEventEntityEventType"
     },
     "WebhookSubscriptionPausedEventEntityEventType$inboundSchema": null,
     "WebhookSubscriptionPausedEventEntityEventType$outboundSchema": null,
@@ -5566,7 +5902,8 @@
       "enum": {
         "SubscriptionPaused": "subscription.paused"
       },
-      "text": "\"subscription.paused\""
+      "text": "\"subscription.paused\"",
+      "ref": "import(\"<sdk>/models/components/webhookevententity\").WebhookSubscriptionPausedEventEntityWebhookEventEntityEventType"
     },
     "WebhookSubscriptionPausedEventEntityWebhookEventEntityEventType$inboundSchema": null,
     "WebhookSubscriptionPausedEventEntityWebhookEventEntityEventType$outboundSchema": null,
@@ -5576,7 +5913,8 @@
         "eventType": "\"subscription.scheduled_cancel\"",
         "id": "string",
         "object": "import(\"<sdk>/models/components/webhooksubscriptionentity\").WebhookSubscriptionEntity"
-      }
+      },
+      "ref": "import(\"<sdk>/models/components/webhooksubscriptionscheduledcancelevententity\").WebhookSubscriptionScheduledCancelEventEntity"
     },
     "WebhookSubscriptionScheduledCancelEventEntity$inboundSchema": null,
     "WebhookSubscriptionScheduledCancelEventEntity$Outbound": null,
@@ -5585,7 +5923,8 @@
       "enum": {
         "SubscriptionScheduledCancel": "subscription.scheduled_cancel"
       },
-      "text": "\"subscription.scheduled_cancel\""
+      "text": "\"subscription.scheduled_cancel\"",
+      "ref": "import(\"<sdk>/models/components/webhooksubscriptionscheduledcancelevententity\").WebhookSubscriptionScheduledCancelEventEntityEventType"
     },
     "WebhookSubscriptionScheduledCancelEventEntityEventType$inboundSchema": null,
     "WebhookSubscriptionScheduledCancelEventEntityEventType$outboundSchema": null,
@@ -5599,7 +5938,8 @@
       "enum": {
         "SubscriptionScheduledCancel": "subscription.scheduled_cancel"
       },
-      "text": "\"subscription.scheduled_cancel\""
+      "text": "\"subscription.scheduled_cancel\"",
+      "ref": "import(\"<sdk>/models/components/webhookevententity\").WebhookSubscriptionScheduledCancelEventEntityWebhookEventEntityEventType"
     },
     "WebhookSubscriptionScheduledCancelEventEntityWebhookEventEntityEventType$inboundSchema": null,
     "WebhookSubscriptionScheduledCancelEventEntityWebhookEventEntityEventType$outboundSchema": null,
@@ -5609,7 +5949,8 @@
         "eventType": "\"subscription.trialing\"",
         "id": "string",
         "object": "import(\"<sdk>/models/components/webhooksubscriptionentity\").WebhookSubscriptionEntity"
-      }
+      },
+      "ref": "import(\"<sdk>/models/components/webhooksubscriptiontrialingevententity\").WebhookSubscriptionTrialingEventEntity"
     },
     "WebhookSubscriptionTrialingEventEntity$inboundSchema": null,
     "WebhookSubscriptionTrialingEventEntity$Outbound": null,
@@ -5618,7 +5959,8 @@
       "enum": {
         "SubscriptionTrialing": "subscription.trialing"
       },
-      "text": "\"subscription.trialing\""
+      "text": "\"subscription.trialing\"",
+      "ref": "import(\"<sdk>/models/components/webhooksubscriptiontrialingevententity\").WebhookSubscriptionTrialingEventEntityEventType"
     },
     "WebhookSubscriptionTrialingEventEntityEventType$inboundSchema": null,
     "WebhookSubscriptionTrialingEventEntityEventType$outboundSchema": null,
@@ -5632,7 +5974,8 @@
       "enum": {
         "SubscriptionTrialing": "subscription.trialing"
       },
-      "text": "\"subscription.trialing\""
+      "text": "\"subscription.trialing\"",
+      "ref": "import(\"<sdk>/models/components/webhookevententity\").WebhookSubscriptionTrialingEventEntityWebhookEventEntityEventType"
     },
     "WebhookSubscriptionTrialingEventEntityWebhookEventEntityEventType$inboundSchema": null,
     "WebhookSubscriptionTrialingEventEntityWebhookEventEntityEventType$outboundSchema": null,
@@ -5642,7 +5985,8 @@
         "eventType": "\"subscription.unpaid\"",
         "id": "string",
         "object": "import(\"<sdk>/models/components/webhooksubscriptionentity\").WebhookSubscriptionEntity"
-      }
+      },
+      "ref": "import(\"<sdk>/models/components/webhooksubscriptionunpaidevententity\").WebhookSubscriptionUnpaidEventEntity"
     },
     "WebhookSubscriptionUnpaidEventEntity$inboundSchema": null,
     "WebhookSubscriptionUnpaidEventEntity$Outbound": null,
@@ -5651,7 +5995,8 @@
       "enum": {
         "SubscriptionUnpaid": "subscription.unpaid"
       },
-      "text": "\"subscription.unpaid\""
+      "text": "\"subscription.unpaid\"",
+      "ref": "import(\"<sdk>/models/components/webhooksubscriptionunpaidevententity\").WebhookSubscriptionUnpaidEventEntityEventType"
     },
     "WebhookSubscriptionUnpaidEventEntityEventType$inboundSchema": null,
     "WebhookSubscriptionUnpaidEventEntityEventType$outboundSchema": null,
@@ -5665,7 +6010,8 @@
       "enum": {
         "SubscriptionUnpaid": "subscription.unpaid"
       },
-      "text": "\"subscription.unpaid\""
+      "text": "\"subscription.unpaid\"",
+      "ref": "import(\"<sdk>/models/components/webhookevententity\").WebhookSubscriptionUnpaidEventEntityWebhookEventEntityEventType"
     },
     "WebhookSubscriptionUnpaidEventEntityWebhookEventEntityEventType$inboundSchema": null,
     "WebhookSubscriptionUnpaidEventEntityWebhookEventEntityEventType$outboundSchema": null,
@@ -5675,7 +6021,8 @@
         "eventType": "\"subscription.update\"",
         "id": "string",
         "object": "import(\"<sdk>/models/components/webhooksubscriptionentity\").WebhookSubscriptionEntity"
-      }
+      },
+      "ref": "import(\"<sdk>/models/components/webhooksubscriptionupdateevententity\").WebhookSubscriptionUpdateEventEntity"
     },
     "WebhookSubscriptionUpdateEventEntity$inboundSchema": null,
     "WebhookSubscriptionUpdateEventEntity$Outbound": null,
@@ -5684,7 +6031,8 @@
       "enum": {
         "SubscriptionUpdate": "subscription.update"
       },
-      "text": "\"subscription.update\""
+      "text": "\"subscription.update\"",
+      "ref": "import(\"<sdk>/models/components/webhooksubscriptionupdateevententity\").WebhookSubscriptionUpdateEventEntityEventType"
     },
     "WebhookSubscriptionUpdateEventEntityEventType$inboundSchema": null,
     "WebhookSubscriptionUpdateEventEntityEventType$outboundSchema": null,
@@ -5698,7 +6046,8 @@
       "enum": {
         "SubscriptionUpdate": "subscription.update"
       },
-      "text": "\"subscription.update\""
+      "text": "\"subscription.update\"",
+      "ref": "import(\"<sdk>/models/components/webhookevententity\").WebhookSubscriptionUpdateEventEntityWebhookEventEntityEventType"
     },
     "WebhookSubscriptionUpdateEventEntityWebhookEventEntityEventType$inboundSchema": null,
     "WebhookSubscriptionUpdateEventEntityWebhookEventEntityEventType$outboundSchema": null
@@ -5709,7 +6058,8 @@
         "acknowledgeWebhookEventRequestEntity": "import(\"<sdk>/models/components/acknowledgewebhookeventrequestentity\").AcknowledgeWebhookEventRequestEntity",
         "eventId": "string",
         "id": "string"
-      }
+      },
+      "ref": "import(\"<sdk>/models/operations/acknowledgewebhookevent\").AcknowledgeWebhookEventRequest"
     },
     "AcknowledgeWebhookEventRequest$inboundSchema": null,
     "AcknowledgeWebhookEventRequest$Outbound": null,
@@ -5723,7 +6073,8 @@
     "ArchiveMeterRequest": {
       "properties": {
         "id": "string"
-      }
+      },
+      "ref": "import(\"<sdk>/models/operations/archivemeter\").ArchiveMeterRequest"
     },
     "ArchiveMeterRequest$inboundSchema": null,
     "ArchiveMeterRequest$Outbound": null,
@@ -5737,7 +6088,8 @@
     "ArchiveProductRequest": {
       "properties": {
         "id": "string"
-      }
+      },
+      "ref": "import(\"<sdk>/models/operations/archiveproduct\").ArchiveProductRequest"
     },
     "ArchiveProductRequest$inboundSchema": null,
     "ArchiveProductRequest$Outbound": null,
@@ -5752,7 +6104,8 @@
       "properties": {
         "cancelSubscriptionRequestEntity": "import(\"<sdk>/models/components/cancelsubscriptionrequestentity\").CancelSubscriptionRequestEntity",
         "id": "string"
-      }
+      },
+      "ref": "import(\"<sdk>/models/operations/cancelsubscription\").CancelSubscriptionRequest"
     },
     "CancelSubscriptionRequest$inboundSchema": null,
     "CancelSubscriptionRequest$Outbound": null,
@@ -5766,7 +6119,8 @@
     "CloseCustomerCreditsAccountRequest": {
       "properties": {
         "id": "string"
-      }
+      },
+      "ref": "import(\"<sdk>/models/operations/closecustomercreditsaccount\").CloseCustomerCreditsAccountRequest"
     },
     "CloseCustomerCreditsAccountRequest$inboundSchema": null,
     "CloseCustomerCreditsAccountRequest$Outbound": null,
@@ -5780,7 +6134,8 @@
     "ConfirmFileUploadRequest": {
       "properties": {
         "id": "string"
-      }
+      },
+      "ref": "import(\"<sdk>/models/operations/confirmfileupload\").ConfirmFileUploadRequest"
     },
     "ConfirmFileUploadRequest$inboundSchema": null,
     "ConfirmFileUploadRequest$Outbound": null,
@@ -5795,7 +6150,8 @@
       "properties": {
         "createDiscountRequestEntity": "import(\"<sdk>/models/components/creatediscountrequestentity\").CreateDiscountRequestEntity",
         "idempotencyKey?": "string | undefined"
-      }
+      },
+      "ref": "import(\"<sdk>/models/operations/creatediscount\").CreateDiscountRequest"
     },
     "CreateDiscountRequest$inboundSchema": null,
     "CreateDiscountRequest$Outbound": null,
@@ -5810,7 +6166,8 @@
       "properties": {
         "createMeterApiRequestDto": "import(\"<sdk>/models/components/createmeterapirequestdto\").CreateMeterApiRequestDto",
         "idempotencyKey?": "string | undefined"
-      }
+      },
+      "ref": "import(\"<sdk>/models/operations/createmeter\").CreateMeterRequest"
     },
     "CreateMeterRequest$inboundSchema": null,
     "CreateMeterRequest$Outbound": null,
@@ -5825,7 +6182,8 @@
       "properties": {
         "createProductRequestEntity": "import(\"<sdk>/models/components/createproductrequestentity\").CreateProductRequestEntity",
         "idempotencyKey?": "string | undefined"
-      }
+      },
+      "ref": "import(\"<sdk>/models/operations/createproduct\").CreateProductRequest"
     },
     "CreateProductRequest$inboundSchema": null,
     "CreateProductRequest$Outbound": null,
@@ -5840,7 +6198,8 @@
       "properties": {
         "creditDebitRequestDto": "import(\"<sdk>/models/components/creditdebitrequestdto\").CreditDebitRequestDto",
         "id": "string"
-      }
+      },
+      "ref": "import(\"<sdk>/models/operations/creditcustomercreditsaccount\").CreditCustomerCreditsAccountRequest"
     },
     "CreditCustomerCreditsAccountRequest$inboundSchema": null,
     "CreditCustomerCreditsAccountRequest$Outbound": null,
@@ -5859,7 +6218,8 @@
       "union": [
         "\"EUR\"",
         "\"USD\""
-      ]
+      ],
+      "ref": "import(\"<sdk>/models/operations/getmetricssummary\").Currency"
     },
     "Currency$inboundSchema": null,
     "Currency$outboundSchema": null,
@@ -5867,7 +6227,8 @@
       "properties": {
         "debitRequestDto": "import(\"<sdk>/models/components/debitrequestdto\").DebitRequestDto",
         "id": "string"
-      }
+      },
+      "ref": "import(\"<sdk>/models/operations/debitcustomercreditsaccount\").DebitCustomerCreditsAccountRequest"
     },
     "DebitCustomerCreditsAccountRequest$inboundSchema": null,
     "DebitCustomerCreditsAccountRequest$Outbound": null,
@@ -5881,7 +6242,8 @@
     "DeleteDiscountRequest": {
       "properties": {
         "id": "string"
-      }
+      },
+      "ref": "import(\"<sdk>/models/operations/deletediscount\").DeleteDiscountRequest"
     },
     "DeleteDiscountRequest$inboundSchema": null,
     "DeleteDiscountRequest$Outbound": null,
@@ -5895,7 +6257,8 @@
     "DeleteSplitRequest": {
       "properties": {
         "id": "string"
-      }
+      },
+      "ref": "import(\"<sdk>/models/operations/deletesplit\").DeleteSplitRequest"
     },
     "DeleteSplitRequest$inboundSchema": null,
     "DeleteSplitRequest$Outbound": null,
@@ -5909,7 +6272,8 @@
     "DeleteWebhookRequest": {
       "properties": {
         "id": "string"
-      }
+      },
+      "ref": "import(\"<sdk>/models/operations/deletewebhook\").DeleteWebhookRequest"
     },
     "DeleteWebhookRequest$inboundSchema": null,
     "DeleteWebhookRequest$Outbound": null,
@@ -5923,7 +6287,8 @@
     "FreezeCustomerCreditsAccountRequest": {
       "properties": {
         "id": "string"
-      }
+      },
+      "ref": "import(\"<sdk>/models/operations/freezecustomercreditsaccount\").FreezeCustomerCreditsAccountRequest"
     },
     "FreezeCustomerCreditsAccountRequest$inboundSchema": null,
     "FreezeCustomerCreditsAccountRequest$Outbound": null,
@@ -5938,7 +6303,8 @@
       "properties": {
         "at?": "string | undefined",
         "id": "string"
-      }
+      },
+      "ref": "import(\"<sdk>/models/operations/getcustomercreditsaccountbalance\").GetCustomerCreditsAccountBalanceRequest"
     },
     "GetCustomerCreditsAccountBalanceRequest$inboundSchema": null,
     "GetCustomerCreditsAccountBalanceRequest$Outbound": null,
@@ -5952,7 +6318,8 @@
     "GetCustomerCreditsAccountRequest": {
       "properties": {
         "id": "string"
-      }
+      },
+      "ref": "import(\"<sdk>/models/operations/getcustomercreditsaccount\").GetCustomerCreditsAccountRequest"
     },
     "GetCustomerCreditsAccountRequest$inboundSchema": null,
     "GetCustomerCreditsAccountRequest$Outbound": null,
@@ -5966,7 +6333,8 @@
     "GetCustomerCreditsTransactionRequest": {
       "properties": {
         "id": "string"
-      }
+      },
+      "ref": "import(\"<sdk>/models/operations/getcustomercreditstransaction\").GetCustomerCreditsTransactionRequest"
     },
     "GetCustomerCreditsTransactionRequest$inboundSchema": null,
     "GetCustomerCreditsTransactionRequest$Outbound": null,
@@ -5982,7 +6350,8 @@
         "at?": "string | undefined",
         "customerId": "string",
         "id": "string"
-      }
+      },
+      "ref": "import(\"<sdk>/models/operations/getmeterconsumedunits\").GetMeterConsumedUnitsRequest"
     },
     "GetMeterConsumedUnitsRequest$inboundSchema": null,
     "GetMeterConsumedUnitsRequest$Outbound": null,
@@ -5996,7 +6365,8 @@
     "GetMeterRequest": {
       "properties": {
         "id": "string"
-      }
+      },
+      "ref": "import(\"<sdk>/models/operations/getmeter\").GetMeterRequest"
     },
     "GetMeterRequest$inboundSchema": null,
     "GetMeterRequest$Outbound": null,
@@ -6013,7 +6383,8 @@
         "endDate?": "number | undefined",
         "interval?": "import(\"<sdk>/models/operations/getmetricssummary\").Interval | undefined",
         "startDate?": "number | undefined"
-      }
+      },
+      "ref": "import(\"<sdk>/models/operations/getmetricssummary\").GetMetricsSummaryRequest"
     },
     "GetMetricsSummaryRequest$inboundSchema": null,
     "GetMetricsSummaryRequest$Outbound": null,
@@ -6027,7 +6398,8 @@
     "GetProductGroupRequest": {
       "properties": {
         "id": "string"
-      }
+      },
+      "ref": "import(\"<sdk>/models/operations/getproductgroup\").GetProductGroupRequest"
     },
     "GetProductGroupRequest$inboundSchema": null,
     "GetProductGroupRequest$Outbound": null,
@@ -6041,7 +6413,8 @@
     "GetProductRequest": {
       "properties": {
         "id": "string"
-      }
+      },
+      "ref": "import(\"<sdk>/models/operations/getproduct\").GetProductRequest"
     },
     "GetProductRequest$inboundSchema": null,
     "GetProductRequest$Outbound": null,
@@ -6055,7 +6428,8 @@
     "GetTransactionByIdRequest": {
       "properties": {
         "transactionId": "string"
-      }
+      },
+      "ref": "import(\"<sdk>/models/operations/gettransactionbyid\").GetTransactionByIdRequest"
     },
     "GetTransactionByIdRequest$inboundSchema": null,
     "GetTransactionByIdRequest$Outbound": null,
@@ -6069,7 +6443,8 @@
     "GetWebhookRequest": {
       "properties": {
         "id": "string"
-      }
+      },
+      "ref": "import(\"<sdk>/models/operations/getwebhook\").GetWebhookRequest"
     },
     "GetWebhookRequest$inboundSchema": null,
     "GetWebhookRequest$Outbound": null,
@@ -6083,7 +6458,8 @@
     "GetWebhookSecretRequest": {
       "properties": {
         "id": "string"
-      }
+      },
+      "ref": "import(\"<sdk>/models/operations/getwebhooksecret\").GetWebhookSecretRequest"
     },
     "GetWebhookSecretRequest$inboundSchema": null,
     "GetWebhookSecretRequest$Outbound": null,
@@ -6104,7 +6480,8 @@
         "\"day\"",
         "\"month\"",
         "\"week\""
-      ]
+      ],
+      "ref": "import(\"<sdk>/models/operations/getmetricssummary\").Interval"
     },
     "Interval$inboundSchema": null,
     "Interval$outboundSchema": null,
@@ -6114,7 +6491,8 @@
         "pageNumber?": "number | undefined",
         "pageSize?": "number | undefined",
         "status?": "import(\"<sdk>/models/components/commissionstatus\").CommissionStatus | undefined"
-      }
+      },
+      "ref": "import(\"<sdk>/models/operations/listaffiliatecommissions\").ListAffiliateCommissionsRequest"
     },
     "ListAffiliateCommissionsRequest$inboundSchema": null,
     "ListAffiliateCommissionsRequest$Outbound": null,
@@ -6128,7 +6506,8 @@
     "ListAffiliateCommissionsResponse": {
       "properties": {
         "result": "import(\"<sdk>/models/components/commissionlistentity\").CommissionListEntity"
-      }
+      },
+      "ref": "import(\"<sdk>/models/operations/listaffiliatecommissions\").ListAffiliateCommissionsResponse"
     },
     "ListAffiliateCommissionsResponse$inboundSchema": null,
     "ListAffiliateCommissionsResponse$Outbound": null,
@@ -6143,7 +6522,8 @@
       "properties": {
         "pageNumber?": "number | undefined",
         "pageSize?": "number | undefined"
-      }
+      },
+      "ref": "import(\"<sdk>/models/operations/listaffiliateinvites\").ListAffiliateInvitesRequest"
     },
     "ListAffiliateInvitesRequest$inboundSchema": null,
     "ListAffiliateInvitesRequest$Outbound": null,
@@ -6157,7 +6537,8 @@
     "ListAffiliateInvitesResponse": {
       "properties": {
         "result": "import(\"<sdk>/models/components/affiliateinvitelistentity\").AffiliateInviteListEntity"
-      }
+      },
+      "ref": "import(\"<sdk>/models/operations/listaffiliateinvites\").ListAffiliateInvitesResponse"
     },
     "ListAffiliateInvitesResponse$inboundSchema": null,
     "ListAffiliateInvitesResponse$Outbound": null,
@@ -6172,7 +6553,8 @@
       "properties": {
         "pageNumber?": "number | undefined",
         "pageSize?": "number | undefined"
-      }
+      },
+      "ref": "import(\"<sdk>/models/operations/listaffiliates\").ListAffiliatesRequest"
     },
     "ListAffiliatesRequest$inboundSchema": null,
     "ListAffiliatesRequest$Outbound": null,
@@ -6186,7 +6568,8 @@
     "ListAffiliatesResponse": {
       "properties": {
         "result": "import(\"<sdk>/models/components/affiliatelistentity\").AffiliateListEntity"
-      }
+      },
+      "ref": "import(\"<sdk>/models/operations/listaffiliates\").ListAffiliatesResponse"
     },
     "ListAffiliatesResponse$inboundSchema": null,
     "ListAffiliatesResponse$Outbound": null,
@@ -6203,7 +6586,8 @@
         "id": "string",
         "limit?": "number | undefined",
         "startingAfter?": "string | undefined"
-      }
+      },
+      "ref": "import(\"<sdk>/models/operations/listcustomercreditsaccountentries\").ListCustomerCreditsAccountEntriesRequest"
     },
     "ListCustomerCreditsAccountEntriesRequest$inboundSchema": null,
     "ListCustomerCreditsAccountEntriesRequest$Outbound": null,
@@ -6217,7 +6601,8 @@
     "ListCustomerCreditsAccountEntriesResponse": {
       "properties": {
         "result": "import(\"<sdk>/models/components/entrylistresponsedto\").EntryListResponseDto"
-      }
+      },
+      "ref": "import(\"<sdk>/models/operations/listcustomercreditsaccountentries\").ListCustomerCreditsAccountEntriesResponse"
     },
     "ListCustomerCreditsAccountEntriesResponse$inboundSchema": null,
     "ListCustomerCreditsAccountEntriesResponse$Outbound": null,
@@ -6234,7 +6619,8 @@
         "endingBefore?": "string | undefined",
         "limit?": "number | undefined",
         "startingAfter?": "string | undefined"
-      }
+      },
+      "ref": "import(\"<sdk>/models/operations/listcustomercreditsaccounts\").ListCustomerCreditsAccountsRequest"
     },
     "ListCustomerCreditsAccountsRequest$inboundSchema": null,
     "ListCustomerCreditsAccountsRequest$Outbound": null,
@@ -6248,7 +6634,8 @@
     "ListCustomerCreditsAccountsResponse": {
       "properties": {
         "result": "import(\"<sdk>/models/components/accountlistresponsedto\").AccountListResponseDto"
-      }
+      },
+      "ref": "import(\"<sdk>/models/operations/listcustomercreditsaccounts\").ListCustomerCreditsAccountsResponse"
     },
     "ListCustomerCreditsAccountsResponse$inboundSchema": null,
     "ListCustomerCreditsAccountsResponse$Outbound": null,
@@ -6262,7 +6649,8 @@
     "ListCustomerCreditsTransactionsByReferenceRequest": {
       "properties": {
         "reference": "string"
-      }
+      },
+      "ref": "import(\"<sdk>/models/operations/listcustomercreditstransactionsbyreference\").ListCustomerCreditsTransactionsByReferenceRequest"
     },
     "ListCustomerCreditsTransactionsByReferenceRequest$inboundSchema": null,
     "ListCustomerCreditsTransactionsByReferenceRequest$Outbound": null,
@@ -6278,7 +6666,8 @@
         "id": "string",
         "pageNumber?": "number | undefined",
         "pageSize?": "number | undefined"
-      }
+      },
+      "ref": "import(\"<sdk>/models/operations/listcustomerlicenses\").ListCustomerLicensesRequest"
     },
     "ListCustomerLicensesRequest$inboundSchema": null,
     "ListCustomerLicensesRequest$Outbound": null,
@@ -6294,7 +6683,8 @@
         "id": "string",
         "pageNumber?": "number | undefined",
         "pageSize?": "number | undefined"
-      }
+      },
+      "ref": "import(\"<sdk>/models/operations/listcustomerorders\").ListCustomerOrdersRequest"
     },
     "ListCustomerOrdersRequest$inboundSchema": null,
     "ListCustomerOrdersRequest$Outbound": null,
@@ -6309,7 +6699,8 @@
       "properties": {
         "pageNumber?": "number | undefined",
         "pageSize?": "number | undefined"
-      }
+      },
+      "ref": "import(\"<sdk>/models/operations/listcustomers\").ListCustomersRequest"
     },
     "ListCustomersRequest$inboundSchema": null,
     "ListCustomersRequest$Outbound": null,
@@ -6323,7 +6714,8 @@
     "ListCustomersResponse": {
       "properties": {
         "result": "import(\"<sdk>/models/components/customerlistentity\").CustomerListEntity"
-      }
+      },
+      "ref": "import(\"<sdk>/models/operations/listcustomers\").ListCustomersResponse"
     },
     "ListCustomersResponse$inboundSchema": null,
     "ListCustomersResponse$Outbound": null,
@@ -6339,7 +6731,8 @@
         "id": "string",
         "pageNumber?": "number | undefined",
         "pageSize?": "number | undefined"
-      }
+      },
+      "ref": "import(\"<sdk>/models/operations/listcustomersubscriptions\").ListCustomerSubscriptionsRequest"
     },
     "ListCustomerSubscriptionsRequest$inboundSchema": null,
     "ListCustomerSubscriptionsRequest$Outbound": null,
@@ -6355,7 +6748,8 @@
         "id": "string",
         "pageNumber?": "number | undefined",
         "pageSize?": "number | undefined"
-      }
+      },
+      "ref": "import(\"<sdk>/models/operations/listlicenseinstances\").ListLicenseInstancesRequest"
     },
     "ListLicenseInstancesRequest$inboundSchema": null,
     "ListLicenseInstancesRequest$Outbound": null,
@@ -6369,7 +6763,8 @@
     "ListLicenseInstancesResponse": {
       "properties": {
         "result": "import(\"<sdk>/models/components/licenseinstancelistentity\").LicenseInstanceListEntity"
-      }
+      },
+      "ref": "import(\"<sdk>/models/operations/listlicenseinstances\").ListLicenseInstancesResponse"
     },
     "ListLicenseInstancesResponse$inboundSchema": null,
     "ListLicenseInstancesResponse$Outbound": null,
@@ -6387,7 +6782,8 @@
         "includeArchived?": "boolean | undefined",
         "limit?": "number | undefined",
         "startingAfter?": "string | undefined"
-      }
+      },
+      "ref": "import(\"<sdk>/models/operations/listmeters\").ListMetersRequest"
     },
     "ListMetersRequest$inboundSchema": null,
     "ListMetersRequest$Outbound": null,
@@ -6401,7 +6797,8 @@
     "ListMetersResponse": {
       "properties": {
         "result": "import(\"<sdk>/models/components/meterlistapiresponsedto\").MeterListApiResponseDto"
-      }
+      },
+      "ref": "import(\"<sdk>/models/operations/listmeters\").ListMetersResponse"
     },
     "ListMetersResponse$inboundSchema": null,
     "ListMetersResponse$Outbound": null,
@@ -6416,7 +6813,8 @@
       "properties": {
         "id": "string",
         "limit?": "number | undefined"
-      }
+      },
+      "ref": "import(\"<sdk>/models/operations/listpendingwebhookevents\").ListPendingWebhookEventsRequest"
     },
     "ListPendingWebhookEventsRequest$inboundSchema": null,
     "ListPendingWebhookEventsRequest$Outbound": null,
@@ -6433,7 +6831,8 @@
         "externalId?": "string | undefined",
         "limit?": "number | undefined",
         "startingAfter?": "string | undefined"
-      }
+      },
+      "ref": "import(\"<sdk>/models/operations/listproductgroups\").ListProductGroupsRequest"
     },
     "ListProductGroupsRequest$inboundSchema": null,
     "ListProductGroupsRequest$Outbound": null,
@@ -6447,7 +6846,8 @@
     "ListProductGroupsResponse": {
       "properties": {
         "result": "import(\"<sdk>/models/components/productgrouplistentity\").ProductGroupListEntity"
-      }
+      },
+      "ref": "import(\"<sdk>/models/operations/listproductgroups\").ListProductGroupsResponse"
     },
     "ListProductGroupsResponse$inboundSchema": null,
     "ListProductGroupsResponse$Outbound": null,
@@ -6461,7 +6861,8 @@
     "ListProductPricesRequest": {
       "properties": {
         "id": "string"
-      }
+      },
+      "ref": "import(\"<sdk>/models/operations/listproductprices\").ListProductPricesRequest"
     },
     "ListProductPricesRequest$inboundSchema": null,
     "ListProductPricesRequest$Outbound": null,
@@ -6476,7 +6877,8 @@
       "properties": {
         "pageNumber?": "number | undefined",
         "pageSize?": "number | undefined"
-      }
+      },
+      "ref": "import(\"<sdk>/models/operations/listsplits\").ListSplitsRequest"
     },
     "ListSplitsRequest$inboundSchema": null,
     "ListSplitsRequest$Outbound": null,
@@ -6490,7 +6892,8 @@
     "ListSplitsResponse": {
       "properties": {
         "result": "import(\"<sdk>/models/components/splitlistentity\").SplitListEntity"
-      }
+      },
+      "ref": "import(\"<sdk>/models/operations/listsplits\").ListSplitsResponse"
     },
     "ListSplitsResponse$inboundSchema": null,
     "ListSplitsResponse$Outbound": null,
@@ -6508,7 +6911,8 @@
         "meterId?": "string | undefined",
         "reference?": "string | undefined",
         "startingAfter?": "string | undefined"
-      }
+      },
+      "ref": "import(\"<sdk>/models/operations/listusageevents\").ListUsageEventsRequest"
     },
     "ListUsageEventsRequest$inboundSchema": null,
     "ListUsageEventsRequest$Outbound": null,
@@ -6522,7 +6926,8 @@
     "ListUsageEventsResponse": {
       "properties": {
         "result": "import(\"<sdk>/models/components/usageeventlistapiresponsedto\").UsageEventListApiResponseDto"
-      }
+      },
+      "ref": "import(\"<sdk>/models/operations/listusageevents\").ListUsageEventsResponse"
     },
     "ListUsageEventsResponse$inboundSchema": null,
     "ListUsageEventsResponse$Outbound": null,
@@ -6537,7 +6942,8 @@
       "properties": {
         "pageNumber?": "number | undefined",
         "pageSize?": "number | undefined"
-      }
+      },
+      "ref": "import(\"<sdk>/models/operations/listwebhooks\").ListWebhooksRequest"
     },
     "ListWebhooksRequest$inboundSchema": null,
     "ListWebhooksRequest$Outbound": null,
@@ -6551,7 +6957,8 @@
     "ListWebhooksResponse": {
       "properties": {
         "result": "import(\"<sdk>/models/components/webhooklistentity\").WebhookListEntity"
-      }
+      },
+      "ref": "import(\"<sdk>/models/operations/listwebhooks\").ListWebhooksResponse"
     },
     "ListWebhooksResponse$inboundSchema": null,
     "ListWebhooksResponse$Outbound": null,
@@ -6565,7 +6972,8 @@
     "PauseSubscriptionRequest": {
       "properties": {
         "id": "string"
-      }
+      },
+      "ref": "import(\"<sdk>/models/operations/pausesubscription\").PauseSubscriptionRequest"
     },
     "PauseSubscriptionRequest$inboundSchema": null,
     "PauseSubscriptionRequest$Outbound": null,
@@ -6579,7 +6987,8 @@
     "PreviewExistingMeterRequest": {
       "properties": {
         "id": "string"
-      }
+      },
+      "ref": "import(\"<sdk>/models/operations/previewexistingmeter\").PreviewExistingMeterRequest"
     },
     "PreviewExistingMeterRequest$inboundSchema": null,
     "PreviewExistingMeterRequest$Outbound": null,
@@ -6614,14 +7023,16 @@
         "\"refunded\"",
         "\"uncollectible\"",
         "\"void\""
-      ]
+      ],
+      "ref": "import(\"<sdk>/models/operations/searchtransactions\").QueryParamStatus"
     },
     "QueryParamStatus$inboundSchema": null,
     "QueryParamStatus$outboundSchema": null,
     "ResumeSubscriptionRequest": {
       "properties": {
         "id": "string"
-      }
+      },
+      "ref": "import(\"<sdk>/models/operations/resumesubscription\").ResumeSubscriptionRequest"
     },
     "ResumeSubscriptionRequest$inboundSchema": null,
     "ResumeSubscriptionRequest$Outbound": null,
@@ -6635,7 +7046,8 @@
     "RetrieveAffiliateRequest": {
       "properties": {
         "id": "string"
-      }
+      },
+      "ref": "import(\"<sdk>/models/operations/retrieveaffiliate\").RetrieveAffiliateRequest"
     },
     "RetrieveAffiliateRequest$inboundSchema": null,
     "RetrieveAffiliateRequest$Outbound": null,
@@ -6649,7 +7061,8 @@
     "RetrieveCheckoutRequest": {
       "properties": {
         "checkoutId": "string"
-      }
+      },
+      "ref": "import(\"<sdk>/models/operations/retrievecheckout\").RetrieveCheckoutRequest"
     },
     "RetrieveCheckoutRequest$inboundSchema": null,
     "RetrieveCheckoutRequest$Outbound": null,
@@ -6664,7 +7077,8 @@
       "properties": {
         "customerId?": "string | undefined",
         "email?": "string | undefined"
-      }
+      },
+      "ref": "import(\"<sdk>/models/operations/retrievecustomer\").RetrieveCustomerRequest"
     },
     "RetrieveCustomerRequest$inboundSchema": null,
     "RetrieveCustomerRequest$Outbound": null,
@@ -6679,7 +7093,8 @@
       "properties": {
         "discountCode?": "string | undefined",
         "discountId?": "string | undefined"
-      }
+      },
+      "ref": "import(\"<sdk>/models/operations/retrievediscount\").RetrieveDiscountRequest"
     },
     "RetrieveDiscountRequest$inboundSchema": null,
     "RetrieveDiscountRequest$Outbound": null,
@@ -6693,7 +7108,8 @@
     "RetrieveSplitRequest": {
       "properties": {
         "id": "string"
-      }
+      },
+      "ref": "import(\"<sdk>/models/operations/retrievesplit\").RetrieveSplitRequest"
     },
     "RetrieveSplitRequest$inboundSchema": null,
     "RetrieveSplitRequest$Outbound": null,
@@ -6707,7 +7123,8 @@
     "RetrieveSubscriptionRequest": {
       "properties": {
         "subscriptionId": "string"
-      }
+      },
+      "ref": "import(\"<sdk>/models/operations/retrievesubscription\").RetrieveSubscriptionRequest"
     },
     "RetrieveSubscriptionRequest$inboundSchema": null,
     "RetrieveSubscriptionRequest$Outbound": null,
@@ -6722,7 +7139,8 @@
       "properties": {
         "id": "string",
         "reverseTransactionRequestDto": "import(\"<sdk>/models/components/reversetransactionrequestdto\").ReverseTransactionRequestDto"
-      }
+      },
+      "ref": "import(\"<sdk>/models/operations/reversecustomercreditsaccounttransaction\").ReverseCustomerCreditsAccountTransactionRequest"
     },
     "ReverseCustomerCreditsAccountTransactionRequest$inboundSchema": null,
     "ReverseCustomerCreditsAccountTransactionRequest$Outbound": null,
@@ -6736,7 +7154,8 @@
     "ReverseCustomerCreditsTransactionRequest": {
       "properties": {
         "id": "string"
-      }
+      },
+      "ref": "import(\"<sdk>/models/operations/reversecustomercreditstransaction\").ReverseCustomerCreditsTransactionRequest"
     },
     "ReverseCustomerCreditsTransactionRequest$inboundSchema": null,
     "ReverseCustomerCreditsTransactionRequest$Outbound": null,
@@ -6756,7 +7175,8 @@
         "productId?": "string | undefined",
         "status?": "import(\"<sdk>/models/operations/searchdiscounts\").Status | undefined",
         "type?": "import(\"<sdk>/models/operations/searchdiscounts\").Type | undefined"
-      }
+      },
+      "ref": "import(\"<sdk>/models/operations/searchdiscounts\").SearchDiscountsRequest"
     },
     "SearchDiscountsRequest$inboundSchema": null,
     "SearchDiscountsRequest$Outbound": null,
@@ -6770,7 +7190,8 @@
     "SearchDiscountsResponse": {
       "properties": {
         "result": "import(\"<sdk>/models/components/discountlistentity\").DiscountListEntity"
-      }
+      },
+      "ref": "import(\"<sdk>/models/operations/searchdiscounts\").SearchDiscountsResponse"
     },
     "SearchDiscountsResponse$inboundSchema": null,
     "SearchDiscountsResponse$Outbound": null,
@@ -6787,7 +7208,8 @@
         "pageNumber?": "number | undefined",
         "pageSize?": "number | undefined",
         "status?": "import(\"<sdk>/models/components/productstatus\").ProductStatus | undefined"
-      }
+      },
+      "ref": "import(\"<sdk>/models/operations/searchproducts\").SearchProductsRequest"
     },
     "SearchProductsRequest$inboundSchema": null,
     "SearchProductsRequest$Outbound": null,
@@ -6801,7 +7223,8 @@
     "SearchProductsResponse": {
       "properties": {
         "result": "import(\"<sdk>/models/components/productlistentity\").ProductListEntity"
-      }
+      },
+      "ref": "import(\"<sdk>/models/operations/searchproducts\").SearchProductsResponse"
     },
     "SearchProductsResponse$inboundSchema": null,
     "SearchProductsResponse$Outbound": null,
@@ -6816,7 +7239,8 @@
       "properties": {
         "pageNumber?": "number | undefined",
         "pageSize?": "number | undefined"
-      }
+      },
+      "ref": "import(\"<sdk>/models/operations/searchsubscriptions\").SearchSubscriptionsRequest"
     },
     "SearchSubscriptionsRequest$inboundSchema": null,
     "SearchSubscriptionsRequest$Outbound": null,
@@ -6830,7 +7254,8 @@
     "SearchSubscriptionsResponse": {
       "properties": {
         "result": "import(\"<sdk>/models/components/subscriptionlistentity\").SubscriptionListEntity"
-      }
+      },
+      "ref": "import(\"<sdk>/models/operations/searchsubscriptions\").SearchSubscriptionsResponse"
     },
     "SearchSubscriptionsResponse$inboundSchema": null,
     "SearchSubscriptionsResponse$Outbound": null,
@@ -6851,7 +7276,8 @@
         "pageSize?": "number | undefined",
         "productId?": "string | undefined",
         "status?": "import(\"<sdk>/models/operations/searchtransactions\").QueryParamStatus | undefined"
-      }
+      },
+      "ref": "import(\"<sdk>/models/operations/searchtransactions\").SearchTransactionsRequest"
     },
     "SearchTransactionsRequest$inboundSchema": null,
     "SearchTransactionsRequest$Outbound": null,
@@ -6865,7 +7291,8 @@
     "SearchTransactionsResponse": {
       "properties": {
         "result": "import(\"<sdk>/models/components/transactionlistentity\").TransactionListEntity"
-      }
+      },
+      "ref": "import(\"<sdk>/models/operations/searchtransactions\").SearchTransactionsResponse"
     },
     "SearchTransactionsResponse$inboundSchema": null,
     "SearchTransactionsResponse$Outbound": null,
@@ -6884,7 +7311,8 @@
       "union": [
         "\"active\"",
         "\"deleted\""
-      ]
+      ],
+      "ref": "import(\"<sdk>/models/operations/searchdiscounts\").Status"
     },
     "Status$inboundSchema": null,
     "Status$outboundSchema": null,
@@ -6896,14 +7324,16 @@
       "union": [
         "\"fixed\"",
         "\"percentage\""
-      ]
+      ],
+      "ref": "import(\"<sdk>/models/operations/searchdiscounts\").Type"
     },
     "Type$inboundSchema": null,
     "Type$outboundSchema": null,
     "UnarchiveMeterRequest": {
       "properties": {
         "id": "string"
-      }
+      },
+      "ref": "import(\"<sdk>/models/operations/unarchivemeter\").UnarchiveMeterRequest"
     },
     "UnarchiveMeterRequest$inboundSchema": null,
     "UnarchiveMeterRequest$Outbound": null,
@@ -6917,7 +7347,8 @@
     "UnfreezeCustomerCreditsAccountRequest": {
       "properties": {
         "id": "string"
-      }
+      },
+      "ref": "import(\"<sdk>/models/operations/unfreezecustomercreditsaccount\").UnfreezeCustomerCreditsAccountRequest"
     },
     "UnfreezeCustomerCreditsAccountRequest$inboundSchema": null,
     "UnfreezeCustomerCreditsAccountRequest$Outbound": null,
@@ -6932,7 +7363,8 @@
       "properties": {
         "id": "string",
         "updateDiscountRequestEntity": "import(\"<sdk>/models/components/updatediscountrequestentity\").UpdateDiscountRequestEntity"
-      }
+      },
+      "ref": "import(\"<sdk>/models/operations/updatediscount\").UpdateDiscountRequest"
     },
     "UpdateDiscountRequest$inboundSchema": null,
     "UpdateDiscountRequest$Outbound": null,
@@ -6947,7 +7379,8 @@
       "properties": {
         "id": "string",
         "updateMeterApiRequestDto": "import(\"<sdk>/models/components/updatemeterapirequestdto\").UpdateMeterApiRequestDto"
-      }
+      },
+      "ref": "import(\"<sdk>/models/operations/updatemeter\").UpdateMeterRequest"
     },
     "UpdateMeterRequest$inboundSchema": null,
     "UpdateMeterRequest$Outbound": null,
@@ -6962,7 +7395,8 @@
       "properties": {
         "id": "string",
         "updateProductRequestEntity": "import(\"<sdk>/models/components/updateproductrequestentity\").UpdateProductRequestEntity"
-      }
+      },
+      "ref": "import(\"<sdk>/models/operations/updateproduct\").UpdateProductRequest"
     },
     "UpdateProductRequest$inboundSchema": null,
     "UpdateProductRequest$Outbound": null,
@@ -6977,7 +7411,8 @@
       "properties": {
         "id": "string",
         "updateSubscriptionRequestEntity": "import(\"<sdk>/models/components/updatesubscriptionrequestentity\").UpdateSubscriptionRequestEntity"
-      }
+      },
+      "ref": "import(\"<sdk>/models/operations/updatesubscription\").UpdateSubscriptionRequest"
     },
     "UpdateSubscriptionRequest$inboundSchema": null,
     "UpdateSubscriptionRequest$Outbound": null,
@@ -6992,7 +7427,8 @@
       "properties": {
         "id": "string",
         "updateWebhookRequestEntity": "import(\"<sdk>/models/components/updatewebhookrequestentity\").UpdateWebhookRequestEntity"
-      }
+      },
+      "ref": "import(\"<sdk>/models/operations/updatewebhook\").UpdateWebhookRequest"
     },
     "UpdateWebhookRequest$inboundSchema": null,
     "UpdateWebhookRequest$Outbound": null,
@@ -7007,7 +7443,8 @@
       "properties": {
         "id": "string",
         "upgradeSubscriptionRequestEntity": "import(\"<sdk>/models/components/upgradesubscriptionrequestentity\").UpgradeSubscriptionRequestEntity"
-      }
+      },
+      "ref": "import(\"<sdk>/models/operations/upgradesubscription\").UpgradeSubscriptionRequest"
     },
     "UpgradeSubscriptionRequest$inboundSchema": null,
     "UpgradeSubscriptionRequest$Outbound": null,
@@ -7034,7 +7471,8 @@
       },
       "construct": [
         "(message: string, httpMeta: { response: Response; request: Request; body: string; }) => import(\"<sdk>/models/errors/apierror\").APIError"
-      ]
+      ],
+      "ref": "import(\"<sdk>/models/errors/apierror\").APIError"
     },
     "ConnectionError": {
       "properties": {
@@ -7045,7 +7483,8 @@
       },
       "construct": [
         "(message: string, opts?: { cause?: unknown; } | undefined) => import(\"<sdk>/models/errors/httpclienterrors\").ConnectionError"
-      ]
+      ],
+      "ref": "import(\"<sdk>/models/errors/httpclienterrors\").ConnectionError"
     },
     "CreemError": {
       "properties": {
@@ -7061,7 +7500,8 @@
       },
       "construct": [
         "(message: string, httpMeta: { response: Response; request: Request; body: string; }) => import(\"<sdk>/models/errors/creemerror\").CreemError"
-      ]
+      ],
+      "ref": "import(\"<sdk>/models/errors/creemerror\").CreemError"
     },
     "CustomerCreditsErrorResponseDto": {
       "properties": {
@@ -7079,7 +7519,8 @@
       },
       "construct": [
         "(err: import(\"<sdk>/models/errors/customercreditserrorresponsedto\").CustomerCreditsErrorResponseDtoData, httpMeta: { response: Response; request: Request; body: string; }) => import(\"<sdk>/models/errors/customercreditserrorresponsedto\").CustomerCreditsErrorResponseDto"
-      ]
+      ],
+      "ref": "import(\"<sdk>/models/errors/customercreditserrorresponsedto\").CustomerCreditsErrorResponseDto"
     },
     "CustomerCreditsErrorResponseDto$inboundSchema": null,
     "CustomerCreditsErrorResponseDto$Outbound": null,
@@ -7087,7 +7528,8 @@
     "CustomerCreditsErrorResponseDtoData": {
       "properties": {
         "error": "import(\"<sdk>/models/components/customercreditserrordetaildto\").CustomerCreditsErrorDetailDto"
-      }
+      },
+      "ref": "import(\"<sdk>/models/errors/customercreditserrorresponsedto\").CustomerCreditsErrorResponseDtoData"
     },
     "formatZodError": {
       "value": "(err: import(\"zod/v3/ZodError\").ZodError<any>, level?: number) => string"
@@ -7101,7 +7543,8 @@
       },
       "construct": [
         "(message: string, opts?: { cause?: unknown; } | undefined) => import(\"<sdk>/models/errors/httpclienterrors\").HTTPClientError"
-      ]
+      ],
+      "ref": "import(\"<sdk>/models/errors/httpclienterrors\").HTTPClientError"
     },
     "InvalidRequestError": {
       "properties": {
@@ -7112,7 +7555,8 @@
       },
       "construct": [
         "(message: string, opts?: { cause?: unknown; } | undefined) => import(\"<sdk>/models/errors/httpclienterrors\").InvalidRequestError"
-      ]
+      ],
+      "ref": "import(\"<sdk>/models/errors/httpclienterrors\").InvalidRequestError"
     },
     "RequestAbortedError": {
       "properties": {
@@ -7123,7 +7567,8 @@
       },
       "construct": [
         "(message: string, opts?: { cause?: unknown; } | undefined) => import(\"<sdk>/models/errors/httpclienterrors\").RequestAbortedError"
-      ]
+      ],
+      "ref": "import(\"<sdk>/models/errors/httpclienterrors\").RequestAbortedError"
     },
     "RequestTimeoutError": {
       "properties": {
@@ -7134,7 +7579,8 @@
       },
       "construct": [
         "(message: string, opts?: { cause?: unknown; } | undefined) => import(\"<sdk>/models/errors/httpclienterrors\").RequestTimeoutError"
-      ]
+      ],
+      "ref": "import(\"<sdk>/models/errors/httpclienterrors\").RequestTimeoutError"
     },
     "ResponseValidationError": {
       "properties": {
@@ -7153,7 +7599,8 @@
       },
       "construct": [
         "(message: string, extra: { response: Response; request: Request; body: string; cause: unknown; rawValue: unknown; rawMessage: unknown; }) => import(\"<sdk>/models/errors/responsevalidationerror\").ResponseValidationError"
-      ]
+      ],
+      "ref": "import(\"<sdk>/models/errors/responsevalidationerror\").ResponseValidationError"
     },
     "SDKValidationError": {
       "properties": {
@@ -7167,7 +7614,8 @@
       },
       "construct": [
         "(message: string, cause: unknown, rawValue: unknown) => import(\"<sdk>/models/errors/sdkvalidationerror\").SDKValidationError"
-      ]
+      ],
+      "ref": "import(\"<sdk>/models/errors/sdkvalidationerror\").SDKValidationError"
     },
     "TooManyRequestsErrorEntity": {
       "properties": {
@@ -7188,7 +7636,8 @@
       },
       "construct": [
         "(err: import(\"<sdk>/models/errors/toomanyrequestserrorentity\").TooManyRequestsErrorEntityData, httpMeta: { response: Response; request: Request; body: string; }) => import(\"<sdk>/models/errors/toomanyrequestserrorentity\").TooManyRequestsErrorEntity"
-      ]
+      ],
+      "ref": "import(\"<sdk>/models/errors/toomanyrequestserrorentity\").TooManyRequestsErrorEntity"
     },
     "TooManyRequestsErrorEntity$inboundSchema": null,
     "TooManyRequestsErrorEntity$Outbound": null,
@@ -7200,7 +7649,8 @@
         "status": "number",
         "timestamp": "number",
         "traceId": "string"
-      }
+      },
+      "ref": "import(\"<sdk>/models/errors/toomanyrequestserrorentity\").TooManyRequestsErrorEntityData"
     },
     "UnexpectedClientError": {
       "properties": {
@@ -7211,7 +7661,8 @@
       },
       "construct": [
         "(message: string, opts?: { cause?: unknown; } | undefined) => import(\"<sdk>/models/errors/httpclienterrors\").UnexpectedClientError"
-      ]
+      ],
+      "ref": "import(\"<sdk>/models/errors/httpclienterrors\").UnexpectedClientError"
     },
     "UsageMeteringErrorApiResponseDto": {
       "properties": {
@@ -7229,7 +7680,8 @@
       },
       "construct": [
         "(err: import(\"<sdk>/models/errors/usagemeteringerrorapiresponsedto\").UsageMeteringErrorApiResponseDtoData, httpMeta: { response: Response; request: Request; body: string; }) => import(\"<sdk>/models/errors/usagemeteringerrorapiresponsedto\").UsageMeteringErrorApiResponseDto"
-      ]
+      ],
+      "ref": "import(\"<sdk>/models/errors/usagemeteringerrorapiresponsedto\").UsageMeteringErrorApiResponseDto"
     },
     "UsageMeteringErrorApiResponseDto$inboundSchema": null,
     "UsageMeteringErrorApiResponseDto$Outbound": null,
@@ -7237,16 +7689,74 @@
     "UsageMeteringErrorApiResponseDtoData": {
       "properties": {
         "error": "import(\"<sdk>/models/components/usagemeteringerrordetailapidto\").UsageMeteringErrorDetailApiDto"
-      }
+      },
+      "ref": "import(\"<sdk>/models/errors/usagemeteringerrorapiresponsedto\").UsageMeteringErrorApiResponseDtoData"
     }
   },
   "reachable": {
+    "import(\"<sdk>/lib/http\").BeforeRequestHook": {
+      "properties": {},
+      "signatures": [
+        "(req: Request) => import(\"<sdk>/lib/http\").Awaitable<void | Request>"
+      ],
+      "input": true
+    },
+    "import(\"<sdk>/lib/http\").RequestErrorHook": {
+      "properties": {},
+      "signatures": [
+        "(err: unknown, req: Request) => import(\"<sdk>/lib/http\").Awaitable<void>"
+      ],
+      "input": true
+    },
+    "import(\"<sdk>/lib/http\").ResponseHook": {
+      "properties": {},
+      "signatures": [
+        "(res: Response, req: Request) => import(\"<sdk>/lib/http\").Awaitable<void>"
+      ],
+      "input": true
+    },
     "import(\"<sdk>/lib/logger\").Logger": {
       "properties": {
         "group": "(label?: string | undefined) => void",
         "groupEnd": "() => void",
         "log": "(message: any, ...args: any[]) => void"
       }
+    },
+    "import(\"<sdk>/lib/retries\").BackoffStrategy": {
+      "properties": {
+        "exponent": "number",
+        "initialInterval": "number",
+        "maxElapsedTime": "number",
+        "maxInterval": "number"
+      }
+    },
+    "import(\"<sdk>/lib/retries\").RetryConfig": {
+      "union": [
+        "{ strategy: \"backoff\"; backoff?: import(\"<sdk>/lib/retries\").BackoffStrategy; retryConnectionErrors?: boolean; }",
+        "{ strategy: \"none\"; }"
+      ]
+    },
+    "import(\"<sdk>/lib/sdks\").RequestOptions": {
+      "properties": {
+        "cache?": "RequestCache | undefined",
+        "credentials?": "RequestCredentials | undefined",
+        "fetchOptions?": "Omit<RequestInit, \"method\" | \"body\"> | undefined",
+        "headers?": "HeadersInit | undefined",
+        "integrity?": "string | undefined",
+        "keepalive?": "boolean | undefined",
+        "mode?": "RequestMode | undefined",
+        "priority?": "RequestPriority | undefined",
+        "redirect?": "RequestRedirect | undefined",
+        "referrer?": "string | undefined",
+        "referrerPolicy?": "ReferrerPolicy | undefined",
+        "retries?": "import(\"<sdk>/lib/retries\").RetryConfig | undefined",
+        "retryCodes?": "string[] | undefined",
+        "serverURL?": "string | URL | undefined",
+        "signal?": "AbortSignal | null | undefined",
+        "timeoutMs?": "number | undefined",
+        "window?": "null | undefined"
+      },
+      "input": true
     },
     "import(\"<sdk>/sdk/affiliates\").Affiliates": {
       "properties": {

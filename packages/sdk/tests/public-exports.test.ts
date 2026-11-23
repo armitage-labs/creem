@@ -32,6 +32,33 @@ const listEdited = (files: Record<string, (text: string) => string>) =>
     return files[path] ? files[path](text) : text;
   });
 
+/** How the checker prints a reference to `name` declared in `src/models/<module>.ts`. */
+const ref = (module: string, name: string) => `import("<sdk>/models/${module}").${name}`;
+const UNRECOGNIZED = 'import("<sdk>/types/unrecognized").Unrecognized<string>';
+const FILES = 'import("<sdk>/sdk/files").Files';
+const method = (result: string) => `(request: string) => Promise<${result}>`;
+
+/**
+ * A listing by hand: the sub-SDK method `Files.get` returns `result`, an
+ * exported object type with `properties`.
+ */
+const fileSdk = (properties: Record<string, string>, result = "FileEntity"): Exports => ({
+  "models/components/index.ts": {
+    [result]: { ref: ref(`components/${result.toLowerCase()}`, result), properties },
+  },
+  reachable: {
+    [FILES]: { properties: { get: method(ref(`components/${result.toLowerCase()}`, result)) } },
+  },
+});
+
+/** `changes` when `after` adds to `before`'s names and changes `reachable`. */
+const changesTo = (before: Exports, after: Exports) => {
+  const merged: Exports = { ...after };
+  for (const [entry, names] of Object.entries(before))
+    if (entry !== "reachable") merged[entry] = { ...names, ...after[entry] };
+  return changes(before, merged);
+};
+
 describe("public exports (ENG-2972)", () => {
   it("keeps every name, enum member and declaration of the last release", () => {
     expect(changes(baseline, list(root))).toEqual([]);
@@ -114,6 +141,140 @@ describe("public exports (ENG-2972)", () => {
     expect(changes(baseline, dropped)).toEqual(
       expect.arrayContaining([expect.stringMatching(/Discounts\.create: /)]),
     );
+  });
+
+  it("finds a method result whose closed enum lost a member, and lets an open one or a nullable field narrow", () => {
+    // A caller's `case "pdf":` stops compiling once the result can't be "pdf".
+    const closed = changesTo(
+      fileSdk({ kind: '"image" | "pdf"' }),
+      fileSdk({ kind: '"image"' }, "FileWriteEntity"),
+    );
+    expect(closed).toEqual([expect.stringMatching(/Files\.get: /)]);
+    // An open enum keeps `Unrecognized<string>`, so `=== "pdf"` still compiles;
+    // a field that is no longer `null` or `undefined` only drops a case.
+    const open = changesTo(
+      fileSdk({ kind: `"image" | "pdf" | ${UNRECOGNIZED}`, note: "string | null | undefined" }),
+      fileSdk({ kind: `"image" | ${UNRECOGNIZED}`, note: "string" }, "FileWriteEntity"),
+    );
+    expect(open).toEqual([]);
+    // In the SDK: the discount's open `type` turned into a closed "percentage".
+    const narrowed = listEdited({
+      "models/components/discountwriteresponseentity.ts": (text) =>
+        text.replace(
+          /export type DiscountWriteResponseEntityType = OpenEnum<\n {2}typeof DiscountWriteResponseEntityType\n>;/,
+          'export type DiscountWriteResponseEntityType = "percentage";',
+        ),
+    });
+    expect(changes(baseline, narrowed)).toEqual(
+      expect.arrayContaining([expect.stringMatching(/Discounts\.create: /)]),
+    );
+  });
+
+  it("finds a result whose two fields fail the same comparison", () => {
+    // The second `string -> null` must not pass as already seen.
+    const nulled = listEdited({
+      "models/components/discountwriteresponseentity.ts": (text) =>
+        text
+          .replace(/^ {2}id: string;$/m, "  id: null;")
+          .replace(/^ {2}externalId: string \| null;$/m, "  externalId: null;"),
+    });
+    expect(changes(baseline, nulled)).toEqual(
+      expect.arrayContaining([
+        expect.stringMatching(/Discounts\.create: /),
+        expect.stringMatching(/Discounts\.update: /),
+      ]),
+    );
+    // Without the cached pass, in isolation: the open `kind` tries "pdf"
+    // against "image" and fails on the way to a match; `format` then needs
+    // that same comparison to hold.
+    const reused = changesTo(
+      fileSdk({ kind: `"image" | "pdf" | ${UNRECOGNIZED}`, format: '"pdf"' }),
+      fileSdk({ kind: `"image" | ${UNRECOGNIZED}`, format: '"image"' }, "FileWriteEntity"),
+    );
+    expect(reused).toEqual([expect.stringMatching(/Files\.get: /)]);
+  });
+
+  it("finds a changed parameter type a method takes, and lets it widen", () => {
+    const narrowed = listEdited({
+      "lib/sdks.ts": (text) =>
+        text.replace("  timeoutMs?: number;\n  /**", "  timeoutMs?: string;\n  /**"),
+    });
+    expect(changes(baseline, narrowed)).toEqual([
+      expect.stringMatching(
+        /lib\/sdks"\)\.RequestOptions\.timeoutMs\?: number \| undefined -> string/,
+      ),
+    ]);
+    const widened = listEdited({
+      "lib/sdks.ts": (text) =>
+        text.replace("  timeoutMs?: number;\n  /**", "  timeoutMs?: number | string;\n  /**"),
+    });
+    expect(changes(baseline, widened)).toEqual([]);
+  });
+
+  it("looks a result's types up by module and name: Status is in two entry points", () => {
+    // `status` was the operations' closed Status ("a" | "b"); the result now
+    // may be "c". The components' Status of the same name has "c".
+    const status = (module: string, members: string[]) => ({
+      ref: ref(module, "Status"),
+      union: members,
+    });
+    const listing = (
+      result: string,
+      declares: Record<string, Record<string, unknown>>,
+    ): Exports => ({
+      "models/components/index.ts": {
+        Status: status("components/thing", ['"a"', '"b"', '"c"']),
+        ...declares.components,
+      },
+      "models/operations/index.ts": {
+        Status: status("operations/searchthings", ['"a"', '"b"']),
+        ...declares.operations,
+      },
+      reachable: { [FILES]: { properties: { get: method(result) } } },
+    });
+    const thing = ref("operations/searchthings", "Thing");
+    const before = listing(thing, {
+      operations: {
+        Thing: { ref: thing, properties: { status: ref("operations/searchthings", "Status") } },
+      },
+    });
+    const thingV2 = ref("components/thingv2", "ThingV2");
+    const after = listing(thingV2, {
+      components: {
+        ThingV2: {
+          ref: thingV2,
+          properties: { status: ref("components/thingv2", "ThingV2Status") },
+        },
+        ThingV2Status: {
+          ref: ref("components/thingv2", "ThingV2Status"),
+          union: ['"a"', '"b"', '"c"'],
+        },
+      },
+    });
+    expect(changesTo(before, after)).toEqual([expect.stringMatching(/Files\.get: /)]);
+  });
+
+  it("compares the results of an interface the caller implements as they are", () => {
+    // Logger reaches the SDK through SDKOptions.debugLogger: the SDK calls it,
+    // so a richer result is one the caller's logger doesn't return.
+    const logger = (result: string): Exports => ({
+      "models/components/index.ts": {
+        Label: { ref: ref("components/label", "Label"), properties: { text: "string" } },
+        LabelV2: {
+          ref: ref("components/labelv2", "LabelV2"),
+          properties: { color: "string", text: "string" },
+        },
+      },
+      reachable: {
+        'import("<sdk>/lib/logger").Logger': { properties: { group: `() => ${result}` } },
+      },
+    });
+    expect(
+      changes(
+        logger(ref("components/label", "Label")),
+        logger(ref("components/labelv2", "LabelV2")),
+      ),
+    ).toEqual([expect.stringMatching(/lib\/logger"\)\.Logger\.group: /)]);
   });
 
   it("finds a sub-SDK method whose parameters changed", () => {
