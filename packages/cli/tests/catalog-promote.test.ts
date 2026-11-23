@@ -1043,3 +1043,99 @@ describe("creem catalog promote: a run that stops mid-way", () => {
     expect(result.stderr).toMatch(/promote again/i);
   });
 });
+
+describe("creem catalog: every dry run is checked (Q59)", () => {
+  /** A PATCH answer that says it wrote although dry_run was sent. */
+  const wroteAnyway = (side: "test" | "live", id: string, fields: Json = {}) => ({
+    ...sideProduct(side, id, fields),
+    write_result: { result: "updated", dry_run: false, changes: [], warnings: [] },
+  });
+
+  it("link stops when live answers its dry run as a write, before test is asked", async () => {
+    const fake = fakeCatalog(store());
+    fake.fail(
+      (c) => c.side === "live" && c.method === "PATCH" && c.dryRun === true,
+      200,
+      wroteAnyway("live", "prod_l2", { name: "Team" }),
+    );
+    const result = await cli(fake).run([
+      "catalog",
+      "link",
+      "--kind",
+      "product",
+      "--test",
+      "prod_t2",
+      "--live",
+      "prod_l2",
+      "--key",
+      "team",
+      "--yes",
+    ]);
+    expect(result.code).toBe(1);
+    expect(result.stderr).toContain("LIVE prod_l2");
+    expect(fake.calls.filter((c) => c.method === "PATCH").map(describeCall)).toEqual([
+      "live PATCH /v1/products/prod_l2 dry_run",
+    ]);
+  });
+
+  it("the metadata copy stops when test answers its dry run as a write", async () => {
+    const initial = pairedStore();
+    initial.live.products![0].metadata = { stripe_lookup_key: "pro_m" };
+    const fake = fakeCatalog(initial);
+    fake.fail(
+      (c) => c.side === "test" && c.method === "PATCH" && c.dryRun === true,
+      200,
+      wroteAnyway("test", "prod_t1", { name: "Pro Plan", external_id: "pro" }),
+    );
+    const h = cli(fake, { isTTY: true, confirms: [true] });
+    const result = await h.run(["catalog", "promote"]);
+    expect(result.code).toBe(1);
+    expect(result.stderr).toContain("TEST prod_t1");
+    expect(fake.writes()).toEqual([]);
+    expect(fake.realRuns()).toEqual([]);
+  });
+
+  it("a dry-run page whose item says its write wasn't a dry run stops the command", async () => {
+    const fake = fakeCatalog(pairedStore());
+    fake.fail((c) => c.path === "/v1/catalog/promote" && c.dryRun === true, 200, {
+      run_id: "cprun_9",
+      dry_run: true,
+      summary: {
+        created: 0,
+        updated: 1,
+        unchanged: 0,
+        needs_key: 0,
+        conflict: 0,
+        failed: 0,
+        blocked: 0,
+        not_written: 0,
+      },
+      items: [
+        {
+          kind: "product",
+          test_id: "prod_t1",
+          live_id: "prod_l1",
+          result: "updated",
+          write_result: { result: "updated", dry_run: false, changes: [], warnings: [] },
+        },
+      ],
+      validation: null,
+      next_cursor: null,
+    });
+    const result = await cli(fake).run(["catalog", "promote", "--yes", "--json"]);
+    expect(result.code).toBe(1);
+    expect(json(result.stderr).error.message).toContain("write_result.dry_run on prod_t1");
+    expect(fake.realRuns()).toEqual([]);
+  });
+});
+
+describe("creem catalog promote, interactive: refused items", () => {
+  it("a failed item alone is refused too: the confirmed run sends force", async () => {
+    const fake = fakeCatalog(pairedStore());
+    fake.refuse("mtr_t1", 500, "internal_error", "Boom");
+    const h = cli(fake, { isTTY: true, confirms: [true] });
+    await h.run(["catalog", "promote"]);
+    expect(h.asked[0]).toMatch(/1 item is refused \(conflict or failed\)/);
+    expect(fake.realRuns()[0].body).toEqual({ force: true });
+  });
+});
