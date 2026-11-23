@@ -506,7 +506,8 @@ async function linkCommand(command: Command, context: CliContext): Promise<void>
     throw new CliError("--kind feature needs --product <test product id>.");
   if (kind !== "feature" && opts.product !== undefined)
     throw new CliError("--product applies to --kind feature only.");
-  const needsLive = opts.live !== undefined || kind === "feature";
+  // A test-only key (no --live) is written through the test client alone.
+  const needsLive = opts.live !== undefined;
   const clients: Clients = {
     test: await context.clientFor("test", { timeout: opts.timeout }),
     live: needsLive

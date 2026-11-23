@@ -249,14 +249,19 @@ export async function pairedLiveProduct(
 export const proposeFeatureKey = (test: Feature, live: Feature | undefined) =>
   test.externalId ?? live?.externalId ?? test.id;
 
-export interface FeatureLink {
+export type FeatureLink = {
   testProduct: components.ProductEntity;
-  liveProduct: components.ProductEntity;
   testFeature: Feature;
-  liveFeature: Feature | undefined;
-}
+} & (
+  | { liveProduct: components.ProductEntity; liveFeature: Feature }
+  /** A test-only key: no live feature, so no live product is read or needed. */
+  | { liveProduct?: undefined; liveFeature?: undefined }
+);
 
-/** Reads both products of a feature link and the two features. */
+/**
+ * Reads the test product and feature of a feature link and, when it links to a
+ * live feature, the paired live product and that feature.
+ */
 export async function readFeatureLink(
   clients: Clients,
   input: { testProductId: string; testFeatureId: string; liveFeatureId?: string | undefined },
@@ -269,18 +274,16 @@ export async function readFeatureLink(
       2,
       "Check the feature id with creem products get.",
     );
+  if (input.liveFeatureId === undefined) return { testProduct, testFeature };
   const liveProduct = await pairedLiveProduct(clients, testProduct);
-  const liveFeature =
-    input.liveFeatureId === undefined
-      ? undefined
-      : (liveProduct.features ?? []).find((f) => f.id === input.liveFeatureId);
-  if (input.liveFeatureId !== undefined && !liveFeature)
+  const liveFeature = (liveProduct.features ?? []).find((f) => f.id === input.liveFeatureId);
+  if (!liveFeature)
     throw new CliError(
       `Live product ${liveProduct.id} has no feature ${input.liveFeatureId}.`,
       2,
       "Check the feature id with creem products get --environment live.",
     );
-  if (liveFeature && liveFeature.type !== testFeature.type)
+  if (liveFeature.type !== testFeature.type)
     throw new CliError(
       `Feature ${testFeature.id} is ${testFeature.type}, ${liveFeature.id} is ${liveFeature.type}.`,
       2,
@@ -296,18 +299,16 @@ export async function readFeatureLink(
 export function linkFeature(clients: Clients, link: FeatureLink, key: string): Promise<LinkReport> {
   const test = featureWrite(clients.test, link.testProduct, link.testFeature.id, key);
   const live = link.liveFeature
-    ? featureWrite(clients.live, link.liveProduct, link.liveFeature.id, key)
+    ? {
+        id: link.liveFeature.id,
+        write: featureWrite(clients.live, link.liveProduct, link.liveFeature.id, key).write,
+      }
     : null;
-  return pairWrites(
-    key,
-    "feature",
-    live && link.liveFeature ? { id: link.liveFeature.id, write: live.write } : null,
-    {
-      id: link.testFeature.id,
-      label: `TEST ${link.testFeature.id} (product ${link.testProduct.id})`,
-      write: test.write,
-    },
-  );
+  return pairWrites(key, "feature", live, {
+    id: link.testFeature.id,
+    label: `TEST ${link.testFeature.id} (product ${link.testProduct.id})`,
+    write: test.write,
+  });
 }
 
 /**

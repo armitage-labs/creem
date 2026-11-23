@@ -920,3 +920,68 @@ describe("creem catalog promote --data and feature keys on test only", () => {
     });
   });
 });
+
+describe("creem catalog: a test-only feature key needs no live product", () => {
+  /** A new keyed test product (nothing in live) with two identical keyless license features. */
+  const newProductStore = () => ({
+    test: {
+      products: [
+        sideProduct("test", "prod_t8", {
+          name: "Studio",
+          external_id: "studio",
+          features: [
+            featureJson("feat_t1", "licenseKey", "License"),
+            featureJson("feat_t2", "licenseKey", "License"),
+          ],
+        }),
+      ],
+    },
+    live: { products: [] },
+  });
+
+  it("catalog link --kind feature without --live writes through the test client alone", async () => {
+    const fake = fakeCatalog(newProductStore());
+    const environments: string[] = [];
+    const h = cli(fake, {
+      clientFor: async (environment) => {
+        environments.push(environment);
+        return environment === "live" ? fake.live : fake.test;
+      },
+    });
+    const result = await h.run([
+      "catalog",
+      "link",
+      "--kind",
+      "feature",
+      "--product",
+      "prod_t8",
+      "--test",
+      "feat_t1",
+      "--key",
+      "license-a",
+      "--yes",
+      "--json",
+    ]);
+    expect(result.stderr).toBe("");
+    expect(result.code).toBe(0);
+    expect(environments).toEqual(["test"]);
+    expect(fake.calls.filter((c) => c.side === "live")).toEqual([]);
+    expect(fake.writes().map(describeCall)).toEqual(["test PATCH /v1/products/prod_t8"]);
+    expect(json(result.stdout)).toMatchObject({ live: null, test: { id: "feat_t1" } });
+  });
+
+  it("interactive promote gives such a feature its key on test only, and the next dry run creates the product", async () => {
+    const fake = fakeCatalog(newProductStore());
+    const h = cli(fake, {
+      isTTY: true,
+      choices: [{ action: "test-only" }],
+      answers: ["license-a"],
+      confirms: [true, true],
+    });
+    const result = await h.run(["catalog", "promote"]);
+    expect(result.stderr).toBe("");
+    expect(result.code).toBe(0);
+    expect(fake.writes().map(describeCall)).toEqual(["test PATCH /v1/products/prod_t8"]);
+    expect(fake.stores.live.products.find((p) => p.external_id === "studio")).toBeDefined();
+  });
+});
