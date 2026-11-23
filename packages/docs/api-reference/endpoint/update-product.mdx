@@ -1,5 +1,5 @@
 ---
 title: 'Update a product'
-description: 'Update a product. Only supplied fields change; a price change mints a new default price. `status` archives (`archived`, the same as `DELETE /v1/products/{id}`) or unarchives (`active`) the product. The product comes back with `write_result`, whose `warnings` list things to know about the write.'
+description: 'Update a product. Only supplied fields change; a change of amount, currency, billing type, billing period or tax mode creates a new price version. Running subscriptions keep the amount and currency of the price version they are on; their billing period and tax mode still follow the product unless the subscription bills on the terms of its own version, so a change of either reaches most running subscriptions at their next renewal. `status` archives (`archived`, the same as `DELETE /v1/products/{id}`) or unarchives (`active`) the product. The product comes back with `write_result`: what changed (`changes`), things to know (`warnings`) and a new price version (`price_version`). A request that changes nothing answers `unchanged` and writes nothing.'
 openapi: patch /v1/products/{id}
 ---

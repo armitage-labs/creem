@@ -390,9 +390,19 @@
             "group": "Product Groups",
             "icon": "layer-group",
             "pages": [
+              "api-reference/endpoint/create-product-group",
               "api-reference/endpoint/list-product-groups",
-              "api-reference/endpoint/get-product-group"
+              "api-reference/endpoint/get-product-group",
+              "api-reference/endpoint/update-product-group",
+              "api-reference/endpoint/delete-product-group",
+              "api-reference/endpoint/add-product-to-product-group",
+              "api-reference/endpoint/remove-product-from-product-group"
             ]
+          },
+          {
+            "group": "Catalog",
+            "icon": "list-check",
+            "pages": ["api-reference/endpoint/validate-catalog"]
           },
           {
             "group": "Files",

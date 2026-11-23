@@ -1,0 +1,5 @@
+---
+title: 'Add a product to a product group'
+description: 'Add one product, by its `id` or its `external_id` (exactly one of the two), at the end of the group. A product already in this group answers `200` with the group unchanged; one in another group answers `409` with code `product_already_grouped`; an unknown one answers `400` with code `reference_not_found`.'
+openapi: post /v1/product-groups/{id}/products
+---
