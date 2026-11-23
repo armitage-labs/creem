@@ -1340,6 +1340,16 @@ describe("creem catalog promote: a run left with not_written items", () => {
     expect(error.suggestion).toMatch(/promote again/i);
   });
 
+  it("names changed_since_check in its hint, in the terminal too", async () => {
+    const fake = fakeCatalog(pairedStore());
+    fake.changeAfterCheck("prod_t1");
+    const result = await cli(fake).run(["catalog", "promote", "--yes"]);
+    expect(result.code).toBe(4);
+    expect(result.stderr).toContain(
+      "An item changed between the check and its write (changed_since_check): promote again; items already written answer `unchanged`.",
+    );
+  });
+
   it("an archived item that live doesn't have stays out of the exit code", async () => {
     const initial = pairedStore();
     initial.test.products!.push(
