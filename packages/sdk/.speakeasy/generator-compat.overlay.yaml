@@ -117,3 +117,11 @@ actions:
   - target: $.components.schemas.ProductFeatureDeletionRequestEntity.properties.external_id
     update:
       nullable: true
+  # ENG-2972: the contract gives `abandoned_cart_recovery_enabled` a `default`
+  # of false, and Speakeasy fills a default in on every request. With an
+  # `external_id`, `POST /v1/products` is an upsert that changes only the fields
+  # sent, so the SDK switched abandoned cart recovery off on every upsert of a
+  # product that had it on. Without the default the SDK sends the field only
+  # when the caller sets it; a create without it still gets the API's own default.
+  - target: $.components.schemas.CreateProductRequestEntity.properties.abandoned_cart_recovery_enabled.default
+    remove: true

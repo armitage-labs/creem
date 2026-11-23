@@ -279,7 +279,7 @@ export const CreateProductRequestEntity$inboundSchema: z.ZodType<
   metadata: z.record(z.any()).optional(),
   custom_fields: z.array(CustomFieldRequestEntity$inboundSchema).optional(),
   custom_field: z.array(CustomFieldRequestEntity$inboundSchema).optional(),
-  abandoned_cart_recovery_enabled: z.boolean().default(false),
+  abandoned_cart_recovery_enabled: z.boolean().optional(),
   usage_prices: z.array(UsagePriceRequestEntity$inboundSchema).optional(),
   features: z.array(
     z.union([
@@ -337,7 +337,7 @@ export type CreateProductRequestEntity$Outbound = {
   metadata?: { [k: string]: any } | undefined;
   custom_fields?: Array<CustomFieldRequestEntity$Outbound> | undefined;
   custom_field?: Array<CustomFieldRequestEntity$Outbound> | undefined;
-  abandoned_cart_recovery_enabled: boolean;
+  abandoned_cart_recovery_enabled?: boolean | undefined;
   usage_prices?: Array<UsagePriceRequestEntity$Outbound> | undefined;
   features?:
     | Array<
@@ -378,7 +378,7 @@ export const CreateProductRequestEntity$outboundSchema: z.ZodType<
   metadata: z.record(z.any()).optional(),
   customFields: z.array(CustomFieldRequestEntity$outboundSchema).optional(),
   customField: z.array(CustomFieldRequestEntity$outboundSchema).optional(),
-  abandonedCartRecoveryEnabled: z.boolean().default(false),
+  abandonedCartRecoveryEnabled: z.boolean().optional(),
   usagePrices: z.array(UsagePriceRequestEntity$outboundSchema).optional(),
   features: z.array(
     z.union([
