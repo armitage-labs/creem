@@ -579,7 +579,8 @@ describe("creem catalog link", () => {
     const first = await run(args);
     expect(first.code).toBe(4);
     expect(first.stderr).toContain("Live written: LIVE prod_l2 has the key team");
-    expect(first.stderr).toContain("TEST prod_t2 was not written");
+    // A 500 got no clear answer: the test write may have gone through.
+    expect(first.stderr).toContain("TEST prod_t2 may or may not have been written");
     expect(first.stderr).toContain("creem catalog link");
     expect(fake.stores.live.products[1].external_id).toBe("team");
     expect(fake.stores.test.products[1].external_id).toBeNull();
@@ -1221,21 +1222,30 @@ describe("creem catalog promote, interactive: a pick that fails", () => {
     expect(result.code).toBe(4);
   });
 
-  it("reports a half-done pair, runs the dry run again, and goes on with the next item", async () => {
+  it("reports a half-done pair, runs the dry run again, and offers the item again with the live key", async () => {
     const fake = fakeCatalog(twoKeyless());
-    fake.fail((c) => c.side === "test" && c.method === "PATCH" && !c.dryRun, 500, {
-      code: "internal_error",
+    fake.fail((c) => c.side === "test" && c.method === "PATCH" && !c.dryRun, 422, {
+      code: "invalid_external_id",
       message: "Boom",
     });
     const h = cli(fake, {
       isTTY: true,
-      choices: [{ action: "pair", liveId: "prod_l2" }, { action: "skip" }],
+      choices: [{ action: "pair", liveId: "prod_l2" }, { action: "skip" }, { action: "skip" }],
       answers: ["team"],
       confirms: [true],
     });
     const result = await h.run(["catalog", "promote"]);
     expect(result.stderr).toContain("Live written: LIVE prod_l2 has the key team");
-    expect(h.asked.filter((l) => l.startsWith("choose:"))).toHaveLength(2);
+    expect(result.stderr).toContain("TEST prod_t2 was not written");
+    // The merchant never ran `catalog link`: the hint is the question that comes back.
+    expect(result.stderr).not.toContain("Run the same creem catalog link again");
+    expect(result.stderr).toContain(
+      "The dry run runs again and asks about prod_t2 again: pick prod_l2 with the key team to finish the pair",
+    );
+    const chooses = h.asked.filter((l) => l.startsWith("choose:"));
+    expect(chooses[1]).toMatch(/choose: prod_t2 "Team" needs a key/);
+    expect(chooses[1]).toContain('1. prod_l2 "Team" (key team)');
+    expect(chooses[2]).toMatch(/prod_t3 "Solo" needs a key/);
     expect(fake.promotes().filter((c) => c.dryRun)).toHaveLength(2);
     expect(result.code).toBe(4);
   });
@@ -1311,5 +1321,109 @@ describe("creem catalog promote: a run left with not_written items", () => {
       "archived_not_in_live",
     );
     expect(result.code).toBe(0);
+  });
+});
+
+describe("creem catalog promote, interactive: a write without a clear answer", () => {
+  /** Two keyless test products "Team" and one keyless live "Team". */
+  const twoTeams = () => {
+    const initial = store();
+    initial.test.products!.push(sideProduct("test", "prod_t3", { name: "Team", price: 3000 }));
+    return initial;
+  };
+
+  it("says live may have the key, runs the dry run again before the next question, and offers the item again", async () => {
+    const fake = fakeCatalog(twoTeams());
+    // Live commits the key, then its answer is a 502.
+    fake.fail(
+      (c) => c.side === "live" && c.method === "PATCH" && !c.dryRun,
+      502,
+      { code: "bad_gateway", message: "Upstream timed out" },
+      { afterWrite: true },
+    );
+    const h = cli(fake, {
+      isTTY: true,
+      choices: [{ action: "pair", liveId: "prod_l2" }, { action: "skip" }, { action: "skip" }],
+      answers: ["team"],
+      confirms: [true],
+    });
+    const result = await h.run(["catalog", "promote"]);
+    expect(fake.stores.live.products.find((p) => p.id === "prod_l2")?.external_id).toBe("team");
+    expect(fake.writes().map(describeCall)).toEqual(["live PATCH /v1/products/prod_l2"]);
+    expect(result.stderr).toContain("LIVE prod_l2 may have the key team");
+    expect(result.stderr).toContain("TEST prod_t2 was not written");
+    expect(fake.promotes().filter((c) => c.dryRun)).toHaveLength(2);
+    const chooses = h.asked.filter((l) => l.startsWith("choose:"));
+    expect(chooses[1]).toMatch(/choose: prod_t2 "Team" needs a key/);
+    expect(chooses[1]).toContain('prod_l2 "Team" (key team)');
+    expect(chooses[2]).toMatch(/choose: prod_t3 "Team" needs a key/);
+    expect(chooses[2]).not.toContain('prod_l2 "Team" (no key)');
+    expect(result.code).toBe(4);
+  });
+
+  it("a write refused with a 4xx wrote nothing: no new dry run, the next item follows", async () => {
+    const fake = fakeCatalog(twoTeams());
+    fake.fail((c) => c.side === "live" && c.method === "PATCH" && !c.dryRun, 409, {
+      code: "external_id_taken",
+      message: "The external_id team is taken.",
+    });
+    const h = cli(fake, {
+      isTTY: true,
+      choices: [{ action: "pair", liveId: "prod_l2" }, { action: "skip" }],
+      answers: ["team"],
+      confirms: [true],
+    });
+    const result = await h.run(["catalog", "promote"]);
+    expect(result.stderr).toContain("Not paired: The external_id team is taken.");
+    expect(fake.promotes().filter((c) => c.dryRun)).toHaveLength(1);
+    expect(h.asked.filter((l) => l.startsWith("choose:"))[1]).toMatch(/prod_t3 "Team" needs a key/);
+    expect(result.code).toBe(4);
+  });
+});
+
+describe("creem catalog promote, interactive: auth errors and the metadata copy's label", () => {
+  it("a 401 during a pick stops the command with exit 3", async () => {
+    const fake = fakeCatalog(store());
+    fake.fail((c) => c.side === "test" && c.method === "GET", 401, {
+      code: "unauthorized",
+      message: "The API key was revoked.",
+    });
+    const h = cli(fake, { isTTY: true });
+    const result = await h.run(["catalog", "promote"]);
+    expect(result.code).toBe(3);
+    expect(result.stderr).not.toContain("Not paired");
+    expect(result.stderr).toContain("The API key was revoked.");
+  });
+
+  it("a 403 on the pairing check stops the command with exit 3", async () => {
+    const fake = fakeCatalog(store());
+    fake.fail((c) => c.side === "live" && c.method === "PATCH", 403, {
+      code: "forbidden",
+      message: "The key can't write products.",
+    });
+    const h = cli(fake, {
+      isTTY: true,
+      choices: [{ action: "pair", liveId: "prod_l2" }],
+      answers: ["team"],
+      confirms: [true],
+    });
+    const result = await h.run(["catalog", "promote"]);
+    expect(result.code).toBe(3);
+    expect(result.stderr).not.toContain("Not paired");
+    expect(fake.writes()).toEqual([]);
+  });
+
+  it("a failed metadata copy is reported as not copied", async () => {
+    const initial = pairedStore();
+    initial.live.products![0].metadata = { stripe_lookup_key: "pro_m" };
+    const fake = fakeCatalog(initial);
+    fake.fail((c) => c.side === "test" && c.method === "PATCH", 409, {
+      code: "metadata_locked",
+      message: "Metadata is locked.",
+    });
+    const h = cli(fake, { isTTY: true, confirms: [true, false] });
+    const result = await h.run(["catalog", "promote"]);
+    expect(result.stderr).toContain("Not copied: Metadata is locked.");
+    expect(result.stderr).not.toContain("Not paired");
   });
 });

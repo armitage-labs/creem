@@ -1,6 +1,7 @@
 import type { Creem } from "creem";
 import type * as components from "creem/models/components";
-import { CliError } from "../errors";
+import { CliError, describeError } from "../errors";
+import { isRecord } from "../operation";
 
 /**
  * Pairing a test and a live item by key (ENG-2437, ADR catalog-as-code § 2.6,
@@ -30,6 +31,20 @@ export interface LinkReport {
   test: SideWrite;
 }
 
+/**
+ * A write that failed after its request may have reached Creem: a 5xx, a
+ * timeout, a dropped connection, or an answer the SDK couldn't read. A 4xx
+ * (a guard's refusal, a validation error) wrote nothing.
+ */
+export function mayHaveWritten(error: unknown): boolean {
+  if (error instanceof CliError) return false;
+  if (isRecord(error) && typeof error.statusCode === "number") return error.statusCode >= 500;
+  return (
+    error instanceof Error &&
+    /ConnectionError|Timeout|Abort|UnexpectedClientError|ResponseValidationError/.test(error.name)
+  );
+}
+
 /** Live was written, then test's write failed: the pair is half done. */
 export class LinkPartialError extends CliError {
   constructor(
@@ -38,11 +53,32 @@ export class LinkPartialError extends CliError {
     testLabel: string,
   ) {
     super(
-      `Live written: LIVE ${report.live?.id} has the key ${report.key}. ${testLabel} was not written: ${describeCause(testError)}.`,
+      `Live written: LIVE ${report.live?.id} has the key ${report.key}. ${testLabel} ${
+        mayHaveWritten(testError) ? "may or may not have been written" : "was not written"
+      }: ${describeCause(testError)}.`,
       4,
       "Run the same creem catalog link again to finish the pair: its live write is then unchanged. The next promote dry run proposes the live key for the test item too.",
     );
     this.name = "LinkPartialError";
+  }
+}
+
+/**
+ * A write got no clear answer ({@link mayHaveWritten}): it may have gone
+ * through. `maybe` says what may have been written; nothing after it was sent.
+ */
+export class WriteUncertainError extends CliError {
+  constructor(
+    readonly maybe: string,
+    readonly writeError: unknown,
+    after: string,
+  ) {
+    super(
+      `${maybe}: its write got no clear answer (${describeCause(writeError)}).${after ? ` ${after}` : ""}`,
+      describeError(writeError).exitCode,
+      "Check the items in the dashboard (or with creem products get), then run the command again: a write that went through answers unchanged.",
+    );
+    this.name = "WriteUncertainError";
   }
 }
 
@@ -122,14 +158,26 @@ async function pairWrites(
 ): Promise<LinkReport> {
   if (live) assertDryRun("live", live.id, (await live.write(true)).writeResult);
   assertDryRun("test", test.id, (await test.write(true)).writeResult);
-  const liveWrite = live
-    ? { id: live.id, result: (await live.write(false)).writeResult.result }
-    : null;
+  let liveWrite: SideWrite | null = null;
+  if (live)
+    try {
+      liveWrite = { id: live.id, result: (await live.write(false)).writeResult.result };
+    } catch (cause) {
+      if (!mayHaveWritten(cause)) throw cause;
+      throw new WriteUncertainError(
+        `LIVE ${live.id} may have the key ${key}`,
+        cause,
+        `${test.label} was not written.`,
+      );
+    }
   try {
     const testWrite = { id: test.id, result: (await test.write(false)).writeResult.result };
     return { kind, key, live: liveWrite, test: testWrite };
   } catch (cause) {
-    if (!liveWrite) throw cause;
+    if (!liveWrite) {
+      if (!mayHaveWritten(cause)) throw cause;
+      throw new WriteUncertainError(`${test.label} may have the key ${key}`, cause, "");
+    }
     throw new LinkPartialError(
       { kind, key, live: liveWrite, test: { id: test.id, result: "failed" } },
       cause,
@@ -342,6 +390,15 @@ export async function copyLiveMetadata(
       updateProductRequestEntity: { metadata: testMetadata },
     });
   assertDryRun("test", testId, (await write(true)).writeResult);
-  await write(false);
+  try {
+    await write(false);
+  } catch (cause) {
+    if (!mayHaveWritten(cause)) throw cause;
+    throw new WriteUncertainError(
+      `TEST ${testId} may have the metadata ${copied.join(", ")}`,
+      cause,
+      "",
+    );
+  }
   return copied;
 }

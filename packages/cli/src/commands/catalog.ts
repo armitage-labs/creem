@@ -3,7 +3,7 @@ import chalk from "chalk";
 import type { Creem } from "creem";
 import * as components from "creem/models/components";
 import type { CliContext, Choice } from "../lib/context";
-import { CliError, describeError } from "../lib/errors";
+import { CliError, describeError, redact } from "../lib/errors";
 import { decode, isRecord } from "../lib/operation";
 import { readData } from "../lib/input";
 import {
@@ -27,6 +27,7 @@ import {
   readFeatureLink,
   readItem,
   unlinkItem,
+  WriteUncertainError,
   type Clients,
   type FeatureLink,
   type LinkReport,
@@ -242,22 +243,47 @@ type Pick =
   | { action: "skip" }
   | { action: "create" };
 
+/** What the session does next after a pick that may have written. */
+function retryHint(error: LinkPartialError | WriteUncertainError): string {
+  if (error instanceof LinkPartialError)
+    return `The dry run runs again and asks about ${error.report.test.id} again: pick ${error.report.live?.id} with the key ${error.report.key} to finish the pair; its live write then answers unchanged.`;
+  return "The dry run runs again and shows what was written; if the item still needs a decision, its question comes back.";
+}
+
 /**
  * Runs one pick's writes. A pick that fails is reported and the session goes
- * on: an API error (a 409 from the pairing check) wrote nothing, so the next
- * item follows (false); a half-done pair wrote live, so the dry run runs again
- * first (true). Anything else, a dry run answered as a write among them, stops
- * the command.
+ * on:
+ * - a refusal (an API error such as a 409 from the pairing check) wrote
+ *   nothing, so the next item follows (false);
+ * - a half-done pair, or a write without a clear answer (a 5xx, a timeout),
+ *   may have written: the decision is forgotten and the dry run runs again
+ *   before the next question (true), so the item comes back as live has it now.
+ * A 401 or 403, and anything else (a dry run answered as a write among them),
+ * stops the command.
  */
-async function attempt(session: Session, run: () => Promise<boolean>): Promise<boolean> {
+async function attempt(
+  session: Session,
+  decision: string,
+  failure: "Not paired" | "Not copied",
+  run: () => Promise<boolean>,
+): Promise<boolean> {
   try {
     return await run();
   } catch (error) {
-    const halfDone = error instanceof LinkPartialError;
-    if (!halfDone && !(isRecord(error) && typeof error.statusCode === "number")) throw error;
-    const described = describeError(error, [...session.context.secrets]).result.error;
-    session.context.stderr(`Not paired: ${described.message}\nFix: ${described.suggestion}\n`);
-    return halfDone;
+    const { context } = session;
+    const secrets = [...context.secrets];
+    if (error instanceof LinkPartialError || error instanceof WriteUncertainError) {
+      session.decided.delete(decision);
+      const { message } = describeError(error, secrets).result.error;
+      context.stderr(`${message}\nFix: ${redact(retryHint(error), secrets)}\n`);
+      return true;
+    }
+    const status =
+      isRecord(error) && typeof error.statusCode === "number" ? error.statusCode : null;
+    if (status === null || status === 401 || status === 403) throw error;
+    const described = describeError(error, secrets).result.error;
+    context.stderr(`${failure}: ${described.message}\nFix: ${described.suggestion}\n`);
+    return false;
   }
 }
 
@@ -338,7 +364,9 @@ async function pickFeatureKeys(session: Session, item: PromoteItem): Promise<boo
       choices,
     );
     if (pick.action !== "pair" && pick.action !== "test-only") continue;
-    const wrote = await attempt(session, () => pickFeatureKey(session, item, feature, pick));
+    const wrote = await attempt(session, decision, "Not paired", () =>
+      pickFeatureKey(session, item, feature, pick),
+    );
     if (wrote) return true;
   }
   return false;
@@ -431,10 +459,14 @@ async function offerMetadataCopy(
  * change other items' candidates (a live item just paired is no longer free).
  */
 async function decide(session: Session, preview: PromoteReport): Promise<boolean> {
-  const ask = async (decision: string, run: () => Promise<boolean>) => {
+  const ask = async (
+    decision: string,
+    run: () => Promise<boolean>,
+    failure: "Not paired" | "Not copied" = "Not paired",
+  ) => {
     if (session.decided.has(decision)) return false;
     session.decided.add(decision);
-    return attempt(session, run);
+    return attempt(session, decision, failure, run);
   };
   for (const item of preview.items) {
     const keys = liveOnlyMetadataKeys(item);
@@ -446,8 +478,10 @@ async function decide(session: Session, preview: PromoteReport): Promise<boolean
           : isPossibleRename(item)
             ? await ask(`rename:${item.kind}:${item.testId}`, () => pickRename(session, item))
             : keys.length
-              ? await ask(`metadata:${item.testId}:${keys.join(",")}`, () =>
-                  offerMetadataCopy(session, item, keys),
+              ? await ask(
+                  `metadata:${item.testId}:${keys.join(",")}`,
+                  () => offerMetadataCopy(session, item, keys),
+                  "Not copied",
                 )
               : false;
     if (wrote) return true;

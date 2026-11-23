@@ -372,6 +372,13 @@ export interface PromoteSelect {
   products?: "all" | string[];
 }
 
+/** How a {@link fakeCatalog} failure answers. */
+export interface FailOptions {
+  /** The call takes effect first (a write commits), then answers the error. */
+  afterWrite?: boolean;
+  headers?: Record<string, string>;
+}
+
 export interface FakeCatalogOptions {
   /** Items per promote page (the backend pages by time). */
   pageSize?: number;
@@ -393,7 +400,12 @@ export function fakeCatalog(
   const calls: CatalogCall[] = [];
   let counter = 100;
   const nextId = (prefix: string) => `${prefix}_${++counter}`;
-  const failures: { match: (call: CatalogCall) => boolean; status: number; body: Json }[] = [];
+  const failures: {
+    match: (call: CatalogCall) => boolean;
+    status: number;
+    body: Json;
+    options: FailOptions;
+  }[] = [];
   /** The check and the write of the item with this test id answer this error. */
   const refusals = new Map<string, ApiError>();
   /** Test ids whose command changes between the check and the write. */
@@ -879,7 +891,22 @@ export function fakeCatalog(
     };
     calls.push(call);
     const failure = failures.find((f) => f.match(call));
-    if (failure) return Response.json(failure.body, { status: failure.status });
+    const failed = () =>
+      Response.json(failure!.body, { status: failure!.status, headers: failure!.options.headers });
+    if (failure && !failure.options.afterWrite) return failed();
+    const response = await handle(request, url, side, path, body, dryRun);
+    // The request went through; only its answer is the error.
+    return failure ? failed() : response;
+  };
+
+  const handle = async (
+    request: Request,
+    url: URL,
+    side: Side,
+    path: string,
+    body: Json | undefined,
+    dryRun: boolean,
+  ): Promise<Response> => {
     try {
       const productMatch = /^\/v1\/products\/([^/]+)$/.exec(path);
       const meterMatch = /^\/v1\/meters\/([^/]+)$/.exec(path);
@@ -946,8 +973,14 @@ export function fakeCatalog(
     promotes: () => calls.filter((c) => c.path === "/v1/catalog/promote"),
     /** Promote calls without `?dry_run=true`. */
     realRuns: () => calls.filter((c) => c.path === "/v1/catalog/promote" && !c.dryRun),
-    fail(match: (call: CatalogCall) => boolean, status: number, body: Json) {
-      failures.push({ match, status, body });
+    /** Calls that match answer this error; with `afterWrite`, after the call took effect. */
+    fail(
+      match: (call: CatalogCall) => boolean,
+      status: number,
+      body: Json,
+      options: FailOptions = {},
+    ) {
+      failures.push({ match, status, body, options });
     },
     /** The check and the write of this test item answer this error (a guard). */
     refuse(testId: string, status: number, code: string, message = code) {
