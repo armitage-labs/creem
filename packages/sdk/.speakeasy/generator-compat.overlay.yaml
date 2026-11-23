@@ -145,3 +145,19 @@ actions:
   - target: $.components.schemas.ProductWriteWarningEntity.properties.impact.allOf[0]
     update:
       $ref: "#/components/schemas/ProductWriteImpactEntity"
+  # The product group writes brought two more inline `upgrade_behavior` enums,
+  # and the create request's took `UpgradeBehavior`, which named the product
+  # group's own (an open enum), so ProductGroupEntity.upgradeBehavior changed
+  # type. The group keeps the name; the create request's enum gets its own.
+  - target: $.components.schemas.ProductGroupEntity.properties.upgrade_behavior
+    update:
+      title: UpgradeBehavior
+  - target: $.components.schemas.CreateProductGroupRequestEntity.properties.upgrade_behavior
+    update:
+      title: CreateProductGroupRequestEntityUpgradeBehavior
+  - target: $.components.schemas.ProductGroupWriteResponseEntity.properties.upgrade_behavior
+    update:
+      title: ProductGroupWriteResponseEntityUpgradeBehavior
+  - target: $.components.schemas.UpdateProductGroupRequestEntity.properties.upgrade_behavior
+    update:
+      title: UpdateProductGroupRequestEntityUpgradeBehavior

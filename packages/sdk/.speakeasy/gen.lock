@@ -127,6 +127,7 @@ trackedFiles:
   docs/models/components/createfileuploadrequestentity.md: {}
   docs/models/components/createmeterapirequestdto.md: {}
   docs/models/components/createproductgrouprequestentity.md: {}
+  docs/models/components/createproductgrouprequestentityupgradebehavior.md: {}
   docs/models/components/createproductrequestentity.md:
     id: 8257f878173d
     pristine_git_object: 1a0798d76f055612a9f62df2a317829617cf3d11
@@ -315,7 +316,6 @@ trackedFiles:
   docs/models/components/productfilefeaturefilesrequestentity.md: {}
   docs/models/components/productfilefeaturerequestentity.md: {}
   docs/models/components/productgroupentity.md: {}
-  docs/models/components/productgroupentityupgradebehavior.md: {}
   docs/models/components/productgrouplistentity.md: {}
   docs/models/components/productgroupproductentity.md: {}
   docs/models/components/productgroupproductexternalidreferenceentity.md: {}

@@ -28,7 +28,7 @@ export type Products =
 /**
  * How a switch between the products of this group is billed. On an existing group (by `external_id`), send `null` to clear it.
  */
-export const UpgradeBehavior = {
+export const CreateProductGroupRequestEntityUpgradeBehavior = {
   ProrationChargeImmediately: "proration-charge-immediately",
   ProrationCharge: "proration-charge",
   ProrationNone: "proration-none",
@@ -36,7 +36,9 @@ export const UpgradeBehavior = {
 /**
  * How a switch between the products of this group is billed. On an existing group (by `external_id`), send `null` to clear it.
  */
-export type UpgradeBehavior = ClosedEnum<typeof UpgradeBehavior>;
+export type CreateProductGroupRequestEntityUpgradeBehavior = ClosedEnum<
+  typeof CreateProductGroupRequestEntityUpgradeBehavior
+>;
 
 export type CreateProductGroupRequestEntity = {
   /**
@@ -67,7 +69,10 @@ export type CreateProductGroupRequestEntity = {
   /**
    * How a switch between the products of this group is billed. On an existing group (by `external_id`), send `null` to clear it.
    */
-  upgradeBehavior?: UpgradeBehavior | null | undefined;
+  upgradeBehavior?:
+    | CreateProductGroupRequestEntityUpgradeBehavior
+    | null
+    | undefined;
   /**
    * Whether the products of this group are offered as checkout upsells. Defaults to `true` on a create.
    */
@@ -116,13 +121,13 @@ export function productsFromJSON(
 }
 
 /** @internal */
-export const UpgradeBehavior$inboundSchema: z.ZodNativeEnum<
-  typeof UpgradeBehavior
-> = z.nativeEnum(UpgradeBehavior);
+export const CreateProductGroupRequestEntityUpgradeBehavior$inboundSchema:
+  z.ZodNativeEnum<typeof CreateProductGroupRequestEntityUpgradeBehavior> = z
+    .nativeEnum(CreateProductGroupRequestEntityUpgradeBehavior);
 /** @internal */
-export const UpgradeBehavior$outboundSchema: z.ZodNativeEnum<
-  typeof UpgradeBehavior
-> = UpgradeBehavior$inboundSchema;
+export const CreateProductGroupRequestEntityUpgradeBehavior$outboundSchema:
+  z.ZodNativeEnum<typeof CreateProductGroupRequestEntityUpgradeBehavior> =
+    CreateProductGroupRequestEntityUpgradeBehavior$inboundSchema;
 
 /** @internal */
 export const CreateProductGroupRequestEntity$inboundSchema: z.ZodType<
@@ -140,7 +145,9 @@ export const CreateProductGroupRequestEntity$inboundSchema: z.ZodType<
     ]),
   ).optional(),
   upgrades_enabled: z.boolean().optional(),
-  upgrade_behavior: z.nullable(UpgradeBehavior$inboundSchema).optional(),
+  upgrade_behavior: z.nullable(
+    CreateProductGroupRequestEntityUpgradeBehavior$inboundSchema,
+  ).optional(),
   upsells_enabled: z.boolean().optional(),
   is_active: z.boolean().optional(),
 }).transform((v) => {
@@ -185,7 +192,9 @@ export const CreateProductGroupRequestEntity$outboundSchema: z.ZodType<
     ]),
   ).optional(),
   upgradesEnabled: z.boolean().optional(),
-  upgradeBehavior: z.nullable(UpgradeBehavior$outboundSchema).optional(),
+  upgradeBehavior: z.nullable(
+    CreateProductGroupRequestEntityUpgradeBehavior$outboundSchema,
+  ).optional(),
   upsellsEnabled: z.boolean().optional(),
   isActive: z.boolean().optional(),
 }).transform((v) => {

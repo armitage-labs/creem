@@ -24,7 +24,7 @@ import {
 /**
  * How a switch between the products is billed, or `null` for the default.
  */
-export const ProductGroupEntityUpgradeBehavior = {
+export const UpgradeBehavior = {
   ProrationChargeImmediately: "proration-charge-immediately",
   ProrationCharge: "proration-charge",
   ProrationNone: "proration-none",
@@ -32,9 +32,7 @@ export const ProductGroupEntityUpgradeBehavior = {
 /**
  * How a switch between the products is billed, or `null` for the default.
  */
-export type ProductGroupEntityUpgradeBehavior = OpenEnum<
-  typeof ProductGroupEntityUpgradeBehavior
->;
+export type UpgradeBehavior = OpenEnum<typeof UpgradeBehavior>;
 
 export type ProductGroupEntity = {
   /**
@@ -72,7 +70,7 @@ export type ProductGroupEntity = {
   /**
    * How a switch between the products is billed, or `null` for the default.
    */
-  upgradeBehavior: ProductGroupEntityUpgradeBehavior | null;
+  upgradeBehavior: UpgradeBehavior | null;
   /**
    * Whether the products of this group are offered as checkout upsells.
    */
@@ -92,17 +90,17 @@ export type ProductGroupEntity = {
 };
 
 /** @internal */
-export const ProductGroupEntityUpgradeBehavior$inboundSchema: z.ZodType<
-  ProductGroupEntityUpgradeBehavior,
+export const UpgradeBehavior$inboundSchema: z.ZodType<
+  UpgradeBehavior,
   z.ZodTypeDef,
   unknown
-> = openEnums.inboundSchema(ProductGroupEntityUpgradeBehavior);
+> = openEnums.inboundSchema(UpgradeBehavior);
 /** @internal */
-export const ProductGroupEntityUpgradeBehavior$outboundSchema: z.ZodType<
+export const UpgradeBehavior$outboundSchema: z.ZodType<
   string,
   z.ZodTypeDef,
-  ProductGroupEntityUpgradeBehavior
-> = openEnums.outboundSchema(ProductGroupEntityUpgradeBehavior);
+  UpgradeBehavior
+> = openEnums.outboundSchema(UpgradeBehavior);
 
 /** @internal */
 export const ProductGroupEntity$inboundSchema: z.ZodType<
@@ -118,7 +116,7 @@ export const ProductGroupEntity$inboundSchema: z.ZodType<
   external_id: z.nullable(z.string()),
   products: z.array(ProductGroupProductEntity$inboundSchema),
   upgrades_enabled: z.boolean(),
-  upgrade_behavior: z.nullable(ProductGroupEntityUpgradeBehavior$inboundSchema),
+  upgrade_behavior: z.nullable(UpgradeBehavior$inboundSchema),
   upsells_enabled: z.boolean(),
   is_active: z.boolean(),
   created_at: z.string().datetime({ offset: true }).transform(v => new Date(v)),
@@ -165,7 +163,7 @@ export const ProductGroupEntity$outboundSchema: z.ZodType<
   externalId: z.nullable(z.string()),
   products: z.array(ProductGroupProductEntity$outboundSchema),
   upgradesEnabled: z.boolean(),
-  upgradeBehavior: z.nullable(ProductGroupEntityUpgradeBehavior$outboundSchema),
+  upgradeBehavior: z.nullable(UpgradeBehavior$outboundSchema),
   upsellsEnabled: z.boolean(),
   isActive: z.boolean(),
   createdAt: z.date().transform(v => v.toISOString()),
