@@ -8,6 +8,7 @@ import {
   fakeCreem,
   lemonSqueezyFetch,
   productGroupJson,
+  productJson,
   type CreemCall,
   type CreemState,
 } from "./migrate-fixtures";
@@ -413,5 +414,124 @@ describe("ENG-2972: creem migrate lemon-squeezy", () => {
     const r = await h.run(["--json", ...base, "--yes"]);
     expect(r.code).toBe(MIGRATION_EXIT_CODES.unexpected);
     expect(r.stderr).toContain("dry_run");
+  });
+});
+
+/** Plan and check from the current stores, with adoption answers. */
+async function checked(creem: ReturnType<typeof fakeCreem>, adoption?: Record<string, string>) {
+  const objects = await lsObjects();
+  const plan = fromLemonSqueezy(objects, await readCreemCatalog(creem.client), {
+    now: NOW,
+    adoption,
+  });
+  return { objects, plan, checked: await checkMigration(creem.client, plan, {}) };
+}
+
+describe("ENG-2972 review: an adopted object with changes is one PATCH by id", () => {
+  it("adopts an unkeyed discount whose name changed: the check passes, and one PATCH gives it the key and the name", async () => {
+    const store = structuredClone(V1_STORE);
+    const launch = store.discounts.find((d) => d.external_id === "ls_discount_930001")!;
+    launch.external_id = null;
+    launch.name = "Name changed by the merchant";
+    const creem = fakeCreem(store);
+    const {
+      objects,
+      plan,
+      checked: result,
+    } = await checked(creem, {
+      "adopt:ls_discount_930001": launch.id,
+    });
+    expect(plan.requests.filter((r) => r.key === "ls_discount_930001")).toEqual([
+      {
+        type: "adopt_discount",
+        key: "ls_discount_930001",
+        request: {
+          id: launch.id,
+          updateDiscountRequestEntity: { externalId: "ls_discount_930001", name: "Launch" },
+        },
+      },
+    ]);
+    const item = result.report.items.find((i) => i.key === "ls_discount_930001")!;
+    expect(item).toMatchObject({ status: "pending", action: "update", adopted_from: launch.id });
+    const report = await executeMigration(creem.client, result, {
+      files: objects.fileDigests,
+      fetch: lemonSqueezyFetch().fetcher,
+      delayMs: 0,
+    });
+    expect(report.items.find((i) => i.key === "ls_discount_930001")!.status).toBe("done");
+    const writes = creem.writes().filter((c) => c.path.startsWith("/v1/discounts"));
+    expect(writes.map(describeCall)).toEqual([`PATCH /v1/discounts/${launch.id}`]);
+    expect(writes[0].body).toEqual({ external_id: "ls_discount_930001", name: "Launch" });
+    expect(creem.state.discounts.find((d) => d.id === launch.id)).toMatchObject({
+      external_id: "ls_discount_930001",
+      name: "Launch",
+    });
+  });
+
+  it("adopts an unkeyed product whose name changed with one PATCH by id, and sends no keyed upsert for it", async () => {
+    const store = structuredClone(V1_STORE);
+    const app = store.products.find((p) => p.external_id === "ls_variant_910007")!;
+    app.external_id = null;
+    app.name = "Desktop App (old)";
+    const creem = fakeCreem(store);
+    const {
+      objects,
+      plan,
+      checked: result,
+    } = await checked(creem, {
+      "adopt:ls_variant_910007": app.id,
+    });
+    expect(plan.requests.filter((r) => r.key === "ls_variant_910007")).toEqual([
+      {
+        type: "adopt_product",
+        key: "ls_variant_910007",
+        request: {
+          id: app.id,
+          updateProductRequestEntity: { externalId: "ls_variant_910007", name: "Desktop App" },
+        },
+      },
+    ]);
+    await executeMigration(creem.client, result, {
+      files: objects.fileDigests,
+      fetch: lemonSqueezyFetch().fetcher,
+      delayMs: 0,
+    });
+    const writes = creem
+      .writes()
+      .filter(
+        (c) => c.path === `/v1/products/${app.id}` || c.body?.external_id === "ls_variant_910007",
+      );
+    expect(writes.map(describeCall)).toEqual([`PATCH /v1/products/${app.id}`]);
+    expect(creem.state.products.find((p) => p.id === app.id)).toMatchObject({
+      external_id: "ls_variant_910007",
+      name: "Desktop App",
+    });
+  });
+});
+
+describe("ENG-2972 review: validate batches can't split an adoption from its changes", () => {
+  it("checks 120 adoptions with changes in batches of 100, each one request, none refused", async () => {
+    const objects = await lsObjects();
+    const base = objects.variants.find((v) => v.attributes.status === "published")!;
+    const adoption: Record<string, string> = {};
+    const products = [];
+    for (let i = 0; i < 120; i++) {
+      const id = String(800000 + i);
+      objects.variants.push({ ...structuredClone(base), id });
+      products.push(productJson(`prod_adopt_${i}`, { name: `Old name ${i}`, price: 1 }));
+      adoption[`adopt:ls_variant_${id}`] = `prod_adopt_${i}`;
+    }
+    const creem = fakeCreem({ products });
+    const plan = fromLemonSqueezy(objects, await readCreemCatalog(creem.client), {
+      now: NOW,
+      adoption,
+    });
+    for (const key of Object.keys(adoption).map((a) => a.slice("adopt:".length)))
+      expect(plan.requests.filter((r) => r.key === key).map((r) => r.type)).toEqual([
+        "adopt_product",
+      ]);
+    const result = await checkMigration(creem.client, plan, {});
+    expect(creem.validations().length).toBeGreaterThan(1);
+    expect(result.report.items.filter((i) => i.status === "failed")).toEqual([]);
   });
 });

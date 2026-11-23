@@ -326,7 +326,7 @@ export async function checkMigration(
   // A refused product's uploads would attach to nothing, so they are not sent.
   for (const request of products) {
     const item = itemOf(request);
-    if (item.status !== "failed" || request.type === "adopt_product") continue;
+    if (item.status !== "failed") continue;
     const body =
       request.type === "upsert_product"
         ? request.request.createProductRequestEntity
@@ -563,6 +563,7 @@ export async function executeMigration(
           if (!resolveFiles(request.request.createProductRequestEntity, item)) continue;
           break;
         }
+        case "adopt_product":
         case "update_product": {
           if (!resolveFiles(request.request.updateProductRequestEntity, item)) continue;
           break;
@@ -620,6 +621,7 @@ export async function executeMigration(
           if (Object.keys(body).length === 1) continue;
           break;
         }
+        case "adopt_discount":
         case "update_discount": {
           const body = request.request.updateDiscountRequestEntity;
           if (body.appliesToProductExternalIds) {

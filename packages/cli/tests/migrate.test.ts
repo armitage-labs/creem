@@ -727,16 +727,16 @@ describe("executeMigration", () => {
 
     const creem = fakeCreem({ products: [existing] });
     const adopted = await migrate(creem, { adoption: { "adopt:ls_variant_910007": "prod_old" } });
-    const writes = creem.writes().map((c) => `${c.method} ${c.path}`);
-    expect(writes[0]).toBe("PATCH /v1/products/prod_old");
-    expect(creem.writes()[0].body).toEqual({ external_id: "ls_variant_910007" });
-    // Adopting gives it the key; the update is then a keyed upsert.
-    expect(writes.filter((w) => w === "PATCH /v1/products/prod_old")).toHaveLength(1);
+    // One PATCH by id gives it the key and makes the changes; no keyed upsert follows.
+    const adoption = creem.writes().filter((c) => c.path === "/v1/products/prod_old");
+    expect(adoption.map((c) => c.method)).toEqual(["PATCH"]);
+    expect(adoption[0].body).toMatchObject({ external_id: "ls_variant_910007" });
+    expect(Object.keys(adoption[0].body!).length).toBeGreaterThan(1);
     expect(
       creem
         .writes()
         .find((c) => c.path === "/v1/products" && c.body?.external_id === "ls_variant_910007"),
-    ).toBeDefined();
+    ).toBeUndefined();
     expect(creem.state.products.filter((p) => p.name === "Desktop App")).toHaveLength(1);
     expect(adopted.report.items.find((i) => i.key === "ls_variant_910007")).toMatchObject({
       action: "update",
@@ -1075,11 +1075,16 @@ describe("adoption proposals (candidate rule)", () => {
     expect(pending.requests.filter((r) => r.key === "ls_variant_910007")).toEqual([]);
 
     const chosen = await planFrom(undefined, catalog, { "adopt:ls_variant_910007": "prod_b" });
-    expect(chosen.requests[0]).toEqual({
-      type: "adopt_product",
-      key: "ls_variant_910007",
-      request: { id: "prod_b", updateProductRequestEntity: { externalId: "ls_variant_910007" } },
-    });
+    expect(chosen.requests.filter((r) => r.key === "ls_variant_910007")).toEqual([
+      {
+        type: "adopt_product",
+        key: "ls_variant_910007",
+        request: {
+          id: "prod_b",
+          updateProductRequestEntity: expect.objectContaining({ externalId: "ls_variant_910007" }),
+        },
+      },
+    ]);
     expect(chosen.report.proposals[0]).toMatchObject({ decision: "accepted", creem_id: "prod_b" });
 
     const fresh = await planFrom(undefined, catalog, { "adopt:ls_variant_910007": "new" });
@@ -2094,9 +2099,12 @@ describe("redemption counts: review round", () => {
       adoption: { "adopt:ls_discount_930002": stored.id },
     });
     const update = p.requests.find(
-      (r) => r.key === "ls_discount_930002" && r.type === "upsert_discount",
+      (r) => r.key === "ls_discount_930002" && r.type === "adopt_discount",
     )!.request as any;
-    expect(update.createDiscountRequestEntity.maxRedemptions).toBe(10);
+    expect(update.updateDiscountRequestEntity).toMatchObject({
+      externalId: "ls_discount_930002",
+      maxRedemptions: 10,
+    });
   });
 });
 

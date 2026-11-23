@@ -55,9 +55,10 @@ type CreateFeature = NonNullable<CreateProductBody["features"]>[number];
  * (`upsert_*`, a `POST` with `external_id`), which create the object when the
  * key is new and change only the fields sent otherwise, so two runs can't
  * create it twice. Two writes are addressed by id instead: adopting an object
- * without a key (`adopt_*`, a `PATCH` that gives it its key), and an update that
- * clears a field (`update_*`: a trial, a redemption limit or an expiry date),
- * because the upsert's body takes no `null`.
+ * without a key (`adopt_*`, a `PATCH` that gives it its key and makes the
+ * item's changes in the same request), and an update that clears a field
+ * (`update_*`: a trial, a redemption limit or an expiry date), because the
+ * upsert's body takes no `null`.
  */
 export type MigrationRequest =
   | { type: "adopt_product"; key: string; request: UpdateProductRequest }
@@ -562,7 +563,6 @@ export function fromLemonSqueezy(
     if (group.externalId) groupsByKey.set(group.externalId, group);
   const proposals: AdoptionProposal[] = [];
 
-  const adoptRequests: MigrationRequest[] = [];
   const uploadRequests: MigrationRequest[] = [];
   const productRequests: MigrationRequest[] = [];
   const groupRequests: MigrationRequest[] = [];
@@ -959,12 +959,6 @@ export function fromLemonSqueezy(
 
     // ---- compare with the stored product
     item.creem_id = existing.id;
-    if (item.adopted_from)
-      adoptRequests.push({
-        type: "adopt_product",
-        key: spec.key,
-        request: { id: existing.id, updateProductRequestEntity: { externalId: spec.key } },
-      });
     const update: UpdateProductBody = {};
     const changes: string[] = [];
     const set = <K extends keyof UpdateProductBody>(
@@ -1100,7 +1094,22 @@ export function fromLemonSqueezy(
           ),
         );
     if (features.length) update.features = features;
-    if (changes.length) {
+    if (item.adopted_from) {
+      // Adopting gives the product its key and makes the changes in one PATCH by id:
+      // a keyed upsert after it would be checked as a create, because the
+      // adoption's own dry run is rolled back.
+      item.changes.push(...changes);
+      item.action = "update";
+      item.status = "pending";
+      productRequests.push({
+        type: "adopt_product",
+        key: spec.key,
+        request: {
+          id: existing.id,
+          updateProductRequestEntity: { externalId: spec.key, ...update },
+        },
+      });
+    } else if (changes.length) {
       item.changes.push(...changes);
       item.action = "update";
       item.status = "pending";
@@ -1122,9 +1131,6 @@ export function fromLemonSqueezy(
               },
             },
       );
-    } else if (item.adopted_from) {
-      item.action = "update";
-      item.status = "pending";
     } else item.action = "unchanged";
   }
 
@@ -1289,12 +1295,6 @@ export function fromLemonSqueezy(
       continue;
     }
     item.creem_id = existing.id;
-    if (item.adopted_from)
-      adoptRequests.push({
-        type: "adopt_discount",
-        key: item.key,
-        request: { id: existing.id, updateDiscountRequestEntity: { externalId: item.key } },
-      });
     const update: UpdateDiscountBody = {};
     const changes: string[] = [];
     if (existing.code.toUpperCase() !== planned.code!.toUpperCase())
@@ -1384,7 +1384,20 @@ export function fromLemonSqueezy(
           `Lemon Squeezy doesn't apply this discount to ${unlisted.join(", ")}. The migrator can't tell whether Lemon Squeezy dropped them or you added them in Creem, so they stay; remove them in Creem if the discount shouldn't apply. This warning repeats on every run.`,
         ),
       );
-    if (changes.length) {
+    if (item.adopted_from) {
+      // One PATCH by id gives the key and makes the changes (see the products).
+      item.changes.push(...changes);
+      item.action = "update";
+      item.status = "pending";
+      discountRequests.push({
+        type: "adopt_discount",
+        key: item.key,
+        request: {
+          id: existing.id,
+          updateDiscountRequestEntity: { externalId: item.key, ...update },
+        },
+      });
+    } else if (changes.length) {
       item.changes.push(...changes);
       item.action = "update";
       item.status = "pending";
@@ -1406,9 +1419,6 @@ export function fromLemonSqueezy(
               },
             },
       );
-    } else if (item.adopted_from) {
-      item.action = "update";
-      item.status = "pending";
     } else item.action = "unchanged";
   }
 
@@ -1467,13 +1477,7 @@ export function fromLemonSqueezy(
     fetch_failures: [],
   };
   return {
-    requests: [
-      ...adoptRequests,
-      ...uploadRequests,
-      ...productRequests,
-      ...groupRequests,
-      ...discountRequests,
-    ],
+    requests: [...uploadRequests, ...productRequests, ...groupRequests, ...discountRequests],
     report,
     answerErrors,
   };
