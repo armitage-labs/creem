@@ -11,6 +11,7 @@ import {
   isUnfinished,
   liveOnlyMetadataKeys,
   parseSelect,
+  PromoteInterruptedError,
   runPromote,
   type PromoteItem,
   type PromoteReport,
@@ -93,10 +94,12 @@ function itemLines(item: PromoteItem, dryRun: boolean): string[] {
   return lines;
 }
 
-function reportLines(report: PromoteReport): string[] {
+function reportLines(report: PromoteReport, interrupted = false): string[] {
   const s = report.summary;
   const lines = [
-    chalk.bold(`${report.dryRun ? "Promote dry run" : "Promote run"} (run ${report.runId})`),
+    chalk.bold(
+      `${report.dryRun ? "Promote dry run" : "Promote run"} (run ${report.runId})${interrupted ? ", interrupted" : ""}`,
+    ),
     `Created ${s.created} · Updated ${s.updated} · Unchanged ${s.unchanged} · Needs key ${s.needsKey} · Conflict ${s.conflict} · Failed ${s.failed} · Blocked ${s.blocked} · Not written ${s.notWritten}`,
   ];
   const v = report.validation;
@@ -409,9 +412,30 @@ async function promoteCommand(command: Command, context: CliContext): Promise<vo
   const output = (preview: PromoteReport | null, run: PromoteReport | null) => {
     if (machine) writeResult(context, { preview, run }, "json");
   };
+  /**
+   * One run over every page. A run that stops after its first page prints
+   * (or writes as JSON) what it got, with its run_id and cursor, before the
+   * error ends the command with exit 4.
+   */
+  const promote = async (
+    promoteRequest: PromoteRequest,
+    dryRun: boolean,
+    preview: PromoteReport | null = null,
+  ): Promise<PromoteReport> => {
+    try {
+      return await runPromote(live, promoteRequest, dryRun, { timeoutMs });
+    } catch (error) {
+      if (error instanceof PromoteInterruptedError) {
+        if (!machine) context.stdout(reportLines(error.report, true).join("\n") + "\n");
+        if (dryRun) output(error.report, null);
+        else output(preview, error.report);
+      }
+      throw error;
+    }
+  };
 
   if (dryRunOnly) {
-    const preview = await runPromote(live, request, true, { timeoutMs });
+    const preview = await promote(request, true);
     print(preview);
     output(preview, null);
     finish(preview);
@@ -423,7 +447,7 @@ async function promoteCommand(command: Command, context: CliContext): Promise<vo
   if (interactive) {
     const session: Session = { context, live, decided: new Set() };
     for (;;) {
-      preview = await runPromote(live, request, true, { timeoutMs });
+      preview = await promote(request, true);
       print(preview);
       if (!(await decide(session, preview))) break;
     }
@@ -447,7 +471,7 @@ async function promoteCommand(command: Command, context: CliContext): Promise<vo
     // The merchant saw the refused items and confirmed the rest: the check mustn't hold them back.
     force ||= refused.length > 0;
   } else {
-    preview = await runPromote(live, request, true, { timeoutMs });
+    preview = await promote(request, true);
     print(preview);
     const create = new Set<string>((opts.create as string[] | undefined) ?? []);
     const renames = preview.items.filter((i) => isPossibleRename(i) && !create.has(i.testId));
@@ -460,7 +484,7 @@ async function promoteCommand(command: Command, context: CliContext): Promise<vo
       );
     }
   }
-  const run = await runPromote(live, { ...request, force }, false, { timeoutMs });
+  const run = await promote({ ...request, force }, false, preview);
   print(run);
   output(preview, run);
   finish(run);

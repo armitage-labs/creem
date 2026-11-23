@@ -46,7 +46,8 @@ export class LinkPartialError extends CliError {
   }
 }
 
-function describeCause(cause: unknown): string {
+/** An API error as `code: message` from its body, else the error's message. */
+export function describeCause(cause: unknown): string {
   if (typeof cause === "object" && cause !== null) {
     const body = (cause as { body?: unknown }).body;
     if (typeof body === "string") {

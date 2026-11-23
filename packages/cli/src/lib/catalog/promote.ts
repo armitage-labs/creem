@@ -1,6 +1,7 @@
 import type { Creem } from "creem";
 import type * as components from "creem/models/components";
 import { CliError } from "../errors";
+import { describeCause } from "./pairing";
 
 /**
  * `POST /v1/catalog/promote` from the CLI (ENG-2437, ADR catalog-as-code
@@ -53,6 +54,31 @@ export class PromoteDryRunIgnoredError extends CliError {
   }
 }
 
+/** What a run that stopped mid-way got: its pages so far, and the cursor of the page that failed. */
+export interface InterruptedPromoteReport extends PromoteReport {
+  cursor: string;
+}
+
+/**
+ * A page after the first failed (a timeout, a 5xx): the run already has a
+ * `run_id` and results, which the command prints before it stops (exit 4).
+ */
+export class PromoteInterruptedError extends CliError {
+  constructor(
+    readonly report: InterruptedPromoteReport,
+    readonly pageError: unknown,
+  ) {
+    super(
+      `${report.dryRun ? "The promote dry run" : "The promote run"} ${report.runId} stopped after ${report.items.length === 1 ? "1 item" : `${report.items.length} items`}: the next page failed (${describeCause(pageError)}).`,
+      4,
+      report.dryRun
+        ? "Promote again: the dry run starts over and writes nothing."
+        : "Promote again; items already written answer `unchanged`.",
+    );
+    this.name = "PromoteInterruptedError";
+  }
+}
+
 /** A dry-run page whose answer isn't a dry run, or whose item's write wasn't one. */
 function assertDryRun(page: components.CatalogPromoteResponseDto): void {
   if (page.dryRun !== true) throw new PromoteDryRunIgnoredError("dry_run", page.dryRun);
@@ -83,17 +109,27 @@ export async function runPromote(
   let runId = "";
   let cursor: string | null = null;
   do {
-    const page: components.CatalogPromoteResponseDto = await live.catalog.promote(
-      {
-        ...(dryRun ? { dryRun: true } : {}),
-        catalogPromoteRequestDto: {
-          ...(request.select !== undefined ? { select: request.select } : {}),
-          ...(request.force ? { force: true } : {}),
-          ...(cursor !== null ? { cursor } : {}),
+    let page: components.CatalogPromoteResponseDto;
+    try {
+      page = await live.catalog.promote(
+        {
+          ...(dryRun ? { dryRun: true } : {}),
+          catalogPromoteRequestDto: {
+            ...(request.select !== undefined ? { select: request.select } : {}),
+            ...(request.force ? { force: true } : {}),
+            ...(cursor !== null ? { cursor } : {}),
+          },
         },
-      },
-      { timeoutMs: options.timeoutMs, retries: { strategy: "none" } },
-    );
+        { timeoutMs: options.timeoutMs, retries: { strategy: "none" } },
+      );
+    } catch (error) {
+      // The first page failed: there is no run yet, so the error is the whole story.
+      if (cursor === null) throw error;
+      throw new PromoteInterruptedError(
+        { runId, dryRun, summary, items, validation, cursor },
+        error,
+      );
+    }
     if (dryRun) assertDryRun(page);
     runId = page.runId;
     items.push(...page.items);

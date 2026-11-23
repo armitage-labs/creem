@@ -1000,3 +1000,46 @@ describe("creem catalog promote: its per-page timeout", () => {
     expect(help.stdout).toMatch(/90 s per page/);
   });
 });
+
+describe("creem catalog promote: a run that stops mid-way", () => {
+  const interrupted = () => {
+    const fake = fakeCatalog(pairedStore(), { pageSize: 1 });
+    // The real run's second page fails; its first page already wrote.
+    fake.fail(
+      (c) => c.path === "/v1/catalog/promote" && !c.dryRun && c.body?.cursor !== undefined,
+      502,
+      {
+        code: "bad_gateway",
+        message: "Upstream timed out",
+      },
+    );
+    return fake;
+  };
+
+  it("keeps the run_id and the pages it got, says to promote again, and exits 4 (--json)", async () => {
+    const fake = interrupted();
+    const result = await cli(fake).run(["catalog", "promote", "--yes", "--json"]);
+    expect(result.code).toBe(4);
+    const output = json(result.stdout);
+    expect(output.run).toMatchObject({
+      runId: "cprun_102",
+      dryRun: false,
+      cursor: "cur_cprun_102_1",
+      summary: expect.objectContaining({ unchanged: 1 }),
+    });
+    expect(output.run.items.map((i: Json) => i.testId)).toEqual(["mtr_t1"]);
+    const error = json(result.stderr).error;
+    expect(error.message).toContain("cprun_102");
+    expect(error.message).toContain("Upstream timed out");
+    expect(error.suggestion).toMatch(/promote again; items already written answer `unchanged`/i);
+  });
+
+  it("prints the partial report in the terminal", async () => {
+    const fake = interrupted();
+    const result = await cli(fake).run(["catalog", "promote", "--yes"]);
+    expect(result.code).toBe(4);
+    expect(result.stdout).toContain("Promote run (run cprun_102), interrupted");
+    expect(result.stdout).toMatch(/meter\s+mtr_t1 → mtr_l1\s+unchanged/);
+    expect(result.stderr).toMatch(/promote again/i);
+  });
+});
