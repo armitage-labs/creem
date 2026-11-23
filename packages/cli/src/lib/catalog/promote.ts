@@ -1,6 +1,7 @@
 import type { Creem } from "creem";
 import type * as components from "creem/models/components";
 import { CliError } from "../errors";
+import { isRecord } from "../operation";
 import { describeCause } from "./pairing";
 
 /**
@@ -66,23 +67,39 @@ export interface InterruptedPromoteReport extends PromoteReport {
   cursor: string;
 }
 
+const statusOf = (error: unknown): number | null =>
+  isRecord(error) && typeof error.statusCode === "number" ? error.statusCode : null;
+
 /**
- * A page after the first failed (a timeout, a 5xx): the run already has a
- * `run_id` and results, which the command prints before it stops (exit 4).
+ * A page after the first failed: the run already has a `run_id` and results,
+ * which the command prints before it stops. A timeout, a 5xx or a dropped
+ * connection exits 4; a 401 or 403 keeps exit 3, and a 429 its `Retry-After`
+ * (the error carries the page's status and headers).
  */
 export class PromoteInterruptedError extends CliError {
+  readonly statusCode: number | undefined;
+  readonly headers: Headers | undefined;
   constructor(
     readonly report: InterruptedPromoteReport,
     readonly pageError: unknown,
   ) {
+    const status = statusOf(pageError);
+    const again = report.dryRun
+      ? "promote again: the dry run starts over and writes nothing."
+      : "promote again; items already written answer `unchanged`.";
     super(
       `${report.dryRun ? "The promote dry run" : "The promote run"} ${report.runId} stopped after ${report.items.length === 1 ? "1 item" : `${report.items.length} items`}: the next page failed (${describeCause(pageError)}).`,
-      4,
-      report.dryRun
-        ? "Promote again: the dry run starts over and writes nothing."
-        : "Promote again; items already written answer `unchanged`.",
+      status === 401 || status === 403 ? 3 : 4,
+      status === 401 || status === 403
+        ? `Check the live key (CREEM_LIVE_API_KEY) and its scopes, then ${again}`
+        : status === 429
+          ? `Wait for Retry-After, then ${again}`
+          : `${again[0].toUpperCase()}${again.slice(1)}`,
     );
     this.name = "PromoteInterruptedError";
+    this.statusCode = status ?? undefined;
+    const headers = isRecord(pageError) ? pageError.headers : undefined;
+    this.headers = headers instanceof Headers ? headers : undefined;
   }
 }
 

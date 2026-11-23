@@ -1035,6 +1035,43 @@ describe("creem catalog promote: a run that stops mid-way", () => {
     expect(error.suggestion).toMatch(/promote again; items already written answer `unchanged`/i);
   });
 
+  it("keeps exit 3 for a 401 on a later page, with the partial report", async () => {
+    const fake = fakeCatalog(pairedStore(), { pageSize: 1 });
+    fake.fail(
+      (c) => c.path === "/v1/catalog/promote" && !c.dryRun && c.body?.cursor !== undefined,
+      401,
+      {
+        code: "unauthorized",
+        message: "The API key was revoked.",
+      },
+    );
+    const result = await cli(fake).run(["catalog", "promote", "--yes", "--json"]);
+    expect(result.code).toBe(3);
+    expect(json(result.stdout).run).toMatchObject({
+      runId: "cprun_102",
+      cursor: "cur_cprun_102_1",
+    });
+    const error = json(result.stderr).error;
+    expect(error).toMatchObject({ type: "auth", status: 401 });
+    expect(error.message).toContain("cprun_102");
+    expect(error.suggestion).toMatch(/promote again; items already written answer `unchanged`/);
+  });
+
+  it("keeps a 429's status and Retry-After on a later page, with the partial report", async () => {
+    const fake = fakeCatalog(pairedStore(), { pageSize: 1 });
+    fake.fail(
+      (c) => c.path === "/v1/catalog/promote" && !c.dryRun && c.body?.cursor !== undefined,
+      429,
+      { code: "rate_limited", message: "Too many requests." },
+      { headers: { "retry-after": "30" } },
+    );
+    const result = await cli(fake).run(["catalog", "promote", "--yes", "--json"]);
+    expect(result.code).toBe(4);
+    expect(json(result.stdout).run.runId).toBe("cprun_102");
+    expect(json(result.stderr).error).toMatchObject({ type: "api", status: 429, retryAfter: "30" });
+    expect(json(result.stderr).error.suggestion).toMatch(/Retry-After/);
+  });
+
   it("prints the partial report in the terminal", async () => {
     const fake = interrupted();
     const result = await cli(fake).run(["catalog", "promote", "--yes"]);
