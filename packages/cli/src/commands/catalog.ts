@@ -450,6 +450,22 @@ async function decide(session: Session, preview: PromoteReport): Promise<boolean
 
 const WRITTEN_RESULTS = ["created", "updated", "unchanged"];
 
+const isRefused = (item: PromoteItem) => item.result === "conflict" || item.result === "failed";
+
+/**
+ * A forced run writes past refused items, so one refused only in the run (live
+ * changed after the preview) would pass unnoticed among those the merchant
+ * already saw: name them.
+ */
+function newlyRefusedLine(preview: PromoteReport, run: PromoteReport): string | null {
+  const before = new Set(preview.items.filter(isRefused).map((i) => `${i.kind}:${i.testId}`));
+  const fresh = run.items.filter((i) => isRefused(i) && !before.has(`${i.kind}:${i.testId}`));
+  if (!fresh.length) return null;
+  return `Refused in the run, not in the preview: ${fresh
+    .map((i) => `${i.kind} ${i.testId} (${i.error?.code ?? i.result})`)
+    .join(", ")}`;
+}
+
 /**
  * Promote's wait per page when --timeout isn't given. A page takes up to 25 s
  * of work by default and up to 45 s, its last step runs to its end, and a dry
@@ -541,7 +557,7 @@ async function promoteCommand(command: Command, context: CliContext): Promise<vo
       .filter(([, n]) => n > 0)
       .map(([result, n]) => `${n} ${result}`)
       .join(", ");
-    const refused = preview.items.filter((i) => i.result === "conflict" || i.result === "failed");
+    const refused = preview.items.filter(isRefused);
     const question = refused.length
       ? `${plural(refused.length, "item")} ${refused.length === 1 ? "is" : "are"} refused (conflict or failed) and ${refused.length === 1 ? "stays" : "stay"} out; promote the other ${writable.length} to LIVE (${counts})?`
       : `Promote to LIVE: ${counts}?`;
@@ -564,6 +580,8 @@ async function promoteCommand(command: Command, context: CliContext): Promise<vo
   }
   const run = await promote({ ...request, force }, false, preview);
   print(run);
+  const fresh = force ? newlyRefusedLine(preview, run) : null;
+  if (fresh && !machine) context.stdout(`${fresh}\n`);
   output(preview, run);
   finish(run);
 }

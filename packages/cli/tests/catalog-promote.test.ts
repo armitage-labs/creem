@@ -1254,3 +1254,25 @@ describe("creem catalog promote, interactive: nothing to write", () => {
     expect(fake.realRuns()).toEqual([]);
   });
 });
+
+describe("creem catalog promote: a forced run", () => {
+  it("names the items the run refused that the preview hadn't", async () => {
+    const fake = fakeCatalog(pairedStore());
+    fake.refuse("mtr_t1", 409, "meter_in_use");
+    const h = cli(fake, {
+      isTTY: true,
+      confirm: async () => {
+        // Between the preview and the run, live changes under prod_t1.
+        fake.refuse("prod_t1", 409, "external_id_taken", "Taken since the preview.");
+        return true;
+      },
+    });
+    const result = await h.run(["catalog", "promote"]);
+    expect(fake.realRuns()[0].body).toEqual({ force: true });
+    expect(result.stdout).toContain(
+      "Refused in the run, not in the preview: product prod_t1 (external_id_taken)",
+    );
+    expect(result.stdout).not.toMatch(/not in the preview: .*mtr_t1/);
+    expect(result.code).toBe(4);
+  });
+});
