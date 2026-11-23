@@ -374,6 +374,14 @@ async function decide(session: Session, preview: PromoteReport): Promise<boolean
 
 const WRITTEN_RESULTS = ["created", "updated", "unchanged"];
 
+/**
+ * Promote's wait per page when --timeout isn't given. A page takes up to 25 s
+ * of work by default and up to 45 s, its last step runs to its end, and a dry
+ * run's batch transaction can take 15 s more: the 30 s of other commands is
+ * shorter than one page.
+ */
+export const PROMOTE_TIMEOUT_MS = 90_000;
+
 async function promoteCommand(command: Command, context: CliContext): Promise<void> {
   const opts = command.optsWithGlobals();
   const format = outputFormat(command);
@@ -393,8 +401,8 @@ async function promoteCommand(command: Command, context: CliContext): Promise<vo
       2,
       "Preview it with --dry-run, run it in a terminal, or confirm the real run with --yes.",
     );
-  const timeoutMs: number | undefined = opts.timeout;
-  const live = await context.clientFor("live", { timeout: timeoutMs });
+  const timeoutMs: number = opts.timeout ?? PROMOTE_TIMEOUT_MS;
+  const live = await context.clientFor("live", { timeout: opts.timeout });
   const print = (report: PromoteReport) => {
     if (!machine) context.stdout(reportLines(report).join("\n") + "\n");
   };
@@ -603,7 +611,7 @@ export function extendCatalogCommand(root: Command, context: CliContext): void {
       )
       .addHelpText(
         "after",
-        "\nWithout --yes it runs the dry run, asks for each item's key and each possible rename, then asks before the real run.\n--yes confirms the real run, never a key. Exit 4 when an item ends failed, conflict, blocked or needs_key.\nUses the store's live key (CREEM_LIVE_API_KEY, or the current key when it is live); pairing writes also need its test key (CREEM_TEST_API_KEY).",
+        "\nWithout --yes it runs the dry run, asks for each item's key and each possible rename, then asks before the real run.\n--yes confirms the real run, never a key. Exit 4 when an item ends failed, conflict, blocked or needs_key.\nUses the store's live key (CREEM_LIVE_API_KEY, or the current key when it is live); pairing writes also need its test key (CREEM_TEST_API_KEY).\n--timeout defaults to 90 s per page here, not 30 s: a promote page can take up to 45 s of work on Creem's side.",
       )
       .action(async (...args: unknown[]) => promoteCommand(args.at(-1) as Command, context));
     const force = promote.options.find((option) => option.long === "--force");

@@ -985,3 +985,18 @@ describe("creem catalog: a test-only feature key needs no live product", () => {
     expect(fake.stores.live.products.find((p) => p.external_id === "studio")).toBeDefined();
   });
 });
+
+describe("creem catalog promote: its per-page timeout", () => {
+  it("waits 90 s per promote page unless --timeout is given, and says so in the help", async () => {
+    const fake = fakeCatalog(pairedStore());
+    const promote = vi.spyOn(fake.live.catalog, "promote");
+    const { run } = cli(fake);
+    await run(["catalog", "promote", "--dry-run", "--json"]);
+    expect(promote.mock.calls[0][1]).toMatchObject({ timeoutMs: 90000 });
+    promote.mockClear();
+    await run(["catalog", "promote", "--dry-run", "--json", "--timeout", "5000"]);
+    expect(promote.mock.calls[0][1]).toMatchObject({ timeoutMs: 5000 });
+    const help = await run(["catalog", "promote", "--help"]);
+    expect(help.stdout).toMatch(/90 s per page/);
+  });
+});
