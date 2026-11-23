@@ -313,25 +313,28 @@ export function linkFeature(clients: Clients, link: FeatureLink, key: string): P
 }
 
 /**
- * Q102: copies the live product's `metadata` keys that the test product lacks
- * into the test product (promote has no write path into test). Answers the
- * keys it copied.
+ * Q102: copies the confirmed live-only `metadata` keys (the conflict's
+ * `details.keys` the merchant said yes to) into the test product, promote
+ * having no write path into test. A key live gained since, or one test has
+ * by now, is left alone. Answers the keys it copied.
  */
 export async function copyLiveMetadata(
   clients: Clients,
   testId: string,
   liveId: string,
+  keys: readonly string[],
 ): Promise<string[]> {
   const [test, live] = await Promise.all([
     clients.test.products.get({ id: testId }),
     clients.live.products.get({ id: liveId }),
   ]);
   const testMetadata: Record<string, unknown> = { ...(test.metadata ?? {}) };
-  const copied = Object.keys(live.metadata ?? {}).filter(
-    (key) => !Object.hasOwn(testMetadata, key),
+  const liveMetadata: Record<string, unknown> = live.metadata ?? {};
+  const copied = keys.filter(
+    (key) => Object.hasOwn(liveMetadata, key) && !Object.hasOwn(testMetadata, key),
   );
   if (!copied.length) return [];
-  for (const key of copied) testMetadata[key] = (live.metadata ?? {})[key];
+  for (const key of copied) testMetadata[key] = liveMetadata[key];
   const write = (dryRun: boolean) =>
     clients.test.products.update({
       id: testId,

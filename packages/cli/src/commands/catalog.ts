@@ -340,7 +340,8 @@ async function offerMetadataCopy(
     ))
   )
     return false;
-  const copied = await copyLiveMetadata(await clientsOf(session), item.testId, item.liveId);
+  const copied = await copyLiveMetadata(await clientsOf(session), item.testId, item.liveId, keys);
+  if (!copied.length) return false;
   context.stdout(`Copied ${copied.join(", ")} into TEST ${item.testId}\n`);
   return true;
 }

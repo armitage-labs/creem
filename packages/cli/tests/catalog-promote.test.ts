@@ -1139,3 +1139,30 @@ describe("creem catalog promote, interactive: refused items", () => {
     expect(fake.realRuns()[0].body).toEqual({ force: true });
   });
 });
+
+describe("creem catalog promote, interactive: the metadata copy (Q102)", () => {
+  it("copies only the keys the merchant confirmed, never a key live gained since the dry run", async () => {
+    const initial = pairedStore();
+    initial.test.products![0].metadata = { plan: "pro" };
+    initial.live.products![0].metadata = { plan: "pro", stripe_lookup_key: "pro_m" };
+    const fake = fakeCatalog(initial);
+    const questions: string[] = [];
+    const h = cli(fake, {
+      isTTY: true,
+      confirm: async (message: string) => {
+        questions.push(message);
+        if (questions.length === 1) {
+          // Live gains a key after the dry run, before the copy.
+          fake.stores.live.products[0].metadata.region = "eu";
+          return true;
+        }
+        return false;
+      },
+    });
+    await h.run(["catalog", "promote"]);
+    expect(questions[0]).toContain("stripe_lookup_key of LIVE prod_l1");
+    expect(fake.writes().map((c) => c.body?.metadata)).toEqual([
+      { plan: "pro", stripe_lookup_key: "pro_m" },
+    ]);
+  });
+});
