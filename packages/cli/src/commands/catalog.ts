@@ -3,8 +3,8 @@ import chalk from "chalk";
 import type { Creem } from "creem";
 import * as components from "creem/models/components";
 import type { CliContext, Choice } from "../lib/context";
-import { CliError } from "../lib/errors";
-import { decode } from "../lib/operation";
+import { CliError, describeError } from "../lib/errors";
+import { decode, isRecord } from "../lib/operation";
 import { readData } from "../lib/input";
 import {
   isPossibleRename,
@@ -235,6 +235,25 @@ type Pick =
   | { action: "skip" }
   | { action: "create" };
 
+/**
+ * Runs one pick's writes. A pick that fails is reported and the session goes
+ * on: an API error (a 409 from the pairing check) wrote nothing, so the next
+ * item follows (false); a half-done pair wrote live, so the dry run runs again
+ * first (true). Anything else, a dry run answered as a write among them, stops
+ * the command.
+ */
+async function attempt(session: Session, run: () => Promise<boolean>): Promise<boolean> {
+  try {
+    return await run();
+  } catch (error) {
+    const halfDone = error instanceof LinkPartialError;
+    if (!halfDone && !(isRecord(error) && typeof error.statusCode === "number")) throw error;
+    const described = describeError(error, [...session.context.secrets]).result.error;
+    session.context.stderr(`Not paired: ${described.message}\nFix: ${described.suggestion}\n`);
+    return halfDone;
+  }
+}
+
 /** A keyless item: pick a live candidate or none, confirm the key, and write it on both sides. */
 async function pickItemKey(session: Session, item: PromoteItem): Promise<boolean> {
   const { context } = session;
@@ -312,25 +331,36 @@ async function pickFeatureKeys(session: Session, item: PromoteItem): Promise<boo
       choices,
     );
     if (pick.action !== "pair" && pick.action !== "test-only") continue;
-    const clients = await clientsOf(session);
-    const link = await readFeatureLink(clients, {
-      testProductId: item.testId,
-      testFeatureId: feature.testFeatureId,
-      liveFeatureId: pick.action === "pair" ? pick.liveId : undefined,
-    });
-    const target = link.liveFeature
-      ? `${feature.testFeatureId} and ${link.liveFeature.id}`
-      : feature.testFeatureId;
-    const key = await context.ask(
-      `Key for ${target}`,
-      proposeFeatureKey(link.testFeature, link.liveFeature),
-    );
-    const question = featureQuestion(link, key);
-    if (!(await context.confirm(question))) continue;
-    printLink(context, await linkFeature(clients, link, key));
-    return true;
+    const wrote = await attempt(session, () => pickFeatureKey(session, item, feature, pick));
+    if (wrote) return true;
   }
   return false;
+}
+
+/** One feature's pick: read both sides, confirm the key, write it. True when it wrote. */
+async function pickFeatureKey(
+  session: Session,
+  item: PromoteItem,
+  feature: NonNullable<PromoteItem["featureCandidates"]>[number],
+  pick: Pick,
+): Promise<boolean> {
+  const { context } = session;
+  const clients = await clientsOf(session);
+  const link = await readFeatureLink(clients, {
+    testProductId: item.testId,
+    testFeatureId: feature.testFeatureId,
+    liveFeatureId: pick.action === "pair" ? pick.liveId : undefined,
+  });
+  const target = link.liveFeature
+    ? `${feature.testFeatureId} and ${link.liveFeature.id}`
+    : feature.testFeatureId;
+  const key = await context.ask(
+    `Key for ${target}`,
+    proposeFeatureKey(link.testFeature, link.liveFeature),
+  );
+  if (!(await context.confirm(featureQuestion(link, key)))) return false;
+  printLink(context, await linkFeature(clients, link, key));
+  return true;
 }
 
 /** A keyed item without a live match that has same-name live items: create it, or re-pair. */
@@ -397,7 +427,7 @@ async function decide(session: Session, preview: PromoteReport): Promise<boolean
   const ask = async (decision: string, run: () => Promise<boolean>) => {
     if (session.decided.has(decision)) return false;
     session.decided.add(decision);
-    return run();
+    return attempt(session, run);
   };
   for (const item of preview.items) {
     const keys = liveOnlyMetadataKeys(item);
@@ -495,8 +525,13 @@ async function promoteCommand(command: Command, context: CliContext): Promise<vo
       if (!(await decide(session, preview))) break;
     }
     const writable = preview.items.filter((i) => WRITTEN_RESULTS.includes(i.result));
-    if (!writable.length) {
-      context.stdout("Nothing to promote.\n");
+    // A real run would write nothing: say so instead of asking for it.
+    if (!writable.some((i) => i.result !== "unchanged")) {
+      context.stdout(
+        preview.items.length && preview.items.every((i) => i.result === "unchanged")
+          ? "Every item is unchanged: nothing to promote.\n"
+          : "Nothing to promote.\n",
+      );
       finish(preview);
       return;
     }

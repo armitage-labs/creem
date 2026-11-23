@@ -1193,3 +1193,64 @@ describe("creem catalog: the pairing question names each side's current key", ()
     );
   });
 });
+
+describe("creem catalog promote, interactive: a pick that fails", () => {
+  /** Two keyless test products: Team (live has a keyless Team) and Solo (no live match). */
+  const twoKeyless = () => {
+    const initial = store();
+    initial.test.products!.push(sideProduct("test", "prod_t3", { name: "Solo" }));
+    return initial;
+  };
+
+  it("reports a 409 on the pairing check and goes on with the next item", async () => {
+    const fake = fakeCatalog(twoKeyless());
+    fake.fail((c) => c.side === "live" && c.method === "PATCH" && c.dryRun === true, 409, {
+      code: "external_id_taken",
+      message: "The external_id team is taken.",
+    });
+    const h = cli(fake, {
+      isTTY: true,
+      choices: [{ action: "pair", liveId: "prod_l2" }, { action: "skip" }],
+      answers: ["team"],
+      confirms: [true],
+    });
+    const result = await h.run(["catalog", "promote"]);
+    expect(result.stderr).toContain("Not paired: The external_id team is taken.");
+    expect(h.asked.filter((l) => l.startsWith("choose:"))[1]).toMatch(/prod_t3 "Solo" needs a key/);
+    expect(fake.writes()).toEqual([]);
+    expect(result.code).toBe(4);
+  });
+
+  it("reports a half-done pair, runs the dry run again, and goes on with the next item", async () => {
+    const fake = fakeCatalog(twoKeyless());
+    fake.fail((c) => c.side === "test" && c.method === "PATCH" && !c.dryRun, 500, {
+      code: "internal_error",
+      message: "Boom",
+    });
+    const h = cli(fake, {
+      isTTY: true,
+      choices: [{ action: "pair", liveId: "prod_l2" }, { action: "skip" }],
+      answers: ["team"],
+      confirms: [true],
+    });
+    const result = await h.run(["catalog", "promote"]);
+    expect(result.stderr).toContain("Live written: LIVE prod_l2 has the key team");
+    expect(h.asked.filter((l) => l.startsWith("choose:"))).toHaveLength(2);
+    expect(fake.promotes().filter((c) => c.dryRun)).toHaveLength(2);
+    expect(result.code).toBe(4);
+  });
+});
+
+describe("creem catalog promote, interactive: nothing to write", () => {
+  it("says every item is unchanged and skips the real run", async () => {
+    const initial = pairedStore();
+    initial.test.products![0] = sideProduct("test", "prod_t1", { name: "Pro", external_id: "pro" });
+    const fake = fakeCatalog(initial);
+    const h = cli(fake, { isTTY: true });
+    const result = await h.run(["catalog", "promote"]);
+    expect(result.code, result.stdout + result.stderr).toBe(0);
+    expect(result.stdout).toContain("Every item is unchanged: nothing to promote.");
+    expect(h.confirm).not.toHaveBeenCalled();
+    expect(fake.realRuns()).toEqual([]);
+  });
+});
