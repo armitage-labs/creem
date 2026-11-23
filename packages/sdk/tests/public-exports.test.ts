@@ -80,6 +80,70 @@ describe("public exports (ENG-2972)", () => {
     ]);
   });
 
+  it("finds a renamed method of a sub-SDK reachable from the client", () => {
+    const renamed = listEdited({
+      "sdk/products.ts": (text) => text.replace("async get(", "async getRenamed("),
+    });
+    expect(changes(baseline, renamed)).toEqual([
+      expect.stringMatching(/sdk\/products"\)\.Products\.get: .* -> removed$/),
+    ]);
+  });
+
+  it("finds a sub-SDK method whose return type changed", () => {
+    const retyped = listEdited({
+      "sdk/products.ts": (text) =>
+        text.replace(
+          "options?: RequestOptions,\n  ): Promise<components.ProductEntity> {\n    return unwrapAsync(productsGet(",
+          "options?: RequestOptions,\n  ): Promise<unknown> {\n    return unwrapAsync(productsGet(",
+        ),
+    });
+    expect(changes(baseline, retyped)).toEqual([
+      expect.stringMatching(/Products\.get: .*Promise<unknown>$/),
+    ]);
+  });
+
+  it("lets a method return a type that keeps every field of the old one, and finds one that drops a field", () => {
+    // Discounts.create returned DiscountEntity in 2.0.0; it now returns
+    // DiscountWriteResponseEntity: the same fields (its enums renamed, same
+    // members) plus writeResult.
+    expect(changes(baseline, list(root)).filter((c) => c.includes("Discounts.create"))).toEqual([]);
+    const dropped = listEdited({
+      "models/components/discountwriteresponseentity.ts": (text) =>
+        text.replace(/^ {2}code: string;$/m, ""),
+    });
+    expect(changes(baseline, dropped)).toEqual(
+      expect.arrayContaining([expect.stringMatching(/Discounts\.create: /)]),
+    );
+  });
+
+  it("finds a sub-SDK method whose parameters changed", () => {
+    const retyped = listEdited({
+      "sdk/productgroups.ts": (text) =>
+        text.replace(
+          /async get\(\n {4}request: operations\.\w+,/,
+          "async get(\n    request: string,",
+        ),
+    });
+    expect(changes(baseline, retyped)).toEqual([
+      expect.stringMatching(/ProductGroups\.get: \(request: import.* -> \(request: string/),
+    ]);
+  });
+
+  it("finds a callable type whose return type changed", () => {
+    const retyped = listEdited({
+      "lib/http.ts": (text) =>
+        text.replace(
+          "  init?: RequestInit,\n) => Promise<Response>;",
+          "  init?: RequestInit,\n) => Promise<unknown>;",
+        ),
+    });
+    expect(changes(baseline, retyped)).toEqual(
+      expect.arrayContaining([
+        expect.stringMatching(/index\.ts Fetcher: call signature .* removed/),
+      ]),
+    );
+  });
+
   it("finds a response property that became optional and a lost enum member", () => {
     const edited = listEdited({
       "models/components/productgroupentity.ts": (text) =>

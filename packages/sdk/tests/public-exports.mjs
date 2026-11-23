@@ -5,7 +5,14 @@
 // - `properties`: each property of an exported interface, object type or class
 //   instance, with its type as the checker prints it (`?` marks an optional one);
 // - `union`: the members of an exported union type, `text` any other type;
+// - `signatures`: each call signature of a callable type (`Fetcher`), and
+//   `construct` each constructor of a class, with parameters and return type;
 // - `value`: the type of an exported function or constant.
+//
+// `reachable` lists, the same way, the SDK's classes and interfaces that no
+// entry point exports but an exported name's property has as its type, and
+// those theirs have, and so on: the sub-SDKs (`Creem.products` is a
+// `Products`), each method with its signature.
 //
 // Types print by name (`status?: Status | undefined`), and each name is listed
 // on its own, so a retyped property and a changed type both show. Listed by
@@ -70,9 +77,8 @@ export function listPublicExports(root, edit) {
   const checker = program.getTypeChecker();
   // Paths print inside `import("…")`; the same file reads the same in any copy.
   const sources = path.join(root, "src");
-  const text = (type) =>
-    checker
-      .typeToString(type, undefined, FORMAT)
+  const clean = (printed) =>
+    printed
       .split(sources)
       .join("<sdk>")
       .replaceAll(', { with: { "resolution-mode": "import" } }', "")
@@ -80,26 +86,54 @@ export function listPublicExports(root, edit) {
         /import\("[^"]*\/node_modules\/(?:\.pnpm\/[^/]+\/node_modules\/)?([^"]+)"\)/g,
         'import("$1")',
       );
+  const text = (type) => clean(checker.typeToString(type, undefined, FORMAT));
+  const signature = (sig) => clean(checker.signatureToString(sig, undefined, FORMAT));
+  const print = { text, signature };
   const result = {};
+  const exported = new Set();
+  /** Property types to walk for `reachable`. */
+  const queue = [];
   for (const [index, file] of files.entries()) {
     const module = checker.getSymbolAtLocation(program.getSourceFile(file));
     const names = {};
     for (const symbol of checker.getExportsOfModule(module)) {
       const target =
         symbol.flags & ts.SymbolFlags.Alias ? checker.getAliasedSymbol(symbol) : symbol;
+      exported.add(target);
       names[symbol.getName()] =
         NAME_ONLY.has(symbol.getName()) || isInternal(target)
           ? null
-          : declarationOf(checker, target, text);
+          : declarationOf(checker, target, print, queue);
     }
     result[ENTRY_POINTS[index]] = Object.fromEntries(
       Object.entries(names).sort(([a], [b]) => a.localeCompare(b)),
     );
   }
+  // The SDK's own classes and interfaces the exported names lead to.
+  const reachable = {};
+  while (queue.length) {
+    const type = queue.shift();
+    for (const member of type.isUnion() ? type.types : [type]) {
+      const symbol = member.getSymbol();
+      if (
+        !symbol ||
+        !(symbol.flags & (ts.SymbolFlags.Class | ts.SymbolFlags.Interface)) ||
+        exported.has(symbol) ||
+        isInternal(symbol) ||
+        !(symbol.declarations ?? []).some((d) => d.getSourceFile().fileName.startsWith(sources))
+      )
+        continue;
+      const name = text(member);
+      if (name in reachable) continue;
+      reachable[name] = null;
+      reachable[name] = declarationOf(checker, symbol, print, queue);
+    }
+  }
+  result.reachable = sorted(reachable);
   return result;
 }
 
-function declarationOf(checker, symbol, text) {
+function declarationOf(checker, symbol, { text, signature }, queue) {
   const declaration = {};
   const members = enumMembers(symbol);
   if (members) declaration.enum = members;
@@ -111,10 +145,21 @@ function declarationOf(checker, symbol, text) {
       for (const property of checker.getPropertiesOfType(type)) {
         if (!isPublic(property)) continue;
         const optional = property.flags & ts.SymbolFlags.Optional ? "?" : "";
-        properties[property.getName() + optional] = text(checker.getTypeOfSymbol(property));
+        const propertyType = checker.getTypeOfSymbol(property);
+        properties[property.getName() + optional] = text(propertyType);
+        queue.push(propertyType);
       }
       declaration.properties = sorted(properties);
+      const calls = checker.getSignaturesOfType(type, ts.SignatureKind.Call);
+      if (calls.length) declaration.signatures = calls.map(signature);
     } else declaration.text = text(type);
+  }
+  if (symbol.flags & ts.SymbolFlags.Class) {
+    const constructors = checker.getSignaturesOfType(
+      checker.getTypeOfSymbol(symbol),
+      ts.SignatureKind.Construct,
+    );
+    if (constructors.length) declaration.construct = constructors.map(signature);
   }
   if (
     !members &&
@@ -187,21 +232,90 @@ function unionOf(type) {
  */
 const isInput = (name) => /Request(Entity|Dto)?$/.test(name);
 
+/** `(params) => result` split at its top-level arrow, else null. */
+function arrowOf(type) {
+  if (!type.startsWith("(")) return null;
+  let depth = 0;
+  for (let i = 0; i < type.length; i++) {
+    const c = type[i];
+    if ("<({[".includes(c)) depth++;
+    else if (">)}]".includes(c) && type[i - 1] !== "=") depth--;
+    if (depth === 0)
+      return type.startsWith(" => ", i + 1)
+        ? { params: type.slice(0, i + 1), result: type.slice(i + 5) }
+        : null;
+  }
+  return null;
+}
+
+/** The exported name a printed `import("<sdk>/…").Name` refers to, else null. */
+const refName = (type) => /^import\("<sdk>\/[^"]+"\)\.(\w+)$/.exec(type)?.[1] ?? null;
+
+/**
+ * Whether a value of the printed type `after` (current) still is a `before`
+ * (baseline) to a caller that reads it: the same text; a union whose members
+ * each are one of `before`'s; `Promise<…>` of such; or an exported object type
+ * with each of `before`'s properties, of such a type (it may have more, and an
+ * optional one may become required). How a method's result may change.
+ */
+function covers(before, after, lookup, seen = new Set()) {
+  if (before === after) return true;
+  const pair = `${before}\u0000${after}`;
+  if (seen.has(pair)) return true;
+  seen.add(pair);
+  const promise = /^Promise<(.*)>$/s;
+  if (promise.test(before) && promise.test(after))
+    return covers(before.replace(promise, "$1"), after.replace(promise, "$1"), lookup, seen);
+  const afterMembers = unionOf(after);
+  const beforeMembers = unionOf(before);
+  if (afterMembers.length > 1 || beforeMembers.length > 1)
+    return afterMembers.every((a) => beforeMembers.some((b) => covers(b, a, lookup, seen)));
+  const was = lookup.before(refName(before));
+  const now = lookup.after(refName(after));
+  if (!was || !now) return false;
+  if (was.union || now.union)
+    return Boolean(
+      was.union &&
+      now.union &&
+      now.union.every((a) => was.union.some((b) => covers(b, a, lookup, seen))),
+    );
+  if (!was.properties || !now.properties || was.text || now.text) return false;
+  return Object.entries(was.properties).every(([property, type]) => {
+    const bare = property.replace(/\?$/, "");
+    const found =
+      now.properties[property] ?? (property.endsWith("?") ? now.properties[bare] : undefined);
+    return found !== undefined && covers(type, found, lookup, seen);
+  });
+}
+
+/** Finds an exported name's declaration in a listing, by name. */
+function finder(listing) {
+  const all = new Map();
+  for (const [entry, names] of Object.entries(listing))
+    if (entry !== "reachable")
+      for (const [name, declaration] of Object.entries(names))
+        if (!all.has(name)) all.set(name, declaration);
+  return (name) => (name ? all.get(name) : undefined);
+}
+
 /**
  * What `current` takes away from or changes in `baseline`: a missing name, a
- * lost enum or union member, a property removed or retyped, a changed type or
- * value. Additions (names, members, properties) are allowed, and an input type
- * (`isInput`) may widen: a required property may become optional, and a
- * property's type may gain union members (`| null`).
+ * lost enum or union member, a property removed or retyped, a changed type,
+ * value or signature. Additions (names, members, properties) are allowed, and
+ * an input type (`isInput`) may widen: a required property may become optional,
+ * and a property's type may gain union members (`| null`). A method's
+ * parameters must stay the same; its result may change in a way that still
+ * gives the caller what it read before (`covers`).
  */
 export function breakingChanges(baseline, current) {
   const found = [];
+  const lookup = { before: finder(baseline), after: finder(current) };
   for (const [entry, names] of Object.entries(baseline)) {
     const now = current[entry] ?? {};
     for (const [name, before] of Object.entries(names)) {
       const where = `${entry} ${name}`;
       if (!(name in now)) {
-        found.push(`${where}: no longer exported`);
+        found.push(`${where}: no longer ${entry === "reachable" ? "reachable" : "exported"}`);
         continue;
       }
       const after = now[name] ?? {};
@@ -221,11 +335,21 @@ export function breakingChanges(baseline, current) {
           isInput(name) &&
           unionOf(type).every((member) => unionOf(now).includes(member));
         if (widened) continue;
+        const was = arrowOf(type);
+        const is = now === undefined ? null : arrowOf(now);
+        if (was && is && was.params === is.params && covers(was.result, is.result, lookup))
+          continue;
         const what =
           now ??
           (after.properties?.[optional ? bare : `${bare}?`] ? "optional changed" : "removed");
         found.push(`${where}.${property}: ${type} -> ${what}`);
       }
+      for (const kind of ["signatures", "construct"])
+        for (const sig of before[kind] ?? [])
+          if (!after[kind]?.includes(sig))
+            found.push(
+              `${where}: ${kind === "construct" ? "constructor" : "call signature"} ${sig} removed`,
+            );
       if (before.text !== undefined && after.text !== before.text)
         found.push(`${where}: ${before.text} -> ${after.text}`);
       if (before.value !== undefined && after.value !== before.value)

@@ -19,10 +19,16 @@
         "subscriptions": "import(\"<sdk>/sdk/subscriptions\").Subscriptions",
         "transactions": "import(\"<sdk>/sdk/transactions\").Transactions",
         "webhooks": "import(\"<sdk>/sdk/webhooks\").Webhooks"
-      }
+      },
+      "construct": [
+        "(options?: import(\"<sdk>/lib/config\").SDKOptions) => import(\"<sdk>/sdk/sdk\").Creem"
+      ]
     },
     "Fetcher": {
-      "properties": {}
+      "properties": {},
+      "signatures": [
+        "(input: RequestInfo | URL, init?: RequestInit | undefined) => Promise<Response>"
+      ]
     },
     "files": null,
     "HTTPClient": {
@@ -31,7 +37,10 @@
         "clone": "() => import(\"<sdk>/lib/http\").HTTPClient",
         "removeHook": "{ (hook: \"beforeRequest\", fn: import(\"<sdk>/lib/http\").BeforeRequestHook): import(\"<sdk>/lib/http\").HTTPClient; (hook: \"requestError\", fn: import(\"<sdk>/lib/http\").RequestErrorHook): import(\"<sdk>/lib/http\").HTTPClient; (hook: \"response\", fn: import(\"<sdk>/lib/http\").ResponseHook): import(\"<sdk>/lib/http\").HTTPClient; }",
         "request": "(request: Request) => Promise<Response>"
-      }
+      },
+      "construct": [
+        "(options?: import(\"<sdk>/lib/http\").HTTPClientOptions) => import(\"<sdk>/lib/http\").HTTPClient"
+      ]
     },
     "HTTPClientOptions": {
       "properties": {
@@ -7022,7 +7031,10 @@
         "rawResponse": "Response",
         "stack?": "string | undefined",
         "statusCode": "number"
-      }
+      },
+      "construct": [
+        "(message: string, httpMeta: { response: Response; request: Request; body: string; }) => import(\"<sdk>/models/errors/apierror\").APIError"
+      ]
     },
     "ConnectionError": {
       "properties": {
@@ -7030,7 +7042,10 @@
         "message": "string",
         "name": "\"ConnectionError\"",
         "stack?": "string | undefined"
-      }
+      },
+      "construct": [
+        "(message: string, opts?: { cause?: unknown; } | undefined) => import(\"<sdk>/models/errors/httpclienterrors\").ConnectionError"
+      ]
     },
     "CreemError": {
       "properties": {
@@ -7043,7 +7058,10 @@
         "rawResponse": "Response",
         "stack?": "string | undefined",
         "statusCode": "number"
-      }
+      },
+      "construct": [
+        "(message: string, httpMeta: { response: Response; request: Request; body: string; }) => import(\"<sdk>/models/errors/creemerror\").CreemError"
+      ]
     },
     "CustomerCreditsErrorResponseDto": {
       "properties": {
@@ -7058,7 +7076,10 @@
         "rawResponse": "Response",
         "stack?": "string | undefined",
         "statusCode": "number"
-      }
+      },
+      "construct": [
+        "(err: import(\"<sdk>/models/errors/customercreditserrorresponsedto\").CustomerCreditsErrorResponseDtoData, httpMeta: { response: Response; request: Request; body: string; }) => import(\"<sdk>/models/errors/customercreditserrorresponsedto\").CustomerCreditsErrorResponseDto"
+      ]
     },
     "CustomerCreditsErrorResponseDto$inboundSchema": null,
     "CustomerCreditsErrorResponseDto$Outbound": null,
@@ -7077,7 +7098,10 @@
         "message": "string",
         "name": "string",
         "stack?": "string | undefined"
-      }
+      },
+      "construct": [
+        "(message: string, opts?: { cause?: unknown; } | undefined) => import(\"<sdk>/models/errors/httpclienterrors\").HTTPClientError"
+      ]
     },
     "InvalidRequestError": {
       "properties": {
@@ -7085,7 +7109,10 @@
         "message": "string",
         "name": "string",
         "stack?": "string | undefined"
-      }
+      },
+      "construct": [
+        "(message: string, opts?: { cause?: unknown; } | undefined) => import(\"<sdk>/models/errors/httpclienterrors\").InvalidRequestError"
+      ]
     },
     "RequestAbortedError": {
       "properties": {
@@ -7093,7 +7120,10 @@
         "message": "string",
         "name": "\"RequestAbortedError\"",
         "stack?": "string | undefined"
-      }
+      },
+      "construct": [
+        "(message: string, opts?: { cause?: unknown; } | undefined) => import(\"<sdk>/models/errors/httpclienterrors\").RequestAbortedError"
+      ]
     },
     "RequestTimeoutError": {
       "properties": {
@@ -7101,7 +7131,10 @@
         "message": "string",
         "name": "\"RequestTimeoutError\"",
         "stack?": "string | undefined"
-      }
+      },
+      "construct": [
+        "(message: string, opts?: { cause?: unknown; } | undefined) => import(\"<sdk>/models/errors/httpclienterrors\").RequestTimeoutError"
+      ]
     },
     "ResponseValidationError": {
       "properties": {
@@ -7117,7 +7150,10 @@
         "rawValue": "unknown",
         "stack?": "string | undefined",
         "statusCode": "number"
-      }
+      },
+      "construct": [
+        "(message: string, extra: { response: Response; request: Request; body: string; cause: unknown; rawValue: unknown; rawMessage: unknown; }) => import(\"<sdk>/models/errors/responsevalidationerror\").ResponseValidationError"
+      ]
     },
     "SDKValidationError": {
       "properties": {
@@ -7128,7 +7164,10 @@
         "rawMessage": "unknown",
         "rawValue": "unknown",
         "stack?": "string | undefined"
-      }
+      },
+      "construct": [
+        "(message: string, cause: unknown, rawValue: unknown) => import(\"<sdk>/models/errors/sdkvalidationerror\").SDKValidationError"
+      ]
     },
     "TooManyRequestsErrorEntity": {
       "properties": {
@@ -7146,7 +7185,10 @@
         "statusCode": "number",
         "timestamp": "number",
         "traceId": "string"
-      }
+      },
+      "construct": [
+        "(err: import(\"<sdk>/models/errors/toomanyrequestserrorentity\").TooManyRequestsErrorEntityData, httpMeta: { response: Response; request: Request; body: string; }) => import(\"<sdk>/models/errors/toomanyrequestserrorentity\").TooManyRequestsErrorEntity"
+      ]
     },
     "TooManyRequestsErrorEntity$inboundSchema": null,
     "TooManyRequestsErrorEntity$Outbound": null,
@@ -7166,7 +7208,10 @@
         "message": "string",
         "name": "string",
         "stack?": "string | undefined"
-      }
+      },
+      "construct": [
+        "(message: string, opts?: { cause?: unknown; } | undefined) => import(\"<sdk>/models/errors/httpclienterrors\").UnexpectedClientError"
+      ]
     },
     "UsageMeteringErrorApiResponseDto": {
       "properties": {
@@ -7181,7 +7226,10 @@
         "rawResponse": "Response",
         "stack?": "string | undefined",
         "statusCode": "number"
-      }
+      },
+      "construct": [
+        "(err: import(\"<sdk>/models/errors/usagemeteringerrorapiresponsedto\").UsageMeteringErrorApiResponseDtoData, httpMeta: { response: Response; request: Request; body: string; }) => import(\"<sdk>/models/errors/usagemeteringerrorapiresponsedto\").UsageMeteringErrorApiResponseDto"
+      ]
     },
     "UsageMeteringErrorApiResponseDto$inboundSchema": null,
     "UsageMeteringErrorApiResponseDto$Outbound": null,
@@ -7190,6 +7238,219 @@
       "properties": {
         "error": "import(\"<sdk>/models/components/usagemeteringerrordetailapidto\").UsageMeteringErrorDetailApiDto"
       }
+    }
+  },
+  "reachable": {
+    "import(\"<sdk>/lib/logger\").Logger": {
+      "properties": {
+        "group": "(label?: string | undefined) => void",
+        "groupEnd": "() => void",
+        "log": "(message: any, ...args: any[]) => void"
+      }
+    },
+    "import(\"<sdk>/sdk/affiliates\").Affiliates": {
+      "properties": {
+        "createInvite": "(request: import(\"<sdk>/models/components/createaffiliateinviterequestentity\").CreateAffiliateInviteRequestEntity, options?: import(\"<sdk>/lib/sdks\").RequestOptions | undefined) => Promise<import(\"<sdk>/models/components/affiliateinviteentity\").AffiliateInviteEntity>",
+        "list": "(request: import(\"<sdk>/models/operations/listaffiliates\").ListAffiliatesRequest, options?: import(\"<sdk>/lib/sdks\").RequestOptions | undefined) => Promise<import(\"<sdk>/types/operations\").PageIterator<import(\"<sdk>/models/operations/listaffiliates\").ListAffiliatesResponse, { page: number; }>>",
+        "listCommissions": "(request: import(\"<sdk>/models/operations/listaffiliatecommissions\").ListAffiliateCommissionsRequest, options?: import(\"<sdk>/lib/sdks\").RequestOptions | undefined) => Promise<import(\"<sdk>/types/operations\").PageIterator<import(\"<sdk>/models/operations/listaffiliatecommissions\").ListAffiliateCommissionsResponse, { page: number; }>>",
+        "listInvites": "(request: import(\"<sdk>/models/operations/listaffiliateinvites\").ListAffiliateInvitesRequest, options?: import(\"<sdk>/lib/sdks\").RequestOptions | undefined) => Promise<import(\"<sdk>/types/operations\").PageIterator<import(\"<sdk>/models/operations/listaffiliateinvites\").ListAffiliateInvitesResponse, { page: number; }>>",
+        "retrieve": "(request: import(\"<sdk>/models/operations/retrieveaffiliate\").RetrieveAffiliateRequest, options?: import(\"<sdk>/lib/sdks\").RequestOptions | undefined) => Promise<import(\"<sdk>/models/components/affiliateentity\").AffiliateEntity>"
+      },
+      "construct": [
+        "(options?: import(\"<sdk>/lib/config\").SDKOptions) => import(\"<sdk>/sdk/affiliates\").Affiliates"
+      ]
+    },
+    "import(\"<sdk>/sdk/checkouts\").Checkouts": {
+      "properties": {
+        "create": "(request: import(\"<sdk>/models/components/createcheckoutrequest\").CreateCheckoutRequest, options?: import(\"<sdk>/lib/sdks\").RequestOptions | undefined) => Promise<import(\"<sdk>/models/components/checkoutentity\").CheckoutEntity>",
+        "retrieve": "(request: import(\"<sdk>/models/operations/retrievecheckout\").RetrieveCheckoutRequest, options?: import(\"<sdk>/lib/sdks\").RequestOptions | undefined) => Promise<import(\"<sdk>/models/components/checkoutentity\").CheckoutEntity>"
+      },
+      "construct": [
+        "(options?: import(\"<sdk>/lib/config\").SDKOptions) => import(\"<sdk>/sdk/checkouts\").Checkouts"
+      ]
+    },
+    "import(\"<sdk>/sdk/customercredits\").CustomerCredits": {
+      "properties": {
+        "closeAccount": "(request: import(\"<sdk>/models/operations/closecustomercreditsaccount\").CloseCustomerCreditsAccountRequest, options?: import(\"<sdk>/lib/sdks\").RequestOptions | undefined) => Promise<import(\"<sdk>/models/components/accountresponsedto\").AccountResponseDto>",
+        "createAccount": "(request: import(\"<sdk>/models/components/createaccountdto\").CreateAccountDto, options?: import(\"<sdk>/lib/sdks\").RequestOptions | undefined) => Promise<import(\"<sdk>/models/components/accountresponsedto\").AccountResponseDto>",
+        "creditAccount": "(request: import(\"<sdk>/models/operations/creditcustomercreditsaccount\").CreditCustomerCreditsAccountRequest, options?: import(\"<sdk>/lib/sdks\").RequestOptions | undefined) => Promise<import(\"<sdk>/models/components/transactionresponsedto\").TransactionResponseDto>",
+        "debitAccount": "(request: import(\"<sdk>/models/operations/debitcustomercreditsaccount\").DebitCustomerCreditsAccountRequest, options?: import(\"<sdk>/lib/sdks\").RequestOptions | undefined) => Promise<import(\"<sdk>/models/components/transactionresponsedto\").TransactionResponseDto>",
+        "freezeAccount": "(request: import(\"<sdk>/models/operations/freezecustomercreditsaccount\").FreezeCustomerCreditsAccountRequest, options?: import(\"<sdk>/lib/sdks\").RequestOptions | undefined) => Promise<import(\"<sdk>/models/components/accountresponsedto\").AccountResponseDto>",
+        "getAccount": "(request: import(\"<sdk>/models/operations/getcustomercreditsaccount\").GetCustomerCreditsAccountRequest, options?: import(\"<sdk>/lib/sdks\").RequestOptions | undefined) => Promise<import(\"<sdk>/models/components/accountresponsedto\").AccountResponseDto>",
+        "getAccountBalance": "(request: import(\"<sdk>/models/operations/getcustomercreditsaccountbalance\").GetCustomerCreditsAccountBalanceRequest, options?: import(\"<sdk>/lib/sdks\").RequestOptions | undefined) => Promise<import(\"<sdk>/models/components/balanceresponsedto\").BalanceResponseDto>",
+        "getTransaction": "(request: import(\"<sdk>/models/operations/getcustomercreditstransaction\").GetCustomerCreditsTransactionRequest, options?: import(\"<sdk>/lib/sdks\").RequestOptions | undefined) => Promise<import(\"<sdk>/models/components/transactionresponsedto\").TransactionResponseDto>",
+        "listAccounts": "(request: import(\"<sdk>/models/operations/listcustomercreditsaccounts\").ListCustomerCreditsAccountsRequest, options?: import(\"<sdk>/lib/sdks\").RequestOptions | undefined) => Promise<import(\"<sdk>/types/operations\").PageIterator<import(\"<sdk>/models/operations/listcustomercreditsaccounts\").ListCustomerCreditsAccountsResponse, { cursor: string; }>>",
+        "listEntries": "(request: import(\"<sdk>/models/operations/listcustomercreditsaccountentries\").ListCustomerCreditsAccountEntriesRequest, options?: import(\"<sdk>/lib/sdks\").RequestOptions | undefined) => Promise<import(\"<sdk>/types/operations\").PageIterator<import(\"<sdk>/models/operations/listcustomercreditsaccountentries\").ListCustomerCreditsAccountEntriesResponse, { cursor: string; }>>",
+        "listTransactionsByReference": "(request: import(\"<sdk>/models/operations/listcustomercreditstransactionsbyreference\").ListCustomerCreditsTransactionsByReferenceRequest, options?: import(\"<sdk>/lib/sdks\").RequestOptions | undefined) => Promise<import(\"<sdk>/models/components/transactionlistresponsedto\").TransactionListResponseDto>",
+        "postTransaction": "(request: import(\"<sdk>/models/components/posttransactiondto\").PostTransactionDto, options?: import(\"<sdk>/lib/sdks\").RequestOptions | undefined) => Promise<import(\"<sdk>/models/components/transactionresponsedto\").TransactionResponseDto>",
+        "reverseTransaction": "(request: import(\"<sdk>/models/operations/reversecustomercreditsaccounttransaction\").ReverseCustomerCreditsAccountTransactionRequest, options?: import(\"<sdk>/lib/sdks\").RequestOptions | undefined) => Promise<import(\"<sdk>/models/components/transactionresponsedto\").TransactionResponseDto>",
+        "reverseTransactionById": "(request: import(\"<sdk>/models/operations/reversecustomercreditstransaction\").ReverseCustomerCreditsTransactionRequest, options?: import(\"<sdk>/lib/sdks\").RequestOptions | undefined) => Promise<import(\"<sdk>/models/components/transactionresponsedto\").TransactionResponseDto>",
+        "unfreezeAccount": "(request: import(\"<sdk>/models/operations/unfreezecustomercreditsaccount\").UnfreezeCustomerCreditsAccountRequest, options?: import(\"<sdk>/lib/sdks\").RequestOptions | undefined) => Promise<import(\"<sdk>/models/components/accountresponsedto\").AccountResponseDto>"
+      },
+      "construct": [
+        "(options?: import(\"<sdk>/lib/config\").SDKOptions) => import(\"<sdk>/sdk/customercredits\").CustomerCredits"
+      ]
+    },
+    "import(\"<sdk>/sdk/customers\").Customers": {
+      "properties": {
+        "create": "(request: import(\"<sdk>/models/components/createcustomerrequestentity\").CreateCustomerRequestEntity, options?: import(\"<sdk>/lib/sdks\").RequestOptions | undefined) => Promise<import(\"<sdk>/models/components/customerentity\").CustomerEntity>",
+        "generateBillingLinks": "(request: import(\"<sdk>/models/components/createcustomerportallinkrequestentity\").CreateCustomerPortalLinkRequestEntity, options?: import(\"<sdk>/lib/sdks\").RequestOptions | undefined) => Promise<import(\"<sdk>/models/components/customerlinksentity\").CustomerLinksEntity>",
+        "getOrders": "(request: import(\"<sdk>/models/operations/listcustomerorders\").ListCustomerOrdersRequest, options?: import(\"<sdk>/lib/sdks\").RequestOptions | undefined) => Promise<import(\"<sdk>/models/components/orderlistentity\").OrderListEntity>",
+        "list": "(request: import(\"<sdk>/models/operations/listcustomers\").ListCustomersRequest, options?: import(\"<sdk>/lib/sdks\").RequestOptions | undefined) => Promise<import(\"<sdk>/types/operations\").PageIterator<import(\"<sdk>/models/operations/listcustomers\").ListCustomersResponse, { page: number; }>>",
+        "listLicenses": "(request: import(\"<sdk>/models/operations/listcustomerlicenses\").ListCustomerLicensesRequest, options?: import(\"<sdk>/lib/sdks\").RequestOptions | undefined) => Promise<import(\"<sdk>/models/components/licenselistentity\").LicenseListEntity>",
+        "listSubscriptions": "(request: import(\"<sdk>/models/operations/listcustomersubscriptions\").ListCustomerSubscriptionsRequest, options?: import(\"<sdk>/lib/sdks\").RequestOptions | undefined) => Promise<import(\"<sdk>/models/components/subscriptionlistentity\").SubscriptionListEntity>",
+        "retrieve": "(request: import(\"<sdk>/models/operations/retrievecustomer\").RetrieveCustomerRequest, options?: import(\"<sdk>/lib/sdks\").RequestOptions | undefined) => Promise<import(\"<sdk>/models/components/customerentity\").CustomerEntity>",
+        "update": "(request: import(\"<sdk>/models/components/updatecustomerrequestentity\").UpdateCustomerRequestEntity, options?: import(\"<sdk>/lib/sdks\").RequestOptions | undefined) => Promise<import(\"<sdk>/models/components/customerentity\").CustomerEntity>"
+      },
+      "construct": [
+        "(options?: import(\"<sdk>/lib/config\").SDKOptions) => import(\"<sdk>/sdk/customers\").Customers"
+      ]
+    },
+    "import(\"<sdk>/sdk/discounts\").Discounts": {
+      "properties": {
+        "create": "(request: import(\"<sdk>/models/operations/creatediscount\").CreateDiscountRequest, options?: import(\"<sdk>/lib/sdks\").RequestOptions | undefined) => Promise<import(\"<sdk>/models/components/discountentity\").DiscountEntity>",
+        "delete": "(request: import(\"<sdk>/models/operations/deletediscount\").DeleteDiscountRequest, options?: import(\"<sdk>/lib/sdks\").RequestOptions | undefined) => Promise<import(\"<sdk>/models/components/discountentity\").DiscountEntity>",
+        "get": "(request: import(\"<sdk>/models/operations/retrievediscount\").RetrieveDiscountRequest, options?: import(\"<sdk>/lib/sdks\").RequestOptions | undefined) => Promise<import(\"<sdk>/models/components/discountentity\").DiscountEntity>",
+        "search": "(request: import(\"<sdk>/models/operations/searchdiscounts\").SearchDiscountsRequest, options?: import(\"<sdk>/lib/sdks\").RequestOptions | undefined) => Promise<import(\"<sdk>/types/operations\").PageIterator<import(\"<sdk>/models/operations/searchdiscounts\").SearchDiscountsResponse, { page: number; }>>",
+        "update": "(request: import(\"<sdk>/models/operations/updatediscount\").UpdateDiscountRequest, options?: import(\"<sdk>/lib/sdks\").RequestOptions | undefined) => Promise<import(\"<sdk>/models/components/discountentity\").DiscountEntity>"
+      },
+      "construct": [
+        "(options?: import(\"<sdk>/lib/config\").SDKOptions) => import(\"<sdk>/sdk/discounts\").Discounts"
+      ]
+    },
+    "import(\"<sdk>/sdk/events\").Events": {
+      "properties": {
+        "ingestEvents": "(request: import(\"<sdk>/models/components/ingestusageeventsapirequestdto\").IngestUsageEventsApiRequestDto, options?: import(\"<sdk>/lib/sdks\").RequestOptions | undefined) => Promise<import(\"<sdk>/models/components/ingestusageeventsapiresponsedto\").IngestUsageEventsApiResponseDto>",
+        "listEvents": "(request: import(\"<sdk>/models/operations/listusageevents\").ListUsageEventsRequest, options?: import(\"<sdk>/lib/sdks\").RequestOptions | undefined) => Promise<import(\"<sdk>/types/operations\").PageIterator<import(\"<sdk>/models/operations/listusageevents\").ListUsageEventsResponse, { cursor: string; }>>",
+        "previewEvents": "(request: import(\"<sdk>/models/components/ingestusageeventsapirequestdto\").IngestUsageEventsApiRequestDto, options?: import(\"<sdk>/lib/sdks\").RequestOptions | undefined) => Promise<import(\"<sdk>/models/components/previewusageeventsapiresponsedto\").PreviewUsageEventsApiResponseDto>"
+      },
+      "construct": [
+        "(options?: import(\"<sdk>/lib/config\").SDKOptions) => import(\"<sdk>/sdk/events\").Events"
+      ]
+    },
+    "import(\"<sdk>/sdk/files\").Files": {
+      "properties": {
+        "confirmUpload": "(request: import(\"<sdk>/models/operations/confirmfileupload\").ConfirmFileUploadRequest, options?: import(\"<sdk>/lib/sdks\").RequestOptions | undefined) => Promise<import(\"<sdk>/models/components/fileentity\").FileEntity>",
+        "createUpload": "(request: import(\"<sdk>/models/components/createfileuploadrequestentity\").CreateFileUploadRequestEntity, options?: import(\"<sdk>/lib/sdks\").RequestOptions | undefined) => Promise<import(\"<sdk>/models/components/fileuploadentity\").FileUploadEntity>"
+      },
+      "construct": [
+        "(options?: import(\"<sdk>/lib/config\").SDKOptions) => import(\"<sdk>/sdk/files\").Files"
+      ]
+    },
+    "import(\"<sdk>/sdk/licenses\").Licenses": {
+      "properties": {
+        "activate": "(request: import(\"<sdk>/models/components/activatelicenserequestentity\").ActivateLicenseRequestEntity, options?: import(\"<sdk>/lib/sdks\").RequestOptions | undefined) => Promise<import(\"<sdk>/models/components/licenseentity\").LicenseEntity>",
+        "deactivate": "(request: import(\"<sdk>/models/components/deactivatelicenserequestentity\").DeactivateLicenseRequestEntity, options?: import(\"<sdk>/lib/sdks\").RequestOptions | undefined) => Promise<import(\"<sdk>/models/components/licenseentity\").LicenseEntity>",
+        "listInstances": "(request: import(\"<sdk>/models/operations/listlicenseinstances\").ListLicenseInstancesRequest, options?: import(\"<sdk>/lib/sdks\").RequestOptions | undefined) => Promise<import(\"<sdk>/types/operations\").PageIterator<import(\"<sdk>/models/operations/listlicenseinstances\").ListLicenseInstancesResponse, { page: number; }>>",
+        "validate": "(request: import(\"<sdk>/models/components/validatelicenserequestentity\").ValidateLicenseRequestEntity, options?: import(\"<sdk>/lib/sdks\").RequestOptions | undefined) => Promise<import(\"<sdk>/models/components/licenseentity\").LicenseEntity>"
+      },
+      "construct": [
+        "(options?: import(\"<sdk>/lib/config\").SDKOptions) => import(\"<sdk>/sdk/licenses\").Licenses"
+      ]
+    },
+    "import(\"<sdk>/sdk/meters\").Meters": {
+      "properties": {
+        "archiveMeter": "(request: import(\"<sdk>/models/operations/archivemeter\").ArchiveMeterRequest, options?: import(\"<sdk>/lib/sdks\").RequestOptions | undefined) => Promise<import(\"<sdk>/models/components/meterapiresponsedto\").MeterApiResponseDto>",
+        "createMeter": "(request: import(\"<sdk>/models/operations/createmeter\").CreateMeterRequest, options?: import(\"<sdk>/lib/sdks\").RequestOptions | undefined) => Promise<import(\"<sdk>/models/components/meterapiresponsedto\").MeterApiResponseDto>",
+        "getConsumedUnits": "(request: import(\"<sdk>/models/operations/getmeterconsumedunits\").GetMeterConsumedUnitsRequest, options?: import(\"<sdk>/lib/sdks\").RequestOptions | undefined) => Promise<import(\"<sdk>/models/components/meterconsumedunitsapiresponsedto\").MeterConsumedUnitsApiResponseDto>",
+        "getMeter": "(request: import(\"<sdk>/models/operations/getmeter\").GetMeterRequest, options?: import(\"<sdk>/lib/sdks\").RequestOptions | undefined) => Promise<import(\"<sdk>/models/components/meterapiresponsedto\").MeterApiResponseDto>",
+        "listMeters": "(request: import(\"<sdk>/models/operations/listmeters\").ListMetersRequest, options?: import(\"<sdk>/lib/sdks\").RequestOptions | undefined) => Promise<import(\"<sdk>/types/operations\").PageIterator<import(\"<sdk>/models/operations/listmeters\").ListMetersResponse, { cursor: string; }>>",
+        "previewExistingMeter": "(request: import(\"<sdk>/models/operations/previewexistingmeter\").PreviewExistingMeterRequest, options?: import(\"<sdk>/lib/sdks\").RequestOptions | undefined) => Promise<import(\"<sdk>/models/components/meterpreviewapiresponsedto\").MeterPreviewApiResponseDto>",
+        "previewMeter": "(request: import(\"<sdk>/models/components/previewmeterapirequestdto\").PreviewMeterApiRequestDto, options?: import(\"<sdk>/lib/sdks\").RequestOptions | undefined) => Promise<import(\"<sdk>/models/components/meterpreviewapiresponsedto\").MeterPreviewApiResponseDto>",
+        "unarchiveMeter": "(request: import(\"<sdk>/models/operations/unarchivemeter\").UnarchiveMeterRequest, options?: import(\"<sdk>/lib/sdks\").RequestOptions | undefined) => Promise<import(\"<sdk>/models/components/meterapiresponsedto\").MeterApiResponseDto>",
+        "updateMeter": "(request: import(\"<sdk>/models/operations/updatemeter\").UpdateMeterRequest, options?: import(\"<sdk>/lib/sdks\").RequestOptions | undefined) => Promise<import(\"<sdk>/models/components/meterapiresponsedto\").MeterApiResponseDto>"
+      },
+      "construct": [
+        "(options?: import(\"<sdk>/lib/config\").SDKOptions) => import(\"<sdk>/sdk/meters\").Meters"
+      ]
+    },
+    "import(\"<sdk>/sdk/moderation\").Moderation": {
+      "properties": {
+        "screenPrompt": "(request: import(\"<sdk>/models/components/screenpromptrequest\").ScreenPromptRequest, options?: import(\"<sdk>/lib/sdks\").RequestOptions | undefined) => Promise<import(\"<sdk>/models/components/screenpromptresponse\").ScreenPromptResponse>"
+      },
+      "construct": [
+        "(options?: import(\"<sdk>/lib/config\").SDKOptions) => import(\"<sdk>/sdk/moderation\").Moderation"
+      ]
+    },
+    "import(\"<sdk>/sdk/productgroups\").ProductGroups": {
+      "properties": {
+        "get": "(request: import(\"<sdk>/models/operations/getproductgroup\").GetProductGroupRequest, options?: import(\"<sdk>/lib/sdks\").RequestOptions | undefined) => Promise<import(\"<sdk>/models/components/productgroupentity\").ProductGroupEntity>",
+        "list": "(request: import(\"<sdk>/models/operations/listproductgroups\").ListProductGroupsRequest, options?: import(\"<sdk>/lib/sdks\").RequestOptions | undefined) => Promise<import(\"<sdk>/types/operations\").PageIterator<import(\"<sdk>/models/operations/listproductgroups\").ListProductGroupsResponse, { cursor: string; }>>"
+      },
+      "construct": [
+        "(options?: import(\"<sdk>/lib/config\").SDKOptions) => import(\"<sdk>/sdk/productgroups\").ProductGroups"
+      ]
+    },
+    "import(\"<sdk>/sdk/products\").Products": {
+      "properties": {
+        "archive": "(request: import(\"<sdk>/models/operations/archiveproduct\").ArchiveProductRequest, options?: import(\"<sdk>/lib/sdks\").RequestOptions | undefined) => Promise<import(\"<sdk>/models/components/productentity\").ProductEntity>",
+        "create": "(request: import(\"<sdk>/models/operations/createproduct\").CreateProductRequest, options?: import(\"<sdk>/lib/sdks\").RequestOptions | undefined) => Promise<import(\"<sdk>/models/components/productentity\").ProductEntity>",
+        "get": "(request: import(\"<sdk>/models/operations/getproduct\").GetProductRequest, options?: import(\"<sdk>/lib/sdks\").RequestOptions | undefined) => Promise<import(\"<sdk>/models/components/productentity\").ProductEntity>",
+        "listPrices": "(request: import(\"<sdk>/models/operations/listproductprices\").ListProductPricesRequest, options?: import(\"<sdk>/lib/sdks\").RequestOptions | undefined) => Promise<import(\"<sdk>/models/components/productpriceversionlistentity\").ProductPriceVersionListEntity>",
+        "search": "(request: import(\"<sdk>/models/operations/searchproducts\").SearchProductsRequest, options?: import(\"<sdk>/lib/sdks\").RequestOptions | undefined) => Promise<import(\"<sdk>/types/operations\").PageIterator<import(\"<sdk>/models/operations/searchproducts\").SearchProductsResponse, { page: number; }>>",
+        "update": "(request: import(\"<sdk>/models/operations/updateproduct\").UpdateProductRequest, options?: import(\"<sdk>/lib/sdks\").RequestOptions | undefined) => Promise<import(\"<sdk>/models/components/productwriteresponseentity\").ProductWriteResponseEntity>"
+      },
+      "construct": [
+        "(options?: import(\"<sdk>/lib/config\").SDKOptions) => import(\"<sdk>/sdk/products\").Products"
+      ]
+    },
+    "import(\"<sdk>/sdk/splits\").Splits": {
+      "properties": {
+        "create": "(request: import(\"<sdk>/models/components/createsplitrequestentity\").CreateSplitRequestEntity, options?: import(\"<sdk>/lib/sdks\").RequestOptions | undefined) => Promise<import(\"<sdk>/models/components/splitentity\").SplitEntity>",
+        "delete": "(request: import(\"<sdk>/models/operations/deletesplit\").DeleteSplitRequest, options?: import(\"<sdk>/lib/sdks\").RequestOptions | undefined) => Promise<import(\"<sdk>/models/components/splitentity\").SplitEntity>",
+        "list": "(request: import(\"<sdk>/models/operations/listsplits\").ListSplitsRequest, options?: import(\"<sdk>/lib/sdks\").RequestOptions | undefined) => Promise<import(\"<sdk>/types/operations\").PageIterator<import(\"<sdk>/models/operations/listsplits\").ListSplitsResponse, { page: number; }>>",
+        "retrieve": "(request: import(\"<sdk>/models/operations/retrievesplit\").RetrieveSplitRequest, options?: import(\"<sdk>/lib/sdks\").RequestOptions | undefined) => Promise<import(\"<sdk>/models/components/splitentity\").SplitEntity>"
+      },
+      "construct": [
+        "(options?: import(\"<sdk>/lib/config\").SDKOptions) => import(\"<sdk>/sdk/splits\").Splits"
+      ]
+    },
+    "import(\"<sdk>/sdk/stats\").Stats": {
+      "properties": {
+        "getSummary": "(request: import(\"<sdk>/models/operations/getmetricssummary\").GetMetricsSummaryRequest, options?: import(\"<sdk>/lib/sdks\").RequestOptions | undefined) => Promise<import(\"<sdk>/models/components/statssummaryentity\").StatsSummaryEntity>"
+      },
+      "construct": [
+        "(options?: import(\"<sdk>/lib/config\").SDKOptions) => import(\"<sdk>/sdk/stats\").Stats"
+      ]
+    },
+    "import(\"<sdk>/sdk/subscriptions\").Subscriptions": {
+      "properties": {
+        "cancel": "(request: import(\"<sdk>/models/operations/cancelsubscription\").CancelSubscriptionRequest, options?: import(\"<sdk>/lib/sdks\").RequestOptions | undefined) => Promise<import(\"<sdk>/models/components/subscriptionentity\").SubscriptionEntity>",
+        "get": "(request: import(\"<sdk>/models/operations/retrievesubscription\").RetrieveSubscriptionRequest, options?: import(\"<sdk>/lib/sdks\").RequestOptions | undefined) => Promise<import(\"<sdk>/models/components/subscriptionentity\").SubscriptionEntity>",
+        "pause": "(request: import(\"<sdk>/models/operations/pausesubscription\").PauseSubscriptionRequest, options?: import(\"<sdk>/lib/sdks\").RequestOptions | undefined) => Promise<import(\"<sdk>/models/components/subscriptionentity\").SubscriptionEntity>",
+        "resume": "(request: import(\"<sdk>/models/operations/resumesubscription\").ResumeSubscriptionRequest, options?: import(\"<sdk>/lib/sdks\").RequestOptions | undefined) => Promise<import(\"<sdk>/models/components/subscriptionentity\").SubscriptionEntity>",
+        "search": "(request: import(\"<sdk>/models/operations/searchsubscriptions\").SearchSubscriptionsRequest, options?: import(\"<sdk>/lib/sdks\").RequestOptions | undefined) => Promise<import(\"<sdk>/types/operations\").PageIterator<import(\"<sdk>/models/operations/searchsubscriptions\").SearchSubscriptionsResponse, { page: number; }>>",
+        "update": "(request: import(\"<sdk>/models/operations/updatesubscription\").UpdateSubscriptionRequest, options?: import(\"<sdk>/lib/sdks\").RequestOptions | undefined) => Promise<import(\"<sdk>/models/components/subscriptionentity\").SubscriptionEntity>",
+        "upgrade": "(request: import(\"<sdk>/models/operations/upgradesubscription\").UpgradeSubscriptionRequest, options?: import(\"<sdk>/lib/sdks\").RequestOptions | undefined) => Promise<import(\"<sdk>/models/components/subscriptionentity\").SubscriptionEntity>"
+      },
+      "construct": [
+        "(options?: import(\"<sdk>/lib/config\").SDKOptions) => import(\"<sdk>/sdk/subscriptions\").Subscriptions"
+      ]
+    },
+    "import(\"<sdk>/sdk/transactions\").Transactions": {
+      "properties": {
+        "getById": "(request: import(\"<sdk>/models/operations/gettransactionbyid\").GetTransactionByIdRequest, options?: import(\"<sdk>/lib/sdks\").RequestOptions | undefined) => Promise<import(\"<sdk>/models/components/transactionentity\").TransactionEntity>",
+        "refund": "(request: import(\"<sdk>/models/components/createrefundrequestentity\").CreateRefundRequestEntity, options?: import(\"<sdk>/lib/sdks\").RequestOptions | undefined) => Promise<import(\"<sdk>/models/components/refundresponseentity\").RefundResponseEntity>",
+        "search": "(request: import(\"<sdk>/models/operations/searchtransactions\").SearchTransactionsRequest, options?: import(\"<sdk>/lib/sdks\").RequestOptions | undefined) => Promise<import(\"<sdk>/types/operations\").PageIterator<import(\"<sdk>/models/operations/searchtransactions\").SearchTransactionsResponse, { page: number; }>>"
+      },
+      "construct": [
+        "(options?: import(\"<sdk>/lib/config\").SDKOptions) => import(\"<sdk>/sdk/transactions\").Transactions"
+      ]
+    },
+    "import(\"<sdk>/sdk/webhooks\").Webhooks": {
+      "properties": {
+        "acknowledgeEvent": "(request: import(\"<sdk>/models/operations/acknowledgewebhookevent\").AcknowledgeWebhookEventRequest, options?: import(\"<sdk>/lib/sdks\").RequestOptions | undefined) => Promise<import(\"<sdk>/models/components/webhookeventackentity\").WebhookEventAckEntity>",
+        "create": "(request: import(\"<sdk>/models/components/createwebhookrequestentity\").CreateWebhookRequestEntity, options?: import(\"<sdk>/lib/sdks\").RequestOptions | undefined) => Promise<import(\"<sdk>/models/components/webhookentity\").WebhookEntity>",
+        "delete": "(request: import(\"<sdk>/models/operations/deletewebhook\").DeleteWebhookRequest, options?: import(\"<sdk>/lib/sdks\").RequestOptions | undefined) => Promise<import(\"<sdk>/models/components/webhookentity\").WebhookEntity>",
+        "get": "(request: import(\"<sdk>/models/operations/getwebhook\").GetWebhookRequest, options?: import(\"<sdk>/lib/sdks\").RequestOptions | undefined) => Promise<import(\"<sdk>/models/components/webhookentity\").WebhookEntity>",
+        "getSecret": "(request: import(\"<sdk>/models/operations/getwebhooksecret\").GetWebhookSecretRequest, options?: import(\"<sdk>/lib/sdks\").RequestOptions | undefined) => Promise<import(\"<sdk>/models/components/webhooksecretentity\").WebhookSecretEntity>",
+        "list": "(request: import(\"<sdk>/models/operations/listwebhooks\").ListWebhooksRequest, options?: import(\"<sdk>/lib/sdks\").RequestOptions | undefined) => Promise<import(\"<sdk>/types/operations\").PageIterator<import(\"<sdk>/models/operations/listwebhooks\").ListWebhooksResponse, { page: number; }>>",
+        "listPendingEvents": "(request: import(\"<sdk>/models/operations/listpendingwebhookevents\").ListPendingWebhookEventsRequest, options?: import(\"<sdk>/lib/sdks\").RequestOptions | undefined) => Promise<import(\"<sdk>/models/components/webhookpendingeventlistentity\").WebhookPendingEventListEntity>",
+        "update": "(request: import(\"<sdk>/models/operations/updatewebhook\").UpdateWebhookRequest, options?: import(\"<sdk>/lib/sdks\").RequestOptions | undefined) => Promise<import(\"<sdk>/models/components/webhookentity\").WebhookEntity>"
+      },
+      "construct": [
+        "(options?: import(\"<sdk>/lib/config\").SDKOptions) => import(\"<sdk>/sdk/webhooks\").Webhooks"
+      ]
     }
   }
 }
