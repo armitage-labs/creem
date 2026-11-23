@@ -241,10 +241,13 @@ async function pickItemKey(session: Session, item: PromoteItem): Promise<boolean
   return false;
 }
 
-/** A matched product whose features need keys: one pick per feature. */
+/**
+ * A matched product whose features need keys: one pick per feature. True
+ * after the first write, so the dry run runs again before the next feature's
+ * question (its candidates may have changed).
+ */
 async function pickFeatureKeys(session: Session, item: PromoteItem): Promise<boolean> {
   const { context, decided } = session;
-  let wrote = false;
   for (const feature of item.featureCandidates ?? []) {
     const decision = `feature:${item.testId}:${feature.testFeatureId}`;
     if (decided.has(decision)) continue;
@@ -283,9 +286,9 @@ async function pickFeatureKeys(session: Session, item: PromoteItem): Promise<boo
       : `Write the key ${key} on TEST feature ${feature.testFeatureId} of ${item.testId}?`;
     if (!(await context.confirm(question))) continue;
     printLink(context, await linkFeature(clients, link, key));
-    wrote = true;
+    return true;
   }
-  return wrote;
+  return false;
 }
 
 /** A keyed item without a live match that has same-name live items: create it, or re-pair. */
@@ -339,30 +342,34 @@ async function offerMetadataCopy(
   return true;
 }
 
-/** Every decision a dry run asks for, once per session. True when one wrote, so the dry run runs again. */
+/**
+ * The decisions a dry run asks for, once per session. True as soon as one
+ * wrote: the dry run runs again before the next question, because a write can
+ * change other items' candidates (a live item just paired is no longer free).
+ */
 async function decide(session: Session, preview: PromoteReport): Promise<boolean> {
-  let wrote = false;
+  const ask = async (decision: string, run: () => Promise<boolean>) => {
+    if (session.decided.has(decision)) return false;
+    session.decided.add(decision);
+    return run();
+  };
   for (const item of preview.items) {
-    const ask = async (decision: string, run: () => Promise<boolean>) => {
-      if (session.decided.has(decision)) return;
-      session.decided.add(decision);
-      if (await run()) wrote = true;
-    };
-    if (item.result === "needs_key" && item.featureCandidates?.length) {
-      if (await pickFeatureKeys(session, item)) wrote = true;
-    } else if (item.result === "needs_key")
-      await ask(`key:${item.kind}:${item.testId}`, () => pickItemKey(session, item));
-    else if (isPossibleRename(item))
-      await ask(`rename:${item.kind}:${item.testId}`, () => pickRename(session, item));
-    else {
-      const keys = liveOnlyMetadataKeys(item);
-      if (keys.length)
-        await ask(`metadata:${item.testId}:${keys.join(",")}`, () =>
-          offerMetadataCopy(session, item, keys),
-        );
-    }
+    const keys = liveOnlyMetadataKeys(item);
+    const wrote =
+      item.result === "needs_key" && item.featureCandidates?.length
+        ? await pickFeatureKeys(session, item)
+        : item.result === "needs_key"
+          ? await ask(`key:${item.kind}:${item.testId}`, () => pickItemKey(session, item))
+          : isPossibleRename(item)
+            ? await ask(`rename:${item.kind}:${item.testId}`, () => pickRename(session, item))
+            : keys.length
+              ? await ask(`metadata:${item.testId}:${keys.join(",")}`, () =>
+                  offerMetadataCopy(session, item, keys),
+                )
+              : false;
+    if (wrote) return true;
   }
-  return wrote;
+  return false;
 }
 
 const WRITTEN_RESULTS = ["created", "updated", "unchanged"];

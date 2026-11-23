@@ -331,6 +331,48 @@ describe("creem catalog promote, interactive", () => {
     expect(fake.stores.live.products[1]).toMatchObject({ external_id: "prod_t2", price: 3000 });
   });
 
+  it("runs the dry run again after each pairing, so the next item isn't offered a live item that was just paired", async () => {
+    const initial = store();
+    initial.test.products!.push(sideProduct("test", "prod_t3", { name: "Team", price: 3000 }));
+    const fake = fakeCatalog(initial);
+    const h = cli(fake, {
+      isTTY: true,
+      choices: [{ action: "pair", liveId: "prod_l2" }, { action: "skip" }],
+      answers: [""],
+      confirms: [true, true],
+    });
+    const result = await h.run(["catalog", "promote"]);
+    const chooses = h.asked.filter((line) => line.startsWith("choose:"));
+    expect(chooses[0]).toMatch(/choose: prod_t2 "Team" needs a key.*prod_l2/);
+    expect(chooses[1]).toMatch(/choose: prod_t3 "Team" needs a key/);
+    expect(chooses[1]).not.toContain("prod_l2");
+    // The second dry run, after the pairing, asks the next question; the skip writes nothing.
+    expect(fake.promotes().filter((c) => c.dryRun)).toHaveLength(2);
+    expect(fake.stores.live.products.find((p) => p.id === "prod_l2")?.external_id).toBe("prod_t2");
+    expect(fake.stores.live.products.filter((p) => p.name === "Team")).toHaveLength(1);
+    expect(result.code).toBe(4);
+  });
+
+  it("runs the dry run again after each feature pairing, before the next feature's question", async () => {
+    const initial = pairedStore();
+    initial.test.products![0].features = [
+      featureJson("feat_t1", "custom", "Support"),
+      featureJson("feat_t2", "custom", "Support"),
+    ];
+    initial.live.products![0].features = [featureJson("feat_l1", "custom", "Support")];
+    const fake = fakeCatalog(initial);
+    const h = cli(fake, {
+      isTTY: true,
+      choices: [{ action: "pair", liveId: "feat_l1" }],
+      answers: ["support"],
+      confirms: [true, true],
+    });
+    const result = await h.run(["catalog", "promote"]);
+    expect(h.asked.filter((line) => line.startsWith("choose:"))).toHaveLength(1);
+    expect(result.code).toBe(0);
+    expect(fake.stores.live.products[0].features).toHaveLength(2);
+  });
+
   it("writes nothing when the merchant declines the real run", async () => {
     const fake = fakeCatalog(pairedStore());
     const h = cli(fake, { isTTY: true, confirms: [false] });
