@@ -41,6 +41,8 @@ creem products list --json
 
 Environment keys take precedence over stored credentials and are never written to disk. The key determines test/live mode. `--environment test|live` must match it. Local login writes `~/.creem/config.json` with mode `0600` in a `0700` directory. `creem logout` clears stored credentials; an environment key remains active.
 
+`creem catalog promote`, `link` and `unlink` work on the store's test and live sides together, so they take one key per side: `CREEM_LIVE_API_KEY` and `CREEM_TEST_API_KEY`, else the current key when it is that side's, else a masked prompt in a terminal. A prompted key is used for that command only, never saved, and must be the side's key: a test key entered for live stops the command. Promote waits 90 s per page unless you pass `--timeout`, because a promote page can take up to 45 s of work. See [Promote test to live](/code/cli-promote).
+
 ## Configuration
 
 Inspect your saved settings or choose a default output format:

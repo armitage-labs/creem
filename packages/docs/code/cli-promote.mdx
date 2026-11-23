@@ -16,7 +16,7 @@ Promote uses the store's **live** API key. Pairing writes the key on both sides,
 | Live        | `CREEM_LIVE_API_KEY` | `CREEM_API_KEY` or the `creem login` key, when it is live |
 | Test        | `CREEM_TEST_API_KEY` | `CREEM_API_KEY` or the `creem login` key, when it is test |
 
-In a terminal, a missing key is asked for with a masked prompt and used for that command only; it is never saved. Without a terminal, the command stops with exit code 3 and names the variable.
+In a terminal, a missing key is asked for with a masked prompt and used for that command only; it is never saved. The entered key must be that side's: a test key entered for live (or the other way round), or an empty answer, stops the command with exit code 3. Without a terminal, the command stops with exit code 3 and names the variable.
 
 ## Preview
 
@@ -54,7 +54,9 @@ The command runs the dry run first and asks about every item that needs a decisi
 - **`possible_rename`**: a keyed test item has no live match, but live has items with its name, usually because its key was renamed in test. Create a new live item, or re-pair: the test item's key is written on the live item you pick.
 - **`live_metadata_not_in_test`**: promote never clears a `metadata` key only live has. The CLI offers to copy those keys into the test product, then promote brings them along.
 
-After any of these writes, the dry run runs again. Then the CLI asks before the real run. If the dry run refused some items, confirming writes the others and leaves those out.
+Each question names the key every item has now, so re-keying an item that is already paired shows before it happens. After each of these writes, the dry run runs again before the next question, so a live item you just paired is no longer offered for another one. A pairing that fails (for example `409` `external_id_taken`) is reported, and the CLI goes on with the next item.
+
+Then the CLI asks before the real run. If the dry run refused some items, confirming writes the others and leaves those out; afterwards the CLI names any item the run refused that the preview hadn't. When every item is `unchanged`, it says so and skips the real run.
 
 ## Promote in scripts
 
@@ -67,7 +69,7 @@ creem catalog promote --yes --force --json
 
 Before its first write, the real run checks every write. When the check refuses one, nothing is written: the refused items are `conflict` or `failed`, and every other write is `not_written`. Add `--force` to write the others.
 
-The command follows `next_cursor` until the run is complete and prints its `run_id`. With `--json`, stdout carries `{ "preview": …, "run": … }`, each with `runId`, `dryRun`, `summary`, `items` and, for the real run, `validation`. The exit code is 4 when an item ends `failed`, `conflict`, `blocked` or `needs_key`, or `not_written` for a reason another run fixes: `changed_since_check` means the item changed between the check and its write, so promote again (items already written then answer `unchanged`). An archived test item that live doesn't have (`archived_not_in_live`) doesn't count. A dry run uses the same rule.
+The command follows `next_cursor` until the run is complete and prints its `run_id`. Each page waits up to 90 s unless you pass `--timeout`, because a page can take up to 45 s of work on Creem's side. If a page after the first fails, the command prints what the run got so far (with `--json`, `run` carries it with the failed page's `cursor`) and exits 4: promote again, and items already written answer `unchanged`. With `--json`, stdout carries `{ "preview": …, "run": … }`, each with `runId`, `dryRun`, `summary`, `items` and, for the real run, `validation`. The exit code is 4 when an item ends `failed`, `conflict`, `blocked` or `needs_key`, or `not_written` for a reason another run fixes: `changed_since_check` means the item changed between the check and its write, so promote again (items already written then answer `unchanged`). An archived test item that live doesn't have (`archived_not_in_live`) doesn't count. A dry run uses the same rule.
 
 ## Pair items by hand
 
