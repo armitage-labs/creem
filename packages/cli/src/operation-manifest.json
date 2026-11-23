@@ -67,6 +67,26 @@
         "schema": {
           "type": "string"
         }
+      },
+      {
+        "name": "If-None-Match",
+        "sdkName": "ifNoneMatch",
+        "in": "header",
+        "cliFlagOrArgument": "--if-none-match",
+        "required": false,
+        "schema": {
+          "type": "string"
+        }
+      },
+      {
+        "name": "dry_run",
+        "sdkName": "dryRun",
+        "in": "query",
+        "cliFlagOrArgument": "--dry-run",
+        "required": false,
+        "schema": {
+          "type": "boolean"
+        }
       }
     ],
     "body": {
@@ -252,6 +272,9 @@
                 "meterId": {
                   "type": "string"
                 },
+                "meterExternalId": {
+                  "type": "string"
+                },
                 "unitPrice": {
                   "type": "number"
                 },
@@ -279,15 +302,19 @@
                   "enum": ["free", "accrue"]
                 }
               },
-              "required": ["meterId", "unitPrice", "settlementMode"]
+              "required": ["unitPrice", "settlementMode"]
             }
           },
           "features": {
             "type": "array",
             "items": {}
+          },
+          "status": {
+            "type": "string",
+            "enum": ["active", "archived"]
           }
         },
-        "required": ["name", "description", "price", "currency", "billingType"]
+        "required": []
       },
       "primaryFlags": {
         "name": "--name",
@@ -349,6 +376,16 @@
         "required": true,
         "schema": {
           "type": "string"
+        }
+      },
+      {
+        "name": "dry_run",
+        "sdkName": "dryRun",
+        "in": "query",
+        "cliFlagOrArgument": "--dry-run",
+        "required": false,
+        "schema": {
+          "type": "boolean"
         }
       }
     ],
@@ -433,7 +470,8 @@
             "type": "boolean"
           },
           "suggestedPrice": {
-            "type": "integer"
+            "type": "integer",
+            "nullable": true
           },
           "usagePrices": {
             "type": "array",
@@ -444,6 +482,9 @@
                   "type": "string"
                 },
                 "meterId": {
+                  "type": "string"
+                },
+                "meterExternalId": {
                   "type": "string"
                 },
                 "unitPrice": {
@@ -473,7 +514,7 @@
                   "enum": ["free", "accrue"]
                 }
               },
-              "required": ["meterId", "unitPrice", "settlementMode"]
+              "required": ["unitPrice", "settlementMode"]
             }
           },
           "features": {
@@ -1014,6 +1055,61 @@
         "required": false,
         "schema": {
           "type": "number"
+        }
+      },
+      {
+        "name": "product_id",
+        "sdkName": "productId",
+        "in": "query",
+        "cliFlagOrArgument": "--product-id",
+        "required": false,
+        "schema": {
+          "type": "string"
+        }
+      },
+      {
+        "name": "price_id",
+        "sdkName": "priceId",
+        "in": "query",
+        "cliFlagOrArgument": "--price-id",
+        "required": false,
+        "schema": {
+          "type": "string"
+        }
+      },
+      {
+        "name": "status",
+        "sdkName": "status",
+        "in": "query",
+        "cliFlagOrArgument": "--status",
+        "required": false,
+        "schema": {
+          "type": "array",
+          "items": {
+            "type": "string",
+            "enum": [
+              "incomplete",
+              "expired",
+              "active",
+              "past_due",
+              "canceled",
+              "scheduled_cancel",
+              "unpaid",
+              "paused",
+              "trialing",
+              "error"
+            ]
+          }
+        }
+      },
+      {
+        "name": "customer_id",
+        "sdkName": "customerId",
+        "in": "query",
+        "cliFlagOrArgument": "--customer-id",
+        "required": false,
+        "schema": {
+          "type": "string"
         }
       }
     ],
@@ -1646,6 +1742,26 @@
         "schema": {
           "type": "string"
         }
+      },
+      {
+        "name": "If-None-Match",
+        "sdkName": "ifNoneMatch",
+        "in": "header",
+        "cliFlagOrArgument": "--if-none-match",
+        "required": false,
+        "schema": {
+          "type": "string"
+        }
+      },
+      {
+        "name": "dry_run",
+        "sdkName": "dryRun",
+        "in": "query",
+        "cliFlagOrArgument": "--dry-run",
+        "required": false,
+        "schema": {
+          "type": "boolean"
+        }
       }
     ],
     "body": {
@@ -1702,7 +1818,7 @@
             "type": "string"
           }
         },
-        "required": ["name", "type", "duration"]
+        "required": []
       },
       "primaryFlags": {
         "name": "--name",
@@ -1736,6 +1852,16 @@
         "required": true,
         "schema": {
           "type": "string"
+        }
+      },
+      {
+        "name": "dry_run",
+        "sdkName": "dryRun",
+        "in": "query",
+        "cliFlagOrArgument": "--dry-run",
+        "required": false,
+        "schema": {
+          "type": "boolean"
         }
       }
     ],
@@ -3051,6 +3177,26 @@
         "schema": {
           "type": "string"
         }
+      },
+      {
+        "name": "If-None-Match",
+        "sdkName": "ifNoneMatch",
+        "in": "header",
+        "cliFlagOrArgument": "--if-none-match",
+        "required": false,
+        "schema": {
+          "type": "string"
+        }
+      },
+      {
+        "name": "dry_run",
+        "sdkName": "dryRun",
+        "in": "query",
+        "cliFlagOrArgument": "--dry-run",
+        "required": false,
+        "schema": {
+          "type": "boolean"
+        }
       }
     ],
     "body": {
@@ -3069,7 +3215,8 @@
             "enum": ["count", "sum", "average", "min", "max", "unique"]
           },
           "aggregationProperty": {
-            "type": "string"
+            "type": "string",
+            "nullable": true
           },
           "filter": {
             "type": "object",
@@ -3114,7 +3261,7 @@
             "type": "string"
           }
         },
-        "required": ["name", "eventName", "aggregation", "unitLabel"]
+        "required": []
       },
       "primaryFlags": {
         "name": "--name",
@@ -3303,6 +3450,16 @@
         "required": true,
         "schema": {
           "type": "string"
+        }
+      },
+      {
+        "name": "dry_run",
+        "sdkName": "dryRun",
+        "in": "query",
+        "cliFlagOrArgument": "--dry-run",
+        "required": false,
+        "schema": {
+          "type": "boolean"
         }
       }
     ],
@@ -3858,6 +4015,279 @@
         }
       }
     ],
+    "pagination": "none",
+    "destructive": false
+  },
+  {
+    "operationId": "createProductGroup",
+    "sdkMethod": "productGroups.create",
+    "cliPath": "product-groups create",
+    "disposition": "implemented",
+    "description": "Create a product group",
+    "parameters": [
+      {
+        "name": "If-None-Match",
+        "sdkName": "ifNoneMatch",
+        "in": "header",
+        "cliFlagOrArgument": "--if-none-match",
+        "required": false,
+        "schema": {
+          "type": "string"
+        }
+      },
+      {
+        "name": "dry_run",
+        "sdkName": "dryRun",
+        "in": "query",
+        "cliFlagOrArgument": "--dry-run",
+        "required": false,
+        "schema": {
+          "type": "boolean"
+        }
+      }
+    ],
+    "body": {
+      "viaData": true,
+      "schema": {
+        "type": "object",
+        "properties": {
+          "name": {
+            "type": "string"
+          },
+          "description": {
+            "type": "string",
+            "nullable": true
+          },
+          "externalId": {
+            "type": "string"
+          },
+          "products": {
+            "type": "array",
+            "items": {}
+          },
+          "upgradesEnabled": {
+            "type": "boolean"
+          },
+          "upgradeBehavior": {
+            "type": "string",
+            "enum": ["proration-charge-immediately", "proration-charge", "proration-none"],
+            "nullable": true
+          },
+          "upsellsEnabled": {
+            "type": "boolean"
+          },
+          "isActive": {
+            "type": "boolean"
+          }
+        },
+        "required": []
+      },
+      "primaryFlags": {
+        "name": "--name",
+        "description": "--description",
+        "externalId": "--external-id",
+        "upgradesEnabled": "--upgrades-enabled",
+        "upgradeBehavior": "--upgrade-behavior",
+        "upsellsEnabled": "--upsells-enabled",
+        "isActive": "--is-active"
+      }
+    },
+    "pagination": "none",
+    "destructive": false
+  },
+  {
+    "operationId": "updateProductGroup",
+    "sdkMethod": "productGroups.update",
+    "cliPath": "product-groups update",
+    "disposition": "implemented",
+    "description": "Update a product group",
+    "parameters": [
+      {
+        "name": "id",
+        "sdkName": "id",
+        "in": "path",
+        "cliFlagOrArgument": "<id>",
+        "required": true,
+        "schema": {
+          "type": "string"
+        }
+      },
+      {
+        "name": "dry_run",
+        "sdkName": "dryRun",
+        "in": "query",
+        "cliFlagOrArgument": "--dry-run",
+        "required": false,
+        "schema": {
+          "type": "boolean"
+        }
+      }
+    ],
+    "body": {
+      "viaData": true,
+      "schema": {
+        "type": "object",
+        "properties": {
+          "name": {
+            "type": "string"
+          },
+          "description": {
+            "type": "string",
+            "nullable": true
+          },
+          "externalId": {
+            "type": "string",
+            "nullable": true
+          },
+          "products": {
+            "type": "array",
+            "items": {}
+          },
+          "upgradesEnabled": {
+            "type": "boolean"
+          },
+          "upgradeBehavior": {
+            "type": "string",
+            "enum": ["proration-charge-immediately", "proration-charge", "proration-none"],
+            "nullable": true
+          },
+          "upsellsEnabled": {
+            "type": "boolean"
+          },
+          "isActive": {
+            "type": "boolean"
+          }
+        },
+        "required": []
+      },
+      "primaryFlags": {
+        "name": "--name",
+        "description": "--description",
+        "externalId": "--external-id",
+        "upgradesEnabled": "--upgrades-enabled",
+        "upgradeBehavior": "--upgrade-behavior",
+        "upsellsEnabled": "--upsells-enabled",
+        "isActive": "--is-active"
+      }
+    },
+    "pagination": "none",
+    "destructive": true
+  },
+  {
+    "operationId": "deleteProductGroup",
+    "sdkMethod": "productGroups.delete",
+    "cliPath": "product-groups delete",
+    "disposition": "implemented",
+    "description": "Delete a product group",
+    "parameters": [
+      {
+        "name": "id",
+        "sdkName": "id",
+        "in": "path",
+        "cliFlagOrArgument": "<id>",
+        "required": true,
+        "schema": {
+          "type": "string"
+        }
+      }
+    ],
+    "pagination": "none",
+    "destructive": true
+  },
+  {
+    "operationId": "addProductToProductGroup",
+    "sdkMethod": "productGroups.addProduct",
+    "cliPath": "product-groups add-product",
+    "disposition": "implemented",
+    "description": "Add a product to a product group",
+    "parameters": [
+      {
+        "name": "id",
+        "sdkName": "id",
+        "in": "path",
+        "cliFlagOrArgument": "<id>",
+        "required": true,
+        "schema": {
+          "type": "string"
+        }
+      }
+    ],
+    "body": {
+      "viaData": true,
+      "schema": {},
+      "primaryFlags": {}
+    },
+    "pagination": "none",
+    "destructive": false
+  },
+  {
+    "operationId": "removeProductFromProductGroup",
+    "sdkMethod": "productGroups.removeProduct",
+    "cliPath": "product-groups remove-product",
+    "disposition": "implemented",
+    "description": "Remove a product from a product group",
+    "parameters": [
+      {
+        "name": "id",
+        "sdkName": "id",
+        "in": "path",
+        "cliFlagOrArgument": "<id>",
+        "required": true,
+        "schema": {
+          "type": "string"
+        }
+      },
+      {
+        "name": "product_id",
+        "sdkName": "productId",
+        "in": "path",
+        "cliFlagOrArgument": "--product-id",
+        "required": true,
+        "schema": {
+          "type": "string"
+        }
+      }
+    ],
+    "pagination": "none",
+    "destructive": true
+  },
+  {
+    "operationId": "validateCatalog",
+    "sdkMethod": "catalog.validate",
+    "cliPath": "catalog validate",
+    "disposition": "implemented",
+    "description": "Validate a batch of catalog writes together, without writing anything.",
+    "parameters": [],
+    "body": {
+      "viaData": true,
+      "schema": {
+        "type": "object",
+        "properties": {
+          "items": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "properties": {
+                "kind": {
+                  "type": "string",
+                  "enum": ["meter", "product", "product_group", "discount"]
+                },
+                "id": {
+                  "type": "string"
+                },
+                "body": {
+                  "type": "object",
+                  "additionalProperties": true
+                }
+              },
+              "required": ["kind", "body"]
+            }
+          }
+        },
+        "required": ["items"]
+      },
+      "primaryFlags": {}
+    },
     "pagination": "none",
     "destructive": false
   }

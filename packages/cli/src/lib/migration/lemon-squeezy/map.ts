@@ -32,9 +32,15 @@ import type {
   LSVariant,
 } from "./source";
 
-type CreateProductBody = CreateProductRequest["createProductRequestEntity"];
+type UpsertProductBody = CreateProductRequest["createProductRequestEntity"];
+/** A create body: the upsert's fields a new product needs are always set by the mapping. */
+type CreateProductBody = UpsertProductBody &
+  Required<Pick<UpsertProductBody, "name" | "description" | "price" | "currency" | "billingType">>;
 type UpdateProductBody = UpdateProductRequest["updateProductRequestEntity"];
-type CreateDiscountBody = CreateDiscountRequest["createDiscountRequestEntity"];
+type UpsertDiscountBody = CreateDiscountRequest["createDiscountRequestEntity"];
+/** A create body: the upsert's fields a new discount needs are always set by the mapping. */
+type CreateDiscountBody = UpsertDiscountBody &
+  Required<Pick<UpsertDiscountBody, "name" | "code" | "type" | "duration">>;
 type UpdateDiscountBody = UpdateDiscountRequest["updateDiscountRequestEntity"];
 type UpdateFeature = NonNullable<UpdateProductBody["features"]>[number];
 type CreateFeature = NonNullable<CreateProductBody["features"]>[number];

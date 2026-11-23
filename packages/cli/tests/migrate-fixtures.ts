@@ -191,6 +191,7 @@ function storeFeatures(
             file_name: file.filename,
             type: file.content_type,
             size: file.size,
+            sha256: file.sha256 ?? null,
           };
         }),
       };
@@ -213,9 +214,25 @@ function invalidDiscount(b: Json): Json | undefined {
   return undefined;
 }
 
-function productResponse(product: Json) {
-  return product;
+/** A product as reads return it: every file entry carries `sha256`, `null` when stored without one. */
+function productResponse(product: Json): Json {
+  return {
+    ...product,
+    features: (product.features ?? []).map((feature: Json) =>
+      feature.file
+        ? {
+            ...feature,
+            file: {
+              ...feature.file,
+              files: feature.file.files.map((f: Json) => ({ sha256: null, ...f })),
+            },
+          }
+        : feature,
+    ),
+  };
 }
+
+const writeResult = (result: string) => ({ result, dry_run: false, changes: [], warnings: [] });
 
 export function fakeCreem(initial: Partial<CreemState> = {}) {
   const state: CreemState = {
@@ -256,7 +273,7 @@ export function fakeCreem(initial: Partial<CreemState> = {}) {
       };
     };
     if (request.method === "GET" && path === "/v1/products/search")
-      return Response.json(pageOf(state.products));
+      return Response.json(pageOf(state.products.map(productResponse)));
     if (request.method === "GET" && path === "/v1/product-groups")
       return Response.json({ object: "list", data: state.productGroups, has_more: false });
     if (request.method === "GET" && path === "/v1/discounts/search")
@@ -294,7 +311,7 @@ export function fakeCreem(initial: Partial<CreemState> = {}) {
         return Response.json({ code: "reference_not_found" }, { status: 400 });
       }
       state.products.push(product);
-      return Response.json(productResponse(product));
+      return Response.json({ ...productResponse(product), write_result: writeResult("created") });
     }
     const productMatch = /^\/v1\/products\/([^/]+)$/.exec(path);
     if (request.method === "PATCH" && productMatch) {
@@ -316,7 +333,7 @@ export function fakeCreem(initial: Partial<CreemState> = {}) {
       } catch {
         return Response.json({ code: "reference_not_found" }, { status: 400 });
       }
-      return Response.json({ ...productResponse(product), write_result: { warnings: [] } });
+      return Response.json({ ...productResponse(product), write_result: writeResult("updated") });
     }
     if (request.method === "POST" && path === "/v1/discounts") {
       const b = body!;
@@ -348,7 +365,7 @@ export function fakeCreem(initial: Partial<CreemState> = {}) {
         external_id: b.external_id ?? null,
       };
       state.discounts.push(discount);
-      return Response.json(discount);
+      return Response.json({ ...discount, write_result: writeResult("created") });
     }
     const discountMatch = /^\/v1\/discounts\/([^/]+)$/.exec(path);
     if (request.method === "PATCH" && discountMatch) {
@@ -385,7 +402,7 @@ export function fakeCreem(initial: Partial<CreemState> = {}) {
         }
         discount.applies_to_products = ids;
       }
-      return Response.json(discount);
+      return Response.json({ ...discount, write_result: writeResult("updated") });
     }
     if (request.method === "POST" && path === "/v1/files") {
       const b = body!;

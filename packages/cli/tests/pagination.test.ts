@@ -139,3 +139,42 @@ it("subscription status filter still rejects an empty status", async () => {
   const r = await h.run(["subs", "list", "--status", "", "--json"]);
   expect(r.code).not.toBe(0);
 });
+it("subscriptions list --status also sends a status the API knows as its filter, and keeps an unknown one client-side", async () => {
+  const h = harness();
+  const spy = vi.spyOn(h.client.subscriptions, "search").mockResolvedValue({
+    result: {
+      items: [],
+      pagination: { currentPage: 1, totalPages: 1, totalRecords: 0, nextPage: 0, prevPage: 0 },
+    },
+  } as never);
+  const known = await h.run(["subs", "list", "--status", "active", "--json"]);
+  expect(known.code, known.stderr).toBe(0);
+  expect(spy.mock.calls[0][0]).toEqual({ pageNumber: 1, pageSize: 10, status: ["active"] });
+  const unknown = await h.run(["subs", "list", "--status", "frozen", "--json"]);
+  expect(unknown.code, unknown.stderr).toBe(0);
+  expect(spy.mock.calls[1][0]).toEqual({ pageNumber: 1, pageSize: 10 });
+});
+it("subscriptions list filters by --product-id, --price-id and --customer-id on the server", async () => {
+  const h = harness();
+  const spy = vi
+    .spyOn(h.client.subscriptions, "search")
+    .mockRejectedValue(new Error("SDK_SENTINEL"));
+  await h.run([
+    "subscriptions",
+    "list",
+    "--product-id",
+    "prod_1",
+    "--price-id",
+    "price_1",
+    "--customer-id",
+    "cust_1",
+    "--json",
+  ]);
+  expect(spy.mock.calls[0][0]).toEqual({
+    pageNumber: 1,
+    pageSize: 10,
+    productId: "prod_1",
+    priceId: "price_1",
+    customerId: "cust_1",
+  });
+});
