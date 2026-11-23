@@ -4290,5 +4290,53 @@
     },
     "pagination": "none",
     "destructive": false
+  },
+  {
+    "operationId": "promoteCatalog",
+    "sdkMethod": "catalog.promote",
+    "cliPath": "catalog promote",
+    "disposition": "implemented",
+    "description": "Promote the test catalog to live (meters and products).",
+    "parameters": [
+      {
+        "name": "dry_run",
+        "sdkName": "dryRun",
+        "in": "query",
+        "cliFlagOrArgument": "--dry-run",
+        "required": false,
+        "schema": {
+          "type": "boolean"
+        }
+      }
+    ],
+    "body": {
+      "viaData": true,
+      "schema": {
+        "type": "object",
+        "properties": {
+          "select": {
+            "type": "object",
+            "properties": {
+              "meters": {},
+              "products": {}
+            },
+            "required": []
+          },
+          "cursor": {
+            "type": "string",
+            "nullable": true
+          },
+          "force": {
+            "type": "boolean"
+          }
+        },
+        "required": []
+      },
+      "primaryFlags": {
+        "force": "--force"
+      }
+    },
+    "pagination": "none",
+    "destructive": true
   }
 ]

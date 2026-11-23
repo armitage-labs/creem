@@ -45,6 +45,40 @@ export function getClient(
     retryConfig: { strategy: "none" },
   });
 }
+/**
+ * The store's key for one environment, for commands that work on test and live
+ * together: `CREEM_LIVE_API_KEY` / `CREEM_TEST_API_KEY`, else the current key
+ * (`CREEM_API_KEY` or `creem login`'s) when it is that environment's. Undefined
+ * when there is none; a variable that holds the other environment's key is an
+ * error.
+ */
+export function environmentApiKey(environment: "test" | "live"): string | undefined {
+  const name = environment === "live" ? "CREEM_LIVE_API_KEY" : "CREEM_TEST_API_KEY";
+  const specific = process.env[name]?.trim();
+  if (specific) {
+    if (inferEnvironment(specific) !== environment)
+      throw new CliError(
+        `${name} is not a ${environment} key.`,
+        3,
+        `Set ${name} to the store's ${environment} key from the dashboard developers page.`,
+      );
+    return specific;
+  }
+  const current = process.env.CREEM_API_KEY?.trim() || loadConfig().api_key;
+  return current && inferEnvironment(current) === environment ? current : undefined;
+}
+export function getEnvironmentClient(
+  environment: "test" | "live",
+  apiKey: string,
+  timeout?: number,
+): Creem {
+  return new Creem({
+    apiKey,
+    server: environment === "live" ? "prod" : "test",
+    timeoutMs: timeout ?? 30000,
+    retryConfig: { strategy: "none" },
+  });
+}
 export function resetClient(): void {
   resetEnvCache();
 }
