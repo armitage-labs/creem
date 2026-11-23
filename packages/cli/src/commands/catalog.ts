@@ -118,11 +118,14 @@ function reportLines(report: PromoteReport, interrupted = false): string[] {
   return lines;
 }
 
-/** Exit 4 when an item ends `failed`, `conflict`, `blocked` or `needs_key`. */
+/**
+ * Exit 4 when an item ends `failed`, `conflict`, `blocked` or `needs_key`, or
+ * `not_written` for a reason another run fixes (not `archived_not_in_live`).
+ */
 function finish(report: PromoteReport): void {
   const unfinished = report.items.filter(isUnfinished);
   if (!unfinished.length) return;
-  const counts = ["needs_key", "conflict", "failed", "blocked"]
+  const counts = ["needs_key", "conflict", "failed", "blocked", "not_written"]
     .map((result) => [result, unfinished.filter((i) => i.result === result).length] as const)
     .filter(([, n]) => n > 0)
     .map(([result, n]) => `${n} ${result}`)
@@ -142,6 +145,10 @@ function finish(report: PromoteReport): void {
     );
   if (unfinished.some((i) => i.result === "blocked"))
     hints.push("A blocked product waits for its meter: give the meter a key and promote it too.");
+  if (unfinished.some((i) => i.error?.code === "changed_since_check"))
+    hints.push(
+      "An item changed between the check and its write (changed_since_check): promote again; items already written answer `unchanged`.",
+    );
   throw new CliError(
     `${report.dryRun ? "The dry run" : "The run"} ended with ${counts} (run ${report.runId}).`,
     4,
@@ -730,7 +737,7 @@ export function extendCatalogCommand(root: Command, context: CliContext): void {
       )
       .addHelpText(
         "after",
-        "\nWithout --yes it runs the dry run, asks for each item's key and each possible rename, then asks before the real run.\n--yes confirms the real run, never a key. Exit 4 when an item ends failed, conflict, blocked or needs_key.\nUses the store's live key (CREEM_LIVE_API_KEY, or the current key when it is live); pairing writes also need its test key (CREEM_TEST_API_KEY).\n--timeout defaults to 90 s per page here, not 30 s: a promote page can take up to 45 s of work on Creem's side.",
+        "\nWithout --yes it runs the dry run, asks for each item's key and each possible rename, then asks before the real run.\n--yes confirms the real run, never a key. Exit 4 when an item ends failed, conflict, blocked or needs_key, or not_written because it changed since the check (promote again).\nUses the store's live key (CREEM_LIVE_API_KEY, or the current key when it is live); pairing writes also need its test key (CREEM_TEST_API_KEY).\n--timeout defaults to 90 s per page here, not 30 s: a promote page can take up to 45 s of work on Creem's side.",
       )
       .action(async (...args: unknown[]) => promoteCommand(args.at(-1) as Command, context));
     const force = promote.options.find((option) => option.long === "--force");

@@ -1276,3 +1276,40 @@ describe("creem catalog promote: a forced run", () => {
     expect(result.code).toBe(4);
   });
 });
+
+describe("creem catalog promote: a run left with not_written items", () => {
+  it("says to promote again when an item changed since the check, and exits 4", async () => {
+    const fake = fakeCatalog(pairedStore());
+    fake.changeAfterCheck("prod_t1");
+    const result = await cli(fake).run(["catalog", "promote", "--yes", "--json"]);
+    const run = json(result.stdout).run;
+    expect(run.items.map((i: Json) => [i.testId, i.result])).toEqual([
+      ["mtr_t1", "unchanged"],
+      ["prod_t1", "not_written"],
+    ]);
+    expect(result.code).toBe(4);
+    const error = json(result.stderr).error;
+    expect(error.message).toContain("1 not_written");
+    expect(error.suggestion).toMatch(/promote again/i);
+  });
+
+  it("an archived item that live doesn't have stays out of the exit code", async () => {
+    const initial = pairedStore();
+    initial.test.products!.push(
+      sideProduct("test", "prod_t4", { name: "Old", external_id: "old", status: "archived" }),
+    );
+    const fake = fakeCatalog(initial);
+    const result = await cli(fake).run([
+      "catalog",
+      "promote",
+      "--yes",
+      "--json",
+      "--select",
+      "products=prod_t1,prod_t4",
+    ]);
+    expect(json(result.stdout).run.items.find((i: Json) => i.testId === "prod_t4").error.code).toBe(
+      "archived_not_in_live",
+    );
+    expect(result.code).toBe(0);
+  });
+});

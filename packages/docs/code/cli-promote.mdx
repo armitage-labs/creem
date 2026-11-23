@@ -67,7 +67,7 @@ creem catalog promote --yes --force --json
 
 Before its first write, the real run checks every write. When the check refuses one, nothing is written: the refused items are `conflict` or `failed`, and every other write is `not_written`. Add `--force` to write the others.
 
-The command follows `next_cursor` until the run is complete and prints its `run_id`. With `--json`, stdout carries `{ "preview": …, "run": … }`, each with `runId`, `dryRun`, `summary`, `items` and, for the real run, `validation`. The exit code is 4 when an item ends `failed`, `conflict`, `blocked` or `needs_key`; a dry run uses the same rule.
+The command follows `next_cursor` until the run is complete and prints its `run_id`. With `--json`, stdout carries `{ "preview": …, "run": … }`, each with `runId`, `dryRun`, `summary`, `items` and, for the real run, `validation`. The exit code is 4 when an item ends `failed`, `conflict`, `blocked` or `needs_key`, or `not_written` for a reason another run fixes: `changed_since_check` means the item changed between the check and its write, so promote again (items already written then answer `unchanged`). An archived test item that live doesn't have (`archived_not_in_live`) doesn't count. A dry run uses the same rule.
 
 ## Pair items by hand
 

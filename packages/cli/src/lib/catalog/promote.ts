@@ -28,8 +28,15 @@ export interface PromoteRequest {
   force?: boolean | undefined;
 }
 
-/** The results that leave the catalog unfinished: the exit code is 4 when an item ends with one. */
+/**
+ * The results that leave the catalog unfinished: the exit code is 4 when an
+ * item ends with one, or ends `not_written` for a reason promoting again can
+ * fix (see {@link isUnfinished}).
+ */
 export const UNFINISHED_RESULTS = ["failed", "conflict", "blocked", "needs_key"] as const;
+
+/** A `not_written` that stays so by design: an archived test item live never had. */
+const SETTLED_NOT_WRITTEN = ["archived_not_in_live"];
 
 export const emptySummary = (): PromoteSummary => ({
   created: 0,
@@ -142,7 +149,8 @@ export async function runPromote(
 }
 
 export const isUnfinished = (item: PromoteItem): boolean =>
-  (UNFINISHED_RESULTS as readonly string[]).includes(item.result);
+  (UNFINISHED_RESULTS as readonly string[]).includes(item.result) ||
+  (item.result === "not_written" && !SETTLED_NOT_WRITTEN.includes(item.error?.code ?? ""));
 
 /** The warning on a keyed item without a live match that has same-name live items. */
 export const isPossibleRename = (item: PromoteItem): boolean =>
