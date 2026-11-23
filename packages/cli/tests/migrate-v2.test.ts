@@ -612,3 +612,42 @@ describe("ENG-2972 review: --force never takes an existing product out of its gr
     ).toEqual(["ls_variant_365902", "ls_variant_752120", "ls_variant_999001"]);
   });
 });
+
+describe("ENG-2972 review: re-runs keep group members the merchant added", () => {
+  it("leaves a merchant-added member in the group: unchanged on a re-run, kept after the LS members when the group is written", async () => {
+    const creem = fakeCreem(V1_STORE);
+    await migrate(creem);
+    creem.state.products.push(productJson("prod_merchant", { name: "Merchant's own tier" }));
+    creem.state.productGroups[0].products.push({ id: "prod_merchant", external_id: null });
+
+    const again = await migrate(creem);
+    expect(again.report.items.find((i) => i.key === "ls_product_262308")!.action).toBe("unchanged");
+    expect(creem.writes().filter((c) => c.path.startsWith("/v1/product-groups"))).toHaveLength(1);
+
+    const objects = await lsObjects();
+    const variant = structuredClone(objects.variants.find((v) => v.id === "752120")!);
+    variant.id = "999001";
+    objects.variants.push(variant);
+    const plan = fromLemonSqueezy(objects, await readCreemCatalog(creem.client), { now: NOW });
+    const result = await checkMigration(creem.client, plan, {});
+    await executeMigration(creem.client, result, {
+      files: objects.fileDigests,
+      fetch: lemonSqueezyFetch().fetcher,
+      delayMs: 0,
+    });
+    expect(
+      creem
+        .writes()
+        .filter((c) => c.path === "/v1/product-groups")
+        .at(-1)!.body!.products,
+    ).toEqual([
+      { external_id: "ls_variant_365902" },
+      { external_id: "ls_variant_752120" },
+      { external_id: "ls_variant_999001" },
+      { id: "prod_merchant" },
+    ]);
+    expect(creem.state.productGroups[0].products.map((p: { id: string }) => p.id)).toContain(
+      "prod_merchant",
+    );
+  });
+});

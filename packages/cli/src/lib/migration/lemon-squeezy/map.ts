@@ -1182,15 +1182,24 @@ export function fromLemonSqueezy(
       members,
     });
     const existing = groupsByKey.get(key);
-    const products = members.map((externalId) => ({ externalId }));
+    const products: ({ externalId: string } | { id: string })[] = members.map((externalId) => ({
+      externalId,
+    }));
     groupItems.push(item);
     if (existing) {
       item.creem_id = existing.id;
-      const stored = existing.products.map((p) => p.externalId);
+      // The migrator owns the members with a variant key. A member without one
+      // is the merchant's: it stays, after the Lemon Squeezy members, so a
+      // re-run never removes it.
+      const stored = existing.products
+        .map((p) => p.externalId ?? "")
+        .filter((k) => LS_VARIANT_KEY.test(k));
+      const merchants = existing.products.filter((p) => !LS_VARIANT_KEY.test(p.externalId ?? ""));
       if (stored.length === members.length && stored.every((k, i) => k === members[i])) {
         item.action = "unchanged";
         continue;
       }
+      products.push(...merchants.map((p) => ({ id: p.id })));
       // `products` is the complete ordered list; the merchant's name stays.
       item.action = "update";
       item.changes.push("products");

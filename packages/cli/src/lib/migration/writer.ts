@@ -586,10 +586,14 @@ export async function executeMigration(
         }
         case "upsert_product_group": {
           const body = request.request.createProductGroupRequestEntity;
-          const keys = (body.products ?? []).map((p) => ("externalId" in p ? p.externalId : ""));
-          const written = keys.filter((key) => productIds.has(key));
-          const missing = keys.filter((key) => !productIds.has(key));
-          if (written.length < 2) {
+          // A member by id is the merchant's own, kept as it is.
+          const kept = (body.products ?? []).filter(
+            (p) => !("externalId" in p) || productIds.has(p.externalId),
+          );
+          const missing = (body.products ?? []).flatMap((p) =>
+            "externalId" in p && !productIds.has(p.externalId) ? [p.externalId] : [],
+          );
+          if (kept.length < 2) {
             fail(item, {
               code: "dependency_failed",
               message: `Fewer than two of the group's products were written (${missing.join(", ")} not), so the group was not written.`,
@@ -603,7 +607,7 @@ export async function executeMigration(
               code: "product_not_written",
               message: `Left out of the group because they were not written: ${missing.join(", ")}. Re-run to add them.`,
             });
-            body.products = written.map((externalId) => ({ externalId }));
+            body.products = kept;
           }
           break;
         }
