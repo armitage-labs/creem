@@ -136,6 +136,34 @@ describe("ENG-2972: every catalog write is a keyed upsert", () => {
   });
 });
 
+describe("ENG-2972: a run that another run raced ahead of", () => {
+  it("takes the Creem id of a product the check finds already there, so a discount it writes keeps that product", async () => {
+    const creem = fakeCreem();
+    const objects = await lsObjects();
+    const stale = fromLemonSqueezy(objects, await readCreemCatalog(creem.client), { now: NOW });
+    // The other run wrote the products only, then stopped.
+    await migrate(creem);
+    creem.state.discounts = [];
+    const checked = await checkMigration(creem.client, stale, {});
+    const product = checked.report.items.find((i) => i.key === "ls_variant_752120")!;
+    expect(product).toMatchObject({ action: "unchanged", status: null });
+    expect(product.creem_id).toBe(
+      creem.state.products.find((p) => p.external_id === "ls_variant_752120")!.id,
+    );
+    const report = await executeMigration(creem.client, checked, {
+      files: objects.fileDigests,
+      fetch: lemonSqueezyFetch().fetcher,
+      delayMs: 0,
+    });
+    const discount = report.items.find((i) => i.key === "ls_discount_930001")!;
+    expect(discount.warnings.map((w) => w.code)).not.toContain("product_not_written");
+    expect(
+      creem.state.discounts.find((d) => d.external_id === "ls_discount_930001")!
+        .applies_to_products,
+    ).toHaveLength(7);
+  });
+});
+
 describe("ENG-2972: every request dry-runs first", () => {
   it("validates, then dry-runs every write right before it, and nothing is written before the check", async () => {
     const creem = fakeCreem();

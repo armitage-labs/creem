@@ -251,10 +251,15 @@ export async function checkMigration(
   };
   const record = (
     item: MigrationItem,
-    result: string,
+    answer: { id?: unknown; result: string },
     warnings: { code: string; path?: string | null; key?: string | null }[],
     partial: boolean,
   ) => {
+    const { result } = answer;
+    // An object that exists already (another run wrote it) has a real id; the id
+    // of one a dry run would create is never stored.
+    if (result !== "created" && !item.creem_id && typeof answer.id === "string")
+      item.creem_id = answer.id;
     const entry = results.get(item) ?? { results: [], partial: false };
     entry.results.push(result);
     entry.partial ||= partial;
@@ -311,7 +316,7 @@ export async function checkMigration(
         );
       record(
         item,
-        String(writeResult.result),
+        { id: answer.response?.id, result: String(writeResult.result) },
         Array.isArray(writeResult.warnings) ? writeResult.warnings : [],
         batch[index].partial,
       );
@@ -384,7 +389,12 @@ export async function checkMigration(
     try {
       const answer = await send(client, request, true);
       assertDryRun(request, answer);
-      record(item, answer.writeResult.result, answer.writeResult.warnings, false);
+      record(
+        item,
+        { id: answer.id, result: answer.writeResult.result },
+        answer.writeResult.warnings,
+        false,
+      );
     } catch (error) {
       if (error instanceof DryRunIgnoredError) throw error;
       refuse(item, migrationError(error, secrets, item.key));
