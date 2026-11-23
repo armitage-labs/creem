@@ -405,7 +405,10 @@
           {
             "group": "Catalog",
             "icon": "list-check",
-            "pages": ["api-reference/endpoint/validate-catalog"]
+            "pages": [
+              "api-reference/endpoint/validate-catalog",
+              "api-reference/endpoint/promote-catalog"
+            ]
           },
           {
             "group": "Files",
