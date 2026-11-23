@@ -39,12 +39,22 @@ export const MIGRATION_EXIT_CODES = {
    * knows the run would stop; exit 4 takes priority.
    */
   adoptionPending: 7,
+  /**
+   * Creem's check refused at least one item (`POST /v1/catalog/validate`, or the
+   * dry run of a product group or discount), so nothing was written; the item
+   * carries Creem's error. A preview exits 8 too. `--force` writes the other
+   * items and leaves the refused ones out (exit 6 then).
+   */
+  validationFailed: 8,
 } as const;
 
 export type MigrationItemKind = "product" | "product_group" | "discount" | "file";
 /** What the plan does with an item. */
 export type MigrationAction = "create" | "update" | "unchanged" | "skip";
-/** `pending` until the run sends the item's requests; `null` for items without requests. */
+/**
+ * `pending` until the run sends the item's requests; `null` for items without
+ * requests. Before the run, `failed` means Creem's check refused the item.
+ */
 export type MigrationItemStatus = "pending" | "done" | "failed" | null;
 
 export interface MigrationIssue {
@@ -119,7 +129,10 @@ export interface MigrationReport {
     store_name: string;
     currency: string;
   };
-  /** `plan`: computed, not run; `dry_run`: `--dry-run`; `run`: requests were sent. */
+  /**
+   * `plan`: computed and checked with Creem's dry run, not run; `dry_run`: the
+   * same for `--dry-run`; `run`: requests were sent.
+   */
   mode: "plan" | "dry_run" | "run";
   summary: MigrationSummary;
   items: MigrationItem[];
@@ -161,7 +174,9 @@ export function migrationExitCode(report: MigrationReport): number {
   if (report.mode !== "run" && report.proposals.some((p) => p.decision === "pending"))
     return MIGRATION_EXIT_CODES.adoptionPending;
   if (report.items.some((item) => item.status === "failed"))
-    return MIGRATION_EXIT_CODES.itemsFailed;
+    return report.mode === "run"
+      ? MIGRATION_EXIT_CODES.itemsFailed
+      : MIGRATION_EXIT_CODES.validationFailed;
   return MIGRATION_EXIT_CODES.ok;
 }
 

@@ -1,0 +1,274 @@
+{
+  "products": [
+    {
+      "id": "prod_2",
+      "mode": "test",
+      "object": "product",
+      "name": "Pro Armitage subsription - top",
+      "description": "Complete analytics platform",
+      "price": 1400,
+      "currency": "EUR",
+      "billing_type": "recurring",
+      "billing_period": "every-year",
+      "recurring_interval": null,
+      "recurring_interval_count": null,
+      "trial_period_days": null,
+      "trial_price": null,
+      "status": "active",
+      "tax_mode": "inclusive",
+      "tax_category": "saas",
+      "abandoned_cart_recovery_enabled": false,
+      "external_id": "ls_variant_365902",
+      "metadata": null,
+      "features": [],
+      "created_at": "2026-11-19T12:00:00.000Z",
+      "updated_at": "2026-11-19T12:00:00.000Z"
+    },
+    {
+      "id": "prod_3",
+      "mode": "test",
+      "object": "product",
+      "name": "Pro Armitage subsription - basec",
+      "description": "Complete analytics platform",
+      "price": 400,
+      "currency": "EUR",
+      "billing_type": "recurring",
+      "billing_period": "every-month",
+      "recurring_interval": null,
+      "recurring_interval_count": null,
+      "trial_period_days": null,
+      "trial_price": null,
+      "status": "active",
+      "tax_mode": "inclusive",
+      "tax_category": "saas",
+      "abandoned_cart_recovery_enabled": false,
+      "external_id": "ls_variant_752120",
+      "metadata": null,
+      "features": [],
+      "created_at": "2026-11-19T12:00:00.000Z",
+      "updated_at": "2026-11-19T12:00:00.000Z"
+    },
+    {
+      "id": "prod_4",
+      "mode": "test",
+      "object": "product",
+      "name": "Icon Pack",
+      "description": "200 icons & a Figma file.",
+      "price": 0,
+      "currency": "EUR",
+      "billing_type": "onetime",
+      "billing_period": "once",
+      "recurring_interval": null,
+      "recurring_interval_count": null,
+      "trial_period_days": null,
+      "trial_price": null,
+      "status": "active",
+      "tax_mode": "inclusive",
+      "tax_category": "saas",
+      "abandoned_cart_recovery_enabled": false,
+      "external_id": "ls_variant_910001",
+      "metadata": {
+        "ls_file_920001_sha256": "1ujQATv+P0W1sTS2rKEJHUnwRqZ5GZXqmmFjx41ZKfI=",
+        "ls_file_920001_file_id": "file_1"
+      },
+      "features": [
+        {
+          "id": "feat_5",
+          "type": "file",
+          "description": "icons.zip",
+          "external_id": "ls_file_920001",
+          "file": {
+            "files": [
+              {
+                "id": "file_1",
+                "file_name": "icons.zip",
+                "type": "application/zip",
+                "size": 24,
+                "sha256": "1ujQATv+P0W1sTS2rKEJHUnwRqZ5GZXqmmFjx41ZKfI="
+              }
+            ]
+          }
+        }
+      ],
+      "created_at": "2026-11-19T12:00:00.000Z",
+      "updated_at": "2026-11-19T12:00:00.000Z"
+    },
+    {
+      "id": "prod_6",
+      "mode": "test",
+      "object": "product",
+      "name": "Tip Jar",
+      "description": "Pay what you want.",
+      "price": 300,
+      "currency": "EUR",
+      "billing_type": "onetime",
+      "billing_period": "once",
+      "recurring_interval": null,
+      "recurring_interval_count": null,
+      "trial_period_days": null,
+      "trial_price": null,
+      "status": "active",
+      "tax_mode": "inclusive",
+      "tax_category": "saas",
+      "abandoned_cart_recovery_enabled": false,
+      "external_id": "ls_variant_910003",
+      "metadata": {
+        "ls_pwyw_suggested_price": 900
+      },
+      "features": [],
+      "created_at": "2026-11-19T12:00:00.000Z",
+      "updated_at": "2026-11-19T12:00:00.000Z"
+    },
+    {
+      "id": "prod_7",
+      "mode": "test",
+      "object": "product",
+      "name": "Supporter",
+      "description": "Monthly support.",
+      "price": 500,
+      "currency": "EUR",
+      "billing_type": "recurring",
+      "billing_period": "every-month",
+      "recurring_interval": null,
+      "recurring_interval_count": null,
+      "trial_period_days": null,
+      "trial_price": null,
+      "status": "active",
+      "tax_mode": "inclusive",
+      "tax_category": "saas",
+      "abandoned_cart_recovery_enabled": false,
+      "external_id": "ls_variant_910004",
+      "metadata": null,
+      "features": [],
+      "created_at": "2026-11-19T12:00:00.000Z",
+      "updated_at": "2026-11-19T12:00:00.000Z"
+    },
+    {
+      "id": "prod_8",
+      "mode": "test",
+      "object": "product",
+      "name": "Weekly Digest",
+      "description": "One email a week.",
+      "price": 300,
+      "currency": "EUR",
+      "billing_type": "recurring",
+      "billing_period": "custom",
+      "recurring_interval": "week",
+      "recurring_interval_count": 1,
+      "trial_period_days": 7,
+      "trial_price": null,
+      "status": "active",
+      "tax_mode": "inclusive",
+      "tax_category": "saas",
+      "abandoned_cart_recovery_enabled": false,
+      "external_id": "ls_variant_910006",
+      "metadata": null,
+      "features": [],
+      "created_at": "2026-11-19T12:00:00.000Z",
+      "updated_at": "2026-11-19T12:00:00.000Z"
+    },
+    {
+      "id": "prod_9",
+      "mode": "test",
+      "object": "product",
+      "name": "Desktop App",
+      "description": "The desktop app with a license key.",
+      "price": 4900,
+      "currency": "EUR",
+      "billing_type": "onetime",
+      "billing_period": "once",
+      "recurring_interval": null,
+      "recurring_interval_count": null,
+      "trial_period_days": null,
+      "trial_price": null,
+      "status": "active",
+      "tax_mode": "inclusive",
+      "tax_category": "digital-goods-service",
+      "abandoned_cart_recovery_enabled": false,
+      "external_id": "ls_variant_910007",
+      "metadata": null,
+      "features": [
+        {
+          "id": "feat_10",
+          "type": "licenseKey",
+          "description": "License key",
+          "external_id": "ls_license_key",
+          "license_key": {
+            "activation_limit": 3,
+            "expiry": {
+              "interval": "year",
+              "interval_count": 1
+            }
+          }
+        }
+      ],
+      "created_at": "2026-11-19T12:00:00.000Z",
+      "updated_at": "2026-11-19T12:00:00.000Z"
+    }
+  ],
+  "productGroups": [],
+  "discounts": [
+    {
+      "id": "disc_11",
+      "mode": "test",
+      "object": "discount",
+      "status": "active",
+      "name": "Launch",
+      "code": "LAUNCH20",
+      "type": "percentage",
+      "percentage": 20,
+      "duration": "repeating",
+      "duration_in_months": 3,
+      "applies_to_products": ["prod_2", "prod_3", "prod_4", "prod_6", "prod_7", "prod_8", "prod_9"],
+      "redeem_count": 0,
+      "external_id": "ls_discount_930001"
+    },
+    {
+      "id": "disc_12",
+      "mode": "test",
+      "object": "discount",
+      "status": "active",
+      "name": "App five off",
+      "code": "APPFIVE",
+      "type": "fixed",
+      "amount": 500,
+      "currency": "EUR",
+      "expiry_date": "2027-03-01T00:00:00.000Z",
+      "max_redemptions": 100,
+      "duration": "once",
+      "applies_to_products": ["prod_9"],
+      "redeem_count": 0,
+      "external_id": "ls_discount_930002"
+    }
+  ],
+  "files": [
+    {
+      "id": "file_1",
+      "object": "file",
+      "purpose": "product_file",
+      "filename": "icons.zip",
+      "content_type": "application/zip",
+      "size": 24,
+      "sha256": "1ujQATv+P0W1sTS2rKEJHUnwRqZ5GZXqmmFjx41ZKfI=",
+      "created_at": "2026-11-19T12:00:00.000Z"
+    }
+  ],
+  "uploads": [
+    {
+      "id": "file_1",
+      "upload_url": "https://uploads.creem.test/",
+      "upload_fields": {
+        "key": "store/sto_1/icons.zip",
+        "Content-Type": "application/zip"
+      },
+      "expires_at": "2026-11-19T13:00:00.000Z",
+      "request": {
+        "purpose": "product_file",
+        "filename": "icons.zip",
+        "content_type": "application/zip",
+        "size": 24,
+        "sha256": "1ujQATv+P0W1sTS2rKEJHUnwRqZ5GZXqmmFjx41ZKfI="
+      }
+    }
+  ]
+}

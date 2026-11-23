@@ -124,7 +124,7 @@ This works with Claude Code, Codex, Cursor or any coding agent that can read web
 
 ## With the Creem CLI
 
-For your catalog, the [Creem CLI](/code/cli) copies products, discount codes, license key settings and files in one command. It reads your Lemon Squeezy store and the Creem store you're logged in to, prints a plan of what it creates, updates and skips, and writes only after you confirm. Your Lemon Squeezy API key stays on your machine.
+For your catalog, the [Creem CLI](/code/cli) copies products, product groups, discount codes, license key settings and files in one command. It reads your Lemon Squeezy store and the Creem store you're logged in to, has Creem check the plan with a dry run, prints what it creates, updates and skips, and writes only after you confirm. Your Lemon Squeezy API key stays on your machine.
 
 ```bash
 brew tap armitage-labs/creem
@@ -138,15 +138,20 @@ creem migrate lemon-squeezy
 | --------------------- | ----------------------------------------------------------------------------- |
 | `--ls-api-key <key>`  | Your Lemon Squeezy API key                                                    |
 | `--ls-store-id <id>`  | The Lemon Squeezy store to read                                               |
-| `--dry-run`           | Prints the plan and writes nothing                                            |
+| `--dry-run`           | Has Creem check the plan with a dry run, prints it and writes nothing         |
 | `--yes`               | Writes without asking. Required when no terminal is attached                  |
 | `--adopt [answers]`   | Answers adoption proposals (below)                                            |
+| `--force`             | Writes even when Creem's check refuses items, and leaves those items out      |
 | `--exclude-discounts` | Copies everything except discount codes                                       |
 | `--json`              | Prints the plan as a JSON report. With `--yes`, runs it and prints the result |
 
 ### Running it again
 
-Every object the CLI writes carries a key in `external_id`: `ls_variant_<id>` for products and `ls_discount_<id>` for discounts. A second run finds them by that key, updates what changed in Lemon Squeezy and leaves the rest alone, so a run that stopped halfway, or a run in test mode followed by one with a live key, is safe to repeat. When nothing changed, the plan lists every item as unchanged and nothing is written.
+Every object the CLI writes carries a key in `external_id`: `ls_variant_<id>` for products, `ls_product_<id>` for product groups and `ls_discount_<id>` for discounts. Each one is written with Creem's keyed upsert, which creates the object when its key is new and otherwise changes only the fields the CLI sends, so a run that stopped halfway, a run in test mode followed by one with a live key, or two runs at the same time never create an object twice. When nothing changed, the plan lists every item as unchanged and nothing is written. A store migrated by an earlier version of the CLI is found the same way; the only new writes are its product groups, which that version left to you.
+
+### Creem checks the plan first
+
+Before the first write, Creem checks the whole plan without writing anything: the products together in one validation, so a rule that spans products is checked too, and each product group and discount with a dry run. The plan shows what Creem would do with each item, and an item Creem refuses carries Creem's error and a hint. When Creem refuses an item, nothing is written and the command exits with `8`; fix what the error says and run it again, or pass `--force` to write everything else and leave the refused items out. During the run, every write runs as a dry run once more right before it, with the IDs of the files and products the run just wrote. `--dry-run` is this check alone. Files have no dry run: they are uploaded during the run only.
 
 A Creem product without a key that has the same name as a variant, ignoring case and spacing, or a discount with the same code, is proposed for adoption. The plan shows how each candidate differs, for example its price or currency, and never picks one for you. In a terminal the CLI asks about each candidate: yes gives it the key, no to all of them creates a new product. Without a terminal, answer with `--adopt ls_variant_123=prod_abc` to adopt that product, `--adopt ls_variant_123=new` to create a new one, or `--adopt` alone to adopt every proposal that has exactly one candidate. `--adopt ls_variant_123=prod_abc` also adopts a product without a key whose name differs, for example one you renamed. `--yes` never answers a proposal: while one is unanswered, the run writes nothing and exits with `7`, and so do `--dry-run` and `--json` without `--yes`, so a script knows the run would stop. An answer the CLI can't apply, for a key the plan doesn't have, a product that already has a key, or a product another answer already adopts, stops the command with exit code `2` before it asks or writes anything.
 
@@ -162,20 +167,20 @@ It skips, with the reason in the plan: free subscriptions, usage-based and tiere
 
 A Creem product that carries a variant's key but isn't migrated any more, because the variant was deleted or is now a draft, stays as it is and is listed with an `orphaned` warning. Archive it in Creem if it shouldn't sell. The same goes for an active Creem discount whose Lemon Squeezy code was deleted, or is now a draft, expired or used up: buyers can still redeem it, so expire or delete it in Creem if they shouldn't. The CLI never removes products, features, files or products from a migrated discount. When Lemon Squeezy no longer applies a discount to a migrated product, the CLI can't tell that from a product you added in Creem, so the product stays on the discount with a `discount_product_kept` warning; remove it in Creem if the discount shouldn't apply.
 
-The plan also lists the product groups to create: one per Lemon Squeezy product with two or more subscription variants, so customers can switch between them. The API can't create product groups yet, so create those in the dashboard. Customers, subscriptions, orders and issued license keys aren't migrated; the [technical guide](/getting-started/migrate/lemon-squeezy/technical-guide) covers them.
+The CLI also creates a product group for each Lemon Squeezy product with two or more subscription variants, so customers can switch between them, and keeps its products in the Lemon Squeezy order on a re-run. If you already made that group in the dashboard, Creem refuses the new one because its products are taken, and the plan names the command that gives your group the key instead: `creem product-groups update <group id> --external-id ls_product_<id>`. Customers, subscriptions, orders and issued license keys aren't migrated; the [technical guide](/getting-started/migrate/lemon-squeezy/technical-guide) covers them.
 
 <Warning>
   Each run, dry runs included, downloads every published file once to compare it with the copy in
   Creem. Lemon Squeezy allows 10 downloads of a file per day from one IP address.
 </Warning>
 
-With `--json`, the report lists every item with its action, its Creem ID, and the reason or error. The exit code is `0` when every item went through, `2` for invalid options, an `--adopt` answer that can't be applied, or a missing API key, `4` when part of the Lemon Squeezy store couldn't be read, `6` when the run finished with failed items, and `7` when an adoption proposal is unanswered, also for `--dry-run` and a `--json` plan. Nothing is written with `2`, `4` or `7`. Fix what the report names and run the command again.
+With `--json`, the report lists every item with its action, its Creem ID, and the reason or error. The exit code is `0` when every item went through, `1` when Creem answered a dry run as a real write (the CLI stops there), `2` for invalid options, an `--adopt` answer that can't be applied, or a missing API key, `4` when part of the Lemon Squeezy store couldn't be read, `6` when the run finished with failed items, `7` when an adoption proposal is unanswered, and `8` when Creem's check refused an item; `7` and `8` also for `--dry-run` and a `--json` plan. Nothing is written with `2`, `4`, `7` or `8`. Fix what the report names and run the command again.
 
 ## What moves
 
-| Moves to Creem                                                                                                                                                                                                                                                                                                   | Doesn't move yet                                                                                          |
-| ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | --------------------------------------------------------------------------------------------------------- |
-| Products and prices, discount codes, license key settings and file downloads, with the CLI or the Creem team. Customers, with the Creem team or your own import; the CLI doesn't copy customers. You point webhooks and checkout links at Creem, and set product groups and affiliates up again in the dashboard | Active subscriptions and saved cards, existing license keys, order history and affiliate referral history |
+| Moves to Creem                                                                                                                                                                                                                                                                                                              | Doesn't move yet                                                                                          |
+| --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | --------------------------------------------------------------------------------------------------------- |
+| Products and prices, discount codes, license key settings and file downloads, with the CLI or the Creem team. Customers, with the Creem team or your own import; the CLI doesn't copy customers. Product groups, with the CLI. You point webhooks and checkout links at Creem, and set affiliates up again in the dashboard | Active subscriptions and saved cards, existing license keys, order history and affiliate referral history |
 
 **Existing subscribers** move one at a time: each one checks out once on Creem, close to their Lemon Squeezy renewal date, so nobody pays twice. A direct import that keeps their renewal date is in development. See [Move existing subscribers](/getting-started/migrate/lemon-squeezy/technical-guide#6-move-existing-subscribers).
 

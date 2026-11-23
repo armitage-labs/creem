@@ -12,7 +12,7 @@
     }
   },
   {
-    "type": "create_product",
+    "type": "upsert_product",
     "key": "ls_variant_365902",
     "request": {
       "createProductRequestEntity": {
@@ -28,7 +28,7 @@
     }
   },
   {
-    "type": "create_product",
+    "type": "upsert_product",
     "key": "ls_variant_752120",
     "request": {
       "createProductRequestEntity": {
@@ -44,7 +44,7 @@
     }
   },
   {
-    "type": "create_product",
+    "type": "upsert_product",
     "key": "ls_variant_910001",
     "request": {
       "createProductRequestEntity": {
@@ -77,7 +77,7 @@
     }
   },
   {
-    "type": "create_product",
+    "type": "upsert_product",
     "key": "ls_variant_910003",
     "request": {
       "createProductRequestEntity": {
@@ -97,7 +97,7 @@
     }
   },
   {
-    "type": "create_product",
+    "type": "upsert_product",
     "key": "ls_variant_910004",
     "request": {
       "createProductRequestEntity": {
@@ -113,7 +113,7 @@
     }
   },
   {
-    "type": "create_product",
+    "type": "upsert_product",
     "key": "ls_variant_910006",
     "request": {
       "createProductRequestEntity": {
@@ -132,7 +132,7 @@
     }
   },
   {
-    "type": "create_product",
+    "type": "upsert_product",
     "key": "ls_variant_910007",
     "request": {
       "createProductRequestEntity": {
@@ -161,7 +161,25 @@
     }
   },
   {
-    "type": "create_discount",
+    "type": "upsert_product_group",
+    "key": "ls_product_262308",
+    "request": {
+      "createProductGroupRequestEntity": {
+        "externalId": "ls_product_262308",
+        "name": "Pro Armitage subsription",
+        "products": [
+          {
+            "externalId": "ls_variant_365902"
+          },
+          {
+            "externalId": "ls_variant_752120"
+          }
+        ]
+      }
+    }
+  },
+  {
+    "type": "upsert_discount",
     "key": "ls_discount_930001",
     "request": {
       "createDiscountRequestEntity": {
@@ -185,7 +203,7 @@
     }
   },
   {
-    "type": "create_discount",
+    "type": "upsert_discount",
     "key": "ls_discount_930002",
     "request": {
       "createDiscountRequestEntity": {

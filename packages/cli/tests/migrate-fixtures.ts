@@ -149,6 +149,7 @@ export function productJson(id: string, fields: Json = {}): Json {
     status: "active",
     tax_mode: "inclusive",
     tax_category: "saas",
+    abandoned_cart_recovery_enabled: false,
     external_id: null,
     metadata: null,
     features: [],
@@ -297,6 +298,7 @@ const PRODUCT_FIELDS = [
   "recurring_interval_count",
   "trial_period_days",
   "status",
+  "abandoned_cart_recovery_enabled",
   "external_id",
   "metadata",
   "features",
@@ -335,6 +337,7 @@ function writeProduct(
       recurring_interval_count: b.recurring_interval_count ?? null,
       trial_period_days: b.trial_period_days ?? null,
       tax_category: b.tax_category ?? "saas",
+      abandoned_cart_recovery_enabled: b.abandoned_cart_recovery_enabled ?? false,
       external_id: b.external_id ?? null,
       metadata: b.metadata ?? null,
     });
@@ -596,8 +599,20 @@ export function fakeCreem(initial: Partial<CreemState> = {}, options: FakeCreemO
     ...structuredClone(initial),
   };
   const calls: CreemCall[] = [];
-  let counter = 0;
+  // New ids continue after the ids of the initial store, so they never collide.
+  let counter = Math.max(
+    0,
+    ...Object.values(state)
+      .flat()
+      .map((o: Json) => Number(/_(\d+)$/.exec(String(o.id))?.[1] ?? 0)),
+  );
   const failures: { match: (call: CreemCall) => boolean; status: number; body: Json }[] = [];
+  /**
+   * Server rules the fake doesn't model (a guard, a conflict): a write of the
+   * product, discount or group with this key answers this error, also in a dry
+   * run and in validate.
+   */
+  const refusals = new Map<string, ApiError>();
 
   type Writer = typeof writeProduct;
   /**
@@ -621,6 +636,12 @@ export function fakeCreem(initial: Partial<CreemState> = {}, options: FakeCreemO
       warnings: [],
     };
     try {
+      const objects = [...on.products, ...on.discounts, ...on.productGroups];
+      const key =
+        body.external_id ??
+        objects.find((o) => target.id !== undefined && o.id === target.id)?.external_id;
+      const refusal = key !== undefined ? refusals.get(key) : undefined;
+      if (refusal) throw refusal;
       const answer = writer(context, body, target);
       const { result, changes, warnings } = answer.body;
       const object = answer.body.product ?? answer.body.discount ?? answer.body.group;
@@ -820,6 +841,10 @@ export function fakeCreem(initial: Partial<CreemState> = {}, options: FakeCreemO
     validations: () => calls.filter((c) => c.path === "/v1/catalog/validate"),
     fail(match: (call: CreemCall) => boolean, status: number, body: Json) {
       failures.push({ match, status, body });
+    },
+    /** Every write of the object with this key answers this error (see `refusals`). */
+    refuse(key: string, status: number, code: string, message = code) {
+      refusals.set(key, apiError(status, code, message));
     },
   };
 }

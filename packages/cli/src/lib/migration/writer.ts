@@ -1,6 +1,12 @@
-import { createHash } from "node:crypto";
 import { openAsBlob } from "node:fs";
 import type { Creem } from "creem";
+import {
+  createProductRequestEntityToJSON,
+  updateProductRequestEntityToJSON,
+  type CatalogValidateItemRequestDto,
+  type CatalogValidationItemResponseDto,
+} from "creem/models/components";
+import * as errors from "creem/models/errors";
 import { describeError } from "../errors";
 import { isRecord } from "../operation";
 import {
@@ -9,7 +15,17 @@ import {
   type MigrationPlan,
   type MigrationRequest,
 } from "./lemon-squeezy/map";
-import { summarize, type MigrationError, type MigrationItem, type MigrationReport } from "./report";
+import {
+  summarize,
+  type MigrationAction,
+  type MigrationError,
+  type MigrationItem,
+  type MigrationReport,
+} from "./report";
+
+export interface CheckOptions {
+  secrets?: string[];
+}
 
 export interface ExecuteOptions {
   /** Local copies of the files to upload, by source file id. */
@@ -19,8 +35,29 @@ export interface ExecuteOptions {
   /** Pause between writes, against rate limits. */
   delayMs?: number;
   secrets?: string[];
+  /**
+   * Run although Creem's check refused items: they stay failed and are not
+   * sent, and the items that depend on them shrink or fail with the reason.
+   */
+  force?: boolean;
   onProgress?: (item: MigrationItem, request: MigrationRequest) => void;
 }
+
+/**
+ * Creem answered a dry run without `write_result.dry_run: true`: a server that
+ * doesn't know the dry run may have written the object. Nothing after it is sent.
+ */
+export class DryRunIgnoredError extends Error {
+  constructor(what: string, answered: unknown) {
+    super(
+      `Creem answered the dry run of ${what} with write_result.dry_run ${JSON.stringify(answered ?? null)} instead of true, so it may have written it. The migration stopped; nothing after it was sent.`,
+    );
+    this.name = "DryRunIgnoredError";
+  }
+}
+
+/** The most items `POST /v1/catalog/validate` takes in one call. */
+export const VALIDATE_BATCH_SIZE = 100;
 
 const HINTS: Record<string, string> = {
   discount_redeemed:
@@ -31,34 +68,351 @@ const HINTS: Record<string, string> = {
   license_keys_issued: "Customers hold keys of this license-key feature; it cannot be removed.",
 };
 
-function migrationError(error: unknown, secrets: string[]): MigrationError {
-  const { result } = describeError(error, secrets);
-  const details = isRecord(result.error.details) ? result.error.details : {};
+/** The hint for an error, with what the error's `details` name. */
+function hintFor(code: string, details: Record<string, unknown>, key: string): string | null {
+  if (code === "product_already_grouped") {
+    const group = typeof details.product_group_id === "string" ? details.product_group_id : null;
+    const product =
+      typeof details.product_id === "string" ? `Product ${details.product_id}` : "A product";
+    return group
+      ? `${product} is in product group ${group}. If that is the group to migrate (one you made in the dashboard), give it the key: creem product-groups update ${group} --external-id ${key}. Otherwise take the product out of it.`
+      : `${product} is in another product group; take it out of that group, or give that group the key ${key}.`;
+  }
+  return HINTS[code] ?? null;
+}
+
+/** A Creem error body (the endpoint's envelope) as a report error. */
+function errorOf(
+  body: unknown,
+  status: number | null,
+  key: string,
+  fallback: string,
+): MigrationError {
+  const api = isRecord(body) ? body : {};
   const code =
-    typeof details.code === "string"
-      ? details.code
-      : typeof details.error === "string"
-        ? details.error
-        : result.error.type;
-  return {
-    code,
-    message: result.error.message,
-    status: result.error.status,
-    hint: HINTS[code] ?? null,
+    typeof api.code === "string" ? api.code : typeof api.error === "string" ? api.error : fallback;
+  const message = Array.isArray(api.message)
+    ? api.message.join("; ")
+    : typeof api.message === "string"
+      ? api.message
+      : code;
+  const details = isRecord(api.details) ? api.details : {};
+  return { code, message, status, hint: hintFor(code, details, key) };
+}
+
+function migrationError(error: unknown, secrets: string[], key: string): MigrationError {
+  const { result } = describeError(error, secrets);
+  const body = isRecord(result.error.details) ? result.error.details : {};
+  const migration = errorOf(body, result.error.status, key, result.error.type);
+  return { ...migration, message: result.error.message };
+}
+
+const ACTIONS: Record<string, MigrationAction> = {
+  created: "create",
+  updated: "update",
+  unchanged: "unchanged",
+};
+/** `write_result.result` as a report action; a value this CLI doesn't know is an update. */
+const actionOf = (result: string): MigrationAction => ACTIONS[result] ?? "update";
+
+interface WriteAnswer {
+  id: string;
+  writeResult: {
+    result: string;
+    dryRun: boolean;
+    warnings: { code: string; path?: string | undefined; key?: string | undefined }[];
   };
 }
 
-/** A short, stable idempotency key: retries of the same create never duplicate it. */
-function idempotencyKey(key: string, body: unknown): string {
-  const digest = createHash("sha256").update(JSON.stringify(body)).digest("hex").slice(0, 16);
-  return `creem-migrate:${key}:${digest}`;
+/** Sends one catalog write of a plan, or its dry run. */
+async function send(
+  client: Creem,
+  request: Exclude<MigrationRequest, { type: "upload_file" }>,
+  dryRun: boolean,
+): Promise<WriteAnswer> {
+  switch (request.type) {
+    case "adopt_product":
+    case "update_product":
+      return client.products.update({ ...request.request, dryRun });
+    case "upsert_product":
+      return client.products.create({ ...request.request, dryRun });
+    case "upsert_product_group":
+      return client.productGroups.create({ ...request.request, dryRun });
+    case "adopt_discount":
+    case "update_discount":
+      return client.discounts.update({ ...request.request, dryRun });
+    case "upsert_discount":
+      return client.discounts.create({ ...request.request, dryRun });
+  }
+}
+
+const describeRequest = (request: MigrationRequest) => `${request.type} ${request.key}`;
+
+function assertDryRun(request: MigrationRequest, answer: { writeResult?: { dryRun?: unknown } }) {
+  if (answer.writeResult?.dryRun !== true)
+    throw new DryRunIgnoredError(describeRequest(request), answer.writeResult?.dryRun);
+}
+
+function itemFinder(report: MigrationReport) {
+  const items = new Map(report.items.map((item) => [`${item.kind}:${item.key}`, item]));
+  return (request: MigrationRequest): MigrationItem => {
+    const kind =
+      request.type === "upload_file"
+        ? "file"
+        : request.type === "upsert_product_group"
+          ? "product_group"
+          : request.type.endsWith("discount")
+            ? "discount"
+            : "product";
+    const item = items.get(`${kind}:${request.key}`);
+    if (!item) throw new Error(`No report item for ${kind} ${request.key}`);
+    return item;
+  };
+}
+
+/** A product body without the file entries that wait for an upload of this run. */
+function withoutPendingUploads<T extends { features?: unknown[] | null | undefined }>(
+  body: T,
+): { body: T; partial: boolean } {
+  const copy = structuredClone(body);
+  let partial = false;
+  if (!copy.features) return { body: copy, partial };
+  copy.features = copy.features.filter((feature) => {
+    if (!isRecord(feature) || feature.type !== "file" || !isRecord(feature.file)) return true;
+    const files = Array.isArray(feature.file.files) ? feature.file.files : [];
+    const kept = files.filter(
+      (file) =>
+        !(isRecord(file) && typeof file.id === "string" && file.id.startsWith(UPLOAD_PREFIX)),
+    );
+    if (kept.length === files.length) return true;
+    partial = true;
+    feature.file.files = kept;
+    return kept.length > 0;
+  });
+  if (!copy.features.length) delete copy.features;
+  return { body: copy, partial };
+}
+
+/** A product write as an item of `POST /v1/catalog/validate`, in the API's own shape. */
+function validateItem(
+  request: Extract<
+    MigrationRequest,
+    { type: "adopt_product" | "update_product" | "upsert_product" }
+  >,
+): { item: CatalogValidateItemRequestDto; partial: boolean } {
+  if (request.type === "upsert_product") {
+    const { body, partial } = withoutPendingUploads(request.request.createProductRequestEntity);
+    return {
+      item: { kind: "product", body: JSON.parse(createProductRequestEntityToJSON(body)) },
+      partial,
+    };
+  }
+  const { body, partial } = withoutPendingUploads(request.request.updateProductRequestEntity);
+  return {
+    item: {
+      kind: "product",
+      id: request.request.id,
+      body: JSON.parse(updateProductRequestEntityToJSON(body)),
+    },
+    partial,
+  };
 }
 
 /**
- * Sends a plan's requests in order and returns the report with each item's
- * outcome. A failed item never stops the run: the items that depend on it
- * (a product on its file upload, a discount on its products) fail or shrink
- * with the reason, and everything else goes on.
+ * Checks a plan with Creem before anything is written (ENG-2972):
+ *
+ * - the product writes go to `POST /v1/catalog/validate` together, in batches
+ *   of 100, so they are checked against each other in one rolled-back run;
+ * - each product group and discount write runs with `?dry_run=true` (validate
+ *   takes neither kind yet). A product the run creates is named by its key, which
+ *   a dry run reports as a `reference_not_found` warning, not an error.
+ *
+ * Every answer must carry `write_result.dry_run: true`, or the check throws
+ * `DryRunIgnoredError` and nothing more is sent. An item Creem refuses is
+ * `failed` with Creem's error. An item whose every write Creem answers
+ * `unchanged` is `unchanged` and is not sent. File uploads are not checked:
+ * there is no dry run for them, and a file entry waiting for one is left out
+ * of the checked body.
+ */
+export async function checkMigration(
+  client: Creem,
+  plan: MigrationPlan,
+  options: CheckOptions = {},
+): Promise<MigrationPlan> {
+  const report: MigrationReport = structuredClone(plan.report);
+  const secrets = options.secrets ?? [];
+  const itemOf = itemFinder(report);
+  /** Keys this run creates: a dry run names them as unknown references. */
+  const created = new Set(report.items.filter((i) => i.action === "create").map((i) => i.key));
+  const results = new Map<MigrationItem, { results: string[]; partial: boolean }>();
+  const refuse = (item: MigrationItem, error: MigrationError) => {
+    item.status = "failed";
+    item.error = error;
+  };
+  const record = (
+    item: MigrationItem,
+    result: string,
+    warnings: { code: string; path?: string | null; key?: string | null }[],
+    partial: boolean,
+  ) => {
+    const entry = results.get(item) ?? { results: [], partial: false };
+    entry.results.push(result);
+    entry.partial ||= partial;
+    results.set(item, entry);
+    for (const warning of warnings) {
+      if (warning.code === "reference_not_found" && warning.key && created.has(warning.key))
+        continue;
+      const where = [warning.path, warning.key].filter(Boolean).join(" ");
+      const issue = {
+        code: warning.code,
+        message: `Creem's dry run warns ${warning.code}${where ? ` (${where})` : ""}.`,
+      };
+      if (!item.warnings.some((w) => w.code === issue.code && w.message === issue.message))
+        item.warnings.push(issue);
+    }
+  };
+
+  const products = plan.requests.filter(
+    (
+      r,
+    ): r is Extract<
+      MigrationRequest,
+      { type: "adopt_product" | "update_product" | "upsert_product" }
+    > => r.type === "adopt_product" || r.type === "update_product" || r.type === "upsert_product",
+  );
+  for (let start = 0; start < products.length; start += VALIDATE_BATCH_SIZE) {
+    const chunk = products.slice(start, start + VALIDATE_BATCH_SIZE);
+    const batch = chunk.map(validateItem);
+    let answers: CatalogValidationItemResponseDto[];
+    try {
+      answers = (await client.catalog.validate({ items: batch.map((b) => b.item) })).items;
+    } catch (error) {
+      if (!(error instanceof errors.CatalogValidationResponseDto)) throw error;
+      answers = error.items;
+    }
+    if (answers.length !== chunk.length)
+      throw new Error(
+        `POST /v1/catalog/validate answered ${answers.length} items for the ${chunk.length} it was sent; nothing was written.`,
+      );
+    answers.forEach((answer, index) => {
+      const request = chunk[index];
+      const item = itemOf(request);
+      if (!answer.valid) {
+        refuse(item, errorOf(answer.error, answer.status, item.key, "validation_failed"));
+        return;
+      }
+      const writeResult = isRecord(answer.response?.write_result)
+        ? answer.response.write_result
+        : {};
+      if (writeResult.dry_run !== true)
+        throw new DryRunIgnoredError(
+          `${describeRequest(request)} in POST /v1/catalog/validate`,
+          writeResult.dry_run,
+        );
+      record(
+        item,
+        String(writeResult.result),
+        Array.isArray(writeResult.warnings) ? writeResult.warnings : [],
+        batch[index].partial,
+      );
+    });
+  }
+
+  // A refused product's uploads would attach to nothing, so they are not sent.
+  for (const request of products) {
+    const item = itemOf(request);
+    if (item.status !== "failed" || request.type === "adopt_product") continue;
+    const body =
+      request.type === "upsert_product"
+        ? request.request.createProductRequestEntity
+        : request.request.updateProductRequestEntity;
+    for (const entry of body.features ?? []) {
+      const feature: unknown = entry;
+      if (!isRecord(feature) || feature.type !== "file" || !isRecord(feature.file)) continue;
+      for (const file of Array.isArray(feature.file.files) ? feature.file.files : []) {
+        if (!isRecord(file) || typeof file.id !== "string" || !file.id.startsWith(UPLOAD_PREFIX))
+          continue;
+        const fileItem = report.items.find(
+          (i) => i.kind === "file" && i.key === String(file.id).slice(UPLOAD_PREFIX.length),
+        );
+        if (!fileItem) continue;
+        fileItem.action = "skip";
+        fileItem.status = null;
+        fileItem.reason = {
+          code: "product_refused",
+          message: `Not uploaded: Creem's check refused its product ${item.key}.`,
+        };
+      }
+    }
+  }
+
+  // Product ids the preview can name: stored ones; the others go by key.
+  const storedIds = new Map(
+    report.items
+      .filter((i) => i.kind === "product" && i.creem_id && i.action !== "create")
+      .map((i) => [i.key, i.creem_id as string]),
+  );
+  for (const original of plan.requests) {
+    if (
+      original.type !== "adopt_discount" &&
+      original.type !== "update_discount" &&
+      original.type !== "upsert_discount" &&
+      original.type !== "upsert_product_group"
+    )
+      continue;
+    const request = structuredClone(original);
+    const item = itemOf(request);
+    if (item.status === "failed") continue;
+    if (request.type !== "upsert_product_group") {
+      const body =
+        request.type === "upsert_discount"
+          ? request.request.createDiscountRequestEntity
+          : request.request.updateDiscountRequestEntity;
+      const keys = body.appliesToProductExternalIds ?? [];
+      if (keys.length) {
+        body.appliesToProducts = [
+          ...(body.appliesToProducts ?? []),
+          ...keys.filter((k) => storedIds.has(k)).map((k) => storedIds.get(k)!),
+        ];
+        // Keys of products this run creates; the API takes 100, enough for a preview.
+        body.appliesToProductExternalIds = keys
+          .filter((k) => !storedIds.has(k))
+          .slice(0, VALIDATE_BATCH_SIZE);
+        if (!body.appliesToProductExternalIds.length) delete body.appliesToProductExternalIds;
+      }
+    }
+    try {
+      const answer = await send(client, request, true);
+      assertDryRun(request, answer);
+      record(item, answer.writeResult.result, answer.writeResult.warnings, false);
+    } catch (error) {
+      if (error instanceof DryRunIgnoredError) throw error;
+      refuse(item, migrationError(error, secrets, item.key));
+    }
+  }
+
+  for (const [item, { results: answers, partial }] of results) {
+    if (item.status === "failed" || partial || item.adopted_from) continue;
+    if (answers.every((r) => r === "unchanged")) {
+      item.action = "unchanged";
+      item.status = null;
+      item.changes = [];
+    } else if (answers.includes("created")) item.action = "create";
+    else item.action = "update";
+  }
+  report.summary = summarize(report.items);
+  return { ...plan, report };
+}
+
+/**
+ * Sends a checked plan's requests in order and returns the report with each
+ * item's outcome. Each catalog write runs with `?dry_run=true` right before it
+ * is sent, so the exact request, with the ids of this run's uploads and
+ * products, is checked first; a refused dry run fails the item without writing
+ * it. A failed item never stops the run: the items that depend on it (a product
+ * on its file upload, a group or discount on its products) fail or shrink with
+ * the reason, and everything else goes on. A dry run answered as a real write
+ * stops the run (`DryRunIgnoredError`).
  */
 export async function executeMigration(
   client: Creem,
@@ -69,30 +423,27 @@ export async function executeMigration(
     throw new Error(
       `The plan has adoption answers that can't be applied: ${plan.answerErrors.map((e) => e.message).join(" ")}`,
     );
+  const refused = plan.report.items.filter((i) => i.status === "failed");
+  if (refused.length && !options.force)
+    throw new Error(
+      `Creem's check refused ${refused.length} item(s) (${refused.map((i) => i.key).join(", ")}), so nothing was written. Fix them, or force the run to write the rest.`,
+    );
   const report: MigrationReport = structuredClone(plan.report);
   report.mode = "run";
   const secrets = options.secrets ?? [];
-  const send = options.fetch ?? ((...args) => fetch(...args));
-  const items = new Map(report.items.map((item) => [`${item.kind}:${item.key}`, item]));
-  const itemOf = (request: MigrationRequest): MigrationItem => {
-    const kind =
-      request.type === "upload_file"
-        ? "file"
-        : request.type.endsWith("discount")
-          ? "discount"
-          : "product";
-    const item = items.get(`${kind}:${request.key}`);
-    if (!item) throw new Error(`No report item for ${kind} ${request.key}`);
-    return item;
-  };
+  const sendBytes = options.fetch ?? ((...args) => fetch(...args));
+  const itemOf = itemFinder(report);
   const uploaded = new Map<string, string>();
-  const failedKeys = new Set<string>();
+  const failedKeys = new Set<string>(refused.map((i) => i.key));
   // Products that exist in Creem after the run, by key: matched ones, and those written now.
   const productIds = new Map(
     report.items
       .filter(
         (i) =>
-          i.kind === "product" && i.creem_id && (i.action === "unchanged" || i.action === "update"),
+          i.kind === "product" &&
+          i.creem_id &&
+          i.status !== "failed" &&
+          (i.action === "unchanged" || i.action === "update"),
       )
       .map((i) => [i.key, i.creem_id as string]),
   );
@@ -114,7 +465,7 @@ export async function executeMigration(
    * that did resolve is still recorded, so a failed write reports it unattached.
    */
   const resolveFiles = (
-    body: { features?: unknown[]; metadata?: Record<string, unknown> | null },
+    body: { features?: unknown[] | null; metadata?: Record<string, unknown> | null },
     item: MigrationItem,
   ): boolean => {
     const keys: string[] = [];
@@ -173,79 +524,81 @@ export async function executeMigration(
   for (const original of plan.requests) {
     const request = structuredClone(original);
     const item = itemOf(request);
-    if (item.status === "failed") continue;
+    if (item.status !== "pending") continue;
     options.onProgress?.(item, request);
     try {
+      if (request.type === "upload_file") {
+        const local = options.files[request.lsFileId];
+        if (!local) throw new Error(`No local copy of file ${request.lsFileId}`);
+        const slot = await client.files.createUpload(request.request);
+        const form = new FormData();
+        for (const [name, value] of Object.entries(slot.uploadFields)) form.append(name, value);
+        const blob = await openAsBlob(local.path, { type: request.request.contentType });
+        form.append("file", blob, request.request.filename);
+        const response = await sendBytes(slot.uploadUrl, { method: "POST", body: form });
+        if (!response.ok)
+          throw Object.assign(
+            new Error(`Upload to storage failed (${response.status}): ${await response.text()}`),
+            { statusCode: response.status },
+          );
+        const file = await client.files.confirmUpload({ id: slot.id });
+        uploaded.set(request.key, file.id);
+        item.creem_id = file.id;
+        await pause();
+        continue;
+      }
+      // Resolve what this run's earlier writes decided.
       switch (request.type) {
-        case "adopt_product": {
-          await client.products.update(request.request);
-          break;
-        }
-        case "adopt_discount": {
-          await client.discounts.update(request.request);
-          break;
-        }
-        case "upload_file": {
-          const local = options.files[request.lsFileId];
-          if (!local) throw new Error(`No local copy of file ${request.lsFileId}`);
-          const slot = await client.files.createUpload(request.request);
-          const form = new FormData();
-          for (const [name, value] of Object.entries(slot.uploadFields)) form.append(name, value);
-          const blob = await openAsBlob(local.path, { type: request.request.contentType });
-          form.append("file", blob, request.request.filename);
-          const response = await send(slot.uploadUrl, { method: "POST", body: form });
-          if (!response.ok)
-            throw Object.assign(
-              new Error(`Upload to storage failed (${response.status}): ${await response.text()}`),
-              { statusCode: response.status },
-            );
-          const file = await client.files.confirmUpload({ id: slot.id });
-          uploaded.set(request.key, file.id);
-          item.creem_id = file.id;
-          break;
-        }
-        case "create_product": {
-          const body = request.request.createProductRequestEntity;
-          if (!resolveFiles(body, item)) continue;
-          const product = await client.products.create({
-            createProductRequestEntity: body,
-            idempotencyKey: idempotencyKey(request.key, body),
-          });
-          item.creem_id = product.id;
-          productIds.set(request.key, product.id);
+        case "upsert_product": {
+          if (!resolveFiles(request.request.createProductRequestEntity, item)) continue;
           break;
         }
         case "update_product": {
-          const body = request.request.updateProductRequestEntity;
-          if (!resolveFiles(body, item)) continue;
-          await client.products.update(request.request);
+          if (!resolveFiles(request.request.updateProductRequestEntity, item)) continue;
           break;
         }
-        case "create_discount": {
-          const body = request.request.createDiscountRequestEntity;
-          body.appliesToProducts = [
-            ...(body.appliesToProducts ?? []),
-            ...resolveProducts(body.appliesToProductExternalIds, item),
-          ];
-          delete body.appliesToProductExternalIds;
-          if (!body.appliesToProducts.length) {
+        case "upsert_product_group": {
+          const body = request.request.createProductGroupRequestEntity;
+          const keys = (body.products ?? []).map((p) => ("externalId" in p ? p.externalId : ""));
+          const written = keys.filter((key) => productIds.has(key));
+          const missing = keys.filter((key) => !productIds.has(key));
+          if (written.length < 2) {
             fail(item, {
               code: "dependency_failed",
-              message: "None of the discount's products was written.",
+              message: `Fewer than two of the group's products were written (${missing.join(", ")} not), so the group was not written.`,
               status: null,
               hint: "Re-run the migration to retry.",
             });
             continue;
           }
-          const discount = await client.discounts.create({
-            createDiscountRequestEntity: body,
-            idempotencyKey: idempotencyKey(request.key, body),
-          });
-          item.creem_id = discount.id;
+          if (missing.length) {
+            item.warnings.push({
+              code: "product_not_written",
+              message: `Left out of the group because they were not written: ${missing.join(", ")}. Re-run to add them.`,
+            });
+            body.products = written.map((externalId) => ({ externalId }));
+          }
           break;
         }
-        case "update_discount": {
-          const body = request.request.updateDiscountRequestEntity;
+        case "upsert_discount": {
+          const body = request.request.createDiscountRequestEntity;
+          if (item.action === "create") {
+            body.appliesToProducts = [
+              ...(body.appliesToProducts ?? []),
+              ...resolveProducts(body.appliesToProductExternalIds, item),
+            ];
+            delete body.appliesToProductExternalIds;
+            if (!body.appliesToProducts.length) {
+              fail(item, {
+                code: "dependency_failed",
+                message: "None of the discount's products was written.",
+                status: null,
+                hint: "Re-run the migration to retry.",
+              });
+              continue;
+            }
+            break;
+          }
           if (body.appliesToProductExternalIds) {
             const ids = resolveProducts(body.appliesToProductExternalIds, item);
             delete body.appliesToProductExternalIds;
@@ -253,14 +606,41 @@ export async function executeMigration(
             if (ids.length) body.appliesToProducts = [...(body.appliesToProducts ?? []), ...ids];
             else delete body.appliesToProducts;
           }
-          if (!Object.keys(body).length) break;
-          await client.discounts.update(request.request);
+          // Only the key is left: nothing to change.
+          if (Object.keys(body).length === 1) continue;
+          break;
+        }
+        case "update_discount": {
+          const body = request.request.updateDiscountRequestEntity;
+          if (body.appliesToProductExternalIds) {
+            const ids = resolveProducts(body.appliesToProductExternalIds, item);
+            delete body.appliesToProductExternalIds;
+            if (ids.length) body.appliesToProducts = [...(body.appliesToProducts ?? []), ...ids];
+            else delete body.appliesToProducts;
+          }
+          if (!Object.keys(body).length) continue;
           break;
         }
       }
+      // The exact request runs as a dry run first; a refusal fails the item unwritten.
+      assertDryRun(request, await send(client, request, true));
+      const answer = await send(client, request, false);
+      switch (request.type) {
+        case "upsert_product":
+          item.creem_id = answer.id;
+          productIds.set(request.key, answer.id);
+          if (!item.adopted_from) item.action = actionOf(answer.writeResult.result);
+          break;
+        case "upsert_product_group":
+        case "upsert_discount":
+          item.creem_id = answer.id;
+          if (!item.adopted_from) item.action = actionOf(answer.writeResult.result);
+          break;
+      }
     } catch (error) {
-      fail(item, migrationError(error, secrets));
-      // Without its key, an adopted product isn't the migrated one in a discount.
+      if (error instanceof DryRunIgnoredError) throw error;
+      fail(item, migrationError(error, secrets, item.key));
+      // Without its key, an adopted product isn't the migrated one in a discount or group.
       if (request.type === "adopt_product") productIds.delete(request.key);
       if (request.type === "adopt_product" || request.type === "adopt_discount")
         item.error!.message = `Adopting ${request.request.id} failed: ${item.error!.message}`;
@@ -270,10 +650,11 @@ export async function executeMigration(
   // The API can't look files up, so a confirmed upload whose product write
   // failed is uploaded again by the next run. The unattached copy is never
   // delivered to buyers; it is reported so the duplicate is known.
+  const fileItems = new Map(report.items.filter((i) => i.kind === "file").map((i) => [i.key, i]));
   for (const [productKey, fileKeys] of uploadsOf) {
     if (!failedKeys.has(productKey)) continue;
     for (const key of fileKeys) {
-      const fileItem = items.get(`file:${key}`);
+      const fileItem = fileItems.get(key);
       if (!fileItem) continue;
       fileItem.warnings.push({
         code: "file_not_attached",

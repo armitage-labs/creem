@@ -8,6 +8,7 @@ import type {
 } from "creem/models/components";
 import type {
   CreateDiscountRequest,
+  CreateProductGroupRequest,
   CreateProductRequest,
   UpdateDiscountRequest,
   UpdateProductRequest,
@@ -49,6 +50,14 @@ type CreateFeature = NonNullable<CreateProductBody["features"]>[number];
  * One write of a migration, typed from the generated SDK. The writer sends
  * them in order. A file feature that waits for an upload in the same run
  * names its file `upload:<file key>`; the writer swaps in the uploaded id.
+ *
+ * Products, product groups and discounts are written with the keyed upserts
+ * (`upsert_*`, a `POST` with `external_id`), which create the object when the
+ * key is new and change only the fields sent otherwise, so two runs can't
+ * create it twice. Two writes are addressed by id instead: adopting an object
+ * without a key (`adopt_*`, a `PATCH` that gives it its key), and an update that
+ * clears a field (`update_*`: a trial, a redemption limit or an expiry date),
+ * because the upsert's body takes no `null`.
  */
 export type MigrationRequest =
   | { type: "adopt_product"; key: string; request: UpdateProductRequest }
@@ -59,10 +68,16 @@ export type MigrationRequest =
       lsFileId: string;
       request: CreateFileUploadRequestEntity;
     }
-  | { type: "create_product"; key: string; request: CreateProductRequest }
+  | { type: "upsert_product"; key: string; request: CreateProductRequest }
   | { type: "update_product"; key: string; request: UpdateProductRequest }
-  | { type: "create_discount"; key: string; request: CreateDiscountRequest }
+  | { type: "upsert_product_group"; key: string; request: CreateProductGroupRequest }
+  | { type: "upsert_discount"; key: string; request: CreateDiscountRequest }
   | { type: "update_discount"; key: string; request: UpdateDiscountRequest };
+
+/** An update body that sets a field to `null`, which only a `PATCH` can send. */
+function clearsField(body: Record<string, unknown>): boolean {
+  return Object.values(body).some((value) => value === null);
+}
 
 export interface MigrationPlan {
   requests: MigrationRequest[];
@@ -550,6 +565,7 @@ export function fromLemonSqueezy(
   const adoptRequests: MigrationRequest[] = [];
   const uploadRequests: MigrationRequest[] = [];
   const productRequests: MigrationRequest[] = [];
+  const groupRequests: MigrationRequest[] = [];
   const discountRequests: MigrationRequest[] = [];
   const productItems: MigrationItem[] = [];
   const groupItems: MigrationItem[] = [];
@@ -934,7 +950,7 @@ export function fromLemonSqueezy(
       item.action = "create";
       item.status = "pending";
       productRequests.push({
-        type: "create_product",
+        type: "upsert_product",
         key: spec.key,
         request: { createProductRequestEntity: body },
       });
@@ -1088,11 +1104,24 @@ export function fromLemonSqueezy(
       item.changes.push(...changes);
       item.action = "update";
       item.status = "pending";
-      productRequests.push({
-        type: "update_product",
-        key: spec.key,
-        request: { id: existing.id, updateProductRequestEntity: update },
-      });
+      productRequests.push(
+        clearsField(update)
+          ? {
+              type: "update_product",
+              key: spec.key,
+              request: { id: existing.id, updateProductRequestEntity: update },
+            }
+          : {
+              type: "upsert_product",
+              key: spec.key,
+              request: {
+                createProductRequestEntity: {
+                  ...(update as UpsertProductBody),
+                  externalId: spec.key,
+                },
+              },
+            },
+      );
     } else if (item.adopted_from) {
       item.action = "update";
       item.status = "pending";
@@ -1136,7 +1165,6 @@ export function fromLemonSqueezy(
       (s) => s.product === product && s.recurring && plannedKeys.has(s.key),
     );
     const members = memberSpecs.map((s) => s.key);
-    const memberNames = memberSpecs.map((s) => `"${s.create.name}"`).join(", ");
     if (members.length < 2) continue;
     const key = productKey(product.id);
     const item = newItem({
@@ -1148,22 +1176,29 @@ export function fromLemonSqueezy(
       members,
     });
     const existing = groupsByKey.get(key);
+    const products = members.map((externalId) => ({ externalId }));
+    groupItems.push(item);
     if (existing) {
       item.creem_id = existing.id;
       const stored = existing.products.map((p) => p.externalId);
-      if (stored.length === members.length && stored.every((k, i) => k === members[i]))
+      if (stored.length === members.length && stored.every((k, i) => k === members[i])) {
         item.action = "unchanged";
-      else
-        item.reason = issue(
-          "product_group_write_unavailable",
-          `The public API cannot update product groups yet; set its products to ${memberNames} in the dashboard.`,
-        );
-    } else
-      item.reason = issue(
-        "product_group_write_unavailable",
-        `The public API cannot create product groups yet; create "${product.attributes.name}" with ${memberNames} in the dashboard.`,
-      );
-    groupItems.push(item);
+        continue;
+      }
+      // `products` is the complete ordered list; the merchant's name stays.
+      item.action = "update";
+      item.changes.push("products");
+    } else item.action = "create";
+    item.status = "pending";
+    groupRequests.push({
+      type: "upsert_product_group",
+      key,
+      request: {
+        createProductGroupRequestEntity: existing
+          ? { externalId: key, products }
+          : { externalId: key, name: product.attributes.name, products },
+      },
+    });
   }
 
   // ---- discounts
@@ -1247,7 +1282,7 @@ export function fromLemonSqueezy(
       item.action = "create";
       item.status = "pending";
       discountRequests.push({
-        type: "create_discount",
+        type: "upsert_discount",
         key: item.key,
         request: { createDiscountRequestEntity: planned },
       });
@@ -1353,11 +1388,24 @@ export function fromLemonSqueezy(
       item.changes.push(...changes);
       item.action = "update";
       item.status = "pending";
-      discountRequests.push({
-        type: "update_discount",
-        key: item.key,
-        request: { id: existing.id, updateDiscountRequestEntity: update },
-      });
+      discountRequests.push(
+        clearsField(update)
+          ? {
+              type: "update_discount",
+              key: item.key,
+              request: { id: existing.id, updateDiscountRequestEntity: update },
+            }
+          : {
+              type: "upsert_discount",
+              key: item.key,
+              request: {
+                createDiscountRequestEntity: {
+                  ...(update as UpsertDiscountBody),
+                  externalId: item.key,
+                },
+              },
+            },
+      );
     } else if (item.adopted_from) {
       item.action = "update";
       item.status = "pending";
@@ -1419,7 +1467,13 @@ export function fromLemonSqueezy(
     fetch_failures: [],
   };
   return {
-    requests: [...adoptRequests, ...uploadRequests, ...productRequests, ...discountRequests],
+    requests: [
+      ...adoptRequests,
+      ...uploadRequests,
+      ...productRequests,
+      ...groupRequests,
+      ...discountRequests,
+    ],
     report,
     answerErrors,
   };

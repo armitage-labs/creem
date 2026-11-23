@@ -12,7 +12,7 @@ import {
   lemonSqueezyFetch,
   productJson,
 } from "./migrate-fixtures";
-import { executeMigration } from "../src/lib/migration/writer";
+import { checkMigration, executeMigration } from "../src/lib/migration/writer";
 import {
   LemonSqueezyClient,
   fetchLemonSqueezyCatalog,
@@ -55,18 +55,22 @@ async function migrate(
   creem: ReturnType<typeof fakeCreem>,
   options: Parameters<typeof lsObjects>[0] & {
     adoption?: Record<string, string>;
+    force?: boolean;
   } = {},
 ) {
   const { objects } = await lsObjects(options);
   const catalog = await readCreemCatalog(creem.client);
   const plan = fromLemonSqueezy(objects, catalog, { now: NOW, adoption: options.adoption });
+  // As the command does: Creem checks the plan before the first write.
+  const checked = plan.answerErrors.length ? plan : await checkMigration(creem.client, plan);
   const slot = lemonSqueezyFetch();
-  const report = await executeMigration(creem.client, plan, {
+  const report = await executeMigration(creem.client, checked, {
     files: objects.fileDigests,
     fetch: slot.fetcher,
     delayMs: 0,
+    force: options.force,
   });
-  return { plan, report, slotPosts: slot.slotPosts };
+  return { plan, checked, report, slotPosts: slot.slotPosts };
 }
 
 describe("Lemon Squeezy source", () => {
@@ -134,7 +138,7 @@ describe("fromLemonSqueezy against an empty Creem store", () => {
   it("keys products by LS variant id and names them product + variant when a product has several", async () => {
     const p = await plan();
     expect(request(p, "ls_variant_752120")).toEqual({
-      type: "create_product",
+      type: "upsert_product",
       key: "ls_variant_752120",
       request: {
         createProductRequestEntity: {
@@ -240,7 +244,7 @@ describe("fromLemonSqueezy against an empty Creem store", () => {
     const { objects } = await lsObjects();
     const digest = objects.fileDigests["920001"];
     expect(p.requests.map((r) => r.type).indexOf("upload_file")).toBeLessThan(
-      p.requests.map((r) => r.type).indexOf("create_product"),
+      p.requests.map((r) => r.type).indexOf("upsert_product"),
     );
     expect(p.requests.find((r) => r.type === "upload_file")).toEqual({
       type: "upload_file",
@@ -269,13 +273,25 @@ describe("fromLemonSqueezy against an empty Creem store", () => {
     });
   });
 
-  it("plans a product group for a product with two migrated recurring variants, which v1 cannot write", async () => {
+  it("plans a product group for a product with two migrated recurring variants, written with the keyed upsert", async () => {
     const p = await plan();
     expect(item(p, "ls_product_262308")).toMatchObject({
       kind: "product_group",
-      action: "skip",
-      reason: { code: "product_group_write_unavailable" },
+      action: "create",
+      status: "pending",
+      reason: null,
       members: ["ls_variant_365902", "ls_variant_752120"],
+    });
+    expect(request(p, "ls_product_262308")).toEqual({
+      type: "upsert_product_group",
+      key: "ls_product_262308",
+      request: {
+        createProductGroupRequestEntity: {
+          externalId: "ls_product_262308",
+          name: "Pro Armitage subsription",
+          products: [{ externalId: "ls_variant_365902" }, { externalId: "ls_variant_752120" }],
+        },
+      },
     });
   });
 
@@ -485,7 +501,7 @@ describe("fromLemonSqueezy edge rules", () => {
     const second = fromLemonSqueezy(objects, await readCreemCatalog(creem.client), { now: NOW });
     expect(second.requests).toEqual([
       expect.objectContaining({
-        type: "create_discount",
+        type: "upsert_discount",
         key: "ls_discount_930001",
         request: {
           createDiscountRequestEntity: expect.objectContaining({
@@ -522,7 +538,7 @@ describe("Creem catalog reader", () => {
 });
 
 describe("executeMigration", () => {
-  it("uploads files, then creates products and discounts, and reports every item done", async () => {
+  it("uploads files, then upserts products, the product group and discounts, and reports every item done", async () => {
     const creem = fakeCreem();
     const { report, slotPosts } = await migrate(creem);
     expect(report.items.find((i) => i.key === "ls_file_920001")!.error).toBeNull();
@@ -530,6 +546,7 @@ describe("executeMigration", () => {
       "POST /v1/files",
       "POST /v1/files/file_1/confirm",
       ...Array(7).fill("POST /v1/products"),
+      "POST /v1/product-groups",
       "POST /v1/discounts",
       "POST /v1/discounts",
     ]);
@@ -573,6 +590,7 @@ describe("executeMigration", () => {
       "discount:unchanged",
       "file:unchanged",
       "product:unchanged",
+      "product_group:unchanged",
     ]);
     expect(report.summary).toMatchObject({ create: 0, update: 0, failed: 0 });
   });
@@ -609,7 +627,7 @@ describe("executeMigration", () => {
     });
   });
 
-  it("PATCHes only what changed in Lemon Squeezy", async () => {
+  it("sends only what changed in Lemon Squeezy, as a keyed upsert", async () => {
     const creem = fakeCreem();
     await migrate(creem);
     const docs = lemonSqueezyDocs();
@@ -620,9 +638,9 @@ describe("executeMigration", () => {
     const { report } = await migrate(creem, { docs });
     expect(creem.writes().slice(before)).toEqual([
       {
-        method: "PATCH",
-        path: expect.stringMatching(/^\/v1\/products\/prod_/),
-        body: { price: 500 },
+        method: "POST",
+        path: "/v1/products",
+        body: { external_id: "ls_variant_752120", price: 500 },
       },
     ]);
     expect(report.items.find((i) => i.key === "ls_variant_752120")).toMatchObject({
@@ -632,7 +650,7 @@ describe("executeMigration", () => {
     });
   });
 
-  it("reports 409 discount_redeemed with a hint and goes on with the run", async () => {
+  it("reports 409 discount_redeemed with a hint before the first write, and a forced run goes on with the rest", async () => {
     const creem = fakeCreem();
     await migrate(creem);
     const launch = creem.state.discounts.find((d) => d.external_id === "ls_discount_930001")!;
@@ -640,7 +658,14 @@ describe("executeMigration", () => {
     const docs = lemonSqueezyDocs();
     docs.discounts.data[0].attributes.amount = 25;
     docs.discounts.data[1].attributes.name = "Five off the app";
-    const { report } = await migrate(creem, { docs });
+    const before = creem.writes().length;
+    await expect(migrate(creem, { docs })).rejects.toThrow(/refused 1 item/);
+    expect(creem.writes()).toHaveLength(before);
+    const { checked, report } = await migrate(creem, { docs, force: true });
+    expect(checked.report.items.find((i) => i.key === "ls_discount_930001")).toMatchObject({
+      status: "failed",
+      error: { code: "discount_redeemed", status: 409 },
+    });
     expect(report.items.find((i) => i.key === "ls_discount_930001")).toMatchObject({
       action: "update",
       status: "failed",
@@ -705,7 +730,13 @@ describe("executeMigration", () => {
     const writes = creem.writes().map((c) => `${c.method} ${c.path}`);
     expect(writes[0]).toBe("PATCH /v1/products/prod_old");
     expect(creem.writes()[0].body).toEqual({ external_id: "ls_variant_910007" });
-    expect(writes.filter((w) => w === "PATCH /v1/products/prod_old")).toHaveLength(2);
+    // Adopting gives it the key; the update is then a keyed upsert.
+    expect(writes.filter((w) => w === "PATCH /v1/products/prod_old")).toHaveLength(1);
+    expect(
+      creem
+        .writes()
+        .find((c) => c.path === "/v1/products" && c.body?.external_id === "ls_variant_910007"),
+    ).toBeDefined();
     expect(creem.state.products.filter((p) => p.name === "Desktop App")).toHaveLength(1);
     expect(adopted.report.items.find((i) => i.key === "ls_variant_910007")).toMatchObject({
       action: "update",
@@ -780,7 +811,7 @@ describe("executeMigration", () => {
     await migrate(creem, { files: { [FILE_ID]: Buffer.from("v2") } });
     const patch = creem
       .writes()
-      .findLast((c) => c.method === "PATCH" && c.path === `/v1/products/${iconPack.id}`)!;
+      .findLast((c) => c.path === "/v1/products" && c.body?.external_id === "ls_variant_910001")!;
     expect(patch.body!.features).toEqual([
       expect.objectContaining({ external_id: "ls_file_920001" }),
       { id: "feat_own", type: "file", description: "Bonus", file: { files: [{ id: "file_own" }] } },
@@ -827,7 +858,7 @@ describe("creem migrate lemon-squeezy", () => {
       mode: "plan",
       source: { provider: "lemon_squeezy", store_id: LS_STORE_ID, currency: "EUR" },
     });
-    expect(report.summary).toMatchObject({ create: 10, skip: 5 });
+    expect(report.summary).toMatchObject({ create: 11, skip: 4 });
     expect(creem.writes()).toEqual([]);
     expect(ls.slotPosts).toEqual([]);
     expect(consoleLog).not.toHaveBeenCalled();
@@ -871,7 +902,7 @@ describe("creem migrate lemon-squeezy", () => {
     expect(first.code, first.stderr).toBe(0);
     const report = JSON.parse(first.stdout);
     expect(report.mode).toBe("run");
-    expect(report.summary).toMatchObject({ create: 10, failed: 0 });
+    expect(report.summary).toMatchObject({ create: 11, failed: 0 });
     expect(creem.state.products).toHaveLength(7);
     const writes = creem.writes().length;
     const second = await h.run(["--json", ...base, "--yes"]);
@@ -888,7 +919,8 @@ describe("creem migrate lemon-squeezy", () => {
 
   it("exits 6 when an item fails, after running the rest", async () => {
     const { creem, h } = setup();
-    creem.fail((c) => c.method === "POST" && c.body?.code === "APPFIVE", 400, {
+    // Only the real write fails: its dry run, in the check and right before it, passes.
+    creem.fail((c) => c.method === "POST" && !c.dryRun && c.body?.code === "APPFIVE", 400, {
       code: "reference_not_found",
       message: "nope",
     });
@@ -1051,7 +1083,7 @@ describe("adoption proposals (candidate rule)", () => {
     expect(chosen.report.proposals[0]).toMatchObject({ decision: "accepted", creem_id: "prod_b" });
 
     const fresh = await planFrom(undefined, catalog, { "adopt:ls_variant_910007": "new" });
-    expect(fresh.requests.find((r) => r.key === "ls_variant_910007")!.type).toBe("create_product");
+    expect(fresh.requests.find((r) => r.key === "ls_variant_910007")!.type).toBe("upsert_product");
   });
 
   it("rejects an answer that names no Creem product, and skips the item", async () => {
@@ -1518,13 +1550,12 @@ describe("creem migrate lemon-squeezy, review round 2", () => {
     expect(canceled.creem.writes()).toEqual([]);
   });
 
-  it("says what is still open instead of 'already matches' when nothing is left to write", async () => {
+  it("says Creem already matches once the product groups are written too", async () => {
     const { h } = setup();
     await h.run(["--json", ...base, "--yes"]);
     const r = await h.run([...base, "--yes"]);
     expect(r.code, r.stderr).toBe(0);
-    expect(r.stdout).not.toContain("already matches");
-    expect(r.stdout).toMatch(/product group/i);
+    expect(r.stdout).toContain("already matches");
   });
 });
 
@@ -1922,7 +1953,10 @@ describe("limited discounts carry over only the redemptions LS has left", () => 
       changes: ["max_redemptions"],
     });
     const update = p.requests.find((r) => r.key === "ls_discount_930002")!.request as any;
-    expect(update.updateDiscountRequestEntity).toEqual({ maxRedemptions: 5 });
+    expect(update.createDiscountRequestEntity).toEqual({
+      maxRedemptions: 5,
+      externalId: "ls_discount_930002",
+    });
   });
 
   it("refuses to write when a used count can't be read", async () => {
@@ -2039,7 +2073,10 @@ describe("redemption counts: review round", () => {
     docs.redemptions["930002"] = 95;
     const p = await plan();
     const update = p.requests.find((r) => r.key === "ls_discount_930002")!.request as any;
-    expect(update.updateDiscountRequestEntity).toEqual({ maxRedemptions: 5 });
+    expect(update.createDiscountRequestEntity).toEqual({
+      maxRedemptions: 5,
+      externalId: "ls_discount_930002",
+    });
   });
 
   it("adopts an unkeyed Creem code with Creem redemptions and sets the cap to what LS left", async () => {
@@ -2057,9 +2094,9 @@ describe("redemption counts: review round", () => {
       adoption: { "adopt:ls_discount_930002": stored.id },
     });
     const update = p.requests.find(
-      (r) => r.key === "ls_discount_930002" && r.type === "update_discount",
+      (r) => r.key === "ls_discount_930002" && r.type === "upsert_discount",
     )!.request as any;
-    expect(update.updateDiscountRequestEntity.maxRedemptions).toBe(10);
+    expect(update.createDiscountRequestEntity.maxRedemptions).toBe(10);
   });
 });
 
@@ -2074,9 +2111,12 @@ describe("redemption counts: review round 2", () => {
     docs.redemptions["930002"] = 95;
     const { plan, report } = await migrate(creem, { docs });
     const update = plan.requests.find(
-      (r) => r.key === "ls_discount_930002" && r.type === "update_discount",
+      (r) => r.key === "ls_discount_930002" && r.type === "upsert_discount",
     )!.request as any;
-    expect(update.updateDiscountRequestEntity).toEqual({ maxRedemptions: 8 });
+    expect(update.createDiscountRequestEntity).toEqual({
+      maxRedemptions: 8,
+      externalId: "ls_discount_930002",
+    });
     expect(findItem({ report }, "ls_discount_930002")).toMatchObject({
       status: "done",
       warnings: expect.arrayContaining([

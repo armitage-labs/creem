@@ -25,7 +25,7 @@ import {
   type MigrationItem,
   type MigrationReport,
 } from "../lib/migration/report";
-import { executeMigration } from "../lib/migration/writer";
+import { DryRunIgnoredError, checkMigration, executeMigration } from "../lib/migration/writer";
 import { addGlobalOptions, outputFormat } from "./resource";
 import { writeResult } from "../utils/results";
 
@@ -72,7 +72,11 @@ function formatReport(report: MigrationReport, environment: string): string[] {
     lines.push("", chalk.bold(KIND_TITLES[kind]));
     for (const item of items) {
       const status =
-        item.status === "failed" ? chalk.red(" FAILED") : item.status === "done" ? " ✓" : "";
+        item.status === "failed"
+          ? chalk.red(report.mode === "run" ? " FAILED" : " REFUSED by Creem")
+          : item.status === "done"
+            ? " ✓"
+            : "";
       const changes = item.action === "update" ? chalk.dim(` (${item.changes.join(", ")})`) : "";
       lines.push(`  ${ACTION_MARKS[item.action]}  ${item.key}  ${item.name}${changes}${status}`);
       if (item.reason) lines.push(chalk.dim(`      ${item.reason.code}: ${item.reason.message}`));
@@ -161,11 +165,15 @@ function createLemonSqueezyCommand(context: CliContext): Command {
   )
     .option("--ls-api-key <key>", "Lemon Squeezy API key (stays on this machine)")
     .option("--ls-store-id <id>", "Lemon Squeezy store ID to migrate from")
-    .option("--dry-run", "Print the plan and write nothing")
+    .option("--dry-run", "Check the plan with Creem's dry run, print it and write nothing")
     .option("--exclude-discounts", "Skip migrating discounts entirely")
     .option(
       "--adopt [answers...]",
       "Answer adoption proposals: <key>=<creem id> adopts that object, <key>=new creates a new one; alone, adopts every proposal with one candidate",
+    )
+    .option(
+      "--force",
+      "Write even when Creem's check refuses items: the refused items are left out and reported failed",
     )
     .action(
       async (
@@ -175,6 +183,7 @@ function createLemonSqueezyCommand(context: CliContext): Command {
           dryRun?: boolean;
           excludeDiscounts?: boolean;
           adopt?: boolean | string[];
+          force?: boolean;
         },
         cmd: Command,
       ) => {
@@ -310,6 +319,27 @@ function createLemonSqueezyCommand(context: CliContext): Command {
           }
           plan.report.fetch_failures = failures;
           const environment = context.environment().toUpperCase();
+          // Creem checks every write before anything is written: validate for the
+          // products, a dry run for each group and discount. An incomplete read is
+          // never written, so it isn't checked.
+          if (!failures.length && !plan.answerErrors.length && plan.requests.length) {
+            print(chalk.dim("Checking the plan with Creem (dry run)…"));
+            try {
+              plan = await checkMigration(client, plan, { secrets: [...context.secrets] });
+            } catch (error) {
+              if (error instanceof DryRunIgnoredError)
+                throw new CliError(
+                  error.message,
+                  MIGRATION_EXIT_CODES.unexpected,
+                  "Check the Creem environment and API version; the migrator needs the dry run (write_result.dry_run).",
+                );
+              throw error;
+            }
+          }
+          const refused = plan.report.items.filter((i) => i.status === "failed");
+          const refusedMessage = `Creem's check refused ${refused.length} item(s) (${refused.map((i) => i.key).join(", ")})`;
+          const FORCE_HINT =
+            "Fix what each refused item's error says and re-run, or pass --force to write the other items.";
           const preview = options.dryRun || (json && !globals.yes);
           if (preview) {
             plan.report.mode = options.dryRun ? "dry_run" : "plan";
@@ -331,6 +361,12 @@ function createLemonSqueezyCommand(context: CliContext): Command {
                 `${pendingCount(plan.report)} adoption proposal(s) are unanswered; a run would write nothing until they are answered.`,
                 MIGRATION_EXIT_CODES.adoptionPending,
                 ADOPT_HINT,
+              );
+            if (exitCode === MIGRATION_EXIT_CODES.validationFailed)
+              throw new CliError(
+                `${refusedMessage}; a run would write nothing.`,
+                MIGRATION_EXIT_CODES.validationFailed,
+                FORCE_HINT,
               );
             return;
           }
@@ -354,22 +390,24 @@ function createLemonSqueezyCommand(context: CliContext): Command {
               ADOPT_HINT,
             );
           }
-          if (!plan.requests.length) {
+          if (refused.length && !options.force) {
+            if (json) writeResult(context, plan.report, "json");
+            throw new CliError(
+              `Nothing was written: ${refusedMessage}.`,
+              MIGRATION_EXIT_CODES.validationFailed,
+              FORCE_HINT,
+            );
+          }
+          if (!plan.report.items.some((i) => i.status === "pending")) {
             plan.report.mode = "run";
             if (json) writeResult(context, plan.report, "json");
-            else {
-              const open = plan.report.items.filter(
-                (i) => i.reason?.code === "product_group_write_unavailable",
+            else print(chalk.green("Creem already matches Lemon Squeezy: nothing to write."));
+            if (refused.length)
+              throw new CliError(
+                `${refusedMessage}; nothing else was left to write.`,
+                MIGRATION_EXIT_CODES.itemsFailed,
+                FORCE_HINT,
               );
-              if (open.length) {
-                print(chalk.green("Nothing to write through the API."));
-                print(
-                  chalk.dim(
-                    `Still to do: set up ${open.length} product group(s) listed above in the Creem dashboard.`,
-                  ),
-                );
-              } else print(chalk.green("Creem already matches Lemon Squeezy: nothing to write."));
-            }
             return;
           }
           let write: boolean;
@@ -382,29 +420,37 @@ function createLemonSqueezyCommand(context: CliContext): Command {
           }
           if (!write) throw new CliError("Migration canceled.");
 
-          print(chalk.bold("Writing…"));
-          const report = await executeMigration(client, plan, {
-            files: objects.fileDigests,
-            delayMs: 100,
-            secrets: [...context.secrets],
-            onProgress: (item, request) =>
-              print(chalk.dim(`  ${request.type.replace("_", " ")} ${item.key}`)),
-          });
+          print(chalk.bold("Writing… (each write runs as a dry run first)"));
+          let report: MigrationReport;
+          try {
+            report = await executeMigration(client, plan, {
+              files: objects.fileDigests,
+              delayMs: 100,
+              secrets: [...context.secrets],
+              force: options.force,
+              onProgress: (item, request) =>
+                print(chalk.dim(`  ${request.type.replace(/_/g, " ")} ${item.key}`)),
+            });
+          } catch (error) {
+            if (error instanceof DryRunIgnoredError)
+              throw new CliError(
+                error.message,
+                MIGRATION_EXIT_CODES.unexpected,
+                "Check the Creem environment and API version, then re-run: written items are found by their key.",
+              );
+            throw error;
+          }
           if (json) writeResult(context, report, "json");
           else {
             print();
             for (const line of formatReport(report, environment)) print(line);
             print();
-            const groups = report.items.filter(
-              (i) =>
-                i.kind === "product_group" && i.reason?.code === "product_group_write_unavailable",
-            );
             print(chalk.dim("Next steps:"));
-            if (groups.length)
-              print(
-                chalk.dim("  • Create the product groups listed above in the Creem dashboard."),
-              );
-            print(chalk.dim("  • Review your products and discounts in the Creem dashboard."));
+            print(
+              chalk.dim(
+                "  • Review your products, product groups and discounts in the Creem dashboard.",
+              ),
+            );
             print(chalk.dim("  • Point your checkout links at Creem."));
           }
           const exitCode = migrationExitCode(report);
@@ -433,12 +479,13 @@ ${chalk.dim("Available migrations:")}
   ${chalk.cyan("creem migrate lemon-squeezy")}    Migrate ${SCOPE} from Lemon Squeezy
 
 ${chalk.dim("Options:")}
-  --dry-run               Print the plan and write nothing
+  --dry-run               Check the plan with Creem's dry run and write nothing
   --ls-api-key <key>      Provide the API key via flag (skips the prompt)
   --ls-store-id <id>      Lemon Squeezy store ID to migrate from
   --json                  Print the migration report as JSON (with --yes, run it)
   --exclude-discounts     Skip migrating discounts entirely
   --adopt [key=id|new]    Answer adoption proposals (alone: adopt every single match)
+  --force                 Write even when Creem's check refuses items (they are left out)
   --yes                   Write without asking
 
 ${chalk.dim("Examples:")}
