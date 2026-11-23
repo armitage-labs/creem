@@ -525,6 +525,8 @@ function requireAnswerable(
 
 async function linkCommand(command: Command, context: CliContext): Promise<void> {
   const opts = command.optsWithGlobals();
+  // --key is a secret elsewhere (a license key); here it's an external_id the merchant reads back.
+  if (typeof opts.key === "string") context.secrets.delete(opts.key);
   const machine = outputFormat(command) !== "table";
   const kind: "product" | "meter" | "feature" = opts.kind;
   const terminal = requireAnswerable(context, machine, opts);
