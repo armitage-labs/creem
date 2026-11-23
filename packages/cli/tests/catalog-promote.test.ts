@@ -316,7 +316,7 @@ describe("creem catalog promote, interactive", () => {
     expect(h.asked[0]).toContain('1. prod_l2 "Team" (no key), differs in price');
     expect(h.asked[1]).toBe("ask: Key for prod_t2 and prod_l2 [prod_t2]");
     expect(h.asked[2]).toMatch(
-      /confirm: Write the key prod_t2 on LIVE prod_l2, then on TEST prod_t2\?/,
+      /confirm: Write the key prod_t2 on LIVE prod_l2 \(no key\), then on TEST prod_t2 \(no key\)\?/,
     );
     expect(h.asked[3]).toMatch(/confirm: Promote to LIVE: 1 updated, 2 unchanged\?/);
     expect(fake.calls.filter((c) => c.method !== "GET").map(describeCall)).toEqual([
@@ -418,7 +418,7 @@ describe("creem catalog promote, interactive", () => {
       /choose: prod_t5 "Starter" has no live match, but live has items with its name/,
     );
     expect(h.asked[1]).toMatch(
-      /confirm: Write the key starter-2 on LIVE prod_l5, then on TEST prod_t5\?/,
+      /confirm: Write the key starter-2 on LIVE prod_l5 \(currently starter\), then on TEST prod_t5 \(currently starter-2\)\?/,
     );
     expect(fake.stores.live.products.filter((p) => p.name === "Starter")).toHaveLength(1);
     expect(fake.stores.live.products.find((p) => p.id === "prod_l5")?.external_id).toBe(
@@ -1164,5 +1164,32 @@ describe("creem catalog promote, interactive: the metadata copy (Q102)", () => {
     expect(fake.writes().map((c) => c.body?.metadata)).toEqual([
       { plan: "pro", stripe_lookup_key: "pro_m" },
     ]);
+  });
+});
+
+describe("creem catalog: the pairing question names each side's current key", () => {
+  it("catalog link shows the key each item has now, so re-keying a paired item is visible", async () => {
+    const initial = store();
+    initial.live.products![1].external_id = "team-live";
+    const fake = fakeCatalog(initial);
+    const h = cli(fake, { isTTY: true, answers: ["team"], confirms: [false] });
+    await h.run(["catalog", "link", "--kind", "product", "--test", "prod_t2", "--live", "prod_l2"]);
+    expect(h.asked[1]).toBe(
+      "confirm: Write the key team on LIVE prod_l2 (currently team-live), then on TEST prod_t2 (no key)?",
+    );
+  });
+
+  it("interactive promote's pick names both sides' keys too", async () => {
+    const fake = fakeCatalog(store());
+    const h = cli(fake, {
+      isTTY: true,
+      choices: [{ action: "pair", liveId: "prod_l2" }],
+      answers: ["team"],
+      confirms: [false, false],
+    });
+    await h.run(["catalog", "promote"]);
+    expect(h.asked[2]).toBe(
+      "confirm: Write the key team on LIVE prod_l2 (no key), then on TEST prod_t2 (no key)?",
+    );
   });
 });

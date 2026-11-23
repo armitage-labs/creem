@@ -28,6 +28,7 @@ import {
   readItem,
   unlinkItem,
   type Clients,
+  type FeatureLink,
   type LinkReport,
   type PairKind,
 } from "../lib/catalog/pairing";
@@ -192,6 +193,42 @@ function printLink(context: CliContext, report: LinkReport): void {
   );
 }
 
+/** One side of a pairing question: `LIVE prod_l2` and the key it has now. */
+interface QuestionSide {
+  label: string;
+  externalId: string | null | undefined;
+}
+const currentKey = (side: QuestionSide) =>
+  side.externalId ? `currently ${side.externalId}` : "no key";
+
+/**
+ * The question before a pairing write. It names the key each item has now,
+ * so re-keying an item that is already paired is visible before it happens.
+ */
+function pairQuestion(key: string, live: QuestionSide | null, test: QuestionSide): string {
+  return live
+    ? `Write the key ${key} on ${live.label} (${currentKey(live)}), then on ${test.label} (${currentKey(test)})?`
+    : `Write the key ${key} on ${test.label} (${currentKey(test)})?`;
+}
+
+/** The question before a feature's pairing write, with each feature's current key. */
+function featureQuestion(link: FeatureLink, key: string): string {
+  const test = {
+    label: `TEST feature ${link.testFeature.id} of ${link.testProduct.id}`,
+    externalId: link.testFeature.externalId,
+  };
+  return link.liveFeature
+    ? pairQuestion(
+        key,
+        {
+          label: `LIVE feature ${link.liveFeature.id} of ${link.liveProduct.id}`,
+          externalId: link.liveFeature.externalId,
+        },
+        test,
+      )
+    : pairQuestion(key, null, test);
+}
+
 type Pick =
   | { action: "pair"; liveId: string }
   | { action: "test-only" }
@@ -223,12 +260,12 @@ async function pickItemKey(session: Session, item: PromoteItem): Promise<boolean
       `Key for ${item.testId} and ${pick.liveId}`,
       candidate?.externalId ?? item.proposedExternalId ?? item.testId,
     );
-    if (
-      !(await context.confirm(
-        `Write the key ${key} on LIVE ${pick.liveId}, then on TEST ${item.testId}?`,
-      ))
-    )
-      return false;
+    const question = pairQuestion(
+      key,
+      { label: `LIVE ${pick.liveId}`, externalId: candidate?.externalId },
+      { label: `TEST ${item.testId}`, externalId: test.externalId },
+    );
+    if (!(await context.confirm(question))) return false;
     printLink(
       context,
       await linkItem(clients, { kind, testId: item.testId, liveId: pick.liveId, key }),
@@ -237,7 +274,11 @@ async function pickItemKey(session: Session, item: PromoteItem): Promise<boolean
   }
   if (pick.action === "test-only") {
     const key = await context.ask(`Key for ${item.testId}`, item.proposedExternalId ?? item.testId);
-    if (!(await context.confirm(`Write the key ${key} on TEST ${item.testId}?`))) return false;
+    const question = pairQuestion(key, null, {
+      label: `TEST ${item.testId}`,
+      externalId: test.externalId,
+    });
+    if (!(await context.confirm(question))) return false;
     printLink(context, await linkItem(clients, { kind, testId: item.testId, key }));
     return true;
   }
@@ -284,9 +325,7 @@ async function pickFeatureKeys(session: Session, item: PromoteItem): Promise<boo
       `Key for ${target}`,
       proposeFeatureKey(link.testFeature, link.liveFeature),
     );
-    const question = link.liveFeature
-      ? `Write the key ${key} on LIVE feature ${link.liveFeature.id} of ${link.liveProduct.id}, then on TEST feature ${feature.testFeatureId} of ${item.testId}?`
-      : `Write the key ${key} on TEST feature ${feature.testFeatureId} of ${item.testId}?`;
+    const question = featureQuestion(link, key);
     if (!(await context.confirm(question))) continue;
     printLink(context, await linkFeature(clients, link, key));
     return true;
@@ -313,12 +352,15 @@ async function pickRename(session: Session, item: PromoteItem): Promise<boolean>
     ],
   );
   if (pick.action !== "pair") return false;
-  if (
-    !(await context.confirm(
-      `Write the key ${key} on LIVE ${pick.liveId}, then on TEST ${item.testId}?`,
-    ))
-  )
-    return false;
+  const question = pairQuestion(
+    key,
+    {
+      label: `LIVE ${pick.liveId}`,
+      externalId: candidates.find((c) => c.liveId === pick.liveId)?.externalId,
+    },
+    { label: `TEST ${item.testId}`, externalId: test.externalId },
+  );
+  if (!(await context.confirm(question))) return false;
   printLink(
     context,
     await linkItem(clients, { kind, testId: item.testId, liveId: pick.liveId, key }),
@@ -565,11 +607,7 @@ async function linkCommand(command: Command, context: CliContext): Promise<void>
         `Key for ${target}`,
         proposeFeatureKey(link.testFeature, link.liveFeature),
       ));
-    await confirm(
-      link.liveFeature
-        ? `Write the key ${key} on LIVE feature ${link.liveFeature.id} of ${link.liveProduct.id}, then on TEST feature ${opts.test} of ${opts.product}?`
-        : `Write the key ${key} on TEST feature ${opts.test} of ${opts.product}?`,
-    );
+    await confirm(featureQuestion(link, key));
     await reportLink(context, machine, () => linkFeature(clients, link, key));
     return;
   }
@@ -582,9 +620,10 @@ async function linkCommand(command: Command, context: CliContext): Promise<void>
       proposeItemKey(live, test.id),
     ));
   await confirm(
-    live
-      ? `Write the key ${key} on LIVE ${live.id}, then on TEST ${test.id}?`
-      : `Write the key ${key} on TEST ${test.id}?`,
+    pairQuestion(key, live && { label: `LIVE ${live.id}`, externalId: live.externalId }, {
+      label: `TEST ${test.id}`,
+      externalId: test.externalId,
+    }),
   );
   await reportLink(context, machine, () =>
     linkItem(clients, { kind, testId: test.id, liveId: live?.id, key }),
