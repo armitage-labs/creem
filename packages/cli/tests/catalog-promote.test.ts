@@ -1464,3 +1464,30 @@ describe("creem catalog promote, interactive: auth errors and the metadata copy'
     expect(result.stderr).not.toContain("Not paired");
   });
 });
+
+describe("creem catalog promote: the real run's first page fails", () => {
+  it("says the page may have written and how to see what live has now", async () => {
+    const fake = fakeCatalog(pairedStore());
+    fake.fail((c) => c.path === "/v1/catalog/promote" && !c.dryRun, 504, {
+      code: "gateway_timeout",
+      message: "The page took too long.",
+    });
+    const result = await cli(fake).run(["catalog", "promote", "--yes", "--json"]);
+    expect(result.code).toBe(4);
+    const error = json(result.stderr).error;
+    expect(error.status).toBe(504);
+    expect(error.suggestion).toMatch(/may have written/);
+    expect(error.suggestion).toMatch(/creem catalog promote --dry-run/);
+  });
+
+  it("a 4xx on the first page keeps its own suggestion: nothing was written", async () => {
+    const fake = fakeCatalog(pairedStore());
+    fake.fail((c) => c.path === "/v1/catalog/promote" && !c.dryRun, 409, {
+      code: "promote_in_progress",
+      message: "Another promote is running.",
+    });
+    const result = await cli(fake).run(["catalog", "promote", "--yes", "--json"]);
+    expect(result.code).toBe(4);
+    expect(json(result.stderr).error.suggestion).not.toMatch(/may have written/);
+  });
+});

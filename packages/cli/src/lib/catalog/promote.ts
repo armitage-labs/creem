@@ -1,8 +1,8 @@
 import type { Creem } from "creem";
 import type * as components from "creem/models/components";
-import { CliError } from "../errors";
+import { CliError, describeError } from "../errors";
 import { isRecord } from "../operation";
-import { describeCause } from "./pairing";
+import { describeCause, mayHaveWritten } from "./pairing";
 
 /**
  * `POST /v1/catalog/promote` from the CLI (ENG-2437, ADR catalog-as-code
@@ -103,6 +103,31 @@ export class PromoteInterruptedError extends CliError {
   }
 }
 
+/**
+ * The real run's first page got no clear answer (a timeout, a 5xx): there is
+ * no `run_id` yet, but the page may have written. The error keeps its exit
+ * code, status and message; its suggestion says how to see what live has now.
+ */
+export class PromoteFirstPageError extends CliError {
+  readonly statusCode: number | undefined;
+  readonly body: unknown;
+  readonly headers: unknown;
+  constructor(readonly pageError: unknown) {
+    super(
+      pageError instanceof Error ? pageError.message : String(pageError),
+      describeError(pageError).exitCode,
+      "The run's first page may have written before its answer was lost. Run creem catalog promote --dry-run to see what live has now, then promote again; items already written answer `unchanged`.",
+    );
+    this.name = "PromoteFirstPageError";
+    this.statusCode = statusOf(pageError) ?? undefined;
+    this.body = isRecord(pageError) ? pageError.body : undefined;
+    this.headers = isRecord(pageError) ? pageError.headers : undefined;
+  }
+}
+
+const firstPageError = (error: unknown) =>
+  mayHaveWritten(error) ? new PromoteFirstPageError(error) : error;
+
 /** A dry-run page whose answer isn't a dry run, or whose item's write wasn't one. */
 function assertDryRun(page: components.CatalogPromoteResponseDto): void {
   if (page.dryRun !== true) throw new PromoteDryRunIgnoredError("dry_run", page.dryRun);
@@ -147,8 +172,9 @@ export async function runPromote(
         { timeoutMs: options.timeoutMs, retries: { strategy: "none" } },
       );
     } catch (error) {
-      // The first page failed: there is no run yet, so the error is the whole story.
-      if (cursor === null) throw error;
+      // The first page failed: there is no run yet, so the error is the whole story,
+      // except that a real run's page may have written before its answer was lost.
+      if (cursor === null) throw dryRun ? error : firstPageError(error);
       throw new PromoteInterruptedError(
         { runId, dryRun, summary, items, validation, cursor },
         error,
