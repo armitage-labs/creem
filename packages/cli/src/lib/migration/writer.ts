@@ -788,10 +788,15 @@ export async function executeMigration(
         }
         case "upsert_product_group": {
           const body = request.request.createProductGroupRequestEntity;
-          // A member by id is the merchant's own, kept as it is.
-          const kept = (body.products ?? []).filter(
-            (p) => !("externalId" in p) || productIds.has(p.externalId),
-          );
+          // A member by id is the merchant's own, kept as it is. Each product is
+          // named once (the API refuses a repeat), whether by id or by key.
+          const seen = new Set<string>();
+          const kept = (body.products ?? []).filter((p) => {
+            const id = "externalId" in p ? productIds.get(p.externalId) : p.id;
+            if (id === undefined || seen.has(id)) return false;
+            seen.add(id);
+            return true;
+          });
           const missing = (body.products ?? []).flatMap((p) =>
             "externalId" in p && !productIds.has(p.externalId) ? [p.externalId] : [],
           );
@@ -804,13 +809,12 @@ export async function executeMigration(
             });
             continue;
           }
-          if (missing.length) {
+          if (missing.length)
             item.warnings.push({
               code: "product_not_written",
               message: `Left out of the group because they were not written: ${missing.join(", ")}. Re-run to add them.`,
             });
-            body.products = kept;
-          }
+          body.products = kept;
           break;
         }
         case "upsert_discount": {

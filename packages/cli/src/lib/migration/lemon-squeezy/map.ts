@@ -1168,16 +1168,22 @@ export function fromLemonSqueezy(
   const keyOfProductId = new Map(
     creemCatalog.products.filter((p) => p.externalId).map((p) => [p.id, p.externalId as string]),
   );
+  // The Creem product each adoption gives a key, by that key.
+  const adoptedIdOfKey = new Map<string, string>();
   for (const item of productItems)
-    if (item.adopted_from) keyOfProductId.set(item.adopted_from, item.key);
+    if (item.adopted_from) {
+      keyOfProductId.set(item.adopted_from, item.key);
+      adoptedIdOfKey.set(item.key, item.adopted_from);
+    }
 
   // ---- product groups: two or more migrated recurring variants of one LS product
   const plannedKeys = new Set(productItems.filter((i) => i.action !== "skip").map((i) => i.key));
+  const membersOf = (product: (typeof productsInOrder)[number]) =>
+    specs
+      .filter((s) => s.product === product && s.recurring && plannedKeys.has(s.key))
+      .map((s) => s.key);
   for (const product of productsInOrder) {
-    const memberSpecs = specs.filter(
-      (s) => s.product === product && s.recurring && plannedKeys.has(s.key),
-    );
-    const members = memberSpecs.map((s) => s.key);
+    const members = membersOf(product);
     if (members.length < 2) continue;
     const key = productKey(product.id);
     const item = newItem({
@@ -1189,9 +1195,13 @@ export function fromLemonSqueezy(
       members,
     });
     const existing = groupsByKey.get(key);
-    const products: ({ externalId: string } | { id: string })[] = members.map((externalId) => ({
-      externalId,
-    }));
+    // A stored member this run adopts is named by its id: it stays in the group
+    // whether its adoption works or not (a failed one would leave its key unknown).
+    const storedIds = new Set(existing?.products.map((p) => p.id));
+    const products: ({ externalId: string } | { id: string })[] = members.map((externalId) => {
+      const adopted = adoptedIdOfKey.get(externalId);
+      return adopted && storedIds.has(adopted) ? { id: adopted } : { externalId };
+    });
     groupItems.push(item);
     if (existing) {
       item.creem_id = existing.id;

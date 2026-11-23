@@ -1110,12 +1110,13 @@ describe("ENG-2972 re-check: a group names each product once", () => {
       change: addVariant("999001", "999002"),
     });
     const body = plan.requests.find((r) => r.type === "upsert_product_group")!;
+    // Named by its id: it stays in the group whether or not the adoption works.
     expect(
       body.type === "upsert_product_group" && body.request.createProductGroupRequestEntity.products,
     ).toEqual([
       { externalId: "ls_variant_365902" },
       { externalId: "ls_variant_752120" },
-      { externalId: "ls_variant_999001" },
+      { id: "prod_dash" },
       { externalId: "ls_variant_999002" },
     ]);
     expect(report.summary.failed).toBe(0);
@@ -1125,6 +1126,107 @@ describe("ENG-2972 re-check: a group names each product once", () => {
       "ls_variant_999001",
       "ls_variant_999002",
     ]);
+
+    const before = creem.writes().length;
+    const again = await migrateWith(creem, { change: addVariant("999001", "999002") });
+    expect(again.report.items.find((i) => i.key === "ls_product_262308")!.action).toBe("unchanged");
+    expect(creem.writes().slice(before).map(describeCall)).toEqual([]);
+  });
+});
+
+describe("ENG-2972 re-check: the writer names a group member once after resolving keys", () => {
+  it("drops a member named again by id once its key resolves to the same product", async () => {
+    const creem = fakeCreem(V1_STORE);
+    const objects = await lsObjects();
+    addVariant("999001")(objects);
+    const plan = fromLemonSqueezy(objects, await readCreemCatalog(creem.client), { now: NOW });
+    const checked = await checkMigration(creem.client, plan, {});
+    const pro = creem.state.products.find((p) => p.external_id === "ls_variant_365902")!;
+    const group = checked.requests.find((r) => r.type === "upsert_product_group")!;
+    if (group.type !== "upsert_product_group") throw new Error("no group request");
+    group.request.createProductGroupRequestEntity.products!.push({ id: pro.id });
+    const report = await executeMigration(creem.client, checked, {
+      files: objects.fileDigests,
+      fetch: lemonSqueezyFetch().fetcher,
+      delayMs: 0,
+    });
+    expect(report.items.find((i) => i.key === "ls_product_262308")!.status).toBe("done");
+    expect(groupKeys(creem)).toEqual([
+      "ls_variant_365902",
+      "ls_variant_752120",
+      "ls_variant_999001",
+    ]);
+  });
+});
+
+describe("ENG-2972 re-check: a failed adoption keeps the merchant's product in its group", () => {
+  /** The merchant's keyless prod_dash is in the group; the run adopts it for LS variant 999001. */
+  const withMerchantMember = async () => {
+    const creem = fakeCreem(V1_STORE);
+    await migrate(creem);
+    creem.state.products.push(productJson("prod_dash", { name: "Dashboard tier" }));
+    creem.state.productGroups[0].products.push({ id: "prod_dash", external_id: null });
+    return creem;
+  };
+  const groupIds = (creem: ReturnType<typeof fakeCreem>) =>
+    creem.state.productGroups[0].products.map((p: { id: string }) => p.id);
+  const adoption = { "adopt:ls_variant_999001": "prod_dash" };
+
+  it("when the adoption's PATCH fails", async () => {
+    const creem = await withMerchantMember();
+    const { report } = await migrateWith(creem, {
+      adoption,
+      change: addVariant("999001", "999002"),
+      beforeRun: () =>
+        creem.fail(
+          (c) => c.path === "/v1/products/prod_dash" && c.method === "PATCH" && !c.dryRun,
+          500,
+          { message: "adoption unavailable" },
+        ),
+    });
+    expect(report.items.find((i) => i.key === "ls_variant_999001")!.status).toBe("failed");
+    expect(report.items.find((i) => i.key === "ls_product_262308")!.status).toBe("done");
+    expect(groupIds(creem)).toContain("prod_dash");
+    expect(groupKeys(creem)).toContain("ls_variant_999002");
+  });
+
+  it("when the adopted product's file upload fails", async () => {
+    const creem = await withMerchantMember();
+    const { report } = await migrateWith(creem, {
+      adoption,
+      change: (objects) => {
+        addVariant("999001", "999002")(objects);
+        const file = structuredClone(objects.files[0]);
+        file.id = "920999";
+        file.attributes.variant_id = 999001;
+        objects.files.push(file);
+        objects.fileDigests["920999"] = objects.fileDigests[objects.files[0].id];
+      },
+      beforeRun: () =>
+        creem.fail((c) => c.path === "/v1/files" && c.method === "POST", 500, {
+          message: "upload unavailable",
+        }),
+    });
+    expect(report.items.find((i) => i.key === "ls_variant_999001")).toMatchObject({
+      status: "failed",
+      error: { code: "dependency_failed" },
+    });
+    expect(creem.state.products.find((p) => p.id === "prod_dash")!.external_id).toBeNull();
+    expect(report.items.find((i) => i.key === "ls_product_262308")!.status).toBe("done");
+    expect(groupIds(creem)).toContain("prod_dash");
+  });
+
+  it("when Creem refuses the adoption and the run is forced", async () => {
+    const creem = await withMerchantMember();
+    creem.refuse("ls_variant_999001", 409, "license_keys_issued");
+    const { report } = await migrateWith(creem, {
+      adoption,
+      change: addVariant("999001", "999002"),
+      force: true,
+    });
+    expect(report.items.find((i) => i.key === "ls_variant_999001")!.status).toBe("failed");
+    expect(groupIds(creem)).toContain("prod_dash");
+    expect(groupKeys(creem)).toContain("ls_variant_999002");
   });
 });
 
