@@ -1182,6 +1182,12 @@ export function fromLemonSqueezy(
     specs
       .filter((s) => s.product === product && s.recurring && plannedKeys.has(s.key))
       .map((s) => s.key);
+  // The group each planned member key belongs to: Creem puts a product in one group only.
+  const groupOfMember = new Map<string, string>();
+  for (const product of productsInOrder) {
+    const members = membersOf(product);
+    if (members.length >= 2) for (const k of members) groupOfMember.set(k, productKey(product.id));
+  }
   for (const product of productsInOrder) {
     const members = membersOf(product);
     if (members.length < 2) continue;
@@ -1221,11 +1227,17 @@ export function fromLemonSqueezy(
       const kept = others
         .map(keyOf)
         .filter((k): k is string => k !== null && LS_VARIANT_KEY.test(k));
+      // A kept variant of another LS product that gets its own group keeps that
+      // group from being written: Creem puts a product in one group only.
+      const blocked = kept.flatMap((k) => {
+        const group = groupOfMember.get(k);
+        return group && group !== key ? [`${k} (${group})`] : [];
+      });
       if (kept.length)
         item.warnings.push(
           issue(
             "group_product_kept",
-            `Lemon Squeezy doesn't list ${kept.join(", ")} in this product. The migrator can't tell whether Lemon Squeezy dropped them or you added them in Creem, so they stay in the group; remove them in Creem if they shouldn't be in it. This warning repeats on every run.`,
+            `Lemon Squeezy doesn't list ${kept.join(", ")} in this product. The migrator can't tell whether Lemon Squeezy dropped them or you added them in Creem, so they stay in the group; remove them in Creem if they shouldn't be in it.${blocked.length ? ` A product is in one group only, so Creem refuses the group of their own Lemon Squeezy product until you move them: ${blocked.join(", ")}.` : ""} This warning repeats on every run.`,
           ),
         );
       if (stored.length === members.length && stored.every((k, i) => k === members[i])) {

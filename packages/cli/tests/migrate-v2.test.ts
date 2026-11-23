@@ -1085,6 +1085,57 @@ describe("ENG-2972 re-check: the migrator never removes a group member", () => {
   });
 });
 
+describe("ENG-2972 re-check: a kept member of another LS product blocks that product's group", () => {
+  /** LS product 262999 ("Team"), with subscription variants cloned from Pro's 752120. */
+  const teamProduct =
+    (...variantIds: string[]) =>
+    (objects: Awaited<ReturnType<typeof lsObjects>>) => {
+      const product = structuredClone(objects.products.find((p) => p.id === "262308")!);
+      product.id = "262999";
+      product.attributes.name = "Team";
+      objects.products.push(product);
+      for (const id of variantIds) {
+        const variant = structuredClone(objects.variants.find((v) => v.id === "752120")!);
+        variant.id = id;
+        variant.attributes.product_id = 262999;
+        variant.attributes.name = `Team tier ${id}`;
+        objects.variants.push(variant);
+      }
+    };
+
+  it("says the other product's group is refused until the member moves", async () => {
+    const creem = fakeCreem(V1_STORE);
+    await migrateWith(creem, { change: teamProduct("999201") });
+    // The merchant put the one Team variant in Pro's group.
+    const team = creem.state.products.find((p) => p.external_id === "ls_variant_999201")!;
+    creem.state.productGroups[0].products.push({ id: team.id, external_id: team.external_id });
+
+    const { checked } = await migrateWith(creem, {
+      change: teamProduct("999201", "999202"),
+      force: true,
+    });
+    const pro = checked.report.items.find((i) => i.key === "ls_product_262308")!;
+    const kept = pro.warnings.find((w) => w.code === "group_product_kept")!;
+    expect(kept.message).toContain("ls_variant_999201");
+    expect(kept.message).toContain("ls_product_262999");
+    expect(kept.message).toMatch(/one group/);
+    expect(checked.report.items.find((i) => i.key === "ls_product_262999")).toMatchObject({
+      status: "failed",
+      error: { code: "product_already_grouped" },
+    });
+  });
+
+  it("doesn't say so for a kept member no Lemon Squeezy product groups", async () => {
+    const creem = fakeCreem(V1_STORE);
+    await migrate(creem);
+    const team = creem.state.products.find((p) => p.external_id === "ls_variant_910007")!;
+    creem.state.productGroups[0].products.push({ id: team.id, external_id: team.external_id });
+    const again = await migrate(creem);
+    const pro = again.report.items.find((i) => i.key === "ls_product_262308")!;
+    expect(pro.warnings[0].message).not.toMatch(/one group/);
+  });
+});
+
 describe("ENG-2972 re-check: a group names each product once", () => {
   it("the fake answers a group that lists a product twice with the API's 400", async () => {
     const creem = fakeCreem(V1_STORE);
