@@ -432,12 +432,18 @@ function createLemonSqueezyCommand(context: CliContext): Command {
                 print(chalk.dim(`  ${request.type.replace(/_/g, " ")} ${item.key}`)),
             });
           } catch (error) {
-            if (error instanceof DryRunIgnoredError)
+            if (error instanceof DryRunIgnoredError) {
+              // What the run wrote before it stopped.
+              if (error.report) {
+                if (json) writeResult(context, error.report, "json");
+                else for (const line of formatReport(error.report, environment)) print(line);
+              }
               throw new CliError(
                 error.message,
                 MIGRATION_EXIT_CODES.unexpected,
                 "Check the Creem environment and API version, then re-run: written items are found by their key.",
               );
+            }
             throw error;
           }
           if (json) writeResult(context, report, "json");

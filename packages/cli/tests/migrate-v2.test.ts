@@ -407,6 +407,23 @@ describe("ENG-2972: creem migrate lemon-squeezy", () => {
     expect(creem.writes()).toEqual([]);
   });
 
+  it("exits 1 when a dry run of the run comes back without write_result, and prints what was written", async () => {
+    const { creem, h } = setup();
+    creem.fail(
+      (c) => c.path === "/v1/discounts" && c.dryRun === true && creem.writes().length > 0,
+      200,
+      { id: "disc_legacy", code: "LEGACY" },
+    );
+    const r = await h.run(["--json", ...base, "--yes"]);
+    expect(r.code).toBe(MIGRATION_EXIT_CODES.unexpected);
+    expect(r.stderr).toContain("dry_run");
+    const report = JSON.parse(r.stdout);
+    expect(report.mode).toBe("run");
+    expect(
+      report.items.filter((i: { status: string }) => i.status === "done").length,
+    ).toBeGreaterThan(0);
+  });
+
   it("exits 1 and stops when Creem answers a dry run as a real write", async () => {
     vi.stubGlobal("fetch", lemonSqueezyFetch().fetcher);
     const creem = fakeCreem(V1_STORE, { ignoreDryRun: true });
@@ -649,5 +666,56 @@ describe("ENG-2972 review: re-runs keep group members the merchant added", () =>
     expect(creem.state.productGroups[0].products.map((p: { id: string }) => p.id)).toContain(
       "prod_merchant",
     );
+  });
+});
+
+describe("ENG-2972 review: a dry run answered without write_result stops the run", () => {
+  it("stops the check at a group dry run answered as a plain group (an old server), before any further request", async () => {
+    const creem = fakeCreem(V1_STORE);
+    creem.fail(
+      (c) => c.path === "/v1/product-groups" && c.dryRun === true,
+      201,
+      productGroupJson("pgrp_legacy", { name: "Written by an old server" }),
+    );
+    const objects = await lsObjects();
+    const plan = fromLemonSqueezy(objects, await readCreemCatalog(creem.client), { now: NOW });
+    // A discount change, so a request would follow the group's dry run.
+    const launch = plan.report.items.find((i) => i.key === "ls_discount_930001")!;
+    launch.action = "update";
+    launch.status = "pending";
+    plan.requests.push({
+      type: "upsert_discount",
+      key: launch.key,
+      request: { createDiscountRequestEntity: { externalId: launch.key, name: "Changed" } },
+    });
+    await expect(checkMigration(creem.client, plan, {})).rejects.toBeInstanceOf(DryRunIgnoredError);
+    const sent = creem.calls.filter((c) => c.method !== "GET");
+    expect(sent.at(-1)).toMatchObject({ path: "/v1/product-groups", dryRun: true });
+  });
+
+  it("stops the run at a dry run answered without write_result, and keeps the report of what it wrote", async () => {
+    const creem = fakeCreem();
+    const objects = await lsObjects();
+    const plan = fromLemonSqueezy(objects, await readCreemCatalog(creem.client), { now: NOW });
+    const result = await checkMigration(creem.client, plan, {});
+    creem.fail((c) => c.path === "/v1/discounts" && c.dryRun === true, 200, {
+      id: "disc_legacy",
+      code: "LEGACY",
+    });
+    const error = await executeMigration(creem.client, result, {
+      files: objects.fileDigests,
+      fetch: lemonSqueezyFetch().fetcher,
+      delayMs: 0,
+    }).catch((e: unknown) => e);
+    expect(error).toBeInstanceOf(DryRunIgnoredError);
+    const sent = creem.calls.filter((c) => c.method !== "GET");
+    expect(sent.at(-1)).toMatchObject({ path: "/v1/discounts", dryRun: true });
+    const report = (error as DryRunIgnoredError).report!;
+    expect(report.mode).toBe("run");
+    for (const item of report.items.filter((i) => i.kind === "product" && i.action !== "skip"))
+      expect([item.key, item.status]).toEqual([item.key, "done"]);
+    const discounts = report.items.filter((i) => i.kind === "discount" && i.action !== "skip");
+    expect(discounts[0]).toMatchObject({ status: "failed", error: { code: "dry_run_ignored" } });
+    for (const item of discounts.slice(1)) expect(item.status).toBe("pending");
   });
 });

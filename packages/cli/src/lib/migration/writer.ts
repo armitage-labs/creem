@@ -48,6 +48,11 @@ export interface ExecuteOptions {
  * doesn't know the dry run may have written the object. Nothing after it is sent.
  */
 export class DryRunIgnoredError extends Error {
+  /**
+   * During a run: the report of what the run wrote before it stopped. Items it
+   * didn't reach stay `pending`; the stopped item is `failed` (`dry_run_ignored`).
+   */
+  report?: MigrationReport;
   constructor(what: string, answered: unknown) {
     super(
       `Creem answered the dry run of ${what} with write_result.dry_run ${JSON.stringify(answered ?? null)} instead of true, so it may have written it. The migration stopped; nothing after it was sent.`,
@@ -151,6 +156,30 @@ const describeRequest = (request: MigrationRequest) => `${request.type} ${reques
 function assertDryRun(request: MigrationRequest, answer: { writeResult?: { dryRun?: unknown } }) {
   if (answer.writeResult?.dryRun !== true)
     throw new DryRunIgnoredError(describeRequest(request), answer.writeResult?.dryRun);
+}
+
+/**
+ * Sends a write as a dry run. A success the SDK can't read as a write answer
+ * (no `write_result`: a server without the dry run, which may have written it)
+ * is a `DryRunIgnoredError` too, never a refusal of the item.
+ */
+async function sendDryRun(
+  client: Creem,
+  request: Exclude<MigrationRequest, { type: "upload_file" }>,
+): Promise<WriteAnswer> {
+  let answer: WriteAnswer;
+  try {
+    answer = await send(client, request, true);
+  } catch (error) {
+    if (error instanceof errors.ResponseValidationError) {
+      const raw = isRecord(error.rawValue) ? error.rawValue : {};
+      const writeResult = isRecord(raw.write_result) ? raw.write_result : {};
+      throw new DryRunIgnoredError(describeRequest(request), writeResult.dry_run);
+    }
+    throw error;
+  }
+  assertDryRun(request, answer);
+  return answer;
 }
 
 function itemFinder(report: MigrationReport) {
@@ -400,8 +429,7 @@ export async function checkMigration(
       }
     }
     try {
-      const answer = await send(client, request, true);
-      assertDryRun(request, answer);
+      const answer = await sendDryRun(client, request);
       record(
         item,
         { id: answer.id, result: answer.writeResult.result },
@@ -480,6 +508,8 @@ export async function executeMigration(
     item.error = error;
     failedKeys.add(item.key);
   };
+  /** Items whose write went through, for the report of a run that stops. */
+  const written = new Set<MigrationItem>();
   const pause = async () => {
     if (options.delayMs) await new Promise((resolve) => setTimeout(resolve, options.delayMs));
   };
@@ -570,6 +600,7 @@ export async function executeMigration(
         const file = await client.files.confirmUpload({ id: slot.id });
         uploaded.set(request.key, file.id);
         item.creem_id = file.id;
+        written.add(item);
         await pause();
         continue;
       }
@@ -655,8 +686,9 @@ export async function executeMigration(
         }
       }
       // The exact request runs as a dry run first; a refusal fails the item unwritten.
-      assertDryRun(request, await send(client, request, true));
+      await sendDryRun(client, request);
       const answer = await send(client, request, false);
+      written.add(item);
       switch (request.type) {
         case "upsert_product":
           item.creem_id = answer.id;
@@ -670,7 +702,20 @@ export async function executeMigration(
           break;
       }
     } catch (error) {
-      if (error instanceof DryRunIgnoredError) throw error;
+      if (error instanceof DryRunIgnoredError) {
+        // What was written before it stays reported; the rest stays pending.
+        item.status = "failed";
+        item.error = {
+          code: "dry_run_ignored",
+          message: error.message,
+          status: null,
+          hint: "Check the Creem environment and API version, then re-run: written items are found by their key.",
+        };
+        for (const done of report.items) if (written.has(done)) done.status = "done";
+        report.summary = summarize(report.items);
+        error.report = report;
+        throw error;
+      }
       fail(item, migrationError(error, secrets, item.key));
       // Without its key, an adopted product isn't the migrated one in a discount or group.
       if (request.type === "adopt_product") productIds.delete(request.key);
