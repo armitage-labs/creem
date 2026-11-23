@@ -855,3 +855,48 @@ describe("ENG-2972 review: a plan without product writes probes validate first",
     expect(creem.state.productGroups).toEqual([]);
   });
 });
+
+describe("ENG-2972 review: the dry-run safety nets", () => {
+  it("a server that honours the dry run in the check and ignores it in the run: the run stops at its first catalog dry run", async () => {
+    const creem = fakeCreem();
+    const objects = await lsObjects();
+    const plan = fromLemonSqueezy(objects, await readCreemCatalog(creem.client), { now: NOW });
+    const result = await checkMigration(creem.client, plan, {});
+    const before = creem.calls.length;
+    creem.ignoreDryRun = true;
+    await expect(
+      executeMigration(creem.client, result, {
+        files: objects.fileDigests,
+        fetch: lemonSqueezyFetch().fetcher,
+        delayMs: 0,
+      }),
+    ).rejects.toBeInstanceOf(DryRunIgnoredError);
+    const catalog = creem.calls.slice(before).filter((c) => CATALOG_WRITE.test(c.path));
+    expect(catalog.map(describeCall)).toEqual(["POST /v1/products?dry_run=true"]);
+  });
+
+  it("stops the check when validate answers its items as written (write_result.dry_run false)", async () => {
+    const creem = fakeCreem({}, { validateWrites: true });
+    const objects = await lsObjects();
+    const plan = fromLemonSqueezy(objects, await readCreemCatalog(creem.client), { now: NOW });
+    await expect(checkMigration(creem.client, plan, {})).rejects.toBeInstanceOf(DryRunIgnoredError);
+    expect(creem.calls.filter((c) => c.method !== "GET").map(describeCall)).toEqual([
+      "POST /v1/catalog/validate",
+    ]);
+  });
+
+  it("reports a dry run's reference_not_found for a product the run won't create (Creem refused it)", async () => {
+    const creem = fakeCreem();
+    creem.refuse("ls_variant_910007", 409, "license_keys_issued");
+    const { checked: result } = await checked(creem);
+    expect(result.report.items.find((i) => i.key === "ls_variant_910007")!.status).toBe("failed");
+    expect(
+      result.report.items.find((i) => i.key === "ls_discount_930002")!.warnings,
+    ).toContainEqual(
+      expect.objectContaining({
+        code: "reference_not_found",
+        message: expect.stringContaining("ls_variant_910007"),
+      }),
+    );
+  });
+});

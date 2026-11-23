@@ -592,11 +592,18 @@ export interface FakeCreemOptions {
    * for real and answers `write_result.dry_run` `false`.
    */
   ignoreDryRun?: boolean;
+  /**
+   * Models a server whose `POST /v1/catalog/validate` doesn't roll back: it
+   * writes the items and answers `write_result.dry_run` `false`.
+   */
+  validateWrites?: boolean;
 }
 
 const VALIDATE_MAX_ITEMS = 100;
 
-export function fakeCreem(initial: Partial<CreemState> = {}, options: FakeCreemOptions = {}) {
+export function fakeCreem(initial: Partial<CreemState> = {}, init: FakeCreemOptions = {}) {
+  // Mutable, so a test can honour the dry run during the check and ignore it in the run.
+  const options: FakeCreemOptions = { ...init };
   let state: CreemState = {
     products: [],
     productGroups: [],
@@ -700,7 +707,7 @@ export function fakeCreem(initial: Partial<CreemState> = {}, options: FakeCreemO
           details: { kind: unsupported.kind },
         },
       };
-    const scratch = structuredClone(state);
+    const scratch = options.validateWrites ? state : structuredClone(state);
     const saved = counter;
     const answers = items.map((item) => {
       // Each item sees what the items before it would have written.
@@ -712,7 +719,7 @@ export function fakeCreem(initial: Partial<CreemState> = {}, options: FakeCreemO
         scratch,
       );
       const valid = answer.status < 300;
-      if (valid) answer.body.write_result.dry_run = true;
+      if (valid) answer.body.write_result.dry_run = !options.validateWrites;
       return {
         kind: item.kind,
         id: item.id ?? null,
@@ -722,7 +729,7 @@ export function fakeCreem(initial: Partial<CreemState> = {}, options: FakeCreemO
         error: valid ? null : answer.body,
       };
     });
-    counter = saved;
+    if (!options.validateWrites) counter = saved;
     const valid = answers.every((a) => a.valid);
     return {
       status: valid ? 200 : 422,
@@ -859,6 +866,10 @@ export function fakeCreem(initial: Partial<CreemState> = {}, options: FakeCreemO
       headers?: Record<string, string>,
     ) {
       failures.push({ match, status, body, headers });
+    },
+    /** Changes how the server treats `dry_run` from the next request on. */
+    set ignoreDryRun(on: boolean) {
+      options.ignoreDryRun = on;
     },
     /** Every write of the object with this key answers this error (see `refusals`). */
     refuse(key: string, status: number, code: string, message = code) {
