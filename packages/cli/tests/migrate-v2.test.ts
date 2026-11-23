@@ -586,3 +586,29 @@ describe("ENG-2972 review: a group or discount that gains a product this run cre
     ]);
   });
 });
+
+describe("ENG-2972 review: --force never takes an existing product out of its group", () => {
+  it("keeps a product whose update Creem refused in the group the run rewrites", async () => {
+    const creem = fakeCreem(V1_STORE);
+    await migrate(creem);
+    creem.state.products.find((p) => p.external_id === "ls_variant_752120")!.name = "Renamed";
+    creem.refuse("ls_variant_752120", 409, "license_keys_issued");
+    const objects = await lsObjects();
+    const variant = structuredClone(objects.variants.find((v) => v.id === "752120")!);
+    variant.id = "999001";
+    objects.variants.push(variant);
+    const plan = fromLemonSqueezy(objects, await readCreemCatalog(creem.client), { now: NOW });
+    const result = await checkMigration(creem.client, plan, {});
+    expect(result.report.items.find((i) => i.key === "ls_variant_752120")!.status).toBe("failed");
+    const report = await executeMigration(creem.client, result, {
+      files: objects.fileDigests,
+      fetch: lemonSqueezyFetch().fetcher,
+      delayMs: 0,
+      force: true,
+    });
+    expect(report.items.find((i) => i.key === "ls_product_262308")!.status).toBe("done");
+    expect(
+      creem.state.productGroups[0].products.map((p: { external_id: string }) => p.external_id),
+    ).toEqual(["ls_variant_365902", "ls_variant_752120", "ls_variant_999001"]);
+  });
+});

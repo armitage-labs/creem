@@ -458,15 +458,18 @@ export async function executeMigration(
   const itemOf = itemFinder(report);
   const uploaded = new Map<string, string>();
   const failedKeys = new Set<string>(refused.map((i) => i.key));
-  // Products that exist in Creem after the run, by key: matched ones, and those written now.
+  // Products that exist in Creem with their key after the run: stored ones, and
+  // those written now. A refused update leaves the stored product as it is, so
+  // it stays in its group and discounts; a refused adoption leaves it without
+  // the key, so it isn't the migrated product.
   const productIds = new Map(
     report.items
       .filter(
         (i) =>
           i.kind === "product" &&
           i.creem_id &&
-          i.status !== "failed" &&
-          (i.action === "unchanged" || i.action === "update"),
+          (i.action === "unchanged" || i.action === "update") &&
+          !(i.status === "failed" && i.adopted_from),
       )
       .map((i) => [i.key, i.creem_id as string]),
   );
