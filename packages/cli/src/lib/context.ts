@@ -1,6 +1,12 @@
 import type { Creem } from "creem";
 import { confirm, input, password, select } from "@inquirer/prompts";
-import { environmentApiKey, getClient, getEnvironmentClient, resolveAuth } from "./api";
+import {
+  environmentApiKey,
+  getClient,
+  getEnvironmentClient,
+  inferEnvironment,
+  resolveAuth,
+} from "./api";
 import { CliError } from "./errors";
 
 export interface Choice<T> {
@@ -30,23 +36,30 @@ export function createContext(overrides: Partial<CliContext> = {}): CliContext {
   const context: CliContext = {
     client: getClient,
     clientFor: async (environment, options = {}) => {
-      let apiKey = environmentApiKey(environment);
+      const name = environment === "live" ? "CREEM_LIVE_API_KEY" : "CREEM_TEST_API_KEY";
+      let apiKey = environmentApiKey(environment)?.trim();
       if (!apiKey) {
-        const name = environment === "live" ? "CREEM_LIVE_API_KEY" : "CREEM_TEST_API_KEY";
         if (!context.isTTY)
           throw new CliError(
             `No ${environment} API key.`,
             3,
             `Set ${name} to the store's ${environment} key, or run the command in a terminal to enter it.`,
           );
-        apiKey = await password(
-          {
-            message: `The store's ${environment} API key (used for this command only, not saved)`,
-            mask: "*",
-          },
-          { output: process.stderr },
-        );
+        apiKey = (
+          await password(
+            {
+              message: `The store's ${environment} API key (used for this command only, not saved)`,
+              mask: "*",
+            },
+            { output: process.stderr },
+          )
+        ).trim();
       }
+      const fix = `Enter the store's ${environment} key from the dashboard developers page, or set ${name}.`;
+      if (!apiKey) throw new CliError(`No ${environment} key was entered.`, 3, fix);
+      const other = environment === "live" ? "test" : "live";
+      if (inferEnvironment(apiKey) !== environment)
+        throw new CliError(`That is a ${other} key; enter the store's ${environment} key.`, 3, fix);
       context.secrets.add(apiKey);
       return getEnvironmentClient(environment, apiKey, options.timeout);
     },

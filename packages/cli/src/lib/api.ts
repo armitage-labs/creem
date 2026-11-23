@@ -64,7 +64,7 @@ export function environmentApiKey(environment: "test" | "live"): string | undefi
       );
     return specific;
   }
-  const current = process.env.CREEM_API_KEY?.trim() || loadConfig().api_key;
+  const current = process.env.CREEM_API_KEY?.trim() || loadConfig().api_key?.trim();
   return current && inferEnvironment(current) === environment ? current : undefined;
 }
 export function getEnvironmentClient(
