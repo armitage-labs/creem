@@ -1084,3 +1084,46 @@ describe("ENG-2972 re-check: the migrator never removes a group member", () => {
     expect(groupKeys(creem)).toEqual(["ls_variant_365902", "ls_variant_752120"]);
   });
 });
+
+describe("ENG-2972 re-check: a group names each product once", () => {
+  it("the fake answers a group that lists a product twice with the API's 400", async () => {
+    const creem = fakeCreem(V1_STORE);
+    const [a, b] = creem.state.products;
+    const error = await creem.client.productGroups
+      .create({
+        createProductGroupRequestEntity: {
+          name: "Twice",
+          products: [{ id: a.id }, { externalId: a.external_id }, { id: b.id }],
+        },
+      })
+      .catch((e: unknown) => e);
+    expect(error).toMatchObject({ statusCode: 400 });
+  });
+
+  it("doesn't list a merchant member twice when the run adopts it for a new variant", async () => {
+    const creem = fakeCreem(V1_STORE);
+    await migrate(creem);
+    creem.state.products.push(productJson("prod_dash", { name: "Dashboard tier" }));
+    creem.state.productGroups[0].products.push({ id: "prod_dash", external_id: null });
+    const { plan, report } = await migrateWith(creem, {
+      adoption: { "adopt:ls_variant_999001": "prod_dash" },
+      change: addVariant("999001", "999002"),
+    });
+    const body = plan.requests.find((r) => r.type === "upsert_product_group")!;
+    expect(
+      body.type === "upsert_product_group" && body.request.createProductGroupRequestEntity.products,
+    ).toEqual([
+      { externalId: "ls_variant_365902" },
+      { externalId: "ls_variant_752120" },
+      { externalId: "ls_variant_999001" },
+      { externalId: "ls_variant_999002" },
+    ]);
+    expect(report.summary.failed).toBe(0);
+    expect(groupKeys(creem)).toEqual([
+      "ls_variant_365902",
+      "ls_variant_752120",
+      "ls_variant_999001",
+      "ls_variant_999002",
+    ]);
+  });
+});

@@ -563,6 +563,9 @@ function writeProductGroup(
         });
       members.push({ id: product.id, external_id: product.external_id ?? null });
     }
+    // Like the API (`bundles.service.ts`): each product once, by id or by key.
+    if (new Set(members.map((m) => m.id)).size !== members.length)
+      throw apiError(400, "bad_request", "products must not list the same product twice");
     // A dry-run update with an unknown member keeps the stored members.
     if (unknown && existing) members = undefined;
   }
