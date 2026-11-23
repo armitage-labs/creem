@@ -1000,3 +1000,32 @@ describe("ENG-2972 re-check: a discount preview truncated at 100 unknown keys", 
     ).toContain(last.id);
   });
 });
+
+describe("ENG-2972 re-check: a failed adoption is never offered to discounts or groups", () => {
+  it("leaves an adopted product whose upload failed out of the discount", async () => {
+    const store = structuredClone(V1_STORE);
+    const icon = store.products.find((p) => p.external_id === "ls_variant_910001")!;
+    icon.external_id = null;
+    icon.metadata = null;
+    icon.features = [];
+    const launch = store.discounts.find((d) => d.external_id === "ls_discount_930001")!;
+    launch.applies_to_products = launch.applies_to_products.filter((id: string) => id !== icon.id);
+    const creem = fakeCreem(store);
+    const { report } = await migrateWith(creem, {
+      adoption: { "adopt:ls_variant_910001": icon.id },
+      beforeRun: () =>
+        creem.fail((c) => c.path === "/v1/files" && c.method === "POST", 500, {
+          message: "upload unavailable",
+        }),
+    });
+    expect(report.items.find((i) => i.key === "ls_variant_910001")).toMatchObject({
+      status: "failed",
+      error: { code: "dependency_failed" },
+    });
+    expect(creem.state.products.find((p) => p.id === icon.id)!.external_id).toBeNull();
+    expect(
+      creem.state.discounts.find((d) => d.external_id === "ls_discount_930001")!
+        .applies_to_products,
+    ).not.toContain(icon.id);
+  });
+});

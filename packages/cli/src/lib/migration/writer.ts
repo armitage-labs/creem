@@ -602,16 +602,16 @@ export async function executeMigration(
   const failedKeys = new Set<string>(refused.map((i) => i.key));
   // Products that exist in Creem with their key after the run: stored ones, and
   // those written now. A refused update leaves the stored product as it is, so
-  // it stays in its group and discounts; a refused adoption leaves it without
-  // the key, so it isn't the migrated product.
+  // it stays in its group and discounts. An adopted product is the migrated one
+  // only once its PATCH gave it the key, so it is added then, never before.
   const productIds = new Map(
     report.items
       .filter(
         (i) =>
           i.kind === "product" &&
           i.creem_id &&
-          (i.action === "unchanged" || i.action === "update") &&
-          !(i.status === "failed" && i.adopted_from),
+          !i.adopted_from &&
+          (i.action === "unchanged" || i.action === "update"),
       )
       .map((i) => [i.key, i.creem_id as string]),
   );
@@ -805,6 +805,9 @@ export async function executeMigration(
       const answer = await retrying(() => send(client, request, false), sleep);
       written.add(item);
       switch (request.type) {
+        case "adopt_product":
+          productIds.set(request.key, request.request.id);
+          break;
         case "upsert_product":
           item.creem_id = answer.id;
           productIds.set(request.key, answer.id);
@@ -832,8 +835,6 @@ export async function executeMigration(
         throw error;
       }
       fail(item, migrationError(error, secrets, item.key));
-      // Without its key, an adopted product isn't the migrated one in a discount or group.
-      if (request.type === "adopt_product") productIds.delete(request.key);
       if (request.type === "adopt_product" || request.type === "adopt_discount")
         item.error!.message = `Adopting ${request.request.id} failed: ${item.error!.message}`;
     }
