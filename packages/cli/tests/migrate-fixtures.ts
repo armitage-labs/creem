@@ -479,7 +479,7 @@ function writeDiscount(
     throw apiError(409, "discount_redeemed", "The discount has been redeemed.");
   const after: Json = structuredClone(existing);
   for (const [key, value] of Object.entries(b)) {
-    if (key === "applies_to_product_external_ids") continue;
+    if (key === "applies_to_product_external_ids" || key === "applies_to_products") continue;
     if (key === "code") {
       if (String(value).toUpperCase() !== String(existing.code).toUpperCase())
         warnings.push({ code: "field_not_writable", path: "code" });
@@ -488,8 +488,15 @@ function writeDiscount(
     if (value === null) delete after[key];
     else after[key] = value;
   }
-  if (b.applies_to_product_external_ids || b.applies_to_products)
-    after.applies_to_products = discountProducts(context, b);
+  if (b.applies_to_product_external_ids || b.applies_to_products) {
+    const ids = discountProducts(context, b);
+    // Like the API (`DryRunProductKeys.forUpdate`): when a dry run can't resolve a
+    // key, the update keeps the entire stored set, not the products it could resolve.
+    const unresolved = (b.applies_to_product_external_ids ?? []).some(
+      (key: string) => !context.state.products.some((p) => p.external_id === key),
+    );
+    if (!unresolved) after.applies_to_products = ids;
+  }
   const changes = changesOf(existing, after, DISCOUNT_FIELDS);
   if (!changes.length)
     return { status: 200, body: { discount: existing, result: "unchanged", changes, warnings } };

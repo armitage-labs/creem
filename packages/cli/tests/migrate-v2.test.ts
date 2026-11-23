@@ -535,3 +535,54 @@ describe("ENG-2972 review: validate batches can't split an adoption from its cha
     expect(result.report.items.filter((i) => i.status === "failed")).toEqual([]);
   });
 });
+
+describe("ENG-2972 review: a group or discount that gains a product this run creates", () => {
+  it("adds a newly published subscription variant to the existing group and discount in the same run", async () => {
+    const creem = fakeCreem(V1_STORE);
+    await migrate(creem);
+    const objects = await lsObjects();
+    const variant = structuredClone(objects.variants.find((v) => v.id === "752120")!);
+    variant.id = "999001";
+    variant.attributes.name = "Added tier";
+    objects.variants.push(variant);
+    const plan = fromLemonSqueezy(objects, await readCreemCatalog(creem.client), { now: NOW });
+    const result = await checkMigration(creem.client, plan, {});
+    for (const key of ["ls_product_262308", "ls_discount_930001"])
+      expect(result.report.items.find((i) => i.key === key)).toMatchObject({
+        action: "update",
+        status: "pending",
+      });
+    const report = await executeMigration(creem.client, result, {
+      files: objects.fileDigests,
+      fetch: lemonSqueezyFetch().fetcher,
+      delayMs: 0,
+    });
+    expect(report.summary.failed).toBe(0);
+    const added = creem.state.products.find((p) => p.external_id === "ls_variant_999001")!;
+    expect(
+      creem.state.productGroups[0].products.map((p: { external_id: string }) => p.external_id),
+    ).toContain("ls_variant_999001");
+    expect(
+      creem.state.discounts.find((d) => d.external_id === "ls_discount_930001")!
+        .applies_to_products,
+    ).toContain(added.id);
+  });
+
+  it("a dry-run discount update that names an unknown key keeps the stored products, like the API", async () => {
+    const creem = fakeCreem(V1_STORE);
+    const launch = V1_STORE.discounts.find((d) => d.external_id === "ls_discount_930001")!;
+    const answer = await creem.client.discounts.update({
+      id: launch.id,
+      dryRun: true,
+      updateDiscountRequestEntity: {
+        appliesToProducts: ["prod_2"],
+        appliesToProductExternalIds: ["ls_variant_910001", "ls_variant_unknown"],
+      },
+    });
+    expect(answer.appliesToProducts).toEqual(launch.applies_to_products);
+    expect(answer.writeResult.result).toBe("unchanged");
+    expect(answer.writeResult.warnings).toEqual([
+      expect.objectContaining({ code: "reference_not_found", key: "ls_variant_unknown" }),
+    ]);
+  });
+});

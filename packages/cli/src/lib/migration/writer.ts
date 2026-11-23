@@ -242,8 +242,11 @@ export async function checkMigration(
   const report: MigrationReport = structuredClone(plan.report);
   const secrets = options.secrets ?? [];
   const itemOf = itemFinder(report);
-  /** Keys this run creates: a dry run names them as unknown references. */
-  const created = new Set(report.items.filter((i) => i.action === "create").map((i) => i.key));
+  /**
+   * Keys of the products this run creates (once validate has answered, the ones
+   * it didn't refuse): a dry run names them as unknown references.
+   */
+  let created = new Set<string>();
   const results = new Map<MigrationItem, { results: string[]; partial: boolean }>();
   const refuse = (item: MigrationItem, error: MigrationError) => {
     item.status = "failed";
@@ -265,8 +268,12 @@ export async function checkMigration(
     entry.partial ||= partial;
     results.set(item, entry);
     for (const warning of warnings) {
-      if (warning.code === "reference_not_found" && warning.key && created.has(warning.key))
+      // The dry run couldn't see that product, so its answer (often `unchanged`:
+      // the stored set stays) says nothing about the real write, which is kept.
+      if (warning.code === "reference_not_found" && warning.key && created.has(warning.key)) {
+        entry.partial = true;
         continue;
+      }
       const where = [warning.path, warning.key].filter(Boolean).join(" ");
       const issue = {
         code: warning.code,
@@ -322,6 +329,12 @@ export async function checkMigration(
       );
     });
   }
+
+  created = new Set(
+    report.items
+      .filter((i) => i.kind === "product" && i.action === "create" && i.status !== "failed")
+      .map((i) => i.key),
+  );
 
   // A refused product's uploads would attach to nothing, so they are not sent.
   for (const request of products) {
