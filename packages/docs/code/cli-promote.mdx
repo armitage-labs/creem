@@ -1,0 +1,86 @@
+---
+title: Promote test to live
+description: Copy your test catalog (meters and products) into live with the Creem CLI, and pair test and live items by key.
+---
+
+Build your catalog in test mode, then copy it into live with `creem catalog promote`. Promote pairs each test item with the live item that has the same `external_id` (its key), writes the live item to match test, and creates a live item for a keyed test item that has no live match yet. Run it again whenever you change something in test; items that already match are `unchanged`.
+
+Promote covers meters and products. Product groups and discounts come later.
+
+## Keys
+
+Promote uses the store's **live** API key. Pairing writes the key on both sides, so it also needs the store's **test** key. The CLI takes them from:
+
+| Environment | Variable             | Otherwise                                                 |
+| ----------- | -------------------- | --------------------------------------------------------- |
+| Live        | `CREEM_LIVE_API_KEY` | `CREEM_API_KEY` or the `creem login` key, when it is live |
+| Test        | `CREEM_TEST_API_KEY` | `CREEM_API_KEY` or the `creem login` key, when it is test |
+
+In a terminal, a missing key is asked for with a masked prompt and used for that command only; it is never saved. Without a terminal, the command stops with exit code 3 and names the variable.
+
+## Preview
+
+```sh
+creem catalog promote --dry-run
+creem catalog promote --dry-run --select products=all
+creem catalog promote --dry-run --select products=prod_123,prod_456 --select meters=all
+```
+
+The dry run runs every write in live and rolls it back, so nothing changes. It lists every item with its result:
+
+| Result        | Meaning                                                                                                   |
+| ------------- | --------------------------------------------------------------------------------------------------------- |
+| `created`     | No live item has the key yet; promote creates one with it.                                                |
+| `updated`     | The live item is written to match test; the changes are listed.                                           |
+| `unchanged`   | Live already matches test.                                                                                |
+| `needs_key`   | The test item has no key (or a product's features can't be paired). It is never written until it has one. |
+| `conflict`    | A guard refuses the write, or live has `metadata` keys test doesn't (`live_metadata_not_in_test`).        |
+| `failed`      | The write fails; its error is shown.                                                                      |
+| `blocked`     | A product waits for a meter that has no key or isn't promoted.                                            |
+| `not_written` | Promote could write it but this run didn't; `error.code` says why (for example `promote_check_failed`).   |
+
+Without `--select`, promote takes everything. `--select` takes `meters=` or `products=`, each `all` or a list of **test** ids.
+
+## Promote in a terminal
+
+```sh
+creem catalog promote
+```
+
+The command runs the dry run first and asks about every item that needs a decision:
+
+- **`needs_key`**: pick one of the live items with the same name, or none. The CLI proposes a key (the live item's key when it has one, else the test item's id), asks you to confirm it, and writes it on both sides as `creem catalog link` does. With "none", the key goes on the test item only and promote creates the live item.
+- **Feature keys**: when a product's features can't be paired on their own, pick the live feature for each, the same way.
+- **`possible_rename`**: a keyed test item has no live match, but live has items with its name, usually because its key was renamed in test. Create a new live item, or re-pair: the test item's key is written on the live item you pick.
+- **`live_metadata_not_in_test`**: promote never clears a `metadata` key only live has. The CLI offers to copy those keys into the test product, then promote brings them along.
+
+After any of these writes, the dry run runs again. Then the CLI asks before the real run. If the dry run refused some items, confirming writes the others and leaves those out.
+
+## Promote in scripts
+
+```sh
+creem catalog promote --yes --json
+creem catalog promote --yes --force --json
+```
+
+`--yes` runs the dry run, then the real run. It confirms the real run, never a key: `needs_key` items stay `needs_key`. A `possible_rename` stops the command before the real run; pair the item with `creem catalog link`, or pass `--create <test id>` to create it anyway.
+
+Before its first write, the real run checks every write. When the check refuses one, nothing is written: the refused items are `conflict` or `failed`, and every other write is `not_written`. Add `--force` to write the others.
+
+The command follows `next_cursor` until the run is complete and prints its `run_id`. With `--json`, stdout carries `{ "preview": …, "run": … }`, each with `runId`, `dryRun`, `summary`, `items` and, for the real run, `validation`. The exit code is 4 when an item ends `failed`, `conflict`, `blocked` or `needs_key`; a dry run uses the same rule.
+
+## Pair items by hand
+
+```sh
+creem catalog link --kind product --test prod_t1 --live prod_l7 --key pro-monthly
+creem catalog link --kind meter --test mtr_t1 --live mtr_l1 --key api-calls
+creem catalog link --kind product --test prod_t2 --key team
+creem catalog link --kind feature --product prod_t1 --test feat_t1 --live feat_l1
+creem catalog unlink --kind product --live prod_l7
+```
+
+`link` gives a test item and a live item the same key. Without `--key`, it proposes one (for an item, the live item's key, else the test item's id; for a feature, the test feature's key, else the live feature's, else the test feature's id) and asks; outside a terminal `--key` is required, and `--yes` never confirms a key. It first checks the key on both sides, so a key either side already uses (`409` `external_id_taken`) stops it before anything is written. Then it writes live, then test. If the test write fails, the output says "Live written"; run the same `link` again to finish the pair. Its live write is then `unchanged`.
+
+Without `--live`, the key goes on the test item only, and promote creates the live item. A feature key is written through each side's product, re-sending the product's other features of that type, because a feature left out of its type's set is removed.
+
+`unlink` clears the live item's key after confirmation. The test item is then no longer paired: the next promote plans a new live item and lists the old one as a candidate. Changing a key renames the pair the same way.

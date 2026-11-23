@@ -87,6 +87,10 @@ For direct polling, `creem webhooks pending <id> --limit <count>` accepts an int
 - `--webhook <id>` reuses a CLI-mode endpoint you manage yourself (it is never deleted); `--once` drains what is pending and exits.
 - `--json` prints one NDJSON record per event for scripts and agents.
 
+## Promote test to live
+
+`creem catalog promote` copies your test catalog (meters and products) into live, pairing items by key. `creem catalog link` and `creem catalog unlink` pair and unpair a test and a live item by hand. See [Promote test to live](/code/cli-promote).
+
 ## Command reference
 
 Use `--help` on any command to see its accepted flags. `credits`, `cust`, `subs`, and `txn` are aliases. IDs are positional where shown. Authentication, configuration, and `migrate lemon-squeezy` are also available.

@@ -285,6 +285,7 @@
                 ]
               },
               "code/cli",
+              "code/cli-promote",
               "code/webhooks"
             ]
           },
