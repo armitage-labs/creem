@@ -9,7 +9,7 @@ Get familiar with the fees and payout schedule associated with using Creem.
 
 ## Platform Fee
 
-When you make a sale using Creem, we take a small fee, known as the "platform fee", to cover the costs of credit card transaction fees, currency conversion fees, taxes (yes, we cover taxes) etc. The net sales will be paid out to your bank account.
+When you make a sale using Creem, we take a small fee, known as the "platform fee", to cover the costs of credit card transaction fees, taxes (yes, we cover taxes) etc. The net sales will be paid out to your bank account.
 
 [Learn more about our pricing](https://www.creem.io/pricing).
 
@@ -66,23 +66,29 @@ These additional fees help cover the specialized infrastructure and processing c
 
 ## Currency Conversion Fee
 
-When a customer pays in their local currency and it differs from your product's currency, the price is converted at the market rate plus a **2% currency conversion fee**. The customer pays this fee, and it is shown to them at checkout (for example, "1 USD = 10.00 SEK + 2% conversion fee"). This fee covers currency fluctuations and the costs of supporting local currencies.
+When a customer pays in their local currency and it differs from your product's currency, the price is converted at the market rate plus a **2% currency conversion fee**. The customer pays this fee, and it is shown to them at checkout (for example, "Exchange rate: 1 USD = SEK 10.00 + 2% conversion fee"). This fee covers the costs of supporting local currencies.
 
-No currency conversion fee applies between USD and EUR, or when the customer pays in your product's currency.
+The currency follows the billing country the customer selects at checkout. Charging in the local currency lets us show more local payment methods and gives card payments a better acceptance rate.
 
-The platform fee is calculated on the converted product price, without the currency conversion fee. Your balance is credited in the currency the customer paid in.
+Customers pay in their local currency only on one-time payments, in selected countries, and on stores where local currency checkout is enabled. We add new countries regularly. Subscriptions, paid trials, tax-inclusive prices and pay-what-you-want prices are charged in your product's currency.
 
-Here's an example breakdown where someone in Sweden buys a $20.00 product and pays in SEK. The rate is an example, and tax is left out to keep it simple.
+No currency conversion fee applies between USD and EUR.
 
-| Description                                                 | Amount            |
-| ----------------------------------------------------------- | ----------------- |
-| Product price                                               | $20.00            |
-| Market rate (example)                                       | 1 USD = 10.00 SEK |
-| Converted product price                                     | 200.00 SEK        |
-| Currency conversion fee (2%)                                | 4.00 SEK          |
-| Total paid by the customer                                  | 204.00 SEK        |
-| Platform fee (3.9% + 0.40c, on 200.00 SEK)                  | 11.80 SEK         |
-| Net profit (total - currency conversion fee - platform fee) | 188.20 SEK        |
+The platform fee is calculated on the order total without the currency conversion fee. The fixed part of the platform fee is converted at the market rate.
+
+Your balance is credited in the currency the customer paid in. Its value in USD or EUR moves with the market rate until you convert it.
+
+Here's an example breakdown where someone in Sweden buys a $20.00 product and pays in SEK. The rate is an example, and tax is left out.
+
+| Description                                                  | Amount            |
+| ------------------------------------------------------------ | ----------------- |
+| Product price                                                | $20.00            |
+| Market rate (example)                                        | 1 USD = 10.00 SEK |
+| Converted product price                                      | 200.00 SEK        |
+| Currency conversion fee (2%)                                 | 4.00 SEK          |
+| Total paid by the customer                                   | 204.00 SEK        |
+| Platform fee (3.9% of 200.00 SEK + $0.40 at the market rate) | 11.80 SEK         |
+| Net profit (total - currency conversion fee - platform fee)  | 188.20 SEK        |
 
 ## Payout Fees
 
@@ -90,18 +96,18 @@ Creem charges 7 USD/EUR or 1% of the payout amount, whichever is higher, to cove
 Conversion rates are automatically applied by our banking partners if your registered bank account uses a different currency than your USD or EUR balance.
 In that case, a small conversion fee from our Partners will be applied, which is outside of our control.
 
-### Converting Local Currency Balances
+### Converting Balances in Other Currencies
 
 Payouts are made from your USD and EUR balances. If you have a balance in another currency (for example, SEK from customers who paid in their local currency), convert it to USD or EUR on your **Balances** page before you request a payout.
 
-The conversion uses the market rate plus a **2% currency conversion fee**. Before you confirm, you see the rate, the fee, and the amount you will receive. The converted amount is added to your USD or EUR balance and is paid out with your next payout.
+Creem converts at the market rate and deducts a **2% currency conversion fee** from the amount. You pay this fee. It is separate from the fee the customer paid at checkout. Before you confirm, you see the rate, the fee, and the amount you receive. The converted amount is added to your USD or EUR balance and is available for your next payout request.
 
 **Example:**
 
 - SEK balance: 188.20 SEK
 - Currency conversion fee (2%): 3.76 SEK
 - Amount converted: 184.44 SEK
-- Market rate (example): 1 SEK = 0.10 USD
+- Market rate (example): 1 USD = 10.00 SEK
 - Added to your USD balance: $18.44
 
 ### Stablecoin Payouts (USDC via Polygon)
