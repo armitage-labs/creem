@@ -51,6 +51,7 @@ export * from "./listusageevents.js";
 export * from "./listwebhooks.js";
 export * from "./pausesubscription.js";
 export * from "./previewexistingmeter.js";
+export * from "./promotecatalog.js";
 export * from "./removeproductfromproductgroup.js";
 export * from "./resumesubscription.js";
 export * from "./retrieveaffiliate.js";

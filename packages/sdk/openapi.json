@@ -5809,7 +5809,7 @@
             }
           },
           "400": {
-            "description": "Bad request, and nothing was checked. Besides validation errors of the request itself: `validate_batch_too_large`: the batch holds more than 100 items (`details.max_items`, `details.items`); split it, for example one dependency layer per call. `dry_run_not_supported`: an item's `kind` can't be validated yet (`details.kind`: `product_group` or `discount`), or the request sent `dry_run` (validate never writes). An item's own validation error is not a `400` of the call: it is that item's answer in a `422`."
+            "description": "Bad request, and nothing was checked. Besides validation errors of the request itself: `validate_batch_too_large`: the batch holds more than 100 items (`details.max_items`, `details.items`); split it, for example one dependency layer per call. `dry_run_not_supported`: an item's `kind` can't be validated yet (`details.kind`: `product_group` or `discount`), or the request sent `dry_run` (validate never writes). `validate_batch_timeout`: the batch couldn't be checked within 15 seconds (`details.timeout_ms`), because its items are large or one waited on a resource another request was writing; nothing was written. Split it into smaller batches; sending the same batch again takes as long. An item's own validation error is not a `400` of the call: it is that item's answer in a `422`."
           },
           "401": {
             "description": "Unauthorized - Invalid or missing API key"
@@ -5829,6 +5829,68 @@
                 }
               }
             }
+          }
+        },
+        "tags": ["Catalog"],
+        "security": [
+          {
+            "ApiKey": []
+          }
+        ]
+      }
+    },
+    "/v1/catalog/promote": {
+      "post": {
+        "operationId": "promoteCatalog",
+        "x-speakeasy-name-override": "promote",
+        "summary": "Promote the test catalog to live (meters and products).",
+        "description": "Copies the store’s test catalog into live by `external_id`: each selected test item is matched to the live item with the same key and written as that kind’s keyed upsert (`POST /v1/meters`, `POST /v1/products`); a keyed test item without a live match is created with its key. Test is the source for every field it sets; promote never clears a `metadata` key only live has (`conflict`), and live items without a test counterpart are not listed and never touched. A test item without a key is `needs_key`, with ranked `candidates` and a `proposed_external_id`: give both sides the same key, then promote again. Archived test items are included only when live has an item with the same key, and a paired meter’s archive state follows test’s.\n\nEvery item reports one `result`; the real run writes only `created`, `updated` and `unchanged` items. Before its first write the real run checks every write together in one rolled-back transaction (one dependency layer at a time above the batch limit) and writes nothing when one fails, unless `force` is `true`. The check runs within the time budget too: until it is done a page has no items and a `next_cursor`, and `validation.checked_batches` says how far it got. Then the run writes only what it checked: an item changed after the check is `not_written` (`changed_since_check`). Items run meters first, then products, then the meters test archived (a meter's archive is part of its own write, after the products that may stop pricing it), and pages end after a time budget: follow `next_cursor` with the same `select` and `dry_run` until it is null. Every run and item is recorded under `run_id`, dry runs included.\n\nRequires `products:write` and `meters:write` when meters are promoted. Answers `503` `test_environment_unavailable` when the test environment can’t be reached; try again later.",
+        "parameters": [
+          {
+            "name": "dry_run",
+            "required": false,
+            "in": "query",
+            "description": "Send `true` to preview: every item runs as its upsert’s dry run and is rolled back, so nothing is written in live (no row, no event, no Stripe call). The answer has the same shape as the real run’s, with `write_result.dry_run` `true`. Page a dry run with `cursor` like a real run.",
+            "schema": {
+              "type": "boolean"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CatalogPromoteRequestDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "The page’s items, also when some of them are `conflict`, `failed` or `blocked`.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CatalogPromoteResponseDto"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Bad request, and nothing ran. Besides validation errors of the request: `live_only`: called on the test API (promote runs on live); `reference_not_found`: a test id in `select` the test store doesn’t have (`details.field`, `details.key`); `invalid_cursor`: a cursor not issued for this `select` and `dry_run`, or older than 24 hours."
+          },
+          "401": {
+            "description": "Unauthorized - Invalid or missing API key"
+          },
+          "403": {
+            "description": "Forbidden: the API key or access token lacks `products:write`, or `meters:write` for a selection with meters. Nothing was read or written."
+          },
+          "404": {
+            "description": "Not Found - Resource does not exist"
+          },
+          "503": {
+            "description": "Service unavailable (`test_environment_unavailable`): the test environment can’t be reached. Nothing was written; try again later."
           }
         },
         "tags": ["Catalog"],
@@ -10951,7 +11013,7 @@
         "properties": {
           "path": {
             "type": "string",
-            "description": "The field that changed, by its request name: `name`, `aggregation`, `aggregation_property`, `filter`, `external_id`. `filter` is one path, because a sent filter replaces the whole filter.",
+            "description": "The field that changed, by its request name: `name`, `aggregation`, `aggregation_property`, `filter`, `external_id`. `filter` is one path, because a sent filter replaces the whole filter. `status` (`active`, `archived`) appears only on a meter `POST /v1/catalog/promote` brings in line with test.",
             "example": "name"
           },
           "from": {
@@ -12703,6 +12765,359 @@
           }
         },
         "required": ["object", "valid", "items"]
+      },
+      "CatalogPromoteSelectRequestDto": {
+        "type": "object",
+        "properties": {
+          "meters": {
+            "oneOf": [
+              {
+                "type": "string",
+                "enum": ["all"]
+              },
+              {
+                "type": "array",
+                "items": {
+                  "type": "string"
+                },
+                "maxItems": 1000
+              }
+            ],
+            "description": "`\"all\"` for every test meter, or a list of test meter ids. Leave it out to promote no meters (a product’s meters are still read to resolve its usage prices)."
+          },
+          "products": {
+            "oneOf": [
+              {
+                "type": "string",
+                "enum": ["all"]
+              },
+              {
+                "type": "array",
+                "items": {
+                  "type": "string"
+                },
+                "maxItems": 1000
+              }
+            ],
+            "description": "`\"all\"` for every test product, or a list of test product ids. Leave it out to promote no products."
+          }
+        }
+      },
+      "CatalogPromoteRequestDto": {
+        "type": "object",
+        "properties": {
+          "select": {
+            "description": "What to promote, per kind (`meters`, `products`; product groups and discounts come later): `\"all\"` or a list of **test** ids. Omit `select` to promote everything; a kind left out of a sent `select` is not promoted. A test id the test store doesn’t have answers `400` `reference_not_found` (`details.field`, `details.key`) before anything runs.",
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/CatalogPromoteSelectRequestDto"
+              }
+            ]
+          },
+          "cursor": {
+            "type": "string",
+            "nullable": true,
+            "description": "Null (or omitted) on a run’s first call, then the `next_cursor` of the previous answer, with the same `select` and the same `dry_run`. A cursor is valid for 24 hours; any other cursor answers `400` `invalid_cursor`."
+          },
+          "force": {
+            "type": "boolean",
+            "description": "Real run only. Before its first write, promote checks every write of the selection together in one rolled-back transaction; when one fails, nothing is written and the answer’s `validation.written` is `false`. Send `true` to write anyway: each write still runs its own checks, and an item whose write is refused is a `conflict` or `failed` item. Defaults to `false`."
+          }
+        }
+      },
+      "CatalogPromoteSummaryResponseDto": {
+        "type": "object",
+        "properties": {
+          "created": {
+            "type": "integer"
+          },
+          "updated": {
+            "type": "integer"
+          },
+          "unchanged": {
+            "type": "integer"
+          },
+          "needs_key": {
+            "type": "integer"
+          },
+          "conflict": {
+            "type": "integer"
+          },
+          "failed": {
+            "type": "integer"
+          },
+          "blocked": {
+            "type": "integer"
+          },
+          "not_written": {
+            "type": "integer"
+          }
+        },
+        "required": [
+          "created",
+          "updated",
+          "unchanged",
+          "needs_key",
+          "conflict",
+          "failed",
+          "blocked",
+          "not_written"
+        ]
+      },
+      "CatalogPromoteCandidateResponseDto": {
+        "type": "object",
+        "properties": {
+          "live_id": {
+            "type": "string",
+            "description": "The live item’s id."
+          },
+          "external_id": {
+            "type": "string",
+            "nullable": true,
+            "description": "The live item’s `external_id`: the key to propose when the merchant picks this candidate. Null when it has none (then the test item’s id is proposed)."
+          },
+          "name": {
+            "type": "string"
+          },
+          "status": {
+            "type": "string",
+            "description": "`active` or `archived`."
+          },
+          "price": {
+            "type": "integer",
+            "description": "Products only."
+          },
+          "currency": {
+            "type": "string",
+            "description": "Products only."
+          },
+          "billing_type": {
+            "type": "string",
+            "description": "Products only."
+          },
+          "billing_period": {
+            "type": "string",
+            "description": "Products only."
+          },
+          "differences": {
+            "description": "The fields that differ from the test item (products: `price`, `currency`, `billing_type`, `billing_period`, `status`; meters: `event_name`, `aggregation`, `unit_label`, `status`). Shown, never matched on.",
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          }
+        },
+        "required": ["live_id", "external_id", "name", "status", "differences"]
+      },
+      "CatalogPromoteFeatureCandidateResponseDto": {
+        "type": "object",
+        "properties": {
+          "live_feature_id": {
+            "type": "string"
+          },
+          "external_id": {
+            "type": "string",
+            "nullable": true
+          },
+          "description": {
+            "type": "string"
+          }
+        },
+        "required": ["live_feature_id", "external_id", "description"]
+      },
+      "CatalogPromoteFeatureCandidatesResponseDto": {
+        "type": "object",
+        "properties": {
+          "test_feature_id": {
+            "type": "string"
+          },
+          "type": {
+            "type": "string",
+            "description": "The feature type: `customerCredits`, `licenseKey` or `custom`."
+          },
+          "description": {
+            "type": "string"
+          },
+          "proposed_external_id": {
+            "type": "string",
+            "description": "The key to write on both features: the test feature’s own `external_id` when it has one, else the picked live feature’s `external_id` when it has one, else the test feature’s id."
+          },
+          "candidates": {
+            "description": "Live features of the same type nothing else matched; may be empty.",
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/CatalogPromoteFeatureCandidateResponseDto"
+            }
+          }
+        },
+        "required": ["test_feature_id", "type", "description", "proposed_external_id", "candidates"]
+      },
+      "CatalogPromoteErrorResponseDto": {
+        "type": "object",
+        "properties": {
+          "status": {
+            "type": "integer",
+            "description": "The status the item’s own write answers (`409` for a guard)."
+          },
+          "code": {
+            "type": "string",
+            "nullable": true,
+            "description": "The stable error code, for example `usage_price_in_use`, `license_keys_issued`, `meter_in_use`, `live_metadata_not_in_test`, `reference_not_found`, `file_location_invalid`. More codes may be added."
+          },
+          "message": {
+            "type": "string"
+          },
+          "details": {
+            "type": "object",
+            "additionalProperties": true
+          }
+        },
+        "required": ["status", "code", "message"]
+      },
+      "CatalogPromoteBlockedByResponseDto": {
+        "type": "object",
+        "properties": {
+          "kind": {
+            "type": "string",
+            "description": "The kind of the item this one waits for (`meter`)."
+          },
+          "test_id": {
+            "type": "string"
+          }
+        },
+        "required": ["kind", "test_id"]
+      },
+      "CatalogPromoteItemResponseDto": {
+        "type": "object",
+        "properties": {
+          "kind": {
+            "type": "string",
+            "description": "`meter` or `product`."
+          },
+          "test_id": {
+            "type": "string"
+          },
+          "live_id": {
+            "type": "string",
+            "nullable": true,
+            "description": "The live item: the one with the same `external_id`, or the one the write created (in a dry run an id that is never stored). Null when there is none."
+          },
+          "result": {
+            "type": "string",
+            "description": "One of `created`, `updated`, `unchanged`, `needs_key`, `conflict`, `failed`, `blocked`, `not_written`. More values may be added. The real run writes only `created`, `updated` and `unchanged` items. `not_written` is an item this run could write but didn't, with the reason in `error.code`: `archived_not_in_live` (archived in test, and live has no item with its key), `promote_check_failed` (the check failed for another item and `force` wasn't sent), `changed_since_check` (its write isn't the one the run checked; promote again)."
+          },
+          "write_result": {
+            "type": "object",
+            "additionalProperties": true,
+            "description": "On `created`, `updated` and `unchanged`: the `write_result` of the item’s upsert (`POST /v1/products`, `POST /v1/meters`), with promote’s warnings: `reference_planned` for a usage price naming a meter the same promote creates, `possible_rename` for a keyed item without a live match that has same-name live items (see `candidates`), `feature_type_not_promoted` for product features promote doesn’t copy yet (`file`)."
+          },
+          "candidates": {
+            "description": "On `needs_key`, and on a keyed item without a live match (`possible_rename`): live items of the same kind with the same name (ignoring case and spacing) that no test item is paired with, ranked: same billing type first, then active before archived, then closest price. Never preselected.",
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/CatalogPromoteCandidateResponseDto"
+            }
+          },
+          "proposed_external_id": {
+            "type": "string",
+            "description": "On `needs_key` for an item without `external_id`: the test item’s id, the key to propose when no candidate with a key is picked."
+          },
+          "feature_candidates": {
+            "description": "On `needs_key` for a matched product: its test features that need the same `external_id` on both sides before promote writes the product.",
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/CatalogPromoteFeatureCandidatesResponseDto"
+            }
+          },
+          "error": {
+            "description": "On `conflict` and `failed`.",
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/CatalogPromoteErrorResponseDto"
+              }
+            ]
+          },
+          "blocked_by": {
+            "description": "On `blocked`: the item it depends on.",
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/CatalogPromoteBlockedByResponseDto"
+              }
+            ]
+          }
+        },
+        "required": ["kind", "test_id", "live_id", "result"]
+      },
+      "CatalogPromoteValidationResponseDto": {
+        "type": "object",
+        "properties": {
+          "scope": {
+            "type": "string",
+            "description": "`selection`: every write was checked in one rolled-back transaction. `per_layer`: the selection is above the batch limit, so each dependency layer (meters, then products) was checked on its own, in batches of the limit; a usage price naming a meter of another batch is then checked as a reference by key only, and a meter test archived is checked in the batch of the products that price it in live, so a product that stops pricing it releases it first."
+          },
+          "batches": {
+            "type": "integer",
+            "description": "How many rolled-back batches the check runs."
+          },
+          "checked_batches": {
+            "type": "integer",
+            "description": "How many of them ran so far. The check goes on over pages within the time budget: until it equals `batches`, a page answers `next_cursor` and no items, and nothing is written."
+          },
+          "passed": {
+            "type": "boolean",
+            "nullable": true,
+            "description": "Whether every write passed the check; null while batches are left."
+          },
+          "written": {
+            "type": "boolean",
+            "nullable": true,
+            "description": "Whether the run writes: `true` when the check passed or `force` was sent; null while batches are left. When `false`, nothing was written: an item the check refused is `conflict` or `failed`, every other write `not_written` (`promote_check_failed`)."
+          }
+        },
+        "required": ["scope", "batches", "checked_batches", "passed", "written"]
+      },
+      "CatalogPromoteResponseDto": {
+        "type": "object",
+        "properties": {
+          "run_id": {
+            "type": "string",
+            "description": "The run (`cprun_…`), the same on every page of it."
+          },
+          "dry_run": {
+            "type": "boolean",
+            "description": "`true` on a dry run: nothing was written."
+          },
+          "summary": {
+            "description": "One count per result for this page’s items; every result always present.",
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/CatalogPromoteSummaryResponseDto"
+              }
+            ]
+          },
+          "items": {
+            "description": "This page’s items: meters, then products, then the meters test archived, each in test id order. Every item comes once per run. Empty on a page that only ran the check.",
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/CatalogPromoteItemResponseDto"
+            }
+          },
+          "validation": {
+            "nullable": true,
+            "description": "On the real run’s first page: how its writes were checked before the first one. Null otherwise.",
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/CatalogPromoteValidationResponseDto"
+              }
+            ]
+          },
+          "next_cursor": {
+            "type": "string",
+            "nullable": true,
+            "description": "Send it as `cursor` with the same `select` and `dry_run` to go on; null when the run is complete."
+          }
+        },
+        "required": ["run_id", "dry_run", "summary", "items", "validation", "next_cursor"]
       },
       "WebhookSubscriptionEntity": {
         "type": "object",

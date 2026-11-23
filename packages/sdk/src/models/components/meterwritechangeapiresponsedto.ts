@@ -29,7 +29,7 @@ export type MeterWriteChangeApiResponseDtoTo =
 
 export type MeterWriteChangeApiResponseDto = {
   /**
-   * The field that changed, by its request name: `name`, `aggregation`, `aggregation_property`, `filter`, `external_id`. `filter` is one path, because a sent filter replaces the whole filter.
+   * The field that changed, by its request name: `name`, `aggregation`, `aggregation_property`, `filter`, `external_id`. `filter` is one path, because a sent filter replaces the whole filter. `status` (`active`, `archived`) appears only on a meter `POST /v1/catalog/promote` brings in line with test.
    */
   path: string;
   /**
