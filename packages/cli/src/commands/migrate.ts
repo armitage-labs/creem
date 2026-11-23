@@ -28,6 +28,7 @@ import {
 import {
   CreemCheckError,
   DryRunIgnoredError,
+  RateLimitWaitError,
   checkMigration,
   executeMigration,
 } from "../lib/migration/writer";
@@ -351,6 +352,12 @@ function createLemonSqueezyCommand(context: CliContext): Command {
                   MIGRATION_EXIT_CODES.unexpected,
                   "Check the Creem environment and API version; the migrator needs the dry run (write_result.dry_run).",
                 );
+              if (error instanceof RateLimitWaitError)
+                throw new CliError(
+                  `${error.message} Nothing was written.`,
+                  MIGRATION_EXIT_CODES.unexpected,
+                  `Re-run in ${Math.ceil(error.waitMs / 1000)} s.`,
+                );
               throw error;
             }
           }
@@ -450,7 +457,7 @@ function createLemonSqueezyCommand(context: CliContext): Command {
                 print(chalk.dim(`  ${request.type.replace(/_/g, " ")} ${item.key}`)),
             });
           } catch (error) {
-            if (error instanceof DryRunIgnoredError) {
+            if (error instanceof DryRunIgnoredError || error instanceof RateLimitWaitError) {
               // What the run wrote before it stopped.
               if (error.report) {
                 if (json) writeResult(context, error.report, "json");
@@ -459,7 +466,9 @@ function createLemonSqueezyCommand(context: CliContext): Command {
               throw new CliError(
                 error.message,
                 MIGRATION_EXIT_CODES.unexpected,
-                "Check the Creem environment and API version, then re-run: written items are found by their key.",
+                error instanceof RateLimitWaitError
+                  ? `Re-run in ${Math.ceil(error.waitMs / 1000)} s: written items are found by their key.`
+                  : "Check the Creem environment and API version, then re-run: written items are found by their key.",
               );
             }
             throw error;

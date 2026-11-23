@@ -1127,3 +1127,68 @@ describe("ENG-2972 re-check: a group names each product once", () => {
     ]);
   });
 });
+
+describe("ENG-2972 re-check: Retry-After longer than the retries wait", () => {
+  const discountDryRun = (c: CreemCall) => c.path.startsWith("/v1/discounts") && c.dryRun === true;
+
+  it("stops the check with the wait named instead of retrying early", async () => {
+    const creem = fakeCreem(V1_STORE);
+    creem.state.discounts[0].name = "Renamed";
+    creem.fail(discountDryRun, 429, TOO_MANY, { "Retry-After": "120" });
+    const objects = await lsObjects();
+    const plan = fromLemonSqueezy(objects, await readCreemCatalog(creem.client), { now: NOW });
+    const sleep = vi.fn(async () => {});
+    const error = await checkMigration(creem.client, plan, { sleep }).catch((e: unknown) => e);
+    expect(error).toBeInstanceOf(RateLimitWaitError);
+    expect((error as Error).message).toContain("120 s");
+    expect(sleep).not.toHaveBeenCalledWith(60000);
+    expect(creem.dryRuns().filter(discountDryRun)).toHaveLength(1);
+    expect(creem.writes()).toEqual([]);
+  });
+
+  it("stops the run at that request and keeps the report of what was written", async () => {
+    const creem = fakeCreem();
+    const objects = await lsObjects();
+    const plan = fromLemonSqueezy(objects, await readCreemCatalog(creem.client), { now: NOW });
+    const result = await checkMigration(creem.client, plan, {});
+    const checkedDryRuns = creem.dryRuns().length;
+    creem.fail(discountDryRun, 429, TOO_MANY, { "Retry-After": "120" });
+    const sleep = vi.fn(async () => {});
+    const error = await executeMigration(creem.client, result, {
+      files: objects.fileDigests,
+      fetch: lemonSqueezyFetch().fetcher,
+      delayMs: 0,
+      sleep,
+    }).catch((e: unknown) => e);
+    expect(error).toBeInstanceOf(RateLimitWaitError);
+    expect(sleep).not.toHaveBeenCalledWith(60000);
+    expect(creem.dryRuns().slice(checkedDryRuns).filter(discountDryRun)).toHaveLength(1);
+    const report = (error as RateLimitWaitError).report!;
+    expect(report.items.filter((i) => i.kind === "product" && i.status === "done").length).toBe(
+      report.items.filter((i) => i.kind === "product" && i.action !== "skip").length,
+    );
+    const discounts = report.items.filter((i) => i.kind === "discount" && i.action !== "skip");
+    expect(discounts[0]).toMatchObject({ status: "failed", error: { code: "rate_limited" } });
+    for (const item of discounts.slice(1)) expect(item.status).toBe("pending");
+  });
+
+  it("exits 1 from the command, naming the wait", async () => {
+    vi.stubGlobal("fetch", lemonSqueezyFetch().fetcher);
+    const creem = fakeCreem();
+    creem.fail((c) => c.path === "/v1/catalog/validate", 429, TOO_MANY, { "Retry-After": "120" });
+    const h = harness(creem.client, { isTTY: false, confirm: vi.fn(async () => false) });
+    const r = await h.run([
+      "--json",
+      "migrate",
+      "lemon-squeezy",
+      "--ls-api-key",
+      "ls_fixture_secret_key",
+      "--ls-store-id",
+      LS_STORE_ID,
+      "--yes",
+    ]);
+    expect(r.code).toBe(MIGRATION_EXIT_CODES.unexpected);
+    expect(r.stderr).toContain("120 s");
+    expect(creem.writes()).toEqual([]);
+  });
+});

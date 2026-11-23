@@ -95,27 +95,59 @@ const statusOf = (error: unknown): number | null =>
 const isRefusal = (status: number | null): boolean =>
   status !== null && status >= 400 && status < 500 && ![401, 403, 408, 429].includes(status);
 
-/** Retries after a 429: three times, as long as `Retry-After` says (at most a minute). */
+/**
+ * Retries after a 429: three times, each as long as `Retry-After` says (1, 2,
+ * then 4 s without it). A wait longer than a minute stops the migration.
+ */
 const RATE_LIMIT_RETRIES = 3;
 const MAX_RETRY_WAIT_MS = 60_000;
 const defaultSleep = (ms: number) => new Promise<void>((resolve) => setTimeout(resolve, ms));
+
+/**
+ * Creem answered 429 with a `Retry-After` longer than the migrator waits between
+ * retries. Sending earlier would only be refused again, so nothing after it is
+ * sent: the check stops before any write; a run stops with the report of what
+ * it wrote (`report`, as `DryRunIgnoredError`).
+ */
+export class RateLimitWaitError extends Error {
+  report?: MigrationReport;
+  constructor(
+    readonly waitMs: number,
+    what: string,
+  ) {
+    super(
+      `Creem's rate limit asks to wait ${Math.ceil(waitMs / 1000)} s (Retry-After) before ${what} is sent again, longer than the migrator waits (${MAX_RETRY_WAIT_MS / 1000} s). The migration stopped there; nothing after it was sent.`,
+    );
+    this.name = "RateLimitWaitError";
+  }
+}
 
 function retryAfterMs(error: unknown, attempt: number): number {
   const header = error instanceof errors.CreemError ? error.headers.get("retry-after") : null;
   let wait = 1000 * 2 ** attempt;
   if (header && /^\d+$/.test(header.trim())) wait = Number(header.trim()) * 1000;
   else if (header && !Number.isNaN(Date.parse(header))) wait = Date.parse(header) - Date.now();
-  return Math.min(Math.max(wait, 0), MAX_RETRY_WAIT_MS);
+  return Math.max(wait, 0);
 }
 
-/** Sends a request again after a 429 (the API didn't process it), up to the retries. */
-async function retrying<T>(send: () => Promise<T>, sleep: (ms: number) => Promise<void>) {
+/**
+ * Sends a request again after a 429 (the API didn't process it), up to the
+ * retries, waiting as long as Creem asks; a longer wait than a minute throws
+ * `RateLimitWaitError`.
+ */
+async function retrying<T>(
+  send: () => Promise<T>,
+  sleep: (ms: number) => Promise<void>,
+  what: string,
+) {
   for (let attempt = 0; ; attempt++) {
     try {
       return await send();
     } catch (error) {
       if (statusOf(error) !== 429 || attempt >= RATE_LIMIT_RETRIES) throw error;
-      await sleep(retryAfterMs(error, attempt));
+      const wait = retryAfterMs(error, attempt);
+      if (wait > MAX_RETRY_WAIT_MS) throw new RateLimitWaitError(wait, what);
+      await sleep(wait);
     }
   }
 }
@@ -395,8 +427,13 @@ export async function checkMigration(
   // catalog write, even a dry run, reaches it.
   if (!products.length && plan.requests.some((r) => r.type !== "upload_file")) {
     try {
-      await retrying(() => client.catalog.validate({ items: [] }), sleep);
+      await retrying(
+        () => client.catalog.validate({ items: [] }),
+        sleep,
+        "POST /v1/catalog/validate",
+      );
     } catch (error) {
+      if (error instanceof RateLimitWaitError) throw error;
       throw stop(error, "POST /v1/catalog/validate");
     }
     await pause();
@@ -407,9 +444,14 @@ export async function checkMigration(
     let answers: CatalogValidationItemResponseDto[];
     try {
       answers = (
-        await retrying(() => client.catalog.validate({ items: batch.map((b) => b.item) }), sleep)
+        await retrying(
+          () => client.catalog.validate({ items: batch.map((b) => b.item) }),
+          sleep,
+          "POST /v1/catalog/validate",
+        )
       ).items;
     } catch (error) {
+      if (error instanceof RateLimitWaitError) throw error;
       if (!(error instanceof errors.CatalogValidationResponseDto))
         throw stop(error, "POST /v1/catalog/validate");
       answers = error.items;
@@ -540,7 +582,11 @@ export async function checkMigration(
       }
     }
     try {
-      const answer = await retrying(() => sendDryRun(client, request), sleep);
+      const answer = await retrying(
+        () => sendDryRun(client, request),
+        sleep,
+        `the dry run of ${describeRequest(request)}`,
+      );
       record(
         item,
         { id: answer.id, result: answer.writeResult.result },
@@ -548,7 +594,7 @@ export async function checkMigration(
         partial,
       );
     } catch (error) {
-      if (error instanceof DryRunIgnoredError) throw error;
+      if (error instanceof DryRunIgnoredError || error instanceof RateLimitWaitError) throw error;
       if (!isRefusal(statusOf(error)))
         throw stop(error, `the dry run of ${describeRequest(request)}`);
       refuse(item, migrationError(error, secrets, item.key));
@@ -801,8 +847,16 @@ export async function executeMigration(
         }
       }
       // The exact request runs as a dry run first; a refusal fails the item unwritten.
-      await retrying(() => sendDryRun(client, request), sleep);
-      const answer = await retrying(() => send(client, request, false), sleep);
+      await retrying(
+        () => sendDryRun(client, request),
+        sleep,
+        `the dry run of ${describeRequest(request)}`,
+      );
+      const answer = await retrying(
+        () => send(client, request, false),
+        sleep,
+        describeRequest(request),
+      );
       written.add(item);
       switch (request.type) {
         case "adopt_product":
@@ -820,15 +874,23 @@ export async function executeMigration(
           break;
       }
     } catch (error) {
-      if (error instanceof DryRunIgnoredError) {
+      if (error instanceof DryRunIgnoredError || error instanceof RateLimitWaitError) {
         // What was written before it stays reported; the rest stays pending.
         item.status = "failed";
-        item.error = {
-          code: "dry_run_ignored",
-          message: error.message,
-          status: null,
-          hint: "Check the Creem environment and API version, then re-run: written items are found by their key.",
-        };
+        item.error =
+          error instanceof DryRunIgnoredError
+            ? {
+                code: "dry_run_ignored",
+                message: error.message,
+                status: null,
+                hint: "Check the Creem environment and API version, then re-run: written items are found by their key.",
+              }
+            : {
+                code: "rate_limited",
+                message: error.message,
+                status: 429,
+                hint: `Re-run in ${Math.ceil(error.waitMs / 1000)} s: written items are found by their key.`,
+              };
         for (const done of report.items) if (written.has(done)) done.status = "done";
         report.summary = summarize(report.items);
         error.report = report;
