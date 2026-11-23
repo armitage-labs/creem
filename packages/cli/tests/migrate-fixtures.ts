@@ -613,7 +613,12 @@ export function fakeCreem(initial: Partial<CreemState> = {}, options: FakeCreemO
       .flat()
       .map((o: Json) => Number(/_(\d+)$/.exec(String(o.id))?.[1] ?? 0)),
   );
-  const failures: { match: (call: CreemCall) => boolean; status: number; body: Json }[] = [];
+  const failures: {
+    match: (call: CreemCall) => boolean;
+    status: number;
+    body: Json;
+    headers?: Record<string, string>;
+  }[] = [];
   /**
    * Server rules the fake doesn't model (a guard, a conflict): a write of the
    * product, discount or group with this key answers this error, also in a dry
@@ -742,7 +747,8 @@ export function fakeCreem(initial: Partial<CreemState> = {}, options: FakeCreemO
     };
     calls.push(call);
     const failure = failures.find((f) => f.match(call));
-    if (failure) return Response.json(failure.body, { status: failure.status });
+    if (failure)
+      return Response.json(failure.body, { status: failure.status, headers: failure.headers });
     if (dryRunParam !== null && dryRunParam !== "true" && dryRunParam !== "false")
       return Response.json({ code: "validation_error" }, { status: 400 });
     const answer = (a: { status: number; body: Json }) =>
@@ -846,8 +852,13 @@ export function fakeCreem(initial: Partial<CreemState> = {}, options: FakeCreemO
     dryRuns: () => calls.filter((c) => c.dryRun === true),
     /** `POST /v1/catalog/validate` requests. */
     validations: () => calls.filter((c) => c.path === "/v1/catalog/validate"),
-    fail(match: (call: CreemCall) => boolean, status: number, body: Json) {
-      failures.push({ match, status, body });
+    fail(
+      match: (call: CreemCall) => boolean,
+      status: number,
+      body: Json,
+      headers?: Record<string, string>,
+    ) {
+      failures.push({ match, status, body, headers });
     },
     /** Every write of the object with this key answers this error (see `refusals`). */
     refuse(key: string, status: number, code: string, message = code) {

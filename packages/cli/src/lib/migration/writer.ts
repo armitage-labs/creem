@@ -25,6 +25,10 @@ import {
 
 export interface CheckOptions {
   secrets?: string[];
+  /** Pause after each request, against rate limits (as the writer does). */
+  delayMs?: number;
+  /** How to wait; tests replace it. */
+  sleep?: (ms: number) => Promise<void>;
 }
 
 export interface ExecuteOptions {
@@ -41,6 +45,8 @@ export interface ExecuteOptions {
    */
   force?: boolean;
   onProgress?: (item: MigrationItem, request: MigrationRequest) => void;
+  /** How to wait; tests replace it. */
+  sleep?: (ms: number) => Promise<void>;
 }
 
 /**
@@ -58,6 +64,59 @@ export class DryRunIgnoredError extends Error {
       `Creem answered the dry run of ${what} with write_result.dry_run ${JSON.stringify(answered ?? null)} instead of true, so it may have written it. The migration stopped; nothing after it was sent.`,
     );
     this.name = "DryRunIgnoredError";
+  }
+}
+
+/**
+ * Creem's check couldn't finish: a request failed for a reason that says
+ * nothing about the item (a 5xx, a timeout, a 401/403, a 429 after the
+ * retries). Nothing was written.
+ */
+export class CreemCheckError extends Error {
+  constructor(
+    readonly status: number | null,
+    what: string,
+    detail: string,
+  ) {
+    super(
+      `Creem's check couldn't finish: ${what} answered ${status ?? "no response"} (${detail}). Nothing was written.`,
+    );
+    this.name = "CreemCheckError";
+  }
+}
+
+const statusOf = (error: unknown): number | null =>
+  error instanceof errors.CreemError ? error.statusCode : null;
+
+/**
+ * Whether Creem refused the item itself: a 4xx, but not 401/403 (the key),
+ * 408 (a timeout) or 429 (the rate limit), which say nothing about the item.
+ */
+const isRefusal = (status: number | null): boolean =>
+  status !== null && status >= 400 && status < 500 && ![401, 403, 408, 429].includes(status);
+
+/** Retries after a 429: three times, as long as `Retry-After` says (at most a minute). */
+const RATE_LIMIT_RETRIES = 3;
+const MAX_RETRY_WAIT_MS = 60_000;
+const defaultSleep = (ms: number) => new Promise<void>((resolve) => setTimeout(resolve, ms));
+
+function retryAfterMs(error: unknown, attempt: number): number {
+  const header = error instanceof errors.CreemError ? error.headers.get("retry-after") : null;
+  let wait = 1000 * 2 ** attempt;
+  if (header && /^\d+$/.test(header.trim())) wait = Number(header.trim()) * 1000;
+  else if (header && !Number.isNaN(Date.parse(header))) wait = Date.parse(header) - Date.now();
+  return Math.min(Math.max(wait, 0), MAX_RETRY_WAIT_MS);
+}
+
+/** Sends a request again after a 429 (the API didn't process it), up to the retries. */
+async function retrying<T>(send: () => Promise<T>, sleep: (ms: number) => Promise<void>) {
+  for (let attempt = 0; ; attempt++) {
+    try {
+      return await send();
+    } catch (error) {
+      if (statusOf(error) !== 429 || attempt >= RATE_LIMIT_RETRIES) throw error;
+      await sleep(retryAfterMs(error, attempt));
+    }
   }
 }
 
@@ -171,7 +230,8 @@ async function sendDryRun(
   try {
     answer = await send(client, request, true);
   } catch (error) {
-    if (error instanceof errors.ResponseValidationError) {
+    // A success the SDK can't read; an error answer it can't read keeps its status.
+    if (error instanceof errors.ResponseValidationError && error.statusCode < 300) {
       const raw = isRecord(error.rawValue) ? error.rawValue : {};
       const writeResult = isRecord(raw.write_result) ? raw.write_result : {};
       throw new DryRunIgnoredError(describeRequest(request), writeResult.dry_run);
@@ -270,6 +330,15 @@ export async function checkMigration(
 ): Promise<MigrationPlan> {
   const report: MigrationReport = structuredClone(plan.report);
   const secrets = options.secrets ?? [];
+  const sleep = options.sleep ?? defaultSleep;
+  const pause = async () => {
+    if (options.delayMs) await sleep(options.delayMs);
+  };
+  /** A failure that isn't Creem refusing the item stops the check. */
+  const stop = (error: unknown, what: string): CreemCheckError => {
+    const { result } = describeError(error, secrets);
+    return new CreemCheckError(statusOf(error), what, result.error.message);
+  };
   const itemOf = itemFinder(report);
   /**
    * Keys of the products this run creates (once validate has answered, the ones
@@ -326,11 +395,15 @@ export async function checkMigration(
     const batch = chunk.map(validateItem);
     let answers: CatalogValidationItemResponseDto[];
     try {
-      answers = (await client.catalog.validate({ items: batch.map((b) => b.item) })).items;
+      answers = (
+        await retrying(() => client.catalog.validate({ items: batch.map((b) => b.item) }), sleep)
+      ).items;
     } catch (error) {
-      if (!(error instanceof errors.CatalogValidationResponseDto)) throw error;
+      if (!(error instanceof errors.CatalogValidationResponseDto))
+        throw stop(error, "POST /v1/catalog/validate");
       answers = error.items;
     }
+    await pause();
     if (answers.length !== chunk.length)
       throw new Error(
         `POST /v1/catalog/validate answered ${answers.length} items for the ${chunk.length} it was sent; nothing was written.`,
@@ -339,6 +412,12 @@ export async function checkMigration(
       const request = chunk[index];
       const item = itemOf(request);
       if (!answer.valid) {
+        if (!isRefusal(answer.status))
+          throw new CreemCheckError(
+            answer.status,
+            `${describeRequest(request)} in POST /v1/catalog/validate`,
+            errorOf(answer.error, answer.status, item.key, "validation_failed").message,
+          );
         refuse(item, errorOf(answer.error, answer.status, item.key, "validation_failed"));
         return;
       }
@@ -429,7 +508,7 @@ export async function checkMigration(
       }
     }
     try {
-      const answer = await sendDryRun(client, request);
+      const answer = await retrying(() => sendDryRun(client, request), sleep);
       record(
         item,
         { id: answer.id, result: answer.writeResult.result },
@@ -438,8 +517,11 @@ export async function checkMigration(
       );
     } catch (error) {
       if (error instanceof DryRunIgnoredError) throw error;
+      if (!isRefusal(statusOf(error)))
+        throw stop(error, `the dry run of ${describeRequest(request)}`);
       refuse(item, migrationError(error, secrets, item.key));
     }
+    await pause();
   }
 
   for (const [item, { results: answers, partial }] of results) {
@@ -510,8 +592,9 @@ export async function executeMigration(
   };
   /** Items whose write went through, for the report of a run that stops. */
   const written = new Set<MigrationItem>();
+  const sleep = options.sleep ?? defaultSleep;
   const pause = async () => {
-    if (options.delayMs) await new Promise((resolve) => setTimeout(resolve, options.delayMs));
+    if (options.delayMs) await sleep(options.delayMs);
   };
 
   /**
@@ -686,8 +769,8 @@ export async function executeMigration(
         }
       }
       // The exact request runs as a dry run first; a refusal fails the item unwritten.
-      await sendDryRun(client, request);
-      const answer = await send(client, request, false);
+      await retrying(() => sendDryRun(client, request), sleep);
+      const answer = await retrying(() => send(client, request, false), sleep);
       written.add(item);
       switch (request.type) {
         case "upsert_product":

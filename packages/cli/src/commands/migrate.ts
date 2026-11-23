@@ -25,7 +25,12 @@ import {
   type MigrationItem,
   type MigrationReport,
 } from "../lib/migration/report";
-import { DryRunIgnoredError, checkMigration, executeMigration } from "../lib/migration/writer";
+import {
+  CreemCheckError,
+  DryRunIgnoredError,
+  checkMigration,
+  executeMigration,
+} from "../lib/migration/writer";
 import { addGlobalOptions, outputFormat } from "./resource";
 import { writeResult } from "../utils/results";
 
@@ -325,8 +330,21 @@ function createLemonSqueezyCommand(context: CliContext): Command {
           if (!failures.length && !plan.answerErrors.length && plan.requests.length) {
             print(chalk.dim("Checking the plan with Creem (dry run)…"));
             try {
-              plan = await checkMigration(client, plan, { secrets: [...context.secrets] });
+              plan = await checkMigration(client, plan, {
+                secrets: [...context.secrets],
+                delayMs: 100,
+              });
             } catch (error) {
+              if (error instanceof CreemCheckError)
+                throw new CliError(
+                  error.message,
+                  error.status === 401 || error.status === 403
+                    ? MIGRATION_EXIT_CODES.auth
+                    : MIGRATION_EXIT_CODES.unexpected,
+                  error.status === 401 || error.status === 403
+                    ? "Check the Creem API key and its environment."
+                    : "Re-run when Creem answers again.",
+                );
               if (error instanceof DryRunIgnoredError)
                 throw new CliError(
                   error.message,

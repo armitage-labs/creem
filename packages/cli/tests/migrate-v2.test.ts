@@ -12,7 +12,12 @@ import {
   type CreemCall,
   type CreemState,
 } from "./migrate-fixtures";
-import { DryRunIgnoredError, checkMigration, executeMigration } from "../src/lib/migration/writer";
+import {
+  CreemCheckError,
+  DryRunIgnoredError,
+  checkMigration,
+  executeMigration,
+} from "../src/lib/migration/writer";
 import {
   LemonSqueezyClient,
   fetchLemonSqueezyCatalog,
@@ -424,6 +429,24 @@ describe("ENG-2972: creem migrate lemon-squeezy", () => {
     ).toBeGreaterThan(0);
   });
 
+  it("exits 1, not 8, when Creem answers the check with a 503; exits 3 on a 401", async () => {
+    const unavailable = setup();
+    unavailable.creem.fail((c) => c.path === "/v1/catalog/validate", 503, {
+      code: "service_unavailable",
+    });
+    const r = await unavailable.h.run(["--json", ...base, "--yes"]);
+    expect(r.code).toBe(MIGRATION_EXIT_CODES.unexpected);
+    expect(r.stderr).toContain("503");
+    expect(unavailable.creem.writes()).toEqual([]);
+
+    const unauthorized = setup();
+    unauthorized.creem.fail((c) => c.path === "/v1/catalog/validate", 401, {
+      code: "unauthorized",
+    });
+    const a = await unauthorized.h.run(["--json", ...base, "--yes"]);
+    expect(a.code).toBe(MIGRATION_EXIT_CODES.auth);
+  });
+
   it("exits 1 and stops when Creem answers a dry run as a real write", async () => {
     vi.stubGlobal("fetch", lemonSqueezyFetch().fetcher);
     const creem = fakeCreem(V1_STORE, { ignoreDryRun: true });
@@ -717,5 +740,95 @@ describe("ENG-2972 review: a dry run answered without write_result stops the run
     const discounts = report.items.filter((i) => i.kind === "discount" && i.action !== "skip");
     expect(discounts[0]).toMatchObject({ status: "failed", error: { code: "dry_run_ignored" } });
     for (const item of discounts.slice(1)) expect(item.status).toBe("pending");
+  });
+});
+
+/** A 429 as the API answers it. */
+const TOO_MANY = {
+  trace_id: "trace_fixture",
+  status: 429,
+  error: "Too Many Requests",
+  message: ["Rate limit exceeded"],
+  timestamp: 0,
+};
+
+describe("ENG-2972 review: only an item-level 4xx is a refusal in the check", () => {
+  const discountDryRun = (c: CreemCall) => c.path.startsWith("/v1/discounts") && c.dryRun === true;
+
+  it.each([
+    [503, { code: "service_unavailable" }],
+    [500, { code: "internal_error" }],
+    [401, { code: "unauthorized" }],
+    [403, { code: "forbidden" }],
+  ])("stops the check on a %s, refuses no item and writes nothing", async (status, body) => {
+    const creem = fakeCreem(V1_STORE);
+    creem.state.discounts[0].name = "Renamed";
+    creem.fail(discountDryRun, status, body);
+    const objects = await lsObjects();
+    const plan = fromLemonSqueezy(objects, await readCreemCatalog(creem.client), { now: NOW });
+    const error = await checkMigration(creem.client, plan, {}).catch((e: unknown) => e);
+    expect(error).toBeInstanceOf(CreemCheckError);
+    expect((error as CreemCheckError).status).toBe(status);
+    expect((error as Error).message).toContain(String(status));
+    expect(creem.writes()).toEqual([]);
+  });
+
+  it("stops the check when validate answers a 503 or an item with a 5xx", async () => {
+    const creem = fakeCreem();
+    creem.fail((c) => c.path === "/v1/catalog/validate", 503, { code: "service_unavailable" });
+    const objects = await lsObjects();
+    const plan = fromLemonSqueezy(objects, await readCreemCatalog(creem.client), { now: NOW });
+    await expect(checkMigration(creem.client, plan, {})).rejects.toBeInstanceOf(CreemCheckError);
+
+    const other = fakeCreem();
+    other.fail((c) => c.path === "/v1/catalog/validate", 422, {
+      object: "catalog_validation",
+      valid: false,
+      items: plan.requests
+        .filter((r) => r.type === "upsert_product")
+        .map((_r, index) => ({
+          kind: "product",
+          id: null,
+          valid: index !== 0,
+          status: index === 0 ? 500 : 200,
+          response:
+            index === 0
+              ? null
+              : { id: "prod_x", write_result: { result: "created", dry_run: true, warnings: [] } },
+          error: index === 0 ? { code: "internal_error", message: "boom" } : null,
+        })),
+    });
+    await expect(checkMigration(other.client, plan, {})).rejects.toBeInstanceOf(CreemCheckError);
+  });
+
+  it("waits as long as Retry-After says on a 429 and goes on; stops after three 429s in a row", async () => {
+    const creem = fakeCreem(V1_STORE);
+    creem.state.discounts[0].name = "Renamed";
+    let limited = 1;
+    creem.fail((c) => discountDryRun(c) && limited-- > 0, 429, TOO_MANY, { "Retry-After": "2" });
+    const objects = await lsObjects();
+    const plan = fromLemonSqueezy(objects, await readCreemCatalog(creem.client), { now: NOW });
+    const sleep = vi.fn(async () => {});
+    const result = await checkMigration(creem.client, plan, { sleep });
+    expect(sleep).toHaveBeenCalledWith(2000);
+    expect(result.report.items.filter((i) => i.status === "failed")).toEqual([]);
+
+    const always = fakeCreem(V1_STORE);
+    always.state.discounts[0].name = "Renamed";
+    always.fail(discountDryRun, 429, TOO_MANY, { "Retry-After": "1" });
+    const error = await checkMigration(always.client, plan, { sleep }).catch((e: unknown) => e);
+    expect(error).toBeInstanceOf(CreemCheckError);
+    expect((error as CreemCheckError).status).toBe(429);
+    expect(always.dryRuns().filter(discountDryRun)).toHaveLength(4);
+  });
+
+  it("paces the check like the writer: a pause after each request", async () => {
+    const creem = fakeCreem();
+    const objects = await lsObjects();
+    const plan = fromLemonSqueezy(objects, await readCreemCatalog(creem.client), { now: NOW });
+    const sleep = vi.fn(async () => {});
+    await checkMigration(creem.client, plan, { delayMs: 100, sleep });
+    const sent = creem.calls.filter((c) => c.method !== "GET").length;
+    expect(sleep.mock.calls.filter(([ms]) => ms === 100)).toHaveLength(sent);
   });
 });
