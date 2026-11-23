@@ -1119,10 +1119,17 @@ describe("ENG-2972 re-check: a kept member of another LS product blocks that pro
     expect(kept.message).toContain("ls_variant_999201");
     expect(kept.message).toContain("ls_product_262999");
     expect(kept.message).toMatch(/one group/);
-    expect(checked.report.items.find((i) => i.key === "ls_product_262999")).toMatchObject({
+    const team262999 = checked.report.items.find((i) => i.key === "ls_product_262999")!;
+    expect(team262999).toMatchObject({
       status: "failed",
       error: { code: "product_already_grouped" },
     });
+    // That group is Pro's, which this run writes: giving it Team's key would
+    // take it from Pro. The hint names the group by its key and says to move.
+    expect(team262999.error!.hint).toContain(`${team.id} is in product group`);
+    expect(team262999.error!.hint).toContain("ls_product_262308");
+    expect(team262999.error!.hint).toMatch(/move/i);
+    expect(team262999.error!.hint).not.toContain("--external-id");
   });
 
   it("doesn't say so for a kept member no Lemon Squeezy product groups", async () => {

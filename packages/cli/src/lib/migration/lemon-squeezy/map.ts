@@ -88,6 +88,12 @@ export interface MigrationPlan {
    * The plan must not run while there are any: the command stops with exit 2.
    */
   answerErrors: MigrationIssue[];
+  /**
+   * The stored product group each Creem product is in, by product id, from the
+   * catalog the plan was made from. Creem's `product_already_grouped` names the
+   * products only (`details.product_ids`); the error's hint names their group.
+   */
+  productGroupOf: Record<string, { id: string; externalId: string | null }>;
 }
 
 export interface FromLemonSqueezyOptions {
@@ -1529,6 +1535,11 @@ export function fromLemonSqueezy(
     requests: [...uploadRequests, ...productRequests, ...groupRequests, ...discountRequests],
     report,
     answerErrors,
+    productGroupOf: Object.fromEntries(
+      creemCatalog.productGroups.flatMap((g) =>
+        g.products.map((p) => [p.id, { id: g.id, externalId: g.externalId }]),
+      ),
+    ),
   };
 }
 

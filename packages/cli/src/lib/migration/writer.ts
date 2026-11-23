@@ -164,15 +164,34 @@ const HINTS: Record<string, string> = {
   license_keys_issued: "Customers hold keys of this license-key feature; it cannot be removed.",
 };
 
+/** What an error's hint may name: the item's key, and the plan's stored groups. */
+interface HintContext {
+  key: string;
+  productGroupOf: MigrationPlan["productGroupOf"];
+}
+
 /** The hint for an error, with what the error's `details` name. */
-function hintFor(code: string, details: Record<string, unknown>, key: string): string | null {
+function hintFor(
+  code: string,
+  details: Record<string, unknown>,
+  about: HintContext,
+): string | null {
   if (code === "product_already_grouped") {
-    const group = typeof details.product_group_id === "string" ? details.product_group_id : null;
-    const product =
-      typeof details.product_id === "string" ? `Product ${details.product_id}` : "A product";
-    return group
-      ? `${product} is in product group ${group}. If that is the group to migrate (one you made in the dashboard), give it the key: creem product-groups update ${group} --external-id ${key}. Otherwise take the product out of it.`
-      : `${product} is in another product group; take it out of that group, or give that group the key ${key}.`;
+    const ids = Array.isArray(details.product_ids)
+      ? details.product_ids.filter((id): id is string => typeof id === "string")
+      : [];
+    const hints = ids.map((id) => {
+      const group = about.productGroupOf[id];
+      if (!group) return `Product ${id} is in another product group; take it out of that group.`;
+      // A keyed group belongs to its key (another Lemon Squeezy product's, or
+      // the merchant's own): giving it this key would take it from that one.
+      if (group.externalId)
+        return `Product ${id} is in product group ${group.id}, keyed ${group.externalId}. A product is in one group only: move it out of that group in Creem, then run the migration again.`;
+      return `Product ${id} is in product group ${group.id}. If that is the group to migrate (one you made in the dashboard), give it the key: creem product-groups update ${group.id} --external-id ${about.key}. Otherwise take the product out of it.`;
+    });
+    return hints.length
+      ? hints.join(" ")
+      : "A product is in another product group; take it out of that group.";
   }
   return HINTS[code] ?? null;
 }
@@ -181,7 +200,7 @@ function hintFor(code: string, details: Record<string, unknown>, key: string): s
 function errorOf(
   body: unknown,
   status: number | null,
-  key: string,
+  about: HintContext,
   fallback: string,
 ): MigrationError {
   const api = isRecord(body) ? body : {};
@@ -193,13 +212,13 @@ function errorOf(
       ? api.message
       : code;
   const details = isRecord(api.details) ? api.details : {};
-  return { code, message, status, hint: hintFor(code, details, key) };
+  return { code, message, status, hint: hintFor(code, details, about) };
 }
 
-function migrationError(error: unknown, secrets: string[], key: string): MigrationError {
+function migrationError(error: unknown, secrets: string[], about: HintContext): MigrationError {
   const { result } = describeError(error, secrets);
   const body = isRecord(result.error.details) ? result.error.details : {};
-  const migration = errorOf(body, result.error.status, key, result.error.type);
+  const migration = errorOf(body, result.error.status, about, result.error.type);
   return { ...migration, message: result.error.message };
 }
 
@@ -372,6 +391,10 @@ export async function checkMigration(
     return new CreemCheckError(statusOf(error), what, result.error.message);
   };
   const itemOf = itemFinder(report);
+  const about = (item: MigrationItem): HintContext => ({
+    key: item.key,
+    productGroupOf: plan.productGroupOf,
+  });
   /**
    * Keys of the products this run creates (once validate has answered, the ones
    * it didn't refuse): a dry run names them as unknown references.
@@ -469,9 +492,9 @@ export async function checkMigration(
           throw new CreemCheckError(
             answer.status,
             `${describeRequest(request)} in POST /v1/catalog/validate`,
-            errorOf(answer.error, answer.status, item.key, "validation_failed").message,
+            errorOf(answer.error, answer.status, about(item), "validation_failed").message,
           );
-        refuse(item, errorOf(answer.error, answer.status, item.key, "validation_failed"));
+        refuse(item, errorOf(answer.error, answer.status, about(item), "validation_failed"));
         return;
       }
       const writeResult = isRecord(answer.response?.write_result)
@@ -597,7 +620,7 @@ export async function checkMigration(
       if (error instanceof DryRunIgnoredError || error instanceof RateLimitWaitError) throw error;
       if (!isRefusal(statusOf(error)))
         throw stop(error, `the dry run of ${describeRequest(request)}`);
-      refuse(item, migrationError(error, secrets, item.key));
+      refuse(item, migrationError(error, secrets, about(item)));
     }
     await pause();
   }
@@ -644,6 +667,10 @@ export async function executeMigration(
   const secrets = options.secrets ?? [];
   const sendBytes = options.fetch ?? ((...args) => fetch(...args));
   const itemOf = itemFinder(report);
+  const about = (item: MigrationItem): HintContext => ({
+    key: item.key,
+    productGroupOf: plan.productGroupOf,
+  });
   const uploaded = new Map<string, string>();
   const failedKeys = new Set<string>(refused.map((i) => i.key));
   // Products that exist in Creem with their key after the run: stored ones, and
@@ -916,7 +943,7 @@ export async function executeMigration(
         error.report = report;
         throw error;
       }
-      fail(item, migrationError(error, secrets, item.key));
+      fail(item, migrationError(error, secrets, about(item)));
       if (request.type === "adopt_product" || request.type === "adopt_discount")
         item.error!.message = `Adopting ${request.request.id} failed: ${item.error!.message}`;
     }

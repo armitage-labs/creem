@@ -534,6 +534,7 @@ function writeProductGroup(
   if (b.products) {
     members = [];
     let unknown = false;
+    const grouped: string[] = [];
     for (const ref of b.products as Json[]) {
       const product = state.products.find((p) =>
         ref.id !== undefined ? p.id === ref.id : p.external_id === ref.external_id,
@@ -553,16 +554,23 @@ function writeProductGroup(
         });
         continue;
       }
-      const other = state.productGroups.find(
-        (g) => g !== existing && g.products.some((m: Json) => m.id === product.id),
-      );
-      if (other)
-        throw apiError(409, "product_already_grouped", `Product ${product.id} is in ${other.id}.`, {
-          product_id: product.id,
-          product_group_id: other.id,
-        });
+      if (
+        state.productGroups.some(
+          (g) => g !== existing && g.products.some((m: Json) => m.id === product.id),
+        )
+      )
+        grouped.push(product.id);
       members.push({ id: product.id, external_id: product.external_id ?? null });
     }
+    // Like the API (`ProductAlreadyGroupedError`): every such product by id, not
+    // the group it is in.
+    if (grouped.length)
+      throw apiError(
+        409,
+        "product_already_grouped",
+        `Products ${grouped.join(", ")} are already in other bundles`,
+        { product_ids: grouped },
+      );
     // Like the API (`bundles.service.ts`): each product once, by id or by key.
     if (new Set(members.map((m) => m.id)).size !== members.length)
       throw apiError(400, "bad_request", "products must not list the same product twice");
