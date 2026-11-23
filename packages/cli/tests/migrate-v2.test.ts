@@ -832,3 +832,26 @@ describe("ENG-2972 review: only an item-level 4xx is a refusal in the check", ()
     expect(sleep.mock.calls.filter(([ms]) => ms === 100)).toHaveLength(sent);
   });
 });
+
+describe("ENG-2972 review: a plan without product writes probes validate first", () => {
+  it("sends POST /v1/catalog/validate with no items before the first dry run", async () => {
+    const creem = fakeCreem(V1_STORE);
+    const { plan } = await checked(creem);
+    expect(plan.requests.some((r) => r.type.endsWith("_product"))).toBe(false);
+    const sent = creem.calls.filter((c) => c.method !== "GET");
+    expect(sent[0]).toMatchObject({ path: "/v1/catalog/validate", body: { items: [] } });
+    expect(sent.slice(1).every((c) => c.dryRun)).toBe(true);
+  });
+
+  it("stops before any catalog write reaches a server that doesn't know validate", async () => {
+    const creem = fakeCreem(V1_STORE, { ignoreDryRun: true });
+    creem.fail((c) => c.path === "/v1/catalog/validate", 404, { code: "not_found" });
+    const objects = await lsObjects();
+    const plan = fromLemonSqueezy(objects, await readCreemCatalog(creem.client), { now: NOW });
+    await expect(checkMigration(creem.client, plan, {})).rejects.toBeInstanceOf(CreemCheckError);
+    expect(creem.calls.filter((c) => c.method !== "GET").map(describeCall)).toEqual([
+      "POST /v1/catalog/validate",
+    ]);
+    expect(creem.state.productGroups).toEqual([]);
+  });
+});

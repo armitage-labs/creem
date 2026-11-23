@@ -390,6 +390,17 @@ export async function checkMigration(
       { type: "adopt_product" | "update_product" | "upsert_product" }
     > => r.type === "adopt_product" || r.type === "update_product" || r.type === "upsert_product",
   );
+  // Without product writes, an empty validate first: a server that doesn't know
+  // validate (nor, then, the dry run) answers it with an error before any
+  // catalog write, even a dry run, reaches it.
+  if (!products.length && plan.requests.some((r) => r.type !== "upload_file")) {
+    try {
+      await retrying(() => client.catalog.validate({ items: [] }), sleep);
+    } catch (error) {
+      throw stop(error, "POST /v1/catalog/validate");
+    }
+    await pause();
+  }
   for (let start = 0; start < products.length; start += VALIDATE_BATCH_SIZE) {
     const chunk = products.slice(start, start + VALIDATE_BATCH_SIZE);
     const batch = chunk.map(validateItem);
