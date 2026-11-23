@@ -3,7 +3,7 @@
  */
 
 import { CreemCore } from "../core.js";
-import { encodeJSON, encodeSimple } from "../lib/encodings.js";
+import { encodeFormQuery, encodeJSON, encodeSimple } from "../lib/encodings.js";
 import { matchStatusCode } from "../lib/http.js";
 import * as M from "../lib/matchers.js";
 import { compactMap } from "../lib/primitives.js";
@@ -31,7 +31,7 @@ import { Result } from "../types/fp.js";
  * Update a meter
  *
  * @remarks
- * Rename a meter and/or revise its definition. A rename is always allowed — the name is a label no aggregate depends on — but it must stay unique within the store (409 meter_name_taken). Definition changes (filter, aggregation, aggregation_property) are only accepted while the meter has processed no usage and has no associated purchase; otherwise the request is rejected with 409, because editing the definition would silently rewrite what already-recorded usage means. The `locked` field on a meter shows this before you update it, though a meter can lock between that read and the update, because aggregation runs asynchronously. Send aggregation_property as null to clear it; omit it to leave it unchanged.
+ * Rename a meter and/or revise its definition. A rename is always allowed — the name is a label no aggregate depends on — but it must stay unique within the store (409 meter_name_taken). Definition changes (filter, aggregation, aggregation_property) are only accepted while the meter has processed no usage and has no associated purchase; otherwise the request is rejected with 409, because editing the definition would silently rewrite what already-recorded usage means. The `locked` field on a meter shows this before you update it, though a meter can lock between that read and the update, because aggregation runs asynchronously. Send aggregation_property as null to clear it; omit it to leave it unchanged. The request is compared with the stored meter first: values equal to the stored ones are no change, so sending a locked meter's own filter or aggregation answers 200 with `write_result.result` `unchanged` instead of 409, and a request that changes nothing writes nothing. The meter comes back with `write_result`.
  */
 export function metersUpdateMeter(
   client: CreemCore,
@@ -39,7 +39,7 @@ export function metersUpdateMeter(
   options?: RequestOptions,
 ): APIPromise<
   Result<
-    components.MeterApiResponseDto,
+    components.MeterWriteApiResponseDto,
     | errors.UsageMeteringErrorApiResponseDto
     | CreemError
     | ResponseValidationError
@@ -65,7 +65,7 @@ async function $do(
 ): Promise<
   [
     Result<
-      components.MeterApiResponseDto,
+      components.MeterWriteApiResponseDto,
       | errors.UsageMeteringErrorApiResponseDto
       | CreemError
       | ResponseValidationError
@@ -100,6 +100,10 @@ async function $do(
   };
   const path = pathToFunc("/v1/meters/{id}")(pathParams);
 
+  const query = encodeFormQuery({
+    "dry_run": payload.dry_run,
+  });
+
   const headers = new Headers(compactMap({
     "Content-Type": "application/json",
     Accept: "application/json",
@@ -130,6 +134,7 @@ async function $do(
     baseURL: options?.serverURL,
     path: path,
     headers: headers,
+    query: query,
     body: body,
     userAgent: client._options.userAgent,
     timeoutMs: options?.timeoutMs || client._options.timeoutMs || -1,
@@ -156,7 +161,7 @@ async function $do(
   };
 
   const [result] = await M.match<
-    components.MeterApiResponseDto,
+    components.MeterWriteApiResponseDto,
     | errors.UsageMeteringErrorApiResponseDto
     | CreemError
     | ResponseValidationError
@@ -167,7 +172,7 @@ async function $do(
     | UnexpectedClientError
     | SDKValidationError
   >(
-    M.json(200, components.MeterApiResponseDto$inboundSchema),
+    M.json(200, components.MeterWriteApiResponseDto$inboundSchema),
     M.jsonErr(
       [409, 422],
       errors.UsageMeteringErrorApiResponseDto$inboundSchema,

@@ -11,7 +11,15 @@ let value: ProductFileFeatureEditRequestEntity = {
   type: "file",
   description: "Ebook download",
   file: {
-    files: [],
+    files: [
+      {
+        id: "file_4dGTkmBdnTnU9vV3KZ2Hcz",
+        fileName: "ebook.pdf",
+        type: "application/pdf",
+        size: 1024000,
+        sha256: "n4bQgYhMfWWaL+qgxVrQFaO/TxsrC4Is0V1sFbDwCgg=",
+      },
+    ],
   },
 };
 ```

@@ -7,25 +7,29 @@ import { safeParse } from "../../lib/schemas.js";
 import { Result as SafeParseResult } from "../../types/fp.js";
 import { SDKValidationError } from "../errors/sdkvalidationerror.js";
 import {
-  ProductWriteImpactEntity,
-  ProductWriteImpactEntity$inboundSchema,
-  ProductWriteImpactEntity$Outbound,
-  ProductWriteImpactEntity$outboundSchema,
-} from "./productwriteimpactentity.js";
+  ProductWriteSubscriptionCountsEntity,
+  ProductWriteSubscriptionCountsEntity$inboundSchema,
+  ProductWriteSubscriptionCountsEntity$Outbound,
+  ProductWriteSubscriptionCountsEntity$outboundSchema,
+} from "./productwritesubscriptioncountsentity.js";
 
 export type ProductWriteWarningEntity = {
   /**
-   * What the warning is about. Known values: `usage_prices_shared` (the change of currency or billing period in `path` leaves running subscribers and new buyers sharing the same usage prices, so a later change of a unit price, allowance or cap applies to both). A warning without `impact` means the running subscriptions could not be counted; the write still went through. More values can be added, so ignore a code you do not know.
+   * What the warning is about. Known values: `usage_prices_shared` (the change of currency or billing period in `path` leaves running subscribers and new buyers sharing the same usage prices, so a later change of a unit price, allowance or cap applies to both), `field_not_writable` (the field in `path` cannot change after create, such as `tax_category`; the value sent was ignored), `reference_not_found` (a dry run only: the key in `key`, sent in `path`, names nothing; the real call answers `400` `reference_not_found`; for a usage price whose `meter_external_id` names no meter, on a create that usage price is left out of the product the dry run returns, and on an update of an existing product the stored usage prices stay as they are). A warning without `impact` means the running subscriptions could not be counted; the write still went through. More values can be added, so ignore a code you do not know.
    */
   code: string;
   /**
-   * The field the warning is about, for example `currency` or `billing_period`.
+   * The field the warning is about, for example `currency`, `billing_period` or `tax_category`.
    */
   path: string;
   /**
+   * The key the warning is about, on warnings about a reference. On `reference_not_found`, the key that names nothing. Left out on the others.
+   */
+  key?: string | undefined;
+  /**
    * The running subscriptions the warning is about. Left out when the running subscriptions could not be counted; the write still went through.
    */
-  impact?: ProductWriteImpactEntity | undefined;
+  impact?: ProductWriteSubscriptionCountsEntity | undefined;
 };
 
 /** @internal */
@@ -36,13 +40,15 @@ export const ProductWriteWarningEntity$inboundSchema: z.ZodType<
 > = z.object({
   code: z.string(),
   path: z.string(),
-  impact: ProductWriteImpactEntity$inboundSchema.optional(),
+  key: z.string().optional(),
+  impact: ProductWriteSubscriptionCountsEntity$inboundSchema.optional(),
 });
 /** @internal */
 export type ProductWriteWarningEntity$Outbound = {
   code: string;
   path: string;
-  impact?: ProductWriteImpactEntity$Outbound | undefined;
+  key?: string | undefined;
+  impact?: ProductWriteSubscriptionCountsEntity$Outbound | undefined;
 };
 
 /** @internal */
@@ -53,7 +59,8 @@ export const ProductWriteWarningEntity$outboundSchema: z.ZodType<
 > = z.object({
   code: z.string(),
   path: z.string(),
-  impact: ProductWriteImpactEntity$outboundSchema.optional(),
+  key: z.string().optional(),
+  impact: ProductWriteSubscriptionCountsEntity$outboundSchema.optional(),
 });
 
 export function productWriteWarningEntityToJSON(

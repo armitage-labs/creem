@@ -16,7 +16,7 @@ import {
 } from "./meterfilterapirequestdto.js";
 
 /**
- * Aggregation applied to the matching events
+ * Aggregation applied to the matching events. Required when creating a meter. Part of the meter definition: on an existing meter (by `external_id`) a different value is accepted only while the meter is not locked.
  */
 export const Aggregation = {
   Count: "count",
@@ -27,37 +27,37 @@ export const Aggregation = {
   Unique: "unique",
 } as const;
 /**
- * Aggregation applied to the matching events
+ * Aggregation applied to the matching events. Required when creating a meter. Part of the meter definition: on an existing meter (by `external_id`) a different value is accepted only while the meter is not locked.
  */
 export type Aggregation = ClosedEnum<typeof Aggregation>;
 
 export type CreateMeterApiRequestDto = {
   /**
-   * Human-readable meter name, unique within your store
+   * Human-readable meter name, unique within your store. Required when creating a meter. On an existing meter (by `external_id`) a different name renames it.
    */
-  name: string;
+  name?: string | undefined;
   /**
-   * The usage event name this meter consumes
+   * The usage event name this meter consumes. Required when creating a meter. It cannot change after create: on an existing meter (by `external_id`) a different value is ignored and reported as a `field_not_writable` warning.
    */
-  eventName: string;
+  eventName?: string | undefined;
   /**
-   * Aggregation applied to the matching events
+   * Aggregation applied to the matching events. Required when creating a meter. Part of the meter definition: on an existing meter (by `external_id`) a different value is accepted only while the meter is not locked.
    */
-  aggregation: Aggregation;
+  aggregation?: Aggregation | undefined;
   /**
-   * Event property the aggregation reduces. Required for every aggregation except "count", which ignores it.
+   * Event property the aggregation reduces. Required for every aggregation except "count", which ignores it. On an existing meter (by `external_id`), omit it to leave it unchanged or send `null` to clear it.
    */
-  aggregationProperty?: string | undefined;
+  aggregationProperty?: string | null | undefined;
   /**
-   * Optional filter narrowing which events the meter counts. Omitted means "count every event with this event name".
+   * Optional filter narrowing which events the meter counts. Omitted means "count every event with this event name" on a create, and leaves the filter unchanged on an existing meter (by `external_id`), where a sent filter replaces the whole filter and `null` is rejected (`400`), as on update.
    */
   filter?: MeterFilterApiRequestDto | undefined;
   /**
-   * Display unit for the metered quantity. Also names the customer-credits bucket the meter settles into.
+   * Display unit for the metered quantity. Also names the customer-credits bucket the meter settles into. Required when creating a meter. It cannot change after create: on an existing meter (by `external_id`) a different value is ignored and reported as a `field_not_writable` warning.
    */
-  unitLabel: string;
+  unitLabel?: string | undefined;
   /**
-   * Your own key for this meter. Creem never sets it. Unique per store, case-sensitive; 1 to 255 characters: letters, digits, `_`, `-`, `.` and `:`. A key another meter of your store already uses (archived ones too) answers `409` with code `external_id_taken`.
+   * Your own key for this meter. Creem never sets it. Unique per store, case-sensitive; 1 to 255 characters: letters, digits, `_`, `-`, `.` and `:`. With a key the call is an upsert: it creates the meter when no meter of your store has the key, and otherwise updates the meter that has it (archived meters too, which stay archived). Send `If-None-Match: *` to create only.
    */
   externalId?: string | undefined;
 };
@@ -75,12 +75,12 @@ export const CreateMeterApiRequestDto$inboundSchema: z.ZodType<
   z.ZodTypeDef,
   unknown
 > = z.object({
-  name: z.string(),
-  event_name: z.string(),
-  aggregation: Aggregation$inboundSchema,
-  aggregation_property: z.string().optional(),
+  name: z.string().optional(),
+  event_name: z.string().optional(),
+  aggregation: Aggregation$inboundSchema.optional(),
+  aggregation_property: z.nullable(z.string()).optional(),
   filter: MeterFilterApiRequestDto$inboundSchema.optional(),
-  unit_label: z.string(),
+  unit_label: z.string().optional(),
   external_id: z.string().optional(),
 }).transform((v) => {
   return remap$(v, {
@@ -92,12 +92,12 @@ export const CreateMeterApiRequestDto$inboundSchema: z.ZodType<
 });
 /** @internal */
 export type CreateMeterApiRequestDto$Outbound = {
-  name: string;
-  event_name: string;
-  aggregation: string;
-  aggregation_property?: string | undefined;
+  name?: string | undefined;
+  event_name?: string | undefined;
+  aggregation?: string | undefined;
+  aggregation_property?: string | null | undefined;
   filter?: MeterFilterApiRequestDto$Outbound | undefined;
-  unit_label: string;
+  unit_label?: string | undefined;
   external_id?: string | undefined;
 };
 
@@ -107,12 +107,12 @@ export const CreateMeterApiRequestDto$outboundSchema: z.ZodType<
   z.ZodTypeDef,
   CreateMeterApiRequestDto
 > = z.object({
-  name: z.string(),
-  eventName: z.string(),
-  aggregation: Aggregation$outboundSchema,
-  aggregationProperty: z.string().optional(),
+  name: z.string().optional(),
+  eventName: z.string().optional(),
+  aggregation: Aggregation$outboundSchema.optional(),
+  aggregationProperty: z.nullable(z.string()).optional(),
   filter: MeterFilterApiRequestDto$outboundSchema.optional(),
-  unitLabel: z.string(),
+  unitLabel: z.string().optional(),
   externalId: z.string().optional(),
 }).transform((v) => {
   return remap$(v, {

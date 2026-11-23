@@ -1,6 +1,6 @@
 # UpgradeBehavior
 
-How a switch between the products is billed, or `null` for the default.
+How a switch between the products of this group is billed. On an existing group (by `external_id`), send `null` to clear it.
 
 ## Example Usage
 
@@ -8,12 +8,10 @@ How a switch between the products is billed, or `null` for the default.
 import { UpgradeBehavior } from "creem/models/components";
 
 let value: UpgradeBehavior = "proration-charge";
-
-// Open enum: unrecognized values are captured as Unrecognized<string>
 ```
 
 ## Values
 
 ```typescript
-"proration-charge-immediately" | "proration-charge" | "proration-none" | Unrecognized<string>
+"proration-charge-immediately" | "proration-charge" | "proration-none"
 ```

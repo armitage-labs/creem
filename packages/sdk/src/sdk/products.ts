@@ -35,15 +35,15 @@ export class Products extends ClientSDK {
   }
 
   /**
-   * Creates a new product.
+   * Creates a product, or updates the one with the same external_id.
    *
    * @remarks
-   * Create a new product for one-time payments, including free products with a 0 price, or subscriptions. Configure pricing, billing cycles, and features.
+   * Create a new product for one-time payments, including free products with a 0 price, or subscriptions. Configure pricing, billing cycles, and features. With an `external_id` the call is an upsert: it creates the product when the key is new and updates the product that holds the key otherwise (archived products included, and they stay archived unless you send `status`). Only the fields you send change, each with the meaning `PATCH /v1/products/{id}` gives it; `tax_category` cannot change after create and a different value is ignored with a `field_not_writable` warning. A request that changes nothing answers `unchanged` and writes nothing, so retrying after a timeout is safe. The product comes back with `write_result`. Send `If-None-Match: *` to create only.
    */
   async create(
     request: operations.CreateProductRequest,
     options?: RequestOptions,
-  ): Promise<components.ProductEntity> {
+  ): Promise<components.ProductWriteResponseEntity> {
     return unwrapAsync(productsCreate(
       this,
       request,
@@ -72,7 +72,7 @@ export class Products extends ClientSDK {
    * Update a product
    *
    * @remarks
-   * Update a product. Only supplied fields change; a price change mints a new default price. `status` archives (`archived`, the same as `DELETE /v1/products/{id}`) or unarchives (`active`) the product. The product comes back with `write_result`, whose `warnings` list things to know about the write.
+   * Update a product. Only supplied fields change; a change of amount, currency, billing type, billing period or tax mode creates a new price version. Running subscriptions keep the amount and currency of the price version they are on; their billing period and tax mode still follow the product unless the subscription bills on the terms of its own version, so a change of either reaches most running subscriptions at their next renewal. `status` archives (`archived`, the same as `DELETE /v1/products/{id}`) or unarchives (`active`) the product. The product comes back with `write_result`: what changed (`changes`), things to know (`warnings`) and a new price version (`price_version`). A request that changes nothing answers `unchanged` and writes nothing.
    */
   async update(
     request: operations.UpdateProductRequest,

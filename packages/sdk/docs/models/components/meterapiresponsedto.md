@@ -26,8 +26,8 @@ let value: MeterApiResponseDto = {
   status: "active",
   externalId: "image-generations",
   locked: false,
-  createdAt: "1706752632385",
-  updatedAt: "1735638930703",
+  createdAt: "1727792796590",
+  updatedAt: "1735610320554",
 };
 ```
 

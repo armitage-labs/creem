@@ -3,7 +3,7 @@
  */
 
 import { CreemCore } from "../core.js";
-import { encodeJSON, encodeSimple } from "../lib/encodings.js";
+import { encodeFormQuery, encodeJSON, encodeSimple } from "../lib/encodings.js";
 import { matchStatusCode } from "../lib/http.js";
 import * as M from "../lib/matchers.js";
 import { compactMap } from "../lib/primitives.js";
@@ -28,10 +28,10 @@ import { APICall, APIPromise } from "../types/async.js";
 import { Result } from "../types/fp.js";
 
 /**
- * Create a discount.
+ * Creates a discount, or updates the one with the same external_id.
  *
  * @remarks
- * Create promotional discount codes for products. Set percentage or fixed amount discounts with expiration dates.
+ * Create promotional discount codes for products. Set percentage or fixed amount discounts with expiration dates. With an `external_id` the call is an upsert: it creates the discount when the key is new and updates the discount that holds the key otherwise. It matches by `external_id` only, never by `code`. Only the fields you send change, each with the meaning `PATCH /v1/discounts/{id}` gives it; the code cannot change, and a different code is ignored with a `field_not_writable` warning (a difference only in case is no change). A request that changes nothing answers `unchanged` and writes nothing, so retrying after a timeout is safe. The discount comes back with `write_result`. Send `If-None-Match: *` to create only.
  */
 export function discountsCreate(
   client: CreemCore,
@@ -39,7 +39,7 @@ export function discountsCreate(
   options?: RequestOptions,
 ): APIPromise<
   Result<
-    components.DiscountEntity,
+    components.DiscountWriteResponseEntity,
     | errors.TooManyRequestsErrorEntity
     | CreemError
     | ResponseValidationError
@@ -65,7 +65,7 @@ async function $do(
 ): Promise<
   [
     Result<
-      components.DiscountEntity,
+      components.DiscountWriteResponseEntity,
       | errors.TooManyRequestsErrorEntity
       | CreemError
       | ResponseValidationError
@@ -94,6 +94,10 @@ async function $do(
 
   const path = pathToFunc("/v1/discounts")();
 
+  const query = encodeFormQuery({
+    "dry_run": payload.dry_run,
+  });
+
   const headers = new Headers(compactMap({
     "Content-Type": "application/json",
     Accept: "application/json",
@@ -102,6 +106,10 @@ async function $do(
       payload["Idempotency-Key"],
       { explode: false, charEncoding: "none" },
     ),
+    "If-None-Match": encodeSimple("If-None-Match", payload["If-None-Match"], {
+      explode: false,
+      charEncoding: "none",
+    }),
   }));
 
   const secConfig = await extractSecurity(client._options.apiKey);
@@ -129,6 +137,7 @@ async function $do(
     baseURL: options?.serverURL,
     path: path,
     headers: headers,
+    query: query,
     body: body,
     userAgent: client._options.userAgent,
     timeoutMs: options?.timeoutMs || client._options.timeoutMs || -1,
@@ -155,7 +164,7 @@ async function $do(
   };
 
   const [result] = await M.match<
-    components.DiscountEntity,
+    components.DiscountWriteResponseEntity,
     | errors.TooManyRequestsErrorEntity
     | CreemError
     | ResponseValidationError
@@ -166,10 +175,10 @@ async function $do(
     | UnexpectedClientError
     | SDKValidationError
   >(
-    M.json(200, components.DiscountEntity$inboundSchema),
+    M.json(200, components.DiscountWriteResponseEntity$inboundSchema),
     M.jsonErr(429, errors.TooManyRequestsErrorEntity$inboundSchema),
-    M.fail([400, 401, 404, "4XX"]),
-    M.fail("5XX"),
+    M.fail([400, 401, 404, 409, 412, "4XX"]),
+    M.fail([503, "5XX"]),
   )(response, req, { extraFields: responseFields });
   if (!result.ok) {
     return [result, { status: "complete", request: req, response }];

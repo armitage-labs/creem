@@ -66,6 +66,7 @@ let value: SearchProductsResponse = {
         recurringIntervalCount: 3,
         trialPeriodDays: 7,
         trialPrice: 100,
+        suggestedPrice: 2500,
         status: "active",
         taxMode: "inclusive",
         businessNetPricing: false,

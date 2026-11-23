@@ -102,22 +102,41 @@
       "post": {
         "operationId": "createProduct",
         "x-speakeasy-name-override": "create",
-        "summary": "Creates a new product.",
-        "description": "Create a new product for one-time payments, including free products with a 0 price, or subscriptions. Configure pricing, billing cycles, and features.",
+        "summary": "Creates a product, or updates the one with the same external_id.",
+        "description": "Create a new product for one-time payments, including free products with a 0 price, or subscriptions. Configure pricing, billing cycles, and features. With an `external_id` the call is an upsert: it creates the product when the key is new and updates the product that holds the key otherwise (archived products included, and they stay archived unless you send `status`). Only the fields you send change, each with the meaning `PATCH /v1/products/{id}` gives it; `tax_category` cannot change after create and a different value is ignored with a `field_not_writable` warning. A request that changes nothing answers `unchanged` and writes nothing, so retrying after a timeout is safe. The product comes back with `write_result`. Send `If-None-Match: *` to create only.",
         "parameters": [
           {
             "name": "Idempotency-Key",
             "required": false,
             "in": "header",
-            "description": "Optional key that makes retries return the originally created product instead of creating a duplicate.",
+            "description": "Deprecated: send an `external_id`, which makes a retry an update of the product the first call created. Without an `external_id`, a retry with the same key returns the originally created product instead of creating a duplicate. With an `external_id` the header is ignored.",
+            "deprecated": true,
             "schema": {
               "type": "string"
+            }
+          },
+          {
+            "name": "If-None-Match",
+            "required": false,
+            "in": "header",
+            "description": "Send `*` to create only: when a product of the store already has the `external_id`, the call answers `412` (`precondition_failed`) and writes nothing. Only `*` is accepted on a request with an `external_id`; without one the header is ignored.",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "dry_run",
+            "required": false,
+            "in": "query",
+            "description": "Send `true` to preview the write: the request runs as it would and is rolled back, so nothing is written and nothing is triggered (no webhook, no event, and `Idempotency-Key` is neither read nor stored). The answer is the one the real call would give: the same status and errors, and the product with `write_result.dry_run` `true`. Ids generated for a new product, its features and usage prices, and `write_result.price_version.new_price_id` are never stored: a `GET` of them answers `404`. A `meter_external_id` that names no meter is a `reference_not_found` warning (`path`, `key`) instead of a `400`: on a create that usage price is left out of the answer, and on an update of an existing product the stored usage prices stay as they are. `false` or no parameter is a real call; any other value answers `400`.",
+            "schema": {
+              "type": "boolean"
             }
           }
         ],
         "requestBody": {
           "required": true,
-          "description": "Product creation payload",
+          "description": "Product creation payload. `name`, `description`, `price`, `currency` and `billing_type` are required when creating a product; an update by `external_id` may leave them out.",
           "content": {
             "application/json": {
               "schema": {
@@ -128,17 +147,17 @@
         },
         "responses": {
           "200": {
-            "description": "Successfully created a product",
+            "description": "Successfully created or updated the product",
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/ProductEntity"
+                  "$ref": "#/components/schemas/ProductWriteResponseEntity"
                 }
               }
             }
           },
           "400": {
-            "description": "Bad request. Besides validation errors: `feature_type_not_writable`: a `features` entry of type `githubRepository`; those are managed in the dashboard. `reference_not_found`: a `file` entry names a file id that is unknown, of another store, or of an upload that was never confirmed. `file_location_invalid`: a `file` entry names a file of the store that is not stored under its own product-file key. Nothing is created."
+            "description": "Bad request. Besides validation errors: a create (no `external_id`, or one no product has) without `name`, `description`, `price`, `currency` or `billing_type` answers the same validation error with or without the key. `feature_type_not_writable`: a `features` entry of type `githubRepository`; those are managed in the dashboard. `reference_not_found`: a `file` entry names a file id that is unknown, of another store, or of an upload that was never confirmed; or a `meter_external_id` names no meter of the store (`details.field`, `details.key`). `file_location_invalid`: a `file` entry names a file of the store that is not stored under its own product-file key. `If-None-Match` with a value other than `*` on a request with an `external_id`. When an `external_id` names an existing product, the errors of `PATCH /v1/products/{id}` apply too. Nothing is written."
           },
           "401": {
             "description": "Unauthorized - Invalid or missing API key"
@@ -147,7 +166,10 @@
             "description": "Not Found - Resource does not exist"
           },
           "409": {
-            "description": "Conflict - another product of the store already uses this `external_id` (code `external_id_taken`)"
+            "description": "Conflict. When an `external_id` names an existing product, the conflicts of `PATCH /v1/products/{id}` apply: `usage_price_in_use`, `meter_archived`, `license_keys_issued`, `auto_recharge_consents_active`, `product_changed_concurrently`, and `external_id_taken` for a feature key. Nothing is changed."
+          },
+          "412": {
+            "description": "Precondition failed (code `precondition_failed`): `If-None-Match: *` was sent and a product of the store already has this `external_id`, archived or not. `details.product_id` names it. Nothing is written."
           },
           "422": {
             "description": "Unprocessable. `generation_bucket_reserved`: a `customerCredits` feature names a reserved bucket (`generation` or `generation:*`, any casing) without `requires_moderation`; grant AI generation credits with `requires_moderation` `true` instead. `bucket_name_not_allowed_with_requires_moderation`: a `customerCredits` feature sends `bucket_name` together with `requires_moderation` `true`. `generation_credits_usage_price_unsupported`: a usage price would settle from a reserved generation bucket (`target_account` `per_unit` with `target_account_name`, or the meter unit, `generation` or `generation:*`); spending generation credits requires a `moderation_id`, which usage settlement does not carry. `credits_reset_requires_subscription`: a `customerCredits` feature sets `resets_each_period` `true` on a one-time product. Nothing is changed."
@@ -210,7 +232,7 @@
         "operationId": "updateProduct",
         "x-speakeasy-name-override": "update",
         "summary": "Update a product",
-        "description": "Update a product. Only supplied fields change; a price change mints a new default price. `status` archives (`archived`, the same as `DELETE /v1/products/{id}`) or unarchives (`active`) the product. The product comes back with `write_result`, whose `warnings` list things to know about the write.",
+        "description": "Update a product. Only supplied fields change; a change of amount, currency, billing type, billing period or tax mode creates a new price version. Running subscriptions keep the amount and currency of the price version they are on; their billing period and tax mode still follow the product unless the subscription bills on the terms of its own version, so a change of either reaches most running subscriptions at their next renewal. `status` archives (`archived`, the same as `DELETE /v1/products/{id}`) or unarchives (`active`) the product. The product comes back with `write_result`: what changed (`changes`), things to know (`warnings`) and a new price version (`price_version`). A request that changes nothing answers `unchanged` and writes nothing.",
         "parameters": [
           {
             "name": "id",
@@ -219,6 +241,15 @@
             "description": "The product ID",
             "schema": {
               "type": "string"
+            }
+          },
+          {
+            "name": "dry_run",
+            "required": false,
+            "in": "query",
+            "description": "Send `true` to preview the write: the request runs as it would and is rolled back, so nothing is written and nothing is triggered (no webhook, no event, and `Idempotency-Key` is neither read nor stored). The answer is the one the real call would give: the same status and errors, and the product with `write_result.dry_run` `true`. Ids generated for a new product, its features and usage prices, and `write_result.price_version.new_price_id` are never stored: a `GET` of them answers `404`. A `meter_external_id` that names no meter is a `reference_not_found` warning (`path`, `key`) instead of a `400`: on a create that usage price is left out of the answer, and on an update of an existing product the stored usage prices stay as they are. `false` or no parameter is a real call; any other value answers `400`.",
+            "schema": {
+              "type": "boolean"
             }
           }
         ],
@@ -254,7 +285,7 @@
             "description": "Not Found - Resource does not exist"
           },
           "409": {
-            "description": "Conflict. `license_keys_issued`: the update would remove a license-key feature whose keys customers already hold, by leaving it out of the `licenseKey` entries or with `deleted: true`; `details.issued_keys` counts the keys, whatever their status. Keep the feature, or edit its settings in place instead. `external_id_taken`: another product of the store already uses this `external_id`. `usage_price_in_use`: the update would remove a usage price, move it to another meter or change its settlement mode while subscriptions are billed for it or have usage on it that has not settled; `details.affected_subscriptions` counts them (`total`, `by_status`, `unsettled_postpaid_usage`) and `details.reason` is `running_subscriptions`. The same code with `details.reason` `referenced_price` and all counts 0: an ended subscription, a subscription item or an order still references the removed price. `meter_archived`: `status` `active` would unarchive a product with a usage price on an archived meter; `details.meter_id` names the meter. Unarchive the meter or remove the usage price first. `auto_recharge_consents_active`: customers switched on automatic refill for this product, and the update would raise its price, change its currency or billing type, switch its tax mode away from inclusive, or rewrite its tax category (a legacy `ebooks` product on a recurring price becomes `saas`, also on a plain rename); `details.auto_recharge_consents` counts the enabled consents. Create a new top-up product at the new price instead. Nothing is changed, with one exception for this code: when a customer switches automatic refill on while the update runs, the refusal comes after parts of the request were already written. An unused price and its Stripe price can remain, changes to usage prices and to trial or pay-what-you-want settings can stay applied, and the copy of the product at Stripe can carry the new name, description or image. The default price, currency, tax mode, billing type and tax category that decide a refill stay as they were. `product_changed_concurrently`: another write changed the product's default price after this update read the product. Read the product again and retry. When the change came before this update's first write, nothing is changed. When it lands while the update runs, and the update created no price of its own, the refusal comes at the final write, with the same exception as `auto_recharge_consents_active`: parts of the request can already be written, but the product's price columns and default price are not."
+            "description": "Conflict. `license_keys_issued`: the update would remove a license-key feature whose keys customers already hold, by leaving it out of the `licenseKey` entries or with `deleted: true`; `details.issued_keys` counts the keys, whatever their status. Keep the feature, or edit its settings in place instead. `external_id_taken`: another product of the store already uses this `external_id`. `usage_price_in_use`: the update would remove a usage price, move it to another meter or change its settlement mode while subscriptions are billed for it or have usage on it that has not settled; `details.affected_subscriptions` counts them (`total`, `by_status`, `unsettled_postpaid_usage`) and `details.reason` is `running_subscriptions`. The same code with `details.reason` `referenced_price` and all counts 0: an ended subscription, a subscription item or an order still references the removed price. `meter_archived`: `status` `active` would unarchive a product with a usage price on an archived meter; `details.meter_id` names the meter. Unarchive the meter or remove the usage price first. `auto_recharge_consents_active`: customers switched on automatic refill for this product, and the update would raise its price, change its currency or billing type, switch its tax mode away from inclusive, or rewrite its tax category (a legacy `ebooks` product on a recurring price becomes `saas`, also on a plain rename); `details.auto_recharge_consents` counts the enabled consents. Create a new top-up product at the new price instead. `product_changed_concurrently`: another write changed the product's default price while this update ran. Read the product again and retry. Nothing is changed. For any of these codes on a product that also has a copy at Stripe, when the refusal comes from a write that landed while the update ran, only that Stripe copy can carry the change: an unused Stripe price can remain, and the Stripe product can show the new name, description or image."
           },
           "422": {
             "description": "Unprocessable. `generation_bucket_reserved`: a `customerCredits` feature names a reserved bucket (`generation` or `generation:*`, any casing) without `requires_moderation`; grant AI generation credits with `requires_moderation` `true` instead. `bucket_name_not_allowed_with_requires_moderation`: a `customerCredits` feature sends `bucket_name` together with `requires_moderation` `true`. `generation_credits_usage_price_unsupported`: a usage price would settle from a reserved generation bucket (`target_account` `per_unit` with `target_account_name`, or the meter unit, `generation` or `generation:*`); spending generation credits requires a `moderation_id`, which usage settlement does not carry. `credits_reset_requires_subscription`: a `customerCredits` feature would have `resets_each_period` `true` on a one-time product, also when the update switches a product with the reset on to one-time without turning it off. Nothing is changed."
@@ -904,7 +935,7 @@
         },
         "x-speakeasy-name-override": "search",
         "summary": "List all subscriptions",
-        "description": "Search and retrieve a paginated list of subscriptions. View status, billing cycle, and customer info.",
+        "description": "Search and retrieve a paginated list of subscriptions, newest first. View status, billing cycle, and customer info. Filter by product, price version, status and customer: the filters combine with AND, several statuses with OR. To move one subscription to another price, send `items[].price_id` to `POST /v1/subscriptions/{id}`.",
         "parameters": [
           {
             "name": "page_number",
@@ -926,6 +957,61 @@
               "default": 10,
               "example": 10,
               "type": "number"
+            }
+          },
+          {
+            "name": "product_id",
+            "required": false,
+            "in": "query",
+            "description": "Only subscriptions of this product.",
+            "schema": {
+              "example": "prod_1234567890",
+              "type": "string"
+            }
+          },
+          {
+            "name": "price_id",
+            "required": false,
+            "in": "query",
+            "description": "Only subscriptions on this price version: a price id as `GET /v1/products/{id}/prices` lists it. A price change creates a new version, and running subscriptions stay on theirs, so this lists who is still on an older price. A subscription is on the versions of its items (`items[].price_id`), counting only items that are neither deleted nor usage prices; one without such an item is on its own version. This lists exactly the subscriptions the per-version counts of `GET /v1/products/{id}/prices` count, except that the counts include running subscriptions only: add `status` with the six running statuses to list exactly those. To move one subscription to another price, send `items[].price_id` to `POST /v1/subscriptions/{id}`.",
+            "schema": {
+              "example": "pprice_1234567890",
+              "type": "string"
+            }
+          },
+          {
+            "name": "status",
+            "required": false,
+            "in": "query",
+            "description": "Only subscriptions in this status. Repeat the parameter for several (`status=active&status=past_due`); they combine with OR. The running statuses are `active`, `trialing`, `past_due`, `scheduled_cancel`, `paused` and `unpaid`.",
+            "schema": {
+              "example": ["active", "past_due"],
+              "type": "array",
+              "items": {
+                "type": "string",
+                "enum": [
+                  "incomplete",
+                  "expired",
+                  "active",
+                  "past_due",
+                  "canceled",
+                  "scheduled_cancel",
+                  "unpaid",
+                  "paused",
+                  "trialing",
+                  "error"
+                ]
+              }
+            }
+          },
+          {
+            "name": "customer_id",
+            "required": false,
+            "in": "query",
+            "description": "Only subscriptions of this customer.",
+            "schema": {
+              "example": "cust_1234567890",
+              "type": "string"
             }
           }
         ],
@@ -1734,22 +1820,41 @@
       "post": {
         "operationId": "createDiscount",
         "x-speakeasy-name-override": "create",
-        "summary": "Create a discount.",
-        "description": "Create promotional discount codes for products. Set percentage or fixed amount discounts with expiration dates.",
+        "summary": "Creates a discount, or updates the one with the same external_id.",
+        "description": "Create promotional discount codes for products. Set percentage or fixed amount discounts with expiration dates. With an `external_id` the call is an upsert: it creates the discount when the key is new and updates the discount that holds the key otherwise. It matches by `external_id` only, never by `code`. Only the fields you send change, each with the meaning `PATCH /v1/discounts/{id}` gives it; the code cannot change, and a different code is ignored with a `field_not_writable` warning (a difference only in case is no change). A request that changes nothing answers `unchanged` and writes nothing, so retrying after a timeout is safe. The discount comes back with `write_result`. Send `If-None-Match: *` to create only.",
         "parameters": [
           {
             "name": "Idempotency-Key",
             "required": false,
             "in": "header",
-            "description": "Optional key that makes retries return the originally created discount instead of creating a duplicate. Reusing a key with a different body returns the first result, and a key lasts 24 hours. After a failed create whose outcome is unclear, the key answers 429 for up to 5 minutes.",
+            "description": "Deprecated: send an `external_id`, which makes a retry an update of the discount the first call created. Without an `external_id`, a retry with the same key returns the originally created discount instead of creating a duplicate; reusing a key with a different body returns the first result, and a key lasts 24 hours. After a failed create whose outcome is unclear, the key answers 429 for up to 5 minutes. With an `external_id` the header is ignored.",
+            "deprecated": true,
             "schema": {
               "type": "string"
+            }
+          },
+          {
+            "name": "If-None-Match",
+            "required": false,
+            "in": "header",
+            "description": "Send `*` to create only: when a discount of the store already has the `external_id`, the call answers `412` (`precondition_failed`) and writes nothing. Only `*` is accepted on a request with an `external_id`; without one the header is ignored.",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "dry_run",
+            "required": false,
+            "in": "query",
+            "description": "Send `true` to preview the write: the request runs as it would and is rolled back, so nothing is written, no Stripe API is called, and `Idempotency-Key` is neither read nor stored. The answer is the one the real call would give: the same status and errors, and the discount with `write_result.dry_run` `true`. The id of a new discount is never stored: a `GET` of it answers `404`. A key in `applies_to_product_external_ids` that names no product is a `reference_not_found` warning (`path`, `key`) instead of a `400`: a new discount leaves that product out, and an existing one keeps its stored products. `false` or no parameter is a real call; any other value answers `400`.",
+            "schema": {
+              "type": "boolean"
             }
           }
         ],
         "requestBody": {
           "required": true,
-          "description": "Discount creation payload",
+          "description": "Discount creation payload. `name`, `type` and `duration` are required when creating a discount; an update by `external_id` may leave them out.",
           "content": {
             "application/json": {
               "schema": {
@@ -1760,23 +1865,29 @@
         },
         "responses": {
           "200": {
-            "description": "Successfully created a discount",
+            "description": "Successfully created or updated the discount",
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/DiscountEntity"
+                  "$ref": "#/components/schemas/DiscountWriteResponseEntity"
                 }
               }
             }
           },
           "400": {
-            "description": "Bad Request - Invalid input parameters"
+            "description": "Bad request. Besides validation errors: a create (no `external_id`, or one no discount has) without `name`, `type` or `duration` answers the same validation error with or without the key. A keyless create whose code another discount holds answers `400` \"The code has already been taken.\", as before. `reference_not_found`: a product id or key the store does not have. `If-None-Match` with a value other than `*` on a request with an `external_id`. When an `external_id` names an existing discount, the errors of `PATCH /v1/discounts/{id}` apply too. Nothing is written."
           },
           "401": {
             "description": "Unauthorized - Invalid or missing API key"
           },
           "404": {
             "description": "Not Found - Resource does not exist"
+          },
+          "409": {
+            "description": "Conflict. `discount_code_taken`: the `external_id` is new and another discount of the store holds the code, in any case; the call matches by `external_id`, never by code, so give that discount the key with `PATCH /v1/discounts/{id}` to adopt it. When an `external_id` names an existing discount, the conflicts of `PATCH /v1/discounts/{id}` apply: `discount_redeemed`, `discount_managed_by_stripe`, `max_redemptions_below_redeemed`. Nothing is changed."
+          },
+          "412": {
+            "description": "Precondition failed (code `precondition_failed`): `If-None-Match: *` was sent and a discount of the store already has this `external_id`. `details.discount_id` names it. Nothing is written."
           },
           "429": {
             "description": "A create with this `Idempotency-Key` is in progress, or failed with an unclear outcome less than 5 minutes ago. Retry later.",
@@ -1787,6 +1898,9 @@
                 }
               }
             }
+          },
+          "503": {
+            "description": "Temporary (code `discount_create_in_progress`, with `Retry-After`): only with an `external_id`, on a store whose discounts get a Stripe coupon. A parallel create holds the code at Stripe and its discount isn't saved yet, or failed. Nothing is written. Retry after `Retry-After`: the retry answers the update, the create, or `409 discount_code_taken`."
           }
         },
         "tags": ["Discounts"],
@@ -1802,7 +1916,7 @@
         "operationId": "updateDiscount",
         "x-speakeasy-name-override": "update",
         "summary": "Update a discount.",
-        "description": "Update a discount. Only supplied fields change; the code never does. Once redeemed, its amount, type, currency and duration are fixed. A discount with a Stripe coupon also keeps its expiry, redemption limit and products; a name change renames the coupon.",
+        "description": "Update a discount. Only supplied fields change; the code never does. Once redeemed, its amount, type, currency and duration are fixed. A discount with a Stripe coupon also keeps its expiry, redemption limit and products; a name change renames the coupon. A request that changes nothing answers `unchanged` and writes nothing. The discount comes back with `write_result`.",
         "parameters": [
           {
             "name": "id",
@@ -1811,6 +1925,15 @@
             "description": "The discount ID",
             "schema": {
               "type": "string"
+            }
+          },
+          {
+            "name": "dry_run",
+            "required": false,
+            "in": "query",
+            "description": "Send `true` to preview the write: the request runs as it would and is rolled back, so nothing is written, no Stripe API is called, and `Idempotency-Key` is neither read nor stored. The answer is the one the real call would give: the same status and errors, and the discount with `write_result.dry_run` `true`. The id of a new discount is never stored: a `GET` of it answers `404`. A key in `applies_to_product_external_ids` that names no product is a `reference_not_found` warning (`path`, `key`) instead of a `400`: a new discount leaves that product out, and an existing one keeps its stored products. `false` or no parameter is a real call; any other value answers `400`.",
+            "schema": {
+              "type": "boolean"
             }
           }
         ],
@@ -1831,7 +1954,7 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/DiscountEntity"
+                  "$ref": "#/components/schemas/DiscountWriteResponseEntity"
                 }
               }
             }
@@ -1904,6 +2027,91 @@
       }
     },
     "/v1/product-groups": {
+      "post": {
+        "operationId": "createProductGroup",
+        "x-speakeasy-name-override": "create",
+        "summary": "Create a product group",
+        "description": "Link products a customer can switch between. A product belongs to one group at a time: one in another group answers `409` with code `product_already_grouped`. An unknown product answers `400` with code `reference_not_found`. With an `external_id` the call is an upsert: it creates the group when the key is new (`201`) and updates the group that holds the key otherwise (`200`). Only the fields you send change, each with the meaning `PATCH /v1/product-groups/{id}` gives it; `products`, when sent, is the complete ordered member list. The request is compared with the stored group first, so a request that changes nothing answers `unchanged` and writes nothing, and retrying after a timeout is safe. The product group comes back with `write_result`. Send `If-None-Match: *` to create only.",
+        "parameters": [
+          {
+            "name": "If-None-Match",
+            "required": false,
+            "in": "header",
+            "description": "Send `*` to create only: when a product group of the store already has the `external_id`, the call answers `412` (`precondition_failed`) and writes nothing. Only `*` is accepted on a request with an `external_id` (any other value answers `400`); without one the header is ignored.",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "dry_run",
+            "required": false,
+            "in": "query",
+            "description": "Send `true` to preview the write: the request runs as it would and is rolled back, so nothing is written. The answer is the one the real call would give: the same status (`201` for a create) and errors, and the product group with `write_result.dry_run` `true`. The id of a product group a dry run would create is never stored: a `GET` of it answers `404`. A product `id` or `external_id` that names no product of the store is a `reference_not_found` warning (`path`, `key`) instead of a `400`: on a create that entry is left out of the answer, and on an update the stored members stay as they are. `false` or no parameter is a real call; any other value answers `400`.",
+            "schema": {
+              "type": "boolean"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CreateProductGroupRequestEntity"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Only with an `external_id`: a product group of the store already had the key, and it was updated (`write_result.result` `updated`) or already matched the request (`unchanged`).",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProductGroupWriteResponseEntity"
+                }
+              }
+            }
+          },
+          "201": {
+            "description": "The created product group (also by a dry run, which stores nothing)",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProductGroupWriteResponseEntity"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Bad Request - Invalid input parameters"
+          },
+          "401": {
+            "description": "Unauthorized - Invalid or missing API key"
+          },
+          "404": {
+            "description": "Not Found - Resource does not exist"
+          },
+          "409": {
+            "description": "A product is already in another group (`product_already_grouped`). A key a group of the store holds is an update, not a conflict"
+          },
+          "412": {
+            "description": "Precondition failed (code `precondition_failed`): `If-None-Match: *` was sent and a product group of the store already has this `external_id`. `details.product_group_id` names it. Nothing is written."
+          },
+          "422": {
+            "description": "A product of the group grants AI generation credits (`generation_credits_bundle_unavailable`). Nothing is changed."
+          },
+          "503": {
+            "description": "Another request is changing this store's product groups (`product_groups_busy`); retry after `Retry-After`"
+          }
+        },
+        "tags": ["Product Groups"],
+        "security": [
+          {
+            "ApiKey": []
+          }
+        ]
+      },
       "get": {
         "operationId": "listProductGroups",
         "x-speakeasy-pagination": {
@@ -2035,6 +2243,255 @@
           },
           "404": {
             "description": "Not Found - Resource does not exist"
+          }
+        },
+        "tags": ["Product Groups"],
+        "security": [
+          {
+            "ApiKey": []
+          }
+        ]
+      },
+      "patch": {
+        "operationId": "updateProductGroup",
+        "x-speakeasy-name-override": "update",
+        "summary": "Update a product group",
+        "description": "Omitted fields stay unchanged. `products`, when sent, is the complete ordered member list: products it does not contain are removed, and its order is the display order. The request is compared with the stored group first: a request that changes nothing answers `write_result.result` `unchanged` and writes nothing, and an equal ordered member list writes no member. The product group comes back with `write_result`.",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "description": "The product group ID",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "dry_run",
+            "required": false,
+            "in": "query",
+            "description": "Send `true` to preview the write: the request runs as it would and is rolled back, so nothing is written. The answer is the one the real call would give: the same status (`201` for a create) and errors, and the product group with `write_result.dry_run` `true`. The id of a product group a dry run would create is never stored: a `GET` of it answers `404`. A product `id` or `external_id` that names no product of the store is a `reference_not_found` warning (`path`, `key`) instead of a `400`: on a create that entry is left out of the answer, and on an update the stored members stay as they are. `false` or no parameter is a real call; any other value answers `400`.",
+            "schema": {
+              "type": "boolean"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/UpdateProductGroupRequestEntity"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "The updated product group",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProductGroupWriteResponseEntity"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Bad Request - Invalid input parameters"
+          },
+          "401": {
+            "description": "Unauthorized - Invalid or missing API key"
+          },
+          "404": {
+            "description": "Not Found - Resource does not exist"
+          },
+          "409": {
+            "description": "A product is already in another group (`product_already_grouped`) or another group of the store holds the key (`external_id_taken`)"
+          },
+          "422": {
+            "description": "A product of the group grants AI generation credits (`generation_credits_bundle_unavailable`). Nothing is changed."
+          },
+          "503": {
+            "description": "Another request is changing this store's product groups (`product_groups_busy`); retry after `Retry-After`"
+          }
+        },
+        "tags": ["Product Groups"],
+        "security": [
+          {
+            "ApiKey": []
+          }
+        ]
+      },
+      "delete": {
+        "operationId": "deleteProductGroup",
+        "x-speakeasy-name-override": "delete",
+        "summary": "Delete a product group",
+        "description": "Delete a product group. Its products and their subscriptions stay; only the upgrade path between them goes.",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "description": "The product group ID",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "The deleted product group",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProductGroupEntity"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Bad Request - Invalid input parameters"
+          },
+          "401": {
+            "description": "Unauthorized - Invalid or missing API key"
+          },
+          "404": {
+            "description": "Not Found - Resource does not exist"
+          },
+          "503": {
+            "description": "Another request is changing this store's product groups (`product_groups_busy`); retry after `Retry-After`"
+          }
+        },
+        "tags": ["Product Groups"],
+        "security": [
+          {
+            "ApiKey": []
+          }
+        ]
+      }
+    },
+    "/v1/product-groups/{id}/products": {
+      "post": {
+        "operationId": "addProductToProductGroup",
+        "x-speakeasy-name-override": "addProduct",
+        "summary": "Add a product to a product group",
+        "description": "Add one product, by its `id` or its `external_id` (exactly one of the two), at the end of the group. A product already in this group answers `200` with the group unchanged; one in another group answers `409` with code `product_already_grouped`; an unknown one answers `400` with code `reference_not_found`.",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "description": "The product group ID",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "oneOf": [
+                  {
+                    "$ref": "#/components/schemas/ProductGroupProductIdReferenceEntity"
+                  },
+                  {
+                    "$ref": "#/components/schemas/ProductGroupProductExternalIdReferenceEntity"
+                  }
+                ]
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "The product group with the added product",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProductGroupEntity"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Bad Request - Invalid input parameters"
+          },
+          "401": {
+            "description": "Unauthorized - Invalid or missing API key"
+          },
+          "404": {
+            "description": "Not Found - Resource does not exist"
+          },
+          "409": {
+            "description": "A product is already in another group (`product_already_grouped`)"
+          },
+          "422": {
+            "description": "A product of the group grants AI generation credits (`generation_credits_bundle_unavailable`). Nothing is changed."
+          },
+          "503": {
+            "description": "Another request is changing this store's product groups (`product_groups_busy`); retry after `Retry-After`"
+          }
+        },
+        "tags": ["Product Groups"],
+        "security": [
+          {
+            "ApiKey": []
+          }
+        ]
+      }
+    },
+    "/v1/product-groups/{id}/products/{product_id}": {
+      "delete": {
+        "operationId": "removeProductFromProductGroup",
+        "x-speakeasy-name-override": "removeProduct",
+        "summary": "Remove a product from a product group",
+        "description": "Remove one product from the group. The product itself and its subscriptions stay.",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "description": "The product group ID",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "product_id",
+            "required": true,
+            "in": "path",
+            "description": "The ID of the product to remove",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "The product group without the removed product",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProductGroupEntity"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Bad Request - Invalid input parameters"
+          },
+          "401": {
+            "description": "Unauthorized - Invalid or missing API key"
+          },
+          "404": {
+            "description": "Not Found - Resource does not exist"
+          },
+          "503": {
+            "description": "Another request is changing this store's product groups (`product_groups_busy`); retry after `Retry-After`"
           }
         },
         "tags": ["Product Groups"],
@@ -3381,15 +3838,34 @@
         "x-speakeasy-name-override": "createMeter",
         "x-speakeasy-group": "meters",
         "summary": "Create a meter",
-        "description": "Define how a stream of usage events is aggregated into billable units. The unit label doubles as the display unit and as the credit bucket the meter settles into. A duplicate name within the store is rejected with 409 meter_name_taken.",
+        "description": "Define how a stream of usage events is aggregated into billable units. The unit label doubles as the display unit and as the credit bucket the meter settles into. A duplicate name within the store is rejected with 409 meter_name_taken. With an `external_id` the call is an upsert: it creates the meter when the key is new (201) and updates the meter that holds the key otherwise (200), archived meters included, which stay archived. Only the fields you send change, each with the meaning `PATCH /v1/meters/{id}` gives it; `event_name` and `unit_label` cannot change after create, and a different value is ignored with a `field_not_writable` warning. The request is compared with the stored meter first, so a request that changes nothing answers `unchanged` and writes nothing, also on a locked meter, and retrying after a timeout is safe; only a real change of a locked meter's filter or aggregation answers 409 `meter_immutable`. The meter comes back with `write_result`. Send `If-None-Match: *` to create only.",
         "parameters": [
           {
             "name": "Idempotency-Key",
             "required": false,
             "in": "header",
-            "description": "Optional key that makes retries return the originally created meter instead of creating a duplicate. Reusing a key with a different body returns the first result, and a key lasts 24 hours. After a failed create whose outcome is unclear, the key answers 429 for up to 5 minutes.",
+            "description": "Deprecated: send an `external_id`, which makes a retry an update of the meter the first call created. Without an `external_id`, a retry with the same key returns the originally created meter instead of creating a duplicate; reusing a key with a different body returns the first result, and a key lasts 24 hours. After a failed create whose outcome is unclear, the key answers 429 for up to 5 minutes. With an `external_id` the header is ignored.",
+            "deprecated": true,
             "schema": {
               "type": "string"
+            }
+          },
+          {
+            "name": "If-None-Match",
+            "required": false,
+            "in": "header",
+            "description": "Send `*` to create only: when a meter of the store already has the `external_id`, the call answers `412` (`precondition_failed`) and writes nothing. Only `*` is accepted on a request with an `external_id` (any other value answers `400`); without one the header is ignored.",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "dry_run",
+            "required": false,
+            "in": "query",
+            "description": "Send `true` to preview the write: the request runs as it would and is rolled back, so nothing is written and `Idempotency-Key` is neither read nor stored. The answer is the one the real call would give: the same status (`201` for a create) and errors, and the meter with `write_result.dry_run` `true`. The id of a meter a dry run would create is never stored: a `GET` of it answers `404`. `false` or no parameter is a real call; any other value answers `400`.",
+            "schema": {
+              "type": "boolean"
             }
           }
         ],
@@ -3404,12 +3880,22 @@
           }
         },
         "responses": {
-          "201": {
-            "description": "Meter created",
+          "200": {
+            "description": "Only with an `external_id`: a meter of the store already had the key, and it was updated (`write_result.result` `updated`) or already matched the request (`unchanged`).",
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/MeterApiResponseDto"
+                  "$ref": "#/components/schemas/MeterWriteApiResponseDto"
+                }
+              }
+            }
+          },
+          "201": {
+            "description": "Meter created (also by a dry run, which stores nothing)",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/MeterWriteApiResponseDto"
                 }
               }
             }
@@ -3424,7 +3910,17 @@
             "description": "Not Found - Resource does not exist"
           },
           "409": {
-            "description": "A meter with this name already exists in the store, or another meter of the store already uses this `external_id` (code `external_id_taken`)",
+            "description": "A meter with this name already exists in the store, or another meter of the store already uses this `external_id` (code `external_id_taken`), or, with an `external_id` that names a locked meter, the request changes its filter or aggregation (code `meter_immutable`). Nothing is changed.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/UsageMeteringErrorApiResponseDto"
+                }
+              }
+            }
+          },
+          "412": {
+            "description": "Precondition failed (code `precondition_failed`): `If-None-Match: *` was sent and a meter of the store already has this `external_id`, archived or not. `details.meter_id` names it. Nothing is written.",
             "content": {
               "application/json": {
                 "schema": {
@@ -3676,7 +4172,7 @@
         "x-speakeasy-name-override": "updateMeter",
         "x-speakeasy-group": "meters",
         "summary": "Update a meter",
-        "description": "Rename a meter and/or revise its definition. A rename is always allowed — the name is a label no aggregate depends on — but it must stay unique within the store (409 meter_name_taken). Definition changes (filter, aggregation, aggregation_property) are only accepted while the meter has processed no usage and has no associated purchase; otherwise the request is rejected with 409, because editing the definition would silently rewrite what already-recorded usage means. The `locked` field on a meter shows this before you update it, though a meter can lock between that read and the update, because aggregation runs asynchronously. Send aggregation_property as null to clear it; omit it to leave it unchanged.",
+        "description": "Rename a meter and/or revise its definition. A rename is always allowed — the name is a label no aggregate depends on — but it must stay unique within the store (409 meter_name_taken). Definition changes (filter, aggregation, aggregation_property) are only accepted while the meter has processed no usage and has no associated purchase; otherwise the request is rejected with 409, because editing the definition would silently rewrite what already-recorded usage means. The `locked` field on a meter shows this before you update it, though a meter can lock between that read and the update, because aggregation runs asynchronously. Send aggregation_property as null to clear it; omit it to leave it unchanged. The request is compared with the stored meter first: values equal to the stored ones are no change, so sending a locked meter's own filter or aggregation answers 200 with `write_result.result` `unchanged` instead of 409, and a request that changes nothing writes nothing. The meter comes back with `write_result`.",
         "parameters": [
           {
             "name": "id",
@@ -3684,6 +4180,15 @@
             "in": "path",
             "schema": {
               "type": "string"
+            }
+          },
+          {
+            "name": "dry_run",
+            "required": false,
+            "in": "query",
+            "description": "Send `true` to preview the write: the request runs as it would and is rolled back, so nothing is written and `Idempotency-Key` is neither read nor stored. The answer is the one the real call would give: the same status (`201` for a create) and errors, and the meter with `write_result.dry_run` `true`. The id of a meter a dry run would create is never stored: a `GET` of it answers `404`. `false` or no parameter is a real call; any other value answers `400`.",
+            "schema": {
+              "type": "boolean"
             }
           }
         ],
@@ -3699,11 +4204,11 @@
         },
         "responses": {
           "200": {
-            "description": "Meter updated",
+            "description": "Meter updated (`write_result.result` `updated`), or already as requested (`unchanged`)",
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/MeterApiResponseDto"
+                  "$ref": "#/components/schemas/MeterWriteApiResponseDto"
                 }
               }
             }
@@ -5274,6 +5779,65 @@
           }
         ]
       }
+    },
+    "/v1/catalog/validate": {
+      "post": {
+        "operationId": "validateCatalog",
+        "x-speakeasy-name-override": "validate",
+        "summary": "Validate a batch of catalog writes together, without writing anything.",
+        "description": "Runs every item as its own write would run with `?dry_run=true`, but all of them in one database transaction that is always rolled back, so the batch is checked as a whole: an item may name a resource another item of the batch creates (a product's usage price naming a new meter by `meter_external_id`), and every check, uniqueness rule and guard runs against what the earlier items would have written. Items run in dependency order (meters, products, product groups, discounts) and are answered in the order of the request. Without `id` an item runs as the keyed upsert of its kind (`POST /v1/products`, `POST /v1/meters`) with the same body; with `id` it runs as that resource's `PATCH` with `PATCH`'s rules, which is meant for a migrator adopting an existing resource (giving it an `external_id`). Requires `products:write` and the write scope of every kind in the batch (`meters:write` for meters). Nothing is written and nothing is triggered. A batch that passes can still fail when it is applied, if the catalog changes in between; validate it again right before applying it.",
+        "parameters": [],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CatalogValidateRequestDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Every item passes. One answer per item, in the order of the request.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CatalogValidationResponseDto"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Bad request, and nothing was checked. Besides validation errors of the request itself: `validate_batch_too_large`: the batch holds more than 100 items (`details.max_items`, `details.items`); split it, for example one dependency layer per call. `dry_run_not_supported`: an item's `kind` can't be validated yet (`details.kind`: `product_group` or `discount`), or the request sent `dry_run` (validate never writes). An item's own validation error is not a `400` of the call: it is that item's answer in a `422`."
+          },
+          "401": {
+            "description": "Unauthorized - Invalid or missing API key"
+          },
+          "403": {
+            "description": "Forbidden: the API key or access token lacks `products:write` or the write scope of a kind in the batch (`meters:write`, `discounts:write`). Nothing was checked."
+          },
+          "404": {
+            "description": "Not Found - Resource does not exist"
+          },
+          "422": {
+            "description": "At least one item fails. The same answer as `200`, with `valid` `false`: each failing item carries its endpoint’s status and error body. Nothing was written.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CatalogValidationResponseDto"
+                }
+              }
+            }
+          }
+        },
+        "tags": ["Catalog"],
+        "security": [
+          {
+            "ApiKey": []
+          }
+        ]
+      }
     }
   },
   "info": {
@@ -5434,9 +5998,15 @@
             "type": "integer",
             "description": "The size of the file in bytes.",
             "example": 1024000
+          },
+          "sha256": {
+            "type": "string",
+            "description": "The SHA-256 of the file, base64-encoded, as `POST /v1/files/{id}/confirm` returns it. Compare it before uploading a file again. `null` for a file stored without one.",
+            "example": "n4bQgYhMfWWaL+qgxVrQFaO/TxsrC4Is0V1sFbDwCgg=",
+            "nullable": true
           }
         },
-        "required": ["id", "file_name", "type", "size"]
+        "required": ["id", "file_name", "type", "size", "sha256"]
       },
       "ProductFileFeatureEntity": {
         "type": "object",
@@ -5782,6 +6352,16 @@
             "example": 100,
             "nullable": true
           },
+          "pay_what_you_want": {
+            "type": "boolean",
+            "description": "Whether buyers choose the amount they pay, at least `price`. One-time products only. Can be missing on a product embedded in another object."
+          },
+          "suggested_price": {
+            "type": "number",
+            "description": "The amount in cents pre-filled at checkout while `pay_what_you_want` is `true`; `null` when there is none. Checkout ignores it while `pay_what_you_want` is `false`. Can be missing on a product embedded in another object.",
+            "example": 2500,
+            "nullable": true
+          },
           "status": {
             "example": "active",
             "$ref": "#/components/schemas/ProductStatus"
@@ -6064,6 +6644,12 @@
             "type": "integer",
             "description": "Read-only: returned on reads, ignored on writes.",
             "example": 1024000
+          },
+          "sha256": {
+            "type": "string",
+            "description": "Read-only: returned on reads, ignored on writes.",
+            "example": "n4bQgYhMfWWaL+qgxVrQFaO/TxsrC4Is0V1sFbDwCgg=",
+            "nullable": true
           }
         },
         "required": ["id"]
@@ -6256,8 +6842,13 @@
           },
           "meter_id": {
             "type": "string",
-            "description": "The meter this charge bills. Must belong to the same store. One charge per meter per product.",
+            "description": "The meter this charge bills. Must belong to the same store. One charge per meter per product. Required unless `meter_external_id` names the meter.",
             "example": "mtr_abc123"
+          },
+          "meter_external_id": {
+            "type": "string",
+            "description": "The `external_id` of the meter, instead of `meter_id`. Resolved to the meter when the product is written; a key no meter of the store has answers `400` with code `reference_not_found` (`details.field`, `details.key`). When both are sent they must name the same meter.",
+            "example": "api-calls"
           },
           "unit_price": {
             "type": "number",
@@ -6294,18 +6885,18 @@
             "$ref": "#/components/schemas/UsagePriceTrialUsageMode"
           }
         },
-        "required": ["meter_id", "unit_price", "settlement_mode"]
+        "required": ["unit_price", "settlement_mode"]
       },
       "CreateProductRequestEntity": {
         "type": "object",
         "properties": {
           "name": {
             "type": "string",
-            "description": "Name of the product"
+            "description": "Name of the product. Required when creating a product."
           },
           "description": {
             "type": "string",
-            "description": "Description of the product"
+            "description": "Description of the product. Required when creating a product."
           },
           "image_url": {
             "type": "string",
@@ -6322,7 +6913,7 @@
           },
           "price": {
             "type": "integer",
-            "description": "The price of the product in cents. Must be 0 (free product) or at least 100 (one whole unit of the currency).",
+            "description": "The price of the product in cents. Must be 0 (free product) or at least 100 (one whole unit of the currency). Required when creating a product.",
             "example": 400
           },
           "currency": {
@@ -6386,7 +6977,7 @@
           },
           "external_id": {
             "type": "string",
-            "description": "Your own key for this product, such as your SKU or internal product id. Creem never sets it. Unique per store, case-sensitive; 1 to 255 characters: letters, digits, `_`, `-`, `.` and `:`. A key another product of your store already uses answers `409` with code `external_id_taken`. Omit it for a product without a key.",
+            "description": "Your own key for this product, such as your SKU or internal product id. Creem never sets it. Unique per store, case-sensitive; 1 to 255 characters: letters, digits, `_`, `-`, `.` and `:`. With a key, this call creates the product when the key is new and updates the product that holds it otherwise, archived or not: only the fields you send change, each with the meaning `PATCH /v1/products/{id}` gives it, and a request that changes nothing answers `write_result.result` `unchanged` and writes nothing, so a retry after a timeout is safe. Send `If-None-Match: *` to create only: an existing key then answers `412` with code `precondition_failed`. Omit it for a product without a key; every call then creates a product.",
             "example": "pro-monthly"
           },
           "metadata": {
@@ -6418,7 +7009,7 @@
             "default": false
           },
           "usage_prices": {
-            "description": "Metered charges billed on top of the base price, one per meter. Recurring products only.",
+            "description": "Metered charges billed on top of the base price, one per meter. Recurring products only. When an `external_id` names an existing product, the array is the complete set: a usage price matches a stored one by `id`, else by its meter (`meter_id` or `meter_external_id`); when `id` and the meter disagree, `id` wins and the usage price moves to the other meter, which is refused while subscriptions use it. A stored usage price the array leaves out is removed.",
             "type": "array",
             "items": {
               "$ref": "#/components/schemas/UsagePriceRequestEntity"
@@ -6426,7 +7017,7 @@
           },
           "features": {
             "type": "array",
-            "description": "Features granted by purchase: `customerCredits` (a credit grant into one of the customer credit buckets), `licenseKey` (a license key per purchased unit), `custom` (a private note) and `file` (files buyers download, named by the ids of confirmed uploads from `POST /v1/files`). A file id that is unknown, of another store, or of an upload that was never confirmed answers `400` with code `reference_not_found`; a file of the store that is not stored under its own product-file key answers `400` with code `file_location_invalid`. `githubRepository` features are managed in the dashboard: an entry of that type answers `400` with code `feature_type_not_writable`.",
+            "description": "Features granted by purchase: `customerCredits` (a credit grant into one of the customer credit buckets), `licenseKey` (a license key per purchased unit), `custom` (a private note) and `file` (files buyers download, named by the ids of confirmed uploads from `POST /v1/files`). A file id that is unknown, of another store, or of an upload that was never confirmed answers `400` with code `reference_not_found`; a file of the store that is not stored under its own product-file key answers `400` with code `file_location_invalid`. `githubRepository` features are managed in the dashboard: an entry of that type answers `400` with code `feature_type_not_writable`. When an `external_id` names an existing product, `features` works as on `PATCH /v1/products/{id}`: only the types the array contains are replaced, and an entry matches a stored feature by `id`, else by its `external_id`, else (a feature without either) the stored feature of its type that has no `external_id` either. To remove a feature, send `{ id, deleted: true }` or `{ external_id, deleted: true }` with an `external_id` that names the product, or use `PATCH /v1/products/{id}`. A create takes no `id` and no deletion.",
             "items": {
               "oneOf": [
                 {
@@ -6452,9 +7043,435 @@
                 }
               }
             }
+          },
+          "status": {
+            "example": "active",
+            "$ref": "#/components/schemas/ProductStatus"
+          }
+        }
+      },
+      "ProductWriteImpactEntity": {
+        "type": "object",
+        "properties": {
+          "total": {
+            "type": "integer",
+            "description": "Running subscriptions, the sum of `by_status`.",
+            "example": 12
+          },
+          "by_status": {
+            "type": "object",
+            "description": "Running subscriptions per status. Always lists `active`, `trialing`, `past_due`, `scheduled_cancel`, `paused` and `unpaid`.",
+            "additionalProperties": {
+              "type": "integer"
+            },
+            "example": {
+              "active": 9,
+              "trialing": 1,
+              "past_due": 1,
+              "scheduled_cancel": 0,
+              "paused": 1,
+              "unpaid": 0
+            }
+          },
+          "unsettled_postpaid_usage": {
+            "type": "integer",
+            "description": "Subscriptions that are no longer running but have postpaid usage on this product that has not been billed yet; included in `total`. Present on changes of a usage price.",
+            "example": 0
+          },
+          "auto_recharge_consents": {
+            "type": "integer",
+            "description": "Enabled automatic refills (auto-recharge consents) of customers on this product. Present on a change of the price, currency, tax mode or billing terms when the product has any.",
+            "example": 3
           }
         },
-        "required": ["name", "description", "price", "currency", "billing_type"]
+        "required": ["total", "by_status"]
+      },
+      "ProductWriteChangeEntity": {
+        "type": "object",
+        "properties": {
+          "path": {
+            "type": "string",
+            "description": "The field that changed, by its request name. Set items are named by their stored identity: `usage_prices[meter_id=mtr_1].unit_price`, `features[external_id=pro-credits]`, or `features[id=feat_1]` for a feature without a key. `metadata` and `custom_fields` are one path each.",
+            "example": "price"
+          },
+          "from": {
+            "description": "The value before the write: the field as a read returns it. `null` for an added set item.",
+            "nullable": true,
+            "oneOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "number"
+              },
+              {
+                "type": "boolean"
+              },
+              {
+                "type": "array",
+                "items": {}
+              },
+              {
+                "type": "object",
+                "additionalProperties": true
+              }
+            ],
+            "example": 2900
+          },
+          "to": {
+            "description": "The value after the write: the field as a read returns it. `null` for a removed set item.",
+            "nullable": true,
+            "oneOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "number"
+              },
+              {
+                "type": "boolean"
+              },
+              {
+                "type": "array",
+                "items": {}
+              },
+              {
+                "type": "object",
+                "additionalProperties": true
+              }
+            ],
+            "example": 3900
+          },
+          "impact": {
+            "description": "The subscriptions the change reaches: on an in-place change of a usage price (`unit_price`, `free_allowance`, `cap`, `settlement_mode`), and, with `auto_recharge_consents`, on a change of the price terms of a product with enabled automatic refills. Left out when they could not be counted; the write still went through.",
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/ProductWriteImpactEntity"
+              }
+            ]
+          }
+        },
+        "required": ["path", "from", "to"]
+      },
+      "ProductWriteSubscriptionCountsEntity": {
+        "type": "object",
+        "properties": {
+          "total": {
+            "type": "integer",
+            "description": "Running subscriptions, the sum of `by_status`.",
+            "example": 12
+          },
+          "by_status": {
+            "type": "object",
+            "description": "Running subscriptions per status. Always lists `active`, `trialing`, `past_due`, `scheduled_cancel`, `paused` and `unpaid`.",
+            "additionalProperties": {
+              "type": "integer"
+            },
+            "example": {
+              "active": 9,
+              "trialing": 1,
+              "past_due": 1,
+              "scheduled_cancel": 0,
+              "paused": 1,
+              "unpaid": 0
+            }
+          }
+        },
+        "required": ["total", "by_status"]
+      },
+      "ProductWriteWarningEntity": {
+        "type": "object",
+        "properties": {
+          "code": {
+            "type": "string",
+            "description": "What the warning is about. Known values: `usage_prices_shared` (the change of currency or billing period in `path` leaves running subscribers and new buyers sharing the same usage prices, so a later change of a unit price, allowance or cap applies to both), `field_not_writable` (the field in `path` cannot change after create, such as `tax_category`; the value sent was ignored), `reference_not_found` (a dry run only: the key in `key`, sent in `path`, names nothing; the real call answers `400` `reference_not_found`; for a usage price whose `meter_external_id` names no meter, on a create that usage price is left out of the product the dry run returns, and on an update of an existing product the stored usage prices stay as they are). A warning without `impact` means the running subscriptions could not be counted; the write still went through. More values can be added, so ignore a code you do not know.",
+            "example": "usage_prices_shared"
+          },
+          "path": {
+            "type": "string",
+            "description": "The field the warning is about, for example `currency`, `billing_period` or `tax_category`.",
+            "example": "currency"
+          },
+          "key": {
+            "type": "string",
+            "description": "The key the warning is about, on warnings about a reference. On `reference_not_found`, the key that names nothing. Left out on the others."
+          },
+          "impact": {
+            "description": "The running subscriptions the warning is about. Left out when the running subscriptions could not be counted; the write still went through.",
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/ProductWriteSubscriptionCountsEntity"
+              }
+            ]
+          }
+        },
+        "required": ["code", "path"]
+      },
+      "ProductWritePriceVersionEntity": {
+        "type": "object",
+        "properties": {
+          "created": {
+            "type": "boolean",
+            "description": "Always `true`: the field is present only when a version was created.",
+            "example": true
+          },
+          "previous_price_id": {
+            "type": "string",
+            "description": "The price version the product had before; `null` for a product that had none.",
+            "nullable": true,
+            "example": "pprice_old"
+          },
+          "new_price_id": {
+            "type": "string",
+            "description": "The new price version, now the product price.",
+            "example": "pprice_new"
+          },
+          "subscriptions_on_older_prices": {
+            "description": "Running subscriptions that stay on older price versions: they keep that version's amount and currency. A change of billing period or tax mode still reaches those that read both from the product, most of them today, at their next renewal. Left out when they could not be counted.",
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/ProductWriteSubscriptionCountsEntity"
+              }
+            ]
+          }
+        },
+        "required": ["created", "previous_price_id", "new_price_id"]
+      },
+      "ProductWriteResultEntity": {
+        "type": "object",
+        "properties": {
+          "result": {
+            "type": "string",
+            "description": "What the write did. Known values: `created`, `updated`, `unchanged` (the product already was what the request asked for; nothing was written). More values can be added, so treat a value you do not know like `updated`.",
+            "example": "updated"
+          },
+          "dry_run": {
+            "type": "boolean",
+            "description": "`true` when the request was sent with `dry_run=true`: nothing was written, and the ids of anything the write would have created are never stored. `false` on a real write. Stop unless it is `true` when you meant a dry run.",
+            "example": false
+          },
+          "changes": {
+            "description": "What changed, field by field. Empty on a create and on `unchanged`.",
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/ProductWriteChangeEntity"
+            }
+          },
+          "warnings": {
+            "description": "Things to know about this write. The write went through. Empty when there is nothing to report.",
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/ProductWriteWarningEntity"
+            }
+          },
+          "price_version": {
+            "description": "Present only when the write created a new price version: a change of amount, currency, billing type, billing period or tax mode.",
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/ProductWritePriceVersionEntity"
+              }
+            ]
+          }
+        },
+        "required": ["result", "dry_run", "changes", "warnings"]
+      },
+      "ProductWriteResponseEntity": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "description": "Unique identifier for the object."
+          },
+          "mode": {
+            "$ref": "#/components/schemas/EnvironmentMode"
+          },
+          "object": {
+            "type": "string",
+            "description": "String representing the object's type. Objects of the same type share the same value."
+          },
+          "name": {
+            "type": "string",
+            "description": "The name of the product"
+          },
+          "description": {
+            "type": "string",
+            "description": "A brief description of the product",
+            "example": "This is a sample product description."
+          },
+          "image_url": {
+            "type": "string",
+            "description": "URL of the product image. Only png as jpg are supported",
+            "example": "https://example.com/image.jpg"
+          },
+          "image_urls": {
+            "description": "Ordered list of product image URLs. The first entry is the cover image (mirrored in image_url).",
+            "example": ["https://example.com/image.jpg"],
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "features": {
+            "description": "Features of the product.",
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/FeatureEntity"
+            }
+          },
+          "usage_prices": {
+            "description": "Metered charges billed on top of the base price, one per meter. Present on recurring products that meter usage.",
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/UsagePriceEntity"
+            }
+          },
+          "price": {
+            "type": "number",
+            "description": "The price of the product in cents. 1000 = $10.00",
+            "example": 400
+          },
+          "currency": {
+            "type": "string",
+            "description": "Three-letter ISO currency code, in uppercase. Must be a supported currency.",
+            "example": "USD"
+          },
+          "billing_type": {
+            "example": "recurring",
+            "$ref": "#/components/schemas/ProductBillingType"
+          },
+          "billing_period": {
+            "example": "every-month",
+            "$ref": "#/components/schemas/ProductBillingPeriod"
+          },
+          "recurring_interval": {
+            "type": "string",
+            "description": "The unit of the recurring billing interval (`day`, `week`, `month`, or `year`). Together with `recurring_interval_count` this is authoritative for renewal timing — a `billing_period` of `custom` cannot be interpreted without it. For presets it is derived from the cadence (e.g. `every-three-months` → `month`). `null` for one-time products.",
+            "example": "month",
+            "nullable": true
+          },
+          "recurring_interval_count": {
+            "type": "integer",
+            "description": "The number of `recurring_interval` units per billing cycle (e.g. `3` with a `month` interval bills every three months). Together with `recurring_interval` this is authoritative for renewal timing. For presets it is derived from the cadence. `null` for one-time products.",
+            "example": 3,
+            "nullable": true
+          },
+          "trial_period_days": {
+            "type": "integer",
+            "description": "Length of the trial period in days. A whole number of days, at least 1. Only supported for recurring products. `null` when the product has no trial.",
+            "example": 7,
+            "nullable": true
+          },
+          "trial_price": {
+            "type": "integer",
+            "description": "Amount charged at checkout to start the trial, instead of a free card verification. In cents (100 = $1.00). Requires a trial period and must be at least 100 and lower than `price`; only supported on standard-priced recurring products without pay-what-you-want. `null` for a free trial and for products without a trial.",
+            "example": 100,
+            "nullable": true
+          },
+          "pay_what_you_want": {
+            "type": "boolean",
+            "description": "Whether buyers choose the amount they pay, at least `price`. One-time products only. Can be missing on a product embedded in another object."
+          },
+          "suggested_price": {
+            "type": "number",
+            "description": "The amount in cents pre-filled at checkout while `pay_what_you_want` is `true`; `null` when there is none. Checkout ignores it while `pay_what_you_want` is `false`. Can be missing on a product embedded in another object.",
+            "example": 2500,
+            "nullable": true
+          },
+          "status": {
+            "example": "active",
+            "$ref": "#/components/schemas/ProductStatus"
+          },
+          "tax_mode": {
+            "example": "inclusive",
+            "$ref": "#/components/schemas/TaxMode"
+          },
+          "business_net_pricing": {
+            "type": "boolean",
+            "description": "When true, business customers whose valid VAT ID triggers reverse charge pay the price excluding VAT instead of the tax-inclusive price. Only supported for tax-inclusive one-time products; the merchant gives up the VAT portion on those sales. Defaults to false.",
+            "example": false
+          },
+          "tax_category": {
+            "example": "saas",
+            "$ref": "#/components/schemas/TaxCategory"
+          },
+          "product_url": {
+            "type": "string",
+            "description": "The product page you can redirect your customers to for express checkout.",
+            "example": "https://creem.io/product/prod_123123123123"
+          },
+          "default_success_url": {
+            "type": "string",
+            "description": "The URL to which the user will be redirected after successfull payment.",
+            "example": "https://example.com/?status=successful",
+            "nullable": true
+          },
+          "custom_fields": {
+            "description": "Custom fields configured for the product. Collect additional information from your customer during checkout.",
+            "nullable": true,
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/CustomField"
+            }
+          },
+          "abandoned_cart_recovery_enabled": {
+            "type": "boolean",
+            "description": "Whether abandoned cart recovery is on for this product. Not included when the product is embedded in a checkout or subscription."
+          },
+          "external_id": {
+            "type": "string",
+            "description": "Your own key for this product, such as your SKU or internal product id. Creem never sets it. Unique per store, case-sensitive; 1 to 255 characters: letters, digits, `_`, `-`, `.` and `:`. `null` when the product has no key.",
+            "example": "pro-monthly",
+            "nullable": true
+          },
+          "metadata": {
+            "type": "object",
+            "description": "Key-value pairs for your own use, for example `{ \"plan\": \"pro\" }`. Values are strings or numbers. `null` when the product has none.",
+            "example": {
+              "plan": "pro"
+            },
+            "additionalProperties": true,
+            "nullable": true
+          },
+          "created_at": {
+            "format": "date-time",
+            "type": "string",
+            "description": "Creation date of the product",
+            "example": "2023-01-01T00:00:00Z"
+          },
+          "updated_at": {
+            "format": "date-time",
+            "type": "string",
+            "description": "Last updated date of the product",
+            "example": "2023-01-01T00:00:00Z"
+          },
+          "write_result": {
+            "description": "What this write did and should tell you.",
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/ProductWriteResultEntity"
+              }
+            ]
+          }
+        },
+        "required": [
+          "id",
+          "mode",
+          "object",
+          "name",
+          "description",
+          "price",
+          "currency",
+          "billing_type",
+          "billing_period",
+          "status",
+          "tax_mode",
+          "tax_category",
+          "external_id",
+          "metadata",
+          "created_at",
+          "updated_at",
+          "write_result"
+        ]
       },
       "ProductPriceVersionPricingModel": {
         "type": "string",
@@ -6698,7 +7715,8 @@
           },
           "suggested_price": {
             "type": "integer",
-            "description": "Suggested amount in cents when pay_what_you_want is enabled. Omit to leave unchanged; send `null` to clear it."
+            "description": "Suggested amount in cents when pay_what_you_want is enabled. Omit to leave unchanged; send `null` to clear it.",
+            "nullable": true
           },
           "usage_prices": {
             "description": "Metered charges billed on top of the base price, one per meter. Recurring products only. The array is the complete set after the update: omit (or send `null`) to leave charges untouched, send `[]` to remove all, include `id` to edit a charge in place.",
@@ -6795,257 +7813,6 @@
             "$ref": "#/components/schemas/ProductStatus"
           }
         }
-      },
-      "ProductWriteImpactEntity": {
-        "type": "object",
-        "properties": {
-          "total": {
-            "type": "number",
-            "description": "Running subscriptions, the sum of `by_status`.",
-            "example": 12
-          },
-          "by_status": {
-            "type": "object",
-            "description": "Running subscriptions per status. Always lists `active`, `trialing`, `past_due`, `scheduled_cancel`, `paused` and `unpaid`.",
-            "additionalProperties": {
-              "type": "integer"
-            },
-            "example": {
-              "active": 9,
-              "trialing": 1,
-              "past_due": 1,
-              "scheduled_cancel": 0,
-              "paused": 1,
-              "unpaid": 0
-            }
-          }
-        },
-        "required": ["total", "by_status"]
-      },
-      "ProductWriteWarningEntity": {
-        "type": "object",
-        "properties": {
-          "code": {
-            "type": "string",
-            "description": "What the warning is about. Known values: `usage_prices_shared` (the change of currency or billing period in `path` leaves running subscribers and new buyers sharing the same usage prices, so a later change of a unit price, allowance or cap applies to both). A warning without `impact` means the running subscriptions could not be counted; the write still went through. More values can be added, so ignore a code you do not know.",
-            "example": "usage_prices_shared"
-          },
-          "path": {
-            "type": "string",
-            "description": "The field the warning is about, for example `currency` or `billing_period`.",
-            "example": "currency"
-          },
-          "impact": {
-            "description": "The running subscriptions the warning is about. Left out when the running subscriptions could not be counted; the write still went through.",
-            "allOf": [
-              {
-                "$ref": "#/components/schemas/ProductWriteImpactEntity"
-              }
-            ]
-          }
-        },
-        "required": ["code", "path"]
-      },
-      "ProductWriteResultEntity": {
-        "type": "object",
-        "properties": {
-          "warnings": {
-            "description": "Things to know about this write. The write went through. Empty when there is nothing to report.",
-            "type": "array",
-            "items": {
-              "$ref": "#/components/schemas/ProductWriteWarningEntity"
-            }
-          }
-        },
-        "required": ["warnings"]
-      },
-      "ProductWriteResponseEntity": {
-        "type": "object",
-        "properties": {
-          "id": {
-            "type": "string",
-            "description": "Unique identifier for the object."
-          },
-          "mode": {
-            "$ref": "#/components/schemas/EnvironmentMode"
-          },
-          "object": {
-            "type": "string",
-            "description": "String representing the object's type. Objects of the same type share the same value."
-          },
-          "name": {
-            "type": "string",
-            "description": "The name of the product"
-          },
-          "description": {
-            "type": "string",
-            "description": "A brief description of the product",
-            "example": "This is a sample product description."
-          },
-          "image_url": {
-            "type": "string",
-            "description": "URL of the product image. Only png as jpg are supported",
-            "example": "https://example.com/image.jpg"
-          },
-          "image_urls": {
-            "description": "Ordered list of product image URLs. The first entry is the cover image (mirrored in image_url).",
-            "example": ["https://example.com/image.jpg"],
-            "type": "array",
-            "items": {
-              "type": "string"
-            }
-          },
-          "features": {
-            "description": "Features of the product.",
-            "type": "array",
-            "items": {
-              "$ref": "#/components/schemas/FeatureEntity"
-            }
-          },
-          "usage_prices": {
-            "description": "Metered charges billed on top of the base price, one per meter. Present on recurring products that meter usage.",
-            "type": "array",
-            "items": {
-              "$ref": "#/components/schemas/UsagePriceEntity"
-            }
-          },
-          "price": {
-            "type": "number",
-            "description": "The price of the product in cents. 1000 = $10.00",
-            "example": 400
-          },
-          "currency": {
-            "type": "string",
-            "description": "Three-letter ISO currency code, in uppercase. Must be a supported currency.",
-            "example": "USD"
-          },
-          "billing_type": {
-            "example": "recurring",
-            "$ref": "#/components/schemas/ProductBillingType"
-          },
-          "billing_period": {
-            "example": "every-month",
-            "$ref": "#/components/schemas/ProductBillingPeriod"
-          },
-          "recurring_interval": {
-            "type": "string",
-            "description": "The unit of the recurring billing interval (`day`, `week`, `month`, or `year`). Together with `recurring_interval_count` this is authoritative for renewal timing — a `billing_period` of `custom` cannot be interpreted without it. For presets it is derived from the cadence (e.g. `every-three-months` → `month`). `null` for one-time products.",
-            "example": "month",
-            "nullable": true
-          },
-          "recurring_interval_count": {
-            "type": "integer",
-            "description": "The number of `recurring_interval` units per billing cycle (e.g. `3` with a `month` interval bills every three months). Together with `recurring_interval` this is authoritative for renewal timing. For presets it is derived from the cadence. `null` for one-time products.",
-            "example": 3,
-            "nullable": true
-          },
-          "trial_period_days": {
-            "type": "integer",
-            "description": "Length of the trial period in days. A whole number of days, at least 1. Only supported for recurring products. `null` when the product has no trial.",
-            "example": 7,
-            "nullable": true
-          },
-          "trial_price": {
-            "type": "integer",
-            "description": "Amount charged at checkout to start the trial, instead of a free card verification. In cents (100 = $1.00). Requires a trial period and must be at least 100 and lower than `price`; only supported on standard-priced recurring products without pay-what-you-want. `null` for a free trial and for products without a trial.",
-            "example": 100,
-            "nullable": true
-          },
-          "status": {
-            "example": "active",
-            "$ref": "#/components/schemas/ProductStatus"
-          },
-          "tax_mode": {
-            "example": "inclusive",
-            "$ref": "#/components/schemas/TaxMode"
-          },
-          "business_net_pricing": {
-            "type": "boolean",
-            "description": "When true, business customers whose valid VAT ID triggers reverse charge pay the price excluding VAT instead of the tax-inclusive price. Only supported for tax-inclusive one-time products; the merchant gives up the VAT portion on those sales. Defaults to false.",
-            "example": false
-          },
-          "tax_category": {
-            "example": "saas",
-            "$ref": "#/components/schemas/TaxCategory"
-          },
-          "product_url": {
-            "type": "string",
-            "description": "The product page you can redirect your customers to for express checkout.",
-            "example": "https://creem.io/product/prod_123123123123"
-          },
-          "default_success_url": {
-            "type": "string",
-            "description": "The URL to which the user will be redirected after successfull payment.",
-            "example": "https://example.com/?status=successful",
-            "nullable": true
-          },
-          "custom_fields": {
-            "description": "Custom fields configured for the product. Collect additional information from your customer during checkout.",
-            "nullable": true,
-            "type": "array",
-            "items": {
-              "$ref": "#/components/schemas/CustomField"
-            }
-          },
-          "abandoned_cart_recovery_enabled": {
-            "type": "boolean",
-            "description": "Whether abandoned cart recovery is on for this product. Not included when the product is embedded in a checkout or subscription."
-          },
-          "external_id": {
-            "type": "string",
-            "description": "Your own key for this product, such as your SKU or internal product id. Creem never sets it. Unique per store, case-sensitive; 1 to 255 characters: letters, digits, `_`, `-`, `.` and `:`. `null` when the product has no key.",
-            "example": "pro-monthly",
-            "nullable": true
-          },
-          "metadata": {
-            "type": "object",
-            "description": "Key-value pairs for your own use, for example `{ \"plan\": \"pro\" }`. Values are strings or numbers. `null` when the product has none.",
-            "example": {
-              "plan": "pro"
-            },
-            "additionalProperties": true,
-            "nullable": true
-          },
-          "created_at": {
-            "format": "date-time",
-            "type": "string",
-            "description": "Creation date of the product",
-            "example": "2023-01-01T00:00:00Z"
-          },
-          "updated_at": {
-            "format": "date-time",
-            "type": "string",
-            "description": "Last updated date of the product",
-            "example": "2023-01-01T00:00:00Z"
-          },
-          "write_result": {
-            "description": "What this write should tell you.",
-            "allOf": [
-              {
-                "$ref": "#/components/schemas/ProductWriteResultEntity"
-              }
-            ]
-          }
-        },
-        "required": [
-          "id",
-          "mode",
-          "object",
-          "name",
-          "description",
-          "price",
-          "currency",
-          "billing_type",
-          "billing_period",
-          "status",
-          "tax_mode",
-          "tax_category",
-          "external_id",
-          "metadata",
-          "created_at",
-          "updated_at",
-          "write_result"
-        ]
       },
       "CustomerEntity": {
         "type": "object",
@@ -7177,55 +7944,55 @@
           },
           "amount": {
             "type": "number",
-            "description": "The total amount of the order in cents. 1000 = $10.00",
+            "description": "The total amount of the order in `currency`, in the smallest currency unit (cents: 1000 = $10.00).",
             "example": 2000
           },
           "sub_total": {
             "type": "number",
-            "description": "The subtotal of the order in cents. 1000 = $10.00",
+            "description": "The subtotal of the order in `currency`, in the smallest currency unit (cents: 1000 = $10.00).",
             "example": 1800
           },
           "tax_amount": {
             "type": "number",
-            "description": "The tax amount of the order in cents. 1000 = $10.00",
+            "description": "The tax amount of the order, in the smallest currency unit (cents: 1000 = $10.00). In `fx_currency` when it is set (the buyer was charged in another currency than the product price), otherwise in `currency`.",
             "example": 200
           },
           "discount_amount": {
             "type": "number",
-            "description": "The discount amount of the order in cents. 1000 = $10.00",
+            "description": "The discount amount of the order, in the smallest currency unit (cents: 1000 = $10.00). In `fx_currency` when it is set (the buyer was charged in another currency than the product price), otherwise in `currency`.",
             "example": 100
           },
           "amount_due": {
             "type": "number",
-            "description": "The amount due for the order in cents. 1000 = $10.00",
+            "description": "The amount due for the order, in the smallest currency unit (cents: 1000 = $10.00). In `fx_currency` when it is set (the buyer was charged in another currency than the product price), otherwise in `currency`.",
             "example": 1900
           },
           "amount_paid": {
             "type": "number",
-            "description": "The amount paid for the order in cents. 1000 = $10.00",
+            "description": "The amount paid for the order, in the smallest currency unit (cents: 1000 = $10.00). In `fx_currency` when it is set (the buyer was charged in another currency than the product price), otherwise in `currency`.",
             "example": 1900
           },
           "currency": {
             "type": "string",
-            "description": "Three-letter ISO currency code, in uppercase. Must be a supported currency.",
+            "description": "Three-letter ISO currency code, in uppercase: the currency of the product price (`amount`, `sub_total`). When the buyer was charged in another currency, `fx_currency` names it.",
             "example": "USD"
           },
           "fx_amount": {
             "type": "number",
-            "description": "The amount in the foreign currency, if applicable.",
-            "example": 15,
+            "description": "The order amount converted into `fx_currency`, in its smallest currency unit. Set only when the buyer was charged in another currency than the product price (local-currency checkout); absent otherwise.",
+            "example": 128195,
             "nullable": true
           },
           "fx_currency": {
             "type": "string",
-            "description": "Three-letter ISO code of the foreign currency, if applicable.",
-            "example": "EUR",
+            "description": "Three-letter ISO code of the currency the buyer was charged in, when it differs from `currency`. `tax_amount`, `discount_amount`, `amount_due` and `amount_paid` are in this currency. Absent otherwise.",
+            "example": "SEK",
             "nullable": true
           },
           "fx_rate": {
             "type": "number",
-            "description": "The exchange rate used for converting between currencies, if applicable.",
-            "example": 1.2,
+            "description": "Units of `fx_currency` per one unit of `currency` the order was priced at, conversion fee included. Without a discount, `fx_amount` = `amount` × `fx_rate`, rounded. With a discount it is the rate applied to the discounted price, so that product can be off by a few minor units. Absent when no conversion applies.",
+            "example": 10.42,
             "nullable": true
           },
           "status": {
@@ -8509,12 +9276,12 @@
         "properties": {
           "name": {
             "type": "string",
-            "description": "The name of the discount.",
+            "description": "The name of the discount. Required when creating a discount.",
             "example": "Holiday Sale"
           },
           "code": {
             "type": "string",
-            "description": "Optional discount code. If left empty, a code will be generated.",
+            "description": "Optional discount code, case-insensitive (stored upper-cased). If left empty, a code will be generated. The code of an existing discount cannot change: a different code sent with its `external_id` is ignored with a `field_not_writable` warning.",
             "example": "HOLIDAY2024"
           },
           "type": {
@@ -8573,11 +9340,233 @@
           },
           "external_id": {
             "type": "string",
-            "description": "Your own key for the discount, unique in your store: 1 to 255 characters: letters, digits, `_`, `-`, `.` and `:`. Case-sensitive. A key another discount of your store already uses answers `409` with code `external_id_taken`.",
+            "description": "Your own key for the discount, unique in your store: 1 to 255 characters: letters, digits, `_`, `-`, `.` and `:`. Case-sensitive. With a key the call is an upsert: a new key creates the discount, and a key a discount of your store holds updates that discount. Deleting a discount frees its key.",
             "example": "spring-2026"
           }
+        }
+      },
+      "DiscountWriteChangeEntity": {
+        "type": "object",
+        "properties": {
+          "path": {
+            "type": "string",
+            "description": "The field that changed, by its request name: `name`, `type`, `amount`, `percentage`, `currency`, `duration`, `duration_in_months`, `expiry_date`, `max_redemptions` or `external_id`. A product added to or removed from the discount is `applies_to_products[id=prod_9]`.",
+            "example": "expiry_date"
+          },
+          "from": {
+            "description": "The value before the write: the field as a read returns it (`currency` as stored, also on a percentage discount, whose read leaves it out). `null` for an added product.",
+            "nullable": true,
+            "oneOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "number"
+              },
+              {
+                "type": "boolean"
+              },
+              {
+                "type": "array",
+                "items": {}
+              },
+              {
+                "type": "object",
+                "additionalProperties": true
+              }
+            ],
+            "example": null
+          },
+          "to": {
+            "description": "The value after the write: the field as a read returns it (`currency` as stored, also on a percentage discount, whose read leaves it out). `null` for a removed product.",
+            "nullable": true,
+            "oneOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "number"
+              },
+              {
+                "type": "boolean"
+              },
+              {
+                "type": "array",
+                "items": {}
+              },
+              {
+                "type": "object",
+                "additionalProperties": true
+              }
+            ],
+            "example": "2026-12-31T23:59:59.000Z"
+          }
         },
-        "required": ["name", "type", "duration"]
+        "required": ["path", "from", "to"]
+      },
+      "DiscountWriteWarningEntity": {
+        "type": "object",
+        "properties": {
+          "code": {
+            "type": "string",
+            "description": "What the warning is about. Known values: `field_not_writable` (the field in `path` cannot change after create, such as `code`; the value sent was ignored), `reference_not_found` (a dry run only: the key in `key`, sent in `path`, names no product of the store; the real call answers `400` `reference_not_found`. A new discount leaves that product out; an existing one keeps its stored products). More values can be added, so ignore a code you do not know.",
+            "example": "field_not_writable"
+          },
+          "path": {
+            "type": "string",
+            "description": "The field the warning is about.",
+            "example": "code"
+          },
+          "key": {
+            "type": "string",
+            "description": "On `reference_not_found`, the key that names nothing. Left out on the others."
+          }
+        },
+        "required": ["code", "path"]
+      },
+      "DiscountWriteResultEntity": {
+        "type": "object",
+        "properties": {
+          "result": {
+            "type": "string",
+            "description": "What the write did. Known values: `created`, `updated`, `unchanged` (the discount already was what the request asked for; nothing was written; on `POST` nothing was called, while `PATCH` re-sends the name of a Stripe-backed discount to Stripe as a repair). More values can be added, so treat a value you do not know like `updated`.",
+            "example": "updated"
+          },
+          "dry_run": {
+            "type": "boolean",
+            "description": "`true` when the request ran with `dry_run=true`: nothing was written and no Stripe API was called. `false` otherwise.",
+            "example": false
+          },
+          "changes": {
+            "description": "What the write changed. Empty for a create and for `unchanged`.",
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/DiscountWriteChangeEntity"
+            }
+          },
+          "warnings": {
+            "description": "What the write ignored or could not check.",
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/DiscountWriteWarningEntity"
+            }
+          }
+        },
+        "required": ["result", "dry_run", "changes", "warnings"]
+      },
+      "DiscountWriteResponseEntity": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "description": "Unique identifier for the object."
+          },
+          "mode": {
+            "$ref": "#/components/schemas/EnvironmentMode"
+          },
+          "object": {
+            "type": "string",
+            "description": "A string representing the object’s type. Objects of the same type share the same value.",
+            "example": "discount"
+          },
+          "status": {
+            "type": "string",
+            "description": "The status of the discount (e.g., active, inactive).",
+            "enum": ["deleted", "active", "draft", "expired", "scheduled"],
+            "example": "active"
+          },
+          "name": {
+            "type": "string",
+            "description": "The name of the discount.",
+            "example": "Holiday Sale"
+          },
+          "code": {
+            "type": "string",
+            "description": "The discount code. A unique identifier for the discount.",
+            "example": "HOLIDAY2024"
+          },
+          "type": {
+            "type": "string",
+            "description": "The type of the discount, either \"percentage\" or \"fixed\".",
+            "enum": ["percentage", "fixed"],
+            "example": "percentage"
+          },
+          "amount": {
+            "type": "number",
+            "description": "The amount of the discount. Can be a percentage or a fixed amount.",
+            "example": 20
+          },
+          "currency": {
+            "type": "string",
+            "description": "The currency of the discount. Only required if type is \"fixed\".",
+            "example": "USD"
+          },
+          "percentage": {
+            "type": "number",
+            "description": "The percentage of the discount. Only applicable if type is \"percentage\".",
+            "example": 15
+          },
+          "expiry_date": {
+            "format": "date-time",
+            "type": "string",
+            "description": "The expiry date of the discount.",
+            "example": "2024-12-31T23:59:59Z"
+          },
+          "max_redemptions": {
+            "type": "number",
+            "description": "The maximum number of redemptions allowed for the discount.",
+            "example": 100
+          },
+          "duration": {
+            "type": "string",
+            "description": "The duration type for the discount.",
+            "enum": ["forever", "once", "repeating"],
+            "example": "repeating"
+          },
+          "duration_in_months": {
+            "type": "number",
+            "description": "The number of months the discount is valid for. Only applicable if the duration is \"repeating\" and the product is a subscription.",
+            "example": 6
+          },
+          "applies_to_products": {
+            "description": "The list of product IDs to which this discount applies.",
+            "example": ["prod_123", "prod_456"],
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "redeem_count": {
+            "type": "number",
+            "description": "The number of times this discount has been redeemed.",
+            "example": 15
+          },
+          "external_id": {
+            "type": "string",
+            "description": "Your own key for the discount, unique in your store. `null` when the discount has none.",
+            "example": "spring-2026",
+            "nullable": true
+          },
+          "write_result": {
+            "description": "What the write did.",
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/DiscountWriteResultEntity"
+              }
+            ]
+          }
+        },
+        "required": [
+          "id",
+          "mode",
+          "object",
+          "status",
+          "name",
+          "code",
+          "type",
+          "external_id",
+          "write_result"
+        ]
       },
       "TooManyRequestsErrorEntity": {
         "type": "object",
@@ -8694,6 +9683,80 @@
           }
         }
       },
+      "ProductGroupProductIdReferenceEntity": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "description": "The product ID.",
+            "example": "prod_4dGTkmBdnTnU9vV3KZ2Hcz"
+          }
+        },
+        "required": ["id"]
+      },
+      "ProductGroupProductExternalIdReferenceEntity": {
+        "type": "object",
+        "properties": {
+          "external_id": {
+            "type": "string",
+            "description": "The product's `external_id`.",
+            "example": "pro-monthly"
+          }
+        },
+        "required": ["external_id"]
+      },
+      "CreateProductGroupRequestEntity": {
+        "type": "object",
+        "properties": {
+          "name": {
+            "type": "string",
+            "description": "The name of the product group, 3 to 255 characters. Required when creating a product group. On an existing group (by `external_id`) a different name renames it."
+          },
+          "description": {
+            "type": "string",
+            "description": "A description of the product group. On an existing group (by `external_id`), send `null` to clear it.",
+            "nullable": true
+          },
+          "external_id": {
+            "type": "string",
+            "description": "Your own key for this product group. Unique per store, case-sensitive; 1 to 255 characters: letters, digits, `_`, `-`, `.` and `:`. With a key the call is an upsert: it creates the group when the key is new (`201`) and updates the group that holds it otherwise (`200`). Send `If-None-Match: *` to create only.",
+            "example": "pro-plans"
+          },
+          "products": {
+            "type": "array",
+            "description": "The products of the group, in display order, each named by exactly one of `id` or `external_id`. Required when creating a product group, with at least one product. On an existing group (by `external_id`) it is the complete ordered member list: products it does not contain are removed, its order is the display order, and `[]` removes every member; omit it to leave the members unchanged. A product already in another group answers `409` with code `product_already_grouped`.",
+            "items": {
+              "oneOf": [
+                {
+                  "$ref": "#/components/schemas/ProductGroupProductIdReferenceEntity"
+                },
+                {
+                  "$ref": "#/components/schemas/ProductGroupProductExternalIdReferenceEntity"
+                }
+              ]
+            },
+            "maxItems": 100
+          },
+          "upgrades_enabled": {
+            "type": "boolean",
+            "description": "Whether customers can switch between the products of this group. Defaults to `true` on a create."
+          },
+          "upgrade_behavior": {
+            "type": "string",
+            "description": "How a switch between the products of this group is billed. On an existing group (by `external_id`), send `null` to clear it.",
+            "enum": ["proration-charge-immediately", "proration-charge", "proration-none"],
+            "nullable": true
+          },
+          "upsells_enabled": {
+            "type": "boolean",
+            "description": "Whether the products of this group are offered as checkout upsells. Defaults to `true` on a create."
+          },
+          "is_active": {
+            "type": "boolean",
+            "description": "Whether the product group is active. Stored and returned; it does not yet stop upgrades or upsells. Defaults to `true` on a create."
+          }
+        }
+      },
       "ProductGroupProductEntity": {
         "type": "object",
         "properties": {
@@ -8708,6 +9771,206 @@
           }
         },
         "required": ["id", "external_id"]
+      },
+      "ProductGroupWriteChangeEntity": {
+        "type": "object",
+        "properties": {
+          "path": {
+            "type": "string",
+            "description": "The field that changed, by its request name: `name`, `description`, `is_active`, `upgrades_enabled`, `upsells_enabled`, `upgrade_behavior`, `external_id` or `products`. A member change is one `products` entry whose `from` and `to` are the ordered lists of product ids, because the order is part of the value.",
+            "example": "products"
+          },
+          "from": {
+            "description": "The value before the write: the field as a read returns it; for `products`, the ordered product ids.",
+            "nullable": true,
+            "oneOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "number"
+              },
+              {
+                "type": "boolean"
+              },
+              {
+                "type": "array",
+                "items": {}
+              },
+              {
+                "type": "object",
+                "additionalProperties": true
+              }
+            ],
+            "example": ["prod_monthly", "prod_yearly"]
+          },
+          "to": {
+            "description": "The value after the write: the field as a read returns it; for `products`, the ordered product ids.",
+            "nullable": true,
+            "oneOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "number"
+              },
+              {
+                "type": "boolean"
+              },
+              {
+                "type": "array",
+                "items": {}
+              },
+              {
+                "type": "object",
+                "additionalProperties": true
+              }
+            ],
+            "example": ["prod_yearly", "prod_monthly"]
+          }
+        },
+        "required": ["path", "from", "to"]
+      },
+      "ProductGroupWriteWarningEntity": {
+        "type": "object",
+        "properties": {
+          "code": {
+            "type": "string",
+            "description": "What the warning is about. Known values: `reference_not_found` (a dry run only: the product key or id in `key`, sent in `path`, names no product of the store; the real call answers `400` `reference_not_found`. On a create the entry is left out of the group the dry run returns; on an update the stored members stay as they are). More values can be added, so ignore a code you do not know.",
+            "example": "reference_not_found"
+          },
+          "path": {
+            "type": "string",
+            "description": "The entry the warning is about, for example `products[1].external_id`."
+          },
+          "key": {
+            "type": "string",
+            "description": "The key the warning is about. On `reference_not_found`, the id or key that names nothing."
+          }
+        },
+        "required": ["code", "path"]
+      },
+      "ProductGroupWriteResultEntity": {
+        "type": "object",
+        "properties": {
+          "result": {
+            "type": "string",
+            "description": "What the write did. Known values: `created`, `updated`, `unchanged` (the product group already was what the request asked for; nothing was written). More values can be added, so treat a value you do not know like `updated`.",
+            "example": "updated"
+          },
+          "dry_run": {
+            "type": "boolean",
+            "description": "`true` when the request was sent with `dry_run=true`: nothing was written, and the id of a product group the write would have created is never stored. `false` on a real write. Stop unless it is `true` when you meant a dry run.",
+            "example": false
+          },
+          "changes": {
+            "description": "What changed, field by field. Empty on a create and on `unchanged`.",
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/ProductGroupWriteChangeEntity"
+            }
+          },
+          "warnings": {
+            "description": "Things to know about this write. The write went through. Empty when there is nothing to report.",
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/ProductGroupWriteWarningEntity"
+            }
+          }
+        },
+        "required": ["result", "dry_run", "changes", "warnings"]
+      },
+      "ProductGroupWriteResponseEntity": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "description": "Unique identifier for the object."
+          },
+          "mode": {
+            "$ref": "#/components/schemas/EnvironmentMode"
+          },
+          "object": {
+            "type": "string",
+            "description": "String representing the object's type. Objects of the same type share the same value.",
+            "example": "product_group"
+          },
+          "name": {
+            "type": "string",
+            "description": "The name of the product group."
+          },
+          "description": {
+            "type": "string",
+            "description": "A description of the product group.",
+            "nullable": true
+          },
+          "external_id": {
+            "type": "string",
+            "description": "Your own key for this product group, or `null` when it has none.",
+            "nullable": true
+          },
+          "products": {
+            "description": "The products in the group, in display order. A product is in one group at a time.",
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/ProductGroupProductEntity"
+            }
+          },
+          "upgrades_enabled": {
+            "type": "boolean",
+            "description": "Whether customers can switch between the products of this group."
+          },
+          "upgrade_behavior": {
+            "type": "string",
+            "description": "How a switch between the products is billed, or `null` for the default.",
+            "enum": ["proration-charge-immediately", "proration-charge", "proration-none"],
+            "nullable": true
+          },
+          "upsells_enabled": {
+            "type": "boolean",
+            "description": "Whether the products of this group are offered as checkout upsells."
+          },
+          "is_active": {
+            "type": "boolean",
+            "description": "Whether the product group is active. Stored and returned; it does not yet stop upgrades or upsells."
+          },
+          "created_at": {
+            "format": "date-time",
+            "type": "string",
+            "description": "Creation date of the product group.",
+            "example": "2023-01-01T00:00:00Z"
+          },
+          "updated_at": {
+            "format": "date-time",
+            "type": "string",
+            "description": "Last updated date of the product group.",
+            "example": "2023-01-01T00:00:00Z"
+          },
+          "write_result": {
+            "description": "What this write did and should tell you.",
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/ProductGroupWriteResultEntity"
+              }
+            ]
+          }
+        },
+        "required": [
+          "id",
+          "mode",
+          "object",
+          "name",
+          "description",
+          "external_id",
+          "products",
+          "upgrades_enabled",
+          "upgrade_behavior",
+          "upsells_enabled",
+          "is_active",
+          "created_at",
+          "updated_at",
+          "write_result"
+        ]
       },
       "ProductGroupEntity": {
         "type": "object",
@@ -8813,6 +10076,59 @@
           }
         },
         "required": ["object", "data", "has_more"]
+      },
+      "UpdateProductGroupRequestEntity": {
+        "type": "object",
+        "properties": {
+          "name": {
+            "type": "string",
+            "description": "The name of the product group, 3 to 255 characters."
+          },
+          "description": {
+            "type": "string",
+            "description": "A description of the product group. Send `null` to clear it.",
+            "nullable": true
+          },
+          "external_id": {
+            "type": "string",
+            "description": "Your own key for this product group. Unique per store, case-sensitive; 1 to 255 characters: letters, digits, `_`, `-`, `.` and `:`. A key another group of your store uses answers `409` with code `external_id_taken`. Omit it to leave the key unchanged; send `null` to clear it.",
+            "nullable": true,
+            "example": "pro-plans"
+          },
+          "products": {
+            "type": "array",
+            "description": "The complete ordered list of the group, each product named by exactly one of `id` or `external_id`: products it does not contain are removed, and its order is the display order. Omit it to leave the members unchanged.",
+            "items": {
+              "oneOf": [
+                {
+                  "$ref": "#/components/schemas/ProductGroupProductIdReferenceEntity"
+                },
+                {
+                  "$ref": "#/components/schemas/ProductGroupProductExternalIdReferenceEntity"
+                }
+              ]
+            },
+            "maxItems": 100
+          },
+          "upgrades_enabled": {
+            "type": "boolean",
+            "description": "Whether customers can switch between the products of this group."
+          },
+          "upgrade_behavior": {
+            "type": "string",
+            "description": "How a switch between the products of this group is billed. Send `null` to clear it.",
+            "enum": ["proration-charge-immediately", "proration-charge", "proration-none"],
+            "nullable": true
+          },
+          "upsells_enabled": {
+            "type": "boolean",
+            "description": "Whether the products of this group are offered as checkout upsells."
+          },
+          "is_active": {
+            "type": "boolean",
+            "description": "Whether the product group is active. Stored and returned; it does not yet stop upgrades or upsells."
+          }
+        }
       },
       "TransactionListEntity": {
         "type": "object",
@@ -9540,27 +10856,28 @@
         "properties": {
           "name": {
             "type": "string",
-            "description": "Human-readable meter name, unique within your store",
+            "description": "Human-readable meter name, unique within your store. Required when creating a meter. On an existing meter (by `external_id`) a different name renames it.",
             "example": "Image generations"
           },
           "event_name": {
             "type": "string",
-            "description": "The usage event name this meter consumes",
+            "description": "The usage event name this meter consumes. Required when creating a meter. It cannot change after create: on an existing meter (by `external_id`) a different value is ignored and reported as a `field_not_writable` warning.",
             "example": "image.generated"
           },
           "aggregation": {
             "type": "string",
-            "description": "Aggregation applied to the matching events",
+            "description": "Aggregation applied to the matching events. Required when creating a meter. Part of the meter definition: on an existing meter (by `external_id`) a different value is accepted only while the meter is not locked.",
             "enum": ["count", "sum", "average", "min", "max", "unique"],
             "example": "sum"
           },
           "aggregation_property": {
             "type": "string",
-            "description": "Event property the aggregation reduces. Required for every aggregation except \"count\", which ignores it.",
-            "example": "tokens"
+            "description": "Event property the aggregation reduces. Required for every aggregation except \"count\", which ignores it. On an existing meter (by `external_id`), omit it to leave it unchanged or send `null` to clear it.",
+            "example": "tokens",
+            "nullable": true
           },
           "filter": {
-            "description": "Optional filter narrowing which events the meter counts. Omitted means \"count every event with this event name\".",
+            "description": "Optional filter narrowing which events the meter counts. Omitted means \"count every event with this event name\" on a create, and leaves the filter unchanged on an existing meter (by `external_id`), where a sent filter replaces the whole filter and `null` is rejected (`400`), as on update.",
             "allOf": [
               {
                 "$ref": "#/components/schemas/MeterFilterApiRequestDto"
@@ -9569,16 +10886,15 @@
           },
           "unit_label": {
             "type": "string",
-            "description": "Display unit for the metered quantity. Also names the customer-credits bucket the meter settles into.",
+            "description": "Display unit for the metered quantity. Also names the customer-credits bucket the meter settles into. Required when creating a meter. It cannot change after create: on an existing meter (by `external_id`) a different value is ignored and reported as a `field_not_writable` warning.",
             "example": "images"
           },
           "external_id": {
             "type": "string",
-            "description": "Your own key for this meter. Creem never sets it. Unique per store, case-sensitive; 1 to 255 characters: letters, digits, `_`, `-`, `.` and `:`. A key another meter of your store already uses (archived ones too) answers `409` with code `external_id_taken`.",
+            "description": "Your own key for this meter. Creem never sets it. Unique per store, case-sensitive; 1 to 255 characters: letters, digits, `_`, `-`, `.` and `:`. With a key the call is an upsert: it creates the meter when no meter of your store has the key, and otherwise updates the meter that has it (archived meters too, which stay archived). Send `If-None-Match: *` to create only.",
             "example": "image-generations"
           }
-        },
-        "required": ["name", "event_name", "aggregation", "unit_label"]
+        }
       },
       "FilterClauseApiResponseDto": {
         "type": "object",
@@ -9629,6 +10945,272 @@
           }
         },
         "required": ["conjunction", "clauses"]
+      },
+      "MeterWriteChangeApiResponseDto": {
+        "type": "object",
+        "properties": {
+          "path": {
+            "type": "string",
+            "description": "The field that changed, by its request name: `name`, `aggregation`, `aggregation_property`, `filter`, `external_id`. `filter` is one path, because a sent filter replaces the whole filter.",
+            "example": "name"
+          },
+          "from": {
+            "description": "The value before the write, as a read returns it.",
+            "nullable": true,
+            "oneOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "number"
+              },
+              {
+                "type": "boolean"
+              },
+              {
+                "type": "array",
+                "items": {}
+              },
+              {
+                "type": "object",
+                "additionalProperties": true
+              }
+            ],
+            "example": "API calls"
+          },
+          "to": {
+            "description": "The value after the write, as a read returns it.",
+            "nullable": true,
+            "oneOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "number"
+              },
+              {
+                "type": "boolean"
+              },
+              {
+                "type": "array",
+                "items": {}
+              },
+              {
+                "type": "object",
+                "additionalProperties": true
+              }
+            ],
+            "example": "API requests"
+          }
+        },
+        "required": ["path", "from", "to"]
+      },
+      "MeterWriteWarningApiResponseDto": {
+        "type": "object",
+        "properties": {
+          "code": {
+            "type": "string",
+            "description": "What the warning is about. Known values: `field_not_writable` (the field in `path`, `event_name` or `unit_label`, cannot change after create; the value sent was ignored and the meter keeps its own). More values can be added, so ignore a code you do not know.",
+            "example": "field_not_writable"
+          },
+          "path": {
+            "type": "string",
+            "description": "The field the warning is about.",
+            "example": "unit_label"
+          }
+        },
+        "required": ["code", "path"]
+      },
+      "MeterWriteResultApiResponseDto": {
+        "type": "object",
+        "properties": {
+          "result": {
+            "type": "string",
+            "description": "What the write did. Known values: `created`, `updated`, `unchanged` (the meter already was what the request asked for; nothing was written). More values can be added, so treat a value you do not know like `updated`.",
+            "example": "updated"
+          },
+          "dry_run": {
+            "type": "boolean",
+            "description": "`true` when the request was sent with `dry_run=true`: nothing was written, and the id of a meter the write would have created is never stored. `false` on a real write. Stop unless it is `true` when you meant a dry run.",
+            "example": false
+          },
+          "changes": {
+            "description": "What changed, field by field. Empty on a create and on `unchanged`.",
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/MeterWriteChangeApiResponseDto"
+            }
+          },
+          "warnings": {
+            "description": "Things to know about this write. The write went through. Empty when there is nothing to report.",
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/MeterWriteWarningApiResponseDto"
+            }
+          }
+        },
+        "required": ["result", "dry_run", "changes", "warnings"]
+      },
+      "MeterWriteApiResponseDto": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "description": "Meter ID",
+            "example": "mtr_abc123"
+          },
+          "store_id": {
+            "type": "string",
+            "description": "Store ID",
+            "example": "sto_abc123"
+          },
+          "name": {
+            "type": "string",
+            "description": "Meter name",
+            "example": "Image generations"
+          },
+          "event_name": {
+            "type": "string",
+            "description": "Usage event name the meter consumes",
+            "example": "image.generated"
+          },
+          "aggregation": {
+            "type": "string",
+            "description": "Aggregation applied to matching events",
+            "enum": ["count", "sum", "average", "min", "max", "unique"],
+            "example": "sum"
+          },
+          "aggregation_property": {
+            "type": "string",
+            "description": "Property the aggregation reduces; null for \"count\"",
+            "nullable": true,
+            "example": "tokens"
+          },
+          "filter": {
+            "description": "The meter filter; always present (empty clauses = match all)",
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/MeterFilterApiResponseDto"
+              }
+            ]
+          },
+          "unit_label": {
+            "type": "string",
+            "description": "Display unit",
+            "example": "images"
+          },
+          "status": {
+            "type": "string",
+            "description": "Whether the meter is active or archived",
+            "enum": ["active", "archived"],
+            "example": "active"
+          },
+          "external_id": {
+            "type": "string",
+            "description": "Your own key for this meter (`external_id`), unique per store. `null` when the meter has none.",
+            "nullable": true,
+            "example": "image-generations"
+          },
+          "locked": {
+            "type": "boolean",
+            "description": "Whether the meter is locked. A meter locks once it has processed usage or has an associated purchase; an update that changes a locked meter's definition is refused with 409. A lock freezes the filter and aggregation. `event_name` and `unit_label` can't be changed on any meter; `name` and `external_id` stay changeable. Aggregation runs asynchronously, so a meter can lock between a read that says `false` and the next update.",
+            "example": false
+          },
+          "created_at": {
+            "type": "string",
+            "description": "Creation timestamp (ISO 8601)"
+          },
+          "updated_at": {
+            "type": "string",
+            "description": "Last update timestamp (ISO 8601)"
+          },
+          "write_result": {
+            "description": "What this write did and should tell you.",
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/MeterWriteResultApiResponseDto"
+              }
+            ]
+          }
+        },
+        "required": [
+          "id",
+          "store_id",
+          "name",
+          "event_name",
+          "aggregation",
+          "aggregation_property",
+          "filter",
+          "unit_label",
+          "status",
+          "external_id",
+          "locked",
+          "created_at",
+          "updated_at",
+          "write_result"
+        ]
+      },
+      "UsageMeteringErrorDetailApiDto": {
+        "type": "object",
+        "properties": {
+          "type": {
+            "type": "string",
+            "description": "Error category",
+            "enum": [
+              "invalid_request_error",
+              "api_error",
+              "authentication_error",
+              "rate_limit_error"
+            ],
+            "example": "invalid_request_error"
+          },
+          "code": {
+            "type": "string",
+            "description": "Machine-readable error code",
+            "example": "meter_name_taken",
+            "nullable": true
+          },
+          "message": {
+            "type": "string",
+            "description": "Human-readable error message",
+            "example": "A meter named \"Image generations\" already exists in this store"
+          },
+          "param": {
+            "type": "string",
+            "description": "The parameter related to the error, if applicable",
+            "example": "events[3].customer_id",
+            "nullable": true
+          },
+          "details": {
+            "type": "object",
+            "description": "Structured, machine-readable context for errors that support an action, omitted entirely when there is none. Currently emitted for `meter_name_taken` when the colliding name is held by an ARCHIVED meter: `archived_holder` is true and `archived_holder_id` is that meter, which can be restored via POST /v1/meters/{id}/unarchive. Additive — treat unknown keys as ignorable.",
+            "example": {
+              "archived_holder": true,
+              "archived_holder_id": "mtr_abc123"
+            },
+            "additionalProperties": true
+          },
+          "request_id": {
+            "type": "string",
+            "description": "Unique request identifier for support",
+            "example": "req_abc123def456"
+          }
+        },
+        "required": ["type", "code", "message", "request_id"]
+      },
+      "UsageMeteringErrorApiResponseDto": {
+        "type": "object",
+        "properties": {
+          "error": {
+            "description": "Error details",
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/UsageMeteringErrorDetailApiDto"
+              }
+            ]
+          }
+        },
+        "required": ["error"]
       },
       "MeterApiResponseDto": {
         "type": "object",
@@ -9719,68 +11301,6 @@
           "created_at",
           "updated_at"
         ]
-      },
-      "UsageMeteringErrorDetailApiDto": {
-        "type": "object",
-        "properties": {
-          "type": {
-            "type": "string",
-            "description": "Error category",
-            "enum": [
-              "invalid_request_error",
-              "api_error",
-              "authentication_error",
-              "rate_limit_error"
-            ],
-            "example": "invalid_request_error"
-          },
-          "code": {
-            "type": "string",
-            "description": "Machine-readable error code",
-            "example": "meter_name_taken",
-            "nullable": true
-          },
-          "message": {
-            "type": "string",
-            "description": "Human-readable error message",
-            "example": "A meter named \"Image generations\" already exists in this store"
-          },
-          "param": {
-            "type": "string",
-            "description": "The parameter related to the error, if applicable",
-            "example": "events[3].customer_id",
-            "nullable": true
-          },
-          "details": {
-            "type": "object",
-            "description": "Structured, machine-readable context for errors that support an action, omitted entirely when there is none. Currently emitted for `meter_name_taken` when the colliding name is held by an ARCHIVED meter: `archived_holder` is true and `archived_holder_id` is that meter, which can be restored via POST /v1/meters/{id}/unarchive. Additive — treat unknown keys as ignorable.",
-            "example": {
-              "archived_holder": true,
-              "archived_holder_id": "mtr_abc123"
-            },
-            "additionalProperties": true
-          },
-          "request_id": {
-            "type": "string",
-            "description": "Unique request identifier for support",
-            "example": "req_abc123def456"
-          }
-        },
-        "required": ["type", "code", "message", "request_id"]
-      },
-      "UsageMeteringErrorApiResponseDto": {
-        "type": "object",
-        "properties": {
-          "error": {
-            "description": "Error details",
-            "allOf": [
-              {
-                "$ref": "#/components/schemas/UsageMeteringErrorDetailApiDto"
-              }
-            ]
-          }
-        },
-        "required": ["error"]
       },
       "MeterListApiResponseDto": {
         "type": "object",
@@ -11095,6 +12615,95 @@
           "created_at"
         ]
       },
+      "CatalogValidateItemRequestDto": {
+        "type": "object",
+        "properties": {
+          "kind": {
+            "type": "string",
+            "enum": ["meter", "product", "product_group", "discount"],
+            "description": "The kind of resource the item writes. `meter` and `product` can be validated; `product_group` and `discount` answer `400` `dry_run_not_supported` until their writes support a dry run."
+          },
+          "id": {
+            "type": "string",
+            "description": "For a migrator adopting an existing resource only: the id of the resource the item updates. With `id` the item runs as that resource’s `PATCH` (`PATCH /v1/products/{id}`, `PATCH /v1/meters/{id}`) with `PATCH`’s rules, for example to give a product without an `external_id` its key. Without `id` the item runs as the keyed upsert of its kind (`POST /v1/products`, `POST /v1/meters`)."
+          },
+          "body": {
+            "type": "object",
+            "additionalProperties": true,
+            "description": "The request body of the write: without `id` the body of the kind’s create or upsert (`POST /v1/products`, `POST /v1/meters`), with `id` the body of its `PATCH`. It is validated as that endpoint validates it."
+          }
+        },
+        "required": ["kind", "body"]
+      },
+      "CatalogValidateRequestDto": {
+        "type": "object",
+        "properties": {
+          "items": {
+            "description": "The writes to check together, at most 100. They run in dependency order (meters, products, product groups, discounts), so an item may name a resource another item of the batch creates (a usage price's `meter_external_id`). A larger batch answers `400` `validate_batch_too_large` and nothing is checked.",
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/CatalogValidateItemRequestDto"
+            }
+          }
+        },
+        "required": ["items"]
+      },
+      "CatalogValidationItemResponseDto": {
+        "type": "object",
+        "properties": {
+          "kind": {
+            "type": "string",
+            "description": "The item’s `kind`: `meter`, `product`, `product_group` or `discount`."
+          },
+          "id": {
+            "type": "string",
+            "nullable": true,
+            "description": "The item’s `id`, or null for an upsert item."
+          },
+          "valid": {
+            "type": "boolean",
+            "description": "Whether the item’s write would succeed."
+          },
+          "status": {
+            "type": "number",
+            "description": "The status the item’s own endpoint answers for this write: `200` or `201` when it passes, its error status (`400`, `404`, `409`, `412`, `422`, …) when it fails."
+          },
+          "response": {
+            "type": "object",
+            "additionalProperties": true,
+            "nullable": true,
+            "description": "When the item passes: what its endpoint answers with `?dry_run=true`, the resource with `write_result` (`dry_run` `true`), for a product the `POST` or `PATCH /v1/products` response, for a meter the `POST` or `PATCH /v1/meters` response. Ids of resources the batch would create are never stored. Null when the item fails."
+          },
+          "error": {
+            "type": "object",
+            "additionalProperties": true,
+            "nullable": true,
+            "description": "When the item fails: the error body its endpoint answers, in that endpoint’s envelope, with its stable `code` (for example `external_id_taken`, `usage_price_in_use`, `meter_name_taken`). Null when the item passes."
+          }
+        },
+        "required": ["kind", "id", "valid", "status", "response", "error"]
+      },
+      "CatalogValidationResponseDto": {
+        "type": "object",
+        "properties": {
+          "object": {
+            "type": "string",
+            "description": "Always `catalog_validation`."
+          },
+          "valid": {
+            "type": "boolean",
+            "description": "Whether every item passes. The status is `200` when it is true and `422` otherwise."
+          },
+          "items": {
+            "description": "One entry per item, in the order of the request.",
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/CatalogValidationItemResponseDto"
+            }
+          }
+        },
+        "required": ["object", "valid", "items"]
+      },
       "WebhookSubscriptionEntity": {
         "type": "object",
         "properties": {
@@ -11311,7 +12920,7 @@
           },
           "refund_amount": {
             "type": "number",
-            "description": "The refunded amount in cents. 1000 = $10.00",
+            "description": "The refunded amount in `refund_currency` (the currency the buyer was charged in), in the smallest currency unit (cents: 1000 = $10.00).",
             "example": 1000
           },
           "refund_currency": {

@@ -126,6 +126,14 @@ export type ProductEntity = {
    */
   trialPrice?: number | null | undefined;
   /**
+   * Whether buyers choose the amount they pay, at least `price`. One-time products only. Can be missing on a product embedded in another object.
+   */
+  payWhatYouWant?: boolean | undefined;
+  /**
+   * The amount in cents pre-filled at checkout while `pay_what_you_want` is `true`; `null` when there is none. Checkout ignores it while `pay_what_you_want` is `false`. Can be missing on a product embedded in another object.
+   */
+  suggestedPrice?: number | null | undefined;
+  /**
    * Lifecycle status of the product: `active` or `archived`.
    */
   status: ProductStatus;
@@ -198,6 +206,8 @@ export const ProductEntity$inboundSchema: z.ZodType<
   recurring_interval_count: z.nullable(z.number().int()).optional(),
   trial_period_days: z.nullable(z.number().int()).optional(),
   trial_price: z.nullable(z.number().int()).optional(),
+  pay_what_you_want: z.boolean().optional(),
+  suggested_price: z.nullable(z.number()).optional(),
   status: ProductStatus$inboundSchema,
   tax_mode: TaxMode$inboundSchema,
   business_net_pricing: z.boolean().optional(),
@@ -221,6 +231,8 @@ export const ProductEntity$inboundSchema: z.ZodType<
     "recurring_interval_count": "recurringIntervalCount",
     "trial_period_days": "trialPeriodDays",
     "trial_price": "trialPrice",
+    "pay_what_you_want": "payWhatYouWant",
+    "suggested_price": "suggestedPrice",
     "tax_mode": "taxMode",
     "business_net_pricing": "businessNetPricing",
     "tax_category": "taxCategory",
@@ -252,6 +264,8 @@ export type ProductEntity$Outbound = {
   recurring_interval_count?: number | null | undefined;
   trial_period_days?: number | null | undefined;
   trial_price?: number | null | undefined;
+  pay_what_you_want?: boolean | undefined;
+  suggested_price?: number | null | undefined;
   status: string;
   tax_mode: string;
   business_net_pricing?: boolean | undefined;
@@ -289,6 +303,8 @@ export const ProductEntity$outboundSchema: z.ZodType<
   recurringIntervalCount: z.nullable(z.number().int()).optional(),
   trialPeriodDays: z.nullable(z.number().int()).optional(),
   trialPrice: z.nullable(z.number().int()).optional(),
+  payWhatYouWant: z.boolean().optional(),
+  suggestedPrice: z.nullable(z.number()).optional(),
   status: ProductStatus$outboundSchema,
   taxMode: TaxMode$outboundSchema,
   businessNetPricing: z.boolean().optional(),
@@ -312,6 +328,8 @@ export const ProductEntity$outboundSchema: z.ZodType<
     recurringIntervalCount: "recurring_interval_count",
     trialPeriodDays: "trial_period_days",
     trialPrice: "trial_price",
+    payWhatYouWant: "pay_what_you_want",
+    suggestedPrice: "suggested_price",
     taxMode: "tax_mode",
     businessNetPricing: "business_net_pricing",
     taxCategory: "tax_category",

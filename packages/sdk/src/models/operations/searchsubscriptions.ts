@@ -5,9 +5,24 @@
 import * as z from "zod/v3";
 import { remap as remap$ } from "../../lib/primitives.js";
 import { safeParse } from "../../lib/schemas.js";
+import { ClosedEnum } from "../../types/enums.js";
 import { Result as SafeParseResult } from "../../types/fp.js";
 import * as components from "../components/index.js";
 import { SDKValidationError } from "../errors/sdkvalidationerror.js";
+
+export const Status = {
+  Incomplete: "incomplete",
+  Expired: "expired",
+  Active: "active",
+  PastDue: "past_due",
+  Canceled: "canceled",
+  ScheduledCancel: "scheduled_cancel",
+  Unpaid: "unpaid",
+  Paused: "paused",
+  Trialing: "trialing",
+  Error: "error",
+} as const;
+export type Status = ClosedEnum<typeof Status>;
 
 export type SearchSubscriptionsRequest = {
   /**
@@ -18,11 +33,34 @@ export type SearchSubscriptionsRequest = {
    * The number of items per page.
    */
   pageSize?: number | undefined;
+  /**
+   * Only subscriptions of this product.
+   */
+  productId?: string | undefined;
+  /**
+   * Only subscriptions on this price version: a price id as `GET /v1/products/{id}/prices` lists it. A price change creates a new version, and running subscriptions stay on theirs, so this lists who is still on an older price. A subscription is on the versions of its items (`items[].price_id`), counting only items that are neither deleted nor usage prices; one without such an item is on its own version. This lists exactly the subscriptions the per-version counts of `GET /v1/products/{id}/prices` count, except that the counts include running subscriptions only: add `status` with the six running statuses to list exactly those. To move one subscription to another price, send `items[].price_id` to `POST /v1/subscriptions/{id}`.
+   */
+  priceId?: string | undefined;
+  /**
+   * Only subscriptions in this status. Repeat the parameter for several (`status=active&status=past_due`); they combine with OR. The running statuses are `active`, `trialing`, `past_due`, `scheduled_cancel`, `paused` and `unpaid`.
+   */
+  status?: Array<Status> | undefined;
+  /**
+   * Only subscriptions of this customer.
+   */
+  customerId?: string | undefined;
 };
 
 export type SearchSubscriptionsResponse = {
   result: components.SubscriptionListEntity;
 };
+
+/** @internal */
+export const Status$inboundSchema: z.ZodNativeEnum<typeof Status> = z
+  .nativeEnum(Status);
+/** @internal */
+export const Status$outboundSchema: z.ZodNativeEnum<typeof Status> =
+  Status$inboundSchema;
 
 /** @internal */
 export const SearchSubscriptionsRequest$inboundSchema: z.ZodType<
@@ -32,16 +70,27 @@ export const SearchSubscriptionsRequest$inboundSchema: z.ZodType<
 > = z.object({
   page_number: z.number().default(1),
   page_size: z.number().default(10),
+  product_id: z.string().optional(),
+  price_id: z.string().optional(),
+  status: z.array(Status$inboundSchema).optional(),
+  customer_id: z.string().optional(),
 }).transform((v) => {
   return remap$(v, {
     "page_number": "pageNumber",
     "page_size": "pageSize",
+    "product_id": "productId",
+    "price_id": "priceId",
+    "customer_id": "customerId",
   });
 });
 /** @internal */
 export type SearchSubscriptionsRequest$Outbound = {
   page_number: number;
   page_size: number;
+  product_id?: string | undefined;
+  price_id?: string | undefined;
+  status?: Array<string> | undefined;
+  customer_id?: string | undefined;
 };
 
 /** @internal */
@@ -52,10 +101,17 @@ export const SearchSubscriptionsRequest$outboundSchema: z.ZodType<
 > = z.object({
   pageNumber: z.number().default(1),
   pageSize: z.number().default(10),
+  productId: z.string().optional(),
+  priceId: z.string().optional(),
+  status: z.array(Status$outboundSchema).optional(),
+  customerId: z.string().optional(),
 }).transform((v) => {
   return remap$(v, {
     pageNumber: "page_number",
     pageSize: "page_size",
+    productId: "product_id",
+    priceId: "price_id",
+    customerId: "customer_id",
   });
 });
 

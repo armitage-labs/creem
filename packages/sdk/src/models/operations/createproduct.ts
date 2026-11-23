@@ -11,11 +11,21 @@ import { SDKValidationError } from "../errors/sdkvalidationerror.js";
 
 export type CreateProductRequest = {
   /**
-   * Optional key that makes retries return the originally created product instead of creating a duplicate.
+   * Deprecated: send an `external_id`, which makes a retry an update of the product the first call created. Without an `external_id`, a retry with the same key returns the originally created product instead of creating a duplicate. With an `external_id` the header is ignored.
+   *
+   * @deprecated field: This will be removed in a future release, please migrate away from it as soon as possible.
    */
   idempotencyKey?: string | undefined;
   /**
-   * Product creation payload
+   * Send `*` to create only: when a product of the store already has the `external_id`, the call answers `412` (`precondition_failed`) and writes nothing. Only `*` is accepted on a request with an `external_id`; without one the header is ignored.
+   */
+  ifNoneMatch?: string | undefined;
+  /**
+   * Send `true` to preview the write: the request runs as it would and is rolled back, so nothing is written and nothing is triggered (no webhook, no event, and `Idempotency-Key` is neither read nor stored). The answer is the one the real call would give: the same status and errors, and the product with `write_result.dry_run` `true`. Ids generated for a new product, its features and usage prices, and `write_result.price_version.new_price_id` are never stored: a `GET` of them answers `404`. A `meter_external_id` that names no meter is a `reference_not_found` warning (`path`, `key`) instead of a `400`: on a create that usage price is left out of the answer, and on an update of an existing product the stored usage prices stay as they are. `false` or no parameter is a real call; any other value answers `400`.
+   */
+  dryRun?: boolean | undefined;
+  /**
+   * Product creation payload. `name`, `description`, `price`, `currency` and `billing_type` are required when creating a product; an update by `external_id` may leave them out.
    */
   createProductRequestEntity: components.CreateProductRequestEntity;
 };
@@ -27,17 +37,23 @@ export const CreateProductRequest$inboundSchema: z.ZodType<
   unknown
 > = z.object({
   "Idempotency-Key": z.string().optional(),
+  "If-None-Match": z.string().optional(),
+  dry_run: z.boolean().optional(),
   CreateProductRequestEntity:
     components.CreateProductRequestEntity$inboundSchema,
 }).transform((v) => {
   return remap$(v, {
     "Idempotency-Key": "idempotencyKey",
+    "If-None-Match": "ifNoneMatch",
+    "dry_run": "dryRun",
     "CreateProductRequestEntity": "createProductRequestEntity",
   });
 });
 /** @internal */
 export type CreateProductRequest$Outbound = {
   "Idempotency-Key"?: string | undefined;
+  "If-None-Match"?: string | undefined;
+  dry_run?: boolean | undefined;
   CreateProductRequestEntity: components.CreateProductRequestEntity$Outbound;
 };
 
@@ -48,11 +64,15 @@ export const CreateProductRequest$outboundSchema: z.ZodType<
   CreateProductRequest
 > = z.object({
   idempotencyKey: z.string().optional(),
+  ifNoneMatch: z.string().optional(),
+  dryRun: z.boolean().optional(),
   createProductRequestEntity:
     components.CreateProductRequestEntity$outboundSchema,
 }).transform((v) => {
   return remap$(v, {
     idempotencyKey: "Idempotency-Key",
+    ifNoneMatch: "If-None-Match",
+    dryRun: "dry_run",
     createProductRequestEntity: "CreateProductRequestEntity",
   });
 });

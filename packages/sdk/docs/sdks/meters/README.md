@@ -16,7 +16,7 @@
 
 ## createMeter
 
-Define how a stream of usage events is aggregated into billable units. The unit label doubles as the display unit and as the credit bucket the meter settles into. A duplicate name within the store is rejected with 409 meter_name_taken.
+Define how a stream of usage events is aggregated into billable units. The unit label doubles as the display unit and as the credit bucket the meter settles into. A duplicate name within the store is rejected with 409 meter_name_taken. With an `external_id` the call is an upsert: it creates the meter when the key is new (201) and updates the meter that holds the key otherwise (200), archived meters included, which stay archived. Only the fields you send change, each with the meaning `PATCH /v1/meters/{id}` gives it; `event_name` and `unit_label` cannot change after create, and a different value is ignored with a `field_not_writable` warning. The request is compared with the stored meter first, so a request that changes nothing answers `unchanged` and writes nothing, also on a locked meter, and retrying after a timeout is safe; only a real change of a locked meter's filter or aggregation answers 409 `meter_immutable`. The meter comes back with `write_result`. Send `If-None-Match: *` to create only.
 
 ### Example Usage
 
@@ -113,13 +113,13 @@ run();
 
 ### Response
 
-**Promise\<[components.MeterApiResponseDto](../../models/components/meterapiresponsedto.md)\>**
+**Promise\<[components.MeterWriteApiResponseDto](../../models/components/meterwriteapiresponsedto.md)\>**
 
 ### Errors
 
 | Error Type                              | Status Code                             | Content Type                            |
 | --------------------------------------- | --------------------------------------- | --------------------------------------- |
-| errors.UsageMeteringErrorApiResponseDto | 409, 422, 429                           | application/json                        |
+| errors.UsageMeteringErrorApiResponseDto | 409, 412, 422, 429                      | application/json                        |
 | errors.APIError                         | 4XX, 5XX                                | \*/\*                                   |
 
 ## listMeters
@@ -378,7 +378,7 @@ run();
 
 ## updateMeter
 
-Rename a meter and/or revise its definition. A rename is always allowed — the name is a label no aggregate depends on — but it must stay unique within the store (409 meter_name_taken). Definition changes (filter, aggregation, aggregation_property) are only accepted while the meter has processed no usage and has no associated purchase; otherwise the request is rejected with 409, because editing the definition would silently rewrite what already-recorded usage means. The `locked` field on a meter shows this before you update it, though a meter can lock between that read and the update, because aggregation runs asynchronously. Send aggregation_property as null to clear it; omit it to leave it unchanged.
+Rename a meter and/or revise its definition. A rename is always allowed — the name is a label no aggregate depends on — but it must stay unique within the store (409 meter_name_taken). Definition changes (filter, aggregation, aggregation_property) are only accepted while the meter has processed no usage and has no associated purchase; otherwise the request is rejected with 409, because editing the definition would silently rewrite what already-recorded usage means. The `locked` field on a meter shows this before you update it, though a meter can lock between that read and the update, because aggregation runs asynchronously. Send aggregation_property as null to clear it; omit it to leave it unchanged. The request is compared with the stored meter first: values equal to the stored ones are no change, so sending a locked meter's own filter or aggregation answers 200 with `write_result.result` `unchanged` instead of 409, and a request that changes nothing writes nothing. The meter comes back with `write_result`.
 
 ### Example Usage
 
@@ -473,7 +473,7 @@ run();
 
 ### Response
 
-**Promise\<[components.MeterApiResponseDto](../../models/components/meterapiresponsedto.md)\>**
+**Promise\<[components.MeterWriteApiResponseDto](../../models/components/meterwriteapiresponsedto.md)\>**
 
 ### Errors
 

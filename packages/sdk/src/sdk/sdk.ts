@@ -4,6 +4,7 @@
 
 import { ClientSDK } from "../lib/sdks.js";
 import { Affiliates } from "./affiliates.js";
+import { Catalog } from "./catalog.js";
 import { Checkouts } from "./checkouts.js";
 import { CustomerCredits } from "./customercredits.js";
 import { Customers } from "./customers.js";
@@ -105,5 +106,10 @@ export class Creem extends ClientSDK {
   private _files?: Files;
   get files(): Files {
     return (this._files ??= new Files(this._options));
+  }
+
+  private _catalog?: Catalog;
+  get catalog(): Catalog {
+    return (this._catalog ??= new Catalog(this._options));
   }
 }

@@ -15,6 +15,10 @@ export type UpdateProductRequest = {
    */
   id: string;
   /**
+   * Send `true` to preview the write: the request runs as it would and is rolled back, so nothing is written and nothing is triggered (no webhook, no event, and `Idempotency-Key` is neither read nor stored). The answer is the one the real call would give: the same status and errors, and the product with `write_result.dry_run` `true`. Ids generated for a new product, its features and usage prices, and `write_result.price_version.new_price_id` are never stored: a `GET` of them answers `404`. A `meter_external_id` that names no meter is a `reference_not_found` warning (`path`, `key`) instead of a `400`: on a create that usage price is left out of the answer, and on an update of an existing product the stored usage prices stay as they are. `false` or no parameter is a real call; any other value answers `400`.
+   */
+  dryRun?: boolean | undefined;
+  /**
    * Product update payload
    */
   updateProductRequestEntity: components.UpdateProductRequestEntity;
@@ -27,16 +31,19 @@ export const UpdateProductRequest$inboundSchema: z.ZodType<
   unknown
 > = z.object({
   id: z.string(),
+  dry_run: z.boolean().optional(),
   UpdateProductRequestEntity:
     components.UpdateProductRequestEntity$inboundSchema,
 }).transform((v) => {
   return remap$(v, {
+    "dry_run": "dryRun",
     "UpdateProductRequestEntity": "updateProductRequestEntity",
   });
 });
 /** @internal */
 export type UpdateProductRequest$Outbound = {
   id: string;
+  dry_run?: boolean | undefined;
   UpdateProductRequestEntity: components.UpdateProductRequestEntity$Outbound;
 };
 
@@ -47,10 +54,12 @@ export const UpdateProductRequest$outboundSchema: z.ZodType<
   UpdateProductRequest
 > = z.object({
   id: z.string(),
+  dryRun: z.boolean().optional(),
   updateProductRequestEntity:
     components.UpdateProductRequestEntity$outboundSchema,
 }).transform((v) => {
   return remap$(v, {
+    dryRun: "dry_run",
     updateProductRequestEntity: "UpdateProductRequestEntity",
   });
 });

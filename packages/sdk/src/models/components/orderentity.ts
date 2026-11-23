@@ -53,43 +53,43 @@ export type OrderEntity = {
    */
   discount?: string | null | undefined;
   /**
-   * The total amount of the order in cents. 1000 = $10.00
+   * The total amount of the order in `currency`, in the smallest currency unit (cents: 1000 = $10.00).
    */
   amount: number;
   /**
-   * The subtotal of the order in cents. 1000 = $10.00
+   * The subtotal of the order in `currency`, in the smallest currency unit (cents: 1000 = $10.00).
    */
   subTotal?: number | undefined;
   /**
-   * The tax amount of the order in cents. 1000 = $10.00
+   * The tax amount of the order, in the smallest currency unit (cents: 1000 = $10.00). In `fx_currency` when it is set (the buyer was charged in another currency than the product price), otherwise in `currency`.
    */
   taxAmount?: number | undefined;
   /**
-   * The discount amount of the order in cents. 1000 = $10.00
+   * The discount amount of the order, in the smallest currency unit (cents: 1000 = $10.00). In `fx_currency` when it is set (the buyer was charged in another currency than the product price), otherwise in `currency`.
    */
   discountAmount?: number | undefined;
   /**
-   * The amount due for the order in cents. 1000 = $10.00
+   * The amount due for the order, in the smallest currency unit (cents: 1000 = $10.00). In `fx_currency` when it is set (the buyer was charged in another currency than the product price), otherwise in `currency`.
    */
   amountDue?: number | undefined;
   /**
-   * The amount paid for the order in cents. 1000 = $10.00
+   * The amount paid for the order, in the smallest currency unit (cents: 1000 = $10.00). In `fx_currency` when it is set (the buyer was charged in another currency than the product price), otherwise in `currency`.
    */
   amountPaid?: number | undefined;
   /**
-   * Three-letter ISO currency code, in uppercase. Must be a supported currency.
+   * Three-letter ISO currency code, in uppercase: the currency of the product price (`amount`, `sub_total`). When the buyer was charged in another currency, `fx_currency` names it.
    */
   currency: string;
   /**
-   * The amount in the foreign currency, if applicable.
+   * The order amount converted into `fx_currency`, in its smallest currency unit. Set only when the buyer was charged in another currency than the product price (local-currency checkout); absent otherwise.
    */
   fxAmount?: number | null | undefined;
   /**
-   * Three-letter ISO code of the foreign currency, if applicable.
+   * Three-letter ISO code of the currency the buyer was charged in, when it differs from `currency`. `tax_amount`, `discount_amount`, `amount_due` and `amount_paid` are in this currency. Absent otherwise.
    */
   fxCurrency?: string | null | undefined;
   /**
-   * The exchange rate used for converting between currencies, if applicable.
+   * Units of `fx_currency` per one unit of `currency` the order was priced at, conversion fee included. Without a discount, `fx_amount` = `amount` × `fx_rate`, rounded. With a discount it is the rate applied to the discounted price, so that product can be off by a few minor units. Absent when no conversion applies.
    */
   fxRate?: number | null | undefined;
   /**

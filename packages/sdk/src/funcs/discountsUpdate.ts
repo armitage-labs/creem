@@ -3,7 +3,7 @@
  */
 
 import { CreemCore } from "../core.js";
-import { encodeJSON, encodeSimple } from "../lib/encodings.js";
+import { encodeFormQuery, encodeJSON, encodeSimple } from "../lib/encodings.js";
 import { matchStatusCode } from "../lib/http.js";
 import * as M from "../lib/matchers.js";
 import { compactMap } from "../lib/primitives.js";
@@ -30,7 +30,7 @@ import { Result } from "../types/fp.js";
  * Update a discount.
  *
  * @remarks
- * Update a discount. Only supplied fields change; the code never does. Once redeemed, its amount, type, currency and duration are fixed. A discount with a Stripe coupon also keeps its expiry, redemption limit and products; a name change renames the coupon.
+ * Update a discount. Only supplied fields change; the code never does. Once redeemed, its amount, type, currency and duration are fixed. A discount with a Stripe coupon also keeps its expiry, redemption limit and products; a name change renames the coupon. A request that changes nothing answers `unchanged` and writes nothing. The discount comes back with `write_result`.
  */
 export function discountsUpdate(
   client: CreemCore,
@@ -38,7 +38,7 @@ export function discountsUpdate(
   options?: RequestOptions,
 ): APIPromise<
   Result<
-    components.DiscountEntity,
+    components.DiscountWriteResponseEntity,
     | CreemError
     | ResponseValidationError
     | ConnectionError
@@ -63,7 +63,7 @@ async function $do(
 ): Promise<
   [
     Result<
-      components.DiscountEntity,
+      components.DiscountWriteResponseEntity,
       | CreemError
       | ResponseValidationError
       | ConnectionError
@@ -97,6 +97,10 @@ async function $do(
   };
   const path = pathToFunc("/v1/discounts/{id}")(pathParams);
 
+  const query = encodeFormQuery({
+    "dry_run": payload.dry_run,
+  });
+
   const headers = new Headers(compactMap({
     "Content-Type": "application/json",
     Accept: "application/json",
@@ -127,6 +131,7 @@ async function $do(
     baseURL: options?.serverURL,
     path: path,
     headers: headers,
+    query: query,
     body: body,
     userAgent: client._options.userAgent,
     timeoutMs: options?.timeoutMs || client._options.timeoutMs || -1,
@@ -149,7 +154,7 @@ async function $do(
   const response = doResult.value;
 
   const [result] = await M.match<
-    components.DiscountEntity,
+    components.DiscountWriteResponseEntity,
     | CreemError
     | ResponseValidationError
     | ConnectionError
@@ -159,7 +164,7 @@ async function $do(
     | UnexpectedClientError
     | SDKValidationError
   >(
-    M.json(200, components.DiscountEntity$inboundSchema),
+    M.json(200, components.DiscountWriteResponseEntity$inboundSchema),
     M.fail([400, 401, 404, 409, "4XX"]),
     M.fail("5XX"),
   )(response, req);

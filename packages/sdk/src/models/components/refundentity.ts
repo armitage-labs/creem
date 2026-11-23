@@ -91,7 +91,7 @@ export type RefundEntity = {
    */
   status: RefundStatus;
   /**
-   * The refunded amount in cents. 1000 = $10.00
+   * The refunded amount in `refund_currency` (the currency the buyer was charged in), in the smallest currency unit (cents: 1000 = $10.00).
    */
   refundAmount: number;
   /**

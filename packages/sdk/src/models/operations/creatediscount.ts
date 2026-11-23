@@ -11,11 +11,21 @@ import { SDKValidationError } from "../errors/sdkvalidationerror.js";
 
 export type CreateDiscountRequest = {
   /**
-   * Optional key that makes retries return the originally created discount instead of creating a duplicate. Reusing a key with a different body returns the first result, and a key lasts 24 hours. After a failed create whose outcome is unclear, the key answers 429 for up to 5 minutes.
+   * Deprecated: send an `external_id`, which makes a retry an update of the discount the first call created. Without an `external_id`, a retry with the same key returns the originally created discount instead of creating a duplicate; reusing a key with a different body returns the first result, and a key lasts 24 hours. After a failed create whose outcome is unclear, the key answers 429 for up to 5 minutes. With an `external_id` the header is ignored.
+   *
+   * @deprecated field: This will be removed in a future release, please migrate away from it as soon as possible.
    */
   idempotencyKey?: string | undefined;
   /**
-   * Discount creation payload
+   * Send `*` to create only: when a discount of the store already has the `external_id`, the call answers `412` (`precondition_failed`) and writes nothing. Only `*` is accepted on a request with an `external_id`; without one the header is ignored.
+   */
+  ifNoneMatch?: string | undefined;
+  /**
+   * Send `true` to preview the write: the request runs as it would and is rolled back, so nothing is written, no Stripe API is called, and `Idempotency-Key` is neither read nor stored. The answer is the one the real call would give: the same status and errors, and the discount with `write_result.dry_run` `true`. The id of a new discount is never stored: a `GET` of it answers `404`. A key in `applies_to_product_external_ids` that names no product is a `reference_not_found` warning (`path`, `key`) instead of a `400`: a new discount leaves that product out, and an existing one keeps its stored products. `false` or no parameter is a real call; any other value answers `400`.
+   */
+  dryRun?: boolean | undefined;
+  /**
+   * Discount creation payload. `name`, `type` and `duration` are required when creating a discount; an update by `external_id` may leave them out.
    */
   createDiscountRequestEntity: components.CreateDiscountRequestEntity;
 };
@@ -27,17 +37,23 @@ export const CreateDiscountRequest$inboundSchema: z.ZodType<
   unknown
 > = z.object({
   "Idempotency-Key": z.string().optional(),
+  "If-None-Match": z.string().optional(),
+  dry_run: z.boolean().optional(),
   CreateDiscountRequestEntity:
     components.CreateDiscountRequestEntity$inboundSchema,
 }).transform((v) => {
   return remap$(v, {
     "Idempotency-Key": "idempotencyKey",
+    "If-None-Match": "ifNoneMatch",
+    "dry_run": "dryRun",
     "CreateDiscountRequestEntity": "createDiscountRequestEntity",
   });
 });
 /** @internal */
 export type CreateDiscountRequest$Outbound = {
   "Idempotency-Key"?: string | undefined;
+  "If-None-Match"?: string | undefined;
+  dry_run?: boolean | undefined;
   CreateDiscountRequestEntity: components.CreateDiscountRequestEntity$Outbound;
 };
 
@@ -48,11 +64,15 @@ export const CreateDiscountRequest$outboundSchema: z.ZodType<
   CreateDiscountRequest
 > = z.object({
   idempotencyKey: z.string().optional(),
+  ifNoneMatch: z.string().optional(),
+  dryRun: z.boolean().optional(),
   createDiscountRequestEntity:
     components.CreateDiscountRequestEntity$outboundSchema,
 }).transform((v) => {
   return remap$(v, {
     idempotencyKey: "Idempotency-Key",
+    ifNoneMatch: "If-None-Match",
+    dryRun: "dry_run",
     createDiscountRequestEntity: "CreateDiscountRequestEntity",
   });
 });

@@ -25,6 +25,10 @@ export type ProductFeatureFileEntity = {
    * The size of the file in bytes.
    */
   size: number;
+  /**
+   * The SHA-256 of the file, base64-encoded, as `POST /v1/files/{id}/confirm` returns it. Compare it before uploading a file again. `null` for a file stored without one.
+   */
+  sha256: string | null;
 };
 
 /** @internal */
@@ -37,6 +41,7 @@ export const ProductFeatureFileEntity$inboundSchema: z.ZodType<
   file_name: z.string(),
   type: z.string(),
   size: z.number().int(),
+  sha256: z.nullable(z.string()),
 }).transform((v) => {
   return remap$(v, {
     "file_name": "fileName",
@@ -48,6 +53,7 @@ export type ProductFeatureFileEntity$Outbound = {
   file_name: string;
   type: string;
   size: number;
+  sha256: string | null;
 };
 
 /** @internal */
@@ -60,6 +66,7 @@ export const ProductFeatureFileEntity$outboundSchema: z.ZodType<
   fileName: z.string(),
   type: z.string(),
   size: z.number().int(),
+  sha256: z.nullable(z.string()),
 }).transform((v) => {
   return remap$(v, {
     fileName: "file_name",

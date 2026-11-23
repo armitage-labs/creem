@@ -3,7 +3,7 @@
  */
 
 import { CreemCore } from "../core.js";
-import { encodeJSON, encodeSimple } from "../lib/encodings.js";
+import { encodeFormQuery, encodeJSON, encodeSimple } from "../lib/encodings.js";
 import { matchStatusCode } from "../lib/http.js";
 import * as M from "../lib/matchers.js";
 import { compactMap } from "../lib/primitives.js";
@@ -30,7 +30,7 @@ import { Result } from "../types/fp.js";
  * Update a product
  *
  * @remarks
- * Update a product. Only supplied fields change; a price change mints a new default price. `status` archives (`archived`, the same as `DELETE /v1/products/{id}`) or unarchives (`active`) the product. The product comes back with `write_result`, whose `warnings` list things to know about the write.
+ * Update a product. Only supplied fields change; a change of amount, currency, billing type, billing period or tax mode creates a new price version. Running subscriptions keep the amount and currency of the price version they are on; their billing period and tax mode still follow the product unless the subscription bills on the terms of its own version, so a change of either reaches most running subscriptions at their next renewal. `status` archives (`archived`, the same as `DELETE /v1/products/{id}`) or unarchives (`active`) the product. The product comes back with `write_result`: what changed (`changes`), things to know (`warnings`) and a new price version (`price_version`). A request that changes nothing answers `unchanged` and writes nothing.
  */
 export function productsUpdate(
   client: CreemCore,
@@ -97,6 +97,10 @@ async function $do(
   };
   const path = pathToFunc("/v1/products/{id}")(pathParams);
 
+  const query = encodeFormQuery({
+    "dry_run": payload.dry_run,
+  });
+
   const headers = new Headers(compactMap({
     "Content-Type": "application/json",
     Accept: "application/json",
@@ -127,6 +131,7 @@ async function $do(
     baseURL: options?.serverURL,
     path: path,
     headers: headers,
+    query: query,
     body: body,
     userAgent: client._options.userAgent,
     timeoutMs: options?.timeoutMs || client._options.timeoutMs || -1,

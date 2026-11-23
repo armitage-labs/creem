@@ -20,17 +20,17 @@ import {
 
 export type CreateDiscountRequestEntity = {
   /**
-   * The name of the discount.
+   * The name of the discount. Required when creating a discount.
    */
-  name: string;
+  name?: string | undefined;
   /**
-   * Optional discount code. If left empty, a code will be generated.
+   * Optional discount code, case-insensitive (stored upper-cased). If left empty, a code will be generated. The code of an existing discount cannot change: a different code sent with its `external_id` is ignored with a `field_not_writable` warning.
    */
   code?: string | undefined;
   /**
    * The type of the discount. Fixed once the discount has been redeemed, or while a checkout confirmed with it in the last 7 days holds it (`409` `discount_redeemed`); the same applies to `amount`, `percentage`, `currency`, `duration` and `duration_in_months`. Changing it needs the new `amount` or `percentage`.
    */
-  type: DiscountType;
+  type?: DiscountType | undefined;
   /**
    * The fixed value for the discount. Only applicable if the type is "fixed".
    */
@@ -54,7 +54,7 @@ export type CreateDiscountRequestEntity = {
   /**
    * The duration type. Fixed once the discount has been redeemed.
    */
-  duration: CouponDurationType;
+  duration?: CouponDurationType | undefined;
   /**
    * The number of months the discount is valid for. Only applicable if the duration is "repeating" and the product is a subscription.
    */
@@ -68,7 +68,7 @@ export type CreateDiscountRequestEntity = {
    */
   appliesToProductExternalIds?: Array<string> | undefined;
   /**
-   * Your own key for the discount, unique in your store: 1 to 255 characters: letters, digits, `_`, `-`, `.` and `:`. Case-sensitive. A key another discount of your store already uses answers `409` with code `external_id_taken`.
+   * Your own key for the discount, unique in your store: 1 to 255 characters: letters, digits, `_`, `-`, `.` and `:`. Case-sensitive. With a key the call is an upsert: a new key creates the discount, and a key a discount of your store holds updates that discount. Deleting a discount frees its key.
    */
   externalId?: string | undefined;
 };
@@ -79,16 +79,16 @@ export const CreateDiscountRequestEntity$inboundSchema: z.ZodType<
   z.ZodTypeDef,
   unknown
 > = z.object({
-  name: z.string(),
+  name: z.string().optional(),
   code: z.string().optional(),
-  type: DiscountType$inboundSchema,
+  type: DiscountType$inboundSchema.optional(),
   amount: z.number().optional(),
   currency: z.string().optional(),
   percentage: z.number().optional(),
   expiry_date: z.string().datetime({ offset: true }).transform(v => new Date(v))
     .optional(),
   max_redemptions: z.number().optional(),
-  duration: CouponDurationType$inboundSchema,
+  duration: CouponDurationType$inboundSchema.optional(),
   duration_in_months: z.number().optional(),
   applies_to_products: z.array(z.string()).optional(),
   applies_to_product_external_ids: z.array(z.string()).optional(),
@@ -105,15 +105,15 @@ export const CreateDiscountRequestEntity$inboundSchema: z.ZodType<
 });
 /** @internal */
 export type CreateDiscountRequestEntity$Outbound = {
-  name: string;
+  name?: string | undefined;
   code?: string | undefined;
-  type: string;
+  type?: string | undefined;
   amount?: number | undefined;
   currency?: string | undefined;
   percentage?: number | undefined;
   expiry_date?: string | undefined;
   max_redemptions?: number | undefined;
-  duration: string;
+  duration?: string | undefined;
   duration_in_months?: number | undefined;
   applies_to_products?: Array<string> | undefined;
   applies_to_product_external_ids?: Array<string> | undefined;
@@ -126,15 +126,15 @@ export const CreateDiscountRequestEntity$outboundSchema: z.ZodType<
   z.ZodTypeDef,
   CreateDiscountRequestEntity
 > = z.object({
-  name: z.string(),
+  name: z.string().optional(),
   code: z.string().optional(),
-  type: DiscountType$outboundSchema,
+  type: DiscountType$outboundSchema.optional(),
   amount: z.number().optional(),
   currency: z.string().optional(),
   percentage: z.number().optional(),
   expiryDate: z.date().transform(v => v.toISOString()).optional(),
   maxRedemptions: z.number().optional(),
-  duration: CouponDurationType$outboundSchema,
+  duration: CouponDurationType$outboundSchema.optional(),
   durationInMonths: z.number().optional(),
   appliesToProducts: z.array(z.string()).optional(),
   appliesToProductExternalIds: z.array(z.string()).optional(),

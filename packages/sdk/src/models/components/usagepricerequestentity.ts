@@ -29,9 +29,13 @@ export type UsagePriceRequestEntity = {
    */
   id?: string | undefined;
   /**
-   * The meter this charge bills. Must belong to the same store. One charge per meter per product.
+   * The meter this charge bills. Must belong to the same store. One charge per meter per product. Required unless `meter_external_id` names the meter.
    */
-  meterId: string;
+  meterId?: string | undefined;
+  /**
+   * The `external_id` of the meter, instead of `meter_id`. Resolved to the meter when the product is written; a key no meter of the store has answers `400` with code `reference_not_found` (`details.field`, `details.key`). When both are sent they must name the same meter.
+   */
+  meterExternalId?: string | undefined;
   /**
    * Tax-exclusive price per SINGLE meter unit, in minor units of the product currency. "$20 per 1,000,000 tokens" is 0.002 (2000 cents / 1,000,000), not 20. Fractional values are allowed.
    */
@@ -69,7 +73,8 @@ export const UsagePriceRequestEntity$inboundSchema: z.ZodType<
   unknown
 > = z.object({
   id: z.string().optional(),
-  meter_id: z.string(),
+  meter_id: z.string().optional(),
+  meter_external_id: z.string().optional(),
   unit_price: z.number(),
   free_allowance: z.number().int().optional(),
   cap: z.nullable(z.number().int()).optional(),
@@ -80,6 +85,7 @@ export const UsagePriceRequestEntity$inboundSchema: z.ZodType<
 }).transform((v) => {
   return remap$(v, {
     "meter_id": "meterId",
+    "meter_external_id": "meterExternalId",
     "unit_price": "unitPrice",
     "free_allowance": "freeAllowance",
     "settlement_mode": "settlementMode",
@@ -91,7 +97,8 @@ export const UsagePriceRequestEntity$inboundSchema: z.ZodType<
 /** @internal */
 export type UsagePriceRequestEntity$Outbound = {
   id?: string | undefined;
-  meter_id: string;
+  meter_id?: string | undefined;
+  meter_external_id?: string | undefined;
   unit_price: number;
   free_allowance?: number | undefined;
   cap?: number | null | undefined;
@@ -108,7 +115,8 @@ export const UsagePriceRequestEntity$outboundSchema: z.ZodType<
   UsagePriceRequestEntity
 > = z.object({
   id: z.string().optional(),
-  meterId: z.string(),
+  meterId: z.string().optional(),
+  meterExternalId: z.string().optional(),
   unitPrice: z.number(),
   freeAllowance: z.number().int().optional(),
   cap: z.nullable(z.number().int()).optional(),
@@ -119,6 +127,7 @@ export const UsagePriceRequestEntity$outboundSchema: z.ZodType<
 }).transform((v) => {
   return remap$(v, {
     meterId: "meter_id",
+    meterExternalId: "meter_external_id",
     unitPrice: "unit_price",
     freeAllowance: "free_allowance",
     settlementMode: "settlement_mode",
