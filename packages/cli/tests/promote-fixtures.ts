@@ -25,7 +25,18 @@ import { productJson } from "./migrate-fixtures";
  *   meter, `not_written` (`archived_not_in_live`, `promote_check_failed`,
  *   `changed_since_check`), the check before the first write with
  *   `validation` and `force`, and pages of `pageSize` items with
- *   `next_cursor`, bound to `select` and `dry_run`.
+ *   `next_cursor`, bound to `select` and `dry_run`;
+ * - a product's `usage_prices` sent by the meter's key (`meter_external_id`)
+ *   and resolved to the live meter by the upsert, cleared on live when test
+ *   has none, compared as a whole; a custom billing period's
+ *   `recurring_interval` and `recurring_interval_count`; the warnings
+ *   `feature_type_not_promoted` (a `file` feature) and the export's file flags
+ *   (`flagFiles`).
+ *
+ * Known limits: the `reference_planned` / `reference_not_found` warnings of a
+ * usage price whose meter the same run creates are not modelled; the check
+ * runs every write in one rolled-back pass (`checkBatches` only adds pages
+ * without items), not per layer; pages are cut by item count, not time.
  */
 
 type Json = Record<string, any>;
@@ -170,7 +181,7 @@ const METER_FIELDS = [
   "filter",
   "unit_label",
 ];
-/** A product's write fields promote copies when test sets them (a subset of `PRODUCT_FIELDS`). */
+/** A product's write fields promote copies when test sets them (`PRODUCT_FIELDS`). */
 const PRODUCT_FIELDS = [
   "name",
   "description",
@@ -178,10 +189,40 @@ const PRODUCT_FIELDS = [
   "currency",
   "billing_type",
   "billing_period",
+  "tax_mode",
+  "tax_category",
+  "business_net_pricing",
+  "pay_what_you_want",
+  "suggested_price",
   "trial_period_days",
+  "trial_price",
+  "default_success_url",
+  "image_urls",
+  "custom_fields",
   "abandoned_cart_recovery_enabled",
 ];
-const PRODUCT_WRITE_FIELDS = [...PRODUCT_FIELDS, "external_id", "metadata", "status", "features"];
+/** A usage price's request fields besides its meter (`USAGE_PRICE_FIELDS`). */
+const USAGE_PRICE_FIELDS = [
+  "unit_price",
+  "free_allowance",
+  "cap",
+  "settlement_mode",
+  "target_account",
+  "target_account_name",
+  "trial_usage_mode",
+];
+/** Feature types that live only in the dashboard: no `feature_type_not_promoted` warning. */
+const DASHBOARD_ONLY_FEATURE_TYPES = ["githubRepository"];
+const PRODUCT_WRITE_FIELDS = [
+  ...PRODUCT_FIELDS,
+  "recurring_interval",
+  "recurring_interval_count",
+  "external_id",
+  "metadata",
+  "status",
+  "usage_prices",
+  "features",
+];
 const METER_WRITE_FIELDS = [...METER_FIELDS, "external_id", "status"];
 
 const normalizeName = (name: unknown) =>
@@ -248,6 +289,13 @@ function candidatesFor(kind: Kind, test: Json, live: Json[], heldKeys: Set<strin
 /** `pairPromoteFeatures`: the product body's `features`, or the features that need keys. */
 function pairFeatures(test: Json[], live: Json[] | null) {
   const promoted = (f: Json) => FEATURE_SETTINGS[f.type] !== undefined;
+  const skippedTypes = [
+    ...new Set(
+      test
+        .map((f) => String(f.type ?? ""))
+        .filter((type) => type !== "" && FEATURE_SETTINGS[type] === undefined),
+    ),
+  ].filter((type) => !DASHBOARD_ONLY_FEATURE_TYPES.includes(type));
   const testFeatures = test.filter(promoted);
   const liveFeatures = (live ?? []).filter(promoted);
   const pairs = new Map<Json, { live: Json; by: "key" | "description" }>();
@@ -315,6 +363,7 @@ function pairFeatures(test: Json[], live: Json[] | null) {
   return {
     entries: testFeatures.length === 0 && liveFeatures.length === 0 ? null : entries,
     featureCandidates,
+    skippedTypes,
   };
 }
 
@@ -349,6 +398,8 @@ export function fakeCatalog(
   const refusals = new Map<string, ApiError>();
   /** Test ids whose command changes between the check and the write. */
   const changedAfterCheck = new Set<string>();
+  /** Files the export flagged, per test product (`file_missing`, `file_location_invalid`). */
+  const flaggedFiles = new Map<string, { code: string; fileIds: string[] }>();
   interface Run {
     select: unknown;
     dryRun: boolean;
@@ -476,22 +527,32 @@ export function fakeCatalog(
         plans.push(needsKey("product", item, live.products, test.products));
         continue;
       }
-      const meterId = (item.usage_prices ?? [])
-        .map((u: Json) => u.meter_id)
-        .find((id: string) => {
-          const meter = test.meters.find((m) => m.id === id);
-          return (
-            !meter?.external_id ||
-            !(live.meters.some((m) => m.external_id === meter.external_id) || writtenMeters.has(id))
-          );
-        });
-      if (meterId) {
+      // Each usage price names its meter by the meter's key; a meter without
+      // one, or one that doesn't reach live in this run, blocks the product.
+      const usagePrices: Json[] = [];
+      let blockedBy: string | null = null;
+      for (const usagePrice of (item.usage_prices ?? []) as Json[]) {
+        const meterId = String(usagePrice.meter_id ?? "");
+        const meterKey = test.meters.find((m) => m.id === meterId)?.external_id ?? null;
+        const reachesLive =
+          meterKey !== null &&
+          (live.meters.some((m) => m.external_id === meterKey) || writtenMeters.has(meterId));
+        if (!reachesLive) {
+          blockedBy = meterId;
+          break;
+        }
+        const entry: Json = { meter_external_id: meterKey };
+        for (const field of USAGE_PRICE_FIELDS)
+          if (usagePrice[field] !== undefined) entry[field] = usagePrice[field];
+        usagePrices.push(entry);
+      }
+      if (blockedBy !== null) {
         plans.push({
           kind: "product",
           testId: item.id,
           liveId,
           plan: "blocked",
-          blockedBy: { kind: "meter", test_id: meterId },
+          blockedBy: { kind: "meter", test_id: blockedBy },
         });
         continue;
       }
@@ -533,12 +594,19 @@ export function fakeCatalog(
       const body: Json = { external_id: item.external_id };
       for (const field of PRODUCT_FIELDS)
         if (item[field] !== undefined && item[field] !== null) body[field] = item[field];
+      if (body.billing_period === "custom") {
+        body.recurring_interval = item.recurring_interval;
+        body.recurring_interval_count = item.recurring_interval_count;
+      }
       if (item.metadata !== null) body.metadata = item.metadata;
       body.status = item.status;
+      if (usagePrices.length || (liveProduct?.usage_prices ?? []).length)
+        body.usage_prices = usagePrices;
       if (features.entries !== null) body.features = features.entries;
       const candidates = liveProduct
         ? []
         : candidatesFor("product", item, live.products, heldKeys(test.products));
+      const flag = flaggedFiles.get(item.id);
       plans.push({
         kind: "product",
         testId: item.id,
@@ -546,7 +614,18 @@ export function fakeCatalog(
         plan: "write",
         body,
         candidates,
-        warnings: candidates.length ? [{ code: "possible_rename", path: "external_id" }] : [],
+        warnings: [
+          ...(candidates.length ? [{ code: "possible_rename", path: "external_id" }] : []),
+          ...features.skippedTypes.map((type) => ({
+            code: "feature_type_not_promoted",
+            path: `features[type=${type}]`,
+          })),
+          ...(flag?.fileIds ?? []).map((fileId) => ({
+            code: flag!.code,
+            path: "files",
+            key: fileId,
+          })),
+        ],
       });
     }
     return plans;
@@ -556,7 +635,15 @@ export function fakeCatalog(
   const upsert = (catalog: Catalog, p: Plan, dryRun: boolean): Json => {
     const refusal = refusals.get(p.testId);
     if (refusal) throw refusal;
-    const body = p.body!;
+    const body = { ...p.body! };
+    // The product upsert resolves each usage price's meter key to the live meter.
+    if (Array.isArray(body.usage_prices))
+      body.usage_prices = body.usage_prices.map(({ meter_external_id, ...fields }: Json) => {
+        const meter = catalog.meters.find((m) => m.external_id === meter_external_id);
+        if (!meter)
+          throw apiError(400, "reference_not_found", `No meter has the key ${meter_external_id}.`);
+        return { meter_id: meter.id, ...fields };
+      });
     const items = p.kind === "meter" ? catalog.meters : catalog.products;
     const existing = items.find((item) => item.external_id === body.external_id);
     if (!existing) {
@@ -865,6 +952,10 @@ export function fakeCatalog(
     /** The check and the write of this test item answer this error (a guard). */
     refuse(testId: string, status: number, code: string, message = code) {
       refusals.set(testId, apiError(status, code, message));
+    },
+    /** Files the export flagged on this test product: one warning each on its write. */
+    flagFiles(testId: string, code: string, fileIds: string[]) {
+      flaggedFiles.set(testId, { code, fileIds });
     },
     /** This item's write changes between the check and the write (`changed_since_check`). */
     changeAfterCheck(testId: string) {

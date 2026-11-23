@@ -168,6 +168,99 @@ describe("fakeCatalog models promote and the pairing writes", () => {
     ]);
   });
 
+  it("promotes usage prices by the meter's key: a usage-price-only change is updated, and the live price names the live meter", async () => {
+    const initial = store();
+    const usage = (meterId: string, unitPrice: number) => [
+      { meter_id: meterId, unit_price: unitPrice, free_allowance: 100, settlement_mode: "arrears" },
+    ];
+    initial.test.products![0].usage_prices = usage("mtr_t1", 5);
+    initial.live.products![0].usage_prices = usage("mtr_l1", 2);
+    const fake = fakeCatalog(initial);
+    const preview = await fake.live.catalog.promote({
+      dryRun: true,
+      catalogPromoteRequestDto: { select: { products: ["prod_t1"] } },
+    });
+    expect(preview.items[0]).toMatchObject({ testId: "prod_t1", result: "updated" });
+    expect(preview.items[0].writeResult?.changes).toEqual([
+      { path: "usage_prices", from: usage("mtr_l1", 2), to: usage("mtr_l1", 5) },
+    ]);
+    const run = await fake.live.catalog.promote({
+      catalogPromoteRequestDto: { select: { products: ["prod_t1"] } },
+    });
+    expect(run.items[0].result).toBe("updated");
+    expect(fake.stores.live.products[0].usage_prices).toEqual(usage("mtr_l1", 5));
+    const again = await fake.live.catalog.promote({
+      dryRun: true,
+      catalogPromoteRequestDto: { select: { products: ["prod_t1"] } },
+    });
+    expect(again.items[0].result).toBe("unchanged");
+  });
+
+  it("clears live's usage prices when test has none, and creates a usage-priced product with the live meter", async () => {
+    const initial = store();
+    initial.live.products![0].usage_prices = [{ meter_id: "mtr_l1", unit_price: 2 }];
+    initial.test.products!.push(
+      sideProduct("test", "prod_t3", {
+        name: "Metered",
+        external_id: "metered",
+        usage_prices: [{ meter_id: "mtr_t1", unit_price: 7 }],
+      }),
+    );
+    const fake = fakeCatalog(initial);
+    const run = await fake.live.catalog.promote({
+      catalogPromoteRequestDto: { select: { products: ["prod_t1", "prod_t3"] } },
+    });
+    expect(run.items.map((i) => [i.testId, i.result])).toEqual([
+      ["prod_t1", "updated"],
+      ["prod_t3", "created"],
+    ]);
+    expect(fake.stores.live.products[0].usage_prices).toEqual([]);
+    expect(fake.stores.live.products.at(-1)?.usage_prices).toEqual([
+      { meter_id: "mtr_l1", unit_price: 7 },
+    ]);
+  });
+
+  it("sends a custom billing period's interval fields", async () => {
+    const initial = store();
+    const custom = {
+      billing_type: "recurring",
+      billing_period: "custom",
+      recurring_interval: "week",
+      recurring_interval_count: 2,
+    };
+    Object.assign(initial.test.products![0], custom);
+    Object.assign(initial.live.products![0], { ...custom, recurring_interval_count: 3 });
+    const fake = fakeCatalog(initial);
+    const preview = await fake.live.catalog.promote({
+      dryRun: true,
+      catalogPromoteRequestDto: { select: { products: ["prod_t1"] } },
+    });
+    expect(preview.items[0].writeResult?.changes).toEqual([
+      { path: "recurring_interval_count", from: 3, to: 2 },
+    ]);
+  });
+
+  it("warns about feature types promote doesn't copy and about files the export flagged", async () => {
+    const initial = store();
+    initial.test.products![0].features = [
+      featureJson("feat_t1", "custom", "Support"),
+      { id: "feat_t9", type: "file", description: "Download", external_id: null },
+      { id: "feat_t8", type: "githubRepository", description: "Repo", external_id: null },
+    ];
+    initial.live.products![0].features = [featureJson("feat_l1", "custom", "Support")];
+    const fake = fakeCatalog(initial);
+    fake.flagFiles("prod_t1", "file_missing", ["file_1"]);
+    const preview = await fake.live.catalog.promote({
+      dryRun: true,
+      catalogPromoteRequestDto: { select: { products: ["prod_t1"] } },
+    });
+    expect(preview.items[0].result).toBe("unchanged");
+    expect(preview.items[0].writeResult?.warnings).toEqual([
+      { code: "feature_type_not_promoted", path: "features[type=file]" },
+      { code: "file_missing", path: "files", key: "file_1" },
+    ]);
+  });
+
   it("refuses promote on the test API", async () => {
     const fake = fakeCatalog(store());
     await expect(fake.test.catalog.promote({ catalogPromoteRequestDto: {} })).rejects.toMatchObject(
