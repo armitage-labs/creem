@@ -674,6 +674,16 @@ export async function executeMigration(
   const pause = async () => {
     if (options.delayMs) await sleep(options.delayMs);
   };
+  /**
+   * The item's write shrank to nothing (the products it would add weren't
+   * written), so no request is sent: Creem keeps it as it is, and the report
+   * says so instead of an update that never happened.
+   */
+  const nothingSent = (item: MigrationItem) => {
+    item.action = "unchanged";
+    item.status = null;
+    item.changes = [];
+  };
 
   /**
    * Swaps `upload:<key>` file ids for uploaded ones: in file features, and in
@@ -830,7 +840,10 @@ export async function executeMigration(
             else delete body.appliesToProducts;
           }
           // Only the key is left: nothing to change.
-          if (Object.keys(body).length === 1) continue;
+          if (Object.keys(body).length === 1) {
+            nothingSent(item);
+            continue;
+          }
           break;
         }
         case "adopt_discount":
@@ -842,7 +855,10 @@ export async function executeMigration(
             if (ids.length) body.appliesToProducts = [...(body.appliesToProducts ?? []), ...ids];
             else delete body.appliesToProducts;
           }
-          if (!Object.keys(body).length) continue;
+          if (!Object.keys(body).length) {
+            nothingSent(item);
+            continue;
+          }
           break;
         }
       }
@@ -917,7 +933,8 @@ export async function executeMigration(
       });
     }
   }
-  for (const item of report.items) if (item.status === "pending") item.status = "done";
+  // Only what went through is done; nothing else is reported as sent.
+  for (const item of report.items) if (written.has(item)) item.status = "done";
   report.summary = summarize(report.items);
   return report;
 }

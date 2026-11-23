@@ -1192,3 +1192,33 @@ describe("ENG-2972 re-check: Retry-After longer than the retries wait", () => {
     expect(creem.writes()).toEqual([]);
   });
 });
+
+describe("ENG-2972 re-check: the report says what was sent", () => {
+  it("reports a discount whose only change shrank to nothing as unchanged, not as an update", async () => {
+    const creem = fakeCreem(V1_STORE);
+    const { report } = await migrateWith(creem, {
+      change: addVariant("999001"),
+      beforeRun: () =>
+        creem.fail(
+          (c) =>
+            c.path === "/v1/products" &&
+            c.body?.external_id === "ls_variant_999001" &&
+            c.dryRun !== true,
+          500,
+          { code: "internal_error" },
+        ),
+    });
+    expect(report.items.find((i) => i.key === "ls_variant_999001")!.status).toBe("failed");
+    const launch = report.items.find((i) => i.key === "ls_discount_930001")!;
+    expect(launch).toMatchObject({ action: "unchanged", status: null, changes: [] });
+    expect(launch.warnings.map((w) => w.code)).toContain("product_not_written");
+    expect(report.items.filter((i) => i.status === "pending")).toEqual([]);
+    expect(
+      creem
+        .writes()
+        .filter(
+          (c) => c.path.startsWith("/v1/discounts") && c.body?.external_id === "ls_discount_930001",
+        ),
+    ).toEqual([]);
+  });
+});
