@@ -13,7 +13,7 @@ import { SDKValidationError } from "../errors/sdkvalidationerror.js";
 /**
  * Filter transactions by status. `chargeback` (the value responses return for a chargeback) and `chargedBack` are equivalent.
  */
-export const SearchTransactionsQueryParamStatus = {
+export const QueryParamStatus = {
   Pending: "pending",
   Paid: "paid",
   Refunded: "refunded",
@@ -28,9 +28,7 @@ export const SearchTransactionsQueryParamStatus = {
 /**
  * Filter transactions by status. `chargeback` (the value responses return for a chargeback) and `chargedBack` are equivalent.
  */
-export type SearchTransactionsQueryParamStatus = ClosedEnum<
-  typeof SearchTransactionsQueryParamStatus
->;
+export type QueryParamStatus = ClosedEnum<typeof QueryParamStatus>;
 
 export type SearchTransactionsRequest = {
   /**
@@ -56,7 +54,7 @@ export type SearchTransactionsRequest = {
   /**
    * Filter transactions by status. `chargeback` (the value responses return for a chargeback) and `chargedBack` are equivalent.
    */
-  status?: SearchTransactionsQueryParamStatus | undefined;
+  status?: QueryParamStatus | undefined;
   /**
    * Filter transactions created at or after this point. A date (`2024-01-01`) means the start of that day in UTC; a date-time needs a UTC offset (`2024-01-01T00:00:00Z`) and at most millisecond precision. In a query string, send a `+` offset as `%2B`.
    */
@@ -72,13 +70,13 @@ export type SearchTransactionsResponse = {
 };
 
 /** @internal */
-export const SearchTransactionsQueryParamStatus$inboundSchema: z.ZodNativeEnum<
-  typeof SearchTransactionsQueryParamStatus
-> = z.nativeEnum(SearchTransactionsQueryParamStatus);
+export const QueryParamStatus$inboundSchema: z.ZodNativeEnum<
+  typeof QueryParamStatus
+> = z.nativeEnum(QueryParamStatus);
 /** @internal */
-export const SearchTransactionsQueryParamStatus$outboundSchema: z.ZodNativeEnum<
-  typeof SearchTransactionsQueryParamStatus
-> = SearchTransactionsQueryParamStatus$inboundSchema;
+export const QueryParamStatus$outboundSchema: z.ZodNativeEnum<
+  typeof QueryParamStatus
+> = QueryParamStatus$inboundSchema;
 
 /** @internal */
 export const SearchTransactionsRequest$inboundSchema: z.ZodType<
@@ -91,7 +89,7 @@ export const SearchTransactionsRequest$inboundSchema: z.ZodType<
   product_id: z.string().optional(),
   page_number: z.number().default(1),
   page_size: z.number().default(10),
-  status: SearchTransactionsQueryParamStatus$inboundSchema.optional(),
+  status: QueryParamStatus$inboundSchema.optional(),
   created_after: z.string().optional(),
   created_before: z.string().optional(),
 }).transform((v) => {
@@ -128,7 +126,7 @@ export const SearchTransactionsRequest$outboundSchema: z.ZodType<
   productId: z.string().optional(),
   pageNumber: z.number().default(1),
   pageSize: z.number().default(10),
-  status: SearchTransactionsQueryParamStatus$outboundSchema.optional(),
+  status: QueryParamStatus$outboundSchema.optional(),
   createdAfter: z.string().optional(),
   createdBefore: z.string().optional(),
 }).transform((v) => {

@@ -7,11 +7,11 @@ import { safeParse } from "../../lib/schemas.js";
 import { Result as SafeParseResult } from "../../types/fp.js";
 import { SDKValidationError } from "../errors/sdkvalidationerror.js";
 import {
-  ProductWriteSubscriptionCountsEntity,
-  ProductWriteSubscriptionCountsEntity$inboundSchema,
-  ProductWriteSubscriptionCountsEntity$Outbound,
-  ProductWriteSubscriptionCountsEntity$outboundSchema,
-} from "./productwritesubscriptioncountsentity.js";
+  ProductWriteImpactEntity,
+  ProductWriteImpactEntity$inboundSchema,
+  ProductWriteImpactEntity$Outbound,
+  ProductWriteImpactEntity$outboundSchema,
+} from "./productwriteimpactentity.js";
 
 export type ProductWriteWarningEntity = {
   /**
@@ -29,7 +29,7 @@ export type ProductWriteWarningEntity = {
   /**
    * The running subscriptions the warning is about. Left out when the running subscriptions could not be counted; the write still went through.
    */
-  impact?: ProductWriteSubscriptionCountsEntity | undefined;
+  impact?: ProductWriteImpactEntity | undefined;
 };
 
 /** @internal */
@@ -41,14 +41,14 @@ export const ProductWriteWarningEntity$inboundSchema: z.ZodType<
   code: z.string(),
   path: z.string(),
   key: z.string().optional(),
-  impact: ProductWriteSubscriptionCountsEntity$inboundSchema.optional(),
+  impact: ProductWriteImpactEntity$inboundSchema.optional(),
 });
 /** @internal */
 export type ProductWriteWarningEntity$Outbound = {
   code: string;
   path: string;
   key?: string | undefined;
-  impact?: ProductWriteSubscriptionCountsEntity$Outbound | undefined;
+  impact?: ProductWriteImpactEntity$Outbound | undefined;
 };
 
 /** @internal */
@@ -60,7 +60,7 @@ export const ProductWriteWarningEntity$outboundSchema: z.ZodType<
   code: z.string(),
   path: z.string(),
   key: z.string().optional(),
-  impact: ProductWriteSubscriptionCountsEntity$outboundSchema.optional(),
+  impact: ProductWriteImpactEntity$outboundSchema.optional(),
 });
 
 export function productWriteWarningEntityToJSON(

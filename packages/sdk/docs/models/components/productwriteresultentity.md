@@ -42,6 +42,8 @@ let value: ProductWriteResultEntity = {
           "paused": 1,
           "unpaid": 0,
         },
+        unsettledPostpaidUsage: 0,
+        autoRechargeConsents: 3,
       },
     },
   ],

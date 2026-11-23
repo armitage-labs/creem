@@ -1,15 +1,17 @@
 # Status
 
+Filter by discount status.
+
 ## Example Usage
 
 ```typescript
 import { Status } from "creem/models/operations";
 
-let value: Status = "unpaid";
+let value: Status = "deleted";
 ```
 
 ## Values
 
 ```typescript
-"incomplete" | "expired" | "active" | "past_due" | "canceled" | "scheduled_cancel" | "unpaid" | "paused" | "trialing" | "error"
+"active" | "deleted"
 ```

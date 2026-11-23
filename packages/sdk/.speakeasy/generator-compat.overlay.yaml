@@ -125,3 +125,23 @@ actions:
   # when the caller sets it; a create without it still gets the API's own default.
   - target: $.components.schemas.CreateProductRequestEntity.properties.abandoned_cart_recovery_enabled.default
     remove: true
+  # ENG-2972: new inline enums moved the generator's names: the subscription
+  # search's new `status` filter took `Status`, which named the discount search's
+  # status, and that one took `QueryParamStatus` from the transaction search. A
+  # release must not change what a name means, so each keeps its name and the
+  # new filter gets its own. tests/public-exports.test.ts holds the names.
+  - target: $.paths["/v1/discounts/search"].get.parameters[?(@.name == "status")].schema
+    update:
+      title: Status
+  - target: $.paths["/v1/transactions/search"].get.parameters[?(@.name == "status")].schema
+    update:
+      title: QueryParamStatus
+  - target: $.paths["/v1/subscriptions/search"].get.parameters[?(@.name == "status")].schema.items
+    update:
+      title: SearchSubscriptionsStatus
+  # The warning's `impact` moved to ProductWriteSubscriptionCountsEntity, the same
+  # counts under a new name, which changed the type of an exported field. It
+  # stays ProductWriteImpactEntity.
+  - target: $.components.schemas.ProductWriteWarningEntity.properties.impact.allOf[0]
+    update:
+      $ref: "#/components/schemas/ProductWriteImpactEntity"

@@ -13,14 +13,14 @@ import { SDKValidationError } from "../errors/sdkvalidationerror.js";
 /**
  * Filter by discount status.
  */
-export const QueryParamStatus = {
+export const Status = {
   Active: "active",
   Deleted: "deleted",
 } as const;
 /**
  * Filter by discount status.
  */
-export type QueryParamStatus = ClosedEnum<typeof QueryParamStatus>;
+export type Status = ClosedEnum<typeof Status>;
 
 /**
  * Filter by discount type.
@@ -50,7 +50,7 @@ export type SearchDiscountsRequest = {
   /**
    * Filter by discount status.
    */
-  status?: QueryParamStatus | undefined;
+  status?: Status | undefined;
   /**
    * Filter by discount type.
    */
@@ -70,13 +70,11 @@ export type SearchDiscountsResponse = {
 };
 
 /** @internal */
-export const QueryParamStatus$inboundSchema: z.ZodNativeEnum<
-  typeof QueryParamStatus
-> = z.nativeEnum(QueryParamStatus);
+export const Status$inboundSchema: z.ZodNativeEnum<typeof Status> = z
+  .nativeEnum(Status);
 /** @internal */
-export const QueryParamStatus$outboundSchema: z.ZodNativeEnum<
-  typeof QueryParamStatus
-> = QueryParamStatus$inboundSchema;
+export const Status$outboundSchema: z.ZodNativeEnum<typeof Status> =
+  Status$inboundSchema;
 
 /** @internal */
 export const Type$inboundSchema: z.ZodNativeEnum<typeof Type> = z.nativeEnum(
@@ -95,7 +93,7 @@ export const SearchDiscountsRequest$inboundSchema: z.ZodType<
   page_number: z.number().default(1),
   page_size: z.number().default(10),
   product_id: z.string().optional(),
-  status: QueryParamStatus$inboundSchema.optional(),
+  status: Status$inboundSchema.optional(),
   type: Type$inboundSchema.optional(),
   created_after: z.string().optional(),
   created_before: z.string().optional(),
@@ -128,7 +126,7 @@ export const SearchDiscountsRequest$outboundSchema: z.ZodType<
   pageNumber: z.number().default(1),
   pageSize: z.number().default(10),
   productId: z.string().optional(),
-  status: QueryParamStatus$outboundSchema.optional(),
+  status: Status$outboundSchema.optional(),
   type: Type$outboundSchema.optional(),
   createdAfter: z.string().optional(),
   createdBefore: z.string().optional(),

@@ -10,7 +10,7 @@ import { Result as SafeParseResult } from "../../types/fp.js";
 import * as components from "../components/index.js";
 import { SDKValidationError } from "../errors/sdkvalidationerror.js";
 
-export const Status = {
+export const SearchSubscriptionsStatus = {
   Incomplete: "incomplete",
   Expired: "expired",
   Active: "active",
@@ -22,7 +22,9 @@ export const Status = {
   Trialing: "trialing",
   Error: "error",
 } as const;
-export type Status = ClosedEnum<typeof Status>;
+export type SearchSubscriptionsStatus = ClosedEnum<
+  typeof SearchSubscriptionsStatus
+>;
 
 export type SearchSubscriptionsRequest = {
   /**
@@ -44,7 +46,7 @@ export type SearchSubscriptionsRequest = {
   /**
    * Only subscriptions in this status. Repeat the parameter for several (`status=active&status=past_due`); they combine with OR. The running statuses are `active`, `trialing`, `past_due`, `scheduled_cancel`, `paused` and `unpaid`.
    */
-  status?: Array<Status> | undefined;
+  status?: Array<SearchSubscriptionsStatus> | undefined;
   /**
    * Only subscriptions of this customer.
    */
@@ -56,11 +58,13 @@ export type SearchSubscriptionsResponse = {
 };
 
 /** @internal */
-export const Status$inboundSchema: z.ZodNativeEnum<typeof Status> = z
-  .nativeEnum(Status);
+export const SearchSubscriptionsStatus$inboundSchema: z.ZodNativeEnum<
+  typeof SearchSubscriptionsStatus
+> = z.nativeEnum(SearchSubscriptionsStatus);
 /** @internal */
-export const Status$outboundSchema: z.ZodNativeEnum<typeof Status> =
-  Status$inboundSchema;
+export const SearchSubscriptionsStatus$outboundSchema: z.ZodNativeEnum<
+  typeof SearchSubscriptionsStatus
+> = SearchSubscriptionsStatus$inboundSchema;
 
 /** @internal */
 export const SearchSubscriptionsRequest$inboundSchema: z.ZodType<
@@ -72,7 +76,7 @@ export const SearchSubscriptionsRequest$inboundSchema: z.ZodType<
   page_size: z.number().default(10),
   product_id: z.string().optional(),
   price_id: z.string().optional(),
-  status: z.array(Status$inboundSchema).optional(),
+  status: z.array(SearchSubscriptionsStatus$inboundSchema).optional(),
   customer_id: z.string().optional(),
 }).transform((v) => {
   return remap$(v, {
@@ -103,7 +107,7 @@ export const SearchSubscriptionsRequest$outboundSchema: z.ZodType<
   pageSize: z.number().default(10),
   productId: z.string().optional(),
   priceId: z.string().optional(),
-  status: z.array(Status$outboundSchema).optional(),
+  status: z.array(SearchSubscriptionsStatus$outboundSchema).optional(),
   customerId: z.string().optional(),
 }).transform((v) => {
   return remap$(v, {

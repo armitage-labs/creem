@@ -642,7 +642,7 @@ trackedFiles:
   docs/models/operations/searchproductsresponse.md: {}
   docs/models/operations/searchsubscriptionsrequest.md: {}
   docs/models/operations/searchsubscriptionsresponse.md: {}
-  docs/models/operations/searchtransactionsqueryparamstatus.md: {}
+  docs/models/operations/searchsubscriptionsstatus.md: {}
   docs/models/operations/searchtransactionsrequest.md:
     id: 2bb8a7f7a3c8
     pristine_git_object: 5e55c99a18314b651860acbe680c94634689b9a0

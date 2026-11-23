@@ -1,17 +1,17 @@
 # QueryParamStatus
 
-Filter by discount status.
+Filter transactions by status. `chargeback` (the value responses return for a chargeback) and `chargedBack` are equivalent.
 
 ## Example Usage
 
 ```typescript
 import { QueryParamStatus } from "creem/models/operations";
 
-let value: QueryParamStatus = "active";
+let value: QueryParamStatus = "declined";
 ```
 
 ## Values
 
 ```typescript
-"active" | "deleted"
+"pending" | "paid" | "refunded" | "partialRefund" | "chargedBack" | "uncollectible" | "declined" | "canceled" | "void" | "chargeback"
 ```
