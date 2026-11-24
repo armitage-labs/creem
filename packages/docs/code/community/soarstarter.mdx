@@ -1,0 +1,42 @@
+---
+title: SoarStarter
+description: Web (Next.js, Nuxt, TanStack Start) and desktop (Electron, Tauri) starter kits with Creem payment integration.
+---
+
+## About SoarStarter
+
+SoarStarter is a family of full-source starter kits. Five of them use Creem as the Merchant of Record: three web kits and two desktop kits. Each kit follows the conventions of its own framework and ships with authentication, checkout, webhook handling and billing management already connected.
+
+### Kits with Creem
+
+| Kit            | Stack                                        | Creem integration                                                                                                              |
+| -------------- | -------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------ |
+| Next.js        | Next.js 16, Better Auth, Drizzle, PostgreSQL | Monthly, yearly and lifetime plans, webhook handler, customer portal. Creem is the default provider, Stripe is optional        |
+| Nuxt           | Nuxt 4, Better Auth, Drizzle, PostgreSQL     | Same billing flow as the Next.js kit                                                                                           |
+| TanStack Start | TanStack Start, Better Auth, Drizzle         | Same billing flow as the Next.js kit                                                                                           |
+| Electron       | Electron, React, Vite, Supabase              | Checkout, webhook and customer portal as Supabase Edge Functions, subscription-gated features, optional license-key activation |
+| Tauri          | Tauri 2, React, Vite, Supabase               | Same billing flow as the Electron kit                                                                                          |
+
+### Features
+
+- **Payments:** Creem checkout for subscriptions and one-time (lifetime) purchases, verified webhooks, and the Creem customer portal
+- **Desktop billing:** Checkout opens from the desktop app; Creem secrets stay in Supabase Edge Functions and are never bundled into the app
+- **Authentication:** Better Auth on the web kits, Supabase Auth on the desktop kits
+- **Documentation:** Every kit has its own docs, including the Creem setup steps
+
+---
+
+## Resources
+
+<CardGroup>
+  <Card
+    title="SoarStarter Website"
+    icon="rocket"
+    href="https://soarstarter.com/?utm_source=creem&utm_campaign=showcase"
+  >
+    Visit the official SoarStarter website to see the kits and demos.
+  </Card>
+  <Card title="Creem Integration" icon="credit-card" href="/code/sdks/typescript">
+    Learn about Creem's payment integration.
+  </Card>
+</CardGroup>
