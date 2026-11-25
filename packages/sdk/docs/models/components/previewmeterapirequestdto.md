@@ -11,13 +11,7 @@ let value: PreviewMeterApiRequestDto = {
   aggregationProperty: "tokens",
   filter: {
     conjunction: "and",
-    clauses: [
-      {
-        property: "tier",
-        operator: "equals",
-        value: "pro",
-      },
-    ],
+    clauses: [],
   },
   unitLabel: "images",
 };

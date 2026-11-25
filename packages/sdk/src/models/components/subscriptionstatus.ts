@@ -3,7 +3,8 @@
  */
 
 import * as z from "zod/v3";
-import { ClosedEnum } from "../../types/enums.js";
+import * as openEnums from "../../types/enums.js";
+import { OpenEnum } from "../../types/enums.js";
 
 /**
  * The current status of the subscription.
@@ -20,13 +21,17 @@ export const SubscriptionStatus = {
 /**
  * The current status of the subscription.
  */
-export type SubscriptionStatus = ClosedEnum<typeof SubscriptionStatus>;
+export type SubscriptionStatus = OpenEnum<typeof SubscriptionStatus>;
 
 /** @internal */
-export const SubscriptionStatus$inboundSchema: z.ZodNativeEnum<
-  typeof SubscriptionStatus
-> = z.nativeEnum(SubscriptionStatus);
+export const SubscriptionStatus$inboundSchema: z.ZodType<
+  SubscriptionStatus,
+  z.ZodTypeDef,
+  unknown
+> = openEnums.inboundSchema(SubscriptionStatus);
 /** @internal */
-export const SubscriptionStatus$outboundSchema: z.ZodNativeEnum<
-  typeof SubscriptionStatus
-> = SubscriptionStatus$inboundSchema;
+export const SubscriptionStatus$outboundSchema: z.ZodType<
+  string,
+  z.ZodTypeDef,
+  SubscriptionStatus
+> = openEnums.outboundSchema(SubscriptionStatus);

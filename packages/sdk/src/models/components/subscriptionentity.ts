@@ -5,7 +5,8 @@
 import * as z from "zod/v3";
 import { remap as remap$ } from "../../lib/primitives.js";
 import { safeParse } from "../../lib/schemas.js";
-import { ClosedEnum } from "../../types/enums.js";
+import * as openEnums from "../../types/enums.js";
+import { OpenEnum } from "../../types/enums.js";
 import { Result as SafeParseResult } from "../../types/fp.js";
 import { SDKValidationError } from "../errors/sdkvalidationerror.js";
 import {
@@ -62,14 +63,14 @@ export const SubscriptionEntityType = {
   Percentage: "percentage",
   Fixed: "fixed",
 } as const;
-export type SubscriptionEntityType = ClosedEnum<typeof SubscriptionEntityType>;
+export type SubscriptionEntityType = OpenEnum<typeof SubscriptionEntityType>;
 
 export const SubscriptionEntityDuration = {
   Forever: "forever",
   Once: "once",
   Repeating: "repeating",
 } as const;
-export type SubscriptionEntityDuration = ClosedEnum<
+export type SubscriptionEntityDuration = OpenEnum<
   typeof SubscriptionEntityDuration
 >;
 
@@ -169,6 +170,10 @@ export type SubscriptionEntity = {
    * Metadata for the subscription in the form of key-value pairs.
    */
   metadata?: { [k: string]: any } | undefined;
+  /**
+   * Whether this subscription was started by a recovered checkout. Present on subscription objects returned by the API; absent from webhook payloads, because recovery is attributed asynchronously right after checkout completion.
+   */
+  recovered?: boolean | undefined;
 };
 
 /** @internal */
@@ -227,22 +232,30 @@ export function customerFromJSON(
 }
 
 /** @internal */
-export const SubscriptionEntityType$inboundSchema: z.ZodNativeEnum<
-  typeof SubscriptionEntityType
-> = z.nativeEnum(SubscriptionEntityType);
+export const SubscriptionEntityType$inboundSchema: z.ZodType<
+  SubscriptionEntityType,
+  z.ZodTypeDef,
+  unknown
+> = openEnums.inboundSchema(SubscriptionEntityType);
 /** @internal */
-export const SubscriptionEntityType$outboundSchema: z.ZodNativeEnum<
-  typeof SubscriptionEntityType
-> = SubscriptionEntityType$inboundSchema;
+export const SubscriptionEntityType$outboundSchema: z.ZodType<
+  string,
+  z.ZodTypeDef,
+  SubscriptionEntityType
+> = openEnums.outboundSchema(SubscriptionEntityType);
 
 /** @internal */
-export const SubscriptionEntityDuration$inboundSchema: z.ZodNativeEnum<
-  typeof SubscriptionEntityDuration
-> = z.nativeEnum(SubscriptionEntityDuration);
+export const SubscriptionEntityDuration$inboundSchema: z.ZodType<
+  SubscriptionEntityDuration,
+  z.ZodTypeDef,
+  unknown
+> = openEnums.inboundSchema(SubscriptionEntityDuration);
 /** @internal */
-export const SubscriptionEntityDuration$outboundSchema: z.ZodNativeEnum<
-  typeof SubscriptionEntityDuration
-> = SubscriptionEntityDuration$inboundSchema;
+export const SubscriptionEntityDuration$outboundSchema: z.ZodType<
+  string,
+  z.ZodTypeDef,
+  SubscriptionEntityDuration
+> = openEnums.outboundSchema(SubscriptionEntityDuration);
 
 /** @internal */
 export const Discount$inboundSchema: z.ZodType<
@@ -332,6 +345,7 @@ export const SubscriptionEntity$inboundSchema: z.ZodType<
   updated_at: z.string().datetime({ offset: true }).transform(v => new Date(v)),
   discount: z.lazy(() => Discount$inboundSchema).optional(),
   metadata: z.record(z.any()).optional(),
+  recovered: z.boolean().optional(),
 }).transform((v) => {
   return remap$(v, {
     "collection_method": "collectionMethod",
@@ -367,6 +381,7 @@ export type SubscriptionEntity$Outbound = {
   updated_at: string;
   discount?: Discount$Outbound | undefined;
   metadata?: { [k: string]: any } | undefined;
+  recovered?: boolean | undefined;
 };
 
 /** @internal */
@@ -394,6 +409,7 @@ export const SubscriptionEntity$outboundSchema: z.ZodType<
   updatedAt: z.date().transform(v => v.toISOString()),
   discount: z.lazy(() => Discount$outboundSchema).optional(),
   metadata: z.record(z.any()).optional(),
+  recovered: z.boolean().optional(),
 }).transform((v) => {
   return remap$(v, {
     collectionMethod: "collection_method",

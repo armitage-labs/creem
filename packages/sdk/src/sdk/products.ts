@@ -5,6 +5,7 @@
 import { productsArchive } from "../funcs/productsArchive.js";
 import { productsCreate } from "../funcs/productsCreate.js";
 import { productsGet } from "../funcs/productsGet.js";
+import { productsListPrices } from "../funcs/productsListPrices.js";
 import { productsSearch } from "../funcs/productsSearch.js";
 import { productsUpdate } from "../funcs/productsUpdate.js";
 import { ClientSDK, RequestOptions } from "../lib/sdks.js";
@@ -18,21 +19,17 @@ export class Products extends ClientSDK {
    * List all products
    *
    * @remarks
-   * Search and retrieve a paginated list of products. Filter by status, billing type, and other criteria.
+   * Search and retrieve a paginated list of products. Filter by status or by your own `external_id`.
    */
   async search(
-    pageNumber?: number | undefined,
-    pageSize?: number | undefined,
-    status?: components.ProductStatus | undefined,
+    request: operations.SearchProductsRequest,
     options?: RequestOptions,
   ): Promise<
     PageIterator<operations.SearchProductsResponse, { page: number }>
   > {
     return unwrapResultIterator(productsSearch(
       this,
-      pageNumber,
-      pageSize,
-      status,
+      request,
       options,
     ));
   }
@@ -44,14 +41,12 @@ export class Products extends ClientSDK {
    * Create a new product for one-time payments, including free products with a 0 price, or subscriptions. Configure pricing, billing cycles, and features.
    */
   async create(
-    createProductRequestEntity: components.CreateProductRequestEntity,
-    idempotencyKey?: string | undefined,
+    request: operations.CreateProductRequest,
     options?: RequestOptions,
   ): Promise<components.ProductEntity> {
     return unwrapAsync(productsCreate(
       this,
-      createProductRequestEntity,
-      idempotencyKey,
+      request,
       options,
     ));
   }
@@ -63,12 +58,12 @@ export class Products extends ClientSDK {
    * Retrieve a single product by its unique identifier.
    */
   async get(
-    id: string,
+    request: operations.GetProductRequest,
     options?: RequestOptions,
   ): Promise<components.ProductEntity> {
     return unwrapAsync(productsGet(
       this,
-      id,
+      request,
       options,
     ));
   }
@@ -77,17 +72,15 @@ export class Products extends ClientSDK {
    * Update a product
    *
    * @remarks
-   * Update a product. Only supplied fields change; a price change mints a new default price.
+   * Update a product. Only supplied fields change; a price change mints a new default price. `status` archives (`archived`, the same as `DELETE /v1/products/{id}`) or unarchives (`active`) the product. The product comes back with `write_result`, whose `warnings` list things to know about the write.
    */
   async update(
-    id: string,
-    updateProductRequestEntity: components.UpdateProductRequestEntity,
+    request: operations.UpdateProductRequest,
     options?: RequestOptions,
-  ): Promise<components.ProductEntity> {
+  ): Promise<components.ProductWriteResponseEntity> {
     return unwrapAsync(productsUpdate(
       this,
-      id,
-      updateProductRequestEntity,
+      request,
       options,
     ));
   }
@@ -99,12 +92,29 @@ export class Products extends ClientSDK {
    * Archive a product (soft-delete). The product is retained for historical orders and subscriptions but can no longer be purchased.
    */
   async archive(
-    id: string,
+    request: operations.ArchiveProductRequest,
     options?: RequestOptions,
   ): Promise<components.ProductEntity> {
     return unwrapAsync(productsArchive(
       this,
-      id,
+      request,
+      options,
+    ));
+  }
+
+  /**
+   * List the price versions of a product
+   *
+   * @remarks
+   * List every price version of a product, newest first, with how many running subscriptions sit on each. A price change creates a new version; running subscriptions stay on the version they bought. Archived products can be read too.
+   */
+  async listPrices(
+    request: operations.ListProductPricesRequest,
+    options?: RequestOptions,
+  ): Promise<components.ProductPriceVersionListEntity> {
+    return unwrapAsync(productsListPrices(
+      this,
+      request,
       options,
     ));
   }

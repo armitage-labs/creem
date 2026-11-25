@@ -8,10 +8,12 @@ Categorizes the type of product or service for tax purposes. This helps determin
 import { TaxCategory } from "creem/models/components";
 
 let value: TaxCategory = "saas";
+
+// Open enum: unrecognized values are captured as Unrecognized<string>
 ```
 
 ## Values
 
 ```typescript
-"saas" | "digital-goods-service" | "ebooks"
+"saas" | "digital-goods-service" | "ebooks" | Unrecognized<string>
 ```

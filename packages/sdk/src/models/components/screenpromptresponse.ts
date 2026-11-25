@@ -5,7 +5,8 @@
 import * as z from "zod/v3";
 import { remap as remap$ } from "../../lib/primitives.js";
 import { safeParse } from "../../lib/schemas.js";
-import { ClosedEnum } from "../../types/enums.js";
+import * as openEnums from "../../types/enums.js";
+import { OpenEnum } from "../../types/enums.js";
 import { Result as SafeParseResult } from "../../types/fp.js";
 import { SDKValidationError } from "../errors/sdkvalidationerror.js";
 import {
@@ -26,7 +27,7 @@ export const Decision = {
 /**
  * The moderation decision.
  */
-export type Decision = ClosedEnum<typeof Decision>;
+export type Decision = OpenEnum<typeof Decision>;
 
 export type ScreenPromptResponse = {
   /**
@@ -56,11 +57,17 @@ export type ScreenPromptResponse = {
 };
 
 /** @internal */
-export const Decision$inboundSchema: z.ZodNativeEnum<typeof Decision> = z
-  .nativeEnum(Decision);
+export const Decision$inboundSchema: z.ZodType<
+  Decision,
+  z.ZodTypeDef,
+  unknown
+> = openEnums.inboundSchema(Decision);
 /** @internal */
-export const Decision$outboundSchema: z.ZodNativeEnum<typeof Decision> =
-  Decision$inboundSchema;
+export const Decision$outboundSchema: z.ZodType<
+  string,
+  z.ZodTypeDef,
+  Decision
+> = openEnums.outboundSchema(Decision);
 
 /** @internal */
 export const ScreenPromptResponse$inboundSchema: z.ZodType<

@@ -9,9 +9,11 @@ import { CustomerCredits } from "./customercredits.js";
 import { Customers } from "./customers.js";
 import { Discounts } from "./discounts.js";
 import { Events } from "./events.js";
+import { Files } from "./files.js";
 import { Licenses } from "./licenses.js";
 import { Meters } from "./meters.js";
 import { Moderation } from "./moderation.js";
+import { ProductGroups } from "./productgroups.js";
 import { Products } from "./products.js";
 import { Splits } from "./splits.js";
 import { Stats } from "./stats.js";
@@ -48,6 +50,11 @@ export class Creem extends ClientSDK {
   private _discounts?: Discounts;
   get discounts(): Discounts {
     return (this._discounts ??= new Discounts(this._options));
+  }
+
+  private _productGroups?: ProductGroups;
+  get productGroups(): ProductGroups {
+    return (this._productGroups ??= new ProductGroups(this._options));
   }
 
   private _transactions?: Transactions;
@@ -93,5 +100,10 @@ export class Creem extends ClientSDK {
   private _webhooks?: Webhooks;
   get webhooks(): Webhooks {
     return (this._webhooks ??= new Webhooks(this._options));
+  }
+
+  private _files?: Files;
+  get files(): Files {
+    return (this._files ??= new Files(this._options));
   }
 }

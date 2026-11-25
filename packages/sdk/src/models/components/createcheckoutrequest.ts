@@ -38,6 +38,10 @@ export type CreateCheckoutRequest = {
    */
   customPrice?: number | undefined;
   /**
+   * Override the product's free trial for this checkout session, in days (1 to 400). Applies even when the product has no trial: the customer saves their card with a $0 verification and the first charge happens when the trial ends. Only supported for subscription products without a paid trial.
+   */
+  trialPeriodDays?: number | undefined;
+  /**
    * Prefill the checkout session with a discount code.
    */
   discountCode?: string | undefined;
@@ -79,6 +83,7 @@ export const CreateCheckoutRequest$inboundSchema: z.ZodType<
   product_id: z.string(),
   units: z.number().optional(),
   custom_price: z.number().int().optional(),
+  trial_period_days: z.number().int().optional(),
   discount_code: z.string().optional(),
   affiliate_code: z.string().optional(),
   customer: CustomerRequestEntity$inboundSchema.optional(),
@@ -91,6 +96,7 @@ export const CreateCheckoutRequest$inboundSchema: z.ZodType<
     "request_id": "requestId",
     "product_id": "productId",
     "custom_price": "customPrice",
+    "trial_period_days": "trialPeriodDays",
     "discount_code": "discountCode",
     "affiliate_code": "affiliateCode",
     "custom_fields": "customFields",
@@ -104,6 +110,7 @@ export type CreateCheckoutRequest$Outbound = {
   product_id: string;
   units?: number | undefined;
   custom_price?: number | undefined;
+  trial_period_days?: number | undefined;
   discount_code?: string | undefined;
   affiliate_code?: string | undefined;
   customer?: CustomerRequestEntity$Outbound | undefined;
@@ -123,6 +130,7 @@ export const CreateCheckoutRequest$outboundSchema: z.ZodType<
   productId: z.string(),
   units: z.number().optional(),
   customPrice: z.number().int().optional(),
+  trialPeriodDays: z.number().int().optional(),
   discountCode: z.string().optional(),
   affiliateCode: z.string().optional(),
   customer: CustomerRequestEntity$outboundSchema.optional(),
@@ -135,6 +143,7 @@ export const CreateCheckoutRequest$outboundSchema: z.ZodType<
     requestId: "request_id",
     productId: "product_id",
     customPrice: "custom_price",
+    trialPeriodDays: "trial_period_days",
     discountCode: "discount_code",
     affiliateCode: "affiliate_code",
     customFields: "custom_fields",

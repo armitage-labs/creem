@@ -34,8 +34,7 @@ import { Result } from "../types/fp.js";
  */
 export function discountsGet(
   client: CreemCore,
-  discountId?: string | undefined,
-  discountCode?: string | undefined,
+  request: operations.RetrieveDiscountRequest,
   options?: RequestOptions,
 ): APIPromise<
   Result<
@@ -52,16 +51,14 @@ export function discountsGet(
 > {
   return new APIPromise($do(
     client,
-    discountId,
-    discountCode,
+    request,
     options,
   ));
 }
 
 async function $do(
   client: CreemCore,
-  discountId?: string | undefined,
-  discountCode?: string | undefined,
+  request: operations.RetrieveDiscountRequest,
   options?: RequestOptions,
 ): Promise<
   [
@@ -79,13 +76,8 @@ async function $do(
     APICall,
   ]
 > {
-  const input: operations.RetrieveDiscountRequest = {
-    discountId: discountId,
-    discountCode: discountCode,
-  };
-
   const parsed = safeParse(
-    input,
+    request,
     (value) => operations.RetrieveDiscountRequest$outboundSchema.parse(value),
     "Input validation failed",
   );

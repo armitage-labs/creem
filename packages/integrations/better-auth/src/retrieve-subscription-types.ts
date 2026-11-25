@@ -1,3 +1,5 @@
+import type { OpenValue } from "@creem_io/webhook-types";
+
 /**
  * Parameters for retrieving a Creem subscription.
  *
@@ -19,15 +21,20 @@ export interface RetrieveSubscriptionInput {
 }
 
 /**
+ * A response value the API may add to: one of the known values, or a string a
+ * newer API sends. creem 2.0 passes such values through instead of failing the
+ * response, so a `switch` over the known values is no longer exhaustive and
+ * needs a `default` branch. The same type `@creem_io/webhook-types` uses for
+ * webhook payloads.
+ */
+export type { OpenValue };
+
+/**
  * Subscription status values from Creem API.
  */
-export type SubscriptionDataStatus =
-  | "active"
-  | "canceled"
-  | "unpaid"
-  | "paused"
-  | "trialing"
-  | "scheduled_cancel";
+export type SubscriptionDataStatus = OpenValue<
+  "active" | "canceled" | "unpaid" | "paused" | "trialing" | "scheduled_cancel"
+>;
 
 /**
  * Subscription item from Creem API.
@@ -36,7 +43,7 @@ export interface SubscriptionItemData {
   /** Unique identifier */
   id: string;
   /** Environment mode */
-  mode: "test" | "prod" | "sandbox";
+  mode: OpenValue<"test" | "prod" | "sandbox">;
   /** Object type */
   object: "subscription_item";
   /** The product ID */
@@ -54,7 +61,7 @@ export interface SubscriptionData {
   /** Unique subscription identifier */
   id: string;
   /** Environment mode */
-  mode: "test" | "prod" | "sandbox";
+  mode: OpenValue<"test" | "prod" | "sandbox">;
   /** Object type */
   object: "subscription";
   /** The product associated with the subscription (ID or expanded object) */
@@ -66,7 +73,7 @@ export interface SubscriptionData {
   /** Subscription items */
   items?: SubscriptionItemData[];
   /** The method used for collecting payments */
-  collectionMethod: "charge_automatically";
+  collectionMethod: OpenValue<"charge_automatically">;
   /** Current subscription status */
   status: SubscriptionDataStatus;
   /** The ID of the last paid transaction */

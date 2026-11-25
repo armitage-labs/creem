@@ -32,12 +32,26 @@ const value: components.CheckoutEntity = {
     features: [
       {
         id: "feat_abc123",
-        type: "customerCredits",
+        type: "githubRepository",
         description: "Access to premium course materials.",
+        externalId: "pro-credits",
         customerCredits: {
           amount: "100",
           unitLabel: "tokens",
           bucketName: "images",
+          requiresModeration: false,
+          resetsEachPeriod: false,
+        },
+        licenseKey: {
+          activationLimit: 3,
+          expiry: {
+            interval: "month",
+            intervalCount: 1,
+          },
+        },
+        privateNote: "Thanks for your purchase! Your access code is XYZ123.",
+        file: {
+          files: [],
         },
       },
     ],
@@ -48,7 +62,7 @@ const value: components.CheckoutEntity = {
         unitPrice: 0.002,
         freeAllowance: 1000,
         cap: 50000,
-        settlementMode: "postpaid",
+        settlementMode: "prepaid",
         targetAccount: "per_unit",
         targetAccountName: "images",
         trialUsageMode: "free",
@@ -68,10 +82,15 @@ const value: components.CheckoutEntity = {
     taxCategory: "saas",
     productUrl: "https://creem.io/product/prod_123123123123",
     defaultSuccessUrl: "https://example.com/?status=successful",
+    externalId: "pro-monthly",
+    metadata: {
+      "plan": "pro",
+    },
     createdAt: new Date("2023-01-01T00:00:00Z"),
     updatedAt: new Date("2023-01-01T00:00:00Z"),
   },
   customPrice: 1500,
+  trialPeriodDays: 92,
   order: {
     id: "<id>",
     mode: "prod",
@@ -93,6 +112,7 @@ const value: components.CheckoutEntity = {
     type: "recurring",
     createdAt: new Date("2023-09-13T00:00:00Z"),
     updatedAt: new Date("2023-09-13T00:00:00Z"),
+    recovered: false,
   },
   subscription: "<value>",
   customer: "<value>",

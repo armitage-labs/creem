@@ -8,10 +8,12 @@ Warning code. `no_matching_meter`: no meter consumes this event name. `meter_arc
 import { Code } from "creem/models/components";
 
 let value: Code = "no_matching_meter";
+
+// Open enum: unrecognized values are captured as Unrecognized<string>
 ```
 
 ## Values
 
 ```typescript
-"no_matching_meter" | "meter_archived" | "timestamp_outside_late_window"
+"no_matching_meter" | "meter_archived" | "timestamp_outside_late_window" | Unrecognized<string>
 ```

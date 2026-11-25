@@ -60,7 +60,7 @@ export async function validateApiKey(
       retryConfig: { strategy: "none" },
       timeoutMs: 30000,
     });
-    await client.products.search(1, 1);
+    await client.products.search({ pageNumber: 1, pageSize: 1 });
     return { valid: true };
   } catch (error) {
     // A 403 proves that the API recognized the key, but the key does not have

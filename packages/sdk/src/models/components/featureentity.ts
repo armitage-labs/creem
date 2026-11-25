@@ -8,10 +8,22 @@ import { safeParse } from "../../lib/schemas.js";
 import { Result as SafeParseResult } from "../../types/fp.js";
 import { SDKValidationError } from "../errors/sdkvalidationerror.js";
 import {
+  LicenseKeyFeatureEntity,
+  LicenseKeyFeatureEntity$inboundSchema,
+  LicenseKeyFeatureEntity$Outbound,
+  LicenseKeyFeatureEntity$outboundSchema,
+} from "./licensekeyfeatureentity.js";
+import {
   ProductFeatureType,
   ProductFeatureType$inboundSchema,
   ProductFeatureType$outboundSchema,
 } from "./productfeaturetype.js";
+import {
+  ProductFileFeatureEntity,
+  ProductFileFeatureEntity$inboundSchema,
+  ProductFileFeatureEntity$Outbound,
+  ProductFileFeatureEntity$outboundSchema,
+} from "./productfilefeatureentity.js";
 
 /**
  * The credit grant behind a `customerCredits` feature. Absent for other feature types.
@@ -29,6 +41,14 @@ export type CustomerCredits = {
    * The customer-credit bucket this grant funds — the `name` of the customer's credit account. Set it to a meter bucket (e.g. "images") so the credits fund a per-unit metered price; otherwise they land in `default` and metered usage cannot spend them. Distinct from `unit_label`, which is only a display label. On UPDATE the field is tri-state: OMIT it to leave the stored bucket unchanged, send `null` to clear it to the shared `default` wallet, or send a name to set it. On CREATE, omitted or null both mean `default`. A present-but-blank value is rejected.
    */
   bucketName?: string | null | undefined;
+  /**
+   * When `true`, the credits go to the customer's AI generation wallet: spending them requires a `moderation_id` from the Moderation API. `bucket_name` must be omitted (422 `bucket_name_not_allowed_with_requires_moderation`); that wallet is the reserved `generation` bucket. `generation` and `generation:*` (any casing) cannot be named directly (422 `generation_bucket_reserved`). Defaults to `false` on create; on update, omitting it keeps the stored setting, also when `bucket_name` is sent as `null` (as reads return it); send `false` to move the credits to the shared wallet, or to the `bucket_name` sent with it. Always present on reads.
+   */
+  requiresModeration?: boolean | undefined;
+  /**
+   * Unused credits from subscription grants expire at each renewal; credits from one-time purchases never expire. The reset runs on every paid subscription transaction of the product: renewals, and also the first paid charge after a trial and plan changes charged immediately. Each time, the part of the previous grant the customer did not spend expires before the new grant lands. Subscription products only (422 `credits_reset_requires_subscription` on a one-time product). Defaults to `false` on create. On update, omitting it keeps the stored setting only when the feature's `id` is sent; a feature sent without `id` is replaced and defaults to `false`. Always present on reads.
+   */
+  resetsEachPeriod?: boolean | undefined;
 };
 
 export type FeatureEntity = {
@@ -37,7 +57,7 @@ export type FeatureEntity = {
    */
   id: string;
   /**
-   * The type of the feature: `custom` (private note), `file` (downloadable files), `licenseKey` (license key), or `customerCredits` (customer credit grant).
+   * The type of the feature: `custom` (private note), `file` (downloadable files), `licenseKey` (license key), `customerCredits` (customer credit grant), or `githubRepository` (access to a private GitHub repository).
    */
   type: ProductFeatureType;
   /**
@@ -45,9 +65,25 @@ export type FeatureEntity = {
    */
   description: string;
   /**
+   * Your own key for this feature, unique per product. `null` when the feature has none.
+   */
+  externalId: string | null;
+  /**
    * The credit grant behind a `customerCredits` feature. Absent for other feature types.
    */
   customerCredits?: CustomerCredits | null | undefined;
+  /**
+   * The settings of a `licenseKey` feature. Absent for other feature types.
+   */
+  licenseKey?: LicenseKeyFeatureEntity | undefined;
+  /**
+   * The private note of a `custom` feature, shown to the customer after purchase. Absent for other feature types.
+   */
+  privateNote?: string | undefined;
+  /**
+   * The files of a `file` feature, without their download links (buyers get those after purchase). Absent for other feature types.
+   */
+  file?: ProductFileFeatureEntity | undefined;
 };
 
 /** @internal */
@@ -59,10 +95,14 @@ export const CustomerCredits$inboundSchema: z.ZodType<
   amount: z.string(),
   unit_label: z.nullable(z.string()).optional(),
   bucket_name: z.nullable(z.string()).optional(),
+  requires_moderation: z.boolean().optional(),
+  resets_each_period: z.boolean().optional(),
 }).transform((v) => {
   return remap$(v, {
     "unit_label": "unitLabel",
     "bucket_name": "bucketName",
+    "requires_moderation": "requiresModeration",
+    "resets_each_period": "resetsEachPeriod",
   });
 });
 /** @internal */
@@ -70,6 +110,8 @@ export type CustomerCredits$Outbound = {
   amount: string;
   unit_label?: string | null | undefined;
   bucket_name?: string | null | undefined;
+  requires_moderation?: boolean | undefined;
+  resets_each_period?: boolean | undefined;
 };
 
 /** @internal */
@@ -81,10 +123,14 @@ export const CustomerCredits$outboundSchema: z.ZodType<
   amount: z.string(),
   unitLabel: z.nullable(z.string()).optional(),
   bucketName: z.nullable(z.string()).optional(),
+  requiresModeration: z.boolean().optional(),
+  resetsEachPeriod: z.boolean().optional(),
 }).transform((v) => {
   return remap$(v, {
     unitLabel: "unit_label",
     bucketName: "bucket_name",
+    requiresModeration: "requires_moderation",
+    resetsEachPeriod: "resets_each_period",
   });
 });
 
@@ -112,11 +158,18 @@ export const FeatureEntity$inboundSchema: z.ZodType<
   id: z.string(),
   type: ProductFeatureType$inboundSchema,
   description: z.string(),
+  external_id: z.nullable(z.string()),
   customer_credits: z.nullable(z.lazy(() => CustomerCredits$inboundSchema))
     .optional(),
+  license_key: LicenseKeyFeatureEntity$inboundSchema.optional(),
+  private_note: z.string().optional(),
+  file: ProductFileFeatureEntity$inboundSchema.optional(),
 }).transform((v) => {
   return remap$(v, {
+    "external_id": "externalId",
     "customer_credits": "customerCredits",
+    "license_key": "licenseKey",
+    "private_note": "privateNote",
   });
 });
 /** @internal */
@@ -124,7 +177,11 @@ export type FeatureEntity$Outbound = {
   id: string;
   type: string;
   description: string;
+  external_id: string | null;
   customer_credits?: CustomerCredits$Outbound | null | undefined;
+  license_key?: LicenseKeyFeatureEntity$Outbound | undefined;
+  private_note?: string | undefined;
+  file?: ProductFileFeatureEntity$Outbound | undefined;
 };
 
 /** @internal */
@@ -136,11 +193,18 @@ export const FeatureEntity$outboundSchema: z.ZodType<
   id: z.string(),
   type: ProductFeatureType$outboundSchema,
   description: z.string(),
+  externalId: z.nullable(z.string()),
   customerCredits: z.nullable(z.lazy(() => CustomerCredits$outboundSchema))
     .optional(),
+  licenseKey: LicenseKeyFeatureEntity$outboundSchema.optional(),
+  privateNote: z.string().optional(),
+  file: ProductFileFeatureEntity$outboundSchema.optional(),
 }).transform((v) => {
   return remap$(v, {
+    externalId: "external_id",
     customerCredits: "customer_credits",
+    licenseKey: "license_key",
+    privateNote: "private_note",
   });
 });
 

@@ -9,7 +9,7 @@ export const handlers: Record<string, OperationHandler> = {
       operations.ListCustomersRequest$inboundSchema,
       parameters,
     );
-    return client.customers.list(p.pageNumber, p.pageSize, options);
+    return client.customers.list(p, options);
   },
   listCustomerOrders: (client, parameters, body, options) => {
     const p = decode(
@@ -17,7 +17,7 @@ export const handlers: Record<string, OperationHandler> = {
       operations.ListCustomerOrdersRequest$inboundSchema,
       parameters,
     );
-    return client.customers.getOrders(p.id, p.pageNumber, p.pageSize, options);
+    return client.customers.getOrders(p, options);
   },
   listCustomerSubscriptions: (client, parameters, body, options) => {
     const p = decode(
@@ -25,7 +25,7 @@ export const handlers: Record<string, OperationHandler> = {
       operations.ListCustomerSubscriptionsRequest$inboundSchema,
       parameters,
     );
-    return client.customers.listSubscriptions(p.id, p.pageNumber, p.pageSize, options);
+    return client.customers.listSubscriptions(p, options);
   },
   listCustomerLicenses: (client, parameters, body, options) => {
     const p = decode(
@@ -33,7 +33,7 @@ export const handlers: Record<string, OperationHandler> = {
       operations.ListCustomerLicensesRequest$inboundSchema,
       parameters,
     );
-    return client.customers.listLicenses(p.id, p.pageNumber, p.pageSize, options);
+    return client.customers.listLicenses(p, options);
   },
   retrieveCustomer: (client, parameters, body, options) => {
     const p = decode(
@@ -41,7 +41,7 @@ export const handlers: Record<string, OperationHandler> = {
       operations.RetrieveCustomerRequest$inboundSchema,
       parameters,
     );
-    return client.customers.retrieve(p.customerId, p.email, options);
+    return client.customers.retrieve(p, options);
   },
   createCustomer: (client, parameters, body, options) => {
     const b = decode(

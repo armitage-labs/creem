@@ -60,6 +60,7 @@ let value: SearchSubscriptionsResponse = {
           "userId": "user_123",
           "plan": "pro",
         },
+        recovered: false,
       },
     ],
     pagination: {

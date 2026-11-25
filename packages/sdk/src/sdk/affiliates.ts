@@ -38,16 +38,14 @@ export class Affiliates extends ClientSDK {
    * Retrieve a paginated list of the invitations you have sent, with their status (`pending` until accepted, `accepted` once the affiliate has joined).
    */
   async listInvites(
-    pageNumber?: number | undefined,
-    pageSize?: number | undefined,
+    request: operations.ListAffiliateInvitesRequest,
     options?: RequestOptions,
   ): Promise<
     PageIterator<operations.ListAffiliateInvitesResponse, { page: number }>
   > {
     return unwrapResultIterator(affiliatesListInvites(
       this,
-      pageNumber,
-      pageSize,
+      request,
       options,
     ));
   }
@@ -59,16 +57,14 @@ export class Affiliates extends ClientSDK {
    * Retrieve a paginated list of your affiliates with their referral link, click and conversion counts, and lifetime commission. Affiliates who were invited but have not yet joined a program are not included.
    */
   async list(
-    pageNumber?: number | undefined,
-    pageSize?: number | undefined,
+    request: operations.ListAffiliatesRequest,
     options?: RequestOptions,
   ): Promise<
     PageIterator<operations.ListAffiliatesResponse, { page: number }>
   > {
     return unwrapResultIterator(affiliatesList(
       this,
-      pageNumber,
-      pageSize,
+      request,
       options,
     ));
   }
@@ -80,12 +76,12 @@ export class Affiliates extends ClientSDK {
    * Retrieve a single affiliate by ID, including referral link, click and conversion counts, and lifetime commission.
    */
   async retrieve(
-    id: string,
+    request: operations.RetrieveAffiliateRequest,
     options?: RequestOptions,
   ): Promise<components.AffiliateEntity> {
     return unwrapAsync(affiliatesRetrieve(
       this,
-      id,
+      request,
       options,
     ));
   }
@@ -97,20 +93,14 @@ export class Affiliates extends ClientSDK {
    * Retrieve a paginated list of an affiliate’s commissions. Filter by settlement status (pending, approved, paid).
    */
   async listCommissions(
-    id: string,
-    status?: components.CommissionStatus | undefined,
-    pageNumber?: number | undefined,
-    pageSize?: number | undefined,
+    request: operations.ListAffiliateCommissionsRequest,
     options?: RequestOptions,
   ): Promise<
     PageIterator<operations.ListAffiliateCommissionsResponse, { page: number }>
   > {
     return unwrapResultIterator(affiliatesListCommissions(
       this,
-      id,
-      status,
-      pageNumber,
-      pageSize,
+      request,
       options,
     ));
   }

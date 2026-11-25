@@ -30,7 +30,7 @@ export type UpdateBehavior = ClosedEnum<typeof UpdateBehavior>;
 
 export type UpdateSubscriptionRequestEntity = {
   /**
-   * List of subscription items to update/create. If no item ID is provided, the item will be created.
+   * List of subscription items to update. Each item must include the id of an existing subscription item; adding new items to a subscription is not supported.
    */
   items?: Array<UpsertSubscriptionItemEntity> | undefined;
   /**

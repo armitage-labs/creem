@@ -48,10 +48,7 @@ export class CustomerCredits extends ClientSDK {
    * List accounts for the authenticated store with cursor pagination. System accounts are excluded.
    */
   async listAccounts(
-    limit?: number | undefined,
-    customerId?: string | undefined,
-    startingAfter?: string | undefined,
-    endingBefore?: string | undefined,
+    request: operations.ListCustomerCreditsAccountsRequest,
     options?: RequestOptions,
   ): Promise<
     PageIterator<
@@ -61,10 +58,7 @@ export class CustomerCredits extends ClientSDK {
   > {
     return unwrapResultIterator(customerCreditsListAccounts(
       this,
-      limit,
-      customerId,
-      startingAfter,
-      endingBefore,
+      request,
       options,
     ));
   }
@@ -76,12 +70,12 @@ export class CustomerCredits extends ClientSDK {
    * Get details of a customer credits account by ID.
    */
   async getAccount(
-    id: string,
+    request: operations.GetCustomerCreditsAccountRequest,
     options?: RequestOptions,
   ): Promise<components.AccountResponseDto> {
     return unwrapAsync(customerCreditsGetAccount(
       this,
-      id,
+      request,
       options,
     ));
   }
@@ -93,14 +87,12 @@ export class CustomerCredits extends ClientSDK {
    * Get the current balance of an account. Optionally pass ?at= for historical balance.
    */
   async getAccountBalance(
-    id: string,
-    at?: string | undefined,
+    request: operations.GetCustomerCreditsAccountBalanceRequest,
     options?: RequestOptions,
   ): Promise<components.BalanceResponseDto> {
     return unwrapAsync(customerCreditsGetAccountBalance(
       this,
-      id,
-      at,
+      request,
       options,
     ));
   }
@@ -112,10 +104,7 @@ export class CustomerCredits extends ClientSDK {
    * List the credit and debit history for an account with cursor pagination.
    */
   async listEntries(
-    id: string,
-    limit?: number | undefined,
-    startingAfter?: string | undefined,
-    endingBefore?: string | undefined,
+    request: operations.ListCustomerCreditsAccountEntriesRequest,
     options?: RequestOptions,
   ): Promise<
     PageIterator<
@@ -125,10 +114,7 @@ export class CustomerCredits extends ClientSDK {
   > {
     return unwrapResultIterator(customerCreditsListEntries(
       this,
-      id,
-      limit,
-      startingAfter,
-      endingBefore,
+      request,
       options,
     ));
   }
@@ -140,12 +126,12 @@ export class CustomerCredits extends ClientSDK {
    * Freeze an account to prevent new transactions.
    */
   async freezeAccount(
-    id: string,
+    request: operations.FreezeCustomerCreditsAccountRequest,
     options?: RequestOptions,
   ): Promise<components.AccountResponseDto> {
     return unwrapAsync(customerCreditsFreezeAccount(
       this,
-      id,
+      request,
       options,
     ));
   }
@@ -157,12 +143,12 @@ export class CustomerCredits extends ClientSDK {
    * Unfreeze a frozen account to allow transactions again.
    */
   async unfreezeAccount(
-    id: string,
+    request: operations.UnfreezeCustomerCreditsAccountRequest,
     options?: RequestOptions,
   ): Promise<components.AccountResponseDto> {
     return unwrapAsync(customerCreditsUnfreezeAccount(
       this,
-      id,
+      request,
       options,
     ));
   }
@@ -174,14 +160,12 @@ export class CustomerCredits extends ClientSDK {
    * Add credits to a customer account. Returns the resulting transaction record.
    */
   async creditAccount(
-    id: string,
-    creditDebitRequestDto: components.CreditDebitRequestDto,
+    request: operations.CreditCustomerCreditsAccountRequest,
     options?: RequestOptions,
   ): Promise<components.TransactionResponseDto> {
     return unwrapAsync(customerCreditsCreditAccount(
       this,
-      id,
-      creditDebitRequestDto,
+      request,
       options,
     ));
   }
@@ -190,17 +174,15 @@ export class CustomerCredits extends ClientSDK {
    * Debit an account
    *
    * @remarks
-   * Deduct credits from a customer account. Returns the resulting transaction record.
+   * Deduct credits from a customer account. Returns the resulting transaction record. A debit from a `generation` account (AI generation credits) needs the `moderation_id` of an allowed Moderation API result; on other accounts it is optional. A failed debit does not use up the moderation result.
    */
   async debitAccount(
-    id: string,
-    creditDebitRequestDto: components.CreditDebitRequestDto,
+    request: operations.DebitCustomerCreditsAccountRequest,
     options?: RequestOptions,
   ): Promise<components.TransactionResponseDto> {
     return unwrapAsync(customerCreditsDebitAccount(
       this,
-      id,
-      creditDebitRequestDto,
+      request,
       options,
     ));
   }
@@ -212,14 +194,12 @@ export class CustomerCredits extends ClientSDK {
    * Reverse a previous credit or debit on this account. Creates a new transaction that undoes the original, preserving the full history.
    */
   async reverseTransaction(
-    id: string,
-    reverseTransactionRequestDto: components.ReverseTransactionRequestDto,
+    request: operations.ReverseCustomerCreditsAccountTransactionRequest,
     options?: RequestOptions,
   ): Promise<components.TransactionResponseDto> {
     return unwrapAsync(customerCreditsReverseTransaction(
       this,
-      id,
-      reverseTransactionRequestDto,
+      request,
       options,
     ));
   }
@@ -231,12 +211,12 @@ export class CustomerCredits extends ClientSDK {
    * Permanently close an account. This action cannot be undone.
    */
   async closeAccount(
-    id: string,
+    request: operations.CloseCustomerCreditsAccountRequest,
     options?: RequestOptions,
   ): Promise<components.AccountResponseDto> {
     return unwrapAsync(customerCreditsCloseAccount(
       this,
-      id,
+      request,
       options,
     ));
   }
@@ -245,7 +225,7 @@ export class CustomerCredits extends ClientSDK {
    * Post a transaction
    *
    * @remarks
-   * Post a multi-entry transaction. Entries must balance (total debits must equal total credits).
+   * Post a multi-entry transaction. Entries must balance (total debits must equal total credits). A transaction cannot debit a `generation` account (AI generation credits): spend those with `POST /v1/customer-credits/accounts/{id}/debit`. A `moderation_id` is optional on a transaction that debits another customer account; one per transaction.
    */
   async postTransaction(
     request: components.PostTransactionDto,
@@ -265,12 +245,12 @@ export class CustomerCredits extends ClientSDK {
    * List all transactions matching a reference string.
    */
   async listTransactionsByReference(
-    reference: string,
+    request: operations.ListCustomerCreditsTransactionsByReferenceRequest,
     options?: RequestOptions,
   ): Promise<components.TransactionListResponseDto> {
     return unwrapAsync(customerCreditsListTransactionsByReference(
       this,
-      reference,
+      request,
       options,
     ));
   }
@@ -282,12 +262,12 @@ export class CustomerCredits extends ClientSDK {
    * Get details of a transaction by ID.
    */
   async getTransaction(
-    id: string,
+    request: operations.GetCustomerCreditsTransactionRequest,
     options?: RequestOptions,
   ): Promise<components.TransactionResponseDto> {
     return unwrapAsync(customerCreditsGetTransaction(
       this,
-      id,
+      request,
       options,
     ));
   }
@@ -299,12 +279,12 @@ export class CustomerCredits extends ClientSDK {
    * Reverse a previous transaction. Creates a new transaction that undoes the original, preserving the full history.
    */
   async reverseTransactionById(
-    id: string,
+    request: operations.ReverseCustomerCreditsTransactionRequest,
     options?: RequestOptions,
   ): Promise<components.TransactionResponseDto> {
     return unwrapAsync(customerCreditsReverseTransactionById(
       this,
-      id,
+      request,
       options,
     ));
   }

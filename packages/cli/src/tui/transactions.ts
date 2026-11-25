@@ -131,13 +131,7 @@ export function getTransactionsTuiDescriptor(
     ],
     fetchPage: async (page: number, pageSize: number) => {
       const client = context.client({});
-      const result = await client.transactions.search(
-        undefined,
-        undefined,
-        undefined,
-        page,
-        pageSize,
-      );
+      const result = await client.transactions.search({ pageNumber: page, pageSize: pageSize });
       const { items, pagination } = result.result;
       return {
         items,

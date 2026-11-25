@@ -19,7 +19,7 @@ describe("retrieveCustomer", () => {
   it("should handle API authentication errors", async () => {
     try {
       // Attempt to call SDK method with invalid API key
-      await creemWithInvalidKey.customers.retrieve("any-customer-id");
+      await creemWithInvalidKey.customers.retrieve({ customerId: "any-customer-id" });
       // If it succeeds, fail the test (we expect it to throw)
       fail("Expected an API error but none was thrown");
     } catch (error) {
@@ -31,7 +31,7 @@ describe("retrieveCustomer", () => {
 
   it("should handle validation errors when neither ID nor email is provided", async () => {
     try {
-      await creem.customers.retrieve();
+      await creem.customers.retrieve({});
       fail("Expected validation error but none was thrown");
     } catch (error) {
       expect(error).toBeDefined();
@@ -40,7 +40,7 @@ describe("retrieveCustomer", () => {
 
   it("should handle request errors with invalid customer ID", async () => {
     try {
-      await creem.customers.retrieve("non-existent-customer-id");
+      await creem.customers.retrieve({ customerId: "non-existent-customer-id" });
       fail("Expected error with invalid customer ID but none was thrown");
     } catch (error) {
       expect(error).toBeDefined();
@@ -49,7 +49,7 @@ describe("retrieveCustomer", () => {
 
   it("should handle request errors with invalid email", async () => {
     try {
-      await creem.customers.retrieve(undefined, "nonexistent@example.com");
+      await creem.customers.retrieve({ email: "nonexistent@example.com" });
       fail("Expected error with invalid email but none was thrown");
     } catch (error) {
       expect(error).toBeDefined();

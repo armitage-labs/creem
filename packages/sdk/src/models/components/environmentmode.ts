@@ -3,7 +3,8 @@
  */
 
 import * as z from "zod/v3";
-import { ClosedEnum } from "../../types/enums.js";
+import * as openEnums from "../../types/enums.js";
+import { OpenEnum } from "../../types/enums.js";
 
 /**
  * String representing the environment.
@@ -16,13 +17,17 @@ export const EnvironmentMode = {
 /**
  * String representing the environment.
  */
-export type EnvironmentMode = ClosedEnum<typeof EnvironmentMode>;
+export type EnvironmentMode = OpenEnum<typeof EnvironmentMode>;
 
 /** @internal */
-export const EnvironmentMode$inboundSchema: z.ZodNativeEnum<
-  typeof EnvironmentMode
-> = z.nativeEnum(EnvironmentMode);
+export const EnvironmentMode$inboundSchema: z.ZodType<
+  EnvironmentMode,
+  z.ZodTypeDef,
+  unknown
+> = openEnums.inboundSchema(EnvironmentMode);
 /** @internal */
-export const EnvironmentMode$outboundSchema: z.ZodNativeEnum<
-  typeof EnvironmentMode
-> = EnvironmentMode$inboundSchema;
+export const EnvironmentMode$outboundSchema: z.ZodType<
+  string,
+  z.ZodTypeDef,
+  EnvironmentMode
+> = openEnums.outboundSchema(EnvironmentMode);

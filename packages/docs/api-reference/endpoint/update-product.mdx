@@ -1,5 +1,5 @@
 ---
 title: 'Update a product'
-description: 'Update a product. Only supplied fields change; a price change mints a new default price.'
+description: 'Update a product. Only supplied fields change; a price change mints a new default price. `status` archives (`archived`, the same as `DELETE /v1/products/{id}`) or unarchives (`active`) the product. The product comes back with `write_result`, whose `warnings` list things to know about the write.'
 openapi: patch /v1/products/{id}
 ---

@@ -89,6 +89,10 @@
     {
       "source": "/getting-started/introduction",
       "destination": "/"
+    },
+    {
+      "source": "/getting-started/migrate",
+      "destination": "/getting-started/migrate/lemon-squeezy"
     }
   ],
   "theme": "mint",
@@ -117,11 +121,22 @@
                   "merchant-of-record/account-reviews/account-reviews",
                   "merchant-of-record/account-reviews/re-review-guide",
                   "merchant-of-record/account-reviews/rejected-accounts",
-                  "merchant-of-record/account-reviews/ai-wrapper-compliance"
+                  {
+                    "group": "Gen AI Compliance",
+                    "pages": [
+                      "merchant-of-record/account-reviews/gen-ai-requirements",
+                      "merchant-of-record/account-reviews/gen-ai-technical-integration-guide",
+                      "merchant-of-record/account-reviews/ai-wrapper-compliance"
+                    ]
+                  }
                 ]
               },
               "getting-started/dashboard-overview",
-              "getting-started/migrate"
+              {
+                "group": "Migrate to Creem",
+                "root": "getting-started/migrate/lemon-squeezy",
+                "pages": ["getting-started/migrate/lemon-squeezy/technical-guide"]
+              }
             ]
           },
           {
@@ -367,7 +382,24 @@
               "api-reference/endpoint/get-product",
               "api-reference/endpoint/search-products",
               "api-reference/endpoint/update-product",
-              "api-reference/endpoint/archive-product"
+              "api-reference/endpoint/archive-product",
+              "api-reference/endpoint/list-product-prices"
+            ]
+          },
+          {
+            "group": "Product Groups",
+            "icon": "layer-group",
+            "pages": [
+              "api-reference/endpoint/list-product-groups",
+              "api-reference/endpoint/get-product-group"
+            ]
+          },
+          {
+            "group": "Files",
+            "icon": "file",
+            "pages": [
+              "api-reference/endpoint/create-file-upload",
+              "api-reference/endpoint/confirm-file-upload"
             ]
           },
           {
@@ -415,6 +447,7 @@
             "icon": "tag",
             "pages": [
               "api-reference/endpoint/create-discount-code",
+              "api-reference/endpoint/update-discount-code",
               "api-reference/endpoint/delete-discount-code",
               "api-reference/endpoint/get-discount-code",
               "api-reference/endpoint/search-discounts"

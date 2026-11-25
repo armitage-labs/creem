@@ -35,7 +35,7 @@ import { Result } from "../types/fp.js";
  */
 export function customerCreditsReverseTransactionById(
   client: CreemCore,
-  id: string,
+  request: operations.ReverseCustomerCreditsTransactionRequest,
   options?: RequestOptions,
 ): APIPromise<
   Result<
@@ -53,14 +53,14 @@ export function customerCreditsReverseTransactionById(
 > {
   return new APIPromise($do(
     client,
-    id,
+    request,
     options,
   ));
 }
 
 async function $do(
   client: CreemCore,
-  id: string,
+  request: operations.ReverseCustomerCreditsTransactionRequest,
   options?: RequestOptions,
 ): Promise<
   [
@@ -79,12 +79,8 @@ async function $do(
     APICall,
   ]
 > {
-  const input: operations.ReverseCustomerCreditsTransactionRequest = {
-    id: id,
-  };
-
   const parsed = safeParse(
-    input,
+    request,
     (value) =>
       operations.ReverseCustomerCreditsTransactionRequest$outboundSchema.parse(
         value,
@@ -174,7 +170,7 @@ async function $do(
     | SDKValidationError
   >(
     M.json(201, components.TransactionResponseDto$inboundSchema),
-    M.jsonErr(409, errors.CustomerCreditsErrorResponseDto$inboundSchema),
+    M.jsonErr([409, 422], errors.CustomerCreditsErrorResponseDto$inboundSchema),
     M.fail([400, 401, 404, "4XX"]),
     M.fail("5XX"),
   )(response, req, { extraFields: responseFields });

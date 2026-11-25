@@ -7,6 +7,7 @@
 * [search](#search) - Search discounts
 * [get](#get) - Retrieve discount
 * [create](#create) - Create a discount.
+* [update](#update) - Update a discount.
 * [delete](#delete) - Delete a discount.
 
 ## search
@@ -24,7 +25,11 @@ const creem = new Creem({
 });
 
 async function run() {
-  const result = await creem.discounts.search(1, 10, "prod_1234567890", undefined, undefined, "2024-01-01T00:00:00Z", "2024-12-31T23:59:59Z");
+  const result = await creem.discounts.search({
+    productId: "prod_1234567890",
+    createdAfter: "2024-01-01T00:00:00Z",
+    createdBefore: "2024-12-31T23:59:59Z",
+  });
 
   for await (const page of result) {
     console.log(page);
@@ -49,7 +54,11 @@ const creem = new CreemCore({
 });
 
 async function run() {
-  const res = await discountsSearch(creem, 1, 10, "prod_1234567890", undefined, undefined, "2024-01-01T00:00:00Z", "2024-12-31T23:59:59Z");
+  const res = await discountsSearch(creem, {
+    productId: "prod_1234567890",
+    createdAfter: "2024-01-01T00:00:00Z",
+    createdBefore: "2024-12-31T23:59:59Z",
+  });
   if (res.ok) {
     const { value: result } = res;
     for await (const page of result) {
@@ -65,18 +74,12 @@ run();
 
 ### Parameters
 
-| Parameter                                                                                                                                                                      | Type                                                                                                                                                                           | Required                                                                                                                                                                       | Description                                                                                                                                                                    | Example                                                                                                                                                                        |
-| ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
-| `pageNumber`                                                                                                                                                                   | *number*                                                                                                                                                                       | :heavy_minus_sign:                                                                                                                                                             | The page number for pagination.                                                                                                                                                | 1                                                                                                                                                                              |
-| `pageSize`                                                                                                                                                                     | *number*                                                                                                                                                                       | :heavy_minus_sign:                                                                                                                                                             | The number of items per page.                                                                                                                                                  | 10                                                                                                                                                                             |
-| `productId`                                                                                                                                                                    | *string*                                                                                                                                                                       | :heavy_minus_sign:                                                                                                                                                             | Filter discounts that apply to a specific product.                                                                                                                             | prod_1234567890                                                                                                                                                                |
-| `status`                                                                                                                                                                       | [operations.Status](../../models/operations/status.md)                                                                                                                         | :heavy_minus_sign:                                                                                                                                                             | Filter by discount status.                                                                                                                                                     |                                                                                                                                                                                |
-| `type`                                                                                                                                                                         | [operations.Type](../../models/operations/type.md)                                                                                                                             | :heavy_minus_sign:                                                                                                                                                             | Filter by discount type.                                                                                                                                                       |                                                                                                                                                                                |
-| `createdAfter`                                                                                                                                                                 | *string*                                                                                                                                                                       | :heavy_minus_sign:                                                                                                                                                             | Filter discounts created after this date.                                                                                                                                      | 2024-01-01T00:00:00Z                                                                                                                                                           |
-| `createdBefore`                                                                                                                                                                | *string*                                                                                                                                                                       | :heavy_minus_sign:                                                                                                                                                             | Filter discounts created before this date.                                                                                                                                     | 2024-12-31T23:59:59Z                                                                                                                                                           |
-| `options`                                                                                                                                                                      | RequestOptions                                                                                                                                                                 | :heavy_minus_sign:                                                                                                                                                             | Used to set various options for making HTTP requests.                                                                                                                          |                                                                                                                                                                                |
-| `options.fetchOptions`                                                                                                                                                         | [RequestInit](https://developer.mozilla.org/en-US/docs/Web/API/Request/Request#options)                                                                                        | :heavy_minus_sign:                                                                                                                                                             | Options that are passed to the underlying HTTP request. This can be used to inject extra headers for examples. All `Request` options, except `method` and `body`, are allowed. |                                                                                                                                                                                |
-| `options.retries`                                                                                                                                                              | [RetryConfig](../../lib/utils/retryconfig.md)                                                                                                                                  | :heavy_minus_sign:                                                                                                                                                             | Enables retrying HTTP requests under certain failure conditions.                                                                                                               |                                                                                                                                                                                |
+| Parameter                                                                                                                                                                      | Type                                                                                                                                                                           | Required                                                                                                                                                                       | Description                                                                                                                                                                    |
+| ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| `request`                                                                                                                                                                      | [operations.SearchDiscountsRequest](../../models/operations/searchdiscountsrequest.md)                                                                                         | :heavy_check_mark:                                                                                                                                                             | The request object to use for the request.                                                                                                                                     |
+| `options`                                                                                                                                                                      | RequestOptions                                                                                                                                                                 | :heavy_minus_sign:                                                                                                                                                             | Used to set various options for making HTTP requests.                                                                                                                          |
+| `options.fetchOptions`                                                                                                                                                         | [RequestInit](https://developer.mozilla.org/en-US/docs/Web/API/Request/Request#options)                                                                                        | :heavy_minus_sign:                                                                                                                                                             | Options that are passed to the underlying HTTP request. This can be used to inject extra headers for examples. All `Request` options, except `method` and `body`, are allowed. |
+| `options.retries`                                                                                                                                                              | [RetryConfig](../../lib/utils/retryconfig.md)                                                                                                                                  | :heavy_minus_sign:                                                                                                                                                             | Enables retrying HTTP requests under certain failure conditions.                                                                                                               |
 
 ### Response
 
@@ -103,7 +106,10 @@ const creem = new Creem({
 });
 
 async function run() {
-  const result = await creem.discounts.get("disc_1234567890", "SAVE20");
+  const result = await creem.discounts.get({
+    discountId: "disc_1234567890",
+    discountCode: "SAVE20",
+  });
 
   console.log(result);
 }
@@ -126,7 +132,10 @@ const creem = new CreemCore({
 });
 
 async function run() {
-  const res = await discountsGet(creem, "disc_1234567890", "SAVE20");
+  const res = await discountsGet(creem, {
+    discountId: "disc_1234567890",
+    discountCode: "SAVE20",
+  });
   if (res.ok) {
     const { value: result } = res;
     console.log(result);
@@ -140,13 +149,12 @@ run();
 
 ### Parameters
 
-| Parameter                                                                                                                                                                      | Type                                                                                                                                                                           | Required                                                                                                                                                                       | Description                                                                                                                                                                    | Example                                                                                                                                                                        |
-| ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
-| `discountId`                                                                                                                                                                   | *string*                                                                                                                                                                       | :heavy_minus_sign:                                                                                                                                                             | The unique identifier of the discount (provide either discount_id OR discount_code).                                                                                           | disc_1234567890                                                                                                                                                                |
-| `discountCode`                                                                                                                                                                 | *string*                                                                                                                                                                       | :heavy_minus_sign:                                                                                                                                                             | The unique discount code (provide either discount_id OR discount_code).                                                                                                        | SAVE20                                                                                                                                                                         |
-| `options`                                                                                                                                                                      | RequestOptions                                                                                                                                                                 | :heavy_minus_sign:                                                                                                                                                             | Used to set various options for making HTTP requests.                                                                                                                          |                                                                                                                                                                                |
-| `options.fetchOptions`                                                                                                                                                         | [RequestInit](https://developer.mozilla.org/en-US/docs/Web/API/Request/Request#options)                                                                                        | :heavy_minus_sign:                                                                                                                                                             | Options that are passed to the underlying HTTP request. This can be used to inject extra headers for examples. All `Request` options, except `method` and `body`, are allowed. |                                                                                                                                                                                |
-| `options.retries`                                                                                                                                                              | [RetryConfig](../../lib/utils/retryconfig.md)                                                                                                                                  | :heavy_minus_sign:                                                                                                                                                             | Enables retrying HTTP requests under certain failure conditions.                                                                                                               |                                                                                                                                                                                |
+| Parameter                                                                                                                                                                      | Type                                                                                                                                                                           | Required                                                                                                                                                                       | Description                                                                                                                                                                    |
+| ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| `request`                                                                                                                                                                      | [operations.RetrieveDiscountRequest](../../models/operations/retrievediscountrequest.md)                                                                                       | :heavy_check_mark:                                                                                                                                                             | The request object to use for the request.                                                                                                                                     |
+| `options`                                                                                                                                                                      | RequestOptions                                                                                                                                                                 | :heavy_minus_sign:                                                                                                                                                             | Used to set various options for making HTTP requests.                                                                                                                          |
+| `options.fetchOptions`                                                                                                                                                         | [RequestInit](https://developer.mozilla.org/en-US/docs/Web/API/Request/Request#options)                                                                                        | :heavy_minus_sign:                                                                                                                                                             | Options that are passed to the underlying HTTP request. This can be used to inject extra headers for examples. All `Request` options, except `method` and `body`, are allowed. |
+| `options.retries`                                                                                                                                                              | [RetryConfig](../../lib/utils/retryconfig.md)                                                                                                                                  | :heavy_minus_sign:                                                                                                                                                             | Enables retrying HTTP requests under certain failure conditions.                                                                                                               |
 
 ### Response
 
@@ -174,20 +182,26 @@ const creem = new Creem({
 
 async function run() {
   const result = await creem.discounts.create({
-    name: "Holiday Sale",
-    code: "HOLIDAY2024",
-    type: "percentage",
-    amount: 20,
-    currency: "USD",
-    percentage: 15,
-    expiryDate: new Date("2024-12-31T23:59:59Z"),
-    maxRedemptions: 100,
-    duration: "repeating",
-    durationInMonths: 6,
-    appliesToProducts: [
-      "prod_123",
-      "prod_456",
-    ],
+    createDiscountRequestEntity: {
+      name: "Holiday Sale",
+      code: "HOLIDAY2024",
+      type: "percentage",
+      amount: 20,
+      currency: "USD",
+      percentage: 15,
+      expiryDate: new Date("2024-12-31T23:59:59Z"),
+      maxRedemptions: 100,
+      duration: "repeating",
+      durationInMonths: 6,
+      appliesToProducts: [
+        "prod_123",
+        "prod_456",
+      ],
+      appliesToProductExternalIds: [
+        "pro-monthly",
+      ],
+      externalId: "spring-2026",
+    },
   });
 
   console.log(result);
@@ -212,20 +226,26 @@ const creem = new CreemCore({
 
 async function run() {
   const res = await discountsCreate(creem, {
-    name: "Holiday Sale",
-    code: "HOLIDAY2024",
-    type: "percentage",
-    amount: 20,
-    currency: "USD",
-    percentage: 15,
-    expiryDate: new Date("2024-12-31T23:59:59Z"),
-    maxRedemptions: 100,
-    duration: "repeating",
-    durationInMonths: 6,
-    appliesToProducts: [
-      "prod_123",
-      "prod_456",
-    ],
+    createDiscountRequestEntity: {
+      name: "Holiday Sale",
+      code: "HOLIDAY2024",
+      type: "percentage",
+      amount: 20,
+      currency: "USD",
+      percentage: 15,
+      expiryDate: new Date("2024-12-31T23:59:59Z"),
+      maxRedemptions: 100,
+      duration: "repeating",
+      durationInMonths: 6,
+      appliesToProducts: [
+        "prod_123",
+        "prod_456",
+      ],
+      appliesToProductExternalIds: [
+        "pro-monthly",
+      ],
+      externalId: "spring-2026",
+    },
   });
   if (res.ok) {
     const { value: result } = res;
@@ -242,7 +262,113 @@ run();
 
 | Parameter                                                                                                                                                                      | Type                                                                                                                                                                           | Required                                                                                                                                                                       | Description                                                                                                                                                                    |
 | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
-| `request`                                                                                                                                                                      | [components.CreateDiscountRequestEntity](../../models/components/creatediscountrequestentity.md)                                                                               | :heavy_check_mark:                                                                                                                                                             | The request object to use for the request.                                                                                                                                     |
+| `request`                                                                                                                                                                      | [operations.CreateDiscountRequest](../../models/operations/creatediscountrequest.md)                                                                                           | :heavy_check_mark:                                                                                                                                                             | The request object to use for the request.                                                                                                                                     |
+| `options`                                                                                                                                                                      | RequestOptions                                                                                                                                                                 | :heavy_minus_sign:                                                                                                                                                             | Used to set various options for making HTTP requests.                                                                                                                          |
+| `options.fetchOptions`                                                                                                                                                         | [RequestInit](https://developer.mozilla.org/en-US/docs/Web/API/Request/Request#options)                                                                                        | :heavy_minus_sign:                                                                                                                                                             | Options that are passed to the underlying HTTP request. This can be used to inject extra headers for examples. All `Request` options, except `method` and `body`, are allowed. |
+| `options.retries`                                                                                                                                                              | [RetryConfig](../../lib/utils/retryconfig.md)                                                                                                                                  | :heavy_minus_sign:                                                                                                                                                             | Enables retrying HTTP requests under certain failure conditions.                                                                                                               |
+
+### Response
+
+**Promise\<[components.DiscountEntity](../../models/components/discountentity.md)\>**
+
+### Errors
+
+| Error Type                        | Status Code                       | Content Type                      |
+| --------------------------------- | --------------------------------- | --------------------------------- |
+| errors.TooManyRequestsErrorEntity | 429                               | application/json                  |
+| errors.APIError                   | 4XX, 5XX                          | \*/\*                             |
+
+## update
+
+Update a discount. Only supplied fields change; the code never does. Once redeemed, its amount, type, currency and duration are fixed. A discount with a Stripe coupon also keeps its expiry, redemption limit and products; a name change renames the coupon.
+
+### Example Usage
+
+<!-- UsageSnippet language="typescript" operationID="updateDiscount" method="patch" path="/v1/discounts/{id}" -->
+```typescript
+import { Creem } from "creem";
+
+const creem = new Creem({
+  apiKey: process.env["CREEM_API_KEY"] ?? "",
+});
+
+async function run() {
+  const result = await creem.discounts.update({
+    id: "<id>",
+    updateDiscountRequestEntity: {
+      name: "Summer Sale",
+      amount: 2000,
+      percentage: 15,
+      currency: "USD",
+      expiryDate: new Date("2026-12-31T23:59:59Z"),
+      maxRedemptions: 100,
+      durationInMonths: 6,
+      appliesToProducts: [
+        "prod_123",
+      ],
+      appliesToProductExternalIds: [
+        "pro-monthly",
+      ],
+      externalId: "spring-2026",
+    },
+  });
+
+  console.log(result);
+}
+
+run();
+```
+
+### Standalone function
+
+The standalone function version of this method:
+
+```typescript
+import { CreemCore } from "creem/core.js";
+import { discountsUpdate } from "creem/funcs/discountsUpdate.js";
+
+// Use `CreemCore` for best tree-shaking performance.
+// You can create one instance of it to use across an application.
+const creem = new CreemCore({
+  apiKey: process.env["CREEM_API_KEY"] ?? "",
+});
+
+async function run() {
+  const res = await discountsUpdate(creem, {
+    id: "<id>",
+    updateDiscountRequestEntity: {
+      name: "Summer Sale",
+      amount: 2000,
+      percentage: 15,
+      currency: "USD",
+      expiryDate: new Date("2026-12-31T23:59:59Z"),
+      maxRedemptions: 100,
+      durationInMonths: 6,
+      appliesToProducts: [
+        "prod_123",
+      ],
+      appliesToProductExternalIds: [
+        "pro-monthly",
+      ],
+      externalId: "spring-2026",
+    },
+  });
+  if (res.ok) {
+    const { value: result } = res;
+    console.log(result);
+  } else {
+    console.log("discountsUpdate failed:", res.error);
+  }
+}
+
+run();
+```
+
+### Parameters
+
+| Parameter                                                                                                                                                                      | Type                                                                                                                                                                           | Required                                                                                                                                                                       | Description                                                                                                                                                                    |
+| ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| `request`                                                                                                                                                                      | [operations.UpdateDiscountRequest](../../models/operations/updatediscountrequest.md)                                                                                           | :heavy_check_mark:                                                                                                                                                             | The request object to use for the request.                                                                                                                                     |
 | `options`                                                                                                                                                                      | RequestOptions                                                                                                                                                                 | :heavy_minus_sign:                                                                                                                                                             | Used to set various options for making HTTP requests.                                                                                                                          |
 | `options.fetchOptions`                                                                                                                                                         | [RequestInit](https://developer.mozilla.org/en-US/docs/Web/API/Request/Request#options)                                                                                        | :heavy_minus_sign:                                                                                                                                                             | Options that are passed to the underlying HTTP request. This can be used to inject extra headers for examples. All `Request` options, except `method` and `body`, are allowed. |
 | `options.retries`                                                                                                                                                              | [RetryConfig](../../lib/utils/retryconfig.md)                                                                                                                                  | :heavy_minus_sign:                                                                                                                                                             | Enables retrying HTTP requests under certain failure conditions.                                                                                                               |
@@ -272,7 +398,9 @@ const creem = new Creem({
 });
 
 async function run() {
-  const result = await creem.discounts.delete("<id>");
+  const result = await creem.discounts.delete({
+    id: "<id>",
+  });
 
   console.log(result);
 }
@@ -295,7 +423,9 @@ const creem = new CreemCore({
 });
 
 async function run() {
-  const res = await discountsDelete(creem, "<id>");
+  const res = await discountsDelete(creem, {
+    id: "<id>",
+  });
   if (res.ok) {
     const { value: result } = res;
     console.log(result);
@@ -311,7 +441,7 @@ run();
 
 | Parameter                                                                                                                                                                      | Type                                                                                                                                                                           | Required                                                                                                                                                                       | Description                                                                                                                                                                    |
 | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
-| `id`                                                                                                                                                                           | *string*                                                                                                                                                                       | :heavy_check_mark:                                                                                                                                                             | The unique identifier of the discount to delete                                                                                                                                |
+| `request`                                                                                                                                                                      | [operations.DeleteDiscountRequest](../../models/operations/deletediscountrequest.md)                                                                                           | :heavy_check_mark:                                                                                                                                                             | The request object to use for the request.                                                                                                                                     |
 | `options`                                                                                                                                                                      | RequestOptions                                                                                                                                                                 | :heavy_minus_sign:                                                                                                                                                             | Used to set various options for making HTTP requests.                                                                                                                          |
 | `options.fetchOptions`                                                                                                                                                         | [RequestInit](https://developer.mozilla.org/en-US/docs/Web/API/Request/Request#options)                                                                                        | :heavy_minus_sign:                                                                                                                                                             | Options that are passed to the underlying HTTP request. This can be used to inject extra headers for examples. All `Request` options, except `method` and `body`, are allowed. |
 | `options.retries`                                                                                                                                                              | [RetryConfig](../../lib/utils/retryconfig.md)                                                                                                                                  | :heavy_minus_sign:                                                                                                                                                             | Enables retrying HTTP requests under certain failure conditions.                                                                                                               |

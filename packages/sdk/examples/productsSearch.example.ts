@@ -18,7 +18,9 @@ const creem = new Creem({
 });
 
 async function main() {
-  const result = await creem.products.search();
+  const result = await creem.products.search({
+    externalId: "pro-monthly",
+  });
 
   for await (const page of result) {
     console.log(page);

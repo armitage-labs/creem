@@ -30,16 +30,15 @@ import { Result } from "../types/fp.js";
  * Update a product
  *
  * @remarks
- * Update a product. Only supplied fields change; a price change mints a new default price.
+ * Update a product. Only supplied fields change; a price change mints a new default price. `status` archives (`archived`, the same as `DELETE /v1/products/{id}`) or unarchives (`active`) the product. The product comes back with `write_result`, whose `warnings` list things to know about the write.
  */
 export function productsUpdate(
   client: CreemCore,
-  id: string,
-  updateProductRequestEntity: components.UpdateProductRequestEntity,
+  request: operations.UpdateProductRequest,
   options?: RequestOptions,
 ): APIPromise<
   Result<
-    components.ProductEntity,
+    components.ProductWriteResponseEntity,
     | CreemError
     | ResponseValidationError
     | ConnectionError
@@ -52,21 +51,19 @@ export function productsUpdate(
 > {
   return new APIPromise($do(
     client,
-    id,
-    updateProductRequestEntity,
+    request,
     options,
   ));
 }
 
 async function $do(
   client: CreemCore,
-  id: string,
-  updateProductRequestEntity: components.UpdateProductRequestEntity,
+  request: operations.UpdateProductRequest,
   options?: RequestOptions,
 ): Promise<
   [
     Result<
-      components.ProductEntity,
+      components.ProductWriteResponseEntity,
       | CreemError
       | ResponseValidationError
       | ConnectionError
@@ -79,13 +76,8 @@ async function $do(
     APICall,
   ]
 > {
-  const input: operations.UpdateProductRequest = {
-    id: id,
-    updateProductRequestEntity: updateProductRequestEntity,
-  };
-
   const parsed = safeParse(
-    input,
+    request,
     (value) => operations.UpdateProductRequest$outboundSchema.parse(value),
     "Input validation failed",
   );
@@ -157,7 +149,7 @@ async function $do(
   const response = doResult.value;
 
   const [result] = await M.match<
-    components.ProductEntity,
+    components.ProductWriteResponseEntity,
     | CreemError
     | ResponseValidationError
     | ConnectionError
@@ -167,8 +159,8 @@ async function $do(
     | UnexpectedClientError
     | SDKValidationError
   >(
-    M.json(200, components.ProductEntity$inboundSchema),
-    M.fail([400, 401, 404, "4XX"]),
+    M.json(200, components.ProductWriteResponseEntity$inboundSchema),
+    M.fail([400, 401, 404, 409, 422, "4XX"]),
     M.fail("5XX"),
   )(response, req);
   if (!result.ok) {

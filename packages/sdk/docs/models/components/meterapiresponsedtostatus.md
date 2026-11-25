@@ -8,10 +8,12 @@ Whether the meter is active or archived
 import { MeterApiResponseDtoStatus } from "creem/models/components";
 
 let value: MeterApiResponseDtoStatus = "active";
+
+// Open enum: unrecognized values are captured as Unrecognized<string>
 ```
 
 ## Values
 
 ```typescript
-"active" | "archived"
+"active" | "archived" | Unrecognized<string>
 ```

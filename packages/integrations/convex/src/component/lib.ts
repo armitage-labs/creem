@@ -1078,7 +1078,10 @@ export const syncProducts = action({
       ...(args.server ? { server: args.server } : {}),
       ...(args.serverURL ? { serverURL: args.serverURL } : {}),
     });
-    const productPages = await creem.products.search(1, 100);
+    const productPages = await creem.products.search({
+      pageNumber: 1,
+      pageSize: 100,
+    });
     for await (const page of productPages) {
       const products = "result" in page ? page.result : page;
       await ctx.runMutation(api.lib.updateProducts, {
@@ -1977,39 +1980,47 @@ export const executeSubscriptionUpdate = action({
       }
       if (args.productId) {
         // Plan/interval switch
-        await sdk.subscriptions.upgrade(args.subscriptionId, {
-          productId: args.productId,
-          ...(args.updateBehavior
-            ? {
-                updateBehavior: args.updateBehavior as
-                  | "proration-charge-immediately"
-                  | "proration-charge"
-                  | "proration-none",
-              }
-            : {}),
+        await sdk.subscriptions.upgrade({
+          id: args.subscriptionId,
+          upgradeSubscriptionRequestEntity: {
+            productId: args.productId,
+            ...(args.updateBehavior
+              ? {
+                  updateBehavior: args.updateBehavior as
+                    | "proration-charge-immediately"
+                    | "proration-charge"
+                    | "proration-none",
+                }
+              : {}),
+          },
         });
       } else if (args.units !== undefined) {
         // Seat update — need live item IDs from Creem
-        const live = await sdk.subscriptions.get(args.subscriptionId);
+        const live = await sdk.subscriptions.get({
+          subscriptionId: args.subscriptionId,
+        });
         const item = live.items?.[0];
         if (!item) throw new ConvexError("Subscription has no items");
-        await sdk.subscriptions.update(args.subscriptionId, {
-          items: [
-            {
-              id: item.id,
-              productId: item.productId,
-              priceId: item.priceId,
-              units: args.units,
-            },
-          ],
-          ...(args.updateBehavior
-            ? {
-                updateBehavior: args.updateBehavior as
-                  | "proration-charge-immediately"
-                  | "proration-charge"
-                  | "proration-none",
-              }
-            : {}),
+        await sdk.subscriptions.update({
+          id: args.subscriptionId,
+          updateSubscriptionRequestEntity: {
+            items: [
+              {
+                id: item.id,
+                productId: item.productId,
+                priceId: item.priceId,
+                units: args.units,
+              },
+            ],
+            ...(args.updateBehavior
+              ? {
+                  updateBehavior: args.updateBehavior as
+                    | "proration-charge-immediately"
+                    | "proration-charge"
+                    | "proration-none",
+                }
+              : {}),
+          },
         });
       }
     } catch (error) {
@@ -2126,30 +2137,36 @@ export const applyScheduledSubscriptionUpdate = action({
 
     try {
       if (scheduledUpdate.targetProductId) {
-        await sdk.subscriptions.upgrade(scheduledUpdate.subscriptionId, {
-          productId: scheduledUpdate.targetProductId,
-          updateBehavior: "proration-none",
+        await sdk.subscriptions.upgrade({
+          id: scheduledUpdate.subscriptionId,
+          upgradeSubscriptionRequestEntity: {
+            productId: scheduledUpdate.targetProductId,
+            updateBehavior: "proration-none",
+          },
         });
         await ctx.runMutation(api.lib.patchSubscription, {
           subscriptionId: scheduledUpdate.subscriptionId,
           productId: scheduledUpdate.targetProductId,
         });
       } else if (scheduledUpdate.targetUnits !== undefined) {
-        const live = await sdk.subscriptions.get(
-          scheduledUpdate.subscriptionId,
-        );
+        const live = await sdk.subscriptions.get({
+          subscriptionId: scheduledUpdate.subscriptionId,
+        });
         const item = live.items?.[0];
         if (!item) throw new ConvexError("Subscription has no items");
-        await sdk.subscriptions.update(scheduledUpdate.subscriptionId, {
-          items: [
-            {
-              id: item.id,
-              productId: item.productId,
-              priceId: item.priceId,
-              units: scheduledUpdate.targetUnits,
-            },
-          ],
-          updateBehavior: "proration-none",
+        await sdk.subscriptions.update({
+          id: scheduledUpdate.subscriptionId,
+          updateSubscriptionRequestEntity: {
+            items: [
+              {
+                id: item.id,
+                productId: item.productId,
+                priceId: item.priceId,
+                units: scheduledUpdate.targetUnits,
+              },
+            ],
+            updateBehavior: "proration-none",
+          },
         });
         await ctx.runMutation(api.lib.patchSubscription, {
           subscriptionId: scheduledUpdate.subscriptionId,
@@ -2242,7 +2259,10 @@ export const executeSubscriptionLifecycle = action({
             : args.cancelMode === "scheduled"
               ? { mode: "scheduled" as const, onExecute: "cancel" as const }
               : {};
-        await sdk.subscriptions.cancel(args.subscriptionId, cancelParams);
+        await sdk.subscriptions.cancel({
+          id: args.subscriptionId,
+          cancelSubscriptionRequestEntity: cancelParams,
+        });
       } else if (args.operation === "resume") {
         // A `false` return means Creem reports a status this helper cannot
         // resume (canceled/expired), so it made no API call and threw nothing.
@@ -2260,7 +2280,7 @@ export const executeSubscriptionLifecycle = action({
           );
         }
       } else if (args.operation === "pause") {
-        await sdk.subscriptions.pause(args.subscriptionId);
+        await sdk.subscriptions.pause({ id: args.subscriptionId });
       }
     } catch (error) {
       console.error(`[creem] subscription ${args.operation} failed:`, error);

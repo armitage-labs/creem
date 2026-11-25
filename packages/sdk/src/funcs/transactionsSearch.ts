@@ -35,15 +35,11 @@ import {
  * List all transactions
  *
  * @remarks
- * Search and retrieve payment transactions. Filter by customer, product, date range, and status.
+ * Search and retrieve payment transactions. Filter by customer, order, product, status, and creation date range.
  */
 export function transactionsSearch(
   client: CreemCore,
-  customerId?: string | undefined,
-  orderId?: string | undefined,
-  productId?: string | undefined,
-  pageNumber?: number | undefined,
-  pageSize?: number | undefined,
+  request: operations.SearchTransactionsRequest,
   options?: RequestOptions,
 ): APIPromise<
   PageIterator<
@@ -63,22 +59,14 @@ export function transactionsSearch(
 > {
   return new APIPromise($do(
     client,
-    customerId,
-    orderId,
-    productId,
-    pageNumber,
-    pageSize,
+    request,
     options,
   ));
 }
 
 async function $do(
   client: CreemCore,
-  customerId?: string | undefined,
-  orderId?: string | undefined,
-  productId?: string | undefined,
-  pageNumber?: number | undefined,
-  pageSize?: number | undefined,
+  request: operations.SearchTransactionsRequest,
   options?: RequestOptions,
 ): Promise<
   [
@@ -99,16 +87,8 @@ async function $do(
     APICall,
   ]
 > {
-  const input: operations.SearchTransactionsRequest = {
-    customerId: customerId,
-    orderId: orderId,
-    productId: productId,
-    pageNumber: pageNumber,
-    pageSize: pageSize,
-  };
-
   const parsed = safeParse(
-    input,
+    request,
     (value) => operations.SearchTransactionsRequest$outboundSchema.parse(value),
     "Input validation failed",
   );
@@ -121,11 +101,14 @@ async function $do(
   const path = pathToFunc("/v1/transactions/search")();
 
   const query = encodeFormQuery({
+    "created_after": payload.created_after,
+    "created_before": payload.created_before,
     "customer_id": payload.customer_id,
     "order_id": payload.order_id,
     "page_number": payload.page_number,
     "page_size": payload.page_size,
     "product_id": payload.product_id,
+    "status": payload.status,
   });
 
   const headers = new Headers(compactMap({
@@ -226,7 +209,7 @@ async function $do(
     >;
     "~next"?: { page: number };
   } => {
-    const page = input?.pageNumber ?? 1;
+    const page = request?.pageNumber ?? 1;
     const nextPage = page + 1;
     const numPages =
       (responseData as { pagination: { total_pages: unknown } }).pagination
@@ -242,7 +225,7 @@ async function $do(
     if (!Array.isArray(results) || !results.length) {
       return { next: () => null };
     }
-    const limit = input?.pageSize ?? 10;
+    const limit = request?.pageSize ?? 10;
     if (results.length < limit) {
       return { next: () => null };
     }
@@ -250,11 +233,10 @@ async function $do(
     const nextVal = () =>
       transactionsSearch(
         client,
-        customerId,
-        orderId,
-        productId,
-        nextPage,
-        pageSize,
+        {
+          ...request,
+          pageNumber: nextPage,
+        },
         options,
       );
 

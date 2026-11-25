@@ -1,6 +1,6 @@
 # CouponDurationType
 
-The duration type for the discount.
+The duration type. Fixed once the discount has been redeemed.
 
 ## Example Usage
 

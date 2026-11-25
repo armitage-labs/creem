@@ -362,27 +362,17 @@ async function updateSubscriptionFromEvent(
         where: [{ field: "creemCustomerId", value: customerId }],
       });
 
-      // Find the subscription for this specific product
+      // Only link this product's row if it is not bound to another subscription.
       subscription =
-        subscriptions.find((sub: SubscriptionRecord) => sub.productId === productId) ||
-        subscriptions[0];
+        subscriptions.find(
+          (sub: SubscriptionRecord) =>
+            sub.productId === productId &&
+            (!sub.creemSubscriptionId || sub.creemSubscriptionId === subscriptionData.id),
+        ) ?? null;
     }
 
     if (!subscription) {
       logger.warn(`[creem] Subscription not found for creemSubscriptionId: ${subscriptionData.id}`);
-      return;
-    }
-
-    // A customer fallback may belong to a different subscription. Leave that row alone,
-    // but still deliver the event-specific callback as with any missing local record.
-    if (
-      status === "scheduled_cancel" &&
-      subscription.creemSubscriptionId &&
-      subscription.creemSubscriptionId !== subscriptionData.id
-    ) {
-      logger.warn(
-        `[creem] No matching local subscription for scheduled cancellation: ${subscriptionData.id}`,
-      );
       return;
     }
 

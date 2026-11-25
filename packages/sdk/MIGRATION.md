@@ -1,0 +1,312 @@
+# Migrating to `creem` 2.0
+
+`creem` 2.0 changes how every method takes its arguments. The HTTP API is the
+same: requests and responses don't change, only the TypeScript signatures do.
+
+## What changed
+
+Each method now takes **one request object**, then the optional
+`RequestOptions` as before. The path, query and header parameters are
+properties of that object, and so is the request body, under the name it
+already had in the types (for example `updateProductRequestEntity`).
+
+```ts
+// 1.x
+await creem.products.update("prod_123", { name: "Pro" }, { retries });
+
+// 2.0
+await creem.products.update(
+  { id: "prod_123", updateProductRequestEntity: { name: "Pro" } },
+  { retries },
+);
+```
+
+TypeScript reports a 1.x call when it compiles. In JavaScript, a 1.x call
+throws `SDKValidationError: Input validation failed` before anything is sent,
+so nothing reaches the API.
+
+A method whose parameters are all optional still takes the object, so a call
+without arguments becomes `({})`:
+
+```ts
+// 1.x
+await creem.products.search();
+await creem.transactions.search(undefined, undefined, undefined, 2, 50);
+
+// 2.0
+await creem.products.search({});
+await creem.transactions.search({ pageNumber: 2, pageSize: 50 });
+```
+
+## Why
+
+In 1.x every parameter was positional, and `options` came last. When the API
+gained a new optional parameter, it was inserted before `options`, so existing
+calls that passed `options` stopped compiling in TypeScript, and in JavaScript
+the options object was sent as the new parameter. With one request object, a new parameter of an operation that already has
+one is a new optional property: no existing call changes (see
+[Methods that take only a body](#methods-that-take-only-a-body) for the rest). The parameters planned
+for products and subscriptions (`dry_run`, `If-None-Match`, `If-Match`, new
+search filters) therefore arrive in minor releases of 2.x.
+
+## Every changed method
+
+| 1.x | 2.0 |
+| --- | --- |
+| `creem.affiliates.list(pageNumber, pageSize)` | `creem.affiliates.list({ pageNumber, pageSize })` |
+| `creem.affiliates.listCommissions(id, status, pageNumber, pageSize)` | `creem.affiliates.listCommissions({ id, status, pageNumber, pageSize })` |
+| `creem.affiliates.listInvites(pageNumber, pageSize)` | `creem.affiliates.listInvites({ pageNumber, pageSize })` |
+| `creem.affiliates.retrieve(id)` | `creem.affiliates.retrieve({ id })` |
+| `creem.checkouts.retrieve(checkoutId)` | `creem.checkouts.retrieve({ checkoutId })` |
+| `creem.customerCredits.closeAccount(id)` | `creem.customerCredits.closeAccount({ id })` |
+| `creem.customerCredits.creditAccount(id, creditDebitRequestDto)` | `creem.customerCredits.creditAccount({ id, creditDebitRequestDto })` |
+| `creem.customerCredits.debitAccount(id, debitRequestDto)` | `creem.customerCredits.debitAccount({ id, debitRequestDto })` |
+| `creem.customerCredits.freezeAccount(id)` | `creem.customerCredits.freezeAccount({ id })` |
+| `creem.customerCredits.getAccount(id)` | `creem.customerCredits.getAccount({ id })` |
+| `creem.customerCredits.getAccountBalance(id, at)` | `creem.customerCredits.getAccountBalance({ id, at })` |
+| `creem.customerCredits.getTransaction(id)` | `creem.customerCredits.getTransaction({ id })` |
+| `creem.customerCredits.listAccounts(limit, customerId, startingAfter, endingBefore)` | `creem.customerCredits.listAccounts({ limit, customerId, startingAfter, endingBefore })` |
+| `creem.customerCredits.listEntries(id, limit, startingAfter, endingBefore)` | `creem.customerCredits.listEntries({ id, limit, startingAfter, endingBefore })` |
+| `creem.customerCredits.listTransactionsByReference(reference)` | `creem.customerCredits.listTransactionsByReference({ reference })` |
+| `creem.customerCredits.reverseTransaction(id, reverseTransactionRequestDto)` | `creem.customerCredits.reverseTransaction({ id, reverseTransactionRequestDto })` |
+| `creem.customerCredits.reverseTransactionById(id)` | `creem.customerCredits.reverseTransactionById({ id })` |
+| `creem.customerCredits.unfreezeAccount(id)` | `creem.customerCredits.unfreezeAccount({ id })` |
+| `creem.customers.getOrders(id, pageNumber, pageSize)` | `creem.customers.getOrders({ id, pageNumber, pageSize })` |
+| `creem.customers.list(pageNumber, pageSize)` | `creem.customers.list({ pageNumber, pageSize })` |
+| `creem.customers.listLicenses(id, pageNumber, pageSize)` | `creem.customers.listLicenses({ id, pageNumber, pageSize })` |
+| `creem.customers.listSubscriptions(id, pageNumber, pageSize)` | `creem.customers.listSubscriptions({ id, pageNumber, pageSize })` |
+| `creem.customers.retrieve(customerId, email)` | `creem.customers.retrieve({ customerId, email })` |
+| `creem.discounts.create(request)` | `creem.discounts.create({ createDiscountRequestEntity, idempotencyKey })` |
+| `creem.discounts.delete(id)` | `creem.discounts.delete({ id })` |
+| `creem.discounts.get(discountId, discountCode)` | `creem.discounts.get({ discountId, discountCode })` |
+| `creem.discounts.search(pageNumber, pageSize, productId, status, type, createdAfter, createdBefore)` | `creem.discounts.search({ pageNumber, pageSize, productId, status, type, createdAfter, createdBefore })` |
+| `creem.events.listEvents(meterId, customerId, reference, limit, startingAfter)` | `creem.events.listEvents({ meterId, customerId, reference, limit, startingAfter })` |
+| `creem.licenses.listInstances(id, pageNumber, pageSize)` | `creem.licenses.listInstances({ id, pageNumber, pageSize })` |
+| `creem.meters.archiveMeter(id)` | `creem.meters.archiveMeter({ id })` |
+| `creem.meters.createMeter(request)` | `creem.meters.createMeter({ createMeterApiRequestDto, idempotencyKey })` |
+| `creem.meters.getConsumedUnits(id, customerId, at)` | `creem.meters.getConsumedUnits({ id, customerId, at })` |
+| `creem.meters.getMeter(id)` | `creem.meters.getMeter({ id })` |
+| `creem.meters.listMeters(limit, startingAfter, endingBefore, includeArchived, externalId)` | `creem.meters.listMeters({ limit, startingAfter, endingBefore, includeArchived, externalId })` |
+| `creem.meters.previewExistingMeter(id)` | `creem.meters.previewExistingMeter({ id })` |
+| `creem.meters.unarchiveMeter(id)` | `creem.meters.unarchiveMeter({ id })` |
+| `creem.meters.updateMeter(id, updateMeterApiRequestDto)` | `creem.meters.updateMeter({ id, updateMeterApiRequestDto })` |
+| `creem.products.archive(id)` | `creem.products.archive({ id })` |
+| `creem.products.create(createProductRequestEntity, idempotencyKey)` | `creem.products.create({ createProductRequestEntity, idempotencyKey })` |
+| `creem.products.get(id)` | `creem.products.get({ id })` |
+| `creem.products.search(pageNumber, pageSize, status, externalId)` | `creem.products.search({ pageNumber, pageSize, status, externalId })` |
+| `creem.products.update(id, updateProductRequestEntity)` | `creem.products.update({ id, updateProductRequestEntity })` |
+| `creem.splits.delete(id)` | `creem.splits.delete({ id })` |
+| `creem.splits.list(pageNumber, pageSize)` | `creem.splits.list({ pageNumber, pageSize })` |
+| `creem.splits.retrieve(id)` | `creem.splits.retrieve({ id })` |
+| `creem.stats.getSummary(currency, startDate, endDate, interval)` | `creem.stats.getSummary({ currency, startDate, endDate, interval })` |
+| `creem.subscriptions.cancel(id, cancelSubscriptionRequestEntity)` | `creem.subscriptions.cancel({ id, cancelSubscriptionRequestEntity })` |
+| `creem.subscriptions.get(subscriptionId)` | `creem.subscriptions.get({ subscriptionId })` |
+| `creem.subscriptions.pause(id)` | `creem.subscriptions.pause({ id })` |
+| `creem.subscriptions.resume(id)` | `creem.subscriptions.resume({ id })` |
+| `creem.subscriptions.search(pageNumber, pageSize)` | `creem.subscriptions.search({ pageNumber, pageSize })` |
+| `creem.subscriptions.update(id, updateSubscriptionRequestEntity)` | `creem.subscriptions.update({ id, updateSubscriptionRequestEntity })` |
+| `creem.subscriptions.upgrade(id, upgradeSubscriptionRequestEntity)` | `creem.subscriptions.upgrade({ id, upgradeSubscriptionRequestEntity })` |
+| `creem.transactions.getById(transactionId)` | `creem.transactions.getById({ transactionId })` |
+| `creem.transactions.search(customerId, orderId, productId, pageNumber, pageSize, status, createdAfter, createdBefore)` | `creem.transactions.search({ customerId, orderId, productId, pageNumber, pageSize, status, createdAfter, createdBefore })` |
+| `creem.webhooks.acknowledgeEvent(id, eventId, acknowledgeWebhookEventRequestEntity)` | `creem.webhooks.acknowledgeEvent({ id, eventId, acknowledgeWebhookEventRequestEntity })` |
+| `creem.webhooks.delete(id)` | `creem.webhooks.delete({ id })` |
+| `creem.webhooks.get(id)` | `creem.webhooks.get({ id })` |
+| `creem.webhooks.getSecret(id)` | `creem.webhooks.getSecret({ id })` |
+| `creem.webhooks.list(pageNumber, pageSize)` | `creem.webhooks.list({ pageNumber, pageSize })` |
+| `creem.webhooks.listPendingEvents(id, limit)` | `creem.webhooks.listPendingEvents({ id, limit })` |
+| `creem.webhooks.update(id, updateWebhookRequestEntity)` | `creem.webhooks.update({ id, updateWebhookRequestEntity })` |
+
+`discounts.create` and `meters.createMeter` took only the body in 1.x. In 2.0
+they also take an optional `Idempotency-Key`, so the body moves under its name,
+next to `idempotencyKey`:
+
+```ts
+// 1.x
+await creem.discounts.create({
+  name: "Spring",
+  type: "percentage",
+  percentage: 15,
+  duration: "once",
+  appliesToProducts: ["prod_123"],
+});
+
+// 2.0
+await creem.discounts.create({
+  createDiscountRequestEntity: {
+    name: "Spring",
+    type: "percentage",
+    percentage: 15,
+    duration: "once",
+    appliesToProducts: ["prod_123"],
+  },
+  idempotencyKey: "spring-2026",
+});
+```
+
+These methods already took a single request body and are unchanged:
+
+- `creem.affiliates.createInvite(request)`
+- `creem.checkouts.create(request)`
+- `creem.customerCredits.createAccount(request)`
+- `creem.customerCredits.postTransaction(request)`
+- `creem.customers.create(request)`
+- `creem.customers.generateBillingLinks(request)`
+- `creem.customers.update(request)`
+- `creem.events.ingestEvents(request)`
+- `creem.events.previewEvents(request)`
+- `creem.licenses.activate(request)`
+- `creem.licenses.deactivate(request)`
+- `creem.licenses.validate(request)`
+- `creem.meters.previewMeter(request)`
+- `creem.moderation.screenPrompt(request)`
+- `creem.splits.create(request)`
+- `creem.transactions.refund(request)`
+- `creem.webhooks.create(request)`
+
+## Response enums are open
+
+Enum values in responses (a product's `status`, a ledger entry's `side`, …)
+are now open: a value the API adds later comes through as a plain string
+instead of failing the whole response. The known values keep their literal
+types, so existing comparisons still compile. A `switch` over the known values
+is no longer exhaustive, because the type now also allows other strings. Two
+patterns stop compiling: a `never` exhaustiveness check
+(`const unhandled: never = product.status`), and a function that returns from
+every case without a `default` when its return type is declared (and excludes
+`undefined`) or `noImplicitReturns` is on. With an inferred return type and
+`noImplicitReturns` off, that function still compiles, and its return type
+gains `undefined`. Add a `default` branch:
+
+```ts
+switch (product.status) {
+  case "active":
+    return "Active";
+  case "archived":
+    return "Archived";
+  default:
+    // a status this SDK version doesn't know yet
+    return product.status;
+}
+```
+
+A `switch` that returns nothing still compiles without a `default`, and a value
+added later then matches no case, so check those too. The flip side of an open
+value: a misspelled comparison (`status === "actve"`) compiles.
+
+The same holds for webhook payloads parsed with `parseWebhookEventEntity` or
+`constructWebhookEventEntity`, including a subscription's `collectionMethod`
+and a refund's `reason`. An event type this version doesn't know no longer
+throws. It comes back as the unknown variant, with `eventType: "UNKNOWN"` and
+the payload as sent in `raw`. A payload whose event type this version knows,
+but that doesn't match that event's schema, and a payload without an
+`eventType`, still throw an `SDKValidationError`, as in 1.x:
+
+```ts
+const event = await constructWebhookEventEntity(body, headers, secret);
+if (event.eventType === "UNKNOWN") {
+  // an event type added after this SDK version; the payload is in event.raw
+  return;
+}
+```
+
+So a new value in a response or a webhook, or a new webhook event type, is a
+minor release from 2.0 on. Values you send are unchanged for TypeScript: an
+open type accepts the known values, and anything else needs a cast. Without
+TypeScript, an unknown value in a request is no longer refused by the SDK, and
+the API answers it with a `400`.
+
+## New in 2.0
+
+2.0 also adds methods, which need no migration:
+
+- `creem.productGroups.list({ limit, startingAfter, endingBefore, externalId })`
+  and `creem.productGroups.get({ id })`
+- `creem.products.listPrices({ id })`, the price versions of a product
+- `creem.discounts.update({ id, updateDiscountRequestEntity })`
+- `creem.files.createUpload(request)` and `creem.files.confirmUpload({ id })`:
+  `createUpload` returns where and how to upload a file's bytes, and
+  `confirmUpload` turns the finished upload into a file a product's `file`
+  feature can name
+
+Products take license-key, private-note and file features on `create` and
+`update`, and `products.update` archives or unarchives with `status`. It
+returns a `ProductWriteResponseEntity`: the product as before, plus
+`writeResult.warnings`, so code that reads the result as a `ProductEntity`
+still compiles.
+
+An update entry with `deleted: true` removes the one feature it names by `id`
+or `externalId`. In TypeScript, write it as `{ id, deleted: true }` (or
+`{ externalId, type, deleted: true }`): the type accepts nothing else on a
+deletion, so a feature read back and marked `deleted: true` doesn't compile.
+An untyped entry with more fields is still sent as a deletion, never as an
+edit. Every other entry is an edit or an addition; the edit types
+(`ProductFeatureEditRequestEntity` and its license-key, private-note and file
+counterparts) take `deleted` only as `false`.
+
+```ts
+await creem.products.update({
+  id: "prod_123",
+  updateProductRequestEntity: {
+    features: [{ id: "feat_note", deleted: true }],
+  },
+});
+```
+
+It also knows the `credits.reversed` webhook event: `parseWebhookEventEntity` and
+`constructWebhookEventEntity` parse it into its own shape (`event.object` is a
+`CustomerCreditsReversalEntity`). The 1.x SDK refused that event type.
+
+## Feature types are string literals
+
+The `type` of a feature entry on `products.create` and `products.update` is
+now its string literal (`"customerCredits"`, `"licenseKey"`, `"custom"` or
+`"file"`). 1.x exported the credit entry's type as the one-value enum
+`ProductFeatureRequestType`, which 2.0 removes along with its schemas. Write
+`type: "customerCredits"` where 1.x code used
+`ProductFeatureRequestType.CustomerCredits`.
+
+## Marketplace grant ask fields are strings
+
+In the `marketplace.grant.requested` webhook, `object.deadlineAt`,
+`object.order.transactionId` and `object.order.paidAt` are now
+`string | null` (an ISO-8601 instant for the two dates). 1.x typed them as
+the empty object types `DeadlineAt`, `TransactionId` and `PaidAt`, which
+2.0 removes along with their schemas and `…ToJSON`/`…FromJSON` helpers. A
+1.x SDK fails to parse an event that carries a value in one of these fields;
+read them as strings instead.
+
+## MCP server and CLI
+
+The bundled MCP server's tools now take the request under one `request`
+argument, in the API's wire field names, the same as each tool's input schema
+lists them. For example, `products-update` takes
+`{ "request": { "id": "prod_123", "UpdateProductRequestEntity": { "name": "Pro" } } }`.
+The `creem` CLI's existing commands and flags don't change; `discounts create`
+and `meters create` gain `--idempotency-key`. `subscriptions list --status`
+accepts any status, and a billing type the CLI doesn't know is shown as it is.
+The new methods have commands: `creem product-groups list` (`--limit`,
+`--starting-after`, `--ending-before`, `--external-id`, `--all`),
+`creem product-groups get <id>`, `creem products prices <id>`,
+`creem discounts update <id>`, `creem files create-upload` and
+`creem files confirm-upload <id>`.
+
+## `@creem_io/ingestion`
+
+Ingestion's next minor release depends on `creem` 2. `Ingestion({ client })`
+accepts a client from either major. Two things change for code that names the
+client through ingestion's types:
+
+- `const config: IngestionConfig = { client }` with a `creem` 1.x client no
+  longer compiles. Write `IngestionConfig<typeof client>`, or drop the
+  annotation and let `Ingestion()` infer it.
+- Calls through `config.client` use the 2.0 shapes above, for example
+  `config.client?.customers.retrieve({ customerId: "cust_1" })`.
+
+## Methods that take only a body
+
+The 17 methods listed above, and `creem.files.createUpload(request)`, take the request body itself, because their
+operations have no other parameter. If one of those operations gains its first
+query or header parameter, the generator wraps its body in a request object
+(like `updateProductRequestEntity` above), which changes the call. Adding a
+parameter to an operation that already has one is a new optional property and
+doesn't.

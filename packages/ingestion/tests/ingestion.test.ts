@@ -4,6 +4,7 @@ import { Ingestion } from "../src/ingestion.js";
 import { IngestionStrategy, type EmitUsage } from "../src/strategy.js";
 import type {
   IngestResult,
+  IngestionClient,
   IngestionCustomer,
   IngestionError,
   IngestWarnings,
@@ -193,5 +194,22 @@ describe("Ingestion", () => {
     const meter = metered.client({ customerId: "cust_1" });
 
     expect(() => meter(1)).not.toThrow();
+  });
+});
+
+// A client from another SDK major, or a test double, only needs the one method
+// ingestion calls, so the injected-client option survives an SDK major.
+describe("IngestionConfig.client", () => {
+  it("accepts any client that has events.ingestEvents, and sends through it", async () => {
+    const ingestEvents = vi.fn(async (request: IngestCall) => ({
+      accepted: request.events.length,
+      eventIds: request.events.map(() => "evt_1"),
+    }));
+    const client: IngestionClient = { events: { ingestEvents: ingestEvents as never } };
+    const ingestion = new Ingestion({ client: client });
+
+    await ingestion.ingest([{ name: "image.generated", customerId: "cust_1" } as never]);
+
+    expect(ingestEvents).toHaveBeenCalledTimes(1);
   });
 });
