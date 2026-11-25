@@ -53,8 +53,8 @@ flowchart LR
 | Pay what you want                                | API. The product price is the minimum, with an optional suggested price                                                                              |
 | Descriptions                                     | API, after converting the HTML to Markdown                                                                                                           |
 | Product images                                   | API by URL, then re-upload in the dashboard                                                                                                          |
-| Files                                            | Dashboard: [file downloads](/features/addons/file-downloads)                                                                                         |
-| License key settings                             | Dashboard: [license keys](/features/addons/licenses)                                                                                                 |
+| Files                                            | API: upload with [`POST /v1/files`](/api-reference/endpoint/create-file-upload), then a `file` entry in the product's `features`. Or the dashboard   |
+| License key settings                             | API: a `licenseKey` entry in the product's `features`. Or the dashboard                                                                              |
 | Discount codes                                   | API                                                                                                                                                  |
 | Customers                                        | API: name, email, your own ID and metadata                                                                                                           |
 | Affiliates                                       | Create the program in the dashboard, then [invite each affiliate by API](/guides/affiliate-program-via-api)                                          |
@@ -65,7 +65,7 @@ flowchart LR
 
 | Lemon Squeezy                                   | What to do instead                                                                                                                             |
 | ----------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------- |
-| Active subscriptions and saved cards            | Each subscriber checks out once on Creem. See [Move existing subscribers](#6-move-existing-subscribers). Creem doesn't accept card transfers   |
+| Active subscriptions and saved cards            | Each subscriber checks out once on Creem. See [Move existing subscribers](#6-move-existing-subscribers). Card transfers are in development     |
 | PayPal                                          | Creem's checkout doesn't take PayPal. Lemon Squeezy can't move PayPal subscriptions to any provider, so those subscribers pay by card on Creem |
 | Existing license keys                           | Creem issues new keys for purchases on Creem. Keep validating Lemon Squeezy keys until those customers move                                    |
 | Order and payment history                       | Export it from Lemon Squeezy before March 31, 2027. Creem only shows orders it processed                                                       |
@@ -173,7 +173,12 @@ The full field mapping is in the [reference](#products-and-variants) at the end 
 
 ### Files and license keys
 
-Set these up in the dashboard, product by product: upload each file under [file downloads](/features/addons/file-downloads), and turn on [license keys](/features/addons/licenses) with the activation limit and expiry the variant had (`license_activation_limit`, `license_length_value`, `license_length_unit`). The API can't attach files or license key settings to a product yet.
+Give each product the activation limit and expiry its variant had (`license_activation_limit`, `license_length_value`, `license_length_unit`), and the files it delivered. Either in the dashboard, product by product ([file downloads](/features/addons/file-downloads), [license keys](/features/addons/licenses)), or through the API:
+
+1. Upload each file with [`POST /v1/files`](/api-reference/endpoint/create-file-upload), post it to the returned `upload_url`, and [confirm it](/api-reference/endpoint/confirm-file-upload).
+2. Send `features` on [create product](/api-reference/endpoint/create-product) or [update product](/api-reference/endpoint/update-product): a `licenseKey` entry with the activation limit and expiry, and a `file` entry with the ids of the confirmed files.
+
+The Creem CLI doesn't set files or license keys yet.
 
 ### Discount codes
 
@@ -262,7 +267,7 @@ Creem's license endpoints need your API key, so call them from your backend, nev
 | `POST /v1/licenses/validate`: `license_key`, optional `instance_id` | [`POST /v1/licenses/validate`](/api-reference/endpoint/validate-license): `key`, `instance_id` (required) |
 | `POST /v1/licenses/deactivate`: `license_key`, `instance_id`        | [`POST /v1/licenses/deactivate`](/api-reference/endpoint/deactivate-license): `key`, `instance_id`        |
 
-During the migration, your app accepts both: Creem keys for purchases on Creem, Lemon Squeezy keys for customers who haven't moved. Lemon Squeezy hasn't said whether its License API keeps answering after March 31, 2027, so plan for it to stop.
+During the migration, your app accepts both: Creem keys for purchases on Creem, Lemon Squeezy keys for customers who haven't moved. Ask Creem first, and ask Lemon Squeezy only when Creem answers `404` (it doesn't know the key or the instance). Never fall back when Creem answers `200` with a status such as `expired` or `disabled`: a key you refunded or disabled on Creem can still be valid on Lemon Squeezy, and the fallback would let it through. Lemon Squeezy hasn't said whether its License API keeps answering after March 31, 2027, so plan for it to stop.
 
 ### Customer portal
 
@@ -303,15 +308,20 @@ Move subscribers one at a time, close to each one's Lemon Squeezy renewal date (
   <Step title="Cancel on Lemon Squeezy only after Creem is active">
     Creem copies the checkout's `metadata` to the subscription. When `subscription.active` arrives with your `ls_subscription_id` in it, cancel that subscription with the Lemon Squeezy API (`DELETE /v1/subscriptions/{id}`). It stays active until its paid period ends and doesn't renew. Never cancel on Lemon Squeezy first.
   </Step>
+  <Step title="Leave cancelled subscriptions to end">
+    A Lemon Squeezy subscription that is already `cancelled` stays active until `ends_at` and doesn't renew. Don't move it: let it end on Lemon Squeezy. If the subscriber wants to stay, send them a checkout close to `ends_at`.
+  </Step>
   <Step title="Track who has moved">
     Store the Lemon Squeezy and Creem subscription IDs side by side in your database and remind the subscribers who haven't moved. Anyone still on Lemon Squeezy on March 31, 2027 stops renewing there.
   </Step>
 </Steps>
 
 <Warning>
-  Before you cancel real subscriptions, test a cancellation in Lemon Squeezy's test mode: check
-  whether Lemon Squeezy emails the customer, and make sure your own `subscription_cancelled` handler
-  doesn't revoke access for a subscriber who just moved.
+  Lemon Squeezy treats every move as a cancellation. Before you cancel real subscriptions, turn off
+  the cancellation email in your Lemon Squeezy store's email settings, or every subscriber who moves
+  gets one. Make sure your `subscription_cancelled` and later `subscription_expired` handlers don't
+  revoke access or start churn emails for a subscriber who moved to Creem. Test one cancellation in
+  Lemon Squeezy's test mode first.
 </Warning>
 
 ## 7. Finish and clean up
@@ -368,8 +378,9 @@ If you can't verify a field, endpoint or event, say so. Never invent one.
    customers, subscriptions, subscription-items, license-keys, webhooks, affiliates.
 2. Inspect this codebase: checkout links and API calls, Lemon.js, webhook handlers, License
    API calls, customer portal links, where Lemon Squeezy IDs are stored, how access is granted.
-3. Present a plan with: counts per object; a table of what moves by API, what the user sets
-   up in the dashboard (files, license key settings, the affiliate program, image re-uploads)
+3. Present a plan with: counts per object; a table of what moves by API (including files and
+   license key settings, through `POST /v1/files` and the product's `features`), what the user
+   sets up in the dashboard (the affiliate program, image re-uploads)
    and what can't move (active subscriptions and cards, license keys, order history,
    referral history, unsupported prices); the field mappings you will use; the code changes;
    and the subscribers ordered by renews_at. Wait for approval.
@@ -382,7 +393,8 @@ there) or failed with the reason.
 ## Phase 3: switch new sales
 
 Change checkout, webhooks (verify creem-signature, deduplicate on the event id), license
-checks (through the backend, accepting Lemon Squeezy keys until those customers move) and
+checks (through the backend, accepting Lemon Squeezy keys until those customers move, and
+asking Lemon Squeezy only when Creem answers 404) and
 portal links. Keep the Lemon Squeezy paths for subscribers who haven't moved.
 
 ## Phase 4: subscribers
