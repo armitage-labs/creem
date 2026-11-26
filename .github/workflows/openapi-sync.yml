@@ -1,0 +1,351 @@
+name: OpenAPI Sync
+
+# Keeps packages/sdk/openapi.json in step with the live API. Once a day this
+# fetches the deployed contract. When it differs from main, it regenerates the
+# SDK, the docs copy of the contract and the API reference pages, and opens or
+# updates one pull request from chore/openapi-sync. The backend deploys first,
+# so the live contract is the one the SDK may describe.
+#
+# The changeset's release level comes from Speakeasy's SDK change report
+# (`speakeasy diff`), read by scripts/openapi-sync.mjs: breaking or a removed
+# generated file means major, any other SDK change or an added generated file
+# means minor, anything else patch. A reviewer overrides it with an
+# `sdk-release:<level>` label on the pull request until the pull request has a
+# manual commit.
+#
+# A commit on the open pull request that this workflow did not make (CLI flags,
+# docs navigation) is never overwritten: while one exists, the workflow
+# comments on the pull request instead of updating it. When main catches up
+# with the live contract, an open pull request with only workflow commits is
+# closed.
+#
+# The workflow pushes and opens the pull request with a token of the GitHub
+# App behind HOMEBREW_APP_ID and HOMEBREW_APP_PRIVATE_KEY (shared with
+# homebrew-release.yml and sdk-cascade.yml), because a pull request opened with
+# GITHUB_TOKEN starts no checks. The App must be installed on this repository
+# with contents, pull-requests and workflows write; workflows because
+# rebuilding the branch on a newer main can change workflow files. Without
+# that, the token step fails the run.
+
+on:
+  schedule:
+    - cron: "23 5 * * *"
+  workflow_dispatch: {}
+
+concurrency:
+  group: openapi-sync
+  cancel-in-progress: false
+
+# Every write uses the App token; GITHUB_TOKEN only needs to read.
+permissions:
+  contents: read
+
+env:
+  SPEC_URL: https://api.creem.io/open-api/json
+  BRANCH: chore/openapi-sync
+  BOT_EMAIL: 41898282+github-actions[bot]@users.noreply.github.com
+
+jobs:
+  sync:
+    # The pull request targets main, so build from main only.
+    if: github.ref == 'refs/heads/main'
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - uses: actions/create-github-app-token@fee1f7d63c2ff003460e3d139729b119787bc349 # v2
+        id: app
+        with:
+          app-id: ${{ vars.HOMEBREW_APP_ID }}
+          private-key: ${{ secrets.HOMEBREW_APP_PRIVATE_KEY }}
+          owner: armitage-labs
+          repositories: creem
+          permission-contents: write
+          permission-pull-requests: write
+          # Rebuilding the branch on a newer main can change workflow files
+          # between the old and the new tip; GitHub refuses that push without it.
+          permission-workflows: write
+
+      # The push at the end uses these credentials, so it starts the checks.
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+          token: ${{ steps.app.outputs.token }}
+
+      - uses: pnpm/action-setup@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24
+          cache: "pnpm"
+
+      - run: pnpm install --frozen-lockfile
+
+      - name: Fetch the live contract
+        id: spec
+        run: |
+          cp packages/sdk/openapi.json "$RUNNER_TEMP/main-openapi.json"
+          curl -fsS --retry 3 --retry-all-errors --max-time 60 "$SPEC_URL" -o "$RUNNER_TEMP/live-openapi.json"
+          # Refuse an error page or an empty document before it replaces the
+          # contract. The API serves minified JSON, and Prettier keeps an object
+          # expanded only when its input already breaks after "{", so expand it
+          # first; otherwise the layout differs from main on every line.
+          node -e '
+            const fs = require("node:fs");
+            const spec = JSON.parse(fs.readFileSync(process.argv[1], "utf8"));
+            if (!/^3\./.test(spec.openapi ?? "") || !Object.keys(spec.paths ?? {}).length) {
+              throw new Error("The live contract is not an OpenAPI 3 document with paths.");
+            }
+            fs.writeFileSync(process.argv[2], JSON.stringify(spec, null, 2) + "\n");
+          ' "$RUNNER_TEMP/live-openapi.json" packages/sdk/openapi.json
+          pnpm exec prettier --write packages/sdk/openapi.json
+          echo "sha256=$(sha256sum packages/sdk/openapi.json | cut -d' ' -f1)" >> "$GITHUB_OUTPUT"
+          if git diff --quiet -- packages/sdk/openapi.json; then
+            echo "changed=false" >> "$GITHUB_OUTPUT"
+            echo "The live contract matches main." >> "$GITHUB_STEP_SUMMARY"
+          else
+            echo "changed=true" >> "$GITHUB_OUTPUT"
+          fi
+
+      - name: Check the open sync pull request
+        id: guard
+        env:
+          GH_TOKEN: ${{ steps.app.outputs.token }}
+          CHANGED: ${{ steps.spec.outputs.changed }}
+          SPEC_SHA256: ${{ steps.spec.outputs.sha256 }}
+        run: |
+          # Only an open pull request protects the branch. A closed one is
+          # abandoned, and its branch is rebuilt. --head matches branch names in
+          # forks too, so skip pull requests from other repositories.
+          pr=$(gh pr list --head "$BRANCH" --base main --state open --json number,labels,isCrossRepository \
+            --jq '[.[] | select(.isCrossRepository | not)][0] // empty')
+          number=$(jq -r '.number // empty' <<< "$pr")
+          labels=$(jq -r '[.labels[].name] | join(",")' <<< "$pr")
+          # The branch head as seen now. The push at the end only succeeds if the
+          # branch is still exactly here (or still absent), so a commit pushed
+          # while this run regenerates is never overwritten.
+          remote=$(git ls-remote --heads origin "refs/heads/$BRANCH") || {
+            echo "::error::Could not read the head of $BRANCH."
+            exit 1
+          }
+          head=$(cut -f1 <<< "$remote")
+          if [ -n "$head" ]; then
+            git fetch --no-tags origin "$BRANCH"
+          fi
+          manual=""
+          if [ -n "$number" ] && [ -n "$head" ]; then
+            manual=$(git log --no-merges --format='%ae %h %an' "origin/main..origin/$BRANCH" | grep -vF "$BOT_EMAIL " || true)
+            # A merge commit (GitHub's "Update branch") is manual work only if
+            # its result differs from an automatic merge of its parents: a
+            # resolved conflict or a change added during the merge.
+            for merge in $(git rev-list --merges "origin/main..origin/$BRANCH"); do
+              tmp=$(mktemp -d)
+              git worktree add -q --detach "$tmp" "$merge^1"
+              if ! git -C "$tmp" -c user.name=openapi-sync -c user.email=openapi-sync@localhost \
+                  merge -q --no-edit --no-ff "$merge^2" > /dev/null 2>&1 \
+                || [ "$(git -C "$tmp" rev-parse 'HEAD^{tree}')" != "$(git rev-parse "$merge^{tree}")" ]; then
+                manual="$manual"$'\n'"$merge merge with manual changes"
+              fi
+              git worktree remove --force "$tmp"
+            done
+          fi
+          {
+            echo "number=$number"
+            echo "labels=$labels"
+            echo "head=$head"
+          } >> "$GITHUB_OUTPUT"
+
+          if [ "$CHANGED" != "true" ]; then
+            echo "update=false" >> "$GITHUB_OUTPUT"
+            if [ -n "$number" ] && [ -z "$manual" ]; then
+              # Delete the branch only if it is still the commit checked above,
+              # so a commit pushed meanwhile survives. GitHub closes the pull
+              # request when its branch goes.
+              if git push --force-with-lease="refs/heads/$BRANCH:$head" origin ":refs/heads/$BRANCH"; then
+                gh pr comment "$number" --body "main already matches the live API contract, so this pull request is no longer needed."
+                gh pr close "$number" 2> /dev/null || true
+              else
+                # Only a moved branch is the expected race; any other failure
+                # fails the run instead of leaving a stale pull request open.
+                remote=$(git ls-remote --heads origin "refs/heads/$BRANCH") || {
+                  echo "::error::Deleting $BRANCH failed and its head could not be read."
+                  exit 1
+                }
+                if [ "$(cut -f1 <<< "$remote")" = "$head" ]; then
+                  echo "::error::Deleting $BRANCH failed although nobody else changed it."
+                  exit 1
+                fi
+                echo "::warning::$BRANCH changed since it was checked; leaving the pull request open."
+              fi
+            fi
+            exit 0
+          fi
+          if [ -z "$manual" ]; then
+            echo "update=true" >> "$GITHUB_OUTPUT"
+            exit 0
+          fi
+
+          echo "update=false" >> "$GITHUB_OUTPUT"
+          echo "The sync pull request has manual commits; not updating it." >> "$GITHUB_STEP_SUMMARY"
+          comments=$(gh pr view "$number" --json comments --jq '.comments[].body')
+
+          # The workflow no longer rewrites the changeset, so a release label
+          # would be ignored silently. Say so once per label and level.
+          label=$(tr ',' '\n' <<< "$labels" | sed -n 's/^sdk-release://p' | head -n 1)
+          changeset=$(git diff --name-only --diff-filter=A "origin/main...origin/$BRANCH" -- '.changeset/openapi-sync-*.md' | head -n 1)
+          if [ -n "$label" ] && [ -n "$changeset" ]; then
+            current=$(git show "origin/$BRANCH:$changeset" | sed -n 's/^"creem": *//p')
+            mismatch="The label asks for \`sdk-release:$label\`, but \`$changeset\` releases \`creem\` as \`$current\`."
+            if [ "$current" != "$label" ] && ! grep -qF "$mismatch" <<< "$comments"; then
+              gh pr comment "$number" --body "$mismatch This pull request has commits the OpenAPI sync did not make, so the workflow no longer rewrites the changeset. Edit the level in \`$changeset\`."
+            fi
+          fi
+
+          if git show "origin/$BRANCH:packages/sdk/openapi.json" | cmp -s - packages/sdk/openapi.json; then
+            exit 0
+          fi
+          # One comment per live contract version, not one per day.
+          if grep -qF "$SPEC_SHA256" <<< "$comments"; then
+            exit 0
+          fi
+          gh pr comment "$number" --body "The live API contract changed again since this pull request was last updated (sha256 \`$SPEC_SHA256\`). This branch has commits the OpenAPI sync did not make, so it was not updated. Merge this pull request; the next daily run opens a new one with the remaining changes."
+
+      - name: Install Speakeasy
+        if: steps.guard.outputs.update == 'true'
+        run: |
+          # The version pinned in workflow.yaml, so regeneration on main stays a no-op.
+          version=$(sed -n 's/^speakeasyVersion: *//p' packages/sdk/.speakeasy/workflow.yaml)
+          if [[ ! "$version" =~ ^[0-9]+\.[0-9]+\.[0-9]+$ ]]; then
+            echo "::error::packages/sdk/.speakeasy/workflow.yaml must pin an exact speakeasyVersion, found '$version'"
+            exit 1
+          fi
+          dir="$RUNNER_TEMP/speakeasy"
+          mkdir -p "$dir"
+          base="https://github.com/speakeasy-api/speakeasy/releases/download/v$version"
+          curl -fsSL --retry 3 "$base/speakeasy_linux_amd64.zip" -o "$dir/speakeasy_linux_amd64.zip"
+          curl -fsSL --retry 3 "$base/checksums.txt" -o "$dir/checksums.txt"
+          # Catches a corrupted download. Both files come from the same release,
+          # so this does not protect against a compromised release.
+          (cd "$dir" && grep ' speakeasy_linux_amd64.zip$' checksums.txt | sha256sum -c -)
+          unzip -q "$dir/speakeasy_linux_amd64.zip" -d "$dir/bin"
+          echo "$dir/bin" >> "$GITHUB_PATH"
+
+      - name: Compute the SDK change report
+        if: steps.guard.outputs.update == 'true'
+        run: |
+          set -o pipefail
+          # speakeasy diff reads gen.yaml from its output directory. Without it
+          # the report has no breaking markers, so fail instead of guessing.
+          out="$RUNNER_TEMP/speakeasy-diff"
+          mkdir -p "$out/.speakeasy"
+          cp packages/sdk/.speakeasy/gen.yaml "$out/.speakeasy/gen.yaml"
+          speakeasy diff files --lang typescript --output-dir "$out" \
+            --old "$RUNNER_TEMP/main-openapi.json" --new packages/sdk/openapi.json 2>&1 | tee "$out/diff.log"
+          grep -q "Found config file" "$out/diff.log" || {
+            echo "::error::speakeasy diff did not read packages/sdk/.speakeasy/gen.yaml"
+            exit 1
+          }
+          test -f "$out/changes.md"
+
+      - uses: actions/upload-artifact@v4
+        if: steps.guard.outputs.update == 'true'
+        with:
+          name: sdk-change-report
+          path: ${{ runner.temp }}/speakeasy-diff/changes.md
+
+      - name: Regenerate the SDK, the docs contract and the API reference
+        id: regenerate
+        if: steps.guard.outputs.update == 'true'
+        env:
+          SPEAKEASY_API_KEY: ${{ secrets.SPEAKEASY_API_KEY }}
+        run: |
+          pnpm gen:sdk
+          # The generator fails before writing any page when a new endpoint has
+          # no docs.json navigation entry, or a removed endpoint still has a
+          # page or an entry. Report that in the pull request instead of
+          # failing, so the SDK update still opens; merge-gate stays red until
+          # the docs are fixed.
+          if ! pnpm --dir packages/docs generate:api > "$RUNNER_TEMP/generate-api.log" 2>&1; then
+            cat "$RUNNER_TEMP/generate-api.log"
+            grep -E '^Error:' "$RUNNER_TEMP/generate-api.log" > "$RUNNER_TEMP/docs-error.txt" \
+              || tail -n 20 "$RUNNER_TEMP/generate-api.log" > "$RUNNER_TEMP/docs-error.txt"
+            echo "::warning::API reference pages were not regenerated; see the pull request body."
+          fi
+          pnpm install --lockfile-only
+          # Only added or removed files count: description changes modify
+          # existing files through their JSDoc comments. A removed file takes an
+          # exported type away, so the script treats it as breaking.
+          status=$(git status --porcelain --untracked-files=all -- packages/sdk/src)
+          if grep -qE '^(\?\?|A.|.A)' <<< "$status"; then
+            echo "sdk_files_added=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "sdk_files_added=false" >> "$GITHUB_OUTPUT"
+          fi
+          { grep -E '^(D.|.D|R.)' <<< "$status" || true; } | cut -c4- > "$RUNNER_TEMP/sdk-files-removed.txt"
+
+      - name: Write the changeset and the pull request body
+        id: release
+        if: steps.guard.outputs.update == 'true'
+        env:
+          LABELS: ${{ steps.guard.outputs.labels }}
+          SPEC_SHA256: ${{ steps.spec.outputs.sha256 }}
+          SDK_FILES_ADDED: ${{ steps.regenerate.outputs.sdk_files_added }}
+        run: |
+          # Named after the contract, so a sync changeset that is merged but not
+          # yet released stays next to this one instead of being replaced.
+          level=$(node scripts/openapi-sync.mjs \
+            --old="$RUNNER_TEMP/main-openapi.json" \
+            --new=packages/sdk/openapi.json \
+            --report="$RUNNER_TEMP/speakeasy-diff/changes.md" \
+            --gen-yaml=packages/sdk/.speakeasy/gen.yaml \
+            --changeset=".changeset/openapi-sync-${SPEC_SHA256:0:8}.md" \
+            --body="$RUNNER_TEMP/pull-request-body.md" \
+            --spec-url="$SPEC_URL" \
+            --spec-sha256="$SPEC_SHA256" \
+            --sdk-files-added="$SDK_FILES_ADDED" \
+            --sdk-files-removed="$RUNNER_TEMP/sdk-files-removed.txt" \
+            --docs-error="$RUNNER_TEMP/docs-error.txt" \
+            --labels="$LABELS")
+          echo "level=$level" >> "$GITHUB_OUTPUT"
+          echo "Release level: **$level**" >> "$GITHUB_STEP_SUMMARY"
+
+      - name: Push the branch and open or update the pull request
+        if: steps.guard.outputs.update == 'true'
+        env:
+          GH_TOKEN: ${{ steps.app.outputs.token }}
+          EXPECTED: ${{ steps.guard.outputs.head }}
+          NUMBER: ${{ steps.guard.outputs.number }}
+          TITLE: "feat(sdk): sync the SDK with the live API contract (${{ steps.release.outputs.level }})"
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "$BOT_EMAIL"
+          git checkout -B "$BRANCH"
+          git add -A
+          git commit -q -m "feat(sdk): sync the SDK with the live API contract"
+
+          # Same content as the branch already has: nothing to push, so CI and
+          # approvals stay as they are.
+          if [ -n "$EXPECTED" ] && [ "$(git rev-parse 'HEAD^{tree}')" = "$(git rev-parse "$EXPECTED^{tree}")" ]; then
+            echo "The branch already has this content." >> "$GITHUB_STEP_SUMMARY"
+          # The lease makes the push itself conditional: it fails if the branch
+          # moved since the guard read it, or appeared when it was absent.
+          elif ! git push --force-with-lease="refs/heads/$BRANCH:$EXPECTED" origin "HEAD:refs/heads/$BRANCH"; then
+            # Only a moved branch is the expected race. Anything else (a
+            # missing permission, a branch rule, the network) fails the run,
+            # so the sync does not drift silently.
+            remote=$(git ls-remote --heads origin "refs/heads/$BRANCH") || {
+              echo "::error::Pushing $BRANCH failed and its head could not be read."
+              exit 1
+            }
+            if [ "$(cut -f1 <<< "$remote")" != "$EXPECTED" ]; then
+              echo "::warning::$BRANCH changed while this run regenerated; leaving it for the next run."
+              exit 0
+            fi
+            echo "::error::Pushing $BRANCH failed although nobody else changed it. If GitHub refused workflow file changes, the App needs workflows write on this repository."
+            exit 1
+          fi
+
+          if [ -n "$NUMBER" ]; then
+            gh pr edit "$NUMBER" --title "$TITLE" --body-file "$RUNNER_TEMP/pull-request-body.md"
+          else
+            gh pr create --base main --head "$BRANCH" --title "$TITLE" --body-file "$RUNNER_TEMP/pull-request-body.md"
+          fi
