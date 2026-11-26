@@ -69,6 +69,8 @@ export async function run(argv: string[], context: CliContext = createContext())
   if (key) context.secrets.add(key);
   const loginKeyIndex = argv.indexOf("--api-key");
   if (loginKeyIndex >= 0 && argv[loginKeyIndex + 1]) context.secrets.add(argv[loginKeyIndex + 1]);
+  // Every --key is a secret (a license key) until its command says otherwise:
+  // `creem catalog link` removes its pairing key, an external_id the merchant reads back.
   const keyIndex = argv.indexOf("--key");
   if (keyIndex >= 0 && argv[keyIndex + 1]) context.secrets.add(argv[keyIndex + 1]);
   if (!context.isTTY || argv.includes("--no-color")) chalk.level = 0;

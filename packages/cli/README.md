@@ -50,7 +50,10 @@ forwards them to a local URL with the real `creem-signature` header.
 If using npx, replace `creem` with `npx @creem_io/cli` in these examples.
 For automation, provide `CREEM_API_KEY` through your environment or secret store;
 see the [agent guide](https://docs.creem.io/ai/for-agents/cli) for authentication,
-JSON output, and error handling.
+JSON output, and error handling. `creem catalog promote`, `link` and `unlink` work on
+the store's test and live sides together: they read `CREEM_LIVE_API_KEY` and
+`CREEM_TEST_API_KEY` (else the current key of that environment, else a masked prompt
+in a terminal), and promote waits 90 s per page unless `--timeout` is given.
 
 ## Contributing
 

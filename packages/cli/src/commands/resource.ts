@@ -17,6 +17,7 @@ import { pages, pageItems } from "../lib/pagination";
 import { isRecord } from "../lib/operation";
 import { writeResult } from "../utils/results";
 import { shouldOutputJson } from "../lib/config";
+import { extendCatalogCommand } from "./catalog";
 
 const legacyPaginationDefaults: Record<string, { pageNumber: number; pageSize: number }> = {
   "products list": { pageNumber: 1, pageSize: 20 },
@@ -164,6 +165,7 @@ export function createResourceCommand(resource: string, context: CliContext): Co
     });
     parent.addCommand(command);
   }
+  if (resource === "catalog") extendCatalogCommand(root, context);
   return root;
 }
 export async function executeOperation(

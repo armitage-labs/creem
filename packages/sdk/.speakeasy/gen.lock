@@ -84,6 +84,21 @@ trackedFiles:
   docs/models/components/cancelsubscriptionrequestentity.md:
     id: 058fefa14fc4
     pristine_git_object: a8de379c39f4d35e505db271792fc5ac0e14efcd
+  docs/models/components/catalogpromoteblockedbyresponsedto.md: {}
+  docs/models/components/catalogpromotecandidateresponsedto.md: {}
+  docs/models/components/catalogpromoteerrorresponsedto.md: {}
+  docs/models/components/catalogpromotefeaturecandidateresponsedto.md: {}
+  docs/models/components/catalogpromotefeaturecandidatesresponsedto.md: {}
+  docs/models/components/catalogpromoteitemresponsedto.md: {}
+  docs/models/components/catalogpromoterequestdto.md: {}
+  docs/models/components/catalogpromoteresponsedto.md: {}
+  docs/models/components/catalogpromoteselectrequestdto.md: {}
+  docs/models/components/catalogpromoteselectrequestdtometers.md: {}
+  docs/models/components/catalogpromoteselectrequestdtometersall.md: {}
+  docs/models/components/catalogpromoteselectrequestdtoproducts.md: {}
+  docs/models/components/catalogpromoteselectrequestdtoproductsall.md: {}
+  docs/models/components/catalogpromotesummaryresponsedto.md: {}
+  docs/models/components/catalogpromotevalidationresponsedto.md: {}
   docs/models/components/catalogvalidateitemrequestdto.md: {}
   docs/models/components/catalogvalidaterequestdto.md: {}
   docs/models/components/catalogvalidationitemresponsedto.md: {}
@@ -613,6 +628,7 @@ trackedFiles:
     id: 13bd0ce6ef15
     pristine_git_object: 63eed0f107e278a6b36b89fde63be52336ef6a6c
   docs/models/operations/previewexistingmeterrequest.md: {}
+  docs/models/operations/promotecatalogrequest.md: {}
   docs/models/operations/queryparamstatus.md: {}
   docs/models/operations/removeproductfromproductgrouprequest.md: {}
   docs/models/operations/resumesubscriptionrequest.md:
@@ -721,6 +737,7 @@ trackedFiles:
   src/funcs/affiliatesListCommissions.ts: {}
   src/funcs/affiliatesListInvites.ts: {}
   src/funcs/affiliatesRetrieve.ts: {}
+  src/funcs/catalogPromote.ts: {}
   src/funcs/catalogValidate.ts: {}
   src/funcs/checkoutsCreate.ts: {}
   src/funcs/checkoutsRetrieve.ts: {}
@@ -905,6 +922,7 @@ trackedFiles:
   src/mcp-server/tools/affiliatesListCommissions.ts: {}
   src/mcp-server/tools/affiliatesListInvites.ts: {}
   src/mcp-server/tools/affiliatesRetrieve.ts: {}
+  src/mcp-server/tools/catalogPromote.ts: {}
   src/mcp-server/tools/catalogValidate.ts: {}
   src/mcp-server/tools/checkoutsCreate.ts: {}
   src/mcp-server/tools/checkoutsRetrieve.ts: {}
@@ -1005,6 +1023,16 @@ trackedFiles:
   src/models/components/cancelsubscriptionrequestentity.ts:
     id: 9774bfe34c00
     pristine_git_object: 393278c5589220f0281a549433ae9ba872f88dcb
+  src/models/components/catalogpromoteblockedbyresponsedto.ts: {}
+  src/models/components/catalogpromotecandidateresponsedto.ts: {}
+  src/models/components/catalogpromoteerrorresponsedto.ts: {}
+  src/models/components/catalogpromotefeaturecandidateresponsedto.ts: {}
+  src/models/components/catalogpromotefeaturecandidatesresponsedto.ts: {}
+  src/models/components/catalogpromoteitemresponsedto.ts: {}
+  src/models/components/catalogpromoterequestdto.ts: {}
+  src/models/components/catalogpromoteresponsedto.ts: {}
+  src/models/components/catalogpromoteselectrequestdto.ts: {}
+  src/models/components/catalogpromotesummaryresponsedto.ts: {}
   src/models/components/catalogvalidateitemrequestdto.ts: {}
   src/models/components/catalogvalidaterequestdto.ts: {}
   src/models/components/catalogvalidationitemresponsedto.ts: {}
@@ -1357,6 +1385,7 @@ trackedFiles:
     id: 1871e521cda7
     pristine_git_object: b93939a0edf1833aab660ec16f5e7fb3f83a375a
   src/models/operations/previewexistingmeter.ts: {}
+  src/models/operations/promotecatalog.ts: {}
   src/models/operations/removeproductfromproductgroup.ts: {}
   src/models/operations/resumesubscription.ts:
     id: fc2ed54145d3
@@ -2269,6 +2298,13 @@ examples:
           application/json: {"valid": true, "events": [{"valid": false, "event_id": "{}", "error": {"code": "invalid_usage_event", "message": "<value>", "param": "{}"}, "matched_meters": ["mtr_abc123"], "warnings": []}]}
         "422":
           application/json: {"error": {"type": "invalid_request_error", "code": "meter_name_taken", "message": "A meter named \"Image generations\" already exists in this store", "param": "events[3].customer_id", "details": {}, "request_id": "req_abc123def456"}}
+  promoteCatalog:
+    speakeasy-default-promote-catalog:
+      requestBody:
+        application/json: {}
+      responses:
+        "200":
+          application/json: {"run_id": "<id>", "dry_run": false, "summary": {"created": 406414, "updated": 964542, "unchanged": 434867, "needs_key": 637021, "conflict": 502844, "failed": 937851, "blocked": 699164, "not_written": 453107}, "items": [], "validation": null, "next_cursor": "<value>"}
   refreshToken: {}
   refundPayment:
     speakeasy-default-refund-payment:

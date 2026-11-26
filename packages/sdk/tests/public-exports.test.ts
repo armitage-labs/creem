@@ -2,7 +2,7 @@ import { execFileSync } from "node:child_process";
 import { cpSync, mkdirSync, mkdtempSync, readFileSync, rmSync, writeFileSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { dirname, join, relative } from "node:path";
-import { describe, expect, it } from "vitest";
+import { afterEach, describe, expect, it } from "vitest";
 // @ts-expect-error: a plain ES module without types, shared with the CLI that makes the baseline.
 import { breakingChanges, listPublicExports } from "./public-exports.mjs";
 
@@ -60,6 +60,13 @@ const changesTo = (before: Exports, after: Exports) => {
 };
 
 describe("public exports (ENG-2972)", () => {
+  // Each test builds a TypeScript program synchronously, 2 to 10 s each. Between
+  // tests the runner only yields to microtasks, so the worker never reads
+  // vitest's RPC replies, and once the file passes birpc's 60 s timeout under
+  // CI load it fails with 'Timeout calling "onTaskUpdate"'. A macrotask turn
+  // after each test lets the worker read the replies.
+  afterEach(() => new Promise<void>((resolve) => setImmediate(resolve)));
+
   it("keeps every name, enum member and declaration of the last release", () => {
     expect(changes(baseline, list(root))).toEqual([]);
   });

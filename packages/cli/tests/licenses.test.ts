@@ -82,3 +82,35 @@ it("licenses listInstances sends the exact SDK arguments", async () => {
   expect(result.stderr).toContain("SDK_SENTINEL");
   expect(result.stdout).toBe("");
 });
+it("never prints the license key: an error that echoes it shows [REDACTED]", async () => {
+  const h = harness();
+  vi.spyOn(h.client.licenses, "validate").mockRejectedValue(
+    new Error("License key license-secret-42 is not valid"),
+  );
+  const result = await h.run([
+    "licenses",
+    "validate",
+    "--key",
+    "license-secret-42",
+    "--instance-id",
+    "ins_1",
+    "--json",
+  ]);
+  expect(result.stderr).toContain("License key [REDACTED] is not valid");
+  expect(result.stderr).not.toContain("license-secret-42");
+});
+it("redacts a --key that Commander echoes while parsing, before the command runs", async () => {
+  const h = harness();
+  // The key pasted where --output's value belongs: Commander's own error quotes it.
+  const result = await h.run([
+    "licenses",
+    "validate",
+    "--key",
+    "license-secret-42",
+    "--output",
+    "license-secret-42",
+  ]);
+  expect(result.code).toBe(2);
+  expect(result.stderr).toContain("argument '[REDACTED]' is invalid");
+  expect(result.stderr).not.toContain("license-secret-42");
+});

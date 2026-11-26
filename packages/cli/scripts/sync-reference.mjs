@@ -4,6 +4,11 @@ import { fileURLToPath } from "node:url";
 import { format, resolveConfig } from "prettier";
 const root = resolve(dirname(fileURLToPath(import.meta.url)), "..");
 const manifest = JSON.parse(readFileSync(resolve(root, "src/operation-manifest.json"), "utf8"));
+/**
+ * Inputs a command adds in code on top of its manifest row (they aren't body
+ * fields the generic action maps): `catalog promote` in src/commands/catalog.ts.
+ */
+const commandInputs = { "catalog promote": ["--select", "--create"] };
 const reference = [
   "| Command | Inputs |",
   "| --- | --- |",
@@ -12,6 +17,7 @@ const reference = [
       ...row.parameters.map((p) => p.cliFlagOrArgument),
       ...(row.argument ? [row.argument] : []),
       ...Object.values(row.body?.primaryFlags ?? {}),
+      ...(commandInputs[row.cliPath] ?? []),
       ...(row.body ? ["--data"] : []),
       ...(row.pagination !== "none" ? ["--all"] : []),
       ...(row.destructive ? ["--yes"] : []),

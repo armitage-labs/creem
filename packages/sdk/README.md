@@ -241,6 +241,7 @@ run();
 ### [Catalog](docs/sdks/catalog/README.md)
 
 * [validate](docs/sdks/catalog/README.md#validate) - Validate a batch of catalog writes together, without writing anything.
+* [promote](docs/sdks/catalog/README.md#promote) - Promote the test catalog to live (meters and products).
 
 ### [Checkouts](docs/sdks/checkouts/README.md)
 
@@ -398,6 +399,7 @@ To read more about standalone functions, check [FUNCTIONS.md](./FUNCTIONS.md).
 - [`affiliatesListCommissions`](docs/sdks/affiliates/README.md#listcommissions) - List affiliate commissions
 - [`affiliatesListInvites`](docs/sdks/affiliates/README.md#listinvites) - List affiliate invitations
 - [`affiliatesRetrieve`](docs/sdks/affiliates/README.md#retrieve) - Retrieve an affiliate
+- [`catalogPromote`](docs/sdks/catalog/README.md#promote) - Promote the test catalog to live (meters and products).
 - [`catalogValidate`](docs/sdks/catalog/README.md#validate) - Validate a batch of catalog writes together, without writing anything.
 - [`checkoutsCreate`](docs/sdks/checkouts/README.md#create) - Creates a new checkout session.
 - [`checkoutsRetrieve`](docs/sdks/checkouts/README.md#retrieve) - Retrieve a checkout session.
@@ -681,10 +683,10 @@ run();
 
 
 **Inherit from [`CreemError`](./src/models/errors/creemerror.ts)**:
-* [`CustomerCreditsErrorResponseDto`](./src/models/errors/customercreditserrorresponsedto.ts): Applicable to 9 of 91 methods.*
-* [`UsageMeteringErrorApiResponseDto`](./src/models/errors/usagemeteringerrorapiresponsedto.ts): Applicable to 6 of 91 methods.*
-* [`CatalogValidationResponseDto`](./src/models/errors/catalogvalidationresponsedto.ts): Every item passes. One answer per item, in the order of the request. Status code `422`. Applicable to 1 of 91 methods.*
-* [`TooManyRequestsErrorEntity`](./src/models/errors/toomanyrequestserrorentity.ts): A create with this `Idempotency-Key` is in progress, or failed with an unclear outcome less than 5 minutes ago. Retry later. Status code `429`. Applicable to 1 of 91 methods.*
+* [`CustomerCreditsErrorResponseDto`](./src/models/errors/customercreditserrorresponsedto.ts): Applicable to 9 of 92 methods.*
+* [`UsageMeteringErrorApiResponseDto`](./src/models/errors/usagemeteringerrorapiresponsedto.ts): Applicable to 6 of 92 methods.*
+* [`CatalogValidationResponseDto`](./src/models/errors/catalogvalidationresponsedto.ts): Every item passes. One answer per item, in the order of the request. Status code `422`. Applicable to 1 of 92 methods.*
+* [`TooManyRequestsErrorEntity`](./src/models/errors/toomanyrequestserrorentity.ts): A create with this `Idempotency-Key` is in progress, or failed with an unclear outcome less than 5 minutes ago. Retry later. Status code `429`. Applicable to 1 of 92 methods.*
 * [`ResponseValidationError`](./src/models/errors/responsevalidationerror.ts): Type mismatch between the data returned from the server and the structure expected by the SDK. See `error.rawValue` for the raw value and `error.pretty()` for a nicely formatted multi-line string.
 
 </details>

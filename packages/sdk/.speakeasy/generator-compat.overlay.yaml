@@ -161,3 +161,23 @@ actions:
   - target: $.components.schemas.UpdateProductGroupRequestEntity.properties.upgrade_behavior
     update:
       title: UpdateProductGroupRequestEntityUpgradeBehavior
+  # ENG-2437: promote's request and response bring inline schemas the generator
+  # names generically: the `select` unions and their `"all"` enums came out as
+  # `Meters`, `One` and `Products1`, and the nullable `validation` as
+  # `Validation`. Names like those are taken by whichever schema a later
+  # contract adds first, so each gets its entity's name.
+  - target: $.components.schemas.CatalogPromoteSelectRequestDto.properties.meters
+    update:
+      title: CatalogPromoteSelectRequestDtoMeters
+  - target: $.components.schemas.CatalogPromoteSelectRequestDto.properties.meters.oneOf[0]
+    update:
+      title: CatalogPromoteSelectRequestDtoMetersAll
+  - target: $.components.schemas.CatalogPromoteSelectRequestDto.properties.products
+    update:
+      title: CatalogPromoteSelectRequestDtoProducts
+  - target: $.components.schemas.CatalogPromoteSelectRequestDto.properties.products.oneOf[0]
+    update:
+      title: CatalogPromoteSelectRequestDtoProductsAll
+  - target: $.components.schemas.CatalogPromoteResponseDto.properties.validation
+    update:
+      title: CatalogPromoteValidationResponseDto
