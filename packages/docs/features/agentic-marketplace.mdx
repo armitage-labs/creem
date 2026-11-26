@@ -134,12 +134,12 @@ You need:
 In the dashboard, open **API & Webhooks**. Add or edit a webhook endpoint.
 
 - An endpoint with no event filter receives all events, including `marketplace.grant.requested`.
-- An endpoint with an event filter must include `marketplace.grant.requested`.
+- An endpoint with an event filter must include `marketplace.grant.requested`. Select it in the event list when you add or edit the endpoint.
 
-<Warning>
-  If you cannot select `marketplace.grant.requested` in the event list, remove the filter or contact
-  support@creem.io.
-</Warning>
+<Note>
+  **Send test event** does not offer `marketplace.grant.requested`. Your endpoint gets test asks
+  from the listing review instead. See [Step 5](#step-5-pass-the-review-test).
+</Note>
 
 Verify the `creem-signature` header on every request. It is the HMAC-SHA256 of the raw body, signed with your webhook secret, hex-encoded. See [Webhooks](/code/webhooks).
 
