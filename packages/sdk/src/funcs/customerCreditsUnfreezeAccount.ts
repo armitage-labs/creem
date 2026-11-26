@@ -35,7 +35,7 @@ import { Result } from "../types/fp.js";
  */
 export function customerCreditsUnfreezeAccount(
   client: CreemCore,
-  id: string,
+  request: operations.UnfreezeCustomerCreditsAccountRequest,
   options?: RequestOptions,
 ): APIPromise<
   Result<
@@ -53,14 +53,14 @@ export function customerCreditsUnfreezeAccount(
 > {
   return new APIPromise($do(
     client,
-    id,
+    request,
     options,
   ));
 }
 
 async function $do(
   client: CreemCore,
-  id: string,
+  request: operations.UnfreezeCustomerCreditsAccountRequest,
   options?: RequestOptions,
 ): Promise<
   [
@@ -79,12 +79,8 @@ async function $do(
     APICall,
   ]
 > {
-  const input: operations.UnfreezeCustomerCreditsAccountRequest = {
-    id: id,
-  };
-
   const parsed = safeParse(
-    input,
+    request,
     (value) =>
       operations.UnfreezeCustomerCreditsAccountRequest$outboundSchema.parse(
         value,

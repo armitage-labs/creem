@@ -8,10 +8,12 @@ The current status of the license key.
 import { LicenseStatus } from "creem/models/components";
 
 let value: LicenseStatus = "expired";
+
+// Open enum: unrecognized values are captured as Unrecognized<string>
 ```
 
 ## Values
 
 ```typescript
-"inactive" | "active" | "expired" | "disabled"
+"inactive" | "active" | "expired" | "disabled" | Unrecognized<string>
 ```

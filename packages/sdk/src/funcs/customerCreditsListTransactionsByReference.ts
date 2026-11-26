@@ -34,7 +34,7 @@ import { Result } from "../types/fp.js";
  */
 export function customerCreditsListTransactionsByReference(
   client: CreemCore,
-  reference: string,
+  request: operations.ListCustomerCreditsTransactionsByReferenceRequest,
   options?: RequestOptions,
 ): APIPromise<
   Result<
@@ -51,14 +51,14 @@ export function customerCreditsListTransactionsByReference(
 > {
   return new APIPromise($do(
     client,
-    reference,
+    request,
     options,
   ));
 }
 
 async function $do(
   client: CreemCore,
-  reference: string,
+  request: operations.ListCustomerCreditsTransactionsByReferenceRequest,
   options?: RequestOptions,
 ): Promise<
   [
@@ -76,12 +76,8 @@ async function $do(
     APICall,
   ]
 > {
-  const input: operations.ListCustomerCreditsTransactionsByReferenceRequest = {
-    reference: reference,
-  };
-
   const parsed = safeParse(
-    input,
+    request,
     (value) =>
       operations
         .ListCustomerCreditsTransactionsByReferenceRequest$outboundSchema.parse(

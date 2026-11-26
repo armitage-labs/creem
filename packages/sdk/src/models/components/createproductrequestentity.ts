@@ -25,6 +25,24 @@ import {
   ProductFeatureRequestEntity$outboundSchema,
 } from "./productfeaturerequestentity.js";
 import {
+  ProductFileFeatureRequestEntity,
+  ProductFileFeatureRequestEntity$inboundSchema,
+  ProductFileFeatureRequestEntity$Outbound,
+  ProductFileFeatureRequestEntity$outboundSchema,
+} from "./productfilefeaturerequestentity.js";
+import {
+  ProductLicenseKeyFeatureRequestEntity,
+  ProductLicenseKeyFeatureRequestEntity$inboundSchema,
+  ProductLicenseKeyFeatureRequestEntity$Outbound,
+  ProductLicenseKeyFeatureRequestEntity$outboundSchema,
+} from "./productlicensekeyfeaturerequestentity.js";
+import {
+  ProductPrivateNoteFeatureRequestEntity,
+  ProductPrivateNoteFeatureRequestEntity$inboundSchema,
+  ProductPrivateNoteFeatureRequestEntity$Outbound,
+  ProductPrivateNoteFeatureRequestEntity$outboundSchema,
+} from "./productprivatenotefeaturerequestentity.js";
+import {
   ProductRequestBillingPeriod,
   ProductRequestBillingPeriod$inboundSchema,
   ProductRequestBillingPeriod$outboundSchema,
@@ -55,6 +73,12 @@ import {
   UsagePriceRequestEntity$Outbound,
   UsagePriceRequestEntity$outboundSchema,
 } from "./usagepricerequestentity.js";
+
+export type CreateProductRequestEntityFeatures =
+  | ProductFeatureRequestEntity
+  | ProductLicenseKeyFeatureRequestEntity
+  | ProductPrivateNoteFeatureRequestEntity
+  | ProductFileFeatureRequestEntity;
 
 export type CreateProductRequestEntity = {
   /**
@@ -138,11 +162,11 @@ export type CreateProductRequestEntity = {
    */
   metadata?: { [k: string]: any } | undefined;
   /**
-   * Collect additional information from your customer using custom fields during checkout. Up to 3 fields are supported.
+   * Collect additional information from your customer using custom fields during checkout.
    */
   customFields?: Array<CustomFieldRequestEntity> | undefined;
   /**
-   * DEPRECATED: Use `custom_fields` instead. Collect additional information from your customer using custom fields during checkout. Up to 3 fields are supported.
+   * DEPRECATED: Use `custom_fields` instead. Collect additional information from your customer using custom fields during checkout.
    *
    * @deprecated field: This will be removed in a future release, please migrate away from it as soon as possible.
    */
@@ -156,10 +180,67 @@ export type CreateProductRequestEntity = {
    */
   usagePrices?: Array<UsagePriceRequestEntity> | undefined;
   /**
-   * Features granted by purchase. Only `customerCredits` (a credit grant into one of the customer credit buckets) can be managed through the API.
+   * Features granted by purchase: `customerCredits` (a credit grant into one of the customer credit buckets), `licenseKey` (a license key per purchased unit), `custom` (a private note) and `file` (files buyers download, named by the ids of confirmed uploads from `POST /v1/files`). A file id that is unknown, of another store, or of an upload that was never confirmed answers `400` with code `reference_not_found`; a file of the store that is not stored under its own product-file key answers `400` with code `file_location_invalid`. `githubRepository` features are managed in the dashboard: an entry of that type answers `400` with code `feature_type_not_writable`.
    */
-  features?: Array<ProductFeatureRequestEntity> | undefined;
+  features?:
+    | Array<
+      | ProductFeatureRequestEntity
+      | ProductLicenseKeyFeatureRequestEntity
+      | ProductPrivateNoteFeatureRequestEntity
+      | ProductFileFeatureRequestEntity
+    >
+    | undefined;
 };
+
+/** @internal */
+export const CreateProductRequestEntityFeatures$inboundSchema: z.ZodType<
+  CreateProductRequestEntityFeatures,
+  z.ZodTypeDef,
+  unknown
+> = z.union([
+  ProductFeatureRequestEntity$inboundSchema,
+  ProductLicenseKeyFeatureRequestEntity$inboundSchema,
+  ProductPrivateNoteFeatureRequestEntity$inboundSchema,
+  ProductFileFeatureRequestEntity$inboundSchema,
+]);
+/** @internal */
+export type CreateProductRequestEntityFeatures$Outbound =
+  | ProductFeatureRequestEntity$Outbound
+  | ProductLicenseKeyFeatureRequestEntity$Outbound
+  | ProductPrivateNoteFeatureRequestEntity$Outbound
+  | ProductFileFeatureRequestEntity$Outbound;
+
+/** @internal */
+export const CreateProductRequestEntityFeatures$outboundSchema: z.ZodType<
+  CreateProductRequestEntityFeatures$Outbound,
+  z.ZodTypeDef,
+  CreateProductRequestEntityFeatures
+> = z.union([
+  ProductFeatureRequestEntity$outboundSchema,
+  ProductLicenseKeyFeatureRequestEntity$outboundSchema,
+  ProductPrivateNoteFeatureRequestEntity$outboundSchema,
+  ProductFileFeatureRequestEntity$outboundSchema,
+]);
+
+export function createProductRequestEntityFeaturesToJSON(
+  createProductRequestEntityFeatures: CreateProductRequestEntityFeatures,
+): string {
+  return JSON.stringify(
+    CreateProductRequestEntityFeatures$outboundSchema.parse(
+      createProductRequestEntityFeatures,
+    ),
+  );
+}
+export function createProductRequestEntityFeaturesFromJSON(
+  jsonString: string,
+): SafeParseResult<CreateProductRequestEntityFeatures, SDKValidationError> {
+  return safeParse(
+    jsonString,
+    (x) =>
+      CreateProductRequestEntityFeatures$inboundSchema.parse(JSON.parse(x)),
+    `Failed to parse 'CreateProductRequestEntityFeatures' from JSON`,
+  );
+}
 
 /** @internal */
 export const CreateProductRequestEntity$inboundSchema: z.ZodType<
@@ -191,7 +272,14 @@ export const CreateProductRequestEntity$inboundSchema: z.ZodType<
   custom_field: z.array(CustomFieldRequestEntity$inboundSchema).optional(),
   abandoned_cart_recovery_enabled: z.boolean().default(false),
   usage_prices: z.array(UsagePriceRequestEntity$inboundSchema).optional(),
-  features: z.array(ProductFeatureRequestEntity$inboundSchema).optional(),
+  features: z.array(
+    z.union([
+      ProductFeatureRequestEntity$inboundSchema,
+      ProductLicenseKeyFeatureRequestEntity$inboundSchema,
+      ProductPrivateNoteFeatureRequestEntity$inboundSchema,
+      ProductFileFeatureRequestEntity$inboundSchema,
+    ]),
+  ).optional(),
 }).transform((v) => {
   return remap$(v, {
     "image_url": "imageUrl",
@@ -241,7 +329,14 @@ export type CreateProductRequestEntity$Outbound = {
   custom_field?: Array<CustomFieldRequestEntity$Outbound> | undefined;
   abandoned_cart_recovery_enabled: boolean;
   usage_prices?: Array<UsagePriceRequestEntity$Outbound> | undefined;
-  features?: Array<ProductFeatureRequestEntity$Outbound> | undefined;
+  features?:
+    | Array<
+      | ProductFeatureRequestEntity$Outbound
+      | ProductLicenseKeyFeatureRequestEntity$Outbound
+      | ProductPrivateNoteFeatureRequestEntity$Outbound
+      | ProductFileFeatureRequestEntity$Outbound
+    >
+    | undefined;
 };
 
 /** @internal */
@@ -274,7 +369,14 @@ export const CreateProductRequestEntity$outboundSchema: z.ZodType<
   customField: z.array(CustomFieldRequestEntity$outboundSchema).optional(),
   abandonedCartRecoveryEnabled: z.boolean().default(false),
   usagePrices: z.array(UsagePriceRequestEntity$outboundSchema).optional(),
-  features: z.array(ProductFeatureRequestEntity$outboundSchema).optional(),
+  features: z.array(
+    z.union([
+      ProductFeatureRequestEntity$outboundSchema,
+      ProductLicenseKeyFeatureRequestEntity$outboundSchema,
+      ProductPrivateNoteFeatureRequestEntity$outboundSchema,
+      ProductFileFeatureRequestEntity$outboundSchema,
+    ]),
+  ).optional(),
 }).transform((v) => {
   return remap$(v, {
     imageUrl: "image_url",

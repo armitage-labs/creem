@@ -20,7 +20,7 @@ it("plain-entity lists traverse pages and aggregate", async () => {
     "order_1",
     "order_2",
   ]);
-  expect(spy.mock.calls.map((c) => c[1])).toEqual([1, 2]);
+  expect(spy.mock.calls.map((c) => c[0].pageNumber)).toEqual([1, 2]);
 });
 it("legacy subscription status filters the complete endpoint, with accurate totals", async () => {
   const h = harness();
@@ -72,41 +72,23 @@ it("legacy list commands preserve their page and limit defaults", async () => {
   await h.run(["transactions", "list", "--json"]);
 
   expect(products).toHaveBeenCalledWith(
-    1,
-    20,
-    undefined,
-    undefined,
+    { pageNumber: 1, pageSize: 20 },
     expect.objectContaining({ retries: { strategy: "none" } }),
   );
   expect(customers).toHaveBeenCalledWith(
-    1,
-    20,
+    { pageNumber: 1, pageSize: 20 },
     expect.objectContaining({ retries: { strategy: "none" } }),
   );
   expect(subscriptions).toHaveBeenCalledWith(
-    1,
-    10,
+    { pageNumber: 1, pageSize: 10 },
     expect.objectContaining({ retries: { strategy: "none" } }),
   );
   expect(discounts).toHaveBeenCalledWith(
-    1,
-    20,
-    undefined,
-    undefined,
-    undefined,
-    undefined,
-    undefined,
+    { pageNumber: 1, pageSize: 20 },
     expect.objectContaining({ retries: { strategy: "none" } }),
   );
   expect(transactions).toHaveBeenCalledWith(
-    undefined,
-    undefined,
-    undefined,
-    1,
-    20,
-    undefined,
-    undefined,
-    undefined,
+    { pageNumber: 1, pageSize: 20 },
     expect.objectContaining({ retries: { strategy: "none" } }),
   );
 });
@@ -135,4 +117,25 @@ it("NDJSON streams prior pages before a later failure", async () => {
   expect(r.code).toBe(1);
   expect(JSON.parse(r.stdout)).toEqual({ id: "cust_1" });
   expect(JSON.parse(r.stderr).error.message).toContain("second page failed");
+});
+it("subscription status filter accepts a status the SDK doesn't know yet", async () => {
+  const h = harness();
+  vi.spyOn(h.client.subscriptions, "search").mockResolvedValueOnce({
+    result: {
+      items: [
+        { id: "sub_1", status: "active" },
+        { id: "sub_2", status: "paused_by_review" },
+      ],
+      pagination: { currentPage: 1, totalPages: 1, totalRecords: 2, nextPage: 0, prevPage: 0 },
+    },
+  } as never);
+  // creem 2 lists such subscriptions (open response enums), so the filter must reach them.
+  const r = await h.run(["subs", "list", "--status", "paused_by_review", "--json"]);
+  expect(r.code, r.stderr).toBe(0);
+  expect(JSON.parse(r.stdout).items).toEqual([{ id: "sub_2", status: "paused_by_review" }]);
+});
+it("subscription status filter still rejects an empty status", async () => {
+  const h = harness();
+  const r = await h.run(["subs", "list", "--status", "", "--json"]);
+  expect(r.code).not.toBe(0);
 });

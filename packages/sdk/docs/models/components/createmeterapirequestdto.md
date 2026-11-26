@@ -12,13 +12,7 @@ let value: CreateMeterApiRequestDto = {
   aggregationProperty: "tokens",
   filter: {
     conjunction: "and",
-    clauses: [
-      {
-        property: "tier",
-        operator: "equals",
-        value: "pro",
-      },
-    ],
+    clauses: [],
   },
   unitLabel: "images",
   externalId: "image-generations",

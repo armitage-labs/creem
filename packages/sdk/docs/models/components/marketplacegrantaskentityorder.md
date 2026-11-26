@@ -12,18 +12,18 @@ let value: MarketplaceGrantAskEntityOrder = {
   status: "<value>",
   amountMinor: 3557.52,
   currency: "Kenyan Shilling",
-  transactionId: {},
+  transactionId: "<id>",
   paidAt: null,
 };
 ```
 
 ## Fields
 
-| Field                                                                | Type                                                                 | Required                                                             | Description                                                          |
-| -------------------------------------------------------------------- | -------------------------------------------------------------------- | -------------------------------------------------------------------- | -------------------------------------------------------------------- |
-| `id`                                                                 | *string*                                                             | :heavy_check_mark:                                                   | N/A                                                                  |
-| `status`                                                             | *string*                                                             | :heavy_check_mark:                                                   | N/A                                                                  |
-| `amountMinor`                                                        | *number*                                                             | :heavy_check_mark:                                                   | What the buyer was charged, minor units.                             |
-| `currency`                                                           | *string*                                                             | :heavy_check_mark:                                                   | N/A                                                                  |
-| `transactionId`                                                      | [components.TransactionId](../../models/components/transactionid.md) | :heavy_check_mark:                                                   | N/A                                                                  |
-| `paidAt`                                                             | [components.PaidAt](../../models/components/paidat.md)               | :heavy_check_mark:                                                   | N/A                                                                  |
+| Field                                                                             | Type                                                                              | Required                                                                          | Description                                                                       |
+| --------------------------------------------------------------------------------- | --------------------------------------------------------------------------------- | --------------------------------------------------------------------------------- | --------------------------------------------------------------------------------- |
+| `id`                                                                              | *string*                                                                          | :heavy_check_mark:                                                                | N/A                                                                               |
+| `status`                                                                          | *string*                                                                          | :heavy_check_mark:                                                                | N/A                                                                               |
+| `amountMinor`                                                                     | *number*                                                                          | :heavy_check_mark:                                                                | What the buyer was charged, minor units.                                          |
+| `currency`                                                                        | *string*                                                                          | :heavy_check_mark:                                                                | N/A                                                                               |
+| `transactionId`                                                                   | *string*                                                                          | :heavy_check_mark:                                                                | The id of the transaction that paid the order; null when none is recorded.        |
+| `paidAt`                                                                          | *string*                                                                          | :heavy_check_mark:                                                                | ISO-8601 instant the order was paid; null when no paying transaction is recorded. |

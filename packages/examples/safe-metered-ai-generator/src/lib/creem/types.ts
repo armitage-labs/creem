@@ -38,18 +38,14 @@ export interface Balance {
   updated_at?: string
 }
 
-/**
- * The provider abstraction every wallet operation goes through. Two concrete
- * implementations exist: one backed by the Creem Customer Credits API, one by a
- * local Postgres ledger. Both satisfy this interface so callers never care
- * which is in use.
- */
+/** The provider abstraction every wallet operation goes through. */
 export interface CreditsProvider {
   readonly kind: 'creem'
   createAccount(input: { customerId: string; name?: string; unitLabel?: string; initialBalance?: string }): Promise<CreditAccount>
   getBalance(accountId: string, at?: string): Promise<Balance>
+  findAccount(customerId: string, name: string): Promise<CreditAccount | null>
   credit(accountId: string, input: { amount: string; reference: string; idempotencyKey: string }): Promise<Transaction>
-  debit(accountId: string, input: { amount: string; reference: string; idempotencyKey: string }): Promise<Transaction>
+  debit(accountId: string, input: { amount: string; reference: string; idempotencyKey: string; moderationId?: string }): Promise<Transaction>
   reverse(accountId: string, transactionId: string): Promise<Transaction>
   listEntries(accountId: string, limit?: number): Promise<LedgerEntry[]>
   freeze(accountId: string): Promise<void>
@@ -62,5 +58,17 @@ export class InsufficientBalanceError extends Error {
   constructor(message = 'insufficient_balance') {
     super(message)
     this.name = 'InsufficientBalanceError'
+  }
+}
+
+/**
+ * Thrown when Creem refuses a debit from the generation wallet because of its
+ * moderation result: missing, denied, flagged, expired or already used. `code`
+ * is Creem's error code (`moderation_denied`, `moderation_result_expired`, ...).
+ */
+export class ModerationDebitError extends Error {
+  constructor(readonly code: string) {
+    super(code)
+    this.name = 'ModerationDebitError'
   }
 }

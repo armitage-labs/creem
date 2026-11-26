@@ -1,6 +1,6 @@
 {
   "name": "@creem_io/webhook-types",
-  "version": "1.0.1",
+  "version": "2.0.0",
   "description": "Shared webhook types and utilities for Creem adapters",
   "main": "./dist/index.js",
   "module": "./dist/index.mjs",
@@ -25,7 +25,8 @@
   ],
   "scripts": {
     "build": "tsup",
-    "typecheck": "tsc --noEmit",
+    "typecheck": "tsc --noEmit && tsc --noEmit -p tsconfig.type-tests.json",
+    "test": "tsc --noEmit -p tsconfig.type-tests.json",
     "check:package": "publint --strict --pack pnpm && attw --pack .",
     "prepublishOnly": "npm run build"
   },

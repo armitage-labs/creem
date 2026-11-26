@@ -223,7 +223,8 @@ export const creditEntryValidator = v.object({
   id: v.string(),
   transactionId: v.string(),
   accountId: v.string(),
-  side: v.union(v.literal("debit"), v.literal("credit")),
+  /** `"debit"` or `"credit"` today; a side the API adds later passes through. */
+  side: v.string(),
   amount: v.string(),
   createdAt: v.string(),
 });

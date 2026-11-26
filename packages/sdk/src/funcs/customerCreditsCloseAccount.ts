@@ -35,7 +35,7 @@ import { Result } from "../types/fp.js";
  */
 export function customerCreditsCloseAccount(
   client: CreemCore,
-  id: string,
+  request: operations.CloseCustomerCreditsAccountRequest,
   options?: RequestOptions,
 ): APIPromise<
   Result<
@@ -53,14 +53,14 @@ export function customerCreditsCloseAccount(
 > {
   return new APIPromise($do(
     client,
-    id,
+    request,
     options,
   ));
 }
 
 async function $do(
   client: CreemCore,
-  id: string,
+  request: operations.CloseCustomerCreditsAccountRequest,
   options?: RequestOptions,
 ): Promise<
   [
@@ -79,12 +79,8 @@ async function $do(
     APICall,
   ]
 > {
-  const input: operations.CloseCustomerCreditsAccountRequest = {
-    id: id,
-  };
-
   const parsed = safeParse(
-    input,
+    request,
     (value) =>
       operations.CloseCustomerCreditsAccountRequest$outboundSchema.parse(value),
     "Input validation failed",

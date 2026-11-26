@@ -3,7 +3,8 @@
  */
 
 import * as z from "zod/v3";
-import { ClosedEnum } from "../../types/enums.js";
+import * as openEnums from "../../types/enums.js";
+import { OpenEnum } from "../../types/enums.js";
 
 /**
  * The type of order. This can specify whether it's a regular purchase, subscription, etc.
@@ -15,11 +16,17 @@ export const OrderType = {
 /**
  * The type of order. This can specify whether it's a regular purchase, subscription, etc.
  */
-export type OrderType = ClosedEnum<typeof OrderType>;
+export type OrderType = OpenEnum<typeof OrderType>;
 
 /** @internal */
-export const OrderType$inboundSchema: z.ZodNativeEnum<typeof OrderType> = z
-  .nativeEnum(OrderType);
+export const OrderType$inboundSchema: z.ZodType<
+  OrderType,
+  z.ZodTypeDef,
+  unknown
+> = openEnums.inboundSchema(OrderType);
 /** @internal */
-export const OrderType$outboundSchema: z.ZodNativeEnum<typeof OrderType> =
-  OrderType$inboundSchema;
+export const OrderType$outboundSchema: z.ZodType<
+  string,
+  z.ZodTypeDef,
+  OrderType
+> = openEnums.outboundSchema(OrderType);

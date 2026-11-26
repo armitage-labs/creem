@@ -3,7 +3,12 @@ import { mkdirSync, mkdtempSync, readFileSync, rmSync, writeFileSync } from "nod
 import { spawnSync } from "node:child_process";
 import { tmpdir } from "node:os";
 import { dirname, join } from "node:path";
-import { checkOpenApiSync, checkParity, reportFailure } from "../scripts/check-parity.mjs";
+import {
+  checkOpenApiSync,
+  checkParity,
+  reportFailure,
+  sdkMethodList,
+} from "../scripts/check-parity.mjs";
 
 const spec = {
   paths: { "/v1/events": { get: { operationId: "listUsageEvents" } } },
@@ -125,7 +130,7 @@ it("reports both failures in one invocation and exits successfully once both con
     put("sdk/openapi.json", JSON.stringify(spec));
     put("docs/api-reference/openapi.json", JSON.stringify(empty));
     put("docs/snippets/cli-reference.mdx", "");
-    mkdirSync(join(dir, "packages/sdk/src/sdk"), { recursive: true });
+    put("sdk/src/sdk/sdk.ts", "");
     mkdirSync(join(dir, "packages/cli/src/commands/operations"), { recursive: true });
     const summary = join(dir, "summary.md");
     const run = () =>
@@ -165,4 +170,29 @@ it("preserves rejection of duplicate SDK methods", () => {
       handlerSources: "",
     }),
   ).toThrow("expected 2 occurrences; found 0");
+});
+
+it("names SDK methods by the client accessor, not the lowercased file name", () => {
+  const sdkSource = [
+    "  get customerCredits(): CustomerCredits {",
+    "  get productGroups(): ProductGroups {",
+    "  get meters(): Meters {",
+  ].join("\n");
+  const files = [
+    {
+      name: "customercredits.ts",
+      source: "export class CustomerCredits extends ClientSDK {\n  async getAccount(",
+    },
+    {
+      name: "productgroups.ts",
+      source: "export class ProductGroups extends ClientSDK {\n  async list(\n  async get(",
+    },
+    { name: "meters.ts", source: "export class Meters extends ClientSDK {\n  async listMeters(" },
+  ];
+  expect(sdkMethodList(files, sdkSource)).toEqual([
+    "customerCredits.getAccount",
+    "productGroups.list",
+    "productGroups.get",
+    "meters.listMeters",
+  ]);
 });

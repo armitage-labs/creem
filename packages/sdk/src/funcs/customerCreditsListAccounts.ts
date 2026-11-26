@@ -40,10 +40,7 @@ import {
  */
 export function customerCreditsListAccounts(
   client: CreemCore,
-  limit?: number | undefined,
-  customerId?: string | undefined,
-  startingAfter?: string | undefined,
-  endingBefore?: string | undefined,
+  request: operations.ListCustomerCreditsAccountsRequest,
   options?: RequestOptions,
 ): APIPromise<
   PageIterator<
@@ -63,20 +60,14 @@ export function customerCreditsListAccounts(
 > {
   return new APIPromise($do(
     client,
-    limit,
-    customerId,
-    startingAfter,
-    endingBefore,
+    request,
     options,
   ));
 }
 
 async function $do(
   client: CreemCore,
-  limit?: number | undefined,
-  customerId?: string | undefined,
-  startingAfter?: string | undefined,
-  endingBefore?: string | undefined,
+  request: operations.ListCustomerCreditsAccountsRequest,
   options?: RequestOptions,
 ): Promise<
   [
@@ -97,15 +88,8 @@ async function $do(
     APICall,
   ]
 > {
-  const input: operations.ListCustomerCreditsAccountsRequest = {
-    limit: limit,
-    customerId: customerId,
-    startingAfter: startingAfter,
-    endingBefore: endingBefore,
-  };
-
   const parsed = safeParse(
-    input,
+    request,
     (value) =>
       operations.ListCustomerCreditsAccountsRequest$outboundSchema.parse(value),
     "Input validation failed",
@@ -234,7 +218,7 @@ async function $do(
     if (!Array.isArray(results) || !results.length) {
       return { next: () => null };
     }
-    const limit = input?.limit ?? 10;
+    const limit = request?.limit ?? 10;
     if (results.length < limit) {
       return { next: () => null };
     }
@@ -242,10 +226,10 @@ async function $do(
     const nextVal = () =>
       customerCreditsListAccounts(
         client,
-        limit,
-        customerId,
-        nextCursor,
-        endingBefore,
+        {
+          ...request,
+          startingAfter: nextCursor,
+        },
         options,
       );
 

@@ -1,7 +1,7 @@
 import type { AccountResponseDto, BalanceResponseDto, EntryResponseDto, TransactionResponseDto } from 'creem/models/components'
-import { CreemError } from 'creem/models/errors'
 import { creemClient } from './client'
-import { Balance, CreditAccount, CreditsProvider, InsufficientBalanceError, LedgerEntry, Transaction } from './types'
+import { toDebitError } from './errors'
+import { Balance, CreditAccount, CreditsProvider, LedgerEntry, Transaction } from './types'
 
 /**
  * CreditsProvider backed by the Creem Customer Credits API, using the official
@@ -23,6 +23,13 @@ export class CreemCreditsProvider implements CreditsProvider {
     return toAccount(account)
   }
 
+  /** The customer's wallet with this name, or null. Names are unique per customer. */
+  async findAccount(customerId: string, name: string): Promise<CreditAccount | null> {
+    const page = await creemClient.customerCredits.listAccounts(100, customerId)
+    const match = (page.result.data ?? []).find((a) => a.name === name)
+    return match ? toAccount(match) : null
+  }
+
   async getBalance(accountId: string, at?: string): Promise<Balance> {
     const balance = await creemClient.customerCredits.getAccountBalance(accountId, at)
     return toBalance(balance)
@@ -37,17 +44,22 @@ export class CreemCreditsProvider implements CreditsProvider {
     return toTransaction(txn)
   }
 
-  async debit(accountId: string, input: { amount: string; reference: string; idempotencyKey: string }): Promise<Transaction> {
+  /**
+   * `moderationId` is required when the account is the `generation` wallet:
+   * Creem checks that the moderation result is `allow`, at most 24 hours old
+   * and not used by another debit before it moves any credits.
+   */
+  async debit(accountId: string, input: { amount: string; reference: string; idempotencyKey: string; moderationId?: string }): Promise<Transaction> {
     try {
       const txn = await creemClient.customerCredits.debitAccount(accountId, {
         amount: input.amount,
         reference: input.reference,
         idempotencyKey: input.idempotencyKey,
+        ...(input.moderationId ? { moderationId: input.moderationId } : {}),
       })
       return toTransaction(txn)
     } catch (err) {
-      if (isInsufficient(err)) throw new InsufficientBalanceError()
-      throw err
+      throw toDebitError(err)
     }
   }
 
@@ -112,16 +124,4 @@ function toTransaction(t: TransactionResponseDto): Transaction {
     entries: t.entries.map(toLedgerEntry),
     created_at: t.createdAt,
   }
-}
-
-/**
- * A debit that would push the balance below zero surfaces as a Creem API error.
- * Detect it from the HTTP status (422) or an "insufficient" marker in the body
- * so the wallet layer can translate it into a clean InsufficientBalanceError
- * rather than falling back to the local ledger.
- */
-function isInsufficient(err: unknown): boolean {
-  if (!(err instanceof CreemError)) return false
-  if (err.statusCode === 422) return true
-  return (err.body ?? '').toLowerCase().includes('insufficient')
 }

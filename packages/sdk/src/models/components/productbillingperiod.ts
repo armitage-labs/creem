@@ -3,7 +3,8 @@
  */
 
 import * as z from "zod/v3";
-import { ClosedEnum } from "../../types/enums.js";
+import * as openEnums from "../../types/enums.js";
+import { OpenEnum } from "../../types/enums.js";
 
 /**
  * Billing period
@@ -20,13 +21,17 @@ export const ProductBillingPeriod = {
 /**
  * Billing period
  */
-export type ProductBillingPeriod = ClosedEnum<typeof ProductBillingPeriod>;
+export type ProductBillingPeriod = OpenEnum<typeof ProductBillingPeriod>;
 
 /** @internal */
-export const ProductBillingPeriod$inboundSchema: z.ZodNativeEnum<
-  typeof ProductBillingPeriod
-> = z.nativeEnum(ProductBillingPeriod);
+export const ProductBillingPeriod$inboundSchema: z.ZodType<
+  ProductBillingPeriod,
+  z.ZodTypeDef,
+  unknown
+> = openEnums.inboundSchema(ProductBillingPeriod);
 /** @internal */
-export const ProductBillingPeriod$outboundSchema: z.ZodNativeEnum<
-  typeof ProductBillingPeriod
-> = ProductBillingPeriod$inboundSchema;
+export const ProductBillingPeriod$outboundSchema: z.ZodType<
+  string,
+  z.ZodTypeDef,
+  ProductBillingPeriod
+> = openEnums.outboundSchema(ProductBillingPeriod);

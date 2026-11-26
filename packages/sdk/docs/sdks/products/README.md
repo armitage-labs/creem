@@ -9,6 +9,7 @@
 * [get](#get) - Get a product by ID
 * [update](#update) - Update a product
 * [archive](#archive) - Archive a product
+* [listPrices](#listprices) - List the price versions of a product
 
 ## search
 
@@ -25,7 +26,9 @@ const creem = new Creem({
 });
 
 async function run() {
-  const result = await creem.products.search(1, 10, undefined, "pro-monthly");
+  const result = await creem.products.search({
+    externalId: "pro-monthly",
+  });
 
   for await (const page of result) {
     console.log(page);
@@ -50,7 +53,9 @@ const creem = new CreemCore({
 });
 
 async function run() {
-  const res = await productsSearch(creem, 1, 10, undefined, "pro-monthly");
+  const res = await productsSearch(creem, {
+    externalId: "pro-monthly",
+  });
   if (res.ok) {
     const { value: result } = res;
     for await (const page of result) {
@@ -66,15 +71,12 @@ run();
 
 ### Parameters
 
-| Parameter                                                                                                                                                                      | Type                                                                                                                                                                           | Required                                                                                                                                                                       | Description                                                                                                                                                                    | Example                                                                                                                                                                        |
-| ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
-| `pageNumber`                                                                                                                                                                   | *number*                                                                                                                                                                       | :heavy_minus_sign:                                                                                                                                                             | The page number for pagination.                                                                                                                                                | 1                                                                                                                                                                              |
-| `pageSize`                                                                                                                                                                     | *number*                                                                                                                                                                       | :heavy_minus_sign:                                                                                                                                                             | The number of items per page.                                                                                                                                                  | 10                                                                                                                                                                             |
-| `status`                                                                                                                                                                       | [components.ProductStatus](../../models/components/productstatus.md)                                                                                                           | :heavy_minus_sign:                                                                                                                                                             | Lifecycle status of the product: `active` or `archived`.                                                                                                                       |                                                                                                                                                                                |
-| `externalId`                                                                                                                                                                   | *string*                                                                                                                                                                       | :heavy_minus_sign:                                                                                                                                                             | Only the product with this `external_id` (your own key). Case-sensitive, exact match.                                                                                          | pro-monthly                                                                                                                                                                    |
-| `options`                                                                                                                                                                      | RequestOptions                                                                                                                                                                 | :heavy_minus_sign:                                                                                                                                                             | Used to set various options for making HTTP requests.                                                                                                                          |                                                                                                                                                                                |
-| `options.fetchOptions`                                                                                                                                                         | [RequestInit](https://developer.mozilla.org/en-US/docs/Web/API/Request/Request#options)                                                                                        | :heavy_minus_sign:                                                                                                                                                             | Options that are passed to the underlying HTTP request. This can be used to inject extra headers for examples. All `Request` options, except `method` and `body`, are allowed. |                                                                                                                                                                                |
-| `options.retries`                                                                                                                                                              | [RetryConfig](../../lib/utils/retryconfig.md)                                                                                                                                  | :heavy_minus_sign:                                                                                                                                                             | Enables retrying HTTP requests under certain failure conditions.                                                                                                               |                                                                                                                                                                                |
+| Parameter                                                                                                                                                                      | Type                                                                                                                                                                           | Required                                                                                                                                                                       | Description                                                                                                                                                                    |
+| ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| `request`                                                                                                                                                                      | [operations.SearchProductsRequest](../../models/operations/searchproductsrequest.md)                                                                                           | :heavy_check_mark:                                                                                                                                                             | The request object to use for the request.                                                                                                                                     |
+| `options`                                                                                                                                                                      | RequestOptions                                                                                                                                                                 | :heavy_minus_sign:                                                                                                                                                             | Used to set various options for making HTTP requests.                                                                                                                          |
+| `options.fetchOptions`                                                                                                                                                         | [RequestInit](https://developer.mozilla.org/en-US/docs/Web/API/Request/Request#options)                                                                                        | :heavy_minus_sign:                                                                                                                                                             | Options that are passed to the underlying HTTP request. This can be used to inject extra headers for examples. All `Request` options, except `method` and `body`, are allowed. |
+| `options.retries`                                                                                                                                                              | [RetryConfig](../../lib/utils/retryconfig.md)                                                                                                                                  | :heavy_minus_sign:                                                                                                                                                             | Enables retrying HTTP requests under certain failure conditions.                                                                                                               |
 
 ### Response
 
@@ -102,66 +104,68 @@ const creem = new Creem({
 
 async function run() {
   const result = await creem.products.create({
-    name: "<value>",
-    description: "at through very dishearten knife ashamed baa beret amongst",
-    imageUrl: "https://picsum.photos/200/300",
-    imageUrls: [
-      "https://picsum.photos/200/300",
-      "https://picsum.photos/200/301",
-    ],
-    price: 400,
-    currency: "USD",
-    billingType: "recurring",
-    recurringIntervalCount: 1,
-    businessNetPricing: false,
-    payWhatYouWant: false,
-    suggestedPrice: 1500,
-    trialPeriodDays: 7,
-    trialPrice: 100,
-    defaultSuccessUrl: "https://example.com/?status=successful",
-    externalId: "pro-monthly",
-    metadata: {
-      "plan": "pro",
+    createProductRequestEntity: {
+      name: "<value>",
+      description: "at through very dishearten knife ashamed baa beret amongst",
+      imageUrl: "https://picsum.photos/200/300",
+      imageUrls: [
+        "https://picsum.photos/200/300",
+        "https://picsum.photos/200/301",
+      ],
+      price: 400,
+      currency: "USD",
+      billingType: "recurring",
+      recurringIntervalCount: 1,
+      businessNetPricing: false,
+      payWhatYouWant: false,
+      suggestedPrice: 1500,
+      trialPeriodDays: 7,
+      trialPrice: 100,
+      defaultSuccessUrl: "https://example.com/?status=successful",
+      externalId: "pro-monthly",
+      metadata: {
+        "plan": "pro",
+      },
+      customFields: [
+        {
+          type: "checkbox",
+          key: "companyName",
+          label: "Company Name",
+          text: {
+            maxLength: 200,
+            minLength: 1,
+          },
+          checkbox: {
+            label: "I agree to the [terms and conditions](https://example.com/terms)",
+          },
+        },
+      ],
+      usagePrices: [
+        {
+          id: "price_abc123",
+          meterId: "mtr_abc123",
+          unitPrice: 0.002,
+          freeAllowance: 1000,
+          cap: 50000,
+          settlementMode: "postpaid",
+          targetAccountName: "images",
+        },
+      ],
+      features: [
+        {
+          id: "feat_abc123",
+          type: "customerCredits",
+          description: "500 image credits",
+          customerCredits: {
+            amount: "100",
+            unitLabel: "tokens",
+            bucketName: "images",
+            requiresModeration: false,
+            resetsEachPeriod: false,
+          },
+        },
+      ],
     },
-    customFields: [
-      {
-        type: "checkbox",
-        key: "companyName",
-        label: "Company Name",
-        text: {
-          maxLength: 200,
-          minLength: 1,
-        },
-        checkbox: {
-          label: "I agree to the [terms and conditions](https://example.com/terms)",
-        },
-      },
-    ],
-    usagePrices: [
-      {
-        id: "price_abc123",
-        meterId: "mtr_abc123",
-        unitPrice: 0.002,
-        freeAllowance: 1000,
-        cap: 50000,
-        settlementMode: "postpaid",
-        targetAccountName: "images",
-      },
-    ],
-    features: [
-      {
-        id: "feat_abc123",
-        type: "customerCredits",
-        description: "500 image credits",
-        customerCredits: {
-          amount: "100",
-          unitLabel: "tokens",
-          bucketName: "images",
-          requiresModeration: false,
-          resetsEachPeriod: false,
-        },
-      },
-    ],
   });
 
   console.log(result);
@@ -186,66 +190,68 @@ const creem = new CreemCore({
 
 async function run() {
   const res = await productsCreate(creem, {
-    name: "<value>",
-    description: "at through very dishearten knife ashamed baa beret amongst",
-    imageUrl: "https://picsum.photos/200/300",
-    imageUrls: [
-      "https://picsum.photos/200/300",
-      "https://picsum.photos/200/301",
-    ],
-    price: 400,
-    currency: "USD",
-    billingType: "recurring",
-    recurringIntervalCount: 1,
-    businessNetPricing: false,
-    payWhatYouWant: false,
-    suggestedPrice: 1500,
-    trialPeriodDays: 7,
-    trialPrice: 100,
-    defaultSuccessUrl: "https://example.com/?status=successful",
-    externalId: "pro-monthly",
-    metadata: {
-      "plan": "pro",
+    createProductRequestEntity: {
+      name: "<value>",
+      description: "at through very dishearten knife ashamed baa beret amongst",
+      imageUrl: "https://picsum.photos/200/300",
+      imageUrls: [
+        "https://picsum.photos/200/300",
+        "https://picsum.photos/200/301",
+      ],
+      price: 400,
+      currency: "USD",
+      billingType: "recurring",
+      recurringIntervalCount: 1,
+      businessNetPricing: false,
+      payWhatYouWant: false,
+      suggestedPrice: 1500,
+      trialPeriodDays: 7,
+      trialPrice: 100,
+      defaultSuccessUrl: "https://example.com/?status=successful",
+      externalId: "pro-monthly",
+      metadata: {
+        "plan": "pro",
+      },
+      customFields: [
+        {
+          type: "checkbox",
+          key: "companyName",
+          label: "Company Name",
+          text: {
+            maxLength: 200,
+            minLength: 1,
+          },
+          checkbox: {
+            label: "I agree to the [terms and conditions](https://example.com/terms)",
+          },
+        },
+      ],
+      usagePrices: [
+        {
+          id: "price_abc123",
+          meterId: "mtr_abc123",
+          unitPrice: 0.002,
+          freeAllowance: 1000,
+          cap: 50000,
+          settlementMode: "postpaid",
+          targetAccountName: "images",
+        },
+      ],
+      features: [
+        {
+          id: "feat_abc123",
+          type: "customerCredits",
+          description: "500 image credits",
+          customerCredits: {
+            amount: "100",
+            unitLabel: "tokens",
+            bucketName: "images",
+            requiresModeration: false,
+            resetsEachPeriod: false,
+          },
+        },
+      ],
     },
-    customFields: [
-      {
-        type: "checkbox",
-        key: "companyName",
-        label: "Company Name",
-        text: {
-          maxLength: 200,
-          minLength: 1,
-        },
-        checkbox: {
-          label: "I agree to the [terms and conditions](https://example.com/terms)",
-        },
-      },
-    ],
-    usagePrices: [
-      {
-        id: "price_abc123",
-        meterId: "mtr_abc123",
-        unitPrice: 0.002,
-        freeAllowance: 1000,
-        cap: 50000,
-        settlementMode: "postpaid",
-        targetAccountName: "images",
-      },
-    ],
-    features: [
-      {
-        id: "feat_abc123",
-        type: "customerCredits",
-        description: "500 image credits",
-        customerCredits: {
-          amount: "100",
-          unitLabel: "tokens",
-          bucketName: "images",
-          requiresModeration: false,
-          resetsEachPeriod: false,
-        },
-      },
-    ],
   });
   if (res.ok) {
     const { value: result } = res;
@@ -262,8 +268,7 @@ run();
 
 | Parameter                                                                                                                                                                      | Type                                                                                                                                                                           | Required                                                                                                                                                                       | Description                                                                                                                                                                    |
 | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
-| `createProductRequestEntity`                                                                                                                                                   | [components.CreateProductRequestEntity](../../models/components/createproductrequestentity.md)                                                                                 | :heavy_check_mark:                                                                                                                                                             | Product creation payload                                                                                                                                                       |
-| `idempotencyKey`                                                                                                                                                               | *string*                                                                                                                                                                       | :heavy_minus_sign:                                                                                                                                                             | Optional key that makes retries return the originally created product instead of creating a duplicate.                                                                         |
+| `request`                                                                                                                                                                      | [operations.CreateProductRequest](../../models/operations/createproductrequest.md)                                                                                             | :heavy_check_mark:                                                                                                                                                             | The request object to use for the request.                                                                                                                                     |
 | `options`                                                                                                                                                                      | RequestOptions                                                                                                                                                                 | :heavy_minus_sign:                                                                                                                                                             | Used to set various options for making HTTP requests.                                                                                                                          |
 | `options.fetchOptions`                                                                                                                                                         | [RequestInit](https://developer.mozilla.org/en-US/docs/Web/API/Request/Request#options)                                                                                        | :heavy_minus_sign:                                                                                                                                                             | Options that are passed to the underlying HTTP request. This can be used to inject extra headers for examples. All `Request` options, except `method` and `body`, are allowed. |
 | `options.retries`                                                                                                                                                              | [RetryConfig](../../lib/utils/retryconfig.md)                                                                                                                                  | :heavy_minus_sign:                                                                                                                                                             | Enables retrying HTTP requests under certain failure conditions.                                                                                                               |
@@ -293,7 +298,9 @@ const creem = new Creem({
 });
 
 async function run() {
-  const result = await creem.products.get("<id>");
+  const result = await creem.products.get({
+    id: "<id>",
+  });
 
   console.log(result);
 }
@@ -316,7 +323,9 @@ const creem = new CreemCore({
 });
 
 async function run() {
-  const res = await productsGet(creem, "<id>");
+  const res = await productsGet(creem, {
+    id: "<id>",
+  });
   if (res.ok) {
     const { value: result } = res;
     console.log(result);
@@ -332,7 +341,7 @@ run();
 
 | Parameter                                                                                                                                                                      | Type                                                                                                                                                                           | Required                                                                                                                                                                       | Description                                                                                                                                                                    |
 | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
-| `id`                                                                                                                                                                           | *string*                                                                                                                                                                       | :heavy_check_mark:                                                                                                                                                             | The product ID                                                                                                                                                                 |
+| `request`                                                                                                                                                                      | [operations.GetProductRequest](../../models/operations/getproductrequest.md)                                                                                                   | :heavy_check_mark:                                                                                                                                                             | The request object to use for the request.                                                                                                                                     |
 | `options`                                                                                                                                                                      | RequestOptions                                                                                                                                                                 | :heavy_minus_sign:                                                                                                                                                             | Used to set various options for making HTTP requests.                                                                                                                          |
 | `options.fetchOptions`                                                                                                                                                         | [RequestInit](https://developer.mozilla.org/en-US/docs/Web/API/Request/Request#options)                                                                                        | :heavy_minus_sign:                                                                                                                                                             | Options that are passed to the underlying HTTP request. This can be used to inject extra headers for examples. All `Request` options, except `method` and `body`, are allowed. |
 | `options.retries`                                                                                                                                                              | [RetryConfig](../../lib/utils/retryconfig.md)                                                                                                                                  | :heavy_minus_sign:                                                                                                                                                             | Enables retrying HTTP requests under certain failure conditions.                                                                                                               |
@@ -349,7 +358,7 @@ run();
 
 ## update
 
-Update a product. Only supplied fields change; a price change mints a new default price.
+Update a product. Only supplied fields change; a price change mints a new default price. `status` archives (`archived`, the same as `DELETE /v1/products/{id}`) or unarchives (`active`) the product. The product comes back with `write_result`, whose `warnings` list things to know about the write.
 
 ### Example Usage
 
@@ -362,39 +371,57 @@ const creem = new Creem({
 });
 
 async function run() {
-  const result = await creem.products.update("<id>", {
-    externalId: "pro-monthly",
-    metadata: {
-      "plan": "pro",
-    },
-    businessNetPricing: false,
-    trialPeriodDays: 7,
-    trialPrice: 100,
-    usagePrices: [
-      {
-        id: "price_abc123",
-        meterId: "mtr_abc123",
-        unitPrice: 0.002,
-        freeAllowance: 1000,
-        cap: 50000,
-        settlementMode: "prepaid",
-        targetAccountName: "images",
+  const result = await creem.products.update({
+    id: "<id>",
+    updateProductRequestEntity: {
+      externalId: "pro-monthly",
+      metadata: {
+        "plan": "pro",
       },
-    ],
-    features: [
-      {
-        id: "feat_abc123",
-        type: "customerCredits",
-        description: "500 image credits",
-        customerCredits: {
-          amount: "100",
-          unitLabel: "tokens",
-          bucketName: "images",
-          requiresModeration: false,
-          resetsEachPeriod: false,
+      businessNetPricing: false,
+      trialPeriodDays: 7,
+      trialPrice: 100,
+      usagePrices: [
+        {
+          id: "price_abc123",
+          meterId: "mtr_abc123",
+          unitPrice: 0.002,
+          freeAllowance: 1000,
+          cap: 50000,
+          settlementMode: "prepaid",
+          targetAccountName: "images",
         },
-      },
-    ],
+      ],
+      features: [
+        {
+          id: "feat_abc123",
+          type: "customerCredits",
+          description: "500 image credits",
+          customerCredits: {
+            amount: "100",
+            unitLabel: "tokens",
+            bucketName: "images",
+            requiresModeration: false,
+            resetsEachPeriod: false,
+          },
+          deleted: false,
+        },
+      ],
+      customFields: [
+        {
+          type: "text",
+          key: "companyName",
+          label: "Company Name",
+          text: {
+            maxLength: 200,
+            minLength: 1,
+          },
+          checkbox: {
+            label: "I agree to the [terms and conditions](https://example.com/terms)",
+          },
+        },
+      ],
+    },
   });
 
   console.log(result);
@@ -418,39 +445,57 @@ const creem = new CreemCore({
 });
 
 async function run() {
-  const res = await productsUpdate(creem, "<id>", {
-    externalId: "pro-monthly",
-    metadata: {
-      "plan": "pro",
-    },
-    businessNetPricing: false,
-    trialPeriodDays: 7,
-    trialPrice: 100,
-    usagePrices: [
-      {
-        id: "price_abc123",
-        meterId: "mtr_abc123",
-        unitPrice: 0.002,
-        freeAllowance: 1000,
-        cap: 50000,
-        settlementMode: "prepaid",
-        targetAccountName: "images",
+  const res = await productsUpdate(creem, {
+    id: "<id>",
+    updateProductRequestEntity: {
+      externalId: "pro-monthly",
+      metadata: {
+        "plan": "pro",
       },
-    ],
-    features: [
-      {
-        id: "feat_abc123",
-        type: "customerCredits",
-        description: "500 image credits",
-        customerCredits: {
-          amount: "100",
-          unitLabel: "tokens",
-          bucketName: "images",
-          requiresModeration: false,
-          resetsEachPeriod: false,
+      businessNetPricing: false,
+      trialPeriodDays: 7,
+      trialPrice: 100,
+      usagePrices: [
+        {
+          id: "price_abc123",
+          meterId: "mtr_abc123",
+          unitPrice: 0.002,
+          freeAllowance: 1000,
+          cap: 50000,
+          settlementMode: "prepaid",
+          targetAccountName: "images",
         },
-      },
-    ],
+      ],
+      features: [
+        {
+          id: "feat_abc123",
+          type: "customerCredits",
+          description: "500 image credits",
+          customerCredits: {
+            amount: "100",
+            unitLabel: "tokens",
+            bucketName: "images",
+            requiresModeration: false,
+            resetsEachPeriod: false,
+          },
+          deleted: false,
+        },
+      ],
+      customFields: [
+        {
+          type: "text",
+          key: "companyName",
+          label: "Company Name",
+          text: {
+            maxLength: 200,
+            minLength: 1,
+          },
+          checkbox: {
+            label: "I agree to the [terms and conditions](https://example.com/terms)",
+          },
+        },
+      ],
+    },
   });
   if (res.ok) {
     const { value: result } = res;
@@ -467,15 +512,14 @@ run();
 
 | Parameter                                                                                                                                                                      | Type                                                                                                                                                                           | Required                                                                                                                                                                       | Description                                                                                                                                                                    |
 | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
-| `id`                                                                                                                                                                           | *string*                                                                                                                                                                       | :heavy_check_mark:                                                                                                                                                             | The product ID                                                                                                                                                                 |
-| `updateProductRequestEntity`                                                                                                                                                   | [components.UpdateProductRequestEntity](../../models/components/updateproductrequestentity.md)                                                                                 | :heavy_check_mark:                                                                                                                                                             | Product update payload                                                                                                                                                         |
+| `request`                                                                                                                                                                      | [operations.UpdateProductRequest](../../models/operations/updateproductrequest.md)                                                                                             | :heavy_check_mark:                                                                                                                                                             | The request object to use for the request.                                                                                                                                     |
 | `options`                                                                                                                                                                      | RequestOptions                                                                                                                                                                 | :heavy_minus_sign:                                                                                                                                                             | Used to set various options for making HTTP requests.                                                                                                                          |
 | `options.fetchOptions`                                                                                                                                                         | [RequestInit](https://developer.mozilla.org/en-US/docs/Web/API/Request/Request#options)                                                                                        | :heavy_minus_sign:                                                                                                                                                             | Options that are passed to the underlying HTTP request. This can be used to inject extra headers for examples. All `Request` options, except `method` and `body`, are allowed. |
 | `options.retries`                                                                                                                                                              | [RetryConfig](../../lib/utils/retryconfig.md)                                                                                                                                  | :heavy_minus_sign:                                                                                                                                                             | Enables retrying HTTP requests under certain failure conditions.                                                                                                               |
 
 ### Response
 
-**Promise\<[components.ProductEntity](../../models/components/productentity.md)\>**
+**Promise\<[components.ProductWriteResponseEntity](../../models/components/productwriteresponseentity.md)\>**
 
 ### Errors
 
@@ -498,7 +542,9 @@ const creem = new Creem({
 });
 
 async function run() {
-  const result = await creem.products.archive("<id>");
+  const result = await creem.products.archive({
+    id: "<id>",
+  });
 
   console.log(result);
 }
@@ -521,7 +567,9 @@ const creem = new CreemCore({
 });
 
 async function run() {
-  const res = await productsArchive(creem, "<id>");
+  const res = await productsArchive(creem, {
+    id: "<id>",
+  });
   if (res.ok) {
     const { value: result } = res;
     console.log(result);
@@ -537,7 +585,7 @@ run();
 
 | Parameter                                                                                                                                                                      | Type                                                                                                                                                                           | Required                                                                                                                                                                       | Description                                                                                                                                                                    |
 | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
-| `id`                                                                                                                                                                           | *string*                                                                                                                                                                       | :heavy_check_mark:                                                                                                                                                             | The product ID                                                                                                                                                                 |
+| `request`                                                                                                                                                                      | [operations.ArchiveProductRequest](../../models/operations/archiveproductrequest.md)                                                                                           | :heavy_check_mark:                                                                                                                                                             | The request object to use for the request.                                                                                                                                     |
 | `options`                                                                                                                                                                      | RequestOptions                                                                                                                                                                 | :heavy_minus_sign:                                                                                                                                                             | Used to set various options for making HTTP requests.                                                                                                                          |
 | `options.fetchOptions`                                                                                                                                                         | [RequestInit](https://developer.mozilla.org/en-US/docs/Web/API/Request/Request#options)                                                                                        | :heavy_minus_sign:                                                                                                                                                             | Options that are passed to the underlying HTTP request. This can be used to inject extra headers for examples. All `Request` options, except `method` and `body`, are allowed. |
 | `options.retries`                                                                                                                                                              | [RetryConfig](../../lib/utils/retryconfig.md)                                                                                                                                  | :heavy_minus_sign:                                                                                                                                                             | Enables retrying HTTP requests under certain failure conditions.                                                                                                               |
@@ -545,6 +593,79 @@ run();
 ### Response
 
 **Promise\<[components.ProductEntity](../../models/components/productentity.md)\>**
+
+### Errors
+
+| Error Type      | Status Code     | Content Type    |
+| --------------- | --------------- | --------------- |
+| errors.APIError | 4XX, 5XX        | \*/\*           |
+
+## listPrices
+
+List every price version of a product, newest first, with how many running subscriptions sit on each. A price change creates a new version; running subscriptions stay on the version they bought. Archived products can be read too.
+
+### Example Usage
+
+<!-- UsageSnippet language="typescript" operationID="listProductPrices" method="get" path="/v1/products/{id}/prices" -->
+```typescript
+import { Creem } from "creem";
+
+const creem = new Creem({
+  apiKey: process.env["CREEM_API_KEY"] ?? "",
+});
+
+async function run() {
+  const result = await creem.products.listPrices({
+    id: "<id>",
+  });
+
+  console.log(result);
+}
+
+run();
+```
+
+### Standalone function
+
+The standalone function version of this method:
+
+```typescript
+import { CreemCore } from "creem/core.js";
+import { productsListPrices } from "creem/funcs/productsListPrices.js";
+
+// Use `CreemCore` for best tree-shaking performance.
+// You can create one instance of it to use across an application.
+const creem = new CreemCore({
+  apiKey: process.env["CREEM_API_KEY"] ?? "",
+});
+
+async function run() {
+  const res = await productsListPrices(creem, {
+    id: "<id>",
+  });
+  if (res.ok) {
+    const { value: result } = res;
+    console.log(result);
+  } else {
+    console.log("productsListPrices failed:", res.error);
+  }
+}
+
+run();
+```
+
+### Parameters
+
+| Parameter                                                                                                                                                                      | Type                                                                                                                                                                           | Required                                                                                                                                                                       | Description                                                                                                                                                                    |
+| ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| `request`                                                                                                                                                                      | [operations.ListProductPricesRequest](../../models/operations/listproductpricesrequest.md)                                                                                     | :heavy_check_mark:                                                                                                                                                             | The request object to use for the request.                                                                                                                                     |
+| `options`                                                                                                                                                                      | RequestOptions                                                                                                                                                                 | :heavy_minus_sign:                                                                                                                                                             | Used to set various options for making HTTP requests.                                                                                                                          |
+| `options.fetchOptions`                                                                                                                                                         | [RequestInit](https://developer.mozilla.org/en-US/docs/Web/API/Request/Request#options)                                                                                        | :heavy_minus_sign:                                                                                                                                                             | Options that are passed to the underlying HTTP request. This can be used to inject extra headers for examples. All `Request` options, except `method` and `body`, are allowed. |
+| `options.retries`                                                                                                                                                              | [RetryConfig](../../lib/utils/retryconfig.md)                                                                                                                                  | :heavy_minus_sign:                                                                                                                                                             | Enables retrying HTTP requests under certain failure conditions.                                                                                                               |
+
+### Response
+
+**Promise\<[components.ProductPriceVersionListEntity](../../models/components/productpriceversionlistentity.md)\>**
 
 ### Errors
 

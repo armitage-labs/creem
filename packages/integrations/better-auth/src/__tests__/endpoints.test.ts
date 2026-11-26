@@ -265,7 +265,10 @@ describe("Cancel subscription endpoint", () => {
     const ctx = createMockContext({ body: {}, adapter });
     mockGetSession.mockResolvedValue({ user: { id: "user_123" } });
     await handler(ctx);
-    expect(creem.subscriptions.cancel).toHaveBeenCalledWith("sub_test_789", {});
+    expect(creem.subscriptions.cancel).toHaveBeenCalledWith({
+      id: "sub_test_789",
+      cancelSubscriptionRequestEntity: {},
+    });
     expect(ctx.json).toHaveBeenCalledWith(expect.objectContaining({ success: true }));
   });
 
@@ -303,7 +306,10 @@ describe("Cancel subscription endpoint", () => {
     const ctx = createMockContext({ body: { id: "sub_explicit" } });
     mockGetSession.mockResolvedValue({ user: { id: "user_123" } });
     await handler(ctx);
-    expect(creem.subscriptions.cancel).toHaveBeenCalledWith("sub_explicit", {});
+    expect(creem.subscriptions.cancel).toHaveBeenCalledWith({
+      id: "sub_explicit",
+      cancelSubscriptionRequestEntity: {},
+    });
   });
 });
 
@@ -333,7 +339,7 @@ describe("Retrieve subscription endpoint", () => {
     const ctx = createMockContext({ body: {}, adapter });
     mockGetSession.mockResolvedValue({ user: { id: "user_123" } });
     await handler(ctx);
-    expect(creem.subscriptions.get).toHaveBeenCalledWith("sub_test_789");
+    expect(creem.subscriptions.get).toHaveBeenCalledWith({ subscriptionId: "sub_test_789" });
   });
 
   it("requires ID when persistence is disabled", async () => {
@@ -391,13 +397,7 @@ describe("Search transactions endpoint", () => {
       user: { id: "u1", creemCustomerId: "cust_session" },
     });
     await handler(ctx);
-    expect(creem.transactions.search).toHaveBeenCalledWith(
-      "cust_session",
-      undefined,
-      undefined,
-      undefined,
-      undefined,
-    );
+    expect(creem.transactions.search).toHaveBeenCalledWith({ customerId: "cust_session" });
   });
 
   it("returns transaction results", async () => {
@@ -591,7 +591,10 @@ describe("Cancel subscription endpoint - SDK and adapter errors", () => {
     const ctx = createMockContext({ body: { id: "sub_explicit" } });
     mockGetSession.mockResolvedValue({ user: { id: "user_123" } });
     await handler(ctx);
-    expect(creem.subscriptions.cancel).toHaveBeenCalledWith("sub_explicit", {});
+    expect(creem.subscriptions.cancel).toHaveBeenCalledWith({
+      id: "sub_explicit",
+      cancelSubscriptionRequestEntity: {},
+    });
   });
 
   it("returns 500 when adapter.findMany throws", async () => {

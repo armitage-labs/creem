@@ -35,7 +35,7 @@ generation:
   repoSubDirectory: packages/sdk
   repoUrl: https://github.com/armitage-labs/creem.git
 typescript:
-  version: 1.14.0
+  version: 2.0.0
   acceptHeaderEnum: true
   additionalDependencies:
     dependencies: {}
@@ -54,6 +54,7 @@ typescript:
       - README.md
       - LICENSE
       - CHANGELOG.md
+      - MIGRATION.md
       - RELEASES.md
     homepage: https://github.com/armitage-labs/creem/tree/main/packages/sdk
     license: MIT
@@ -88,8 +89,8 @@ typescript:
   flattenGlobalSecurity: true
   flatteningOrder: parameters-first
   formStringArrayEncodeMode: encoded-string
-  forwardCompatibleEnumsByDefault: false
-  forwardCompatibleUnionsByDefault: "false"
+  forwardCompatibleEnumsByDefault: true
+  forwardCompatibleUnionsByDefault: tagged-only
   generateExamples: true
   imports:
     option: openapi
@@ -104,7 +105,7 @@ typescript:
   jsonpath: rfc9535
   laxMode: strict
   legacyFileNaming: true
-  maxMethodParams: 99
+  maxMethodParams: 0
   methodArguments: require-security-and-request
   modelPropertyCasing: camel
   moduleFormat: dual

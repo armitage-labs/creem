@@ -17,7 +17,7 @@ export const handlers: Record<string, OperationHandler> = {
       operations.ListSplitsRequest$inboundSchema,
       parameters,
     );
-    return client.splits.list(p.pageNumber, p.pageSize, options);
+    return client.splits.list(p, options);
   },
   retrieveSplit: (client, parameters, body, options) => {
     const p = decode(
@@ -25,7 +25,7 @@ export const handlers: Record<string, OperationHandler> = {
       operations.RetrieveSplitRequest$inboundSchema,
       parameters,
     );
-    return client.splits.retrieve(p.id, options);
+    return client.splits.retrieve(p, options);
   },
   deleteSplit: (client, parameters, body, options) => {
     const p = decode(
@@ -33,6 +33,6 @@ export const handlers: Record<string, OperationHandler> = {
       operations.DeleteSplitRequest$inboundSchema,
       parameters,
     );
-    return client.splits.delete(p.id, options);
+    return client.splits.delete(p, options);
   },
 };

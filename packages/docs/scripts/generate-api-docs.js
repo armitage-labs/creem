@@ -33,6 +33,7 @@ const FILENAME_OVERRIDES = {
   searchTransactions: "get-transactions",
   createDiscount: "create-discount-code",
   deleteDiscount: "delete-discount-code",
+  updateDiscount: "update-discount-code",
   getMetricsSummary: "get-stats-summary",
   createCustomerCreditsAccount: "create-credits-account",
   listCustomerCreditsAccounts: "list-credits-accounts",

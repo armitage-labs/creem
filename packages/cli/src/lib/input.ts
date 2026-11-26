@@ -24,6 +24,11 @@ export function parseEnum(name: string, value: unknown, values: readonly unknown
   if (!values.includes(value)) throw new CliError(`${name} must be one of: ${values.join(", ")}.`);
   return value;
 }
+export function parseNonEmpty(name: string, value: unknown): string {
+  const text = String(value).trim();
+  if (text === "") throw new CliError(`${name} must not be empty.`);
+  return text;
+}
 export function parseDate(name: string, value: unknown): string {
   const text = String(value);
   if (
@@ -61,6 +66,25 @@ export async function readData(
     throw new CliError("--data must contain a JSON object using SDK camelCase field names.");
   return data;
 }
+// A percentage from 1 to 100 unless the schema says otherwise; fractions allowed.
+export function parsePercentage(
+  name: string,
+  value: unknown,
+  bounds: { min?: number | undefined; max?: number | undefined } = {},
+): number {
+  const min = bounds.min ?? 1;
+  const max = bounds.max ?? 100;
+  // A string must be a plain decimal: Number() would also take "0x1A", "1e1" and padding.
+  const n =
+    typeof value === "number"
+      ? value
+      : typeof value === "string" && /^\d+(\.\d+)?$/.test(value)
+        ? Number(value)
+        : NaN;
+  if (!Number.isFinite(n) || n < min || n > max)
+    throw new CliError(`${name} must be a number between ${min} and ${max}.`);
+  return n;
+}
 export function parseKeyValue(values: string[]): Record<string, string> {
   const entries = values.map((value) => {
     const i = value.indexOf("=");
@@ -72,13 +96,11 @@ export function parseKeyValue(values: string[]): Record<string, string> {
 export function parseInput(name: string, value: unknown, schema: InputSchema): unknown {
   if (schema.enum) return parseEnum(name, value, schema.enum);
   if (schema.type === "integer" || schema.type === "number") {
-    // Split percentages may be fractional; other numeric CLI inputs are integer units.
-    if (name.includes("recipients") && name.endsWith("amount")) {
-      const n = Number(value);
-      if (!Number.isFinite(n) || n < 1 || n > 100)
-        throw new CliError(`${name} must be between 1 and 100.`);
-      return n;
-    }
+    // Percentages may be fractional (split amounts, discount percentages);
+    // other numeric CLI inputs are integer units.
+    if (name.includes("recipients") && name.endsWith("amount")) return parsePercentage(name, value);
+    if (/(?:^|\.)percentage$/.test(name))
+      return parsePercentage(name, value, { min: schema.minimum, max: schema.maximum });
     return parseInteger(name, value, { min: schema.minimum, max: schema.maximum });
   }
   if (schema.type === "boolean") {
@@ -197,13 +219,16 @@ export function validateOperation(
       parseInteger("amount", b.amount, { min: 1 });
       if (!b.currency) throw new CliError("Fixed discounts require --currency.");
     }
-    if (b.type === "percentage") parseInteger("percentage", b.percentage, { min: 1, max: 100 });
+    if (b.type === "percentage") parsePercentage("percentage", b.percentage);
     for (const k of ["maxRedemptions", "durationInMonths"])
       if (b[k] !== undefined) parseInteger(k, b[k], { min: 1 });
     if (b.duration === "repeating" && !b.durationInMonths)
       throw new CliError("Repeating discounts require --duration-months.");
-    if (!Array.isArray(b.appliesToProducts) || !b.appliesToProducts.length)
-      throw new CliError("Provide at least one product in --products or appliesToProducts.");
+    const listed = (value: unknown) => Array.isArray(value) && value.length > 0;
+    if (!listed(b.appliesToProducts) && !listed(b.appliesToProductExternalIds))
+      throw new CliError(
+        "Provide at least one product in --products, appliesToProducts or appliesToProductExternalIds.",
+      );
   }
   if (row.cliPath === "splits create") {
     const recipients = b.recipients;

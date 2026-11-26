@@ -8,10 +8,22 @@ import { safeParse } from "../../lib/schemas.js";
 import { Result as SafeParseResult } from "../../types/fp.js";
 import { SDKValidationError } from "../errors/sdkvalidationerror.js";
 import {
+  LicenseKeyFeatureEntity,
+  LicenseKeyFeatureEntity$inboundSchema,
+  LicenseKeyFeatureEntity$Outbound,
+  LicenseKeyFeatureEntity$outboundSchema,
+} from "./licensekeyfeatureentity.js";
+import {
   ProductFeatureType,
   ProductFeatureType$inboundSchema,
   ProductFeatureType$outboundSchema,
 } from "./productfeaturetype.js";
+import {
+  ProductFileFeatureEntity,
+  ProductFileFeatureEntity$inboundSchema,
+  ProductFileFeatureEntity$Outbound,
+  ProductFileFeatureEntity$outboundSchema,
+} from "./productfilefeatureentity.js";
 
 /**
  * The credit grant behind a `customerCredits` feature. Absent for other feature types.
@@ -53,9 +65,25 @@ export type FeatureEntity = {
    */
   description: string;
   /**
+   * Your own key for this feature, unique per product. `null` when the feature has none.
+   */
+  externalId: string | null;
+  /**
    * The credit grant behind a `customerCredits` feature. Absent for other feature types.
    */
   customerCredits?: CustomerCredits | null | undefined;
+  /**
+   * The settings of a `licenseKey` feature. Absent for other feature types.
+   */
+  licenseKey?: LicenseKeyFeatureEntity | undefined;
+  /**
+   * The private note of a `custom` feature, shown to the customer after purchase. Absent for other feature types.
+   */
+  privateNote?: string | undefined;
+  /**
+   * The files of a `file` feature, without their download links (buyers get those after purchase). Absent for other feature types.
+   */
+  file?: ProductFileFeatureEntity | undefined;
 };
 
 /** @internal */
@@ -130,11 +158,18 @@ export const FeatureEntity$inboundSchema: z.ZodType<
   id: z.string(),
   type: ProductFeatureType$inboundSchema,
   description: z.string(),
+  external_id: z.nullable(z.string()),
   customer_credits: z.nullable(z.lazy(() => CustomerCredits$inboundSchema))
     .optional(),
+  license_key: LicenseKeyFeatureEntity$inboundSchema.optional(),
+  private_note: z.string().optional(),
+  file: ProductFileFeatureEntity$inboundSchema.optional(),
 }).transform((v) => {
   return remap$(v, {
+    "external_id": "externalId",
     "customer_credits": "customerCredits",
+    "license_key": "licenseKey",
+    "private_note": "privateNote",
   });
 });
 /** @internal */
@@ -142,7 +177,11 @@ export type FeatureEntity$Outbound = {
   id: string;
   type: string;
   description: string;
+  external_id: string | null;
   customer_credits?: CustomerCredits$Outbound | null | undefined;
+  license_key?: LicenseKeyFeatureEntity$Outbound | undefined;
+  private_note?: string | undefined;
+  file?: ProductFileFeatureEntity$Outbound | undefined;
 };
 
 /** @internal */
@@ -154,11 +193,18 @@ export const FeatureEntity$outboundSchema: z.ZodType<
   id: z.string(),
   type: ProductFeatureType$outboundSchema,
   description: z.string(),
+  externalId: z.nullable(z.string()),
   customerCredits: z.nullable(z.lazy(() => CustomerCredits$outboundSchema))
     .optional(),
+  licenseKey: LicenseKeyFeatureEntity$outboundSchema.optional(),
+  privateNote: z.string().optional(),
+  file: ProductFileFeatureEntity$outboundSchema.optional(),
 }).transform((v) => {
   return remap$(v, {
+    externalId: "external_id",
     customerCredits: "customer_credits",
+    licenseKey: "license_key",
+    privateNote: "private_note",
   });
 });
 

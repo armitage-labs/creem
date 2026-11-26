@@ -71,7 +71,22 @@ export interface IngestionError {
   cause?: unknown;
 }
 
-export interface IngestionConfig {
+/**
+ * The one SDK method ingestion calls. A `Creem` from another `creem` major is a
+ * different class, but its `events.ingestEvents` takes the same request, so it
+ * fits this structural type.
+ */
+export interface IngestionClient {
+  events: { ingestEvents: Creem["events"]["ingestEvents"] };
+}
+
+/**
+ * `Client` is the type of `client`. It defaults to this version's `Creem`, so
+ * `IngestionConfig["client"]` reads as before. `Ingestion({ client })` infers
+ * it, so a client from another `creem` major (or any `IngestionClient`) fits;
+ * to annotate such a config, name its client: `IngestionConfig<typeof client>`.
+ */
+export interface IngestionConfig<Client extends IngestionClient = Creem> {
   /** Creem API key with the `events:write` scope. */
   apiKey?: string;
   /** Override the API host (e.g. `https://test-api.creem.io` for test mode). */
@@ -80,7 +95,7 @@ export interface IngestionConfig {
    * Bring your own configured SDK client instead of `apiKey`/`serverURL`.
    * Takes precedence when provided.
    */
-  client?: Creem;
+  client?: Client;
   /** Events per request. Server maximum (and default): 100. */
   maxBatchSize?: number;
   /** How long an idle buffer waits before flushing. Default: 5000ms. */

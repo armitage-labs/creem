@@ -36,7 +36,9 @@ describe("createDiscount - Percentage Discounts", () => {
 
   it("should handle API authentication errors", async () => {
     try {
-      await creemWithInvalidKey.discounts.create(samplePercentageDiscount);
+      await creemWithInvalidKey.discounts.create({
+        createDiscountRequestEntity: samplePercentageDiscount,
+      });
       fail("Expected an API error but none was thrown");
     } catch (error) {
       expect(error).toBeInstanceOf(APIError);
@@ -45,7 +47,9 @@ describe("createDiscount - Percentage Discounts", () => {
   });
 
   it("should create a percentage discount successfully", async () => {
-    const result = await creem.discounts.create(samplePercentageDiscount);
+    const result = await creem.discounts.create({
+      createDiscountRequestEntity: samplePercentageDiscount,
+    });
 
     // Store the created discount ID and code
     createdPercentageDiscountId = result.id;
@@ -80,7 +84,9 @@ describe("createDiscount - Percentage Discounts", () => {
       appliesToProducts: [testProduct.id],
     };
 
-    const result = await creem.discounts.create(advancedDiscount);
+    const result = await creem.discounts.create({
+      createDiscountRequestEntity: advancedDiscount,
+    });
 
     expect(result).toHaveProperty("id");
     expect(result).toHaveProperty("name", advancedDiscount.name);
@@ -106,7 +112,9 @@ describe("createDiscount - Percentage Discounts", () => {
     });
 
     try {
-      await creemWithEmptyKey.discounts.create(samplePercentageDiscount);
+      await creemWithEmptyKey.discounts.create({
+        createDiscountRequestEntity: samplePercentageDiscount,
+      });
       fail("Expected validation error but none was thrown");
     } catch (error) {
       expect(error).toBeInstanceOf(Error);
@@ -116,9 +124,11 @@ describe("createDiscount - Percentage Discounts", () => {
   it("should handle request errors with invalid discount data", async () => {
     try {
       await creem.discounts.create({
-        // Missing required fields
-        name: "Invalid Discount",
-      } as any);
+        createDiscountRequestEntity: {
+          // Missing required fields
+          name: "Invalid Discount",
+        } as any,
+      });
       fail("Expected error with invalid discount data but none was thrown");
     } catch (error) {
       expect(error).toBeDefined();
@@ -143,7 +153,9 @@ describe("createDiscount - Fixed Amount Discounts", () => {
   });
 
   it("should create a fixed amount discount successfully", async () => {
-    const result = await creem.discounts.create(sampleFixedDiscount);
+    const result = await creem.discounts.create({
+      createDiscountRequestEntity: sampleFixedDiscount,
+    });
 
     // Store the created discount ID and code
     createdFixedDiscountId = result.id;
@@ -170,7 +182,9 @@ describe("createDiscount - Fixed Amount Discounts", () => {
       appliesToProducts: [testProduct.id],
     };
 
-    const result = await creem.discounts.create(advancedFixedDiscount);
+    const result = await creem.discounts.create({
+      createDiscountRequestEntity: advancedFixedDiscount,
+    });
 
     expect(result).toHaveProperty("id");
     expect(result).toHaveProperty("name", advancedFixedDiscount.name);
@@ -192,10 +206,12 @@ describe("createDiscount - Fixed Amount Discounts", () => {
   it("should handle validation errors for fixed discounts", async () => {
     try {
       await creem.discounts.create({
-        name: "Invalid Fixed Discount",
-        type: components.DiscountType.Fixed,
-        // Missing required amount and currency
-      } as any);
+        createDiscountRequestEntity: {
+          name: "Invalid Fixed Discount",
+          type: components.DiscountType.Fixed,
+          // Missing required amount and currency
+        } as any,
+      });
       fail(
         "Expected error with invalid fixed discount data but none was thrown"
       );

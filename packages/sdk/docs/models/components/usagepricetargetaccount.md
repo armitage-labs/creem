@@ -8,10 +8,12 @@ Credit bucket a prepaid charge debits: `shared` (the customer default wallet) or
 import { UsagePriceTargetAccount } from "creem/models/components";
 
 let value: UsagePriceTargetAccount = "shared";
+
+// Open enum: unrecognized values are captured as Unrecognized<string>
 ```
 
 ## Values
 
 ```typescript
-"shared" | "per_unit"
+"shared" | "per_unit" | Unrecognized<string>
 ```

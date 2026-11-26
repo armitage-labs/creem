@@ -1,0 +1,119 @@
+overlay: 1.0.0
+info:
+  title: Contract shapes the generator handles badly
+  version: 1.0.0
+# ENG-2487: two shapes in the live contract that Speakeasy turns into a wrong
+# SDK. Each action keeps what the API accepts; the API keeps validating the
+# original schema.
+actions:
+  # Speakeasy skips an operation whose schema uses `not` ("not schemas
+  # unsupported"), which dropped products.update from the SDK. Each edit variant
+  # of UpdateProductRequestEntity.features carries `not: {deleted: true}` to
+  # keep a deletion out of it: the API reads any entry with `deleted: true` as a
+  # deletion, even one that also carries edit fields. The overlay drops the
+  # `not` and instead types `deleted` on each edit variant as `false` only. The
+  # generated union tries the edit variants before the deletion and drops keys a
+  # variant doesn't declare, so without that an entry with `deleted: true` and
+  # edit fields would be sent as an edit, without `deleted`.
+  #
+  # Adding a property makes Speakeasy generate each edit variant as its own
+  # type; the titles name them. Its `type` comes out as `string` from the merge,
+  # so the overlay states it as a const, the literal the create side gets too.
+  - target: $.components.schemas.UpdateProductRequestEntity.properties.features.items.oneOf[*].not
+    remove: true
+  - target: $.components.schemas.UpdateProductRequestEntity.properties.features.items.oneOf[0]
+    update:
+      title: ProductFeatureEditRequestEntity
+      properties:
+        type:
+          type: string
+          const: customerCredits
+          description: "The feature type of a credit grant entry. `licenseKey`, `custom` and `file` entries have their own variants; `githubRepository` features are managed in the dashboard, and an entry of that type answers `400` with code `feature_type_not_writable`."
+        deleted:
+          type: boolean
+          enum: [false]
+          description: "Leave it out on an edit. An entry with `deleted: true` is a deletion."
+  - target: $.components.schemas.UpdateProductRequestEntity.properties.features.items.oneOf[1]
+    update:
+      title: ProductLicenseKeyFeatureEditRequestEntity
+      properties:
+        type:
+          type: string
+          const: licenseKey
+          description: "The feature type of a license-key entry."
+        deleted:
+          type: boolean
+          enum: [false]
+          description: "Leave it out on an edit. An entry with `deleted: true` is a deletion."
+  - target: $.components.schemas.UpdateProductRequestEntity.properties.features.items.oneOf[2]
+    update:
+      title: ProductPrivateNoteFeatureEditRequestEntity
+      properties:
+        type:
+          type: string
+          const: custom
+          description: "The feature type of a private-note entry."
+        deleted:
+          type: boolean
+          enum: [false]
+          description: "Leave it out on an edit. An entry with `deleted: true` is a deletion."
+  - target: $.components.schemas.UpdateProductRequestEntity.properties.features.items.oneOf[3]
+    update:
+      title: ProductFileFeatureEditRequestEntity
+      properties:
+        type:
+          type: string
+          const: file
+          description: "The feature type of a file entry."
+        deleted:
+          type: boolean
+          enum: [false]
+          description: "Leave it out on an edit. An entry with `deleted: true` is a deletion."
+  # expiry is "a LicenseKeyExpiryEntity or null", written as a oneOf with an
+  # object branch whose only value is null. Speakeasy generates that branch as
+  # an empty object type (`Two = {}`), which would let callers send `{}`, a value
+  # the API rejects. Dropping the branch leaves a one-member oneOf, which
+  # Speakeasy exports as an `Expiry` alias, and it ignores `nullable` next to a
+  # plain `$ref`. So the property becomes a plain `$ref` and the entity itself
+  # is nullable: expiry is its only use, and it gives
+  # `expiry: LicenseKeyExpiryEntity | null`. The property's description moves
+  # to the entity, since Speakeasy also drops the siblings of a `$ref`.
+  - target: $.components.schemas.LicenseKeyFeatureEntity.properties.expiry.oneOf
+    remove: true
+  - target: $.components.schemas.LicenseKeyFeatureEntity.properties.expiry
+    update:
+      $ref: "#/components/schemas/LicenseKeyExpiryEntity"
+  - target: $.components.schemas.LicenseKeyExpiryEntity
+    update:
+      nullable: true
+      description: "How long a license key stays valid after it is issued. `null` for keys that never expire. Each key keeps the expiry it was issued with, so a change applies only to keys issued later."
+  # New inline enums get names from the generator's collision rules: the file
+  # `object` enum took `ObjectT`, which until now named the
+  # CustomerCreditsExhaustionEntity `object` enum, and that one was renamed.
+  # Explicit names keep the existing ones where they were.
+  - target: $.components.schemas.FileEntity.properties.object
+    update:
+      title: FileEntityObject
+  - target: $.components.schemas.CreateFileUploadRequestEntity.properties.purpose
+    update:
+      title: FileUploadPurpose
+  - target: $.components.schemas.FileEntity.properties.purpose
+    update:
+      title: FileEntityPurpose
+  # Without titles, the create features union exports as bare `Features`, a
+  # name a later contract could hand to another schema; once the create union is
+  # named, the update union takes `Features` instead. Both get their entity's
+  # name.
+  - target: $.components.schemas.CreateProductRequestEntity.properties.features.items
+    update:
+      title: CreateProductRequestEntityFeatures
+  - target: $.components.schemas.UpdateProductRequestEntity.properties.features.items
+    update:
+      title: UpdateProductRequestEntityFeatures
+  # A feature read back from the API carries `external_id: null` when it has no
+  # key of its own, and the API accepts that entry, marked `deleted: true`, as a
+  # deletion. The contract types the deletion's `external_id` as a plain string,
+  # so the SDK refused it.
+  - target: $.components.schemas.ProductFeatureDeletionRequestEntity.properties.external_id
+    update:
+      nullable: true

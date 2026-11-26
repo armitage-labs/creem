@@ -46,12 +46,24 @@ let value: DisputeEntity = {
           id: "feat_abc123",
           type: "githubRepository",
           description: "Access to premium course materials.",
+          externalId: "pro-credits",
           customerCredits: {
             amount: "100",
             unitLabel: "tokens",
             bucketName: "images",
             requiresModeration: false,
             resetsEachPeriod: false,
+          },
+          licenseKey: {
+            activationLimit: 3,
+            expiry: {
+              interval: "month",
+              intervalCount: 1,
+            },
+          },
+          privateNote: "Thanks for your purchase! Your access code is XYZ123.",
+          file: {
+            files: [],
           },
         },
       ],
@@ -62,7 +74,7 @@ let value: DisputeEntity = {
           unitPrice: 0.002,
           freeAllowance: 1000,
           cap: 50000,
-          settlementMode: "postpaid",
+          settlementMode: "prepaid",
           targetAccount: "per_unit",
           targetAccountName: "images",
           trialUsageMode: "free",
@@ -91,6 +103,7 @@ let value: DisputeEntity = {
     },
     units: 1,
     customPrice: 1500,
+    trialPeriodDays: 92,
     order: {
       id: "<id>",
       mode: "prod",

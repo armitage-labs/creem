@@ -14,7 +14,7 @@ const creemWithInvalidKey = new Creem({
 describe("searchTransactions", () => {
   it("should handle API authentication errors", async () => {
     try {
-      await creemWithInvalidKey.transactions.search();
+      await creemWithInvalidKey.transactions.search({});
       fail("Expected an API error but none was thrown");
     } catch (error) {
       expect(error).toBeInstanceOf(APIError);
@@ -23,7 +23,7 @@ describe("searchTransactions", () => {
   });
 
   it("should search transactions with no filters successfully", async () => {
-    const page = await creem.transactions.search();
+    const page = await creem.transactions.search({});
     const result = page.result;
 
     // Test the response structure
@@ -47,7 +47,7 @@ describe("searchTransactions", () => {
     const pageNumber = 1;
 
     // search(customerId, orderId, productId, pageNumber, pageSize)
-    const page = await creem.transactions.search(undefined, undefined, undefined, pageNumber, pageSize);
+    const page = await creem.transactions.search({ pageNumber: pageNumber, pageSize: pageSize });
     const result = page.result;
 
     // Test pagination structure
@@ -70,7 +70,7 @@ describe("searchTransactions", () => {
     });
 
     try {
-      await creemWithInvalidServer.transactions.search();
+      await creemWithInvalidServer.transactions.search({});
       fail("Expected network error but none was thrown");
     } catch (error) {
       expect(error).toBeDefined();

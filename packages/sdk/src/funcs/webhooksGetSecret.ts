@@ -34,7 +34,7 @@ import { Result } from "../types/fp.js";
  */
 export function webhooksGetSecret(
   client: CreemCore,
-  id: string,
+  request: operations.GetWebhookSecretRequest,
   options?: RequestOptions,
 ): APIPromise<
   Result<
@@ -51,14 +51,14 @@ export function webhooksGetSecret(
 > {
   return new APIPromise($do(
     client,
-    id,
+    request,
     options,
   ));
 }
 
 async function $do(
   client: CreemCore,
-  id: string,
+  request: operations.GetWebhookSecretRequest,
   options?: RequestOptions,
 ): Promise<
   [
@@ -76,12 +76,8 @@ async function $do(
     APICall,
   ]
 > {
-  const input: operations.GetWebhookSecretRequest = {
-    id: id,
-  };
-
   const parsed = safeParse(
-    input,
+    request,
     (value) => operations.GetWebhookSecretRequest$outboundSchema.parse(value),
     "Input validation failed",
   );

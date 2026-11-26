@@ -48,7 +48,7 @@ describe("createProduct", () => {
   it("should handle API authentication errors", async () => {
     try {
       // Attempt to call SDK method with invalid API key
-      await creemWithInvalidKey.products.create(SAMPLE_PRODUCT);
+      await creemWithInvalidKey.products.create({ createProductRequestEntity: SAMPLE_PRODUCT });
       // If it succeeds, fail the test (we expect it to throw)
       fail("Expected an API error but none was thrown");
     } catch (error) {
@@ -65,7 +65,7 @@ describe("createProduct", () => {
     };
     
     // When using the SDK instance directly, it returns ProductEntity
-    const result = await creem.products.create(productData);
+    const result = await creem.products.create({ createProductRequestEntity: productData });
 
     // Test direct SDK method
     expect(result).toHaveProperty("id");
@@ -96,7 +96,7 @@ describe("createProduct", () => {
 
     try {
       // Use invalid input to trigger validation error
-      await creemWithEmptyKey.products.create(SAMPLE_PRODUCT);
+      await creemWithEmptyKey.products.create({ createProductRequestEntity: SAMPLE_PRODUCT });
       fail("Expected validation error but none was thrown");
     } catch (error) {
       expect(error).toBeInstanceOf(Error);
@@ -105,10 +105,10 @@ describe("createProduct", () => {
 
   it("should handle request errors with invalid product data", async () => {
     try {
-      await creem.products.create({
+      await creem.products.create({ createProductRequestEntity: {
         // Missing required fields
         name: "Invalid Product",
-      } as any);
+      } as any });
       fail("Expected error with invalid product data but none was thrown");
     } catch (error) {
       expect(error).toBeDefined();
@@ -124,7 +124,7 @@ describe("createProduct", () => {
       billingType: ProductRequestBillingType.Onetime,
     };
 
-    const result = await creem.products.create(minimalProduct);
+    const result = await creem.products.create({ createProductRequestEntity: minimalProduct });
 
     expect(result).toHaveProperty("id");
     expect(result).toHaveProperty("name", minimalProduct.name);
@@ -145,7 +145,7 @@ describe("createProduct", () => {
       billingPeriod: ProductRequestBillingPeriod.EveryMonth,
     };
 
-    const result = await creem.products.create(minimalProduct);
+    const result = await creem.products.create({ createProductRequestEntity: minimalProduct });
 
     expect(result).toHaveProperty("id");
     expect(result).toHaveProperty("name", minimalProduct.name);
