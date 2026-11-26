@@ -12,6 +12,7 @@ let value: ProductFileFeatureFilesRequestEntity = {
       fileName: "ebook.pdf",
       type: "application/pdf",
       size: 1024000,
+      sha256: "n4bQgYhMfWWaL+qgxVrQFaO/TxsrC4Is0V1sFbDwCgg=",
     },
   ],
 };

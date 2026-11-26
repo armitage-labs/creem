@@ -17,6 +17,14 @@ export type ProductWriteImpactEntity = {
    * Running subscriptions per status. Always lists `active`, `trialing`, `past_due`, `scheduled_cancel`, `paused` and `unpaid`.
    */
   byStatus: { [k: string]: number };
+  /**
+   * Subscriptions that are no longer running but have postpaid usage on this product that has not been billed yet; included in `total`. Present on changes of a usage price.
+   */
+  unsettledPostpaidUsage?: number | undefined;
+  /**
+   * Enabled automatic refills (auto-recharge consents) of customers on this product. Present on a change of the price, currency, tax mode or billing terms when the product has any.
+   */
+  autoRechargeConsents?: number | undefined;
 };
 
 /** @internal */
@@ -25,17 +33,23 @@ export const ProductWriteImpactEntity$inboundSchema: z.ZodType<
   z.ZodTypeDef,
   unknown
 > = z.object({
-  total: z.number(),
+  total: z.number().int(),
   by_status: z.record(z.number().int()),
+  unsettled_postpaid_usage: z.number().int().optional(),
+  auto_recharge_consents: z.number().int().optional(),
 }).transform((v) => {
   return remap$(v, {
     "by_status": "byStatus",
+    "unsettled_postpaid_usage": "unsettledPostpaidUsage",
+    "auto_recharge_consents": "autoRechargeConsents",
   });
 });
 /** @internal */
 export type ProductWriteImpactEntity$Outbound = {
   total: number;
   by_status: { [k: string]: number };
+  unsettled_postpaid_usage?: number | undefined;
+  auto_recharge_consents?: number | undefined;
 };
 
 /** @internal */
@@ -44,11 +58,15 @@ export const ProductWriteImpactEntity$outboundSchema: z.ZodType<
   z.ZodTypeDef,
   ProductWriteImpactEntity
 > = z.object({
-  total: z.number(),
+  total: z.number().int(),
   byStatus: z.record(z.number().int()),
+  unsettledPostpaidUsage: z.number().int().optional(),
+  autoRechargeConsents: z.number().int().optional(),
 }).transform((v) => {
   return remap$(v, {
     byStatus: "by_status",
+    unsettledPostpaidUsage: "unsettled_postpaid_usage",
+    autoRechargeConsents: "auto_recharge_consents",
   });
 });
 

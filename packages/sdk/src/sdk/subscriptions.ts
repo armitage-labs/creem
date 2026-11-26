@@ -37,7 +37,7 @@ export class Subscriptions extends ClientSDK {
    * List all subscriptions
    *
    * @remarks
-   * Search and retrieve a paginated list of subscriptions. View status, billing cycle, and customer info.
+   * Search and retrieve a paginated list of subscriptions, newest first. View status, billing cycle, and customer info. Filter by product, price version, status and customer: the filters combine with AND, several statuses with OR. To move one subscription to another price, send `items[].price_id` to `POST /v1/subscriptions/{id}`.
    */
   async search(
     request: operations.SearchSubscriptionsRequest,

@@ -3,9 +3,22 @@
  */
 
 import * as z from "zod/v3";
+import { remap as remap$ } from "../../lib/primitives.js";
 import { safeParse } from "../../lib/schemas.js";
 import { Result as SafeParseResult } from "../../types/fp.js";
 import { SDKValidationError } from "../errors/sdkvalidationerror.js";
+import {
+  ProductWriteChangeEntity,
+  ProductWriteChangeEntity$inboundSchema,
+  ProductWriteChangeEntity$Outbound,
+  ProductWriteChangeEntity$outboundSchema,
+} from "./productwritechangeentity.js";
+import {
+  ProductWritePriceVersionEntity,
+  ProductWritePriceVersionEntity$inboundSchema,
+  ProductWritePriceVersionEntity$Outbound,
+  ProductWritePriceVersionEntity$outboundSchema,
+} from "./productwritepriceversionentity.js";
 import {
   ProductWriteWarningEntity,
   ProductWriteWarningEntity$inboundSchema,
@@ -15,9 +28,25 @@ import {
 
 export type ProductWriteResultEntity = {
   /**
+   * What the write did. Known values: `created`, `updated`, `unchanged` (the product already was what the request asked for; nothing was written). More values can be added, so treat a value you do not know like `updated`.
+   */
+  result: string;
+  /**
+   * `true` when the request was sent with `dry_run=true`: nothing was written, and the ids of anything the write would have created are never stored. `false` on a real write. Stop unless it is `true` when you meant a dry run.
+   */
+  dryRun: boolean;
+  /**
+   * What changed, field by field. Empty on a create and on `unchanged`.
+   */
+  changes: Array<ProductWriteChangeEntity>;
+  /**
    * Things to know about this write. The write went through. Empty when there is nothing to report.
    */
   warnings: Array<ProductWriteWarningEntity>;
+  /**
+   * Present only when the write created a new price version: a change of amount, currency, billing type, billing period or tax mode.
+   */
+  priceVersion?: ProductWritePriceVersionEntity | undefined;
 };
 
 /** @internal */
@@ -26,11 +55,24 @@ export const ProductWriteResultEntity$inboundSchema: z.ZodType<
   z.ZodTypeDef,
   unknown
 > = z.object({
+  result: z.string(),
+  dry_run: z.boolean(),
+  changes: z.array(ProductWriteChangeEntity$inboundSchema),
   warnings: z.array(ProductWriteWarningEntity$inboundSchema),
+  price_version: ProductWritePriceVersionEntity$inboundSchema.optional(),
+}).transform((v) => {
+  return remap$(v, {
+    "dry_run": "dryRun",
+    "price_version": "priceVersion",
+  });
 });
 /** @internal */
 export type ProductWriteResultEntity$Outbound = {
+  result: string;
+  dry_run: boolean;
+  changes: Array<ProductWriteChangeEntity$Outbound>;
   warnings: Array<ProductWriteWarningEntity$Outbound>;
+  price_version?: ProductWritePriceVersionEntity$Outbound | undefined;
 };
 
 /** @internal */
@@ -39,7 +81,16 @@ export const ProductWriteResultEntity$outboundSchema: z.ZodType<
   z.ZodTypeDef,
   ProductWriteResultEntity
 > = z.object({
+  result: z.string(),
+  dryRun: z.boolean(),
+  changes: z.array(ProductWriteChangeEntity$outboundSchema),
   warnings: z.array(ProductWriteWarningEntity$outboundSchema),
+  priceVersion: ProductWritePriceVersionEntity$outboundSchema.optional(),
+}).transform((v) => {
+  return remap$(v, {
+    dryRun: "dry_run",
+    priceVersion: "price_version",
+  });
 });
 
 export function productWriteResultEntityToJSON(

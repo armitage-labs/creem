@@ -265,7 +265,7 @@ export type UpdateProductRequestEntity = {
   /**
    * Suggested amount in cents when pay_what_you_want is enabled. Omit to leave unchanged; send `null` to clear it.
    */
-  suggestedPrice?: number | undefined;
+  suggestedPrice?: number | null | undefined;
   /**
    * Metered charges billed on top of the base price, one per meter. Recurring products only. The array is the complete set after the update: omit (or send `null`) to leave charges untouched, send `[]` to remove all, include `id` to edit a charge in place.
    */
@@ -650,7 +650,7 @@ export const UpdateProductRequestEntity$inboundSchema: z.ZodType<
   trial_period_days: z.nullable(z.number().int()).optional(),
   trial_price: z.nullable(z.number().int()).optional(),
   pay_what_you_want: z.boolean().optional(),
-  suggested_price: z.number().int().optional(),
+  suggested_price: z.nullable(z.number().int()).optional(),
   usage_prices: z.array(UsagePriceRequestEntity$inboundSchema).optional(),
   features: z.array(
     z.union([
@@ -706,7 +706,7 @@ export type UpdateProductRequestEntity$Outbound = {
   trial_period_days?: number | null | undefined;
   trial_price?: number | null | undefined;
   pay_what_you_want?: boolean | undefined;
-  suggested_price?: number | undefined;
+  suggested_price?: number | null | undefined;
   usage_prices?: Array<UsagePriceRequestEntity$Outbound> | undefined;
   features?:
     | Array<
@@ -746,7 +746,7 @@ export const UpdateProductRequestEntity$outboundSchema: z.ZodType<
   trialPeriodDays: z.nullable(z.number().int()).optional(),
   trialPrice: z.nullable(z.number().int()).optional(),
   payWhatYouWant: z.boolean().optional(),
-  suggestedPrice: z.number().int().optional(),
+  suggestedPrice: z.nullable(z.number().int()).optional(),
   usagePrices: z.array(UsagePriceRequestEntity$outboundSchema).optional(),
   features: z.array(
     z.union([

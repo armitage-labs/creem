@@ -3,7 +3,7 @@
  */
 
 import { CreemCore } from "../core.js";
-import { encodeJSON, encodeSimple } from "../lib/encodings.js";
+import { encodeFormQuery, encodeJSON, encodeSimple } from "../lib/encodings.js";
 import { matchStatusCode } from "../lib/http.js";
 import * as M from "../lib/matchers.js";
 import { compactMap } from "../lib/primitives.js";
@@ -27,10 +27,10 @@ import { APICall, APIPromise } from "../types/async.js";
 import { Result } from "../types/fp.js";
 
 /**
- * Creates a new product.
+ * Creates a product, or updates the one with the same external_id.
  *
  * @remarks
- * Create a new product for one-time payments, including free products with a 0 price, or subscriptions. Configure pricing, billing cycles, and features.
+ * Create a new product for one-time payments, including free products with a 0 price, or subscriptions. Configure pricing, billing cycles, and features. With an `external_id` the call is an upsert: it creates the product when the key is new and updates the product that holds the key otherwise (archived products included, and they stay archived unless you send `status`). Only the fields you send change, each with the meaning `PATCH /v1/products/{id}` gives it; `tax_category` cannot change after create and a different value is ignored with a `field_not_writable` warning. A request that changes nothing answers `unchanged` and writes nothing, so retrying after a timeout is safe. The product comes back with `write_result`. Send `If-None-Match: *` to create only.
  */
 export function productsCreate(
   client: CreemCore,
@@ -38,7 +38,7 @@ export function productsCreate(
   options?: RequestOptions,
 ): APIPromise<
   Result<
-    components.ProductEntity,
+    components.ProductWriteResponseEntity,
     | CreemError
     | ResponseValidationError
     | ConnectionError
@@ -63,7 +63,7 @@ async function $do(
 ): Promise<
   [
     Result<
-      components.ProductEntity,
+      components.ProductWriteResponseEntity,
       | CreemError
       | ResponseValidationError
       | ConnectionError
@@ -91,6 +91,10 @@ async function $do(
 
   const path = pathToFunc("/v1/products")();
 
+  const query = encodeFormQuery({
+    "dry_run": payload.dry_run,
+  });
+
   const headers = new Headers(compactMap({
     "Content-Type": "application/json",
     Accept: "application/json",
@@ -99,6 +103,10 @@ async function $do(
       payload["Idempotency-Key"],
       { explode: false, charEncoding: "none" },
     ),
+    "If-None-Match": encodeSimple("If-None-Match", payload["If-None-Match"], {
+      explode: false,
+      charEncoding: "none",
+    }),
   }));
 
   const secConfig = await extractSecurity(client._options.apiKey);
@@ -126,6 +134,7 @@ async function $do(
     baseURL: options?.serverURL,
     path: path,
     headers: headers,
+    query: query,
     body: body,
     userAgent: client._options.userAgent,
     timeoutMs: options?.timeoutMs || client._options.timeoutMs || -1,
@@ -148,7 +157,7 @@ async function $do(
   const response = doResult.value;
 
   const [result] = await M.match<
-    components.ProductEntity,
+    components.ProductWriteResponseEntity,
     | CreemError
     | ResponseValidationError
     | ConnectionError
@@ -158,8 +167,8 @@ async function $do(
     | UnexpectedClientError
     | SDKValidationError
   >(
-    M.json(200, components.ProductEntity$inboundSchema),
-    M.fail([400, 401, 404, 409, 422, "4XX"]),
+    M.json(200, components.ProductWriteResponseEntity$inboundSchema),
+    M.fail([400, 401, 404, 409, 412, 422, "4XX"]),
     M.fail("5XX"),
   )(response, req);
   if (!result.ok) {

@@ -18,6 +18,7 @@ import { tool$affiliatesList } from "./tools/affiliatesList.js";
 import { tool$affiliatesListCommissions } from "./tools/affiliatesListCommissions.js";
 import { tool$affiliatesListInvites } from "./tools/affiliatesListInvites.js";
 import { tool$affiliatesRetrieve } from "./tools/affiliatesRetrieve.js";
+import { tool$catalogValidate } from "./tools/catalogValidate.js";
 import { tool$checkoutsCreate } from "./tools/checkoutsCreate.js";
 import { tool$checkoutsRetrieve } from "./tools/checkoutsRetrieve.js";
 import { tool$customerCreditsCloseAccount } from "./tools/customerCreditsCloseAccount.js";
@@ -67,8 +68,13 @@ import { tool$metersPreviewMeter } from "./tools/metersPreviewMeter.js";
 import { tool$metersUnarchiveMeter } from "./tools/metersUnarchiveMeter.js";
 import { tool$metersUpdateMeter } from "./tools/metersUpdateMeter.js";
 import { tool$moderationScreenPrompt } from "./tools/moderationScreenPrompt.js";
+import { tool$productGroupsAddProduct } from "./tools/productGroupsAddProduct.js";
+import { tool$productGroupsCreate } from "./tools/productGroupsCreate.js";
+import { tool$productGroupsDelete } from "./tools/productGroupsDelete.js";
 import { tool$productGroupsGet } from "./tools/productGroupsGet.js";
 import { tool$productGroupsList } from "./tools/productGroupsList.js";
+import { tool$productGroupsRemoveProduct } from "./tools/productGroupsRemoveProduct.js";
+import { tool$productGroupsUpdate } from "./tools/productGroupsUpdate.js";
 import { tool$productsArchive } from "./tools/productsArchive.js";
 import { tool$productsCreate } from "./tools/productsCreate.js";
 import { tool$productsGet } from "./tools/productsGet.js";
@@ -171,8 +177,13 @@ export function createMCPServer(deps: {
   tool(tool$discountsCreate);
   tool(tool$discountsUpdate);
   tool(tool$discountsDelete);
+  tool(tool$productGroupsCreate);
   tool(tool$productGroupsList);
   tool(tool$productGroupsGet);
+  tool(tool$productGroupsUpdate);
+  tool(tool$productGroupsDelete);
+  tool(tool$productGroupsAddProduct);
+  tool(tool$productGroupsRemoveProduct);
   tool(tool$transactionsGetById);
   tool(tool$transactionsSearch);
   tool(tool$transactionsRefund);
@@ -224,6 +235,7 @@ export function createMCPServer(deps: {
   tool(tool$webhooksAcknowledgeEvent);
   tool(tool$filesCreateUpload);
   tool(tool$filesConfirmUpload);
+  tool(tool$catalogValidate);
 
   return server;
 }

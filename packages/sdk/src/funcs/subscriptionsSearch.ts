@@ -35,7 +35,7 @@ import {
  * List all subscriptions
  *
  * @remarks
- * Search and retrieve a paginated list of subscriptions. View status, billing cycle, and customer info.
+ * Search and retrieve a paginated list of subscriptions, newest first. View status, billing cycle, and customer info. Filter by product, price version, status and customer: the filters combine with AND, several statuses with OR. To move one subscription to another price, send `items[].price_id` to `POST /v1/subscriptions/{id}`.
  */
 export function subscriptionsSearch(
   client: CreemCore,
@@ -102,8 +102,12 @@ async function $do(
   const path = pathToFunc("/v1/subscriptions/search")();
 
   const query = encodeFormQuery({
+    "customer_id": payload.customer_id,
     "page_number": payload.page_number,
     "page_size": payload.page_size,
+    "price_id": payload.price_id,
+    "product_id": payload.product_id,
+    "status": payload.status,
   });
 
   const headers = new Headers(compactMap({

@@ -14,7 +14,7 @@ export const tool$metersCreateMeter: ToolDefinition<typeof args> = {
   name: "meters-create-meter",
   description: `Create a meter
 
-Define how a stream of usage events is aggregated into billable units. The unit label doubles as the display unit and as the credit bucket the meter settles into. A duplicate name within the store is rejected with 409 meter_name_taken.`,
+Define how a stream of usage events is aggregated into billable units. The unit label doubles as the display unit and as the credit bucket the meter settles into. A duplicate name within the store is rejected with 409 meter_name_taken. With an \`external_id\` the call is an upsert: it creates the meter when the key is new (201) and updates the meter that holds the key otherwise (200), archived meters included, which stay archived. Only the fields you send change, each with the meaning \`PATCH /v1/meters/{id}\` gives it; \`event_name\` and \`unit_label\` cannot change after create, and a different value is ignored with a \`field_not_writable\` warning. The request is compared with the stored meter first, so a request that changes nothing answers \`unchanged\` and writes nothing, also on a locked meter, and retrying after a timeout is safe; only a real change of a locked meter's filter or aggregation answers 409 \`meter_immutable\`. The meter comes back with \`write_result\`. Send \`If-None-Match: *\` to create only.`,
   args,
   tool: async (client, args, ctx) => {
     const [result, apiCall] = await metersCreateMeter(

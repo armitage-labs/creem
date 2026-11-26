@@ -14,7 +14,7 @@ export const tool$discountsUpdate: ToolDefinition<typeof args> = {
   name: "discounts-update",
   description: `Update a discount.
 
-Update a discount. Only supplied fields change; the code never does. Once redeemed, its amount, type, currency and duration are fixed. A discount with a Stripe coupon also keeps its expiry, redemption limit and products; a name change renames the coupon.`,
+Update a discount. Only supplied fields change; the code never does. Once redeemed, its amount, type, currency and duration are fixed. A discount with a Stripe coupon also keeps its expiry, redemption limit and products; a name change renames the coupon. A request that changes nothing answers \`unchanged\` and writes nothing. The discount comes back with \`write_result\`.`,
   args,
   tool: async (client, args, ctx) => {
     const [result, apiCall] = await discountsUpdate(

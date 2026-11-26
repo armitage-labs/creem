@@ -8,6 +8,7 @@ import type {
 } from "creem/models/components";
 import type {
   CreateDiscountRequest,
+  CreateProductGroupRequest,
   CreateProductRequest,
   UpdateDiscountRequest,
   UpdateProductRequest,
@@ -32,9 +33,15 @@ import type {
   LSVariant,
 } from "./source";
 
-type CreateProductBody = CreateProductRequest["createProductRequestEntity"];
+type UpsertProductBody = CreateProductRequest["createProductRequestEntity"];
+/** A create body: the upsert's fields a new product needs are always set by the mapping. */
+type CreateProductBody = UpsertProductBody &
+  Required<Pick<UpsertProductBody, "name" | "description" | "price" | "currency" | "billingType">>;
 type UpdateProductBody = UpdateProductRequest["updateProductRequestEntity"];
-type CreateDiscountBody = CreateDiscountRequest["createDiscountRequestEntity"];
+type UpsertDiscountBody = CreateDiscountRequest["createDiscountRequestEntity"];
+/** A create body: the upsert's fields a new discount needs are always set by the mapping. */
+type CreateDiscountBody = UpsertDiscountBody &
+  Required<Pick<UpsertDiscountBody, "name" | "code" | "type" | "duration">>;
 type UpdateDiscountBody = UpdateDiscountRequest["updateDiscountRequestEntity"];
 type UpdateFeature = NonNullable<UpdateProductBody["features"]>[number];
 type CreateFeature = NonNullable<CreateProductBody["features"]>[number];
@@ -43,6 +50,15 @@ type CreateFeature = NonNullable<CreateProductBody["features"]>[number];
  * One write of a migration, typed from the generated SDK. The writer sends
  * them in order. A file feature that waits for an upload in the same run
  * names its file `upload:<file key>`; the writer swaps in the uploaded id.
+ *
+ * Products, product groups and discounts are written with the keyed upserts
+ * (`upsert_*`, a `POST` with `external_id`), which create the object when the
+ * key is new and change only the fields sent otherwise, so two runs can't
+ * create it twice. Two writes are addressed by id instead: adopting an object
+ * without a key (`adopt_*`, a `PATCH` that gives it its key and makes the
+ * item's changes in the same request), and an update that clears a field
+ * (`update_*`: a trial, a redemption limit or an expiry date), because the
+ * upsert's body takes no `null`.
  */
 export type MigrationRequest =
   | { type: "adopt_product"; key: string; request: UpdateProductRequest }
@@ -53,10 +69,16 @@ export type MigrationRequest =
       lsFileId: string;
       request: CreateFileUploadRequestEntity;
     }
-  | { type: "create_product"; key: string; request: CreateProductRequest }
+  | { type: "upsert_product"; key: string; request: CreateProductRequest }
   | { type: "update_product"; key: string; request: UpdateProductRequest }
-  | { type: "create_discount"; key: string; request: CreateDiscountRequest }
+  | { type: "upsert_product_group"; key: string; request: CreateProductGroupRequest }
+  | { type: "upsert_discount"; key: string; request: CreateDiscountRequest }
   | { type: "update_discount"; key: string; request: UpdateDiscountRequest };
+
+/** An update body that sets a field to `null`, which only a `PATCH` can send. */
+function clearsField(body: Record<string, unknown>): boolean {
+  return Object.values(body).some((value) => value === null);
+}
 
 export interface MigrationPlan {
   requests: MigrationRequest[];
@@ -66,6 +88,12 @@ export interface MigrationPlan {
    * The plan must not run while there are any: the command stops with exit 2.
    */
   answerErrors: MigrationIssue[];
+  /**
+   * The stored product group each Creem product is in, by product id, from the
+   * catalog the plan was made from. Creem's `product_already_grouped` names the
+   * products only (`details.product_ids`); the error's hint names their group.
+   */
+  productGroupOf: Record<string, { id: string; externalId: string | null }>;
 }
 
 export interface FromLemonSqueezyOptions {
@@ -541,9 +569,9 @@ export function fromLemonSqueezy(
     if (group.externalId) groupsByKey.set(group.externalId, group);
   const proposals: AdoptionProposal[] = [];
 
-  const adoptRequests: MigrationRequest[] = [];
   const uploadRequests: MigrationRequest[] = [];
   const productRequests: MigrationRequest[] = [];
+  const groupRequests: MigrationRequest[] = [];
   const discountRequests: MigrationRequest[] = [];
   const productItems: MigrationItem[] = [];
   const groupItems: MigrationItem[] = [];
@@ -928,7 +956,7 @@ export function fromLemonSqueezy(
       item.action = "create";
       item.status = "pending";
       productRequests.push({
-        type: "create_product",
+        type: "upsert_product",
         key: spec.key,
         request: { createProductRequestEntity: body },
       });
@@ -937,12 +965,6 @@ export function fromLemonSqueezy(
 
     // ---- compare with the stored product
     item.creem_id = existing.id;
-    if (item.adopted_from)
-      adoptRequests.push({
-        type: "adopt_product",
-        key: spec.key,
-        request: { id: existing.id, updateProductRequestEntity: { externalId: spec.key } },
-      });
     const update: UpdateProductBody = {};
     const changes: string[] = [];
     const set = <K extends keyof UpdateProductBody>(
@@ -1078,18 +1100,43 @@ export function fromLemonSqueezy(
           ),
         );
     if (features.length) update.features = features;
-    if (changes.length) {
+    if (item.adopted_from) {
+      // Adopting gives the product its key and makes the changes in one PATCH by id:
+      // a keyed upsert after it would be checked as a create, because the
+      // adoption's own dry run is rolled back.
       item.changes.push(...changes);
       item.action = "update";
       item.status = "pending";
       productRequests.push({
-        type: "update_product",
+        type: "adopt_product",
         key: spec.key,
-        request: { id: existing.id, updateProductRequestEntity: update },
+        request: {
+          id: existing.id,
+          updateProductRequestEntity: { externalId: spec.key, ...update },
+        },
       });
-    } else if (item.adopted_from) {
+    } else if (changes.length) {
+      item.changes.push(...changes);
       item.action = "update";
       item.status = "pending";
+      productRequests.push(
+        clearsField(update)
+          ? {
+              type: "update_product",
+              key: spec.key,
+              request: { id: existing.id, updateProductRequestEntity: update },
+            }
+          : {
+              type: "upsert_product",
+              key: spec.key,
+              request: {
+                createProductRequestEntity: {
+                  ...(update as UpsertProductBody),
+                  externalId: spec.key,
+                },
+              },
+            },
+      );
     } else item.action = "unchanged";
   }
 
@@ -1123,14 +1170,32 @@ export function fromLemonSqueezy(
     );
   }
 
+  // A Creem product's key after this run: its own, or the one its adoption gives it.
+  const keyOfProductId = new Map(
+    creemCatalog.products.filter((p) => p.externalId).map((p) => [p.id, p.externalId as string]),
+  );
+  // The Creem product each adoption gives a key, by that key.
+  const adoptedIdOfKey = new Map<string, string>();
+  for (const item of productItems)
+    if (item.adopted_from) {
+      keyOfProductId.set(item.adopted_from, item.key);
+      adoptedIdOfKey.set(item.key, item.adopted_from);
+    }
+
   // ---- product groups: two or more migrated recurring variants of one LS product
   const plannedKeys = new Set(productItems.filter((i) => i.action !== "skip").map((i) => i.key));
+  const membersOf = (product: (typeof productsInOrder)[number]) =>
+    specs
+      .filter((s) => s.product === product && s.recurring && plannedKeys.has(s.key))
+      .map((s) => s.key);
+  // The group each planned member key belongs to: Creem puts a product in one group only.
+  const groupOfMember = new Map<string, string>();
   for (const product of productsInOrder) {
-    const memberSpecs = specs.filter(
-      (s) => s.product === product && s.recurring && plannedKeys.has(s.key),
-    );
-    const members = memberSpecs.map((s) => s.key);
-    const memberNames = memberSpecs.map((s) => `"${s.create.name}"`).join(", ");
+    const members = membersOf(product);
+    if (members.length >= 2) for (const k of members) groupOfMember.set(k, productKey(product.id));
+  }
+  for (const product of productsInOrder) {
+    const members = membersOf(product);
     if (members.length < 2) continue;
     const key = productKey(product.id);
     const item = newItem({
@@ -1142,33 +1207,70 @@ export function fromLemonSqueezy(
       members,
     });
     const existing = groupsByKey.get(key);
+    // A stored member this run adopts is named by its id: it stays in the group
+    // whether its adoption works or not (a failed one would leave its key unknown).
+    const storedIds = new Set(existing?.products.map((p) => p.id));
+    const products: ({ externalId: string } | { id: string })[] = members.map((externalId) => {
+      const adopted = adoptedIdOfKey.get(externalId);
+      return adopted && storedIds.has(adopted) ? { id: adopted } : { externalId };
+    });
+    groupItems.push(item);
     if (existing) {
       item.creem_id = existing.id;
-      const stored = existing.products.map((p) => p.externalId);
-      if (stored.length === members.length && stored.every((k, i) => k === members[i]))
-        item.action = "unchanged";
-      else
-        item.reason = issue(
-          "product_group_write_unavailable",
-          `The public API cannot update product groups yet; set its products to ${memberNames} in the dashboard.`,
+      // Like a discount's products, the members only grow: the API keeps no
+      // record of which members the migrator added, so it can't tell a variant
+      // LS dropped from one the merchant added. This LS product's variants come
+      // first, in LS order; every other stored member stays after them, by id
+      // (named once: a member this run adopts is one of the LS members).
+      const wanted = new Set(members);
+      const keyOf = (p: { id: string; externalId?: string | null }) =>
+        p.externalId ?? keyOfProductId.get(p.id) ?? null;
+      const stored = existing.products.map(keyOf).filter((k) => k !== null && wanted.has(k));
+      const others = existing.products.filter((p) => {
+        const k = keyOf(p);
+        return k === null || !wanted.has(k);
+      });
+      const kept = others
+        .map(keyOf)
+        .filter((k): k is string => k !== null && LS_VARIANT_KEY.test(k));
+      // A kept variant of another LS product that gets its own group keeps that
+      // group from being written: Creem puts a product in one group only.
+      const blocked = kept.flatMap((k) => {
+        const group = groupOfMember.get(k);
+        return group && group !== key ? [`${k} (${group})`] : [];
+      });
+      if (kept.length)
+        item.warnings.push(
+          issue(
+            "group_product_kept",
+            `Lemon Squeezy doesn't list ${kept.join(", ")} in this product. The migrator can't tell whether Lemon Squeezy dropped them or you added them in Creem, so they stay in the group; remove them in Creem if they shouldn't be in it.${blocked.length ? ` A product is in one group only, so Creem refuses the group of their own Lemon Squeezy product until you move them: ${blocked.join(", ")}.` : ""} This warning repeats on every run.`,
+          ),
         );
-    } else
-      item.reason = issue(
-        "product_group_write_unavailable",
-        `The public API cannot create product groups yet; create "${product.attributes.name}" with ${memberNames} in the dashboard.`,
-      );
-    groupItems.push(item);
+      if (stored.length === members.length && stored.every((k, i) => k === members[i])) {
+        item.action = "unchanged";
+        continue;
+      }
+      products.push(...others.map((p) => ({ id: p.id })));
+      // `products` is the complete ordered list; the merchant's name stays.
+      item.action = "update";
+      item.changes.push("products");
+    } else item.action = "create";
+    item.status = "pending";
+    groupRequests.push({
+      type: "upsert_product_group",
+      key,
+      request: {
+        createProductGroupRequestEntity: existing
+          ? { externalId: key, products }
+          : { externalId: key, name: product.attributes.name, products },
+      },
+    });
   }
 
   // ---- discounts
   const migratedKeys = productItems
     .filter((i) => i.action === "create" || i.action === "update" || i.action === "unchanged")
     .map((i) => i.key);
-  const keyOfProductId = new Map(
-    creemCatalog.products.filter((p) => p.externalId).map((p) => [p.id, p.externalId as string]),
-  );
-  for (const item of productItems)
-    if (item.adopted_from) keyOfProductId.set(item.adopted_from, item.key);
   // Like a product orphan: a keyed Creem discount this run doesn't migrate still
   // redeems. Reported, never expired: that would be a write nobody asked for.
   const stillRedeemable = (id: string) =>
@@ -1241,19 +1343,13 @@ export function fromLemonSqueezy(
       item.action = "create";
       item.status = "pending";
       discountRequests.push({
-        type: "create_discount",
+        type: "upsert_discount",
         key: item.key,
         request: { createDiscountRequestEntity: planned },
       });
       continue;
     }
     item.creem_id = existing.id;
-    if (item.adopted_from)
-      adoptRequests.push({
-        type: "adopt_discount",
-        key: item.key,
-        request: { id: existing.id, updateDiscountRequestEntity: { externalId: item.key } },
-      });
     const update: UpdateDiscountBody = {};
     const changes: string[] = [];
     if (existing.code.toUpperCase() !== planned.code!.toUpperCase())
@@ -1343,18 +1439,41 @@ export function fromLemonSqueezy(
           `Lemon Squeezy doesn't apply this discount to ${unlisted.join(", ")}. The migrator can't tell whether Lemon Squeezy dropped them or you added them in Creem, so they stay; remove them in Creem if the discount shouldn't apply. This warning repeats on every run.`,
         ),
       );
-    if (changes.length) {
+    if (item.adopted_from) {
+      // One PATCH by id gives the key and makes the changes (see the products).
       item.changes.push(...changes);
       item.action = "update";
       item.status = "pending";
       discountRequests.push({
-        type: "update_discount",
+        type: "adopt_discount",
         key: item.key,
-        request: { id: existing.id, updateDiscountRequestEntity: update },
+        request: {
+          id: existing.id,
+          updateDiscountRequestEntity: { externalId: item.key, ...update },
+        },
       });
-    } else if (item.adopted_from) {
+    } else if (changes.length) {
+      item.changes.push(...changes);
       item.action = "update";
       item.status = "pending";
+      discountRequests.push(
+        clearsField(update)
+          ? {
+              type: "update_discount",
+              key: item.key,
+              request: { id: existing.id, updateDiscountRequestEntity: update },
+            }
+          : {
+              type: "upsert_discount",
+              key: item.key,
+              request: {
+                createDiscountRequestEntity: {
+                  ...(update as UpsertDiscountBody),
+                  externalId: item.key,
+                },
+              },
+            },
+      );
     } else item.action = "unchanged";
   }
 
@@ -1413,9 +1532,14 @@ export function fromLemonSqueezy(
     fetch_failures: [],
   };
   return {
-    requests: [...adoptRequests, ...uploadRequests, ...productRequests, ...discountRequests],
+    requests: [...uploadRequests, ...productRequests, ...groupRequests, ...discountRequests],
     report,
     answerErrors,
+    productGroupOf: Object.fromEntries(
+      creemCatalog.productGroups.flatMap((g) =>
+        g.products.map((p) => [p.id, { id: g.id, externalId: g.externalId }]),
+      ),
+    ),
   };
 }
 

@@ -1,0 +1,5 @@
+---
+title: 'Create a product group'
+description: 'Link products a customer can switch between. A product belongs to one group at a time: one in another group answers `409` with code `product_already_grouped`. An unknown product answers `400` with code `reference_not_found`. With an `external_id` the call is an upsert: it creates the group when the key is new (`201`) and updates the group that holds the key otherwise (`200`). Only the fields you send change, each with the meaning `PATCH /v1/product-groups/{id}` gives it; `products`, when sent, is the complete ordered member list. The request is compared with the stored group first, so a request that changes nothing answers `unchanged` and writes nothing, and retrying after a timeout is safe. The product group comes back with `write_result`. Send `If-None-Match: *` to create only.'
+openapi: post /v1/product-groups
+---

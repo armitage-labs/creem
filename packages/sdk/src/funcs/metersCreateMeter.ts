@@ -3,7 +3,7 @@
  */
 
 import { CreemCore } from "../core.js";
-import { encodeJSON, encodeSimple } from "../lib/encodings.js";
+import { encodeFormQuery, encodeJSON, encodeSimple } from "../lib/encodings.js";
 import { matchStatusCode } from "../lib/http.js";
 import * as M from "../lib/matchers.js";
 import { compactMap } from "../lib/primitives.js";
@@ -31,7 +31,7 @@ import { Result } from "../types/fp.js";
  * Create a meter
  *
  * @remarks
- * Define how a stream of usage events is aggregated into billable units. The unit label doubles as the display unit and as the credit bucket the meter settles into. A duplicate name within the store is rejected with 409 meter_name_taken.
+ * Define how a stream of usage events is aggregated into billable units. The unit label doubles as the display unit and as the credit bucket the meter settles into. A duplicate name within the store is rejected with 409 meter_name_taken. With an `external_id` the call is an upsert: it creates the meter when the key is new (201) and updates the meter that holds the key otherwise (200), archived meters included, which stay archived. Only the fields you send change, each with the meaning `PATCH /v1/meters/{id}` gives it; `event_name` and `unit_label` cannot change after create, and a different value is ignored with a `field_not_writable` warning. The request is compared with the stored meter first, so a request that changes nothing answers `unchanged` and writes nothing, also on a locked meter, and retrying after a timeout is safe; only a real change of a locked meter's filter or aggregation answers 409 `meter_immutable`. The meter comes back with `write_result`. Send `If-None-Match: *` to create only.
  */
 export function metersCreateMeter(
   client: CreemCore,
@@ -39,7 +39,7 @@ export function metersCreateMeter(
   options?: RequestOptions,
 ): APIPromise<
   Result<
-    components.MeterApiResponseDto,
+    components.MeterWriteApiResponseDto,
     | errors.UsageMeteringErrorApiResponseDto
     | CreemError
     | ResponseValidationError
@@ -65,7 +65,7 @@ async function $do(
 ): Promise<
   [
     Result<
-      components.MeterApiResponseDto,
+      components.MeterWriteApiResponseDto,
       | errors.UsageMeteringErrorApiResponseDto
       | CreemError
       | ResponseValidationError
@@ -94,6 +94,10 @@ async function $do(
 
   const path = pathToFunc("/v1/meters")();
 
+  const query = encodeFormQuery({
+    "dry_run": payload.dry_run,
+  });
+
   const headers = new Headers(compactMap({
     "Content-Type": "application/json",
     Accept: "application/json",
@@ -102,6 +106,10 @@ async function $do(
       payload["Idempotency-Key"],
       { explode: false, charEncoding: "none" },
     ),
+    "If-None-Match": encodeSimple("If-None-Match", payload["If-None-Match"], {
+      explode: false,
+      charEncoding: "none",
+    }),
   }));
 
   const secConfig = await extractSecurity(client._options.apiKey);
@@ -129,6 +137,7 @@ async function $do(
     baseURL: options?.serverURL,
     path: path,
     headers: headers,
+    query: query,
     body: body,
     userAgent: client._options.userAgent,
     timeoutMs: options?.timeoutMs || client._options.timeoutMs || -1,
@@ -155,7 +164,7 @@ async function $do(
   };
 
   const [result] = await M.match<
-    components.MeterApiResponseDto,
+    components.MeterWriteApiResponseDto,
     | errors.UsageMeteringErrorApiResponseDto
     | CreemError
     | ResponseValidationError
@@ -166,9 +175,9 @@ async function $do(
     | UnexpectedClientError
     | SDKValidationError
   >(
-    M.json(201, components.MeterApiResponseDto$inboundSchema),
+    M.json([200, 201], components.MeterWriteApiResponseDto$inboundSchema),
     M.jsonErr(
-      [409, 422, 429],
+      [409, 412, 422, 429],
       errors.UsageMeteringErrorApiResponseDto$inboundSchema,
     ),
     M.fail([400, 401, 404, "4XX"]),

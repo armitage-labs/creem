@@ -11,6 +11,10 @@ import { SDKValidationError } from "../errors/sdkvalidationerror.js";
 
 export type UpdateMeterRequest = {
   id: string;
+  /**
+   * Send `true` to preview the write: the request runs as it would and is rolled back, so nothing is written and `Idempotency-Key` is neither read nor stored. The answer is the one the real call would give: the same status (`201` for a create) and errors, and the meter with `write_result.dry_run` `true`. The id of a meter a dry run would create is never stored: a `GET` of it answers `404`. `false` or no parameter is a real call; any other value answers `400`.
+   */
+  dryRun?: boolean | undefined;
   updateMeterApiRequestDto: components.UpdateMeterApiRequestDto;
 };
 
@@ -21,15 +25,18 @@ export const UpdateMeterRequest$inboundSchema: z.ZodType<
   unknown
 > = z.object({
   id: z.string(),
+  dry_run: z.boolean().optional(),
   UpdateMeterApiRequestDto: components.UpdateMeterApiRequestDto$inboundSchema,
 }).transform((v) => {
   return remap$(v, {
+    "dry_run": "dryRun",
     "UpdateMeterApiRequestDto": "updateMeterApiRequestDto",
   });
 });
 /** @internal */
 export type UpdateMeterRequest$Outbound = {
   id: string;
+  dry_run?: boolean | undefined;
   UpdateMeterApiRequestDto: components.UpdateMeterApiRequestDto$Outbound;
 };
 
@@ -40,9 +47,11 @@ export const UpdateMeterRequest$outboundSchema: z.ZodType<
   UpdateMeterRequest
 > = z.object({
   id: z.string(),
+  dryRun: z.boolean().optional(),
   updateMeterApiRequestDto: components.UpdateMeterApiRequestDto$outboundSchema,
 }).transform((v) => {
   return remap$(v, {
+    dryRun: "dry_run",
     updateMeterApiRequestDto: "UpdateMeterApiRequestDto",
   });
 });

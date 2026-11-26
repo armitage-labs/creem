@@ -9,10 +9,10 @@
   },
   "mode": "plan",
   "summary": {
-    "create": 10,
+    "create": 11,
     "update": 0,
     "unchanged": 0,
-    "skip": 5,
+    "skip": 4,
     "failed": 0,
     "warnings": 2
   },
@@ -212,14 +212,11 @@
       "action": "create"
     },
     {
-      "status": null,
+      "status": "pending",
       "creem_id": null,
       "adopted_from": null,
       "changes": [],
-      "reason": {
-        "code": "product_group_write_unavailable",
-        "message": "The public API cannot create product groups yet; create \"Pro Armitage subsription\" with \"Pro Armitage subsription - top\", \"Pro Armitage subsription - basec\" in the dashboard."
-      },
+      "reason": null,
       "warnings": [],
       "error": null,
       "kind": "product_group",
@@ -229,7 +226,7 @@
         "type": "product",
         "id": "262308"
       },
-      "action": "skip",
+      "action": "create",
       "members": [
         "ls_variant_365902",
         "ls_variant_752120"

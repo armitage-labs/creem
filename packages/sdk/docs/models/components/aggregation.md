@@ -1,6 +1,6 @@
 # Aggregation
 
-Aggregation applied to the matching events
+Aggregation applied to the matching events. Required when creating a meter. Part of the meter definition: on an existing meter (by `external_id`) a different value is accepted only while the meter is not locked.
 
 ## Example Usage
 

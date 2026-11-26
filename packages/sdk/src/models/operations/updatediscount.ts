@@ -15,6 +15,10 @@ export type UpdateDiscountRequest = {
    */
   id: string;
   /**
+   * Send `true` to preview the write: the request runs as it would and is rolled back, so nothing is written, no Stripe API is called, and `Idempotency-Key` is neither read nor stored. The answer is the one the real call would give: the same status and errors, and the discount with `write_result.dry_run` `true`. The id of a new discount is never stored: a `GET` of it answers `404`. A key in `applies_to_product_external_ids` that names no product is a `reference_not_found` warning (`path`, `key`) instead of a `400`: a new discount leaves that product out, and an existing one keeps its stored products. `false` or no parameter is a real call; any other value answers `400`.
+   */
+  dryRun?: boolean | undefined;
+  /**
    * Discount update payload
    */
   updateDiscountRequestEntity: components.UpdateDiscountRequestEntity;
@@ -27,16 +31,19 @@ export const UpdateDiscountRequest$inboundSchema: z.ZodType<
   unknown
 > = z.object({
   id: z.string(),
+  dry_run: z.boolean().optional(),
   UpdateDiscountRequestEntity:
     components.UpdateDiscountRequestEntity$inboundSchema,
 }).transform((v) => {
   return remap$(v, {
+    "dry_run": "dryRun",
     "UpdateDiscountRequestEntity": "updateDiscountRequestEntity",
   });
 });
 /** @internal */
 export type UpdateDiscountRequest$Outbound = {
   id: string;
+  dry_run?: boolean | undefined;
   UpdateDiscountRequestEntity: components.UpdateDiscountRequestEntity$Outbound;
 };
 
@@ -47,10 +54,12 @@ export const UpdateDiscountRequest$outboundSchema: z.ZodType<
   UpdateDiscountRequest
 > = z.object({
   id: z.string(),
+  dryRun: z.boolean().optional(),
   updateDiscountRequestEntity:
     components.UpdateDiscountRequestEntity$outboundSchema,
 }).transform((v) => {
   return remap$(v, {
+    dryRun: "dry_run",
     updateDiscountRequestEntity: "UpdateDiscountRequestEntity",
   });
 });

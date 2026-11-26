@@ -3,6 +3,7 @@
  */
 
 export * from "./acknowledgewebhookevent.js";
+export * from "./addproducttoproductgroup.js";
 export * from "./archivemeter.js";
 export * from "./archiveproduct.js";
 export * from "./cancelsubscription.js";
@@ -11,9 +12,11 @@ export * from "./confirmfileupload.js";
 export * from "./creatediscount.js";
 export * from "./createmeter.js";
 export * from "./createproduct.js";
+export * from "./createproductgroup.js";
 export * from "./creditcustomercreditsaccount.js";
 export * from "./debitcustomercreditsaccount.js";
 export * from "./deletediscount.js";
+export * from "./deleteproductgroup.js";
 export * from "./deletesplit.js";
 export * from "./deletewebhook.js";
 export * from "./freezecustomercreditsaccount.js";
@@ -48,6 +51,7 @@ export * from "./listusageevents.js";
 export * from "./listwebhooks.js";
 export * from "./pausesubscription.js";
 export * from "./previewexistingmeter.js";
+export * from "./removeproductfromproductgroup.js";
 export * from "./resumesubscription.js";
 export * from "./retrieveaffiliate.js";
 export * from "./retrievecheckout.js";
@@ -66,6 +70,7 @@ export * from "./unfreezecustomercreditsaccount.js";
 export * from "./updatediscount.js";
 export * from "./updatemeter.js";
 export * from "./updateproduct.js";
+export * from "./updateproductgroup.js";
 export * from "./updatesubscription.js";
 export * from "./updatewebhook.js";
 export * from "./upgradesubscription.js";

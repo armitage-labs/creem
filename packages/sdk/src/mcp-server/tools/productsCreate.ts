@@ -12,9 +12,9 @@ const args = {
 
 export const tool$productsCreate: ToolDefinition<typeof args> = {
   name: "products-create",
-  description: `Creates a new product.
+  description: `Creates a product, or updates the one with the same external_id.
 
-Create a new product for one-time payments, including free products with a 0 price, or subscriptions. Configure pricing, billing cycles, and features.`,
+Create a new product for one-time payments, including free products with a 0 price, or subscriptions. Configure pricing, billing cycles, and features. With an \`external_id\` the call is an upsert: it creates the product when the key is new and updates the product that holds the key otherwise (archived products included, and they stay archived unless you send \`status\`). Only the fields you send change, each with the meaning \`PATCH /v1/products/{id}\` gives it; \`tax_category\` cannot change after create and a different value is ignored with a \`field_not_writable\` warning. A request that changes nothing answers \`unchanged\` and writes nothing, so retrying after a timeout is safe. The product comes back with \`write_result\`. Send \`If-None-Match: *\` to create only.`,
   args,
   tool: async (client, args, ctx) => {
     const [result, apiCall] = await productsCreate(

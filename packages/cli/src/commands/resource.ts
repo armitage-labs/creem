@@ -51,8 +51,25 @@ export function outputFormat(command: Command): string {
 function attribute(flag: string): string {
   return flag.replace(/^--/, "").replace(/-([a-z])/g, (_m, c: string) => c.toUpperCase());
 }
+/** Help for the write parameters whose SDK name says nothing on its own. */
+const PARAMETER_HELP: Record<string, string> = {
+  ifNoneMatch:
+    "Send * to create only: an object with the same external ID answers 412 instead of being updated",
+};
+
 function addInputFlag(command: Command, flag: string, schema: InputSchema, name: string): void {
   if (command.options.some((o) => o.long === flag)) return;
+  if (name === "dryRun") {
+    command.option(
+      flag,
+      "Check the write and change nothing: Creem answers what it would do (write_result.dry_run: true)",
+    );
+    return;
+  }
+  if (PARAMETER_HELP[name]) {
+    command.option(`${flag} <value>`, PARAMETER_HELP[name], (v) => parseInput(name, v, schema));
+    return;
+  }
   const type = schema.type;
   const description = `${name}${schema.enum ? ` (${schema.enum.join("|")})` : ""}${type === "array" ? " (repeatable; JSON for objects)" : ""}`;
   if (type === "array" || name === "metadata")
@@ -104,6 +121,8 @@ export function createResourceCommand(resource: string, context: CliContext): Co
       command.argument(positional?.cliFlagOrArgument ?? row.argument!, "Resource ID");
     for (const p of row.parameters) {
       if (p === positional) continue;
+      // The API's `status` filter is sent by the client-side --status below.
+      if (row.cliPath === "subscriptions list" && p.sdkName === "status") continue;
       if (row.cliPath === "customers get" && p.sdkName === "email")
         command.option(
           "--email [email]",
@@ -169,6 +188,13 @@ export async function executeOperation(
   if (paginationDefaults) {
     p.pageNumber ??= paginationDefaults.pageNumber;
     p.pageSize ??= paginationDefaults.pageSize;
+  }
+  // --status stays one value that walks every page and filters client-side; a status
+  // the API knows is also sent as its `status` filter, so fewer pages come back.
+  if (row.cliPath === "subscriptions list" && p.status !== undefined) {
+    const known = row.parameters.find((param) => param.sdkName === "status")?.schema.items?.enum;
+    if (known?.includes(p.status)) p.status = [p.status];
+    else delete p.status;
   }
   if (row.cliPath === "customers get" && opts.email === true) {
     p.email = id;

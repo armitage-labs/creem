@@ -14,7 +14,7 @@ export const tool$subscriptionsSearch: ToolDefinition<typeof args> = {
   name: "subscriptions-search",
   description: `List all subscriptions
 
-Search and retrieve a paginated list of subscriptions. View status, billing cycle, and customer info.`,
+Search and retrieve a paginated list of subscriptions, newest first. View status, billing cycle, and customer info. Filter by product, price version, status and customer: the filters combine with AND, several statuses with OR. To move one subscription to another price, send \`items[].price_id\` to \`POST /v1/subscriptions/{id}\`.`,
   args,
   tool: async (client, args, ctx) => {
     const [result, apiCall] = await subscriptionsSearch(

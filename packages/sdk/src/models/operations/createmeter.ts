@@ -11,9 +11,19 @@ import { SDKValidationError } from "../errors/sdkvalidationerror.js";
 
 export type CreateMeterRequest = {
   /**
-   * Optional key that makes retries return the originally created meter instead of creating a duplicate. Reusing a key with a different body returns the first result, and a key lasts 24 hours. After a failed create whose outcome is unclear, the key answers 429 for up to 5 minutes.
+   * Deprecated: send an `external_id`, which makes a retry an update of the meter the first call created. Without an `external_id`, a retry with the same key returns the originally created meter instead of creating a duplicate; reusing a key with a different body returns the first result, and a key lasts 24 hours. After a failed create whose outcome is unclear, the key answers 429 for up to 5 minutes. With an `external_id` the header is ignored.
+   *
+   * @deprecated field: This will be removed in a future release, please migrate away from it as soon as possible.
    */
   idempotencyKey?: string | undefined;
+  /**
+   * Send `*` to create only: when a meter of the store already has the `external_id`, the call answers `412` (`precondition_failed`) and writes nothing. Only `*` is accepted on a request with an `external_id` (any other value answers `400`); without one the header is ignored.
+   */
+  ifNoneMatch?: string | undefined;
+  /**
+   * Send `true` to preview the write: the request runs as it would and is rolled back, so nothing is written and `Idempotency-Key` is neither read nor stored. The answer is the one the real call would give: the same status (`201` for a create) and errors, and the meter with `write_result.dry_run` `true`. The id of a meter a dry run would create is never stored: a `GET` of it answers `404`. `false` or no parameter is a real call; any other value answers `400`.
+   */
+  dryRun?: boolean | undefined;
   createMeterApiRequestDto: components.CreateMeterApiRequestDto;
 };
 
@@ -24,16 +34,22 @@ export const CreateMeterRequest$inboundSchema: z.ZodType<
   unknown
 > = z.object({
   "Idempotency-Key": z.string().optional(),
+  "If-None-Match": z.string().optional(),
+  dry_run: z.boolean().optional(),
   CreateMeterApiRequestDto: components.CreateMeterApiRequestDto$inboundSchema,
 }).transform((v) => {
   return remap$(v, {
     "Idempotency-Key": "idempotencyKey",
+    "If-None-Match": "ifNoneMatch",
+    "dry_run": "dryRun",
     "CreateMeterApiRequestDto": "createMeterApiRequestDto",
   });
 });
 /** @internal */
 export type CreateMeterRequest$Outbound = {
   "Idempotency-Key"?: string | undefined;
+  "If-None-Match"?: string | undefined;
+  dry_run?: boolean | undefined;
   CreateMeterApiRequestDto: components.CreateMeterApiRequestDto$Outbound;
 };
 
@@ -44,10 +60,14 @@ export const CreateMeterRequest$outboundSchema: z.ZodType<
   CreateMeterRequest
 > = z.object({
   idempotencyKey: z.string().optional(),
+  ifNoneMatch: z.string().optional(),
+  dryRun: z.boolean().optional(),
   createMeterApiRequestDto: components.CreateMeterApiRequestDto$outboundSchema,
 }).transform((v) => {
   return remap$(v, {
     idempotencyKey: "Idempotency-Key",
+    ifNoneMatch: "If-None-Match",
+    dryRun: "dry_run",
     createMeterApiRequestDto: "CreateMeterApiRequestDto",
   });
 });

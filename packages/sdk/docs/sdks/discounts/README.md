@@ -6,7 +6,7 @@
 
 * [search](#search) - Search discounts
 * [get](#get) - Retrieve discount
-* [create](#create) - Create a discount.
+* [create](#create) - Creates a discount, or updates the one with the same external_id.
 * [update](#update) - Update a discount.
 * [delete](#delete) - Delete a discount.
 
@@ -168,7 +168,7 @@ run();
 
 ## create
 
-Create promotional discount codes for products. Set percentage or fixed amount discounts with expiration dates.
+Create promotional discount codes for products. Set percentage or fixed amount discounts with expiration dates. With an `external_id` the call is an upsert: it creates the discount when the key is new and updates the discount that holds the key otherwise. It matches by `external_id` only, never by `code`. Only the fields you send change, each with the meaning `PATCH /v1/discounts/{id}` gives it; the code cannot change, and a different code is ignored with a `field_not_writable` warning (a difference only in case is no change). A request that changes nothing answers `unchanged` and writes nothing, so retrying after a timeout is safe. The discount comes back with `write_result`. Send `If-None-Match: *` to create only.
 
 ### Example Usage
 
@@ -185,13 +185,11 @@ async function run() {
     createDiscountRequestEntity: {
       name: "Holiday Sale",
       code: "HOLIDAY2024",
-      type: "percentage",
       amount: 20,
       currency: "USD",
       percentage: 15,
       expiryDate: new Date("2024-12-31T23:59:59Z"),
       maxRedemptions: 100,
-      duration: "repeating",
       durationInMonths: 6,
       appliesToProducts: [
         "prod_123",
@@ -229,13 +227,11 @@ async function run() {
     createDiscountRequestEntity: {
       name: "Holiday Sale",
       code: "HOLIDAY2024",
-      type: "percentage",
       amount: 20,
       currency: "USD",
       percentage: 15,
       expiryDate: new Date("2024-12-31T23:59:59Z"),
       maxRedemptions: 100,
-      duration: "repeating",
       durationInMonths: 6,
       appliesToProducts: [
         "prod_123",
@@ -269,7 +265,7 @@ run();
 
 ### Response
 
-**Promise\<[components.DiscountEntity](../../models/components/discountentity.md)\>**
+**Promise\<[components.DiscountWriteResponseEntity](../../models/components/discountwriteresponseentity.md)\>**
 
 ### Errors
 
@@ -280,7 +276,7 @@ run();
 
 ## update
 
-Update a discount. Only supplied fields change; the code never does. Once redeemed, its amount, type, currency and duration are fixed. A discount with a Stripe coupon also keeps its expiry, redemption limit and products; a name change renames the coupon.
+Update a discount. Only supplied fields change; the code never does. Once redeemed, its amount, type, currency and duration are fixed. A discount with a Stripe coupon also keeps its expiry, redemption limit and products; a name change renames the coupon. A request that changes nothing answers `unchanged` and writes nothing. The discount comes back with `write_result`.
 
 ### Example Usage
 
@@ -375,7 +371,7 @@ run();
 
 ### Response
 
-**Promise\<[components.DiscountEntity](../../models/components/discountentity.md)\>**
+**Promise\<[components.DiscountWriteResponseEntity](../../models/components/discountwriteresponseentity.md)\>**
 
 ### Errors
 

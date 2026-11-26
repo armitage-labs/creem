@@ -142,7 +142,7 @@ Export your customers, orders and subscriptions as CSV for your records with Lem
 
 ### Products
 
-Create one Creem product per Lemon Squeezy variant with [`POST /v1/products`](/api-reference/endpoint/create-product). Put the variant ID in `external_id`, so a second run finds what the first one created.
+Create one Creem product per Lemon Squeezy variant with [`POST /v1/products`](/api-reference/endpoint/create-product). Put the variant ID in `external_id`: with a key the call is an upsert, so a second run updates what the first one created instead of creating it again.
 
 ```bash
 curl -X POST https://test-api.creem.io/v1/products \
@@ -165,7 +165,7 @@ curl -X POST https://test-api.creem.io/v1/products \
 
 The full field mapping is in the [reference](#products-and-variants) at the end of this page. Four things need care:
 
-- **Re-runs.** A create with an `external_id` already in use updates that product. Send `If-None-Match: *` to create only: Creem then answers `412` with the code `precondition_failed` and the product's id in `details.product_id`, so you skip it and keep any change made in Creem since.
+- **Re-runs.** A create with an `external_id` already in use updates that product. Send `If-None-Match: *` to create only: Creem then answers `412` with the code `precondition_failed` and the product's id in `details.product_id`, so you skip it and keep any change made in Creem since. Without it, a call whose fields already match answers `write_result.result` `unchanged` and writes nothing. Add `?dry_run=true` to see what a call would do without writing anything, and stop unless the answer's `write_result.dry_run` is `true`. `POST /v1/catalog/validate` checks up to 100 product writes together the same way before you send the first one.
 - **Descriptions.** Lemon Squeezy stores descriptions as HTML; Creem's checkout renders Markdown and doesn't render HTML. Convert tag by tag: `<p>` to a paragraph, `<br>` to a line break, `<h1>`–`<h6>` to `#`–`######`, `<strong>`/`<b>` to `**bold**`, `<em>`/`<i>` to `_italic_`, `<s>`/`<del>` to `~~strike~~`, `<code>` to backticks, `<ul>`/`<ol>`/`<li>` to `-` and `1.` items (nested items indented), `<a>` to `[text](url)` and `<blockquote>` to `>`. Drop `<img>` and report it. Then turn three or more one-line paragraphs in a row, a list written one `<p>` per line, into a bullet list. Compare each description before and after.
 - **Images.** Creem stores the image URL and serves it through its image proxy; it doesn't copy the file. Re-upload each image in the dashboard so it keeps working after Lemon Squeezy's hosting goes away.
 - **Tax category.** Lemon Squeezy's `eservice` has no exact match. It maps closest to `digital-goods-service`; confirm the category for each product.
@@ -199,9 +199,13 @@ Create each code with [`POST /v1/discounts`](/api-reference/endpoint/create-disc
 
 - A discount needs at least one product, in `applies_to_products` (Creem ids) or `applies_to_product_external_ids` (your `ls_variant_<id>` keys), at most 100. A Lemon Squeezy code that applies to everything must list every Creem product, and products you create later aren't covered.
 - Give each discount an `external_id` such as `ls_discount_<id>` and create it with `If-None-Match: *`: on a re-run Creem answers `412` with the code `precondition_failed`, so you skip it. Edit a discount with [`PATCH /v1/discounts/{id}`](/api-reference/endpoint/update-discount-code). Once it has been redeemed, its amount, type, currency and duration are fixed, and changing them answers `409` with `discount_redeemed`; create a new code for new terms.
-- A code can exist only once. A second create with the same code fails with "The code has already been taken", so check with [search discounts](/api-reference/endpoint/search-discounts) before a re-run.
+- A code can exist only once, so a new key whose code another discount already holds answers `409` with `discount_code_taken`.
 - Lemon Squeezy's start date and draft status have no equivalent. A repeating discount applies to subscriptions only.
 - Creem counts redemptions from zero. If the Lemon Squeezy code had a limit, set `max_redemptions` to what's left.
+
+### Product groups
+
+A Lemon Squeezy product with several subscription variants lets a subscriber switch between them. In Creem that is a product group: create it with `POST /v1/product-groups`, `external_id` `ls_product_<id>` and the variants' products in order as `products`, named by their `external_id`. With the key the call is an upsert too, and `products` is the complete list. A product is in one group at a time.
 
 ## 4. Import customers
 

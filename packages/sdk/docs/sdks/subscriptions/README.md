@@ -87,7 +87,7 @@ run();
 
 ## search
 
-Search and retrieve a paginated list of subscriptions. View status, billing cycle, and customer info.
+Search and retrieve a paginated list of subscriptions, newest first. View status, billing cycle, and customer info. Filter by product, price version, status and customer: the filters combine with AND, several statuses with OR. To move one subscription to another price, send `items[].price_id` to `POST /v1/subscriptions/{id}`.
 
 ### Example Usage
 
@@ -100,7 +100,15 @@ const creem = new Creem({
 });
 
 async function run() {
-  const result = await creem.subscriptions.search({});
+  const result = await creem.subscriptions.search({
+    productId: "prod_1234567890",
+    priceId: "pprice_1234567890",
+    status: [
+      "active",
+      "past_due",
+    ],
+    customerId: "cust_1234567890",
+  });
 
   for await (const page of result) {
     console.log(page);
@@ -125,7 +133,15 @@ const creem = new CreemCore({
 });
 
 async function run() {
-  const res = await subscriptionsSearch(creem, {});
+  const res = await subscriptionsSearch(creem, {
+    productId: "prod_1234567890",
+    priceId: "pprice_1234567890",
+    status: [
+      "active",
+      "past_due",
+    ],
+    customerId: "cust_1234567890",
+  });
   if (res.ok) {
     const { value: result } = res;
     for await (const page of result) {

@@ -25,6 +25,10 @@ export type ProductFeatureFileRequestEntity = {
    * Read-only: returned on reads, ignored on writes.
    */
   size?: number | undefined;
+  /**
+   * Read-only: returned on reads, ignored on writes.
+   */
+  sha256?: string | null | undefined;
 };
 
 /** @internal */
@@ -37,6 +41,7 @@ export const ProductFeatureFileRequestEntity$inboundSchema: z.ZodType<
   file_name: z.string().optional(),
   type: z.string().optional(),
   size: z.number().int().optional(),
+  sha256: z.nullable(z.string()).optional(),
 }).transform((v) => {
   return remap$(v, {
     "file_name": "fileName",
@@ -48,6 +53,7 @@ export type ProductFeatureFileRequestEntity$Outbound = {
   file_name?: string | undefined;
   type?: string | undefined;
   size?: number | undefined;
+  sha256?: string | null | undefined;
 };
 
 /** @internal */
@@ -60,6 +66,7 @@ export const ProductFeatureFileRequestEntity$outboundSchema: z.ZodType<
   fileName: z.string().optional(),
   type: z.string().optional(),
   size: z.number().int().optional(),
+  sha256: z.nullable(z.string()).optional(),
 }).transform((v) => {
   return remap$(v, {
     fileName: "file_name",

@@ -238,6 +238,10 @@ run();
 * [retrieve](docs/sdks/affiliates/README.md#retrieve) - Retrieve an affiliate
 * [listCommissions](docs/sdks/affiliates/README.md#listcommissions) - List affiliate commissions
 
+### [Catalog](docs/sdks/catalog/README.md)
+
+* [validate](docs/sdks/catalog/README.md#validate) - Validate a batch of catalog writes together, without writing anything.
+
 ### [Checkouts](docs/sdks/checkouts/README.md)
 
 * [retrieve](docs/sdks/checkouts/README.md#retrieve) - Retrieve a checkout session.
@@ -276,7 +280,7 @@ run();
 
 * [search](docs/sdks/discounts/README.md#search) - Search discounts
 * [get](docs/sdks/discounts/README.md#get) - Retrieve discount
-* [create](docs/sdks/discounts/README.md#create) - Create a discount.
+* [create](docs/sdks/discounts/README.md#create) - Creates a discount, or updates the one with the same external_id.
 * [update](docs/sdks/discounts/README.md#update) - Update a discount.
 * [delete](docs/sdks/discounts/README.md#delete) - Delete a discount.
 
@@ -316,13 +320,18 @@ run();
 
 ### [ProductGroups](docs/sdks/productgroups/README.md)
 
+* [create](docs/sdks/productgroups/README.md#create) - Create a product group
 * [list](docs/sdks/productgroups/README.md#list) - List product groups
 * [get](docs/sdks/productgroups/README.md#get) - Retrieve a product group
+* [update](docs/sdks/productgroups/README.md#update) - Update a product group
+* [delete](docs/sdks/productgroups/README.md#delete) - Delete a product group
+* [addProduct](docs/sdks/productgroups/README.md#addproduct) - Add a product to a product group
+* [removeProduct](docs/sdks/productgroups/README.md#removeproduct) - Remove a product from a product group
 
 ### [Products](docs/sdks/products/README.md)
 
 * [search](docs/sdks/products/README.md#search) - List all products
-* [create](docs/sdks/products/README.md#create) - Creates a new product.
+* [create](docs/sdks/products/README.md#create) - Creates a product, or updates the one with the same external_id.
 * [get](docs/sdks/products/README.md#get) - Get a product by ID
 * [update](docs/sdks/products/README.md#update) - Update a product
 * [archive](docs/sdks/products/README.md#archive) - Archive a product
@@ -389,6 +398,7 @@ To read more about standalone functions, check [FUNCTIONS.md](./FUNCTIONS.md).
 - [`affiliatesListCommissions`](docs/sdks/affiliates/README.md#listcommissions) - List affiliate commissions
 - [`affiliatesListInvites`](docs/sdks/affiliates/README.md#listinvites) - List affiliate invitations
 - [`affiliatesRetrieve`](docs/sdks/affiliates/README.md#retrieve) - Retrieve an affiliate
+- [`catalogValidate`](docs/sdks/catalog/README.md#validate) - Validate a batch of catalog writes together, without writing anything.
 - [`checkoutsCreate`](docs/sdks/checkouts/README.md#create) - Creates a new checkout session.
 - [`checkoutsRetrieve`](docs/sdks/checkouts/README.md#retrieve) - Retrieve a checkout session.
 - [`customerCreditsCloseAccount`](docs/sdks/customercredits/README.md#closeaccount) - Close an account
@@ -414,7 +424,7 @@ To read more about standalone functions, check [FUNCTIONS.md](./FUNCTIONS.md).
 - [`customersListSubscriptions`](docs/sdks/customers/README.md#listsubscriptions) - List customer subscriptions
 - [`customersRetrieve`](docs/sdks/customers/README.md#retrieve) - Retrieve a customer
 - [`customersUpdate`](docs/sdks/customers/README.md#update) - Update a customer
-- [`discountsCreate`](docs/sdks/discounts/README.md#create) - Create a discount.
+- [`discountsCreate`](docs/sdks/discounts/README.md#create) - Creates a discount, or updates the one with the same external_id.
 - [`discountsDelete`](docs/sdks/discounts/README.md#delete) - Delete a discount.
 - [`discountsGet`](docs/sdks/discounts/README.md#get) - Retrieve discount
 - [`discountsSearch`](docs/sdks/discounts/README.md#search) - Search discounts
@@ -438,10 +448,15 @@ To read more about standalone functions, check [FUNCTIONS.md](./FUNCTIONS.md).
 - [`metersUnarchiveMeter`](docs/sdks/meters/README.md#unarchivemeter) - Unarchive a meter
 - [`metersUpdateMeter`](docs/sdks/meters/README.md#updatemeter) - Update a meter
 - [`moderationScreenPrompt`](docs/sdks/moderation/README.md#screenprompt) - Screen a prompt
+- [`productGroupsAddProduct`](docs/sdks/productgroups/README.md#addproduct) - Add a product to a product group
+- [`productGroupsCreate`](docs/sdks/productgroups/README.md#create) - Create a product group
+- [`productGroupsDelete`](docs/sdks/productgroups/README.md#delete) - Delete a product group
 - [`productGroupsGet`](docs/sdks/productgroups/README.md#get) - Retrieve a product group
 - [`productGroupsList`](docs/sdks/productgroups/README.md#list) - List product groups
+- [`productGroupsRemoveProduct`](docs/sdks/productgroups/README.md#removeproduct) - Remove a product from a product group
+- [`productGroupsUpdate`](docs/sdks/productgroups/README.md#update) - Update a product group
 - [`productsArchive`](docs/sdks/products/README.md#archive) - Archive a product
-- [`productsCreate`](docs/sdks/products/README.md#create) - Creates a new product.
+- [`productsCreate`](docs/sdks/products/README.md#create) - Creates a product, or updates the one with the same external_id.
 - [`productsGet`](docs/sdks/products/README.md#get) - Get a product by ID
 - [`productsListPrices`](docs/sdks/products/README.md#listprices) - List the price versions of a product
 - [`productsSearch`](docs/sdks/products/README.md#search) - List all products
@@ -607,13 +622,11 @@ async function run() {
       createDiscountRequestEntity: {
         name: "Holiday Sale",
         code: "HOLIDAY2024",
-        type: "percentage",
         amount: 20,
         currency: "USD",
         percentage: 15,
         expiryDate: new Date("2024-12-31T23:59:59Z"),
         maxRedemptions: 100,
-        duration: "repeating",
         durationInMonths: 6,
         appliesToProducts: [
           "prod_123",
@@ -655,7 +668,7 @@ run();
 **Primary error:**
 * [`CreemError`](./src/models/errors/creemerror.ts): The base class for HTTP error responses.
 
-<details><summary>Less common errors (9)</summary>
+<details><summary>Less common errors (10)</summary>
 
 <br />
 
@@ -668,9 +681,10 @@ run();
 
 
 **Inherit from [`CreemError`](./src/models/errors/creemerror.ts)**:
-* [`CustomerCreditsErrorResponseDto`](./src/models/errors/customercreditserrorresponsedto.ts): Applicable to 9 of 85 methods.*
-* [`UsageMeteringErrorApiResponseDto`](./src/models/errors/usagemeteringerrorapiresponsedto.ts): Applicable to 6 of 85 methods.*
-* [`TooManyRequestsErrorEntity`](./src/models/errors/toomanyrequestserrorentity.ts): A create with this `Idempotency-Key` is in progress, or failed with an unclear outcome less than 5 minutes ago. Retry later. Status code `429`. Applicable to 1 of 85 methods.*
+* [`CustomerCreditsErrorResponseDto`](./src/models/errors/customercreditserrorresponsedto.ts): Applicable to 9 of 91 methods.*
+* [`UsageMeteringErrorApiResponseDto`](./src/models/errors/usagemeteringerrorapiresponsedto.ts): Applicable to 6 of 91 methods.*
+* [`CatalogValidationResponseDto`](./src/models/errors/catalogvalidationresponsedto.ts): Every item passes. One answer per item, in the order of the request. Status code `422`. Applicable to 1 of 91 methods.*
+* [`TooManyRequestsErrorEntity`](./src/models/errors/toomanyrequestserrorentity.ts): A create with this `Idempotency-Key` is in progress, or failed with an unclear outcome less than 5 minutes ago. Retry later. Status code `429`. Applicable to 1 of 91 methods.*
 * [`ResponseValidationError`](./src/models/errors/responsevalidationerror.ts): Type mismatch between the data returned from the server and the structure expected by the SDK. See `error.rawValue` for the raw value and `error.pretty()` for a nicely formatted multi-line string.
 
 </details>

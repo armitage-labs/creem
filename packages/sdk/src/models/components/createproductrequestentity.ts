@@ -58,6 +58,11 @@ import {
   ProductRequestRecurringInterval$outboundSchema,
 } from "./productrequestrecurringinterval.js";
 import {
+  ProductStatus,
+  ProductStatus$inboundSchema,
+  ProductStatus$outboundSchema,
+} from "./productstatus.js";
+import {
   TaxCategory,
   TaxCategory$inboundSchema,
   TaxCategory$outboundSchema,
@@ -82,13 +87,13 @@ export type CreateProductRequestEntityFeatures =
 
 export type CreateProductRequestEntity = {
   /**
-   * Name of the product
+   * Name of the product. Required when creating a product.
    */
-  name: string;
+  name?: string | undefined;
   /**
-   * Description of the product
+   * Description of the product. Required when creating a product.
    */
-  description: string;
+  description?: string | undefined;
   /**
    * URL of the product image
    */
@@ -98,17 +103,17 @@ export type CreateProductRequestEntity = {
    */
   imageUrls?: Array<string> | undefined;
   /**
-   * The price of the product in cents. Must be 0 (free product) or at least 100 (one whole unit of the currency).
+   * The price of the product in cents. Must be 0 (free product) or at least 100 (one whole unit of the currency). Required when creating a product.
    */
-  price: number;
+  price?: number | undefined;
   /**
    * Three-letter uppercase ISO 4217 currency code. Must be one of Creem's supported currencies.
    */
-  currency: ProductCurrency;
+  currency?: ProductCurrency | undefined;
   /**
    * Billing method for the product: `recurring` subscription or `onetime` payment.
    */
-  billingType: ProductRequestBillingType;
+  billingType?: ProductRequestBillingType | undefined;
   /**
    * Billing interval. Required when `billing_type` is `recurring`. Use a preset for the common cadences, or `custom` together with `recurring_interval` + `recurring_interval_count` for anything else (e.g. weekly).
    */
@@ -154,7 +159,7 @@ export type CreateProductRequestEntity = {
    */
   defaultSuccessUrl?: string | undefined;
   /**
-   * Your own key for this product, such as your SKU or internal product id. Creem never sets it. Unique per store, case-sensitive; 1 to 255 characters: letters, digits, `_`, `-`, `.` and `:`. A key another product of your store already uses answers `409` with code `external_id_taken`. Omit it for a product without a key.
+   * Your own key for this product, such as your SKU or internal product id. Creem never sets it. Unique per store, case-sensitive; 1 to 255 characters: letters, digits, `_`, `-`, `.` and `:`. With a key, this call creates the product when the key is new and updates the product that holds it otherwise, archived or not: only the fields you send change, each with the meaning `PATCH /v1/products/{id}` gives it, and a request that changes nothing answers `write_result.result` `unchanged` and writes nothing, so a retry after a timeout is safe. Send `If-None-Match: *` to create only: an existing key then answers `412` with code `precondition_failed`. Omit it for a product without a key; every call then creates a product.
    */
   externalId?: string | undefined;
   /**
@@ -176,11 +181,11 @@ export type CreateProductRequestEntity = {
    */
   abandonedCartRecoveryEnabled?: boolean | undefined;
   /**
-   * Metered charges billed on top of the base price, one per meter. Recurring products only.
+   * Metered charges billed on top of the base price, one per meter. Recurring products only. When an `external_id` names an existing product, the array is the complete set: a usage price matches a stored one by `id`, else by its meter (`meter_id` or `meter_external_id`); when `id` and the meter disagree, `id` wins and the usage price moves to the other meter, which is refused while subscriptions use it. A stored usage price the array leaves out is removed.
    */
   usagePrices?: Array<UsagePriceRequestEntity> | undefined;
   /**
-   * Features granted by purchase: `customerCredits` (a credit grant into one of the customer credit buckets), `licenseKey` (a license key per purchased unit), `custom` (a private note) and `file` (files buyers download, named by the ids of confirmed uploads from `POST /v1/files`). A file id that is unknown, of another store, or of an upload that was never confirmed answers `400` with code `reference_not_found`; a file of the store that is not stored under its own product-file key answers `400` with code `file_location_invalid`. `githubRepository` features are managed in the dashboard: an entry of that type answers `400` with code `feature_type_not_writable`.
+   * Features granted by purchase: `customerCredits` (a credit grant into one of the customer credit buckets), `licenseKey` (a license key per purchased unit), `custom` (a private note) and `file` (files buyers download, named by the ids of confirmed uploads from `POST /v1/files`). A file id that is unknown, of another store, or of an upload that was never confirmed answers `400` with code `reference_not_found`; a file of the store that is not stored under its own product-file key answers `400` with code `file_location_invalid`. `githubRepository` features are managed in the dashboard: an entry of that type answers `400` with code `feature_type_not_writable`. When an `external_id` names an existing product, `features` works as on `PATCH /v1/products/{id}`: only the types the array contains are replaced, and an entry matches a stored feature by `id`, else by its `external_id`, else (a feature without either) the stored feature of its type that has no `external_id` either. To remove a feature, send `{ id, deleted: true }` or `{ external_id, deleted: true }` with an `external_id` that names the product, or use `PATCH /v1/products/{id}`. A create takes no `id` and no deletion.
    */
   features?:
     | Array<
@@ -190,6 +195,10 @@ export type CreateProductRequestEntity = {
       | ProductFileFeatureRequestEntity
     >
     | undefined;
+  /**
+   * Lifecycle status of the product: `active` or `archived`.
+   */
+  status?: ProductStatus | undefined;
 };
 
 /** @internal */
@@ -248,13 +257,13 @@ export const CreateProductRequestEntity$inboundSchema: z.ZodType<
   z.ZodTypeDef,
   unknown
 > = z.object({
-  name: z.string(),
-  description: z.string(),
+  name: z.string().optional(),
+  description: z.string().optional(),
   image_url: z.string().optional(),
   image_urls: z.array(z.string()).optional(),
-  price: z.number().int(),
-  currency: ProductCurrency$inboundSchema,
-  billing_type: ProductRequestBillingType$inboundSchema,
+  price: z.number().int().optional(),
+  currency: ProductCurrency$inboundSchema.optional(),
+  billing_type: ProductRequestBillingType$inboundSchema.optional(),
   billing_period: ProductRequestBillingPeriod$inboundSchema.optional(),
   recurring_interval: ProductRequestRecurringInterval$inboundSchema.optional(),
   recurring_interval_count: z.number().int().optional(),
@@ -270,7 +279,7 @@ export const CreateProductRequestEntity$inboundSchema: z.ZodType<
   metadata: z.record(z.any()).optional(),
   custom_fields: z.array(CustomFieldRequestEntity$inboundSchema).optional(),
   custom_field: z.array(CustomFieldRequestEntity$inboundSchema).optional(),
-  abandoned_cart_recovery_enabled: z.boolean().default(false),
+  abandoned_cart_recovery_enabled: z.boolean().optional(),
   usage_prices: z.array(UsagePriceRequestEntity$inboundSchema).optional(),
   features: z.array(
     z.union([
@@ -280,6 +289,7 @@ export const CreateProductRequestEntity$inboundSchema: z.ZodType<
       ProductFileFeatureRequestEntity$inboundSchema,
     ]),
   ).optional(),
+  status: ProductStatus$inboundSchema.optional(),
 }).transform((v) => {
   return remap$(v, {
     "image_url": "imageUrl",
@@ -305,13 +315,13 @@ export const CreateProductRequestEntity$inboundSchema: z.ZodType<
 });
 /** @internal */
 export type CreateProductRequestEntity$Outbound = {
-  name: string;
-  description: string;
+  name?: string | undefined;
+  description?: string | undefined;
   image_url?: string | undefined;
   image_urls?: Array<string> | undefined;
-  price: number;
-  currency: string;
-  billing_type: string;
+  price?: number | undefined;
+  currency?: string | undefined;
+  billing_type?: string | undefined;
   billing_period?: string | undefined;
   recurring_interval?: string | undefined;
   recurring_interval_count?: number | undefined;
@@ -327,7 +337,7 @@ export type CreateProductRequestEntity$Outbound = {
   metadata?: { [k: string]: any } | undefined;
   custom_fields?: Array<CustomFieldRequestEntity$Outbound> | undefined;
   custom_field?: Array<CustomFieldRequestEntity$Outbound> | undefined;
-  abandoned_cart_recovery_enabled: boolean;
+  abandoned_cart_recovery_enabled?: boolean | undefined;
   usage_prices?: Array<UsagePriceRequestEntity$Outbound> | undefined;
   features?:
     | Array<
@@ -337,6 +347,7 @@ export type CreateProductRequestEntity$Outbound = {
       | ProductFileFeatureRequestEntity$Outbound
     >
     | undefined;
+  status?: string | undefined;
 };
 
 /** @internal */
@@ -345,13 +356,13 @@ export const CreateProductRequestEntity$outboundSchema: z.ZodType<
   z.ZodTypeDef,
   CreateProductRequestEntity
 > = z.object({
-  name: z.string(),
-  description: z.string(),
+  name: z.string().optional(),
+  description: z.string().optional(),
   imageUrl: z.string().optional(),
   imageUrls: z.array(z.string()).optional(),
-  price: z.number().int(),
-  currency: ProductCurrency$outboundSchema,
-  billingType: ProductRequestBillingType$outboundSchema,
+  price: z.number().int().optional(),
+  currency: ProductCurrency$outboundSchema.optional(),
+  billingType: ProductRequestBillingType$outboundSchema.optional(),
   billingPeriod: ProductRequestBillingPeriod$outboundSchema.optional(),
   recurringInterval: ProductRequestRecurringInterval$outboundSchema.optional(),
   recurringIntervalCount: z.number().int().optional(),
@@ -367,7 +378,7 @@ export const CreateProductRequestEntity$outboundSchema: z.ZodType<
   metadata: z.record(z.any()).optional(),
   customFields: z.array(CustomFieldRequestEntity$outboundSchema).optional(),
   customField: z.array(CustomFieldRequestEntity$outboundSchema).optional(),
-  abandonedCartRecoveryEnabled: z.boolean().default(false),
+  abandonedCartRecoveryEnabled: z.boolean().optional(),
   usagePrices: z.array(UsagePriceRequestEntity$outboundSchema).optional(),
   features: z.array(
     z.union([
@@ -377,6 +388,7 @@ export const CreateProductRequestEntity$outboundSchema: z.ZodType<
       ProductFileFeatureRequestEntity$outboundSchema,
     ]),
   ).optional(),
+  status: ProductStatus$outboundSchema.optional(),
 }).transform((v) => {
   return remap$(v, {
     imageUrl: "image_url",

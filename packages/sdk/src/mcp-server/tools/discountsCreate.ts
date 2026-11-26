@@ -12,9 +12,10 @@ const args = {
 
 export const tool$discountsCreate: ToolDefinition<typeof args> = {
   name: "discounts-create",
-  description: `Create a discount.
+  description:
+    `Creates a discount, or updates the one with the same external_id.
 
-Create promotional discount codes for products. Set percentage or fixed amount discounts with expiration dates.`,
+Create promotional discount codes for products. Set percentage or fixed amount discounts with expiration dates. With an \`external_id\` the call is an upsert: it creates the discount when the key is new and updates the discount that holds the key otherwise. It matches by \`external_id\` only, never by \`code\`. Only the fields you send change, each with the meaning \`PATCH /v1/discounts/{id}\` gives it; the code cannot change, and a different code is ignored with a \`field_not_writable\` warning (a difference only in case is no change). A request that changes nothing answers \`unchanged\` and writes nothing, so retrying after a timeout is safe. The discount comes back with \`write_result\`. Send \`If-None-Match: *\` to create only.`,
   args,
   tool: async (client, args, ctx) => {
     const [result, apiCall] = await discountsCreate(

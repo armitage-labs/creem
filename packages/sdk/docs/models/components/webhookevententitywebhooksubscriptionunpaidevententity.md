@@ -70,6 +70,7 @@ let value: WebhookEventEntityWebhookSubscriptionUnpaidEventEntity = {
       recurringIntervalCount: 3,
       trialPeriodDays: 7,
       trialPrice: 100,
+      suggestedPrice: 2500,
       status: "archived",
       taxMode: "exclusive",
       businessNetPricing: false,
