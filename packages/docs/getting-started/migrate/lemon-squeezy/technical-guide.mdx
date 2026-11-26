@@ -176,6 +176,7 @@ Both go on the product as `features`, on create or with [`PATCH /v1/products/{id
 
 - **License keys:** a `licenseKey` feature with the variant's activation limit and expiry. `activation_limit` is `license_activation_limit`, or `null` when unlimited; `expiry` is `{ "interval": "day" | "month" | "year", "interval_count": license_length_value }`, or `null` when keys never expire.
 - **Files:** upload each one with [`POST /v1/files`](/api-reference/endpoint/create-file-upload) and [confirm it](/api-reference/endpoint/confirm-file-upload), then add a `file` feature with the file ids. You can also upload them under [file downloads](/features/addons/file-downloads) in the dashboard.
+- **Updates:** An update replaces the product's features of each type it names, so send back the features of that type you want to keep, with their `id`.
 
 ```json
 {
@@ -197,7 +198,7 @@ Both go on the product as `features`, on create or with [`PATCH /v1/products/{id
 Create each code with [`POST /v1/discounts`](/api-reference/endpoint/create-discount-code). The field mapping is in the [reference](#discount-codes). Mind these differences:
 
 - A discount needs at least one product, in `applies_to_products` (Creem ids) or `applies_to_product_external_ids` (your `ls_variant_<id>` keys), at most 100. A Lemon Squeezy code that applies to everything must list every Creem product, and products you create later aren't covered.
-- Give each discount an `external_id` such as `ls_discount_<id>` and create it with `If-None-Match: *`: on a re-run Creem answers `412` with the code `precondition_failed`, so you skip it. Edit a discount with [`PATCH /v1/discounts/{id}`](/api-reference/endpoint/update-discount-code).
+- Give each discount an `external_id` such as `ls_discount_<id>` and create it with `If-None-Match: *`: on a re-run Creem answers `412` with the code `precondition_failed`, so you skip it. Edit a discount with [`PATCH /v1/discounts/{id}`](/api-reference/endpoint/update-discount-code). Once it has been redeemed, its amount, type, currency and duration are fixed, and changing them answers `409` with `discount_redeemed`; create a new code for new terms.
 - A code can exist only once. A second create with the same code fails with "The code has already been taken", so check with [search discounts](/api-reference/endpoint/search-discounts) before a re-run.
 - Lemon Squeezy's start date and draft status have no equivalent. A repeating discount applies to subscriptions only.
 - Creem counts redemptions from zero. If the Lemon Squeezy code had a limit, set `max_redemptions` to what's left.
@@ -359,7 +360,7 @@ Your agent creates a Creem sandbox, reads your Lemon Squeezy store read-only, sh
 
 ## Use the Creem CLI
 
-For the catalog alone, the Creem CLI copies products and discount codes in one command. See [With the Creem CLI](/getting-started/migrate/lemon-squeezy#with-the-creem-cli) for the commands and the fields to fix after a run. Prefer help? Email support@creem.io and our team can run the migration with you.
+For the catalog, the Creem CLI copies products, discount codes, license key settings and files in one command, keyed by `external_id` so you can run it again. See [With the Creem CLI](/getting-started/migrate/lemon-squeezy#with-the-creem-cli) for the commands and what it skips. Prefer help? Email support@creem.io and our team can run the migration with you.
 
 ## Reference
 
@@ -380,7 +381,7 @@ For the catalog alone, the Creem CLI copies products and discount codes in one c
 | ------------------- | ------------------------------------------------------- |
 | Product and variant | Product, one per variant                                |
 | Price               | The product's price                                     |
-| File                | File download on the product (dashboard)                |
+| File                | File download feature on the product                    |
 | Discount            | Discount code                                           |
 | Customer            | Customer                                                |
 | Order               | Not imported. Creem creates orders for its own payments |
@@ -423,7 +424,7 @@ For the catalog alone, the Creem CLI copies products and discount codes in one c
 | `duration_in_months`                        | `duration_in_months`                                         |
 | `is_limited_redemptions`, `max_redemptions` | `max_redemptions`, minus the redemptions already used        |
 | `expires_at`                                | `expiry_date`                                                |
-| `is_limited_to_products` and its variants   | `applies_to_products`, required                              |
+| `is_limited_to_products` and its variants   | `applies_to_products` or `applies_to_product_external_ids`   |
 | `starts_at`, draft status                   | No equivalent                                                |
 
 ### Customers

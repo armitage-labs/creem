@@ -1,0 +1,192 @@
+{
+  "meta": {
+    "page": {
+      "currentPage": 1,
+      "from": 1,
+      "lastPage": 1,
+      "perPage": 100,
+      "to": 7,
+      "total": 7
+    }
+  },
+  "data": [
+    {
+      "type": "products",
+      "id": "900001",
+      "attributes": {
+        "store_id": 86325,
+        "name": "Icon Pack",
+        "slug": "icon-pack",
+        "description": "<p>200 icons &amp; a <strong>Figma</strong> file.</p>",
+        "status": "published",
+        "status_formatted": "Published",
+        "thumb_url": null,
+        "large_thumb_url": null,
+        "price": 0,
+        "price_formatted": "",
+        "from_price": null,
+        "to_price": null,
+        "pay_what_you_want": false,
+        "buy_now_url": "https://armitage.lemonsqueezy.com/checkout/buy/fixture-900001",
+        "from_price_formatted": null,
+        "to_price_formatted": null,
+        "created_at": "2026-11-19T10:00:00.000000Z",
+        "updated_at": "2026-11-19T10:00:00.000000Z",
+        "test_mode": true
+      }
+    },
+    {
+      "type": "products",
+      "id": "900002",
+      "attributes": {
+        "store_id": 86325,
+        "name": "Community",
+        "slug": "community",
+        "description": "<p>Members-only forum.</p>",
+        "status": "published",
+        "status_formatted": "Published",
+        "thumb_url": null,
+        "large_thumb_url": null,
+        "price": 0,
+        "price_formatted": "",
+        "from_price": null,
+        "to_price": null,
+        "pay_what_you_want": false,
+        "buy_now_url": "https://armitage.lemonsqueezy.com/checkout/buy/fixture-900002",
+        "from_price_formatted": null,
+        "to_price_formatted": null,
+        "created_at": "2026-11-19T10:00:00.000000Z",
+        "updated_at": "2026-11-19T10:00:00.000000Z",
+        "test_mode": true
+      }
+    },
+    {
+      "type": "products",
+      "id": "900003",
+      "attributes": {
+        "store_id": 86325,
+        "name": "Tip Jar",
+        "slug": "tip-jar",
+        "description": "<p>Pay what you want.</p>",
+        "status": "published",
+        "status_formatted": "Published",
+        "thumb_url": null,
+        "large_thumb_url": null,
+        "price": 0,
+        "price_formatted": "",
+        "from_price": null,
+        "to_price": null,
+        "pay_what_you_want": false,
+        "buy_now_url": "https://armitage.lemonsqueezy.com/checkout/buy/fixture-900003",
+        "from_price_formatted": null,
+        "to_price_formatted": null,
+        "created_at": "2026-11-19T10:00:00.000000Z",
+        "updated_at": "2026-11-19T10:00:00.000000Z",
+        "test_mode": true
+      }
+    },
+    {
+      "type": "products",
+      "id": "900004",
+      "attributes": {
+        "store_id": 86325,
+        "name": "Supporter",
+        "slug": "supporter",
+        "description": "<p>Monthly support.</p>",
+        "status": "published",
+        "status_formatted": "Published",
+        "thumb_url": null,
+        "large_thumb_url": null,
+        "price": 0,
+        "price_formatted": "",
+        "from_price": null,
+        "to_price": null,
+        "pay_what_you_want": false,
+        "buy_now_url": "https://armitage.lemonsqueezy.com/checkout/buy/fixture-900004",
+        "from_price_formatted": null,
+        "to_price_formatted": null,
+        "created_at": "2026-11-19T10:00:00.000000Z",
+        "updated_at": "2026-11-19T10:00:00.000000Z",
+        "test_mode": true
+      }
+    },
+    {
+      "type": "products",
+      "id": "900005",
+      "attributes": {
+        "store_id": 86325,
+        "name": "API Calls",
+        "slug": "api-calls",
+        "description": "<p>Metered API access.</p>",
+        "status": "published",
+        "status_formatted": "Published",
+        "thumb_url": null,
+        "large_thumb_url": null,
+        "price": 0,
+        "price_formatted": "",
+        "from_price": null,
+        "to_price": null,
+        "pay_what_you_want": false,
+        "buy_now_url": "https://armitage.lemonsqueezy.com/checkout/buy/fixture-900005",
+        "from_price_formatted": null,
+        "to_price_formatted": null,
+        "created_at": "2026-11-19T10:00:00.000000Z",
+        "updated_at": "2026-11-19T10:00:00.000000Z",
+        "test_mode": true
+      }
+    },
+    {
+      "type": "products",
+      "id": "900006",
+      "attributes": {
+        "store_id": 86325,
+        "name": "Weekly Digest",
+        "slug": "weekly-digest",
+        "description": "<p>One email a week.</p>",
+        "status": "published",
+        "status_formatted": "Published",
+        "thumb_url": null,
+        "large_thumb_url": null,
+        "price": 0,
+        "price_formatted": "",
+        "from_price": null,
+        "to_price": null,
+        "pay_what_you_want": false,
+        "buy_now_url": "https://armitage.lemonsqueezy.com/checkout/buy/fixture-900006",
+        "from_price_formatted": null,
+        "to_price_formatted": null,
+        "created_at": "2026-11-19T10:00:00.000000Z",
+        "updated_at": "2026-11-19T10:00:00.000000Z",
+        "test_mode": true
+      }
+    },
+    {
+      "type": "products",
+      "id": "900007",
+      "attributes": {
+        "store_id": 86325,
+        "name": "Desktop App",
+        "slug": "desktop-app",
+        "description": "<p>The desktop app with a license key.</p>",
+        "status": "published",
+        "status_formatted": "Published",
+        "thumb_url": null,
+        "large_thumb_url": null,
+        "price": 0,
+        "price_formatted": "",
+        "from_price": null,
+        "to_price": null,
+        "pay_what_you_want": false,
+        "buy_now_url": "https://armitage.lemonsqueezy.com/checkout/buy/fixture-900007",
+        "from_price_formatted": null,
+        "to_price_formatted": null,
+        "created_at": "2026-11-19T10:00:00.000000Z",
+        "updated_at": "2026-11-19T10:00:00.000000Z",
+        "test_mode": true
+      }
+    }
+  ],
+  "links": {
+    "next": null
+  }
+}

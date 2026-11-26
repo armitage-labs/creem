@@ -1,0 +1,207 @@
+[
+  {
+    "type": "upload_file",
+    "key": "ls_file_920001",
+    "lsFileId": "920001",
+    "request": {
+      "purpose": "product_file",
+      "filename": "icons.zip",
+      "contentType": "application/zip",
+      "size": 24,
+      "sha256": "1ujQATv+P0W1sTS2rKEJHUnwRqZ5GZXqmmFjx41ZKfI="
+    }
+  },
+  {
+    "type": "create_product",
+    "key": "ls_variant_365902",
+    "request": {
+      "createProductRequestEntity": {
+        "name": "Pro Armitage subsription - top",
+        "description": "Complete analytics platform",
+        "price": 1400,
+        "currency": "EUR",
+        "billingType": "recurring",
+        "billingPeriod": "every-year",
+        "taxCategory": "saas",
+        "externalId": "ls_variant_365902"
+      }
+    }
+  },
+  {
+    "type": "create_product",
+    "key": "ls_variant_752120",
+    "request": {
+      "createProductRequestEntity": {
+        "name": "Pro Armitage subsription - basec",
+        "description": "Complete analytics platform",
+        "price": 400,
+        "currency": "EUR",
+        "billingType": "recurring",
+        "billingPeriod": "every-month",
+        "taxCategory": "saas",
+        "externalId": "ls_variant_752120"
+      }
+    }
+  },
+  {
+    "type": "create_product",
+    "key": "ls_variant_910001",
+    "request": {
+      "createProductRequestEntity": {
+        "name": "Icon Pack",
+        "description": "200 icons & a Figma file.",
+        "price": 0,
+        "currency": "EUR",
+        "billingType": "onetime",
+        "taxCategory": "saas",
+        "externalId": "ls_variant_910001",
+        "features": [
+          {
+            "type": "file",
+            "externalId": "ls_file_920001",
+            "description": "icons.zip",
+            "file": {
+              "files": [
+                {
+                  "id": "upload:ls_file_920001"
+                }
+              ]
+            }
+          }
+        ],
+        "metadata": {
+          "ls_file_920001_sha256": "1ujQATv+P0W1sTS2rKEJHUnwRqZ5GZXqmmFjx41ZKfI=",
+          "ls_file_920001_file_id": "upload:ls_file_920001"
+        }
+      }
+    }
+  },
+  {
+    "type": "create_product",
+    "key": "ls_variant_910003",
+    "request": {
+      "createProductRequestEntity": {
+        "name": "Tip Jar",
+        "description": "Pay what you want.",
+        "price": 300,
+        "currency": "EUR",
+        "billingType": "onetime",
+        "payWhatYouWant": true,
+        "suggestedPrice": 900,
+        "taxCategory": "saas",
+        "externalId": "ls_variant_910003",
+        "metadata": {
+          "ls_pwyw_suggested_price": 900
+        }
+      }
+    }
+  },
+  {
+    "type": "create_product",
+    "key": "ls_variant_910004",
+    "request": {
+      "createProductRequestEntity": {
+        "name": "Supporter",
+        "description": "Monthly support.",
+        "price": 500,
+        "currency": "EUR",
+        "billingType": "recurring",
+        "billingPeriod": "every-month",
+        "taxCategory": "saas",
+        "externalId": "ls_variant_910004"
+      }
+    }
+  },
+  {
+    "type": "create_product",
+    "key": "ls_variant_910006",
+    "request": {
+      "createProductRequestEntity": {
+        "name": "Weekly Digest",
+        "description": "One email a week.",
+        "price": 300,
+        "currency": "EUR",
+        "billingType": "recurring",
+        "billingPeriod": "custom",
+        "recurringInterval": "week",
+        "recurringIntervalCount": 1,
+        "trialPeriodDays": 7,
+        "taxCategory": "saas",
+        "externalId": "ls_variant_910006"
+      }
+    }
+  },
+  {
+    "type": "create_product",
+    "key": "ls_variant_910007",
+    "request": {
+      "createProductRequestEntity": {
+        "name": "Desktop App",
+        "description": "The desktop app with a license key.",
+        "price": 4900,
+        "currency": "EUR",
+        "billingType": "onetime",
+        "taxCategory": "digital-goods-service",
+        "externalId": "ls_variant_910007",
+        "features": [
+          {
+            "type": "licenseKey",
+            "externalId": "ls_license_key",
+            "description": "License key",
+            "licenseKey": {
+              "activationLimit": 3,
+              "expiry": {
+                "interval": "year",
+                "intervalCount": 1
+              }
+            }
+          }
+        ]
+      }
+    }
+  },
+  {
+    "type": "create_discount",
+    "key": "ls_discount_930001",
+    "request": {
+      "createDiscountRequestEntity": {
+        "name": "Launch",
+        "code": "LAUNCH20",
+        "type": "percentage",
+        "percentage": 20,
+        "duration": "repeating",
+        "durationInMonths": 3,
+        "externalId": "ls_discount_930001",
+        "appliesToProductExternalIds": [
+          "ls_variant_365902",
+          "ls_variant_752120",
+          "ls_variant_910001",
+          "ls_variant_910003",
+          "ls_variant_910004",
+          "ls_variant_910006",
+          "ls_variant_910007"
+        ]
+      }
+    }
+  },
+  {
+    "type": "create_discount",
+    "key": "ls_discount_930002",
+    "request": {
+      "createDiscountRequestEntity": {
+        "name": "App five off",
+        "code": "APPFIVE",
+        "type": "fixed",
+        "amount": 500,
+        "currency": "EUR",
+        "duration": "once",
+        "maxRedemptions": 100,
+        "expiryDate": "2027-03-01T00:00:00.000Z",
+        "externalId": "ls_discount_930002",
+        "appliesToProductExternalIds": [
+          "ls_variant_910007"
+        ]
+      }
+    }
+  }
+]
