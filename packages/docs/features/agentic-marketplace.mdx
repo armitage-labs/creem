@@ -1,0 +1,394 @@
+---
+title: "Sell to AI Agents"
+sidebarTitle: "Agentic Marketplace"
+description: "List your products in the Creem Marketplace so AI agents can find them, buy them and start using them on their own."
+---
+
+## What is the Agentic Marketplace?
+
+The Creem Marketplace is where AI agents shop. An agent searches for a tool it needs (an API, a dataset, a CLI, credits), buys it, and starts using it. Creem stays the Merchant of Record: tax, invoices, refunds and disputes work the same as for every other Creem sale.
+
+Every marketplace sale is a normal checkout and a normal order in **your own store**. You do not resell anything through Creem, and you do not change your current billing.
+
+<CardGroup cols={2}>
+  <Card title="Agents find you" icon="magnifying-glass">
+    Agents search live listings through the Creem API and the Creem CLI.
+  </Card>
+  <Card title="Agents use what they buy" icon="key">
+    The agent receives a license key, a file, credits or a key that your system issues.
+  </Card>
+  <Card title="Owners stay in control" icon="shield-check">
+    The agent's owner sets spending limits once and gets an email after each purchase.
+  </Card>
+  <Card title="Creem handles the money" icon="receipt">
+    Tax, invoices, refunds and disputes, as Merchant of Record.
+  </Card>
+</CardGroup>
+
+<Note>
+  The Marketplace is open to sellers by invitation. To list a product, contact
+  [support@creem.io](mailto:support@creem.io) and ask for the Agentic Marketplace.
+</Note>
+
+## How a purchase works
+
+1. The agent finds your listing.
+2. The order is paid in one of two ways:
+   - **Human pays:** the agent hands its owner a checkout link. The owner pays in the normal Creem checkout. The agent reads the goods with its claim token.
+   - **Agent pays** (rolling out): an agent with a key buys within the limits its owner set, using the card from the owner's first checkout.
+3. The order is created in your store. Your usual webhooks (`checkout.completed` and others) fire as for any order.
+4. The agent receives the goods for the delivery type.
+
+## Who can list
+
+A product can be listed when:
+
+- Your store passed Creem's account review.
+- Your store has no open risk review.
+- Creem has switched the Marketplace on for your store.
+- The product is active (not archived).
+
+Agents that buy on their own (within their owner's limits) can buy **one-time products only**. If you sell subscriptions, add a one-time product too: a credit pack, a top-up or a fixed-term pass.
+
+## What the agent receives
+
+Creem picks the delivery type from the product's add-ons. If a product has several, the first match in this list wins.
+
+| Product add-on                                              | Delivery type      | What the agent gets                          | Work for you                                                                         |
+| ----------------------------------------------------------- | ------------------ | -------------------------------------------- | ------------------------------------------------------------------------------------ |
+| [License keys](/features/addons/licenses)                   | `license_key`      | The license key, with its status and expiry  | Your app activates the key with the Creem license API                                |
+| [File downloads](/features/addons/file-downloads)           | `file`             | A signed download link, valid for 15 minutes | None                                                                                 |
+| [Customer credits](/features/customer-credits/introduction) | `customer_credits` | Credits on the buyer's Creem credit account  | Your API debits Creem credits for the customer                                       |
+| None of the above                                           | `seller_access`    | A key or account that **your** system issues | Answer the `marketplace.grant.requested` webhook ([below](#sell-api-keys-to-agents)) |
+
+<Tip>
+  Selling an API that issues its own keys? Use `seller_access`. Do not add the customer credits
+  add-on to that product: a credits product delivers credits, and the agent then gets no API key.
+</Tip>
+
+## List a product
+
+<Steps>
+  <Step title="Opt in the product">
+    In your dashboard, open **Marketplace** and opt in the product you want
+    agents to buy. Creem shows the delivery type the product gets.
+  </Step>
+  <Step title="Write the card">
+    The card is what agents read before they buy. Four fields are required:
+
+    - **Headline**: up to 120 characters.
+    - **What it does**: up to 1,000 characters.
+    - **What the buyer receives**: up to 1,000 characters.
+    - **Refund terms**: up to 1,000 characters.
+
+    Optional: **Agent instructions** (markdown, up to 4,000 characters). Tell the agent how to start after the purchase: where the key goes, the base URL, the first call. Agents read it on the listing and again with the goods.
+
+  </Step>
+  <Step title="Pick a category">
+    One of: `apis`, `data`, `sdks_and_tools`, `ui_kits`, `templates`, `credits`.
+  </Step>
+  <Step title="Seller-issued keys only: fill in How agents use your key">
+    See [Step 2](#step-2-tell-agents-how-to-use-the-key) of the key guide below.
+  </Step>
+  <Step title="Submit for review">
+    Creem reviews the listing. A `seller_access` listing must also pass the
+    [review test](#step-5-pass-the-review-test). When approved, the listing goes
+    live and agents can find it.
+  </Step>
+</Steps>
+
+You can edit the card only while the listing is a draft or after a rejection. To change a live listing, unlist it, edit the draft and submit it again.
+
+Price, currency, billing period and tax always come from the product. Change the product price and the listing shows the new price at once.
+
+## Sell API keys to agents
+
+Use the `seller_access` delivery type when you sell an API or a service that has its own accounts and keys. Your system creates the account and the key. Creem gives the key to the agent once.
+
+<Steps>
+  <Step title="The agent buys">
+    The order is paid, by the owner in the checkout or by the agent within its limits.
+  </Step>
+  <Step title="Creem asks you for a key">
+    Creem sends the `marketplace.grant.requested` webhook to your endpoint.
+  </Step>
+  <Step title="You answer with the key">
+    Your endpoint creates the account and returns the key in the HTTP reply.
+  </Step>
+  <Step title="The agent gets the key">
+    Creem keeps the key encrypted and gives it to the agent. The agent calls your API.
+  </Step>
+</Steps>
+
+### Before you start
+
+You need:
+
+- A product with **no** license key, file download or customer credits add-on. A product with one of these add-ons delivers that add-on, not your key.
+- A one-time price on the product, so agents that buy on their own can buy it.
+- An HTTPS webhook endpoint that can create an account and a key in your system.
+- A cheap API call that proves a key works, for example `GET /v1/me`. This is your **check** call.
+
+### Step 1: Receive the webhook event
+
+In the dashboard, open **API & Webhooks**. Add or edit a webhook endpoint.
+
+- An endpoint with no event filter receives all events, including `marketplace.grant.requested`.
+- An endpoint with an event filter must include `marketplace.grant.requested`.
+
+<Warning>
+  If you cannot select `marketplace.grant.requested` in the event list, remove the filter or contact
+  support@creem.io.
+</Warning>
+
+Verify the `creem-signature` header on every request. It is the HMAC-SHA256 of the raw body, signed with your webhook secret, hex-encoded. See [Webhooks](/code/webhooks).
+
+### Step 2: Tell agents how to use the key
+
+On the listing, fill in **How agents use your key**. Agents receive this block with the key:
+
+```json
+{
+  "envNames": ["ACME_API_KEY"],
+  "baseUrl": "https://api.acme.com/",
+  "auth": { "header": "Authorization", "template": "Bearer {{ACME_API_KEY}}" },
+  "docsUrl": "https://docs.acme.com/",
+  "mcp": { "url": "https://mcp.acme.com/" },
+  "check": { "method": "GET", "path": "/v1/me" },
+  "balance": { "method": "GET", "path": "/v1/balance" },
+  "refill": null
+}
+```
+
+| Field      | Rule                                                                                                 |
+| ---------- | ---------------------------------------------------------------------------------------------------- |
+| `envNames` | Required. 1 to 16 unique names, matching `^[A-Z][A-Z0-9_]{0,63}$`. Your key answer uses these names. |
+| `baseUrl`  | Required. HTTPS, no user or password, no query string.                                               |
+| `auth`     | Optional. `header` is a header name. `template` contains exactly one env name as `{{NAME}}`.         |
+| `docsUrl`  | Optional. HTTPS.                                                                                     |
+| `mcp.url`  | Optional. HTTPS. Your MCP server, if you have one.                                                   |
+| `check`    | Required to pass review. `GET` or `POST`, with a path that starts with `/`.                          |
+| `balance`  | Optional. Where the agent reads what is left on the account.                                         |
+| `refill`   | Optional. Where the agent tops up the account, if your API offers it.                                |
+
+The `check`, `balance` and `refill` paths are relative to `baseUrl`.
+
+### Step 3: Handle the ask
+
+Creem sends one event shape for four actions:
+
+```json
+{
+  "id": "6b0c1c9e-...",
+  "eventType": "marketplace.grant.requested",
+  "created_at": 1763820000000,
+  "object": {
+    "storeId": "...",
+    "grantId": "...",
+    "operationId": "...",
+    "action": "provision",
+    "deadlineAt": "2026-11-23T14:00:00.000Z",
+    "listingId": "...",
+    "productId": "...",
+    "order": {
+      "id": "...",
+      "status": "paid",
+      "amountMinor": 2000,
+      "currency": "USD",
+      "transactionId": "...",
+      "paidAt": "2026-11-22T14:00:00.000Z"
+    }
+  }
+}
+```
+
+| `action`        | What to do                                                                         | Deadline |
+| --------------- | ---------------------------------------------------------------------------------- | -------- |
+| `provision`     | Create an account and a key. Return the key in `env`.                              | 24 hours |
+| `top_up`        | Add what the order bought to the account this `grantId` names. Return no key.      | 2 hours  |
+| `revoke`        | The order was refunded in full or charged back. Disable the account and its key.   | None     |
+| `revoke_credit` | A top-up order was refunded or charged back. Remove the credit of that order only. | None     |
+
+- Store the `grantId` with the account you create. Every later ask for this agent names the same `grantId`.
+- One agent has one grant per store. When the agent buys from you again, Creem sends a `top_up` on the same grant, not a new `provision`.
+- If you sell several products this way, read `productId` and `order` to know what the agent bought.
+- A full refund or a chargeback sends a `revoke`. A partial refund sends nothing.
+- On a `revoke` or `revoke_credit` ask, `deadlineAt` is `null` and `reason` says why (`refund`, `chargeback`, `undelivered` or `test`).
+- During review, `object.test` is `true`. See [Step 5](#step-5-pass-the-review-test).
+- The ask never carries the buyer's email or customer id.
+
+### Step 4: Answer
+
+Answer in the HTTP reply to the webhook. Use a `2xx` status and a JSON body. Reply within 15 seconds.
+
+A `provision` answer:
+
+```json
+{
+  "status": "ready",
+  "env": { "ACME_API_KEY": "sk_live_..." },
+  "key_hint": "a9f2",
+  "account_ref": "acct_8812",
+  "entitlement": { "plan": "starter", "requests": 10000 }
+}
+```
+
+A `top_up`, `revoke` or `revoke_credit` answer:
+
+```json
+{ "status": "ready" }
+```
+
+| Field            | Rule                                                                                                                                                     |
+| ---------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `status`         | `ready`, `failed` or `pending`.                                                                                                                          |
+| `env`            | Required on `provision`, refused on every other action. Up to 16 entries, the names from `envNames`. Values are printable ASCII, up to 4,096 characters. |
+| `key_hint`       | Optional. Up to 8 characters, for example the last 4 of the key. The agent uses it to name the key.                                                      |
+| `account_ref`    | Optional. Your account id, up to 128 characters.                                                                                                         |
+| `entitlement`    | Optional. A JSON object up to 4 KB that the agent can read, for example the plan and the quota.                                                          |
+| `failure_reason` | Required with `failed`, refused with `ready`. Up to 200 characters.                                                                                      |
+
+Unknown fields are refused.
+
+#### Need more time?
+
+Answer `{"status": "pending"}`. Creem sends the ask again every 30 seconds for 10 minutes, then every 5 minutes until the deadline.
+
+You can also answer later on the result endpoint, with a store API key that has the `marketplace:write` scope:
+
+```bash
+curl -X POST "https://api.creem.io/v1/marketplace/grants/<grantId>/operations/<operationId>/result" \
+  -H "x-api-key: <your store API key>" \
+  -H "Content-Type: application/json" \
+  -d '{"status": "ready", "env": {"ACME_API_KEY": "sk_live_..."}, "key_hint": "a9f2"}'
+```
+
+#### Rules
+
+- The first answer wins. The same answer sent again changes nothing. A different second answer is refused.
+- Do not create a new key on every ask. Creem can send the same ask more than once. Use `operationId` as your idempotency key and return the same answer.
+- If the order was refunded before your answer arrives, Creem refuses the answer and sends you a `revoke` ask.
+
+<Warning>
+  If you do not answer `ready` before the deadline, or you answer `failed`, Creem refunds the buyer
+  in full. A failed top-up leaves the key and the balance as they were.
+</Warning>
+
+### Step 5: Pass the review test
+
+Before your listing goes live, Creem runs three asks against your endpoint. Each test ask has `object.test` set to `true` and a 10-minute deadline. Answer test asks in the webhook reply only. The result endpoint does not accept them.
+
+1. **Test provision.** Answer `ready` with a key in `env`, with all the names from `envNames`. Creem then calls your `check` endpoint with that key and expects a `2xx`. Creem does not follow redirects.
+2. **Test top-up.** On the test account. Answer `ready` with no `env`.
+3. **Test revoke.** `reason` is `test`. Disable the test account. Any `2xx` reply closes it.
+
+If you change the **How agents use your key** block, Creem must run the test again before approval.
+
+<Tip>Mark accounts from test asks in your system. Test asks are not paid orders.</Tip>
+
+### Step 6: Report usage (optional)
+
+Tell the agent what is left on its account:
+
+```bash
+curl -X POST "https://api.creem.io/v1/marketplace/grants/<grantId>/usage" \
+  -H "x-api-key: <your store API key>" \
+  -H "Content-Type: application/json" \
+  -d '{"balance": 8200, "unit": "requests", "resetsAt": null}'
+```
+
+Creem keeps your latest report and shows it to the agent on its order. `resetsAt` is an RFC 3339 date-time or `null`.
+
+### What the agent sees
+
+- The agent reads the key from its order. The key stays readable for **15 minutes** after the first read. Then Creem deletes it. There is no lost-key recovery through Creem.
+- The agent calls your `check` endpoint first, then uses your API.
+- After a refund or a chargeback, the agent sees the grant as revoked and stops using the key.
+
+### Example endpoint
+
+A minimal Node.js handler. Replace `createAccount`, `topUp` and `disable` with your own code.
+
+```js
+import crypto from "node:crypto";
+import express from "express";
+
+const app = express();
+app.use(express.raw({ type: "*/*" }));
+
+const answers = new Map(); // operationId -> answer. Use your database in production.
+
+function validSignature(rawBody, header) {
+  const expected = Buffer.from(
+    crypto.createHmac("sha256", process.env.CREEM_WEBHOOK_SECRET).update(rawBody).digest("hex"),
+  );
+  const received = Buffer.from(header ?? "");
+  return expected.length === received.length && crypto.timingSafeEqual(expected, received);
+}
+
+app.post("/creem/webhook", async (req, res) => {
+  if (!validSignature(req.body, req.get("creem-signature"))) return res.status(401).end();
+
+  const event = JSON.parse(req.body.toString("utf8"));
+  if (event.eventType !== "marketplace.grant.requested") return res.status(200).end();
+
+  const ask = event.object;
+  if (answers.has(ask.operationId)) return res.json(answers.get(ask.operationId));
+
+  let answer;
+  if (ask.action === "provision") {
+    const { key, accountId } = await createAccount({
+      grantId: ask.grantId,
+      test: ask.test === true,
+    });
+    answer = {
+      status: "ready",
+      env: { ACME_API_KEY: key },
+      key_hint: key.slice(-4),
+      account_ref: accountId,
+    };
+  } else if (ask.action === "top_up") {
+    await topUp({ grantId: ask.grantId, order: ask.order });
+    answer = { status: "ready" };
+  } else {
+    await disable({
+      grantId: ask.grantId,
+      action: ask.action,
+      order: ask.order,
+    });
+    answer = { status: "ready" };
+  }
+
+  answers.set(ask.operationId, answer);
+  res.json(answer);
+});
+
+app.listen(3000);
+```
+
+## FAQ
+
+<AccordionGroup>
+  <Accordion title="Do I need to change my checkout or billing?">
+    No. A marketplace sale is a normal Creem checkout and a normal order in your store. Your usual
+    webhooks fire as for any order. Only seller-issued key products need the
+    `marketplace.grant.requested` handler.
+  </Accordion>
+  <Accordion title="Can agents buy my subscription?">
+    A human can pay a subscription listing through the checkout link. An agent that buys on its own
+    can buy one-time products only. Add a one-time credit pack or pass to reach those agents.
+  </Accordion>
+  <Accordion title="What if the agent buys my API key product again?">
+    Creem sends a `top_up` on the grant the agent already holds. Add the credit to the same account.
+    Do not issue a second key.
+  </Accordion>
+  <Accordion title="Who pays the refund when I do not deliver a key?">
+    The buyer gets a full refund under the normal refund policy. Pass the review test before going
+    live so this does not happen.
+  </Accordion>
+  <Accordion title="Does Creem store my keys?">
+    Creem keeps the key encrypted until the agent reads it. It deletes the key 15 minutes after the
+    first read, or after 30 days if nobody reads it. Keys are never written to logs or to the
+    webhook event history.
+  </Accordion>
+</AccordionGroup>
