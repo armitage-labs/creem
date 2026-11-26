@@ -1,12 +1,12 @@
 ---
 title: "Lemon Squeezy migration: technical guide"
 sidebarTitle: "Lemon Squeezy technical guide"
-description: "Every step of moving a Lemon Squeezy store to Creem through the API: catalog, customers, checkout, webhooks, license keys and existing subscribers, with field and webhook mappings and a prompt for coding agents."
+description: "Every step of moving a Lemon Squeezy store to Creem through the API: catalog, customers, checkout, webhooks, license keys and existing subscribers, with field and webhook mappings and the agent skill that runs it for you."
 keywords: "lemon squeezy migration api, lemon squeezy webhooks to creem, lemon squeezy license keys, lemon squeezy field mapping, migrate from lemon squeezy"
 icon: "code"
 ---
 
-This is the step-by-step version of [Migrate from Lemon Squeezy](/getting-started/migrate/lemon-squeezy). It covers what moves through the API, what you set up in the dashboard, what can't move yet, and how to move existing subscribers without charging them twice. Use it to run the migration yourself, or to check what your agent or the [Creem CLI](/getting-started/migrate/lemon-squeezy#with-the-creem-cli) did. Lemon Squeezy stops processing payments, including subscription renewals, on March 31, 2027.
+This is the step-by-step version of [Migrate from Lemon Squeezy](/getting-started/migrate/lemon-squeezy). It covers what moves through the API, what you set up in the dashboard, what can't move yet, and how to move existing subscribers without charging them twice. Use it to run the migration yourself, or to check what your agent or the [Creem CLI](/getting-started/migrate/lemon-squeezy#with-the-creem-cli) did. To let an agent do it, see [Migrate with a coding agent](#migrate-with-a-coding-agent). Lemon Squeezy stops processing payments, including subscription renewals, on March 31, 2027.
 
 ## How the migration works
 
@@ -46,36 +46,35 @@ flowchart LR
 
 ## What moves
 
-| Lemon Squeezy                                    | How it moves to Creem                                                                                                                                |
-| ------------------------------------------------ | ---------------------------------------------------------------------------------------------------------------------------------------------------- |
-| Products and variants                            | API. One Creem product per variant, because Creem has no variants                                                                                    |
-| Prices, billing cadence and trials               | API. Any cadence from daily to every 3 years; trials in whole days                                                                                   |
-| Pay what you want                                | API. The product price is the minimum, with an optional suggested price                                                                              |
-| Descriptions                                     | API, after converting the HTML to Markdown                                                                                                           |
-| Product images                                   | API by URL, then re-upload in the dashboard                                                                                                          |
-| Files                                            | API: upload, then attach as a [file download](/features/addons/file-downloads) feature                                                               |
-| License key settings                             | API: a [license key](/features/addons/licenses) feature with the activation limit and expiry                                                         |
-| Discount codes                                   | API                                                                                                                                                  |
-| Customers                                        | API: name, email, your own ID and metadata                                                                                                           |
-| Affiliates                                       | Create the program in the dashboard, then [invite each affiliate by API](/guides/affiliate-program-via-api)                                          |
-| Webhooks                                         | API, with new event names                                                                                                                            |
-| Checkout links, custom checkouts and the overlay | Your code: Creem product links, the [checkout API](/features/checkout/checkout-api) or the [embedded checkout](/features/checkout/embedded-checkout) |
+| Lemon Squeezy                                    | How it moves to Creem                                                                                                                                                          |
+| ------------------------------------------------ | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| Products and variants                            | API. One Creem product per variant, because Creem has no variants                                                                                                              |
+| Prices, billing cadence and trials               | API. Any cadence from daily to every 3 years; trials in whole days                                                                                                             |
+| Pay what you want                                | API. The product price is the minimum, with an optional suggested price                                                                                                        |
+| Descriptions                                     | API, after converting the HTML to Markdown                                                                                                                                     |
+| Product images                                   | API by URL, then re-upload in the dashboard                                                                                                                                    |
+| Files                                            | API: upload with [`POST /v1/files`](/api-reference/endpoint/create-file-upload), then add a `file` feature to the product. Or the [dashboard](/features/addons/file-downloads) |
+| License key settings                             | API: a `licenseKey` feature on the product. See [license keys](/features/addons/licenses)                                                                                      |
+| Discount codes                                   | API                                                                                                                                                                            |
+| Customers                                        | API: email, name, country, your own ID and metadata                                                                                                                            |
+| Affiliates                                       | Create the program in the dashboard, then [invite each affiliate by API](/guides/affiliate-program-via-api)                                                                    |
+| Webhooks                                         | API, with new event names                                                                                                                                                      |
+| Checkout links, custom checkouts and the overlay | Your code: Creem product links, the [checkout API](/features/checkout/checkout-api) or the [embedded checkout](/features/checkout/embedded-checkout)                           |
 
 ### Not possible yet
 
-| Lemon Squeezy                                   | What to do instead                                                                                                                             |
-| ----------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------- |
-| Active subscriptions and saved cards            | Each subscriber checks out once on Creem. See [Move existing subscribers](#6-move-existing-subscribers). Creem doesn't accept card transfers   |
-| PayPal                                          | Creem's checkout doesn't take PayPal. Lemon Squeezy can't move PayPal subscriptions to any provider, so those subscribers pay by card on Creem |
-| Existing license keys                           | Creem issues new keys for purchases on Creem. Keep validating Lemon Squeezy keys until those customers move                                    |
-| Order and payment history                       | Export it from Lemon Squeezy before March 31, 2027. Creem only shows orders it processed                                                       |
-| Affiliate referral history                      | Lemon Squeezy affiliate links stop counting once sales move. Affiliates get new Creem links                                                    |
-| Tiered (graduated or volume) and package prices | Creem prices are flat per unit. Contact support before you change your pricing                                                                 |
-| Usage meters that bill the last reported value  | Creem meters count, sum, average, take the minimum or maximum, or count unique values                                                          |
-| Prices from 0.01 to 0.99                        | A product is free or costs at least 1.00                                                                                                       |
-| Setup fees                                      | A [paid trial](/features/trials) can charge a different first amount, but only one lower than the plan price                                   |
-| Currencies other than USD and EUR               | Price your Creem products in USD or EUR                                                                                                        |
-| Customer country and marketing consent          | Keep them in the customer's `metadata` for your records. Creem doesn't use them for tax or marketing                                           |
+| Lemon Squeezy                                   | What to do instead                                                                                                                              |
+| ----------------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------- |
+| Saved cards                                     | Each subscriber enters a card once on Creem. See [Move existing subscribers](#6-move-existing-subscribers). Creem doesn't accept card transfers |
+| PayPal                                          | Creem's checkout doesn't take PayPal. Lemon Squeezy can't move PayPal subscriptions to any provider, so those subscribers pay by card on Creem  |
+| Order and payment history                       | Export it from Lemon Squeezy before March 31, 2027. Creem only shows orders it processed                                                        |
+| Affiliate referral history                      | Lemon Squeezy affiliate links stop counting once sales move. Affiliates get new Creem links                                                     |
+| Tiered (graduated or volume) and package prices | Creem prices are flat per unit. Contact support before you change your pricing                                                                  |
+| Usage meters that bill the last reported value  | Creem meters count, sum, average, take the minimum or maximum, or count unique values                                                           |
+| Prices from 0.01 to 0.99                        | A product is free or costs at least 1.00                                                                                                        |
+| Setup fees                                      | A [paid trial](/features/trials) can charge a different first amount, but only one lower than the plan price                                    |
+| Currencies other than USD and EUR               | Price your Creem products in USD or EUR                                                                                                         |
+| Marketing consent                               | Keep it in the customer's `metadata` for your records. Creem doesn't use it for marketing                                                       |
 
 ## 1. Set up Creem in test mode
 
@@ -166,25 +165,40 @@ curl -X POST https://test-api.creem.io/v1/products \
 
 The full field mapping is in the [reference](#products-and-variants) at the end of this page. Four things need care:
 
-- **Re-runs.** A second create with the same `external_id` answers `409` with the code `external_id_taken`. Treat it as "already created" and move on.
+- **Re-runs.** A create with an `external_id` already in use updates that product. Send `If-None-Match: *` to create only: Creem then answers `412` with the code `precondition_failed` and the product's id in `details.product_id`, so you skip it and keep any change made in Creem since.
 - **Descriptions.** Lemon Squeezy stores descriptions as HTML; Creem's checkout renders Markdown and doesn't render HTML. Convert tag by tag: `<p>` to a paragraph, `<br>` to a line break, `<h1>`–`<h6>` to `#`–`######`, `<strong>`/`<b>` to `**bold**`, `<em>`/`<i>` to `_italic_`, `<s>`/`<del>` to `~~strike~~`, `<code>` to backticks, `<ul>`/`<ol>`/`<li>` to `-` and `1.` items (nested items indented), `<a>` to `[text](url)` and `<blockquote>` to `>`. Drop `<img>` and report it. Then turn three or more one-line paragraphs in a row, a list written one `<p>` per line, into a bullet list. Compare each description before and after.
 - **Images.** Creem stores the image URL and serves it through its image proxy; it doesn't copy the file. Re-upload each image in the dashboard so it keeps working after Lemon Squeezy's hosting goes away.
 - **Tax category.** Lemon Squeezy's `eservice` has no exact match. It maps closest to `digital-goods-service`; confirm the category for each product.
 
 ### Files and license keys
 
-Both are product features, set with the product's `features` on [create](/api-reference/endpoint/create-product) or [update](/api-reference/endpoint/update-product); the [Creem CLI](/getting-started/migrate/lemon-squeezy#with-the-creem-cli) does this for you.
+Both go on the product as `features`, on create or with [`PATCH /v1/products/{id}`](/api-reference/endpoint/update-product):
 
-- **Files.** Download each file from its `download_url`, request an upload with [`POST /v1/files`](/api-reference/endpoint/create-file-upload) and the file's SHA-256, post the bytes to the returned `upload_url` with `upload_fields`, then [confirm the upload](/api-reference/endpoint/confirm-file-upload). Attach the confirmed file's ID as a `file` feature.
-- **License keys.** Add a `licenseKey` feature with the activation limit and expiry the variant had (`license_activation_limit`, `license_length_value`, `license_length_unit`); unlimited is `null`.
-- **Updates.** An update replaces the product's features of each type it names, so send back the features of that type you want to keep, with their `id`.
+- **License keys:** a `licenseKey` feature with the variant's activation limit and expiry. `activation_limit` is `license_activation_limit`, or `null` when unlimited; `expiry` is `{ "interval": "day" | "month" | "year", "interval_count": license_length_value }`, or `null` when keys never expire.
+- **Files:** upload each one with [`POST /v1/files`](/api-reference/endpoint/create-file-upload) and [confirm it](/api-reference/endpoint/confirm-file-upload), then add a `file` feature with the file ids. You can also upload them under [file downloads](/features/addons/file-downloads) in the dashboard.
+- **Updates:** An update replaces the product's features of each type it names, so send back the features of that type you want to keep, with their `id`.
+
+```json
+{
+  "features": [
+    {
+      "type": "licenseKey",
+      "description": "License key",
+      "license_key": {
+        "activation_limit": 5,
+        "expiry": { "interval": "year", "interval_count": 1 }
+      }
+    }
+  ]
+}
+```
 
 ### Discount codes
 
 Create each code with [`POST /v1/discounts`](/api-reference/endpoint/create-discount-code). The field mapping is in the [reference](#discount-codes). Mind these differences:
 
-- A code applies to the products you name, by ID in `applies_to_products` or by `external_id` in `applies_to_product_external_ids` (at most 100); one of them must name at least one product. A Lemon Squeezy code that applies to everything must list every Creem product, and products you create later aren't covered.
-- [Update a code](/api-reference/endpoint/update-discount-code) with `PATCH /v1/discounts/{id}`. Once it has been redeemed, its amount, type, currency and duration are fixed, and changing them answers `409` with `discount_redeemed`; create a new code for new terms.
+- A discount needs at least one product, in `applies_to_products` (Creem ids) or `applies_to_product_external_ids` (your `ls_variant_<id>` keys), at most 100. A Lemon Squeezy code that applies to everything must list every Creem product, and products you create later aren't covered.
+- Give each discount an `external_id` such as `ls_discount_<id>` and create it with `If-None-Match: *`: on a re-run Creem answers `412` with the code `precondition_failed`, so you skip it. Edit a discount with [`PATCH /v1/discounts/{id}`](/api-reference/endpoint/update-discount-code). Once it has been redeemed, its amount, type, currency and duration are fixed, and changing them answers `409` with `discount_redeemed`; create a new code for new terms.
 - A code can exist only once. A second create with the same code fails with "The code has already been taken", so check with [search discounts](/api-reference/endpoint/search-discounts) before a re-run.
 - Lemon Squeezy's start date and draft status have no equivalent. A repeating discount applies to subscriptions only.
 - Creem counts redemptions from zero. If the Lemon Squeezy code had a limit, set `max_redemptions` to what's left.
@@ -200,14 +214,16 @@ curl -X POST https://test-api.creem.io/v1/customers \
   -d '{
     "email": "jane@example.com",
     "name": "Jane Doe",
+    "country": "NL",
     "external_id": "user_8f2c",
-    "metadata": { "ls_customer_id": "1234567", "ls_country": "NL", "ls_marketing_status": "subscribed" }
+    "metadata": { "ls_customer_id": "1234567", "ls_marketing_status": "subscribed" }
   }'
 ```
 
 - **`external_id`** is your application's own customer ID when you have one, or `ls_customer_<id>` otherwise. It's how you find the customer again.
-- **`name`** is required. Lemon Squeezy allows customers without one; fall back to the part of the email before the `@`.
-- **Country and marketing status** have no field yet. Keep them in `metadata`.
+- **`name`** is optional. When the Lemon Squeezy customer has none, leave it out. Don't make one up from the email: it prints on invoices and emails.
+- **`country`** is the Lemon Squeezy `country`, a two-letter code. Tax on future renewals depends on it. Leave it out when it's empty (`null` is refused).
+- **Marketing status** has no field. Keep it in `metadata`.
 - Customers who later buy on Creem with the same email are matched to the customer you imported.
 
 <Warning>
@@ -281,8 +297,10 @@ Once your account is approved, create a live API key, run the catalog and custom
 ## 6. Move existing subscribers
 
 <Note>
-  Creem can't import an active subscription or a saved card yet: each subscriber starts their Creem
-  subscription with one checkout. A direct import that keeps the paid period is in development.
+  [Your agent](#migrate-with-a-coding-agent) imports each active subscription into the sandbox,
+  paused, with its Lemon Squeezy renewal date. Switching those subscribers on Creem, with their card
+  entered once and the first charge on that date, comes next. Until then, move a subscriber with one
+  checkout, as below.
 </Note>
 
 Move subscribers one at a time, close to each one's Lemon Squeezy renewal date (`renews_at`), so nobody pays twice for the same period.
@@ -328,80 +346,17 @@ Move subscribers one at a time, close to each one's Lemon Squeezy renewal date (
 
 ## Migrate with a coding agent
 
-A coding agent can do most of this work. The prompt below asks it to plan first and to follow the rules on this page. Review its plan before it changes anything, and never paste API keys into the conversation.
+Creem publishes the migration as an agent skill. Give your agent one prompt:
 
-<Accordion title="Lemon Squeezy migration prompt" icon="wand-magic-sparkles">
-
-```markdown
-# Migrate this store from Lemon Squeezy to Creem
-
-You are a payments integration engineer moving this application's Lemon Squeezy store to
-Creem before Lemon Squeezy stops processing payments on March 31, 2027.
-
-Sources of truth, read before you write code:
-
-- https://docs.creem.io/getting-started/migrate/lemon-squeezy/technical-guide.md (this guide and its reference tables)
-- https://docs.creem.io/llms.txt and the Creem API reference it links
-- The Lemon Squeezy API docs for anything you read from Lemon Squeezy
-
-If you can't verify a field, endpoint or event, say so. Never invent one.
-
-## Rules
-
-- Read API keys from environment variables (LEMONSQUEEZY_API_KEY, CREEM_API_KEY). Never ask
-  for a key in the chat, never print, log or commit one.
-- Use the Lemon Squeezy key to read only. Never create, change or cancel anything in Lemon
-  Squeezy except the per-subscriber cancellation in the last phase.
-- Work against Creem test mode (https://test-api.creem.io, creem*test* keys) until the user
-  approves going live.
-- Make every write idempotent: products use external*id "ls_variant*<id>", customers use the
-  app's own customer ID (or "ls*customer*<id>"), and every created object stores the Lemon
-  Squeezy IDs in metadata. Treat 409 external_id_taken as already created.
-- Look a customer up by email before creating it: a create with a known email replaces that
-  customer's name and external_id.
-- Convert descriptions from HTML to Markdown tag by tag, then turn three or more one-line
-  paragraphs in a row into a bullet list. Show the before and after.
-- Never create orders, €0 checkouts or fake subscriptions to represent Lemon Squeezy history.
-  History stays in Lemon Squeezy and its CSV export.
-- Never cancel a Lemon Squeezy subscription before its Creem subscription is active.
-- Don't send emails to customers or invite affiliates without the user's approval.
-
-## Phase 1: inventory and plan (no writes)
-
-1. Read the Lemon Squeezy store: stores, products, variants, prices, files, discounts,
-   customers, subscriptions, subscription-items, license-keys, webhooks, affiliates.
-2. Inspect this codebase: checkout links and API calls, Lemon.js, webhook handlers, License
-   API calls, customer portal links, where Lemon Squeezy IDs are stored, how access is granted.
-3. Present a plan with: counts per object; a table of what moves by API, what the user sets
-   up in the dashboard (files, license key settings, the affiliate program, image re-uploads)
-   and what can't move (active subscriptions and cards, license keys, order history,
-   referral history, unsupported prices); the field mappings you will use; the code changes;
-   and the subscribers ordered by renews_at. Wait for approval.
-
-## Phase 2: catalog and customers (test mode)
-
-Create products, discount codes and customers. Report each item as created, skipped (already
-there) or failed with the reason.
-
-## Phase 3: switch new sales
-
-Change checkout, webhooks (verify creem-signature, deduplicate on the event id), license
-checks (through the backend, accepting Lemon Squeezy keys until those customers move) and
-portal links. Keep the Lemon Squeezy paths for subscribers who haven't moved.
-
-## Phase 4: subscribers
-
-For each subscriber, close to renews_at: create a Creem checkout with the imported customer
-and the Lemon Squeezy IDs in metadata, hand the link to the user to send, and cancel on Lemon
-Squeezy only after subscription.active arrives for it. Keep a table of moved and pending.
-
-## Report
-
-End every phase with what was done, what was skipped and why, and what the user must do by
-hand.
+```text
+Read https://creem.io/SKILL.md and move my Lemon Squeezy store to Creem.
+My Lemon Squeezy API key is in LEMONSQUEEZY_API_KEY. Never print, log or commit it.
 ```
 
-</Accordion>
+- **[`SKILL.md`](https://creem.io/SKILL.md)** is Creem's main agent skill, and the one to use in most cases. It routes your agent to the migration guide and teaches it the rest of Creem (checkout, webhooks, license checks, the CLI), which it needs for [step 5](#5-move-new-sales-to-creem) in your code.
+- **[`MIGRATE-LEMONSQUEEZY.md`](https://creem.io/MIGRATE-LEMONSQUEEZY.md)** holds the migration alone. Use it directly when your agent only does the migration and doesn't touch your app.
+
+Your agent creates a Creem sandbox, reads your Lemon Squeezy store read-only, shows you a plan and waits for your yes. Then it brings over products, discounts, customers with their country, active and trialing subscriptions (paused, on their Lemon Squeezy renewal date) and license keys with the same codes. It charges, emails and cancels nothing, and hands you a claim link for [creem.io/claim](https://creem.io/claim) and a report of what didn't move. Running it again is safe.
 
 ## Use the Creem CLI
 
@@ -430,8 +385,8 @@ For the catalog, the Creem CLI copies products, discount codes, license key sett
 | Discount            | Discount code                                           |
 | Customer            | Customer                                                |
 | Order               | Not imported. Creem creates orders for its own payments |
-| Subscription        | Not imported yet. Moves with a checkout                 |
-| License key         | Not imported. Creem issues its own                      |
+| Subscription        | Imported paused by the agent skill, or a checkout       |
+| License key         | Imported with the same code by the agent skill          |
 | Affiliate           | Affiliate, after accepting an invite                    |
 | Webhook             | Webhook endpoint                                        |
 | Checkout            | Checkout session                                        |
@@ -452,7 +407,7 @@ For the catalog, the Creem CLI copies products, discount codes, license key sett
 | Price `tax_code`: `saas`, `eservice`, `ebook`                      | `tax_category`: `saas`, `digital-goods-service`, `ebooks`          | Confirm `eservice` products                                                                                                                                                                                             |
 | Tax-inclusive prices                                               | `tax_mode`                                                         | `inclusive` or `exclusive`                                                                                                                                                                                              |
 | `large_thumb_url`                                                  | `image_url`                                                        | Re-upload the image in the dashboard                                                                                                                                                                                    |
-| `has_license_keys`, `license_activation_limit`, `license_length_*` | `features`: a `licenseKey` feature                                 |                                                                                                                                                                                                                         |
+| `has_license_keys`, `license_activation_limit`, `license_length_*` | A `licenseKey` feature                                             |                                                                                                                                                                                                                         |
 | Variant ID                                                         | `external_id`                                                      | Unique per store                                                                                                                                                                                                        |
 | Product, variant and price IDs                                     | `metadata`                                                         | For your own reconciliation                                                                                                                                                                                             |
 | `buy_now_url`                                                      | `product_url`                                                      | Returned when the product is created                                                                                                                                                                                    |
@@ -477,9 +432,10 @@ For the catalog, the Creem CLI copies products, discount codes, license key sett
 | Lemon Squeezy                        | Creem customer field                          |
 | ------------------------------------ | --------------------------------------------- |
 | `email`                              | `email`                                       |
-| `name`                               | `name`, required                              |
+| `name`                               | `name`, optional                              |
 | Customer ID                          | `external_id` (or your own ID) and `metadata` |
-| `country`, `region`, `city`          | `metadata` only                               |
+| `country`                            | `country`                                     |
+| `region`, `city`                     | `metadata` only                               |
 | Marketing `status` (`subscribed`, …) | `metadata` only                               |
 
 ### Subscription statuses

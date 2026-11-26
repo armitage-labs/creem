@@ -10,6 +10,10 @@ export default defineConfig({
   resolve: { conditions: ["browser"] },
   test: {
     environment: "edge-runtime",
+    // OSS-74: a file's first `convexTest(schema, modules)` imports every module
+    // (`import.meta.glob` is lazy). Under turbo's parallel load in CI that ran
+    // past the 10 s default hook timeout on SDK-changing PRs.
+    hookTimeout: 60_000,
     exclude: ["dist/**", "node_modules/**"],
     server: { deps: { inline: ["convex-test"] } },
     onConsoleLog(log) {
