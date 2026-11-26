@@ -5,7 +5,8 @@
 import * as z from "zod/v3";
 import { remap as remap$ } from "../../lib/primitives.js";
 import { safeParse } from "../../lib/schemas.js";
-import { ClosedEnum } from "../../types/enums.js";
+import * as openEnums from "../../types/enums.js";
+import { OpenEnum } from "../../types/enums.js";
 import { Result as SafeParseResult } from "../../types/fp.js";
 import { SDKValidationError } from "../errors/sdkvalidationerror.js";
 import {
@@ -78,7 +79,7 @@ export const Status = {
 /**
  * Status of the checkout.
  */
-export type Status = ClosedEnum<typeof Status>;
+export type Status = OpenEnum<typeof Status>;
 
 /**
  * The product associated with the checkout session.
@@ -115,7 +116,7 @@ export const CheckoutEntityStatus = {
 /**
  * The status of the license instance.
  */
-export type CheckoutEntityStatus = ClosedEnum<typeof CheckoutEntityStatus>;
+export type CheckoutEntityStatus = OpenEnum<typeof CheckoutEntityStatus>;
 
 /**
  * Associated license instances.
@@ -213,6 +214,14 @@ export type CheckoutEntityCustomerCredits = {
    * The customer-credit bucket this grant funds — the `name` of the customer's credit account. Set it to a meter bucket (e.g. "images") so the credits fund a per-unit metered price; otherwise they land in `default` and metered usage cannot spend them. Distinct from `unit_label`, which is only a display label. On UPDATE the field is tri-state: OMIT it to leave the stored bucket unchanged, send `null` to clear it to the shared `default` wallet, or send a name to set it. On CREATE, omitted or null both mean `default`. A present-but-blank value is rejected.
    */
   bucketName?: string | null | undefined;
+  /**
+   * When `true`, the credits go to the customer's AI generation wallet: spending them requires a `moderation_id` from the Moderation API. `bucket_name` must be omitted (422 `bucket_name_not_allowed_with_requires_moderation`); that wallet is the reserved `generation` bucket. `generation` and `generation:*` (any casing) cannot be named directly (422 `generation_bucket_reserved`). Defaults to `false` on create; on update, omitting it keeps the stored setting, also when `bucket_name` is sent as `null` (as reads return it); send `false` to move the credits to the shared wallet, or to the `bucket_name` sent with it. Always present on reads.
+   */
+  requiresModeration?: boolean | undefined;
+  /**
+   * Unused credits from subscription grants expire at each renewal; credits from one-time purchases never expire. The reset runs on every paid subscription transaction of the product: renewals, and also the first paid charge after a trial and plan changes charged immediately. Each time, the part of the previous grant the customer did not spend expires before the new grant lands. Subscription products only (422 `credits_reset_requires_subscription` on a one-time product). Defaults to `false` on create. On update, omitting it keeps the stored setting only when the feature's `id` is sent; a feature sent without `id` is replaced and defaults to `false`. Always present on reads.
+   */
+  resetsEachPeriod?: boolean | undefined;
 };
 
 /**
@@ -225,7 +234,7 @@ export const CheckoutEntityFeatureStatus = {
 /**
  * The status of the license instance.
  */
-export type CheckoutEntityFeatureStatus = ClosedEnum<
+export type CheckoutEntityFeatureStatus = OpenEnum<
   typeof CheckoutEntityFeatureStatus
 >;
 
@@ -326,7 +335,7 @@ export type Feature = {
    */
   description?: string | null | undefined;
   /**
-   * The type of the feature: `custom` (private note), `file` (downloadable files), `licenseKey` (license key), or `customerCredits` (customer credit grant).
+   * The type of the feature: `custom` (private note), `file` (downloadable files), `licenseKey` (license key), `customerCredits` (customer credit grant), or `githubRepository` (access to a private GitHub repository).
    */
   type?: ProductFeatureType | undefined;
   /**
@@ -357,14 +366,14 @@ export const CheckoutEntityType = {
   Percentage: "percentage",
   Fixed: "fixed",
 } as const;
-export type CheckoutEntityType = ClosedEnum<typeof CheckoutEntityType>;
+export type CheckoutEntityType = OpenEnum<typeof CheckoutEntityType>;
 
 export const CheckoutEntityDuration = {
   Forever: "forever",
   Once: "once",
   Repeating: "repeating",
 } as const;
-export type CheckoutEntityDuration = ClosedEnum<typeof CheckoutEntityDuration>;
+export type CheckoutEntityDuration = OpenEnum<typeof CheckoutEntityDuration>;
 
 /**
  * The discount applied to the checkout, if any.
@@ -419,6 +428,10 @@ export type CheckoutEntity = {
    */
   customPrice?: number | undefined;
   /**
+   * The free-trial length in days this checkout was created with, overriding the product's trial. Only present when the checkout was created with a trial_period_days.
+   */
+  trialPeriodDays?: number | undefined;
+  /**
    * The order associated with the checkout session.
    */
   order?: OrderEntity | undefined;
@@ -463,11 +476,11 @@ export type CheckoutEntity = {
 };
 
 /** @internal */
-export const Status$inboundSchema: z.ZodNativeEnum<typeof Status> = z
-  .nativeEnum(Status);
+export const Status$inboundSchema: z.ZodType<Status, z.ZodTypeDef, unknown> =
+  openEnums.inboundSchema(Status);
 /** @internal */
-export const Status$outboundSchema: z.ZodNativeEnum<typeof Status> =
-  Status$inboundSchema;
+export const Status$outboundSchema: z.ZodType<string, z.ZodTypeDef, Status> =
+  openEnums.outboundSchema(Status);
 
 /** @internal */
 export const CheckoutEntityProduct$inboundSchema: z.ZodType<
@@ -597,13 +610,17 @@ export function fileFromJSON(
 }
 
 /** @internal */
-export const CheckoutEntityStatus$inboundSchema: z.ZodNativeEnum<
-  typeof CheckoutEntityStatus
-> = z.nativeEnum(CheckoutEntityStatus);
+export const CheckoutEntityStatus$inboundSchema: z.ZodType<
+  CheckoutEntityStatus,
+  z.ZodTypeDef,
+  unknown
+> = openEnums.inboundSchema(CheckoutEntityStatus);
 /** @internal */
-export const CheckoutEntityStatus$outboundSchema: z.ZodNativeEnum<
-  typeof CheckoutEntityStatus
-> = CheckoutEntityStatus$inboundSchema;
+export const CheckoutEntityStatus$outboundSchema: z.ZodType<
+  string,
+  z.ZodTypeDef,
+  CheckoutEntityStatus
+> = openEnums.outboundSchema(CheckoutEntityStatus);
 
 /** @internal */
 export const CheckoutEntityInstance$inboundSchema: z.ZodType<
@@ -759,10 +776,14 @@ export const CheckoutEntityCustomerCredits$inboundSchema: z.ZodType<
   amount: z.string(),
   unit_label: z.nullable(z.string()).optional(),
   bucket_name: z.nullable(z.string()).optional(),
+  requires_moderation: z.boolean().optional(),
+  resets_each_period: z.boolean().optional(),
 }).transform((v) => {
   return remap$(v, {
     "unit_label": "unitLabel",
     "bucket_name": "bucketName",
+    "requires_moderation": "requiresModeration",
+    "resets_each_period": "resetsEachPeriod",
   });
 });
 /** @internal */
@@ -770,6 +791,8 @@ export type CheckoutEntityCustomerCredits$Outbound = {
   amount: string;
   unit_label?: string | null | undefined;
   bucket_name?: string | null | undefined;
+  requires_moderation?: boolean | undefined;
+  resets_each_period?: boolean | undefined;
 };
 
 /** @internal */
@@ -781,10 +804,14 @@ export const CheckoutEntityCustomerCredits$outboundSchema: z.ZodType<
   amount: z.string(),
   unitLabel: z.nullable(z.string()).optional(),
   bucketName: z.nullable(z.string()).optional(),
+  requiresModeration: z.boolean().optional(),
+  resetsEachPeriod: z.boolean().optional(),
 }).transform((v) => {
   return remap$(v, {
     unitLabel: "unit_label",
     bucketName: "bucket_name",
+    requiresModeration: "requires_moderation",
+    resetsEachPeriod: "resets_each_period",
   });
 });
 
@@ -808,13 +835,17 @@ export function checkoutEntityCustomerCreditsFromJSON(
 }
 
 /** @internal */
-export const CheckoutEntityFeatureStatus$inboundSchema: z.ZodNativeEnum<
-  typeof CheckoutEntityFeatureStatus
-> = z.nativeEnum(CheckoutEntityFeatureStatus);
+export const CheckoutEntityFeatureStatus$inboundSchema: z.ZodType<
+  CheckoutEntityFeatureStatus,
+  z.ZodTypeDef,
+  unknown
+> = openEnums.inboundSchema(CheckoutEntityFeatureStatus);
 /** @internal */
-export const CheckoutEntityFeatureStatus$outboundSchema: z.ZodNativeEnum<
-  typeof CheckoutEntityFeatureStatus
-> = CheckoutEntityFeatureStatus$inboundSchema;
+export const CheckoutEntityFeatureStatus$outboundSchema: z.ZodType<
+  string,
+  z.ZodTypeDef,
+  CheckoutEntityFeatureStatus
+> = openEnums.outboundSchema(CheckoutEntityFeatureStatus);
 
 /** @internal */
 export const CheckoutEntityFeatureInstance$inboundSchema: z.ZodType<
@@ -1034,22 +1065,30 @@ export function featureFromJSON(
 }
 
 /** @internal */
-export const CheckoutEntityType$inboundSchema: z.ZodNativeEnum<
-  typeof CheckoutEntityType
-> = z.nativeEnum(CheckoutEntityType);
+export const CheckoutEntityType$inboundSchema: z.ZodType<
+  CheckoutEntityType,
+  z.ZodTypeDef,
+  unknown
+> = openEnums.inboundSchema(CheckoutEntityType);
 /** @internal */
-export const CheckoutEntityType$outboundSchema: z.ZodNativeEnum<
-  typeof CheckoutEntityType
-> = CheckoutEntityType$inboundSchema;
+export const CheckoutEntityType$outboundSchema: z.ZodType<
+  string,
+  z.ZodTypeDef,
+  CheckoutEntityType
+> = openEnums.outboundSchema(CheckoutEntityType);
 
 /** @internal */
-export const CheckoutEntityDuration$inboundSchema: z.ZodNativeEnum<
-  typeof CheckoutEntityDuration
-> = z.nativeEnum(CheckoutEntityDuration);
+export const CheckoutEntityDuration$inboundSchema: z.ZodType<
+  CheckoutEntityDuration,
+  z.ZodTypeDef,
+  unknown
+> = openEnums.inboundSchema(CheckoutEntityDuration);
 /** @internal */
-export const CheckoutEntityDuration$outboundSchema: z.ZodNativeEnum<
-  typeof CheckoutEntityDuration
-> = CheckoutEntityDuration$inboundSchema;
+export const CheckoutEntityDuration$outboundSchema: z.ZodType<
+  string,
+  z.ZodTypeDef,
+  CheckoutEntityDuration
+> = openEnums.outboundSchema(CheckoutEntityDuration);
 
 /** @internal */
 export const CheckoutEntityDiscount$inboundSchema: z.ZodType<
@@ -1122,6 +1161,7 @@ export const CheckoutEntity$inboundSchema: z.ZodType<
   product: z.union([ProductEntity$inboundSchema, z.string()]),
   units: z.number().default(1),
   custom_price: z.number().int().optional(),
+  trial_period_days: z.number().int().optional(),
   order: OrderEntity$inboundSchema.optional(),
   subscription: z.union([SubscriptionEntity$inboundSchema, z.string()])
     .optional(),
@@ -1137,6 +1177,7 @@ export const CheckoutEntity$inboundSchema: z.ZodType<
   return remap$(v, {
     "request_id": "requestId",
     "custom_price": "customPrice",
+    "trial_period_days": "trialPeriodDays",
     "custom_fields": "customFields",
     "checkout_url": "checkoutUrl",
     "success_url": "successUrl",
@@ -1153,6 +1194,7 @@ export type CheckoutEntity$Outbound = {
   product: ProductEntity$Outbound | string;
   units: number;
   custom_price?: number | undefined;
+  trial_period_days?: number | undefined;
   order?: OrderEntity$Outbound | undefined;
   subscription?: SubscriptionEntity$Outbound | string | undefined;
   customer?: CustomerEntity$Outbound | string | undefined;
@@ -1179,6 +1221,7 @@ export const CheckoutEntity$outboundSchema: z.ZodType<
   product: z.union([ProductEntity$outboundSchema, z.string()]),
   units: z.number().default(1),
   customPrice: z.number().int().optional(),
+  trialPeriodDays: z.number().int().optional(),
   order: OrderEntity$outboundSchema.optional(),
   subscription: z.union([SubscriptionEntity$outboundSchema, z.string()])
     .optional(),
@@ -1194,6 +1237,7 @@ export const CheckoutEntity$outboundSchema: z.ZodType<
   return remap$(v, {
     requestId: "request_id",
     customPrice: "custom_price",
+    trialPeriodDays: "trial_period_days",
     customFields: "custom_fields",
     checkoutUrl: "checkout_url",
     successUrl: "success_url",

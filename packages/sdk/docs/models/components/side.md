@@ -8,10 +8,12 @@ Debit or credit side
 import { Side } from "creem/models/components";
 
 let value: Side = "credit";
+
+// Open enum: unrecognized values are captured as Unrecognized<string>
 ```
 
 ## Values
 
 ```typescript
-"debit" | "credit"
+"debit" | "credit" | Unrecognized<string>
 ```

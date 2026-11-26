@@ -5,7 +5,8 @@
 import * as z from "zod/v3";
 import { remap as remap$ } from "../../lib/primitives.js";
 import { safeParse } from "../../lib/schemas.js";
-import { ClosedEnum } from "../../types/enums.js";
+import * as openEnums from "../../types/enums.js";
+import { OpenEnum } from "../../types/enums.js";
 import { Result as SafeParseResult } from "../../types/fp.js";
 import { SDKValidationError } from "../errors/sdkvalidationerror.js";
 
@@ -21,7 +22,7 @@ export const UsageMeteringErrorDetailApiDtoType = {
 /**
  * Error category
  */
-export type UsageMeteringErrorDetailApiDtoType = ClosedEnum<
+export type UsageMeteringErrorDetailApiDtoType = OpenEnum<
   typeof UsageMeteringErrorDetailApiDtoType
 >;
 
@@ -53,13 +54,17 @@ export type UsageMeteringErrorDetailApiDto = {
 };
 
 /** @internal */
-export const UsageMeteringErrorDetailApiDtoType$inboundSchema: z.ZodNativeEnum<
-  typeof UsageMeteringErrorDetailApiDtoType
-> = z.nativeEnum(UsageMeteringErrorDetailApiDtoType);
+export const UsageMeteringErrorDetailApiDtoType$inboundSchema: z.ZodType<
+  UsageMeteringErrorDetailApiDtoType,
+  z.ZodTypeDef,
+  unknown
+> = openEnums.inboundSchema(UsageMeteringErrorDetailApiDtoType);
 /** @internal */
-export const UsageMeteringErrorDetailApiDtoType$outboundSchema: z.ZodNativeEnum<
-  typeof UsageMeteringErrorDetailApiDtoType
-> = UsageMeteringErrorDetailApiDtoType$inboundSchema;
+export const UsageMeteringErrorDetailApiDtoType$outboundSchema: z.ZodType<
+  string,
+  z.ZodTypeDef,
+  UsageMeteringErrorDetailApiDtoType
+> = openEnums.outboundSchema(UsageMeteringErrorDetailApiDtoType);
 
 /** @internal */
 export const UsageMeteringErrorDetailApiDto$inboundSchema: z.ZodType<

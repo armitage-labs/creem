@@ -34,8 +34,7 @@ import { Result } from "../types/fp.js";
  */
 export function productsCreate(
   client: CreemCore,
-  createProductRequestEntity: components.CreateProductRequestEntity,
-  idempotencyKey?: string | undefined,
+  request: operations.CreateProductRequest,
   options?: RequestOptions,
 ): APIPromise<
   Result<
@@ -52,16 +51,14 @@ export function productsCreate(
 > {
   return new APIPromise($do(
     client,
-    createProductRequestEntity,
-    idempotencyKey,
+    request,
     options,
   ));
 }
 
 async function $do(
   client: CreemCore,
-  createProductRequestEntity: components.CreateProductRequestEntity,
-  idempotencyKey?: string | undefined,
+  request: operations.CreateProductRequest,
   options?: RequestOptions,
 ): Promise<
   [
@@ -79,13 +76,8 @@ async function $do(
     APICall,
   ]
 > {
-  const input: operations.CreateProductRequest = {
-    createProductRequestEntity: createProductRequestEntity,
-    idempotencyKey: idempotencyKey,
-  };
-
   const parsed = safeParse(
-    input,
+    request,
     (value) => operations.CreateProductRequest$outboundSchema.parse(value),
     "Input validation failed",
   );
@@ -167,7 +159,7 @@ async function $do(
     | SDKValidationError
   >(
     M.json(200, components.ProductEntity$inboundSchema),
-    M.fail([400, 401, 404, "4XX"]),
+    M.fail([400, 401, 404, 409, 422, "4XX"]),
     M.fail("5XX"),
   )(response, req);
   if (!result.ok) {

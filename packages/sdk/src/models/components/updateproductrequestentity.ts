@@ -8,16 +8,40 @@ import { safeParse } from "../../lib/schemas.js";
 import { Result as SafeParseResult } from "../../types/fp.js";
 import { SDKValidationError } from "../errors/sdkvalidationerror.js";
 import {
+  CustomerCreditsFeatureEntity,
+  CustomerCreditsFeatureEntity$inboundSchema,
+  CustomerCreditsFeatureEntity$Outbound,
+  CustomerCreditsFeatureEntity$outboundSchema,
+} from "./customercreditsfeatureentity.js";
+import {
+  CustomFieldRequestEntity,
+  CustomFieldRequestEntity$inboundSchema,
+  CustomFieldRequestEntity$Outbound,
+  CustomFieldRequestEntity$outboundSchema,
+} from "./customfieldrequestentity.js";
+import {
+  LicenseKeyFeatureEntity,
+  LicenseKeyFeatureEntity$inboundSchema,
+  LicenseKeyFeatureEntity$Outbound,
+  LicenseKeyFeatureEntity$outboundSchema,
+} from "./licensekeyfeatureentity.js";
+import {
   ProductCurrency,
   ProductCurrency$inboundSchema,
   ProductCurrency$outboundSchema,
 } from "./productcurrency.js";
 import {
-  ProductFeatureRequestEntity,
-  ProductFeatureRequestEntity$inboundSchema,
-  ProductFeatureRequestEntity$Outbound,
-  ProductFeatureRequestEntity$outboundSchema,
-} from "./productfeaturerequestentity.js";
+  ProductFeatureDeletionRequestEntity,
+  ProductFeatureDeletionRequestEntity$inboundSchema,
+  ProductFeatureDeletionRequestEntity$Outbound,
+  ProductFeatureDeletionRequestEntity$outboundSchema,
+} from "./productfeaturedeletionrequestentity.js";
+import {
+  ProductFileFeatureFilesRequestEntity,
+  ProductFileFeatureFilesRequestEntity$inboundSchema,
+  ProductFileFeatureFilesRequestEntity$Outbound,
+  ProductFileFeatureFilesRequestEntity$outboundSchema,
+} from "./productfilefeaturefilesrequestentity.js";
 import {
   ProductRequestBillingPeriod,
   ProductRequestBillingPeriod$inboundSchema,
@@ -34,6 +58,11 @@ import {
   ProductRequestRecurringInterval$outboundSchema,
 } from "./productrequestrecurringinterval.js";
 import {
+  ProductStatus,
+  ProductStatus$inboundSchema,
+  ProductStatus$outboundSchema,
+} from "./productstatus.js";
+import {
   TaxMode,
   TaxMode$inboundSchema,
   TaxMode$outboundSchema,
@@ -44,6 +73,121 @@ import {
   UsagePriceRequestEntity$Outbound,
   UsagePriceRequestEntity$outboundSchema,
 } from "./usagepricerequestentity.js";
+
+export type ProductFileFeatureEditRequestEntity = {
+  /**
+   * Identifier of an existing feature to edit in place (update only). Omit to add a new feature. On update the array replaces the features of each type it contains: send the `id` of every feature to keep, as returned on reads; a feature sent without its `id` is added as a new one and the stored feature it stood for is removed. An `id` that is not one of the product features answers `400` with code `feature_not_found`; an `id` of a feature of another type answers `400` with code `feature_type_mismatch`.
+   */
+  id?: string | undefined;
+  /**
+   * Your own key for this feature, the same in test and live and unique per product: 1 to 255 characters: letters, digits, `_`, `-`, `.` and `:`, case-sensitive. Omit it to leave the key unchanged; send `null` to clear it. On update, an entry without `id` whose `external_id` matches a stored feature edits that feature. An entry with `id` whose key another feature of the product holds, of any type, answers `409` with code `external_id_taken`. An entry without `id` whose key belongs to a feature of another type answers `400` with code `feature_type_mismatch`.
+   */
+  externalId?: string | null | undefined;
+  /**
+   * The feature type of a file entry.
+   */
+  type: "file";
+  /**
+   * A brief description of the feature, shown to the customer. Required and not blank on every write, including a stored feature sent back unchanged: a stored feature whose description is blank needs one before it can be sent back.
+   */
+  description: string;
+  /**
+   * The files of the feature. Upload a file with `POST /v1/files` and `POST /v1/files/{id}/confirm`, then name it here by its id. Removing a file, or the feature, removes the download for every past buyer, as in the dashboard; adding it again restores it.
+   */
+  file: ProductFileFeatureFilesRequestEntity;
+  /**
+   * Leave it out on an edit. An entry with `deleted: true` is a deletion.
+   */
+  deleted?: false | undefined;
+};
+
+export type ProductPrivateNoteFeatureEditRequestEntity = {
+  /**
+   * Identifier of an existing feature to edit in place (update only). Omit to add a new feature. On update the array replaces the features of each type it contains: send the `id` of every feature to keep, as returned on reads; a feature sent without its `id` is added as a new one and the stored feature it stood for is removed. An `id` that is not one of the product features answers `400` with code `feature_not_found`; an `id` of a feature of another type answers `400` with code `feature_type_mismatch`.
+   */
+  id?: string | undefined;
+  /**
+   * Your own key for this feature, the same in test and live and unique per product: 1 to 255 characters: letters, digits, `_`, `-`, `.` and `:`, case-sensitive. Omit it to leave the key unchanged; send `null` to clear it. On update, an entry without `id` whose `external_id` matches a stored feature edits that feature. An entry with `id` whose key another feature of the product holds, of any type, answers `409` with code `external_id_taken`. An entry without `id` whose key belongs to a feature of another type answers `400` with code `feature_type_mismatch`.
+   */
+  externalId?: string | null | undefined;
+  /**
+   * The feature type of a private-note entry.
+   */
+  type: "custom";
+  /**
+   * A brief description of the feature, shown to the customer. Required and not blank on every write, including a stored feature sent back unchanged: a stored feature whose description is blank needs one before it can be sent back.
+   */
+  description: string;
+  /**
+   * The note shown to the customer after purchase (Markdown). Must not be blank on a new feature; a note read back from a stored feature is accepted as it is.
+   */
+  privateNote: string;
+  /**
+   * Leave it out on an edit. An entry with `deleted: true` is a deletion.
+   */
+  deleted?: false | undefined;
+};
+
+export type ProductLicenseKeyFeatureEditRequestEntity = {
+  /**
+   * Identifier of an existing feature to edit in place (update only). Omit to add a new feature. On update the array replaces the features of each type it contains: send the `id` of every feature to keep, as returned on reads; a feature sent without its `id` is added as a new one and the stored feature it stood for is removed. An `id` that is not one of the product features answers `400` with code `feature_not_found`; an `id` of a feature of another type answers `400` with code `feature_type_mismatch`.
+   */
+  id?: string | undefined;
+  /**
+   * Your own key for this feature, the same in test and live and unique per product: 1 to 255 characters: letters, digits, `_`, `-`, `.` and `:`, case-sensitive. Omit it to leave the key unchanged; send `null` to clear it. On update, an entry without `id` whose `external_id` matches a stored feature edits that feature. An entry with `id` whose key another feature of the product holds, of any type, answers `409` with code `external_id_taken`. An entry without `id` whose key belongs to a feature of another type answers `400` with code `feature_type_mismatch`.
+   */
+  externalId?: string | null | undefined;
+  /**
+   * The feature type of a license-key entry.
+   */
+  type: "licenseKey";
+  /**
+   * A brief description of the feature, shown to the customer. Required and not blank on every write, including a stored feature sent back unchanged: a stored feature whose description is blank needs one before it can be sent back.
+   */
+  description: string;
+  /**
+   * The license key settings. Each purchase issues one key per unit. Editing them in place keeps every key already issued: a new `activation_limit` applies to those keys at once, a new `expiry` only to keys issued later.
+   */
+  licenseKey: LicenseKeyFeatureEntity;
+  /**
+   * Leave it out on an edit. An entry with `deleted: true` is a deletion.
+   */
+  deleted?: false | undefined;
+};
+
+export type ProductFeatureEditRequestEntity = {
+  /**
+   * Identifier of an existing feature to edit in place (update only). Omit to add a new feature. On update the array replaces the features of each type it contains: send the `id` of every feature to keep, as returned on reads; a feature sent without its `id` is added as a new one and the stored feature it stood for is removed. An `id` that is not one of the product features answers `400` with code `feature_not_found`; an `id` of a feature of another type answers `400` with code `feature_type_mismatch`.
+   */
+  id?: string | undefined;
+  /**
+   * Your own key for this feature, the same in test and live and unique per product: 1 to 255 characters: letters, digits, `_`, `-`, `.` and `:`, case-sensitive. Omit it to leave the key unchanged; send `null` to clear it. On update, an entry without `id` whose `external_id` matches a stored feature edits that feature. An entry with `id` whose key another feature of the product holds, of any type, answers `409` with code `external_id_taken`. An entry without `id` whose key belongs to a feature of another type answers `400` with code `feature_type_mismatch`.
+   */
+  externalId?: string | null | undefined;
+  /**
+   * The feature type of a credit grant entry. `licenseKey`, `custom` and `file` entries have their own variants; `githubRepository` features are managed in the dashboard, and an entry of that type answers `400` with code `feature_type_not_writable`.
+   */
+  type: "customerCredits";
+  /**
+   * A brief description of the feature, shown to the customer. Required and not blank on every write, including a stored feature sent back unchanged: a stored feature whose description is blank needs one before it can be sent back.
+   */
+  description: string;
+  /**
+   * The credit grant this feature carries. Set `requires_moderation` to `true` to grant into the customer's AI generation wallet; its credits can only be spent with a `moderation_id` from the Moderation API.
+   */
+  customerCredits: CustomerCreditsFeatureEntity;
+  /**
+   * Leave it out on an edit. An entry with `deleted: true` is a deletion.
+   */
+  deleted?: false | undefined;
+};
+
+export type UpdateProductRequestEntityFeatures =
+  | ProductFeatureEditRequestEntity
+  | ProductLicenseKeyFeatureEditRequestEntity
+  | ProductPrivateNoteFeatureEditRequestEntity
+  | ProductFileFeatureEditRequestEntity
+  | ProductFeatureDeletionRequestEntity;
 
 export type UpdateProductRequestEntity = {
   /**
@@ -66,6 +210,14 @@ export type UpdateProductRequestEntity = {
    * Redirect URL after successful payment.
    */
   defaultSuccessUrl?: string | undefined;
+  /**
+   * Your own key for this product, such as your SKU or internal product id. Creem never sets it. Unique per store, case-sensitive; 1 to 255 characters: letters, digits, `_`, `-`, `.` and `:`. Omit it to leave the key unchanged; send `null` to clear it. A key another product of your store already uses answers `409` with code `external_id_taken`.
+   */
+  externalId?: string | null | undefined;
+  /**
+   * Key-value pairs for your own use, for example `{ "plan": "pro" }`. Values are strings or numbers. Omit it to leave it unchanged; send `null` to clear it. A sent object replaces the whole object.
+   */
+  metadata?: { [k: string]: any } | null | undefined;
   /**
    * The price of the product in cents. Must be 0 (free product) or at least 100 (one whole unit of the currency).
    */
@@ -119,10 +271,360 @@ export type UpdateProductRequestEntity = {
    */
   usagePrices?: Array<UsagePriceRequestEntity> | undefined;
   /**
-   * Features granted by purchase. Only `customerCredits` (a credit grant into one of the customer credit buckets) can be managed through the API. The array is the complete set of credit features after the update: omit (or send `null`) to leave features untouched, include `id` to edit in place; credit features missing from the array are removed.
+   * Features granted by purchase: `customerCredits` (a credit grant into one of the customer credit buckets), `licenseKey` (a license key per purchased unit), `custom` (a private note) and `file` (files buyers download, named by the ids of confirmed uploads from `POST /v1/files`). Omit (or send `null`) to leave features untouched. Otherwise the request replaces only the feature types it contains: for each of them, the entries are the complete set of that type after the update. Include `id` to edit in place, or the `external_id` of a stored feature to edit that feature without its `id`; features of that type missing from the array are removed. Types the array does not contain stay as they are, and `[]` removes the credit features and nothing else. An entry with `deleted: true` removes the one feature it names by `id` or `external_id`; it is the only way to remove the last feature of a type. Each refusal changes nothing: `400` `feature_type_mismatch` (an `id` or `external_id` of a feature of another type), `400` `feature_not_found` (an `id`, or a deletion, that names no feature of the product), `400` `feature_type_not_writable` (a `githubRepository` entry or deletion; those are managed in the dashboard), `400` `reference_not_found` (a file id that is unknown, of another store, or of an upload that was never confirmed), `400` `file_location_invalid` (a file of the store that is not stored under its own product-file key), and `409` `license_keys_issued` (removing a license-key feature whose keys customers hold; `details.issued_keys` counts them). Editing a license-key feature in place keeps its issued keys: a new `activation_limit` applies to them at once, a new `expiry` only to keys issued later. Removing a `file` feature, or a file from it, removes the download for every past buyer, as in the dashboard; adding it again restores it.
    */
-  features?: Array<ProductFeatureRequestEntity> | undefined;
+  features?:
+    | Array<
+      | ProductFeatureEditRequestEntity
+      | ProductLicenseKeyFeatureEditRequestEntity
+      | ProductPrivateNoteFeatureEditRequestEntity
+      | ProductFileFeatureEditRequestEntity
+      | ProductFeatureDeletionRequestEntity
+    >
+    | undefined;
+  /**
+   * Collect additional information from your customer using custom fields during checkout. The array is the complete set after the update: omit (or send `null`) to leave the custom fields unchanged, send `[]` to remove all.
+   */
+  customFields?: Array<CustomFieldRequestEntity> | null | undefined;
+  /**
+   * Turn abandoned cart recovery for this product on or off. Buyers who abandon checkout get recovery emails, and recovered orders carry the recovery fee. Omit to leave it unchanged.
+   */
+  abandonedCartRecoveryEnabled?: boolean | undefined;
+  /**
+   * Lifecycle status of the product: `active` or `archived`.
+   */
+  status?: ProductStatus | undefined;
 };
+
+/** @internal */
+export const ProductFileFeatureEditRequestEntity$inboundSchema: z.ZodType<
+  ProductFileFeatureEditRequestEntity,
+  z.ZodTypeDef,
+  unknown
+> = z.object({
+  id: z.string().optional(),
+  external_id: z.nullable(z.string()).optional(),
+  type: z.literal("file"),
+  description: z.string(),
+  file: ProductFileFeatureFilesRequestEntity$inboundSchema,
+  deleted: z.literal(false).optional(),
+}).transform((v) => {
+  return remap$(v, {
+    "external_id": "externalId",
+  });
+});
+/** @internal */
+export type ProductFileFeatureEditRequestEntity$Outbound = {
+  id?: string | undefined;
+  external_id?: string | null | undefined;
+  type: "file";
+  description: string;
+  file: ProductFileFeatureFilesRequestEntity$Outbound;
+  deleted?: false | undefined;
+};
+
+/** @internal */
+export const ProductFileFeatureEditRequestEntity$outboundSchema: z.ZodType<
+  ProductFileFeatureEditRequestEntity$Outbound,
+  z.ZodTypeDef,
+  ProductFileFeatureEditRequestEntity
+> = z.object({
+  id: z.string().optional(),
+  externalId: z.nullable(z.string()).optional(),
+  type: z.literal("file"),
+  description: z.string(),
+  file: ProductFileFeatureFilesRequestEntity$outboundSchema,
+  deleted: z.literal(false).optional(),
+}).transform((v) => {
+  return remap$(v, {
+    externalId: "external_id",
+  });
+});
+
+export function productFileFeatureEditRequestEntityToJSON(
+  productFileFeatureEditRequestEntity: ProductFileFeatureEditRequestEntity,
+): string {
+  return JSON.stringify(
+    ProductFileFeatureEditRequestEntity$outboundSchema.parse(
+      productFileFeatureEditRequestEntity,
+    ),
+  );
+}
+export function productFileFeatureEditRequestEntityFromJSON(
+  jsonString: string,
+): SafeParseResult<ProductFileFeatureEditRequestEntity, SDKValidationError> {
+  return safeParse(
+    jsonString,
+    (x) =>
+      ProductFileFeatureEditRequestEntity$inboundSchema.parse(JSON.parse(x)),
+    `Failed to parse 'ProductFileFeatureEditRequestEntity' from JSON`,
+  );
+}
+
+/** @internal */
+export const ProductPrivateNoteFeatureEditRequestEntity$inboundSchema:
+  z.ZodType<ProductPrivateNoteFeatureEditRequestEntity, z.ZodTypeDef, unknown> =
+    z.object({
+      id: z.string().optional(),
+      external_id: z.nullable(z.string()).optional(),
+      type: z.literal("custom"),
+      description: z.string(),
+      private_note: z.string(),
+      deleted: z.literal(false).optional(),
+    }).transform((v) => {
+      return remap$(v, {
+        "external_id": "externalId",
+        "private_note": "privateNote",
+      });
+    });
+/** @internal */
+export type ProductPrivateNoteFeatureEditRequestEntity$Outbound = {
+  id?: string | undefined;
+  external_id?: string | null | undefined;
+  type: "custom";
+  description: string;
+  private_note: string;
+  deleted?: false | undefined;
+};
+
+/** @internal */
+export const ProductPrivateNoteFeatureEditRequestEntity$outboundSchema:
+  z.ZodType<
+    ProductPrivateNoteFeatureEditRequestEntity$Outbound,
+    z.ZodTypeDef,
+    ProductPrivateNoteFeatureEditRequestEntity
+  > = z.object({
+    id: z.string().optional(),
+    externalId: z.nullable(z.string()).optional(),
+    type: z.literal("custom"),
+    description: z.string(),
+    privateNote: z.string(),
+    deleted: z.literal(false).optional(),
+  }).transform((v) => {
+    return remap$(v, {
+      externalId: "external_id",
+      privateNote: "private_note",
+    });
+  });
+
+export function productPrivateNoteFeatureEditRequestEntityToJSON(
+  productPrivateNoteFeatureEditRequestEntity:
+    ProductPrivateNoteFeatureEditRequestEntity,
+): string {
+  return JSON.stringify(
+    ProductPrivateNoteFeatureEditRequestEntity$outboundSchema.parse(
+      productPrivateNoteFeatureEditRequestEntity,
+    ),
+  );
+}
+export function productPrivateNoteFeatureEditRequestEntityFromJSON(
+  jsonString: string,
+): SafeParseResult<
+  ProductPrivateNoteFeatureEditRequestEntity,
+  SDKValidationError
+> {
+  return safeParse(
+    jsonString,
+    (x) =>
+      ProductPrivateNoteFeatureEditRequestEntity$inboundSchema.parse(
+        JSON.parse(x),
+      ),
+    `Failed to parse 'ProductPrivateNoteFeatureEditRequestEntity' from JSON`,
+  );
+}
+
+/** @internal */
+export const ProductLicenseKeyFeatureEditRequestEntity$inboundSchema: z.ZodType<
+  ProductLicenseKeyFeatureEditRequestEntity,
+  z.ZodTypeDef,
+  unknown
+> = z.object({
+  id: z.string().optional(),
+  external_id: z.nullable(z.string()).optional(),
+  type: z.literal("licenseKey"),
+  description: z.string(),
+  license_key: LicenseKeyFeatureEntity$inboundSchema,
+  deleted: z.literal(false).optional(),
+}).transform((v) => {
+  return remap$(v, {
+    "external_id": "externalId",
+    "license_key": "licenseKey",
+  });
+});
+/** @internal */
+export type ProductLicenseKeyFeatureEditRequestEntity$Outbound = {
+  id?: string | undefined;
+  external_id?: string | null | undefined;
+  type: "licenseKey";
+  description: string;
+  license_key: LicenseKeyFeatureEntity$Outbound;
+  deleted?: false | undefined;
+};
+
+/** @internal */
+export const ProductLicenseKeyFeatureEditRequestEntity$outboundSchema:
+  z.ZodType<
+    ProductLicenseKeyFeatureEditRequestEntity$Outbound,
+    z.ZodTypeDef,
+    ProductLicenseKeyFeatureEditRequestEntity
+  > = z.object({
+    id: z.string().optional(),
+    externalId: z.nullable(z.string()).optional(),
+    type: z.literal("licenseKey"),
+    description: z.string(),
+    licenseKey: LicenseKeyFeatureEntity$outboundSchema,
+    deleted: z.literal(false).optional(),
+  }).transform((v) => {
+    return remap$(v, {
+      externalId: "external_id",
+      licenseKey: "license_key",
+    });
+  });
+
+export function productLicenseKeyFeatureEditRequestEntityToJSON(
+  productLicenseKeyFeatureEditRequestEntity:
+    ProductLicenseKeyFeatureEditRequestEntity,
+): string {
+  return JSON.stringify(
+    ProductLicenseKeyFeatureEditRequestEntity$outboundSchema.parse(
+      productLicenseKeyFeatureEditRequestEntity,
+    ),
+  );
+}
+export function productLicenseKeyFeatureEditRequestEntityFromJSON(
+  jsonString: string,
+): SafeParseResult<
+  ProductLicenseKeyFeatureEditRequestEntity,
+  SDKValidationError
+> {
+  return safeParse(
+    jsonString,
+    (x) =>
+      ProductLicenseKeyFeatureEditRequestEntity$inboundSchema.parse(
+        JSON.parse(x),
+      ),
+    `Failed to parse 'ProductLicenseKeyFeatureEditRequestEntity' from JSON`,
+  );
+}
+
+/** @internal */
+export const ProductFeatureEditRequestEntity$inboundSchema: z.ZodType<
+  ProductFeatureEditRequestEntity,
+  z.ZodTypeDef,
+  unknown
+> = z.object({
+  id: z.string().optional(),
+  external_id: z.nullable(z.string()).optional(),
+  type: z.literal("customerCredits"),
+  description: z.string(),
+  customer_credits: CustomerCreditsFeatureEntity$inboundSchema,
+  deleted: z.literal(false).optional(),
+}).transform((v) => {
+  return remap$(v, {
+    "external_id": "externalId",
+    "customer_credits": "customerCredits",
+  });
+});
+/** @internal */
+export type ProductFeatureEditRequestEntity$Outbound = {
+  id?: string | undefined;
+  external_id?: string | null | undefined;
+  type: "customerCredits";
+  description: string;
+  customer_credits: CustomerCreditsFeatureEntity$Outbound;
+  deleted?: false | undefined;
+};
+
+/** @internal */
+export const ProductFeatureEditRequestEntity$outboundSchema: z.ZodType<
+  ProductFeatureEditRequestEntity$Outbound,
+  z.ZodTypeDef,
+  ProductFeatureEditRequestEntity
+> = z.object({
+  id: z.string().optional(),
+  externalId: z.nullable(z.string()).optional(),
+  type: z.literal("customerCredits"),
+  description: z.string(),
+  customerCredits: CustomerCreditsFeatureEntity$outboundSchema,
+  deleted: z.literal(false).optional(),
+}).transform((v) => {
+  return remap$(v, {
+    externalId: "external_id",
+    customerCredits: "customer_credits",
+  });
+});
+
+export function productFeatureEditRequestEntityToJSON(
+  productFeatureEditRequestEntity: ProductFeatureEditRequestEntity,
+): string {
+  return JSON.stringify(
+    ProductFeatureEditRequestEntity$outboundSchema.parse(
+      productFeatureEditRequestEntity,
+    ),
+  );
+}
+export function productFeatureEditRequestEntityFromJSON(
+  jsonString: string,
+): SafeParseResult<ProductFeatureEditRequestEntity, SDKValidationError> {
+  return safeParse(
+    jsonString,
+    (x) => ProductFeatureEditRequestEntity$inboundSchema.parse(JSON.parse(x)),
+    `Failed to parse 'ProductFeatureEditRequestEntity' from JSON`,
+  );
+}
+
+/** @internal */
+export const UpdateProductRequestEntityFeatures$inboundSchema: z.ZodType<
+  UpdateProductRequestEntityFeatures,
+  z.ZodTypeDef,
+  unknown
+> = z.union([
+  z.lazy(() => ProductFeatureEditRequestEntity$inboundSchema),
+  z.lazy(() => ProductLicenseKeyFeatureEditRequestEntity$inboundSchema),
+  z.lazy(() => ProductPrivateNoteFeatureEditRequestEntity$inboundSchema),
+  z.lazy(() => ProductFileFeatureEditRequestEntity$inboundSchema),
+  ProductFeatureDeletionRequestEntity$inboundSchema,
+]);
+/** @internal */
+export type UpdateProductRequestEntityFeatures$Outbound =
+  | ProductFeatureEditRequestEntity$Outbound
+  | ProductLicenseKeyFeatureEditRequestEntity$Outbound
+  | ProductPrivateNoteFeatureEditRequestEntity$Outbound
+  | ProductFileFeatureEditRequestEntity$Outbound
+  | ProductFeatureDeletionRequestEntity$Outbound;
+
+/** @internal */
+export const UpdateProductRequestEntityFeatures$outboundSchema: z.ZodType<
+  UpdateProductRequestEntityFeatures$Outbound,
+  z.ZodTypeDef,
+  UpdateProductRequestEntityFeatures
+> = z.union([
+  z.lazy(() => ProductFeatureEditRequestEntity$outboundSchema),
+  z.lazy(() => ProductLicenseKeyFeatureEditRequestEntity$outboundSchema),
+  z.lazy(() => ProductPrivateNoteFeatureEditRequestEntity$outboundSchema),
+  z.lazy(() => ProductFileFeatureEditRequestEntity$outboundSchema),
+  ProductFeatureDeletionRequestEntity$outboundSchema,
+]);
+
+export function updateProductRequestEntityFeaturesToJSON(
+  updateProductRequestEntityFeatures: UpdateProductRequestEntityFeatures,
+): string {
+  return JSON.stringify(
+    UpdateProductRequestEntityFeatures$outboundSchema.parse(
+      updateProductRequestEntityFeatures,
+    ),
+  );
+}
+export function updateProductRequestEntityFeaturesFromJSON(
+  jsonString: string,
+): SafeParseResult<UpdateProductRequestEntityFeatures, SDKValidationError> {
+  return safeParse(
+    jsonString,
+    (x) =>
+      UpdateProductRequestEntityFeatures$inboundSchema.parse(JSON.parse(x)),
+    `Failed to parse 'UpdateProductRequestEntityFeatures' from JSON`,
+  );
+}
 
 /** @internal */
 export const UpdateProductRequestEntity$inboundSchema: z.ZodType<
@@ -135,6 +637,8 @@ export const UpdateProductRequestEntity$inboundSchema: z.ZodType<
   image_url: z.string().optional(),
   image_urls: z.array(z.string()).optional(),
   default_success_url: z.string().optional(),
+  external_id: z.nullable(z.string()).optional(),
+  metadata: z.nullable(z.record(z.any())).optional(),
   price: z.number().int().optional(),
   currency: ProductCurrency$inboundSchema.optional(),
   billing_type: ProductRequestBillingType$inboundSchema.optional(),
@@ -148,12 +652,25 @@ export const UpdateProductRequestEntity$inboundSchema: z.ZodType<
   pay_what_you_want: z.boolean().optional(),
   suggested_price: z.number().int().optional(),
   usage_prices: z.array(UsagePriceRequestEntity$inboundSchema).optional(),
-  features: z.array(ProductFeatureRequestEntity$inboundSchema).optional(),
+  features: z.array(
+    z.union([
+      z.lazy(() => ProductFeatureEditRequestEntity$inboundSchema),
+      z.lazy(() => ProductLicenseKeyFeatureEditRequestEntity$inboundSchema),
+      z.lazy(() => ProductPrivateNoteFeatureEditRequestEntity$inboundSchema),
+      z.lazy(() => ProductFileFeatureEditRequestEntity$inboundSchema),
+      ProductFeatureDeletionRequestEntity$inboundSchema,
+    ]),
+  ).optional(),
+  custom_fields: z.nullable(z.array(CustomFieldRequestEntity$inboundSchema))
+    .optional(),
+  abandoned_cart_recovery_enabled: z.boolean().optional(),
+  status: ProductStatus$inboundSchema.optional(),
 }).transform((v) => {
   return remap$(v, {
     "image_url": "imageUrl",
     "image_urls": "imageUrls",
     "default_success_url": "defaultSuccessUrl",
+    "external_id": "externalId",
     "billing_type": "billingType",
     "billing_period": "billingPeriod",
     "recurring_interval": "recurringInterval",
@@ -165,6 +682,8 @@ export const UpdateProductRequestEntity$inboundSchema: z.ZodType<
     "pay_what_you_want": "payWhatYouWant",
     "suggested_price": "suggestedPrice",
     "usage_prices": "usagePrices",
+    "custom_fields": "customFields",
+    "abandoned_cart_recovery_enabled": "abandonedCartRecoveryEnabled",
   });
 });
 /** @internal */
@@ -174,6 +693,8 @@ export type UpdateProductRequestEntity$Outbound = {
   image_url?: string | undefined;
   image_urls?: Array<string> | undefined;
   default_success_url?: string | undefined;
+  external_id?: string | null | undefined;
+  metadata?: { [k: string]: any } | null | undefined;
   price?: number | undefined;
   currency?: string | undefined;
   billing_type?: string | undefined;
@@ -187,7 +708,18 @@ export type UpdateProductRequestEntity$Outbound = {
   pay_what_you_want?: boolean | undefined;
   suggested_price?: number | undefined;
   usage_prices?: Array<UsagePriceRequestEntity$Outbound> | undefined;
-  features?: Array<ProductFeatureRequestEntity$Outbound> | undefined;
+  features?:
+    | Array<
+      | ProductFeatureEditRequestEntity$Outbound
+      | ProductLicenseKeyFeatureEditRequestEntity$Outbound
+      | ProductPrivateNoteFeatureEditRequestEntity$Outbound
+      | ProductFileFeatureEditRequestEntity$Outbound
+      | ProductFeatureDeletionRequestEntity$Outbound
+    >
+    | undefined;
+  custom_fields?: Array<CustomFieldRequestEntity$Outbound> | null | undefined;
+  abandoned_cart_recovery_enabled?: boolean | undefined;
+  status?: string | undefined;
 };
 
 /** @internal */
@@ -201,6 +733,8 @@ export const UpdateProductRequestEntity$outboundSchema: z.ZodType<
   imageUrl: z.string().optional(),
   imageUrls: z.array(z.string()).optional(),
   defaultSuccessUrl: z.string().optional(),
+  externalId: z.nullable(z.string()).optional(),
+  metadata: z.nullable(z.record(z.any())).optional(),
   price: z.number().int().optional(),
   currency: ProductCurrency$outboundSchema.optional(),
   billingType: ProductRequestBillingType$outboundSchema.optional(),
@@ -214,12 +748,25 @@ export const UpdateProductRequestEntity$outboundSchema: z.ZodType<
   payWhatYouWant: z.boolean().optional(),
   suggestedPrice: z.number().int().optional(),
   usagePrices: z.array(UsagePriceRequestEntity$outboundSchema).optional(),
-  features: z.array(ProductFeatureRequestEntity$outboundSchema).optional(),
+  features: z.array(
+    z.union([
+      z.lazy(() => ProductFeatureEditRequestEntity$outboundSchema),
+      z.lazy(() => ProductLicenseKeyFeatureEditRequestEntity$outboundSchema),
+      z.lazy(() => ProductPrivateNoteFeatureEditRequestEntity$outboundSchema),
+      z.lazy(() => ProductFileFeatureEditRequestEntity$outboundSchema),
+      ProductFeatureDeletionRequestEntity$outboundSchema,
+    ]),
+  ).optional(),
+  customFields: z.nullable(z.array(CustomFieldRequestEntity$outboundSchema))
+    .optional(),
+  abandonedCartRecoveryEnabled: z.boolean().optional(),
+  status: ProductStatus$outboundSchema.optional(),
 }).transform((v) => {
   return remap$(v, {
     imageUrl: "image_url",
     imageUrls: "image_urls",
     defaultSuccessUrl: "default_success_url",
+    externalId: "external_id",
     billingType: "billing_type",
     billingPeriod: "billing_period",
     recurringInterval: "recurring_interval",
@@ -231,6 +778,8 @@ export const UpdateProductRequestEntity$outboundSchema: z.ZodType<
     payWhatYouWant: "pay_what_you_want",
     suggestedPrice: "suggested_price",
     usagePrices: "usage_prices",
+    customFields: "custom_fields",
+    abandonedCartRecoveryEnabled: "abandoned_cart_recovery_enabled",
   });
 });
 

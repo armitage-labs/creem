@@ -1,4 +1,5 @@
-import { describe, it, expect } from "vitest";
+import { describe, it, expect, vi } from "vitest";
+import { inspect } from "node:util";
 import {
   getEventType,
   getEventData,
@@ -7,6 +8,8 @@ import {
   parseSubscription,
   parseCheckout,
   parseProduct,
+  parseRefund,
+  parseGeneratedWebhookEvent,
 } from "./parsers.js";
 
 // ── Real webhook payloads from Creem test mode ──────────────────────
@@ -49,6 +52,8 @@ const CHECKOUT_COMPLETED = {
       status: "active",
       tax_mode: "exclusive",
       tax_category: "saas",
+      external_id: null,
+      metadata: null,
       default_success_url: null,
       created_at: "2026-02-28T07:52:06.979Z",
       updated_at: "2026-02-28T07:52:06.979Z",
@@ -90,6 +95,8 @@ const SUBSCRIPTION_ACTIVE = {
       status: "active",
       tax_mode: "exclusive",
       tax_category: "saas",
+      external_id: null,
+      metadata: null,
       default_success_url: null,
       created_at: "2026-02-28T07:55:24.184Z",
       updated_at: "2026-02-28T07:55:24.184Z",
@@ -158,6 +165,8 @@ const SUBSCRIPTION_TRIALING = {
       status: "active",
       tax_mode: "exclusive",
       tax_category: "saas",
+      external_id: null,
+      metadata: null,
       default_success_url: null,
       created_at: "2026-02-28T07:55:41.859Z",
       updated_at: "2026-02-28T07:55:41.859Z",
@@ -226,6 +235,8 @@ const SUBSCRIPTION_CANCELED = {
       status: "active",
       tax_mode: "exclusive",
       tax_category: "saas",
+      external_id: null,
+      metadata: null,
       default_success_url: null,
       created_at: "2026-02-28T07:55:55.057Z",
       updated_at: "2026-02-28T07:55:55.057Z",
@@ -293,6 +304,8 @@ const SUBSCRIPTION_SCHEDULED_CANCEL = {
       status: "active",
       tax_mode: "exclusive",
       tax_category: "saas",
+      external_id: null,
+      metadata: null,
       default_success_url: null,
       created_at: "2026-02-28T07:56:07.282Z",
       updated_at: "2026-02-28T07:56:07.282Z",
@@ -361,6 +374,8 @@ const SUBSCRIPTION_PAST_DUE = {
       status: "active",
       tax_mode: "exclusive",
       tax_category: "saas",
+      external_id: null,
+      metadata: null,
       default_success_url: null,
       created_at: "2026-02-28T07:56:59.487Z",
       updated_at: "2026-02-28T07:56:59.487Z",
@@ -429,6 +444,8 @@ const SUBSCRIPTION_PAUSED = {
       status: "active",
       tax_mode: "exclusive",
       tax_category: "saas",
+      external_id: null,
+      metadata: null,
       default_success_url: null,
       created_at: "2026-02-28T07:57:16.355Z",
       updated_at: "2026-02-28T07:57:16.355Z",
@@ -827,5 +844,62 @@ describe("parseSubscription", () => {
   it("returns null for invalid data", () => {
     const result = parseSubscription({ random: "garbage" });
     expect(result).toBeNull();
+  });
+});
+
+describe("parseGeneratedWebhookEvent", () => {
+  // ENG-2487: the same rules as the route, through the SDK's own parser.
+  it("refuses a known event type whose payload doesn't match it", () => {
+    expect(() =>
+      parseGeneratedWebhookEvent(
+        JSON.stringify({
+          id: "evt_1",
+          eventType: "subscription.canceled",
+          created_at: 1780000000000,
+          object: { id: "sub_1" },
+        }),
+      ),
+    ).toThrow();
+  });
+
+  it("returns an event type the SDK doesn't know as the unknown variant", () => {
+    const event = parseGeneratedWebhookEvent(
+      JSON.stringify({
+        id: "evt_1",
+        eventType: "invoice.finalized",
+        object: {},
+      }),
+    );
+    expect(event.eventType).toBe("UNKNOWN");
+  });
+});
+
+describe("parse helpers on a malformed object", () => {
+  // The SDK's validation error carries the payload; logging it would put the
+  // customer's email in every deployment's logs.
+  it.each([
+    ["parseSubscription", parseSubscription],
+    ["parseCheckout", parseCheckout],
+    ["parseProduct", parseProduct],
+    ["parseRefund", parseRefund],
+  ])("%s returns null and logs no payload data", (_name, parse) => {
+    const logged: unknown[][] = [];
+    const spy = vi
+      .spyOn(console, "warn")
+      .mockImplementation((...args: unknown[]) => void logged.push(args));
+    try {
+      const parsed = (parse as (obj: Record<string, unknown>) => unknown)({
+        id: 42,
+        customer: { email: "buyer@example.com" },
+      });
+      expect(parsed).toBeNull();
+    } finally {
+      spy.mockRestore();
+    }
+    const text = logged
+      .flat()
+      .map((value) => (typeof value === "string" ? value : inspect(value)))
+      .join("\n");
+    expect(text).not.toContain("buyer@example.com");
   });
 });

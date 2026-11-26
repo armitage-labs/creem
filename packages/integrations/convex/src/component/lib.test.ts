@@ -427,6 +427,7 @@ describe("product conversion (Creem SDK → DB)", () => {
           id: "feature_123",
           description: "Priority support",
           type: "custom",
+          externalId: null,
         },
       ],
     });

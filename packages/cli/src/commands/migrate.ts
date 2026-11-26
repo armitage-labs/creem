@@ -1,4 +1,5 @@
 import { Command } from "commander";
+import type { CreateDiscountRequestEntity } from "creem/models/components";
 import ora from "ora";
 import chalk from "chalk";
 import { password, select } from "@inquirer/prompts";
@@ -815,7 +816,7 @@ async function executeMigration(
     const spinner = ora(`${progress} Creating: ${item.creemProduct.name}`).start();
 
     try {
-      const params: Parameters<typeof client.products.create>[0] = {
+      const params: Parameters<typeof client.products.create>[0]["createProductRequestEntity"] = {
         name: item.creemProduct.name,
         // CREEM API requires description to be a non-empty string
         // Use product name as fallback if no description is provided
@@ -834,7 +835,7 @@ async function executeMigration(
           | "every-year";
       }
 
-      const created = await client.products.create(params);
+      const created = await client.products.create({ createProductRequestEntity: params });
       result.created.products.push(created.id);
       spinner.succeed(`${progress} Created: ${item.creemProduct.name}`);
     } catch (error) {
@@ -898,7 +899,7 @@ async function executeMigration(
 
       try {
         // Build discount creation params
-        const params: Parameters<typeof client.discounts.create>[0] = {
+        const params: CreateDiscountRequestEntity = {
           name: item.creemDiscount.name,
           code: item.creemDiscount.code,
           type: item.creemDiscount.type,
@@ -932,7 +933,7 @@ async function executeMigration(
           params.durationInMonths = item.creemDiscount.durationInMonths;
         }
 
-        const created = await client.discounts.create(params);
+        const created = await client.discounts.create({ createDiscountRequestEntity: params });
         result.created.discounts.push(created.id);
         spinner.succeed(`${progress} Created: ${item.creemDiscount.code}`);
       } catch (error) {

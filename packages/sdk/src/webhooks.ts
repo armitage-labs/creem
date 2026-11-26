@@ -1,5 +1,78 @@
+import type * as z from "zod/v3";
 import type { WebhookEventEntity } from "./models/components/webhookevententity.js";
-import { webhookEventEntityFromJSON } from "./models/components/webhookevententity.js";
+import {
+  webhookEventEntityFromJSON,
+  WebhookEventEntityWebhookCheckoutCompletedEventEntity$inboundSchema,
+  WebhookEventEntityWebhookCreditsAutoRechargedEventEntity$inboundSchema,
+  WebhookEventEntityWebhookCreditsConsumedEventEntity$inboundSchema,
+  WebhookEventEntityWebhookCreditsGrantedEventEntity$inboundSchema,
+  WebhookEventEntityWebhookCreditsReversedEventEntity$inboundSchema,
+  WebhookEventEntityWebhookCustomerCreditsExhaustedEventEntity$inboundSchema,
+  WebhookEventEntityWebhookDisputeCreatedEventEntity$inboundSchema,
+  WebhookEventEntityWebhookMarketplaceGrantRequestedEventEntity$inboundSchema,
+  WebhookEventEntityWebhookRefundCreatedEventEntity$inboundSchema,
+  WebhookEventEntityWebhookSubscriptionActiveEventEntity$inboundSchema,
+  WebhookEventEntityWebhookSubscriptionCanceledEventEntity$inboundSchema,
+  WebhookEventEntityWebhookSubscriptionExpiredEventEntity$inboundSchema,
+  WebhookEventEntityWebhookSubscriptionPaidEventEntity$inboundSchema,
+  WebhookEventEntityWebhookSubscriptionPastDueEventEntity$inboundSchema,
+  WebhookEventEntityWebhookSubscriptionPausedEventEntity$inboundSchema,
+  WebhookEventEntityWebhookSubscriptionScheduledCancelEventEntity$inboundSchema,
+  WebhookEventEntityWebhookSubscriptionTrialingEventEntity$inboundSchema,
+  WebhookEventEntityWebhookSubscriptionUnpaidEventEntity$inboundSchema,
+  WebhookEventEntityWebhookSubscriptionUpdateEventEntity$inboundSchema,
+} from "./models/components/webhookevententity.js";
+import { WebhookEventType } from "./models/components/webhookeventtype.js";
+import { SDKValidationError } from "./models/errors/sdkvalidationerror.js";
+import type { Unknown } from "./types/discriminatedUnion.js";
+
+/** The variants of the generated webhook union, without its UNKNOWN fallback. */
+type KnownWebhookEvent = Exclude<WebhookEventEntity, Unknown<"eventType">>;
+type KnownWebhookEventType = KnownWebhookEvent["eventType"];
+
+/**
+ * Each known event type's own payload schema. The open union only reports a
+ * failed known variant as UNKNOWN; parsing again with the variant's schema
+ * recovers the ZodError that names the failing field. Keyed by the generated
+ * union and typed per key, so a missing, extra or swapped entry doesn't compile.
+ * Not exported: it isn't part of the SDK's API.
+ */
+const webhookEventSchemas: {
+  readonly [K in KnownWebhookEventType]: z.ZodType<
+    Extract<KnownWebhookEvent, { eventType: K }>,
+    z.ZodTypeDef,
+    unknown
+  >;
+} = {
+  "checkout.completed": WebhookEventEntityWebhookCheckoutCompletedEventEntity$inboundSchema,
+  "refund.created": WebhookEventEntityWebhookRefundCreatedEventEntity$inboundSchema,
+  "dispute.created": WebhookEventEntityWebhookDisputeCreatedEventEntity$inboundSchema,
+  "subscription.active": WebhookEventEntityWebhookSubscriptionActiveEventEntity$inboundSchema,
+  "subscription.trialing": WebhookEventEntityWebhookSubscriptionTrialingEventEntity$inboundSchema,
+  "subscription.canceled": WebhookEventEntityWebhookSubscriptionCanceledEventEntity$inboundSchema,
+  "subscription.scheduled_cancel":
+    WebhookEventEntityWebhookSubscriptionScheduledCancelEventEntity$inboundSchema,
+  "subscription.paid": WebhookEventEntityWebhookSubscriptionPaidEventEntity$inboundSchema,
+  "subscription.expired": WebhookEventEntityWebhookSubscriptionExpiredEventEntity$inboundSchema,
+  "subscription.unpaid": WebhookEventEntityWebhookSubscriptionUnpaidEventEntity$inboundSchema,
+  "subscription.update": WebhookEventEntityWebhookSubscriptionUpdateEventEntity$inboundSchema,
+  "subscription.past_due": WebhookEventEntityWebhookSubscriptionPastDueEventEntity$inboundSchema,
+  "subscription.paused": WebhookEventEntityWebhookSubscriptionPausedEventEntity$inboundSchema,
+  "customer_credits.exhausted":
+    WebhookEventEntityWebhookCustomerCreditsExhaustedEventEntity$inboundSchema,
+  "credits.granted": WebhookEventEntityWebhookCreditsGrantedEventEntity$inboundSchema,
+  "credits.consumed": WebhookEventEntityWebhookCreditsConsumedEventEntity$inboundSchema,
+  "credits.reversed": WebhookEventEntityWebhookCreditsReversedEventEntity$inboundSchema,
+  "credits.auto_recharged": WebhookEventEntityWebhookCreditsAutoRechargedEventEntity$inboundSchema,
+  "marketplace.grant.requested":
+    WebhookEventEntityWebhookMarketplaceGrantRequestedEventEntity$inboundSchema,
+};
+
+/** The event types this SDK version parses into their own shape. */
+const KNOWN_WEBHOOK_EVENT_TYPES: ReadonlySet<string> = new Set(Object.values(WebhookEventType));
+
+const isKnownWebhookEventType = (eventType: string): eventType is KnownWebhookEventType =>
+  KNOWN_WEBHOOK_EVENT_TYPES.has(eventType);
 
 export type WebhookHeaders =
   | Headers
@@ -51,7 +124,7 @@ const normalizeHeaders = (headers: WebhookHeaders) => {
   const normalized: Record<string, string> = {};
   const setHeader = (key: string, value: string | string[] | undefined) => {
     if (value === undefined) return;
-    normalized[key.toLowerCase()] = Array.isArray(value) ? value[0] ?? "" : value;
+    normalized[key.toLowerCase()] = Array.isArray(value) ? (value[0] ?? "") : value;
   };
 
   if ("forEach" in headers && typeof headers.forEach === "function") {
@@ -79,7 +152,7 @@ const normalizeSecretOptions = (
   toleranceInSeconds:
     typeof options === "string"
       ? defaultToleranceInSeconds
-      : options.toleranceInSeconds ?? defaultToleranceInSeconds,
+      : (options.toleranceInSeconds ?? defaultToleranceInSeconds),
 });
 
 const toHex = (bytes: Uint8Array) =>
@@ -130,11 +203,7 @@ const hmacSha256 = async (keyBytes: Uint8Array, value: string) => {
     ["sign"],
   );
   return new Uint8Array(
-    await globalThis.crypto.subtle.sign(
-      "HMAC",
-      key,
-      toArrayBuffer(textEncoder.encode(value)),
-    ),
+    await globalThis.crypto.subtle.sign("HMAC", key, toArrayBuffer(textEncoder.encode(value))),
   );
 };
 
@@ -244,11 +313,41 @@ export const parseWebhookEvent = <TData = unknown>(
 export const parseWebhookEventEntity = (
   payload: string | ArrayBuffer | Uint8Array,
 ): WebhookEventEntity => {
-  const result = webhookEventEntityFromJSON(payloadToString(payload));
+  const json = payloadToString(payload);
+  const result = webhookEventEntityFromJSON(json);
   if (!result.ok) {
     throw result.error;
   }
-  return result.value;
+  const event = result.value;
+  // The open union falls back to UNKNOWN for anything it can't parse. Only an
+  // object naming an event type this version doesn't know is a newer event.
+  // A known event type that fails validation, or a payload without an event
+  // type, is malformed and refused as before.
+  if (event.eventType === "UNKNOWN") {
+    const raw = event.raw;
+    const eventType =
+      raw !== null && typeof raw === "object" && !Array.isArray(raw)
+        ? (raw as { eventType?: unknown }).eventType
+        : undefined;
+    if (typeof eventType !== "string" || eventType === "") {
+      throw new SDKValidationError(
+        "Invalid webhook payload",
+        "it is not an object with an eventType",
+        json,
+      );
+    }
+    if (isKnownWebhookEventType(eventType)) {
+      // Parse again with the variant's own schema so the cause names the
+      // failing field, as 1.x did.
+      const variant = webhookEventSchemas[eventType].safeParse(raw);
+      throw new SDKValidationError(
+        `Invalid "${eventType}" webhook payload`,
+        variant.success ? "the payload doesn't match the schema of its event type" : variant.error,
+        json,
+      );
+    }
+  }
+  return event;
 };
 
 export const constructWebhookEvent = async <TData = unknown>(

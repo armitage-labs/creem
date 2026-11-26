@@ -5,7 +5,8 @@
 import * as z from "zod/v3";
 import { remap as remap$ } from "../../lib/primitives.js";
 import { safeParse } from "../../lib/schemas.js";
-import { ClosedEnum } from "../../types/enums.js";
+import * as openEnums from "../../types/enums.js";
+import { OpenEnum } from "../../types/enums.js";
 import { Result as SafeParseResult } from "../../types/fp.js";
 import { SDKValidationError } from "../errors/sdkvalidationerror.js";
 import {
@@ -29,7 +30,7 @@ export const MeterApiResponseDtoAggregation = {
 /**
  * Aggregation applied to matching events
  */
-export type MeterApiResponseDtoAggregation = ClosedEnum<
+export type MeterApiResponseDtoAggregation = OpenEnum<
   typeof MeterApiResponseDtoAggregation
 >;
 
@@ -43,7 +44,7 @@ export const MeterApiResponseDtoStatus = {
 /**
  * Whether the meter is active or archived
  */
-export type MeterApiResponseDtoStatus = ClosedEnum<
+export type MeterApiResponseDtoStatus = OpenEnum<
   typeof MeterApiResponseDtoStatus
 >;
 
@@ -85,6 +86,14 @@ export type MeterApiResponseDto = {
    */
   status: MeterApiResponseDtoStatus;
   /**
+   * Your own key for this meter (`external_id`), unique per store. `null` when the meter has none.
+   */
+  externalId: string | null;
+  /**
+   * Whether the meter is locked. A meter locks once it has processed usage or has an associated purchase; an update that changes a locked meter's definition is refused with 409. A lock freezes the filter and aggregation. `event_name` and `unit_label` can't be changed on any meter; `name` and `external_id` stay changeable. Aggregation runs asynchronously, so a meter can lock between a read that says `false` and the next update.
+   */
+  locked: boolean;
+  /**
    * Creation timestamp (ISO 8601)
    */
   createdAt: string;
@@ -95,22 +104,30 @@ export type MeterApiResponseDto = {
 };
 
 /** @internal */
-export const MeterApiResponseDtoAggregation$inboundSchema: z.ZodNativeEnum<
-  typeof MeterApiResponseDtoAggregation
-> = z.nativeEnum(MeterApiResponseDtoAggregation);
+export const MeterApiResponseDtoAggregation$inboundSchema: z.ZodType<
+  MeterApiResponseDtoAggregation,
+  z.ZodTypeDef,
+  unknown
+> = openEnums.inboundSchema(MeterApiResponseDtoAggregation);
 /** @internal */
-export const MeterApiResponseDtoAggregation$outboundSchema: z.ZodNativeEnum<
-  typeof MeterApiResponseDtoAggregation
-> = MeterApiResponseDtoAggregation$inboundSchema;
+export const MeterApiResponseDtoAggregation$outboundSchema: z.ZodType<
+  string,
+  z.ZodTypeDef,
+  MeterApiResponseDtoAggregation
+> = openEnums.outboundSchema(MeterApiResponseDtoAggregation);
 
 /** @internal */
-export const MeterApiResponseDtoStatus$inboundSchema: z.ZodNativeEnum<
-  typeof MeterApiResponseDtoStatus
-> = z.nativeEnum(MeterApiResponseDtoStatus);
+export const MeterApiResponseDtoStatus$inboundSchema: z.ZodType<
+  MeterApiResponseDtoStatus,
+  z.ZodTypeDef,
+  unknown
+> = openEnums.inboundSchema(MeterApiResponseDtoStatus);
 /** @internal */
-export const MeterApiResponseDtoStatus$outboundSchema: z.ZodNativeEnum<
-  typeof MeterApiResponseDtoStatus
-> = MeterApiResponseDtoStatus$inboundSchema;
+export const MeterApiResponseDtoStatus$outboundSchema: z.ZodType<
+  string,
+  z.ZodTypeDef,
+  MeterApiResponseDtoStatus
+> = openEnums.outboundSchema(MeterApiResponseDtoStatus);
 
 /** @internal */
 export const MeterApiResponseDto$inboundSchema: z.ZodType<
@@ -127,6 +144,8 @@ export const MeterApiResponseDto$inboundSchema: z.ZodType<
   filter: MeterFilterApiResponseDto$inboundSchema,
   unit_label: z.string(),
   status: MeterApiResponseDtoStatus$inboundSchema,
+  external_id: z.nullable(z.string()),
+  locked: z.boolean(),
   created_at: z.string(),
   updated_at: z.string(),
 }).transform((v) => {
@@ -135,6 +154,7 @@ export const MeterApiResponseDto$inboundSchema: z.ZodType<
     "event_name": "eventName",
     "aggregation_property": "aggregationProperty",
     "unit_label": "unitLabel",
+    "external_id": "externalId",
     "created_at": "createdAt",
     "updated_at": "updatedAt",
   });
@@ -150,6 +170,8 @@ export type MeterApiResponseDto$Outbound = {
   filter: MeterFilterApiResponseDto$Outbound;
   unit_label: string;
   status: string;
+  external_id: string | null;
+  locked: boolean;
   created_at: string;
   updated_at: string;
 };
@@ -169,6 +191,8 @@ export const MeterApiResponseDto$outboundSchema: z.ZodType<
   filter: MeterFilterApiResponseDto$outboundSchema,
   unitLabel: z.string(),
   status: MeterApiResponseDtoStatus$outboundSchema,
+  externalId: z.nullable(z.string()),
+  locked: z.boolean(),
   createdAt: z.string(),
   updatedAt: z.string(),
 }).transform((v) => {
@@ -177,6 +201,7 @@ export const MeterApiResponseDto$outboundSchema: z.ZodType<
     eventName: "event_name",
     aggregationProperty: "aggregation_property",
     unitLabel: "unit_label",
+    externalId: "external_id",
     createdAt: "created_at",
     updatedAt: "updated_at",
   });

@@ -24,14 +24,12 @@ export class Customers extends ClientSDK {
    * Retrieve a paginated list of all customers. Filter and search through your customer base.
    */
   async list(
-    pageNumber?: number | undefined,
-    pageSize?: number | undefined,
+    request: operations.ListCustomersRequest,
     options?: RequestOptions,
   ): Promise<PageIterator<operations.ListCustomersResponse, { page: number }>> {
     return unwrapResultIterator(customersList(
       this,
-      pageNumber,
-      pageSize,
+      request,
       options,
     ));
   }
@@ -43,16 +41,12 @@ export class Customers extends ClientSDK {
    * Retrieve a paginated list of orders for a specific customer.
    */
   async getOrders(
-    id: string,
-    pageNumber?: number | undefined,
-    pageSize?: number | undefined,
+    request: operations.ListCustomerOrdersRequest,
     options?: RequestOptions,
   ): Promise<components.OrderListEntity> {
     return unwrapAsync(customersGetOrders(
       this,
-      id,
-      pageNumber,
-      pageSize,
+      request,
       options,
     ));
   }
@@ -64,16 +58,12 @@ export class Customers extends ClientSDK {
    * Retrieve a paginated list of subscriptions for a specific customer.
    */
   async listSubscriptions(
-    id: string,
-    pageNumber?: number | undefined,
-    pageSize?: number | undefined,
+    request: operations.ListCustomerSubscriptionsRequest,
     options?: RequestOptions,
   ): Promise<components.SubscriptionListEntity> {
     return unwrapAsync(customersListSubscriptions(
       this,
-      id,
-      pageNumber,
-      pageSize,
+      request,
       options,
     ));
   }
@@ -85,16 +75,12 @@ export class Customers extends ClientSDK {
    * Retrieve a paginated list of license keys for a specific customer.
    */
   async listLicenses(
-    id: string,
-    pageNumber?: number | undefined,
-    pageSize?: number | undefined,
+    request: operations.ListCustomerLicensesRequest,
     options?: RequestOptions,
   ): Promise<components.LicenseListEntity> {
     return unwrapAsync(customersListLicenses(
       this,
-      id,
-      pageNumber,
-      pageSize,
+      request,
       options,
     ));
   }
@@ -106,14 +92,12 @@ export class Customers extends ClientSDK {
    * Retrieve customer information by ID or email. View purchase history, subscriptions, and profile details.
    */
   async retrieve(
-    customerId?: string | undefined,
-    email?: string | undefined,
+    request: operations.RetrieveCustomerRequest,
     options?: RequestOptions,
   ): Promise<components.CustomerEntity> {
     return unwrapAsync(customersRetrieve(
       this,
-      customerId,
-      email,
+      request,
       options,
     ));
   }

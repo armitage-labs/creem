@@ -1,5 +1,5 @@
 import { withUser } from '@/lib/session'
-import { getAccountForUser, getBalance } from '@/lib/wallet'
+import { ensureWalletForUser, getBalance } from '@/lib/wallet'
 import { NextResponse } from 'next/server'
 import { z } from 'zod'
 
@@ -15,8 +15,9 @@ export const GET = withUser(async (req, user) => {
   const query = Query.safeParse({ at: req.nextUrl.searchParams.get('at') ?? undefined })
   if (!query.success) return NextResponse.json({ error: 'invalid_request', message: query.error.issues[0]?.message }, { status: 400 })
   const at = query.data.at
-  const account = await getAccountForUser(user.id)
-  if (!account) return NextResponse.json({ hasWallet: false, balance: '0', unitLabel: 'credits', status: null })
+  // Normally created when the email is verified; this covers a user whose
+  // wallet could not be created then (a Creem outage, for example).
+  const account = await ensureWalletForUser(user)
   const balance = await getBalance(user.id, at)
   return NextResponse.json({
     hasWallet: true,

@@ -44,7 +44,7 @@ export type CustomerCreditsGrantEntity = {
    */
   unitLabel: string;
   /**
-   * Net amount moved for this bucket, in minor units, serialised as a string to preserve precision. Always positive; the event type carries the direction.
+   * Net amount moved for this bucket, in minor units, serialised as a string to preserve precision. Always positive; the event type carries the direction (on `credits.reversed`, the `side` field).
    */
   amountMinorUnits: string;
   /**

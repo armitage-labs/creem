@@ -7,7 +7,7 @@ describe.skipIf(!hasCredentials())("Subscription integration", () => {
   const creem = createTestCreemClient();
 
   it.skipIf(!config.subscriptionId)("retrieves an existing test subscription by ID", async () => {
-    const subscription = await creem.subscriptions.get(config.subscriptionId);
+    const subscription = await creem.subscriptions.get({ subscriptionId: config.subscriptionId });
 
     expect(subscription).toBeDefined();
     expect(subscription.id).toBe(config.subscriptionId);
@@ -17,7 +17,7 @@ describe.skipIf(!hasCredentials())("Subscription integration", () => {
   it.skipIf(!config.subscriptionId)(
     "verifies subscription data structure with camelCase SDK fields",
     async () => {
-      const subscription = await creem.subscriptions.get(config.subscriptionId);
+      const subscription = await creem.subscriptions.get({ subscriptionId: config.subscriptionId });
 
       // SDK responses use camelCase (not snake_case like webhook payloads)
       expect(subscription).toHaveProperty("status");
@@ -42,7 +42,7 @@ describe.skipIf(!hasCredentials())("Subscription integration", () => {
   );
 
   it.skipIf(!config.subscriptionId)("tests isActiveSubscription against real status", async () => {
-    const subscription = await creem.subscriptions.get(config.subscriptionId);
+    const subscription = await creem.subscriptions.get({ subscriptionId: config.subscriptionId });
     const status = subscription.status as string;
 
     // Whatever the real status is, our function should handle it

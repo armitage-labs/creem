@@ -17,7 +17,7 @@ export const handlers: Record<string, OperationHandler> = {
       operations.ListAffiliateInvitesRequest$inboundSchema,
       parameters,
     );
-    return client.affiliates.listInvites(p.pageNumber, p.pageSize, options);
+    return client.affiliates.listInvites(p, options);
   },
   listAffiliates: (client, parameters, body, options) => {
     const p = decode(
@@ -25,7 +25,7 @@ export const handlers: Record<string, OperationHandler> = {
       operations.ListAffiliatesRequest$inboundSchema,
       parameters,
     );
-    return client.affiliates.list(p.pageNumber, p.pageSize, options);
+    return client.affiliates.list(p, options);
   },
   retrieveAffiliate: (client, parameters, body, options) => {
     const p = decode(
@@ -33,7 +33,7 @@ export const handlers: Record<string, OperationHandler> = {
       operations.RetrieveAffiliateRequest$inboundSchema,
       parameters,
     );
-    return client.affiliates.retrieve(p.id, options);
+    return client.affiliates.retrieve(p, options);
   },
   listAffiliateCommissions: (client, parameters, body, options) => {
     const p = decode(
@@ -41,6 +41,6 @@ export const handlers: Record<string, OperationHandler> = {
       operations.ListAffiliateCommissionsRequest$inboundSchema,
       parameters,
     );
-    return client.affiliates.listCommissions(p.id, p.status, p.pageNumber, p.pageSize, options);
+    return client.affiliates.listCommissions(p, options);
   },
 };

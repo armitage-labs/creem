@@ -53,7 +53,10 @@ const seed = internalAction({
     // working authentication.
     await ctx.runMutation(internal.seed.insertFakeUser);
 
-    const firstPage = await creem.products.search(1, 1);
+    const firstPage = await creem.products.search({
+      pageNumber: 1,
+      pageSize: 1,
+    });
     const hasProducts = firstPage.result.items.length > 0;
 
     // Return early if the Creem account already has products, ensures
@@ -63,38 +66,38 @@ const seed = internalAction({
       return;
     }
 
-    const premiumMonthly = await creem.products.create(
-      createRecurringProduct({
+    const premiumMonthly = await creem.products.create({
+      createProductRequestEntity: createRecurringProduct({
         name: PREMIUM_PLAN_NAME,
         description: "All the things for one low monthly price.",
         price: 1000,
         billingPeriod: "every-month",
       }),
-    );
-    const premiumYearly = await creem.products.create(
-      createRecurringProduct({
+    });
+    const premiumYearly = await creem.products.create({
+      createProductRequestEntity: createRecurringProduct({
         name: PREMIUM_PLAN_NAME,
         description: "All the things for one low annual price.",
         price: 10000,
         billingPeriod: "every-year",
       }),
-    );
-    const premiumPlusMonthly = await creem.products.create(
-      createRecurringProduct({
+    });
+    const premiumPlusMonthly = await creem.products.create({
+      createProductRequestEntity: createRecurringProduct({
         name: PREMIUM_PLUS_PLAN_NAME,
         description: "All the things for one low monthly price.",
         price: 2000,
         billingPeriod: "every-month",
       }),
-    );
-    const premiumPlusYearly = await creem.products.create(
-      createRecurringProduct({
+    });
+    const premiumPlusYearly = await creem.products.create({
+      createProductRequestEntity: createRecurringProduct({
         name: PREMIUM_PLUS_PLAN_NAME,
         description: "All the things for one low annual price.",
         price: 20000,
         billingPeriod: "every-year",
       }),
-    );
+    });
 
     console.log("Created products", {
       premiumMonthly: premiumMonthly.id,
@@ -108,7 +111,10 @@ const seed = internalAction({
 // Utility action to inspect products in the account.
 export const archiveAll = internalAction({
   handler: async () => {
-    const products = await creem.products.search(1, 100);
+    const products = await creem.products.search({
+      pageNumber: 1,
+      pageSize: 100,
+    });
     console.log(
       "Current products",
       products.result.items.map((product) => ({

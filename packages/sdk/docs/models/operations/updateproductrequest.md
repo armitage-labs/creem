@@ -8,6 +8,10 @@ import { UpdateProductRequest } from "creem/models/operations";
 let value: UpdateProductRequest = {
   id: "<id>",
   updateProductRequestEntity: {
+    externalId: "pro-monthly",
+    metadata: {
+      "plan": "pro",
+    },
     businessNetPricing: false,
     trialPeriodDays: 7,
     trialPrice: 100,
@@ -25,12 +29,24 @@ let value: UpdateProductRequest = {
     features: [
       {
         id: "feat_abc123",
-        type: "customerCredits",
-        description: "500 image credits",
-        customerCredits: {
-          amount: "100",
-          unitLabel: "tokens",
-          bucketName: "images",
+        externalId: "welcome-note",
+        type: "custom",
+        description: "Private note",
+        privateNote: "Thanks for your purchase! Your access code is XYZ123.",
+      },
+    ],
+    customFields: [
+      {
+        type: "text",
+        key: "companyName",
+        label: "Company Name",
+        text: {
+          maxLength: 200,
+          minLength: 1,
+        },
+        checkbox: {
+          label:
+            "I agree to the [terms and conditions](https://example.com/terms)",
         },
       },
     ],

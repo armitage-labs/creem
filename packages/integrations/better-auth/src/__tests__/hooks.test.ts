@@ -270,6 +270,44 @@ describe("updateSubscriptionFromEvent (via subscription hooks)", () => {
     );
   });
 
+  it.each([
+    { productId: "prod_other", creemSubscriptionId: "sub_other" },
+    { productId: "prod_test_456", creemSubscriptionId: "sub_other" },
+    { productId: "prod_other", creemSubscriptionId: null },
+  ])("does not cancel an unrelated fallback row: %j", async (unrelated) => {
+    const adapter = createMockAdapter();
+    adapter.findOne.mockResolvedValueOnce(null);
+    adapter.findMany.mockResolvedValueOnce([{ ...mockDbSubscription, ...unrelated }]);
+
+    const ctx = createMockContext({ adapter });
+    await onSubscriptionCanceled(ctx, mockSubscriptionCanceledEvent, defaultOptions);
+
+    expect(adapter.update).not.toHaveBeenCalled();
+  });
+
+  it("links an unbound row for the matching product among multiple subscriptions", async () => {
+    const adapter = createMockAdapter();
+    adapter.findOne.mockResolvedValueOnce(null);
+    adapter.findMany.mockResolvedValueOnce([
+      { ...mockDbSubscription, id: "other", productId: "prod_other" },
+      { ...mockDbSubscription, id: "bound", creemSubscriptionId: "sub_other" },
+      { ...mockDbSubscription, creemSubscriptionId: null },
+    ]);
+
+    const ctx = createMockContext({ adapter });
+    await onSubscriptionCanceled(ctx, mockSubscriptionCanceledEvent, defaultOptions);
+
+    expect(adapter.update).toHaveBeenCalledWith(
+      expect.objectContaining({
+        where: [{ field: "id", value: mockDbSubscription.id }],
+        update: expect.objectContaining({
+          status: "canceled",
+          creemSubscriptionId: mockSubscriptionCanceledEvent.object.id,
+        }),
+      }),
+    );
+  });
+
   it("logs warning when subscription not found", async () => {
     const { logger } = await import("better-auth");
     const adapter = createMockAdapter();

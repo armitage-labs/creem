@@ -3,7 +3,8 @@
  */
 
 import * as z from "zod/v3";
-import { ClosedEnum } from "../../types/enums.js";
+import * as openEnums from "../../types/enums.js";
+import { OpenEnum } from "../../types/enums.js";
 
 /**
  * Categorizes the type of product or service for tax purposes. This helps determine the applicable tax rules based on the nature of the item or service.
@@ -16,11 +17,17 @@ export const TaxCategory = {
 /**
  * Categorizes the type of product or service for tax purposes. This helps determine the applicable tax rules based on the nature of the item or service.
  */
-export type TaxCategory = ClosedEnum<typeof TaxCategory>;
+export type TaxCategory = OpenEnum<typeof TaxCategory>;
 
 /** @internal */
-export const TaxCategory$inboundSchema: z.ZodNativeEnum<typeof TaxCategory> = z
-  .nativeEnum(TaxCategory);
+export const TaxCategory$inboundSchema: z.ZodType<
+  TaxCategory,
+  z.ZodTypeDef,
+  unknown
+> = openEnums.inboundSchema(TaxCategory);
 /** @internal */
-export const TaxCategory$outboundSchema: z.ZodNativeEnum<typeof TaxCategory> =
-  TaxCategory$inboundSchema;
+export const TaxCategory$outboundSchema: z.ZodType<
+  string,
+  z.ZodTypeDef,
+  TaxCategory
+> = openEnums.outboundSchema(TaxCategory);

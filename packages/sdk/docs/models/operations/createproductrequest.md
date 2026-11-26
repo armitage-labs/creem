@@ -25,6 +25,10 @@ let value: CreateProductRequest = {
     trialPeriodDays: 7,
     trialPrice: 100,
     defaultSuccessUrl: "https://example.com/?status=successful",
+    externalId: "pro-monthly",
+    metadata: {
+      "plan": "pro",
+    },
     customFields: [
       {
         type: "text",
@@ -53,14 +57,9 @@ let value: CreateProductRequest = {
     ],
     features: [
       {
-        id: "feat_abc123",
-        type: "customerCredits",
-        description: "500 image credits",
-        customerCredits: {
-          amount: "100",
-          unitLabel: "tokens",
-          bucketName: "images",
-        },
+        type: "custom",
+        description: "Private note",
+        privateNote: "Thanks for your purchase! Your access code is XYZ123.",
       },
     ],
   },

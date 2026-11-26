@@ -34,10 +34,7 @@ import { Result } from "../types/fp.js";
  */
 export function statsGetSummary(
   client: CreemCore,
-  currency: operations.Currency,
-  startDate?: number | undefined,
-  endDate?: number | undefined,
-  interval?: operations.Interval | undefined,
+  request: operations.GetMetricsSummaryRequest,
   options?: RequestOptions,
 ): APIPromise<
   Result<
@@ -54,20 +51,14 @@ export function statsGetSummary(
 > {
   return new APIPromise($do(
     client,
-    currency,
-    startDate,
-    endDate,
-    interval,
+    request,
     options,
   ));
 }
 
 async function $do(
   client: CreemCore,
-  currency: operations.Currency,
-  startDate?: number | undefined,
-  endDate?: number | undefined,
-  interval?: operations.Interval | undefined,
+  request: operations.GetMetricsSummaryRequest,
   options?: RequestOptions,
 ): Promise<
   [
@@ -85,15 +76,8 @@ async function $do(
     APICall,
   ]
 > {
-  const input: operations.GetMetricsSummaryRequest = {
-    currency: currency,
-    startDate: startDate,
-    endDate: endDate,
-    interval: interval,
-  };
-
   const parsed = safeParse(
-    input,
+    request,
     (value) => operations.GetMetricsSummaryRequest$outboundSchema.parse(value),
     "Input validation failed",
   );

@@ -1,0 +1,5 @@
+---
+title: 'Confirm an uploaded file'
+description: 'Confirm a file after posting it to its `upload_url`. Returns the file with the SHA-256 storage computed. Confirm is idempotent: confirming again returns the same file and never creates a second one. A large file can take longer to confirm than the gateway waits, so retry a confirm that answered a 5xx (including a 504 timeout) or got no answer.'
+openapi: post /v1/files/{id}/confirm
+---

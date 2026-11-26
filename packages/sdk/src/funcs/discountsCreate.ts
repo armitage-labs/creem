@@ -3,7 +3,7 @@
  */
 
 import { CreemCore } from "../core.js";
-import { encodeJSON } from "../lib/encodings.js";
+import { encodeJSON, encodeSimple } from "../lib/encodings.js";
 import { matchStatusCode } from "../lib/http.js";
 import * as M from "../lib/matchers.js";
 import { compactMap } from "../lib/primitives.js";
@@ -20,8 +20,10 @@ import {
   RequestTimeoutError,
   UnexpectedClientError,
 } from "../models/errors/httpclienterrors.js";
+import * as errors from "../models/errors/index.js";
 import { ResponseValidationError } from "../models/errors/responsevalidationerror.js";
 import { SDKValidationError } from "../models/errors/sdkvalidationerror.js";
+import * as operations from "../models/operations/index.js";
 import { APICall, APIPromise } from "../types/async.js";
 import { Result } from "../types/fp.js";
 
@@ -33,11 +35,12 @@ import { Result } from "../types/fp.js";
  */
 export function discountsCreate(
   client: CreemCore,
-  request: components.CreateDiscountRequestEntity,
+  request: operations.CreateDiscountRequest,
   options?: RequestOptions,
 ): APIPromise<
   Result<
     components.DiscountEntity,
+    | errors.TooManyRequestsErrorEntity
     | CreemError
     | ResponseValidationError
     | ConnectionError
@@ -57,12 +60,13 @@ export function discountsCreate(
 
 async function $do(
   client: CreemCore,
-  request: components.CreateDiscountRequestEntity,
+  request: operations.CreateDiscountRequest,
   options?: RequestOptions,
 ): Promise<
   [
     Result<
       components.DiscountEntity,
+      | errors.TooManyRequestsErrorEntity
       | CreemError
       | ResponseValidationError
       | ConnectionError
@@ -77,21 +81,27 @@ async function $do(
 > {
   const parsed = safeParse(
     request,
-    (value) =>
-      components.CreateDiscountRequestEntity$outboundSchema.parse(value),
+    (value) => operations.CreateDiscountRequest$outboundSchema.parse(value),
     "Input validation failed",
   );
   if (!parsed.ok) {
     return [parsed, { status: "invalid" }];
   }
   const payload = parsed.value;
-  const body = encodeJSON("body", payload, { explode: true });
+  const body = encodeJSON("body", payload.CreateDiscountRequestEntity, {
+    explode: true,
+  });
 
   const path = pathToFunc("/v1/discounts")();
 
   const headers = new Headers(compactMap({
     "Content-Type": "application/json",
     Accept: "application/json",
+    "Idempotency-Key": encodeSimple(
+      "Idempotency-Key",
+      payload["Idempotency-Key"],
+      { explode: false, charEncoding: "none" },
+    ),
   }));
 
   const secConfig = await extractSecurity(client._options.apiKey);
@@ -140,8 +150,13 @@ async function $do(
   }
   const response = doResult.value;
 
+  const responseFields = {
+    HttpMeta: { Response: response, Request: req },
+  };
+
   const [result] = await M.match<
     components.DiscountEntity,
+    | errors.TooManyRequestsErrorEntity
     | CreemError
     | ResponseValidationError
     | ConnectionError
@@ -152,9 +167,10 @@ async function $do(
     | SDKValidationError
   >(
     M.json(200, components.DiscountEntity$inboundSchema),
+    M.jsonErr(429, errors.TooManyRequestsErrorEntity$inboundSchema),
     M.fail([400, 401, 404, "4XX"]),
     M.fail("5XX"),
-  )(response, req);
+  )(response, req, { extraFields: responseFields });
   if (!result.ok) {
     return [result, { status: "complete", request: req, response }];
   }

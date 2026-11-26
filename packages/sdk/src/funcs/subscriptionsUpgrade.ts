@@ -34,8 +34,7 @@ import { Result } from "../types/fp.js";
  */
 export function subscriptionsUpgrade(
   client: CreemCore,
-  id: string,
-  upgradeSubscriptionRequestEntity: components.UpgradeSubscriptionRequestEntity,
+  request: operations.UpgradeSubscriptionRequest,
   options?: RequestOptions,
 ): APIPromise<
   Result<
@@ -52,16 +51,14 @@ export function subscriptionsUpgrade(
 > {
   return new APIPromise($do(
     client,
-    id,
-    upgradeSubscriptionRequestEntity,
+    request,
     options,
   ));
 }
 
 async function $do(
   client: CreemCore,
-  id: string,
-  upgradeSubscriptionRequestEntity: components.UpgradeSubscriptionRequestEntity,
+  request: operations.UpgradeSubscriptionRequest,
   options?: RequestOptions,
 ): Promise<
   [
@@ -79,13 +76,8 @@ async function $do(
     APICall,
   ]
 > {
-  const input: operations.UpgradeSubscriptionRequest = {
-    id: id,
-    upgradeSubscriptionRequestEntity: upgradeSubscriptionRequestEntity,
-  };
-
   const parsed = safeParse(
-    input,
+    request,
     (value) =>
       operations.UpgradeSubscriptionRequest$outboundSchema.parse(value),
     "Input validation failed",
@@ -169,7 +161,7 @@ async function $do(
     | SDKValidationError
   >(
     M.json(200, components.SubscriptionEntity$inboundSchema),
-    M.fail([400, 401, 404, "4XX"]),
+    M.fail([400, 401, 404, 422, "4XX"]),
     M.fail("5XX"),
   )(response, req);
   if (!result.ok) {

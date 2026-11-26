@@ -23,12 +23,26 @@ let value: CheckoutEntity = {
     features: [
       {
         id: "feat_abc123",
-        type: "customerCredits",
+        type: "githubRepository",
         description: "Access to premium course materials.",
+        externalId: "pro-credits",
         customerCredits: {
           amount: "100",
           unitLabel: "tokens",
           bucketName: "images",
+          requiresModeration: false,
+          resetsEachPeriod: false,
+        },
+        licenseKey: {
+          activationLimit: 3,
+          expiry: {
+            interval: "month",
+            intervalCount: 1,
+          },
+        },
+        privateNote: "Thanks for your purchase! Your access code is XYZ123.",
+        file: {
+          files: [],
         },
       },
     ],
@@ -39,7 +53,7 @@ let value: CheckoutEntity = {
         unitPrice: 0.002,
         freeAllowance: 1000,
         cap: 50000,
-        settlementMode: "postpaid",
+        settlementMode: "prepaid",
         targetAccount: "per_unit",
         targetAccountName: "images",
         trialUsageMode: "free",
@@ -59,10 +73,15 @@ let value: CheckoutEntity = {
     taxCategory: "saas",
     productUrl: "https://creem.io/product/prod_123123123123",
     defaultSuccessUrl: "https://example.com/?status=successful",
+    externalId: "pro-monthly",
+    metadata: {
+      "plan": "pro",
+    },
     createdAt: new Date("2023-01-01T00:00:00Z"),
     updatedAt: new Date("2023-01-01T00:00:00Z"),
   },
   customPrice: 1500,
+  trialPeriodDays: 92,
   order: {
     id: "<id>",
     mode: "prod",
@@ -84,6 +103,7 @@ let value: CheckoutEntity = {
     type: "recurring",
     createdAt: new Date("2023-09-13T00:00:00Z"),
     updatedAt: new Date("2023-09-13T00:00:00Z"),
+    recovered: false,
   },
   subscription: "<value>",
   customer: "<value>",
@@ -134,6 +154,7 @@ let value: CheckoutEntity = {
 | `product`                                                                                                                                                                                       | *components.CheckoutEntityProduct*                                                                                                                                                              | :heavy_check_mark:                                                                                                                                                                              | The product associated with the checkout session.                                                                                                                                               |                                                                                                                                                                                                 |
 | `units`                                                                                                                                                                                         | *number*                                                                                                                                                                                        | :heavy_minus_sign:                                                                                                                                                                              | The number of units for the of the product.                                                                                                                                                     |                                                                                                                                                                                                 |
 | `customPrice`                                                                                                                                                                                   | *number*                                                                                                                                                                                        | :heavy_minus_sign:                                                                                                                                                                              | The per-unit price override (in cents, product currency) this checkout was created with. Only present when the checkout was created with a custom_price. One-time payment products only.        | 1500                                                                                                                                                                                            |
+| `trialPeriodDays`                                                                                                                                                                               | *number*                                                                                                                                                                                        | :heavy_minus_sign:                                                                                                                                                                              | The free-trial length in days this checkout was created with, overriding the product's trial. Only present when the checkout was created with a trial_period_days.                              | 92                                                                                                                                                                                              |
 | `order`                                                                                                                                                                                         | [components.OrderEntity](../../models/components/orderentity.md)                                                                                                                                | :heavy_minus_sign:                                                                                                                                                                              | The order associated with the checkout session.                                                                                                                                                 |                                                                                                                                                                                                 |
 | `subscription`                                                                                                                                                                                  | *components.Subscription*                                                                                                                                                                       | :heavy_minus_sign:                                                                                                                                                                              | The subscription associated with the checkout session.                                                                                                                                          |                                                                                                                                                                                                 |
 | `customer`                                                                                                                                                                                      | *components.CheckoutEntityCustomer*                                                                                                                                                             | :heavy_minus_sign:                                                                                                                                                                              | The customer associated with the checkout session.                                                                                                                                              |                                                                                                                                                                                                 |

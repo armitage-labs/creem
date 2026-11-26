@@ -1,4 +1,3 @@
-import * as components from "creem/models/components";
 import * as operations from "creem/models/operations";
 import { decode, type OperationHandler } from "../../lib/operation";
 
@@ -9,16 +8,7 @@ export const handlers: Record<string, OperationHandler> = {
       operations.SearchDiscountsRequest$inboundSchema,
       parameters,
     );
-    return client.discounts.search(
-      p.pageNumber,
-      p.pageSize,
-      p.productId,
-      p.status,
-      p.type,
-      p.createdAfter,
-      p.createdBefore,
-      options,
-    );
+    return client.discounts.search(p, options);
   },
   retrieveDiscount: (client, parameters, body, options) => {
     const p = decode(
@@ -26,15 +16,23 @@ export const handlers: Record<string, OperationHandler> = {
       operations.RetrieveDiscountRequest$inboundSchema,
       parameters,
     );
-    return client.discounts.get(p.discountId, p.discountCode, options);
+    return client.discounts.get(p, options);
   },
   createDiscount: (client, parameters, body, options) => {
-    const b = decode(
-      components.CreateDiscountRequestEntity$outboundSchema,
-      components.CreateDiscountRequestEntity$inboundSchema,
-      body,
+    const p = decode(
+      operations.CreateDiscountRequest$outboundSchema,
+      operations.CreateDiscountRequest$inboundSchema,
+      { ...parameters, createDiscountRequestEntity: body },
     );
-    return client.discounts.create(b, options);
+    return client.discounts.create(p, options);
+  },
+  updateDiscount: (client, parameters, body, options) => {
+    const p = decode(
+      operations.UpdateDiscountRequest$outboundSchema,
+      operations.UpdateDiscountRequest$inboundSchema,
+      { ...parameters, updateDiscountRequestEntity: body },
+    );
+    return client.discounts.update(p, options);
   },
   deleteDiscount: (client, parameters, body, options) => {
     const p = decode(
@@ -42,6 +40,6 @@ export const handlers: Record<string, OperationHandler> = {
       operations.DeleteDiscountRequest$inboundSchema,
       parameters,
     );
-    return client.discounts.delete(p.id, options);
+    return client.discounts.delete(p, options);
   },
 };

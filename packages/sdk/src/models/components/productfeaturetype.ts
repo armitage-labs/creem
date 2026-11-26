@@ -3,27 +3,33 @@
  */
 
 import * as z from "zod/v3";
-import { ClosedEnum } from "../../types/enums.js";
+import * as openEnums from "../../types/enums.js";
+import { OpenEnum } from "../../types/enums.js";
 
 /**
- * The type of the feature: `custom` (private note), `file` (downloadable files), `licenseKey` (license key), or `customerCredits` (customer credit grant).
+ * The type of the feature: `custom` (private note), `file` (downloadable files), `licenseKey` (license key), `customerCredits` (customer credit grant), or `githubRepository` (access to a private GitHub repository).
  */
 export const ProductFeatureType = {
   Custom: "custom",
   File: "file",
   LicenseKey: "licenseKey",
   CustomerCredits: "customerCredits",
+  GithubRepository: "githubRepository",
 } as const;
 /**
- * The type of the feature: `custom` (private note), `file` (downloadable files), `licenseKey` (license key), or `customerCredits` (customer credit grant).
+ * The type of the feature: `custom` (private note), `file` (downloadable files), `licenseKey` (license key), `customerCredits` (customer credit grant), or `githubRepository` (access to a private GitHub repository).
  */
-export type ProductFeatureType = ClosedEnum<typeof ProductFeatureType>;
+export type ProductFeatureType = OpenEnum<typeof ProductFeatureType>;
 
 /** @internal */
-export const ProductFeatureType$inboundSchema: z.ZodNativeEnum<
-  typeof ProductFeatureType
-> = z.nativeEnum(ProductFeatureType);
+export const ProductFeatureType$inboundSchema: z.ZodType<
+  ProductFeatureType,
+  z.ZodTypeDef,
+  unknown
+> = openEnums.inboundSchema(ProductFeatureType);
 /** @internal */
-export const ProductFeatureType$outboundSchema: z.ZodNativeEnum<
-  typeof ProductFeatureType
-> = ProductFeatureType$inboundSchema;
+export const ProductFeatureType$outboundSchema: z.ZodType<
+  string,
+  z.ZodTypeDef,
+  ProductFeatureType
+> = openEnums.outboundSchema(ProductFeatureType);

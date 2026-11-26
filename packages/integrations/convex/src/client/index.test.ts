@@ -392,7 +392,7 @@ describe("customers namespace", () => {
         entityId: "user_1",
       });
 
-      expect(retrieve).toHaveBeenCalledWith("cust_1");
+      expect(retrieve).toHaveBeenCalledWith({ customerId: "cust_1" });
       expect(result).toEqual({ status: "ok", email: "billing@example.com" });
     });
 
@@ -1821,6 +1821,8 @@ describe("registerRoutes", () => {
           status: "active",
           tax_mode: "exclusive",
           tax_category: "saas",
+          external_id: null,
+          metadata: null,
           default_success_url: null,
           created_at: "2026-02-28T07:52:06.979Z",
           updated_at: "2026-02-28T07:52:06.979Z",
@@ -1916,6 +1918,8 @@ describe("registerRoutes", () => {
           status: "active",
           tax_mode: "exclusive",
           tax_category: "saas",
+          external_id: null,
+          metadata: null,
           default_success_url: null,
           created_at: "2026-02-28T07:52:06.979Z",
           updated_at: "2026-02-28T07:52:06.979Z",
@@ -1944,10 +1948,13 @@ describe("registerRoutes", () => {
     const response = await signAndSend(handler!, ctx, body, SECRET);
 
     expect(response.status).toBe(202);
-    expect(creditAccount).toHaveBeenCalledWith("cred_acct_1", {
-      amount: "100",
-      reference: "checkout:ch_credits",
-      idempotencyKey: "creem:checkout:ch_credits:credits:prod_credits:100",
+    expect(creditAccount).toHaveBeenCalledWith({
+      id: "cred_acct_1",
+      creditDebitRequestDto: {
+        amount: "100",
+        reference: "checkout:ch_credits",
+        idempotencyKey: "creem:checkout:ch_credits:credits:prod_credits:100",
+      },
     });
   });
 
@@ -1987,10 +1994,13 @@ describe("registerRoutes", () => {
     const response = await signAndSend(handler!, ctx, body, SECRET);
 
     expect(response.status).toBe(202);
-    expect(debitAccount).toHaveBeenCalledWith("cred_acct_1", {
-      amount: "50",
-      reference: "refund:ref_credits",
-      idempotencyKey: "creem:refund:ref_credits:credits:prod_credits:50",
+    expect(debitAccount).toHaveBeenCalledWith({
+      id: "cred_acct_1",
+      debitRequestDto: {
+        amount: "50",
+        reference: "refund:ref_credits",
+        idempotencyKey: "creem:refund:ref_credits:credits:prod_credits:50",
+      },
     });
   });
 
@@ -2069,10 +2079,14 @@ describe("registerRoutes", () => {
     const response = await signAndSend(handler!, ctx, body, SECRET);
 
     expect(response.status).toBe(202);
-    expect(debitAccount).toHaveBeenCalledWith("cred_acct_1", {
-      amount: "100",
-      reference: "refund:ref_full_credits",
-      idempotencyKey: "creem:refund:ref_full_credits:credits:prod_credits:100",
+    expect(debitAccount).toHaveBeenCalledWith({
+      id: "cred_acct_1",
+      debitRequestDto: {
+        amount: "100",
+        reference: "refund:ref_full_credits",
+        idempotencyKey:
+          "creem:refund:ref_full_credits:credits:prod_credits:100",
+      },
     });
   });
 
@@ -2126,6 +2140,8 @@ describe("registerRoutes", () => {
           status: "active",
           tax_mode: "exclusive",
           tax_category: "saas",
+          external_id: null,
+          metadata: null,
           default_success_url: null,
           created_at: "2026-02-28T07:55:24.184Z",
           updated_at: "2026-02-28T07:55:24.184Z",
@@ -2218,6 +2234,8 @@ describe("registerRoutes", () => {
           status: "active",
           tax_mode: "exclusive",
           tax_category: "saas",
+          external_id: null,
+          metadata: null,
           default_success_url: null,
           created_at: "2026-02-28T07:55:55.057Z",
           updated_at: "2026-02-28T07:55:55.057Z",
@@ -2392,13 +2410,11 @@ describe("api() convenience exports", () => {
       const handler = extractHandler(apiExports.transactions.search as never);
       const result = await handler(ctx, { pageNumber: 1, pageSize: 10 });
 
-      expect(search).toHaveBeenCalledWith(
-        "cust_1",
-        undefined,
-        undefined,
-        1,
-        10,
-      );
+      expect(search).toHaveBeenCalledWith({
+        customerId: "cust_1",
+        pageNumber: 1,
+        pageSize: 10,
+      });
       expect(result.pagination).toEqual(transactionList.pagination);
       expect(result.items).toHaveLength(1);
       // Projected into the validated widget shape: SDK-only fields are dropped.
@@ -2444,13 +2460,10 @@ describe("api() convenience exports", () => {
         pageNumber: 1,
       });
 
-      expect(search).toHaveBeenCalledWith(
-        "cust_1",
-        undefined,
-        undefined,
-        1,
-        undefined,
-      );
+      expect(search).toHaveBeenCalledWith({
+        customerId: "cust_1",
+        pageNumber: 1,
+      });
     });
   });
 

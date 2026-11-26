@@ -11,6 +11,10 @@ function formatBilling(product: Product): string {
   if (product.billingType === "onetime") {
     return "One-time";
   }
+  if (product.billingType !== "recurring") {
+    // A billing type the API added after this CLI version: show it as it is.
+    return product.billingType;
+  }
   const period = product.billingPeriod?.replace("every-", "") || "month";
   return `Recurring / ${period}`;
 }
@@ -88,7 +92,7 @@ export function getProductsTuiDescriptor(context: CliContext): TuiModuleDescript
     ],
     fetchPage: async (page: number, pageSize: number) => {
       const client = context.client({});
-      const response = await client.products.search(page, pageSize);
+      const response = await client.products.search({ pageNumber: page, pageSize: pageSize });
       const { items, pagination } = response.result;
       return {
         items,

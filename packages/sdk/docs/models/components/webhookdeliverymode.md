@@ -8,10 +8,12 @@ How events reach this endpoint: `http` deliveries are POSTed to `url`; `cli` del
 import { WebhookDeliveryMode } from "creem/models/components";
 
 let value: WebhookDeliveryMode = "cli";
+
+// Open enum: unrecognized values are captured as Unrecognized<string>
 ```
 
 ## Values
 
 ```typescript
-"http" | "cli"
+"http" | "cli" | Unrecognized<string>
 ```

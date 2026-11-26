@@ -5,7 +5,8 @@
 import * as z from "zod/v3";
 import { remap as remap$ } from "../../lib/primitives.js";
 import { safeParse } from "../../lib/schemas.js";
-import { ClosedEnum } from "../../types/enums.js";
+import * as openEnums from "../../types/enums.js";
+import { OpenEnum } from "../../types/enums.js";
 import { Result as SafeParseResult } from "../../types/fp.js";
 import { SDKValidationError } from "../errors/sdkvalidationerror.js";
 
@@ -20,7 +21,7 @@ export const AccountResponseDtoStatus = {
 /**
  * Account status
  */
-export type AccountResponseDtoStatus = ClosedEnum<
+export type AccountResponseDtoStatus = OpenEnum<
   typeof AccountResponseDtoStatus
 >;
 
@@ -60,13 +61,17 @@ export type AccountResponseDto = {
 };
 
 /** @internal */
-export const AccountResponseDtoStatus$inboundSchema: z.ZodNativeEnum<
-  typeof AccountResponseDtoStatus
-> = z.nativeEnum(AccountResponseDtoStatus);
+export const AccountResponseDtoStatus$inboundSchema: z.ZodType<
+  AccountResponseDtoStatus,
+  z.ZodTypeDef,
+  unknown
+> = openEnums.inboundSchema(AccountResponseDtoStatus);
 /** @internal */
-export const AccountResponseDtoStatus$outboundSchema: z.ZodNativeEnum<
-  typeof AccountResponseDtoStatus
-> = AccountResponseDtoStatus$inboundSchema;
+export const AccountResponseDtoStatus$outboundSchema: z.ZodType<
+  string,
+  z.ZodTypeDef,
+  AccountResponseDtoStatus
+> = openEnums.outboundSchema(AccountResponseDtoStatus);
 
 /** @internal */
 export const AccountResponseDto$inboundSchema: z.ZodType<
