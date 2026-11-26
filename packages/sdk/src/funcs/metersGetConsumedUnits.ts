@@ -34,9 +34,7 @@ import { Result } from "../types/fp.js";
  */
 export function metersGetConsumedUnits(
   client: CreemCore,
-  id: string,
-  customerId: string,
-  at?: string | undefined,
+  request: operations.GetMeterConsumedUnitsRequest,
   options?: RequestOptions,
 ): APIPromise<
   Result<
@@ -53,18 +51,14 @@ export function metersGetConsumedUnits(
 > {
   return new APIPromise($do(
     client,
-    id,
-    customerId,
-    at,
+    request,
     options,
   ));
 }
 
 async function $do(
   client: CreemCore,
-  id: string,
-  customerId: string,
-  at?: string | undefined,
+  request: operations.GetMeterConsumedUnitsRequest,
   options?: RequestOptions,
 ): Promise<
   [
@@ -82,14 +76,8 @@ async function $do(
     APICall,
   ]
 > {
-  const input: operations.GetMeterConsumedUnitsRequest = {
-    id: id,
-    customerId: customerId,
-    at: at,
-  };
-
   const parsed = safeParse(
-    input,
+    request,
     (value) =>
       operations.GetMeterConsumedUnitsRequest$outboundSchema.parse(value),
     "Input validation failed",

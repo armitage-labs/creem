@@ -8,10 +8,12 @@ The type of the field.
 import { CustomFieldType } from "creem/models/components";
 
 let value: CustomFieldType = "text";
+
+// Open enum: unrecognized values are captured as Unrecognized<string>
 ```
 
 ## Values
 
 ```typescript
-"text" | "checkbox"
+"text" | "checkbox" | Unrecognized<string>
 ```

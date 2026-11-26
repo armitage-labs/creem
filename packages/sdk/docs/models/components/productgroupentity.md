@@ -1,0 +1,41 @@
+# ProductGroupEntity
+
+## Example Usage
+
+```typescript
+import { ProductGroupEntity } from "creem/models/components";
+
+let value: ProductGroupEntity = {
+  id: "<id>",
+  mode: "test",
+  object: "product_group",
+  name: "<value>",
+  description: null,
+  externalId: "<id>",
+  products: [],
+  upgradesEnabled: true,
+  upgradeBehavior: "proration-none",
+  upsellsEnabled: true,
+  isActive: false,
+  createdAt: new Date("2023-01-01T00:00:00Z"),
+  updatedAt: new Date("2023-01-01T00:00:00Z"),
+};
+```
+
+## Fields
+
+| Field                                                                                               | Type                                                                                                | Required                                                                                            | Description                                                                                         | Example                                                                                             |
+| --------------------------------------------------------------------------------------------------- | --------------------------------------------------------------------------------------------------- | --------------------------------------------------------------------------------------------------- | --------------------------------------------------------------------------------------------------- | --------------------------------------------------------------------------------------------------- |
+| `id`                                                                                                | *string*                                                                                            | :heavy_check_mark:                                                                                  | Unique identifier for the object.                                                                   |                                                                                                     |
+| `mode`                                                                                              | [components.EnvironmentMode](../../models/components/environmentmode.md)                            | :heavy_check_mark:                                                                                  | String representing the environment.                                                                |                                                                                                     |
+| `object`                                                                                            | *string*                                                                                            | :heavy_check_mark:                                                                                  | String representing the object's type. Objects of the same type share the same value.               | product_group                                                                                       |
+| `name`                                                                                              | *string*                                                                                            | :heavy_check_mark:                                                                                  | The name of the product group.                                                                      |                                                                                                     |
+| `description`                                                                                       | *string*                                                                                            | :heavy_check_mark:                                                                                  | A description of the product group.                                                                 |                                                                                                     |
+| `externalId`                                                                                        | *string*                                                                                            | :heavy_check_mark:                                                                                  | Your own key for this product group, or `null` when it has none.                                    |                                                                                                     |
+| `products`                                                                                          | [components.ProductGroupProductEntity](../../models/components/productgroupproductentity.md)[]      | :heavy_check_mark:                                                                                  | The products in the group, in display order. A product is in one group at a time.                   |                                                                                                     |
+| `upgradesEnabled`                                                                                   | *boolean*                                                                                           | :heavy_check_mark:                                                                                  | Whether customers can switch between the products of this group.                                    |                                                                                                     |
+| `upgradeBehavior`                                                                                   | [components.UpgradeBehavior](../../models/components/upgradebehavior.md)                            | :heavy_check_mark:                                                                                  | How a switch between the products is billed, or `null` for the default.                             |                                                                                                     |
+| `upsellsEnabled`                                                                                    | *boolean*                                                                                           | :heavy_check_mark:                                                                                  | Whether the products of this group are offered as checkout upsells.                                 |                                                                                                     |
+| `isActive`                                                                                          | *boolean*                                                                                           | :heavy_check_mark:                                                                                  | Whether the product group is active. Stored and returned; it does not yet stop upgrades or upsells. |                                                                                                     |
+| `createdAt`                                                                                         | [Date](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Date)       | :heavy_check_mark:                                                                                  | Creation date of the product group.                                                                 | 2023-01-01T00:00:00Z                                                                                |
+| `updatedAt`                                                                                         | [Date](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Date)       | :heavy_check_mark:                                                                                  | Last updated date of the product group.                                                             | 2023-01-01T00:00:00Z                                                                                |

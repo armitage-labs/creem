@@ -28,6 +28,7 @@ let value: SearchDiscountsResponse = {
           "prod_456",
         ],
         redeemCount: 15,
+        externalId: "spring-2026",
       },
     ],
     pagination: {

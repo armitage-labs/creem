@@ -6,7 +6,7 @@ describe.skipIf(!hasCredentials())("Transactions integration", () => {
   const creem = createTestCreemClient();
 
   it.skipIf(!config.customerId)("searches transactions by customer ID", async () => {
-    const result = await creem.transactions.search(config.customerId);
+    const result = await creem.transactions.search({ customerId: config.customerId });
 
     expect(result).toBeDefined();
     // The response should have some shape - it may be an array or object
@@ -14,7 +14,7 @@ describe.skipIf(!hasCredentials())("Transactions integration", () => {
   });
 
   it.skipIf(!config.customerId)("verifies transaction list response shape", async () => {
-    const result = await creem.transactions.search(config.customerId);
+    const result = await creem.transactions.search({ customerId: config.customerId });
 
     expect(result).toBeDefined();
     // SDK TransactionListEntity should have items and pagination
@@ -36,17 +36,20 @@ describe.skipIf(!hasCredentials())("Transactions integration", () => {
   });
 
   it.skipIf(!config.customerId)("tests pagination parameters", async () => {
-    const result = await creem.transactions.search(config.customerId, undefined, undefined, 1, 5);
+    const result = await creem.transactions.search({
+      customerId: config.customerId,
+      pageNumber: 1,
+      pageSize: 5,
+    });
 
     expect(result).toBeDefined();
   });
 
   it.skipIf(!config.productId)("searches by product ID filter", async () => {
-    const result = await creem.transactions.search(
-      config.customerId || undefined,
-      undefined,
-      config.productId,
-    );
+    const result = await creem.transactions.search({
+      customerId: config.customerId || undefined,
+      productId: config.productId,
+    });
 
     expect(result).toBeDefined();
   });

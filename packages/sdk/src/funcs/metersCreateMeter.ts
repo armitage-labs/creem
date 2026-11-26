@@ -3,7 +3,7 @@
  */
 
 import { CreemCore } from "../core.js";
-import { encodeJSON } from "../lib/encodings.js";
+import { encodeJSON, encodeSimple } from "../lib/encodings.js";
 import { matchStatusCode } from "../lib/http.js";
 import * as M from "../lib/matchers.js";
 import { compactMap } from "../lib/primitives.js";
@@ -23,6 +23,7 @@ import {
 import * as errors from "../models/errors/index.js";
 import { ResponseValidationError } from "../models/errors/responsevalidationerror.js";
 import { SDKValidationError } from "../models/errors/sdkvalidationerror.js";
+import * as operations from "../models/operations/index.js";
 import { APICall, APIPromise } from "../types/async.js";
 import { Result } from "../types/fp.js";
 
@@ -34,7 +35,7 @@ import { Result } from "../types/fp.js";
  */
 export function metersCreateMeter(
   client: CreemCore,
-  request: components.CreateMeterApiRequestDto,
+  request: operations.CreateMeterRequest,
   options?: RequestOptions,
 ): APIPromise<
   Result<
@@ -59,7 +60,7 @@ export function metersCreateMeter(
 
 async function $do(
   client: CreemCore,
-  request: components.CreateMeterApiRequestDto,
+  request: operations.CreateMeterRequest,
   options?: RequestOptions,
 ): Promise<
   [
@@ -80,20 +81,27 @@ async function $do(
 > {
   const parsed = safeParse(
     request,
-    (value) => components.CreateMeterApiRequestDto$outboundSchema.parse(value),
+    (value) => operations.CreateMeterRequest$outboundSchema.parse(value),
     "Input validation failed",
   );
   if (!parsed.ok) {
     return [parsed, { status: "invalid" }];
   }
   const payload = parsed.value;
-  const body = encodeJSON("body", payload, { explode: true });
+  const body = encodeJSON("body", payload.CreateMeterApiRequestDto, {
+    explode: true,
+  });
 
   const path = pathToFunc("/v1/meters")();
 
   const headers = new Headers(compactMap({
     "Content-Type": "application/json",
     Accept: "application/json",
+    "Idempotency-Key": encodeSimple(
+      "Idempotency-Key",
+      payload["Idempotency-Key"],
+      { explode: false, charEncoding: "none" },
+    ),
   }));
 
   const secConfig = await extractSecurity(client._options.apiKey);
@@ -160,7 +168,7 @@ async function $do(
   >(
     M.json(201, components.MeterApiResponseDto$inboundSchema),
     M.jsonErr(
-      [409, 422],
+      [409, 422, 429],
       errors.UsageMeteringErrorApiResponseDto$inboundSchema,
     ),
     M.fail([400, 401, 404, "4XX"]),

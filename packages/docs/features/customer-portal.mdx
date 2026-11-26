@@ -1,13 +1,36 @@
 ---
 title: "Customer Portal"
-description: "Customers can cancel and refund subscriptions by themselves."
+description: "Where your customers manage their subscriptions, card and invoices themselves."
 ---
 
-## What is a Customer Portal?
+## What is the Customer Portal?
 
-After every successful payment, your customers will receive an email with a link to their Customer Portal. This portal allows them to manage their subscriptions, payment methods, and personal information.
+The Customer Portal is where your customers look after what they bought from you: their subscriptions, the card they pay with, their invoices, and their files and license keys. They do it themselves, so fewer of these requests reach your support.
 
-This email contains a magic link, to a completely different authentication mechanism, in which they are able to access their account which allows them to execute the aforementioned actions.
+Each store has its own portal. It shows your logo and brand colour from **Settings › Branding**.
+
+<Frame>
+  <img
+    src="/images/customer-portal/store-page.png"
+    alt="A store's customer portal with a subscription, a purchase, billing and help"
+  />
+</Frame>
+
+## How customers get in
+
+- **From their emails.** Every payment confirmation email has a link that opens the portal with no password. The link works for an hour.
+- **From the sign-in page.** At any time, a customer can enter their email at [creem.io/portal/login](https://creem.io/portal/login) to get a new sign-in link, or sign in with Google.
+
+A customer sees only the purchases made with their own email address.
+
+<Accordion icon="right-to-bracket" title="Sign-in page">
+  <Frame>
+    <img
+      src="/images/customer-portal/sign-in.png"
+      alt="The portal's sign-in page: continue with Google, or enter an email for a magic link"
+    />
+  </Frame>
+</Accordion>
 
 <Info>
   If you're building with Next.js, the <a href="/code/sdks/nextjs">@creem_io/nextjs adapter</a>{" "}
@@ -16,45 +39,52 @@ This email contains a magic link, to a completely different authentication mecha
   your dashboard without touching the REST API.
 </Info>
 
-<AccordionGroup>
-  <Accordion icon="receipt" title="Receipt Example">
-    <img
-      style={{ borderRadius: "0.5rem" }}
-      src="https://nucn5fajkcc6sgrd.public.blob.vercel-storage.com/Screenshot%202024-12-17%20at%2023.26.24-zus6vfFFS6vdT5GSwjjXSbinB5KWZp.png"
-    />
-  </Accordion>
-  <Accordion icon="right-to-bracket" title="Magic Link Login Example">
-    <img
-      style={{ borderRadius: "0.5rem" }}
-      src="https://nucn5fajkcc6sgrd.public.blob.vercel-storage.com/magic-link-nq675ngtIqI95c6EeGiHPa8id6D1x1.png"
-    />
-  </Accordion>
-</AccordionGroup>
-
 ## What can customers do in the Customer Portal?
 
-### 1. Cancel a subscription
+### 1. Manage a subscription
 
-Upon entering the Customer Portal, customers can cancel their subscriptions by selecting an active subscription, and clicking on the **Manage Subscription** button.
-This will open a details sheet on the right side of the screen, where a **Cancel Subscription** button is available.
+Customers see each subscription with its plan, price, status and next payment date. From there they can:
 
-This will immediately cancel their subscription and they will no longer be charged for it.
+- **Cancel it.** They review what happens before they confirm. They aren't charged again, and their access ends right away or at the end of the billing period, depending on your store's setting.
+- **Resume it**, when the cancellation takes effect at the end of the billing period, until shortly before that date.
+- **Change plan**, between products in a [product bundle](/features/product-bundles) that has self-service upgrades turned on.
 
-    <img
-      style={{ borderRadius: '0.5rem' }}
-      src="https://nucn5fajkcc6sgrd.public.blob.vercel-storage.com/cancel-subscription-e7svTi3ym0foZze7gG8SOa6arqIj78.png"
-    />
+<Frame>
+  <img
+    src="/images/customer-portal/subscription.png"
+    alt="A subscription in the customer portal, with its plan, payments, Update card and Cancel subscription"
+  />
+</Frame>
 
-### 2. Request Invoice or Support
+<Frame>
+  <img
+    src="/images/customer-portal/cancel-subscription.png"
+    alt="The review a customer sees before cancelling a subscription"
+  />
+</Frame>
 
-Customers using the customer portal, can copy all details of a specific payment, including order_ID and request support from Creem team directly without contacting the merchant.
+### 2. Update their card
 
-    <img
-      style={{ borderRadius: '0.5rem' }}
-      src="https://nucn5fajkcc6sgrd.public.blob.vercel-storage.com/customer-portal-Klxod6wVtoF6JFJdeEDPOPPxDMJ31q.png"
-    />
+Customers can replace the card a subscription renews with. When a renewal fails, they can pay it with a new card, and the subscription becomes active again.
 
-### 3. Generate Customer Portal Access Programmatically
+### 3. Download invoices
+
+Every successful payment is listed with its invoice. When downloading one, the customer can add a company name and address to it.
+
+### 4. Get their files and license keys
+
+Customers can download the files and copy the license keys that came with a purchase.
+
+### What customers can't do
+
+- **Pause a subscription.** They can cancel, and resume before the billing period ends.
+- **Keep several payment methods.** Each subscription has one card on file. It can be replaced, not removed.
+- **Change their email.** They ask you, and you change it for them.
+- **Get a refund.** Refunds are your decision, so the portal tells them to contact you.
+
+The portal's Help section tells customers how to get a refund and how to change their email, and shows your store's support contact.
+
+## Generate Customer Portal Access Programmatically
 
 You can generate a customer portal link for your users programmatically, allowing them to manage their subscriptions directly from your application.
 

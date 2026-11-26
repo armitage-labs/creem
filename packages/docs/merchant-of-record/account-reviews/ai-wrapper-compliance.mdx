@@ -38,9 +38,9 @@ Be explicit about what your product is and what it does.
 
 ## Moderation API requirement
 
-If your product generates images or videos from user prompts, you must integrate the [CREEM Moderation API](/features/moderation).
+If your product generates or edits images or videos, every generation must go through the [CREEM Moderation API](/features/moderation). That includes generations without user text, such as fixed templates, gallery re-runs, upload-only edits and upscaling.
 
-This requirement applies to AI **image and video generation** products only. It does not apply to image upscaling, background removal, audio/music generation, text generation, or other non-generative use cases.
+This requirement applies to AI **image and video** products only. It does not apply to products that only generate audio, music or text.
 
 Paid generations must also run on [Customer Credits](/features/customer-credits/introduction), with every credit spend linked to a moderation result. See [Gen AI Requirements](/merchant-of-record/account-reviews/gen-ai-requirements) for why, and the [Gen AI Technical Integration Guide](/merchant-of-record/account-reviews/gen-ai-technical-integration-guide) for the step by step setup.
 
@@ -58,7 +58,7 @@ Paid generations must also run on [Customer Credits](/features/customer-credits/
 </Card>
 
 <Tip>
-  If users type a text prompt and your product generates an image or video from it, you need the Moderation API.
+  Every image or video generation needs a moderation result, whether the prompt comes from your user, a template or your own pipeline.
 </Tip>
 
 ## Content policy requirements

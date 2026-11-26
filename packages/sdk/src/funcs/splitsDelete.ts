@@ -34,7 +34,7 @@ import { Result } from "../types/fp.js";
  */
 export function splitsDelete(
   client: CreemCore,
-  id: string,
+  request: operations.DeleteSplitRequest,
   options?: RequestOptions,
 ): APIPromise<
   Result<
@@ -51,14 +51,14 @@ export function splitsDelete(
 > {
   return new APIPromise($do(
     client,
-    id,
+    request,
     options,
   ));
 }
 
 async function $do(
   client: CreemCore,
-  id: string,
+  request: operations.DeleteSplitRequest,
   options?: RequestOptions,
 ): Promise<
   [
@@ -76,12 +76,8 @@ async function $do(
     APICall,
   ]
 > {
-  const input: operations.DeleteSplitRequest = {
-    id: id,
-  };
-
   const parsed = safeParse(
-    input,
+    request,
     (value) => operations.DeleteSplitRequest$outboundSchema.parse(value),
     "Input validation failed",
   );

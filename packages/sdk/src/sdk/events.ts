@@ -69,22 +69,14 @@ export class Events extends ClientSDK {
    * List the usage events your store has ingested, oldest first in ingestion order, as a forward cursor page. Filters compose: by meter (resolved to the meter's event name), by customer, and by `reference` (the `event_id` you supplied). Events are returned raw — a meter's filter clauses are not applied. Usage events are append-only, so pagination is forward-only and there is no `ending_before`.
    */
   async listEvents(
-    meterId?: string | undefined,
-    customerId?: string | undefined,
-    reference?: string | undefined,
-    limit?: number | undefined,
-    startingAfter?: string | undefined,
+    request: operations.ListUsageEventsRequest,
     options?: RequestOptions,
   ): Promise<
     PageIterator<operations.ListUsageEventsResponse, { cursor: string }>
   > {
     return unwrapResultIterator(eventsListEvents(
       this,
-      meterId,
-      customerId,
-      reference,
-      limit,
-      startingAfter,
+      request,
       options,
     ));
   }

@@ -21,7 +21,7 @@ describe("searchProducts", () => {
   it("should handle API authentication errors", async () => {
     try {
       // Attempt to call SDK method with invalid API key
-      await creemWithInvalidKey.products.search();
+      await creemWithInvalidKey.products.search({});
       // If it succeeds, fail the test (we expect it to throw)
       fail("Expected an API error but none was thrown");
     } catch (error) {
@@ -32,7 +32,7 @@ describe("searchProducts", () => {
   });
 
   it("should search products successfully", async () => {
-    const page = await creem.products.search();
+    const page = await creem.products.search({});
     const result = page.result;
 
     // Test direct SDK method
@@ -60,7 +60,7 @@ describe("searchProducts", () => {
   it("should handle pagination parameters correctly", async () => {
     const pageSize = 2;
     // Note: search(pageNumber, pageSize) - pageNumber comes first
-    const page = await creem.products.search(1, pageSize);
+    const page = await creem.products.search({ pageNumber: 1, pageSize: pageSize });
     const result = page.result;
 
     expect(result.items.length).toBeLessThanOrEqual(pageSize);
@@ -80,7 +80,7 @@ describe("searchProducts", () => {
 
     try {
       // Use invalid input to trigger validation error
-      await creemWithEmptyKey.products.search();
+      await creemWithEmptyKey.products.search({});
       fail("Expected validation error but none was thrown");
     } catch (error) {
       expect(error).toBeInstanceOf(Error);
@@ -89,7 +89,7 @@ describe("searchProducts", () => {
 
   it("should handle invalid pagination parameters", async () => {
     try {
-      await creem.products.search(-1); // Invalid page number
+      await creem.products.search({ pageNumber: -1 }); // Invalid page number
       fail("Expected error with invalid page number but none was thrown");
     } catch (error) {
       expect(error).toBeDefined();

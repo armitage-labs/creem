@@ -38,7 +38,7 @@ export async function getTestProduct(): Promise<ProductEntity> {
 
   console.log("[Test Setup] Creating test subscription product...");
   
-  cachedProduct = await creem.products.create({
+  cachedProduct = await creem.products.create({ createProductRequestEntity: {
     name: `Test Product ${Date.now()}`,
     description: "Test subscription product for SDK tests",
     price: 1000, // $10.00
@@ -48,7 +48,7 @@ export async function getTestProduct(): Promise<ProductEntity> {
     taxMode: TaxMode.Inclusive,
     taxCategory: TaxCategory.Saas,
     defaultSuccessUrl: "https://example.com/success",
-  });
+  } });
 
   console.log(`[Test Setup] Created test product: ${cachedProduct.id}`);
   return cachedProduct;
@@ -69,7 +69,7 @@ export async function getTestOneTimeProduct(): Promise<ProductEntity> {
 
   console.log("[Test Setup] Creating test one-time product...");
   
-  cachedOneTimeProduct = await creem.products.create({
+  cachedOneTimeProduct = await creem.products.create({ createProductRequestEntity: {
     name: `Test One-Time Product ${Date.now()}`,
     description: "Test one-time product for SDK tests",
     price: 500, // $5.00
@@ -77,7 +77,7 @@ export async function getTestOneTimeProduct(): Promise<ProductEntity> {
     billingType: ProductRequestBillingType.Onetime,
     taxMode: TaxMode.Inclusive,
     taxCategory: TaxCategory.Saas,
-  });
+  } });
 
   console.log(`[Test Setup] Created test one-time product: ${cachedOneTimeProduct.id}`);
   return cachedOneTimeProduct;
@@ -97,11 +97,13 @@ export async function getTestDiscount(): Promise<DiscountEntity> {
   console.log("[Test Setup] Creating test discount...");
   
   cachedDiscount = await creem.discounts.create({
-    name: `Test Discount ${Date.now()}`,
-    type: DiscountType.Percentage,
-    percentage: 10,
-    duration: CouponDurationType.Forever,
-    appliesToProducts: [product.id],
+    createDiscountRequestEntity: {
+      name: `Test Discount ${Date.now()}`,
+      type: DiscountType.Percentage,
+      percentage: 10,
+      duration: CouponDurationType.Forever,
+      appliesToProducts: [product.id],
+    },
   });
 
   console.log(`[Test Setup] Created test discount: ${cachedDiscount.id}`);

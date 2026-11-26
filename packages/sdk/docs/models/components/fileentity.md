@@ -1,0 +1,31 @@
+# FileEntity
+
+## Example Usage
+
+```typescript
+import { FileEntity } from "creem/models/components";
+
+let value: FileEntity = {
+  id: "file_4dGTkmBdnTnU9vV3KZ2Hcz",
+  object: "file",
+  purpose: "product_file",
+  filename: "ebook.epub",
+  contentType: "application/epub+zip",
+  size: 52000,
+  sha256: "n4bQgYhMfWWaL+qgxVrQFaO/TxsrC4Is0V1sFbDwCgg=",
+  createdAt: new Date("2026-11-17T10:05:00.000Z"),
+};
+```
+
+## Fields
+
+| Field                                                                                                              | Type                                                                                                               | Required                                                                                                           | Description                                                                                                        | Example                                                                                                            |
+| ------------------------------------------------------------------------------------------------------------------ | ------------------------------------------------------------------------------------------------------------------ | ------------------------------------------------------------------------------------------------------------------ | ------------------------------------------------------------------------------------------------------------------ | ------------------------------------------------------------------------------------------------------------------ |
+| `id`                                                                                                               | *string*                                                                                                           | :heavy_check_mark:                                                                                                 | The id of the file.                                                                                                | file_4dGTkmBdnTnU9vV3KZ2Hcz                                                                                        |
+| `object`                                                                                                           | [components.FileEntityObject](../../models/components/fileentityobject.md)                                         | :heavy_check_mark:                                                                                                 | Always `file`.                                                                                                     | file                                                                                                               |
+| `purpose`                                                                                                          | [components.FileEntityPurpose](../../models/components/fileentitypurpose.md)                                       | :heavy_check_mark:                                                                                                 | What the file is for.                                                                                              | product_file                                                                                                       |
+| `filename`                                                                                                         | *string*                                                                                                           | :heavy_check_mark:                                                                                                 | The name buyers download the file under.                                                                           | ebook.epub                                                                                                         |
+| `contentType`                                                                                                      | *string*                                                                                                           | :heavy_check_mark:                                                                                                 | The media type of the file.                                                                                        | application/epub+zip                                                                                               |
+| `size`                                                                                                             | *number*                                                                                                           | :heavy_check_mark:                                                                                                 | The size of the stored file in bytes.                                                                              | 52000                                                                                                              |
+| `sha256`                                                                                                           | *string*                                                                                                           | :heavy_check_mark:                                                                                                 | The SHA-256 of the stored bytes, base64-encoded, as storage computed it. Compare it before uploading a file again. | n4bQgYhMfWWaL+qgxVrQFaO/TxsrC4Is0V1sFbDwCgg=                                                                       |
+| `createdAt`                                                                                                        | [Date](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Date)                      | :heavy_check_mark:                                                                                                 | When the file was confirmed (ISO 8601).                                                                            | 2026-11-17T10:05:00.000Z                                                                                           |

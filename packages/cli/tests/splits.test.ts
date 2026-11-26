@@ -30,8 +30,7 @@ it("splits list sends the exact SDK arguments", async () => {
   const spy = vi.spyOn(h.client.splits, "list").mockRejectedValue(new Error("SDK_SENTINEL"));
   const result = await h.run(["splits", "list", "--page", "2", "--limit", "3", "--json"]);
   expect(spy, result.stderr).toHaveBeenCalledExactlyOnceWith(
-    2,
-    3,
+    { pageNumber: 2, pageSize: 3 },
     expect.objectContaining({ retries: { strategy: "none" } }),
   );
   expect(result.stderr).toContain("SDK_SENTINEL");
@@ -42,7 +41,7 @@ it("splits retrieve sends the exact SDK arguments", async () => {
   const spy = vi.spyOn(h.client.splits, "retrieve").mockRejectedValue(new Error("SDK_SENTINEL"));
   const result = await h.run(["splits", "get", "split_1", "--json"]);
   expect(spy, result.stderr).toHaveBeenCalledExactlyOnceWith(
-    "split_1",
+    { id: "split_1" },
     expect.objectContaining({ retries: { strategy: "none" } }),
   );
   expect(result.stderr).toContain("SDK_SENTINEL");
@@ -53,7 +52,7 @@ it("splits delete sends the exact SDK arguments", async () => {
   const spy = vi.spyOn(h.client.splits, "delete").mockRejectedValue(new Error("SDK_SENTINEL"));
   const result = await h.run(["splits", "delete", "split_1", "--yes", "--json"]);
   expect(spy, result.stderr).toHaveBeenCalledExactlyOnceWith(
-    "split_1",
+    { id: "split_1" },
     expect.objectContaining({ retries: { strategy: "none" } }),
   );
   expect(result.stderr).toContain("SDK_SENTINEL");
