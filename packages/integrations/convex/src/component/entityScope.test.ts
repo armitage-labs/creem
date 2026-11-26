@@ -681,6 +681,8 @@ describe("entity-scoped billing data on a shared Creem customer", () => {
     ).toBe(true);
   });
 
+  // ENG-3106: the heaviest test in the suite (about 1 s alone, 2.5 s under load);
+  // vitest's 5 s default made it time out in CI under parallel load.
   it("backfills large legacy histories within the transaction limits", async () => {
     const limited = convexTest({ schema, modules, transactionLimits: true });
     for (let index = 0; index < 10; index += 1) {
@@ -717,7 +719,7 @@ describe("entity-scoped billing data on a shared Creem customer", () => {
       (await limited.query(api.lib.listUserOrders, { entityId: "user_3" }))
         .length,
     ).toBe(200);
-  });
+  }, 20_000);
 
   describe("upgrading pre-existing data", () => {
     const runBackfill = async (
