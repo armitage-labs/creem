@@ -4,6 +4,7 @@ sidebarTitle: "Lemon Squeezy"
 description: "Lemon Squeezy stops processing payments on March 31, 2027. Move your store to Creem with your AI agent, the Creem CLI or our team, and keep selling with tax, license keys and file downloads handled."
 keywords: "lemon squeezy migration, lemonsqueezy shutdown, migrate from lemon squeezy, lemon squeezy alternative, switch from lemonsqueezy, lemon squeezy to creem"
 icon: "lemon"
+tag: "NEW"
 ---
 
 Lemon Squeezy closed new sign-ups on November 16, 2026 and stops processing payments, including subscription renewals, on March 31, 2027. Creem is a Merchant of Record like Lemon Squeezy, so you keep selling worldwide without registering for sales tax or VAT yourself. Your AI agent can do most of the move for you.
@@ -45,7 +46,7 @@ Sources: [Saying goodbye to Lemon Squeezy](https://www.lemonsqueezy.com/blog/say
 Four checks, about 5 minutes:
 
 1. **What you sell is allowed.** Creem reviews every account before it takes live payments. See [account reviews](/merchant-of-record/account-reviews/account-reviews).
-2. **Your country gets payouts.** Creem pays out to merchants in 87 countries. See [supported countries](/merchant-of-record/supported-countries).
+2. **Your country gets payouts.** Creem pays out to merchants in 143 countries and territories. See [supported countries](/merchant-of-record/supported-countries).
 3. **Your prices can be in USD or EUR.** If your Lemon Squeezy store uses another currency, decide your new prices first.
 4. **Your customers can pay by card.** Creem's checkout takes cards, Apple Pay and Google Pay, but not PayPal. Lemon Squeezy can't move PayPal subscriptions to any provider, so those subscribers pay by card on Creem. See [payment methods](/merchant-of-record/finance/payment-methods).
 
@@ -77,50 +78,52 @@ Four checks, about 5 minutes:
 
 ## With your AI agent
 
-This works with Claude Code, Codex, Cursor or any coding agent that can read web pages and work in your codebase.
+This works with Claude Code, Codex, Cursor or any coding agent that can read web pages and make HTTP calls. Your agent builds your store in a Creem sandbox, a test store it creates for you, and you claim it with one link. Nothing is charged, emailed or cancelled, and your subscribers keep being billed by Lemon Squeezy.
 
 <Steps>
-  <Step title="Put your API keys in your environment">
-    Create an API key in Lemon Squeezy under **Settings → API**, and a Creem test key
-    (`creem_test_…`) in [test mode](/getting-started/test-mode). Set them as `LEMONSQUEEZY_API_KEY`
-    and `CREEM_API_KEY` in the shell your agent uses. Never paste a key into the chat.
+  <Step title="Put your Lemon Squeezy API key in your environment">
+    Create an API key in Lemon Squeezy under **Settings → API**, with test mode off. Set it as
+    `LEMONSQUEEZY_API_KEY` in the shell or `.env` your agent uses. Never paste it into the chat. You
+    don't need a Creem key: your agent creates the sandbox and its key.
   </Step>
-  <Step title="Give your agent the migration instructions">
-    Open your agent in your app's repository and paste:
+  <Step title="Point your agent at the Creem skill">
+    Open your agent and paste:
 
     ```text
-    Migrate this app's Lemon Squeezy store to Creem.
-
-    Follow https://docs.creem.io/getting-started/migrate/lemon-squeezy/technical-guide.md
-    and the migration prompt in it.
-
-    - My keys are in LEMONSQUEEZY_API_KEY and CREEM_API_KEY. Never print, log or commit them.
-    - Use Creem test mode (https://test-api.creem.io) until I approve going live.
-    - Start with a read-only inventory of my Lemon Squeezy store and this codebase, then show
-      me a plan. Don't create, change or cancel anything until I approve it.
+    Read https://creem.io/SKILL.md and move my Lemon Squeezy store to Creem.
+    My Lemon Squeezy API key is in LEMONSQUEEZY_API_KEY. Never print, log or commit it.
     ```
+
+    `SKILL.md` is Creem's main agent skill. It sends your agent to the migration guide, [`MIGRATE-LEMONSQUEEZY.md`](https://creem.io/MIGRATE-LEMONSQUEEZY.md), and also teaches it the rest of Creem: checkout, webhooks, license checks and the CLI, which it needs to switch your app over afterwards.
 
   </Step>
   <Step title="Review the plan, then let it run">
-    Your agent shows what it will create, what you finish in the dashboard and what can't move.
-    Once you approve, it rebuilds your catalog and customers in test mode, switches new sales to
-    Creem in your code, and lists your subscribers by renewal date.
+    Your agent reads your Lemon Squeezy store and shows you every product, discount, customer count,
+    subscription and license key it will bring over, and what can't move. After your yes, it builds
+    them in the sandbox.
   </Step>
-  <Step title="Go live">
-    Once your account is approved, create a live API key and ask your agent to run the import again
-    with it. Your existing subscribers move after that, one at a time, close to their renewal date.
+  <Step title="Claim your store">
+    Your agent saves a claim token and gives you a report. Open [creem.io/claim](https://creem.io/claim),
+    sign in and paste the token within 7 days. The sandbox becomes your Creem store, with everything in
+    it.
   </Step>
 </Steps>
 
-<Info>
-  **A Lemon Squeezy migration skill is on its way.** Install it once and your agent knows the whole
-  migration, with no prompt to paste. Until then, the prompt above gives your agent the same rules.
-</Info>
+<CardGroup cols={2}>
+  <Card title="SKILL.md" icon="robot" href="https://creem.io/SKILL.md">
+    Recommended. Creem's main agent skill: the migration, plus checkout, webhooks and license checks
+    to switch your app over.
+  </Card>
+  <Card
+    title="MIGRATE-LEMONSQUEEZY.md"
+    icon="lemon"
+    href="https://creem.io/MIGRATE-LEMONSQUEEZY.md"
+  >
+    The migration on its own, when your agent only needs that context.
+  </Card>
+</CardGroup>
 
-<Tip>
-  Connect Creem's [hosted MCP server](/ai/for-agents/hosted-mcp) as well, so your agent can look up
-  your Creem store while it works.
-</Tip>
+Connect Creem's [hosted MCP server](/ai/for-agents/hosted-mcp) as well, so your agent can look up your Creem store while it works.
 
 ## With the Creem CLI
 
@@ -152,22 +155,32 @@ Fix those fields with [`PATCH /v1/products/{id}`](/api-reference/endpoint/update
 
 ## What moves
 
-| Moves to Creem                                                                                                                                                     | Doesn't move yet                                                                                          |
-| ------------------------------------------------------------------------------------------------------------------------------------------------------------------ | --------------------------------------------------------------------------------------------------------- |
-| Products and prices, discount codes, customers, webhooks and checkout links. File downloads, license key settings and affiliates are set up again in the dashboard | Active subscriptions and saved cards, existing license keys, order history and affiliate referral history |
+| Lemon Squeezy                                | On Creem                                                                                      |
+| -------------------------------------------- | --------------------------------------------------------------------------------------------- |
+| Products, prices, discount codes             | Moved                                                                                         |
+| Customers, with their country                | Moved                                                                                         |
+| License key settings                         | Moved                                                                                         |
+| License keys                                 | Imported with the same codes. Your app keeps checking keys on Lemon Squeezy until you go live |
+| Active and trialing subscriptions            | Imported paused, set to renew on the Lemon Squeezy renewal date. Lemon Squeezy keeps billing  |
+| Files, product images, affiliates            | Set up again in the dashboard. Your agent's report lists them                                 |
+| Saved cards, order history, referral history | Don't move                                                                                    |
 
-**Existing subscribers** move one at a time: each one checks out once on Creem, close to their Lemon Squeezy renewal date, so nobody pays twice. A direct import that keeps their renewal date is in development. See [Move existing subscribers](/getting-started/migrate/lemon-squeezy/technical-guide#6-move-existing-subscribers).
+This is what your AI agent brings over. The Creem CLI copies products and discount codes only.
+
+**Existing subscribers** keep paying Lemon Squeezy for now. Switching each one to Creem, with their card entered once and their first Creem charge on their Lemon Squeezy renewal date, comes next. Until then you can move a subscriber with a checkout, close to their renewal date, so nobody pays twice. See [Move existing subscribers](/getting-started/migrate/lemon-squeezy/technical-guide#6-move-existing-subscribers).
 
 ## FAQ
 
 <AccordionGroup>
   <Accordion title="Do my subscribers need to enter their card again?">
-    Yes, for now. Each subscriber checks out once on Creem. Time it close to their Lemon Squeezy
-    renewal date so they don't pay twice for the same period.
+    Yes, once. Your agent imports each subscription paused, with its Lemon Squeezy renewal date, and
+    the subscriber adds a card on Creem when switching opens. Creem's first charge falls on that
+    renewal date, so nobody pays twice for the same period.
   </Accordion>
   <Accordion title="Can my customers keep their license keys?">
-    Not on Creem: Creem issues new keys for purchases on Creem. Keep validating Lemon Squeezy keys
-    in your backend until those customers move.
+    Yes. Your agent imports them with the same codes, without their activations: each device
+    activates once against Creem after your app update. Keep checking keys against Lemon Squeezy
+    until you go live. Creem's license check needs your API key, so it runs from your server.
   </Accordion>
   <Accordion title="What happens to my order history?">
     It stays in Lemon Squeezy. Export it as CSV before March 31, 2027. Creem shows only the orders
