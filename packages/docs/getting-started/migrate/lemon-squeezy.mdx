@@ -152,9 +152,9 @@ Fix those fields with [`PATCH /v1/products/{id}`](/api-reference/endpoint/update
 
 ## What moves
 
-| Moves to Creem                                                                                                                                                     | Doesn't move yet                                                                                          |
-| ------------------------------------------------------------------------------------------------------------------------------------------------------------------ | --------------------------------------------------------------------------------------------------------- |
-| Products and prices, discount codes, customers, webhooks and checkout links. File downloads, license key settings and affiliates are set up again in the dashboard | Active subscriptions and saved cards, existing license keys, order history and affiliate referral history |
+| Moves to Creem                                                                                                                                                                                             | Doesn't move yet                                                                                          |
+| ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | --------------------------------------------------------------------------------------------------------- |
+| Products and prices, discount codes, customers, webhooks, checkout links, file downloads, license key settings and affiliates (you create the affiliate program in the dashboard, then invite them by API) | Active subscriptions and saved cards, existing license keys, order history and affiliate referral history |
 
 **Existing subscribers** move one at a time: each one checks out once on Creem, close to their Lemon Squeezy renewal date, so nobody pays twice. A direct import that keeps their renewal date is in development. See [Move existing subscribers](/getting-started/migrate/lemon-squeezy/technical-guide#6-move-existing-subscribers).
 
@@ -163,11 +163,16 @@ Fix those fields with [`PATCH /v1/products/{id}`](/api-reference/endpoint/update
 <AccordionGroup>
   <Accordion title="Do my subscribers need to enter their card again?">
     Yes, for now. Each subscriber checks out once on Creem. Time it close to their Lemon Squeezy
-    renewal date so they don't pay twice for the same period.
+    renewal date so they don't pay twice for the same period. Moving saved cards from Lemon Squeezy
+    is in development: if you want it, email support@creem.io before you fill in Lemon Squeezy's
+    migration intake form, and we tell you what to put in it. Until we confirm a subscriber's card
+    is on Creem, that subscriber keeps renewing on Lemon Squeezy, so don't cancel anything there.
   </Accordion>
   <Accordion title="Can my customers keep their license keys?">
     Not on Creem: Creem issues new keys for purchases on Creem. Keep validating Lemon Squeezy keys
-    in your backend until those customers move.
+    in your backend until those customers move: ask Creem first, and ask Lemon Squeezy only when
+    Creem answers `404`. See [license
+    keys](/getting-started/migrate/lemon-squeezy/technical-guide#license-keys).
   </Accordion>
   <Accordion title="What happens to my order history?">
     It stays in Lemon Squeezy. Export it as CSV before March 31, 2027. Creem shows only the orders
