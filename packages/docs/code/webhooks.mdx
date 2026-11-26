@@ -127,10 +127,10 @@ const webhook = await creem.webhooks.create({
 console.log(webhook.id, webhook.secret);
 
 // Pause deliveries without losing the configuration.
-await creem.webhooks.update(webhook.id, { status: "disabled" });
+await creem.webhooks.update({ id: webhook.id, updateWebhookRequestEntity: { status: "disabled" } });
 
 // Fetch the secret again later.
-const { secret } = await creem.webhooks.getSecret(webhook.id);
+const { secret } = await creem.webhooks.getSecret({ id: webhook.id });
 ```
 
 ```sh CLI

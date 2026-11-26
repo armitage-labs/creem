@@ -187,7 +187,7 @@ const creem = new Creem({
 });
 
 // Get subscription details
-const subscription = await creem.subscriptions.get("sub_YOUR_SUBSCRIPTION_ID");
+const subscription = await creem.subscriptions.get({ subscriptionId: "sub_YOUR_SUBSCRIPTION_ID" });
 
 // Extract the subscription item ID
 const itemId = subscription.items[0].id;
@@ -240,15 +240,18 @@ Use the subscription item ID to update the number of seats:
 
 ```typescript
 // Update the subscription to 15 seats
-const updated = await creem.subscriptions.update("sub_YOUR_SUBSCRIPTION_ID", {
-  items: [
-    {
-      id: "sitem_3l8jhRR2jWWhIBbJrKLwPT", // Item ID from step 1
-      priceId: "pprice_YOUR_PRICE_ID", // Price ID for validation
-      units: 15, // New seat count
-    },
-  ],
-  updateBehavior: "proration-charge-immediately", // Optional
+const updated = await creem.subscriptions.update({
+  id: "sub_YOUR_SUBSCRIPTION_ID",
+  updateSubscriptionRequestEntity: {
+    items: [
+      {
+        id: "sitem_3l8jhRR2jWWhIBbJrKLwPT", // Item ID from step 1
+        priceId: "pprice_YOUR_PRICE_ID", // Price ID for validation
+        units: 15, // New seat count
+      },
+    ],
+    updateBehavior: "proration-charge-immediately", // Optional
+  },
 });
 
 console.log("Subscription updated:", updated);
