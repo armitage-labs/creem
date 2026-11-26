@@ -134,8 +134,10 @@
               "getting-started/dashboard-overview",
               {
                 "group": "Migrate to Creem",
-                "root": "getting-started/migrate/lemon-squeezy",
-                "pages": ["getting-started/migrate/lemon-squeezy/technical-guide"]
+                "pages": [
+                  "getting-started/migrate/lemon-squeezy",
+                  "getting-started/migrate/lemon-squeezy/technical-guide"
+                ]
               }
             ]
           },
