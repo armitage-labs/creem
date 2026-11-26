@@ -46,36 +46,36 @@ flowchart LR
 
 ## What moves
 
-| Lemon Squeezy                                    | How it moves to Creem                                                                                                                                |
-| ------------------------------------------------ | ---------------------------------------------------------------------------------------------------------------------------------------------------- |
-| Products and variants                            | API. One Creem product per variant, because Creem has no variants                                                                                    |
-| Prices, billing cadence and trials               | API. Any cadence from daily to every 3 years; trials in whole days                                                                                   |
-| Pay what you want                                | API. The product price is the minimum, with an optional suggested price                                                                              |
-| Descriptions                                     | API, after converting the HTML to Markdown                                                                                                           |
-| Product images                                   | API by URL, then re-upload in the dashboard                                                                                                          |
-| Files                                            | API: upload with [`POST /v1/files`](/api-reference/endpoint/create-file-upload), then a `file` entry in the product's `features`. Or the dashboard   |
-| License key settings                             | API: a `licenseKey` entry in the product's `features`. Or the dashboard                                                                              |
-| Discount codes                                   | API                                                                                                                                                  |
-| Customers                                        | API: name, email, your own ID and metadata                                                                                                           |
-| Affiliates                                       | Create the program in the dashboard, then [invite each affiliate by API](/guides/affiliate-program-via-api)                                          |
-| Webhooks                                         | API, with new event names                                                                                                                            |
-| Checkout links, custom checkouts and the overlay | Your code: Creem product links, the [checkout API](/features/checkout/checkout-api) or the [embedded checkout](/features/checkout/embedded-checkout) |
+| Lemon Squeezy                                    | How it moves to Creem                                                                                                                                                                                                                   |
+| ------------------------------------------------ | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Products and variants                            | API. One Creem product per variant, because Creem has no variants                                                                                                                                                                       |
+| Prices, billing cadence and trials               | API. Any cadence from daily to every 3 years; trials in whole days                                                                                                                                                                      |
+| Pay what you want                                | API. The product price is the minimum, with an optional suggested price                                                                                                                                                                 |
+| Descriptions                                     | API, after converting the HTML to Markdown                                                                                                                                                                                              |
+| Product images                                   | API by URL, then re-upload in the dashboard                                                                                                                                                                                             |
+| Files                                            | API: upload with [`POST /v1/files`](/api-reference/endpoint/create-file-upload), then a `file` entry in the product's `features`. Or the dashboard                                                                                      |
+| License key settings                             | API: a `licenseKey` entry in the product's `features`. Or the dashboard                                                                                                                                                                 |
+| Discount codes                                   | API                                                                                                                                                                                                                                     |
+| Customers                                        | API: name, email, your own ID and metadata                                                                                                                                                                                              |
+| Affiliates                                       | Create the program in the dashboard, then [invite each affiliate by API](/guides/affiliate-program-via-api): the active ones from Lemon Squeezy's `GET /v1/affiliates`, by `user_email`. A store can have 100 pending invites at a time |
+| Webhooks                                         | API, with new event names                                                                                                                                                                                                               |
+| Checkout links, custom checkouts and the overlay | Your code: Creem product links, the [checkout API](/features/checkout/checkout-api) or the [embedded checkout](/features/checkout/embedded-checkout)                                                                                    |
 
 ### Not possible yet
 
-| Lemon Squeezy                                   | What to do instead                                                                                                                             |
-| ----------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------- |
-| Active subscriptions and saved cards            | Each subscriber checks out once on Creem. See [Move existing subscribers](#6-move-existing-subscribers). Card transfers are in development     |
-| PayPal                                          | Creem's checkout doesn't take PayPal. Lemon Squeezy can't move PayPal subscriptions to any provider, so those subscribers pay by card on Creem |
-| Existing license keys                           | Creem issues new keys for purchases on Creem. Keep validating Lemon Squeezy keys until those customers move                                    |
-| Order and payment history                       | Export it from Lemon Squeezy before March 31, 2027. Creem only shows orders it processed                                                       |
-| Affiliate referral history                      | Lemon Squeezy affiliate links stop counting once sales move. Affiliates get new Creem links                                                    |
-| Tiered (graduated or volume) and package prices | Creem prices are flat per unit. Contact support before you change your pricing                                                                 |
-| Usage meters that bill the last reported value  | Creem meters count, sum, average, take the minimum or maximum, or count unique values                                                          |
-| Prices from 0.01 to 0.99                        | A product is free or costs at least 1.00                                                                                                       |
-| Setup fees                                      | A [paid trial](/features/trials) can charge a different first amount, but only one lower than the plan price                                   |
-| Currencies other than USD and EUR               | Price your Creem products in USD or EUR                                                                                                        |
-| Customer country and marketing consent          | Keep them in the customer's `metadata` for your records. Creem doesn't use them for tax or marketing                                           |
+| Lemon Squeezy                                   | What to do instead                                                                                                                                                                                                                         |
+| ----------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| Active subscriptions and saved cards            | Each subscriber checks out once on Creem. See [Move existing subscribers](#6-move-existing-subscribers). Card transfers are in development                                                                                                 |
+| PayPal                                          | Creem's checkout doesn't take PayPal. Lemon Squeezy can't move PayPal subscriptions to any provider, so those subscribers pay by card on Creem                                                                                             |
+| Existing license keys                           | Creem issues new keys for purchases on Creem. Keep validating Lemon Squeezy keys until those customers move                                                                                                                                |
+| Order and payment history                       | Export it from Lemon Squeezy before March 31, 2027. Creem only shows orders it processed                                                                                                                                                   |
+| Affiliate referral history                      | Lemon Squeezy affiliate links stop counting once sales move, and commission earned on Lemon Squeezy stays there. Affiliates get new Creem links. To keep crediting an affiliate, pass their Creem code as `affiliate_code` on the checkout |
+| Tiered (graduated or volume) and package prices | Creem prices are flat per unit. Contact support before you change your pricing                                                                                                                                                             |
+| Usage meters that bill the last reported value  | Creem meters count, sum, average, take the minimum or maximum, or count unique values                                                                                                                                                      |
+| Prices from 0.01 to 0.99                        | A product is free or costs at least 1.00                                                                                                                                                                                                   |
+| Setup fees                                      | A [paid trial](/features/trials) can charge a different first amount, but only one lower than the plan price                                                                                                                               |
+| Currencies other than USD and EUR               | Price your Creem products in USD or EUR                                                                                                                                                                                                    |
+| Customer country and marketing consent          | Keep them in the customer's `metadata` for your records. Creem doesn't use them for tax or marketing                                                                                                                                       |
 
 ## 1. Set up Creem in test mode
 
@@ -242,6 +242,8 @@ const response = await fetch("https://test-api.creem.io/v1/checkouts", {
 const { checkout_url } = await response.json();
 ```
 
+**Affiliate links.** Links your affiliates already posted still lead to your site, but Lemon Squeezy no longer tracks the sale once checkout is on Creem. If your site knows which affiliate sent the visitor, pass that affiliate's Creem code as `affiliate_code` when you create the checkout. Each affiliate's code is in [List affiliates](/api-reference/endpoint/list-affiliates) once they accept your invite.
+
 ### Webhooks
 
 Create an endpoint with [`POST /v1/webhooks`](/api-reference/endpoint/create-webhook) or in the dashboard, and map your handlers to Creem's [events](/code/webhooks). The full mapping is in the [reference](#webhook-events). The common ones:
@@ -291,6 +293,8 @@ Move subscribers one at a time, close to each one's Lemon Squeezy renewal date (
 <Steps>
   <Step title="Create a checkout for the subscriber">
     Use the product that matches their plan, the customer you imported, and the Lemon Squeezy IDs in `metadata`. Add a `discount_code` if you offer one, for example to cover days they already paid for.
+
+    If a Lemon Squeezy affiliate referred them (the subscription's first order has an `affiliate_id`), add that affiliate's Creem code as `affiliate_code`, so their renewals on Creem keep paying the affiliate. The affiliate has to accept your invite first. A commission limited to a number of months starts counting again from the Creem checkout.
 
     ```json
     {
@@ -358,10 +362,10 @@ If you can't verify a field, endpoint or event, say so. Never invent one.
   for a key in the chat, never print, log or commit one.
 - Use the Lemon Squeezy key to read only. Never create, change or cancel anything in Lemon
   Squeezy except the per-subscriber cancellation in the last phase.
-- Work against Creem test mode (https://test-api.creem.io, creem*test* keys) until the user
+- Work against Creem test mode (https://test-api.creem.io, `creem_test_` keys) until the user
   approves going live.
-- Make every write idempotent: products use external*id "ls_variant*<id>", customers use the
-  app's own customer ID (or "ls*customer*<id>"), and every created object stores the Lemon
+- Make every write idempotent: products use `external_id` `ls_variant_<id>`, customers use the
+  app's own customer ID (or `ls_customer_<id>`), and every created object stores the Lemon
   Squeezy IDs in metadata. Treat 409 external_id_taken as already created.
 - Look a customer up by email before creating it: a create with a known email replaces that
   customer's name and external_id.
@@ -380,7 +384,8 @@ If you can't verify a field, endpoint or event, say so. Never invent one.
    API calls, customer portal links, where Lemon Squeezy IDs are stored, how access is granted.
 3. Present a plan with: counts per object; a table of what moves by API (including files and
    license key settings, through `POST /v1/files` and the product's `features`), what the user
-   sets up in the dashboard (the affiliate program, image re-uploads)
+   sets up in the dashboard (the affiliate program, image re-uploads), the active affiliates
+   to invite
    and what can't move (active subscriptions and cards, license keys, order history,
    referral history, unsupported prices); the field mappings you will use; the code changes;
    and the subscribers ordered by renews_at. Wait for approval.
@@ -388,7 +393,9 @@ If you can't verify a field, endpoint or event, say so. Never invent one.
 ## Phase 2: catalog and customers (test mode)
 
 Create products, discount codes and customers. Report each item as created, skipped (already
-there) or failed with the reason.
+there) or failed with the reason. Once the user approves, invite the active Lemon Squeezy
+affiliates with POST /v1/affiliates/invites (at most 100 pending at a time) and keep a table of
+Lemon Squeezy affiliate ID to Creem affiliate code as they accept.
 
 ## Phase 3: switch new sales
 
@@ -399,9 +406,10 @@ portal links. Keep the Lemon Squeezy paths for subscribers who haven't moved.
 
 ## Phase 4: subscribers
 
-For each subscriber, close to renews_at: create a Creem checkout with the imported customer
-and the Lemon Squeezy IDs in metadata, hand the link to the user to send, and cancel on Lemon
-Squeezy only after subscription.active arrives for it. Keep a table of moved and pending.
+For each subscriber, close to renews_at: create a Creem checkout with the imported customer,
+the Lemon Squeezy IDs in metadata and, when an affiliate who accepted their invite referred
+the subscription, that affiliate's `affiliate_code`. Hand the link to the user to send, and
+cancel on Lemon Squeezy only after subscription.active arrives for it. Keep a table of moved and pending.
 
 ## Report
 
