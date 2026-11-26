@@ -17,6 +17,13 @@ jobs:
   cascade:
     runs-on: ubuntu-latest
     if: github.event_name == 'workflow_dispatch' || github.event.workflow_run.conclusion == 'success'
+    # Every run writes the same branch. A run that started from an older main
+    # must not finish last and push an older version over a newer one. On the
+    # job, not the workflow, so a run whose job is skipped (a failed Release)
+    # cannot cancel a real cascade.
+    concurrency:
+      group: sdk-cascade
+      cancel-in-progress: true
     permissions:
       contents: write
       pull-requests: write
@@ -43,6 +50,19 @@ jobs:
             fi
           done
           echo "needs_update=$NEEDS_UPDATE" >> $GITHUB_OUTPUT
+
+      # main already depends on the current SDK (bumped by hand, or the cascade
+      # pull request was merged), so an open cascade pull request is stale.
+      - name: Close a stale cascade pull request
+        if: steps.check.outputs.needs_update == 'false'
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          number=$(gh pr list --head chore/sdk-cascade --base main --state open --json number,isCrossRepository \
+            --jq '[.[] | select(.isCrossRepository | not)][0].number // empty')
+          if [ -n "$number" ]; then
+            gh pr close "$number" --delete-branch --comment "main already depends on creem@${{ steps.sdk.outputs.version }}, so this pull request is no longer needed."
+          fi
 
       # Release publishes creem, but when other changesets are pending it
       # opens a version PR instead of publishing. Poll briefly to absorb
@@ -95,7 +115,9 @@ jobs:
       - name: Create changeset
         if: steps.npm.outputs.published == 'true'
         run: |
-          cat > ".changeset/sdk-cascade-$(date +%s).md" << EOF
+          # A fixed name, so a rerun for the same version changes nothing and
+          # does not force-push the branch again.
+          cat > ".changeset/sdk-cascade.md" << EOF
           ---
           "@creem_io/better-auth": patch
           "@creem_io/nextjs": patch
@@ -105,14 +127,38 @@ jobs:
           Bump creem SDK dependency to ${{ steps.sdk.outputs.version }}
           EOF
 
+      # Pull requests opened with GITHUB_TOKEN do not start other workflows, so
+      # the pull request is opened with a token of the GitHub App behind
+      # HOMEBREW_APP_ID and HOMEBREW_APP_PRIVATE_KEY (shared with
+      # homebrew-release.yml and openapi-sync.yml). The App must be installed
+      # on this repository with contents, pull-requests and workflows write.
+      - uses: actions/create-github-app-token@fee1f7d63c2ff003460e3d139729b119787bc349 # v2
+        id: app
+        if: steps.npm.outputs.published == 'true'
+        with:
+          app-id: ${{ vars.HOMEBREW_APP_ID }}
+          private-key: ${{ secrets.HOMEBREW_APP_PRIVATE_KEY }}
+          owner: armitage-labs
+          repositories: creem
+          permission-contents: write
+          permission-pull-requests: write
+          # Rebuilding the branch on a newer main can change workflow files
+          # between the old and the new tip; GitHub refuses that push without it.
+          permission-workflows: write
+
+      # One fixed branch, so a newer SDK release updates the open cascade pull
+      # request instead of opening another one next to it. The branch is rebuilt
+      # from main on every run, so a commit pushed to it by hand is replaced by
+      # the next release's bump; fixes for a breaking SDK change belong in their
+      # own pull request.
       - name: Create PR
         if: steps.npm.outputs.published == 'true'
-        uses: peter-evans/create-pull-request@v7
+        uses: peter-evans/create-pull-request@22a9089034f40e5a961c8808d113e2c98fb63676 # v7.0.11
         with:
-          token: ${{ secrets.GITHUB_TOKEN }}
+          token: ${{ steps.app.outputs.token }}
           commit-message: "chore: bump adaptor deps to creem@${{ steps.sdk.outputs.version }}"
           title: "chore: bump adaptors to creem@${{ steps.sdk.outputs.version }}"
-          branch: chore/sdk-cascade-${{ steps.sdk.outputs.version }}
+          branch: chore/sdk-cascade
           body: |
             Auto-generated: bumps `creem` dependency in adaptor and ingestion packages after Speakeasy SDK release to `${{ steps.sdk.outputs.version }}`.
 
