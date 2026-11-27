@@ -316,11 +316,10 @@ export function fromPaddle(
       if ("skip" in body) item.reason = body.skip;
       return { price, item, body };
     });
-    const several = mapped.filter((m) => !("skip" in m.body)).length > 1;
+    // Named by the product's Paddle prices, so a name stays when a sibling is skipped or archived.
     for (const { price, item, body } of mapped) {
       productItems.push(item);
-      const named = "skip" in body ? prices.length > 1 : several;
-      item.name = named ? `${product.name} - ${price.description}` : product.name;
+      item.name = prices.length > 1 ? `${product.name} - ${price.description}` : product.name;
       if ("skip" in body) continue;
       const { metadata, dropped } = metadataOf(product.custom_data, price.custom_data);
       if (dropped.length)

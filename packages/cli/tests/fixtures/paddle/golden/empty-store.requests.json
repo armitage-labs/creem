@@ -4,7 +4,7 @@
     "key": "pri_01hw000000000000000cloudm",
     "request": {
       "createProductRequestEntity": {
-        "name": "eng2015-Cloud",
+        "name": "eng2015-Cloud - Monthly",
         "description": "Hosted plan.",
         "price": 900,
         "currency": "EUR",
