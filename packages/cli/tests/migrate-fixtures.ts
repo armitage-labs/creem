@@ -458,6 +458,8 @@ function writeDiscount(
       redeem_count: 0,
       external_id: b.external_id ?? null,
     };
+    // Like the API: a discount created without a code gets a generated one.
+    discount.code ??= discount.id.toUpperCase().replace(/[^A-Z0-9]/g, "");
     state.discounts.push(discount);
     return { status: 200, body: { discount, result: "created", changes: [], warnings: [] } };
   }
