@@ -509,7 +509,15 @@ export function fromPolar(
     warnings: MigrationIssue[],
   ): Feature | undefined => {
     const archived = (benefit.properties.archived ?? {}) as Record<string, boolean>;
-    const ids = ((benefit.properties.files ?? []) as string[]).filter((id) => !archived[id]);
+    const all = (benefit.properties.files ?? []) as string[];
+    const ids = all.filter((id) => !archived[id]);
+    if (all.length && !ids.length)
+      warnings.push(
+        issue(
+          "benefit_files_archived",
+          `Every file of the downloadables benefit "${benefit.description}" is archived in Polar, so it has no file to migrate.`,
+        ),
+      );
     const stored = existing?.features?.find(
       (f) => f.type === "file" && f.externalId === benefit.id,
     );
@@ -1093,6 +1101,17 @@ export function fromPolar(
   }
 
   // Files of products this run doesn't write are reported too.
+  const archivedFiles = new Set(
+    objects.products.flatMap((p) =>
+      p.benefits.flatMap((b) =>
+        b.type === "downloadables"
+          ? Object.entries((b.properties.archived ?? {}) as Record<string, boolean>).flatMap(
+              ([id, on]) => (on ? [id] : []),
+            )
+          : [],
+      ),
+    ),
+  );
   for (const file of objects.files)
     if (!fileItems.has(file.id))
       fileItems.set(
@@ -1103,7 +1122,12 @@ export function fromPolar(
           name: file.name,
           source: { type: "file", id: file.id },
           action: "skip",
-          reason: issue("product_not_migrated", "No migrated product grants this file."),
+          reason: archivedFiles.has(file.id)
+            ? issue(
+                "file_archived",
+                "The file is archived in its Polar benefit, so buyers don't get it.",
+              )
+            : issue("product_not_migrated", "No migrated product grants this file."),
         }),
       );
 
