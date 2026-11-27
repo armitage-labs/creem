@@ -633,28 +633,32 @@ export async function checkMigration(
       .map((i) => i.key),
   );
 
-  // A refused product's uploads would attach to nothing, so they are not sent.
+  // An upload attaches to every product that names it: it is not sent only when
+  // Creem's check refused all of them, since it would then attach to nothing.
+  const namedBy = new Map<string, MigrationItem[]>();
   for (const request of products) {
-    const item = itemOf(request);
-    if (item.status !== "failed" || request.type === "upsert_meter") continue;
+    if (request.type === "upsert_meter") continue;
     for (const entry of productBodyOf(request).features ?? []) {
       const feature: unknown = entry;
       if (!isRecord(feature) || feature.type !== "file" || !isRecord(feature.file)) continue;
       for (const file of Array.isArray(feature.file.files) ? feature.file.files : []) {
         if (!isRecord(file) || typeof file.id !== "string" || !file.id.startsWith(UPLOAD_PREFIX))
           continue;
-        const fileItem = report.items.find(
-          (i) => i.kind === "file" && i.key === String(file.id).slice(UPLOAD_PREFIX.length),
-        );
-        if (!fileItem) continue;
-        fileItem.action = "skip";
-        fileItem.status = null;
-        fileItem.reason = {
-          code: "product_refused",
-          message: `Not uploaded: Creem's check refused its product ${item.key}.`,
-        };
+        const key = file.id.slice(UPLOAD_PREFIX.length);
+        namedBy.set(key, [...(namedBy.get(key) ?? []), itemOf(request)]);
       }
     }
+  }
+  for (const [key, consumers] of namedBy) {
+    if (!consumers.every((i) => i.status === "failed")) continue;
+    const fileItem = report.items.find((i) => i.kind === "file" && i.key === key);
+    if (!fileItem) continue;
+    fileItem.action = "skip";
+    fileItem.status = null;
+    fileItem.reason = {
+      code: "product_refused",
+      message: `Not uploaded: Creem's check refused its product${consumers.length > 1 ? "s" : ""} ${consumers.map((i) => i.key).join(", ")}.`,
+    };
   }
 
   // Product ids the preview can name: stored ones; the others go by key.
