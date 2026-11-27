@@ -290,6 +290,20 @@ export function fromPaddle(
         );
   for (const product of products) {
     const prices = pricesOf.get(product.id) ?? [];
+    if (!prices.length)
+      productItems.push(
+        newItem({
+          kind: "product",
+          key: product.id,
+          name: product.name,
+          source: { type: "product", id: product.id },
+          action: "skip",
+          reason: issue(
+            "no_prices",
+            "The Paddle product has no prices, and each Creem product is made from one Paddle price.",
+          ),
+        }),
+      );
     const mapped = prices.map((price) => {
       const item = newItem({
         kind: "product",

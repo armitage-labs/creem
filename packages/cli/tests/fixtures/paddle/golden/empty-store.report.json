@@ -12,7 +12,7 @@
     "create": 15,
     "update": 0,
     "unchanged": 0,
-    "skip": 12,
+    "skip": 13,
     "failed": 0,
     "warnings": 12
   },
@@ -147,6 +147,26 @@
         "product_id": "pro_01hw0000000000000000ebook1"
       },
       "action": "create"
+    },
+    {
+      "status": null,
+      "creem_id": null,
+      "adopted_from": null,
+      "changes": [],
+      "reason": {
+        "code": "no_prices",
+        "message": "The Paddle product has no prices, and each Creem product is made from one Paddle price."
+      },
+      "warnings": [],
+      "error": null,
+      "kind": "product",
+      "key": "pro_01hw000000000000000noprice",
+      "name": "eng2015-Coming soon",
+      "source": {
+        "type": "product",
+        "id": "pro_01hw000000000000000noprice"
+      },
+      "action": "skip"
     },
     {
       "status": "pending",
