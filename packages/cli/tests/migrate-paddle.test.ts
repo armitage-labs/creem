@@ -203,14 +203,15 @@ describe("fromPaddle: products and product groups", () => {
     );
   });
 
-  it("keys each USD or EUR price as one product by its Paddle id, named product + price description when the product has several", async () => {
+  it("keys each USD or EUR price as one product by its Paddle id, named product + price name when the product has several", async () => {
     const p = await plan();
+    // The price's name is what Paddle shows buyers; its description is internal.
     expect(request(p, PRO_MONTHLY)).toEqual({
       type: "upsert_product",
       key: PRO_MONTHLY,
       request: {
         createProductRequestEntity: {
-          name: "eng2015-Pro - Monthly",
+          name: "eng2015-Pro - Pro monthly",
           description: "The Pro plan, monthly or yearly.",
           price: 1500,
           currency: "USD",
@@ -225,7 +226,7 @@ describe("fromPaddle: products and product groups", () => {
     });
     expect(request(p, PRO_YEARLY)!.request).toMatchObject({
       createProductRequestEntity: {
-        name: "eng2015-Pro - Yearly",
+        name: "eng2015-Pro - Pro yearly",
         price: 15000,
         billingPeriod: "every-year",
       },
