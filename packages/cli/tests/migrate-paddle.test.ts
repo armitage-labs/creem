@@ -469,6 +469,20 @@ describe("fromPaddle: products and product groups", () => {
     );
   });
 
+  it("doesn't call products price-less or prices product-less when a list couldn't be read", async () => {
+    const { objects } = await paddleObjects();
+    const noPrices = fromPaddle({ ...objects, prices: [], catalogUnread: true }, emptyCatalog, {
+      now: NOW,
+    });
+    expect(noPrices.report.items.filter((i) => i.reason?.code === "no_prices")).toEqual([]);
+    const noProducts = fromPaddle({ ...objects, products: [], catalogUnread: true }, emptyCatalog, {
+      now: NOW,
+    });
+    expect(noProducts.report.items.filter((i) => i.reason?.code === "product_not_found")).toEqual(
+      [],
+    );
+  });
+
   it("puts every fetched object in the report, and the non-catalog data in not_migrated once", async () => {
     const { objects } = await paddleObjects();
     const p = fromPaddle(objects, emptyCatalog, { now: NOW });
