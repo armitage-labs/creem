@@ -1,0 +1,81 @@
+{
+  "data": [
+    {
+      "id": "pro_01m8ee98x3kb1mj4m2h2gpvr65",
+      "name": "eng2015-Weekly",
+      "tax_category": "standard",
+      "type": "standard",
+      "description": null,
+      "image_url": null,
+      "custom_data": null,
+      "status": "active",
+      "import_meta": null,
+      "created_at": "2026-11-27T12:04:35.875Z",
+      "updated_at": "2026-11-27T12:04:35.875Z"
+    },
+    {
+      "id": "pro_01m8ee98jh21bdncvajkb9k722",
+      "name": "eng2015-UK",
+      "tax_category": "standard",
+      "type": "standard",
+      "description": "Billed in pounds.",
+      "image_url": null,
+      "custom_data": null,
+      "status": "active",
+      "import_meta": null,
+      "created_at": "2026-11-27T12:04:35.537Z",
+      "updated_at": "2026-11-27T12:04:35.537Z"
+    },
+    {
+      "id": "pro_01m8ee987zjrykx313fd431471",
+      "name": "eng2015-Global",
+      "tax_category": "standard",
+      "type": "standard",
+      "description": "Priced per country.",
+      "image_url": null,
+      "custom_data": null,
+      "status": "active",
+      "import_meta": null,
+      "created_at": "2026-11-27T12:04:35.199Z",
+      "updated_at": "2026-11-27T12:04:35.199Z"
+    },
+    {
+      "id": "pro_01m8ee97jx4faev4tx5e3h0j4g",
+      "name": "eng2015-Handbook",
+      "tax_category": "standard",
+      "type": "standard",
+      "description": "A one-time download.",
+      "image_url": null,
+      "custom_data": null,
+      "status": "active",
+      "import_meta": null,
+      "created_at": "2026-11-27T12:04:34.525Z",
+      "updated_at": "2026-11-27T12:04:34.525Z"
+    },
+    {
+      "id": "pro_01m8ee91jy96wpy0q79wta9sd6",
+      "name": "eng2015-Pro",
+      "tax_category": "standard",
+      "type": "standard",
+      "description": "The Pro plan, monthly or yearly.",
+      "image_url": null,
+      "custom_data": {
+        "seats": 5,
+        "tier": "pro"
+      },
+      "status": "active",
+      "import_meta": null,
+      "created_at": "2026-11-27T12:04:28.382Z",
+      "updated_at": "2026-11-27T12:04:28.382Z"
+    }
+  ],
+  "meta": {
+    "request_id": "00000000-0000-0000-0000-000000000000",
+    "pagination": {
+      "per_page": 200,
+      "next": "https://sandbox-api.paddle.com/products?after=pro_01m8ee91jy96wpy0q79wta9sd6&per_page=200&status=active&status=archived",
+      "has_more": false,
+      "estimated_total": 5
+    }
+  }
+}
