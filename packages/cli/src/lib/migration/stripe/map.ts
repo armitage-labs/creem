@@ -169,9 +169,9 @@ function mapPrice(
 
 /**
  * The Creem product names of a product's prices: the product name, plus the
- * nickname or interval when more than one of its prices maps (an active price
- * counts its active siblings only, so `--include-archived` renames nothing),
- * plus the currency when two names would still be the same.
+ * nickname or interval when more than one of its prices maps, plus the
+ * currency when two names would still be the same. An active price counts its
+ * active siblings only, for both, so `--include-archived` renames nothing.
  */
 function priceNames(product: Stripe.Product, prices: Stripe.Price[]): Map<string, string> {
   const maps = prices.filter((p) => !unsupported(p) && !("skip" in mapPrice(p, [])));
@@ -191,7 +191,9 @@ function priceNames(product: Stripe.Product, prices: Stripe.Price[]): Map<string
       const name = base.get(p.id)!;
       const twin =
         maps.includes(p) &&
-        maps.some((o) => o !== p && base.get(o.id) === name && o.currency !== p.currency);
+        (p.active ? live : maps).some(
+          (o) => o !== p && base.get(o.id) === name && o.currency !== p.currency,
+        );
       return [p.id, twin ? `${name} (${p.currency.toUpperCase()})` : name];
     }),
   );
