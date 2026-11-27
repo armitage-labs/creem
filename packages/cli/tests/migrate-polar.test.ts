@@ -53,9 +53,12 @@ async function migrate(
     force?: boolean;
     includeArchived?: boolean;
     filesDir?: string;
+    docs?: ReturnType<typeof polarDocs>;
   } = {},
 ) {
-  const { objects, polar } = await polarObjects(polarDocs(), { filesDir: options.filesDir });
+  const { objects, polar } = await polarObjects(options.docs ?? polarDocs(), {
+    filesDir: options.filesDir,
+  });
   const catalog = await readCreemCatalog(creem.client, { meters: true });
   const planned = fromPolar(objects, catalog, {
     now: NOW,
@@ -781,5 +784,150 @@ describe("creem migrate polar", () => {
     expect(r.stdout).toContain("Meters");
     expect(r.stdout).toContain(ID.meterApiCalls);
     expect(r.stdout).toContain("Not migrated: customers");
+  });
+});
+
+/** The fixtures with one change, for a run after Polar changed. */
+function docsWith(change: (docs: ReturnType<typeof polarDocs>) => void) {
+  const docs = polarDocs();
+  change(docs);
+  return docs;
+}
+const polarMeter = (docs: ReturnType<typeof polarDocs>, id: string) =>
+  docs.meters.items.find((m) => m.id === id)!;
+const polarProduct = (docs: ReturnType<typeof polarDocs>, id: string) =>
+  docs.products.items.find((p) => p.id === id)!;
+
+describe("ENG-2405 review: stored meters", () => {
+  it("keeps a stored meter's unit label for its credit features, and warns that Polar's differs", async () => {
+    const creem = fakeCreem();
+    await migrate(creem);
+    const docs = docsWith((d) => {
+      polarMeter(d, ID.meterImages).custom_label = "picture";
+    });
+    const { plan: p, checked } = await migrate(creem, { docs });
+    const meter = request(p, ID.meterImages);
+    expect(
+      meter.type === "upsert_meter" && meter.request.createMeterApiRequestDto,
+    ).not.toHaveProperty("unitLabel");
+    expect(item(p, ID.meterImages).warnings).toContainEqual(
+      expect.objectContaining({ code: "unit_label_not_writable" }),
+    );
+    expect(productBody(p, ID.productCredits)?.features).toContainEqual(
+      expect.objectContaining({
+        customerCredits: expect.objectContaining({ unitLabel: "image", bucketName: "image" }),
+      }),
+    );
+    expect(item(checked, ID.productCredits).action).toBe("unchanged");
+    expect(item(checked, ID.meterImages).action).toBe("unchanged");
+  });
+
+  it("fails a stored meter whose event name changed in Polar, and the products priced on it", async () => {
+    const creem = fakeCreem();
+    await migrate(creem);
+    const writes = creem.writes().length;
+    const docs = docsWith((d) => {
+      polarMeter(d, ID.meterApiCalls).filter.clauses[0].value = "api.request";
+    });
+    const { plan: p, checked, report } = await migrate(creem, { docs });
+    expect(item(p, ID.meterApiCalls)).toMatchObject({
+      status: "failed",
+      error: { code: "meter_event_name_changed" },
+    });
+    expect(item(p, ID.meterApiCalls).error?.message).toContain("api.call");
+    expect(item(p, ID.meterApiCalls).error?.message).toContain("api.request");
+    expect(item(checked, ID.productUsage)).toMatchObject({
+      status: "failed",
+      error: { code: "dependency_failed" },
+    });
+    expect(p.requests.some((r) => r.key === ID.meterApiCalls || r.key === ID.productUsage)).toBe(
+      false,
+    );
+    expect(report).toBeUndefined();
+    expect(creem.writes()).toHaveLength(writes);
+  });
+});
+
+describe("ENG-2405 review: the check", () => {
+  it("reports the changes Creem's dry run names for an adopted product, next to its key", async () => {
+    const creem = fakeCreem({
+      products: [
+        productJson("prod_1", { name: "Desktop app license", price: 4900, currency: "USD" }),
+      ],
+    });
+    const { checked } = await migrate(creem, {
+      adoption: { [`adopt:${ID.productLicense}`]: "prod_1" },
+    });
+    expect(item(checked, ID.productLicense).changes).toEqual(
+      expect.arrayContaining(["external_id", "description", "features"]),
+    );
+  });
+
+  it("refuses a postpaid usage price beyond the first 100 validate items, and writes nothing", async () => {
+    const creem = fakeCreem({}, { postpaidUsageBilling: false });
+    const docs = docsWith((d) => {
+      const free = polarProduct(d, ID.productFree);
+      const clones = Array.from({ length: 105 }, (_, i) => {
+        const id = `00000000-0000-4000-8000-${String(i).padStart(12, "0")}`;
+        return { ...structuredClone(free), id, name: `Free kit ${i}` };
+      });
+      d.products.items.unshift(...clones);
+    });
+    const { checked, report } = await migrate(creem, { docs });
+    expect(creem.validations().length).toBeGreaterThan(1);
+    expect(item(checked, ID.productUsage)).toMatchObject({
+      status: "failed",
+      error: { code: "postpaid_usage_billing_unavailable" },
+    });
+    expect(report).toBeUndefined();
+    expect(creem.writes()).toEqual([]);
+  });
+
+  it("fails the products priced on a new meter Creem's check refuses", async () => {
+    const creem = fakeCreem();
+    creem.refuse(ID.meterApiCalls, 409, "meter_name_taken");
+    const { checked } = await migrate(creem);
+    expect(item(checked, ID.productUsage)).toMatchObject({
+      status: "failed",
+      error: { code: "dependency_failed" },
+    });
+    expect(item(checked, ID.productUsage).error?.message).toContain(ID.meterApiCalls);
+  });
+});
+
+describe("ENG-2405 review: reasons and report", () => {
+  it("skips a product with a free base price and a metered price as a usage price without base price", async () => {
+    const docs = docsWith((d) => {
+      const fixed = polarProduct(d, ID.productUsage).prices[0];
+      fixed.amount_type = "free";
+      delete fixed.price_amount;
+    });
+    const { objects } = await polarObjects(docs);
+    const p = fromPolar(objects, emptyCatalog, { now: NOW });
+    expect(item(p, ID.productUsage).reason?.code).toBe("usage_price_without_base_price");
+  });
+
+  it("leaves the report's currency null when the organization has no default currency", async () => {
+    const docs = docsWith((d) => {
+      d.organizations.items[0].default_presentment_currency = null;
+    });
+    const { objects } = await polarObjects(docs);
+    expect(fromPolar(objects, emptyCatalog, { now: NOW }).report.source.currency).toBeNull();
+  });
+
+  it("refuses a --polar-server that is only a prototype key", async () => {
+    vi.stubGlobal("fetch", vi.fn());
+    const h = harness();
+    const r = await h.run([
+      "migrate",
+      "polar",
+      "--json",
+      "--polar-token",
+      "x",
+      "--polar-server",
+      "toString",
+    ]);
+    expect(r.code).toBe(2);
+    expect(JSON.parse(r.stderr).error.message).toContain("--polar-server");
   });
 });
