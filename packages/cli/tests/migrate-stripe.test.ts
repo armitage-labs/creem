@@ -1,12 +1,14 @@
+import { readFileSync } from "node:fs";
 import { join } from "node:path";
 import { afterEach, describe, expect, it, vi } from "vitest";
+import { harness } from "./helpers";
 import { fakeCreem, productJson, type CreemState } from "./migrate-fixtures";
 import { ACCOUNT_ID, ID, STRIPE_KEY, stripeDocs, stripeFetch } from "./migrate-stripe-fixtures";
 import { fetchStripeCatalog, stripeClient } from "../src/lib/migration/stripe/source";
 import { fromStripe } from "../src/lib/migration/stripe/map";
 import { readCreemCatalog, type CreemCatalog } from "../src/lib/migration/catalog";
 import type { MigrationRequest } from "../src/lib/migration/plan";
-import { checkMigration, executeMigration } from "../src/lib/migration/writer";
+import { DryRunIgnoredError, checkMigration, executeMigration } from "../src/lib/migration/writer";
 import { adoptionMatcher, type MigrationPlan } from "../src/lib/migration/plan";
 import {
   MIGRATION_REPORT_SCHEMA,
@@ -675,5 +677,314 @@ describe("fromStripe against a store with Creem objects", () => {
   it("rejects an --adopt answer for a key the run doesn't migrate", async () => {
     const p = await plan(emptyCatalog, { adoption: { "adopt:nope": "prod_1" } });
     expect(p.answerErrors.map((e) => e.code)).toEqual(["adoption_answer_invalid"]);
+  });
+});
+
+/**
+ * The shipped report contract (`creem.migration_report` v1, `report.ts`): the
+ * exact keys and their types, checked at runtime against what the command prints.
+ */
+function assertReportSchema(report: any) {
+  const keys = (o: any) => Object.keys(o).sort();
+  const issueOk = (i: any) =>
+    i === null || (keys(i).join() === "code,message" && typeof i.code === "string");
+  expect(keys(report)).toEqual([
+    "fetch_failures",
+    "items",
+    "mode",
+    "not_migrated",
+    "proposals",
+    "schema",
+    "source",
+    "summary",
+    "version",
+  ]);
+  expect(report.schema).toBe("creem.migration_report");
+  expect(report.version).toBe(1);
+  expect(["plan", "dry_run", "run"]).toContain(report.mode);
+  expect(keys(report.source)).toEqual(["currency", "provider", "store_id", "store_name"]);
+  expect(keys(report.summary)).toEqual([
+    "create",
+    "failed",
+    "skip",
+    "unchanged",
+    "update",
+    "warnings",
+  ]);
+  for (const item of report.items) {
+    const allowed = [
+      "action",
+      "adopted_from",
+      "changes",
+      "creem_id",
+      "error",
+      "key",
+      "kind",
+      "name",
+      "reason",
+      "source",
+      "status",
+      "warnings",
+    ];
+    expect(keys(item).filter((k) => !["members", "features"].includes(k))).toEqual(allowed);
+    expect(["meter", "product", "product_group", "discount", "file"]).toContain(item.kind);
+    expect(["create", "update", "unchanged", "skip"]).toContain(item.action);
+    expect([null, "pending", "done", "failed"]).toContain(item.status);
+    expect(item.key).toMatch(KEY);
+    expect(issueOk(item.reason)).toBe(true);
+    for (const w of item.warnings) expect(issueOk(w)).toBe(true);
+    if (item.error) expect(keys(item.error)).toEqual(["code", "hint", "message", "status"]);
+    expect(Array.isArray(item.changes)).toBe(true);
+  }
+  for (const p of report.proposals) {
+    expect(keys(p)).toEqual(["candidates", "creem_id", "decision", "id", "key", "kind", "name"]);
+    expect(["pending", "accepted", "declined"]).toContain(p.decision);
+    for (const c of p.candidates)
+      expect(keys(c)).toEqual(["creem_id", "creem_name", "differences"]);
+  }
+  for (const n of report.not_migrated) {
+    expect(keys(n)).toEqual(["kind", "reason"]);
+    expect(issueOk(n.reason)).toBe(true);
+  }
+  for (const f of report.fetch_failures) expect(keys(f)).toEqual(["kind", "message"]);
+}
+
+describe("the migration report", () => {
+  it("the golden report has the shipped schema", () => {
+    assertReportSchema(JSON.parse(readFileSync(join(GOLDEN, "empty-store.report.json"), "utf8")));
+  });
+});
+
+describe("the writer with a Stripe plan", () => {
+  it("aborts when a dry run comes back without write_result.dry_run, and writes nothing more", async () => {
+    const creem = fakeCreem();
+    const checked = await checkMigration(creem.client, await plan());
+    creem.ignoreDryRun = true;
+    const run = executeMigration(creem.client, checked, { files: {}, delayMs: 0 });
+    await expect(run).rejects.toBeInstanceOf(DryRunIgnoredError);
+    const error = await run.catch((e) => e);
+    // The ignored dry run wrote the first meter; nothing after it was sent.
+    expect(creem.writes()).toEqual([]);
+    expect(creem.dryRuns()).toHaveLength(1);
+    expect(error.report.items.filter((i: MigrationItem) => i.status === "failed")).toHaveLength(1);
+  });
+
+  it("waits as long as Retry-After says after a 429", async () => {
+    const creem = fakeCreem();
+    let once = false;
+    creem.fail(
+      (c) => c.method === "POST" && c.path === "/v1/meters" && !c.dryRun && !once && (once = true),
+      429,
+      { code: "rate_limited", message: "Slow down" },
+      { "retry-after": "3" },
+    );
+    const sleep = vi.fn(async () => {});
+    const checked = await checkMigration(creem.client, await plan());
+    const report = await executeMigration(creem.client, checked, { files: {}, delayMs: 0, sleep });
+    expect(sleep).toHaveBeenCalledWith(3000);
+    expect(report.summary.failed).toBe(0);
+  });
+});
+
+describe("creem migrate stripe", () => {
+  const base = ["migrate", "stripe", "--stripe-key", STRIPE_KEY];
+  function setup(
+    options: {
+      isTTY?: boolean;
+      confirm?: (message: string) => Promise<boolean>;
+      state?: Partial<CreemState>;
+    } = {},
+  ) {
+    const stripe = stripeFetch();
+    vi.stubGlobal("fetch", stripe.fetcher);
+    const creem = fakeCreem(options.state);
+    const confirm = vi.fn(options.confirm ?? (async () => false));
+    const h = harness(creem.client, { isTTY: options.isTTY ?? false, confirm });
+    return { stripe, creem, h, confirm };
+  }
+  afterEach(() => vi.unstubAllEnvs());
+
+  it("fails before any prompt or fetch without --yes or a key outside a terminal", async () => {
+    vi.stubEnv("STRIPE_API_KEY", "");
+    const { h, stripe } = setup();
+    expect((await h.run(["migrate", "stripe", "--stripe-key", STRIPE_KEY])).code).toBe(2);
+    const noKey = await h.run(["--json", "migrate", "stripe"]);
+    expect(noKey.code).toBe(2);
+    expect(JSON.parse(noKey.stderr).error.message).toContain("--stripe-key");
+    expect(stripe.fetcher).not.toHaveBeenCalled();
+  });
+
+  it("--json without --yes prints the plan as a versioned report and writes nothing", async () => {
+    const { creem, h } = setup();
+    const r = await h.run(["--json", ...base]);
+    expect(r.code, r.stderr).toBe(0);
+    const report = JSON.parse(r.stdout);
+    assertReportSchema(report);
+    expect(report).toMatchObject({ mode: "plan", source: { provider: "stripe" } });
+    expect(report.summary).toMatchObject({ create: 8, skip: 9, failed: 0 });
+    expect(creem.validations()).toHaveLength(1);
+    expect(creem.writes()).toEqual([]);
+  });
+
+  it("takes the key from STRIPE_API_KEY", async () => {
+    vi.stubEnv("STRIPE_API_KEY", STRIPE_KEY);
+    const { h, stripe } = setup();
+    const r = await h.run(["--json", "migrate", "stripe"]);
+    expect(r.code, r.stderr).toBe(0);
+    expect(stripe.requests[0].authorization).toBe(`Bearer ${STRIPE_KEY}`);
+  });
+
+  it("--yes checks with validate, then writes meters and products, each after its dry run; a second run writes nothing", async () => {
+    const { creem, h } = setup();
+    const first = await h.run(["--json", ...base, "--yes"]);
+    expect(first.code, first.stderr).toBe(0);
+    const report = JSON.parse(first.stdout);
+    assertReportSchema(report);
+    expect(report.mode).toBe("run");
+    expect(report.summary).toMatchObject({ create: 8, failed: 0 });
+    const firstWrite = creem.calls.findIndex(
+      (c) => c.method !== "GET" && !c.dryRun && c.path !== "/v1/catalog/validate",
+    );
+    expect(creem.calls.findIndex((c) => c.path === "/v1/catalog/validate")).toBeLessThan(
+      firstWrite,
+    );
+    expect(creem.writes().map((c) => c.path)).toEqual([
+      "/v1/meters",
+      "/v1/meters",
+      ...Array(6).fill("/v1/products"),
+    ]);
+    for (const write of creem.writes()) {
+      const index = creem.calls.indexOf(write);
+      expect(creem.calls[index - 1]).toMatchObject({
+        path: write.path,
+        dryRun: true,
+        body: write.body,
+      });
+    }
+    expect(creem.state.meters).toHaveLength(2);
+    expect(creem.state.products).toHaveLength(6);
+
+    const writes = creem.writes().length;
+    const second = await h.run(["--json", ...base, "--yes"]);
+    expect(second.code, second.stderr).toBe(0);
+    const again = JSON.parse(second.stdout);
+    expect(again.summary).toMatchObject({ create: 0, update: 0, unchanged: 8 });
+    expect(creem.writes()).toHaveLength(writes);
+  });
+
+  it("never sends the Stripe key to Creem, nor prints it", async () => {
+    const { creem, h } = setup();
+    const r = await h.run(["--json", ...base, "--yes"]);
+    expect(JSON.stringify(creem.calls)).not.toContain(STRIPE_KEY);
+    expect(r.stdout + r.stderr).not.toContain(STRIPE_KEY);
+    const plain = await h.run([...base, "--dry-run"]);
+    expect(plain.stdout + plain.stderr).not.toContain(STRIPE_KEY);
+  });
+
+  it("--include-archived writes inactive prices and products archived", async () => {
+    const { creem, h } = setup();
+    const r = await h.run(["--json", ...base, "--yes", "--include-archived"]);
+    expect(r.code, r.stderr).toBe(0);
+    const archived = creem.state.products.filter((p) => p.status === "archived");
+    expect(archived.map((p) => p.external_id).sort()).toEqual(
+      [ID.priceOld, ID.priceProLegacy].sort(),
+    );
+  });
+
+  it("stops before the first write while a proposal is unanswered, even with --yes (exit 7)", async () => {
+    const { creem, h } = setup({
+      state: { products: [productJson("prod_1", { name: "eng2012-Ebook" })] },
+    });
+    const r = await h.run(["--json", ...base, "--yes"]);
+    expect(r.code).toBe(7);
+    expect(JSON.parse(r.stdout).proposals[0]).toMatchObject({
+      key: ID.priceEbook,
+      decision: "pending",
+    });
+    expect(creem.writes()).toEqual([]);
+  });
+
+  it("--adopt gives the confirmed match its key with a PATCH first", async () => {
+    const { creem, h } = setup({
+      state: { products: [productJson("prod_1", { name: "eng2012-Ebook" })] },
+    });
+    const r = await h.run(["--json", ...base, "--yes", "--adopt", `${ID.priceEbook}=prod_1`]);
+    expect(r.code, r.stderr).toBe(0);
+    expect(creem.writes()[0]).toMatchObject({ method: "PATCH", path: "/v1/products/prod_1" });
+    expect(creem.state.products.find((p) => p.id === "prod_1")?.external_id).toBe(ID.priceEbook);
+    expect(creem.state.products).toHaveLength(6);
+  });
+
+  it("--create-new-unmatched creates new products instead of adopting", async () => {
+    const { creem, h } = setup({
+      state: { products: [productJson("prod_1", { name: "eng2012-Ebook" })] },
+    });
+    const r = await h.run(["--json", ...base, "--yes", "--create-new-unmatched"]);
+    expect(r.code, r.stderr).toBe(0);
+    expect(JSON.parse(r.stdout).proposals[0].decision).toBe("declined");
+    expect(creem.state.products.find((p) => p.id === "prod_1")?.external_id).toBeNull();
+    expect(creem.state.products).toHaveLength(7);
+  });
+
+  it("asks per proposal in a terminal, and never adopts without a yes", async () => {
+    const asked: string[] = [];
+    const { creem, h } = setup({
+      isTTY: true,
+      state: { products: [productJson("prod_1", { name: "eng2012-Ebook" })] },
+      confirm: async (message) => {
+        asked.push(message);
+        return message.startsWith("TEST: Write");
+      },
+    });
+    const r = await h.run(base);
+    expect(r.code, r.stderr).toBe(0);
+    expect(asked[0]).toContain("Adopt Creem product prod_1");
+    expect(creem.state.products.find((p) => p.id === "prod_1")?.external_id).toBeNull();
+  });
+
+  it("--dry-run prints the plan and writes nothing", async () => {
+    const { creem, h } = setup();
+    const r = await h.run([...base, "--dry-run"]);
+    expect(r.code, r.stderr).toBe(0);
+    expect(r.stdout).toContain("Plan: Stripe");
+    expect(r.stdout).toContain("Meters");
+    expect(r.stdout).toContain("Dry run");
+    expect(creem.writes()).toEqual([]);
+  });
+
+  it("exits 3 when Stripe refuses the key", async () => {
+    const { h, stripe } = setup();
+    stripe.fail("/v1/account", 401, {
+      error: {
+        type: "invalid_request_error",
+        message: "Invalid API Key provided: rk_test_****0000",
+      },
+    });
+    const r = await h.run(["--json", ...base]);
+    expect(r.code).toBe(3);
+    expect(r.stderr).not.toContain(STRIPE_KEY);
+  });
+
+  it("refuses to write when a Stripe list could not be read (exit 4)", async () => {
+    const { h, creem, stripe } = setup();
+    stripe.fail("/v1/billing/meters", 403, {
+      error: {
+        type: "invalid_request_error",
+        message: "The provided key does not have the required permissions.",
+      },
+    });
+    const r = await h.run(["--json", ...base, "--yes"]);
+    expect(r.code).toBe(4);
+    expect(JSON.parse(r.stdout).fetch_failures).toEqual([
+      { kind: "meters", message: expect.stringContaining("permissions") },
+    ]);
+    expect(creem.writes()).toEqual([]);
+  });
+
+  it("is listed in creem migrate --help, and says customers are not migrated", async () => {
+    const { h } = setup();
+    expect((await h.run(["migrate", "--help"])).stdout).toContain("creem migrate stripe");
+    const r = await h.run([...base, "--dry-run"]);
+    expect(r.stdout).toMatch(/customers.*not migrated/i);
   });
 });
