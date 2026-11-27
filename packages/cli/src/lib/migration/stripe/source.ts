@@ -86,6 +86,15 @@ export const isAuthError = (error: unknown) =>
 export const isConnectionError = (error: unknown) =>
   stripeError(error)?.type === "StripeConnectionError";
 
+/** A Stripe key as Stripe's error messages quote it, whole or masked (`rk_live_51Ab…***…1234`). */
+const STRIPE_KEY_SHAPE = /\b(rk|sk)_(live|test)_[A-Za-z0-9*…]+/g;
+
+/** A Stripe error message without the supplied keys, or anything shaped like a Stripe key. */
+export function redactStripe(message: string, secrets: readonly string[] = []): string {
+  for (const secret of secrets) if (secret) message = message.split(secret).join("[REDACTED]");
+  return message.replace(STRIPE_KEY_SHAPE, "[REDACTED]");
+}
+
 async function readAll<T>(list: AsyncIterable<T>): Promise<T[]> {
   const items: T[] = [];
   for await (const item of list) items.push(item);
@@ -96,11 +105,12 @@ async function readAll<T>(list: AsyncIterable<T>): Promise<T[]> {
  * Reads what the migrator maps: the account, products, prices (active only,
  * unless `includeArchived`), active Billing Meters, and the number of webhook
  * endpoints. A refused key throws Stripe's authentication error; any other
- * list that can't be read is a fetch failure, and the run writes nothing.
+ * list that can't be read is a fetch failure, and the run writes nothing. A
+ * failure's message names neither `secrets` nor anything shaped like a key.
  */
 export async function fetchStripeCatalog(
   stripe: Stripe,
-  options: { includeArchived?: boolean } = {},
+  options: { includeArchived?: boolean; secrets?: readonly string[] } = {},
 ): Promise<{ objects: StripeObjects; failures: FetchFailure[] }> {
   let account: StripeAccount = { id: "", name: "", currency: "" };
   try {
@@ -121,7 +131,8 @@ export async function fetchStripeCatalog(
       return await readAll(read());
     } catch (error) {
       if (isAuthError(error)) throw error;
-      failures.push({ kind, message: error instanceof Error ? error.message : String(error) });
+      const message = error instanceof Error ? error.message : String(error);
+      failures.push({ kind, message: redactStripe(message, options.secrets) });
       return [];
     }
   };

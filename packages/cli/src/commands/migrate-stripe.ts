@@ -7,6 +7,7 @@ import {
   fetchStripeCatalog,
   isAuthError,
   isConnectionError,
+  redactStripe,
   stripeClient,
 } from "../lib/migration/stripe/source";
 import type { MigrationSource } from "./migrate";
@@ -60,9 +61,10 @@ export const stripeSource: MigrationSource = {
     try {
       read = await fetchStripeCatalog(stripeClient(key), {
         includeArchived: Boolean(options.includeArchived),
+        secrets: [key],
       });
     } catch (error) {
-      const message = error instanceof Error ? error.message : String(error);
+      const message = redactStripe(error instanceof Error ? error.message : String(error), [key]);
       if (isAuthError(error))
         throw new CliError(message, MIGRATION_EXIT_CODES.auth, "Check --stripe-key.");
       if (isConnectionError(error))
