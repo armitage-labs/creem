@@ -293,8 +293,10 @@ export function fromPaddle(
   for (const price of [...objects.prices].sort(byId))
     pricesOf.set(price.product_id, [...(pricesOf.get(price.product_id) ?? []), price]);
   const productIds = new Set(products.map((p) => p.id));
+  // A list Paddle couldn't read leaves the other side incomplete: don't call those products
+  // price-less or those prices product-less (the run stops with exit 4 anyway).
   for (const [productId, prices] of pricesOf)
-    if (!productIds.has(productId))
+    if (!objects.catalogUnread && !productIds.has(productId))
       for (const price of prices)
         productItems.push(
           newItem({
@@ -308,7 +310,7 @@ export function fromPaddle(
         );
   for (const product of products) {
     const prices = pricesOf.get(product.id) ?? [];
-    if (!prices.length)
+    if (!prices.length && !objects.catalogUnread)
       productItems.push(
         newItem({
           kind: "product",
