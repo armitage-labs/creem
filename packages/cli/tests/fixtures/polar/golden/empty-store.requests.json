@@ -327,5 +327,88 @@
         ]
       }
     }
+  },
+  {
+    "type": "upsert_discount",
+    "key": "bc0f6c68-fb05-4b65-ad81-ae1746a64863",
+    "request": {
+      "createDiscountRequestEntity": {
+        "externalId": "bc0f6c68-fb05-4b65-ad81-ae1746a64863",
+        "name": "License 10%",
+        "code": "LICENSE10",
+        "type": "percentage",
+        "duration": "forever",
+        "percentage": 10,
+        "appliesToProductExternalIds": [
+          "799c693b-96d3-45b2-9f17-3854de48d073"
+        ]
+      }
+    }
+  },
+  {
+    "type": "upsert_discount",
+    "key": "6cd5773d-563c-49f7-ade1-a88f22726b3c",
+    "request": {
+      "createDiscountRequestEntity": {
+        "externalId": "6cd5773d-563c-49f7-ade1-a88f22726b3c",
+        "name": "Five off for three months",
+        "code": "FIVEOFF",
+        "type": "fixed",
+        "duration": "repeating",
+        "amount": 500,
+        "currency": "USD",
+        "durationInMonths": 3,
+        "maxRedemptions": 100,
+        "expiryDate": "2027-12-31T23:59:59.000Z",
+        "appliesToProductExternalIds": [
+          "5409a749-9d68-4a34-981d-ab63e2fa209f",
+          "e6dc2557-01a6-4656-a90d-5b8f9a24929c",
+          "1b8b5649-bf47-4a93-bb6b-ecb7bdf59e1a",
+          "7f034912-715e-4f0c-b2a9-2c9963ece4dc",
+          "6c913505-5616-45ec-a5b6-23ce3d2682fd",
+          "6a163987-47f5-43b6-8e04-fcae6b92341e",
+          "af5d71f0-316c-46f0-9eb0-d07a33544089",
+          "799c693b-96d3-45b2-9f17-3854de48d073",
+          "0b80c68b-40c3-4741-9b31-afd26244da8d",
+          "97519987-d58a-44db-8ab6-9ba0575ba20f",
+          "c635a220-436e-458f-b8e1-0eb1989a16cc",
+          "00000000-0000-4000-8000-00000000c002",
+          "00000000-0000-4000-8000-00000000c001",
+          "00000000-0000-4000-8000-00000000b002",
+          "00000000-0000-4000-8000-00000000b004"
+        ]
+      }
+    }
+  },
+  {
+    "type": "upsert_discount",
+    "key": "e75fa6b7-9c0e-4cd8-9441-9f5a9c2627cb",
+    "request": {
+      "createDiscountRequestEntity": {
+        "externalId": "e75fa6b7-9c0e-4cd8-9441-9f5a9c2627cb",
+        "name": "Launch 25%",
+        "code": "SAVE25",
+        "type": "percentage",
+        "duration": "once",
+        "percentage": 25,
+        "appliesToProductExternalIds": [
+          "5409a749-9d68-4a34-981d-ab63e2fa209f",
+          "e6dc2557-01a6-4656-a90d-5b8f9a24929c",
+          "1b8b5649-bf47-4a93-bb6b-ecb7bdf59e1a",
+          "7f034912-715e-4f0c-b2a9-2c9963ece4dc",
+          "6c913505-5616-45ec-a5b6-23ce3d2682fd",
+          "6a163987-47f5-43b6-8e04-fcae6b92341e",
+          "af5d71f0-316c-46f0-9eb0-d07a33544089",
+          "799c693b-96d3-45b2-9f17-3854de48d073",
+          "0b80c68b-40c3-4741-9b31-afd26244da8d",
+          "97519987-d58a-44db-8ab6-9ba0575ba20f",
+          "c635a220-436e-458f-b8e1-0eb1989a16cc",
+          "00000000-0000-4000-8000-00000000c002",
+          "00000000-0000-4000-8000-00000000c001",
+          "00000000-0000-4000-8000-00000000b002",
+          "00000000-0000-4000-8000-00000000b004"
+        ]
+      }
+    }
   }
 ]

@@ -85,10 +85,29 @@ export interface PolarProduct {
   attached_custom_fields?: unknown[];
 }
 
+export interface PolarDiscount {
+  id: string;
+  name: string;
+  code: string | null;
+  type: "percentage" | "fixed";
+  basis_points?: number;
+  amount?: number;
+  currency?: string;
+  duration: "once" | "forever" | "repeating";
+  duration_in_months?: number | null;
+  starts_at: string | null;
+  ends_at: string | null;
+  max_redemptions: number | null;
+  max_redemptions_per_customer?: number | null;
+  redemptions_count: number;
+  products: { id: string }[];
+}
+
 export interface PolarObjects {
   organization: PolarOrganization;
   products: PolarProduct[];
   meters: PolarMeter[];
+  discounts: PolarDiscount[];
 }
 
 export const POLAR_SERVERS = {
@@ -179,7 +198,7 @@ const message = (error: unknown) => (error instanceof Error ? error.message : St
 
 /**
  * Reads the catalog of the token's organization: products (with their prices
- * and benefits, archived ones too) and meters. Customers, subscriptions,
+ * and benefits, archived ones too), meters and discounts. Customers, subscriptions,
  * orders, checkout links and webhooks are never fetched.
  */
 export async function fetchPolarCatalog(
@@ -188,7 +207,7 @@ export async function fetchPolarCatalog(
 ): Promise<{ objects: PolarObjects; failures: FetchFailure[] }> {
   const organization = options.organization ?? (await client.organization());
   const failures: FetchFailure[] = [];
-  const objects: PolarObjects = { organization, products: [], meters: [] };
+  const objects: PolarObjects = { organization, products: [], meters: [], discounts: [] };
   const scope = { organization_id: organization.id };
   try {
     objects.meters = await client.list<PolarMeter>("/v1/meters/", scope);
@@ -199,6 +218,11 @@ export async function fetchPolarCatalog(
     objects.products = await client.list<PolarProduct>("/v1/products/", scope);
   } catch (error) {
     failures.push({ kind: "products", message: message(error) });
+  }
+  try {
+    objects.discounts = await client.list<PolarDiscount>("/v1/discounts/", scope);
+  } catch (error) {
+    failures.push({ kind: "discounts", message: message(error) });
   }
   return { objects, failures };
 }

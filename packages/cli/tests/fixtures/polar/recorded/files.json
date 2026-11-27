@@ -1,0 +1,27 @@
+{
+  "items": [
+    {
+      "id": "9d3daa79-09bb-485e-b9d5-c53e6986f025",
+      "organization_id": "00000000-0000-4000-8000-0000000000a1",
+      "name": "guide.txt",
+      "path": "downloadable/00000000-0000-4000-8000-0000000000a1/9d3daa79-09bb-485e-b9d5-c53e6986f025/guide.txt",
+      "mime_type": "text/plain",
+      "size": 41,
+      "storage_version": "[scrubbed]",
+      "checksum_etag": "[scrubbed]",
+      "checksum_sha256_base64": "gckX7fOAHjRKyOXAC7pXnXQPG0nPrxcwS6bqszFU8xo=",
+      "checksum_sha256_hex": "81c917edf3801e344ac8e5c00bba579d740f1b49cfaf17304ba6eab33154f31a",
+      "last_modified_at": "2026-11-27T11:17:59Z",
+      "version": null,
+      "service": "downloadable",
+      "is_uploaded": true,
+      "created_at": "2026-11-27T11:17:58.811959Z",
+      "flagged_malicious_at": null,
+      "size_readable": "41.0 B"
+    }
+  ],
+  "pagination": {
+    "total_count": 1,
+    "max_page": 1
+  }
+}

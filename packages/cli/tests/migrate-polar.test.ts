@@ -123,6 +123,7 @@ describe("fromPolar against an empty Creem store", () => {
     const { objects } = await polarObjects();
     const ids = new Set<string>([
       ...objects.meters.map((m) => m.id),
+      ...objects.discounts.map((d) => d.id),
       ...objects.products.flatMap((pr) => [
         pr.id,
         ...pr.prices.map((x) => x.id),

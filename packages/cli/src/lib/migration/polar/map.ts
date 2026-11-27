@@ -1,15 +1,21 @@
 import type {
   CreateMeterApiRequestDto,
+  DiscountEntity,
   FeatureEntity,
   MeterApiResponseDto,
   ProductEntity,
   ProductGroupEntity,
 } from "creem/models/components";
-import type { CreateProductRequest } from "creem/models/operations";
+import type {
+  CreateDiscountRequest,
+  CreateProductRequest,
+  UpdateDiscountRequest,
+} from "creem/models/operations";
 import { billing, trialDays } from "../billing";
 import type { CreemCatalog } from "../catalog";
 import {
   adoptionMatcher,
+  clearsField,
   issue,
   sameName,
   type MigrationPlan,
@@ -25,6 +31,7 @@ import {
   type MigrationReport,
 } from "../report";
 import type {
+  PolarDiscount,
   PolarFilterClause,
   PolarMeter,
   PolarObjects,
@@ -35,6 +42,7 @@ import type {
 type ProductBody = CreateProductRequest["createProductRequestEntity"];
 type Feature = NonNullable<ProductBody["features"]>[number];
 type UsagePrice = NonNullable<ProductBody["usagePrices"]>[number];
+type DiscountBody = CreateDiscountRequest["createDiscountRequestEntity"];
 
 export interface FromPolarOptions {
   now?: Date;
@@ -314,6 +322,101 @@ function differences(p: ProductEntity, body: ProductBody): string[] {
   return list;
 }
 
+const DISCOUNT_CODE_MAX = 14;
+const DISCOUNT_NAME_MAX = 40;
+
+/** The Creem discount for a Polar discount, or `undefined` with the skip reason on the item. */
+function planDiscount(
+  d: PolarDiscount,
+  now: Date,
+  keysOf: Map<string, string[]>,
+  item: MigrationItem,
+): (DiscountBody & { code: string }) | undefined {
+  const skip = (code: string, message: string) => {
+    item.reason = issue(code, message);
+    return undefined;
+  };
+  if (!d.code)
+    return skip(
+      "discount_code_missing",
+      "The discount has no code: Polar applies it through checkout links, and a Creem discount is redeemed by its code.",
+    );
+  if (d.code.length > DISCOUNT_CODE_MAX)
+    return skip(
+      "discount_code_too_long",
+      `Creem codes have at most ${DISCOUNT_CODE_MAX} characters; ${d.code} has ${d.code.length}. Create it in Creem with a shorter code.`,
+    );
+  if (d.ends_at && Date.parse(d.ends_at) <= now.getTime())
+    return skip("discount_expired", `The discount ended at ${d.ends_at}.`);
+  if (d.starts_at && Date.parse(d.starts_at) > now.getTime())
+    return skip(
+      "start_date_unsupported",
+      `The discount starts at ${d.starts_at}; a Creem discount is valid once it exists. Run the migration again from then.`,
+    );
+  // Polar's limit is for the code's lifetime and Creem counts from zero: only what's left carries over.
+  const remaining = d.max_redemptions == null ? undefined : d.max_redemptions - d.redemptions_count;
+  if (remaining !== undefined && remaining <= 0)
+    return skip("discount_used_up", `All ${d.max_redemptions} redemptions are used in Polar.`);
+  let applies = [...keysOf.values()].flat();
+  if (d.products.length) {
+    applies = d.products.flatMap((p) => keysOf.get(p.id) ?? []);
+    const missing = d.products.filter((p) => !keysOf.has(p.id)).map((p) => p.id);
+    if (missing.length && applies.length)
+      item.warnings.push(
+        issue(
+          "discount_products_partially_migrated",
+          `The discount applies only to the migrated products; not migrated: ${missing.join(", ")}.`,
+        ),
+      );
+  } else if (applies.length)
+    item.warnings.push(
+      issue(
+        "applies_to_migrated_products",
+        `Polar applies the discount to every product, also to later ones; in Creem it applies to the ${applies.length} migrated products. Add new products to it in Creem.`,
+      ),
+    );
+  if (!applies.length)
+    return skip("discount_products_not_migrated", "None of the discount's products is migrated.");
+  const body: DiscountBody & { code: string } = {
+    externalId: d.id,
+    name: d.name,
+    code: d.code,
+    type: d.type,
+    duration: d.duration,
+  };
+  if (d.type === "percentage") body.percentage = (d.basis_points ?? 0) / 100;
+  else {
+    const currency = (d.currency ?? "").toUpperCase();
+    if (currency !== "USD" && currency !== "EUR")
+      return skip(
+        "currency_unsupported",
+        `The discount is in ${currency}; Creem's are in USD or EUR.`,
+      );
+    Object.assign(body, { amount: d.amount, currency });
+  }
+  if (d.duration === "repeating") body.durationInMonths = d.duration_in_months ?? 1;
+  if (remaining !== undefined) body.maxRedemptions = remaining;
+  if (d.ends_at) body.expiryDate = new Date(d.ends_at);
+  if (d.max_redemptions_per_customer)
+    item.warnings.push(
+      issue(
+        "per_customer_limit_not_migrated",
+        `Polar limits the code to ${d.max_redemptions_per_customer} redemption(s) per customer; Creem has no such limit.`,
+      ),
+    );
+  if (d.name.length > DISCOUNT_NAME_MAX) {
+    body.name = d.name.slice(0, DISCOUNT_NAME_MAX).trimEnd();
+    item.warnings.push(
+      issue(
+        "discount_name_truncated",
+        `Creem discount names have at most ${DISCOUNT_NAME_MAX} characters; the name becomes "${body.name}".`,
+      ),
+    );
+  }
+  body.appliesToProductExternalIds = applies;
+  return body;
+}
+
 interface Offer {
   key: string;
   name: string;
@@ -349,6 +452,7 @@ export function fromPolar(
   const meterItems: MigrationItem[] = [];
   const productItems: MigrationItem[] = [];
   const groupItems: MigrationItem[] = [];
+  const discountItems: MigrationItem[] = [];
 
   // ---- meters
   /** The unit label of each migrated meter, by Polar id. */
@@ -716,8 +820,112 @@ export function fromPolar(
     });
   }
 
+  // ---- discounts
+  const discountsByKey = byKey<DiscountEntity>(creemCatalog.discounts);
+  /** The Creem keys of each migrated Polar product: its own, or its legacy prices'. */
+  const keysOf = new Map<string, string[]>();
+  for (const i of productItems)
+    if (i.action !== "skip") {
+      const id = i.source.product_id ?? i.source.id;
+      keysOf.set(id, [...(keysOf.get(id) ?? []), i.key]);
+    }
+  const keyOfProductId = new Map(
+    creemCatalog.products.filter((p) => p.externalId).map((p) => [p.id, p.externalId as string]),
+  );
+  for (const discount of objects.discounts) {
+    const item = newItem({
+      kind: "discount",
+      key: discount.id,
+      name: discount.code ?? discount.name,
+      source: { type: "discount", id: discount.id },
+      action: "skip",
+    });
+    discountItems.push(item);
+    item.creem_id = discountsByKey.get(discount.id)?.id ?? null;
+    const body = planDiscount(discount, options.now ?? new Date(), keysOf, item);
+    if (!body) continue;
+    const found = adoption.match(
+      "discount",
+      discount.id,
+      discountsByKey,
+      creemCatalog.discounts,
+      creemCatalog.discounts.filter((d) => d.code.toUpperCase() === body.code.toUpperCase()),
+      (d) =>
+        [
+          d.name !== body.name ? `name "${d.name}" (Polar: "${body.name}")` : "",
+          d.type !== body.type ? `type ${d.type} (Polar: ${body.type})` : "",
+          d.duration !== body.duration ? `duration ${d.duration} (Polar: ${body.duration})` : "",
+        ].filter(Boolean),
+      item,
+    );
+    if (found.rejected || found.pending) {
+      item.creem_id = found.pending?.length === 1 ? found.pending[0].id : null;
+      item.reason = found.rejected ?? adoption.unconfirmed("discount", discount.id, found.pending!);
+      continue;
+    }
+    const existing = found.existing;
+    if (!existing) {
+      const taken = creemCatalog.discounts.find(
+        (d) => d.code.toUpperCase() === body.code.toUpperCase(),
+      );
+      if (taken) {
+        item.creem_id = taken.id;
+        item.reason = issue(
+          "code_taken",
+          `Creem discount ${taken.id} already uses the code ${body.code}.`,
+        );
+        continue;
+      }
+      item.action = "create";
+      item.status = "pending";
+      requests.push({
+        type: "upsert_discount",
+        key: discount.id,
+        request: { createDiscountRequestEntity: body },
+      });
+      continue;
+    }
+    // Products are only added: the stored ones stay, and the migrated ones it lacks are named by key.
+    const stored = existing.appliesToProducts ?? [];
+    const storedKeys = new Set(stored.map((id) => keyOfProductId.get(id)));
+    const missing = (body.appliesToProductExternalIds ?? []).filter((k) => !storedKeys.has(k));
+    const { externalId: _key, appliesToProductExternalIds: _keys, ...update } = body;
+    const changes: UpdateDiscountRequest["updateDiscountRequestEntity"] = { ...update };
+    if (missing.length) {
+      changes.appliesToProducts = stored;
+      changes.appliesToProductExternalIds = missing;
+    }
+    // Clearing a limit or an end date takes `null`, which only a PATCH by id sends.
+    if (existing.maxRedemptions != null && body.maxRedemptions === undefined)
+      changes.maxRedemptions = null;
+    if (existing.expiryDate && !body.expiryDate) changes.expiryDate = null;
+    item.creem_id = existing.id;
+    item.action = "update";
+    item.status = "pending";
+    if (item.adopted_from || clearsField(changes))
+      requests.push({
+        type: item.adopted_from ? "adopt_discount" : "update_discount",
+        key: discount.id,
+        request: {
+          id: existing.id,
+          updateDiscountRequestEntity: {
+            ...(item.adopted_from ? { externalId: discount.id } : {}),
+            ...changes,
+          },
+        },
+      });
+    else
+      requests.push({
+        type: "upsert_discount",
+        key: discount.id,
+        request: {
+          createDiscountRequestEntity: { ...(changes as DiscountBody), externalId: discount.id },
+        },
+      });
+  }
+
   adoption.finish();
-  const items = [...meterItems, ...productItems, ...groupItems];
+  const items = [...meterItems, ...productItems, ...groupItems, ...discountItems];
   const report: MigrationReport = {
     schema: MIGRATION_REPORT_SCHEMA,
     version: MIGRATION_REPORT_VERSION,
