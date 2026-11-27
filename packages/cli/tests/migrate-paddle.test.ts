@@ -48,6 +48,7 @@ const EXPIRED = "dsc_01hw000000000000000expired";
 const USED_UP = "dsc_01hw0000000000000000usedup";
 const PARTLY_USED = "dsc_01hw000000000000000partial";
 const LONG_CODE = "dsc_01hw00000000000000longcode";
+const PRO_ALL = "dsc_01hw000000000000000proall";
 
 async function paddleObjects(
   options: { docs?: ReturnType<typeof paddleDocs>; pageSize?: number } = {},
@@ -748,7 +749,7 @@ describe("ENG-2015 discounts", () => {
 
   it("reads the discounts, active and archived, and reports a discount list it can't read", async () => {
     const { objects, paddle } = await paddleObjects({ pageSize: 2 });
-    expect(objects.discounts).toHaveLength(13);
+    expect(objects.discounts).toHaveLength(14);
     expect(paddle.requests.some((r) => r.path === "/discounts")).toBe(true);
     const failing = paddleFetch(undefined, { failures: { "/discounts": 500 } });
     const client = new PaddleClient(PADDLE_KEY, {
@@ -841,18 +842,32 @@ describe("ENG-2015 discounts", () => {
       createDiscountRequestEntity: { appliesToProductExternalIds: [PRO_YEARLY] },
     });
     expect(item(p, YEARLY_ONLY).warnings).toEqual([]);
-    const body = (request(p, NO_CODE)!.request as { createDiscountRequestEntity: object })
+    const body = (request(p, PRO_ALL)!.request as { createDiscountRequestEntity: object })
       .createDiscountRequestEntity;
     expect(body).toMatchObject({ appliesToProductExternalIds: [PRO_MONTHLY, PRO_YEARLY] });
     // The archived price of that product isn't migrated, and is named.
-    const partial = item(p, NO_CODE).warnings.find(
+    const partial = item(p, PRO_ALL).warnings.find(
       (w) => w.code === "discount_products_partially_migrated",
     )!;
     expect(partial.message).toContain(PRO_LEGACY);
   });
 
-  it("leaves the code to Creem when Paddle has none, and says so", async () => {
+  it("skips a discount that isn't enabled for checkout: Creem would make it redeemable there", async () => {
     const p = await plan();
+    expect(item(p, NO_CODE)).toMatchObject({
+      action: "skip",
+      reason: { code: "discount_not_checkout_enabled" },
+      warnings: [],
+    });
+    expect(request(p, NO_CODE)).toBeUndefined();
+  });
+
+  it("leaves the code to Creem when Paddle has none, and says so", async () => {
+    // Paddle gives a checkout discount a code when it is made without one, so
+    // the recording has no such discount; this one is the recorded API-only one.
+    const { objects } = await paddleObjects();
+    objects.discounts.find((d) => d.id === NO_CODE)!.enabled_for_checkout = true;
+    const p = fromPaddle(objects, emptyCatalog, { now: NOW });
     const body = (request(p, NO_CODE)!.request as { createDiscountRequestEntity: object })
       .createDiscountRequestEntity;
     expect(body).not.toHaveProperty("code");
@@ -933,7 +948,7 @@ describe("ENG-2015 discounts", () => {
     const paths = creem.writes().map((w) => w.path);
     expect(paths.indexOf("/v1/discounts")).toBeGreaterThan(paths.lastIndexOf("/v1/product-groups"));
     expect(creem.state.discounts.map((d) => d.external_id).sort()).toEqual(
-      [PERCENT, FLAT, YEARLY_ONLY, THREE_MONTHS, NO_CODE, PARTLY_USED].sort(),
+      [PERCENT, FLAT, YEARLY_ONLY, THREE_MONTHS, PARTLY_USED, PRO_ALL].sort(),
     );
     const written = creem.writes().length;
     const second = await h.run(base);
