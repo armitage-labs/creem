@@ -7,6 +7,7 @@ import { PaddleClient, fetchPaddleCatalog } from "../src/lib/migration/paddle/so
 import { fromPaddle, type PaddleObjects } from "../src/lib/migration/paddle/map";
 import type { CreemCatalog } from "../src/lib/migration/catalog";
 import type { MigrationItem } from "../src/lib/migration/report";
+import type { ProductGroupEntity } from "creem/models/components";
 
 /** ENG-2015: `creem migrate paddle` (Paddle Billing). */
 const NOW = new Date("2026-11-27T12:00:00.000Z");
@@ -406,6 +407,40 @@ describe("fromPaddle: products and product groups", () => {
       reason: { code: "no_prices" },
     });
     expect(request(p, NO_PRICES)).toBeUndefined();
+  });
+
+  it("reports a keyed Creem product group that Paddle no longer groups, and leaves it as it is", async () => {
+    const group = (id: string, externalId: string) =>
+      ({ id, name: externalId, externalId, products: [] }) as unknown as ProductGroupEntity;
+    const GONE = "pro_01hw00000000000000000gone";
+    const catalog: CreemCatalog = {
+      ...emptyCatalog,
+      productGroups: [group("pgrp_ebooks", EBOOKS), group("pgrp_gone", GONE)],
+    };
+    const { objects } = await paddleObjects();
+    const p = fromPaddle(objects, catalog, { now: NOW });
+    const groups = p.report.items.filter((i) => i.kind === "product_group");
+    // Ebooks has one migrated recurring price now; the other product is gone.
+    expect(groups.find((i) => i.key === EBOOKS)).toMatchObject({
+      action: "skip",
+      creem_id: "pgrp_ebooks",
+      reason: { code: "group_not_needed" },
+      warnings: [{ code: "orphaned" }],
+    });
+    expect(groups.find((i) => i.key === GONE)).toMatchObject({
+      action: "skip",
+      creem_id: "pgrp_gone",
+      reason: { code: "product_not_found" },
+      warnings: [{ code: "orphaned" }],
+    });
+    expect(p.requests.filter((r) => r.type === "upsert_product_group").map((r) => r.key)).toEqual([
+      PRO,
+    ]);
+    // Without the whole catalog, no group is known to be stale.
+    const unread = fromPaddle({ ...objects, catalogUnread: true }, catalog, { now: NOW });
+    expect(unread.report.items.filter((i) => i.kind === "product_group").map((i) => i.key)).toEqual(
+      [PRO],
+    );
   });
 
   it("puts every fetched object in the report, and the non-catalog data in not_migrated once", async () => {
