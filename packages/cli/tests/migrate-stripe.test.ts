@@ -1322,6 +1322,7 @@ describe("creem migrate stripe", () => {
     const r = await h.run(["--json", ...base]);
     expect(r.code).toBe(3);
     expect(r.stderr).not.toContain(STRIPE_KEY);
+    expect(r.stderr).not.toMatch(/\b(rk|sk)_(live|test)_/);
   });
 
   for (const [status, exitCode] of [
