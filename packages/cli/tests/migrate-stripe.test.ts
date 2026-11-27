@@ -1030,6 +1030,18 @@ describe("creem migrate stripe", () => {
     expect(r.stderr).not.toContain(STRIPE_KEY);
   });
 
+  it("exits 5 when the connection to Stripe drops in the middle of the read", async () => {
+    const { h, creem, stripe } = setup();
+    vi.stubGlobal("fetch", async (input: RequestInfo | URL, init?: RequestInit) => {
+      const url = input instanceof Request ? input.url : String(input);
+      if (url.includes("/v1/prices")) throw new TypeError("fetch failed");
+      return stripe.fetcher(input, init);
+    });
+    const r = await h.run(["--json", ...base, "--yes"]);
+    expect(r.code, r.stderr).toBe(5);
+    expect(creem.writes()).toEqual([]);
+  }, 30_000);
+
   it("refuses to write when a Stripe list could not be read (exit 4)", async () => {
     const { h, creem, stripe } = setup();
     stripe.fail("/v1/billing/meters", 403, {
