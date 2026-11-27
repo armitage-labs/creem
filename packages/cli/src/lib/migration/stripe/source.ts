@@ -104,9 +104,10 @@ async function readAll<T>(list: AsyncIterable<T>): Promise<T[]> {
 /**
  * Reads what the migrator maps: the account, products, prices (active only,
  * unless `includeArchived`), active Billing Meters, and the number of webhook
- * endpoints. A refused key throws Stripe's authentication error; any other
- * list that can't be read is a fetch failure, and the run writes nothing. A
- * failure's message names neither `secrets` nor anything shaped like a key.
+ * endpoints. A refused key throws Stripe's authentication error, a lost
+ * connection its connection error; any other list that can't be read is a
+ * fetch failure, and the run writes nothing. A failure's message names
+ * neither `secrets` nor anything shaped like a key.
  */
 export async function fetchStripeCatalog(
   stripe: Stripe,
@@ -130,7 +131,7 @@ export async function fetchStripeCatalog(
     try {
       return await readAll(read());
     } catch (error) {
-      if (isAuthError(error)) throw error;
+      if (isAuthError(error) || isConnectionError(error)) throw error;
       const message = error instanceof Error ? error.message : String(error);
       failures.push({ kind, message: redactStripe(message, options.secrets) });
       return [];
@@ -150,7 +151,7 @@ export async function fetchStripeCatalog(
     webhookEndpoints = (await readAll(stripe.webhookEndpoints.list({ limit: PAGE_SIZE }))).length;
   } catch (error) {
     // Reading them is optional: the guide's minimal key may leave them out.
-    if (isAuthError(error)) throw error;
+    if (isAuthError(error) || isConnectionError(error)) throw error;
   }
   return { objects: { account, products, prices, meters, webhookEndpoints }, failures };
 }
