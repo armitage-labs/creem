@@ -431,7 +431,37 @@ describe("fromStripe against an empty Creem store", () => {
       currency: "EUR",
       billingType: "onetime",
     });
-    expect(productBody(p, ID.priceUsageBase)?.name).toBe("eng2012-Usage plan - Monthly");
+  });
+
+  it("counts only the prices that map when naming, so a skipped or archived price renames nothing", async () => {
+    const p = await plan();
+    expect(productBody(p, ID.priceUsageBase)?.name).toBe("eng2012-Usage plan");
+    expect(productBody(p, ID.priceWeekly)?.name).toBe("eng2012-Cycles");
+    const docs = stripeDocs();
+    docs.prices.data = docs.prices.data.filter((price) => price.id !== ID.priceProYearly);
+    const active = await plan(emptyCatalog, {}, structuredClone(docs));
+    const all = await plan(emptyCatalog, { includeArchived: true }, structuredClone(docs));
+    expect(productBody(active, ID.priceProMonthly)?.name).toBe("eng2012-Pro");
+    expect(productBody(all, ID.priceProMonthly)?.name).toBe("eng2012-Pro");
+    expect(productBody(all, ID.priceProLegacy)?.name).toBe("eng2012-Pro - Legacy monthly");
+  });
+
+  it("names a price without a nickname by its interval, and adds the currency when two names would be the same", async () => {
+    const docs = stripeDocs();
+    const monthly = docs.prices.data.find((price) => price.id === ID.priceProMonthly)!;
+    monthly.nickname = null;
+    docs.prices.data.push({
+      ...structuredClone(monthly),
+      id: "price_eng2012_pro_monthly_eur",
+      currency: "eur",
+      lookup_key: null,
+    });
+    const p = await plan(emptyCatalog, {}, docs);
+    expect(productBody(p, ID.priceProMonthly)?.name).toBe("eng2012-Pro - Monthly (USD)");
+    expect(productBody(p, "price_eng2012_pro_monthly_eur")?.name).toBe(
+      "eng2012-Pro - Monthly (EUR)",
+    );
+    expect(productBody(p, "eng2012_pro_yearly")?.name).toBe("eng2012-Pro - Yearly");
   });
 
   it("sends the Stripe product's and price's metadata with the migrator's own keys", async () => {
