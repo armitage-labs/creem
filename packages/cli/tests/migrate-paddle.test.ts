@@ -568,12 +568,12 @@ describe("creem migrate paddle", () => {
     );
     expect(group).toMatchObject({ action: "update", changes: ["name"] });
     expect(creem.state.productGroups[0].name).toBe("eng2015-Pro");
-    expect(
-      creem
-        .writes()
-        .slice(written)
-        .map((w) => [w.path, w.body]),
-    ).toEqual([["/v1/product-groups", { external_id: PRO, name: "eng2015-Pro" }]]);
+    // The members stay as they are, in their order, by id.
+    const ids = creem.state.productGroups[0].products.map((m: { id: string }) => ({ id: m.id }));
+    const writes = creem.writes().slice(written);
+    expect(writes.map((w) => [w.path, w.body])).toEqual([
+      ["/v1/product-groups", { external_id: PRO, name: "eng2015-Pro", products: ids }],
+    ]);
   });
 
   it("--include-archived writes archived prices as archived products", async () => {

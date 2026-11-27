@@ -550,22 +550,37 @@ export function fromPaddle(
             `Paddle doesn't group ${kept.join(", ")} with this product's prices. The migrator can't tell whether Paddle dropped them or you added them in Creem, so they stay in the group; remove them in Creem if they shouldn't be in it.`,
           ),
         );
-      if (stored.length === members.length && stored.every((k, i) => k === members[i])) {
+      const renamed = existing.name !== product.name;
+      const sameMembers =
+        stored.length === members.length && stored.every((k, i) => k === members[i]);
+      if (!renamed && sameMembers) {
         item.action = "unchanged";
         item.status = null;
         continue;
       }
       list.push(...others.map((p) => ({ id: p.id })));
       item.action = "update";
-      item.changes.push("products");
+      if (renamed) item.changes.push("name");
+      if (!sameMembers) item.changes.push("products");
+      groupRequests.push({
+        type: "upsert_product_group",
+        key,
+        request: {
+          createProductGroupRequestEntity: {
+            externalId: key,
+            ...(renamed ? { name: product.name } : {}),
+            // A rename alone sends the stored members as they are, by id.
+            products: sameMembers ? existing.products.map((p) => ({ id: p.id })) : list,
+          },
+        },
+      });
+      continue;
     }
     groupRequests.push({
       type: "upsert_product_group",
       key,
       request: {
-        createProductGroupRequestEntity: existing
-          ? { externalId: key, products: list }
-          : { externalId: key, name: product.name, products: list },
+        createProductGroupRequestEntity: { externalId: key, name: product.name, products: list },
       },
     });
   }
