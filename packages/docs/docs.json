@@ -158,6 +158,7 @@
               {
                 "group": "For Agents",
                 "pages": [
+                  "ai/for-agents/sandbox",
                   "ai/for-agents/hosted-mcp",
                   "ai/for-agents/skill-files",
                   "ai/for-agents/cli",
