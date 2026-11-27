@@ -30,6 +30,8 @@ Read https://creem.io/SKILL.md and follow the instructions to integrate Creem
 
 That's it. The skill file contains everything your AI needs: API endpoints, SDK patterns, webhook handling, and best practices. No documentation rabbit holes.
 
+No Creem account yet? You don't need one to start. Your agent creates its own test store and API key with one call, builds and tests the integration, and you [claim the store](/ai/for-agents/sandbox) when you want to keep it.
+
 To manage your store by chatting, [connect Claude or ChatGPT](/ai/for-humans/ai-assistants) and sign in with your Creem account. In Claude Code, Codex, Cursor and other MCP clients, add the [hosted MCP](/ai/for-agents/hosted-mcp):
 
 ```bash
@@ -49,6 +51,7 @@ creem products    # launches interactive browser
 Traditional payment integrations require reading docs, understanding patterns, and writing boilerplate. With Creem:
 
 - A single prompt gives your AI complete platform context through [skill files](https://creem.io/SKILL.md)
+- Your agent can [start without an account](/ai/for-agents/sandbox): it creates a test store and key itself, and you sign in once to claim it
 - The CLI lets you browse and manage your store without leaving the terminal
 - The [hosted MCP](/ai/for-agents/hosted-mcp) lets Claude, Claude Code, ChatGPT, Codex, Cursor and other MCP clients work in your store, and by default asks you before cancellations, product changes and other risky actions
 - Store monitoring lets your AI notify you about sales and issues automatically
