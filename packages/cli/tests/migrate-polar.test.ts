@@ -64,12 +64,18 @@ describe("Polar source", () => {
     expect(objects.organization.id).toBe(POLAR_ORG_ID);
     expect(objects.products).toHaveLength(19);
     expect(objects.meters.map((m) => m.id)).toContain(ID.meterApiCalls);
+    expect(objects.discounts).toHaveLength(5);
     for (const r of polar.requests) {
       expect(new URL(r.url).hostname).toBe("sandbox-api.polar.sh");
       expect(r.authorization).toBe(`Bearer ${POLAR_TOKEN}`);
     }
     expect(polar.requests.map((r) => new URL(r.url).pathname)).toEqual(
-      expect.arrayContaining(["/v1/organizations/", "/v1/products/", "/v1/meters/"]),
+      expect.arrayContaining([
+        "/v1/organizations/",
+        "/v1/products/",
+        "/v1/meters/",
+        "/v1/discounts/",
+      ]),
     );
   });
 
@@ -353,11 +359,66 @@ describe("fromPolar against an empty Creem store", () => {
     expect(productBody(p, ID.productArchived)).toMatchObject({ status: "archived" });
   });
 
+  it("maps a percentage discount to every migrated product, and says so", async () => {
+    const p = await plan();
+    const r = request(p, ID.discountPercentage);
+    expect(r.type).toBe("upsert_discount");
+    const body = r.type === "upsert_discount" ? r.request.createDiscountRequestEntity : undefined;
+    const migrated = p.report.items
+      .filter((i) => i.kind === "product" && i.action === "create")
+      .map((i) => i.key);
+    expect(body).toEqual({
+      externalId: ID.discountPercentage,
+      name: "Launch 25%",
+      code: "SAVE25",
+      type: "percentage",
+      percentage: 25,
+      duration: "once",
+      appliesToProductExternalIds: migrated,
+    });
+    expect(item(p, ID.discountPercentage)).toMatchObject({
+      kind: "discount",
+      name: "SAVE25",
+      warnings: [{ code: "applies_to_migrated_products" }],
+    });
+  });
+
+  it("maps a fixed discount with its duration, redemption limit and end date", async () => {
+    const p = await plan();
+    const r = request(p, ID.discountFixed);
+    expect(r.type === "upsert_discount" && r.request.createDiscountRequestEntity).toMatchObject({
+      code: "FIVEOFF",
+      type: "fixed",
+      amount: 500,
+      currency: "USD",
+      duration: "repeating",
+      durationInMonths: 3,
+      maxRedemptions: 100,
+      expiryDate: new Date("2027-12-31T23:59:59Z"),
+    });
+  });
+
+  it("limits a discount to its migrated products, and skips one that starts later or has no code", async () => {
+    const p = await plan();
+    const r = request(p, ID.discountOneProduct);
+    expect(
+      r.type === "upsert_discount" &&
+        r.request.createDiscountRequestEntity.appliesToProductExternalIds,
+    ).toEqual([ID.productLicense]);
+    expect(item(p, ID.discountOneProduct).warnings).toEqual([]);
+    expect(item(p, ID.discountNextMonth)).toMatchObject({
+      action: "skip",
+      reason: { code: "start_date_unsupported" },
+    });
+    expect(item(p, ID.discountNoCode).reason?.code).toBe("discount_code_missing");
+  });
+
   it("lists every fetched Polar object in the report, and what isn't catalog once", async () => {
     const p = await plan();
     const { objects } = await polarObjects();
     const keys = new Set(p.report.items.map((i) => i.key));
     for (const m of objects.meters) expect(keys.has(m.id), m.name).toBe(true);
+    for (const d of objects.discounts) expect(keys.has(d.id), d.name).toBe(true);
     for (const pr of objects.products)
       expect(
         keys.has(pr.id) || p.report.items.some((i) => i.source.product_id === pr.id),
@@ -398,6 +459,12 @@ describe("Polar migration against Creem", () => {
     const order = creem.writes().map((c) => c.path);
     expect(order.lastIndexOf("/v1/meters")).toBeLessThan(order.indexOf("/v1/products"));
     expect(order.lastIndexOf("/v1/products")).toBeLessThan(order.indexOf("/v1/product-groups"));
+    expect(order.lastIndexOf("/v1/product-groups")).toBeLessThan(order.indexOf("/v1/discounts"));
+    expect(creem.state.discounts.map((d) => d.code).sort()).toEqual([
+      "FIVEOFF",
+      "LICENSE10",
+      "SAVE25",
+    ]);
     expect(creem.state.meters).toHaveLength(2);
     const usage = creem.state.products.find((pr) => pr.external_id === ID.productUsage)!;
     expect(usage.usage_prices).toEqual([
@@ -477,6 +544,36 @@ describe("Polar migration against Creem", () => {
         body: expect.objectContaining({ external_id: ID.productLicense }),
       }),
     );
+  });
+
+  it("proposes adopting an unkeyed Creem discount with the same code", async () => {
+    const creem = fakeCreem({
+      discounts: [
+        {
+          id: "disc_1",
+          object: "discount",
+          mode: "test",
+          status: "active",
+          name: "Old launch code",
+          code: "SAVE25",
+          type: "percentage",
+          percentage: 25,
+          duration: "once",
+          applies_to_products: [],
+          redeem_count: 0,
+          external_id: null,
+        },
+      ],
+    });
+    const { plan: planned } = await migrate(creem);
+    expect(planned.report.proposals).toContainEqual(
+      expect.objectContaining({
+        id: `adopt:${ID.discountPercentage}`,
+        kind: "discount",
+        candidates: [expect.objectContaining({ creem_id: "disc_1" })],
+      }),
+    );
+    expect(item(planned, ID.discountPercentage).reason?.code).toBe("adoption_unconfirmed");
   });
 
   it("keeps the merchant's own features and usage prices of the types it writes", async () => {

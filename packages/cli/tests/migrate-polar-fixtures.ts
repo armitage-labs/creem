@@ -54,16 +54,25 @@ export const ID = {
   productLegacyFree: "00000000-0000-4000-8000-00000000b004",
   benefitDiscord: "00000000-0000-4000-8000-00000000d001",
   benefitGithub: "00000000-0000-4000-8000-00000000d002",
+  discountPercentage: "e75fa6b7-9c0e-4cd8-9441-9f5a9c2627cb",
+  discountFixed: "6cd5773d-563c-49f7-ade1-a88f22726b3c",
+  discountOneProduct: "bc0f6c68-fb05-4b65-ad81-ae1746a64863",
+  discountNextMonth: "a2d25c03-5ec6-487d-a637-64215f7171cb",
+  discountNoCode: "00000000-0000-4000-8000-00000000e001",
 } as const;
 
 export function polarDocs() {
   const products = read("recorded/products.json");
   const handWritten = read("hand-written/products.json");
+  const discounts = read("recorded/discounts.json");
   return {
     organizations: read("recorded/organizations.json"),
     products: { ...products, items: [...products.items, ...handWritten.items] },
     meters: read("recorded/meters.json"),
-    discounts: read("recorded/discounts.json"),
+    discounts: {
+      ...discounts,
+      items: [...discounts.items, ...read("hand-written/discounts.json").items],
+    },
   };
 }
 
