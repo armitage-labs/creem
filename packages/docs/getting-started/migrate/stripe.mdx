@@ -92,7 +92,7 @@ Use a Stripe test-mode key while you try it out, and your live Stripe key for th
 | Tax behavior `inclusive` or `exclusive`          | The same tax mode                                                                                                                                   |
 | Product and price metadata                       | The product's metadata, with `stripe_product_id` and `stripe_price_id` added                                                                        |
 
-A product name is the Stripe product's name. When the Stripe product has more than one price, the price's nickname is added, or its interval when it has none: `Pro - Monthly`, `Pro - Yearly`. The description is the Stripe product's description, or the name when it has none.
+A product name is the Stripe product's name. When more than one of the Stripe product's prices is copied, the price's nickname is added, or its interval when it has none: `Pro - Monthly`, `Pro - Yearly`. Skipped prices don't count, and inactive prices count only for each other, so `--include-archived` doesn't rename an active product. When two names would still be the same, the currency is added: `Pro - Monthly (USD)`, `Pro - Monthly (EUR)`. The description is the Stripe product's description, or the name when it has none.
 
 A meter's unit label is the unit label of the Stripe product whose metered price is on that meter. When no product names one, the unit label is the meter's event name, and the plan warns you: Creem uses the unit label as the meter's credit bucket, and it can't change once the meter exists.
 
@@ -102,6 +102,8 @@ Stripe's maximum for a customer-chosen amount is dropped with a warning, because
 
 Every object the CLI writes carries a key in `external_id`. A product's key is the price's lookup key, or the price ID (`price_...`) when the price has no lookup key or Creem doesn't take it as a key. Creem keys are 1 to 255 letters, digits, `_`, `-`, `.` and `:`, so a lookup key like `Pro Monthly 2024` becomes the price ID, keeps its value in `metadata.stripe_lookup_key`, and the plan lists the replacement. A meter's key is its Stripe ID (`mtr_...`).
 
+Two prices can't share a key. When a price's lookup key is another price's ID, the plan fails both with `key_collision` and writes neither; give the price another lookup key in Stripe and run the command again.
+
 Each object is written with Creem's keyed upsert, which creates it when the key is new and otherwise changes only what differs. A run that stopped halfway, or a second run, never creates an object twice. When nothing changed in Stripe, the plan lists every item as unchanged and nothing is written.
 
 Creem replaces a product's whole `metadata` when the CLI sends it, so the CLI sends the stored metadata back, merged with Stripe's product and price metadata and its own `stripe_*` keys. A key you added in Creem stays; a key that Stripe also has takes Stripe's value.
@@ -110,9 +112,11 @@ Creem replaces a product's whole `metadata` when the CLI sends it, so the CLI se
 
 A Creem product or meter that already has the key is updated. One without a key that has the same name, ignoring case and spacing, is proposed for adoption: the plan shows how each candidate differs, for example its price or event name, and never picks one for you.
 
-In a terminal, the CLI asks about each candidate: yes gives it the key, and no to all of them creates a new object. Without a terminal, answer with `--adopt price_123=prod_abc` to adopt that product, `--adopt price_123=new` to create a new one, `--adopt` alone to adopt every proposal that has exactly one candidate, or `--create-new-unmatched` to create new objects for every proposal you don't answer. `--yes` never answers a proposal: while one is unanswered, the run writes nothing and exits with `7`.
+In a terminal, the CLI asks about each candidate: yes gives it the key, and no to all of them creates a new object. Without a terminal, answer with `--adopt price_123=prod_abc` to adopt that product, `--adopt price_123=new` to create a new one, `--adopt` alone to adopt every proposal that has exactly one candidate, or `--create-new-unmatched` to create new objects for every proposal the other answers leave open. With `--adopt` alone and `--create-new-unmatched` together, proposals with one candidate are adopted and only the rest get new objects. `--yes` never answers a proposal: while one is unanswered, the run writes nothing and exits with `7`.
 
 Adopting gives the object its key with a `PATCH`, before anything else is written. An adopted meter keeps its event name and unit label, because Creem doesn't change them after a meter is created.
+
+When a price you already migrated gets a new lookup key in Stripe, or loses it, its Creem product still has the old key. The CLI finds that product by `metadata.stripe_price_id` and proposes it under the new key, answered like any other proposal. Adopting moves the key to it with a `PATCH`, so no second product is created; creating a new one leaves the old product as it is.
 
 ## What isn't copied
 
@@ -140,7 +144,7 @@ The plan also lists, once each:
 - **Usage already recorded on your meters.** Send new usage events to Creem once your app reports to it.
 - **Webhook endpoints.** They aren't catalog data. Add your endpoint in Creem and handle [Creem's events](/code/webhooks).
 
-Product images aren't copied; the plan warns about each product that has some. The CLI never archives or deletes a Creem object, also when its Stripe price is gone.
+Product images aren't copied; the plan warns about each product that has some. The CLI never archives or deletes a Creem object because its Stripe price is gone. With `--include-archived`, it archives the Creem products of prices and products that are archived in Stripe.
 
 ## Checks and exit codes
 
@@ -156,6 +160,6 @@ Before the first write, Creem checks the whole plan without writing anything, wi
 | `5`       | The CLI couldn't reach Stripe                                                                  |
 | `6`       | The run finished, and at least one item failed. Run it again to retry them                     |
 | `7`       | An adoption proposal is unanswered. Nothing is written                                         |
-| `8`       | Creem's check refused an item. Nothing is written                                              |
+| `8`       | Creem's check refused an item, or two prices share one key. Nothing is written                 |
 
 `--dry-run` and `--json` without `--yes` exit with `7` and `8` too, so a script knows the run would stop. With `--json`, the report is the same one `creem migrate lemon-squeezy` prints (`schema` `creem.migration_report`, `version` `1`), with `source.provider` `stripe`.
