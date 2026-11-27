@@ -1261,6 +1261,29 @@ describe("creem migrate stripe", () => {
     expect(r.stderr).not.toContain(STRIPE_KEY);
   });
 
+  for (const [status, exitCode] of [
+    [400, 4],
+    [500, 4],
+  ] as const)
+    it(`prints a Stripe HTTP ${status} on the account read without any key, and exits ${exitCode}`, async () => {
+      const { h, creem, stripe } = setup();
+      stripe.fail("/v1/account", status, {
+        error: {
+          type: status === 400 ? "invalid_request_error" : "api_error",
+          message: `Request with key rk_live_51Ab…***…1234 (${STRIPE_KEY}) failed.`,
+        },
+      });
+      const json = await h.run(["--json", ...base, "--yes"]);
+      const plain = await h.run([...base, "--yes"]);
+      for (const r of [json, plain]) {
+        expect(r.code, r.stderr).toBe(exitCode);
+        expect(r.stderr).toContain("failed");
+        expect(r.stdout + r.stderr).not.toMatch(/\b(rk|sk)_(live|test)_/);
+      }
+      expect(JSON.parse(json.stderr).error.message).toContain("[REDACTED]");
+      expect(creem.writes()).toEqual([]);
+    }, 30_000);
+
   it("exits 5 when the connection to Stripe drops in the middle of the read", async () => {
     const { h, creem, stripe } = setup();
     vi.stubGlobal("fetch", async (input: RequestInfo | URL, init?: RequestInit) => {
