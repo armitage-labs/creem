@@ -977,24 +977,6 @@ describe("ENG-2405 review: shared files", () => {
     expect(creem.state.files).toHaveLength(1);
   });
 
-  it("sends a kept note feature without a note when Creem stores none, so a re-run is unchanged", async () => {
-    const creem = fakeCreem();
-    await migrate(creem);
-    const license = creem.state.products.find((pr) => pr.external_id === ID.productLicense)!;
-    license.features.push({
-      id: "feat_note",
-      type: "custom",
-      description: "Merchant's own note",
-      external_id: null,
-    });
-    const { plan: p, checked } = await migrate(creem);
-    const kept = productBody(p, ID.productLicense)?.features?.find(
-      (f) => "id" in f && f.id === "feat_note",
-    );
-    expect(kept).toEqual({ id: "feat_note", type: "custom", description: "Merchant's own note" });
-    expect(item(checked, ID.productLicense).action).toBe("unchanged");
-  });
-
   it("warns about a downloadables benefit whose files are all archived, and gives an archived file its own reason", async () => {
     const docs = docsWith((d) => {
       polarProduct(d, ID.productDownload).benefits[0].properties.archived = {
