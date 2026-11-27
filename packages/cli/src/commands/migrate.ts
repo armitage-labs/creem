@@ -39,6 +39,8 @@ const NOT_MIGRATED_LABELS: Record<string, string> = {
   customers: "customers",
   subscriptions: "subscriptions",
   orders: "orders",
+  transactions: "transactions",
+  notification_settings: "notification settings",
   license_keys: "issued license keys",
   discounts: "discounts (--exclude-discounts)",
 };
@@ -177,7 +179,7 @@ type SourceOptions = Record<string, unknown> & { json: boolean };
  * source. Planning against Creem, adoption, the check, the confirmation and the
  * run are the same for every source.
  */
-interface MigrationSource {
+export interface MigrationSource {
   name: string;
   /** The source's name in messages ("Lemon Squeezy"). */
   title: string;
