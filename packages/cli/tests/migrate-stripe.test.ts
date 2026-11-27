@@ -237,6 +237,34 @@ describe("Stripe source", () => {
     expect(JSON.stringify(failures)).not.toContain(STRIPE_KEY);
   });
 
+  it("redacts the supplied key and any Stripe key shape from a fetch failure", async () => {
+    const stripe = stripeFetch();
+    stripe.fail("/v1/prices", 403, {
+      error: {
+        type: "invalid_request_error",
+        message: `The provided key '${STRIPE_KEY}' does not have the required permissions.`,
+      },
+    });
+    stripe.fail("/v1/products", 403, {
+      error: {
+        type: "invalid_request_error",
+        message:
+          "The provided key 'rk_live_51Ab…***…1234' on account acct_1Xyz does not have the required permissions.",
+      },
+    });
+    const { failures } = await fetchStripeCatalog(
+      stripeClient(STRIPE_KEY, { fetch: stripe.fetcher, maxNetworkRetries: 0 }),
+      { secrets: [STRIPE_KEY] },
+    );
+    expect(failures.map((f) => f.kind)).toEqual(["products", "prices"]);
+    for (const f of failures) {
+      expect(f.message).toContain("permissions");
+      expect(f.message).not.toMatch(/\b(rk|sk)_(live|test)_/);
+      expect(f.message).not.toContain("1234");
+    }
+    expect(JSON.stringify(failures)).not.toContain(STRIPE_KEY);
+  });
+
   it("throws the authentication error of a refused key", async () => {
     const stripe = stripeFetch();
     stripe.fail("/v1/account", 401, {
@@ -979,6 +1007,25 @@ describe("creem migrate stripe", () => {
       { kind: "meters", message: expect.stringContaining("permissions") },
     ]);
     expect(creem.writes()).toEqual([]);
+  });
+
+  it("prints a fetch failure without the key, in the report and in the text plan", async () => {
+    const { h, stripe } = setup();
+    stripe.fail("/v1/prices", 403, {
+      error: {
+        type: "invalid_request_error",
+        message: `The provided key '${STRIPE_KEY}' does not have the required permissions.`,
+      },
+    });
+    const json = await h.run(["--json", ...base]);
+    expect(json.code).toBe(4);
+    const plain = await h.run([...base, "--dry-run"]);
+    expect(plain.code).toBe(4);
+    for (const out of [json.stdout + json.stderr, plain.stdout + plain.stderr]) {
+      expect(out).toContain("permissions");
+      expect(out).not.toContain(STRIPE_KEY);
+      expect(out).not.toMatch(/\b(rk|sk)_(live|test)_/);
+    }
   });
 
   it("is listed in creem migrate --help, and says customers are not migrated", async () => {
