@@ -1,0 +1,568 @@
+{
+  "object": "list",
+  "url": "/v1/prices",
+  "has_more": false,
+  "data": [
+    {
+      "id": "price_1UgNnWAXmbOrRaLZoAxgfz1L",
+      "object": "price",
+      "active": true,
+      "billing_scheme": "per_unit",
+      "created": 1795780718,
+      "currency": "usd",
+      "currency_options": {
+        "usd": {
+          "custom_unit_amount": null,
+          "tax_behavior": "unspecified",
+          "unit_amount": 1200,
+          "unit_amount_decimal": "1200"
+        }
+      },
+      "custom_unit_amount": null,
+      "livemode": false,
+      "lookup_key": null,
+      "metadata": {
+        "eng2012_seed": "archived-product"
+      },
+      "nickname": null,
+      "product": "prod_VhnOKj9aLGf4sU",
+      "recurring": {
+        "interval": "month",
+        "interval_count": 1,
+        "meter": null,
+        "trial_period_days": null,
+        "usage_type": "licensed"
+      },
+      "tax_behavior": "unspecified",
+      "tiers_mode": null,
+      "transform_quantity": null,
+      "type": "recurring",
+      "unit_amount": 1200,
+      "unit_amount_decimal": "1200"
+    },
+    {
+      "id": "price_1UgNnWAXmbOrRaLZqQrNW36k",
+      "object": "price",
+      "active": true,
+      "billing_scheme": "per_unit",
+      "created": 1795780718,
+      "currency": "usd",
+      "currency_options": {
+        "usd": {
+          "custom_unit_amount": null,
+          "tax_behavior": "unspecified",
+          "unit_amount": 10,
+          "unit_amount_decimal": "10"
+        }
+      },
+      "custom_unit_amount": null,
+      "livemode": false,
+      "lookup_key": null,
+      "metadata": {
+        "eng2012_seed": "legacy-usage"
+      },
+      "nickname": null,
+      "product": "prod_VhnO7r3EbFULcn",
+      "recurring": {
+        "interval": "month",
+        "interval_count": 1,
+        "meter": null,
+        "trial_period_days": null,
+        "usage_type": "metered"
+      },
+      "tax_behavior": "unspecified",
+      "tiers_mode": null,
+      "transform_quantity": null,
+      "type": "recurring",
+      "unit_amount": 10,
+      "unit_amount_decimal": "10"
+    },
+    {
+      "id": "price_1UgNnVAXmbOrRaLZrc7jUMdF",
+      "object": "price",
+      "active": true,
+      "billing_scheme": "per_unit",
+      "created": 1795780717,
+      "currency": "eur",
+      "currency_options": {
+        "eur": {
+          "custom_unit_amount": null,
+          "tax_behavior": "unspecified",
+          "unit_amount": 50000,
+          "unit_amount_decimal": "50000"
+        }
+      },
+      "custom_unit_amount": null,
+      "livemode": false,
+      "lookup_key": null,
+      "metadata": {
+        "eng2012_seed": "long"
+      },
+      "nickname": null,
+      "product": "prod_VhnOCzIZXvoMu3",
+      "recurring": {
+        "interval": "day",
+        "interval_count": 400,
+        "meter": null,
+        "trial_period_days": null,
+        "usage_type": "licensed"
+      },
+      "tax_behavior": "unspecified",
+      "tiers_mode": null,
+      "transform_quantity": null,
+      "type": "recurring",
+      "unit_amount": 50000,
+      "unit_amount_decimal": "50000"
+    },
+    {
+      "id": "price_1UgNnVAXmbOrRaLZxUHj4TlZ",
+      "object": "price",
+      "active": true,
+      "billing_scheme": "per_unit",
+      "created": 1795780717,
+      "currency": "eur",
+      "currency_options": {
+        "eur": {
+          "custom_unit_amount": null,
+          "tax_behavior": "unspecified",
+          "unit_amount": 700,
+          "unit_amount_decimal": "700"
+        }
+      },
+      "custom_unit_amount": null,
+      "livemode": false,
+      "lookup_key": null,
+      "metadata": {
+        "eng2012_seed": "weekly"
+      },
+      "nickname": "Weekly",
+      "product": "prod_VhnOCzIZXvoMu3",
+      "recurring": {
+        "interval": "week",
+        "interval_count": 1,
+        "meter": null,
+        "trial_period_days": null,
+        "usage_type": "licensed"
+      },
+      "tax_behavior": "unspecified",
+      "tiers_mode": null,
+      "transform_quantity": null,
+      "type": "recurring",
+      "unit_amount": 700,
+      "unit_amount_decimal": "700"
+    },
+    {
+      "id": "price_1UgNnVAXmbOrRaLZMZgnPmhd",
+      "object": "price",
+      "active": true,
+      "billing_scheme": "per_unit",
+      "created": 1795780717,
+      "currency": "eur",
+      "currency_options": {
+        "eur": {
+          "custom_unit_amount": null,
+          "tax_behavior": "unspecified",
+          "unit_amount": 900,
+          "unit_amount_decimal": "900"
+        }
+      },
+      "custom_unit_amount": null,
+      "livemode": false,
+      "lookup_key": null,
+      "metadata": {
+        "eng2012_seed": "ebook"
+      },
+      "nickname": null,
+      "product": "prod_VhnOtziZP7FOgf",
+      "recurring": null,
+      "tax_behavior": "unspecified",
+      "tiers_mode": null,
+      "transform_quantity": null,
+      "type": "one_time",
+      "unit_amount": 900,
+      "unit_amount_decimal": "900"
+    },
+    {
+      "id": "price_1UgNnUAXmbOrRaLZHl0oCatX",
+      "object": "price",
+      "active": true,
+      "billing_scheme": "per_unit",
+      "created": 1795780716,
+      "currency": "eur",
+      "currency_options": {
+        "eur": {
+          "custom_unit_amount": null,
+          "tax_behavior": "unspecified",
+          "unit_amount": 4900,
+          "unit_amount_decimal": "4900"
+        }
+      },
+      "custom_unit_amount": null,
+      "livemode": false,
+      "lookup_key": null,
+      "metadata": {
+        "eng2012_seed": "seats"
+      },
+      "nickname": null,
+      "product": "prod_VhnOgTbTnMIJkG",
+      "recurring": null,
+      "tax_behavior": "unspecified",
+      "tiers_mode": null,
+      "transform_quantity": {
+        "divide_by": 10,
+        "round": "up"
+      },
+      "type": "one_time",
+      "unit_amount": 4900,
+      "unit_amount_decimal": "4900"
+    },
+    {
+      "id": "price_1UgNnUAXmbOrRaLZG1WZRuET",
+      "object": "price",
+      "active": true,
+      "billing_scheme": "per_unit",
+      "created": 1795780716,
+      "currency": "usd",
+      "currency_options": {
+        "usd": {
+          "custom_unit_amount": {
+            "maximum": 10000,
+            "minimum": 500,
+            "preset": 1500
+          },
+          "tax_behavior": "unspecified",
+          "unit_amount": null,
+          "unit_amount_decimal": null
+        }
+      },
+      "custom_unit_amount": {
+        "maximum": 10000,
+        "minimum": 500,
+        "preset": 1500
+      },
+      "livemode": false,
+      "lookup_key": null,
+      "metadata": {
+        "eng2012_seed": "donation"
+      },
+      "nickname": null,
+      "product": "prod_VhnOQNGsA4LW4H",
+      "recurring": null,
+      "tax_behavior": "unspecified",
+      "tiers_mode": null,
+      "transform_quantity": null,
+      "type": "one_time",
+      "unit_amount": null,
+      "unit_amount_decimal": null
+    },
+    {
+      "id": "price_1UgNnTAXmbOrRaLZexTthwgh",
+      "object": "price",
+      "active": true,
+      "billing_scheme": "tiered",
+      "created": 1795780715,
+      "currency": "usd",
+      "currency_options": {
+        "usd": {
+          "custom_unit_amount": null,
+          "tax_behavior": "unspecified",
+          "unit_amount": null,
+          "unit_amount_decimal": null
+        }
+      },
+      "custom_unit_amount": null,
+      "livemode": false,
+      "lookup_key": null,
+      "metadata": {
+        "eng2012_seed": "tiered"
+      },
+      "nickname": null,
+      "product": "prod_VhnOkYVsWc6di8",
+      "recurring": {
+        "interval": "month",
+        "interval_count": 1,
+        "meter": null,
+        "trial_period_days": null,
+        "usage_type": "licensed"
+      },
+      "tax_behavior": "unspecified",
+      "tiers_mode": "graduated",
+      "transform_quantity": null,
+      "type": "recurring",
+      "unit_amount": null,
+      "unit_amount_decimal": null
+    },
+    {
+      "id": "price_1UgNnSAXmbOrRaLZEue5eN3Z",
+      "object": "price",
+      "active": true,
+      "billing_scheme": "per_unit",
+      "created": 1795780714,
+      "currency": "usd",
+      "currency_options": {
+        "usd": {
+          "custom_unit_amount": null,
+          "tax_behavior": "unspecified",
+          "unit_amount": 3,
+          "unit_amount_decimal": "3"
+        }
+      },
+      "custom_unit_amount": null,
+      "livemode": false,
+      "lookup_key": null,
+      "metadata": {
+        "eng2012_seed": "metered-only"
+      },
+      "nickname": null,
+      "product": "prod_VhnOZYvsPma6nY",
+      "recurring": {
+        "interval": "month",
+        "interval_count": 1,
+        "meter": "mtr_test_61VplklchLQ1Y0MTF41AXmbOrRaLZ8YC",
+        "trial_period_days": null,
+        "usage_type": "metered"
+      },
+      "tax_behavior": "unspecified",
+      "tiers_mode": null,
+      "transform_quantity": null,
+      "type": "recurring",
+      "unit_amount": 3,
+      "unit_amount_decimal": "3"
+    },
+    {
+      "id": "price_1UgNnSAXmbOrRaLZKBuCuSFA",
+      "object": "price",
+      "active": true,
+      "billing_scheme": "per_unit",
+      "created": 1795780714,
+      "currency": "usd",
+      "currency_options": {
+        "usd": {
+          "custom_unit_amount": null,
+          "tax_behavior": "unspecified",
+          "unit_amount": null,
+          "unit_amount_decimal": "0.5"
+        }
+      },
+      "custom_unit_amount": null,
+      "livemode": false,
+      "lookup_key": null,
+      "metadata": {
+        "eng2012_seed": "usage-metered"
+      },
+      "nickname": null,
+      "product": "prod_VhnOZJaHQcm3CT",
+      "recurring": {
+        "interval": "month",
+        "interval_count": 1,
+        "meter": "mtr_test_61VplklKXH2mr8Lnh41AXmbOrRaLZJfM",
+        "trial_period_days": null,
+        "usage_type": "metered"
+      },
+      "tax_behavior": "unspecified",
+      "tiers_mode": null,
+      "transform_quantity": null,
+      "type": "recurring",
+      "unit_amount": null,
+      "unit_amount_decimal": "0.5"
+    },
+    {
+      "id": "price_1UgNnSAXmbOrRaLZjN74EJWB",
+      "object": "price",
+      "active": true,
+      "billing_scheme": "per_unit",
+      "created": 1795780714,
+      "currency": "usd",
+      "currency_options": {
+        "usd": {
+          "custom_unit_amount": null,
+          "tax_behavior": "unspecified",
+          "unit_amount": 1000,
+          "unit_amount_decimal": "1000"
+        }
+      },
+      "custom_unit_amount": null,
+      "livemode": false,
+      "lookup_key": null,
+      "metadata": {
+        "eng2012_seed": "usage-base"
+      },
+      "nickname": null,
+      "product": "prod_VhnOZJaHQcm3CT",
+      "recurring": {
+        "interval": "month",
+        "interval_count": 1,
+        "meter": null,
+        "trial_period_days": null,
+        "usage_type": "licensed"
+      },
+      "tax_behavior": "unspecified",
+      "tiers_mode": null,
+      "transform_quantity": null,
+      "type": "recurring",
+      "unit_amount": 1000,
+      "unit_amount_decimal": "1000"
+    },
+    {
+      "id": "price_1UgNnRAXmbOrRaLZakGBazAK",
+      "object": "price",
+      "active": true,
+      "billing_scheme": "per_unit",
+      "created": 1795780713,
+      "currency": "gbp",
+      "currency_options": {
+        "eur": {
+          "custom_unit_amount": null,
+          "tax_behavior": "unspecified",
+          "unit_amount": 1700,
+          "unit_amount_decimal": "1700"
+        },
+        "gbp": {
+          "custom_unit_amount": null,
+          "tax_behavior": "unspecified",
+          "unit_amount": 1500,
+          "unit_amount_decimal": "1500"
+        },
+        "usd": {
+          "custom_unit_amount": null,
+          "tax_behavior": "unspecified",
+          "unit_amount": 1900,
+          "unit_amount_decimal": "1900"
+        }
+      },
+      "custom_unit_amount": null,
+      "livemode": false,
+      "lookup_key": null,
+      "metadata": {
+        "eng2012_seed": "uk-gbp"
+      },
+      "nickname": null,
+      "product": "prod_VhnOCCgFb03w0W",
+      "recurring": {
+        "interval": "month",
+        "interval_count": 1,
+        "meter": null,
+        "trial_period_days": null,
+        "usage_type": "licensed"
+      },
+      "tax_behavior": "unspecified",
+      "tiers_mode": null,
+      "transform_quantity": null,
+      "type": "recurring",
+      "unit_amount": 1500,
+      "unit_amount_decimal": "1500"
+    },
+    {
+      "id": "price_1UgNnQAXmbOrRaLZ5nzbSvdz",
+      "object": "price",
+      "active": false,
+      "billing_scheme": "per_unit",
+      "created": 1795780712,
+      "currency": "usd",
+      "currency_options": {
+        "usd": {
+          "custom_unit_amount": null,
+          "tax_behavior": "unspecified",
+          "unit_amount": 1900,
+          "unit_amount_decimal": "1900"
+        }
+      },
+      "custom_unit_amount": null,
+      "livemode": false,
+      "lookup_key": null,
+      "metadata": {
+        "eng2012_seed": "pro-legacy"
+      },
+      "nickname": "Legacy monthly",
+      "product": "prod_VhnO5VaRUVrKSX",
+      "recurring": {
+        "interval": "month",
+        "interval_count": 1,
+        "meter": null,
+        "trial_period_days": null,
+        "usage_type": "licensed"
+      },
+      "tax_behavior": "unspecified",
+      "tiers_mode": null,
+      "transform_quantity": null,
+      "type": "recurring",
+      "unit_amount": 1900,
+      "unit_amount_decimal": "1900"
+    },
+    {
+      "id": "price_1UgNnQAXmbOrRaLZbCbL8iLc",
+      "object": "price",
+      "active": true,
+      "billing_scheme": "per_unit",
+      "created": 1795780712,
+      "currency": "usd",
+      "currency_options": {
+        "usd": {
+          "custom_unit_amount": null,
+          "tax_behavior": "unspecified",
+          "unit_amount": 29000,
+          "unit_amount_decimal": "29000"
+        }
+      },
+      "custom_unit_amount": null,
+      "livemode": false,
+      "lookup_key": "eng2012_pro_yearly",
+      "metadata": {
+        "eng2012_seed": "pro-yearly"
+      },
+      "nickname": "Yearly",
+      "product": "prod_VhnO5VaRUVrKSX",
+      "recurring": {
+        "interval": "year",
+        "interval_count": 1,
+        "meter": null,
+        "trial_period_days": null,
+        "usage_type": "licensed"
+      },
+      "tax_behavior": "unspecified",
+      "tiers_mode": null,
+      "transform_quantity": null,
+      "type": "recurring",
+      "unit_amount": 29000,
+      "unit_amount_decimal": "29000"
+    },
+    {
+      "id": "price_1UgNnQAXmbOrRaLZslqJaG2t",
+      "object": "price",
+      "active": true,
+      "billing_scheme": "per_unit",
+      "created": 1795780712,
+      "currency": "usd",
+      "currency_options": {
+        "usd": {
+          "custom_unit_amount": null,
+          "tax_behavior": "unspecified",
+          "unit_amount": 2900,
+          "unit_amount_decimal": "2900"
+        }
+      },
+      "custom_unit_amount": null,
+      "livemode": false,
+      "lookup_key": "Pro Monthly 2024",
+      "metadata": {
+        "eng2012_seed": "pro-monthly",
+        "plan": "pro-monthly"
+      },
+      "nickname": "Monthly",
+      "product": "prod_VhnO5VaRUVrKSX",
+      "recurring": {
+        "interval": "month",
+        "interval_count": 1,
+        "meter": null,
+        "trial_period_days": null,
+        "usage_type": "licensed"
+      },
+      "tax_behavior": "unspecified",
+      "tiers_mode": null,
+      "transform_quantity": null,
+      "type": "recurring",
+      "unit_amount": 2900,
+      "unit_amount_decimal": "2900"
+    }
+  ]
+}

@@ -1,5 +1,7 @@
 import { afterEach, describe, expect, it, vi } from "vitest";
 import { fakeCreem } from "./migrate-fixtures";
+import { ACCOUNT_ID, ID, STRIPE_KEY, stripeDocs, stripeFetch } from "./migrate-stripe-fixtures";
+import { fetchStripeCatalog, stripeClient } from "../src/lib/migration/stripe/source";
 import { checkMigration, executeMigration } from "../src/lib/migration/writer";
 import { adoptionMatcher, type MigrationPlan } from "../src/lib/migration/plan";
 import {
@@ -130,5 +132,115 @@ describe("shared layer: adopting a meter", () => {
       ["/v1/meters/mtr_1", false],
     ]);
     expect(creem.state.meters[0].external_id).toBe("mtr_stripe");
+  });
+});
+
+async function stripeObjects(
+  options: {
+    includeArchived?: boolean;
+    pageSize?: number;
+    docs?: ReturnType<typeof stripeDocs>;
+  } = {},
+) {
+  const stripe = stripeFetch(options.docs, { pageSize: options.pageSize });
+  const client = stripeClient(STRIPE_KEY, { fetch: stripe.fetcher });
+  return {
+    ...(await fetchStripeCatalog(client, { includeArchived: options.includeArchived })),
+    stripe,
+  };
+}
+const paths = (requests: { url: string }[]) => requests.map((r) => new URL(r.url).pathname);
+
+describe("Stripe source", () => {
+  it("reads the account, active products and prices, active meters and webhook endpoints with GETs only", async () => {
+    const { objects, failures, stripe } = await stripeObjects();
+    expect(failures).toEqual([]);
+    expect(objects.account).toEqual({ id: ACCOUNT_ID, name: "eng2012 sandbox", currency: "EUR" });
+    expect(objects.products.map((p) => p.id)).not.toContain(ID.productOld);
+    expect(objects.products).toHaveLength(10);
+    expect(objects.prices.map((p) => p.id)).not.toContain(ID.priceProLegacy);
+    expect(objects.prices.map((p) => p.id)).toContain(ID.priceOld);
+    expect(objects.prices.find((p) => p.id === ID.priceUkGbp)?.currency_options).toHaveProperty(
+      "usd",
+    );
+    expect(objects.meters.map((m) => m.id)).toEqual(
+      expect.arrayContaining([ID.meterCalls, ID.meterUsers, ID.meterStorage]),
+    );
+    expect(objects.webhookEndpoints).toBe(0);
+    expect(new Set(paths(stripe.requests))).toEqual(
+      new Set([
+        "/v1/account",
+        "/v1/products",
+        "/v1/prices",
+        "/v1/billing/meters",
+        "/v1/webhook_endpoints",
+      ]),
+    );
+    for (const r of stripe.requests) {
+      expect(new URL(r.url).hostname).toBe("api.stripe.com");
+      expect(r.authorization).toBe(`Bearer ${STRIPE_KEY}`);
+    }
+    const query = (path: string) =>
+      new URL(stripe.requests.find((r) => new URL(r.url).pathname === path)!.url).searchParams;
+    expect(query("/v1/products").get("active")).toBe("true");
+    expect(query("/v1/prices").get("active")).toBe("true");
+    expect(query("/v1/billing/meters").get("status")).toBe("active");
+  });
+
+  it("reads inactive products and prices too with includeArchived", async () => {
+    const { objects } = await stripeObjects({ includeArchived: true });
+    expect(objects.products.map((p) => p.id)).toContain(ID.productOld);
+    expect(objects.prices.map((p) => p.id)).toContain(ID.priceProLegacy);
+    expect(objects.prices).toHaveLength(15);
+  });
+
+  it("reads every page of a list", async () => {
+    const { objects, stripe } = await stripeObjects({ pageSize: 4 });
+    expect(objects.prices).toHaveLength(14);
+    expect(paths(stripe.requests).filter((p) => p === "/v1/prices")).toHaveLength(4);
+  });
+
+  it("lists webhook endpoints as unknown when the key may not read them", async () => {
+    const stripe = stripeFetch();
+    stripe.fail("/v1/webhook_endpoints", 403, {
+      error: {
+        type: "invalid_request_error",
+        code: "secret_key_required",
+        message: "The provided key does not have the required permissions.",
+      },
+    });
+    const { objects, failures } = await fetchStripeCatalog(
+      stripeClient(STRIPE_KEY, { fetch: stripe.fetcher }),
+    );
+    expect(failures).toEqual([]);
+    expect(objects.webhookEndpoints).toBeNull();
+  });
+
+  it("reports a list it couldn't read as a fetch failure, without the key", async () => {
+    const stripe = stripeFetch();
+    stripe.fail("/v1/prices", 403, {
+      error: {
+        type: "invalid_request_error",
+        message: `The provided key '${STRIPE_KEY.slice(0, 12)}***' does not have the required permissions for this endpoint.`,
+      },
+    });
+    const { failures } = await fetchStripeCatalog(
+      stripeClient(STRIPE_KEY, { fetch: stripe.fetcher, maxNetworkRetries: 0 }),
+    );
+    expect(failures).toEqual([{ kind: "prices", message: expect.stringContaining("permissions") }]);
+    expect(JSON.stringify(failures)).not.toContain(STRIPE_KEY);
+  });
+
+  it("throws the authentication error of a refused key", async () => {
+    const stripe = stripeFetch();
+    stripe.fail("/v1/account", 401, {
+      error: {
+        type: "invalid_request_error",
+        message: "Invalid API Key provided: rk_test_****0000",
+      },
+    });
+    await expect(
+      fetchStripeCatalog(stripeClient(STRIPE_KEY, { fetch: stripe.fetcher })),
+    ).rejects.toMatchObject({ type: "StripeAuthenticationError" });
   });
 });

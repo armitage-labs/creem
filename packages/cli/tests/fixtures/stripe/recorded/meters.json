@@ -1,0 +1,79 @@
+{
+  "object": "list",
+  "url": "/v1/billing/meters",
+  "has_more": false,
+  "data": [
+    {
+      "id": "mtr_test_61VplklOqdvLZVdps41AXmbOrRaLZKgK",
+      "object": "billing.meter",
+      "created": 1795780711,
+      "customer_mapping": {
+        "event_payload_key": "stripe_customer_id",
+        "type": "by_id"
+      },
+      "default_aggregation": {
+        "formula": "last"
+      },
+      "display_name": "eng2012 Storage",
+      "event_name": "eng2012_storage_gb",
+      "event_time_window": null,
+      "livemode": false,
+      "status": "active",
+      "status_transitions": {
+        "deactivated_at": null
+      },
+      "updated": 1795780711,
+      "value_settings": {
+        "event_payload_key": "value"
+      }
+    },
+    {
+      "id": "mtr_test_61VplklchLQ1Y0MTF41AXmbOrRaLZ8YC",
+      "object": "billing.meter",
+      "created": 1795780711,
+      "customer_mapping": {
+        "event_payload_key": "stripe_customer_id",
+        "type": "by_id"
+      },
+      "default_aggregation": {
+        "formula": "count"
+      },
+      "display_name": "eng2012 Active users",
+      "event_name": "eng2012_active_user",
+      "event_time_window": null,
+      "livemode": false,
+      "status": "active",
+      "status_transitions": {
+        "deactivated_at": null
+      },
+      "updated": 1795780711,
+      "value_settings": {
+        "event_payload_key": "value"
+      }
+    },
+    {
+      "id": "mtr_test_61VplklKXH2mr8Lnh41AXmbOrRaLZJfM",
+      "object": "billing.meter",
+      "created": 1795780711,
+      "customer_mapping": {
+        "event_payload_key": "stripe_customer_id",
+        "type": "by_id"
+      },
+      "default_aggregation": {
+        "formula": "sum"
+      },
+      "display_name": "eng2012 API calls",
+      "event_name": "eng2012_api_call",
+      "event_time_window": null,
+      "livemode": false,
+      "status": "active",
+      "status_transitions": {
+        "deactivated_at": null
+      },
+      "updated": 1795780711,
+      "value_settings": {
+        "event_payload_key": "calls"
+      }
+    }
+  ]
+}
