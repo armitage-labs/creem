@@ -1034,5 +1034,9 @@ export function fakeCreem(initial: Partial<CreemState> = {}, init: FakeCreemOpti
     refuse(key: string, status: number, code: string, message = code) {
       refusals.set(key, apiError(status, code, message));
     },
+    /** Ends a `refuse`: writes of the key go through again. */
+    allow(key: string) {
+      refusals.delete(key);
+    },
   };
 }

@@ -931,3 +931,81 @@ describe("ENG-2405 review: reasons and report", () => {
     expect(JSON.parse(r.stderr).error.message).toContain("--polar-server");
   });
 });
+
+/** The fixtures with a second product, the free one, granting the guide file too. */
+const sharedFileDocs = () =>
+  docsWith((d) => {
+    const download = polarProduct(d, ID.productDownload);
+    polarProduct(d, ID.productFree).benefits = [
+      {
+        ...structuredClone(download.benefits[0]),
+        id: "00000000-0000-4000-8000-00000000d003",
+        description: "The guide, free",
+      },
+    ];
+  });
+
+describe("ENG-2405 review: shared files", () => {
+  it("uploads a file two products share when only one of them is refused, and attaches it to the other", async () => {
+    const creem = fakeCreem();
+    creem.refuse(ID.productFree, 422, "unprocessable");
+    const { report } = await migrate(creem, {
+      docs: sharedFileDocs(),
+      filesDir: LOCAL_FILES,
+      force: true,
+    });
+    expect(item({ report: report! }, ID.productFree).status).toBe("failed");
+    expect(item({ report: report! }, ID.productDownload).status).toBe("done");
+    expect(item({ report: report! }, ID.fileGuide, "file").status).toBe("done");
+    const download = creem.state.products.find((pr) => pr.external_id === ID.productDownload)!;
+    expect(download.features[0].file.files).toHaveLength(1);
+  });
+
+  it("reuses a file another product holds on a resumed run, instead of uploading it again", async () => {
+    const creem = fakeCreem();
+    creem.refuse(ID.productFree, 422, "unprocessable");
+    await migrate(creem, { docs: sharedFileDocs(), filesDir: LOCAL_FILES, force: true });
+    creem.allow(ID.productFree);
+    const second = await migrate(creem, { docs: sharedFileDocs(), filesDir: LOCAL_FILES });
+    expect(second.slotPosts).toEqual([]);
+    expect(item(second.plan, ID.fileGuide, "file").action).toBe("unchanged");
+    const download = creem.state.products.find((pr) => pr.external_id === ID.productDownload)!;
+    const free = creem.state.products.find((pr) => pr.external_id === ID.productFree)!;
+    expect(free.features[0].file.files.map((f: { id: string }) => f.id)).toEqual(
+      download.features[0].file.files.map((f: { id: string }) => f.id),
+    );
+    expect(creem.state.files).toHaveLength(1);
+  });
+
+  it("sends a kept note feature without a note when Creem stores none, so a re-run is unchanged", async () => {
+    const creem = fakeCreem();
+    await migrate(creem);
+    const license = creem.state.products.find((pr) => pr.external_id === ID.productLicense)!;
+    license.features.push({
+      id: "feat_note",
+      type: "custom",
+      description: "Merchant's own note",
+      external_id: null,
+    });
+    const { plan: p, checked } = await migrate(creem);
+    const kept = productBody(p, ID.productLicense)?.features?.find(
+      (f) => "id" in f && f.id === "feat_note",
+    );
+    expect(kept).toEqual({ id: "feat_note", type: "custom", description: "Merchant's own note" });
+    expect(item(checked, ID.productLicense).action).toBe("unchanged");
+  });
+
+  it("warns about a downloadables benefit whose files are all archived, and gives an archived file its own reason", async () => {
+    const docs = docsWith((d) => {
+      polarProduct(d, ID.productDownload).benefits[0].properties.archived = {
+        [ID.fileGuide]: true,
+      };
+    });
+    const { objects } = await polarObjects(docs, { filesDir: LOCAL_FILES });
+    const p = fromPolar(objects, emptyCatalog, { now: NOW });
+    expect(item(p, ID.productDownload).warnings).toContainEqual(
+      expect.objectContaining({ code: "benefit_files_archived" }),
+    );
+    expect(item(p, ID.fileGuide, "file").reason?.code).toBe("file_archived");
+  });
+});
