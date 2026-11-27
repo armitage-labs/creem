@@ -12,6 +12,7 @@
         "billingPeriod": "every-month",
         "trialPeriodDays": 30,
         "taxCategory": "saas",
+        "taxMode": "exclusive",
         "metadata": {
           "region": "eu",
           "plan": "cloud"
@@ -31,6 +32,7 @@
         "currency": "USD",
         "billingType": "onetime",
         "taxCategory": "ebooks",
+        "taxMode": "inclusive",
         "externalId": "pri_01hw000000000000000ebook1"
       }
     }

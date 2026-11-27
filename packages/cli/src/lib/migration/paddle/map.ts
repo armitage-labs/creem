@@ -67,6 +67,10 @@ const NOT_MIGRATED: [string, string][] = [
 ];
 
 const TAX: Record<string, "saas" | "ebooks"> = { saas: "saas", ebooks: "ebooks" };
+const TAX_MODE: Record<string, "inclusive" | "exclusive"> = {
+  internal: "inclusive",
+  external: "exclusive",
+};
 const PERIOD_DAYS: Record<string, number> = {
   "every-day": 1,
   "every-month": 30,
@@ -195,6 +199,15 @@ function mapPrice(
       ),
     );
   } else body.taxCategory = tax;
+  const taxMode = TAX_MODE[price.tax_mode ?? ""];
+  if (taxMode) body.taxMode = taxMode;
+  else if (price.tax_mode)
+    warnings.push(
+      issue(
+        "tax_mode_not_migrated",
+        `Paddle's tax mode is ${price.tax_mode} (${price.tax_mode === "location" ? "tax included or added by the buyer's country" : "the Paddle account's setting"}); a Creem product has one tax mode, so a new product gets Creem's default, inclusive, and an existing one keeps its own.`,
+      ),
+    );
   if (archived) body.status = "archived";
   return { body };
 }
@@ -410,6 +423,8 @@ export function fromPaddle(
         update.recurringIntervalCount = create.recurringIntervalCount;
       }
     }
+    if (create.taxMode && existing.taxMode !== create.taxMode)
+      set("taxMode", create.taxMode, "tax_mode");
     if ((existing.trialPeriodDays ?? null) !== (create.trialPeriodDays ?? null))
       set("trialPeriodDays", create.trialPeriodDays ?? null, "trial_period_days");
     // A sent `metadata` replaces the stored one, so the merchant's keys go back with it.

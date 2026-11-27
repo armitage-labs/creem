@@ -14,7 +14,7 @@
     "unchanged": 0,
     "skip": 13,
     "failed": 0,
-    "warnings": 12
+    "warnings": 18
   },
   "items": [
     {
@@ -135,6 +135,10 @@
         {
           "code": "tax_category_changed",
           "message": "Creem's ebooks tax category is one-time only; the subscription gets digital-goods-service."
+        },
+        {
+          "code": "tax_mode_not_migrated",
+          "message": "Paddle's tax mode is account_setting (the Paddle account's setting); a Creem product has one tax mode, so a new product gets Creem's default, inclusive, and an existing one keeps its own."
         }
       ],
       "error": null,
@@ -174,7 +178,12 @@
       "adopted_from": null,
       "changes": [],
       "reason": null,
-      "warnings": [],
+      "warnings": [
+        {
+          "code": "tax_mode_not_migrated",
+          "message": "Paddle's tax mode is location (tax included or added by the buyer's country); a Creem product has one tax mode, so a new product gets Creem's default, inclusive, and an existing one keeps its own."
+        }
+      ],
       "error": null,
       "kind": "product",
       "key": "pri_01m8ee91rdx3xn32adc9jtmj9v",
@@ -192,7 +201,12 @@
       "adopted_from": null,
       "changes": [],
       "reason": null,
-      "warnings": [],
+      "warnings": [
+        {
+          "code": "tax_mode_not_migrated",
+          "message": "Paddle's tax mode is location (tax included or added by the buyer's country); a Creem product has one tax mode, so a new product gets Creem's default, inclusive, and an existing one keeps its own."
+        }
+      ],
       "error": null,
       "kind": "product",
       "key": "pri_01m8ee91x0ae559fkyjp35acdy",
@@ -235,6 +249,10 @@
         {
           "code": "quantity_not_migrated",
           "message": "Paddle limits the quantity to 1–1; the limit is not migrated."
+        },
+        {
+          "code": "tax_mode_not_migrated",
+          "message": "Paddle's tax mode is location (tax included or added by the buyer's country); a Creem product has one tax mode, so a new product gets Creem's default, inclusive, and an existing one keeps its own."
         }
       ],
       "error": null,
@@ -262,6 +280,10 @@
         {
           "code": "quantity_not_migrated",
           "message": "Paddle limits the quantity to 1–10; the limit is not migrated."
+        },
+        {
+          "code": "tax_mode_not_migrated",
+          "message": "Paddle's tax mode is location (tax included or added by the buyer's country); a Creem product has one tax mode, so a new product gets Creem's default, inclusive, and an existing one keeps its own."
         }
       ],
       "error": null,
@@ -302,7 +324,12 @@
       "adopted_from": null,
       "changes": [],
       "reason": null,
-      "warnings": [],
+      "warnings": [
+        {
+          "code": "tax_mode_not_migrated",
+          "message": "Paddle's tax mode is location (tax included or added by the buyer's country); a Creem product has one tax mode, so a new product gets Creem's default, inclusive, and an existing one keeps its own."
+        }
+      ],
       "error": null,
       "kind": "product",
       "key": "pri_01m8ee9916eq0x1r4ycpnvdrpb",

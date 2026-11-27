@@ -50,6 +50,8 @@ export interface PaddlePrice {
   billing_cycle: PaddleInterval | null;
   trial_period: PaddleInterval | null;
   unit_price: PaddleMoney;
+  /** `internal` (tax included), `external` (added), `location` or `account_setting`. */
+  tax_mode?: string;
   unit_price_overrides: { country_codes: string[]; unit_price: PaddleMoney }[];
   quantity: { minimum: number; maximum: number } | null;
   custom_data: Record<string, unknown> | null;
