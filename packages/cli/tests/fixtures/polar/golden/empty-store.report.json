@@ -9,12 +9,12 @@
   },
   "mode": "plan",
   "summary": {
-    "create": 15,
+    "create": 18,
     "update": 0,
     "unchanged": 0,
-    "skip": 9,
+    "skip": 7,
     "failed": 0,
-    "warnings": 12
+    "warnings": 11
   },
   "items": [
     {
@@ -239,8 +239,8 @@
       "reason": null,
       "warnings": [
         {
-          "code": "benefit_unsupported",
-          "message": "The meter credit benefit \"1,000 image credits\" is not migrated; set it up in Creem."
+          "code": "credits_not_spent_by_postpaid",
+          "message": "The 1000 credits land in the customer's \"image\" bucket. Creem bills postpaid usage at renewal and never from credits, so they don't reduce a postpaid usage price as Polar's do; a prepaid usage price on the meter spends them."
         }
       ],
       "error": null,
@@ -251,7 +251,10 @@
         "type": "product",
         "id": "6a163987-47f5-43b6-8e04-fcae6b92341e"
       },
-      "action": "create"
+      "action": "create",
+      "features": [
+        "46162aff-de65-437f-95b4-ea1388324ce2"
+      ]
     },
     {
       "status": "pending",
@@ -262,7 +265,7 @@
       "warnings": [
         {
           "code": "benefit_unsupported",
-          "message": "The downloadables benefit \"Download the guide\" is not migrated; set it up in Creem."
+          "message": "The downloadables benefit \"Download the guide\" is not migrated: Creem has no equivalent. Set it up outside Creem."
         }
       ],
       "error": null,
@@ -283,16 +286,12 @@
       "reason": null,
       "warnings": [
         {
-          "code": "benefit_unsupported",
-          "message": "The license-key benefit \"License key\" is not migrated; set it up in Creem."
+          "code": "license_key_settings_not_migrated",
+          "message": "The license key's prefix (POLAR), customer self-service deactivation are not migrated: Creem license keys have no such setting. The activation limit and expiry are."
         },
         {
           "code": "benefit_unsupported",
-          "message": "The custom benefit \"Private community\" is not migrated; set it up in Creem."
-        },
-        {
-          "code": "benefit_unsupported",
-          "message": "The feature flag benefit \"Beta features\" is not migrated; set it up in Creem."
+          "message": "The feature flag benefit \"Beta features\" is not migrated: Creem has no equivalent. Set it up outside Creem."
         }
       ],
       "error": null,
@@ -303,7 +302,11 @@
         "type": "product",
         "id": "799c693b-96d3-45b2-9f17-3854de48d073"
       },
-      "action": "create"
+      "action": "create",
+      "features": [
+        "52401d68-513c-4ed9-afb6-b1df913efe6a",
+        "25cb2a32-8902-4584-bf39-c19321c73ced"
+      ]
     },
     {
       "status": null,
@@ -392,8 +395,8 @@
       "reason": null,
       "warnings": [
         {
-          "code": "benefit_unsupported",
-          "message": "The meter credit benefit \"1,000 image credits\" is not migrated; set it up in Creem."
+          "code": "credits_not_spent_by_postpaid",
+          "message": "The 1000 credits land in the customer's \"image\" bucket. Creem bills postpaid usage at renewal and never from credits, so they don't reduce a postpaid usage price as Polar's do; a prepaid usage price on the meter spends them."
         }
       ],
       "error": null,
@@ -404,49 +407,46 @@
         "type": "product",
         "id": "c635a220-436e-458f-b8e1-0eb1989a16cc"
       },
-      "action": "create"
+      "action": "create",
+      "features": [
+        "46162aff-de65-437f-95b4-ea1388324ce2"
+      ]
     },
     {
-      "status": null,
+      "status": "pending",
       "creem_id": null,
       "adopted_from": null,
       "changes": [],
-      "reason": {
-        "code": "legacy_prices_unsupported",
-        "message": "The product is a legacy product with one price per billing interval; it is not migrated. Set it up in Creem."
-      },
+      "reason": null,
       "warnings": [],
       "error": null,
       "kind": "product",
       "key": "00000000-0000-4000-8000-00000000c002",
-      "name": "Legacy Pro",
+      "name": "Legacy Pro - Yearly",
       "source": {
         "type": "price",
         "id": "00000000-0000-4000-8000-00000000c002",
         "product_id": "00000000-0000-4000-8000-00000000b001"
       },
-      "action": "skip"
+      "action": "create"
     },
     {
-      "status": null,
+      "status": "pending",
       "creem_id": null,
       "adopted_from": null,
       "changes": [],
-      "reason": {
-        "code": "legacy_prices_unsupported",
-        "message": "The product is a legacy product with one price per billing interval; it is not migrated. Set it up in Creem."
-      },
+      "reason": null,
       "warnings": [],
       "error": null,
       "kind": "product",
       "key": "00000000-0000-4000-8000-00000000c001",
-      "name": "Legacy Pro",
+      "name": "Legacy Pro - Monthly",
       "source": {
         "type": "price",
         "id": "00000000-0000-4000-8000-00000000c001",
         "product_id": "00000000-0000-4000-8000-00000000b001"
       },
-      "action": "skip"
+      "action": "create"
     },
     {
       "status": "pending",
@@ -457,11 +457,11 @@
       "warnings": [
         {
           "code": "benefit_unsupported",
-          "message": "The Discord benefit \"Discord member role\" is not migrated; set it up in Creem."
+          "message": "The Discord benefit \"Discord member role\" is not migrated: Creem has no equivalent. Set it up outside Creem."
         },
         {
           "code": "benefit_unsupported",
-          "message": "The GitHub repository benefit \"Source code access\" is not migrated; set it up in Creem."
+          "message": "The GitHub repository benefit \"Source code access\" is not migrated: Creem has no equivalent. Set it up outside Creem."
         }
       ],
       "error": null,
@@ -510,6 +510,27 @@
         "id": "00000000-0000-4000-8000-00000000b004"
       },
       "action": "create"
+    },
+    {
+      "status": "pending",
+      "creem_id": null,
+      "adopted_from": null,
+      "changes": [],
+      "reason": null,
+      "warnings": [],
+      "error": null,
+      "kind": "product_group",
+      "key": "00000000-0000-4000-8000-00000000b001",
+      "name": "Legacy Pro",
+      "source": {
+        "type": "product",
+        "id": "00000000-0000-4000-8000-00000000b001"
+      },
+      "action": "create",
+      "members": [
+        "00000000-0000-4000-8000-00000000c001",
+        "00000000-0000-4000-8000-00000000c002"
+      ]
     }
   ],
   "proposals": [],

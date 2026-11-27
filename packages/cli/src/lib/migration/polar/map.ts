@@ -1,7 +1,9 @@
 import type {
   CreateMeterApiRequestDto,
+  FeatureEntity,
   MeterApiResponseDto,
   ProductEntity,
+  ProductGroupEntity,
 } from "creem/models/components";
 import type { CreateProductRequest } from "creem/models/operations";
 import { billing, trialDays } from "../billing";
@@ -31,6 +33,7 @@ import type {
 } from "./source";
 
 type ProductBody = CreateProductRequest["createProductRequestEntity"];
+type Feature = NonNullable<ProductBody["features"]>[number];
 type UsagePrice = NonNullable<ProductBody["usagePrices"]>[number];
 
 export interface FromPolarOptions {
@@ -119,6 +122,13 @@ function mapMeter(
 }
 
 const STATIC_PRICES = new Set(["fixed", "custom", "free"]);
+const INTERVAL_DAYS: Record<string, number> = { day: 1, week: 7, month: 30, year: 365 };
+const INTERVAL_NAMES: Record<string, string> = {
+  day: "Daily",
+  week: "Weekly",
+  month: "Monthly",
+  year: "Yearly",
+};
 /** The base price of a product body, or why it is skipped. */
 function mapPrice(
   price: PolarPrice,
@@ -178,26 +188,115 @@ function mapPrice(
   return { body };
 }
 
+/** A stored feature sent back as it is, so a per-type replace keeps it. */
+function keepFeature(feature: FeatureEntity): Feature | undefined {
+  const base = { id: feature.id, description: feature.description };
+  if (feature.type === "licenseKey" && feature.licenseKey)
+    return { ...base, type: "licenseKey", licenseKey: feature.licenseKey };
+  if (feature.type === "custom")
+    return { ...base, type: "custom", privateNote: feature.privateNote ?? "" };
+  if (feature.type === "customerCredits" && feature.customerCredits)
+    return { ...base, type: "customerCredits", customerCredits: feature.customerCredits };
+  if (feature.type === "file" && feature.file)
+    return {
+      ...base,
+      type: "file",
+      file: { files: feature.file.files.map((f) => ({ id: f.id })) },
+    };
+  return undefined;
+}
+
 const BENEFIT_NAMES: Record<string, string> = {
-  license_keys: "license-key",
-  custom: "custom",
-  meter_credit: "meter credit",
-  downloadables: "downloadables",
   discord: "Discord",
   github_repository: "GitHub repository",
+  downloadables: "downloadables",
   feature_flag: "feature flag",
   slack_shared_channel: "Slack channel",
 };
 
-/** Lists each of a product's benefits on its item: none is migrated. */
-function benefitWarnings(product: PolarProduct, warnings: MigrationIssue[]) {
-  for (const benefit of product.benefits)
-    warnings.push(
-      issue(
-        "benefit_unsupported",
-        `The ${BENEFIT_NAMES[benefit.type] ?? benefit.type} benefit "${benefit.description}" is not migrated; set it up in Creem.`,
-      ),
-    );
+/** A product's benefits as Creem features, keyed by the benefit id. */
+function mapBenefits(
+  product: PolarProduct,
+  recurring: boolean,
+  meterLabels: Map<string, string>,
+  warnings: MigrationIssue[],
+): Feature[] {
+  const features: Feature[] = [];
+  for (const benefit of product.benefits) {
+    const p = benefit.properties;
+    const base = { externalId: benefit.id, description: benefit.description };
+    if (benefit.type === "license_keys") {
+      const activations = p.activations as {
+        limit?: number;
+        enable_customer_admin?: boolean;
+      } | null;
+      const expires = p.expires as { ttl: number; timeframe: "day" | "month" | "year" } | null;
+      const other = [
+        p.prefix ? `prefix (${String(p.prefix)})` : "",
+        p.limit_usage ? `usage limit (${String(p.limit_usage)})` : "",
+        activations?.enable_customer_admin ? "customer self-service deactivation" : "",
+      ].filter(Boolean);
+      if (other.length)
+        warnings.push(
+          issue(
+            "license_key_settings_not_migrated",
+            `The license key's ${other.join(", ")} ${other.length > 1 ? "are" : "is"} not migrated: Creem license keys have no such setting. The activation limit and expiry are.`,
+          ),
+        );
+      features.push({
+        ...base,
+        type: "licenseKey",
+        licenseKey: {
+          activationLimit: activations?.limit ?? null,
+          expiry: expires ? { interval: expires.timeframe, intervalCount: expires.ttl } : null,
+        },
+      });
+    } else if (benefit.type === "custom") {
+      if (typeof p.note === "string" && p.note.trim())
+        features.push({ ...base, type: "custom", privateNote: p.note });
+      else
+        warnings.push(
+          issue(
+            "benefit_note_empty",
+            `The custom benefit "${benefit.description}" has no note to migrate.`,
+          ),
+        );
+    } else if (benefit.type === "meter_credit") {
+      const label = meterLabels.get(String(p.meter_id));
+      if (!label) {
+        warnings.push(
+          issue(
+            "meter_not_migrated",
+            `The credit benefit "${benefit.description}" is on meter ${String(p.meter_id)}, which isn't migrated, so it isn't either.`,
+          ),
+        );
+        continue;
+      }
+      features.push({
+        ...base,
+        type: "customerCredits",
+        customerCredits: {
+          amount: String(p.units),
+          unitLabel: label,
+          bucketName: label,
+          ...(recurring ? { resetsEachPeriod: !p.rollover } : {}),
+        },
+      });
+      warnings.push(
+        issue(
+          "credits_not_spent_by_postpaid",
+          `The ${String(p.units)} credits land in the customer's "${label}" bucket. Creem bills postpaid usage at renewal and never from credits, so they don't reduce a postpaid usage price as Polar's do; a prepaid usage price on the meter spends them.`,
+        ),
+      );
+    } else
+      warnings.push(
+        issue(
+          "benefit_unsupported",
+          `The ${BENEFIT_NAMES[benefit.type] ?? benefit.type} benefit "${benefit.description}" is not migrated: Creem has no equivalent. Set it up outside Creem.`,
+        ),
+      );
+  }
+  return features;
 }
 
 /** How a candidate differs from the product a Polar product maps to: shown, never matched on. */
@@ -244,10 +343,12 @@ export function fromPolar(
     new Map(list.filter((o) => o.externalId).map((o) => [o.externalId as string, o]));
   const metersByKey = byKey<MeterApiResponseDto>(creemCatalog.meters ?? []);
   const productsByKey = byKey<ProductEntity>(creemCatalog.products);
+  const groupsByKey = byKey<ProductGroupEntity>(creemCatalog.productGroups);
   const preferred = (objects.organization.default_presentment_currency ?? "").toUpperCase();
   const requests: MigrationRequest[] = [];
   const meterItems: MigrationItem[] = [];
   const productItems: MigrationItem[] = [];
+  const groupItems: MigrationItem[] = [];
 
   // ---- meters
   /** The unit label of each migrated meter, by Polar id. */
@@ -282,7 +383,7 @@ export function fromPolar(
     });
   }
 
-  // ---- products
+  // ---- products: one per Polar product, or per price of a legacy product
   const offers: { offer: Offer; item: MigrationItem }[] = [];
   for (const product of objects.products) {
     const prices = product.prices.filter((p) => !p.is_archived);
@@ -347,12 +448,23 @@ export function fromPolar(
       continue;
     }
     if (legacy) {
-      skipAll(
-        issue(
-          "legacy_prices_unsupported",
-          "The product is a legacy product with one price per billing interval; it is not migrated. Set it up in Creem.",
-        ),
-      );
+      for (const price of statics) {
+        offers.push({
+          offer: {
+            key: price.id,
+            name:
+              statics.length > 1
+                ? `${product.name} - ${INTERVAL_NAMES[price.recurring_interval ?? ""] ?? "One-time"}`
+                : product.name,
+            product,
+            price,
+            metered: [],
+            interval: price.recurring_interval,
+            count: 1,
+          },
+          item: productItem(price.id, { type: "price", id: price.id, product_id: product.id }),
+        });
+      }
       continue;
     }
     // One currency per Creem product: the organization's default, else USD, else EUR.
@@ -393,6 +505,8 @@ export function fromPolar(
     });
   }
 
+  /** The planned body of each migrated offer, for the product groups. */
+  const planned = new Map<string, ProductBody>();
   for (const { offer, item } of offers) {
     const { product } = offer;
     item.name = offer.name;
@@ -449,7 +563,12 @@ export function fromPolar(
           "The checkout custom fields are not migrated; add them in Creem.",
         ),
       );
-    benefitWarnings(product, item.warnings);
+    const features = mapBenefits(
+      product,
+      body.billingType === "recurring",
+      meterLabels,
+      item.warnings,
+    );
 
     const found = adoption.match(
       "product",
@@ -474,6 +593,28 @@ export function fromPolar(
       continue;
     }
     const existing = found.existing;
+    if (features.length) {
+      // `features` replaces the stored features of each type it names: the
+      // merchant's other features of those types are sent back as they are.
+      const types = new Set(features.map((f) => f.type));
+      const keys = new Set(features.map((f) => f.externalId));
+      for (const stored of existing?.features ?? []) {
+        if (!types.has(stored.type as Feature["type"]) || keys.has(stored.externalId ?? undefined))
+          continue;
+        const kept = keepFeature(stored);
+        if (!kept) continue;
+        features.push(kept);
+        if (!stored.externalId)
+          item.warnings.push(
+            issue(
+              "feature_kept",
+              `Creem feature ${stored.id} (${stored.type}) has no key, so it stays next to the migrated one. Remove it in Creem if it's the same.`,
+            ),
+          );
+      }
+      body.features = features;
+      item.features = features.flatMap((f) => (f.externalId ? [f.externalId] : []));
+    }
     if (existing && body.usagePrices) {
       // `usage_prices` is the complete set: the merchant's own are sent back.
       const ours = new Set(body.usagePrices.map((u) => metersByKey.get(u.meterExternalId!)?.id));
@@ -486,6 +627,7 @@ export function fromPolar(
       item.warnings.push(
         issue("creem_product_archived", "The Creem product is archived; it stays archived."),
       );
+    planned.set(offer.key, body);
     item.status = "pending";
     if (!existing) {
       item.action = "create";
@@ -522,8 +664,60 @@ export function fromPolar(
       });
   }
 
+  // ---- product groups: the migrated recurring prices of a legacy product
+  const length = (b: ProductBody) =>
+    b.billingPeriod === "custom"
+      ? INTERVAL_DAYS[b.recurringInterval ?? "month"] * (b.recurringIntervalCount ?? 1)
+      : ({
+          "every-day": 1,
+          "every-month": 30,
+          "every-three-months": 90,
+          "every-six-months": 180,
+          "every-year": 365,
+        }[b.billingPeriod as string] ?? 0);
+  for (const product of objects.products) {
+    const members = offers
+      .filter(({ offer }) => offer.product === product && offer.key !== product.id)
+      .map(({ offer }) => [offer.key, planned.get(offer.key)] as const)
+      .filter((m): m is readonly [string, ProductBody] => m[1]?.billingType === "recurring")
+      .sort(([, a], [, b]) => length(a) - length(b) || a.price! - b.price!)
+      .map(([key]) => key);
+    if (members.length < 2) continue;
+    const existing = groupsByKey.get(product.id);
+    const item = newItem({
+      kind: "product_group",
+      key: product.id,
+      name: product.name,
+      source: { type: "product", id: product.id },
+      action: existing ? "update" : "create",
+      status: "pending",
+      creem_id: existing?.id ?? null,
+      members,
+    });
+    groupItems.push(item);
+    // `products` is the complete ordered list: the merchant's other members stay after these.
+    const keys = new Set(members);
+    const others = (existing?.products ?? []).filter(
+      (p) => !p.externalId || !keys.has(p.externalId),
+    );
+    requests.push({
+      type: "upsert_product_group",
+      key: product.id,
+      request: {
+        createProductGroupRequestEntity: {
+          externalId: product.id,
+          ...(existing ? {} : { name: product.name }),
+          products: [
+            ...members.map((externalId) => ({ externalId })),
+            ...others.map((p) => ({ id: p.id })),
+          ],
+        },
+      },
+    });
+  }
+
   adoption.finish();
-  const items = [...meterItems, ...productItems];
+  const items = [...meterItems, ...productItems, ...groupItems];
   const report: MigrationReport = {
     schema: MIGRATION_REPORT_SCHEMA,
     version: MIGRATION_REPORT_VERSION,

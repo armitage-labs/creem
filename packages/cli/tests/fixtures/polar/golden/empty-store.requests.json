@@ -120,7 +120,20 @@
         "price": 1500,
         "currency": "USD",
         "billingType": "recurring",
-        "billingPeriod": "every-month"
+        "billingPeriod": "every-month",
+        "features": [
+          {
+            "externalId": "46162aff-de65-437f-95b4-ea1388324ce2",
+            "description": "1,000 image credits",
+            "type": "customerCredits",
+            "customerCredits": {
+              "amount": "1000",
+              "unitLabel": "image",
+              "bucketName": "image",
+              "resetsEachPeriod": true
+            }
+          }
+        ]
       }
     }
   },
@@ -148,7 +161,27 @@
         "description": "One-time purchase with a license key.",
         "price": 4900,
         "currency": "USD",
-        "billingType": "onetime"
+        "billingType": "onetime",
+        "features": [
+          {
+            "externalId": "52401d68-513c-4ed9-afb6-b1df913efe6a",
+            "description": "License key",
+            "type": "licenseKey",
+            "licenseKey": {
+              "activationLimit": 3,
+              "expiry": {
+                "interval": "year",
+                "intervalCount": 1
+              }
+            }
+          },
+          {
+            "externalId": "25cb2a32-8902-4584-bf39-c19321c73ced",
+            "description": "Private community",
+            "type": "custom",
+            "privateNote": "Join the community at https://example.com/community"
+          }
+        ]
       }
     }
   },
@@ -202,7 +235,50 @@
             "cap": 10000,
             "settlementMode": "postpaid"
           }
+        ],
+        "features": [
+          {
+            "externalId": "46162aff-de65-437f-95b4-ea1388324ce2",
+            "description": "1,000 image credits",
+            "type": "customerCredits",
+            "customerCredits": {
+              "amount": "1000",
+              "unitLabel": "image",
+              "bucketName": "image",
+              "resetsEachPeriod": true
+            }
+          }
         ]
+      }
+    }
+  },
+  {
+    "type": "upsert_product",
+    "key": "00000000-0000-4000-8000-00000000c002",
+    "request": {
+      "createProductRequestEntity": {
+        "externalId": "00000000-0000-4000-8000-00000000c002",
+        "name": "Legacy Pro - Yearly",
+        "description": "The original Pro plan, monthly or yearly.",
+        "price": 10000,
+        "currency": "USD",
+        "billingType": "recurring",
+        "billingPeriod": "every-year"
+      }
+    }
+  },
+  {
+    "type": "upsert_product",
+    "key": "00000000-0000-4000-8000-00000000c001",
+    "request": {
+      "createProductRequestEntity": {
+        "externalId": "00000000-0000-4000-8000-00000000c001",
+        "name": "Legacy Pro - Monthly",
+        "description": "The original Pro plan, monthly or yearly.",
+        "price": 1000,
+        "currency": "USD",
+        "billingType": "recurring",
+        "billingPeriod": "every-month"
       }
     }
   },
@@ -231,6 +307,24 @@
         "price": 0,
         "currency": "USD",
         "billingType": "onetime"
+      }
+    }
+  },
+  {
+    "type": "upsert_product_group",
+    "key": "00000000-0000-4000-8000-00000000b001",
+    "request": {
+      "createProductGroupRequestEntity": {
+        "externalId": "00000000-0000-4000-8000-00000000b001",
+        "name": "Legacy Pro",
+        "products": [
+          {
+            "externalId": "00000000-0000-4000-8000-00000000c001"
+          },
+          {
+            "externalId": "00000000-0000-4000-8000-00000000c002"
+          }
+        ]
       }
     }
   }

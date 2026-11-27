@@ -84,6 +84,8 @@ export interface MigrationItem {
   changes: string[];
   /** Product groups: the keys of their member products, in order. */
   members?: string[];
+  /** Products: the keys of the features the item writes, in order. */
+  features?: string[];
   /** Why the item is skipped. */
   reason: MigrationIssue | null;
   warnings: MigrationIssue[];
