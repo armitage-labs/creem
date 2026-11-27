@@ -54,7 +54,7 @@
     "format:check": "prettier --check \"{src,tests}/**/*.ts\""
   },
   "dependencies": {
-    "creem": "workspace:^2.0.0"
+    "creem": "workspace:^2.1.0"
   },
   "peerDependencies": {
     "@ai-sdk/provider": ">=4.0.0"

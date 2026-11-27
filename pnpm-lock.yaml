@@ -129,7 +129,7 @@ importers:
   packages/ingestion:
     dependencies:
       creem:
-        specifier: workspace:^2.0.0
+        specifier: workspace:^2.1.0
         version: link:../sdk
     devDependencies:
       '@ai-sdk/provider':
@@ -163,7 +163,7 @@ importers:
         specifier: workspace:^
         version: link:../../webhook-types
       creem:
-        specifier: workspace:^2.0.0
+        specifier: workspace:^2.1.0
         version: link:../../sdk
     devDependencies:
       '@better-auth/core':
@@ -448,7 +448,7 @@ importers:
         specifier: workspace:^
         version: link:../../webhook-types
       creem:
-        specifier: workspace:^2.0.0
+        specifier: workspace:^2.1.0
         version: link:../../sdk
     devDependencies:
       '@types/node':
