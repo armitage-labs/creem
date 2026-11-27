@@ -900,7 +900,8 @@ function planDiscount(
     return skip("discount_amount_unsupported", `Creem can't hold a flat discount of ${d.amount}.`);
   // Warnings of a discount that is written; a skipped one carries only its reason.
   const notes: MigrationIssue[] = [];
-  let applies = [...planned.keys()];
+  // Unrestricted: every migrated product that sells, so not the archived ones.
+  let applies = [...planned].filter(([, c]) => c.status !== "archived").map(([k]) => k);
   if (d.restrict_to?.length) {
     // A product id stands for every price of that product.
     const keys = [
