@@ -556,6 +556,26 @@ describe("creem migrate paddle", () => {
     expect(creem.writes()).toHaveLength(written);
   });
 
+  it("renames a product group whose Paddle product was renamed", async () => {
+    const { creem, h } = setup();
+    expect((await h.run(["--json", "--yes", ...base])).code).toBe(0);
+    creem.state.productGroups[0].name = "eng2015-Pro (old)";
+    const written = creem.writes().length;
+    const r = await h.run(["--json", "--yes", ...base]);
+    expect(r.code, r.stderr).toBe(0);
+    const group = (JSON.parse(r.stdout).items as MigrationItem[]).find(
+      (i) => i.kind === "product_group" && i.key === PRO,
+    );
+    expect(group).toMatchObject({ action: "update", changes: ["name"] });
+    expect(creem.state.productGroups[0].name).toBe("eng2015-Pro");
+    expect(
+      creem
+        .writes()
+        .slice(written)
+        .map((w) => [w.path, w.body]),
+    ).toEqual([["/v1/product-groups", { external_id: PRO, name: "eng2015-Pro" }]]);
+  });
+
   it("--include-archived writes archived prices as archived products", async () => {
     const { creem, h } = setup();
     const r = await h.run(["--json", "--yes", ...base, "--include-archived"]);
