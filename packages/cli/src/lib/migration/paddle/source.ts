@@ -61,6 +61,8 @@ export interface PaddleDiscount {
   id: string;
   status: string;
   description: string;
+  /** `false`: applied only through the API, never redeemable at checkout. */
+  enabled_for_checkout?: boolean;
   code: string | null;
   type: string;
   mode?: string;

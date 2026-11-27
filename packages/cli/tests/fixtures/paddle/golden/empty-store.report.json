@@ -12,9 +12,9 @@
     "create": 15,
     "update": 0,
     "unchanged": 0,
-    "skip": 13,
+    "skip": 14,
     "failed": 0,
-    "warnings": 18
+    "warnings": 17
   },
   "items": [
     {
@@ -425,6 +425,28 @@
       "action": "create"
     },
     {
+      "status": "pending",
+      "creem_id": null,
+      "adopted_from": null,
+      "changes": [],
+      "reason": null,
+      "warnings": [
+        {
+          "code": "discount_products_partially_migrated",
+          "message": "The discount applies only to the migrated prices. Not migrated: pri_01m8ee921negj532fmzd2f86pf."
+        }
+      ],
+      "error": null,
+      "kind": "discount",
+      "key": "dsc_01hw000000000000000proall",
+      "name": "ENG2015PRO",
+      "source": {
+        "type": "discount",
+        "id": "dsc_01hw000000000000000proall"
+      },
+      "action": "create"
+    },
+    {
       "status": null,
       "creem_id": null,
       "adopted_from": null,
@@ -607,21 +629,15 @@
       "action": "create"
     },
     {
-      "status": "pending",
+      "status": null,
       "creem_id": null,
       "adopted_from": null,
       "changes": [],
-      "reason": null,
-      "warnings": [
-        {
-          "code": "discount_products_partially_migrated",
-          "message": "The discount applies only to the migrated prices. Not migrated: pri_01m8ee921negj532fmzd2f86pf."
-        },
-        {
-          "code": "discount_code_generated",
-          "message": "The Paddle discount has no code (it is applied through the API or a checkout link); Creem generates one."
-        }
-      ],
+      "reason": {
+        "code": "discount_not_checkout_enabled",
+        "message": "The discount isn't enabled for checkout in Paddle, so it is applied only through the API. Every Creem discount is redeemable at checkout, so it isn't migrated."
+      },
+      "warnings": [],
       "error": null,
       "kind": "discount",
       "key": "dsc_01m8ee99x0k076wr4e4hv35beg",
@@ -630,7 +646,7 @@
         "type": "discount",
         "id": "dsc_01m8ee99x0k076wr4e4hv35beg"
       },
-      "action": "create"
+      "action": "skip"
     }
   ],
   "proposals": [],

@@ -865,6 +865,11 @@ function planDiscount(
       "archived",
       "The discount is archived in Paddle. Creem discounts have no archived state, so it isn't written, also with --include-archived.",
     );
+  if (d.enabled_for_checkout === false)
+    return skip(
+      "discount_not_checkout_enabled",
+      "The discount isn't enabled for checkout in Paddle, so it is applied only through the API. Every Creem discount is redeemable at checkout, so it isn't migrated.",
+    );
   if (d.type !== "percentage" && d.type !== "flat")
     return skip("discount_type_unsupported", `Creem has no per-seat discounts (${d.type}).`);
   if (d.type === "flat" && !isCreemCurrency(d.currency_code))

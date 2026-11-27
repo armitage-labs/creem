@@ -182,6 +182,24 @@
   },
   {
     "type": "upsert_discount",
+    "key": "dsc_01hw000000000000000proall",
+    "request": {
+      "createDiscountRequestEntity": {
+        "name": "eng2015-Pro, every price",
+        "code": "ENG2015PRO",
+        "type": "percentage",
+        "percentage": 10,
+        "duration": "once",
+        "externalId": "dsc_01hw000000000000000proall",
+        "appliesToProductExternalIds": [
+          "pri_01m8ee91rdx3xn32adc9jtmj9v",
+          "pri_01m8ee91x0ae559fkyjp35acdy"
+        ]
+      }
+    }
+  },
+  {
+    "type": "upsert_discount",
     "key": "dsc_01m8ee995yz3rx0zsbys7sqhhx",
     "request": {
       "createDiscountRequestEntity": {
@@ -260,23 +278,6 @@
         "externalId": "dsc_01m8ee99qzphyh45944rs4jjqb",
         "appliesToProductExternalIds": [
           "pri_01m8ee91rdx3xn32adc9jtmj9v"
-        ]
-      }
-    }
-  },
-  {
-    "type": "upsert_discount",
-    "key": "dsc_01m8ee99x0k076wr4e4hv35beg",
-    "request": {
-      "createDiscountRequestEntity": {
-        "name": "eng2015-No code",
-        "type": "percentage",
-        "percentage": 5,
-        "duration": "once",
-        "externalId": "dsc_01m8ee99x0k076wr4e4hv35beg",
-        "appliesToProductExternalIds": [
-          "pri_01m8ee91rdx3xn32adc9jtmj9v",
-          "pri_01m8ee91x0ae559fkyjp35acdy"
         ]
       }
     }
