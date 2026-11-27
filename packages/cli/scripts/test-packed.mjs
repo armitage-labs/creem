@@ -69,6 +69,9 @@ try {
       ...process.env,
       CREEM_API_KEY: "creem_test_pack_fixture",
       NODE_OPTIONS: `--require ${preload}`,
+      // A dependency that prints when an agent runs the CLI (the Stripe SDK
+      // does under Claude Code) must not reach stderr.
+      CLAUDECODE: "1",
     };
     const success = command(bin, ["products", "list", "--json"], staging, env);
     assert.deepEqual(JSON.parse(success.stdout).items, []);
