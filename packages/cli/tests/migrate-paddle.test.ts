@@ -50,6 +50,7 @@ const PARTLY_USED = "dsc_01hw000000000000000partial";
 const LONG_CODE = "dsc_01hw00000000000000longcode";
 const PRO_ALL = "dsc_01hw000000000000000proall";
 const FREE_FOREVER = "dsc_01hw000000000000000free100";
+const HALF_PERCENT = "dsc_01hw0000000000000000halfpc";
 
 async function paddleObjects(
   options: { docs?: ReturnType<typeof paddleDocs>; pageSize?: number } = {},
@@ -750,7 +751,7 @@ describe("ENG-2015 discounts", () => {
 
   it("reads the discounts, active and archived, and reports a discount list it can't read", async () => {
     const { objects, paddle } = await paddleObjects({ pageSize: 2 });
-    expect(objects.discounts).toHaveLength(15);
+    expect(objects.discounts).toHaveLength(16);
     expect(paddle.requests.some((r) => r.path === "/discounts")).toBe(true);
     const failing = paddleFetch(undefined, { failures: { "/discounts": 500 } });
     const client = new PaddleClient(PADDLE_KEY, {
@@ -852,6 +853,16 @@ describe("ENG-2015 discounts", () => {
       (w) => w.code === "discount_forever_repeating",
     )!;
     expect(warning.message).toContain("1200 billing cycles");
+  });
+
+  it("skips a percentage below Creem's 1%", async () => {
+    const p = await plan();
+    expect(item(p, HALF_PERCENT)).toMatchObject({
+      action: "skip",
+      reason: { code: "discount_amount_unsupported" },
+    });
+    expect(item(p, HALF_PERCENT).reason!.message).toContain("1 to 100");
+    expect(request(p, HALF_PERCENT)).toBeUndefined();
   });
 
   it("restricts a discount to the prices it names, or to every price of a product it names", async () => {
