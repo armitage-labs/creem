@@ -256,6 +256,20 @@ describe("fromPaddle: products and product groups", () => {
     for (const r of p.requests) expect(r.key).toMatch(/^(pri|pro|dsc)_/);
   });
 
+  it("names a product by its Paddle prices, not the migrated ones, so the name stays when a sibling is skipped or archived", async () => {
+    const p = await plan();
+    // Cloud has three prices; only the monthly one is migrated.
+    expect(request(p, CLOUD_MONTHLY)!.request).toMatchObject({
+      createProductRequestEntity: { name: "eng2015-Cloud - Monthly" },
+    });
+    const { objects } = await paddleObjects();
+    const yearly = objects.prices.find((price) => price.id === PRO_YEARLY)!;
+    yearly.status = "archived";
+    const archived = fromPaddle(objects, emptyCatalog, { now: NOW });
+    expect(item(archived, PRO_YEARLY).reason?.code).toBe("archived");
+    expect(item(archived, PRO_MONTHLY).name).toBe(item(p, PRO_MONTHLY).name);
+  });
+
   it("reports country prices, never converting them", async () => {
     const p = await plan();
     expect(item(p, GLOBAL)).toMatchObject({ action: "create" });
