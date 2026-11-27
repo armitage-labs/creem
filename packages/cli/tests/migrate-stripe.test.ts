@@ -13,6 +13,7 @@ import { adoptionMatcher, type MigrationPlan } from "../src/lib/migration/plan";
 import {
   MIGRATION_REPORT_SCHEMA,
   MIGRATION_REPORT_VERSION,
+  migrationExitCode,
   newItem,
   summarize,
   type MigrationItem,
@@ -540,6 +541,24 @@ describe("fromStripe against an empty Creem store", () => {
       status: "archived",
     });
     expect(productBody(p, ID.priceProMonthly)).not.toHaveProperty("status");
+  });
+
+  it("fails both prices when one's lookup key is the other's id, and writes neither", async () => {
+    const docs = stripeDocs();
+    const ebook = docs.prices.data.find((price) => price.id === ID.priceEbook)!;
+    ebook.lookup_key = ID.priceSeats;
+    const p = await plan(emptyCatalog, {}, docs);
+    const colliding = p.report.items.filter((i) => i.key === ID.priceSeats);
+    expect(colliding.map((i) => i.source.id).sort()).toEqual([ID.priceEbook, ID.priceSeats].sort());
+    for (const i of colliding) {
+      expect(i).toMatchObject({ action: "skip", status: "failed", creem_id: null });
+      expect(i.error).toMatchObject({ code: "key_collision", status: null });
+      expect(i.error?.message).toContain(ID.priceEbook);
+      expect(i.error?.message).toContain(ID.priceSeats);
+    }
+    expect(p.requests.filter((r) => r.key === ID.priceSeats)).toEqual([]);
+    expect(p.report.summary.failed).toBe(2);
+    expect(migrationExitCode(p.report)).toBe(8);
   });
 
   it("reports a product without a price", async () => {
