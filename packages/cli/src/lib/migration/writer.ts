@@ -3,6 +3,7 @@ import type { Creem } from "creem";
 import {
   createMeterApiRequestDtoToJSON,
   createProductRequestEntityToJSON,
+  updateMeterApiRequestDtoToJSON,
   updateProductRequestEntityToJSON,
   type CatalogValidateItemRequestDto,
   type CatalogValidationItemResponseDto,
@@ -248,6 +249,8 @@ async function send(
   switch (request.type) {
     case "upsert_meter":
       return client.meters.createMeter({ ...request.request, dryRun });
+    case "adopt_meter":
+      return client.meters.updateMeter({ ...request.request, dryRun });
     case "adopt_product":
     case "update_product":
       return client.products.update({ ...request.request, dryRun });
@@ -301,7 +304,7 @@ function itemFinder(report: MigrationReport) {
     const kind =
       request.type === "upload_file"
         ? "file"
-        : request.type === "upsert_meter"
+        : request.type.endsWith("_meter")
           ? "meter"
           : request.type === "upsert_product_group"
             ? "product_group"
@@ -339,11 +342,18 @@ function withoutPendingUploads<T extends { features?: unknown[] | null | undefin
 
 type ValidatedRequest = Extract<
   MigrationRequest,
-  { type: "upsert_meter" | "adopt_product" | "update_product" | "upsert_product" }
+  {
+    type: "upsert_meter" | "adopt_meter" | "adopt_product" | "update_product" | "upsert_product";
+  }
 >;
+type MeterWrite = Extract<ValidatedRequest, { type: "upsert_meter" | "adopt_meter" }>;
+type ProductWrite = Exclude<ValidatedRequest, MeterWrite>;
+
+const isMeterWrite = (request: ValidatedRequest): request is MeterWrite =>
+  request.type === "upsert_meter" || request.type === "adopt_meter";
 
 /** The body of a product write. */
-const productBodyOf = (request: Exclude<ValidatedRequest, { type: "upsert_meter" }>) =>
+const productBodyOf = (request: ProductWrite) =>
   request.type === "upsert_product"
     ? request.request.createProductRequestEntity
     : request.request.updateProductRequestEntity;
@@ -352,22 +362,20 @@ const productBodyOf = (request: Exclude<ValidatedRequest, { type: "upsert_meter"
  * The validate batches of a plan's meter and product writes, at most 100 items
  * each. Every product is in a batch with the new meters its usage prices name,
  * so Creem checks the price against the meter (a meter repeats across batches
- * when it must); the meters no usage price names go in the first batch.
+ * when it must); the meters no usage price names go in the first batch. An
+ * adopted meter counts as one of them: it gets the key the price names only in
+ * its own `PATCH`, which validate sends by id.
  */
 function validateBatches(requests: ValidatedRequest[]): ValidatedRequest[][] {
-  const meters = new Map(
-    requests.flatMap((r) => (r.type === "upsert_meter" ? [[r.key, r] as const] : [])),
-  );
-  const named = (request: Exclude<ValidatedRequest, { type: "upsert_meter" }>) => [
+  const meters = new Map(requests.flatMap((r) => (isMeterWrite(r) ? [[r.key, r] as const] : [])));
+  const named = (request: ProductWrite) => [
     ...new Set(
       (productBodyOf(request).usagePrices ?? []).flatMap((u) =>
         u.meterExternalId && meters.has(u.meterExternalId) ? [u.meterExternalId] : [],
       ),
     ),
   ];
-  const products = requests.filter(
-    (r): r is Exclude<ValidatedRequest, { type: "upsert_meter" }> => r.type !== "upsert_meter",
-  );
+  const products = requests.filter((r): r is ProductWrite => !isMeterWrite(r));
   const used = new Set(products.flatMap(named));
   const batches: ValidatedRequest[][] = [];
   let batch = { meters: new Set<string>(), products: [] as ValidatedRequest[] };
@@ -402,6 +410,15 @@ function validateItem(request: ValidatedRequest): {
       item: {
         kind: "meter",
         body: JSON.parse(createMeterApiRequestDtoToJSON(request.request.createMeterApiRequestDto)),
+      },
+      partial: false,
+    };
+  if (request.type === "adopt_meter")
+    return {
+      item: {
+        kind: "meter",
+        id: request.request.id,
+        body: JSON.parse(updateMeterApiRequestDtoToJSON(request.request.updateMeterApiRequestDto)),
       },
       partial: false,
     };
@@ -519,6 +536,7 @@ export async function checkMigration(
   const products = plan.requests.filter(
     (r): r is ValidatedRequest =>
       r.type === "upsert_meter" ||
+      r.type === "adopt_meter" ||
       r.type === "adopt_product" ||
       r.type === "update_product" ||
       r.type === "upsert_product",
@@ -601,7 +619,7 @@ export async function checkMigration(
     report.items.filter((i) => i.kind === "meter" && i.status === "failed").map((i) => i.key),
   );
   for (const request of products) {
-    if (request.type === "upsert_meter") continue;
+    if (isMeterWrite(request)) continue;
     const item = itemOf(request);
     const meters = [
       ...new Set(
@@ -637,7 +655,7 @@ export async function checkMigration(
   // Creem's check refused all of them, since it would then attach to nothing.
   const namedBy = new Map<string, MigrationItem[]>();
   for (const request of products) {
-    if (request.type === "upsert_meter") continue;
+    if (isMeterWrite(request)) continue;
     for (const entry of productBodyOf(request).features ?? []) {
       const feature: unknown = entry;
       if (!isRecord(feature) || feature.type !== "file" || !isRecord(feature.file)) continue;

@@ -372,16 +372,22 @@ function storeUsagePrices(context: WriteContext, current: Json[], entries: Json[
 
 const METER_FIELDS = ["name", "aggregation", "aggregation_property", "filter", "external_id"];
 
-/** `POST /v1/meters` (create or keyed upsert). */
+/** `POST /v1/meters` (create or keyed upsert) and `PATCH /v1/meters/{id}`. */
 function writeMeter(
   context: WriteContext,
   b: Json,
   target: { id?: string; ifNoneMatch?: string },
 ): { status: number; body: Json } {
   const { state } = context;
-  const existing = b.external_id
-    ? state.meters.find((m) => m.external_id === b.external_id)
-    : undefined;
+  const existing =
+    target.id !== undefined
+      ? state.meters.find((m) => m.id === target.id)
+      : b.external_id
+        ? state.meters.find((m) => m.external_id === b.external_id)
+        : undefined;
+  if (target.id !== undefined && !existing) throw apiError(404, "not_found");
+  if (b.external_id && state.meters.some((m) => m !== existing && m.external_id === b.external_id))
+    throw apiError(409, "external_id_taken");
   if (existing && target.ifNoneMatch === "*") throw apiError(412, "precondition_failed");
   if (!existing) {
     const missing = ["name", "event_name", "aggregation", "unit_label"].filter(
@@ -936,6 +942,9 @@ export function fakeCreem(initial: Partial<CreemState> = {}, init: FakeCreemOpti
     }
     if (request.method === "POST" && path === "/v1/meters")
       return answer(runWrite(writeMeter, body!, { ifNoneMatch }, dryRun));
+    const meterMatch = /^\/v1\/meters\/([^/]+)$/.exec(path);
+    if (request.method === "PATCH" && meterMatch)
+      return answer(runWrite(writeMeter, body!, { id: meterMatch[1] }, dryRun));
     if (request.method === "GET" && path === "/v1/product-groups")
       return Response.json({ object: "list", data: state.productGroups, has_more: false });
     if (request.method === "GET" && path === "/v1/discounts/search")

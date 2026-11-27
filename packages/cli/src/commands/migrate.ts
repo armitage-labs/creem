@@ -38,6 +38,7 @@ import {
   executeMigration,
 } from "../lib/migration/writer";
 import { addGlobalOptions, outputFormat } from "./resource";
+import { STRIPE_SCOPE, stripeSource } from "./migrate-stripe";
 import { writeResult } from "../utils/results";
 
 const LS_SCOPE = "products, product groups, discounts, license keys and files";
@@ -90,7 +91,10 @@ function formatReport(report: MigrationReport, environment: string, title: strin
     for (const item of items) {
       const status =
         item.status === "failed"
-          ? chalk.red(report.mode === "run" ? " FAILED" : " REFUSED by Creem")
+          ? chalk.red(
+              // An error without an HTTP status failed in the plan, before Creem's check.
+              report.mode === "run" || item.error?.status == null ? " FAILED" : " REFUSED by Creem",
+            )
           : item.status === "done"
             ? " ✓"
             : "";
@@ -190,7 +194,7 @@ type SourceOptions = Record<string, unknown> & { json: boolean };
  * source. Planning against Creem, adoption, the check, the confirmation and the
  * run are the same for every source.
  */
-interface MigrationSource {
+export interface MigrationSource {
   name: string;
   /** The source's name in messages ("Lemon Squeezy"). */
   title: string;
@@ -508,7 +512,7 @@ function createSourceCommand(context: CliContext, source: MigrationSource): Comm
             }
           }
           const refused = plan.report.items.filter((i) => i.status === "failed");
-          const refusedMessage = `Creem's check refused ${refused.length} item(s) (${refused.map((i) => i.key).join(", ")})`;
+          const refusedMessage = `${refused.every((i) => i.error?.status != null) ? "Creem's check refused" : "The plan can't write"} ${refused.length} item(s) (${refused.map((i) => i.key).join(", ")})`;
           const FORCE_HINT =
             "Fix what each refused item's error says and re-run, or pass --force to write the other items.";
           const preview = options.dryRun || (json && !globals.yes);
@@ -657,6 +661,7 @@ export function createMigrateCommand(context: CliContext = createContext()): Com
       "after",
       `
 ${chalk.dim("Available migrations:")}
+  ${chalk.cyan("creem migrate stripe")}           Migrate ${STRIPE_SCOPE} from Stripe
   ${chalk.cyan("creem migrate lemon-squeezy")}    Migrate ${LS_SCOPE} from Lemon Squeezy
   ${chalk.cyan("creem migrate polar")}            Migrate ${POLAR_SCOPE} from Polar
 
@@ -668,13 +673,16 @@ ${chalk.dim("Options:")}
   --exclude-discounts     Skip migrating discounts entirely (Lemon Squeezy)
   --polar-token <token>   Polar organization access token (or POLAR_ACCESS_TOKEN)
   --polar-server <server> Polar server: production (default) or sandbox
-  --include-archived      Write archived Polar products as archived Creem products
+  --include-archived      Also migrate archived Polar products and inactive Stripe prices and products, as archived
   --polar-files-dir <dir> Your copies of the Polar benefit files, to upload
   --adopt [key=id|new]    Answer adoption proposals (alone: adopt every single match)
   --force                 Write even when Creem's check refuses items (they are left out)
   --yes                   Write without asking
+  --stripe-key <key>      Stripe restricted key (or STRIPE_API_KEY)
+  --create-new-unmatched  Create new objects for unanswered adoption proposals (Stripe)
 
 ${chalk.dim("Examples:")}
+  ${chalk.cyan("creem migrate stripe --dry-run")}                Print the plan for a Stripe account
   ${chalk.cyan("creem migrate lemon-squeezy --dry-run")}          Print the plan
   ${chalk.cyan("creem migrate lemon-squeezy")}                    Print the plan, then ask before writing
   ${chalk.cyan("creem migrate lemon-squeezy --ls-api-key ls_xxx --ls-store-id 123 --yes")}  Non-interactive run
@@ -682,6 +690,7 @@ ${chalk.dim("Examples:")}
   ${chalk.cyan("creem migrate polar --polar-server sandbox --dry-run")}  Print the plan for a Polar sandbox
 `,
     );
+  command.addCommand(createSourceCommand(context, stripeSource));
   command.addCommand(createSourceCommand(context, lemonSqueezy));
   command.addCommand(createSourceCommand(context, polar));
   return command;

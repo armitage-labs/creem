@@ -1,0 +1,165 @@
+---
+title: "Migrate from Stripe"
+sidebarTitle: "Stripe"
+description: "Copy your Stripe Billing Meters and prices into a Creem test store with the Creem CLI, check them, then promote them to live."
+keywords: "stripe migration, migrate from stripe, stripe to creem, stripe billing meters, stripe prices to creem, creem migrate stripe"
+icon: "stripe"
+---
+
+`creem migrate stripe` reads the catalog of your Stripe account and writes it to the Creem store you're logged in to: your Billing Meters as Creem meters, and each Stripe price as a Creem product. It shows you the plan first, has Creem check it with a dry run, and writes only after you confirm. Your Stripe key stays on your machine.
+
+This first version copies meters and products. Coupons, promotion codes, customers and subscriptions stay in Stripe for now; [What isn't copied](#what-isnt-copied) lists everything it leaves out, and why.
+
+## Create a restricted key
+
+In the Stripe dashboard, go to **Developers → API keys → Create restricted key** and give it:
+
+| Resource          | Permission | Why                                                      |
+| ----------------- | ---------- | -------------------------------------------------------- |
+| Products          | Read       | Product names, descriptions, unit labels and metadata    |
+| Prices            | Read       | One Creem product per price                              |
+| Billing Meters    | Read       | Your meters                                              |
+| Webhook Endpoints | Read       | Optional: the plan counts the endpoints you need to move |
+
+The CLI only reads. Pass the key with `--stripe-key` or set `STRIPE_API_KEY`; in a terminal without either, the CLI asks for it. The key is sent to `api.stripe.com` only, never to Creem, and never printed or written to the report.
+
+## Migrate into your test store
+
+Run the migration against a test store first, check the result in the dashboard, then copy it to live with `creem catalog promote`. Don't run a second migration into live: promote pairs every test object with its live copy by key, so live ends up with the objects you checked.
+
+<Steps>
+  <Step title="Log in with a test key">
+    ```bash
+    creem login --api-key creem_test_YOUR_KEY
+    ```
+  </Step>
+  <Step title="Print the plan">
+    ```bash
+    export STRIPE_API_KEY=rk_test_YOUR_KEY
+    creem migrate stripe --dry-run
+    ```
+
+    The plan lists every meter and price with what Creem would do with it (create, update, unchanged or skip) and the reason for each skip. Nothing is written.
+
+  </Step>
+  <Step title="Run it">
+    ```bash
+    creem migrate stripe
+    ```
+
+    The CLI prints the plan again and asks before it writes. Each write runs as a dry run first, right before it's sent. Meters are written before products.
+
+  </Step>
+  <Step title="Check the test store, then promote">
+    Open your products and meters in the Creem dashboard in test mode and try a checkout. When
+    they're right, copy them to live:
+
+    ```bash
+    creem catalog promote --dry-run
+    creem catalog promote
+    ```
+
+    See [Promote test to live](/code/cli-promote).
+
+  </Step>
+</Steps>
+
+Use a Stripe test-mode key while you try it out, and your live Stripe key for the real catalog. Either way, the Creem side is your test store.
+
+## Options
+
+| Option                   | What it does                                                                             |
+| ------------------------ | ---------------------------------------------------------------------------------------- |
+| `--stripe-key <key>`     | Your Stripe restricted key. Without it, the CLI reads `STRIPE_API_KEY`                   |
+| `--dry-run`              | Has Creem check the plan with a dry run, prints it and writes nothing                    |
+| `--yes`                  | Writes without asking. Required when no terminal is attached                             |
+| `--include-archived`     | Also copies inactive prices, and prices of inactive products, as archived Creem products |
+| `--adopt [answers]`      | Answers adoption proposals ([below](#existing-creem-products-and-meters))                |
+| `--create-new-unmatched` | Creates a new Creem object for every adoption proposal `--adopt` doesn't answer          |
+| `--force`                | Writes even when Creem's check refuses items, and leaves those items out                 |
+| `--json`                 | Prints the plan as a JSON report. With `--yes`, runs it and prints the result            |
+
+## How Stripe maps to Creem
+
+| Stripe                                           | Creem                                                                                                                                               |
+| ------------------------------------------------ | --------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Billing Meter with `sum` or `count`              | A meter with the same name, event name and aggregation. For `sum`, the payload key (`value_settings.event_payload_key`) is the aggregation property |
+| Price in USD or EUR                              | One product per price, with the price, currency, and one-time or recurring billing                                                                  |
+| Monthly, every 3 or 6 months, yearly, daily      | The matching billing period                                                                                                                         |
+| Any other interval (weekly, every 2 months, ...) | A custom billing period, within Creem's bounds: day 1 to 365, week 1 to 52, month 1 to 24, year 1 to 3                                              |
+| Trial days on a recurring price                  | The same trial in days                                                                                                                              |
+| One-time price with a customer-chosen amount     | Pay what you want: Stripe's minimum is the price and the preset the suggested price                                                                 |
+| Tax behavior `inclusive` or `exclusive`          | The same tax mode                                                                                                                                   |
+| Product and price metadata                       | The product's metadata, with `stripe_product_id` and `stripe_price_id` added                                                                        |
+
+A product name is the Stripe product's name. When more than one of the Stripe product's prices is copied, the price's nickname is added, or its interval when it has none: `Pro - Monthly`, `Pro - Yearly`. Skipped prices don't count, and inactive prices count only for each other, so `--include-archived` doesn't rename an active product. When two names would still be the same, the currency is added: `Pro - Monthly (USD)`, `Pro - Monthly (EUR)`. The description is the Stripe product's description, or the name when it has none.
+
+A meter's unit label is the unit label of the Stripe product whose metered price is on that meter. When no product names one, the unit label is the meter's event name, and the plan warns you: Creem uses the unit label as the meter's credit bucket, and it can't change once the meter exists.
+
+Stripe's maximum for a customer-chosen amount is dropped with a warning, because Creem's pay what you want has no maximum.
+
+### Keys and re-runs
+
+Every object the CLI writes carries a key in `external_id`. A product's key is the price's lookup key, or the price ID (`price_...`) when the price has no lookup key or Creem doesn't take it as a key. Creem keys are 1 to 255 letters, digits, `_`, `-`, `.` and `:`, so a lookup key like `Pro Monthly 2024` becomes the price ID, keeps its value in `metadata.stripe_lookup_key`, and the plan lists the replacement. A meter's key is its Stripe ID (`mtr_...`).
+
+Two prices can't share a key. When a price's lookup key is another price's ID, the plan fails both with `key_collision` and writes neither; give the price another lookup key in Stripe and run the command again.
+
+Each object is written with Creem's keyed upsert, which creates it when the key is new and otherwise changes only what differs. A run that stopped halfway, or a second run, never creates an object twice. When nothing changed in Stripe, the plan lists every item as unchanged and nothing is written.
+
+Creem replaces a product's whole `metadata` when the CLI sends it, so the CLI sends the stored metadata back, merged with Stripe's product and price metadata and its own `stripe_*` keys. A key you added in Creem stays; a key that Stripe also has takes Stripe's value.
+
+### Existing Creem products and meters
+
+A Creem product or meter that already has the key is updated. One without a key that has the same name, ignoring case and spacing, is proposed for adoption: the plan shows how each candidate differs, for example its price or event name, and never picks one for you.
+
+In a terminal, the CLI asks about each candidate: yes gives it the key, and no to all of them creates a new object. Without a terminal, answer with `--adopt price_123=prod_abc` to adopt that product, `--adopt price_123=new` to create a new one, `--adopt` alone to adopt every proposal that has exactly one candidate, or `--create-new-unmatched` to create new objects for every proposal the other answers leave open. With `--adopt` alone and `--create-new-unmatched` together, proposals with one candidate are adopted and only the rest get new objects. `--yes` never answers a proposal: while one is unanswered, the run writes nothing and exits with `7`.
+
+Adopting gives the object its key with a `PATCH`, before anything else is written. An adopted meter keeps its event name and unit label, because Creem doesn't change them after a meter is created.
+
+When a price you already migrated gets a new lookup key in Stripe, or loses it, its Creem product still has the old key. The CLI finds that product by `metadata.stripe_price_id` and proposes it under the new key, answered like any other proposal. Adopting moves the key to it with a `PATCH`, so no second product is created; creating a new one leaves the old product as it is. When the lookup key moved to a new price that the CLI migrates (Stripe's `transfer_lookup_key`), nothing is proposed: the Creem product with the key is updated to the new price, and the old price, when it's still active or you pass `--include-archived`, becomes a product of its own. When the new price is one the CLI skips (for example a tiered price or another currency), the old price's product is proposed under the old price's key instead, so it isn't duplicated.
+
+## What isn't copied
+
+These Stripe prices are skipped, with the reason in the plan:
+
+| Stripe price                                          | Reason in the plan                                  | Why                                                                                                               |
+| ----------------------------------------------------- | --------------------------------------------------- | ----------------------------------------------------------------------------------------------------------------- |
+| Metered price on a Billing Meter                      | `usage_price_without_base_price`                    | Creem refuses a recurring product at price 0, so the usage has no base price to go on. The meter itself is copied |
+| Metered price without a Billing Meter (usage records) | `legacy_metered_usage`                              | Creem meters count usage events                                                                                   |
+| Tiered price                                          | `tiered_pricing`                                    | Creem prices are flat per unit                                                                                    |
+| Price with `transform_quantity` (packages)            | `transform_quantity`                                | Creem bills per unit                                                                                              |
+| Price in a currency other than USD or EUR             | `currency_unsupported`                              | The CLI converts no currency. When the price has USD or EUR currency options, the reason names them               |
+| Interval outside Creem's bounds                       | `billing_interval_unsupported`                      | For example every 400 days                                                                                        |
+| Customer-chosen amount with a minimum below 1.00      | `pwyw_minimum_below_100`                            | Creem's pay what you want starts at 1.00                                                                          |
+| Recurring price of 0, or a price from 0.01 to 0.99    | `free_recurring_unsupported`, `price_below_minimum` | A recurring product costs at least 1.00, a one-time product is free or costs at least 1.00                        |
+| Price with a fractional cent amount                   | `decimal_amount_unsupported`                        | Creem prices are whole cents                                                                                      |
+| Active price of an archived product                   | `archived`                                          | Copied as an archived product with `--include-archived`                                                           |
+
+Billing Meters with the `last` aggregation are skipped (`aggregation_unsupported`). Inactive meters and, without `--include-archived`, inactive prices aren't read.
+
+The plan also lists, once each:
+
+- **Coupons and promotion codes.** A later version of the command copies them as Creem discounts. Until then, create the codes in Creem.
+- **Customers and subscriptions.** The CLI reads no customers. Existing subscribers keep paying in Stripe until you move them.
+- **Usage already recorded on your meters.** Send new usage events to Creem once your app reports to it.
+- **Webhook endpoints.** They aren't catalog data. Add your endpoint in Creem and handle [Creem's events](/code/webhooks).
+
+Product images aren't copied; the plan warns about each product that has some. The CLI never archives or deletes a Creem object because its Stripe price is gone. With `--include-archived`, it archives the Creem products of prices and products that are archived in Stripe.
+
+## Checks and exit codes
+
+Before the first write, Creem checks the whole plan without writing anything, with the meters and products together in one validation. When Creem refuses an item, nothing is written and the command exits with `8`; fix what the error says and run it again, or pass `--force` to write the rest. A rate limit is waited out for as long as Creem's `Retry-After` says, up to a minute. When a dry run comes back without Creem's dry-run marker, the CLI stops: it can't be sure the write didn't happen.
+
+| Exit code | Meaning                                                                                        |
+| --------- | ---------------------------------------------------------------------------------------------- |
+| `0`       | Every item went through, or was skipped by a rule above                                        |
+| `1`       | Creem's check couldn't finish, or Creem answered a dry run as a real write                     |
+| `2`       | Invalid options, a missing Stripe key or `--yes`, or an `--adopt` answer that can't be applied |
+| `3`       | Stripe or Creem refused the key                                                                |
+| `4`       | Part of the Stripe catalog couldn't be read. Nothing is written                                |
+| `5`       | The CLI couldn't reach Stripe                                                                  |
+| `6`       | The run finished, and at least one item failed. Run it again to retry them                     |
+| `7`       | An adoption proposal is unanswered. Nothing is written                                         |
+| `8`       | Creem's check refused an item, or two prices share one key. Nothing is written                 |
+
+`--dry-run` and `--json` without `--yes` exit with `7` and `8` too, so a script knows the run would stop. With `--json`, the report is the same one `creem migrate lemon-squeezy` prints (`schema` `creem.migration_report`, `version` `1`), with `source.provider` `stripe`.

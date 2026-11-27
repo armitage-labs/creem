@@ -1,0 +1,405 @@
+{
+  "schema": "creem.migration_report",
+  "version": 1,
+  "source": {
+    "provider": "stripe",
+    "store_id": "acct_fixture0000000000",
+    "store_name": "eng2012 sandbox",
+    "currency": "EUR"
+  },
+  "mode": "plan",
+  "summary": {
+    "create": 8,
+    "update": 0,
+    "unchanged": 0,
+    "skip": 9,
+    "failed": 0,
+    "warnings": 3
+  },
+  "items": [
+    {
+      "status": null,
+      "creem_id": null,
+      "adopted_from": null,
+      "changes": [],
+      "reason": {
+        "code": "aggregation_unsupported",
+        "message": "Creem meters don't take Stripe's \"last\" aggregation; set this meter up in Creem."
+      },
+      "warnings": [],
+      "error": null,
+      "kind": "meter",
+      "key": "mtr_test_61VplklOqdvLZVdps41AXmbOrRaLZKgK",
+      "name": "eng2012 Storage",
+      "source": {
+        "type": "meter",
+        "id": "mtr_test_61VplklOqdvLZVdps41AXmbOrRaLZKgK"
+      },
+      "action": "skip"
+    },
+    {
+      "status": "pending",
+      "creem_id": null,
+      "adopted_from": null,
+      "changes": [],
+      "reason": null,
+      "warnings": [
+        {
+          "code": "unit_label_from_event_name",
+          "message": "No Stripe product of a price on this meter has a unit label, so the Creem unit label is the event name, \"eng2012_active_user\". It names the meter's credit bucket and can't change once the meter exists."
+        }
+      ],
+      "error": null,
+      "kind": "meter",
+      "key": "mtr_test_61VplklchLQ1Y0MTF41AXmbOrRaLZ8YC",
+      "name": "eng2012 Active users",
+      "source": {
+        "type": "meter",
+        "id": "mtr_test_61VplklchLQ1Y0MTF41AXmbOrRaLZ8YC"
+      },
+      "action": "create"
+    },
+    {
+      "status": "pending",
+      "creem_id": null,
+      "adopted_from": null,
+      "changes": [],
+      "reason": null,
+      "warnings": [],
+      "error": null,
+      "kind": "meter",
+      "key": "mtr_test_61VplklKXH2mr8Lnh41AXmbOrRaLZJfM",
+      "name": "eng2012 API calls",
+      "source": {
+        "type": "meter",
+        "id": "mtr_test_61VplklKXH2mr8Lnh41AXmbOrRaLZJfM"
+      },
+      "action": "create"
+    },
+    {
+      "status": null,
+      "creem_id": null,
+      "adopted_from": null,
+      "changes": [],
+      "reason": {
+        "code": "legacy_metered_usage",
+        "message": "The price bills legacy usage records, not a Billing Meter; Creem meters count usage events. Move it to a Billing Meter in Stripe, or set it up in Creem."
+      },
+      "warnings": [],
+      "error": null,
+      "kind": "product",
+      "key": "price_1UgNnWAXmbOrRaLZqQrNW36k",
+      "name": "eng2012-Legacy usage",
+      "source": {
+        "type": "price",
+        "id": "price_1UgNnWAXmbOrRaLZqQrNW36k",
+        "product_id": "prod_VhnO7r3EbFULcn"
+      },
+      "action": "skip"
+    },
+    {
+      "status": null,
+      "creem_id": null,
+      "adopted_from": null,
+      "changes": [],
+      "reason": {
+        "code": "billing_interval_unsupported",
+        "message": "Billing every 400 day(s) is outside what Creem supports (day 1–365, week 1–52, month 1–24, year 1–3)."
+      },
+      "warnings": [],
+      "error": null,
+      "kind": "product",
+      "key": "price_1UgNnVAXmbOrRaLZrc7jUMdF",
+      "name": "eng2012-Cycles - Every 400 days",
+      "source": {
+        "type": "price",
+        "id": "price_1UgNnVAXmbOrRaLZrc7jUMdF",
+        "product_id": "prod_VhnOCzIZXvoMu3"
+      },
+      "action": "skip"
+    },
+    {
+      "status": "pending",
+      "creem_id": null,
+      "adopted_from": null,
+      "changes": [],
+      "reason": null,
+      "warnings": [],
+      "error": null,
+      "kind": "product",
+      "key": "price_1UgNnVAXmbOrRaLZxUHj4TlZ",
+      "name": "eng2012-Cycles",
+      "source": {
+        "type": "price",
+        "id": "price_1UgNnVAXmbOrRaLZxUHj4TlZ",
+        "product_id": "prod_VhnOCzIZXvoMu3"
+      },
+      "action": "create"
+    },
+    {
+      "status": "pending",
+      "creem_id": null,
+      "adopted_from": null,
+      "changes": [],
+      "reason": null,
+      "warnings": [],
+      "error": null,
+      "kind": "product",
+      "key": "price_1UgNnVAXmbOrRaLZMZgnPmhd",
+      "name": "eng2012-Ebook",
+      "source": {
+        "type": "price",
+        "id": "price_1UgNnVAXmbOrRaLZMZgnPmhd",
+        "product_id": "prod_VhnOtziZP7FOgf"
+      },
+      "action": "create"
+    },
+    {
+      "status": null,
+      "creem_id": null,
+      "adopted_from": null,
+      "changes": [],
+      "reason": {
+        "code": "transform_quantity",
+        "message": "The price bills per package of 10 units (transform_quantity); Creem bills per unit."
+      },
+      "warnings": [],
+      "error": null,
+      "kind": "product",
+      "key": "price_1UgNnUAXmbOrRaLZHl0oCatX",
+      "name": "eng2012-Seat pack",
+      "source": {
+        "type": "price",
+        "id": "price_1UgNnUAXmbOrRaLZHl0oCatX",
+        "product_id": "prod_VhnOgTbTnMIJkG"
+      },
+      "action": "skip"
+    },
+    {
+      "status": "pending",
+      "creem_id": null,
+      "adopted_from": null,
+      "changes": [],
+      "reason": null,
+      "warnings": [
+        {
+          "code": "pwyw_maximum_dropped",
+          "message": "Creem's pay what you want has no maximum; Stripe's 10000 is dropped."
+        }
+      ],
+      "error": null,
+      "kind": "product",
+      "key": "price_1UgNnUAXmbOrRaLZG1WZRuET",
+      "name": "eng2012-Donation",
+      "source": {
+        "type": "price",
+        "id": "price_1UgNnUAXmbOrRaLZG1WZRuET",
+        "product_id": "prod_VhnOQNGsA4LW4H"
+      },
+      "action": "create"
+    },
+    {
+      "status": null,
+      "creem_id": null,
+      "adopted_from": null,
+      "changes": [],
+      "reason": {
+        "code": "tiered_pricing",
+        "message": "Tiered prices are not migrated: Creem has no tiered prices."
+      },
+      "warnings": [],
+      "error": null,
+      "kind": "product",
+      "key": "price_1UgNnTAXmbOrRaLZexTthwgh",
+      "name": "eng2012-Tiered",
+      "source": {
+        "type": "price",
+        "id": "price_1UgNnTAXmbOrRaLZexTthwgh",
+        "product_id": "prod_VhnOkYVsWc6di8"
+      },
+      "action": "skip"
+    },
+    {
+      "status": null,
+      "creem_id": null,
+      "adopted_from": null,
+      "changes": [],
+      "reason": {
+        "code": "usage_price_without_base_price",
+        "message": "The price bills usage on meter mtr_test_61VplklchLQ1Y0MTF41AXmbOrRaLZ8YC in arrears. Creem refuses a recurring product at price 0, so it has no base price to bill the usage on; the meter itself is migrated. Add a usage price on it to a Creem product."
+      },
+      "warnings": [],
+      "error": null,
+      "kind": "product",
+      "key": "price_1UgNnSAXmbOrRaLZEue5eN3Z",
+      "name": "eng2012-Metered only",
+      "source": {
+        "type": "price",
+        "id": "price_1UgNnSAXmbOrRaLZEue5eN3Z",
+        "product_id": "prod_VhnOZYvsPma6nY"
+      },
+      "action": "skip"
+    },
+    {
+      "status": null,
+      "creem_id": null,
+      "adopted_from": null,
+      "changes": [],
+      "reason": {
+        "code": "usage_price_without_base_price",
+        "message": "The price bills usage on meter mtr_test_61VplklKXH2mr8Lnh41AXmbOrRaLZJfM in arrears. Creem refuses a recurring product at price 0, so it has no base price to bill the usage on; the meter itself is migrated. Add a usage price on it to a Creem product."
+      },
+      "warnings": [],
+      "error": null,
+      "kind": "product",
+      "key": "price_1UgNnSAXmbOrRaLZKBuCuSFA",
+      "name": "eng2012-Usage plan - Monthly",
+      "source": {
+        "type": "price",
+        "id": "price_1UgNnSAXmbOrRaLZKBuCuSFA",
+        "product_id": "prod_VhnOZJaHQcm3CT"
+      },
+      "action": "skip"
+    },
+    {
+      "status": "pending",
+      "creem_id": null,
+      "adopted_from": null,
+      "changes": [],
+      "reason": null,
+      "warnings": [],
+      "error": null,
+      "kind": "product",
+      "key": "price_1UgNnSAXmbOrRaLZjN74EJWB",
+      "name": "eng2012-Usage plan",
+      "source": {
+        "type": "price",
+        "id": "price_1UgNnSAXmbOrRaLZjN74EJWB",
+        "product_id": "prod_VhnOZJaHQcm3CT"
+      },
+      "action": "create"
+    },
+    {
+      "status": null,
+      "creem_id": null,
+      "adopted_from": null,
+      "changes": [],
+      "reason": {
+        "code": "currency_unsupported",
+        "message": "The price is in GBP; Creem prices are in USD or EUR, and the migrator converts no currency. Its currency options name EUR 1700 and USD 1900: set the product up in Creem at one of them."
+      },
+      "warnings": [],
+      "error": null,
+      "kind": "product",
+      "key": "price_1UgNnRAXmbOrRaLZakGBazAK",
+      "name": "eng2012-UK Plan",
+      "source": {
+        "type": "price",
+        "id": "price_1UgNnRAXmbOrRaLZakGBazAK",
+        "product_id": "prod_VhnOCCgFb03w0W"
+      },
+      "action": "skip"
+    },
+    {
+      "status": "pending",
+      "creem_id": null,
+      "adopted_from": null,
+      "changes": [],
+      "reason": null,
+      "warnings": [],
+      "error": null,
+      "kind": "product",
+      "key": "eng2012_pro_yearly",
+      "name": "eng2012-Pro - Yearly",
+      "source": {
+        "type": "price",
+        "id": "price_1UgNnQAXmbOrRaLZbCbL8iLc",
+        "product_id": "prod_VhnO5VaRUVrKSX"
+      },
+      "action": "create"
+    },
+    {
+      "status": "pending",
+      "creem_id": null,
+      "adopted_from": null,
+      "changes": [],
+      "reason": null,
+      "warnings": [
+        {
+          "code": "lookup_key_replaced",
+          "message": "Stripe's lookup key \"Pro Monthly 2024\" isn't a valid Creem key (letters, digits, _ - . : and at most 255 characters), so the key is the price id price_1UgNnQAXmbOrRaLZslqJaG2t; the lookup key is kept in metadata.stripe_lookup_key."
+        }
+      ],
+      "error": null,
+      "kind": "product",
+      "key": "price_1UgNnQAXmbOrRaLZslqJaG2t",
+      "name": "eng2012-Pro - Monthly",
+      "source": {
+        "type": "price",
+        "id": "price_1UgNnQAXmbOrRaLZslqJaG2t",
+        "product_id": "prod_VhnO5VaRUVrKSX"
+      },
+      "action": "create"
+    },
+    {
+      "status": null,
+      "creem_id": null,
+      "adopted_from": null,
+      "changes": [],
+      "reason": {
+        "code": "archived",
+        "message": "The Stripe product prod_VhnOKj9aLGf4sU is archived (--include-archived writes it archived)."
+      },
+      "warnings": [],
+      "error": null,
+      "kind": "product",
+      "key": "price_1UgNnWAXmbOrRaLZoAxgfz1L",
+      "name": "price_1UgNnWAXmbOrRaLZoAxgfz1L",
+      "source": {
+        "type": "price",
+        "id": "price_1UgNnWAXmbOrRaLZoAxgfz1L",
+        "product_id": "prod_VhnOKj9aLGf4sU"
+      },
+      "action": "skip"
+    }
+  ],
+  "proposals": [],
+  "not_migrated": [
+    {
+      "kind": "customers",
+      "reason": {
+        "code": "out_of_scope",
+        "message": "Customers are not migrated: the migrator reads no customers."
+      }
+    },
+    {
+      "kind": "subscriptions",
+      "reason": {
+        "code": "out_of_scope",
+        "message": "Subscriptions are not migrated; move subscribers as the guide describes."
+      }
+    },
+    {
+      "kind": "meter_events",
+      "reason": {
+        "code": "out_of_scope",
+        "message": "Usage already recorded on Stripe meters is not migrated; send new usage events to Creem."
+      }
+    },
+    {
+      "kind": "coupons",
+      "reason": {
+        "code": "not_yet_supported",
+        "message": "Coupons and promotion codes are not migrated yet: discounts come with v2 of the Stripe migrator."
+      }
+    },
+    {
+      "kind": "webhooks",
+      "reason": {
+        "code": "not_catalog",
+        "message": "The account has no webhook endpoint; webhooks are not migrated: they are not catalog data. Add your endpoint in Creem and handle Creem's events."
+      }
+    }
+  ],
+  "fetch_failures": []
+}

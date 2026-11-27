@@ -1,0 +1,11 @@
+{
+  "id": "acct_fixture0000000000",
+  "object": "account",
+  "country": "DE",
+  "default_currency": "eur",
+  "settings": {
+    "dashboard": {
+      "display_name": "eng2012 sandbox"
+    }
+  }
+}
