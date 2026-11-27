@@ -9,6 +9,13 @@ import { CliError } from "../lib/errors";
 import { parseInteger } from "../lib/input";
 import { readCreemCatalog, type CreemCatalog } from "../lib/migration/catalog";
 import { fromLemonSqueezy } from "../lib/migration/lemon-squeezy/map";
+import { fromPolar } from "../lib/migration/polar/map";
+import {
+  POLAR_SERVERS,
+  PolarClient,
+  fetchPolarCatalog,
+  type PolarServer,
+} from "../lib/migration/polar/source";
 import { ADOPT_NEW, type MigrationPlan } from "../lib/migration/plan";
 import {
   LemonSqueezyClient,
@@ -34,6 +41,8 @@ import { addGlobalOptions, outputFormat } from "./resource";
 import { writeResult } from "../utils/results";
 
 const LS_SCOPE = "products, product groups, discounts, license keys and files";
+const POLAR_SCOPE =
+  "meters, products with usage prices, product groups, and license-key, note and credit benefits";
 
 const NOT_MIGRATED_LABELS: Record<string, string> = {
   customers: "customers",
@@ -41,8 +50,12 @@ const NOT_MIGRATED_LABELS: Record<string, string> = {
   orders: "orders",
   license_keys: "issued license keys",
   discounts: "discounts (--exclude-discounts)",
+  checkout_links: "checkout links",
+  webhooks: "webhooks",
+  benefits: "benefits no product grants",
 };
 const KIND_TITLES: Record<MigrationItem["kind"], string> = {
+  meter: "Meters",
   product: "Products",
   product_group: "Product groups",
   file: "Files",
@@ -184,8 +197,10 @@ interface MigrationSource {
   banner: string;
   scope: string;
   options(command: Command): Command;
+  /** Whether the Creem catalog read includes meters. */
+  meters?: boolean;
   /** Checks the source's flags before anything is printed or read. */
-  check?(options: SourceOptions): void;
+  check?(options: SourceOptions, context: CliContext): void;
   read(input: {
     context: CliContext;
     options: SourceOptions;
@@ -295,6 +310,73 @@ const lemonSqueezy: MigrationSource = {
   },
 };
 
+const polar: MigrationSource = {
+  name: "polar",
+  title: "Polar",
+  banner: "🐻‍❄️ Polar → Creem",
+  scope: POLAR_SCOPE,
+  meters: true,
+  options: (command) =>
+    command
+      .option(
+        "--polar-token <token>",
+        "Polar organization access token with read scopes (or POLAR_ACCESS_TOKEN; stays on this machine)",
+      )
+      .option("--polar-server <server>", "Polar server: production or sandbox", "production")
+      .option("--include-archived", "Write archived Polar products as archived Creem products"),
+  check(options, context) {
+    if (!(String(options.polarServer) in POLAR_SERVERS))
+      throw new CliError(
+        `--polar-server takes production or sandbox, not "${String(options.polarServer)}".`,
+        MIGRATION_EXIT_CODES.usage,
+      );
+    if (!options.polarToken && !process.env.POLAR_ACCESS_TOKEN && (!context.isTTY || options.json))
+      throw new CliError(
+        "Supply --polar-token or POLAR_ACCESS_TOKEN for non-interactive migration.",
+        MIGRATION_EXIT_CODES.usage,
+      );
+  },
+  async read({ context, options, print }) {
+    // `check` refused a missing token outside a terminal.
+    let token = (options.polarToken as string | undefined) || process.env.POLAR_ACCESS_TOKEN;
+    if (!token) {
+      try {
+        token = await password({
+          message: "Enter your Polar organization access token:",
+          validate: (value) => (value.length > 0 ? true : "A token is required"),
+        });
+      } catch {
+        throw new CliError("Migration canceled.");
+      }
+    }
+    context.secrets.add(token);
+    const client = new PolarClient(token, { server: options.polarServer as PolarServer });
+    let organization;
+    try {
+      organization = await client.organization();
+    } catch (error) {
+      throw new CliError(
+        error instanceof Error ? error.message : "Could not validate the Polar token",
+        MIGRATION_EXIT_CODES.auth,
+        "Check --polar-token, --polar-server and Polar connectivity.",
+      );
+    }
+    print(chalk.dim(`Polar organization: ${organization.name} (${organization.id})`));
+    print(chalk.dim("Reading the Polar catalog…"));
+    const { objects, failures } = await fetchPolarCatalog(client, { organization });
+    return {
+      plan: (catalog, adoption, now) =>
+        fromPolar(objects, catalog, {
+          now,
+          adoption,
+          includeArchived: Boolean(options.includeArchived),
+        }),
+      failures,
+      files: {},
+    };
+  },
+};
+
 function createSourceCommand(context: CliContext, source: MigrationSource): Command {
   const command = source
     .options(
@@ -327,7 +409,7 @@ function createSourceCommand(context: CliContext, source: MigrationSource): Comm
         const options = { ...localOptions, json };
         if (!context.isTTY && !options.dryRun && !json && !globals.yes)
           throw new CliError("Migration requires --yes in non-interactive mode.");
-        source.check?.(options);
+        source.check?.(options, context);
         const adoptAll = options.adopt === true;
         const answers = adoptAnswers(Array.isArray(options.adopt) ? options.adopt : []);
         const print = (line = "") => {
@@ -346,7 +428,7 @@ function createSourceCommand(context: CliContext, source: MigrationSource): Comm
             timeout: globals.timeout,
           });
           print(chalk.dim("Reading the Creem catalog…"));
-          const catalog = await readCreemCatalog(client);
+          const catalog = await readCreemCatalog(client, { meters: source.meters });
           const now = new Date();
           // Adoption: an existing Creem object without a key is taken over only
           // when the merchant answers its proposal; --yes never does. Each answer
@@ -564,13 +646,17 @@ export function createMigrateCommand(context: CliContext = createContext()): Com
       `
 ${chalk.dim("Available migrations:")}
   ${chalk.cyan("creem migrate lemon-squeezy")}    Migrate ${LS_SCOPE} from Lemon Squeezy
+  ${chalk.cyan("creem migrate polar")}            Migrate ${POLAR_SCOPE} from Polar
 
 ${chalk.dim("Options:")}
   --dry-run               Check the plan with Creem's dry run and write nothing
   --ls-api-key <key>      Provide the API key via flag (skips the prompt)
   --ls-store-id <id>      Lemon Squeezy store ID to migrate from
   --json                  Print the migration report as JSON (with --yes, run it)
-  --exclude-discounts     Skip migrating discounts entirely
+  --exclude-discounts     Skip migrating discounts entirely (Lemon Squeezy)
+  --polar-token <token>   Polar organization access token (or POLAR_ACCESS_TOKEN)
+  --polar-server <server> Polar server: production (default) or sandbox
+  --include-archived      Write archived Polar products as archived Creem products
   --adopt [key=id|new]    Answer adoption proposals (alone: adopt every single match)
   --force                 Write even when Creem's check refuses items (they are left out)
   --yes                   Write without asking
@@ -580,8 +666,10 @@ ${chalk.dim("Examples:")}
   ${chalk.cyan("creem migrate lemon-squeezy")}                    Print the plan, then ask before writing
   ${chalk.cyan("creem migrate lemon-squeezy --ls-api-key ls_xxx --ls-store-id 123 --yes")}  Non-interactive run
   ${chalk.cyan("creem migrate lemon-squeezy --json > plan.json")} Export the plan as JSON
+  ${chalk.cyan("creem migrate polar --polar-server sandbox --dry-run")}  Print the plan for a Polar sandbox
 `,
     );
   command.addCommand(createSourceCommand(context, lemonSqueezy));
+  command.addCommand(createSourceCommand(context, polar));
   return command;
 }
