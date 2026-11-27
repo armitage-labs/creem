@@ -79,7 +79,10 @@ function formatReport(report: MigrationReport, environment: string, title: strin
     for (const item of items) {
       const status =
         item.status === "failed"
-          ? chalk.red(report.mode === "run" ? " FAILED" : " REFUSED by Creem")
+          ? chalk.red(
+              // An error without an HTTP status failed in the plan, before Creem's check.
+              report.mode === "run" || item.error?.status == null ? " FAILED" : " REFUSED by Creem",
+            )
           : item.status === "done"
             ? " ✓"
             : "";
@@ -418,7 +421,7 @@ function createSourceCommand(context: CliContext, source: MigrationSource): Comm
             }
           }
           const refused = plan.report.items.filter((i) => i.status === "failed");
-          const refusedMessage = `Creem's check refused ${refused.length} item(s) (${refused.map((i) => i.key).join(", ")})`;
+          const refusedMessage = `${refused.every((i) => i.error?.status != null) ? "Creem's check refused" : "The plan can't write"} ${refused.length} item(s) (${refused.map((i) => i.key).join(", ")})`;
           const FORCE_HINT =
             "Fix what each refused item's error says and re-run, or pass --force to write the other items.";
           const preview = options.dryRun || (json && !globals.yes);
