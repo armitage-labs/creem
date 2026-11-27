@@ -51,7 +51,8 @@
     "cli-table3": "^0.6.5",
     "commander": "^12.1.0",
     "creem": "workspace:*",
-    "ora": "^5.4.1"
+    "ora": "^5.4.1",
+    "stripe": "^23.1.0"
   },
   "devDependencies": {
     "@eslint/js": "^9.26.0",
