@@ -6,6 +6,8 @@ A Merchant of Record is the legal entity that sells to the end customer. Creem t
 
 Core capabilities: one-time payments and recurring subscriptions, automatic VAT/GST, license keys, revenue splits and affiliate programs, subscription lifecycle (trials, upgrades, pauses, cancellations), a hosted customer portal, and webhooks for every payment event.
 
+AI agents can start without an account: `POST https://test-api.creem.io/v1/sandboxes`, with no API key, no signup and no human, returns a test store and a `creem_test_` API key. The agent builds and tests the whole integration; its human claims the store later at https://creem.io/claim with one token. Details: https://docs.creem.io/ai/for-agents/sandbox.md
+
 API base URLs are `https://api.creem.io` (production) and `https://test-api.creem.io` (sandbox). Authentication is an `x-api-key` header. Prices are integers in cents; currencies are uppercase ISO codes.
 
 Append `.md` to any documentation URL to fetch it as raw markdown.
@@ -31,6 +33,7 @@ Append `.md` to any documentation URL to fetch it as raw markdown.
 
 ## AI and agents
 
+- [Start without an account](https://docs.creem.io/ai/for-agents/sandbox.md): an agent creates its own test store and API key with one call (no signup, no API key), builds and tests the integration, and its human claims the store at creem.io/claim
 - [Use Creem in Claude and ChatGPT](https://docs.creem.io/ai/for-humans/ai-assistants.md): connect the Claude or ChatGPT app to a Creem store by signing in, no code or API key; what you can ask, test and live mode, permissions, confirmations, disconnecting
 - [Hosted MCP](https://docs.creem.io/ai/for-agents/hosted-mcp.md): connect Claude, Claude Code, ChatGPT, Codex, Cursor or any remote MCP client to https://mcp.creem.io/mcp and sign in with a Creem account (OAuth, no API key); test and live mode, tools, confirmations
 - [Skill files](https://docs.creem.io/ai/for-agents/skill-files.md): reference material an agent reads to integrate Creem
