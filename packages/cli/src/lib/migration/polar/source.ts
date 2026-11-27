@@ -1,5 +1,10 @@
+import { createHash } from "node:crypto";
+import { createReadStream, existsSync } from "node:fs";
+import { basename, join } from "node:path";
 import { redact } from "../../errors";
-import type { FetchFailure } from "../lemon-squeezy/source";
+import type { FileDigest, FetchFailure } from "../lemon-squeezy/source";
+import { issue } from "../plan";
+import type { MigrationIssue } from "../report";
 
 /**
  * The Polar side of `creem migrate polar`: the Polar API types the migrator
@@ -103,11 +108,27 @@ export interface PolarDiscount {
   products: { id: string }[];
 }
 
+/** A downloadable file of a `downloadables` benefit (`GET /v1/files/`). */
+export interface PolarFile {
+  id: string;
+  name: string;
+  mime_type: string;
+  size: number;
+  checksum_sha256_base64: string | null;
+  is_uploaded: boolean;
+}
+
 export interface PolarObjects {
   organization: PolarOrganization;
   products: PolarProduct[];
   meters: PolarMeter[];
   discounts: PolarDiscount[];
+  /** The files the products' downloadables benefits name. */
+  files: PolarFile[];
+  /** Verified local copies of those files (`--polar-files-dir`), by Polar file id. */
+  fileDigests: Record<string, FileDigest>;
+  /** Why a file has no verified local copy, by Polar file id. */
+  fileProblems: Record<string, MigrationIssue>;
 }
 
 export const POLAR_SERVERS = {
@@ -196,18 +217,64 @@ export class PolarClient {
 
 const message = (error: unknown) => (error instanceof Error ? error.message : String(error));
 
+async function hashFile(path: string): Promise<{ sha256: string; size: number }> {
+  const hash = createHash("sha256");
+  let size = 0;
+  for await (const chunk of createReadStream(path) as AsyncIterable<Buffer>) {
+    hash.update(chunk);
+    size += chunk.length;
+  }
+  return { sha256: hash.digest("base64"), size };
+}
+
+/**
+ * Polar's API hands out no file downloads to the organization, so the bytes
+ * come from the merchant's own copies in `dir`, by file name. A copy counts
+ * only when its size and SHA-256 are Polar's.
+ */
+async function localCopies(dir: string, files: PolarFile[], objects: PolarObjects) {
+  for (const file of files) {
+    const path = join(dir, basename(file.name));
+    if (!existsSync(path)) {
+      objects.fileProblems[file.id] = issue(
+        "file_not_available",
+        `${dir} has no ${file.name}. Download it from Polar into that folder and run the migration again.`,
+      );
+      continue;
+    }
+    const { sha256, size } = await hashFile(path);
+    if (size !== file.size || (file.checksum_sha256_base64 ?? sha256) !== sha256) {
+      objects.fileProblems[file.id] = issue(
+        "file_checksum_mismatch",
+        `${path} is not Polar's ${file.name}: its size or SHA-256 differs. Download it from Polar again.`,
+      );
+      continue;
+    }
+    objects.fileDigests[file.id] = { sha256, size, contentType: file.mime_type, path };
+  }
+}
+
 /**
  * Reads the catalog of the token's organization: products (with their prices
- * and benefits, archived ones too), meters and discounts. Customers, subscriptions,
+ * and benefits, archived ones too), meters, discounts, and the metadata of the
+ * downloadable files, with their local copies from `filesDir`. Customers, subscriptions,
  * orders, checkout links and webhooks are never fetched.
  */
 export async function fetchPolarCatalog(
   client: PolarClient,
-  options: { organization?: PolarOrganization } = {},
+  options: { organization?: PolarOrganization; filesDir?: string } = {},
 ): Promise<{ objects: PolarObjects; failures: FetchFailure[] }> {
   const organization = options.organization ?? (await client.organization());
   const failures: FetchFailure[] = [];
-  const objects: PolarObjects = { organization, products: [], meters: [], discounts: [] };
+  const objects: PolarObjects = {
+    organization,
+    products: [],
+    meters: [],
+    discounts: [],
+    files: [],
+    fileDigests: {},
+    fileProblems: {},
+  };
   const scope = { organization_id: organization.id };
   try {
     objects.meters = await client.list<PolarMeter>("/v1/meters/", scope);
@@ -223,6 +290,24 @@ export async function fetchPolarCatalog(
     objects.discounts = await client.list<PolarDiscount>("/v1/discounts/", scope);
   } catch (error) {
     failures.push({ kind: "discounts", message: message(error) });
+  }
+  const fileIds = new Set(
+    objects.products.flatMap((p) =>
+      p.benefits.flatMap((b) =>
+        b.type === "downloadables" && Array.isArray(b.properties.files)
+          ? (b.properties.files as string[])
+          : [],
+      ),
+    ),
+  );
+  if (fileIds.size) {
+    try {
+      const files = await client.list<PolarFile>("/v1/files/", scope);
+      objects.files = files.filter((f) => fileIds.has(f.id));
+    } catch (error) {
+      failures.push({ kind: "files", message: message(error) });
+    }
+    if (options.filesDir) await localCopies(options.filesDir, objects.files, objects);
   }
   return { objects, failures };
 }

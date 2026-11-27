@@ -438,7 +438,7 @@ describe("fromPolar against an empty Creem store", () => {
     expect(request(p, ID.fileGuide)).toEqual({
       type: "upload_file",
       key: ID.fileGuide,
-      sourceFileId: ID.fileGuide,
+      lsFileId: ID.fileGuide,
       request: {
         purpose: "product_file",
         filename: "guide.txt",
@@ -721,6 +721,17 @@ describe("creem migrate polar", () => {
         ])
       ).code,
     ).toBe(2);
+    const missingDir = await h.run([
+      "migrate",
+      "polar",
+      "--json",
+      "--polar-token",
+      "x",
+      "--polar-files-dir",
+      "/nonexistent/polar-files",
+    ]);
+    expect(missingDir.code).toBe(2);
+    expect(JSON.parse(missingDir.stderr).error.message).toContain("--polar-files-dir");
     expect(fetcher).not.toHaveBeenCalled();
     vi.unstubAllEnvs();
   });

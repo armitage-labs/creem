@@ -12,9 +12,9 @@
     "create": 21,
     "update": 0,
     "unchanged": 0,
-    "skip": 9,
+    "skip": 10,
     "failed": 0,
-    "warnings": 13
+    "warnings": 12
   },
   "items": [
     {
@@ -262,12 +262,7 @@
       "adopted_from": null,
       "changes": [],
       "reason": null,
-      "warnings": [
-        {
-          "code": "benefit_unsupported",
-          "message": "The downloadables benefit \"Download the guide\" is not migrated: Creem has no equivalent. Set it up outside Creem."
-        }
-      ],
+      "warnings": [],
       "error": null,
       "kind": "product",
       "key": "af5d71f0-316c-46f0-9eb0-d07a33544089",
@@ -531,6 +526,27 @@
         "00000000-0000-4000-8000-00000000c001",
         "00000000-0000-4000-8000-00000000c002"
       ]
+    },
+    {
+      "status": null,
+      "creem_id": null,
+      "adopted_from": null,
+      "changes": [],
+      "reason": {
+        "code": "file_not_available",
+        "message": "Polar's API hands out no file downloads, so the migrator uploads your own copy: download guide.txt from Polar into a folder and pass it with --polar-files-dir."
+      },
+      "warnings": [],
+      "error": null,
+      "kind": "file",
+      "key": "9d3daa79-09bb-485e-b9d5-c53e6986f025",
+      "name": "guide.txt",
+      "source": {
+        "type": "file",
+        "id": "9d3daa79-09bb-485e-b9d5-c53e6986f025",
+        "product_id": "af5d71f0-316c-46f0-9eb0-d07a33544089"
+      },
+      "action": "skip"
     },
     {
       "status": null,

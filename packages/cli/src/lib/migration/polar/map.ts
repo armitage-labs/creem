@@ -14,6 +14,7 @@ import type {
 import { billing, trialDays } from "../billing";
 import type { CreemCatalog } from "../catalog";
 import {
+  UPLOAD_PREFIX,
   adoptionMatcher,
   clearsField,
   issue,
@@ -296,7 +297,7 @@ function mapBenefits(
           `The ${String(p.units)} credits land in the customer's "${label}" bucket. Creem bills postpaid usage at renewal and never from credits, so they don't reduce a postpaid usage price as Polar's do; a prepaid usage price on the meter spends them.`,
         ),
       );
-    } else
+    } else if (benefit.type !== "downloadables")
       warnings.push(
         issue(
           "benefit_unsupported",
@@ -453,6 +454,98 @@ export function fromPolar(
   const productItems: MigrationItem[] = [];
   const groupItems: MigrationItem[] = [];
   const discountItems: MigrationItem[] = [];
+  const fileItems = new Map<string, MigrationItem>();
+  const uploads: MigrationRequest[] = [];
+  const filesById = new Map(objects.files.map((f) => [f.id, f]));
+  /**
+   * The file feature of a downloadables benefit, keyed by the benefit id. A
+   * Polar file the stored feature holds (same name and SHA-256) is kept; any
+   * other is uploaded from its local copy in the real run, once per run.
+   */
+  const fileFeature = (
+    benefit: PolarProduct["benefits"][number],
+    product: PolarProduct,
+    existing: ProductEntity | undefined,
+    warnings: MigrationIssue[],
+  ): Feature | undefined => {
+    const archived = (benefit.properties.archived ?? {}) as Record<string, boolean>;
+    const ids = ((benefit.properties.files ?? []) as string[]).filter((id) => !archived[id]);
+    const stored = existing?.features?.find(
+      (f) => f.type === "file" && f.externalId === benefit.id,
+    );
+    const storedFiles = stored?.file?.files ?? [];
+    const kept = new Set<string>();
+    const files: { id: string }[] = [];
+    for (const id of ids) {
+      const file = filesById.get(id);
+      const fileItem =
+        fileItems.get(id) ??
+        newItem({
+          kind: "file",
+          key: id,
+          name: file?.name ?? id,
+          source: { type: "file", id, product_id: product.id },
+          action: "skip",
+        });
+      fileItems.set(id, fileItem);
+      if (!file?.is_uploaded) {
+        fileItem.reason = issue("file_not_found", "Polar has no uploaded file with this id.");
+        continue;
+      }
+      const sha256 = file.checksum_sha256_base64 ?? objects.fileDigests[id]?.sha256;
+      const same = storedFiles.find((f) => f.fileName === file.name && f.sha256 === sha256);
+      if (same) {
+        kept.add(same.id);
+        files.push({ id: same.id });
+        if (fileItem.action === "skip")
+          Object.assign(fileItem, { action: "unchanged", creem_id: same.id });
+        continue;
+      }
+      const digest = objects.fileDigests[id];
+      if (!digest) {
+        fileItem.reason =
+          objects.fileProblems[id] ??
+          issue(
+            "file_not_available",
+            `Polar's API hands out no file downloads, so the migrator uploads your own copy: download ${file.name} from Polar into a folder and pass it with --polar-files-dir.`,
+          );
+        continue;
+      }
+      files.push({ id: `${UPLOAD_PREFIX}${id}` });
+      if (fileItem.status === "pending") continue;
+      Object.assign(fileItem, { action: "create", status: "pending", reason: null });
+      uploads.push({
+        type: "upload_file",
+        key: id,
+        lsFileId: id,
+        request: {
+          purpose: "product_file",
+          filename: file.name,
+          contentType: digest.contentType,
+          size: digest.size,
+          sha256: digest.sha256,
+        },
+      });
+    }
+    // A stored file Polar no longer lists stays, so past buyers keep their download.
+    for (const f of storedFiles)
+      if (!kept.has(f.id)) {
+        files.push({ id: f.id });
+        warnings.push(
+          issue(
+            "file_kept",
+            `Creem file ${f.id} (${f.fileName}) isn't one of the Polar benefit's files; it stays in the feature. Remove it in Creem if buyers shouldn't get it.`,
+          ),
+        );
+      }
+    if (!files.length) return undefined;
+    return {
+      type: "file",
+      externalId: benefit.id,
+      description: stored?.description ?? benefit.description,
+      file: { files },
+    };
+  };
 
   // ---- meters
   /** The unit label of each migrated meter, by Polar id. */
@@ -697,6 +790,11 @@ export function fromPolar(
       continue;
     }
     const existing = found.existing;
+    for (const benefit of product.benefits) {
+      const feature =
+        benefit.type === "downloadables" && fileFeature(benefit, product, existing, item.warnings);
+      if (feature) features.push(feature);
+    }
     if (features.length) {
       // `features` replaces the stored features of each type it names: the
       // merchant's other features of those types are sent back as they are.
@@ -924,8 +1022,29 @@ export function fromPolar(
       });
   }
 
+  // Files of products this run doesn't write are reported too.
+  for (const file of objects.files)
+    if (!fileItems.has(file.id))
+      fileItems.set(
+        file.id,
+        newItem({
+          kind: "file",
+          key: file.id,
+          name: file.name,
+          source: { type: "file", id: file.id },
+          action: "skip",
+          reason: issue("product_not_migrated", "No migrated product grants this file."),
+        }),
+      );
+
   adoption.finish();
-  const items = [...meterItems, ...productItems, ...groupItems, ...discountItems];
+  const items = [
+    ...meterItems,
+    ...productItems,
+    ...groupItems,
+    ...fileItems.values(),
+    ...discountItems,
+  ];
   const report: MigrationReport = {
     schema: MIGRATION_REPORT_SCHEMA,
     version: MIGRATION_REPORT_VERSION,
@@ -945,8 +1064,9 @@ export function fromPolar(
     })),
     fetch_failures: [],
   };
+  const meters = requests.filter((r) => r.type === "upsert_meter");
   return {
-    requests,
+    requests: [...meters, ...uploads, ...requests.filter((r) => r.type !== "upsert_meter")],
     report,
     answerErrors: adoption.answerErrors,
     productGroupOf: Object.fromEntries(
