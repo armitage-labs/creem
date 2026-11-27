@@ -1,0 +1,162 @@
+[
+  {
+    "type": "upsert_product",
+    "key": "pri_01hw000000000000000cloudm",
+    "request": {
+      "createProductRequestEntity": {
+        "name": "eng2015-Cloud",
+        "description": "Hosted plan.",
+        "price": 900,
+        "currency": "EUR",
+        "billingType": "recurring",
+        "billingPeriod": "every-month",
+        "trialPeriodDays": 30,
+        "taxCategory": "saas",
+        "metadata": {
+          "region": "eu",
+          "plan": "cloud"
+        },
+        "externalId": "pri_01hw000000000000000cloudm"
+      }
+    }
+  },
+  {
+    "type": "upsert_product",
+    "key": "pri_01hw000000000000000ebook1",
+    "request": {
+      "createProductRequestEntity": {
+        "name": "eng2015-Ebooks - One-time",
+        "description": "Books, one-time or as a subscription.",
+        "price": 1500,
+        "currency": "USD",
+        "billingType": "onetime",
+        "taxCategory": "ebooks",
+        "externalId": "pri_01hw000000000000000ebook1"
+      }
+    }
+  },
+  {
+    "type": "upsert_product",
+    "key": "pri_01hw000000000000000ebook2",
+    "request": {
+      "createProductRequestEntity": {
+        "name": "eng2015-Ebooks - Monthly",
+        "description": "Books, one-time or as a subscription.",
+        "price": 300,
+        "currency": "USD",
+        "billingType": "recurring",
+        "billingPeriod": "every-month",
+        "taxCategory": "digital-goods-service",
+        "externalId": "pri_01hw000000000000000ebook2"
+      }
+    }
+  },
+  {
+    "type": "upsert_product",
+    "key": "pri_01m8ee91rdx3xn32adc9jtmj9v",
+    "request": {
+      "createProductRequestEntity": {
+        "name": "eng2015-Pro - Monthly",
+        "description": "The Pro plan, monthly or yearly.",
+        "price": 1500,
+        "currency": "USD",
+        "billingType": "recurring",
+        "billingPeriod": "every-month",
+        "trialPeriodDays": 14,
+        "taxCategory": "digital-goods-service",
+        "metadata": {
+          "seats": 5,
+          "tier": "pro",
+          "plan": "pro-monthly"
+        },
+        "externalId": "pri_01m8ee91rdx3xn32adc9jtmj9v"
+      }
+    }
+  },
+  {
+    "type": "upsert_product",
+    "key": "pri_01m8ee91x0ae559fkyjp35acdy",
+    "request": {
+      "createProductRequestEntity": {
+        "name": "eng2015-Pro - Yearly",
+        "description": "The Pro plan, monthly or yearly.",
+        "price": 15000,
+        "currency": "USD",
+        "billingType": "recurring",
+        "billingPeriod": "every-year",
+        "taxCategory": "digital-goods-service",
+        "metadata": {
+          "seats": 5,
+          "tier": "pro"
+        },
+        "externalId": "pri_01m8ee91x0ae559fkyjp35acdy"
+      }
+    }
+  },
+  {
+    "type": "upsert_product",
+    "key": "pri_01m8ee9817hnw5txebjqdmqkyp",
+    "request": {
+      "createProductRequestEntity": {
+        "name": "eng2015-Handbook",
+        "description": "A one-time download.",
+        "price": 2900,
+        "currency": "EUR",
+        "billingType": "onetime",
+        "taxCategory": "digital-goods-service",
+        "externalId": "pri_01m8ee9817hnw5txebjqdmqkyp"
+      }
+    }
+  },
+  {
+    "type": "upsert_product",
+    "key": "pri_01m8ee98cbpwhw599qn9fprbk9",
+    "request": {
+      "createProductRequestEntity": {
+        "name": "eng2015-Global",
+        "description": "Priced per country.",
+        "price": 2000,
+        "currency": "USD",
+        "billingType": "onetime",
+        "taxCategory": "digital-goods-service",
+        "externalId": "pri_01m8ee98cbpwhw599qn9fprbk9"
+      }
+    }
+  },
+  {
+    "type": "upsert_product",
+    "key": "pri_01m8ee9916eq0x1r4ycpnvdrpb",
+    "request": {
+      "createProductRequestEntity": {
+        "name": "eng2015-Weekly",
+        "description": "eng2015-Weekly",
+        "price": 500,
+        "currency": "USD",
+        "billingType": "recurring",
+        "billingPeriod": "custom",
+        "recurringInterval": "week",
+        "recurringIntervalCount": 1,
+        "taxCategory": "digital-goods-service",
+        "externalId": "pri_01m8ee9916eq0x1r4ycpnvdrpb"
+      }
+    }
+  },
+  {
+    "type": "upsert_product_group",
+    "key": "pro_01m8ee91jy96wpy0q79wta9sd6",
+    "request": {
+      "createProductGroupRequestEntity": {
+        "externalId": "pro_01m8ee91jy96wpy0q79wta9sd6",
+        "name": "eng2015-Pro",
+        "products": [
+          {
+            "externalId": "pri_01m8ee91rdx3xn32adc9jtmj9v"
+          },
+          {
+            "externalId": "pri_01m8ee91x0ae559fkyjp35acdy"
+          }
+        ]
+      }
+    }
+  }
+]

@@ -1,0 +1,58 @@
+{
+  "data": [
+    {
+      "id": "pro_01hw0000000000000000cloud1",
+      "name": "eng2015-Cloud",
+      "tax_category": "saas",
+      "type": "standard",
+      "description": "Hosted plan.",
+      "image_url": null,
+      "custom_data": {
+        "region": "eu",
+        "limits": {
+          "seats": 3
+        },
+        "beta": true
+      },
+      "status": "active",
+      "import_meta": null,
+      "created_at": "2026-11-20T10:00:00.000Z",
+      "updated_at": "2026-11-20T10:00:00.000Z"
+    },
+    {
+      "id": "pro_01hw0000000000000000ebook1",
+      "name": "eng2015-Ebooks",
+      "tax_category": "ebooks",
+      "type": "standard",
+      "description": "Books, one-time or as a subscription.",
+      "image_url": null,
+      "custom_data": null,
+      "status": "active",
+      "import_meta": null,
+      "created_at": "2026-11-20T10:00:00.000Z",
+      "updated_at": "2026-11-20T10:00:00.000Z"
+    },
+    {
+      "id": "pro_01hw00000000000000000old01",
+      "name": "eng2015-Old",
+      "tax_category": "standard",
+      "type": "standard",
+      "description": null,
+      "image_url": null,
+      "custom_data": null,
+      "status": "archived",
+      "import_meta": null,
+      "created_at": "2026-11-20T10:00:00.000Z",
+      "updated_at": "2026-11-20T10:00:00.000Z"
+    }
+  ],
+  "meta": {
+    "request_id": "00000000-0000-0000-0000-000000000000",
+    "pagination": {
+      "per_page": 200,
+      "next": null,
+      "has_more": false,
+      "estimated_total": 3
+    }
+  }
+}
