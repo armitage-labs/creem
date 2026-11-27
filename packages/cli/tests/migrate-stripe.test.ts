@@ -1285,6 +1285,40 @@ describe("creem migrate stripe", () => {
       expect(old[0].status).toBe(archived ? "archived" : "active");
     });
 
+  it("still moves the key to the old price when Stripe transferred it to a price the CLI skips", async () => {
+    // B takes A's lookup key but is skipped (GBP): only A writes, so its product keeps one key.
+    const docs = stripeDocs();
+    const a = docs.prices.data.find((price) => price.id === ID.priceEbook)!;
+    docs.prices.data.push({
+      ...structuredClone(a),
+      id: "price_eng2012_ebook_gbp",
+      active: true,
+      currency: "gbp",
+      unit_amount: 1200,
+      lookup_key: "eng2012_ebook",
+    });
+    const { creem, h } = setup({
+      docs,
+      state: {
+        products: [
+          productJson("prod_1", {
+            name: "eng2012-Ebook",
+            price: 900,
+            external_id: "eng2012_ebook",
+            metadata: { stripe_price_id: ID.priceEbook },
+          }),
+        ],
+      },
+    });
+    const r = await h.run(["--json", ...base, "--yes", "--adopt"]);
+    expect(r.code, r.stderr).toBe(0);
+    const forA = creem.state.products.filter(
+      (p) => p.external_id === ID.priceEbook || p.metadata?.stripe_price_id === ID.priceEbook,
+    );
+    expect(forA.map((p) => p.id)).toEqual(["prod_1"]);
+    expect(forA[0].external_id).toBe(ID.priceEbook);
+  });
+
   it("asks per proposal in a terminal, and never adopts without a yes", async () => {
     const asked: string[] = [];
     const { creem, h } = setup({
