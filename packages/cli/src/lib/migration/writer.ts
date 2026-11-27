@@ -3,6 +3,7 @@ import type { Creem } from "creem";
 import {
   createMeterApiRequestDtoToJSON,
   createProductRequestEntityToJSON,
+  updateMeterApiRequestDtoToJSON,
   updateProductRequestEntityToJSON,
   type CatalogValidateItemRequestDto,
   type CatalogValidationItemResponseDto,
@@ -248,6 +249,8 @@ async function send(
   switch (request.type) {
     case "upsert_meter":
       return client.meters.createMeter({ ...request.request, dryRun });
+    case "adopt_meter":
+      return client.meters.updateMeter({ ...request.request, dryRun });
     case "adopt_product":
     case "update_product":
       return client.products.update({ ...request.request, dryRun });
@@ -301,7 +304,7 @@ function itemFinder(report: MigrationReport) {
     const kind =
       request.type === "upload_file"
         ? "file"
-        : request.type === "upsert_meter"
+        : request.type.endsWith("_meter")
           ? "meter"
           : request.type === "upsert_product_group"
             ? "product_group"
@@ -339,7 +342,9 @@ function withoutPendingUploads<T extends { features?: unknown[] | null | undefin
 
 type ValidatedRequest = Extract<
   MigrationRequest,
-  { type: "upsert_meter" | "adopt_product" | "update_product" | "upsert_product" }
+  {
+    type: "upsert_meter" | "adopt_meter" | "adopt_product" | "update_product" | "upsert_product";
+  }
 >;
 
 /** A meter or product write as an item of `POST /v1/catalog/validate`, in the API's own shape. */
@@ -352,6 +357,15 @@ function validateItem(request: ValidatedRequest): {
       item: {
         kind: "meter",
         body: JSON.parse(createMeterApiRequestDtoToJSON(request.request.createMeterApiRequestDto)),
+      },
+      partial: false,
+    };
+  if (request.type === "adopt_meter")
+    return {
+      item: {
+        kind: "meter",
+        id: request.request.id,
+        body: JSON.parse(updateMeterApiRequestDtoToJSON(request.request.updateMeterApiRequestDto)),
       },
       partial: false,
     };
@@ -463,6 +477,7 @@ export async function checkMigration(
   const products = plan.requests.filter(
     (r): r is ValidatedRequest =>
       r.type === "upsert_meter" ||
+      r.type === "adopt_meter" ||
       r.type === "adopt_product" ||
       r.type === "update_product" ||
       r.type === "upsert_product",
@@ -556,7 +571,12 @@ export async function checkMigration(
   // A refused product's uploads would attach to nothing, so they are not sent.
   for (const request of products) {
     const item = itemOf(request);
-    if (item.status !== "failed" || request.type === "upsert_meter") continue;
+    if (
+      item.status !== "failed" ||
+      request.type === "upsert_meter" ||
+      request.type === "adopt_meter"
+    )
+      continue;
     const body =
       request.type === "upsert_product"
         ? request.request.createProductRequestEntity

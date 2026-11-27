@@ -108,7 +108,7 @@ export interface AdoptionCandidate {
 export interface AdoptionProposal {
   /** `adopt:<key>`. */
   id: string;
-  kind: "product" | "discount";
+  kind: "meter" | "product" | "discount";
   /** The key the adopted object gets. */
   key: string;
   /** The source object's name. */

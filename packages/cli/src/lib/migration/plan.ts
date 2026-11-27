@@ -5,6 +5,7 @@ import type {
   CreateProductGroupRequest,
   CreateProductRequest,
   UpdateDiscountRequest,
+  UpdateMeterRequest,
   UpdateProductRequest,
 } from "creem/models/operations";
 import type { AdoptionProposal, MigrationIssue, MigrationItem, MigrationReport } from "./report";
@@ -25,6 +26,7 @@ import type { AdoptionProposal, MigrationIssue, MigrationItem, MigrationReport }
  */
 export type MigrationRequest =
   | { type: "upsert_meter"; key: string; request: CreateMeterRequest }
+  | { type: "adopt_meter"; key: string; request: UpdateMeterRequest }
   | { type: "adopt_product"; key: string; request: UpdateProductRequest }
   | { type: "adopt_discount"; key: string; request: UpdateDiscountRequest }
   | {
@@ -101,7 +103,7 @@ export function adoptionMatcher(answers: Record<string, string>) {
    * the item.
    */
   function match<T extends { id: string; externalId: string | null; name?: string }>(
-    kind: "product" | "discount",
+    kind: "meter" | "product" | "discount",
     key: string,
     byKey: Map<string, T>,
     all: T[],
@@ -172,7 +174,11 @@ export function adoptionMatcher(answers: Record<string, string>) {
   }
 
   /** The skip reason of an item whose proposal waits for an answer. */
-  function unconfirmed(kind: "product" | "discount", key: string, pending: { id: string }[]) {
+  function unconfirmed(
+    kind: "meter" | "product" | "discount",
+    key: string,
+    pending: { id: string }[],
+  ) {
     const ids = pending.map((c) => c.id);
     const what =
       ids.length === 1
