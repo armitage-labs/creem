@@ -96,6 +96,98 @@ describe("shared layer: adopting a meter", () => {
     expect(answered.proposals[0]).toMatchObject({ decision: "accepted", creem_id: "mtr_1" });
   });
 
+  /** An adopted meter, 100 products, then one product with a usage price on the meter. */
+  function adoptedMeterPlan(meterId: string) {
+    const meter = newItem({
+      kind: "meter",
+      key: "mtr_stripe",
+      name: "API calls",
+      source: { type: "meter", id: "mtr_stripe" },
+      action: "update",
+      status: "pending",
+      creem_id: meterId,
+      adopted_from: meterId,
+      changes: ["external_id"],
+    });
+    const product = (key: string) =>
+      newItem({
+        kind: "product",
+        key,
+        name: key,
+        source: { type: "price", id: key },
+        action: "create",
+        status: "pending",
+      });
+    const keys = [...Array.from({ length: 100 }, (_, i) => `price_${i}`), "price_usage"];
+    return planOf(
+      [meter, ...keys.map(product)],
+      [
+        {
+          type: "adopt_meter",
+          key: "mtr_stripe",
+          request: {
+            id: meterId,
+            updateMeterApiRequestDto: { externalId: "mtr_stripe", name: "API calls v2" },
+          },
+        },
+        ...keys.map(
+          (key): MigrationRequest => ({
+            type: "upsert_product",
+            key,
+            request: {
+              createProductRequestEntity: {
+                externalId: key,
+                name: key,
+                description: key,
+                price: 1000,
+                currency: "USD",
+                billingType: "recurring",
+                billingPeriod: "every-month",
+                ...(key === "price_usage"
+                  ? {
+                      usagePrices: [
+                        { meterExternalId: "mtr_stripe", unitPrice: 1, settlementMode: "postpaid" },
+                      ],
+                    }
+                  : {}),
+              },
+            },
+          }),
+        ),
+      ],
+    );
+  }
+
+  it("validates a product priced on an adopted meter in the batch of the meter's PATCH, and takes Creem's changes of the adoption", async () => {
+    const creem = fakeCreem({ meters: [meterJson("mtr_1")] });
+    const checked = await checkMigration(creem.client, adoptedMeterPlan("mtr_1"));
+    const batches = creem
+      .validations()
+      .map((c) => c.body!.items as { kind: string; id?: string; body: Json }[]);
+    expect(batches.map((b) => b.length)).toEqual([100, 2]);
+    expect(batches[1]).toEqual([
+      expect.objectContaining({ kind: "meter", id: "mtr_1" }),
+      expect.objectContaining({
+        kind: "product",
+        body: expect.objectContaining({ external_id: "price_usage" }),
+      }),
+    ]);
+    expect(checked.report.items.filter((i) => i.status === "failed")).toEqual([]);
+    expect(item(checked, "mtr_stripe", "meter").changes).toEqual(["external_id", "name"]);
+    expect(creem.writes()).toEqual([]);
+  });
+
+  it("fails a product priced on an adopted meter Creem's check refuses", async () => {
+    const creem = fakeCreem();
+    const checked = await checkMigration(creem.client, adoptedMeterPlan("mtr_gone"));
+    expect(item(checked, "mtr_stripe", "meter")).toMatchObject({ status: "failed" });
+    expect(item(checked, "price_usage", "product")).toMatchObject({
+      status: "failed",
+      error: { code: "dependency_failed" },
+    });
+    expect(item(checked, "price_0", "product").status).toBe("pending");
+  });
+
   it("checks the adoption PATCH with validate (by id), then sends it as a dry run and for real", async () => {
     const creem = fakeCreem({ meters: [meterJson("mtr_1")] });
     const item = newItem({
@@ -1122,6 +1214,12 @@ describe("creem migrate stripe", () => {
       "eng2012_donation",
     );
     expect(creem.state.products.filter((p) => p.name === "eng2012-Donation")).toHaveLength(1);
+    // The key move names Creem's changes of the PATCH besides the key.
+    const moved = (JSON.parse(r.stdout) as MigrationPlan["report"]).items.find(
+      (i) => i.key === "eng2012_donation",
+    )!;
+    expect(moved.changes[0]).toBe("external_id");
+    expect(moved.changes).toEqual(expect.arrayContaining(["description", "price", "metadata"]));
   });
 
   it("asks per proposal in a terminal, and never adopts without a yes", async () => {
