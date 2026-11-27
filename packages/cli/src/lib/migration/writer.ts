@@ -429,10 +429,14 @@ export async function checkMigration(
     partial: boolean,
   ) => {
     const { result } = answer;
-    // A plan that leaves comparing to Creem names no changes: Creem's answer does.
-    if (!item.changes.length && Array.isArray(answer.changes))
+    // A plan that leaves comparing to Creem names no changes, or only the key an
+    // adoption gives: Creem's answer names the rest.
+    if (Array.isArray(answer.changes) && item.changes.every((c) => c === "external_id"))
       item.changes = [
-        ...new Set(answer.changes.flatMap((c) => (isRecord(c) ? [String(c.path)] : []))),
+        ...new Set([
+          ...item.changes,
+          ...answer.changes.flatMap((c) => (isRecord(c) ? [String(c.path)] : [])),
+        ]),
       ];
     // An object that exists already (another run wrote it) has a real id; the id
     // of one a dry run would create is never stored.
