@@ -794,6 +794,14 @@ describe("ENG-2015 discounts", () => {
     expect(item(p, PERCENT).warnings.map((w) => w.code)).toEqual(["discount_applies_to_all"]);
   });
 
+  it("leaves archived products out of an unrestricted discount with --include-archived", async () => {
+    const p = await plan({ includeArchived: true });
+    expect(request(p, PRO_LEGACY)).toBeDefined();
+    expect(request(p, PERCENT)!.request).toMatchObject({
+      createDiscountRequestEntity: { appliesToProductExternalIds: MIGRATED },
+    });
+  });
+
   it("maps a flat discount as a fixed one in its currency, and recur without a limit as forever", async () => {
     const p = await plan();
     expect(request(p, FLAT)!.request).toMatchObject({
