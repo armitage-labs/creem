@@ -7,15 +7,13 @@ import { password, select } from "@inquirer/prompts";
 import { createContext, type CliContext } from "../lib/context";
 import { CliError } from "../lib/errors";
 import { parseInteger } from "../lib/input";
-import { readCreemCatalog } from "../lib/migration/catalog";
-import {
-  ADOPT_NEW,
-  fromLemonSqueezy,
-  type MigrationPlan,
-} from "../lib/migration/lemon-squeezy/map";
+import { readCreemCatalog, type CreemCatalog } from "../lib/migration/catalog";
+import { fromLemonSqueezy } from "../lib/migration/lemon-squeezy/map";
+import { ADOPT_NEW, type MigrationPlan } from "../lib/migration/plan";
 import {
   LemonSqueezyClient,
   fetchLemonSqueezyCatalog,
+  type FetchFailure,
   type LSStore,
 } from "../lib/migration/lemon-squeezy/source";
 import {
@@ -35,7 +33,7 @@ import {
 import { addGlobalOptions, outputFormat } from "./resource";
 import { writeResult } from "../utils/results";
 
-const SCOPE = "products, product groups, discounts, license keys and files";
+const LS_SCOPE = "products, product groups, discounts, license keys and files";
 
 const NOT_MIGRATED_LABELS: Record<string, string> = {
   customers: "customers",
@@ -58,13 +56,13 @@ const ACTION_MARKS: Record<MigrationItem["action"], string> = {
 };
 
 /** The plan or run report as terminal text. */
-function formatReport(report: MigrationReport, environment: string): string[] {
+function formatReport(report: MigrationReport, environment: string, title: string): string[] {
   const lines: string[] = [];
   const s = report.summary;
-  const title =
-    report.mode === "run" ? "Migration result" : `Plan: Lemon Squeezy → Creem ${environment}`;
   lines.push(
-    chalk.bold(title),
+    chalk.bold(
+      report.mode === "run" ? "Migration result" : `Plan: ${title} → Creem ${environment}`,
+    ),
     chalk.dim(
       `Store ${report.source.store_name} (${report.source.store_id}, ${report.source.currency})`,
     ),
@@ -116,7 +114,7 @@ function formatReport(report: MigrationReport, environment: string): string[] {
     ),
   );
   if (report.fetch_failures.length) {
-    lines.push("", chalk.red("Could not read from Lemon Squeezy:"));
+    lines.push("", chalk.red(`Could not read from ${title}:`));
     for (const failure of report.fetch_failures)
       lines.push(chalk.red(`  • ${failure.kind}: ${failure.message}`));
   }
@@ -163,16 +161,150 @@ async function askAdoption(context: CliContext, proposal: AdoptionProposal): Pro
   return ADOPT_NEW;
 }
 
-function createLemonSqueezyCommand(context: CliContext): Command {
-  const command = addGlobalOptions(
-    new Command("lemon-squeezy").description(
-      `Migrate ${SCOPE} from Lemon Squeezy to Creem. Re-runnable: objects are matched by their key.`,
-    ),
-  )
-    .option("--ls-api-key <key>", "Lemon Squeezy API key (stays on this machine)")
-    .option("--ls-store-id <id>", "Lemon Squeezy store ID to migrate from")
+/** What a source command read, for the shared plan, check and run. */
+interface SourceRead {
+  /** Plans against the Creem catalog with the adoption answers given so far. */
+  plan(catalog: CreemCatalog, adoption: Record<string, string>, now: Date): MigrationPlan;
+  failures: FetchFailure[];
+  /** Local copies of the files the run uploads, by source file id. */
+  files: Record<string, { path: string }>;
+}
+
+type SourceOptions = Record<string, unknown> & { json: boolean };
+
+/**
+ * One `creem migrate <source>` command: its own flags and how it reads the
+ * source. Planning against Creem, adoption, the check, the confirmation and the
+ * run are the same for every source.
+ */
+interface MigrationSource {
+  name: string;
+  /** The source's name in messages ("Lemon Squeezy"). */
+  title: string;
+  banner: string;
+  scope: string;
+  options(command: Command): Command;
+  /** Checks the source's flags before anything is printed or read. */
+  check?(options: SourceOptions): void;
+  read(input: {
+    context: CliContext;
+    options: SourceOptions;
+    print: (line?: string) => void;
+    downloadDir: string;
+  }): Promise<SourceRead>;
+}
+
+const lemonSqueezy: MigrationSource = {
+  name: "lemon-squeezy",
+  title: "Lemon Squeezy",
+  banner: "🍋 Lemon Squeezy → Creem",
+  scope: LS_SCOPE,
+  options: (command) =>
+    command
+      .option("--ls-api-key <key>", "Lemon Squeezy API key (stays on this machine)")
+      .option("--ls-store-id <id>", "Lemon Squeezy store ID to migrate from")
+      .option("--exclude-discounts", "Skip migrating discounts entirely"),
+  check(options) {
+    if (options.lsStoreId) parseInteger("--ls-store-id", String(options.lsStoreId), { min: 1 });
+  },
+  async read({ context, options, print, downloadDir }) {
+    const json = options.json;
+    let lsApiKey = options.lsApiKey as string | undefined;
+    if (!lsApiKey) {
+      if (!context.isTTY || json)
+        throw new CliError(
+          "Supply --ls-api-key for non-interactive migration.",
+          MIGRATION_EXIT_CODES.usage,
+        );
+      try {
+        lsApiKey = await password({
+          message: "Enter your Lemon Squeezy API key:",
+          validate: (value) => (value.length > 0 ? true : "API key is required"),
+        });
+      } catch {
+        throw new CliError("Migration canceled.");
+      }
+    }
+    context.secrets.add(lsApiKey);
+    const lsClient = new LemonSqueezyClient(lsApiKey);
+
+    let stores: LSStore[];
+    try {
+      stores = await lsClient.stores();
+    } catch (error) {
+      throw new CliError(
+        error instanceof Error ? error.message : "Could not validate the API key",
+        MIGRATION_EXIT_CODES.auth,
+        "Check --ls-api-key and Lemon Squeezy connectivity.",
+      );
+    }
+    if (!stores.length)
+      throw new CliError(
+        "No store found for this Lemon Squeezy API key.",
+        MIGRATION_EXIT_CODES.auth,
+      );
+    let store: LSStore | undefined;
+    if (options.lsStoreId) {
+      store = stores.find((candidate) => candidate.id === String(Number(options.lsStoreId)));
+      if (!store)
+        throw new CliError(
+          `Lemon Squeezy store ID ${String(options.lsStoreId)} was not found for this API key.`,
+        );
+    } else if (stores.length === 1) store = stores[0];
+    else {
+      if (!context.isTTY || json)
+        throw new CliError("Supply --ls-store-id when more than one store is available.");
+      try {
+        store = await select<LSStore>({
+          message: "Which Lemon Squeezy store do you want to migrate?",
+          choices: stores.map((candidate) => ({
+            name: [
+              candidate.attributes.name,
+              candidate.attributes.domain || candidate.attributes.slug,
+              `ID: ${candidate.id}`,
+              candidate.attributes.currency,
+            ]
+              .filter(Boolean)
+              .join(" · "),
+            value: candidate,
+          })),
+        });
+      } catch {
+        throw new CliError("Migration canceled.");
+      }
+    }
+    const currency = store.attributes.currency?.toUpperCase();
+    if (currency !== "USD" && currency !== "EUR")
+      throw new CliError(
+        `Your Lemon Squeezy store uses ${currency ?? "no currency"}, and Creem supports USD and EUR. ` +
+          "Change the store currency to USD or EUR before migrating, or contact Creem support.",
+      );
+    print(chalk.dim(`Lemon Squeezy store: ${store.attributes.name} (ID ${store.id})`));
+    print(chalk.dim("Reading the Lemon Squeezy catalog…"));
+    const { objects, failures } = await fetchLemonSqueezyCatalog(lsClient, {
+      storeId: store.id,
+      excludeDiscounts: Boolean(options.excludeDiscounts),
+      downloadDir,
+      store,
+    });
+    return {
+      plan: (catalog, adoption, now) => fromLemonSqueezy(objects, catalog, { now, adoption }),
+      failures,
+      files: objects.fileDigests,
+    };
+  },
+};
+
+function createSourceCommand(context: CliContext, source: MigrationSource): Command {
+  const command = source
+    .options(
+      addGlobalOptions(
+        new Command(source.name).description(
+          `Migrate ${source.scope} from ${source.title} to Creem. Re-runnable: objects are matched by their key.`,
+        ),
+      ),
+    )
     .option("--dry-run", "Check the plan with Creem's dry run, print it and write nothing")
-    .option("--exclude-discounts", "Skip migrating discounts entirely")
     .option(
       "--adopt [answers...]",
       "Answer adoption proposals: <key>=<creem id> adopts that object, <key>=new creates a new one; alone, adopts every proposal with one candidate",
@@ -183,11 +315,8 @@ function createLemonSqueezyCommand(context: CliContext): Command {
     )
     .action(
       async (
-        localOptions: {
-          lsApiKey?: string;
-          lsStoreId?: string;
+        localOptions: Record<string, unknown> & {
           dryRun?: boolean;
-          excludeDiscounts?: boolean;
           adopt?: boolean | string[];
           force?: boolean;
         },
@@ -198,97 +327,20 @@ function createLemonSqueezyCommand(context: CliContext): Command {
         const options = { ...localOptions, json };
         if (!context.isTTY && !options.dryRun && !json && !globals.yes)
           throw new CliError("Migration requires --yes in non-interactive mode.");
-        if (options.lsStoreId) parseInteger("--ls-store-id", options.lsStoreId, { min: 1 });
+        source.check?.(options);
         const adoptAll = options.adopt === true;
         const answers = adoptAnswers(Array.isArray(options.adopt) ? options.adopt : []);
         const print = (line = "") => {
           if (!json) context.stdout(line + "\n");
         };
-        print(chalk.bold.cyan("🍋 Lemon Squeezy → Creem"));
-        print(chalk.dim(`Migrates ${SCOPE}. Customers and subscriptions are not migrated.`));
+        print(chalk.bold.cyan(source.banner));
+        print(chalk.dim(`Migrates ${source.scope}. Customers and subscriptions are not migrated.`));
         print();
 
-        let lsApiKey = options.lsApiKey;
-        if (!lsApiKey) {
-          if (!context.isTTY || json)
-            throw new CliError(
-              "Supply --ls-api-key for non-interactive migration.",
-              MIGRATION_EXIT_CODES.usage,
-            );
-          try {
-            lsApiKey = await password({
-              message: "Enter your Lemon Squeezy API key:",
-              validate: (value) => (value.length > 0 ? true : "API key is required"),
-            });
-          } catch {
-            throw new CliError("Migration canceled.");
-          }
-        }
-        context.secrets.add(lsApiKey);
-        const lsClient = new LemonSqueezyClient(lsApiKey);
-
-        let stores: LSStore[];
+        const downloadDir = mkdtempSync(join(tmpdir(), `creem-migrate-${source.name}-`));
         try {
-          stores = await lsClient.stores();
-        } catch (error) {
-          throw new CliError(
-            error instanceof Error ? error.message : "Could not validate the API key",
-            MIGRATION_EXIT_CODES.auth,
-            "Check --ls-api-key and Lemon Squeezy connectivity.",
-          );
-        }
-        if (!stores.length)
-          throw new CliError(
-            "No store found for this Lemon Squeezy API key.",
-            MIGRATION_EXIT_CODES.auth,
-          );
-        let store: LSStore | undefined;
-        if (options.lsStoreId) {
-          store = stores.find((candidate) => candidate.id === String(Number(options.lsStoreId)));
-          if (!store)
-            throw new CliError(
-              `Lemon Squeezy store ID ${options.lsStoreId} was not found for this API key.`,
-            );
-        } else if (stores.length === 1) store = stores[0];
-        else {
-          if (!context.isTTY || json)
-            throw new CliError("Supply --ls-store-id when more than one store is available.");
-          try {
-            store = await select<LSStore>({
-              message: "Which Lemon Squeezy store do you want to migrate?",
-              choices: stores.map((candidate) => ({
-                name: [
-                  candidate.attributes.name,
-                  candidate.attributes.domain || candidate.attributes.slug,
-                  `ID: ${candidate.id}`,
-                  candidate.attributes.currency,
-                ]
-                  .filter(Boolean)
-                  .join(" · "),
-                value: candidate,
-              })),
-            });
-          } catch {
-            throw new CliError("Migration canceled.");
-          }
-        }
-        const currency = store.attributes.currency?.toUpperCase();
-        if (currency !== "USD" && currency !== "EUR")
-          throw new CliError(
-            `Your Lemon Squeezy store uses ${currency ?? "no currency"}, and Creem supports USD and EUR. ` +
-              "Change the store currency to USD or EUR before migrating, or contact Creem support.",
-          );
-        print(chalk.dim(`Lemon Squeezy store: ${store.attributes.name} (ID ${store.id})`));
-
-        const downloadDir = mkdtempSync(join(tmpdir(), "creem-migrate-ls-"));
-        try {
-          print(chalk.dim("Reading the Lemon Squeezy catalog…"));
-          const { objects, failures } = await fetchLemonSqueezyCatalog(lsClient, {
-            storeId: store.id,
-            excludeDiscounts: Boolean(options.excludeDiscounts),
-            downloadDir,
-            store,
-          });
+          const read = await source.read({ context, options, print, downloadDir });
+          const { failures } = read;
           const client = context.client({
             environment: globals.environment,
             timeout: globals.timeout,
@@ -303,7 +355,7 @@ function createLemonSqueezyCommand(context: CliContext): Command {
           const asked = new Set<string>();
           let plan: MigrationPlan;
           for (;;) {
-            plan = fromLemonSqueezy(objects, catalog, { now, adoption: answers });
+            plan = read.plan(catalog, answers, now);
             // An incomplete read writes nothing (exit 4 below), so nothing is asked, and an
             // answer for an item the read couldn't plan isn't taken for a wrong answer.
             if (failures.length) break;
@@ -370,16 +422,16 @@ function createLemonSqueezyCommand(context: CliContext): Command {
             plan.report.mode = options.dryRun ? "dry_run" : "plan";
             if (json) writeResult(context, plan.report, "json");
             else {
-              for (const line of formatReport(plan.report, environment)) print(line);
+              for (const line of formatReport(plan.report, environment, source.title)) print(line);
               print();
               print(chalk.yellow.bold("Dry run: nothing was written."));
             }
             const exitCode = migrationExitCode(plan.report);
             if (exitCode === MIGRATION_EXIT_CODES.sourceIncomplete)
               throw new CliError(
-                "The plan is incomplete because some Lemon Squeezy data could not be read.",
+                `The plan is incomplete because some ${source.title} data could not be read.`,
                 MIGRATION_EXIT_CODES.sourceIncomplete,
-                "Re-run when Lemon Squeezy answers again.",
+                `Re-run when ${source.title} answers again.`,
               );
             if (exitCode === MIGRATION_EXIT_CODES.adoptionPending)
               throw new CliError(
@@ -396,14 +448,14 @@ function createLemonSqueezyCommand(context: CliContext): Command {
             return;
           }
 
-          for (const line of formatReport(plan.report, environment)) print(line);
+          for (const line of formatReport(plan.report, environment, source.title)) print(line);
           print();
           if (failures.length) {
             if (json) writeResult(context, plan.report, "json");
             throw new CliError(
-              "Nothing was written: some Lemon Squeezy data could not be read, so the plan is incomplete.",
+              `Nothing was written: some ${source.title} data could not be read, so the plan is incomplete.`,
               MIGRATION_EXIT_CODES.sourceIncomplete,
-              "Re-run when Lemon Squeezy answers again.",
+              `Re-run when ${source.title} answers again.`,
             );
           }
           const unanswered = plan.report.proposals.filter((p) => p.decision === "pending");
@@ -426,7 +478,7 @@ function createLemonSqueezyCommand(context: CliContext): Command {
           if (!plan.report.items.some((i) => i.status === "pending")) {
             plan.report.mode = "run";
             if (json) writeResult(context, plan.report, "json");
-            else print(chalk.green("Creem already matches Lemon Squeezy: nothing to write."));
+            else print(chalk.green(`Creem already matches ${source.title}: nothing to write.`));
             if (refused.length)
               throw new CliError(
                 `${refusedMessage}; nothing else was left to write.`,
@@ -449,7 +501,7 @@ function createLemonSqueezyCommand(context: CliContext): Command {
           let report: MigrationReport;
           try {
             report = await executeMigration(client, plan, {
-              files: objects.fileDigests,
+              files: read.files,
               delayMs: 100,
               secrets: [...context.secrets],
               force: options.force,
@@ -461,7 +513,9 @@ function createLemonSqueezyCommand(context: CliContext): Command {
               // What the run wrote before it stopped.
               if (error.report) {
                 if (json) writeResult(context, error.report, "json");
-                else for (const line of formatReport(error.report, environment)) print(line);
+                else
+                  for (const line of formatReport(error.report, environment, source.title))
+                    print(line);
               }
               throw new CliError(
                 error.message,
@@ -476,7 +530,7 @@ function createLemonSqueezyCommand(context: CliContext): Command {
           if (json) writeResult(context, report, "json");
           else {
             print();
-            for (const line of formatReport(report, environment)) print(line);
+            for (const line of formatReport(report, environment, source.title)) print(line);
             print();
             print(chalk.dim("Next steps:"));
             print(
@@ -509,7 +563,7 @@ export function createMigrateCommand(context: CliContext = createContext()): Com
       "after",
       `
 ${chalk.dim("Available migrations:")}
-  ${chalk.cyan("creem migrate lemon-squeezy")}    Migrate ${SCOPE} from Lemon Squeezy
+  ${chalk.cyan("creem migrate lemon-squeezy")}    Migrate ${LS_SCOPE} from Lemon Squeezy
 
 ${chalk.dim("Options:")}
   --dry-run               Check the plan with Creem's dry run and write nothing
@@ -528,6 +582,6 @@ ${chalk.dim("Examples:")}
   ${chalk.cyan("creem migrate lemon-squeezy --json > plan.json")} Export the plan as JSON
 `,
     );
-  command.addCommand(createLemonSqueezyCommand(context));
+  command.addCommand(createSourceCommand(context, lemonSqueezy));
   return command;
 }
