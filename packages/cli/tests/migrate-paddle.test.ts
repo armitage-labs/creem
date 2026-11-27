@@ -128,6 +128,55 @@ describe("Paddle source", () => {
     });
     await expect(fetchPaddleCatalog(client)).rejects.toMatchObject({ status: 403 });
   });
+
+  /** Reads the fixtures two items a page, with the cursor `next` gives a page that has more. */
+  async function readPaged(
+    next: (next: string, url: URL) => string | null,
+    options: { maxPages?: number } = {},
+  ) {
+    const paddle = paddleFetch(undefined, { pageSize: 2, next, maxRequests: 60 });
+    const client = new PaddleClient(PADDLE_KEY, {
+      environment: "sandbox",
+      fetch: paddle.fetcher,
+      delayMs: 0,
+      attempts: 1,
+      ...options,
+    });
+    return { ...(await fetchPaddleCatalog(client)), paddle };
+  }
+
+  it("reports a list as unread when a page has more but no cursor to them", async () => {
+    const { objects, failures } = await readPaged(() => null);
+    expect(failures.map((f) => f.kind)).toEqual(["products", "prices", "discounts"]);
+    expect(failures[0].message).toContain("no cursor");
+    expect(objects.catalogUnread).toBe(true);
+    expect(objects.discountsUnread).toBe(true);
+  });
+
+  it("never follows a cursor to another host, and reports the list as unread", async () => {
+    const { objects, failures, paddle } = await readPaged((next) =>
+      next.replace("sandbox-api.paddle.com", "paddle.example.com"),
+    );
+    expect(failures.map((f) => f.kind)).toEqual(["products", "prices", "discounts"]);
+    expect(failures[0].message).toContain("https://paddle.example.com");
+    expect(objects.catalogUnread).toBe(true);
+    const hosts = paddle.fetcher.mock.calls.map(([input]) => new URL(String(input)).hostname);
+    expect(new Set(hosts)).toEqual(new Set(["sandbox-api.paddle.com"]));
+  });
+
+  it("stops at a cursor it has already followed instead of reading forever", async () => {
+    const { failures, paddle } = await readPaged((_next, url) => url.toString());
+    expect(failures.map((f) => f.kind)).toEqual(["products", "prices", "discounts"]);
+    expect(failures[0].message).toContain("same page");
+    expect(paddle.requests.filter((r) => r.path === "/products")).toHaveLength(2);
+  });
+
+  it("stops after its page limit", async () => {
+    const { failures } = await readPaged((next) => next, { maxPages: 3 });
+    // Products and discounts fit in more pages than that, prices too.
+    expect(failures.map((f) => f.kind)).toEqual(["products", "prices", "discounts"]);
+    expect(failures[0].message).toContain("3 pages");
+  });
 });
 
 describe("fromPaddle: products and product groups", () => {
@@ -365,10 +414,17 @@ describe("creem migrate paddle", () => {
       confirm?: (message: string) => Promise<boolean>;
       initial?: Partial<CreemState>;
       failures?: Record<string, number>;
+      next?: (next: string, url: URL) => string | null;
+      pageSize?: number;
     } = {},
   ) {
     vi.stubEnv("PADDLE_API_KEY", "");
-    const paddle = paddleFetch(undefined, { failures: options.failures });
+    const paddle = paddleFetch(undefined, {
+      failures: options.failures,
+      next: options.next,
+      pageSize: options.pageSize,
+      maxRequests: 200,
+    });
     vi.stubGlobal("fetch", paddle.fetcher);
     const creem = fakeCreem(options.initial);
     const confirm = vi.fn(options.confirm ?? (async () => false));
@@ -518,6 +574,18 @@ describe("creem migrate paddle", () => {
     expect(r.code).toBe(4);
     expect(JSON.parse(r.stdout).fetch_failures).toEqual([
       { kind: "prices", message: expect.any(String) },
+    ]);
+    expect(creem.writes()).toEqual([]);
+  });
+
+  it("writes nothing when a Paddle page has more but sends no cursor to them", async () => {
+    const { creem, h } = setup({ pageSize: 2, next: () => null });
+    const r = await h.run(["--json", "--yes", ...base]);
+    expect(r.code).toBe(4);
+    expect(JSON.parse(r.stdout).fetch_failures.map((f: { kind: string }) => f.kind)).toEqual([
+      "products",
+      "prices",
+      "discounts",
     ]);
     expect(creem.writes()).toEqual([]);
   });
