@@ -56,6 +56,8 @@ export interface FromPaddleOptions {
 
 const DISCOUNT_CODE_MAX = 14;
 const DISCOUNT_NAME_MAX = 40;
+/** Creem's longest repeating discount, which it asks for in place of 100% off forever. */
+const FULL_DISCOUNT_CYCLES = 1200;
 const PRICE_KEY = /^pri_/;
 const DISCOUNT_KEY = /^dsc_/;
 
@@ -951,6 +953,18 @@ function planDiscount(
       );
     duration = "repeating";
   }
+  let months = d.maximum_recurring_intervals ?? undefined;
+  // Creem refuses 100% off forever and asks for repeating with its maximum instead.
+  if (duration === "forever" && d.type === "percentage" && amount === 100) {
+    duration = "repeating";
+    months = FULL_DISCOUNT_CYCLES;
+    notes.push(
+      issue(
+        "discount_forever_repeating",
+        `Creem has no 100% discount forever; it becomes repeating for ${FULL_DISCOUNT_CYCLES} billing cycles, as Creem advises.`,
+      ),
+    );
+  }
   item.warnings.push(...notes);
   let name = d.description;
   if (name.length > DISCOUNT_NAME_MAX) {
@@ -983,7 +997,7 @@ function planDiscount(
       ? { type: "percentage" as const, percentage: amount }
       : { type: "fixed" as const, amount, currency: d.currency_code!.toUpperCase() }),
     duration,
-    ...(duration === "repeating" ? { durationInMonths: d.maximum_recurring_intervals! } : {}),
+    ...(duration === "repeating" ? { durationInMonths: months } : {}),
     ...(remaining !== undefined ? { maxRedemptions: remaining } : {}),
     ...(d.expires_at ? { expiryDate: new Date(d.expires_at) } : {}),
     externalId: d.id,

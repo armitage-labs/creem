@@ -9,12 +9,12 @@
   },
   "mode": "plan",
   "summary": {
-    "create": 15,
+    "create": 16,
     "update": 0,
     "unchanged": 0,
     "skip": 14,
     "failed": 0,
-    "warnings": 17
+    "warnings": 18
   },
   "items": [
     {
@@ -401,6 +401,28 @@
         "id": "dsc_01hw000000000000000expired"
       },
       "action": "skip"
+    },
+    {
+      "status": "pending",
+      "creem_id": null,
+      "adopted_from": null,
+      "changes": [],
+      "reason": null,
+      "warnings": [
+        {
+          "code": "discount_forever_repeating",
+          "message": "Creem has no 100% discount forever; it becomes repeating for 1200 billing cycles, as Creem advises."
+        }
+      ],
+      "error": null,
+      "kind": "discount",
+      "key": "dsc_01hw000000000000000free100",
+      "name": "ENG2015FREE",
+      "source": {
+        "type": "discount",
+        "id": "dsc_01hw000000000000000free100"
+      },
+      "action": "create"
     },
     {
       "status": "pending",
