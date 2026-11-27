@@ -321,6 +321,27 @@ function planStripe(
     const id = productIdOf(price);
     pricesOf.set(id, [...(pricesOf.get(id) ?? []), price]);
   }
+  // A lookup key can be another price's id: one Creem key for two prices.
+  const pricesByKey = new Map<string, Stripe.Price[]>();
+  for (const price of objects.prices)
+    pricesByKey.set(priceKey(price), [...(pricesByKey.get(priceKey(price)) ?? []), price]);
+  /** Fails an item whose key another price has too; nothing is written for either. */
+  const collides = (item: MigrationItem, price: Stripe.Price): boolean => {
+    const others = (pricesByKey.get(item.key) ?? []).filter((p) => p.id !== price.id);
+    if (!others.length) return false;
+    const whose = (p: Stripe.Price) =>
+      p.id === item.key
+        ? `the id of Stripe price ${p.id}`
+        : `the lookup key of Stripe price ${p.id}`;
+    item.status = "failed";
+    item.error = {
+      code: "key_collision",
+      message: `The key ${item.key} is ${[price, ...others].map(whose).join(" and ")}; one Creem product can't stand for both, so neither is migrated.`,
+      status: null,
+      hint: "Give the price another lookup key in Stripe, then re-run.",
+    };
+    return true;
+  };
   const mapProductPrice = (price: Stripe.Price, product: Stripe.Product, several: boolean) => {
     const key = priceKey(price);
     const name = several
@@ -334,6 +355,7 @@ function planStripe(
       action: "skip",
     });
     productItems.push(item);
+    if (collides(item, price)) return;
     item.creem_id = productsByKey.get(key)?.id ?? null;
     const reason = unsupported(price);
     if (reason) {
@@ -463,21 +485,21 @@ function planStripe(
   for (const price of objects.prices) {
     const productId = productIdOf(price);
     if (productsById.has(productId)) continue;
-    productItems.push(
-      newItem({
-        kind: "product",
-        key: priceKey(price),
-        name: price.nickname?.trim() || price.id,
-        source: { type: "price", id: price.id, product_id: productId },
-        action: "skip",
-        reason: options.includeArchived
-          ? issue("product_not_found", `Stripe returned no product ${productId} for the price.`)
-          : issue(
-              "archived",
-              `The Stripe product ${productId} is archived (--include-archived writes it archived).`,
-            ),
-      }),
-    );
+    const item = newItem({
+      kind: "product",
+      key: priceKey(price),
+      name: price.nickname?.trim() || price.id,
+      source: { type: "price", id: price.id, product_id: productId },
+      action: "skip",
+      reason: options.includeArchived
+        ? issue("product_not_found", `Stripe returned no product ${productId} for the price.`)
+        : issue(
+            "archived",
+            `The Stripe product ${productId} is archived (--include-archived writes it archived).`,
+          ),
+    });
+    productItems.push(item);
+    collides(item, price);
   }
 
   adoption.finish();
