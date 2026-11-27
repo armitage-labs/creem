@@ -85,6 +85,9 @@ const overrides = (price: PaddlePrice, only?: (code: string) => boolean) =>
     .map((o) => `${o.country_codes.join(", ")}: ${money(o.unit_price)}`)
     .join("; ");
 
+/** The name Paddle shows buyers; the description is internal, so it is the fallback only. */
+const priceName = (price: PaddlePrice) => price.name?.trim() || price.description;
+
 /** How long a billing period is, in days, to order a group's members. */
 function periodDays(body: CreateProductBody): number {
   if (body.billingPeriod === "custom")
@@ -282,7 +285,7 @@ export function fromPaddle(
           newItem({
             kind: "product",
             key: price.id,
-            name: price.description,
+            name: priceName(price),
             source: { type: "price", id: price.id, product_id: productId },
             action: "skip",
             reason: issue("product_not_found", `Paddle listed no product ${productId}.`),
@@ -319,7 +322,7 @@ export function fromPaddle(
     // Named by the product's Paddle prices, so a name stays when a sibling is skipped or archived.
     for (const { price, item, body } of mapped) {
       productItems.push(item);
-      item.name = prices.length > 1 ? `${product.name} - ${price.description}` : product.name;
+      item.name = prices.length > 1 ? `${product.name} - ${priceName(price)}` : product.name;
       if ("skip" in body) continue;
       const { metadata, dropped } = metadataOf(product.custom_data, price.custom_data);
       if (dropped.length)

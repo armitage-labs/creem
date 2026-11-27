@@ -178,7 +178,7 @@
       "error": null,
       "kind": "product",
       "key": "pri_01m8ee91rdx3xn32adc9jtmj9v",
-      "name": "eng2015-Pro - Monthly",
+      "name": "eng2015-Pro - Pro monthly",
       "source": {
         "type": "price",
         "id": "pri_01m8ee91rdx3xn32adc9jtmj9v",
@@ -196,7 +196,7 @@
       "error": null,
       "kind": "product",
       "key": "pri_01m8ee91x0ae559fkyjp35acdy",
-      "name": "eng2015-Pro - Yearly",
+      "name": "eng2015-Pro - Pro yearly",
       "source": {
         "type": "price",
         "id": "pri_01m8ee91x0ae559fkyjp35acdy",
