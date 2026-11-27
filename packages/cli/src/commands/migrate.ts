@@ -31,6 +31,7 @@ import {
   executeMigration,
 } from "../lib/migration/writer";
 import { addGlobalOptions, outputFormat } from "./resource";
+import { STRIPE_SCOPE, stripeSource } from "./migrate-stripe";
 import { writeResult } from "../utils/results";
 
 const LS_SCOPE = "products, product groups, discounts, license keys and files";
@@ -178,7 +179,7 @@ type SourceOptions = Record<string, unknown> & { json: boolean };
  * source. Planning against Creem, adoption, the check, the confirmation and the
  * run are the same for every source.
  */
-interface MigrationSource {
+export interface MigrationSource {
   name: string;
   /** The source's name in messages ("Lemon Squeezy"). */
   title: string;
@@ -566,6 +567,7 @@ export function createMigrateCommand(context: CliContext = createContext()): Com
       "after",
       `
 ${chalk.dim("Available migrations:")}
+  ${chalk.cyan("creem migrate stripe")}           Migrate ${STRIPE_SCOPE} from Stripe
   ${chalk.cyan("creem migrate lemon-squeezy")}    Migrate ${LS_SCOPE} from Lemon Squeezy
 
 ${chalk.dim("Options:")}
@@ -577,14 +579,19 @@ ${chalk.dim("Options:")}
   --adopt [key=id|new]    Answer adoption proposals (alone: adopt every single match)
   --force                 Write even when Creem's check refuses items (they are left out)
   --yes                   Write without asking
+  --stripe-key <key>      Stripe restricted key (or STRIPE_API_KEY)
+  --include-archived      Also migrate inactive Stripe prices and products, archived (Stripe)
+  --create-new-unmatched  Create new objects for unanswered adoption proposals (Stripe)
 
 ${chalk.dim("Examples:")}
+  ${chalk.cyan("creem migrate stripe --dry-run")}                Print the plan for a Stripe account
   ${chalk.cyan("creem migrate lemon-squeezy --dry-run")}          Print the plan
   ${chalk.cyan("creem migrate lemon-squeezy")}                    Print the plan, then ask before writing
   ${chalk.cyan("creem migrate lemon-squeezy --ls-api-key ls_xxx --ls-store-id 123 --yes")}  Non-interactive run
   ${chalk.cyan("creem migrate lemon-squeezy --json > plan.json")} Export the plan as JSON
 `,
     );
+  command.addCommand(createSourceCommand(context, stripeSource));
   command.addCommand(createSourceCommand(context, lemonSqueezy));
   return command;
 }
