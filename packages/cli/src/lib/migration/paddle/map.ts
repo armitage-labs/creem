@@ -585,6 +585,36 @@ export function fromPaddle(
     });
   }
 
+  // Keyed Creem groups that Paddle no longer groups stay as they are.
+  const groupKeys = new Set(groupItems.map((i) => i.key));
+  if (!objects.catalogUnread)
+    for (const g of creemCatalog.productGroups) {
+      const key = g.externalId ?? "";
+      if (!key.startsWith("pro_") || groupKeys.has(key)) continue;
+      groupItems.push(
+        newItem({
+          kind: "product_group",
+          key,
+          name: g.name,
+          source: { type: "product", id: key },
+          action: "skip",
+          creem_id: g.id,
+          reason: productIds.has(key)
+            ? issue(
+                "group_not_needed",
+                "The Paddle product has fewer than two migrated recurring prices.",
+              )
+            : issue("product_not_found", `Paddle has no product ${key}.`),
+          warnings: [
+            issue(
+              "orphaned",
+              `Creem product group ${g.id} has this key and stays as it is. Delete it in Creem if its products shouldn't be grouped.`,
+            ),
+          ],
+        }),
+      );
+    }
+
   // ---- discounts
   const stillRedeemable = (id: string) =>
     issue(
