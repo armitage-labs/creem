@@ -554,6 +554,26 @@ describe("fromStripe against an empty Creem store", () => {
       "eng2012-Pro - Monthly (EUR)",
     );
     expect(productBody(p, "eng2012_pro_yearly")?.name).toBe("eng2012-Pro - Yearly");
+
+    // An archived twin in another currency doesn't rename the active price.
+    const withArchived = stripeDocs();
+    for (const price of withArchived.prices.data)
+      if (price.id === ID.priceProMonthly || price.id === ID.priceProYearly) price.nickname = null;
+    const usd = withArchived.prices.data.find((price) => price.id === ID.priceProMonthly)!;
+    withArchived.prices.data.push({
+      ...structuredClone(usd),
+      id: "price_eng2012_pro_monthly_eur",
+      currency: "eur",
+      lookup_key: null,
+      active: false,
+    });
+    const active = await plan(emptyCatalog, {}, structuredClone(withArchived));
+    const all = await plan(emptyCatalog, { includeArchived: true }, structuredClone(withArchived));
+    expect(productBody(active, ID.priceProMonthly)?.name).toBe("eng2012-Pro - Monthly");
+    expect(productBody(all, ID.priceProMonthly)?.name).toBe("eng2012-Pro - Monthly");
+    expect(productBody(all, "price_eng2012_pro_monthly_eur")?.name).toBe(
+      "eng2012-Pro - Monthly (EUR)",
+    );
   });
 
   it("sends the Stripe product's and price's metadata with the migrator's own keys", async () => {
