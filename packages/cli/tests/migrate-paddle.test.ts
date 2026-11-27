@@ -33,6 +33,19 @@ const EBOOK_ONCE = "pri_01hw000000000000000ebook1";
 const EBOOK_MONTHLY = "pri_01hw000000000000000ebook2";
 const EBOOKS = "pro_01hw0000000000000000ebook1";
 const OLD_MONTHLY = "pri_01hw00000000000000000old1";
+const PERCENT = "dsc_01m8ee995yz3rx0zsbys7sqhhx";
+const FLAT = "dsc_01m8ee99ap38a2806vqq1x8709";
+const PER_SEAT = "dsc_01m8ee99ey4fmcrpt7zfmjmp7s";
+const YEARLY_ONLY = "dsc_01m8ee99k6emy0gvywedsxpfjp";
+const THREE_MONTHS = "dsc_01m8ee99qzphyh45944rs4jjqb";
+const NO_CODE = "dsc_01m8ee99x0k076wr4e4hv35beg";
+const TWO_CYCLES = "dsc_01hw00000000000000unbound";
+const ARCHIVED_DISCOUNT = "dsc_01hw0000000000000archived";
+const POUNDS_OFF = "dsc_01hw00000000000000gbpflat";
+const EXPIRED = "dsc_01hw000000000000000expired";
+const USED_UP = "dsc_01hw0000000000000000usedup";
+const PARTLY_USED = "dsc_01hw000000000000000partial";
+const LONG_CODE = "dsc_01hw00000000000000longcode";
 
 async function paddleObjects(
   options: { docs?: ReturnType<typeof paddleDocs>; pageSize?: number } = {},
@@ -516,5 +529,204 @@ describe("creem migrate paddle", () => {
     expect(r.stdout).toContain(
       "Not migrated: customers, subscriptions, transactions, notification settings.",
     );
+  });
+});
+
+describe("ENG-2015 discounts", () => {
+  /** Every price the fixtures migrate, in report order. */
+  const MIGRATED = [
+    CLOUD_MONTHLY,
+    EBOOK_ONCE,
+    EBOOK_MONTHLY,
+    PRO_MONTHLY,
+    PRO_YEARLY,
+    HANDBOOK,
+    GLOBAL,
+    WEEKLY,
+  ];
+
+  it("reads the discounts, active and archived, and reports a discount list it can't read", async () => {
+    const { objects, paddle } = await paddleObjects({ pageSize: 2 });
+    expect(objects.discounts).toHaveLength(13);
+    expect(paddle.requests.some((r) => r.path === "/discounts")).toBe(true);
+    const failing = paddleFetch(undefined, { failures: { "/discounts": 500 } });
+    const client = new PaddleClient(PADDLE_KEY, {
+      environment: "sandbox",
+      fetch: failing.fetcher,
+      delayMs: 0,
+      attempts: 1,
+    });
+    const read = await fetchPaddleCatalog(client);
+    expect(read.failures).toEqual([{ kind: "discounts", message: expect.stringContaining("500") }]);
+    expect(read.objects.discountsUnread).toBe(true);
+  });
+
+  it("puts every fetched discount in the report", async () => {
+    const { objects } = await paddleObjects();
+    const p = fromPaddle(objects, emptyCatalog, { now: NOW });
+    const keys = new Set(p.report.items.map((i) => i.key));
+    for (const discount of objects.discounts) expect(keys, discount.id).toContain(discount.id);
+  });
+
+  it("maps a percentage discount once, with what is left of its usage limit and its expiry, on every migrated product", async () => {
+    const p = await plan();
+    expect(request(p, PERCENT)).toEqual({
+      type: "upsert_discount",
+      key: PERCENT,
+      request: {
+        createDiscountRequestEntity: {
+          name: "eng2015-Launch 20%",
+          code: "ENG2015PCT",
+          type: "percentage",
+          percentage: 20,
+          duration: "once",
+          maxRedemptions: 100,
+          expiryDate: new Date("2027-12-31T00:00:00Z"),
+          externalId: PERCENT,
+          appliesToProductExternalIds: MIGRATED,
+        },
+      },
+    });
+    expect(item(p, PERCENT).warnings.map((w) => w.code)).toEqual(["discount_applies_to_all"]);
+  });
+
+  it("maps a flat discount as a fixed one in its currency, and recur without a limit as forever", async () => {
+    const p = await plan();
+    expect(request(p, FLAT)!.request).toMatchObject({
+      createDiscountRequestEntity: {
+        code: "ENG2015FLAT",
+        type: "fixed",
+        amount: 500,
+        currency: "USD",
+        duration: "forever",
+      },
+    });
+  });
+
+  it("maps maximum_recurring_intervals as repeating months only when every product bills monthly", async () => {
+    const p = await plan();
+    expect(request(p, THREE_MONTHS)!.request).toMatchObject({
+      createDiscountRequestEntity: {
+        duration: "repeating",
+        durationInMonths: 3,
+        appliesToProductExternalIds: [PRO_MONTHLY],
+      },
+    });
+    expect(item(p, TWO_CYCLES)).toMatchObject({
+      action: "skip",
+      reason: { code: "duration_unsupported" },
+      warnings: [],
+    });
+  });
+
+  it("restricts a discount to the prices it names, or to every price of a product it names", async () => {
+    const p = await plan();
+    expect(request(p, YEARLY_ONLY)!.request).toMatchObject({
+      createDiscountRequestEntity: { appliesToProductExternalIds: [PRO_YEARLY] },
+    });
+    expect(item(p, YEARLY_ONLY).warnings).toEqual([]);
+    const body = (request(p, NO_CODE)!.request as { createDiscountRequestEntity: object })
+      .createDiscountRequestEntity;
+    expect(body).toMatchObject({ appliesToProductExternalIds: [PRO_MONTHLY, PRO_YEARLY] });
+    // The archived price of that product isn't migrated, and is named.
+    const partial = item(p, NO_CODE).warnings.find(
+      (w) => w.code === "discount_products_partially_migrated",
+    )!;
+    expect(partial.message).toContain(PRO_LEGACY);
+  });
+
+  it("leaves the code to Creem when Paddle has none, and says so", async () => {
+    const p = await plan();
+    const body = (request(p, NO_CODE)!.request as { createDiscountRequestEntity: object })
+      .createDiscountRequestEntity;
+    expect(body).not.toHaveProperty("code");
+    expect(item(p, NO_CODE).warnings.map((w) => w.code)).toContain("discount_code_generated");
+  });
+
+  it("skips per-seat, other currencies, archived, expired, used-up and over-long codes, each with its reason", async () => {
+    const p = await plan({ includeArchived: true });
+    const reasons = Object.fromEntries(
+      [PER_SEAT, POUNDS_OFF, ARCHIVED_DISCOUNT, EXPIRED, USED_UP, LONG_CODE].map((key) => [
+        key,
+        item(p, key).reason?.code,
+      ]),
+    );
+    expect(reasons).toEqual({
+      [PER_SEAT]: "discount_type_unsupported",
+      [POUNDS_OFF]: "currency_unsupported",
+      [ARCHIVED_DISCOUNT]: "archived",
+      [EXPIRED]: "discount_expired",
+      [USED_UP]: "discount_used_up",
+      [LONG_CODE]: "discount_code_too_long",
+    });
+    for (const key of Object.keys(reasons)) expect(request(p, key)).toBeUndefined();
+  });
+
+  it("carries over only the uses left of Paddle's usage limit", async () => {
+    const p = await plan();
+    expect(request(p, PARTLY_USED)!.request).toMatchObject({
+      createDiscountRequestEntity: {
+        type: "fixed",
+        amount: 200,
+        currency: "EUR",
+        maxRedemptions: 7,
+        appliesToProductExternalIds: [CLOUD_MONTHLY, EBOOK_MONTHLY],
+      },
+    });
+  });
+
+  it("adopts an existing discount with the same code, ignoring case, only through an answered proposal", async () => {
+    const own = {
+      id: "disc_own",
+      mode: "test",
+      object: "discount",
+      status: "active",
+      name: "Launch",
+      code: "eng2015pct",
+      type: "percentage",
+      percentage: 20,
+      duration: "once",
+      applies_to_products: [],
+      redeem_count: 0,
+      external_id: null,
+    };
+    vi.stubEnv("PADDLE_API_KEY", "");
+    vi.stubGlobal("fetch", paddleFetch().fetcher);
+    const creem = fakeCreem({ discounts: [own] });
+    const h = harness(creem.client);
+    const base = ["--json", "--yes", "migrate", "paddle", "--paddle-key", PADDLE_KEY];
+    const pending = await h.run(base);
+    expect(pending.code).toBe(7);
+    expect(JSON.parse(pending.stdout).proposals).toMatchObject([
+      { key: PERCENT, kind: "discount", candidates: [{ creem_id: "disc_own" }] },
+    ]);
+    expect(creem.writes()).toEqual([]);
+    const adopted = await h.run([...base, "--adopt", `${PERCENT}=disc_own`]);
+    expect(adopted.code, adopted.stderr).toBe(0);
+    expect(creem.state.discounts.find((d) => d.id === "disc_own")!.external_id).toBe(PERCENT);
+    vi.unstubAllEnvs();
+  });
+
+  it("writes discounts after the products and groups, and a second run leaves them unchanged", async () => {
+    vi.stubEnv("PADDLE_API_KEY", "");
+    vi.stubGlobal("fetch", paddleFetch().fetcher);
+    const creem = fakeCreem();
+    const h = harness(creem.client);
+    const base = ["--json", "--yes", "migrate", "paddle", "--paddle-key", PADDLE_KEY];
+    const first = await h.run(base);
+    expect(first.code, first.stderr).toBe(0);
+    const paths = creem.writes().map((w) => w.path);
+    expect(paths.indexOf("/v1/discounts")).toBeGreaterThan(paths.lastIndexOf("/v1/product-groups"));
+    expect(creem.state.discounts.map((d) => d.external_id).sort()).toEqual(
+      [PERCENT, FLAT, YEARLY_ONLY, THREE_MONTHS, NO_CODE, PARTLY_USED].sort(),
+    );
+    const written = creem.writes().length;
+    const second = await h.run(base);
+    expect(second.code, second.stderr).toBe(0);
+    for (const i of JSON.parse(second.stdout).items as MigrationItem[])
+      if (i.kind === "discount" && i.action !== "skip")
+        expect([i.key, i.action]).toEqual([i.key, "unchanged"]);
+    expect(creem.writes()).toHaveLength(written);
+    vi.unstubAllEnvs();
   });
 });
