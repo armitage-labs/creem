@@ -1,4 +1,4 @@
-import { mkdtempSync, rmSync } from "node:fs";
+import { existsSync, mkdtempSync, rmSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
 import { Command } from "commander";
@@ -42,7 +42,7 @@ import { writeResult } from "../utils/results";
 
 const LS_SCOPE = "products, product groups, discounts, license keys and files";
 const POLAR_SCOPE =
-  "meters, products with usage prices, product groups, and license-key, note and credit benefits";
+  "meters, products with usage prices, product groups, discounts, and license-key, note, credit and file benefits";
 
 const NOT_MIGRATED_LABELS: Record<string, string> = {
   customers: "customers",
@@ -77,7 +77,7 @@ function formatReport(report: MigrationReport, environment: string, title: strin
       report.mode === "run" ? "Migration result" : `Plan: ${title} → Creem ${environment}`,
     ),
     chalk.dim(
-      `Store ${report.source.store_name} (${report.source.store_id}, ${report.source.currency})`,
+      `Store ${report.source.store_name} (${[report.source.store_id, report.source.currency].filter(Boolean).join(", ")})`,
     ),
     `Create ${s.create} · Update ${s.update} · Unchanged ${s.unchanged} · Skip ${s.skip}` +
       (s.failed ? chalk.red(` · Failed ${s.failed}`) : "") +
@@ -323,9 +323,18 @@ const polar: MigrationSource = {
         "Polar organization access token with read scopes (or POLAR_ACCESS_TOKEN; stays on this machine)",
       )
       .option("--polar-server <server>", "Polar server: production or sandbox", "production")
-      .option("--include-archived", "Write archived Polar products as archived Creem products"),
+      .option("--include-archived", "Write archived Polar products as archived Creem products")
+      .option(
+        "--polar-files-dir <dir>",
+        "Folder with your copies of the Polar benefit files to upload (Polar's API hands out no downloads)",
+      ),
   check(options, context) {
-    if (!(String(options.polarServer) in POLAR_SERVERS))
+    if (options.polarFilesDir && !existsSync(String(options.polarFilesDir)))
+      throw new CliError(
+        `--polar-files-dir ${String(options.polarFilesDir)} doesn't exist.`,
+        MIGRATION_EXIT_CODES.usage,
+      );
+    if (!Object.hasOwn(POLAR_SERVERS, String(options.polarServer)))
       throw new CliError(
         `--polar-server takes production or sandbox, not "${String(options.polarServer)}".`,
         MIGRATION_EXIT_CODES.usage,
@@ -363,7 +372,10 @@ const polar: MigrationSource = {
     }
     print(chalk.dim(`Polar organization: ${organization.name} (${organization.id})`));
     print(chalk.dim("Reading the Polar catalog…"));
-    const { objects, failures } = await fetchPolarCatalog(client, { organization });
+    const { objects, failures } = await fetchPolarCatalog(client, {
+      organization,
+      filesDir: options.polarFilesDir as string | undefined,
+    });
     return {
       plan: (catalog, adoption, now) =>
         fromPolar(objects, catalog, {
@@ -372,7 +384,7 @@ const polar: MigrationSource = {
           includeArchived: Boolean(options.includeArchived),
         }),
       failures,
-      files: {},
+      files: objects.fileDigests,
     };
   },
 };
@@ -657,6 +669,7 @@ ${chalk.dim("Options:")}
   --polar-token <token>   Polar organization access token (or POLAR_ACCESS_TOKEN)
   --polar-server <server> Polar server: production (default) or sandbox
   --include-archived      Write archived Polar products as archived Creem products
+  --polar-files-dir <dir> Your copies of the Polar benefit files, to upload
   --adopt [key=id|new]    Answer adoption proposals (alone: adopt every single match)
   --force                 Write even when Creem's check refuses items (they are left out)
   --yes                   Write without asking

@@ -16,6 +16,8 @@ const FIXTURES = join(__dirname, "fixtures", "polar");
 type Doc = { items: any[]; pagination?: { total_count: number; max_page: number } };
 const read = (path: string): Doc => JSON.parse(readFileSync(join(FIXTURES, path), "utf8"));
 
+/** Local copies of Polar's downloadable files (`--polar-files-dir`): the sandbox file's bytes. */
+export const LOCAL_FILES = join(FIXTURES, "local-files");
 export const POLAR_ORG_ID = "00000000-0000-4000-8000-0000000000a1";
 export const POLAR_TOKEN = "polar_oat_fixture_secret_token";
 
@@ -54,25 +56,47 @@ export const ID = {
   productLegacyFree: "00000000-0000-4000-8000-00000000b004",
   benefitDiscord: "00000000-0000-4000-8000-00000000d001",
   benefitGithub: "00000000-0000-4000-8000-00000000d002",
+  discountPercentage: "e75fa6b7-9c0e-4cd8-9441-9f5a9c2627cb",
+  discountFixed: "6cd5773d-563c-49f7-ade1-a88f22726b3c",
+  discountOneProduct: "bc0f6c68-fb05-4b65-ad81-ae1746a64863",
+  discountNextMonth: "a2d25c03-5ec6-487d-a637-64215f7171cb",
+  discountNoCode: "00000000-0000-4000-8000-00000000e001",
+  fileGuide: "9d3daa79-09bb-485e-b9d5-c53e6986f025",
 } as const;
 
 export function polarDocs() {
   const products = read("recorded/products.json");
   const handWritten = read("hand-written/products.json");
+  const discounts = read("recorded/discounts.json");
   return {
     organizations: read("recorded/organizations.json"),
     products: { ...products, items: [...products.items, ...handWritten.items] },
     meters: read("recorded/meters.json"),
-    discounts: read("recorded/discounts.json"),
+    files: read("recorded/files.json"),
+    discounts: {
+      ...discounts,
+      items: [...discounts.items, ...read("hand-written/discounts.json").items],
+    },
   };
 }
 
 export function polarFetch(docs = polarDocs(), options: { pageSize?: number } = {}) {
   const requests: { url: string; authorization: string | null }[] = [];
+  /** Multipart POSTs to a Creem upload slot: the file bytes the run uploads. */
+  const slotPosts: { fields: Record<string, string>; file: Buffer }[] = [];
   const failing = new Set<string>();
   const fetcher = vi.fn(async (input: RequestInfo | URL, init?: RequestInit) => {
     const request = input instanceof Request ? input : new Request(input, init);
     const url = new URL(request.url);
+    if (url.hostname === "uploads.creem.test") {
+      const fields: Record<string, string> = {};
+      let file = Buffer.alloc(0);
+      for (const [key, value] of (await request.formData()).entries())
+        if (typeof value === "string") fields[key] = value;
+        else file = Buffer.from(await value.arrayBuffer());
+      slotPosts.push({ fields, file });
+      return new Response(null, { status: 204 });
+    }
     if (url.hostname !== "api.polar.sh" && url.hostname !== "sandbox-api.polar.sh")
       throw new Error(`UNEXPECTED_FETCH ${request.method} ${url}`);
     if (request.method !== "GET") throw new Error(`POLAR_WRITE_REFUSED ${request.method} ${url}`);
@@ -90,7 +114,9 @@ export function polarFetch(docs = polarDocs(), options: { pageSize?: number } = 
             ? docs.meters
             : path === "/v1/discounts"
               ? docs.discounts
-              : undefined;
+              : path === "/v1/files"
+                ? docs.files
+                : undefined;
     if (!doc) return Response.json({ detail: "Not found" }, { status: 404 });
     if (path !== "/v1/organizations" && url.searchParams.get("organization_id") !== POLAR_ORG_ID)
       throw new Error(`UNSCOPED_POLAR_FETCH ${url}`);
@@ -106,6 +132,7 @@ export function polarFetch(docs = polarDocs(), options: { pageSize?: number } = 
   return {
     fetcher,
     requests,
+    slotPosts,
     /** Answers 500 to every read of this path (`/v1/meters`, …). */
     fail: (path: string) => failing.add(path),
   };
