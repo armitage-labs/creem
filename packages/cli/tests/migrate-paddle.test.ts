@@ -1,9 +1,12 @@
 import { join } from "node:path";
 import { afterEach, describe, expect, it, vi } from "vitest";
-import { PADDLE_KEY, paddleDocs, paddleFetch } from "./migrate-paddle-fixtures";
+import { harness } from "./helpers";
+import { fakeCreem, productJson, type CreemState } from "./migrate-fixtures";
+import { PADDLE_KEY, PADDLE_LIVE_KEY, paddleDocs, paddleFetch } from "./migrate-paddle-fixtures";
 import { PaddleClient, fetchPaddleCatalog } from "../src/lib/migration/paddle/source";
 import { fromPaddle, type PaddleObjects } from "../src/lib/migration/paddle/map";
 import type { CreemCatalog } from "../src/lib/migration/catalog";
+import type { MigrationItem } from "../src/lib/migration/report";
 
 /** ENG-2015: `creem migrate paddle` (Paddle Billing). */
 const NOW = new Date("2026-11-27T12:00:00.000Z");
@@ -336,5 +339,182 @@ describe("fromPaddle: products and product groups", () => {
       store_name: "Paddle sandbox",
       currency: "USD",
     });
+  });
+});
+
+describe("creem migrate paddle", () => {
+  const base = ["migrate", "paddle", "--paddle-key", PADDLE_KEY];
+  function setup(
+    options: {
+      isTTY?: boolean;
+      confirm?: (message: string) => Promise<boolean>;
+      initial?: Partial<CreemState>;
+      failures?: Record<string, number>;
+    } = {},
+  ) {
+    vi.stubEnv("PADDLE_API_KEY", "");
+    const paddle = paddleFetch(undefined, { failures: options.failures });
+    vi.stubGlobal("fetch", paddle.fetcher);
+    const creem = fakeCreem(options.initial);
+    const confirm = vi.fn(options.confirm ?? (async () => false));
+    const h = harness(creem.client, { isTTY: options.isTTY ?? false, confirm });
+    return { paddle, creem, h, confirm };
+  }
+  afterEach(() => {
+    vi.unstubAllEnvs();
+  });
+
+  it("fails before any prompt or fetch without approval or a key", async () => {
+    const { paddle, h } = setup();
+    const denied = await h.run(["migrate", "paddle"]);
+    expect(denied.code).toBe(2);
+    const noKey = await h.run(["migrate", "paddle", "--json"]);
+    expect(noKey.code).toBe(2);
+    expect(JSON.parse(noKey.stderr).error.message).toContain("--paddle-key");
+    const environment = await h.run([...base, "--json", "--paddle-environment", "staging"]);
+    expect(environment.code).toBe(2);
+    expect(JSON.parse(environment.stderr).error.message).toContain("sandbox or production");
+    expect(paddle.fetcher).not.toHaveBeenCalled();
+  });
+
+  it("refuses a sandbox key for production and a live key for the sandbox", async () => {
+    const { paddle, h } = setup();
+    const sandboxKey = await h.run([...base, "--json", "--paddle-environment", "production"]);
+    expect(sandboxKey.code).toBe(2);
+    expect(JSON.parse(sandboxKey.stderr).error.message).toContain("sandbox key");
+    const liveKey = await h.run([
+      ...["migrate", "paddle", "--paddle-key", PADDLE_LIVE_KEY, "--json"],
+      ...["--paddle-environment", "sandbox"],
+    ]);
+    expect(liveKey.code).toBe(2);
+    expect(paddle.fetcher).not.toHaveBeenCalled();
+  });
+
+  it("--json without --yes prints the plan, read from the sandbox the key belongs to, and writes nothing", async () => {
+    const { creem, h, paddle } = setup();
+    const r = await h.run(["--json", ...base]);
+    expect(r.code, r.stderr).toBe(0);
+    const report = JSON.parse(r.stdout);
+    expect(report).toMatchObject({
+      schema: "creem.migration_report",
+      mode: "plan",
+      source: { provider: "paddle", store_id: "sandbox" },
+    });
+    expect(report.items.find((i: MigrationItem) => i.key === PRO_MONTHLY).action).toBe("create");
+    expect(creem.writes()).toEqual([]);
+    expect(new Set(paddle.requests.map((x) => x.host))).toEqual(
+      new Set(["sandbox-api.paddle.com"]),
+    );
+  });
+
+  it("takes the key from PADDLE_API_KEY", async () => {
+    const { creem, h } = setup();
+    vi.stubEnv("PADDLE_API_KEY", PADDLE_KEY);
+    const r = await h.run(["--json", "migrate", "paddle", "--dry-run"]);
+    expect(r.code, r.stderr).toBe(0);
+    expect(JSON.parse(r.stdout).mode).toBe("dry_run");
+    expect(creem.writes()).toEqual([]);
+  });
+
+  it("validates before the first write, dry-runs every write, and keeps the key away from Creem", async () => {
+    const { creem, h } = setup();
+    const r = await h.run(["--json", "--yes", ...base]);
+    expect(r.code, r.stderr).toBe(0);
+    const report = JSON.parse(r.stdout);
+    expect(report.mode).toBe("run");
+    const sent = creem.calls.filter((c) => c.method !== "GET");
+    expect(sent[0].path).toBe("/v1/catalog/validate");
+    const writes = creem.writes();
+    expect(writes.length).toBeGreaterThan(0);
+    for (const write of writes) {
+      const index = creem.calls.indexOf(write);
+      const before = creem.calls[index - 1];
+      expect(before, `${write.method} ${write.path}`).toMatchObject({
+        method: write.method,
+        path: write.path,
+        body: write.body,
+        dryRun: true,
+      });
+    }
+    // Products first, then product groups.
+    const paths = writes.map((w) => w.path);
+    expect(paths.lastIndexOf("/v1/products")).toBeLessThan(paths.indexOf("/v1/product-groups"));
+    expect(JSON.stringify(creem.calls)).not.toContain(PADDLE_KEY);
+    expect(creem.state.products.map((p) => p.external_id)).toContain(PRO_MONTHLY);
+    expect(creem.state.productGroups.map((g) => g.external_id)).toEqual([PRO]);
+  });
+
+  it("a second run reports everything unchanged and writes nothing", async () => {
+    const { creem, h } = setup();
+    expect((await h.run(["--json", "--yes", ...base])).code).toBe(0);
+    const written = creem.writes().length;
+    const r = await h.run(["--json", "--yes", ...base]);
+    expect(r.code, r.stderr).toBe(0);
+    const report = JSON.parse(r.stdout);
+    expect(report.summary).toMatchObject({ create: 0, update: 0, failed: 0 });
+    for (const i of report.items as MigrationItem[])
+      expect([i.key, i.action]).toEqual([i.key, i.action === "skip" ? "skip" : "unchanged"]);
+    expect(creem.writes()).toHaveLength(written);
+  });
+
+  it("--include-archived writes archived prices as archived products", async () => {
+    const { creem, h } = setup();
+    const r = await h.run(["--json", "--yes", ...base, "--include-archived"]);
+    expect(r.code, r.stderr).toBe(0);
+    const write = creem.writes().find((w) => w.body?.external_id === PRO_LEGACY)!;
+    expect(write.body).toMatchObject({ status: "archived", billing_period: "every-three-months" });
+  });
+
+  it("adopts an existing Creem product only through an answered proposal", async () => {
+    const own = productJson("prod_own", {
+      name: "eng2015-Weekly",
+      price: 500,
+      currency: "USD",
+      billing_type: "recurring",
+      billing_period: "custom",
+      recurring_interval: "week",
+      recurring_interval_count: 1,
+    });
+    const { creem, h } = setup({ initial: { products: [own] } });
+    const pending = await h.run(["--json", "--yes", ...base]);
+    expect(pending.code).toBe(7);
+    expect(JSON.parse(pending.stdout).proposals).toMatchObject([
+      { key: WEEKLY, decision: "pending", candidates: [{ creem_id: "prod_own" }] },
+    ]);
+    expect(creem.writes()).toEqual([]);
+    const adopted = await h.run(["--json", "--yes", ...base, "--adopt", `${WEEKLY}=prod_own`]);
+    expect(adopted.code, adopted.stderr).toBe(0);
+    const patch = creem.writes().find((w) => w.method === "PATCH")!;
+    expect(patch).toMatchObject({ path: "/v1/products/prod_own", body: { external_id: WEEKLY } });
+    expect(creem.state.products.find((p) => p.id === "prod_own")!.external_id).toBe(WEEKLY);
+  });
+
+  it("exits with the auth code when Paddle refuses the key", async () => {
+    const { creem, h } = setup({ failures: { "/products": 403 } });
+    const r = await h.run(["--json", ...base]);
+    expect(r.code).toBe(3);
+    expect(r.stderr).not.toContain(PADDLE_KEY);
+    expect(creem.calls).toEqual([]);
+  });
+
+  it("writes nothing when Paddle can't be read completely", async () => {
+    const { creem, h } = setup({ failures: { "/prices": 500 } });
+    const r = await h.run(["--json", "--yes", ...base]);
+    expect(r.code).toBe(4);
+    expect(JSON.parse(r.stdout).fetch_failures).toEqual([
+      { kind: "prices", message: expect.any(String) },
+    ]);
+    expect(creem.writes()).toEqual([]);
+  });
+
+  it("prints the plan in a terminal and lists what isn't catalog", async () => {
+    const { h } = setup();
+    const r = await h.run([...base, "--dry-run"]);
+    expect(r.code, r.stderr).toBe(0);
+    expect(r.stdout).toContain("Plan: Paddle");
+    expect(r.stdout).toContain(PRO_MONTHLY);
+    expect(r.stdout).toContain(
+      "Not migrated: customers, subscriptions, transactions, notification settings.",
+    );
   });
 });
