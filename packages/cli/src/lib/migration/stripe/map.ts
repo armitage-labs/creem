@@ -601,7 +601,8 @@ export function fromStripe(
       provider: "stripe",
       store_id: objects.account.id,
       store_name: objects.account.name,
-      currency: objects.account.currency,
+      // Unknown when the key may not read the account.
+      currency: objects.account.currency || null,
     },
     mode: "plan",
     summary: summarize(items),

@@ -550,6 +550,26 @@ describe("fromStripe against an empty Creem store", () => {
     });
   });
 
+  it("names no store currency when the key may not read the account", async () => {
+    const stripe = stripeFetch();
+    stripe.fail("/v1/account", 403, {
+      error: {
+        type: "invalid_request_error",
+        message: "The key does not have the required permissions.",
+      },
+    });
+    const { objects } = await fetchStripeCatalog(
+      stripeClient(STRIPE_KEY, { fetch: stripe.fetcher, maxNetworkRetries: 0 }),
+    );
+    const p = fromStripe(objects, emptyCatalog);
+    expect(p.report.source).toEqual({
+      provider: "stripe",
+      store_id: "",
+      store_name: "",
+      currency: null,
+    });
+  });
+
   it("skips an active price of an archived product, unless archived objects are included", async () => {
     const p = await plan();
     expect(item(p, ID.priceOld)).toMatchObject({
