@@ -483,9 +483,24 @@ export function fromPolar(
   const uploads: MigrationRequest[] = [];
   const filesById = new Map(objects.files.map((f) => [f.id, f]));
   /**
+   * The Creem files of the whole store by name and SHA-256: a Polar file
+   * another product holds already (an earlier run uploaded it for that one)
+   * is reused, never uploaded again.
+   */
+  const fileKey = (name: string, sha256: string | null | undefined) =>
+    sha256 ? `${name}\0${sha256}` : undefined;
+  const creemFiles = new Map<string, string>();
+  for (const p of creemCatalog.products)
+    for (const f of p.features ?? [])
+      for (const stored of f.type === "file" ? (f.file?.files ?? []) : []) {
+        const key = fileKey(stored.fileName, stored.sha256);
+        if (key && !creemFiles.has(key)) creemFiles.set(key, stored.id);
+      }
+  /**
    * The file feature of a downloadables benefit, keyed by the benefit id. A
-   * Polar file the stored feature holds (same name and SHA-256) is kept; any
-   * other is uploaded from its local copy in the real run, once per run.
+   * Polar file the stored feature holds (same name and SHA-256) is kept, one
+   * another product holds is reused; any other is uploaded from its local
+   * copy in the real run, once per run.
    */
   const fileFeature = (
     benefit: PolarProduct["benefits"][number],
@@ -519,11 +534,12 @@ export function fromPolar(
       }
       const sha256 = file.checksum_sha256_base64 ?? objects.fileDigests[id]?.sha256;
       const same = storedFiles.find((f) => f.fileName === file.name && f.sha256 === sha256);
-      if (same) {
-        kept.add(same.id);
-        files.push({ id: same.id });
+      const reused = same?.id ?? creemFiles.get(fileKey(file.name, sha256) ?? "");
+      if (reused) {
+        if (same) kept.add(same.id);
+        files.push({ id: reused });
         if (fileItem.action === "skip")
-          Object.assign(fileItem, { action: "unchanged", creem_id: same.id });
+          Object.assign(fileItem, { action: "unchanged", creem_id: reused, reason: null });
         continue;
       }
       const digest = objects.fileDigests[id];
