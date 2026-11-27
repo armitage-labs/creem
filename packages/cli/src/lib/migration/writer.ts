@@ -1,6 +1,7 @@
 import { openAsBlob } from "node:fs";
 import type { Creem } from "creem";
 import {
+  createMeterApiRequestDtoToJSON,
   createProductRequestEntityToJSON,
   updateProductRequestEntityToJSON,
   type CatalogValidateItemRequestDto,
@@ -158,6 +159,8 @@ const HINTS: Record<string, string> = {
     "The discount has a Stripe coupon, which keeps its terms. Create a new discount code in Creem for the new terms.",
   external_id_taken: "Another Creem object already uses this key; check for a duplicate.",
   license_keys_issued: "Customers hold keys of this license-key feature; it cannot be removed.",
+  postpaid_usage_billing_unavailable:
+    "Ask Creem support to enable postpaid usage billing, then run the migration again.",
 };
 
 /** What an error's hint may name: the item's key, and the plan's stored groups. */
@@ -232,6 +235,7 @@ interface WriteAnswer {
     result: string;
     dryRun: boolean;
     warnings: { code: string; path?: string | undefined; key?: string | undefined }[];
+    changes?: { path: string }[];
   };
 }
 
@@ -242,6 +246,8 @@ async function send(
   dryRun: boolean,
 ): Promise<WriteAnswer> {
   switch (request.type) {
+    case "upsert_meter":
+      return client.meters.createMeter({ ...request.request, dryRun });
     case "adopt_product":
     case "update_product":
       return client.products.update({ ...request.request, dryRun });
@@ -295,11 +301,13 @@ function itemFinder(report: MigrationReport) {
     const kind =
       request.type === "upload_file"
         ? "file"
-        : request.type === "upsert_product_group"
-          ? "product_group"
-          : request.type.endsWith("discount")
-            ? "discount"
-            : "product";
+        : request.type === "upsert_meter"
+          ? "meter"
+          : request.type === "upsert_product_group"
+            ? "product_group"
+            : request.type.endsWith("discount")
+              ? "discount"
+              : "product";
     const item = items.get(`${kind}:${request.key}`);
     if (!item) throw new Error(`No report item for ${kind} ${request.key}`);
     return item;
@@ -329,13 +337,24 @@ function withoutPendingUploads<T extends { features?: unknown[] | null | undefin
   return { body: copy, partial };
 }
 
-/** A product write as an item of `POST /v1/catalog/validate`, in the API's own shape. */
-function validateItem(
-  request: Extract<
-    MigrationRequest,
-    { type: "adopt_product" | "update_product" | "upsert_product" }
-  >,
-): { item: CatalogValidateItemRequestDto; partial: boolean } {
+type ValidatedRequest = Extract<
+  MigrationRequest,
+  { type: "upsert_meter" | "adopt_product" | "update_product" | "upsert_product" }
+>;
+
+/** A meter or product write as an item of `POST /v1/catalog/validate`, in the API's own shape. */
+function validateItem(request: ValidatedRequest): {
+  item: CatalogValidateItemRequestDto;
+  partial: boolean;
+} {
+  if (request.type === "upsert_meter")
+    return {
+      item: {
+        kind: "meter",
+        body: JSON.parse(createMeterApiRequestDtoToJSON(request.request.createMeterApiRequestDto)),
+      },
+      partial: false,
+    };
   if (request.type === "upsert_product") {
     const { body, partial } = withoutPendingUploads(request.request.createProductRequestEntity);
     return {
@@ -393,9 +412,11 @@ export async function checkMigration(
   });
   /**
    * Keys of the products this run creates (once validate has answered, the ones
-   * it didn't refuse): a dry run names them as unknown references.
+   * it didn't refuse): a dry run names them as unknown references. Meters too, from the start.
    */
-  let created = new Set<string>();
+  let created = new Set<string>(
+    report.items.filter((i) => i.kind === "meter" && i.action === "create").map((i) => i.key),
+  );
   const results = new Map<MigrationItem, { results: string[]; partial: boolean }>();
   const refuse = (item: MigrationItem, error: MigrationError) => {
     item.status = "failed";
@@ -403,11 +424,16 @@ export async function checkMigration(
   };
   const record = (
     item: MigrationItem,
-    answer: { id?: unknown; result: string },
+    answer: { id?: unknown; result: string; changes?: unknown },
     warnings: { code: string; path?: string | null; key?: string | null }[],
     partial: boolean,
   ) => {
     const { result } = answer;
+    // A plan that leaves comparing to Creem names no changes: Creem's answer does.
+    if (!item.changes.length && Array.isArray(answer.changes))
+      item.changes = [
+        ...new Set(answer.changes.flatMap((c) => (isRecord(c) ? [String(c.path)] : []))),
+      ];
     // An object that exists already (another run wrote it) has a real id; the id
     // of one a dry run would create is never stored.
     if (result !== "created" && !item.creem_id && typeof answer.id === "string")
@@ -433,13 +459,13 @@ export async function checkMigration(
     }
   };
 
+  // Meters first: a product's usage price names a meter of its batch by key.
   const products = plan.requests.filter(
-    (
-      r,
-    ): r is Extract<
-      MigrationRequest,
-      { type: "adopt_product" | "update_product" | "upsert_product" }
-    > => r.type === "adopt_product" || r.type === "update_product" || r.type === "upsert_product",
+    (r): r is ValidatedRequest =>
+      r.type === "upsert_meter" ||
+      r.type === "adopt_product" ||
+      r.type === "update_product" ||
+      r.type === "upsert_product",
   );
   // Without product writes, an empty validate first: a server that doesn't know
   // validate (nor, then, the dry run) answers it with an error before any
@@ -503,7 +529,11 @@ export async function checkMigration(
         );
       record(
         item,
-        { id: answer.response?.id, result: String(writeResult.result) },
+        {
+          id: answer.response?.id,
+          result: String(writeResult.result),
+          changes: writeResult.changes,
+        },
         Array.isArray(writeResult.warnings) ? writeResult.warnings : [],
         batch[index].partial,
       );
@@ -516,7 +546,7 @@ export async function checkMigration(
     report.items
       .filter(
         (i) =>
-          i.kind === "product" &&
+          (i.kind === "product" || i.kind === "meter") &&
           (i.action === "create" || i.adopted_from) &&
           i.status !== "failed",
       )
@@ -526,7 +556,7 @@ export async function checkMigration(
   // A refused product's uploads would attach to nothing, so they are not sent.
   for (const request of products) {
     const item = itemOf(request);
-    if (item.status !== "failed") continue;
+    if (item.status !== "failed" || request.type === "upsert_meter") continue;
     const body =
       request.type === "upsert_product"
         ? request.request.createProductRequestEntity
@@ -608,7 +638,7 @@ export async function checkMigration(
       );
       record(
         item,
-        { id: answer.id, result: answer.writeResult.result },
+        { id: answer.id, result: answer.writeResult.result, changes: answer.writeResult.changes },
         answer.writeResult.warnings,
         partial,
       );
@@ -800,13 +830,28 @@ export async function executeMigration(
       }
       // Resolve what this run's earlier writes decided.
       switch (request.type) {
-        case "upsert_product": {
-          if (!resolveFiles(request.request.createProductRequestEntity, item)) continue;
-          break;
-        }
+        case "upsert_product":
         case "adopt_product":
         case "update_product": {
-          if (!resolveFiles(request.request.updateProductRequestEntity, item)) continue;
+          const body =
+            request.type === "upsert_product"
+              ? request.request.createProductRequestEntity
+              : request.request.updateProductRequestEntity;
+          // A usage price on a meter this run failed to write would change what
+          // buyers pay, so none of the product is written.
+          const meters = (body.usagePrices ?? []).flatMap((u) =>
+            u.meterExternalId && failedKeys.has(u.meterExternalId) ? [u.meterExternalId] : [],
+          );
+          if (meters.length) {
+            fail(item, {
+              code: "dependency_failed",
+              message: `Its meter ${meters.join(", ")} was not written, so the product was not written.`,
+              status: null,
+              hint: "Re-run the migration to retry.",
+            });
+            continue;
+          }
+          if (!resolveFiles(body, item)) continue;
           break;
         }
         case "upsert_product_group": {
@@ -902,6 +947,10 @@ export async function executeMigration(
       );
       written.add(item);
       switch (request.type) {
+        case "upsert_meter":
+          item.creem_id = answer.id;
+          item.action = actionOf(answer.writeResult.result);
+          break;
         case "adopt_product":
           productIds.set(request.key, request.request.id);
           break;

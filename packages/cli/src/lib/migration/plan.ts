@@ -1,6 +1,7 @@
 import type { CreateFileUploadRequestEntity } from "creem/models/components";
 import type {
   CreateDiscountRequest,
+  CreateMeterRequest,
   CreateProductGroupRequest,
   CreateProductRequest,
   UpdateDiscountRequest,
@@ -23,6 +24,7 @@ import type { AdoptionProposal, MigrationIssue, MigrationItem, MigrationReport }
  * upsert's body takes no `null`.
  */
 export type MigrationRequest =
+  | { type: "upsert_meter"; key: string; request: CreateMeterRequest }
   | { type: "adopt_product"; key: string; request: UpdateProductRequest }
   | { type: "adopt_discount"; key: string; request: UpdateDiscountRequest }
   | {
