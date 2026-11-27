@@ -655,16 +655,6 @@ describe("fromStripe against a store with Creem objects", () => {
     expect(p.report.proposals[0]).toMatchObject({ decision: "accepted", creem_id: "prod_1" });
   });
 
-  it("creates new products for unanswered proposals with createNewUnmatched", async () => {
-    const catalog = await catalogOf({
-      products: [productJson("prod_1", { name: "eng2012-Ebook" })],
-    });
-    const p = await plan(catalog, { createNewUnmatched: true });
-    expect(p.report.proposals[0]).toMatchObject({ decision: "declined", creem_id: null });
-    expect(item(p, ID.priceEbook)).toMatchObject({ action: "create", adopted_from: null });
-    expect(p.answerErrors).toEqual([]);
-  });
-
   it("proposes an unkeyed Creem meter with the same name, and adopts it with a meter PATCH", async () => {
     const meter = {
       id: "mtr_1",
@@ -979,8 +969,8 @@ describe("creem migrate stripe", () => {
       state: {
         products: [
           productJson("prod_1", { name: "eng2012-Ebook" }),
-          productJson("prod_2", { name: "eng2012-Seat pack" }),
-          productJson("prod_3", { name: "eng2012-Seat pack" }),
+          productJson("prod_2", { name: "eng2012-Donation" }),
+          productJson("prod_3", { name: "eng2012-Donation" }),
         ],
       },
     });
@@ -991,14 +981,14 @@ describe("creem migrate stripe", () => {
       decision: "accepted",
       creem_id: "prod_1",
     });
-    expect(proposals.find((p: any) => p.key === ID.priceSeats)).toMatchObject({
+    expect(proposals.find((p: any) => p.key === ID.priceDonation)).toMatchObject({
       decision: "declined",
     });
     expect(creem.state.products.find((p) => p.id === "prod_1")?.external_id).toBe(ID.priceEbook);
     expect(creem.state.products.filter((p) => p.external_id === ID.priceEbook)).toHaveLength(1);
     expect(creem.state.products.find((p) => p.id === "prod_2")?.external_id).toBeNull();
     expect(creem.state.products.find((p) => p.id === "prod_3")?.external_id).toBeNull();
-    expect(creem.state.products.filter((p) => p.external_id === ID.priceSeats)).toHaveLength(1);
+    expect(creem.state.products.filter((p) => p.external_id === ID.priceDonation)).toHaveLength(1);
   });
 
   it("asks per proposal in a terminal, and never adopts without a yes", async () => {

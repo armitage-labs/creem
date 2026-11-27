@@ -1,6 +1,8 @@
 import chalk from "chalk";
 import { password } from "@inquirer/prompts";
 import { CliError } from "../lib/errors";
+import type { CreemCatalog } from "../lib/migration/catalog";
+import { ADOPT_NEW } from "../lib/migration/plan";
 import { MIGRATION_EXIT_CODES } from "../lib/migration/report";
 import { fromStripe } from "../lib/migration/stripe/map";
 import {
@@ -75,13 +77,29 @@ export const stripeSource: MigrationSource = {
     const { account } = objects;
     if (account.id)
       print(chalk.dim(`Stripe account: ${account.name || account.id} (${account.id})`));
+    const plan = (catalog: CreemCatalog, adoption: Record<string, string>) =>
+      fromStripe(objects, catalog, {
+        adoption,
+        includeArchived: Boolean(options.includeArchived),
+      });
     return {
-      plan: (catalog, adoption) =>
-        fromStripe(objects, catalog, {
-          adoption,
-          includeArchived: Boolean(options.includeArchived),
-          createNewUnmatched: Boolean(options.createNewUnmatched),
-        }),
+      plan: (catalog, adoption) => {
+        if (!options.createNewUnmatched) return plan(catalog, adoption);
+        // --create-new-unmatched answers `new` only to what --adopt leaves open: bare
+        // --adopt first takes each proposal with one candidate, as the shared loop does.
+        const answers = { ...adoption };
+        for (;;) {
+          const planned = plan(catalog, answers);
+          const open = planned.report.proposals.find(
+            (p) => p.decision === "pending" && !(p.id in answers),
+          );
+          if (!open || planned.answerErrors.length) return planned;
+          answers[open.id] =
+            options.adopt === true && open.candidates.length === 1
+              ? open.candidates[0].creem_id
+              : ADOPT_NEW;
+        }
+      },
       failures,
       files: {},
     };

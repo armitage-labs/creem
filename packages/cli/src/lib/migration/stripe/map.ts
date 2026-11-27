@@ -7,7 +7,7 @@ import type {
 import type { CreateProductRequest, UpdateMeterRequest } from "creem/models/operations";
 import { billing, trialDays } from "../billing";
 import type { CreemCatalog } from "../catalog";
-import { ADOPT_NEW, adoptionMatcher, issue, sameName, type MigrationPlan } from "../plan";
+import { adoptionMatcher, issue, sameName, type MigrationPlan } from "../plan";
 import type { MigrationRequest } from "../plan";
 import {
   MIGRATION_REPORT_SCHEMA,
@@ -28,8 +28,6 @@ export interface FromStripeOptions {
   adoption?: Record<string, string>;
   /** Write inactive Stripe prices and products as archived Creem products. */
   includeArchived?: boolean;
-  /** Create a new Creem object for every proposal the answers leave open. */
-  createNewUnmatched?: boolean;
 }
 
 /** What Creem takes as an `external_id`. */
@@ -235,10 +233,19 @@ function productDifferences(p: ProductEntity, body: ProductBody): string[] {
   return list;
 }
 
-function planStripe(
+/**
+ * Maps a Stripe account's catalog (Billing Meters, and one product per price)
+ * onto a Creem store: the requests that make the store match it, and the
+ * report of every item. Pure: it reads nothing and writes nothing.
+ *
+ * `creemCatalog` is the store's existing products and meters. A stored object
+ * with the key gets the keyed upsert, which changes only what differs; an
+ * unkeyed look-alike is a proposal, adopted only when `adoption` answers it.
+ */
+export function fromStripe(
   objects: StripeObjects,
   creemCatalog: CreemCatalog,
-  options: FromStripeOptions,
+  options: FromStripeOptions = {},
 ): MigrationPlan {
   const adoption = adoptionMatcher(options.adoption ?? {});
   const byKey = <T extends { externalId: string | null }>(list: T[]) =>
@@ -549,27 +556,4 @@ function planStripe(
       ),
     ),
   };
-}
-
-/**
- * Maps a Stripe account's catalog (Billing Meters, and one product per price)
- * onto a Creem store: the requests that make the store match it, and the
- * report of every item. Pure: it reads nothing and writes nothing.
- *
- * `creemCatalog` is the store's existing products and meters. A stored object
- * with the key gets the keyed upsert, which changes only what differs; an
- * unkeyed look-alike is a proposal, adopted only when `adoption` answers it
- * (or created new with `createNewUnmatched`).
- */
-export function fromStripe(
-  objects: StripeObjects,
-  creemCatalog: CreemCatalog,
-  options: FromStripeOptions = {},
-): MigrationPlan {
-  const plan = planStripe(objects, creemCatalog, options);
-  const open = plan.report.proposals.filter((p) => p.decision === "pending");
-  if (!options.createNewUnmatched || !open.length) return plan;
-  const adoption = { ...options.adoption };
-  for (const p of open) adoption[p.id] = ADOPT_NEW;
-  return planStripe(objects, creemCatalog, { ...options, adoption });
 }
