@@ -2,7 +2,14 @@ import { join } from "node:path";
 import { afterEach, describe, expect, it, vi } from "vitest";
 import { harness } from "./helpers";
 import { fakeCreem, productJson } from "./migrate-fixtures";
-import { ID, POLAR_ORG_ID, POLAR_TOKEN, polarDocs, polarFetch } from "./migrate-polar-fixtures";
+import {
+  ID,
+  LOCAL_FILES,
+  POLAR_ORG_ID,
+  POLAR_TOKEN,
+  polarDocs,
+  polarFetch,
+} from "./migrate-polar-fixtures";
 import { readCreemCatalog } from "../src/lib/migration/catalog";
 import { checkMigration, executeMigration } from "../src/lib/migration/writer";
 import { PolarClient, fetchPolarCatalog } from "../src/lib/migration/polar/source";
@@ -15,13 +22,19 @@ const UUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/;
 const emptyCatalog = { products: [], productGroups: [], discounts: [], meters: [] };
 afterEach(() => vi.unstubAllGlobals());
 
-async function polarObjects(docs = polarDocs(), options: { pageSize?: number } = {}) {
+async function polarObjects(
+  docs = polarDocs(),
+  options: { pageSize?: number; filesDir?: string } = {},
+) {
   const polar = polarFetch(docs, options);
   const client = new PolarClient(POLAR_TOKEN, { server: "sandbox", fetch: polar.fetcher });
-  return { ...(await fetchPolarCatalog(client)), polar };
+  return { ...(await fetchPolarCatalog(client, { filesDir: options.filesDir })), polar };
 }
-async function plan(catalog = emptyCatalog, options: Parameters<typeof fromPolar>[2] = {}) {
-  const { objects } = await polarObjects();
+async function plan(
+  catalog = emptyCatalog,
+  options: Parameters<typeof fromPolar>[2] & { filesDir?: string } = {},
+) {
+  const { objects } = await polarObjects(polarDocs(), { filesDir: options.filesDir });
   return fromPolar(objects, catalog, { now: NOW, ...options });
 }
 const item = (p: Pick<MigrationPlan, "report">, key: string, kind?: string) =>
@@ -35,9 +48,14 @@ const productBody = (p: MigrationPlan, key: string) => {
 
 async function migrate(
   creem: ReturnType<typeof fakeCreem>,
-  options: { adoption?: Record<string, string>; force?: boolean; includeArchived?: boolean } = {},
+  options: {
+    adoption?: Record<string, string>;
+    force?: boolean;
+    includeArchived?: boolean;
+    filesDir?: string;
+  } = {},
 ) {
-  const { objects } = await polarObjects();
+  const { objects, polar } = await polarObjects(polarDocs(), { filesDir: options.filesDir });
   const catalog = await readCreemCatalog(creem.client, { meters: true });
   const planned = fromPolar(objects, catalog, {
     now: NOW,
@@ -50,11 +68,12 @@ async function migrate(
   if (checked.report.items.some((i) => i.status === "failed") && !options.force)
     return { plan: planned, checked, report: undefined };
   const report = await executeMigration(creem.client, checked, {
-    files: {},
+    files: objects.fileDigests,
+    fetch: polar.fetcher,
     delayMs: 0,
     force: options.force,
   });
-  return { plan: planned, checked, report };
+  return { plan: planned, checked, report, slotPosts: polar.slotPosts };
 }
 
 describe("Polar source", () => {
@@ -414,6 +433,53 @@ describe("fromPolar against an empty Creem store", () => {
     expect(item(p, ID.discountNoCode).reason?.code).toBe("discount_code_missing");
   });
 
+  it("maps a downloadables benefit to a file feature, uploading the local copy of each file", async () => {
+    const p = await plan(emptyCatalog, { filesDir: LOCAL_FILES });
+    expect(request(p, ID.fileGuide)).toEqual({
+      type: "upload_file",
+      key: ID.fileGuide,
+      sourceFileId: ID.fileGuide,
+      request: {
+        purpose: "product_file",
+        filename: "guide.txt",
+        contentType: "text/plain",
+        size: 41,
+        sha256: "gckX7fOAHjRKyOXAC7pXnXQPG0nPrxcwS6bqszFU8xo=",
+      },
+    });
+    expect(productBody(p, ID.productDownload)?.features).toEqual([
+      {
+        type: "file",
+        externalId: ID.benefitDownload,
+        description: "Download the guide",
+        file: { files: [{ id: `upload:${ID.fileGuide}` }] },
+      },
+    ]);
+    expect(item(p, ID.fileGuide, "file")).toMatchObject({
+      action: "create",
+      status: "pending",
+      source: { type: "file", id: ID.fileGuide, product_id: ID.productDownload },
+    });
+    const types = p.requests.map((r) => r.type);
+    expect(types.lastIndexOf("upsert_meter")).toBeLessThan(types.indexOf("upload_file"));
+    expect(types.indexOf("upload_file")).toBeLessThan(types.indexOf("upsert_product"));
+  });
+
+  it("skips a file without a local copy, or whose local copy isn't Polar's file", async () => {
+    const without = await plan();
+    expect(item(without, ID.fileGuide, "file")).toMatchObject({
+      action: "skip",
+      reason: { code: "file_not_available" },
+    });
+    expect(item(without, ID.fileGuide, "file").reason?.message).toContain("--polar-files-dir");
+    expect(productBody(without, ID.productDownload)?.features).toBeUndefined();
+    const docs = polarDocs();
+    docs.files.items[0].checksum_sha256_base64 = "AAAA";
+    const { objects } = await polarObjects(docs, { filesDir: LOCAL_FILES });
+    const mismatched = fromPolar(objects, emptyCatalog, { now: NOW });
+    expect(item(mismatched, ID.fileGuide, "file").reason?.code).toBe("file_checksum_mismatch");
+  });
+
   it("lists every fetched Polar object in the report, and what isn't catalog once", async () => {
     const p = await plan();
     const { objects } = await polarObjects();
@@ -575,6 +641,23 @@ describe("Polar migration against Creem", () => {
       }),
     );
     expect(item(planned, ID.discountPercentage).reason?.code).toBe("adoption_unconfirmed");
+  });
+
+  it("uploads a file once, attaches it, and finds it by its SHA-256 on the next run", async () => {
+    const creem = fakeCreem();
+    const first = await migrate(creem, { filesDir: LOCAL_FILES });
+    expect(item({ report: first.report! }, ID.fileGuide, "file").status).toBe("done");
+    expect(first.slotPosts.map((s) => s.file.toString())).toEqual([
+      "Polar sandbox fixture file for ENG-2405.\n",
+    ]);
+    const product = creem.state.products.find((pr) => pr.external_id === ID.productDownload)!;
+    expect(product.features).toEqual([
+      expect.objectContaining({ type: "file", external_id: ID.benefitDownload }),
+    ]);
+    const second = await migrate(creem, { filesDir: LOCAL_FILES });
+    expect(item(second.checked, ID.fileGuide, "file")).toMatchObject({ action: "unchanged" });
+    expect(item(second.checked, ID.productDownload).action).toBe("unchanged");
+    expect(second.slotPosts).toEqual([]);
   });
 
   it("keeps the merchant's own features and usage prices of the types it writes", async () => {
