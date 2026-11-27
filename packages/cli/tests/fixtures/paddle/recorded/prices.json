@@ -1,0 +1,232 @@
+{
+  "data": [
+    {
+      "id": "pri_01m8ee9916eq0x1r4ycpnvdrpb",
+      "product_id": "pro_01m8ee98x3kb1mj4m2h2gpvr65",
+      "type": "standard",
+      "description": "Weekly",
+      "name": null,
+      "billing_cycle": {
+        "interval": "week",
+        "frequency": 1
+      },
+      "trial_period": null,
+      "tax_mode": "location",
+      "unit_price": {
+        "amount": "500",
+        "currency_code": "USD"
+      },
+      "unit_price_overrides": [],
+      "custom_data": null,
+      "status": "active",
+      "quantity": {
+        "minimum": 1,
+        "maximum": 100
+      },
+      "import_meta": null,
+      "created_at": "2026-11-27T12:04:36.006Z",
+      "updated_at": "2026-11-27T12:04:36.006Z"
+    },
+    {
+      "id": "pri_01m8ee98pzmr61d6jhdtzr8rmw",
+      "product_id": "pro_01m8ee98jh21bdncvajkb9k722",
+      "type": "standard",
+      "description": "Monthly in GBP",
+      "name": null,
+      "billing_cycle": {
+        "interval": "month",
+        "frequency": 1
+      },
+      "trial_period": null,
+      "tax_mode": "location",
+      "unit_price": {
+        "amount": "1200",
+        "currency_code": "GBP"
+      },
+      "unit_price_overrides": [
+        {
+          "country_codes": [
+            "US"
+          ],
+          "unit_price": {
+            "amount": "1500",
+            "currency_code": "USD"
+          }
+        }
+      ],
+      "custom_data": null,
+      "status": "active",
+      "quantity": {
+        "minimum": 1,
+        "maximum": 100
+      },
+      "import_meta": null,
+      "created_at": "2026-11-27T12:04:35.679Z",
+      "updated_at": "2026-11-27T12:04:35.679Z"
+    },
+    {
+      "id": "pri_01m8ee98cbpwhw599qn9fprbk9",
+      "product_id": "pro_01m8ee987zjrykx313fd431471",
+      "type": "standard",
+      "description": "One-time with country prices",
+      "name": null,
+      "billing_cycle": null,
+      "trial_period": null,
+      "tax_mode": "location",
+      "unit_price": {
+        "amount": "2000",
+        "currency_code": "USD"
+      },
+      "unit_price_overrides": [
+        {
+          "country_codes": [
+            "DE",
+            "FR"
+          ],
+          "unit_price": {
+            "amount": "1900",
+            "currency_code": "EUR"
+          }
+        },
+        {
+          "country_codes": [
+            "GB"
+          ],
+          "unit_price": {
+            "amount": "1700",
+            "currency_code": "GBP"
+          }
+        }
+      ],
+      "custom_data": null,
+      "status": "active",
+      "quantity": {
+        "minimum": 1,
+        "maximum": 10
+      },
+      "import_meta": null,
+      "created_at": "2026-11-27T12:04:35.339Z",
+      "updated_at": "2026-11-27T12:04:35.339Z"
+    },
+    {
+      "id": "pri_01m8ee9817hnw5txebjqdmqkyp",
+      "product_id": "pro_01m8ee97jx4faev4tx5e3h0j4g",
+      "type": "standard",
+      "description": "One-time",
+      "name": null,
+      "billing_cycle": null,
+      "trial_period": null,
+      "tax_mode": "location",
+      "unit_price": {
+        "amount": "2900",
+        "currency_code": "EUR"
+      },
+      "unit_price_overrides": [],
+      "custom_data": null,
+      "status": "active",
+      "quantity": {
+        "minimum": 1,
+        "maximum": 1
+      },
+      "import_meta": null,
+      "created_at": "2026-11-27T12:04:34.983Z",
+      "updated_at": "2026-11-27T12:04:34.983Z"
+    },
+    {
+      "id": "pri_01m8ee921negj532fmzd2f86pf",
+      "product_id": "pro_01m8ee91jy96wpy0q79wta9sd6",
+      "type": "standard",
+      "description": "Legacy quarterly",
+      "name": null,
+      "billing_cycle": {
+        "interval": "month",
+        "frequency": 3
+      },
+      "trial_period": null,
+      "tax_mode": "location",
+      "unit_price": {
+        "amount": "4000",
+        "currency_code": "USD"
+      },
+      "unit_price_overrides": [],
+      "custom_data": null,
+      "status": "archived",
+      "quantity": {
+        "minimum": 1,
+        "maximum": 100
+      },
+      "import_meta": null,
+      "created_at": "2026-11-27T12:04:28.853Z",
+      "updated_at": "2026-11-27T12:04:29.006873Z"
+    },
+    {
+      "id": "pri_01m8ee91x0ae559fkyjp35acdy",
+      "product_id": "pro_01m8ee91jy96wpy0q79wta9sd6",
+      "type": "standard",
+      "description": "Yearly",
+      "name": "Pro yearly",
+      "billing_cycle": {
+        "interval": "year",
+        "frequency": 1
+      },
+      "trial_period": null,
+      "tax_mode": "location",
+      "unit_price": {
+        "amount": "15000",
+        "currency_code": "USD"
+      },
+      "unit_price_overrides": [],
+      "custom_data": null,
+      "status": "active",
+      "quantity": {
+        "minimum": 1,
+        "maximum": 100
+      },
+      "import_meta": null,
+      "created_at": "2026-11-27T12:04:28.704Z",
+      "updated_at": "2026-11-27T12:04:28.704Z"
+    },
+    {
+      "id": "pri_01m8ee91rdx3xn32adc9jtmj9v",
+      "product_id": "pro_01m8ee91jy96wpy0q79wta9sd6",
+      "type": "standard",
+      "description": "Monthly",
+      "name": "Pro monthly",
+      "billing_cycle": {
+        "interval": "month",
+        "frequency": 1
+      },
+      "trial_period": {
+        "interval": "week",
+        "frequency": 2,
+        "requires_payment_method": true
+      },
+      "tax_mode": "location",
+      "unit_price": {
+        "amount": "1500",
+        "currency_code": "USD"
+      },
+      "unit_price_overrides": [],
+      "custom_data": {
+        "plan": "pro-monthly"
+      },
+      "status": "active",
+      "quantity": {
+        "minimum": 1,
+        "maximum": 100
+      },
+      "import_meta": null,
+      "created_at": "2026-11-27T12:04:28.557Z",
+      "updated_at": "2026-11-27T12:04:28.557Z"
+    }
+  ],
+  "meta": {
+    "request_id": "00000000-0000-0000-0000-000000000000",
+    "pagination": {
+      "per_page": 200,
+      "next": "https://sandbox-api.paddle.com/prices?after=pri_01m8ee91rdx3xn32adc9jtmj9v&per_page=200&status=active&status=archived",
+      "has_more": false,
+      "estimated_total": 7
+    }
+  }
+}

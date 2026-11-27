@@ -38,6 +38,7 @@ import {
   executeMigration,
 } from "../lib/migration/writer";
 import { addGlobalOptions, outputFormat } from "./resource";
+import { PADDLE_SCOPE, paddle } from "./migrate-paddle";
 import { writeResult } from "../utils/results";
 
 const LS_SCOPE = "products, product groups, discounts, license keys and files";
@@ -48,6 +49,8 @@ const NOT_MIGRATED_LABELS: Record<string, string> = {
   customers: "customers",
   subscriptions: "subscriptions",
   orders: "orders",
+  transactions: "transactions",
+  notification_settings: "notification settings",
   license_keys: "issued license keys",
   discounts: "discounts (--exclude-discounts)",
   checkout_links: "checkout links",
@@ -190,7 +193,7 @@ type SourceOptions = Record<string, unknown> & { json: boolean };
  * source. Planning against Creem, adoption, the check, the confirmation and the
  * run are the same for every source.
  */
-interface MigrationSource {
+export interface MigrationSource {
   name: string;
   /** The source's name in messages ("Lemon Squeezy"). */
   title: string;
@@ -658,6 +661,7 @@ export function createMigrateCommand(context: CliContext = createContext()): Com
       `
 ${chalk.dim("Available migrations:")}
   ${chalk.cyan("creem migrate lemon-squeezy")}    Migrate ${LS_SCOPE} from Lemon Squeezy
+  ${chalk.cyan("creem migrate paddle")}           Migrate ${PADDLE_SCOPE} from Paddle Billing
   ${chalk.cyan("creem migrate polar")}            Migrate ${POLAR_SCOPE} from Polar
 
 ${chalk.dim("Options:")}
@@ -674,6 +678,11 @@ ${chalk.dim("Options:")}
   --force                 Write even when Creem's check refuses items (they are left out)
   --yes                   Write without asking
 
+${chalk.dim("Paddle options:")}
+  --paddle-key <key>      Paddle API key (or PADDLE_API_KEY)
+  --paddle-environment <environment>  sandbox or production (default: the key's own)
+  --include-archived      Write archived Paddle prices as archived Creem products
+
 ${chalk.dim("Examples:")}
   ${chalk.cyan("creem migrate lemon-squeezy --dry-run")}          Print the plan
   ${chalk.cyan("creem migrate lemon-squeezy")}                    Print the plan, then ask before writing
@@ -683,6 +692,7 @@ ${chalk.dim("Examples:")}
 `,
     );
   command.addCommand(createSourceCommand(context, lemonSqueezy));
+  command.addCommand(createSourceCommand(context, paddle));
   command.addCommand(createSourceCommand(context, polar));
   return command;
 }
