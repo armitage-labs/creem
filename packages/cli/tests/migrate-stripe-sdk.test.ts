@@ -1,3 +1,6 @@
+import { spawnSync } from "node:child_process";
+import { existsSync } from "node:fs";
+import { join } from "node:path";
 import { afterEach, expect, it, vi } from "vitest";
 import { withoutClaudeCodeHint } from "../src/lib/migration/stripe/source";
 
@@ -33,4 +36,18 @@ it("restores them when loading throws, and adds none that weren't set", () => {
   ).toThrow("load failed");
   expect(process.env.CLAUDECODE).toBe("1");
   expect("CLAUDE_CODE_CHILD_SESSION" in process.env).toBe(false);
+});
+
+it("loads the real SDK from the build with CLAUDECODE set, and writes nothing to stderr", () => {
+  const source = join(__dirname, "..", "dist", "lib", "migration", "stripe", "source.js");
+  expect(existsSync(source), "build the CLI first (pnpm --filter @creem_io/cli build)").toBe(true);
+  const script = `const { stripeClient } = require(${JSON.stringify(source)});
+const stripe = stripeClient("rk_test_fixtureSecretKey0000000000");
+if (typeof stripe.prices.list !== "function") process.exit(9);`;
+  const run = spawnSync(process.execPath, ["-e", script], {
+    env: { ...process.env, CLAUDECODE: "1", CLAUDE_CODE_CHILD_SESSION: "1" },
+    encoding: "utf8",
+  });
+  expect(run.status, run.stderr).toBe(0);
+  expect(run.stderr).toBe("");
 });
