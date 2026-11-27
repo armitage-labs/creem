@@ -974,6 +974,33 @@ describe("creem migrate stripe", () => {
     expect(creem.state.products).toHaveLength(7);
   });
 
+  it("bare --adopt with --create-new-unmatched adopts single matches and creates new only for the rest", async () => {
+    const { creem, h } = setup({
+      state: {
+        products: [
+          productJson("prod_1", { name: "eng2012-Ebook" }),
+          productJson("prod_2", { name: "eng2012-Seat pack" }),
+          productJson("prod_3", { name: "eng2012-Seat pack" }),
+        ],
+      },
+    });
+    const r = await h.run(["--json", ...base, "--yes", "--adopt", "--create-new-unmatched"]);
+    expect(r.code, r.stderr).toBe(0);
+    const proposals = JSON.parse(r.stdout).proposals;
+    expect(proposals.find((p: any) => p.key === ID.priceEbook)).toMatchObject({
+      decision: "accepted",
+      creem_id: "prod_1",
+    });
+    expect(proposals.find((p: any) => p.key === ID.priceSeats)).toMatchObject({
+      decision: "declined",
+    });
+    expect(creem.state.products.find((p) => p.id === "prod_1")?.external_id).toBe(ID.priceEbook);
+    expect(creem.state.products.filter((p) => p.external_id === ID.priceEbook)).toHaveLength(1);
+    expect(creem.state.products.find((p) => p.id === "prod_2")?.external_id).toBeNull();
+    expect(creem.state.products.find((p) => p.id === "prod_3")?.external_id).toBeNull();
+    expect(creem.state.products.filter((p) => p.external_id === ID.priceSeats)).toHaveLength(1);
+  });
+
   it("asks per proposal in a terminal, and never adopts without a yes", async () => {
     const asked: string[] = [];
     const { creem, h } = setup({
