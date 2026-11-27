@@ -1222,6 +1222,49 @@ describe("creem migrate stripe", () => {
     expect(moved.changes).toEqual(expect.arrayContaining(["description", "price", "metadata"]));
   });
 
+  for (const archived of [false, true])
+    it(`keeps the key on its product when Stripe transfers a lookup key to a new price (old price ${archived ? "archived, --include-archived" : "active"})`, async () => {
+      // Stripe's price change: new price B takes the lookup key of old price A.
+      const docs = stripeDocs();
+      const a = docs.prices.data.find((price) => price.id === ID.priceEbook)!;
+      a.active = !archived;
+      docs.prices.data.push({
+        ...structuredClone(a),
+        id: "price_eng2012_ebook_b",
+        active: true,
+        unit_amount: 1200,
+        lookup_key: "eng2012_ebook",
+      });
+      const { creem, h } = setup({
+        docs,
+        state: {
+          products: [
+            productJson("prod_1", {
+              name: "eng2012-Ebook",
+              price: 900,
+              external_id: "eng2012_ebook",
+              metadata: { stripe_price_id: ID.priceEbook },
+            }),
+          ],
+        },
+      });
+      const flags = archived ? ["--include-archived"] : [];
+      const r = await h.run(["--json", ...base, ...flags, "--yes", "--adopt"]);
+      expect(r.code, r.stderr).toBe(0);
+      expect(JSON.parse(r.stdout).proposals).toEqual([]);
+      const keyed = creem.state.products.filter((p) => p.external_id === "eng2012_ebook");
+      expect(keyed.map((p) => p.id)).toEqual(["prod_1"]);
+      expect(keyed[0]).toMatchObject({
+        status: "active",
+        price: 1200,
+        metadata: expect.objectContaining({ stripe_price_id: "price_eng2012_ebook_b" }),
+      });
+      const old = creem.state.products.filter((p) => p.external_id === ID.priceEbook);
+      expect(old).toHaveLength(1);
+      expect(old[0].id).not.toBe("prod_1");
+      expect(old[0].status).toBe(archived ? "archived" : "active");
+    });
+
   it("asks per proposal in a terminal, and never adopts without a yes", async () => {
     const asked: string[] = [];
     const { creem, h } = setup({
