@@ -51,6 +51,10 @@ export function paddleFetch(
     pageSize?: number;
     /** Answers this status for a path, e.g. `{ "/discounts": 500 }`. */
     failures?: Record<string, number>;
+    /** Replaces the `next` cursor of a page that has more, e.g. to drop it or send it elsewhere. */
+    next?: (next: string, url: URL) => string | null;
+    /** Throws after this many requests, so a read that never ends fails instead of hanging. */
+    maxRequests?: number;
   } = {},
 ) {
   const requests: PaddleRequest[] = [];
@@ -60,6 +64,8 @@ export function paddleFetch(
     if (url.hostname !== "api.paddle.com" && url.hostname !== "sandbox-api.paddle.com")
       throw new Error(`UNEXPECTED_FETCH ${request.method} ${url}`);
     if (request.method !== "GET") throw new Error(`PADDLE_WRITE_REFUSED ${request.method} ${url}`);
+    if (options.maxRequests !== undefined && requests.length >= options.maxRequests)
+      throw new Error(`TOO_MANY_PADDLE_REQUESTS ${url}`);
     requests.push({
       host: url.hostname,
       path: url.pathname,
@@ -89,7 +95,11 @@ export function paddleFetch(
       meta: {
         request_id: "00000000-0000-0000-0000-000000000000",
         // Paddle sends `next` on the last page too; `has_more` says whether to follow it.
-        pagination: { per_page: size, next: next.toString(), has_more: hasMore },
+        pagination: {
+          per_page: size,
+          next: hasMore && options.next ? options.next(next.toString(), url) : next.toString(),
+          has_more: hasMore,
+        },
       },
     });
   });

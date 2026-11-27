@@ -37,7 +37,7 @@ export const paddle: MigrationSource = {
       .option("--include-archived", "Write archived Paddle prices as archived Creem products"),
   check(options) {
     const environment = options.paddleEnvironment;
-    if (environment !== undefined && !(String(environment) in PADDLE_HOSTS))
+    if (environment !== undefined && !Object.hasOwn(PADDLE_HOSTS, String(environment)))
       throw new CliError(
         `--paddle-environment takes sandbox or production, not "${String(environment)}".`,
         MIGRATION_EXIT_CODES.usage,

@@ -15,7 +15,7 @@
         "frequency": 1,
         "requires_payment_method": true
       },
-      "tax_mode": "account_setting",
+      "tax_mode": "external",
       "unit_price": {
         "amount": "900",
         "currency_code": "EUR"
@@ -95,7 +95,7 @@
       "name": null,
       "billing_cycle": null,
       "trial_period": null,
-      "tax_mode": "account_setting",
+      "tax_mode": "internal",
       "unit_price": {
         "amount": "1500",
         "currency_code": "USD"

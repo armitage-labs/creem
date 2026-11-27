@@ -4,7 +4,7 @@
     "key": "pri_01hw000000000000000cloudm",
     "request": {
       "createProductRequestEntity": {
-        "name": "eng2015-Cloud",
+        "name": "eng2015-Cloud - Monthly",
         "description": "Hosted plan.",
         "price": 900,
         "currency": "EUR",
@@ -12,6 +12,7 @@
         "billingPeriod": "every-month",
         "trialPeriodDays": 30,
         "taxCategory": "saas",
+        "taxMode": "exclusive",
         "metadata": {
           "region": "eu",
           "plan": "cloud"
@@ -31,6 +32,7 @@
         "currency": "USD",
         "billingType": "onetime",
         "taxCategory": "ebooks",
+        "taxMode": "inclusive",
         "externalId": "pri_01hw000000000000000ebook1"
       }
     }
@@ -56,7 +58,7 @@
     "key": "pri_01m8ee91rdx3xn32adc9jtmj9v",
     "request": {
       "createProductRequestEntity": {
-        "name": "eng2015-Pro - Monthly",
+        "name": "eng2015-Pro - Pro monthly",
         "description": "The Pro plan, monthly or yearly.",
         "price": 1500,
         "currency": "USD",
@@ -78,7 +80,7 @@
     "key": "pri_01m8ee91x0ae559fkyjp35acdy",
     "request": {
       "createProductRequestEntity": {
-        "name": "eng2015-Pro - Yearly",
+        "name": "eng2015-Pro - Pro yearly",
         "description": "The Pro plan, monthly or yearly.",
         "price": 15000,
         "currency": "USD",
@@ -155,6 +157,146 @@
           {
             "externalId": "pri_01m8ee91x0ae559fkyjp35acdy"
           }
+        ]
+      }
+    }
+  },
+  {
+    "type": "upsert_discount",
+    "key": "dsc_01hw000000000000000free100",
+    "request": {
+      "createDiscountRequestEntity": {
+        "name": "eng2015-Free forever",
+        "code": "ENG2015FREE",
+        "type": "percentage",
+        "percentage": 100,
+        "duration": "repeating",
+        "durationInMonths": 1200,
+        "externalId": "dsc_01hw000000000000000free100",
+        "appliesToProductExternalIds": [
+          "pri_01m8ee91rdx3xn32adc9jtmj9v",
+          "pri_01m8ee91x0ae559fkyjp35acdy"
+        ]
+      }
+    }
+  },
+  {
+    "type": "upsert_discount",
+    "key": "dsc_01hw000000000000000partial",
+    "request": {
+      "createDiscountRequestEntity": {
+        "name": "eng2015-Partly used",
+        "code": "ENG2015PART",
+        "type": "fixed",
+        "amount": 200,
+        "currency": "EUR",
+        "duration": "once",
+        "maxRedemptions": 7,
+        "externalId": "dsc_01hw000000000000000partial",
+        "appliesToProductExternalIds": [
+          "pri_01hw000000000000000cloudm"
+        ]
+      }
+    }
+  },
+  {
+    "type": "upsert_discount",
+    "key": "dsc_01hw000000000000000proall",
+    "request": {
+      "createDiscountRequestEntity": {
+        "name": "eng2015-Pro, every price",
+        "code": "ENG2015PRO",
+        "type": "percentage",
+        "percentage": 10,
+        "duration": "once",
+        "externalId": "dsc_01hw000000000000000proall",
+        "appliesToProductExternalIds": [
+          "pri_01m8ee91rdx3xn32adc9jtmj9v",
+          "pri_01m8ee91x0ae559fkyjp35acdy"
+        ]
+      }
+    }
+  },
+  {
+    "type": "upsert_discount",
+    "key": "dsc_01m8ee995yz3rx0zsbys7sqhhx",
+    "request": {
+      "createDiscountRequestEntity": {
+        "name": "eng2015-Launch 20%",
+        "code": "ENG2015PCT",
+        "type": "percentage",
+        "percentage": 20,
+        "duration": "once",
+        "maxRedemptions": 100,
+        "expiryDate": "2027-12-31T00:00:00.000Z",
+        "externalId": "dsc_01m8ee995yz3rx0zsbys7sqhhx",
+        "appliesToProductExternalIds": [
+          "pri_01hw000000000000000cloudm",
+          "pri_01hw000000000000000ebook1",
+          "pri_01hw000000000000000ebook2",
+          "pri_01m8ee91rdx3xn32adc9jtmj9v",
+          "pri_01m8ee91x0ae559fkyjp35acdy",
+          "pri_01m8ee9817hnw5txebjqdmqkyp",
+          "pri_01m8ee98cbpwhw599qn9fprbk9",
+          "pri_01m8ee9916eq0x1r4ycpnvdrpb"
+        ]
+      }
+    }
+  },
+  {
+    "type": "upsert_discount",
+    "key": "dsc_01m8ee99ap38a2806vqq1x8709",
+    "request": {
+      "createDiscountRequestEntity": {
+        "name": "eng2015-Five off",
+        "code": "ENG2015FLAT",
+        "type": "fixed",
+        "amount": 500,
+        "currency": "USD",
+        "duration": "forever",
+        "externalId": "dsc_01m8ee99ap38a2806vqq1x8709",
+        "appliesToProductExternalIds": [
+          "pri_01hw000000000000000ebook1",
+          "pri_01hw000000000000000ebook2",
+          "pri_01m8ee91rdx3xn32adc9jtmj9v",
+          "pri_01m8ee91x0ae559fkyjp35acdy",
+          "pri_01m8ee98cbpwhw599qn9fprbk9",
+          "pri_01m8ee9916eq0x1r4ycpnvdrpb"
+        ]
+      }
+    }
+  },
+  {
+    "type": "upsert_discount",
+    "key": "dsc_01m8ee99k6emy0gvywedsxpfjp",
+    "request": {
+      "createDiscountRequestEntity": {
+        "name": "eng2015-Yearly only",
+        "code": "ENG2015YEAR",
+        "type": "percentage",
+        "percentage": 10,
+        "duration": "once",
+        "externalId": "dsc_01m8ee99k6emy0gvywedsxpfjp",
+        "appliesToProductExternalIds": [
+          "pri_01m8ee91x0ae559fkyjp35acdy"
+        ]
+      }
+    }
+  },
+  {
+    "type": "upsert_discount",
+    "key": "dsc_01m8ee99qzphyh45944rs4jjqb",
+    "request": {
+      "createDiscountRequestEntity": {
+        "name": "eng2015-Three months",
+        "code": "ENG2015REP",
+        "type": "percentage",
+        "percentage": 15,
+        "duration": "repeating",
+        "durationInMonths": 3,
+        "externalId": "dsc_01m8ee99qzphyh45944rs4jjqb",
+        "appliesToProductExternalIds": [
+          "pri_01m8ee91rdx3xn32adc9jtmj9v"
         ]
       }
     }

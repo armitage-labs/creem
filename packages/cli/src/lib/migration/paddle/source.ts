@@ -50,17 +50,42 @@ export interface PaddlePrice {
   billing_cycle: PaddleInterval | null;
   trial_period: PaddleInterval | null;
   unit_price: PaddleMoney;
+  /** `internal` (tax included), `external` (added), `location` or `account_setting`. */
+  tax_mode?: string;
   unit_price_overrides: { country_codes: string[]; unit_price: PaddleMoney }[];
   quantity: { minimum: number; maximum: number } | null;
   custom_data: Record<string, unknown> | null;
   status: string;
 }
+export interface PaddleDiscount {
+  id: string;
+  status: string;
+  description: string;
+  /** `false`: applied only through the API, never redeemable at checkout. */
+  enabled_for_checkout?: boolean;
+  code: string | null;
+  type: string;
+  mode?: string;
+  amount: string;
+  currency_code: string | null;
+  recur: boolean;
+  maximum_recurring_intervals: number | null;
+  usage_limit: number | null;
+  times_used: number;
+  restrict_to: string[] | null;
+  expires_at: string | null;
+  custom_data: Record<string, unknown> | null;
+}
+
 export interface PaddleObjects {
   environment: PaddleEnvironment;
   products: PaddleProduct[];
   prices: PaddlePrice[];
+  discounts: PaddleDiscount[];
   /** The product or price list couldn't be read: no price is known to be gone from Paddle. */
   catalogUnread?: boolean;
+  /** The discount list couldn't be read: no discount is known to be gone from Paddle. */
+  discountsUnread?: boolean;
 }
 
 /** Paddle refused the request; `status` is its HTTP status. */
@@ -81,6 +106,7 @@ export class PaddleClient {
   private readonly fetcher: typeof fetch;
   private readonly delayMs: number;
   private readonly attempts: number;
+  private readonly maxPages: number;
 
   constructor(
     private readonly apiKey: string,
@@ -89,6 +115,8 @@ export class PaddleClient {
       fetch?: typeof fetch;
       delayMs?: number;
       attempts?: number;
+      /** Pages per list before the read gives up (200 objects a page). */
+      maxPages?: number;
     },
   ) {
     this.environment = options.environment;
@@ -96,6 +124,7 @@ export class PaddleClient {
     // Paddle allows 240 requests a minute per IP.
     this.delayMs = options.delayMs ?? 250;
     this.attempts = options.attempts ?? 3;
+    this.maxPages = options.maxPages ?? 1000;
   }
 
   private async pause(ms: number) {
@@ -136,17 +165,29 @@ export class PaddleClient {
     first.searchParams.set("per_page", "200");
     first.searchParams.set("order_by", "id[ASC]");
     const items: T[] = [];
+    // A list that can't be read to its end throws: the run then counts it as
+    // unread and writes nothing, instead of taking a part for the whole.
+    const incomplete = (why: string) => new Error(`${path} is incomplete: ${why}`);
+    const seen = new Set<string>();
     for (let url = first.toString(); ; ) {
+      if (seen.size === this.maxPages)
+        throw incomplete(`Paddle has more than ${this.maxPages} pages of it.`);
+      seen.add(url);
       const page = (await this.get(url)) as {
         data: T[];
         meta?: { pagination?: { next?: string | null; has_more?: boolean } };
       };
       items.push(...page.data);
-      const next = page.meta?.pagination;
+      const pagination = page.meta?.pagination;
+      if (!pagination?.has_more) return items;
+      if (!pagination.next) throw incomplete("Paddle says there is more, but sent no cursor.");
+      const next = new URL(pagination.next, base);
       // The cursor stays on Paddle's host, so the key goes nowhere else.
-      if (!next?.has_more || !next.next || new URL(next.next).origin !== new URL(base).origin)
-        return items;
-      url = next.next;
+      if (next.origin !== new URL(base).origin)
+        throw incomplete(`its next page is on ${next.origin}, not ${base}, and isn't read.`);
+      if (seen.has(next.toString()))
+        throw incomplete("Paddle sent the cursor of the same page again.");
+      url = next.toString();
       await this.pause(this.delayMs);
     }
   }
@@ -155,7 +196,7 @@ export class PaddleClient {
 const errorMessage = (error: unknown) => (error instanceof Error ? error.message : String(error));
 
 /**
- * Reads the Paddle catalog: products and prices, active and
+ * Reads the Paddle catalog: products, prices and discounts, active and
  * archived. Customers, subscriptions, transactions and notification settings
  * are never fetched. A refused key (401/403) throws; any other list that can't
  * be read is a fetch failure, and the run writes nothing.
@@ -168,15 +209,17 @@ export async function fetchPaddleCatalog(
     environment: client.environment,
     products: [],
     prices: [],
+    discounts: [],
   };
-  for (const kind of ["products", "prices"] as const) {
+  for (const kind of ["products", "prices", "discounts"] as const) {
     try {
       objects[kind] = (await client.list(`/${kind}`)) as never;
     } catch (error) {
       if (error instanceof PaddleApiError && (error.status === 401 || error.status === 403))
         throw error;
       failures.push({ kind, message: errorMessage(error) });
-      objects.catalogUnread = true;
+      if (kind === "discounts") objects.discountsUnread = true;
+      else objects.catalogUnread = true;
     }
   }
   return { objects, failures };

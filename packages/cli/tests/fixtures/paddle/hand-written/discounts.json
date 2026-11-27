@@ -156,6 +156,77 @@
       "discount_group_id": null,
       "created_at": "2026-11-20T10:00:00.000Z",
       "updated_at": "2026-11-20T10:00:00.000Z"
+    },
+    {
+      "id": "dsc_01hw000000000000000proall",
+      "status": "active",
+      "description": "eng2015-Pro, every price",
+      "enabled_for_checkout": true,
+      "code": "ENG2015PRO",
+      "type": "percentage",
+      "amount": "10",
+      "currency_code": null,
+      "recur": false,
+      "maximum_recurring_intervals": null,
+      "usage_limit": null,
+      "restrict_to": [
+        "pro_01m8ee91jy96wpy0q79wta9sd6"
+      ],
+      "expires_at": null,
+      "mode": "standard",
+      "times_used": 0,
+      "custom_data": null,
+      "import_meta": null,
+      "discount_group_id": null,
+      "created_at": "2026-11-20T10:00:00.000Z",
+      "updated_at": "2026-11-20T10:00:00.000Z"
+    },
+    {
+      "id": "dsc_01hw000000000000000free100",
+      "status": "active",
+      "description": "eng2015-Free forever",
+      "enabled_for_checkout": true,
+      "code": "ENG2015FREE",
+      "type": "percentage",
+      "amount": "100",
+      "currency_code": null,
+      "recur": true,
+      "maximum_recurring_intervals": null,
+      "usage_limit": null,
+      "restrict_to": [
+        "pri_01m8ee91rdx3xn32adc9jtmj9v",
+        "pri_01m8ee91x0ae559fkyjp35acdy"
+      ],
+      "expires_at": null,
+      "mode": "standard",
+      "times_used": 0,
+      "custom_data": null,
+      "import_meta": null,
+      "discount_group_id": null,
+      "created_at": "2026-11-20T10:00:00.000Z",
+      "updated_at": "2026-11-20T10:00:00.000Z"
+    },
+    {
+      "id": "dsc_01hw0000000000000000halfpc",
+      "status": "active",
+      "description": "eng2015-Half a percent",
+      "enabled_for_checkout": true,
+      "code": "ENG2015HALF",
+      "type": "percentage",
+      "amount": "0.5",
+      "currency_code": null,
+      "recur": false,
+      "maximum_recurring_intervals": null,
+      "usage_limit": null,
+      "restrict_to": null,
+      "expires_at": null,
+      "mode": "standard",
+      "times_used": 0,
+      "custom_data": null,
+      "import_meta": null,
+      "discount_group_id": null,
+      "created_at": "2026-11-20T10:00:00.000Z",
+      "updated_at": "2026-11-20T10:00:00.000Z"
     }
   ],
   "meta": {
@@ -164,7 +235,7 @@
       "per_page": 200,
       "next": null,
       "has_more": false,
-      "estimated_total": 7
+      "estimated_total": 8
     }
   }
 }

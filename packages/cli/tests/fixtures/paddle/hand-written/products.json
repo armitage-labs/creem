@@ -44,6 +44,19 @@
       "import_meta": null,
       "created_at": "2026-11-20T10:00:00.000Z",
       "updated_at": "2026-11-20T10:00:00.000Z"
+    },
+    {
+      "id": "pro_01hw000000000000000noprice",
+      "name": "eng2015-Coming soon",
+      "tax_category": "standard",
+      "type": "standard",
+      "description": "A product with no prices yet.",
+      "image_url": null,
+      "custom_data": null,
+      "status": "active",
+      "import_meta": null,
+      "created_at": "2026-11-20T10:00:00.000Z",
+      "updated_at": "2026-11-20T10:00:00.000Z"
     }
   ],
   "meta": {
@@ -52,7 +65,7 @@
       "per_page": 200,
       "next": null,
       "has_more": false,
-      "estimated_total": 3
+      "estimated_total": 4
     }
   }
 }

@@ -1,5 +1,10 @@
-import type { ProductEntity, ProductGroupEntity } from "creem/models/components";
-import type { CreateProductRequest, UpdateProductRequest } from "creem/models/operations";
+import type { DiscountEntity, ProductEntity, ProductGroupEntity } from "creem/models/components";
+import type {
+  CreateDiscountRequest,
+  CreateProductRequest,
+  UpdateDiscountRequest,
+  UpdateProductRequest,
+} from "creem/models/operations";
 import type { CreemCatalog } from "../catalog";
 import { billing, trialDays } from "../billing";
 import {
@@ -19,7 +24,13 @@ import {
   type MigrationItem,
   type MigrationReport,
 } from "../report";
-import type { PaddleMoney, PaddleObjects, PaddlePrice, PaddleProduct } from "./source";
+import type {
+  PaddleDiscount,
+  PaddleMoney,
+  PaddleObjects,
+  PaddlePrice,
+  PaddleProduct,
+} from "./source";
 
 export type { PaddleObjects } from "./source";
 
@@ -28,6 +39,12 @@ type UpsertProductBody = CreateProductRequest["createProductRequestEntity"];
 type CreateProductBody = UpsertProductBody &
   Required<Pick<UpsertProductBody, "name" | "description" | "price" | "currency" | "billingType">>;
 type UpdateProductBody = UpdateProductRequest["updateProductRequestEntity"];
+type UpsertDiscountBody = CreateDiscountRequest["createDiscountRequestEntity"];
+/** A create body; `code` stays out when Paddle has none, so Creem generates one. */
+type CreateDiscountBody = UpsertDiscountBody &
+  Required<Pick<UpsertDiscountBody, "name" | "type" | "duration">>;
+type UpdateDiscountBody = UpdateDiscountRequest["updateDiscountRequestEntity"];
+
 export interface FromPaddleOptions {
   /** Expired discounts are skipped relative to this time. */
   now: Date;
@@ -37,7 +54,12 @@ export interface FromPaddleOptions {
   includeArchived?: boolean;
 }
 
+const DISCOUNT_CODE_MAX = 14;
+const DISCOUNT_NAME_MAX = 40;
+/** Creem's longest repeating discount, which it asks for in place of 100% off forever. */
+const FULL_DISCOUNT_CYCLES = 1200;
 const PRICE_KEY = /^pri_/;
+const DISCOUNT_KEY = /^dsc_/;
 
 const NOT_MIGRATED: [string, string][] = [
   ["customers", "Customers are not migrated: the migrator reads no customers."],
@@ -47,6 +69,10 @@ const NOT_MIGRATED: [string, string][] = [
 ];
 
 const TAX: Record<string, "saas" | "ebooks"> = { saas: "saas", ebooks: "ebooks" };
+const TAX_MODE: Record<string, "inclusive" | "exclusive"> = {
+  internal: "inclusive",
+  external: "exclusive",
+};
 const PERIOD_DAYS: Record<string, number> = {
   "every-day": 1,
   "every-month": 30,
@@ -64,6 +90,9 @@ const overrides = (price: PaddlePrice, only?: (code: string) => boolean) =>
     .filter((o) => !only || only(o.unit_price.currency_code))
     .map((o) => `${o.country_codes.join(", ")}: ${money(o.unit_price)}`)
     .join("; ");
+
+/** The name Paddle shows buyers; the description is internal, so it is the fallback only. */
+const priceName = (price: PaddlePrice) => price.name?.trim() || price.description;
 
 /** How long a billing period is, in days, to order a group's members. */
 function periodDays(body: CreateProductBody): number {
@@ -172,6 +201,15 @@ function mapPrice(
       ),
     );
   } else body.taxCategory = tax;
+  const taxMode = TAX_MODE[price.tax_mode ?? ""];
+  if (taxMode) body.taxMode = taxMode;
+  else if (price.tax_mode)
+    warnings.push(
+      issue(
+        "tax_mode_not_migrated",
+        `Paddle's tax mode is ${price.tax_mode} (${price.tax_mode === "location" ? "tax included or added by the buyer's country" : "the Paddle account's setting"}); a Creem product has one tax mode, so a new product gets Creem's default, inclusive, and an existing one keeps its own.`,
+      ),
+    );
   if (archived) body.status = "archived";
   return { body };
 }
@@ -190,6 +228,28 @@ function productDifferences(p: ProductEntity, create: CreateProductBody): string
     differences.push(`billing period ${p.billingPeriod}${paddle(create.billingPeriod)}`);
   if (p.status === "archived") differences.push("archived");
   return differences;
+}
+
+/** How a candidate discount differs from the planned one: shown, never matched on. */
+function discountDifferences(d: DiscountEntity, planned: CreateDiscountBody): string[] {
+  const paddle = (value: unknown) => ` (Paddle: ${String(value)})`;
+  const value = (type: string, percentage?: number | null, amount?: number | null) =>
+    type === "percentage" ? `${percentage}%` : `${amount}`;
+  const differences: string[] = [];
+  if (d.name !== planned.name) differences.push(`name "${d.name}"${paddle(`"${planned.name}"`)}`);
+  const stored = value(d.type, d.percentage, d.amount);
+  const wanted = value(planned.type, planned.percentage, planned.amount);
+  if (d.type !== planned.type || stored !== wanted)
+    differences.push(`${d.type} ${stored}${paddle(`${planned.type} ${wanted}`)}`);
+  if (d.duration !== planned.duration)
+    differences.push(`duration ${d.duration}${paddle(planned.duration)}`);
+  return differences;
+}
+
+function isoDate(value: Date | string | null | undefined): string | null {
+  if (!value) return null;
+  const date = value instanceof Date ? value : new Date(value);
+  return Number.isNaN(date.getTime()) ? null : date.toISOString();
 }
 
 interface ProductSpec {
@@ -216,12 +276,15 @@ export function fromPaddle(
     new Map(list.filter((o) => o.externalId).map((o) => [o.externalId as string, o]));
   const productsByKey = byKey<ProductEntity>(creemCatalog.products);
   const groupsByKey = byKey<ProductGroupEntity>(creemCatalog.productGroups);
+  const discountsByKey = byKey<DiscountEntity>(creemCatalog.discounts);
   const byId = <T extends { id: string }>(a: T, b: T) => (a.id < b.id ? -1 : a.id > b.id ? 1 : 0);
 
   const productRequests: MigrationRequest[] = [];
   const groupRequests: MigrationRequest[] = [];
+  const discountRequests: MigrationRequest[] = [];
   const productItems: MigrationItem[] = [];
   const groupItems: MigrationItem[] = [];
+  const discountItems: MigrationItem[] = [];
   const specs: ProductSpec[] = [];
 
   // ---- products: one per price
@@ -230,14 +293,16 @@ export function fromPaddle(
   for (const price of [...objects.prices].sort(byId))
     pricesOf.set(price.product_id, [...(pricesOf.get(price.product_id) ?? []), price]);
   const productIds = new Set(products.map((p) => p.id));
+  // A list Paddle couldn't read leaves the other side incomplete: don't call those products
+  // price-less or those prices product-less (the run stops with exit 4 anyway).
   for (const [productId, prices] of pricesOf)
-    if (!productIds.has(productId))
+    if (!objects.catalogUnread && !productIds.has(productId))
       for (const price of prices)
         productItems.push(
           newItem({
             kind: "product",
             key: price.id,
-            name: price.description,
+            name: priceName(price),
             source: { type: "price", id: price.id, product_id: productId },
             action: "skip",
             reason: issue("product_not_found", `Paddle listed no product ${productId}.`),
@@ -245,6 +310,20 @@ export function fromPaddle(
         );
   for (const product of products) {
     const prices = pricesOf.get(product.id) ?? [];
+    if (!prices.length && !objects.catalogUnread)
+      productItems.push(
+        newItem({
+          kind: "product",
+          key: product.id,
+          name: product.name,
+          source: { type: "product", id: product.id },
+          action: "skip",
+          reason: issue(
+            "no_prices",
+            "The Paddle product has no prices, and each Creem product is made from one Paddle price.",
+          ),
+        }),
+      );
     const mapped = prices.map((price) => {
       const item = newItem({
         kind: "product",
@@ -257,11 +336,10 @@ export function fromPaddle(
       if ("skip" in body) item.reason = body.skip;
       return { price, item, body };
     });
-    const several = mapped.filter((m) => !("skip" in m.body)).length > 1;
+    // Named by the product's Paddle prices, so a name stays when a sibling is skipped or archived.
     for (const { price, item, body } of mapped) {
       productItems.push(item);
-      const named = "skip" in body ? prices.length > 1 : several;
-      item.name = named ? `${product.name} - ${price.description}` : product.name;
+      item.name = prices.length > 1 ? `${product.name} - ${priceName(price)}` : product.name;
       if ("skip" in body) continue;
       const { metadata, dropped } = metadataOf(product.custom_data, price.custom_data);
       if (dropped.length)
@@ -349,6 +427,8 @@ export function fromPaddle(
         update.recurringIntervalCount = create.recurringIntervalCount;
       }
     }
+    if (create.taxMode && existing.taxMode !== create.taxMode)
+      set("taxMode", create.taxMode, "tax_mode");
     if ((existing.trialPeriodDays ?? null) !== (create.trialPeriodDays ?? null))
       set("trialPeriodDays", create.trialPeriodDays ?? null, "trial_period_days");
     // A sent `metadata` replaces the stored one, so the merchant's keys go back with it.
@@ -489,29 +569,253 @@ export function fromPaddle(
             `Paddle doesn't group ${kept.join(", ")} with this product's prices. The migrator can't tell whether Paddle dropped them or you added them in Creem, so they stay in the group; remove them in Creem if they shouldn't be in it.`,
           ),
         );
-      if (stored.length === members.length && stored.every((k, i) => k === members[i])) {
+      const renamed = existing.name !== product.name;
+      const sameMembers =
+        stored.length === members.length && stored.every((k, i) => k === members[i]);
+      if (!renamed && sameMembers) {
         item.action = "unchanged";
         item.status = null;
         continue;
       }
       list.push(...others.map((p) => ({ id: p.id })));
       item.action = "update";
-      item.changes.push("products");
+      if (renamed) item.changes.push("name");
+      if (!sameMembers) item.changes.push("products");
+      groupRequests.push({
+        type: "upsert_product_group",
+        key,
+        request: {
+          createProductGroupRequestEntity: {
+            externalId: key,
+            ...(renamed ? { name: product.name } : {}),
+            // A rename alone sends the stored members as they are, by id.
+            products: sameMembers ? existing.products.map((p) => ({ id: p.id })) : list,
+          },
+        },
+      });
+      continue;
     }
     groupRequests.push({
       type: "upsert_product_group",
       key,
       request: {
-        createProductGroupRequestEntity: existing
-          ? { externalId: key, products: list }
-          : { externalId: key, name: product.name, products: list },
+        createProductGroupRequestEntity: { externalId: key, name: product.name, products: list },
       },
     });
   }
 
+  // Keyed Creem groups that Paddle no longer groups stay as they are.
+  const groupKeys = new Set(groupItems.map((i) => i.key));
+  if (!objects.catalogUnread)
+    for (const g of creemCatalog.productGroups) {
+      const key = g.externalId ?? "";
+      if (!key.startsWith("pro_") || groupKeys.has(key)) continue;
+      groupItems.push(
+        newItem({
+          kind: "product_group",
+          key,
+          name: g.name,
+          source: { type: "product", id: key },
+          action: "skip",
+          creem_id: g.id,
+          reason: productIds.has(key)
+            ? issue(
+                "group_not_needed",
+                "The Paddle product has fewer than two migrated recurring prices.",
+              )
+            : issue("product_not_found", `Paddle has no product ${key}.`),
+          warnings: [
+            issue(
+              "orphaned",
+              `Creem product group ${g.id} has this key and stays as it is. Delete it in Creem if its products shouldn't be grouped.`,
+            ),
+          ],
+        }),
+      );
+    }
+
+  // ---- discounts
+  const stillRedeemable = (id: string) =>
+    issue(
+      "orphaned",
+      `Creem discount ${id} has this key and stays active, so buyers can still redeem it. Expire or delete it in Creem if they shouldn't.`,
+    );
+  for (const discount of [...objects.discounts].sort(byId)) {
+    const key = discount.id;
+    const item = newItem({
+      kind: "discount",
+      key,
+      name: discount.code ?? discount.description,
+      source: { type: "discount", id: key },
+      action: "skip",
+    });
+    discountItems.push(item);
+    const body = planDiscount(discount, options.now, planned, pricesOf, item);
+    if (!body) {
+      const stored = discountsByKey.get(key);
+      if (stored) {
+        item.creem_id = stored.id;
+        if (stored.status === "active") item.warnings.push(stillRedeemable(stored.id));
+      }
+      continue;
+    }
+    const code = discount.code?.toUpperCase();
+    const sameCode = (d: DiscountEntity) => code !== undefined && d.code.toUpperCase() === code;
+    const found = match(
+      "discount",
+      key,
+      discountsByKey,
+      creemCatalog.discounts,
+      creemCatalog.discounts.filter(sameCode),
+      (d) => discountDifferences(d, body),
+      item,
+    );
+    if (found.rejected || found.pending) {
+      if (found.pending) item.creem_id = found.pending.length === 1 ? found.pending[0].id : null;
+      item.reason = found.rejected ?? unconfirmed("discount", key, found.pending!);
+      continue;
+    }
+    const existing = found.existing;
+    if (!existing) {
+      const taken = creemCatalog.discounts.find((d) => sameCode(d) && d.externalId !== key);
+      if (taken) {
+        item.creem_id = taken.id;
+        item.reason = issue(
+          "code_taken",
+          `Creem discount ${taken.id} already uses the code ${discount.code}.`,
+        );
+        continue;
+      }
+      item.action = "create";
+      item.status = "pending";
+      discountRequests.push({
+        type: "upsert_discount",
+        key,
+        request: { createDiscountRequestEntity: body },
+      });
+      continue;
+    }
+    item.creem_id = existing.id;
+    const update: UpdateDiscountBody = {};
+    const changes: string[] = [];
+    const set = <K extends keyof UpdateDiscountBody>(
+      field: K,
+      value: UpdateDiscountBody[K],
+      label: string,
+    ) => {
+      update[field] = value;
+      changes.push(label);
+    };
+    if (body.code && existing.code.toUpperCase() !== body.code.toUpperCase())
+      item.warnings.push(
+        issue(
+          "discount_code_differs",
+          `The Creem code is ${existing.code}; a code never changes, so create a new discount for ${body.code}.`,
+        ),
+      );
+    if (existing.name !== body.name) set("name", body.name, "name");
+    if (existing.type !== body.type) set("type", body.type, "type");
+    if (body.type === "percentage" && existing.percentage !== body.percentage)
+      set("percentage", body.percentage, "percentage");
+    if (body.type === "fixed" && existing.amount !== body.amount)
+      set("amount", body.amount, "amount");
+    if (body.type === "fixed" && (existing.currency ?? "").toUpperCase() !== body.currency)
+      set("currency", body.currency, "currency");
+    if (existing.duration !== body.duration) set("duration", body.duration, "duration");
+    if (
+      body.duration === "repeating" &&
+      (existing.durationInMonths ?? null) !== (body.durationInMonths ?? null)
+    )
+      set("durationInMonths", body.durationInMonths, "duration_in_months");
+    // Creem refuses a limit below its own redemptions: once both stores together
+    // used Paddle's limit, the limit is what Creem redeemed.
+    let maxRedemptions = body.maxRedemptions ?? null;
+    const redeemed = existing.redeemCount ?? 0;
+    if (maxRedemptions !== null && redeemed > maxRedemptions) {
+      item.warnings.push(
+        issue(
+          "discount_redemptions_exhausted",
+          `Paddle and Creem together used the usage limit, so the Creem limit becomes its ${redeemed} redemptions so far and the code can't be redeemed again.`,
+        ),
+      );
+      maxRedemptions = redeemed;
+    }
+    if ((existing.maxRedemptions ?? null) !== maxRedemptions)
+      set("maxRedemptions", maxRedemptions, "max_redemptions");
+    if (isoDate(existing.expiryDate) !== isoDate(body.expiryDate))
+      set("expiryDate", body.expiryDate ?? null, "expiry_date");
+    // The products only grow: missing migrated ones are added, stored ones stay.
+    const storedIds = existing.appliesToProducts ?? [];
+    const storedKeys = new Set(storedIds.map((id) => keyOfProductId.get(id)));
+    const wanted = body.appliesToProductExternalIds ?? [];
+    const missing = wanted.filter((k) => !storedKeys.has(k));
+    if (missing.length) {
+      if (storedIds.length) update.appliesToProducts = [...storedIds];
+      set("appliesToProductExternalIds", missing, "applies_to_products");
+    }
+    const unlisted = [...storedKeys].filter(
+      (k): k is string => k !== undefined && PRICE_KEY.test(k) && !wanted.includes(k),
+    );
+    if (unlisted.length)
+      item.warnings.push(
+        issue(
+          "discount_product_kept",
+          `Paddle doesn't apply this discount to ${unlisted.join(", ")}. The migrator can't tell whether Paddle dropped them or you added them in Creem, so they stay; remove them in Creem if the discount shouldn't apply.`,
+        ),
+      );
+    item.changes.push(...changes);
+    if (item.adopted_from)
+      discountRequests.push({
+        type: "adopt_discount",
+        key,
+        request: { id: existing.id, updateDiscountRequestEntity: { externalId: key, ...update } },
+      });
+    else if (!changes.length) {
+      item.action = "unchanged";
+      continue;
+    } else
+      discountRequests.push(
+        clearsField(update)
+          ? {
+              type: "update_discount",
+              key,
+              request: { id: existing.id, updateDiscountRequestEntity: update },
+            }
+          : {
+              type: "upsert_discount",
+              key,
+              request: {
+                createDiscountRequestEntity: { ...(update as UpsertDiscountBody), externalId: key },
+              },
+            },
+      );
+    item.action = "update";
+    item.status = "pending";
+  }
+  // Keyed Creem discounts whose Paddle discount is gone still redeem.
+  if (!objects.discountsUnread) {
+    const keys = new Set(discountItems.map((i) => i.key));
+    for (const d of creemCatalog.discounts) {
+      const key = d.externalId ?? "";
+      if (!DISCOUNT_KEY.test(key) || keys.has(key) || d.status !== "active") continue;
+      discountItems.push(
+        newItem({
+          kind: "discount",
+          key,
+          name: d.code,
+          source: { type: "discount", id: key },
+          action: "skip",
+          creem_id: d.id,
+          reason: issue("discount_not_found", `Paddle has no discount ${key}.`),
+          warnings: [stillRedeemable(d.id)],
+        }),
+      );
+    }
+  }
+
   adoption.finish();
 
-  const items = [...productItems, ...groupItems];
+  const items = [...productItems, ...groupItems, ...discountItems];
   // The report's one currency: the one most migrated prices are in.
   const counts = { USD: 0, EUR: 0 };
   for (const create of planned.values()) counts[create.currency as "USD" | "EUR"] += 1;
@@ -535,7 +839,7 @@ export function fromPaddle(
     fetch_failures: [],
   };
   return {
-    requests: [...productRequests, ...groupRequests],
+    requests: [...productRequests, ...groupRequests, ...discountRequests],
     report,
     answerErrors,
     productGroupOf: Object.fromEntries(
@@ -543,5 +847,161 @@ export function fromPaddle(
         g.products.map((p) => [p.id, { id: g.id, externalId: g.externalId }]),
       ),
     ),
+  };
+}
+
+/** The Creem discount for a Paddle discount, or `undefined` with the skip reason on the item. */
+function planDiscount(
+  d: PaddleDiscount,
+  now: Date,
+  planned: Map<string, CreateProductBody>,
+  pricesOf: Map<string, PaddlePrice[]>,
+  item: MigrationItem,
+): CreateDiscountBody | undefined {
+  const skip = (code: string, message: string) => {
+    item.reason = issue(code, message);
+    return undefined;
+  };
+  if (d.mode === "custom")
+    return skip("non_catalog", "Non-catalog discounts are made for one Paddle transaction.");
+  if (d.status === "archived")
+    return skip(
+      "archived",
+      "The discount is archived in Paddle. Creem discounts have no archived state, so it isn't written, also with --include-archived.",
+    );
+  if (d.enabled_for_checkout === false)
+    return skip(
+      "discount_not_checkout_enabled",
+      "The discount isn't enabled for checkout in Paddle, so it is applied only through the API. Every Creem discount is redeemable at checkout, so it isn't migrated.",
+    );
+  if (d.type !== "percentage" && d.type !== "flat")
+    return skip("discount_type_unsupported", `Creem has no per-seat discounts (${d.type}).`);
+  if (d.type === "flat" && !isCreemCurrency(d.currency_code))
+    return skip(
+      "currency_unsupported",
+      `Creem discounts are in USD or EUR; this one is in ${d.currency_code}.`,
+    );
+  if (d.expires_at && new Date(d.expires_at).getTime() <= now.getTime())
+    return skip("discount_expired", `The discount expired at ${d.expires_at}.`);
+  // Paddle's limit counts every use, and Creem counts from zero: only what's left carries over.
+  const remaining = d.usage_limit != null ? d.usage_limit - (d.times_used ?? 0) : undefined;
+  if (remaining !== undefined && remaining <= 0)
+    return skip("discount_used_up", `All ${d.usage_limit} uses are used in Paddle.`);
+  if (d.code && d.code.length > DISCOUNT_CODE_MAX)
+    return skip(
+      "discount_code_too_long",
+      `Creem codes have at most ${DISCOUNT_CODE_MAX} characters; ${d.code} has ${d.code.length}. Create it in Creem with a shorter code.`,
+    );
+  const amount = Number(d.amount);
+  if (d.type === "percentage" && !(amount >= 1 && amount <= 100))
+    return skip(
+      "discount_amount_unsupported",
+      `Creem percentage discounts are 1 to 100%; this one is ${d.amount}%.`,
+    );
+  if (d.type === "flat" && !(Number.isInteger(amount) && amount > 0))
+    return skip("discount_amount_unsupported", `Creem can't hold a flat discount of ${d.amount}.`);
+  // Warnings of a discount that is written; a skipped one carries only its reason.
+  const notes: MigrationIssue[] = [];
+  // Unrestricted: every migrated product that sells, so not the archived ones.
+  let applies = [...planned].filter(([, c]) => c.status !== "archived").map(([k]) => k);
+  if (d.restrict_to?.length) {
+    // A product id stands for every price of that product.
+    const keys = [
+      ...new Set(
+        d.restrict_to.flatMap((id) =>
+          id.startsWith("pro_") ? (pricesOf.get(id) ?? []).map((p) => p.id) : [id],
+        ),
+      ),
+    ];
+    applies = keys.filter((k) => planned.has(k));
+    const missing = keys.filter((k) => !planned.has(k));
+    if (!applies.length)
+      return skip(
+        "discount_products_not_migrated",
+        "None of the prices the discount is restricted to is migrated.",
+      );
+    if (missing.length)
+      notes.push(
+        issue(
+          "discount_products_partially_migrated",
+          `The discount applies only to the migrated prices. Not migrated: ${missing.join(", ")}.`,
+        ),
+      );
+  } else if (applies.length)
+    notes.push(
+      issue(
+        "discount_applies_to_all",
+        "Paddle applies the discount to every product; in Creem it applies to the migrated ones. Add it to products you create later.",
+      ),
+    );
+  if (!applies.length)
+    return skip("no_products", "No product is migrated to apply the discount to.");
+  // Creem converts no amounts, so a fixed discount stays on products in its own currency.
+  if (d.type === "flat") {
+    const currency = d.currency_code!.toUpperCase();
+    const other = applies.filter((k) => planned.get(k)!.currency !== currency);
+    applies = applies.filter((k) => planned.get(k)!.currency === currency);
+    const message = `The discount is in ${currency}, and Creem doesn't convert it, so it doesn't apply to the products in another currency: ${other.join(", ")}.`;
+    if (!applies.length) return skip("discount_currency_mismatch", message);
+    if (other.length) notes.push(issue("discount_currency_mismatch", message));
+  }
+  let duration: CreateDiscountBody["duration"] = d.recur ? "forever" : "once";
+  if (d.recur && d.maximum_recurring_intervals) {
+    if (!applies.every((k) => planned.get(k)!.billingPeriod === "every-month"))
+      return skip(
+        "duration_unsupported",
+        `Paddle applies the discount for ${d.maximum_recurring_intervals} billing periods; Creem counts them in months, so it carries over only when every product it applies to bills monthly.`,
+      );
+    duration = "repeating";
+  }
+  let months = d.maximum_recurring_intervals ?? undefined;
+  // Creem refuses 100% off forever and asks for repeating with its maximum instead.
+  if (duration === "forever" && d.type === "percentage" && amount === 100) {
+    duration = "repeating";
+    months = FULL_DISCOUNT_CYCLES;
+    notes.push(
+      issue(
+        "discount_forever_repeating",
+        `Creem has no 100% discount forever; it becomes repeating for ${FULL_DISCOUNT_CYCLES} billing cycles, as Creem advises.`,
+      ),
+    );
+  }
+  item.warnings.push(...notes);
+  let name = d.description;
+  if (name.length > DISCOUNT_NAME_MAX) {
+    name = name.slice(0, DISCOUNT_NAME_MAX).trimEnd();
+    item.warnings.push(
+      issue(
+        "discount_name_truncated",
+        `Creem discount names have at most ${DISCOUNT_NAME_MAX} characters; the name becomes "${name}".`,
+      ),
+    );
+  }
+  if (!d.code)
+    item.warnings.push(
+      issue(
+        "discount_code_generated",
+        "The Paddle discount has no code (it is applied through the API or a checkout link); Creem generates one.",
+      ),
+    );
+  if (d.custom_data && Object.keys(d.custom_data).length)
+    item.warnings.push(
+      issue(
+        "metadata_not_migrated",
+        "Creem discounts have no metadata; custom_data is not migrated.",
+      ),
+    );
+  return {
+    name,
+    ...(d.code ? { code: d.code } : {}),
+    ...(d.type === "percentage"
+      ? { type: "percentage" as const, percentage: amount }
+      : { type: "fixed" as const, amount, currency: d.currency_code!.toUpperCase() }),
+    duration,
+    ...(duration === "repeating" ? { durationInMonths: months } : {}),
+    ...(remaining !== undefined ? { maxRedemptions: remaining } : {}),
+    ...(d.expires_at ? { expiryDate: new Date(d.expires_at) } : {}),
+    externalId: d.id,
+    appliesToProductExternalIds: applies,
   };
 }

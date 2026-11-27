@@ -311,6 +311,7 @@ const PRODUCT_FIELDS = [
   "recurring_interval_count",
   "trial_period_days",
   "status",
+  "tax_mode",
   "abandoned_cart_recovery_enabled",
   "external_id",
   "metadata",
@@ -456,6 +457,7 @@ function writeProduct(
       recurring_interval: b.recurring_interval ?? null,
       recurring_interval_count: b.recurring_interval_count ?? null,
       trial_period_days: b.trial_period_days ?? null,
+      tax_mode: b.tax_mode ?? "inclusive",
       tax_category: b.tax_category ?? "saas",
       abandoned_cart_recovery_enabled: b.abandoned_cart_recovery_enabled ?? false,
       external_id: b.external_id ?? null,
@@ -591,6 +593,8 @@ function writeDiscount(
       redeem_count: 0,
       external_id: b.external_id ?? null,
     };
+    // Like the API: a discount created without a code gets a generated one.
+    discount.code ??= discount.id.toUpperCase().replace(/[^A-Z0-9]/g, "");
     state.discounts.push(discount);
     return { status: 200, body: { discount, result: "created", changes: [], warnings: [] } };
   }
