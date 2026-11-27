@@ -9,12 +9,12 @@
   },
   "mode": "plan",
   "summary": {
-    "create": 9,
+    "create": 15,
     "update": 0,
     "unchanged": 0,
-    "skip": 5,
+    "skip": 12,
     "failed": 0,
-    "warnings": 6
+    "warnings": 12
   },
   "items": [
     {
@@ -314,6 +314,276 @@
         "pri_01m8ee91rdx3xn32adc9jtmj9v",
         "pri_01m8ee91x0ae559fkyjp35acdy"
       ]
+    },
+    {
+      "status": null,
+      "creem_id": null,
+      "adopted_from": null,
+      "changes": [],
+      "reason": {
+        "code": "discount_used_up",
+        "message": "All 5 uses are used in Paddle."
+      },
+      "warnings": [],
+      "error": null,
+      "kind": "discount",
+      "key": "dsc_01hw0000000000000000usedup",
+      "name": "ENG2015USED",
+      "source": {
+        "type": "discount",
+        "id": "dsc_01hw0000000000000000usedup"
+      },
+      "action": "skip"
+    },
+    {
+      "status": null,
+      "creem_id": null,
+      "adopted_from": null,
+      "changes": [],
+      "reason": {
+        "code": "discount_expired",
+        "message": "The discount expired at 2026-01-01T00:00:00Z."
+      },
+      "warnings": [],
+      "error": null,
+      "kind": "discount",
+      "key": "dsc_01hw000000000000000expired",
+      "name": "ENG2015EXP",
+      "source": {
+        "type": "discount",
+        "id": "dsc_01hw000000000000000expired"
+      },
+      "action": "skip"
+    },
+    {
+      "status": "pending",
+      "creem_id": null,
+      "adopted_from": null,
+      "changes": [],
+      "reason": null,
+      "warnings": [
+        {
+          "code": "discount_currency_mismatch",
+          "message": "The discount is in EUR, and Creem doesn't convert it, so it doesn't apply to the products in another currency: pri_01hw000000000000000ebook2."
+        }
+      ],
+      "error": null,
+      "kind": "discount",
+      "key": "dsc_01hw000000000000000partial",
+      "name": "ENG2015PART",
+      "source": {
+        "type": "discount",
+        "id": "dsc_01hw000000000000000partial"
+      },
+      "action": "create"
+    },
+    {
+      "status": null,
+      "creem_id": null,
+      "adopted_from": null,
+      "changes": [],
+      "reason": {
+        "code": "currency_unsupported",
+        "message": "Creem discounts are in USD or EUR; this one is in GBP."
+      },
+      "warnings": [],
+      "error": null,
+      "kind": "discount",
+      "key": "dsc_01hw00000000000000gbpflat",
+      "name": "ENG2015GBP",
+      "source": {
+        "type": "discount",
+        "id": "dsc_01hw00000000000000gbpflat"
+      },
+      "action": "skip"
+    },
+    {
+      "status": null,
+      "creem_id": null,
+      "adopted_from": null,
+      "changes": [],
+      "reason": {
+        "code": "discount_code_too_long",
+        "message": "Creem codes have at most 14 characters; ENG2015TOOLONGCODE has 18. Create it in Creem with a shorter code."
+      },
+      "warnings": [],
+      "error": null,
+      "kind": "discount",
+      "key": "dsc_01hw00000000000000longcode",
+      "name": "ENG2015TOOLONGCODE",
+      "source": {
+        "type": "discount",
+        "id": "dsc_01hw00000000000000longcode"
+      },
+      "action": "skip"
+    },
+    {
+      "status": null,
+      "creem_id": null,
+      "adopted_from": null,
+      "changes": [],
+      "reason": {
+        "code": "duration_unsupported",
+        "message": "Paddle applies the discount for 2 billing periods; Creem counts them in months, so it carries over only when every product it applies to bills monthly."
+      },
+      "warnings": [],
+      "error": null,
+      "kind": "discount",
+      "key": "dsc_01hw00000000000000unbound",
+      "name": "ENG2015TWO",
+      "source": {
+        "type": "discount",
+        "id": "dsc_01hw00000000000000unbound"
+      },
+      "action": "skip"
+    },
+    {
+      "status": null,
+      "creem_id": null,
+      "adopted_from": null,
+      "changes": [],
+      "reason": {
+        "code": "archived",
+        "message": "The discount is archived in Paddle. Creem discounts have no archived state, so it isn't written, also with --include-archived."
+      },
+      "warnings": [],
+      "error": null,
+      "kind": "discount",
+      "key": "dsc_01hw0000000000000archived",
+      "name": "ENG2015OLD",
+      "source": {
+        "type": "discount",
+        "id": "dsc_01hw0000000000000archived"
+      },
+      "action": "skip"
+    },
+    {
+      "status": "pending",
+      "creem_id": null,
+      "adopted_from": null,
+      "changes": [],
+      "reason": null,
+      "warnings": [
+        {
+          "code": "discount_applies_to_all",
+          "message": "Paddle applies the discount to every product; in Creem it applies to the migrated ones. Add it to products you create later."
+        }
+      ],
+      "error": null,
+      "kind": "discount",
+      "key": "dsc_01m8ee995yz3rx0zsbys7sqhhx",
+      "name": "ENG2015PCT",
+      "source": {
+        "type": "discount",
+        "id": "dsc_01m8ee995yz3rx0zsbys7sqhhx"
+      },
+      "action": "create"
+    },
+    {
+      "status": "pending",
+      "creem_id": null,
+      "adopted_from": null,
+      "changes": [],
+      "reason": null,
+      "warnings": [
+        {
+          "code": "discount_applies_to_all",
+          "message": "Paddle applies the discount to every product; in Creem it applies to the migrated ones. Add it to products you create later."
+        },
+        {
+          "code": "discount_currency_mismatch",
+          "message": "The discount is in USD, and Creem doesn't convert it, so it doesn't apply to the products in another currency: pri_01hw000000000000000cloudm, pri_01m8ee9817hnw5txebjqdmqkyp."
+        }
+      ],
+      "error": null,
+      "kind": "discount",
+      "key": "dsc_01m8ee99ap38a2806vqq1x8709",
+      "name": "ENG2015FLAT",
+      "source": {
+        "type": "discount",
+        "id": "dsc_01m8ee99ap38a2806vqq1x8709"
+      },
+      "action": "create"
+    },
+    {
+      "status": null,
+      "creem_id": null,
+      "adopted_from": null,
+      "changes": [],
+      "reason": {
+        "code": "discount_type_unsupported",
+        "message": "Creem has no per-seat discounts (flat_per_seat)."
+      },
+      "warnings": [],
+      "error": null,
+      "kind": "discount",
+      "key": "dsc_01m8ee99ey4fmcrpt7zfmjmp7s",
+      "name": "ENG2015SEAT",
+      "source": {
+        "type": "discount",
+        "id": "dsc_01m8ee99ey4fmcrpt7zfmjmp7s"
+      },
+      "action": "skip"
+    },
+    {
+      "status": "pending",
+      "creem_id": null,
+      "adopted_from": null,
+      "changes": [],
+      "reason": null,
+      "warnings": [],
+      "error": null,
+      "kind": "discount",
+      "key": "dsc_01m8ee99k6emy0gvywedsxpfjp",
+      "name": "ENG2015YEAR",
+      "source": {
+        "type": "discount",
+        "id": "dsc_01m8ee99k6emy0gvywedsxpfjp"
+      },
+      "action": "create"
+    },
+    {
+      "status": "pending",
+      "creem_id": null,
+      "adopted_from": null,
+      "changes": [],
+      "reason": null,
+      "warnings": [],
+      "error": null,
+      "kind": "discount",
+      "key": "dsc_01m8ee99qzphyh45944rs4jjqb",
+      "name": "ENG2015REP",
+      "source": {
+        "type": "discount",
+        "id": "dsc_01m8ee99qzphyh45944rs4jjqb"
+      },
+      "action": "create"
+    },
+    {
+      "status": "pending",
+      "creem_id": null,
+      "adopted_from": null,
+      "changes": [],
+      "reason": null,
+      "warnings": [
+        {
+          "code": "discount_products_partially_migrated",
+          "message": "The discount applies only to the migrated prices. Not migrated: pri_01m8ee921negj532fmzd2f86pf."
+        },
+        {
+          "code": "discount_code_generated",
+          "message": "The Paddle discount has no code (it is applied through the API or a checkout link); Creem generates one."
+        }
+      ],
+      "error": null,
+      "kind": "discount",
+      "key": "dsc_01m8ee99x0k076wr4e4hv35beg",
+      "name": "eng2015-No code",
+      "source": {
+        "type": "discount",
+        "id": "dsc_01m8ee99x0k076wr4e4hv35beg"
+      },
+      "action": "create"
     }
   ],
   "proposals": [],

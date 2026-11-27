@@ -55,12 +55,33 @@ export interface PaddlePrice {
   custom_data: Record<string, unknown> | null;
   status: string;
 }
+export interface PaddleDiscount {
+  id: string;
+  status: string;
+  description: string;
+  code: string | null;
+  type: string;
+  mode?: string;
+  amount: string;
+  currency_code: string | null;
+  recur: boolean;
+  maximum_recurring_intervals: number | null;
+  usage_limit: number | null;
+  times_used: number;
+  restrict_to: string[] | null;
+  expires_at: string | null;
+  custom_data: Record<string, unknown> | null;
+}
+
 export interface PaddleObjects {
   environment: PaddleEnvironment;
   products: PaddleProduct[];
   prices: PaddlePrice[];
+  discounts: PaddleDiscount[];
   /** The product or price list couldn't be read: no price is known to be gone from Paddle. */
   catalogUnread?: boolean;
+  /** The discount list couldn't be read: no discount is known to be gone from Paddle. */
+  discountsUnread?: boolean;
 }
 
 /** Paddle refused the request; `status` is its HTTP status. */
@@ -155,7 +176,7 @@ export class PaddleClient {
 const errorMessage = (error: unknown) => (error instanceof Error ? error.message : String(error));
 
 /**
- * Reads the Paddle catalog: products and prices, active and
+ * Reads the Paddle catalog: products, prices and discounts, active and
  * archived. Customers, subscriptions, transactions and notification settings
  * are never fetched. A refused key (401/403) throws; any other list that can't
  * be read is a fetch failure, and the run writes nothing.
@@ -168,15 +189,17 @@ export async function fetchPaddleCatalog(
     environment: client.environment,
     products: [],
     prices: [],
+    discounts: [],
   };
-  for (const kind of ["products", "prices"] as const) {
+  for (const kind of ["products", "prices", "discounts"] as const) {
     try {
       objects[kind] = (await client.list(`/${kind}`)) as never;
     } catch (error) {
       if (error instanceof PaddleApiError && (error.status === 401 || error.status === 403))
         throw error;
       failures.push({ kind, message: errorMessage(error) });
-      objects.catalogUnread = true;
+      if (kind === "discounts") objects.discountsUnread = true;
+      else objects.catalogUnread = true;
     }
   }
   return { objects, failures };

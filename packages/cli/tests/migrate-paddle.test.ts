@@ -73,7 +73,7 @@ async function plan(options: { includeArchived?: boolean; catalog?: CreemCatalog
 }
 
 describe("Paddle source", () => {
-  it("reads products and prices, active and archived, with GETs on the sandbox host only", async () => {
+  it("reads products, prices and discounts, active and archived, with GETs on the sandbox host only", async () => {
     const { objects, failures, paddle } = await paddleObjects({ pageSize: 2 });
     expect(failures).toEqual([]);
     expect(objects.environment).toBe("sandbox");
@@ -82,7 +82,9 @@ describe("Paddle source", () => {
     expect(new Set(paddle.requests.map((r) => r.host))).toEqual(
       new Set(["sandbox-api.paddle.com"]),
     );
-    expect(new Set(paddle.requests.map((r) => r.path))).toEqual(new Set(["/products", "/prices"]));
+    expect(new Set(paddle.requests.map((r) => r.path))).toEqual(
+      new Set(["/products", "/prices", "/discounts"]),
+    );
     for (const r of paddle.requests) {
       expect(r.authorization).toBe(`Bearer ${PADDLE_KEY}`);
       expect(r.search.getAll("status").join(",")).toBe("active,archived");
@@ -603,6 +605,21 @@ describe("ENG-2015 discounts", () => {
     });
   });
 
+  it("applies a fixed discount only to products in its own currency, and names the others", async () => {
+    const p = await plan();
+    const usd = MIGRATED.filter((k) => ![CLOUD_MONTHLY, HANDBOOK].includes(k));
+    expect(request(p, FLAT)!.request).toMatchObject({
+      createDiscountRequestEntity: { appliesToProductExternalIds: usd },
+    });
+    const warning = item(p, FLAT).warnings.find((w) => w.code === "discount_currency_mismatch")!;
+    expect(warning.message).toContain(CLOUD_MONTHLY);
+    expect(warning.message).toContain(HANDBOOK);
+    // EUR off a USD product only: nothing is left to apply it to.
+    expect(request(p, PARTLY_USED)!.request).toMatchObject({
+      createDiscountRequestEntity: { appliesToProductExternalIds: [CLOUD_MONTHLY] },
+    });
+  });
+
   it("maps maximum_recurring_intervals as repeating months only when every product bills monthly", async () => {
     const p = await plan();
     expect(request(p, THREE_MONTHS)!.request).toMatchObject({
@@ -670,7 +687,6 @@ describe("ENG-2015 discounts", () => {
         amount: 200,
         currency: "EUR",
         maxRedemptions: 7,
-        appliesToProductExternalIds: [CLOUD_MONTHLY, EBOOK_MONTHLY],
       },
     });
   });
