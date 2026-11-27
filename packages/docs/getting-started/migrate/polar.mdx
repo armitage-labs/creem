@@ -1,0 +1,77 @@
+---
+title: "Migrate from Polar"
+sidebarTitle: "Polar"
+description: "Copy your Polar meters, products, usage prices, benefits and discount codes into Creem with one CLI command, checked by Creem before anything is written."
+keywords: "polar migration, migrate from polar, polar.sh alternative, switch from polar, polar to creem"
+icon: "snowflake"
+---
+
+The [Creem CLI](/code/cli) copies a Polar organization's catalog into your Creem store: meters, products with their metered prices, license-key, note, credit and file benefits, and discount codes. It reads Polar with your organization access token, has Creem check the whole plan with a dry run, prints what it creates, updates and skips, and writes only after you confirm. Your Polar token stays on your machine and is never sent to Creem.
+
+## Before you start
+
+1. **Your prices can be in USD or EUR.** A product priced only in other currencies is skipped. A product with several currencies keeps your organization's default currency if it's USD or EUR, else USD, else EUR.
+2. **Metered prices need postpaid usage billing.** The CLI writes Polar's metered prices as postpaid usage prices, which Creem bills at each renewal. Postpaid usage billing is off by default. Without it, Creem refuses those products and the CLI writes nothing of them, so ask Creem support to enable it first.
+3. **Create a Polar organization access token** with the scopes `organizations:read`, `products:read`, `meters:read`, `discounts:read` and `files:read`. The CLI reads each product's benefits with the product, so it needs no `benefits:read`. Put the token in `POLAR_ACCESS_TOKEN` or pass it with `--polar-token`.
+4. **Download your benefit files.** Polar's API doesn't let the CLI download the files of a downloadables benefit. Download them from the Polar dashboard into one folder and pass it with `--polar-files-dir`.
+
+## Run the migration
+
+```bash
+brew tap armitage-labs/creem
+brew install creem
+creem login --api-key creem_test_YOUR_KEY
+export POLAR_ACCESS_TOKEN=polar_oat_YOUR_TOKEN
+creem migrate polar --polar-files-dir ./polar-files --dry-run
+creem migrate polar --polar-files-dir ./polar-files
+```
+
+| Option                    | What it does                                                                                                           |
+| ------------------------- | ---------------------------------------------------------------------------------------------------------------------- |
+| `--polar-token <token>`   | Your Polar organization access token, instead of `POLAR_ACCESS_TOKEN`                                                  |
+| `--polar-server <server>` | `production` (the default) or `sandbox`, to migrate from a Polar sandbox org                                           |
+| `--polar-files-dir <dir>` | The folder with your copies of the benefit files                                                                       |
+| `--include-archived`      | Writes archived Polar products as archived Creem products instead of skipping them                                     |
+| `--dry-run`               | Has Creem check the plan with a dry run, prints it and writes nothing                                                  |
+| `--yes`                   | Writes without asking. Required when no terminal is attached                                                           |
+| `--adopt [answers]`       | Answers adoption proposals, as for [Lemon Squeezy](/getting-started/migrate/lemon-squeezy#creem-checks-the-plan-first) |
+| `--force`                 | Writes even when Creem's check refuses items, and leaves those items out                                               |
+| `--json`                  | Prints the plan as a JSON report. With `--yes`, runs it and prints the result                                          |
+
+Try it against a Creem test store first, and against a Polar sandbox org with `--polar-server sandbox` if you have one.
+
+### Running it again
+
+Every object the CLI writes carries its Polar id as the key in `external_id`: the meter, product, discount or benefit id, and the price id for the products of a legacy product. Each one is written with Creem's keyed upsert, which creates the object when its key is new and otherwise changes only what differs, so a run that stopped halfway or a second run never creates an object twice. When nothing changed in Polar, Creem's dry run answers every item unchanged and nothing is written.
+
+### Creem checks the plan first
+
+Before the first write, Creem checks the meters and products together in one validation, so a product's usage price finds a meter the same run creates, and each product group and discount with a dry run. When Creem refuses an item, nothing is written, the item carries Creem's error and a hint, and the command exits with `8`. Fix what the error says and run it again, or pass `--force` to write everything else and leave the refused items out. During the run every write runs as a dry run once more right before it. Files are uploaded during the run only, before the products.
+
+A Creem product without a key that has the same name, or a discount with the same code, is proposed for adoption and never picked for you, the same way as for [Lemon Squeezy](/getting-started/migrate/lemon-squeezy#creem-checks-the-plan-first). Meters aren't adopted: when a Creem meter without a key has the same name, Creem refuses the new meter and the products priced on it. Give your meter the Polar meter id as its `external_id`, or rename it, and run the migration again.
+
+## What the CLI copies
+
+- **Meters.** The top-level `name eq` clause of the filter becomes the event name, and the other clauses become Creem filter clauses (`eq`, `ne`, `gt`, `gte`, `lt`, `lte`, `like` as `contains`, `not_like` as `not_contains`). The aggregation and its property carry over, `avg` as `average`. The unit label is Polar's custom unit label, `tokens` for a token meter, or else the meter's name, with a warning: it also names the meter's credit bucket and can't change once the meter exists. A meter already in Creem keeps its unit label, its credit features use it, and the plan warns when Polar's differs. Creem can't change a meter's event name either: when it changed in Polar, the meter and the products priced on it fail, and the error says how to resolve it.
+- **Products** with a fixed price, including a free one-time product, or a pay-what-you-want one-time price with its minimum and preset amount. Monthly, yearly and other intervals become Creem's billing period, and a trial becomes a trial in days. A pay-what-you-want subscription gets its minimum as a fixed price, because pay what you want is one-time only in Creem.
+- **Metered prices** of a product become usage prices on their meters: the unit amount per unit and the cap, settled postpaid, so customers pay for their usage at renewal as in Polar.
+- **Legacy products** with a monthly and a yearly price become one product per price and a product group keyed by the Polar product, so customers can switch between them.
+- **License-key benefits** become license-key features with the activation limit and expiry. Polar's prefix, usage limit and customer self-deactivation have no Creem equivalent and are listed as warnings.
+- **Custom benefits** become private-note features with the note.
+- **Meter credit benefits** become credit features in the meter's credit bucket. On a subscription, unused credits expire at each renewal unless the Polar benefit rolls them over. Creem's postpaid usage prices don't spend credits, so the credits don't reduce a metered price as they do in Polar. The plan warns about each one.
+- **Downloadables benefits** become file features. Each file is uploaded from `--polar-files-dir` when its size and SHA-256 match Polar's, and a re-run finds the uploaded file by its name and SHA-256 and uploads nothing, also when another product holds it.
+- **Discount codes**, percentage or fixed in USD or EUR, with their duration, what's left of their redemption limit and their end date. A code limited to some products applies to those that are migrated. A code for every product applies to every migrated product, with a warning, because Creem doesn't add products you create later.
+
+It skips, with the reason in the plan: seat-based and tiered prices, products with only metered prices (Creem refuses a subscription at price 0), free subscriptions, draft and archived products (unless `--include-archived`), meters with nested filter clauses or without a `name eq` clause, products priced on a skipped meter, discounts without a code, discounts that start later or have ended or are used up, codes longer than 14 characters, and archived files or files without a matching local copy. Discount names longer than 40 characters are shortened. Discord, GitHub repository and other benefits are listed on their product as not migrated. Product images, checkout custom fields and Polar's per-customer redemption limit aren't copied, and the plan says so.
+
+The CLI never removes anything from Creem: a stored product keeps the features and usage prices you added to it, a discount keeps its products, and a product group keeps its other members.
+
+With `--json`, the report lists every meter, product, product group, file and discount with its action, its Creem ID, and the reason or error. The exit codes are the same as for [Lemon Squeezy](/getting-started/migrate/lemon-squeezy#with-the-creem-cli): `0` when every item went through, `2` for invalid options or a missing token, `3` when Polar or Creem refused the key, `4` when part of the Polar catalog couldn't be read, `6` when the run finished with failed items, `7` when an adoption proposal is unanswered and `8` when Creem's check refused an item.
+
+## What doesn't move
+
+Customers, subscriptions, orders, license keys already issued, checkout links and webhooks aren't migrated, and neither are benefits no product grants. Your subscribers keep paying Polar until you move them. Create your checkouts and add your webhook endpoint in Creem.
+
+## Need help?
+
+Email support@creem.io. Tell us how many products and subscribers you have, and whether you sell metered usage.

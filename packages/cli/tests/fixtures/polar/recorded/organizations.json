@@ -1,0 +1,17 @@
+{
+  "items": [
+    {
+      "created_at": "2026-11-17T10:10:22.892551Z",
+      "modified_at": "2026-11-24T15:33:01.280517Z",
+      "id": "00000000-0000-4000-8000-0000000000a1",
+      "name": "Polar sandbox",
+      "slug": "polar-sandbox",
+      "avatar_url": null,
+      "default_presentment_currency": "usd"
+    }
+  ],
+  "pagination": {
+    "total_count": 1,
+    "max_page": 1
+  }
+}

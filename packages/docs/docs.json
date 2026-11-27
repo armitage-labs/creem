@@ -137,6 +137,7 @@
                 "pages": [
                   "getting-started/migrate/lemon-squeezy",
                   "getting-started/migrate/lemon-squeezy/technical-guide",
+                  "getting-started/migrate/polar",
                   "getting-started/migrate/stripe"
                 ]
               }

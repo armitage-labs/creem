@@ -1,0 +1,131 @@
+{
+  "items": [
+    {
+      "metadata": {},
+      "created_at": "2026-11-27T11:17:56.538913Z",
+      "modified_at": "2026-11-27T11:17:56.553015Z",
+      "id": "94c96988-2501-4c61-b338-f4fe1c3ba8f7",
+      "name": "API calls",
+      "unit": "scalar",
+      "custom_label": null,
+      "custom_multiplier": null,
+      "filter": {
+        "conjunction": "and",
+        "clauses": [
+          {
+            "property": "name",
+            "operator": "eq",
+            "value": "api.call"
+          },
+          {
+            "property": "tier",
+            "operator": "ne",
+            "value": "free"
+          }
+        ]
+      },
+      "aggregation": {
+        "func": "count"
+      },
+      "organization_id": "00000000-0000-4000-8000-0000000000a1",
+      "archived_at": null
+    },
+    {
+      "metadata": {},
+      "created_at": "2026-11-27T11:17:57.143227Z",
+      "modified_at": "2026-11-27T11:17:57.160319Z",
+      "id": "334f31a5-3bc5-425f-b5e0-f96274bc2c39",
+      "name": "Image generations",
+      "unit": "custom",
+      "custom_label": "image",
+      "custom_multiplier": null,
+      "filter": {
+        "conjunction": "and",
+        "clauses": [
+          {
+            "property": "name",
+            "operator": "eq",
+            "value": "image.generated"
+          }
+        ]
+      },
+      "aggregation": {
+        "func": "sum",
+        "property": "images"
+      },
+      "organization_id": "00000000-0000-4000-8000-0000000000a1",
+      "archived_at": null
+    },
+    {
+      "metadata": {},
+      "created_at": "2026-11-27T11:17:57.481101Z",
+      "modified_at": "2026-11-27T11:17:57.501848Z",
+      "id": "afb4e0e9-25f4-4f97-b044-12c367c894a6",
+      "name": "Nested filter tokens",
+      "unit": "scalar",
+      "custom_label": null,
+      "custom_multiplier": null,
+      "filter": {
+        "conjunction": "and",
+        "clauses": [
+          {
+            "property": "name",
+            "operator": "eq",
+            "value": "llm.call"
+          },
+          {
+            "conjunction": "or",
+            "clauses": [
+              {
+                "property": "model",
+                "operator": "like",
+                "value": "gpt"
+              },
+              {
+                "property": "model",
+                "operator": "like",
+                "value": "claude"
+              }
+            ]
+          }
+        ]
+      },
+      "aggregation": {
+        "func": "sum",
+        "property": "tokens"
+      },
+      "organization_id": "00000000-0000-4000-8000-0000000000a1",
+      "archived_at": null
+    },
+    {
+      "metadata": {},
+      "created_at": "2026-11-27T11:17:56.830298Z",
+      "modified_at": "2026-11-27T11:17:56.849489Z",
+      "id": "eb5928df-164e-471f-9f4b-a82a22a2ce46",
+      "name": "Storage GB",
+      "unit": "scalar",
+      "custom_label": null,
+      "custom_multiplier": null,
+      "filter": {
+        "conjunction": "and",
+        "clauses": [
+          {
+            "property": "kind",
+            "operator": "eq",
+            "value": "storage"
+          }
+        ]
+      },
+      "aggregation": {
+        "func": "avg",
+        "property": "gb"
+      },
+      "organization_id": "00000000-0000-4000-8000-0000000000a1",
+      "archived_at": null
+    }
+  ],
+  "pagination": {
+    "total_count": 4,
+    "max_page": 1
+  }
+}
