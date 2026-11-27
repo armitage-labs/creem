@@ -672,16 +672,13 @@ ${chalk.dim("Options:")}
   --exclude-discounts     Skip migrating discounts entirely (Lemon Squeezy)
   --polar-token <token>   Polar organization access token (or POLAR_ACCESS_TOKEN)
   --polar-server <server> Polar server: production (default) or sandbox
-  --include-archived      Write archived Polar products as archived Creem products
   --polar-files-dir <dir> Your copies of the Polar benefit files, to upload
+  --paddle-key <key>      Paddle API key (or PADDLE_API_KEY)
+  --paddle-environment    sandbox or production (default: the key's own environment)
+  --include-archived      Write archived Polar products or Paddle prices as archived Creem products
   --adopt [key=id|new]    Answer adoption proposals (alone: adopt every single match)
   --force                 Write even when Creem's check refuses items (they are left out)
   --yes                   Write without asking
-
-${chalk.dim("Paddle options:")}
-  --paddle-key <key>      Paddle API key (or PADDLE_API_KEY)
-  --paddle-environment <environment>  sandbox or production (default: the key's own)
-  --include-archived      Write archived Paddle prices as archived Creem products
 
 ${chalk.dim("Examples:")}
   ${chalk.cyan("creem migrate lemon-squeezy --dry-run")}          Print the plan
