@@ -33,6 +33,7 @@ const EBOOK_ONCE = "pri_01hw000000000000000ebook1";
 const EBOOK_MONTHLY = "pri_01hw000000000000000ebook2";
 const EBOOKS = "pro_01hw0000000000000000ebook1";
 const OLD_MONTHLY = "pri_01hw00000000000000000old1";
+const NO_PRICES = "pro_01hw000000000000000noprice";
 const PERCENT = "dsc_01m8ee995yz3rx0zsbys7sqhhx";
 const FLAT = "dsc_01m8ee99ap38a2806vqq1x8709";
 const PER_SEAT = "dsc_01m8ee99ey4fmcrpt7zfmjmp7s";
@@ -77,7 +78,7 @@ describe("Paddle source", () => {
     const { objects, failures, paddle } = await paddleObjects({ pageSize: 2 });
     expect(failures).toEqual([]);
     expect(objects.environment).toBe("sandbox");
-    expect(objects.products).toHaveLength(8);
+    expect(objects.products).toHaveLength(9);
     expect(objects.prices).toHaveLength(13);
     expect(new Set(paddle.requests.map((r) => r.host))).toEqual(
       new Set(["sandbox-api.paddle.com"]),
@@ -116,7 +117,7 @@ describe("Paddle source", () => {
     expect(failures).toEqual([{ kind: "prices", message: expect.stringContaining("500") }]);
     expect(JSON.stringify(failures)).not.toContain(PADDLE_KEY);
     expect(objects.catalogUnread).toBe(true);
-    expect(objects.products).toHaveLength(8);
+    expect(objects.products).toHaveLength(9);
   });
 
   it("throws on a refused key, so the command exits with the auth code", async () => {
@@ -378,6 +379,18 @@ describe("fromPaddle: products and product groups", () => {
     expect(p.report.items.filter((i) => i.kind === "product_group").map((i) => i.key)).toEqual([
       PRO,
     ]);
+  });
+
+  it("reports a product without prices as skipped, keyed by its Paddle id", async () => {
+    const p = await plan();
+    expect(item(p, NO_PRICES)).toMatchObject({
+      kind: "product",
+      name: "eng2015-Coming soon",
+      source: { type: "product", id: NO_PRICES },
+      action: "skip",
+      reason: { code: "no_prices" },
+    });
+    expect(request(p, NO_PRICES)).toBeUndefined();
   });
 
   it("puts every fetched object in the report, and the non-catalog data in not_migrated once", async () => {
