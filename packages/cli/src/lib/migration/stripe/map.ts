@@ -489,9 +489,11 @@ function planStripe(
   const counted =
     endpoints === null
       ? "Webhook endpoints are"
-      : endpoints === 1
-        ? "The account's webhook endpoint is"
-        : `The account's ${endpoints} webhook endpoints are`;
+      : endpoints === 0
+        ? "The account has no webhook endpoint; webhooks are"
+        : endpoints === 1
+          ? "The account's webhook endpoint is"
+          : `The account's ${endpoints} webhook endpoints are`;
   notMigrated.push({
     kind: "webhooks",
     reason: issue(

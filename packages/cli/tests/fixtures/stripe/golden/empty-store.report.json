@@ -397,7 +397,7 @@
       "kind": "webhooks",
       "reason": {
         "code": "not_catalog",
-        "message": "The account's 0 webhook endpoints are not migrated: they are not catalog data. Add your endpoint in Creem and handle Creem's events."
+        "message": "The account has no webhook endpoint; webhooks are not migrated: they are not catalog data. Add your endpoint in Creem and handle Creem's events."
       }
     }
   ],
