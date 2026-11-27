@@ -27,6 +27,7 @@ import {
   MIGRATION_REPORT_VERSION,
   newItem,
   summarize,
+  type MigrationError,
   type MigrationIssue,
   type MigrationItem,
   type MigrationReport,
@@ -72,12 +73,18 @@ const OPERATORS: Record<string, Operator> = {
   not_like: "not_contains",
 };
 
-/** The Creem meter for a Polar meter, or why it is skipped. */
+/**
+ * The Creem meter for a Polar meter and the unit label its credit features
+ * use, or why it is skipped, or why a stored meter can't take it (`fail`).
+ */
 function mapMeter(
   meter: PolarMeter,
   existing: MeterApiResponseDto | undefined,
   warnings: MigrationIssue[],
-): { body: CreateMeterApiRequestDto } | { skip: MigrationIssue } {
+):
+  | { body: CreateMeterApiRequestDto; unitLabel: string }
+  | { skip: MigrationIssue }
+  | { fail: MigrationError } {
   const unsupported = (why: string) => ({
     skip: issue(
       "meter_filter_unsupported",
@@ -98,14 +105,32 @@ function mapMeter(
   const rest = flat.filter((c) => c !== name);
   if (conjunction === "or" && rest.length)
     return unsupported("The filter joins its clauses with `or`, so they don't narrow the event.");
+  // Creem ignores a changed event name: usage would go on counting the stored one.
+  if (existing && existing.eventName !== name.value)
+    return {
+      fail: {
+        code: "meter_event_name_changed",
+        message: `The Polar meter counts the event "${name.value}"; the Creem meter counts "${existing.eventName}", and a meter's event name can't change. Neither the meter nor the products priced on it are written.`,
+        status: null,
+        hint: `Send the events to Creem as "${existing.eventName}", or create a Creem meter for "${name.value}" and move the usage prices to it by hand.`,
+      },
+    };
   let unitLabel = meter.name;
   if (meter.unit === "custom" && meter.custom_label) unitLabel = meter.custom_label;
   else if (meter.unit === "token") unitLabel = "tokens";
-  else
+  else if (!existing)
     warnings.push(
       issue(
         "unit_label_from_name",
         `The Polar meter has no unit label, so the Creem unit label is its name, "${meter.name}". It names the meter's credit bucket and can't change once the meter exists.`,
+      ),
+    );
+  // A stored meter keeps its unit label, which also names its credit bucket.
+  if (existing && existing.unitLabel !== unitLabel)
+    warnings.push(
+      issue(
+        "unit_label_not_writable",
+        `The Polar unit label is "${unitLabel}"; the Creem meter keeps "${existing.unitLabel}", which can't change and names the credit bucket of its credit features.`,
       ),
     );
   const { aggregation } = meter;
@@ -126,8 +151,8 @@ function mapMeter(
         value: c.value,
       })),
     };
-  body.unitLabel = unitLabel;
-  return { body };
+  if (!existing) body.unitLabel = unitLabel;
+  return { body, unitLabel: existing?.unitLabel ?? unitLabel };
 }
 
 const STATIC_PRICES = new Set(["fixed", "custom", "free"]);
@@ -550,6 +575,8 @@ export function fromPolar(
   // ---- meters
   /** The unit label of each migrated meter, by Polar id. */
   const meterLabels = new Map<string, string>();
+  /** Stored meters this run can't write, by Polar id: their products fail too. */
+  const failedMeters = new Set<string>();
   for (const meter of objects.meters) {
     const item = newItem({
       kind: "meter",
@@ -570,7 +597,12 @@ export function fromPolar(
       item.reason = mapped.skip;
       continue;
     }
-    meterLabels.set(meter.id, mapped.body.unitLabel!);
+    if ("fail" in mapped) {
+      Object.assign(item, { action: "update", status: "failed", error: mapped.fail });
+      failedMeters.add(meter.id);
+      continue;
+    }
+    meterLabels.set(meter.id, mapped.unitLabel);
     item.action = existing ? "update" : "create";
     item.status = "pending";
     requests.push({
@@ -721,6 +753,22 @@ export function fromPolar(
     if (body.billingType === "recurring") {
       const days = trialDays(product.trial_interval, product.trial_interval_count, item.warnings);
       if (days) body.trialPeriodDays = days;
+    }
+    const failedMeter = offer.metered.find((m) => failedMeters.has(m.meter_id ?? ""));
+    if (failedMeter) {
+      const stored = productsByKey.get(offer.key);
+      Object.assign(item, {
+        action: stored ? "update" : "create",
+        status: "failed",
+        creem_id: stored?.id ?? null,
+        error: {
+          code: "dependency_failed",
+          message: `Its meter ${failedMeter.meter_id} can't be written (see the meter), so the product was not written.`,
+          status: null,
+          hint: "Resolve the meter, then run the migration again.",
+        },
+      });
+      continue;
     }
     const missingMeter = offer.metered.find((m) => !meterLabels.has(m.meter_id ?? ""));
     if (missingMeter) {
