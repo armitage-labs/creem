@@ -48,7 +48,7 @@ export const MIGRATION_EXIT_CODES = {
   validationFailed: 8,
 } as const;
 
-export type MigrationItemKind = "product" | "product_group" | "discount" | "file";
+export type MigrationItemKind = "meter" | "product" | "product_group" | "discount" | "file";
 /** What the plan does with an item. */
 export type MigrationAction = "create" | "update" | "unchanged" | "skip";
 /**
@@ -84,6 +84,8 @@ export interface MigrationItem {
   changes: string[];
   /** Product groups: the keys of their member products, in order. */
   members?: string[];
+  /** Products: the keys of the features the item writes, in order. */
+  features?: string[];
   /** Why the item is skipped. */
   reason: MigrationIssue | null;
   warnings: MigrationIssue[];
@@ -127,7 +129,8 @@ export interface MigrationReport {
     provider: string;
     store_id: string;
     store_name: string;
-    currency: string;
+    /** The source store's currency; `null` when it has none (a Polar organization without a default). */
+    currency: string | null;
   };
   /**
    * `plan`: computed and checked with Creem's dry run, not run; `dry_run`: the

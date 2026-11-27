@@ -1,0 +1,23 @@
+{
+  "_comment": "HAND-WRITTEN from Polar's API reference (OpenAPI 2026-10): a discount without a code, which Polar applies only through checkout links. The sandbox discounts all have codes.",
+  "items": [
+    {
+      "duration": "once",
+      "type": "percentage",
+      "basis_points": 5000,
+      "created_at": "2026-06-01T10:00:00Z",
+      "modified_at": null,
+      "id": "00000000-0000-4000-8000-00000000e001",
+      "metadata": {},
+      "name": "Partner link half off",
+      "code": null,
+      "starts_at": null,
+      "ends_at": null,
+      "max_redemptions": null,
+      "max_redemptions_per_customer": 1,
+      "redemptions_count": 0,
+      "organization_id": "00000000-0000-4000-8000-0000000000a1",
+      "products": []
+    }
+  ]
+}
