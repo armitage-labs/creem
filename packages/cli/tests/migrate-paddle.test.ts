@@ -300,12 +300,12 @@ describe("fromPaddle: products and product groups", () => {
     const p = await plan();
     expect(item(p, HANDBOOK).warnings.map((w) => w.code)).toContain("quantity_not_migrated");
     expect(item(p, GLOBAL).warnings.map((w) => w.code)).toContain("quantity_not_migrated");
-    expect(item(p, WEEKLY).warnings).toEqual([]);
+    expect(item(p, WEEKLY).warnings.map((w) => w.code)).not.toContain("quantity_not_migrated");
   });
 
   it("converts a trial in weeks exactly and warns about a trial in months", async () => {
     const p = await plan();
-    expect(item(p, PRO_MONTHLY).warnings).toEqual([]);
+    expect(item(p, PRO_MONTHLY).warnings.map((w) => w.code)).not.toContain("trial_not_in_days");
     expect(request(p, CLOUD_MONTHLY)!.request).toMatchObject({
       createProductRequestEntity: { trialPeriodDays: 30 },
     });
@@ -337,6 +337,29 @@ describe("fromPaddle: products and product groups", () => {
       createProductRequestEntity: { taxCategory: "digital-goods-service" },
     });
     expect(item(p, EBOOK_MONTHLY).warnings.map((w) => w.code)).toContain("tax_category_changed");
+  });
+
+  it("maps the tax mode: internal as inclusive, external as exclusive, and reports the others", async () => {
+    const p = await plan();
+    expect(request(p, CLOUD_MONTHLY)!.request).toMatchObject({
+      createProductRequestEntity: { taxMode: "exclusive" },
+    });
+    expect(request(p, EBOOK_ONCE)!.request).toMatchObject({
+      createProductRequestEntity: { taxMode: "inclusive" },
+    });
+    // location (the recorded prices) and account_setting: the store's default.
+    for (const key of [PRO_MONTHLY, EBOOK_MONTHLY]) {
+      const body = (request(p, key)!.request as { createProductRequestEntity: object })
+        .createProductRequestEntity;
+      expect(body, key).not.toHaveProperty("taxMode");
+      expect(
+        item(p, key).warnings.map((w) => w.code),
+        key,
+      ).toContain("tax_mode_not_migrated");
+    }
+    expect(item(p, CLOUD_MONTHLY).warnings.map((w) => w.code)).not.toContain(
+      "tax_mode_not_migrated",
+    );
   });
 
   it("writes custom_data as metadata, leaving out values Creem metadata can't hold", async () => {
@@ -619,6 +642,21 @@ describe("creem migrate paddle", () => {
     expect(writes.map((w) => [w.path, w.body])).toEqual([
       ["/v1/product-groups", { external_id: PRO, name: "eng2015-Pro", products: ids }],
     ]);
+  });
+
+  it("updates the tax mode of a Creem product that differs from Paddle's", async () => {
+    const { creem, h } = setup();
+    expect((await h.run(["--json", "--yes", ...base])).code).toBe(0);
+    const cloud = creem.state.products.find((p) => p.external_id === CLOUD_MONTHLY)!;
+    expect(cloud.tax_mode).toBe("exclusive");
+    cloud.tax_mode = "inclusive";
+    const r = await h.run(["--json", "--yes", ...base]);
+    expect(r.code, r.stderr).toBe(0);
+    const updated = (JSON.parse(r.stdout).items as MigrationItem[]).find(
+      (i) => i.kind === "product" && i.key === CLOUD_MONTHLY,
+    );
+    expect(updated).toMatchObject({ action: "update", changes: ["tax_mode"] });
+    expect(cloud.tax_mode).toBe("exclusive");
   });
 
   it("--include-archived writes archived prices as archived products", async () => {
