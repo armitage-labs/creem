@@ -32,8 +32,8 @@
     "request": {
       "createProductRequestEntity": {
         "externalId": "price_1UgNnVAXmbOrRaLZxUHj4TlZ",
-        "name": "eng2012-Cycles - Weekly",
-        "description": "eng2012-Cycles - Weekly",
+        "name": "eng2012-Cycles",
+        "description": "eng2012-Cycles",
         "price": 700,
         "currency": "EUR",
         "billingType": "recurring",
@@ -94,7 +94,7 @@
     "request": {
       "createProductRequestEntity": {
         "externalId": "price_1UgNnSAXmbOrRaLZjN74EJWB",
-        "name": "eng2012-Usage plan - Monthly",
+        "name": "eng2012-Usage plan",
         "description": "Base fee plus API calls.",
         "price": 1000,
         "currency": "USD",

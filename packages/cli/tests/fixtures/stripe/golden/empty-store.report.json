@@ -128,7 +128,7 @@
       "error": null,
       "kind": "product",
       "key": "price_1UgNnVAXmbOrRaLZxUHj4TlZ",
-      "name": "eng2012-Cycles - Weekly",
+      "name": "eng2012-Cycles",
       "source": {
         "type": "price",
         "id": "price_1UgNnVAXmbOrRaLZxUHj4TlZ",
@@ -271,7 +271,7 @@
       "error": null,
       "kind": "product",
       "key": "price_1UgNnSAXmbOrRaLZjN74EJWB",
-      "name": "eng2012-Usage plan - Monthly",
+      "name": "eng2012-Usage plan",
       "source": {
         "type": "price",
         "id": "price_1UgNnSAXmbOrRaLZjN74EJWB",

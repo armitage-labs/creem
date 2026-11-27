@@ -479,7 +479,7 @@ describe("fromStripe against an empty Creem store", () => {
   it("maps a weekly price to a custom billing period, and skips one Creem can't bill", async () => {
     const p = await plan();
     expect(productBody(p, ID.priceWeekly)).toMatchObject({
-      name: "eng2012-Cycles - Weekly",
+      name: "eng2012-Cycles",
       billingPeriod: "custom",
       recurringInterval: "week",
       recurringIntervalCount: 1,

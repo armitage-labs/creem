@@ -167,6 +167,36 @@ function mapPrice(
   return { body };
 }
 
+/**
+ * The Creem product names of a product's prices: the product name, plus the
+ * nickname or interval when more than one of its prices maps (an active price
+ * counts its active siblings only, so `--include-archived` renames nothing),
+ * plus the currency when two names would still be the same.
+ */
+function priceNames(product: Stripe.Product, prices: Stripe.Price[]): Map<string, string> {
+  const maps = prices.filter((p) => !unsupported(p) && !("skip" in mapPrice(p, [])));
+  const live = maps.filter((p) => p.active);
+  const base = new Map(
+    prices.map((p) => {
+      const siblings = !maps.includes(p) ? prices : p.active ? live : maps;
+      const name =
+        siblings.length > 1
+          ? `${product.name} - ${p.nickname?.trim() || intervalName(p)}`
+          : product.name;
+      return [p.id, name];
+    }),
+  );
+  return new Map(
+    prices.map((p) => {
+      const name = base.get(p.id)!;
+      const twin =
+        maps.includes(p) &&
+        maps.some((o) => o !== p && base.get(o.id) === name && o.currency !== p.currency);
+      return [p.id, twin ? `${name} (${p.currency.toUpperCase()})` : name];
+    }),
+  );
+}
+
 /** The Creem meter for a Billing Meter, or why it is skipped. */
 function mapMeter(
   meter: Stripe.Billing.Meter,
@@ -349,11 +379,8 @@ export function fromStripe(
     };
     return true;
   };
-  const mapProductPrice = (price: Stripe.Price, product: Stripe.Product, several: boolean) => {
+  const mapProductPrice = (price: Stripe.Price, product: Stripe.Product, name: string) => {
     const key = priceKey(price);
-    const name = several
-      ? `${product.name} - ${price.nickname?.trim() || intervalName(price)}`
-      : product.name;
     const item = newItem({
       kind: "product",
       key,
@@ -486,7 +513,8 @@ export function fromStripe(
       );
       continue;
     }
-    for (const price of prices) mapProductPrice(price, product, prices.length > 1);
+    const names = priceNames(product, prices);
+    for (const price of prices) mapProductPrice(price, product, names.get(price.id)!);
   }
   // Active prices of a product that wasn't read: an archived one.
   for (const price of objects.prices) {
