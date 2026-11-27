@@ -264,27 +264,87 @@ describe("fromPolar against an empty Creem store", () => {
     expect(item(p, ID.productPoundOnly).reason?.code).toBe("currency_unsupported");
   });
 
-  it("lists every benefit of a product on its item, and migrates none", async () => {
+  it("makes one product per price of a legacy product, and a product group keyed by the product", async () => {
+    const p = await plan();
+    expect(productBody(p, ID.priceLegacyMonthly)).toMatchObject({
+      name: "Legacy Pro - Monthly",
+      price: 1000,
+      billingPeriod: "every-month",
+    });
+    expect(productBody(p, ID.priceLegacyYearly)).toMatchObject({
+      name: "Legacy Pro - Yearly",
+      price: 10000,
+      billingPeriod: "every-year",
+    });
+    expect(item(p, ID.priceLegacyMonthly).source).toEqual({
+      type: "price",
+      id: ID.priceLegacyMonthly,
+      product_id: ID.productLegacy,
+    });
+    expect(request(p, ID.productLegacy, "upsert_product_group")).toEqual({
+      type: "upsert_product_group",
+      key: ID.productLegacy,
+      request: {
+        createProductGroupRequestEntity: {
+          externalId: ID.productLegacy,
+          name: "Legacy Pro",
+          products: [{ externalId: ID.priceLegacyMonthly }, { externalId: ID.priceLegacyYearly }],
+        },
+      },
+    });
+    expect(item(p, ID.productLegacy, "product_group").members).toEqual([
+      ID.priceLegacyMonthly,
+      ID.priceLegacyYearly,
+    ]);
+  });
+
+  it("maps license-key, note and credit benefits to features keyed by the benefit id", async () => {
+    const p = await plan();
+    expect(productBody(p, ID.productLicense)?.features).toEqual([
+      {
+        type: "licenseKey",
+        externalId: ID.benefitLicense,
+        description: "License key",
+        licenseKey: { activationLimit: 3, expiry: { interval: "year", intervalCount: 1 } },
+      },
+      {
+        type: "custom",
+        externalId: ID.benefitNote,
+        description: "Private community",
+        privateNote: "Join the community at https://example.com/community",
+      },
+    ]);
+    const warnings = item(p, ID.productLicense).warnings;
+    expect(warnings.map((w) => w.code)).toEqual([
+      "license_key_settings_not_migrated",
+      "benefit_unsupported",
+    ]);
+    expect(warnings[0].message).toContain("prefix");
+    expect(item(p, ID.productLicense).features).toEqual([ID.benefitLicense, ID.benefitNote]);
+    expect(productBody(p, ID.productCredits)?.features).toEqual([
+      {
+        type: "customerCredits",
+        externalId: ID.benefitCredit,
+        description: "1,000 image credits",
+        customerCredits: {
+          amount: "1000",
+          unitLabel: "image",
+          bucketName: "image",
+          resetsEachPeriod: true,
+        },
+      },
+    ]);
+    expect(item(p, ID.productCredits).warnings.map((w) => w.code)).toContain(
+      "credits_not_spent_by_postpaid",
+    );
+  });
+
+  it("lists Discord, GitHub and other benefits per product as unsupported", async () => {
     const p = await plan();
     const community = item(p, ID.productCommunity);
     expect(community.action).toBe("create");
     expect(community.warnings.filter((w) => w.code === "benefit_unsupported")).toHaveLength(2);
-    expect(
-      item(p, ID.productLicense)
-        .warnings.map((w) => w.message)
-        .join(" "),
-    ).toContain("license-key benefit");
-    expect(p.requests.some((r) => JSON.stringify(r).includes('"features"'))).toBe(false);
-  });
-
-  it("skips a legacy product with one price per interval", async () => {
-    const p = await plan();
-    for (const key of [ID.priceLegacyMonthly, ID.priceLegacyYearly])
-      expect(item(p, key)).toMatchObject({
-        action: "skip",
-        source: { type: "price", product_id: ID.productLegacy },
-        reason: { code: "legacy_prices_unsupported" },
-      });
+    expect(productBody(p, ID.productCommunity)?.features).toBeUndefined();
   });
 
   it("skips archived products, or writes them archived with includeArchived", async () => {
@@ -322,7 +382,7 @@ describe("fromPolar against an empty Creem store", () => {
 });
 
 describe("Polar migration against Creem", () => {
-  it("validates meters and products together before the first write, then writes meters before products", async () => {
+  it("validates meters and products together before the first write, then writes meters, products and groups", async () => {
     const creem = fakeCreem();
     const { report } = await migrate(creem);
     expect(report!.summary.failed).toBe(0);
@@ -337,6 +397,7 @@ describe("Polar migration against Creem", () => {
     expect(kinds).toContain("product");
     const order = creem.writes().map((c) => c.path);
     expect(order.lastIndexOf("/v1/meters")).toBeLessThan(order.indexOf("/v1/products"));
+    expect(order.lastIndexOf("/v1/products")).toBeLessThan(order.indexOf("/v1/product-groups"));
     expect(creem.state.meters).toHaveLength(2);
     const usage = creem.state.products.find((pr) => pr.external_id === ID.productUsage)!;
     expect(usage.usage_prices).toEqual([
@@ -416,6 +477,24 @@ describe("Polar migration against Creem", () => {
         body: expect.objectContaining({ external_id: ID.productLicense }),
       }),
     );
+  });
+
+  it("keeps the merchant's own features and usage prices of the types it writes", async () => {
+    const creem = fakeCreem();
+    await migrate(creem);
+    const license = creem.state.products.find((pr) => pr.external_id === ID.productLicense)!;
+    license.features.push({
+      id: "feat_own",
+      type: "licenseKey",
+      description: "Merchant's own key",
+      external_id: null,
+      license_key: { activation_limit: 1, expiry: null },
+    });
+    license.name = "Renamed in Creem";
+    await migrate(creem);
+    const after = creem.state.products.find((pr) => pr.external_id === ID.productLicense)!;
+    expect(after.name).toBe("Desktop app license");
+    expect(after.features.map((f: { id: string }) => f.id)).toContain("feat_own");
   });
 
   it("fails a product whose meter failed in the run, and goes on", async () => {
