@@ -31,6 +31,7 @@ import {
   executeMigration,
 } from "../lib/migration/writer";
 import { addGlobalOptions, outputFormat } from "./resource";
+import { PADDLE_SCOPE, paddle } from "./migrate-paddle";
 import { writeResult } from "../utils/results";
 
 const LS_SCOPE = "products, product groups, discounts, license keys and files";
@@ -566,6 +567,7 @@ export function createMigrateCommand(context: CliContext = createContext()): Com
       `
 ${chalk.dim("Available migrations:")}
   ${chalk.cyan("creem migrate lemon-squeezy")}    Migrate ${LS_SCOPE} from Lemon Squeezy
+  ${chalk.cyan("creem migrate paddle")}           Migrate ${PADDLE_SCOPE} from Paddle Billing
 
 ${chalk.dim("Options:")}
   --dry-run               Check the plan with Creem's dry run and write nothing
@@ -577,6 +579,11 @@ ${chalk.dim("Options:")}
   --force                 Write even when Creem's check refuses items (they are left out)
   --yes                   Write without asking
 
+${chalk.dim("Paddle options:")}
+  --paddle-key <key>      Paddle API key (or PADDLE_API_KEY)
+  --paddle-environment <environment>  sandbox or production (default: the key's own)
+  --include-archived      Write archived Paddle prices as archived Creem products
+
 ${chalk.dim("Examples:")}
   ${chalk.cyan("creem migrate lemon-squeezy --dry-run")}          Print the plan
   ${chalk.cyan("creem migrate lemon-squeezy")}                    Print the plan, then ask before writing
@@ -585,5 +592,6 @@ ${chalk.dim("Examples:")}
 `,
     );
   command.addCommand(createSourceCommand(context, lemonSqueezy));
+  command.addCommand(createSourceCommand(context, paddle));
   return command;
 }
