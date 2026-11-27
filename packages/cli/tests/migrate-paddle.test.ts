@@ -511,6 +511,16 @@ describe("creem migrate paddle", () => {
     expect(paddle.fetcher).not.toHaveBeenCalled();
   });
 
+  it("takes only sandbox or production as the environment, not an object property name", async () => {
+    const { paddle, h } = setup();
+    for (const environment of ["constructor", "toString", "__proto__"]) {
+      const r = await h.run([...base, "--json", "--paddle-environment", environment]);
+      expect(r.code, environment).toBe(2);
+      expect(JSON.parse(r.stderr).error.message, environment).toContain("sandbox or production");
+    }
+    expect(paddle.fetcher).not.toHaveBeenCalled();
+  });
+
   it("refuses a sandbox key for production and a live key for the sandbox", async () => {
     const { paddle, h } = setup();
     const sandboxKey = await h.run([...base, "--json", "--paddle-environment", "production"]);
