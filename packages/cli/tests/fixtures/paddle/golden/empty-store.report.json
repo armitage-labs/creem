@@ -12,7 +12,7 @@
     "create": 16,
     "update": 0,
     "unchanged": 0,
-    "skip": 14,
+    "skip": 15,
     "failed": 0,
     "warnings": 18
   },
@@ -361,6 +361,26 @@
         "pri_01m8ee91rdx3xn32adc9jtmj9v",
         "pri_01m8ee91x0ae559fkyjp35acdy"
       ]
+    },
+    {
+      "status": null,
+      "creem_id": null,
+      "adopted_from": null,
+      "changes": [],
+      "reason": {
+        "code": "discount_amount_unsupported",
+        "message": "Creem percentage discounts are 1 to 100%; this one is 0.5%."
+      },
+      "warnings": [],
+      "error": null,
+      "kind": "discount",
+      "key": "dsc_01hw0000000000000000halfpc",
+      "name": "ENG2015HALF",
+      "source": {
+        "type": "discount",
+        "id": "dsc_01hw0000000000000000halfpc"
+      },
+      "action": "skip"
     },
     {
       "status": null,

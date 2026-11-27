@@ -891,15 +891,13 @@ function planDiscount(
       `Creem codes have at most ${DISCOUNT_CODE_MAX} characters; ${d.code} has ${d.code.length}. Create it in Creem with a shorter code.`,
     );
   const amount = Number(d.amount);
-  if (
-    d.type === "percentage"
-      ? !(amount > 0 && amount <= 100)
-      : !(Number.isInteger(amount) && amount > 0)
-  )
+  if (d.type === "percentage" && !(amount >= 1 && amount <= 100))
     return skip(
       "discount_amount_unsupported",
-      `Creem can't hold a ${d.type} discount of ${d.amount}.`,
+      `Creem percentage discounts are 1 to 100%; this one is ${d.amount}%.`,
     );
+  if (d.type === "flat" && !(Number.isInteger(amount) && amount > 0))
+    return skip("discount_amount_unsupported", `Creem can't hold a flat discount of ${d.amount}.`);
   // Warnings of a discount that is written; a skipped one carries only its reason.
   const notes: MigrationIssue[] = [];
   let applies = [...planned.keys()];
