@@ -1,4 +1,5 @@
-import Stripe from "stripe";
+import { createRequire } from "node:module";
+import type Stripe from "stripe";
 
 /**
  * The read-only Stripe client of `creem migrate stripe`. It reads with the
@@ -30,24 +31,60 @@ export interface FetchFailure {
 
 const PAGE_SIZE = 100;
 
+const CLAUDE_CODE_VARIABLES = ["CLAUDECODE", "CLAUDE_CODE_CHILD_SESSION"] as const;
+
+/**
+ * Runs `load` with `CLAUDECODE` and `CLAUDE_CODE_CHILD_SESSION` hidden. The
+ * Stripe SDK writes a Claude Code plugin hint to stderr when it loads with
+ * either set (stripe-node #2805); the CLI's stderr carries only its own output.
+ */
+export function withoutClaudeCodeHint<T>(load: () => T): T {
+  const saved = CLAUDE_CODE_VARIABLES.filter((name) => name in process.env).map(
+    (name) => [name, process.env[name]] as const,
+  );
+  for (const [name] of saved) delete process.env[name];
+  try {
+    return load();
+  } finally {
+    for (const [name, value] of saved) process.env[name] = value;
+  }
+}
+
+let sdk: typeof Stripe | undefined;
+/** The SDK, loaded on first use: only `creem migrate stripe` loads it. */
+function loadSdk(): typeof Stripe {
+  sdk ??= withoutClaudeCodeHint(() => createRequire(__filename)("stripe") as typeof Stripe);
+  return sdk;
+}
+
 export function stripeClient(
   key: string,
   options: { fetch?: typeof fetch; maxNetworkRetries?: number } = {},
 ): Stripe {
-  return new Stripe(key, {
-    httpClient: Stripe.createFetchHttpClient(options.fetch ?? globalThis.fetch),
+  const StripeSdk = loadSdk();
+  return new StripeSdk(key, {
+    httpClient: StripeSdk.createFetchHttpClient(options.fetch ?? globalThis.fetch),
     // 429, 5xx and network errors are retried with backoff (reads only).
     maxNetworkRetries: options.maxNetworkRetries ?? 3,
     appInfo: { name: "creem-cli" },
   });
 }
 
-const isPermissionError = (error: unknown) =>
-  error instanceof Stripe.errors.StripeError &&
-  (error.statusCode === 403 || error.type === "StripePermissionError");
+const stripeError = (error: unknown) =>
+  sdk && error instanceof sdk.errors.StripeError ? error : undefined;
 
-const isAuthError = (error: unknown) =>
-  error instanceof Stripe.errors.StripeError && error.type === "StripeAuthenticationError";
+const isPermissionError = (error: unknown) => {
+  const e = stripeError(error);
+  return Boolean(e && (e.statusCode === 403 || e.type === "StripePermissionError"));
+};
+
+/** Stripe refused the key. */
+export const isAuthError = (error: unknown) =>
+  stripeError(error)?.type === "StripeAuthenticationError";
+
+/** Stripe couldn't be reached. */
+export const isConnectionError = (error: unknown) =>
+  stripeError(error)?.type === "StripeConnectionError";
 
 async function readAll<T>(list: AsyncIterable<T>): Promise<T[]> {
   const items: T[] = [];

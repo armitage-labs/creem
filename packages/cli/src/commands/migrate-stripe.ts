@@ -1,10 +1,14 @@
 import chalk from "chalk";
 import { password } from "@inquirer/prompts";
-import Stripe from "stripe";
 import { CliError } from "../lib/errors";
 import { MIGRATION_EXIT_CODES } from "../lib/migration/report";
 import { fromStripe } from "../lib/migration/stripe/map";
-import { fetchStripeCatalog, stripeClient } from "../lib/migration/stripe/source";
+import {
+  fetchStripeCatalog,
+  isAuthError,
+  isConnectionError,
+  stripeClient,
+} from "../lib/migration/stripe/source";
 import type { MigrationSource } from "./migrate";
 
 export const STRIPE_SCOPE = "Billing Meters and products (one per price)";
@@ -59,9 +63,9 @@ export const stripeSource: MigrationSource = {
       });
     } catch (error) {
       const message = error instanceof Error ? error.message : String(error);
-      if (error instanceof Stripe.errors.StripeAuthenticationError)
+      if (isAuthError(error))
         throw new CliError(message, MIGRATION_EXIT_CODES.auth, "Check --stripe-key.");
-      if (error instanceof Stripe.errors.StripeConnectionError)
+      if (isConnectionError(error))
         throw new CliError(message, MIGRATION_EXIT_CODES.network, "Check Stripe connectivity.");
       throw error;
     }
