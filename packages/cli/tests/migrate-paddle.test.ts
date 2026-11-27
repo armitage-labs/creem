@@ -168,7 +168,7 @@ describe("Paddle source", () => {
     const { failures, paddle } = await readPaged((_next, url) => url.toString());
     expect(failures.map((f) => f.kind)).toEqual(["products", "prices", "discounts"]);
     expect(failures[0].message).toContain("same page");
-    expect(paddle.requests.filter((r) => r.path === "/products")).toHaveLength(2);
+    expect(paddle.requests.filter((r) => r.path === "/products")).toHaveLength(1);
   });
 
   it("stops after its page limit", async () => {

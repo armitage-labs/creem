@@ -102,6 +102,7 @@ export class PaddleClient {
   private readonly fetcher: typeof fetch;
   private readonly delayMs: number;
   private readonly attempts: number;
+  private readonly maxPages: number;
 
   constructor(
     private readonly apiKey: string,
@@ -110,6 +111,8 @@ export class PaddleClient {
       fetch?: typeof fetch;
       delayMs?: number;
       attempts?: number;
+      /** Pages per list before the read gives up (200 objects a page). */
+      maxPages?: number;
     },
   ) {
     this.environment = options.environment;
@@ -117,6 +120,7 @@ export class PaddleClient {
     // Paddle allows 240 requests a minute per IP.
     this.delayMs = options.delayMs ?? 250;
     this.attempts = options.attempts ?? 3;
+    this.maxPages = options.maxPages ?? 1000;
   }
 
   private async pause(ms: number) {
@@ -157,17 +161,29 @@ export class PaddleClient {
     first.searchParams.set("per_page", "200");
     first.searchParams.set("order_by", "id[ASC]");
     const items: T[] = [];
+    // A list that can't be read to its end throws: the run then counts it as
+    // unread and writes nothing, instead of taking a part for the whole.
+    const incomplete = (why: string) => new Error(`${path} is incomplete: ${why}`);
+    const seen = new Set<string>();
     for (let url = first.toString(); ; ) {
+      if (seen.size === this.maxPages)
+        throw incomplete(`Paddle has more than ${this.maxPages} pages of it.`);
+      seen.add(url);
       const page = (await this.get(url)) as {
         data: T[];
         meta?: { pagination?: { next?: string | null; has_more?: boolean } };
       };
       items.push(...page.data);
-      const next = page.meta?.pagination;
+      const pagination = page.meta?.pagination;
+      if (!pagination?.has_more) return items;
+      if (!pagination.next) throw incomplete("Paddle says there is more, but sent no cursor.");
+      const next = new URL(pagination.next, base);
       // The cursor stays on Paddle's host, so the key goes nowhere else.
-      if (!next?.has_more || !next.next || new URL(next.next).origin !== new URL(base).origin)
-        return items;
-      url = next.next;
+      if (next.origin !== new URL(base).origin)
+        throw incomplete(`its next page is on ${next.origin}, not ${base}, and isn't read.`);
+      if (seen.has(next.toString()))
+        throw incomplete("Paddle sent the cursor of the same page again.");
+      url = next.toString();
       await this.pause(this.delayMs);
     }
   }
