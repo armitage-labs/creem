@@ -116,7 +116,7 @@ In a terminal, the CLI asks about each candidate: yes gives it the key, and no t
 
 Adopting gives the object its key with a `PATCH`, before anything else is written. An adopted meter keeps its event name and unit label, because Creem doesn't change them after a meter is created.
 
-When a price you already migrated gets a new lookup key in Stripe, or loses it, its Creem product still has the old key. The CLI finds that product by `metadata.stripe_price_id` and proposes it under the new key, answered like any other proposal. Adopting moves the key to it with a `PATCH`, so no second product is created; creating a new one leaves the old product as it is.
+When a price you already migrated gets a new lookup key in Stripe, or loses it, its Creem product still has the old key. The CLI finds that product by `metadata.stripe_price_id` and proposes it under the new key, answered like any other proposal. Adopting moves the key to it with a `PATCH`, so no second product is created; creating a new one leaves the old product as it is. When the lookup key moved to a new price (Stripe's `transfer_lookup_key`), nothing is proposed: the Creem product with the key is updated to the new price, and the old price, when it's still active or you pass `--include-archived`, becomes a product of its own.
 
 ## What isn't copied
 
