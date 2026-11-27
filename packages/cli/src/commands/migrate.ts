@@ -43,6 +43,7 @@ const NOT_MIGRATED_LABELS: Record<string, string> = {
   discounts: "discounts (--exclude-discounts)",
 };
 const KIND_TITLES: Record<MigrationItem["kind"], string> = {
+  meter: "Meters",
   product: "Products",
   product_group: "Product groups",
   file: "Files",
@@ -184,8 +185,10 @@ interface MigrationSource {
   banner: string;
   scope: string;
   options(command: Command): Command;
+  /** Whether the Creem catalog read includes meters. */
+  meters?: boolean;
   /** Checks the source's flags before anything is printed or read. */
-  check?(options: SourceOptions): void;
+  check?(options: SourceOptions, context: CliContext): void;
   read(input: {
     context: CliContext;
     options: SourceOptions;
@@ -327,7 +330,7 @@ function createSourceCommand(context: CliContext, source: MigrationSource): Comm
         const options = { ...localOptions, json };
         if (!context.isTTY && !options.dryRun && !json && !globals.yes)
           throw new CliError("Migration requires --yes in non-interactive mode.");
-        source.check?.(options);
+        source.check?.(options, context);
         const adoptAll = options.adopt === true;
         const answers = adoptAnswers(Array.isArray(options.adopt) ? options.adopt : []);
         const print = (line = "") => {
@@ -346,7 +349,7 @@ function createSourceCommand(context: CliContext, source: MigrationSource): Comm
             timeout: globals.timeout,
           });
           print(chalk.dim("Reading the Creem catalog…"));
-          const catalog = await readCreemCatalog(client);
+          const catalog = await readCreemCatalog(client, { meters: source.meters });
           const now = new Date();
           // Adoption: an existing Creem object without a key is taken over only
           // when the merchant answers its proposal; --yes never does. Each answer
