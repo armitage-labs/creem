@@ -9,12 +9,8 @@ import {
 import * as errors from "creem/models/errors";
 import { describeError } from "../errors";
 import { isRecord } from "../operation";
-import {
-  FILE_ID_METADATA,
-  UPLOAD_PREFIX,
-  type MigrationPlan,
-  type MigrationRequest,
-} from "./lemon-squeezy/map";
+import { FILE_ID_METADATA } from "./lemon-squeezy/map";
+import { UPLOAD_PREFIX, type MigrationPlan, type MigrationRequest } from "./plan";
 import {
   summarize,
   type MigrationAction,
