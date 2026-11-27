@@ -113,6 +113,8 @@ export function lemonSqueezyFetch(
 type Json = Record<string, any>;
 export interface CreemState {
   products: Json[];
+  /** Meters (`creem migrate polar`); stored in the API's snake_case shape. */
+  meters: Json[];
   productGroups: Json[];
   discounts: Json[];
   files: Json[];
@@ -197,6 +199,8 @@ interface WriteContext {
   dryRun: boolean;
   /** `reference_not_found` warnings of a dry run (a real call answers 400). */
   warnings: Json[];
+  /** Whether the store has postpaid usage billing. */
+  postpaid: boolean;
 }
 
 /** Turns the snake_case feature entries of a product write into stored features. */
@@ -225,6 +229,15 @@ function storeFeatures(
       external_id: entry.external_id ?? existing?.external_id ?? null,
     };
     if (entry.type === "licenseKey") stored.license_key = entry.license_key;
+    if (entry.type === "custom") stored.private_note = entry.private_note;
+    if (entry.type === "customerCredits")
+      stored.customer_credits = {
+        unit_label: null,
+        bucket_name: null,
+        requires_moderation: false,
+        resets_each_period: false,
+        ...entry.customer_credits,
+      };
     if (entry.type === "file")
       stored.file = {
         files: entry.file.files.map((f: Json) => {
@@ -302,7 +315,114 @@ const PRODUCT_FIELDS = [
   "external_id",
   "metadata",
   "features",
+  "pay_what_you_want",
+  "suggested_price",
+  "usage_prices",
 ];
+
+/**
+ * A product write's `usage_prices` as stored usage prices: each names its meter
+ * by `meter_id` or `meter_external_id`. Like the API, a key no meter has is a
+ * `reference_not_found` 400, or a warning in a dry run (the price is left out);
+ * a new postpaid price on a store without postpaid usage billing is a 422.
+ */
+function storeUsagePrices(context: WriteContext, current: Json[], entries: Json[]): Json[] {
+  const prices: Json[] = [];
+  for (const entry of entries) {
+    const meter = context.state.meters.find((m) =>
+      entry.meter_id !== undefined
+        ? m.id === entry.meter_id
+        : m.external_id === entry.meter_external_id,
+    );
+    if (!meter) {
+      if (!context.dryRun)
+        throw apiError(400, "reference_not_found", `Unknown meter ${entry.meter_external_id}`);
+      context.warnings.push({
+        code: "reference_not_found",
+        path: "usage_prices",
+        key: entry.meter_external_id ?? entry.meter_id,
+      });
+      continue;
+    }
+    const stored = current.find((p) => p.id === entry.id || p.meter_id === meter.id);
+    if (
+      entry.settlement_mode === "postpaid" &&
+      !context.postpaid &&
+      stored?.settlement_mode !== "postpaid"
+    )
+      throw apiError(
+        422,
+        "postpaid_usage_billing_unavailable",
+        "Postpaid usage billing is not enabled for this store. Contact support to enable it, or use a prepaid usage price instead.",
+      );
+    prices.push({
+      id: stored?.id ?? context.nextId("uprc"),
+      meter_id: meter.id,
+      unit_price: entry.unit_price,
+      free_allowance: entry.free_allowance ?? 0,
+      cap: entry.cap ?? null,
+      settlement_mode: entry.settlement_mode,
+      target_account: entry.target_account ?? "shared",
+      target_account_name: entry.target_account_name ?? null,
+      trial_usage_mode: entry.trial_usage_mode ?? "free",
+    });
+  }
+  return prices;
+}
+
+const METER_FIELDS = ["name", "aggregation", "aggregation_property", "filter", "external_id"];
+
+/** `POST /v1/meters` (create or keyed upsert). */
+function writeMeter(
+  context: WriteContext,
+  b: Json,
+  target: { id?: string; ifNoneMatch?: string },
+): { status: number; body: Json } {
+  const { state } = context;
+  const existing = b.external_id
+    ? state.meters.find((m) => m.external_id === b.external_id)
+    : undefined;
+  if (existing && target.ifNoneMatch === "*") throw apiError(412, "precondition_failed");
+  if (!existing) {
+    const missing = ["name", "event_name", "aggregation", "unit_label"].filter(
+      (f) => b[f] === undefined,
+    );
+    if (missing.length) throw apiError(400, "validation_error", `${missing.join(", ")} required`);
+    if (state.meters.some((m) => m.name === b.name))
+      throw apiError(409, "meter_name_taken", "A meter of the store already has this name.");
+    const meter: Json = {
+      id: context.nextId("mtr"),
+      store_id: "sto_1",
+      name: b.name,
+      event_name: b.event_name,
+      aggregation: b.aggregation,
+      aggregation_property: b.aggregation_property ?? null,
+      filter: b.filter ?? { conjunction: "and", clauses: [] },
+      unit_label: b.unit_label,
+      status: "active",
+      external_id: b.external_id ?? null,
+      locked: false,
+      created_at: now,
+      updated_at: now,
+    };
+    state.meters.push(meter);
+    return { status: 201, body: { meter, result: "created", changes: [], warnings: [] } };
+  }
+  const warnings: Json[] = [];
+  const after: Json = structuredClone(existing);
+  for (const [key, value] of Object.entries(b)) {
+    if (key === "event_name" || key === "unit_label") {
+      if (value !== existing[key]) warnings.push({ code: "field_not_writable", path: key });
+      continue;
+    }
+    after[key] = value;
+  }
+  const changes = changesOf(existing, after, METER_FIELDS);
+  if (!changes.length)
+    return { status: 200, body: { meter: existing, result: "unchanged", changes, warnings } };
+  Object.assign(existing, after);
+  return { status: 200, body: { meter: existing, result: "updated", changes, warnings } };
+}
 
 /** `POST /v1/products` (create or keyed upsert) and `PATCH /v1/products/{id}`. */
 function writeProduct(
@@ -340,8 +460,16 @@ function writeProduct(
       abandoned_cart_recovery_enabled: b.abandoned_cart_recovery_enabled ?? false,
       external_id: b.external_id ?? null,
       metadata: b.metadata ?? null,
+      ...(b.pay_what_you_want !== undefined ? { pay_what_you_want: b.pay_what_you_want } : {}),
+      ...(b.suggested_price !== undefined ? { suggested_price: b.suggested_price } : {}),
+      ...(b.status !== undefined ? { status: b.status } : {}),
     });
     product.features = storeFeatures(context, [], b.features);
+    if (b.usage_prices) {
+      if (b.billing_type !== "recurring")
+        throw apiError(400, "validation_error", "Usage prices are for recurring products only");
+      product.usage_prices = storeUsagePrices(context, [], b.usage_prices);
+    }
     state.products.push(product);
     return { status: 200, body: { product, result: "created", changes: [], warnings: [] } };
   }
@@ -354,7 +482,7 @@ function writeProduct(
   const warnings: Json[] = [];
   const after: Json = structuredClone(existing);
   for (const [key, value] of Object.entries(b)) {
-    if (key === "features" || key === "pay_what_you_want" || key === "suggested_price") continue;
+    if (key === "features" || key === "usage_prices") continue;
     if (key === "tax_category") {
       if (value !== existing.tax_category)
         warnings.push({ code: "field_not_writable", path: "tax_category" });
@@ -368,6 +496,11 @@ function writeProduct(
     after.recurring_interval_count = null;
   }
   after.features = storeFeatures(context, existing.features, b.features);
+  if (b.usage_prices) {
+    const priced = storeUsagePrices(context, existing.usage_prices ?? [], b.usage_prices);
+    // A dry run that can't resolve a meter keeps the stored usage prices.
+    if (!context.warnings.some((w) => w.path === "usage_prices")) after.usage_prices = priced;
+  }
   const changes = changesOf(existing, after, PRODUCT_FIELDS);
   if (!changes.length)
     return { status: 200, body: { product: existing, result: "unchanged", changes, warnings } };
@@ -608,6 +741,8 @@ export interface FakeCreemOptions {
    * writes the items and answers `write_result.dry_run` `false`.
    */
   validateWrites?: boolean;
+  /** `false` models a store without postpaid usage billing (the default in Creem). */
+  postpaidUsageBilling?: boolean;
 }
 
 const VALIDATE_MAX_ITEMS = 100;
@@ -617,6 +752,7 @@ export function fakeCreem(initial: Partial<CreemState> = {}, init: FakeCreemOpti
   const options: FakeCreemOptions = { ...init };
   let state: CreemState = {
     products: [],
+    meters: [],
     productGroups: [],
     discounts: [],
     files: [],
@@ -664,9 +800,10 @@ export function fakeCreem(initial: Partial<CreemState> = {}, init: FakeCreemOpti
       nextId: (prefix) => `${prefix}_${++counter}`,
       dryRun: rollback,
       warnings: [],
+      postpaid: options.postpaidUsageBilling ?? true,
     };
     try {
-      const objects = [...on.products, ...on.discounts, ...on.productGroups];
+      const objects = [...on.products, ...on.discounts, ...on.productGroups, ...(on.meters ?? [])];
       const key =
         body.external_id ??
         objects.find((o) => target.id !== undefined && o.id === target.id)?.external_id;
@@ -674,7 +811,8 @@ export function fakeCreem(initial: Partial<CreemState> = {}, init: FakeCreemOpti
       if (refusal) throw refusal;
       const answer = writer(context, body, target);
       const { result, changes, warnings } = answer.body;
-      const object = answer.body.product ?? answer.body.discount ?? answer.body.group;
+      const object =
+        answer.body.product ?? answer.body.discount ?? answer.body.group ?? answer.body.meter;
       const response = answer.body.product ? productResponse(object) : structuredClone(object);
       return {
         status: answer.status,
@@ -708,7 +846,7 @@ export function fakeCreem(initial: Partial<CreemState> = {}, init: FakeCreemOpti
           details: { max_items: VALIDATE_MAX_ITEMS, items: items.length },
         },
       };
-    const unsupported = items.find((item) => item.kind !== "product");
+    const unsupported = items.find((item) => item.kind !== "product" && item.kind !== "meter");
     if (unsupported)
       return {
         status: 400,
@@ -723,7 +861,7 @@ export function fakeCreem(initial: Partial<CreemState> = {}, init: FakeCreemOpti
     const answers = items.map((item) => {
       // Each item sees what the items before it would have written.
       const answer = runWrite(
-        writeProduct,
+        item.kind === "meter" ? writeMeter : writeProduct,
         item.body ?? {},
         item.id !== undefined ? { id: item.id } : {},
         false,
@@ -788,6 +926,16 @@ export function fakeCreem(initial: Partial<CreemState> = {}, init: FakeCreemOpti
     };
     if (request.method === "GET" && path === "/v1/products/search")
       return Response.json(pageOf(state.products.map(productResponse)));
+    if (request.method === "GET" && path === "/v1/meters") {
+      const archived = url.searchParams.get("include_archived") === "true";
+      return Response.json({
+        object: "list",
+        data: (state.meters ?? []).filter((m) => archived || m.status !== "archived"),
+        has_more: false,
+      });
+    }
+    if (request.method === "POST" && path === "/v1/meters")
+      return answer(runWrite(writeMeter, body!, { ifNoneMatch }, dryRun));
     if (request.method === "GET" && path === "/v1/product-groups")
       return Response.json({ object: "list", data: state.productGroups, has_more: false });
     if (request.method === "GET" && path === "/v1/discounts/search")
