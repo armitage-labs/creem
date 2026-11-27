@@ -71,6 +71,9 @@ export const stripeSource: MigrationSource = {
         throw new CliError(message, MIGRATION_EXIT_CODES.auth, "Check --stripe-key.");
       if (isConnectionError(error))
         throw new CliError(message, MIGRATION_EXIT_CODES.network, "Check Stripe connectivity.");
+      // Any other error keeps what it is (its status and exit code); only its message is redacted.
+      if (!(error instanceof Error)) throw new Error(message);
+      error.message = message;
       throw error;
     }
     const { objects, failures } = read;
