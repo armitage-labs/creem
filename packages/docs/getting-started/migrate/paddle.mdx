@@ -1,0 +1,81 @@
+---
+title: "Migrate from Paddle"
+sidebarTitle: "Paddle"
+description: "Copy your Paddle Billing products, prices and discount codes into Creem with one CLI command, checked by Creem before anything is written."
+keywords: "paddle migration, migrate from paddle, paddle alternative, switch from paddle, paddle billing to creem"
+icon: "table-tennis-paddle-ball"
+---
+
+The [Creem CLI](/code/cli) copies a Paddle Billing catalog into your Creem store: each price becomes a product, a product with several subscription prices becomes a product group, and discounts become discount codes. It reads Paddle with your API key, has Creem check the whole plan with a dry run, prints what it creates, updates and skips, and writes only after you confirm. Your Paddle API key stays on your machine and is never sent to Creem.
+
+The CLI reads Paddle Billing. Paddle Classic isn't supported.
+
+## Before you start
+
+1. **Your prices can be in USD or EUR.** Creem has one price per product and no country prices. A price in another currency is skipped, and the plan lists its country prices in USD or EUR, if it has any, so you can set one up by hand.
+2. **Create a Paddle API key** with read permission on products, prices and discounts. Put it in `PADDLE_API_KEY` or pass it with `--paddle-key`. A sandbox key (`pdl_sdbx_…`) reads your Paddle sandbox and a live key (`pdl_live_…`) your live account.
+
+## Run the migration
+
+```bash
+brew tap armitage-labs/creem
+brew install creem
+creem login --api-key creem_test_YOUR_KEY
+export PADDLE_API_KEY=pdl_live_YOUR_KEY
+creem migrate paddle --dry-run
+creem migrate paddle
+```
+
+| Option                               | What it does                                                                                                           |
+| ------------------------------------ | ---------------------------------------------------------------------------------------------------------------------- |
+| `--paddle-key <key>`                 | Your Paddle API key, instead of `PADDLE_API_KEY`                                                                       |
+| `--paddle-environment <environment>` | `sandbox` or `production`. By default the key's own; a key of the other environment is refused before anything is read |
+| `--include-archived`                 | Writes archived Paddle prices as archived Creem products instead of skipping them                                      |
+| `--dry-run`                          | Has Creem check the plan with a dry run, prints it and writes nothing                                                  |
+| `--yes`                              | Writes without asking. Required when no terminal is attached                                                           |
+| `--adopt [answers]`                  | Answers adoption proposals, as for [Lemon Squeezy](/getting-started/migrate/lemon-squeezy#creem-checks-the-plan-first) |
+| `--force`                            | Writes even when Creem's check refuses items, and leaves those items out                                               |
+| `--json`                             | Prints the plan as a JSON report. With `--yes`, runs it and prints the result                                          |
+
+Try it against a Creem test store first, with your Paddle sandbox key if you have one.
+
+### Running it again
+
+Paddle has no SKU or lookup key, so every object the CLI writes carries its Paddle id as the key in `external_id`: the price id (`pri_…`) for a product, the product id (`pro_…`) for a product group and the discount id (`dsc_…`) for a discount. Each one is written with Creem's keyed upsert, which creates the object when its key is new and otherwise changes only what differs, so a run that stopped halfway or a second run never creates an object twice. When nothing changed in Paddle, the plan lists every item as unchanged and nothing is written.
+
+### Creem checks the plan first
+
+Before the first write, Creem checks the products together in one validation, and each product group and discount with a dry run. When Creem refuses an item, nothing is written, the item carries Creem's error and a hint, and the command exits with `8`. Fix what the error says and run it again, or pass `--force` to write everything else and leave the refused items out. During the run every write runs as a dry run once more right before it. The CLI writes products first, then product groups, then discounts.
+
+A Creem product without a key that has the same name, or a discount with the same code ignoring case, is proposed for adoption and never picked for you, the same way as for [Lemon Squeezy](/getting-started/migrate/lemon-squeezy#creem-checks-the-plan-first). `--yes` never answers a proposal.
+
+## What the CLI copies
+
+- **Prices** in USD or EUR, one Creem product each. The product is named after the Paddle product, followed by the price's description when the product has more than one price. The amount carries over as it is, in cents. A price without a billing cycle is one-time. A billing cycle becomes Creem's billing period: daily, monthly, every three or six months and yearly as they are, and any other cycle Creem supports, such as weekly, as a custom period.
+- **Trials** in days or weeks become trials in days. A trial in months becomes 30 days per month, with a warning, because Creem counts trials in days.
+- **Tax categories**: `saas` and `ebooks` as they are, every other category as `digital-goods-service`. Creem's `ebooks` category is one-time only, so a subscription in it gets `digital-goods-service`, with a warning. The API can't change a product's tax category once it exists, so a re-run warns when it differs and you change it in the dashboard.
+- **`custom_data`** of the product and the price becomes the product's metadata, the price's values winning. Creem metadata holds strings and numbers, so other values are left out with a warning. A re-run adds the Paddle keys to the metadata you have in Creem and keeps your own.
+- **Product groups.** A Paddle product with two or more migrated subscription prices becomes a product group, so customers can switch between them, shortest billing period first, then by price. One-time, skipped and archived prices aren't in it.
+- **Discounts.** A percentage discount stays a percentage, and a flat one becomes a fixed discount in its currency, on the products in that currency only, because Creem doesn't convert amounts. A discount that doesn't recur applies once, and one that recurs without a limit applies forever. One that recurs for a number of billing periods becomes a discount for that many months, but only when every product it applies to bills monthly; otherwise it's skipped. The usage limit becomes the redemption limit, minus the uses Paddle has already counted, because Creem counts redemptions from zero. The expiry date carries over. A discount restricted to prices applies to those, and one restricted to a product applies to every migrated price of it. An unrestricted discount applies to every migrated product, with a warning, because Creem doesn't add products you create later. A discount without a code gets a code from Creem, and the plan says so.
+
+It skips, with the reason in the plan: prices in other currencies, free subscriptions, prices below 1.00, billing cycles Creem doesn't support (more than 365 days, 52 weeks, 24 months or 3 years), archived prices and the prices of archived products (unless `--include-archived`), non-catalog prices and discounts, per-seat discounts, flat discounts in other currencies, archived discounts (Creem discounts have no archived state, so `--include-archived` doesn't write them), discounts that have expired or are used up, discounts that recur for a number of billing periods on products that don't bill monthly, and codes longer than 14 characters. Discount names longer than 40 characters are shortened.
+
+These are reported and not copied:
+
+- **Country prices** (`unit_price_overrides`). Every buyer pays the price's base amount, and the plan lists each country price it left out.
+- **Quantity limits** other than Paddle's default of 1 to 100.
+- **Discount `custom_data`**, because Creem discounts have no metadata.
+
+Product images aren't copied; add them in Creem.
+
+The CLI never removes anything from Creem: a discount keeps its products and a product group keeps its other members. A Creem product or discount that carries a Paddle key but isn't migrated any more, because the price was archived or deleted, stays as it is and is listed with an `orphaned` warning. Archive or expire it in Creem if it shouldn't sell.
+
+With `--json`, the report lists every price, product group and discount with its action, its Creem ID, and the reason or error. The exit codes are the same as for [Lemon Squeezy](/getting-started/migrate/lemon-squeezy#with-the-creem-cli): `0` when every item went through, `2` for invalid options or a missing key, `3` when Paddle or Creem refused the key, `4` when part of the Paddle catalog couldn't be read, `6` when the run finished with failed items, `7` when an adoption proposal is unanswered and `8` when Creem's check refused an item.
+
+## What doesn't move
+
+Customers, subscriptions, transactions and notification settings aren't migrated. Your subscribers keep paying Paddle until you move them. Create your checkouts and add your webhook endpoint in Creem.
+
+## Need help?
+
+Email support@creem.io. Tell us how many products and subscribers you have.

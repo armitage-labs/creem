@@ -28,8 +28,8 @@ pnpm --filter @creem_io/cli test
 Resource registration and shared input/output/safety behavior live in
 `src/commands/resource.ts`; typed SDK calls live in `src/commands/operations/`.
 Validate schemas and exact SDK arguments when changing mappings. Do not replace
-SDK calls with raw Creem HTTP requests. The external Lemon Squeezy migration
-adapter is the sole external-API exception.
+SDK calls with raw Creem HTTP requests. The read-only source clients of the
+migrators (Lemon Squeezy, Paddle) are the only external-API exceptions.
 
 After updating mappings, run `node packages/cli/scripts/sync-reference.mjs` from
 the repository root. Also run CLI `lint`, `parity:check --strict`, and
