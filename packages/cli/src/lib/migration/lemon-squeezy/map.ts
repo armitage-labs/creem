@@ -1,5 +1,4 @@
 import type {
-  CreateFileUploadRequestEntity,
   DiscountEntity,
   FeatureEntity,
   LicenseKeyFeatureEntity,
@@ -8,18 +7,26 @@ import type {
 } from "creem/models/components";
 import type {
   CreateDiscountRequest,
-  CreateProductGroupRequest,
   CreateProductRequest,
   UpdateDiscountRequest,
   UpdateProductRequest,
 } from "creem/models/operations";
 import type { CreemCatalog } from "../catalog";
 import {
+  UPLOAD_PREFIX,
+  adoptionMatcher,
+  clearsField,
+  issue,
+  sameName,
+  type MigrationPlan,
+  type MigrationRequest,
+} from "../plan";
+import { billing, trialDays } from "../billing";
+import {
   MIGRATION_REPORT_SCHEMA,
   MIGRATION_REPORT_VERSION,
   newItem,
   summarize,
-  type AdoptionProposal,
   type MigrationIssue,
   type MigrationItem,
   type MigrationReport,
@@ -46,56 +53,6 @@ type UpdateDiscountBody = UpdateDiscountRequest["updateDiscountRequestEntity"];
 type UpdateFeature = NonNullable<UpdateProductBody["features"]>[number];
 type CreateFeature = NonNullable<CreateProductBody["features"]>[number];
 
-/**
- * One write of a migration, typed from the generated SDK. The writer sends
- * them in order. A file feature that waits for an upload in the same run
- * names its file `upload:<file key>`; the writer swaps in the uploaded id.
- *
- * Products, product groups and discounts are written with the keyed upserts
- * (`upsert_*`, a `POST` with `external_id`), which create the object when the
- * key is new and change only the fields sent otherwise, so two runs can't
- * create it twice. Two writes are addressed by id instead: adopting an object
- * without a key (`adopt_*`, a `PATCH` that gives it its key and makes the
- * item's changes in the same request), and an update that clears a field
- * (`update_*`: a trial, a redemption limit or an expiry date), because the
- * upsert's body takes no `null`.
- */
-export type MigrationRequest =
-  | { type: "adopt_product"; key: string; request: UpdateProductRequest }
-  | { type: "adopt_discount"; key: string; request: UpdateDiscountRequest }
-  | {
-      type: "upload_file";
-      key: string;
-      lsFileId: string;
-      request: CreateFileUploadRequestEntity;
-    }
-  | { type: "upsert_product"; key: string; request: CreateProductRequest }
-  | { type: "update_product"; key: string; request: UpdateProductRequest }
-  | { type: "upsert_product_group"; key: string; request: CreateProductGroupRequest }
-  | { type: "upsert_discount"; key: string; request: CreateDiscountRequest }
-  | { type: "update_discount"; key: string; request: UpdateDiscountRequest };
-
-/** An update body that sets a field to `null`, which only a `PATCH` can send. */
-function clearsField(body: Record<string, unknown>): boolean {
-  return Object.values(body).some((value) => value === null);
-}
-
-export interface MigrationPlan {
-  requests: MigrationRequest[];
-  report: MigrationReport;
-  /**
-   * Adoption answers that answer nothing or can't be applied (`adoption_answer_invalid`).
-   * The plan must not run while there are any: the command stops with exit 2.
-   */
-  answerErrors: MigrationIssue[];
-  /**
-   * The stored product group each Creem product is in, by product id, from the
-   * catalog the plan was made from. Creem's `product_already_grouped` names the
-   * products only (`details.product_ids`); the error's hint names their group.
-   */
-  productGroupOf: Record<string, { id: string; externalId: string | null }>;
-}
-
 export interface FromLemonSqueezyOptions {
   /** Expired discounts are skipped relative to this time. */
   now: Date;
@@ -110,10 +67,9 @@ export interface FromLemonSqueezyOptions {
   adoption?: Record<string, string>;
 }
 
-export const UPLOAD_PREFIX = "upload:";
+export { ADOPT_NEW, UPLOAD_PREFIX } from "../plan";
+export type { MigrationPlan, MigrationRequest } from "../plan";
 export const LICENSE_KEY_FEATURE_KEY = "ls_license_key";
-/** The answer to an adoption proposal that creates a new object instead. */
-export const ADOPT_NEW = "new";
 const PWYW_METADATA_KEY = "ls_pwyw_suggested_price";
 const OWNED_METADATA = /^ls_(file_\d+_(sha256|file_id)|pwyw_suggested_price)$/;
 const DISCOUNT_CODE_MAX = 14;
@@ -129,8 +85,6 @@ const fileIdKey = (id: string) => `ls_file_${id}_file_id`;
 /** The metadata keys the writer may resolve `upload:<key>` in; never the merchant's. */
 export const FILE_ID_METADATA = /^ls_file_\d+_file_id$/;
 const LS_VARIANT_KEY = /^ls_variant_\d+$/;
-
-const issue = (code: string, message: string): MigrationIssue => ({ code, message });
 
 const NOT_MIGRATED = [
   issue("out_of_scope", "Customers are not migrated: the migrator reads no customers."),
@@ -169,69 +123,6 @@ export function htmlToText(html: string | null | undefined): string {
     .filter((line, index, lines) => line || (index > 0 && lines[index - 1]))
     .join("\n")
     .trim();
-}
-
-type Preset =
-  | "every-day"
-  | "every-month"
-  | "every-three-months"
-  | "every-six-months"
-  | "every-year";
-type Interval = "day" | "week" | "month" | "year";
-const CUSTOM_MAX: Record<Interval, number> = { day: 365, week: 52, month: 24, year: 3 };
-
-function billing(
-  unit: string | null | undefined,
-  count: number | null | undefined,
-):
-  | { billingPeriod: Preset }
-  | { billingPeriod: "custom"; recurringInterval: Interval; recurringIntervalCount: number }
-  | { skip: MigrationIssue } {
-  const n = count ?? 1;
-  const presets: Record<string, Preset> = {
-    "day:1": "every-day",
-    "month:1": "every-month",
-    "month:3": "every-three-months",
-    "month:6": "every-six-months",
-    "year:1": "every-year",
-  };
-  if (!unit)
-    return {
-      skip: issue("billing_interval_unsupported", "The subscription has no billing interval."),
-    };
-  const preset = presets[`${unit}:${n}`];
-  if (preset) return { billingPeriod: preset };
-  if (unit in CUSTOM_MAX && Number.isInteger(n) && n >= 1 && n <= CUSTOM_MAX[unit as Interval])
-    return {
-      billingPeriod: "custom",
-      recurringInterval: unit as Interval,
-      recurringIntervalCount: n,
-    };
-  return {
-    skip: issue(
-      "billing_interval_unsupported",
-      `Billing every ${n} ${unit}(s) is outside what Creem supports (day 1–365, week 1–52, month 1–24, year 1–3).`,
-    ),
-  };
-}
-
-function trialDays(
-  unit: string | null | undefined,
-  count: number | null | undefined,
-  warnings: MigrationIssue[],
-): number | undefined {
-  if (!unit || !count) return undefined;
-  if (unit === "day") return count;
-  if (unit === "week") return count * 7;
-  const days = unit === "month" ? count * 30 : unit === "year" ? count * 365 : undefined;
-  if (days === undefined) return undefined;
-  warnings.push(
-    issue(
-      "trial_not_in_days",
-      `The ${count}-${unit} trial becomes ${days} days: Creem trials are counted in days.`,
-    ),
-  );
-  return days;
 }
 
 const TAX: Record<string, "saas" | "digital-goods-service" | "ebooks"> = {
@@ -482,12 +373,6 @@ function licenseFeature(
   };
 }
 
-/** Names match ignoring case and spacing (ADR § 2.10 candidate rule). */
-function sameName(a: string | null | undefined, b: string): boolean {
-  const normalize = (name: string) => name.trim().replace(/\s+/g, " ").toLowerCase();
-  return normalize(a ?? "") === normalize(b);
-}
-
 /** How a candidate differs from the product a variant maps to: shown, never matched on. */
 function productDifferences(p: ProductEntity, create: CreateProductBody): string[] {
   const differences: string[] = [];
@@ -543,20 +428,8 @@ export function fromLemonSqueezy(
   const currency = objects.store.attributes.currency.toUpperCase();
   if (currency !== "USD" && currency !== "EUR")
     throw new Error(`Lemon Squeezy store currency ${currency} is not USD or EUR`);
-  const decisions = options.adoption ?? {};
-  /** Candidates an earlier item adopted, with the key they got. */
-  const claimed = new Map<string, string>();
-  /** Answers some item looked at; the others answer nothing. */
-  const consulted = new Set<string>();
-  const answerErrors: MigrationIssue[] = [];
-  const rejectAnswer = (key: string, message: string) => {
-    const error = issue(
-      "adoption_answer_invalid",
-      `--adopt ${key}=${decisions[`adopt:${key}`]}: ${message}`,
-    );
-    answerErrors.push(error);
-    return error;
-  };
+  const adoption = adoptionMatcher(options.adoption ?? {});
+  const { match, unconfirmed, proposals, answerErrors } = adoption;
   const prices = new Map(objects.prices.map((p) => [p.id, p]));
   const productsByKey = new Map<string, ProductEntity>();
   for (const product of creemCatalog.products)
@@ -567,7 +440,6 @@ export function fromLemonSqueezy(
   const groupsByKey = new Map<string, ProductGroupEntity>();
   for (const group of creemCatalog.productGroups)
     if (group.externalId) groupsByKey.set(group.externalId, group);
-  const proposals: AdoptionProposal[] = [];
 
   const uploadRequests: MigrationRequest[] = [];
   const productRequests: MigrationRequest[] = [];
@@ -577,97 +449,6 @@ export function fromLemonSqueezy(
   const groupItems: MigrationItem[] = [];
   const fileItems: MigrationItem[] = [];
   const discountItems: MigrationItem[] = [];
-
-  /**
-   * Finds the Creem object a key matches. Without one, the look-alikes without
-   * a key become one proposal (ADR § 2.6): adopted only when the answer names
-   * one of them (or another unkeyed object of the kind), a new object when it
-   * is `new`, and pending otherwise. An answer that can't be applied rejects
-   * the item.
-   */
-  function match<T extends { id: string; externalId: string | null; name?: string }>(
-    kind: "product" | "discount",
-    key: string,
-    byKey: Map<string, T>,
-    all: T[],
-    lookalikes: T[],
-    differences: (candidate: T) => string[],
-    item: MigrationItem,
-  ): { existing?: T; pending?: T[]; rejected?: MigrationIssue } {
-    const id = `adopt:${key}`;
-    const answer = decisions[id];
-    if (answer !== undefined) consulted.add(id);
-    const existing = byKey.get(key);
-    if (existing) {
-      // The same answers re-run cleanly: the adopted or created object has the key now.
-      if (answer !== undefined && answer !== ADOPT_NEW && answer !== existing.id)
-        return {
-          rejected: rejectAnswer(
-            key,
-            `Creem ${kind} ${existing.id} already has the key ${key}, so ${answer} can't get it.`,
-          ),
-        };
-      return { existing };
-    }
-    const open = lookalikes.filter((c) => !c.externalId && !claimed.has(c.id));
-    let chosen: T | undefined;
-    if (answer !== undefined && answer !== ADOPT_NEW) {
-      chosen = open.find((c) => c.id === answer);
-      if (!chosen) {
-        const named = all.find((c) => c.id === answer);
-        const problem = !named
-          ? `there is no Creem ${kind} ${answer}.`
-          : named.externalId
-            ? `Creem ${kind} ${answer} already has the key ${named.externalId}.`
-            : claimed.has(answer)
-              ? `Creem ${kind} ${answer} is already adopted as ${claimed.get(answer)}; two keys can't adopt one ${kind}.`
-              : undefined;
-        if (problem) return { rejected: rejectAnswer(key, problem) };
-        // An unkeyed object the merchant named that isn't a look-alike (renamed).
-        chosen = named;
-      }
-    }
-    if (!open.length && !chosen) return {};
-    const candidates = chosen && !open.includes(chosen) ? [chosen, ...open] : open;
-    const proposal: AdoptionProposal = {
-      id,
-      kind,
-      key,
-      name: item.name,
-      candidates: candidates.map((c) => ({
-        creem_id: c.id,
-        creem_name: c.name ?? "",
-        differences: differences(c),
-      })),
-      decision: "pending",
-      creem_id: null,
-    };
-    proposals.push(proposal);
-    if (answer === ADOPT_NEW) {
-      proposal.decision = "declined";
-      return {};
-    }
-    if (!chosen) return { pending: open };
-    claimed.set(chosen.id, key);
-    proposal.decision = "accepted";
-    proposal.creem_id = chosen.id;
-    item.adopted_from = chosen.id;
-    item.changes.push("external_id");
-    return { existing: chosen };
-  }
-
-  /** The skip reason of an item whose proposal waits for an answer. */
-  function unconfirmed(kind: "product" | "discount", key: string, pending: { id: string }[]) {
-    const ids = pending.map((c) => c.id);
-    const what =
-      ids.length === 1
-        ? `Creem ${kind} ${ids[0]} has no key and looks like this one.`
-        : `${ids.length} Creem ${kind}s without a key look like this one (${ids.join(", ")}).`;
-    return issue(
-      "adoption_unconfirmed",
-      `${what} Answer the proposal: adopt one (in a terminal, or with --adopt ${key}=<creem id>) or create a new ${kind} (--adopt ${key}=new).`,
-    );
-  }
 
   // ---- products
   const productsInOrder = objects.products;
@@ -1499,12 +1280,7 @@ export function fromLemonSqueezy(
     }
   }
 
-  for (const id of Object.keys(decisions))
-    if (!consulted.has(id))
-      rejectAnswer(
-        id.slice("adopt:".length),
-        "the run migrates nothing with this key (a typo, or an item skipped by a mapping rule: see its reason in the plan).",
-      );
+  adoption.finish();
 
   const items = [...productItems, ...groupItems, ...fileItems, ...discountItems];
   const notMigrated = ["customers", "subscriptions", "orders", "license_keys"].map(
