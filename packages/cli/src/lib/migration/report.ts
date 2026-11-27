@@ -129,7 +129,8 @@ export interface MigrationReport {
     provider: string;
     store_id: string;
     store_name: string;
-    currency: string;
+    /** The source store's currency; `null` when it has none (a Polar organization without a default). */
+    currency: string | null;
   };
   /**
    * `plan`: computed and checked with Creem's dry run, not run; `dry_run`: the

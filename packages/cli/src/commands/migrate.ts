@@ -77,7 +77,7 @@ function formatReport(report: MigrationReport, environment: string, title: strin
       report.mode === "run" ? "Migration result" : `Plan: ${title} → Creem ${environment}`,
     ),
     chalk.dim(
-      `Store ${report.source.store_name} (${report.source.store_id}, ${report.source.currency})`,
+      `Store ${report.source.store_name} (${[report.source.store_id, report.source.currency].filter(Boolean).join(", ")})`,
     ),
     `Create ${s.create} · Update ${s.update} · Unchanged ${s.unchanged} · Skip ${s.skip}` +
       (s.failed ? chalk.red(` · Failed ${s.failed}`) : "") +
@@ -334,7 +334,7 @@ const polar: MigrationSource = {
         `--polar-files-dir ${String(options.polarFilesDir)} doesn't exist.`,
         MIGRATION_EXIT_CODES.usage,
       );
-    if (!(String(options.polarServer) in POLAR_SERVERS))
+    if (!Object.hasOwn(POLAR_SERVERS, String(options.polarServer)))
       throw new CliError(
         `--polar-server takes production or sandbox, not "${String(options.polarServer)}".`,
         MIGRATION_EXIT_CODES.usage,

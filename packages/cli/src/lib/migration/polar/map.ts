@@ -741,7 +741,13 @@ export function fromPolar(
     item.name = offer.name;
     const priced = mapPrice(offer.price, offer.interval, offer.count, item.warnings);
     if ("skip" in priced) {
-      item.reason = priced.skip;
+      item.reason =
+        offer.metered.length && priced.skip.code === "free_recurring_unsupported"
+          ? issue(
+              "usage_price_without_base_price",
+              "The product's base price is free and it has metered prices: Creem refuses a recurring product at price 0, so there's no base price to put the usage on.",
+            )
+          : priced.skip;
       continue;
     }
     const body: ProductBody = {
@@ -1100,7 +1106,7 @@ export function fromPolar(
       provider: "polar",
       store_id: objects.organization.id,
       store_name: objects.organization.name,
-      currency: preferred,
+      currency: preferred || null,
     },
     mode: "plan",
     summary: summarize(items),
