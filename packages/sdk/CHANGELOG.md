@@ -1,5 +1,20 @@
 # Changelog
 
+## 2.1.0
+
+### Minor Changes
+
+- 478df02: New method `catalog.promote` copies the store's test catalog (meters and products) into live, paired by `externalId` (`POST /v1/catalog/promote`). Send `dryRun: true` to preview it, follow `nextCursor` until it is `null`, and send `force: true` to write even when the check before the first write refused an item. Each item reports a `result` (`created`, `updated`, `unchanged`, `needs_key`, `conflict`, `failed`, `blocked`, `not_written`), with `candidates`, `proposedExternalId` and `featureCandidates` for pairing. The MCP server gets a `catalog-promote` tool. The select unions and the response's `validation` have their own names (`CatalogPromoteSelectRequestDtoMeters`, `CatalogPromoteSelectRequestDtoProducts`, their `…All` enums, `CatalogPromoteValidationResponseDto`). A meter write's `changes` can now carry `status`, only on a write promote makes.
+- 7fe9f96: The SDK follows the catalog-as-code API: keyed upserts, the dry run and batch validation.
+  - `products.create`, `discounts.create` and `meters.createMeter` are upserts when the body carries an `externalId`: a new key creates the object, a key the store already has updates it with only the fields sent. They take `ifNoneMatch: "*"` to create only (a held key answers `412` `precondition_failed`). Because an upsert may name only the fields to change, `name`, `price`, `currency` and the other create fields are optional in `CreateProductRequestEntity`; a create without them still answers `400`.
+  - Every create and update of products, discounts, meters and product groups takes `dryRun: true`: the request runs as it would and is rolled back, and the response's `writeResult.dryRun` is `true`. `discounts.create`, `discounts.update`, `meters.createMeter` and `meters.updateMeter` return the object with `writeResult` (`DiscountWriteResponseEntity`, `MeterWriteApiResponseDto`), and `writeResult` on products gains `result` (`created`, `updated`, `unchanged`), `dryRun`, `changes` and `priceVersion`.
+  - New methods: `productGroups.create` (an upsert by `externalId`), `productGroups.update`, `productGroups.delete`, `productGroups.addProduct` and `productGroups.removeProduct` write product groups, and `catalog.validate({ items })` checks a batch of up to 100 meter and product writes in one rolled-back transaction and answers one result per item.
+  - `subscriptions.search` takes `productId`, `priceId`, `customerId` and `status`, a list of `SearchSubscriptionsStatus`. Existing exports keep their meaning: `Status` stays the discount search's status and `QueryParamStatus` the transaction search's, `ProductWriteWarningEntity.impact` stays a `ProductWriteImpactEntity`, and `UpgradeBehavior` stays the type of `ProductGroupEntity.upgradeBehavior`; the product group write requests take `CreateProductGroupRequestEntityUpgradeBehavior` and `UpdateProductGroupRequestEntityUpgradeBehavior`.
+
+### Patch Changes
+
+- 7fe9f96: `products.create` no longer sends `abandonedCartRecoveryEnabled: false` when the caller leaves it out. With an `externalId` the call is an upsert that changes only the fields sent, so the default switched abandoned cart recovery off on every upsert of a product that had it on. A create without the field still gets the API's default, off.
+
 ## 2.0.0
 
 ### Major Changes
