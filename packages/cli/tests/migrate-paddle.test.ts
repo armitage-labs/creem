@@ -49,6 +49,7 @@ const USED_UP = "dsc_01hw0000000000000000usedup";
 const PARTLY_USED = "dsc_01hw000000000000000partial";
 const LONG_CODE = "dsc_01hw00000000000000longcode";
 const PRO_ALL = "dsc_01hw000000000000000proall";
+const FREE_FOREVER = "dsc_01hw000000000000000free100";
 
 async function paddleObjects(
   options: { docs?: ReturnType<typeof paddleDocs>; pageSize?: number } = {},
@@ -749,7 +750,7 @@ describe("ENG-2015 discounts", () => {
 
   it("reads the discounts, active and archived, and reports a discount list it can't read", async () => {
     const { objects, paddle } = await paddleObjects({ pageSize: 2 });
-    expect(objects.discounts).toHaveLength(14);
+    expect(objects.discounts).toHaveLength(15);
     expect(paddle.requests.some((r) => r.path === "/discounts")).toBe(true);
     const failing = paddleFetch(undefined, { failures: { "/discounts": 500 } });
     const client = new PaddleClient(PADDLE_KEY, {
@@ -834,6 +835,23 @@ describe("ENG-2015 discounts", () => {
       reason: { code: "duration_unsupported" },
       warnings: [],
     });
+  });
+
+  it("maps 100% off forever as repeating for 1,200 billing cycles, as Creem asks, on yearly products too", async () => {
+    const p = await plan();
+    expect(request(p, FREE_FOREVER)!.request).toMatchObject({
+      createDiscountRequestEntity: {
+        type: "percentage",
+        percentage: 100,
+        duration: "repeating",
+        durationInMonths: 1200,
+        appliesToProductExternalIds: [PRO_MONTHLY, PRO_YEARLY],
+      },
+    });
+    const warning = item(p, FREE_FOREVER).warnings.find(
+      (w) => w.code === "discount_forever_repeating",
+    )!;
+    expect(warning.message).toContain("1200 billing cycles");
   });
 
   it("restricts a discount to the prices it names, or to every price of a product it names", async () => {
@@ -948,7 +966,7 @@ describe("ENG-2015 discounts", () => {
     const paths = creem.writes().map((w) => w.path);
     expect(paths.indexOf("/v1/discounts")).toBeGreaterThan(paths.lastIndexOf("/v1/product-groups"));
     expect(creem.state.discounts.map((d) => d.external_id).sort()).toEqual(
-      [PERCENT, FLAT, YEARLY_ONLY, THREE_MONTHS, PARTLY_USED, PRO_ALL].sort(),
+      [PERCENT, FLAT, YEARLY_ONLY, THREE_MONTHS, PARTLY_USED, PRO_ALL, FREE_FOREVER].sort(),
     );
     const written = creem.writes().length;
     const second = await h.run(base);
