@@ -17,6 +17,7 @@ Append `.md` to any documentation URL to fetch it as raw markdown.
 - [Test mode](https://docs.creem.io/getting-started/test-mode.md): sandbox keys and test cards
 - [Migrate from Lemon Squeezy](https://docs.creem.io/getting-started/migrate/lemon-squeezy.md): move a Lemon Squeezy store before March 31, 2027 with a coding agent, the Creem CLI or Creem's team: why Creem, checks before you start, what moves
 - [Lemon Squeezy migration: technical guide](https://docs.creem.io/getting-started/migrate/lemon-squeezy/technical-guide.md): every step through the API, field and webhook mappings, moving subscribers, and a prompt for coding agents
+- [Migrate from Polar](https://docs.creem.io/getting-started/migrate/polar.md): copy a Polar organization's meters, products with metered prices, benefits and discount codes with `creem migrate polar`, and what doesn't move
 
 ## SDKs
 
