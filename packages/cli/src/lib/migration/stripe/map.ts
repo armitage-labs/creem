@@ -283,11 +283,17 @@ export function fromStripe(
   const metersByKey = byKey<MeterApiResponseDto>(creemMeters);
   const productsByKey = byKey<ProductEntity>(creemCatalog.products);
   // A product migrated under another key of the price: its lookup key changed in Stripe since.
+  // Not when another price read now has that key: Stripe transferred the lookup key to it.
+  const keys = new Set(objects.prices.map(priceKey));
   const movedFrom = new Map<string, ProductEntity>();
   for (const price of objects.prices) {
     const key = priceKey(price);
     const moved = creemCatalog.products.find(
-      (p) => p.externalId && p.externalId !== key && p.metadata?.stripe_price_id === price.id,
+      (p) =>
+        p.externalId &&
+        p.externalId !== key &&
+        !keys.has(p.externalId) &&
+        p.metadata?.stripe_price_id === price.id,
     );
     if (moved && !productsByKey.has(key)) movedFrom.set(key, moved);
   }
