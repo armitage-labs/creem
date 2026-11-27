@@ -840,9 +840,10 @@ describe("creem migrate stripe", () => {
       isTTY?: boolean;
       confirm?: (message: string) => Promise<boolean>;
       state?: Partial<CreemState>;
+      docs?: ReturnType<typeof stripeDocs>;
     } = {},
   ) {
-    const stripe = stripeFetch();
+    const stripe = stripeFetch(options.docs);
     vi.stubGlobal("fetch", stripe.fetcher);
     const creem = fakeCreem(options.state);
     const confirm = vi.fn(options.confirm ?? (async () => false));
@@ -1045,6 +1046,19 @@ describe("creem migrate stripe", () => {
       expect(out).not.toContain(STRIPE_KEY);
       expect(out).not.toMatch(/\b(rk|sk)_(live|test)_/);
     }
+  });
+
+  it("stops before any write on a key collision (exit 8), and says the item failed, not that Creem refused it", async () => {
+    const docs = stripeDocs();
+    docs.prices.data.find((price) => price.id === ID.priceEbook)!.lookup_key = ID.priceSeats;
+    const { creem, h } = setup({ docs });
+    const r = await h.run([...base, "--yes"]);
+    expect(r.code).toBe(8);
+    expect(r.stdout).toMatch(new RegExp(`${ID.priceSeats} .* FAILED`));
+    expect(r.stdout).not.toContain("REFUSED by Creem");
+    expect(r.stderr).not.toContain("Creem's check refused");
+    expect(r.stderr).toContain(ID.priceSeats);
+    expect(creem.writes()).toEqual([]);
   });
 
   it("is listed in creem migrate --help, and says customers are not migrated", async () => {
