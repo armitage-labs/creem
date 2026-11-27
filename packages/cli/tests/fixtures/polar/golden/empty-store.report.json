@@ -1,0 +1,568 @@
+{
+  "schema": "creem.migration_report",
+  "version": 1,
+  "source": {
+    "provider": "polar",
+    "store_id": "00000000-0000-4000-8000-0000000000a1",
+    "store_name": "Polar sandbox",
+    "currency": "USD"
+  },
+  "mode": "plan",
+  "summary": {
+    "create": 15,
+    "update": 0,
+    "unchanged": 0,
+    "skip": 9,
+    "failed": 0,
+    "warnings": 12
+  },
+  "items": [
+    {
+      "status": "pending",
+      "creem_id": null,
+      "adopted_from": null,
+      "changes": [],
+      "reason": null,
+      "warnings": [
+        {
+          "code": "unit_label_from_name",
+          "message": "The Polar meter has no unit label, so the Creem unit label is its name, \"API calls\". It names the meter's credit bucket and can't change once the meter exists."
+        }
+      ],
+      "error": null,
+      "kind": "meter",
+      "key": "94c96988-2501-4c61-b338-f4fe1c3ba8f7",
+      "name": "API calls",
+      "source": {
+        "type": "meter",
+        "id": "94c96988-2501-4c61-b338-f4fe1c3ba8f7"
+      },
+      "action": "create"
+    },
+    {
+      "status": "pending",
+      "creem_id": null,
+      "adopted_from": null,
+      "changes": [],
+      "reason": null,
+      "warnings": [],
+      "error": null,
+      "kind": "meter",
+      "key": "334f31a5-3bc5-425f-b5e0-f96274bc2c39",
+      "name": "Image generations",
+      "source": {
+        "type": "meter",
+        "id": "334f31a5-3bc5-425f-b5e0-f96274bc2c39"
+      },
+      "action": "create"
+    },
+    {
+      "status": null,
+      "creem_id": null,
+      "adopted_from": null,
+      "changes": [],
+      "reason": {
+        "code": "meter_filter_unsupported",
+        "message": "The filter has nested clauses. A Creem meter counts one event name, narrowed by flat clauses; set this meter up in Creem."
+      },
+      "warnings": [],
+      "error": null,
+      "kind": "meter",
+      "key": "afb4e0e9-25f4-4f97-b044-12c367c894a6",
+      "name": "Nested filter tokens",
+      "source": {
+        "type": "meter",
+        "id": "afb4e0e9-25f4-4f97-b044-12c367c894a6"
+      },
+      "action": "skip"
+    },
+    {
+      "status": null,
+      "creem_id": null,
+      "adopted_from": null,
+      "changes": [],
+      "reason": {
+        "code": "meter_filter_unsupported",
+        "message": "The filter has no `name eq` clause to take the event name from. A Creem meter counts one event name, narrowed by flat clauses; set this meter up in Creem."
+      },
+      "warnings": [],
+      "error": null,
+      "kind": "meter",
+      "key": "eb5928df-164e-471f-9f4b-a82a22a2ce46",
+      "name": "Storage GB",
+      "source": {
+        "type": "meter",
+        "id": "eb5928df-164e-471f-9f4b-a82a22a2ce46"
+      },
+      "action": "skip"
+    },
+    {
+      "status": "pending",
+      "creem_id": null,
+      "adopted_from": null,
+      "changes": [],
+      "reason": null,
+      "warnings": [
+        {
+          "code": "currency_prices_not_migrated",
+          "message": "The GBP prices are not migrated: a Creem product has one currency, USD."
+        }
+      ],
+      "error": null,
+      "kind": "product",
+      "key": "5409a749-9d68-4a34-981d-ab63e2fa209f",
+      "name": "Pound product",
+      "source": {
+        "type": "product",
+        "id": "5409a749-9d68-4a34-981d-ab63e2fa209f"
+      },
+      "action": "create"
+    },
+    {
+      "status": "pending",
+      "creem_id": null,
+      "adopted_from": null,
+      "changes": [],
+      "reason": null,
+      "warnings": [
+        {
+          "code": "currency_prices_not_migrated",
+          "message": "The EUR prices are not migrated: a Creem product has one currency, USD."
+        }
+      ],
+      "error": null,
+      "kind": "product",
+      "key": "e6dc2557-01a6-4656-a90d-5b8f9a24929c",
+      "name": "Euro product",
+      "source": {
+        "type": "product",
+        "id": "e6dc2557-01a6-4656-a90d-5b8f9a24929c"
+      },
+      "action": "create"
+    },
+    {
+      "status": null,
+      "creem_id": null,
+      "adopted_from": null,
+      "changes": [],
+      "reason": {
+        "code": "archived",
+        "message": "The product is archived in Polar (--include-archived writes it archived)."
+      },
+      "warnings": [],
+      "error": null,
+      "kind": "product",
+      "key": "953e2973-7972-43f1-b6a3-9a94c8bcaec1",
+      "name": "Retired product",
+      "source": {
+        "type": "product",
+        "id": "953e2973-7972-43f1-b6a3-9a94c8bcaec1"
+      },
+      "action": "skip"
+    },
+    {
+      "status": "pending",
+      "creem_id": null,
+      "adopted_from": null,
+      "changes": [],
+      "reason": null,
+      "warnings": [],
+      "error": null,
+      "kind": "product",
+      "key": "1b8b5649-bf47-4a93-bb6b-ecb7bdf59e1a",
+      "name": "Quarterly plan",
+      "source": {
+        "type": "product",
+        "id": "1b8b5649-bf47-4a93-bb6b-ecb7bdf59e1a"
+      },
+      "action": "create"
+    },
+    {
+      "status": "pending",
+      "creem_id": null,
+      "adopted_from": null,
+      "changes": [],
+      "reason": null,
+      "warnings": [],
+      "error": null,
+      "kind": "product",
+      "key": "7f034912-715e-4f0c-b2a9-2c9963ece4dc",
+      "name": "Annual plan",
+      "source": {
+        "type": "product",
+        "id": "7f034912-715e-4f0c-b2a9-2c9963ece4dc"
+      },
+      "action": "create"
+    },
+    {
+      "status": null,
+      "creem_id": null,
+      "adopted_from": null,
+      "changes": [],
+      "reason": {
+        "code": "free_recurring_unsupported",
+        "message": "Creem refuses a recurring product at price 0."
+      },
+      "warnings": [],
+      "error": null,
+      "kind": "product",
+      "key": "28da0f12-283d-42af-b835-356784a094cb",
+      "name": "Free plan",
+      "source": {
+        "type": "product",
+        "id": "28da0f12-283d-42af-b835-356784a094cb"
+      },
+      "action": "skip"
+    },
+    {
+      "status": "pending",
+      "creem_id": null,
+      "adopted_from": null,
+      "changes": [],
+      "reason": null,
+      "warnings": [],
+      "error": null,
+      "kind": "product",
+      "key": "6c913505-5616-45ec-a5b6-23ce3d2682fd",
+      "name": "Free starter kit",
+      "source": {
+        "type": "product",
+        "id": "6c913505-5616-45ec-a5b6-23ce3d2682fd"
+      },
+      "action": "create"
+    },
+    {
+      "status": "pending",
+      "creem_id": null,
+      "adopted_from": null,
+      "changes": [],
+      "reason": null,
+      "warnings": [
+        {
+          "code": "benefit_unsupported",
+          "message": "The meter credit benefit \"1,000 image credits\" is not migrated; set it up in Creem."
+        }
+      ],
+      "error": null,
+      "kind": "product",
+      "key": "6a163987-47f5-43b6-8e04-fcae6b92341e",
+      "name": "Image credits pack",
+      "source": {
+        "type": "product",
+        "id": "6a163987-47f5-43b6-8e04-fcae6b92341e"
+      },
+      "action": "create"
+    },
+    {
+      "status": "pending",
+      "creem_id": null,
+      "adopted_from": null,
+      "changes": [],
+      "reason": null,
+      "warnings": [
+        {
+          "code": "benefit_unsupported",
+          "message": "The downloadables benefit \"Download the guide\" is not migrated; set it up in Creem."
+        }
+      ],
+      "error": null,
+      "kind": "product",
+      "key": "af5d71f0-316c-46f0-9eb0-d07a33544089",
+      "name": "Guide download",
+      "source": {
+        "type": "product",
+        "id": "af5d71f0-316c-46f0-9eb0-d07a33544089"
+      },
+      "action": "create"
+    },
+    {
+      "status": "pending",
+      "creem_id": null,
+      "adopted_from": null,
+      "changes": [],
+      "reason": null,
+      "warnings": [
+        {
+          "code": "benefit_unsupported",
+          "message": "The license-key benefit \"License key\" is not migrated; set it up in Creem."
+        },
+        {
+          "code": "benefit_unsupported",
+          "message": "The custom benefit \"Private community\" is not migrated; set it up in Creem."
+        },
+        {
+          "code": "benefit_unsupported",
+          "message": "The feature flag benefit \"Beta features\" is not migrated; set it up in Creem."
+        }
+      ],
+      "error": null,
+      "kind": "product",
+      "key": "799c693b-96d3-45b2-9f17-3854de48d073",
+      "name": "Desktop app license",
+      "source": {
+        "type": "product",
+        "id": "799c693b-96d3-45b2-9f17-3854de48d073"
+      },
+      "action": "create"
+    },
+    {
+      "status": null,
+      "creem_id": null,
+      "adopted_from": null,
+      "changes": [],
+      "reason": {
+        "code": "seat_pricing_unsupported",
+        "message": "Seat-based prices are not migrated: Creem has no seat pricing."
+      },
+      "warnings": [],
+      "error": null,
+      "kind": "product",
+      "key": "c0531f87-4594-444f-886a-1e6eb10f3e5b",
+      "name": "Team seats",
+      "source": {
+        "type": "product",
+        "id": "c0531f87-4594-444f-886a-1e6eb10f3e5b"
+      },
+      "action": "skip"
+    },
+    {
+      "status": "pending",
+      "creem_id": null,
+      "adopted_from": null,
+      "changes": [],
+      "reason": null,
+      "warnings": [
+        {
+          "code": "pwyw_recurring_unsupported",
+          "message": "Pay what you want is one-time only in Creem; the subscription gets its minimum price, 1000 cents, as a fixed price."
+        }
+      ],
+      "error": null,
+      "kind": "product",
+      "key": "0b80c68b-40c3-4741-9b31-afd26244da8d",
+      "name": "Supporter pay what you want",
+      "source": {
+        "type": "product",
+        "id": "0b80c68b-40c3-4741-9b31-afd26244da8d"
+      },
+      "action": "create"
+    },
+    {
+      "status": "pending",
+      "creem_id": null,
+      "adopted_from": null,
+      "changes": [],
+      "reason": null,
+      "warnings": [],
+      "error": null,
+      "kind": "product",
+      "key": "97519987-d58a-44db-8ab6-9ba0575ba20f",
+      "name": "Ebook pay what you want",
+      "source": {
+        "type": "product",
+        "id": "97519987-d58a-44db-8ab6-9ba0575ba20f"
+      },
+      "action": "create"
+    },
+    {
+      "status": null,
+      "creem_id": null,
+      "adopted_from": null,
+      "changes": [],
+      "reason": {
+        "code": "usage_price_without_base_price",
+        "message": "The product has only metered prices: Creem refuses a recurring product at price 0, so there's no base price to put the usage on."
+      },
+      "warnings": [],
+      "error": null,
+      "kind": "product",
+      "key": "53d19362-2f1e-43e3-8a1b-e0718d6c3ffd",
+      "name": "Images pay as you go",
+      "source": {
+        "type": "product",
+        "id": "53d19362-2f1e-43e3-8a1b-e0718d6c3ffd"
+      },
+      "action": "skip"
+    },
+    {
+      "status": "pending",
+      "creem_id": null,
+      "adopted_from": null,
+      "changes": [],
+      "reason": null,
+      "warnings": [
+        {
+          "code": "benefit_unsupported",
+          "message": "The meter credit benefit \"1,000 image credits\" is not migrated; set it up in Creem."
+        }
+      ],
+      "error": null,
+      "kind": "product",
+      "key": "c635a220-436e-458f-b8e1-0eb1989a16cc",
+      "name": "Pro with usage",
+      "source": {
+        "type": "product",
+        "id": "c635a220-436e-458f-b8e1-0eb1989a16cc"
+      },
+      "action": "create"
+    },
+    {
+      "status": null,
+      "creem_id": null,
+      "adopted_from": null,
+      "changes": [],
+      "reason": {
+        "code": "legacy_prices_unsupported",
+        "message": "The product is a legacy product with one price per billing interval; it is not migrated. Set it up in Creem."
+      },
+      "warnings": [],
+      "error": null,
+      "kind": "product",
+      "key": "00000000-0000-4000-8000-00000000c002",
+      "name": "Legacy Pro",
+      "source": {
+        "type": "price",
+        "id": "00000000-0000-4000-8000-00000000c002",
+        "product_id": "00000000-0000-4000-8000-00000000b001"
+      },
+      "action": "skip"
+    },
+    {
+      "status": null,
+      "creem_id": null,
+      "adopted_from": null,
+      "changes": [],
+      "reason": {
+        "code": "legacy_prices_unsupported",
+        "message": "The product is a legacy product with one price per billing interval; it is not migrated. Set it up in Creem."
+      },
+      "warnings": [],
+      "error": null,
+      "kind": "product",
+      "key": "00000000-0000-4000-8000-00000000c001",
+      "name": "Legacy Pro",
+      "source": {
+        "type": "price",
+        "id": "00000000-0000-4000-8000-00000000c001",
+        "product_id": "00000000-0000-4000-8000-00000000b001"
+      },
+      "action": "skip"
+    },
+    {
+      "status": "pending",
+      "creem_id": null,
+      "adopted_from": null,
+      "changes": [],
+      "reason": null,
+      "warnings": [
+        {
+          "code": "benefit_unsupported",
+          "message": "The Discord benefit \"Discord member role\" is not migrated; set it up in Creem."
+        },
+        {
+          "code": "benefit_unsupported",
+          "message": "The GitHub repository benefit \"Source code access\" is not migrated; set it up in Creem."
+        }
+      ],
+      "error": null,
+      "kind": "product",
+      "key": "00000000-0000-4000-8000-00000000b002",
+      "name": "Community access",
+      "source": {
+        "type": "product",
+        "id": "00000000-0000-4000-8000-00000000b002"
+      },
+      "action": "create"
+    },
+    {
+      "status": null,
+      "creem_id": null,
+      "adopted_from": null,
+      "changes": [],
+      "reason": {
+        "code": "currency_unsupported",
+        "message": "The product is priced in GBP; Creem prices are in USD or EUR, and the migrator converts no currency."
+      },
+      "warnings": [],
+      "error": null,
+      "kind": "product",
+      "key": "00000000-0000-4000-8000-00000000b003",
+      "name": "Pound only",
+      "source": {
+        "type": "product",
+        "id": "00000000-0000-4000-8000-00000000b003"
+      },
+      "action": "skip"
+    },
+    {
+      "status": "pending",
+      "creem_id": null,
+      "adopted_from": null,
+      "changes": [],
+      "reason": null,
+      "warnings": [],
+      "error": null,
+      "kind": "product",
+      "key": "00000000-0000-4000-8000-00000000b004",
+      "name": "Legacy free download",
+      "source": {
+        "type": "product",
+        "id": "00000000-0000-4000-8000-00000000b004"
+      },
+      "action": "create"
+    }
+  ],
+  "proposals": [],
+  "not_migrated": [
+    {
+      "kind": "customers",
+      "reason": {
+        "code": "out_of_scope",
+        "message": "Customers are not migrated: the migrator reads no customers."
+      }
+    },
+    {
+      "kind": "subscriptions",
+      "reason": {
+        "code": "out_of_scope",
+        "message": "Subscriptions are not migrated; move subscribers as the guide describes."
+      }
+    },
+    {
+      "kind": "orders",
+      "reason": {
+        "code": "out_of_scope",
+        "message": "Orders are not migrated; export them from Polar."
+      }
+    },
+    {
+      "kind": "license_keys",
+      "reason": {
+        "code": "out_of_scope",
+        "message": "License keys already issued in Polar are not migrated."
+      }
+    },
+    {
+      "kind": "checkout_links",
+      "reason": {
+        "code": "out_of_scope",
+        "message": "Checkout links are not migrated; create checkouts in Creem."
+      }
+    },
+    {
+      "kind": "webhooks",
+      "reason": {
+        "code": "out_of_scope",
+        "message": "Webhooks are not migrated; add your endpoint in Creem."
+      }
+    },
+    {
+      "kind": "benefits",
+      "reason": {
+        "code": "out_of_scope",
+        "message": "Benefits no product grants are not read; only a product's benefits are migrated."
+      }
+    }
+  ],
+  "fetch_failures": []
+}

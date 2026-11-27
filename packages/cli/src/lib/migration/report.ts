@@ -48,7 +48,7 @@ export const MIGRATION_EXIT_CODES = {
   validationFailed: 8,
 } as const;
 
-export type MigrationItemKind = "product" | "product_group" | "discount" | "file";
+export type MigrationItemKind = "meter" | "product" | "product_group" | "discount" | "file";
 /** What the plan does with an item. */
 export type MigrationAction = "create" | "update" | "unchanged" | "skip";
 /**

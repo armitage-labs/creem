@@ -1,0 +1,237 @@
+[
+  {
+    "type": "upsert_meter",
+    "key": "94c96988-2501-4c61-b338-f4fe1c3ba8f7",
+    "request": {
+      "createMeterApiRequestDto": {
+        "externalId": "94c96988-2501-4c61-b338-f4fe1c3ba8f7",
+        "name": "API calls",
+        "eventName": "api.call",
+        "aggregation": "count",
+        "filter": {
+          "conjunction": "and",
+          "clauses": [
+            {
+              "property": "tier",
+              "operator": "not_equals",
+              "value": "free"
+            }
+          ]
+        },
+        "unitLabel": "API calls"
+      }
+    }
+  },
+  {
+    "type": "upsert_meter",
+    "key": "334f31a5-3bc5-425f-b5e0-f96274bc2c39",
+    "request": {
+      "createMeterApiRequestDto": {
+        "externalId": "334f31a5-3bc5-425f-b5e0-f96274bc2c39",
+        "name": "Image generations",
+        "eventName": "image.generated",
+        "aggregation": "sum",
+        "aggregationProperty": "images",
+        "unitLabel": "image"
+      }
+    }
+  },
+  {
+    "type": "upsert_product",
+    "key": "5409a749-9d68-4a34-981d-ab63e2fa209f",
+    "request": {
+      "createProductRequestEntity": {
+        "externalId": "5409a749-9d68-4a34-981d-ab63e2fa209f",
+        "name": "Pound product",
+        "description": "Priced in pounds.",
+        "price": 2000,
+        "currency": "USD",
+        "billingType": "onetime"
+      }
+    }
+  },
+  {
+    "type": "upsert_product",
+    "key": "e6dc2557-01a6-4656-a90d-5b8f9a24929c",
+    "request": {
+      "createProductRequestEntity": {
+        "externalId": "e6dc2557-01a6-4656-a90d-5b8f9a24929c",
+        "name": "Euro product",
+        "description": "Priced in euros.",
+        "price": 2000,
+        "currency": "USD",
+        "billingType": "onetime"
+      }
+    }
+  },
+  {
+    "type": "upsert_product",
+    "key": "1b8b5649-bf47-4a93-bb6b-ecb7bdf59e1a",
+    "request": {
+      "createProductRequestEntity": {
+        "externalId": "1b8b5649-bf47-4a93-bb6b-ecb7bdf59e1a",
+        "name": "Quarterly plan",
+        "description": "Billed every three months.",
+        "price": 2500,
+        "currency": "USD",
+        "billingType": "recurring",
+        "billingPeriod": "every-three-months"
+      }
+    }
+  },
+  {
+    "type": "upsert_product",
+    "key": "7f034912-715e-4f0c-b2a9-2c9963ece4dc",
+    "request": {
+      "createProductRequestEntity": {
+        "externalId": "7f034912-715e-4f0c-b2a9-2c9963ece4dc",
+        "name": "Annual plan",
+        "description": "Billed yearly, with a trial.",
+        "price": 9900,
+        "currency": "USD",
+        "billingType": "recurring",
+        "billingPeriod": "every-year",
+        "trialPeriodDays": 14
+      }
+    }
+  },
+  {
+    "type": "upsert_product",
+    "key": "6c913505-5616-45ec-a5b6-23ce3d2682fd",
+    "request": {
+      "createProductRequestEntity": {
+        "externalId": "6c913505-5616-45ec-a5b6-23ce3d2682fd",
+        "name": "Free starter kit",
+        "description": "Free starter kit",
+        "price": 0,
+        "currency": "USD",
+        "billingType": "onetime"
+      }
+    }
+  },
+  {
+    "type": "upsert_product",
+    "key": "6a163987-47f5-43b6-8e04-fcae6b92341e",
+    "request": {
+      "createProductRequestEntity": {
+        "externalId": "6a163987-47f5-43b6-8e04-fcae6b92341e",
+        "name": "Image credits pack",
+        "description": "Credits for image generations.",
+        "price": 1500,
+        "currency": "USD",
+        "billingType": "recurring",
+        "billingPeriod": "every-month"
+      }
+    }
+  },
+  {
+    "type": "upsert_product",
+    "key": "af5d71f0-316c-46f0-9eb0-d07a33544089",
+    "request": {
+      "createProductRequestEntity": {
+        "externalId": "af5d71f0-316c-46f0-9eb0-d07a33544089",
+        "name": "Guide download",
+        "description": "A downloadable guide.",
+        "price": 900,
+        "currency": "USD",
+        "billingType": "onetime"
+      }
+    }
+  },
+  {
+    "type": "upsert_product",
+    "key": "799c693b-96d3-45b2-9f17-3854de48d073",
+    "request": {
+      "createProductRequestEntity": {
+        "externalId": "799c693b-96d3-45b2-9f17-3854de48d073",
+        "name": "Desktop app license",
+        "description": "One-time purchase with a license key.",
+        "price": 4900,
+        "currency": "USD",
+        "billingType": "onetime"
+      }
+    }
+  },
+  {
+    "type": "upsert_product",
+    "key": "0b80c68b-40c3-4741-9b31-afd26244da8d",
+    "request": {
+      "createProductRequestEntity": {
+        "externalId": "0b80c68b-40c3-4741-9b31-afd26244da8d",
+        "name": "Supporter pay what you want",
+        "description": "Monthly support, any amount.",
+        "price": 1000,
+        "currency": "USD",
+        "billingType": "recurring",
+        "billingPeriod": "every-month"
+      }
+    }
+  },
+  {
+    "type": "upsert_product",
+    "key": "97519987-d58a-44db-8ab6-9ba0575ba20f",
+    "request": {
+      "createProductRequestEntity": {
+        "externalId": "97519987-d58a-44db-8ab6-9ba0575ba20f",
+        "name": "Ebook pay what you want",
+        "description": "Pay what you want for the ebook.",
+        "price": 500,
+        "currency": "USD",
+        "billingType": "onetime",
+        "payWhatYouWant": true,
+        "suggestedPrice": 1500
+      }
+    }
+  },
+  {
+    "type": "upsert_product",
+    "key": "c635a220-436e-458f-b8e1-0eb1989a16cc",
+    "request": {
+      "createProductRequestEntity": {
+        "externalId": "c635a220-436e-458f-b8e1-0eb1989a16cc",
+        "name": "Pro with usage",
+        "description": "Monthly plan with metered API calls.",
+        "price": 2000,
+        "currency": "USD",
+        "billingType": "recurring",
+        "billingPeriod": "every-month",
+        "usagePrices": [
+          {
+            "meterExternalId": "94c96988-2501-4c61-b338-f4fe1c3ba8f7",
+            "unitPrice": 0.5,
+            "cap": 10000,
+            "settlementMode": "postpaid"
+          }
+        ]
+      }
+    }
+  },
+  {
+    "type": "upsert_product",
+    "key": "00000000-0000-4000-8000-00000000b002",
+    "request": {
+      "createProductRequestEntity": {
+        "externalId": "00000000-0000-4000-8000-00000000b002",
+        "name": "Community access",
+        "description": "Discord role and repository access.",
+        "price": 1500,
+        "currency": "USD",
+        "billingType": "onetime"
+      }
+    }
+  },
+  {
+    "type": "upsert_product",
+    "key": "00000000-0000-4000-8000-00000000b004",
+    "request": {
+      "createProductRequestEntity": {
+        "externalId": "00000000-0000-4000-8000-00000000b004",
+        "name": "Legacy free download",
+        "description": "Legacy free download",
+        "price": 0,
+        "currency": "USD",
+        "billingType": "onetime"
+      }
+    }
+  }
+]
