@@ -277,12 +277,25 @@ export function fromStripe(
   creemCatalog: CreemCatalog,
   options: FromStripeOptions = {},
 ): MigrationPlan {
-  const adoption = adoptionMatcher(options.adoption ?? {});
   const byKey = <T extends { externalId: string | null }>(list: T[]) =>
     new Map(list.filter((o) => o.externalId).map((o) => [o.externalId as string, o]));
   const creemMeters = creemCatalog.meters ?? [];
   const metersByKey = byKey<MeterApiResponseDto>(creemMeters);
   const productsByKey = byKey<ProductEntity>(creemCatalog.products);
+  // A product migrated under another key of the price: its lookup key changed in Stripe since.
+  const movedFrom = new Map<string, ProductEntity>();
+  for (const price of objects.prices) {
+    const key = priceKey(price);
+    const moved = creemCatalog.products.find(
+      (p) => p.externalId && p.externalId !== key && p.metadata?.stripe_price_id === price.id,
+    );
+    if (moved && !productsByKey.has(key)) movedFrom.set(key, moved);
+  }
+  // Moving a key is proposed like an adoption; the shared matcher proposes unkeyed objects only.
+  const answers = Object.entries(options.adoption ?? {});
+  const isMove = ([id]: [string, string]) => movedFrom.has(id.slice("adopt:".length));
+  const adoption = adoptionMatcher(Object.fromEntries(answers.filter((a) => !isMove(a))));
+  const keyMoves = adoptionMatcher(Object.fromEntries(answers.filter(isMove)));
   const productsById = new Map(objects.products.map((p) => [p.id, p]));
   const adoptions: MigrationRequest[] = [];
   const meterRequests: MigrationRequest[] = [];
@@ -412,32 +425,54 @@ export function fromStripe(
       item.warnings.push(
         issue("image_not_migrated", "The product images are not migrated; add them in Creem."),
       );
-    const found = adoption.match(
-      "product",
-      key,
-      productsByKey,
-      creemCatalog.products,
-      creemCatalog.products
-        .filter((p) => sameName(p.name, name))
-        .sort(
-          (a, b) =>
-            Number(a.billingType !== body.billingType) -
-              Number(b.billingType !== body.billingType) ||
-            Number(a.status === "archived") - Number(b.status === "archived") ||
-            Math.abs(a.price - body.price!) - Math.abs(b.price - body.price!),
-        ),
-      (p) => productDifferences(p, body),
-      item,
-    );
+    const moved = movedFrom.get(key);
+    // The moved product is offered as if it had no key; its PATCH gives it the new one.
+    const movable = moved && [{ ...moved, externalId: null }];
+    const found = movable
+      ? keyMoves.match(
+          "product",
+          key,
+          new Map(),
+          movable,
+          movable,
+          (p) => [`key ${moved.externalId}${stripe(key)}`, ...productDifferences(p, body)],
+          item,
+        )
+      : adoption.match(
+          "product",
+          key,
+          productsByKey,
+          creemCatalog.products,
+          creemCatalog.products
+            .filter((p) => sameName(p.name, name))
+            .sort(
+              (a, b) =>
+                Number(a.billingType !== body.billingType) -
+                  Number(b.billingType !== body.billingType) ||
+                Number(a.status === "archived") - Number(b.status === "archived") ||
+                Math.abs(a.price - body.price!) - Math.abs(b.price - body.price!),
+            ),
+          (p) => productDifferences(p, body),
+          item,
+        );
     if (found.rejected || found.pending) {
       item.creem_id = found.pending?.length === 1 ? found.pending[0].id : null;
-      item.reason = found.rejected ?? adoption.unconfirmed("product", key, found.pending!);
+      item.reason =
+        found.rejected ??
+        (moved
+          ? issue(
+              "adoption_unconfirmed",
+              `Creem product ${moved.id} was migrated from this price with the key ${moved.externalId}; the price's key is now ${key}. Answer the proposal: move the key to it (in a terminal, or with --adopt ${key}=${moved.id}) or create a new product (--adopt ${key}=new).`,
+            )
+          : adoption.unconfirmed("product", key, found.pending!));
       return;
     }
     const existing = found.existing;
-    // A sent `metadata` replaces the stored one: the stored keys are sent back.
+    // A sent `metadata` replaces the stored one: the stored keys are sent back,
+    // without a lookup key that no longer applies.
+    const { stripe_lookup_key: _replaced, ...stored } = existing?.metadata ?? {};
     body.metadata = {
-      ...(existing?.metadata ?? {}),
+      ...stored,
       ...product.metadata,
       ...price.metadata,
       stripe_product_id: product.id,
@@ -538,6 +573,7 @@ export function fromStripe(
   }
 
   adoption.finish();
+  keyMoves.finish();
   const items = [...meterItems, ...productItems];
   const notMigrated: MigrationReport["not_migrated"] = NOT_MIGRATED.map(
     ([kind, code, message]) => ({ kind, reason: issue(code, message) }),
@@ -570,14 +606,14 @@ export function fromStripe(
     mode: "plan",
     summary: summarize(items),
     items,
-    proposals: adoption.proposals,
+    proposals: [...adoption.proposals, ...keyMoves.proposals],
     not_migrated: notMigrated,
     fetch_failures: [],
   };
   return {
     requests: [...adoptions, ...meterRequests, ...productRequests],
     report,
-    answerErrors: adoption.answerErrors,
+    answerErrors: [...adoption.answerErrors, ...keyMoves.answerErrors],
     productGroupOf: Object.fromEntries(
       creemCatalog.productGroups.flatMap((g) =>
         g.products.map((p) => [p.id, { id: g.id, externalId: g.externalId }]),
