@@ -64,10 +64,45 @@ For transactions recovered through abandoned cart functionality, an additional *
 
 These additional fees help cover the specialized infrastructure and processing costs associated with these advanced features.
 
+## Currency Conversion Fee
+
+In some countries, customers pay in their local currency instead of your product's currency. The currency follows the billing country the customer selects at checkout. Charging in the local currency lets us accept more local payment methods and leads to a higher acceptance rate on payments.
+
+This applies to one-time payments on stores where local currency checkout is enabled. We add new countries regularly. Subscriptions, paid trials, tax-inclusive prices and pay-what-you-want prices are charged in your product's currency.
+
+### What the customer pays
+
+The price is converted at the market rate plus a **4% currency conversion fee**. The customer pays this fee, and checkout shows it (for example, "Exchange rate: 1 USD = SEK 10.00 + 4% conversion fee").
+
+No currency conversion fee applies between USD and EUR.
+
+### What you receive
+
+You are paid in your product's currency, as if the customer had paid in it. The sale, the platform fee and your balance are all in your product's currency. You pay no currency conversion fee, and later exchange rate changes do not change what you receive.
+
+Here's an example breakdown where someone in Sweden buys a $20.00 product and pays in SEK. The rate is an example, and tax is left out.
+
+| Description                           | Amount            |
+| ------------------------------------- | ----------------- |
+| Product price                         | $20.00            |
+| Market rate (example)                 | 1 USD = 10.00 SEK |
+| Converted product price               | 200.00 SEK        |
+| Currency conversion fee (4%)          | 8.00 SEK          |
+| Total paid by the customer            | 208.00 SEK        |
+| Your sale                             | $20.00            |
+| Platform fee (3.9% + $0.40)           | $1.18             |
+| Net profit (your sale - platform fee) | $18.82            |
+
+### Refunds and chargebacks
+
+When you refund, your balance is debited in your product's currency ($20.00 in the example). The customer gets that amount in their local currency at the market rate on the day of the refund, never more than they paid. This can be a little more or less than the price they paid. The currency conversion fee is not refunded.
+
+Chargebacks are also debited in your product's currency.
+
 ## Payout Fees
 
 Creem charges 7 USD/EUR or 1% of the payout amount, whichever is higher, to cover bank transfer costs.
-Conversion rates are automatically applied by our banking partners if your registered bank account uses a different currency than the one you charge customers in.
+Conversion rates are automatically applied by our banking partners if your registered bank account uses a different currency than your USD or EUR balance.
 In that case, a small conversion fee from our Partners will be applied, which is outside of our control.
 
 ### Stablecoin Payouts (USDC via Polygon)
