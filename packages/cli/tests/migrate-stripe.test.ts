@@ -685,6 +685,65 @@ describe("fromStripe against a store with Creem objects", () => {
     expect(p.report.proposals[0]).toMatchObject({ decision: "accepted", creem_id: "prod_1" });
   });
 
+  it("proposes moving the key when a migrated price got a new lookup key in Stripe, and moves it when answered", async () => {
+    const docs = stripeDocs();
+    docs.prices.data.find((price) => price.id === ID.priceDonation)!.lookup_key =
+      "eng2012_donation";
+    const catalog = await catalogOf({
+      products: [
+        productJson("prod_1", {
+          name: "eng2012-Donation",
+          external_id: ID.priceDonation,
+          metadata: { stripe_price_id: ID.priceDonation, crm: "7" },
+        }),
+      ],
+    });
+    const open = await plan(catalog, {}, structuredClone(docs));
+    expect(open.report.proposals).toEqual([
+      expect.objectContaining({
+        id: "adopt:eng2012_donation",
+        key: "eng2012_donation",
+        decision: "pending",
+        candidates: [
+          expect.objectContaining({
+            creem_id: "prod_1",
+            differences: expect.arrayContaining([
+              `key ${ID.priceDonation} (Stripe: eng2012_donation)`,
+            ]),
+          }),
+        ],
+      }),
+    ]);
+    expect(item(open, "eng2012_donation")).toMatchObject({
+      action: "skip",
+      creem_id: "prod_1",
+      reason: { code: "adoption_unconfirmed", message: expect.stringContaining(ID.priceDonation) },
+    });
+    expect(open.requests.filter((r) => r.key === "eng2012_donation")).toEqual([]);
+
+    const moved = await plan(
+      catalog,
+      { adoption: { "adopt:eng2012_donation": "prod_1" } },
+      structuredClone(docs),
+    );
+    expect(moved.answerErrors).toEqual([]);
+    expect(moved.requests[0]).toMatchObject({
+      type: "adopt_product",
+      key: "eng2012_donation",
+      request: {
+        id: "prod_1",
+        updateProductRequestEntity: {
+          externalId: "eng2012_donation",
+          metadata: expect.objectContaining({ crm: "7", stripe_price_id: ID.priceDonation }),
+        },
+      },
+    });
+    expect(item(moved, "eng2012_donation")).toMatchObject({
+      action: "update",
+      adopted_from: "prod_1",
+    });
+  });
+
   it("proposes an unkeyed Creem meter with the same name, and adopts it with a meter PATCH", async () => {
     const meter = {
       id: "mtr_1",
@@ -1019,6 +1078,30 @@ describe("creem migrate stripe", () => {
     expect(creem.state.products.find((p) => p.id === "prod_2")?.external_id).toBeNull();
     expect(creem.state.products.find((p) => p.id === "prod_3")?.external_id).toBeNull();
     expect(creem.state.products.filter((p) => p.external_id === ID.priceDonation)).toHaveLength(1);
+  });
+
+  it("bare --adopt moves the key of a migrated price whose lookup key changed, without a second product", async () => {
+    const docs = stripeDocs();
+    docs.prices.data.find((price) => price.id === ID.priceDonation)!.lookup_key =
+      "eng2012_donation";
+    const { creem, h } = setup({
+      docs,
+      state: {
+        products: [
+          productJson("prod_1", {
+            name: "eng2012-Donation",
+            external_id: ID.priceDonation,
+            metadata: { stripe_price_id: ID.priceDonation },
+          }),
+        ],
+      },
+    });
+    const r = await h.run(["--json", ...base, "--yes", "--adopt"]);
+    expect(r.code, r.stderr).toBe(0);
+    expect(creem.state.products.find((p) => p.id === "prod_1")?.external_id).toBe(
+      "eng2012_donation",
+    );
+    expect(creem.state.products.filter((p) => p.name === "eng2012-Donation")).toHaveLength(1);
   });
 
   it("asks per proposal in a terminal, and never adopts without a yes", async () => {
