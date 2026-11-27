@@ -1,0 +1,155 @@
+[
+  {
+    "type": "upsert_meter",
+    "key": "mtr_test_61VplklchLQ1Y0MTF41AXmbOrRaLZ8YC",
+    "request": {
+      "createMeterApiRequestDto": {
+        "externalId": "mtr_test_61VplklchLQ1Y0MTF41AXmbOrRaLZ8YC",
+        "name": "eng2012 Active users",
+        "eventName": "eng2012_active_user",
+        "aggregation": "count",
+        "unitLabel": "eng2012_active_user"
+      }
+    }
+  },
+  {
+    "type": "upsert_meter",
+    "key": "mtr_test_61VplklKXH2mr8Lnh41AXmbOrRaLZJfM",
+    "request": {
+      "createMeterApiRequestDto": {
+        "externalId": "mtr_test_61VplklKXH2mr8Lnh41AXmbOrRaLZJfM",
+        "name": "eng2012 API calls",
+        "eventName": "eng2012_api_call",
+        "aggregation": "sum",
+        "aggregationProperty": "calls",
+        "unitLabel": "API call"
+      }
+    }
+  },
+  {
+    "type": "upsert_product",
+    "key": "price_1UgNnVAXmbOrRaLZxUHj4TlZ",
+    "request": {
+      "createProductRequestEntity": {
+        "externalId": "price_1UgNnVAXmbOrRaLZxUHj4TlZ",
+        "name": "eng2012-Cycles - Weekly",
+        "description": "eng2012-Cycles - Weekly",
+        "price": 700,
+        "currency": "EUR",
+        "billingType": "recurring",
+        "billingPeriod": "custom",
+        "recurringInterval": "week",
+        "recurringIntervalCount": 1,
+        "metadata": {
+          "eng2012_seed": "weekly",
+          "stripe_product_id": "prod_VhnOCzIZXvoMu3",
+          "stripe_price_id": "price_1UgNnVAXmbOrRaLZxUHj4TlZ"
+        }
+      }
+    }
+  },
+  {
+    "type": "upsert_product",
+    "key": "price_1UgNnVAXmbOrRaLZMZgnPmhd",
+    "request": {
+      "createProductRequestEntity": {
+        "externalId": "price_1UgNnVAXmbOrRaLZMZgnPmhd",
+        "name": "eng2012-Ebook",
+        "description": "eng2012-Ebook",
+        "price": 900,
+        "currency": "EUR",
+        "billingType": "onetime",
+        "metadata": {
+          "eng2012_seed": "ebook",
+          "stripe_product_id": "prod_VhnOtziZP7FOgf",
+          "stripe_price_id": "price_1UgNnVAXmbOrRaLZMZgnPmhd"
+        }
+      }
+    }
+  },
+  {
+    "type": "upsert_product",
+    "key": "price_1UgNnUAXmbOrRaLZG1WZRuET",
+    "request": {
+      "createProductRequestEntity": {
+        "externalId": "price_1UgNnUAXmbOrRaLZG1WZRuET",
+        "name": "eng2012-Donation",
+        "description": "Support the project.",
+        "price": 500,
+        "currency": "USD",
+        "billingType": "onetime",
+        "payWhatYouWant": true,
+        "suggestedPrice": 1500,
+        "metadata": {
+          "eng2012_seed": "donation",
+          "stripe_product_id": "prod_VhnOQNGsA4LW4H",
+          "stripe_price_id": "price_1UgNnUAXmbOrRaLZG1WZRuET"
+        }
+      }
+    }
+  },
+  {
+    "type": "upsert_product",
+    "key": "price_1UgNnSAXmbOrRaLZjN74EJWB",
+    "request": {
+      "createProductRequestEntity": {
+        "externalId": "price_1UgNnSAXmbOrRaLZjN74EJWB",
+        "name": "eng2012-Usage plan - Monthly",
+        "description": "Base fee plus API calls.",
+        "price": 1000,
+        "currency": "USD",
+        "billingType": "recurring",
+        "billingPeriod": "every-month",
+        "metadata": {
+          "eng2012_seed": "usage-base",
+          "stripe_product_id": "prod_VhnOZJaHQcm3CT",
+          "stripe_price_id": "price_1UgNnSAXmbOrRaLZjN74EJWB"
+        }
+      }
+    }
+  },
+  {
+    "type": "upsert_product",
+    "key": "eng2012_pro_yearly",
+    "request": {
+      "createProductRequestEntity": {
+        "externalId": "eng2012_pro_yearly",
+        "name": "eng2012-Pro - Yearly",
+        "description": "All features for growing teams.",
+        "price": 29000,
+        "currency": "USD",
+        "billingType": "recurring",
+        "billingPeriod": "every-year",
+        "metadata": {
+          "eng2012_seed": "pro-yearly",
+          "tier": "pro",
+          "stripe_product_id": "prod_VhnO5VaRUVrKSX",
+          "stripe_price_id": "price_1UgNnQAXmbOrRaLZbCbL8iLc"
+        }
+      }
+    }
+  },
+  {
+    "type": "upsert_product",
+    "key": "price_1UgNnQAXmbOrRaLZslqJaG2t",
+    "request": {
+      "createProductRequestEntity": {
+        "externalId": "price_1UgNnQAXmbOrRaLZslqJaG2t",
+        "name": "eng2012-Pro - Monthly",
+        "description": "All features for growing teams.",
+        "price": 2900,
+        "currency": "USD",
+        "billingType": "recurring",
+        "billingPeriod": "every-month",
+        "metadata": {
+          "eng2012_seed": "pro-monthly",
+          "tier": "pro",
+          "plan": "pro-monthly",
+          "stripe_product_id": "prod_VhnO5VaRUVrKSX",
+          "stripe_price_id": "price_1UgNnQAXmbOrRaLZslqJaG2t",
+          "stripe_lookup_key": "Pro Monthly 2024"
+        }
+      }
+    }
+  }
+]
