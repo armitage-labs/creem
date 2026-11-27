@@ -285,8 +285,13 @@ export function fromStripe(
   const metersByKey = byKey<MeterApiResponseDto>(creemMeters);
   const productsByKey = byKey<ProductEntity>(creemCatalog.products);
   // A product migrated under another key of the price: its lookup key changed in Stripe since.
-  // Not when another price read now has that key: Stripe transferred the lookup key to it.
-  const keys = new Set(objects.prices.map(priceKey));
+  // Not when another price this run writes now has that key: Stripe transferred the lookup key
+  // to it. A price the run skips (unsupported, unmappable, product not read) writes no product,
+  // so its key doesn't count, and the old price's product is still offered the move.
+  const readProducts = new Set(objects.products.map((p) => p.id));
+  const writes = (price: Stripe.Price) =>
+    readProducts.has(productIdOf(price)) && !unsupported(price) && !("skip" in mapPrice(price, []));
+  const keys = new Set(objects.prices.filter(writes).map(priceKey));
   const movedFrom = new Map<string, ProductEntity>();
   for (const price of objects.prices) {
     const key = priceKey(price);
