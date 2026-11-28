@@ -27,7 +27,7 @@ export class Meters extends ClientSDK {
   async createMeter(
     request: operations.CreateMeterRequest,
     options?: RequestOptions,
-  ): Promise<components.MeterWriteApiResponseDto> {
+  ): Promise<operations.CreateMeterResponse> {
     return unwrapAsync(metersCreateMeter(
       this,
       request,
@@ -78,7 +78,7 @@ export class Meters extends ClientSDK {
   async getMeter(
     request: operations.GetMeterRequest,
     options?: RequestOptions,
-  ): Promise<components.MeterApiResponseDto> {
+  ): Promise<operations.GetMeterResponse> {
     return unwrapAsync(metersGetMeter(
       this,
       request,
@@ -95,7 +95,7 @@ export class Meters extends ClientSDK {
   async updateMeter(
     request: operations.UpdateMeterRequest,
     options?: RequestOptions,
-  ): Promise<components.MeterWriteApiResponseDto> {
+  ): Promise<operations.UpdateMeterResponse> {
     return unwrapAsync(metersUpdateMeter(
       this,
       request,
@@ -146,7 +146,7 @@ export class Meters extends ClientSDK {
   async archiveMeter(
     request: operations.ArchiveMeterRequest,
     options?: RequestOptions,
-  ): Promise<components.MeterApiResponseDto> {
+  ): Promise<operations.ArchiveMeterResponse> {
     return unwrapAsync(metersArchiveMeter(
       this,
       request,
@@ -163,7 +163,7 @@ export class Meters extends ClientSDK {
   async unarchiveMeter(
     request: operations.UnarchiveMeterRequest,
     options?: RequestOptions,
-  ): Promise<components.MeterApiResponseDto> {
+  ): Promise<operations.UnarchiveMeterResponse> {
     return unwrapAsync(metersUnarchiveMeter(
       this,
       request,

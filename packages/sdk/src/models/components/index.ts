@@ -22,6 +22,7 @@ export * from "./catalogpromoterequestdto.js";
 export * from "./catalogpromoteresponsedto.js";
 export * from "./catalogpromoteselectrequestdto.js";
 export * from "./catalogpromotesummaryresponsedto.js";
+export * from "./catalogrevisionresponsedto.js";
 export * from "./catalogvalidateitemrequestdto.js";
 export * from "./catalogvalidaterequestdto.js";
 export * from "./catalogvalidationitemresponsedto.js";

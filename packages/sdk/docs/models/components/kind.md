@@ -1,6 +1,6 @@
 # Kind
 
-The kind of resource the item writes. `meter` and `product` can be validated; `product_group` and `discount` answer `400` `dry_run_not_supported` until their writes support a dry run.
+The kind of resource the item writes: `meter`, `product`, `product_group` or `discount`.
 
 ## Example Usage
 

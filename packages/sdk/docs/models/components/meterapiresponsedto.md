@@ -14,13 +14,7 @@ let value: MeterApiResponseDto = {
   aggregationProperty: "tokens",
   filter: {
     conjunction: "and",
-    clauses: [
-      {
-        property: "tier",
-        operator: "equals",
-        value: "pro",
-      },
-    ],
+    clauses: [],
   },
   unitLabel: "images",
   status: "active",

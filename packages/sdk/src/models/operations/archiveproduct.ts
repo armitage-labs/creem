@@ -3,8 +3,10 @@
  */
 
 import * as z from "zod/v3";
+import { remap as remap$ } from "../../lib/primitives.js";
 import { safeParse } from "../../lib/schemas.js";
 import { Result as SafeParseResult } from "../../types/fp.js";
+import * as components from "../components/index.js";
 import { SDKValidationError } from "../errors/sdkvalidationerror.js";
 
 export type ArchiveProductRequest = {
@@ -12,6 +14,15 @@ export type ArchiveProductRequest = {
    * The product ID
    */
   id: string;
+  /**
+   * Write only while the product is unchanged: send the `ETag` a read or write of it returned, or `*` for any existing product. When it doesn't match, the call answers `412` (`precondition_failed`, `details.etag` the current ETag) and writes nothing. A weak tag (`W/…`) never matches. A dry run evaluates it the same way.
+   */
+  ifMatch?: string | undefined;
+};
+
+export type ArchiveProductResponse = {
+  headers: { [k: string]: Array<string> };
+  result: components.ProductEntity;
 };
 
 /** @internal */
@@ -21,10 +32,16 @@ export const ArchiveProductRequest$inboundSchema: z.ZodType<
   unknown
 > = z.object({
   id: z.string(),
+  "If-Match": z.string().optional(),
+}).transform((v) => {
+  return remap$(v, {
+    "If-Match": "ifMatch",
+  });
 });
 /** @internal */
 export type ArchiveProductRequest$Outbound = {
   id: string;
+  "If-Match"?: string | undefined;
 };
 
 /** @internal */
@@ -34,6 +51,11 @@ export const ArchiveProductRequest$outboundSchema: z.ZodType<
   ArchiveProductRequest
 > = z.object({
   id: z.string(),
+  ifMatch: z.string().optional(),
+}).transform((v) => {
+  return remap$(v, {
+    ifMatch: "If-Match",
+  });
 });
 
 export function archiveProductRequestToJSON(
@@ -50,5 +72,57 @@ export function archiveProductRequestFromJSON(
     jsonString,
     (x) => ArchiveProductRequest$inboundSchema.parse(JSON.parse(x)),
     `Failed to parse 'ArchiveProductRequest' from JSON`,
+  );
+}
+
+/** @internal */
+export const ArchiveProductResponse$inboundSchema: z.ZodType<
+  ArchiveProductResponse,
+  z.ZodTypeDef,
+  unknown
+> = z.object({
+  Headers: z.record(z.array(z.string())).default({}),
+  Result: components.ProductEntity$inboundSchema,
+}).transform((v) => {
+  return remap$(v, {
+    "Headers": "headers",
+    "Result": "result",
+  });
+});
+/** @internal */
+export type ArchiveProductResponse$Outbound = {
+  Headers: { [k: string]: Array<string> };
+  Result: components.ProductEntity$Outbound;
+};
+
+/** @internal */
+export const ArchiveProductResponse$outboundSchema: z.ZodType<
+  ArchiveProductResponse$Outbound,
+  z.ZodTypeDef,
+  ArchiveProductResponse
+> = z.object({
+  headers: z.record(z.array(z.string())),
+  result: components.ProductEntity$outboundSchema,
+}).transform((v) => {
+  return remap$(v, {
+    headers: "Headers",
+    result: "Result",
+  });
+});
+
+export function archiveProductResponseToJSON(
+  archiveProductResponse: ArchiveProductResponse,
+): string {
+  return JSON.stringify(
+    ArchiveProductResponse$outboundSchema.parse(archiveProductResponse),
+  );
+}
+export function archiveProductResponseFromJSON(
+  jsonString: string,
+): SafeParseResult<ArchiveProductResponse, SDKValidationError> {
+  return safeParse(
+    jsonString,
+    (x) => ArchiveProductResponse$inboundSchema.parse(JSON.parse(x)),
+    `Failed to parse 'ArchiveProductResponse' from JSON`,
   );
 }

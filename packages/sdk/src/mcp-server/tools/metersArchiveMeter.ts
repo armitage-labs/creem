@@ -30,7 +30,7 @@ Archive a meter: it leaves the default listing and stops accruing new usage, but
       };
     }
 
-    const value = result.value;
+    const value = result.value.result;
 
     return formatResult(value, apiCall);
   },

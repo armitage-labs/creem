@@ -30,7 +30,7 @@ Define how a stream of usage events is aggregated into billable units. The unit 
       };
     }
 
-    const value = result.value;
+    const value = result.value.result;
 
     return formatResult(value, apiCall);
   },

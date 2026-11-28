@@ -30,7 +30,7 @@ Archive a product (soft-delete). The product is retained for historical orders a
       };
     }
 
-    const value = result.value;
+    const value = result.value.result;
 
     return formatResult(value, apiCall);
   },

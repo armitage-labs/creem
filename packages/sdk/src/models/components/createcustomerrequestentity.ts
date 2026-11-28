@@ -29,6 +29,10 @@ export type CreateCustomerRequestEntity = {
    * The customer’s country, as an ISO 3166-1 alpha-2 code. Case-insensitive; stored upper-case. The customer portal uses it as the country of the payment form when the customer adds or updates a card. Set only when the customer has no country yet: an existing customer’s country is kept (change it with `PATCH /v1/customers`). The next checkout that carries a billing country replaces it; a checkout without one keeps it.
    */
   country?: string | undefined;
+  /**
+   * Mark a customer you migrated from another platform, or one you made up for testing. While marked, Creem sends this customer no buyer email in test mode: no receipts, subscription notices, portal sign-in links, abandoned cart emails or the affiliate invite after a purchase. Other emails to the same address, such as affiliate, split or store invites, are still sent. It has no effect in live mode. The mark is not returned in the customer response. Omit to leave an existing customer as it is; a new customer starts unmarked.
+   */
+  suppressTestModeEmails?: boolean | undefined;
 };
 
 /** @internal */
@@ -42,9 +46,11 @@ export const CreateCustomerRequestEntity$inboundSchema: z.ZodType<
   metadata: z.record(z.any()).optional(),
   external_id: z.string().optional(),
   country: z.string().optional(),
+  suppress_test_mode_emails: z.boolean().optional(),
 }).transform((v) => {
   return remap$(v, {
     "external_id": "externalId",
+    "suppress_test_mode_emails": "suppressTestModeEmails",
   });
 });
 /** @internal */
@@ -54,6 +60,7 @@ export type CreateCustomerRequestEntity$Outbound = {
   metadata?: { [k: string]: any } | undefined;
   external_id?: string | undefined;
   country?: string | undefined;
+  suppress_test_mode_emails?: boolean | undefined;
 };
 
 /** @internal */
@@ -67,9 +74,11 @@ export const CreateCustomerRequestEntity$outboundSchema: z.ZodType<
   metadata: z.record(z.any()).optional(),
   externalId: z.string().optional(),
   country: z.string().optional(),
+  suppressTestModeEmails: z.boolean().optional(),
 }).transform((v) => {
   return remap$(v, {
     externalId: "external_id",
+    suppressTestModeEmails: "suppress_test_mode_emails",
   });
 });
 

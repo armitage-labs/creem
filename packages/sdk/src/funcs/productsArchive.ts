@@ -11,7 +11,6 @@ import { safeParse } from "../lib/schemas.js";
 import { RequestOptions } from "../lib/sdks.js";
 import { extractSecurity, resolveGlobalSecurity } from "../lib/security.js";
 import { pathToFunc } from "../lib/url.js";
-import * as components from "../models/components/index.js";
 import { CreemError } from "../models/errors/creemerror.js";
 import {
   ConnectionError,
@@ -38,7 +37,7 @@ export function productsArchive(
   options?: RequestOptions,
 ): APIPromise<
   Result<
-    components.ProductEntity,
+    operations.ArchiveProductResponse,
     | CreemError
     | ResponseValidationError
     | ConnectionError
@@ -63,7 +62,7 @@ async function $do(
 ): Promise<
   [
     Result<
-      components.ProductEntity,
+      operations.ArchiveProductResponse,
       | CreemError
       | ResponseValidationError
       | ConnectionError
@@ -97,6 +96,10 @@ async function $do(
 
   const headers = new Headers(compactMap({
     Accept: "application/json",
+    "If-Match": encodeSimple("If-Match", payload["If-Match"], {
+      explode: false,
+      charEncoding: "none",
+    }),
   }));
 
   const secConfig = await extractSecurity(client._options.apiKey);
@@ -145,8 +148,12 @@ async function $do(
   }
   const response = doResult.value;
 
+  const responseFields = {
+    HttpMeta: { Response: response, Request: req },
+  };
+
   const [result] = await M.match<
-    components.ProductEntity,
+    operations.ArchiveProductResponse,
     | CreemError
     | ResponseValidationError
     | ConnectionError
@@ -156,10 +163,13 @@ async function $do(
     | UnexpectedClientError
     | SDKValidationError
   >(
-    M.json(200, components.ProductEntity$inboundSchema),
-    M.fail([400, 401, 404, "4XX"]),
+    M.json(200, operations.ArchiveProductResponse$inboundSchema, {
+      hdrs: true,
+      key: "Result",
+    }),
+    M.fail([400, 401, 404, 412, "4XX"]),
     M.fail("5XX"),
-  )(response, req);
+  )(response, req, { extraFields: responseFields });
   if (!result.ok) {
     return [result, { status: "complete", request: req, response }];
   }

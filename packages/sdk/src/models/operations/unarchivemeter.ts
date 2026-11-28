@@ -3,12 +3,23 @@
  */
 
 import * as z from "zod/v3";
+import { remap as remap$ } from "../../lib/primitives.js";
 import { safeParse } from "../../lib/schemas.js";
 import { Result as SafeParseResult } from "../../types/fp.js";
+import * as components from "../components/index.js";
 import { SDKValidationError } from "../errors/sdkvalidationerror.js";
 
 export type UnarchiveMeterRequest = {
   id: string;
+  /**
+   * Write only while the meter is unchanged: send the `ETag` a read or write of it returned, or `*` for any existing meter. When it doesn't match, the call answers `412` (`precondition_failed`, `details.etag` the current ETag) and writes nothing. A weak tag (`W/…`) never matches. A dry run evaluates it the same way.
+   */
+  ifMatch?: string | undefined;
+};
+
+export type UnarchiveMeterResponse = {
+  headers: { [k: string]: Array<string> };
+  result: components.MeterApiResponseDto;
 };
 
 /** @internal */
@@ -18,10 +29,16 @@ export const UnarchiveMeterRequest$inboundSchema: z.ZodType<
   unknown
 > = z.object({
   id: z.string(),
+  "If-Match": z.string().optional(),
+}).transform((v) => {
+  return remap$(v, {
+    "If-Match": "ifMatch",
+  });
 });
 /** @internal */
 export type UnarchiveMeterRequest$Outbound = {
   id: string;
+  "If-Match"?: string | undefined;
 };
 
 /** @internal */
@@ -31,6 +48,11 @@ export const UnarchiveMeterRequest$outboundSchema: z.ZodType<
   UnarchiveMeterRequest
 > = z.object({
   id: z.string(),
+  ifMatch: z.string().optional(),
+}).transform((v) => {
+  return remap$(v, {
+    ifMatch: "If-Match",
+  });
 });
 
 export function unarchiveMeterRequestToJSON(
@@ -47,5 +69,57 @@ export function unarchiveMeterRequestFromJSON(
     jsonString,
     (x) => UnarchiveMeterRequest$inboundSchema.parse(JSON.parse(x)),
     `Failed to parse 'UnarchiveMeterRequest' from JSON`,
+  );
+}
+
+/** @internal */
+export const UnarchiveMeterResponse$inboundSchema: z.ZodType<
+  UnarchiveMeterResponse,
+  z.ZodTypeDef,
+  unknown
+> = z.object({
+  Headers: z.record(z.array(z.string())).default({}),
+  Result: components.MeterApiResponseDto$inboundSchema,
+}).transform((v) => {
+  return remap$(v, {
+    "Headers": "headers",
+    "Result": "result",
+  });
+});
+/** @internal */
+export type UnarchiveMeterResponse$Outbound = {
+  Headers: { [k: string]: Array<string> };
+  Result: components.MeterApiResponseDto$Outbound;
+};
+
+/** @internal */
+export const UnarchiveMeterResponse$outboundSchema: z.ZodType<
+  UnarchiveMeterResponse$Outbound,
+  z.ZodTypeDef,
+  UnarchiveMeterResponse
+> = z.object({
+  headers: z.record(z.array(z.string())),
+  result: components.MeterApiResponseDto$outboundSchema,
+}).transform((v) => {
+  return remap$(v, {
+    headers: "Headers",
+    result: "Result",
+  });
+});
+
+export function unarchiveMeterResponseToJSON(
+  unarchiveMeterResponse: UnarchiveMeterResponse,
+): string {
+  return JSON.stringify(
+    UnarchiveMeterResponse$outboundSchema.parse(unarchiveMeterResponse),
+  );
+}
+export function unarchiveMeterResponseFromJSON(
+  jsonString: string,
+): SafeParseResult<UnarchiveMeterResponse, SDKValidationError> {
+  return safeParse(
+    jsonString,
+    (x) => UnarchiveMeterResponse$inboundSchema.parse(JSON.parse(x)),
+    `Failed to parse 'UnarchiveMeterResponse' from JSON`,
   );
 }

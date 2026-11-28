@@ -113,7 +113,7 @@ run();
 
 ### Response
 
-**Promise\<[components.MeterWriteApiResponseDto](../../models/components/meterwriteapiresponsedto.md)\>**
+**Promise\<[operations.CreateMeterResponse](../../models/operations/createmeterresponse.md)\>**
 
 ### Errors
 
@@ -368,7 +368,7 @@ run();
 
 ### Response
 
-**Promise\<[components.MeterApiResponseDto](../../models/components/meterapiresponsedto.md)\>**
+**Promise\<[operations.GetMeterResponse](../../models/operations/getmeterresponse.md)\>**
 
 ### Errors
 
@@ -473,13 +473,13 @@ run();
 
 ### Response
 
-**Promise\<[components.MeterWriteApiResponseDto](../../models/components/meterwriteapiresponsedto.md)\>**
+**Promise\<[operations.UpdateMeterResponse](../../models/operations/updatemeterresponse.md)\>**
 
 ### Errors
 
 | Error Type                              | Status Code                             | Content Type                            |
 | --------------------------------------- | --------------------------------------- | --------------------------------------- |
-| errors.UsageMeteringErrorApiResponseDto | 409, 422                                | application/json                        |
+| errors.UsageMeteringErrorApiResponseDto | 409, 412, 422                           | application/json                        |
 | errors.APIError                         | 4XX, 5XX                                | \*/\*                                   |
 
 ## previewExistingMeter
@@ -697,13 +697,13 @@ run();
 
 ### Response
 
-**Promise\<[components.MeterApiResponseDto](../../models/components/meterapiresponsedto.md)\>**
+**Promise\<[operations.ArchiveMeterResponse](../../models/operations/archivemeterresponse.md)\>**
 
 ### Errors
 
 | Error Type                              | Status Code                             | Content Type                            |
 | --------------------------------------- | --------------------------------------- | --------------------------------------- |
-| errors.UsageMeteringErrorApiResponseDto | 409                                     | application/json                        |
+| errors.UsageMeteringErrorApiResponseDto | 409, 412                                | application/json                        |
 | errors.APIError                         | 4XX, 5XX                                | \*/\*                                   |
 
 ## unarchiveMeter
@@ -771,10 +771,11 @@ run();
 
 ### Response
 
-**Promise\<[components.MeterApiResponseDto](../../models/components/meterapiresponsedto.md)\>**
+**Promise\<[operations.UnarchiveMeterResponse](../../models/operations/unarchivemeterresponse.md)\>**
 
 ### Errors
 
-| Error Type      | Status Code     | Content Type    |
-| --------------- | --------------- | --------------- |
-| errors.APIError | 4XX, 5XX        | \*/\*           |
+| Error Type                              | Status Code                             | Content Type                            |
+| --------------------------------------- | --------------------------------------- | --------------------------------------- |
+| errors.UsageMeteringErrorApiResponseDto | 412                                     | application/json                        |
+| errors.APIError                         | 4XX, 5XX                                | \*/\*                                   |

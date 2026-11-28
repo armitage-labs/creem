@@ -13,7 +13,7 @@ export type CatalogPromoteErrorResponseDto = {
    */
   status: number;
   /**
-   * The stable error code, for example `usage_price_in_use`, `license_keys_issued`, `meter_in_use`, `live_metadata_not_in_test`, `reference_not_found`, `file_location_invalid`. More codes may be added.
+   * The stable error code, for example `usage_price_in_use`, `license_keys_issued`, `meter_in_use`, `live_metadata_not_in_test`, `reference_not_found`, `file_location_invalid`, `file_missing`, `file_copy_failed`. More codes may be added.
    */
   code: string | null;
   message: string;

@@ -11,7 +11,6 @@ import { safeParse } from "../lib/schemas.js";
 import { RequestOptions } from "../lib/sdks.js";
 import { extractSecurity, resolveGlobalSecurity } from "../lib/security.js";
 import { pathToFunc } from "../lib/url.js";
-import * as components from "../models/components/index.js";
 import { CreemError } from "../models/errors/creemerror.js";
 import {
   ConnectionError,
@@ -39,7 +38,7 @@ export function metersUpdateMeter(
   options?: RequestOptions,
 ): APIPromise<
   Result<
-    components.MeterWriteApiResponseDto,
+    operations.UpdateMeterResponse,
     | errors.UsageMeteringErrorApiResponseDto
     | CreemError
     | ResponseValidationError
@@ -65,7 +64,7 @@ async function $do(
 ): Promise<
   [
     Result<
-      components.MeterWriteApiResponseDto,
+      operations.UpdateMeterResponse,
       | errors.UsageMeteringErrorApiResponseDto
       | CreemError
       | ResponseValidationError
@@ -107,6 +106,10 @@ async function $do(
   const headers = new Headers(compactMap({
     "Content-Type": "application/json",
     Accept: "application/json",
+    "If-Match": encodeSimple("If-Match", payload["If-Match"], {
+      explode: false,
+      charEncoding: "none",
+    }),
   }));
 
   const secConfig = await extractSecurity(client._options.apiKey);
@@ -161,7 +164,7 @@ async function $do(
   };
 
   const [result] = await M.match<
-    components.MeterWriteApiResponseDto,
+    operations.UpdateMeterResponse,
     | errors.UsageMeteringErrorApiResponseDto
     | CreemError
     | ResponseValidationError
@@ -172,9 +175,12 @@ async function $do(
     | UnexpectedClientError
     | SDKValidationError
   >(
-    M.json(200, components.MeterWriteApiResponseDto$inboundSchema),
+    M.json(200, operations.UpdateMeterResponse$inboundSchema, {
+      hdrs: true,
+      key: "Result",
+    }),
     M.jsonErr(
-      [409, 422],
+      [409, 412, 422],
       errors.UsageMeteringErrorApiResponseDto$inboundSchema,
     ),
     M.fail([400, 401, 404, "4XX"]),

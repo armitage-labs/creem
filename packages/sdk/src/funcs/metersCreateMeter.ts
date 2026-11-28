@@ -11,7 +11,6 @@ import { safeParse } from "../lib/schemas.js";
 import { RequestOptions } from "../lib/sdks.js";
 import { extractSecurity, resolveGlobalSecurity } from "../lib/security.js";
 import { pathToFunc } from "../lib/url.js";
-import * as components from "../models/components/index.js";
 import { CreemError } from "../models/errors/creemerror.js";
 import {
   ConnectionError,
@@ -39,7 +38,7 @@ export function metersCreateMeter(
   options?: RequestOptions,
 ): APIPromise<
   Result<
-    components.MeterWriteApiResponseDto,
+    operations.CreateMeterResponse,
     | errors.UsageMeteringErrorApiResponseDto
     | CreemError
     | ResponseValidationError
@@ -65,7 +64,7 @@ async function $do(
 ): Promise<
   [
     Result<
-      components.MeterWriteApiResponseDto,
+      operations.CreateMeterResponse,
       | errors.UsageMeteringErrorApiResponseDto
       | CreemError
       | ResponseValidationError
@@ -106,6 +105,10 @@ async function $do(
       payload["Idempotency-Key"],
       { explode: false, charEncoding: "none" },
     ),
+    "If-Match": encodeSimple("If-Match", payload["If-Match"], {
+      explode: false,
+      charEncoding: "none",
+    }),
     "If-None-Match": encodeSimple("If-None-Match", payload["If-None-Match"], {
       explode: false,
       charEncoding: "none",
@@ -164,7 +167,7 @@ async function $do(
   };
 
   const [result] = await M.match<
-    components.MeterWriteApiResponseDto,
+    operations.CreateMeterResponse,
     | errors.UsageMeteringErrorApiResponseDto
     | CreemError
     | ResponseValidationError
@@ -175,7 +178,10 @@ async function $do(
     | UnexpectedClientError
     | SDKValidationError
   >(
-    M.json([200, 201], components.MeterWriteApiResponseDto$inboundSchema),
+    M.json([200, 201], operations.CreateMeterResponse$inboundSchema, {
+      hdrs: true,
+      key: "Result",
+    }),
     M.jsonErr(
       [409, 412, 422, 429],
       errors.UsageMeteringErrorApiResponseDto$inboundSchema,

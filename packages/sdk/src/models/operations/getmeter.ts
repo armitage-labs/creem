@@ -3,12 +3,19 @@
  */
 
 import * as z from "zod/v3";
+import { remap as remap$ } from "../../lib/primitives.js";
 import { safeParse } from "../../lib/schemas.js";
 import { Result as SafeParseResult } from "../../types/fp.js";
+import * as components from "../components/index.js";
 import { SDKValidationError } from "../errors/sdkvalidationerror.js";
 
 export type GetMeterRequest = {
   id: string;
+};
+
+export type GetMeterResponse = {
+  headers: { [k: string]: Array<string> };
+  result: components.MeterApiResponseDto;
 };
 
 /** @internal */
@@ -45,5 +52,57 @@ export function getMeterRequestFromJSON(
     jsonString,
     (x) => GetMeterRequest$inboundSchema.parse(JSON.parse(x)),
     `Failed to parse 'GetMeterRequest' from JSON`,
+  );
+}
+
+/** @internal */
+export const GetMeterResponse$inboundSchema: z.ZodType<
+  GetMeterResponse,
+  z.ZodTypeDef,
+  unknown
+> = z.object({
+  Headers: z.record(z.array(z.string())).default({}),
+  Result: components.MeterApiResponseDto$inboundSchema,
+}).transform((v) => {
+  return remap$(v, {
+    "Headers": "headers",
+    "Result": "result",
+  });
+});
+/** @internal */
+export type GetMeterResponse$Outbound = {
+  Headers: { [k: string]: Array<string> };
+  Result: components.MeterApiResponseDto$Outbound;
+};
+
+/** @internal */
+export const GetMeterResponse$outboundSchema: z.ZodType<
+  GetMeterResponse$Outbound,
+  z.ZodTypeDef,
+  GetMeterResponse
+> = z.object({
+  headers: z.record(z.array(z.string())),
+  result: components.MeterApiResponseDto$outboundSchema,
+}).transform((v) => {
+  return remap$(v, {
+    headers: "Headers",
+    result: "Result",
+  });
+});
+
+export function getMeterResponseToJSON(
+  getMeterResponse: GetMeterResponse,
+): string {
+  return JSON.stringify(
+    GetMeterResponse$outboundSchema.parse(getMeterResponse),
+  );
+}
+export function getMeterResponseFromJSON(
+  jsonString: string,
+): SafeParseResult<GetMeterResponse, SDKValidationError> {
+  return safeParse(
+    jsonString,
+    (x) => GetMeterResponse$inboundSchema.parse(JSON.parse(x)),
+    `Failed to parse 'GetMeterResponse' from JSON`,
   );
 }

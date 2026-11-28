@@ -4,7 +4,7 @@ management:
   docVersion: v1
   speakeasyVersion: 1.797.0
   generationVersion: 2.937.18
-  releaseVersion: 2.0.0
+  releaseVersion: 2.1.0
   repoURL: https://github.com/armitage-labs/creem.git
   repoSubDirectory: packages/sdk
   installationURL: https://github.com/armitage-labs/creem
@@ -99,6 +99,7 @@ trackedFiles:
   docs/models/components/catalogpromoteselectrequestdtoproductsall.md: {}
   docs/models/components/catalogpromotesummaryresponsedto.md: {}
   docs/models/components/catalogpromotevalidationresponsedto.md: {}
+  docs/models/components/catalogrevisionresponsedto.md: {}
   docs/models/components/catalogvalidateitemrequestdto.md: {}
   docs/models/components/catalogvalidaterequestdto.md: {}
   docs/models/components/catalogvalidationitemresponsedto.md: {}
@@ -205,6 +206,8 @@ trackedFiles:
     pristine_git_object: c0e14bf946daaeef5240dbf4a75748336747b86a
   docs/models/components/discountentitystatus.md: {}
   docs/models/components/discountlistentity.md: {}
+  docs/models/components/discounts.md: {}
+  docs/models/components/discounts1.md: {}
   docs/models/components/discounttype.md: {}
   docs/models/components/discountwritechangeentity.md: {}
   docs/models/components/discountwritechangeentityfrom.md: {}
@@ -290,6 +293,7 @@ trackedFiles:
     id: ecad6afdf106
     pristine_git_object: 475730b068d9ee60fb0e41666dc07b833e965cd4
   docs/models/components/objectt.md: {}
+  docs/models/components/one.md: {}
   docs/models/components/onexecute.md:
     id: ea2374b1a0da
     pristine_git_object: bc42d77227211b22835ceba9a38bed88fc096553
@@ -335,6 +339,7 @@ trackedFiles:
   docs/models/components/productgroupproductentity.md: {}
   docs/models/components/productgroupproductexternalidreferenceentity.md: {}
   docs/models/components/productgroupproductidreferenceentity.md: {}
+  docs/models/components/productgroups.md: {}
   docs/models/components/productgroupwritechangeentity.md: {}
   docs/models/components/productgroupwritechangeentityfrom.md: {}
   docs/models/components/productgroupwritechangeentityto.md: {}
@@ -558,7 +563,9 @@ trackedFiles:
   docs/models/operations/addproducttoproductgrouprequest.md: {}
   docs/models/operations/addproducttoproductgrouprequestbody.md: {}
   docs/models/operations/archivemeterrequest.md: {}
+  docs/models/operations/archivemeterresponse.md: {}
   docs/models/operations/archiveproductrequest.md: {}
+  docs/models/operations/archiveproductresponse.md: {}
   docs/models/operations/cancelsubscriptionrequest.md:
     id: 838f185094b0
     pristine_git_object: 13ced3d7d373f88b0c13145ce7f7bc656725084e
@@ -566,8 +573,10 @@ trackedFiles:
   docs/models/operations/confirmfileuploadrequest.md: {}
   docs/models/operations/creatediscountrequest.md: {}
   docs/models/operations/createmeterrequest.md: {}
+  docs/models/operations/createmeterresponse.md: {}
   docs/models/operations/createproductgrouprequest.md: {}
   docs/models/operations/createproductrequest.md: {}
+  docs/models/operations/createproductresponse.md: {}
   docs/models/operations/creditcustomercreditsaccountrequest.md: {}
   docs/models/operations/currency.md: {}
   docs/models/operations/debitcustomercreditsaccountrequest.md: {}
@@ -583,9 +592,11 @@ trackedFiles:
   docs/models/operations/getcustomercreditstransactionrequest.md: {}
   docs/models/operations/getmeterconsumedunitsrequest.md: {}
   docs/models/operations/getmeterrequest.md: {}
+  docs/models/operations/getmeterresponse.md: {}
   docs/models/operations/getmetricssummaryrequest.md: {}
   docs/models/operations/getproductgrouprequest.md: {}
   docs/models/operations/getproductrequest.md: {}
+  docs/models/operations/getproductresponse.md: {}
   docs/models/operations/gettransactionbyidrequest.md:
     id: 0e4013c65303
     pristine_git_object: 35e14c16281dbd4f6b58863ab29a1160b8b55181
@@ -666,11 +677,14 @@ trackedFiles:
   docs/models/operations/status.md: {}
   docs/models/operations/type.md: {}
   docs/models/operations/unarchivemeterrequest.md: {}
+  docs/models/operations/unarchivemeterresponse.md: {}
   docs/models/operations/unfreezecustomercreditsaccountrequest.md: {}
   docs/models/operations/updatediscountrequest.md: {}
   docs/models/operations/updatemeterrequest.md: {}
+  docs/models/operations/updatemeterresponse.md: {}
   docs/models/operations/updateproductgrouprequest.md: {}
   docs/models/operations/updateproductrequest.md: {}
+  docs/models/operations/updateproductresponse.md: {}
   docs/models/operations/updatesubscriptionrequest.md:
     id: ce583ff5488a
     pristine_git_object: 5b21a1092106a5c7ac5d5241befb3501a9898e9d
@@ -737,6 +751,7 @@ trackedFiles:
   src/funcs/affiliatesListCommissions.ts: {}
   src/funcs/affiliatesListInvites.ts: {}
   src/funcs/affiliatesRetrieve.ts: {}
+  src/funcs/catalogGetRevision.ts: {}
   src/funcs/catalogPromote.ts: {}
   src/funcs/catalogValidate.ts: {}
   src/funcs/checkoutsCreate.ts: {}
@@ -922,6 +937,7 @@ trackedFiles:
   src/mcp-server/tools/affiliatesListCommissions.ts: {}
   src/mcp-server/tools/affiliatesListInvites.ts: {}
   src/mcp-server/tools/affiliatesRetrieve.ts: {}
+  src/mcp-server/tools/catalogGetRevision.ts: {}
   src/mcp-server/tools/catalogPromote.ts: {}
   src/mcp-server/tools/catalogValidate.ts: {}
   src/mcp-server/tools/checkoutsCreate.ts: {}
@@ -1033,6 +1049,7 @@ trackedFiles:
   src/models/components/catalogpromoteresponsedto.ts: {}
   src/models/components/catalogpromoteselectrequestdto.ts: {}
   src/models/components/catalogpromotesummaryresponsedto.ts: {}
+  src/models/components/catalogrevisionresponsedto.ts: {}
   src/models/components/catalogvalidateitemrequestdto.ts: {}
   src/models/components/catalogvalidaterequestdto.ts: {}
   src/models/components/catalogvalidationitemresponsedto.ts: {}
@@ -1794,7 +1811,7 @@ examples:
   createCustomer:
     speakeasy-default-create-customer:
       requestBody:
-        application/json: {"email": "john@example.com", "name": "John Doe", "metadata": {}, "external_id": "user-42", "country": "US"}
+        application/json: {"email": "john@example.com", "name": "John Doe", "metadata": {}, "external_id": "user-42", "country": "US", "suppress_test_mode_emails": true}
       responses:
         "200":
           application/json: {"id": "<id>", "mode": "test", "object": "<value>", "email": "user@example.com", "name": "John Doe", "metadata": {}, "country": "US", "external_id": "{}", "created_at": "2023-01-01T00:00:00Z", "updated_at": "2023-01-01T00:00:00Z"}
@@ -1967,6 +1984,11 @@ examples:
       responses:
         "200":
           application/json: {"customer_portal_link": "<value>"}
+  getCatalogRevision:
+    speakeasy-default-get-catalog-revision:
+      responses:
+        "200":
+          application/json: {"revision": "3f2a9c0d1b4e5f60718293a4b5c6d7e8"}
   getCurrentUser: {}
   getCustomerCreditsAccount:
     speakeasy-default-get-customer-credits-account:
@@ -2020,7 +2042,7 @@ examples:
           currency: "USD"
       responses:
         "200":
-          application/json: {"totals": {"totalProducts": 12, "totalSubscriptions": 48, "totalCustomers": 35, "totalPayments": 62, "activeSubscriptions": 21, "totalRevenue": 553939, "totalNetRevenue": 478094, "netMonthlyRecurringRevenue": 89500, "monthlyRecurringRevenue": 94200}, "periods": [{"timestamp": 1763337600000, "grossRevenue": 2999, "netRevenue": 2909}, {"timestamp": 1763942400000, "grossRevenue": 32989, "netRevenue": 31998}, {"timestamp": 1764547200000, "grossRevenue": 47984, "netRevenue": 46542}, {"timestamp": 1765152000000, "grossRevenue": 125958, "netRevenue": 122173}, {"timestamp": 1765756800000, "grossRevenue": 343968, "netRevenue": 278372}, {"timestamp": 1766361600000, "grossRevenue": 0, "netRevenue": 0}, {"timestamp": 1766966400000, "grossRevenue": 0, "netRevenue": 0}, {"timestamp": 1767571200000, "grossRevenue": 225240, "netRevenue": 192096}]}
+          application/json: {"store_id": "sto_1234567890", "totals": {"totalProducts": 12, "totalSubscriptions": 48, "totalCustomers": 35, "totalPayments": 62, "activeSubscriptions": 21, "totalRevenue": 553939, "totalNetRevenue": 478094, "netMonthlyRecurringRevenue": 89500, "monthlyRecurringRevenue": 94200}, "periods": [{"timestamp": 1763337600000, "grossRevenue": 2999, "netRevenue": 2909}, {"timestamp": 1763942400000, "grossRevenue": 32989, "netRevenue": 31998}, {"timestamp": 1764547200000, "grossRevenue": 47984, "netRevenue": 46542}, {"timestamp": 1765152000000, "grossRevenue": 125958, "netRevenue": 122173}, {"timestamp": 1765756800000, "grossRevenue": 343968, "netRevenue": 278372}, {"timestamp": 1766361600000, "grossRevenue": 0, "netRevenue": 0}, {"timestamp": 1766966400000, "grossRevenue": 0, "netRevenue": 0}, {"timestamp": 1767571200000, "grossRevenue": 225240, "netRevenue": 192096}]}
   getProduct:
     speakeasy-default-get-product:
       parameters:
@@ -2496,6 +2518,8 @@ examples:
       responses:
         "200":
           application/json: {"id": "mtr_abc123", "store_id": "sto_abc123", "name": "Image generations", "event_name": "image.generated", "aggregation": "sum", "aggregation_property": "tokens", "filter": {"conjunction": "and", "clauses": []}, "unit_label": "images", "status": "active", "external_id": "image-generations", "locked": false, "created_at": "1723511615305", "updated_at": "1735643252126"}
+        "412":
+          application/json: {"error": {"type": "invalid_request_error", "code": "meter_name_taken", "message": "A meter named \"Image generations\" already exists in this store", "param": "events[3].customer_id", "details": {"archived_holder": true, "archived_holder_id": "mtr_abc123"}, "request_id": "req_abc123def456"}}
   unfreezeCustomerCreditsAccount:
     speakeasy-default-unfreeze-customer-credits-account:
       parameters:
@@ -2509,7 +2533,7 @@ examples:
   updateCustomer:
     speakeasy-default-update-customer:
       requestBody:
-        application/json: {"customer_id": "cust_abc123", "name": "John Doe", "email": "john@example.com", "metadata": {}, "external_id": "{}", "country": "US"}
+        application/json: {"customer_id": "cust_abc123", "name": "John Doe", "email": "john@example.com", "metadata": {}, "external_id": "{}", "country": "US", "suppress_test_mode_emails": true}
       responses:
         "200":
           application/json: {"id": "<id>", "mode": "test", "object": "<value>", "email": "user@example.com", "name": "John Doe", "metadata": {}, "country": "US", "external_id": "{}", "created_at": "2023-01-01T00:00:00Z", "updated_at": "2023-01-01T00:00:00Z"}
