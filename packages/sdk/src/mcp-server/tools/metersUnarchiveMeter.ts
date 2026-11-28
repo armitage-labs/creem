@@ -30,7 +30,7 @@ Restore an archived meter: it returns to the default listing and resumes accruin
       };
     }
 
-    const value = result.value;
+    const value = result.value.result;
 
     return formatResult(value, apiCall);
   },

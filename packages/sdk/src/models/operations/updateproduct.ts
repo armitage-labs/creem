@@ -15,6 +15,10 @@ export type UpdateProductRequest = {
    */
   id: string;
   /**
+   * Write only while the product is unchanged: send the `ETag` a read or write of it returned, or `*` for any existing product. When it doesn't match, the call answers `412` (`precondition_failed`, `details.etag` the current ETag) and writes nothing. A weak tag (`W/…`) never matches. A dry run evaluates it the same way.
+   */
+  ifMatch?: string | undefined;
+  /**
    * Send `true` to preview the write: the request runs as it would and is rolled back, so nothing is written and nothing is triggered (no webhook, no event, and `Idempotency-Key` is neither read nor stored). The answer is the one the real call would give: the same status and errors, and the product with `write_result.dry_run` `true`. Ids generated for a new product, its features and usage prices, and `write_result.price_version.new_price_id` are never stored: a `GET` of them answers `404`. A `meter_external_id` that names no meter is a `reference_not_found` warning (`path`, `key`) instead of a `400`: on a create that usage price is left out of the answer, and on an update of an existing product the stored usage prices stay as they are. `false` or no parameter is a real call; any other value answers `400`.
    */
   dryRun?: boolean | undefined;
@@ -24,6 +28,11 @@ export type UpdateProductRequest = {
   updateProductRequestEntity: components.UpdateProductRequestEntity;
 };
 
+export type UpdateProductResponse = {
+  headers: { [k: string]: Array<string> };
+  result: components.ProductWriteResponseEntity;
+};
+
 /** @internal */
 export const UpdateProductRequest$inboundSchema: z.ZodType<
   UpdateProductRequest,
@@ -31,11 +40,13 @@ export const UpdateProductRequest$inboundSchema: z.ZodType<
   unknown
 > = z.object({
   id: z.string(),
+  "If-Match": z.string().optional(),
   dry_run: z.boolean().optional(),
   UpdateProductRequestEntity:
     components.UpdateProductRequestEntity$inboundSchema,
 }).transform((v) => {
   return remap$(v, {
+    "If-Match": "ifMatch",
     "dry_run": "dryRun",
     "UpdateProductRequestEntity": "updateProductRequestEntity",
   });
@@ -43,6 +54,7 @@ export const UpdateProductRequest$inboundSchema: z.ZodType<
 /** @internal */
 export type UpdateProductRequest$Outbound = {
   id: string;
+  "If-Match"?: string | undefined;
   dry_run?: boolean | undefined;
   UpdateProductRequestEntity: components.UpdateProductRequestEntity$Outbound;
 };
@@ -54,11 +66,13 @@ export const UpdateProductRequest$outboundSchema: z.ZodType<
   UpdateProductRequest
 > = z.object({
   id: z.string(),
+  ifMatch: z.string().optional(),
   dryRun: z.boolean().optional(),
   updateProductRequestEntity:
     components.UpdateProductRequestEntity$outboundSchema,
 }).transform((v) => {
   return remap$(v, {
+    ifMatch: "If-Match",
     dryRun: "dry_run",
     updateProductRequestEntity: "UpdateProductRequestEntity",
   });
@@ -78,5 +92,57 @@ export function updateProductRequestFromJSON(
     jsonString,
     (x) => UpdateProductRequest$inboundSchema.parse(JSON.parse(x)),
     `Failed to parse 'UpdateProductRequest' from JSON`,
+  );
+}
+
+/** @internal */
+export const UpdateProductResponse$inboundSchema: z.ZodType<
+  UpdateProductResponse,
+  z.ZodTypeDef,
+  unknown
+> = z.object({
+  Headers: z.record(z.array(z.string())).default({}),
+  Result: components.ProductWriteResponseEntity$inboundSchema,
+}).transform((v) => {
+  return remap$(v, {
+    "Headers": "headers",
+    "Result": "result",
+  });
+});
+/** @internal */
+export type UpdateProductResponse$Outbound = {
+  Headers: { [k: string]: Array<string> };
+  Result: components.ProductWriteResponseEntity$Outbound;
+};
+
+/** @internal */
+export const UpdateProductResponse$outboundSchema: z.ZodType<
+  UpdateProductResponse$Outbound,
+  z.ZodTypeDef,
+  UpdateProductResponse
+> = z.object({
+  headers: z.record(z.array(z.string())),
+  result: components.ProductWriteResponseEntity$outboundSchema,
+}).transform((v) => {
+  return remap$(v, {
+    headers: "Headers",
+    result: "Result",
+  });
+});
+
+export function updateProductResponseToJSON(
+  updateProductResponse: UpdateProductResponse,
+): string {
+  return JSON.stringify(
+    UpdateProductResponse$outboundSchema.parse(updateProductResponse),
+  );
+}
+export function updateProductResponseFromJSON(
+  jsonString: string,
+): SafeParseResult<UpdateProductResponse, SDKValidationError> {
+  return safeParse(
+    jsonString,
+    (x) => UpdateProductResponse$inboundSchema.parse(JSON.parse(x)),
+    `Failed to parse 'UpdateProductResponse' from JSON`,
   );
 }

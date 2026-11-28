@@ -30,7 +30,7 @@ Get one meter by ID. Archived meters ARE returned here — a fetch by explicit I
       };
     }
 
-    const value = result.value;
+    const value = result.value.result;
 
     return formatResult(value, apiCall);
   },

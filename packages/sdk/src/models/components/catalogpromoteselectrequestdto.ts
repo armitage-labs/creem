@@ -3,6 +3,7 @@
  */
 
 import * as z from "zod/v3";
+import { remap as remap$ } from "../../lib/primitives.js";
 import { safeParse } from "../../lib/schemas.js";
 import { ClosedEnum } from "../../types/enums.js";
 import { Result as SafeParseResult } from "../../types/fp.js";
@@ -36,6 +37,26 @@ export type CatalogPromoteSelectRequestDtoProducts =
   | CatalogPromoteSelectRequestDtoProductsAll
   | Array<string>;
 
+export const One = {
+  All: "all",
+} as const;
+export type One = ClosedEnum<typeof One>;
+
+/**
+ * `"all"` for every test product group, or a list of test product group ids. Leave it out to promote no product groups. A group is matched by `external_id`; its members are named by their products’ keys.
+ */
+export type ProductGroups = One | Array<string>;
+
+export const Discounts1 = {
+  All: "all",
+} as const;
+export type Discounts1 = ClosedEnum<typeof Discounts1>;
+
+/**
+ * `"all"` for every test discount, or a list of test discount ids. Leave it out to promote no discounts. A discount is matched by its `code`, ignoring case; its `external_id` is copied.
+ */
+export type Discounts = Discounts1 | Array<string>;
+
 export type CatalogPromoteSelectRequestDto = {
   /**
    * `"all"` for every test meter, or a list of test meter ids. Leave it out to promote no meters (a product’s meters are still read to resolve its usage prices).
@@ -48,6 +69,14 @@ export type CatalogPromoteSelectRequestDto = {
     | CatalogPromoteSelectRequestDtoProductsAll
     | Array<string>
     | undefined;
+  /**
+   * `"all"` for every test product group, or a list of test product group ids. Leave it out to promote no product groups. A group is matched by `external_id`; its members are named by their products’ keys.
+   */
+  productGroups?: One | Array<string> | undefined;
+  /**
+   * `"all"` for every test discount, or a list of test discount ids. Leave it out to promote no discounts. A discount is matched by its `code`, ignoring case; its `external_id` is copied.
+   */
+  discounts?: Discounts1 | Array<string> | undefined;
 };
 
 /** @internal */
@@ -158,6 +187,77 @@ export function catalogPromoteSelectRequestDtoProductsFromJSON(
 }
 
 /** @internal */
+export const One$inboundSchema: z.ZodNativeEnum<typeof One> = z.nativeEnum(One);
+/** @internal */
+export const One$outboundSchema: z.ZodNativeEnum<typeof One> =
+  One$inboundSchema;
+
+/** @internal */
+export const ProductGroups$inboundSchema: z.ZodType<
+  ProductGroups,
+  z.ZodTypeDef,
+  unknown
+> = z.union([One$inboundSchema, z.array(z.string())]);
+/** @internal */
+export type ProductGroups$Outbound = string | Array<string>;
+
+/** @internal */
+export const ProductGroups$outboundSchema: z.ZodType<
+  ProductGroups$Outbound,
+  z.ZodTypeDef,
+  ProductGroups
+> = z.union([One$outboundSchema, z.array(z.string())]);
+
+export function productGroupsToJSON(productGroups: ProductGroups): string {
+  return JSON.stringify(ProductGroups$outboundSchema.parse(productGroups));
+}
+export function productGroupsFromJSON(
+  jsonString: string,
+): SafeParseResult<ProductGroups, SDKValidationError> {
+  return safeParse(
+    jsonString,
+    (x) => ProductGroups$inboundSchema.parse(JSON.parse(x)),
+    `Failed to parse 'ProductGroups' from JSON`,
+  );
+}
+
+/** @internal */
+export const Discounts1$inboundSchema: z.ZodNativeEnum<typeof Discounts1> = z
+  .nativeEnum(Discounts1);
+/** @internal */
+export const Discounts1$outboundSchema: z.ZodNativeEnum<typeof Discounts1> =
+  Discounts1$inboundSchema;
+
+/** @internal */
+export const Discounts$inboundSchema: z.ZodType<
+  Discounts,
+  z.ZodTypeDef,
+  unknown
+> = z.union([Discounts1$inboundSchema, z.array(z.string())]);
+/** @internal */
+export type Discounts$Outbound = string | Array<string>;
+
+/** @internal */
+export const Discounts$outboundSchema: z.ZodType<
+  Discounts$Outbound,
+  z.ZodTypeDef,
+  Discounts
+> = z.union([Discounts1$outboundSchema, z.array(z.string())]);
+
+export function discountsToJSON(discounts: Discounts): string {
+  return JSON.stringify(Discounts$outboundSchema.parse(discounts));
+}
+export function discountsFromJSON(
+  jsonString: string,
+): SafeParseResult<Discounts, SDKValidationError> {
+  return safeParse(
+    jsonString,
+    (x) => Discounts$inboundSchema.parse(JSON.parse(x)),
+    `Failed to parse 'Discounts' from JSON`,
+  );
+}
+
+/** @internal */
 export const CatalogPromoteSelectRequestDto$inboundSchema: z.ZodType<
   CatalogPromoteSelectRequestDto,
   z.ZodTypeDef,
@@ -171,11 +271,20 @@ export const CatalogPromoteSelectRequestDto$inboundSchema: z.ZodType<
     CatalogPromoteSelectRequestDtoProductsAll$inboundSchema,
     z.array(z.string()),
   ]).optional(),
+  product_groups: z.union([One$inboundSchema, z.array(z.string())]).optional(),
+  discounts: z.union([Discounts1$inboundSchema, z.array(z.string())])
+    .optional(),
+}).transform((v) => {
+  return remap$(v, {
+    "product_groups": "productGroups",
+  });
 });
 /** @internal */
 export type CatalogPromoteSelectRequestDto$Outbound = {
   meters?: string | Array<string> | undefined;
   products?: string | Array<string> | undefined;
+  product_groups?: string | Array<string> | undefined;
+  discounts?: string | Array<string> | undefined;
 };
 
 /** @internal */
@@ -192,6 +301,13 @@ export const CatalogPromoteSelectRequestDto$outboundSchema: z.ZodType<
     CatalogPromoteSelectRequestDtoProductsAll$outboundSchema,
     z.array(z.string()),
   ]).optional(),
+  productGroups: z.union([One$outboundSchema, z.array(z.string())]).optional(),
+  discounts: z.union([Discounts1$outboundSchema, z.array(z.string())])
+    .optional(),
+}).transform((v) => {
+  return remap$(v, {
+    productGroups: "product_groups",
+  });
 });
 
 export function catalogPromoteSelectRequestDtoToJSON(

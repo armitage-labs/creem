@@ -21,6 +21,10 @@ export type CreateProductRequest = {
    */
   ifNoneMatch?: string | undefined;
   /**
+   * Write only while the product is unchanged: send the `ETag` a read or write of it returned, or `*` for any existing product. When it doesn't match, the call answers `412` (`precondition_failed`, `details.etag` the current ETag) and writes nothing. A weak tag (`W/…`) never matches. A dry run evaluates it the same way. Its target is the product that holds the `external_id`: `*` makes the call update-only, and a request without an `external_id`, or with one no product holds, answers `412` and creates nothing. Evaluated before `If-None-Match`.
+   */
+  ifMatch?: string | undefined;
+  /**
    * Send `true` to preview the write: the request runs as it would and is rolled back, so nothing is written and nothing is triggered (no webhook, no event, and `Idempotency-Key` is neither read nor stored). The answer is the one the real call would give: the same status and errors, and the product with `write_result.dry_run` `true`. Ids generated for a new product, its features and usage prices, and `write_result.price_version.new_price_id` are never stored: a `GET` of them answers `404`. A `meter_external_id` that names no meter is a `reference_not_found` warning (`path`, `key`) instead of a `400`: on a create that usage price is left out of the answer, and on an update of an existing product the stored usage prices stay as they are. `false` or no parameter is a real call; any other value answers `400`.
    */
   dryRun?: boolean | undefined;
@@ -28,6 +32,11 @@ export type CreateProductRequest = {
    * Product creation payload. `name`, `description`, `price`, `currency` and `billing_type` are required when creating a product; an update by `external_id` may leave them out.
    */
   createProductRequestEntity: components.CreateProductRequestEntity;
+};
+
+export type CreateProductResponse = {
+  headers: { [k: string]: Array<string> };
+  result: components.ProductWriteResponseEntity;
 };
 
 /** @internal */
@@ -38,6 +47,7 @@ export const CreateProductRequest$inboundSchema: z.ZodType<
 > = z.object({
   "Idempotency-Key": z.string().optional(),
   "If-None-Match": z.string().optional(),
+  "If-Match": z.string().optional(),
   dry_run: z.boolean().optional(),
   CreateProductRequestEntity:
     components.CreateProductRequestEntity$inboundSchema,
@@ -45,6 +55,7 @@ export const CreateProductRequest$inboundSchema: z.ZodType<
   return remap$(v, {
     "Idempotency-Key": "idempotencyKey",
     "If-None-Match": "ifNoneMatch",
+    "If-Match": "ifMatch",
     "dry_run": "dryRun",
     "CreateProductRequestEntity": "createProductRequestEntity",
   });
@@ -53,6 +64,7 @@ export const CreateProductRequest$inboundSchema: z.ZodType<
 export type CreateProductRequest$Outbound = {
   "Idempotency-Key"?: string | undefined;
   "If-None-Match"?: string | undefined;
+  "If-Match"?: string | undefined;
   dry_run?: boolean | undefined;
   CreateProductRequestEntity: components.CreateProductRequestEntity$Outbound;
 };
@@ -65,6 +77,7 @@ export const CreateProductRequest$outboundSchema: z.ZodType<
 > = z.object({
   idempotencyKey: z.string().optional(),
   ifNoneMatch: z.string().optional(),
+  ifMatch: z.string().optional(),
   dryRun: z.boolean().optional(),
   createProductRequestEntity:
     components.CreateProductRequestEntity$outboundSchema,
@@ -72,6 +85,7 @@ export const CreateProductRequest$outboundSchema: z.ZodType<
   return remap$(v, {
     idempotencyKey: "Idempotency-Key",
     ifNoneMatch: "If-None-Match",
+    ifMatch: "If-Match",
     dryRun: "dry_run",
     createProductRequestEntity: "CreateProductRequestEntity",
   });
@@ -91,5 +105,57 @@ export function createProductRequestFromJSON(
     jsonString,
     (x) => CreateProductRequest$inboundSchema.parse(JSON.parse(x)),
     `Failed to parse 'CreateProductRequest' from JSON`,
+  );
+}
+
+/** @internal */
+export const CreateProductResponse$inboundSchema: z.ZodType<
+  CreateProductResponse,
+  z.ZodTypeDef,
+  unknown
+> = z.object({
+  Headers: z.record(z.array(z.string())).default({}),
+  Result: components.ProductWriteResponseEntity$inboundSchema,
+}).transform((v) => {
+  return remap$(v, {
+    "Headers": "headers",
+    "Result": "result",
+  });
+});
+/** @internal */
+export type CreateProductResponse$Outbound = {
+  Headers: { [k: string]: Array<string> };
+  Result: components.ProductWriteResponseEntity$Outbound;
+};
+
+/** @internal */
+export const CreateProductResponse$outboundSchema: z.ZodType<
+  CreateProductResponse$Outbound,
+  z.ZodTypeDef,
+  CreateProductResponse
+> = z.object({
+  headers: z.record(z.array(z.string())),
+  result: components.ProductWriteResponseEntity$outboundSchema,
+}).transform((v) => {
+  return remap$(v, {
+    headers: "Headers",
+    result: "Result",
+  });
+});
+
+export function createProductResponseToJSON(
+  createProductResponse: CreateProductResponse,
+): string {
+  return JSON.stringify(
+    CreateProductResponse$outboundSchema.parse(createProductResponse),
+  );
+}
+export function createProductResponseFromJSON(
+  jsonString: string,
+): SafeParseResult<CreateProductResponse, SDKValidationError> {
+  return safeParse(
+    jsonString,
+    (x) => CreateProductResponse$inboundSchema.parse(JSON.parse(x)),
+    `Failed to parse 'CreateProductResponse' from JSON`,
   );
 }

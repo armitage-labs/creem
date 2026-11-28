@@ -18,6 +18,7 @@ import { tool$affiliatesList } from "./tools/affiliatesList.js";
 import { tool$affiliatesListCommissions } from "./tools/affiliatesListCommissions.js";
 import { tool$affiliatesListInvites } from "./tools/affiliatesListInvites.js";
 import { tool$affiliatesRetrieve } from "./tools/affiliatesRetrieve.js";
+import { tool$catalogGetRevision } from "./tools/catalogGetRevision.js";
 import { tool$catalogPromote } from "./tools/catalogPromote.js";
 import { tool$catalogValidate } from "./tools/catalogValidate.js";
 import { tool$checkoutsCreate } from "./tools/checkoutsCreate.js";
@@ -236,6 +237,7 @@ export function createMCPServer(deps: {
   tool(tool$webhooksAcknowledgeEvent);
   tool(tool$filesCreateUpload);
   tool(tool$filesConfirmUpload);
+  tool(tool$catalogGetRevision);
   tool(tool$catalogValidate);
   tool(tool$catalogPromote);
 

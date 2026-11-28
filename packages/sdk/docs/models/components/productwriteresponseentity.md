@@ -78,11 +78,11 @@ let value: ProductWriteResponseEntity = {
   writeResult: {
     result: "updated",
     dryRun: false,
-    changes: [
+    changes: [],
+    warnings: [
       {
-        path: "price",
-        from: 2900,
-        to: 3900,
+        code: "usage_prices_shared",
+        path: "currency",
         impact: {
           total: 12,
           byStatus: {
@@ -98,7 +98,6 @@ let value: ProductWriteResponseEntity = {
         },
       },
     ],
-    warnings: [],
     priceVersion: {
       created: true,
       previousPriceId: "pprice_old",

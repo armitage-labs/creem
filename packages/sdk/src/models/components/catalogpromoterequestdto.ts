@@ -15,7 +15,7 @@ import {
 
 export type CatalogPromoteRequestDto = {
   /**
-   * What to promote, per kind (`meters`, `products`; product groups and discounts come later): `"all"` or a list of **test** ids. Omit `select` to promote everything; a kind left out of a sent `select` is not promoted. A test id the test store doesn’t have answers `400` `reference_not_found` (`details.field`, `details.key`) before anything runs.
+   * What to promote, per kind (`meters`, `products`, `product_groups`, `discounts`): `"all"` or a list of **test** ids. Omit `select` to promote everything; a kind left out of a sent `select` is not promoted. A test id the test store doesn’t have answers `400` `reference_not_found` (`details.field`, `details.key`) before anything runs.
    */
   select?: CatalogPromoteSelectRequestDto | undefined;
   /**

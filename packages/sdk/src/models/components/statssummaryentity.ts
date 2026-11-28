@@ -3,6 +3,7 @@
  */
 
 import * as z from "zod/v3";
+import { remap as remap$ } from "../../lib/primitives.js";
 import { safeParse } from "../../lib/schemas.js";
 import { Result as SafeParseResult } from "../../types/fp.js";
 import { SDKValidationError } from "../errors/sdkvalidationerror.js";
@@ -21,6 +22,10 @@ import {
 
 export type StatsSummaryEntity = {
   /**
+   * ID of the authenticated store. Stays the same when the merchant creates, rotates or deletes keys.
+   */
+  storeId: string;
+  /**
    * Aggregated totals for the queried date range
    */
   totals: StatsMetricTotalsEntity;
@@ -36,11 +41,17 @@ export const StatsSummaryEntity$inboundSchema: z.ZodType<
   z.ZodTypeDef,
   unknown
 > = z.object({
+  store_id: z.string(),
   totals: StatsMetricTotalsEntity$inboundSchema,
   periods: z.array(StatsMetricPeriodEntity$inboundSchema).optional(),
+}).transform((v) => {
+  return remap$(v, {
+    "store_id": "storeId",
+  });
 });
 /** @internal */
 export type StatsSummaryEntity$Outbound = {
+  store_id: string;
   totals: StatsMetricTotalsEntity$Outbound;
   periods?: Array<StatsMetricPeriodEntity$Outbound> | undefined;
 };
@@ -51,8 +62,13 @@ export const StatsSummaryEntity$outboundSchema: z.ZodType<
   z.ZodTypeDef,
   StatsSummaryEntity
 > = z.object({
+  storeId: z.string(),
   totals: StatsMetricTotalsEntity$outboundSchema,
   periods: z.array(StatsMetricPeriodEntity$outboundSchema).optional(),
+}).transform((v) => {
+  return remap$(v, {
+    storeId: "store_id",
+  });
 });
 
 export function statsSummaryEntityToJSON(

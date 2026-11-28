@@ -22,6 +22,10 @@ export type CatalogPromoteFeatureCandidatesResponseDto = {
   type: string;
   description: string;
   /**
+   * The test feature’s own `external_id`; null when it has none.
+   */
+  externalId: string | null;
+  /**
    * The key to write on both features: the test feature’s own `external_id` when it has one, else the picked live feature’s `external_id` when it has one, else the test feature’s id.
    */
   proposedExternalId: string;
@@ -38,6 +42,7 @@ export const CatalogPromoteFeatureCandidatesResponseDto$inboundSchema:
       test_feature_id: z.string(),
       type: z.string(),
       description: z.string(),
+      external_id: z.nullable(z.string()),
       proposed_external_id: z.string(),
       candidates: z.array(
         CatalogPromoteFeatureCandidateResponseDto$inboundSchema,
@@ -45,6 +50,7 @@ export const CatalogPromoteFeatureCandidatesResponseDto$inboundSchema:
     }).transform((v) => {
       return remap$(v, {
         "test_feature_id": "testFeatureId",
+        "external_id": "externalId",
         "proposed_external_id": "proposedExternalId",
       });
     });
@@ -53,6 +59,7 @@ export type CatalogPromoteFeatureCandidatesResponseDto$Outbound = {
   test_feature_id: string;
   type: string;
   description: string;
+  external_id: string | null;
   proposed_external_id: string;
   candidates: Array<CatalogPromoteFeatureCandidateResponseDto$Outbound>;
 };
@@ -67,6 +74,7 @@ export const CatalogPromoteFeatureCandidatesResponseDto$outboundSchema:
     testFeatureId: z.string(),
     type: z.string(),
     description: z.string(),
+    externalId: z.nullable(z.string()),
     proposedExternalId: z.string(),
     candidates: z.array(
       CatalogPromoteFeatureCandidateResponseDto$outboundSchema,
@@ -74,6 +82,7 @@ export const CatalogPromoteFeatureCandidatesResponseDto$outboundSchema:
   }).transform((v) => {
     return remap$(v, {
       testFeatureId: "test_feature_id",
+      externalId: "external_id",
       proposedExternalId: "proposed_external_id",
     });
   });

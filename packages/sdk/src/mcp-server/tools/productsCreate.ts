@@ -30,7 +30,7 @@ Create a new product for one-time payments, including free products with a 0 pri
       };
     }
 
-    const value = result.value;
+    const value = result.value.result;
 
     return formatResult(value, apiCall);
   },

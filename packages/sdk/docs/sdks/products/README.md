@@ -267,7 +267,7 @@ run();
 
 ### Response
 
-**Promise\<[components.ProductWriteResponseEntity](../../models/components/productwriteresponseentity.md)\>**
+**Promise\<[operations.CreateProductResponse](../../models/operations/createproductresponse.md)\>**
 
 ### Errors
 
@@ -340,7 +340,7 @@ run();
 
 ### Response
 
-**Promise\<[components.ProductEntity](../../models/components/productentity.md)\>**
+**Promise\<[operations.GetProductResponse](../../models/operations/getproductresponse.md)\>**
 
 ### Errors
 
@@ -511,7 +511,7 @@ run();
 
 ### Response
 
-**Promise\<[components.ProductWriteResponseEntity](../../models/components/productwriteresponseentity.md)\>**
+**Promise\<[operations.UpdateProductResponse](../../models/operations/updateproductresponse.md)\>**
 
 ### Errors
 
@@ -584,7 +584,7 @@ run();
 
 ### Response
 
-**Promise\<[components.ProductEntity](../../models/components/productentity.md)\>**
+**Promise\<[operations.ArchiveProductResponse](../../models/operations/archiveproductresponse.md)\>**
 
 ### Errors
 

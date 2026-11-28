@@ -14,25 +14,24 @@ let value: MeterWriteApiResponseDto = {
   aggregationProperty: "tokens",
   filter: {
     conjunction: "and",
-    clauses: [
-      {
-        property: "tier",
-        operator: "equals",
-        value: "pro",
-      },
-    ],
+    clauses: [],
   },
   unitLabel: "images",
   status: "active",
   externalId: "image-generations",
   locked: false,
-  createdAt: "1735537445442",
-  updatedAt: "1735649528251",
+  createdAt: "1729102667913",
+  updatedAt: "1735689182146",
   writeResult: {
     result: "updated",
     dryRun: false,
     changes: [],
-    warnings: [],
+    warnings: [
+      {
+        code: "field_not_writable",
+        path: "unit_label",
+      },
+    ],
   },
 };
 ```

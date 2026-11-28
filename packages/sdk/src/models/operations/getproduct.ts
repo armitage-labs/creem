@@ -3,8 +3,10 @@
  */
 
 import * as z from "zod/v3";
+import { remap as remap$ } from "../../lib/primitives.js";
 import { safeParse } from "../../lib/schemas.js";
 import { Result as SafeParseResult } from "../../types/fp.js";
+import * as components from "../components/index.js";
 import { SDKValidationError } from "../errors/sdkvalidationerror.js";
 
 export type GetProductRequest = {
@@ -12,6 +14,11 @@ export type GetProductRequest = {
    * The product ID
    */
   id: string;
+};
+
+export type GetProductResponse = {
+  headers: { [k: string]: Array<string> };
+  result: components.ProductEntity;
 };
 
 /** @internal */
@@ -50,5 +57,57 @@ export function getProductRequestFromJSON(
     jsonString,
     (x) => GetProductRequest$inboundSchema.parse(JSON.parse(x)),
     `Failed to parse 'GetProductRequest' from JSON`,
+  );
+}
+
+/** @internal */
+export const GetProductResponse$inboundSchema: z.ZodType<
+  GetProductResponse,
+  z.ZodTypeDef,
+  unknown
+> = z.object({
+  Headers: z.record(z.array(z.string())).default({}),
+  Result: components.ProductEntity$inboundSchema,
+}).transform((v) => {
+  return remap$(v, {
+    "Headers": "headers",
+    "Result": "result",
+  });
+});
+/** @internal */
+export type GetProductResponse$Outbound = {
+  Headers: { [k: string]: Array<string> };
+  Result: components.ProductEntity$Outbound;
+};
+
+/** @internal */
+export const GetProductResponse$outboundSchema: z.ZodType<
+  GetProductResponse$Outbound,
+  z.ZodTypeDef,
+  GetProductResponse
+> = z.object({
+  headers: z.record(z.array(z.string())),
+  result: components.ProductEntity$outboundSchema,
+}).transform((v) => {
+  return remap$(v, {
+    headers: "Headers",
+    result: "Result",
+  });
+});
+
+export function getProductResponseToJSON(
+  getProductResponse: GetProductResponse,
+): string {
+  return JSON.stringify(
+    GetProductResponse$outboundSchema.parse(getProductResponse),
+  );
+}
+export function getProductResponseFromJSON(
+  jsonString: string,
+): SafeParseResult<GetProductResponse, SDKValidationError> {
+  return safeParse(
+    jsonString,
+    (x) => GetProductResponse$inboundSchema.parse(JSON.parse(x)),
+    `Failed to parse 'GetProductResponse' from JSON`,
   );
 }

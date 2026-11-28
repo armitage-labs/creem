@@ -403,6 +403,7 @@ async function run() {
     },
     externalId: "user-42",
     country: "US",
+    suppressTestModeEmails: true,
   });
 
   console.log(result);
@@ -434,6 +435,7 @@ async function run() {
     },
     externalId: "user-42",
     country: "US",
+    suppressTestModeEmails: true,
   });
   if (res.ok) {
     const { value: result } = res;
@@ -489,6 +491,7 @@ async function run() {
     },
     externalId: "{}",
     country: "US",
+    suppressTestModeEmails: true,
   });
 
   console.log(result);
@@ -521,6 +524,7 @@ async function run() {
     },
     externalId: "{}",
     country: "US",
+    suppressTestModeEmails: true,
   });
   if (res.ok) {
     const { value: result } = res;

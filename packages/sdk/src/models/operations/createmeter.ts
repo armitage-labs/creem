@@ -21,10 +21,19 @@ export type CreateMeterRequest = {
    */
   ifNoneMatch?: string | undefined;
   /**
+   * Write only while the meter is unchanged: send the `ETag` a read or write of it returned, or `*` for any existing meter. When it doesn't match, the call answers `412` (`precondition_failed`, `details.etag` the current ETag) and writes nothing. A weak tag (`W/…`) never matches. A dry run evaluates it the same way. Its target is the meter that holds the `external_id`: `*` makes the call update-only, and a request without an `external_id`, or with one no meter holds, answers `412` and creates nothing. Evaluated before `If-None-Match`.
+   */
+  ifMatch?: string | undefined;
+  /**
    * Send `true` to preview the write: the request runs as it would and is rolled back, so nothing is written and `Idempotency-Key` is neither read nor stored. The answer is the one the real call would give: the same status (`201` for a create) and errors, and the meter with `write_result.dry_run` `true`. The id of a meter a dry run would create is never stored: a `GET` of it answers `404`. `false` or no parameter is a real call; any other value answers `400`.
    */
   dryRun?: boolean | undefined;
   createMeterApiRequestDto: components.CreateMeterApiRequestDto;
+};
+
+export type CreateMeterResponse = {
+  headers: { [k: string]: Array<string> };
+  result: components.MeterWriteApiResponseDto;
 };
 
 /** @internal */
@@ -35,12 +44,14 @@ export const CreateMeterRequest$inboundSchema: z.ZodType<
 > = z.object({
   "Idempotency-Key": z.string().optional(),
   "If-None-Match": z.string().optional(),
+  "If-Match": z.string().optional(),
   dry_run: z.boolean().optional(),
   CreateMeterApiRequestDto: components.CreateMeterApiRequestDto$inboundSchema,
 }).transform((v) => {
   return remap$(v, {
     "Idempotency-Key": "idempotencyKey",
     "If-None-Match": "ifNoneMatch",
+    "If-Match": "ifMatch",
     "dry_run": "dryRun",
     "CreateMeterApiRequestDto": "createMeterApiRequestDto",
   });
@@ -49,6 +60,7 @@ export const CreateMeterRequest$inboundSchema: z.ZodType<
 export type CreateMeterRequest$Outbound = {
   "Idempotency-Key"?: string | undefined;
   "If-None-Match"?: string | undefined;
+  "If-Match"?: string | undefined;
   dry_run?: boolean | undefined;
   CreateMeterApiRequestDto: components.CreateMeterApiRequestDto$Outbound;
 };
@@ -61,12 +73,14 @@ export const CreateMeterRequest$outboundSchema: z.ZodType<
 > = z.object({
   idempotencyKey: z.string().optional(),
   ifNoneMatch: z.string().optional(),
+  ifMatch: z.string().optional(),
   dryRun: z.boolean().optional(),
   createMeterApiRequestDto: components.CreateMeterApiRequestDto$outboundSchema,
 }).transform((v) => {
   return remap$(v, {
     idempotencyKey: "Idempotency-Key",
     ifNoneMatch: "If-None-Match",
+    ifMatch: "If-Match",
     dryRun: "dry_run",
     createMeterApiRequestDto: "CreateMeterApiRequestDto",
   });
@@ -86,5 +100,57 @@ export function createMeterRequestFromJSON(
     jsonString,
     (x) => CreateMeterRequest$inboundSchema.parse(JSON.parse(x)),
     `Failed to parse 'CreateMeterRequest' from JSON`,
+  );
+}
+
+/** @internal */
+export const CreateMeterResponse$inboundSchema: z.ZodType<
+  CreateMeterResponse,
+  z.ZodTypeDef,
+  unknown
+> = z.object({
+  Headers: z.record(z.array(z.string())).default({}),
+  Result: components.MeterWriteApiResponseDto$inboundSchema,
+}).transform((v) => {
+  return remap$(v, {
+    "Headers": "headers",
+    "Result": "result",
+  });
+});
+/** @internal */
+export type CreateMeterResponse$Outbound = {
+  Headers: { [k: string]: Array<string> };
+  Result: components.MeterWriteApiResponseDto$Outbound;
+};
+
+/** @internal */
+export const CreateMeterResponse$outboundSchema: z.ZodType<
+  CreateMeterResponse$Outbound,
+  z.ZodTypeDef,
+  CreateMeterResponse
+> = z.object({
+  headers: z.record(z.array(z.string())),
+  result: components.MeterWriteApiResponseDto$outboundSchema,
+}).transform((v) => {
+  return remap$(v, {
+    headers: "Headers",
+    result: "Result",
+  });
+});
+
+export function createMeterResponseToJSON(
+  createMeterResponse: CreateMeterResponse,
+): string {
+  return JSON.stringify(
+    CreateMeterResponse$outboundSchema.parse(createMeterResponse),
+  );
+}
+export function createMeterResponseFromJSON(
+  jsonString: string,
+): SafeParseResult<CreateMeterResponse, SDKValidationError> {
+  return safeParse(
+    jsonString,
+    (x) => CreateMeterResponse$inboundSchema.parse(JSON.parse(x)),
+    `Failed to parse 'CreateMeterResponse' from JSON`,
   );
 }

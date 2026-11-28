@@ -30,7 +30,7 @@ Update a product. Only supplied fields change; a change of amount, currency, bil
       };
     }
 
-    const value = result.value;
+    const value = result.value.result;
 
     return formatResult(value, apiCall);
   },

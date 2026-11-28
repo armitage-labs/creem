@@ -11,7 +11,6 @@ import { safeParse } from "../lib/schemas.js";
 import { RequestOptions } from "../lib/sdks.js";
 import { extractSecurity, resolveGlobalSecurity } from "../lib/security.js";
 import { pathToFunc } from "../lib/url.js";
-import * as components from "../models/components/index.js";
 import { CreemError } from "../models/errors/creemerror.js";
 import {
   ConnectionError,
@@ -38,7 +37,7 @@ export function productsCreate(
   options?: RequestOptions,
 ): APIPromise<
   Result<
-    components.ProductWriteResponseEntity,
+    operations.CreateProductResponse,
     | CreemError
     | ResponseValidationError
     | ConnectionError
@@ -63,7 +62,7 @@ async function $do(
 ): Promise<
   [
     Result<
-      components.ProductWriteResponseEntity,
+      operations.CreateProductResponse,
       | CreemError
       | ResponseValidationError
       | ConnectionError
@@ -103,6 +102,10 @@ async function $do(
       payload["Idempotency-Key"],
       { explode: false, charEncoding: "none" },
     ),
+    "If-Match": encodeSimple("If-Match", payload["If-Match"], {
+      explode: false,
+      charEncoding: "none",
+    }),
     "If-None-Match": encodeSimple("If-None-Match", payload["If-None-Match"], {
       explode: false,
       charEncoding: "none",
@@ -156,8 +159,12 @@ async function $do(
   }
   const response = doResult.value;
 
+  const responseFields = {
+    HttpMeta: { Response: response, Request: req },
+  };
+
   const [result] = await M.match<
-    components.ProductWriteResponseEntity,
+    operations.CreateProductResponse,
     | CreemError
     | ResponseValidationError
     | ConnectionError
@@ -167,10 +174,13 @@ async function $do(
     | UnexpectedClientError
     | SDKValidationError
   >(
-    M.json(200, components.ProductWriteResponseEntity$inboundSchema),
+    M.json(200, operations.CreateProductResponse$inboundSchema, {
+      hdrs: true,
+      key: "Result",
+    }),
     M.fail([400, 401, 404, 409, 412, 422, "4XX"]),
     M.fail("5XX"),
-  )(response, req);
+  )(response, req, { extraFields: responseFields });
   if (!result.ok) {
     return [result, { status: "complete", request: req, response }];
   }

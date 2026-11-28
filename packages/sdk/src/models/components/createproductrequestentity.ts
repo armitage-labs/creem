@@ -177,7 +177,7 @@ export type CreateProductRequestEntity = {
    */
   customField?: Array<CustomFieldRequestEntity> | undefined;
   /**
-   * Enable abandoned cart recovery for this product
+   * Enable abandoned cart recovery for this product. Defaults to `false` when creating; when an `external_id` names an existing product, an omitted value leaves the setting unchanged.
    */
   abandonedCartRecoveryEnabled?: boolean | undefined;
   /**

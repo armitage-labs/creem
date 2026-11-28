@@ -125,6 +125,15 @@
             }
           },
           {
+            "name": "If-Match",
+            "required": false,
+            "in": "header",
+            "description": "Write only while the product is unchanged: send the `ETag` a read or write of it returned, or `*` for any existing product. When it doesn't match, the call answers `412` (`precondition_failed`, `details.etag` the current ETag) and writes nothing. A weak tag (`W/…`) never matches. A dry run evaluates it the same way. Its target is the product that holds the `external_id`: `*` makes the call update-only, and a request without an `external_id`, or with one no product holds, answers `412` and creates nothing. Evaluated before `If-None-Match`.",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
             "name": "dry_run",
             "required": false,
             "in": "query",
@@ -148,6 +157,14 @@
         "responses": {
           "200": {
             "description": "Successfully created or updated the product",
+            "headers": {
+              "ETag": {
+                "description": "Strong, opaque ETag of the resource as this response returns it. Send it back in `If-Match` to write only while the resource is unchanged. A change of any nested item (a price version, a usage price, a feature) changes it; a write that answers `unchanged` keeps it. Not sent on a dry run. Compare it as an opaque string.",
+                "schema": {
+                  "type": "string"
+                }
+              }
+            },
             "content": {
               "application/json": {
                 "schema": {
@@ -169,7 +186,7 @@
             "description": "Conflict. When an `external_id` names an existing product, the conflicts of `PATCH /v1/products/{id}` apply: `usage_price_in_use`, `meter_archived`, `license_keys_issued`, `auto_recharge_consents_active`, `product_changed_concurrently`, and `external_id_taken` for a feature key. Nothing is changed."
           },
           "412": {
-            "description": "Precondition failed (code `precondition_failed`): `If-None-Match: *` was sent and a product of the store already has this `external_id`, archived or not. `details.product_id` names it. Nothing is written."
+            "description": "Precondition failed (code `precondition_failed`). `If-None-Match: *` was sent and a product of the store already has this `external_id`, archived or not: `details.product_id` names it. Or `If-Match` failed (it is evaluated first): no product holds the `external_id`, or the request has none (`details.etag` is `null`), or the product that holds it has another ETag (`details.etag` is its current one). Nothing is written."
           },
           "422": {
             "description": "Unprocessable. `generation_bucket_reserved`: a `customerCredits` feature names a reserved bucket (`generation` or `generation:*`, any casing) without `requires_moderation`; grant AI generation credits with `requires_moderation` `true` instead. `bucket_name_not_allowed_with_requires_moderation`: a `customerCredits` feature sends `bucket_name` together with `requires_moderation` `true`. `generation_credits_usage_price_unsupported`: a usage price would settle from a reserved generation bucket (`target_account` `per_unit` with `target_account_name`, or the meter unit, `generation` or `generation:*`); spending generation credits requires a `moderation_id`, which usage settlement does not carry. `credits_reset_requires_subscription`: a `customerCredits` feature sets `resets_each_period` `true` on a one-time product. Nothing is changed."
@@ -203,6 +220,14 @@
         "responses": {
           "200": {
             "description": "Successfully retrieved the product",
+            "headers": {
+              "ETag": {
+                "description": "Strong, opaque ETag of the resource as this response returns it. Send it back in `If-Match` to write only while the resource is unchanged. A change of any nested item (a price version, a usage price, a feature) changes it; a write that answers `unchanged` keeps it. Not sent on a dry run. Compare it as an opaque string.",
+                "schema": {
+                  "type": "string"
+                }
+              }
+            },
             "content": {
               "application/json": {
                 "schema": {
@@ -244,6 +269,15 @@
             }
           },
           {
+            "name": "If-Match",
+            "required": false,
+            "in": "header",
+            "description": "Write only while the product is unchanged: send the `ETag` a read or write of it returned, or `*` for any existing product. When it doesn't match, the call answers `412` (`precondition_failed`, `details.etag` the current ETag) and writes nothing. A weak tag (`W/…`) never matches. A dry run evaluates it the same way.",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
             "name": "dry_run",
             "required": false,
             "in": "query",
@@ -267,6 +301,14 @@
         "responses": {
           "200": {
             "description": "Successfully updated the product",
+            "headers": {
+              "ETag": {
+                "description": "Strong, opaque ETag of the resource as this response returns it. Send it back in `If-Match` to write only while the resource is unchanged. A change of any nested item (a price version, a usage price, a feature) changes it; a write that answers `unchanged` keeps it. Not sent on a dry run. Compare it as an opaque string.",
+                "schema": {
+                  "type": "string"
+                }
+              }
+            },
             "content": {
               "application/json": {
                 "schema": {
@@ -286,6 +328,9 @@
           },
           "409": {
             "description": "Conflict. `license_keys_issued`: the update would remove a license-key feature whose keys customers already hold, by leaving it out of the `licenseKey` entries or with `deleted: true`; `details.issued_keys` counts the keys, whatever their status. Keep the feature, or edit its settings in place instead. `external_id_taken`: another product of the store already uses this `external_id`. `usage_price_in_use`: the update would remove a usage price, move it to another meter or change its settlement mode while subscriptions are billed for it or have usage on it that has not settled; `details.affected_subscriptions` counts them (`total`, `by_status`, `unsettled_postpaid_usage`) and `details.reason` is `running_subscriptions`. The same code with `details.reason` `referenced_price` and all counts 0: an ended subscription, a subscription item or an order still references the removed price. `meter_archived`: `status` `active` would unarchive a product with a usage price on an archived meter; `details.meter_id` names the meter. Unarchive the meter or remove the usage price first. `auto_recharge_consents_active`: customers switched on automatic refill for this product, and the update would raise its price, change its currency or billing type, switch its tax mode away from inclusive, or rewrite its tax category (a legacy `ebooks` product on a recurring price becomes `saas`, also on a plain rename); `details.auto_recharge_consents` counts the enabled consents. Create a new top-up product at the new price instead. `product_changed_concurrently`: another write changed the product's default price while this update ran. Read the product again and retry. Nothing is changed. For any of these codes on a product that also has a copy at Stripe, when the refusal comes from a write that landed while the update ran, only that Stripe copy can carry the change: an unused Stripe price can remain, and the Stripe product can show the new name, description or image."
+          },
+          "412": {
+            "description": "Precondition failed (code `precondition_failed`): the `If-Match` sent doesn't match the product's current ETag, which `details.etag` carries. Nothing is written."
           },
           "422": {
             "description": "Unprocessable. `generation_bucket_reserved`: a `customerCredits` feature names a reserved bucket (`generation` or `generation:*`, any casing) without `requires_moderation`; grant AI generation credits with `requires_moderation` `true` instead. `bucket_name_not_allowed_with_requires_moderation`: a `customerCredits` feature sends `bucket_name` together with `requires_moderation` `true`. `generation_credits_usage_price_unsupported`: a usage price would settle from a reserved generation bucket (`target_account` `per_unit` with `target_account_name`, or the meter unit, `generation` or `generation:*`); spending generation credits requires a `moderation_id`, which usage settlement does not carry. `credits_reset_requires_subscription`: a `customerCredits` feature would have `resets_each_period` `true` on a one-time product, also when the update switches a product with the reset on to one-time without turning it off. Nothing is changed."
@@ -312,11 +357,28 @@
             "schema": {
               "type": "string"
             }
+          },
+          {
+            "name": "If-Match",
+            "required": false,
+            "in": "header",
+            "description": "Write only while the product is unchanged: send the `ETag` a read or write of it returned, or `*` for any existing product. When it doesn't match, the call answers `412` (`precondition_failed`, `details.etag` the current ETag) and writes nothing. A weak tag (`W/…`) never matches. A dry run evaluates it the same way.",
+            "schema": {
+              "type": "string"
+            }
           }
         ],
         "responses": {
           "200": {
             "description": "Successfully archived the product",
+            "headers": {
+              "ETag": {
+                "description": "Strong, opaque ETag of the resource as this response returns it. Send it back in `If-Match` to write only while the resource is unchanged. A change of any nested item (a price version, a usage price, a feature) changes it; a write that answers `unchanged` keeps it. Not sent on a dry run. Compare it as an opaque string.",
+                "schema": {
+                  "type": "string"
+                }
+              }
+            },
             "content": {
               "application/json": {
                 "schema": {
@@ -333,6 +395,9 @@
           },
           "404": {
             "description": "Not Found - Resource does not exist"
+          },
+          "412": {
+            "description": "Precondition failed (code `precondition_failed`): the `If-Match` sent doesn't match the product's current ETag, which `details.etag` carries. Nothing is written."
           }
         },
         "tags": ["Products"],
@@ -1916,7 +1981,7 @@
         "operationId": "updateDiscount",
         "x-speakeasy-name-override": "update",
         "summary": "Update a discount.",
-        "description": "Update a discount. Only supplied fields change; the code never does. Once redeemed, its amount, type, currency and duration are fixed. A discount with a Stripe coupon also keeps its expiry, redemption limit and products; a name change renames the coupon. A request that changes nothing answers `unchanged` and writes nothing. The discount comes back with `write_result`.",
+        "description": "Update a discount. Only supplied fields change; the code never does. Once redeemed, its amount, type, currency and duration are fixed. A discount with a Stripe coupon also keeps its expiry, redemption limit and products; a name change renames the coupon. A request that changes nothing answers `unchanged` and writes nothing; an `expiry_date` in the past answers `400`, even when it is the stored one, so leave it out once it has passed. The discount comes back with `write_result`.",
         "parameters": [
           {
             "name": "id",
@@ -3860,6 +3925,15 @@
             }
           },
           {
+            "name": "If-Match",
+            "required": false,
+            "in": "header",
+            "description": "Write only while the meter is unchanged: send the `ETag` a read or write of it returned, or `*` for any existing meter. When it doesn't match, the call answers `412` (`precondition_failed`, `details.etag` the current ETag) and writes nothing. A weak tag (`W/…`) never matches. A dry run evaluates it the same way. Its target is the meter that holds the `external_id`: `*` makes the call update-only, and a request without an `external_id`, or with one no meter holds, answers `412` and creates nothing. Evaluated before `If-None-Match`.",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
             "name": "dry_run",
             "required": false,
             "in": "query",
@@ -3882,6 +3956,14 @@
         "responses": {
           "200": {
             "description": "Only with an `external_id`: a meter of the store already had the key, and it was updated (`write_result.result` `updated`) or already matched the request (`unchanged`).",
+            "headers": {
+              "ETag": {
+                "description": "Strong, opaque ETag of the resource as this response returns it. Send it back in `If-Match` to write only while the resource is unchanged. A change of any nested item (a price version, a usage price, a feature) changes it; a write that answers `unchanged` keeps it. Not sent on a dry run. Compare it as an opaque string.",
+                "schema": {
+                  "type": "string"
+                }
+              }
+            },
             "content": {
               "application/json": {
                 "schema": {
@@ -3892,6 +3974,14 @@
           },
           "201": {
             "description": "Meter created (also by a dry run, which stores nothing)",
+            "headers": {
+              "ETag": {
+                "description": "Strong, opaque ETag of the resource as this response returns it. Send it back in `If-Match` to write only while the resource is unchanged. A change of any nested item (a price version, a usage price, a feature) changes it; a write that answers `unchanged` keeps it. Not sent on a dry run. Compare it as an opaque string.",
+                "schema": {
+                  "type": "string"
+                }
+              }
+            },
             "content": {
               "application/json": {
                 "schema": {
@@ -3920,7 +4010,7 @@
             }
           },
           "412": {
-            "description": "Precondition failed (code `precondition_failed`): `If-None-Match: *` was sent and a meter of the store already has this `external_id`, archived or not. `details.meter_id` names it. Nothing is written.",
+            "description": "Precondition failed (code `precondition_failed`). `If-None-Match: *` was sent and a meter of the store already has this `external_id`, archived or not: `details.meter_id` names it. Or `If-Match` failed (it is evaluated first): no meter holds the `external_id`, or the request has none (`details.etag` is `null`), or the meter that holds it has another ETag (`details.etag` is its current one). Nothing is written.",
             "content": {
               "application/json": {
                 "schema": {
@@ -4142,6 +4232,14 @@
         "responses": {
           "200": {
             "description": "Meter details",
+            "headers": {
+              "ETag": {
+                "description": "Strong, opaque ETag of the resource as this response returns it. Send it back in `If-Match` to write only while the resource is unchanged. A change of any nested item (a price version, a usage price, a feature) changes it; a write that answers `unchanged` keeps it. Not sent on a dry run. Compare it as an opaque string.",
+                "schema": {
+                  "type": "string"
+                }
+              }
+            },
             "content": {
               "application/json": {
                 "schema": {
@@ -4183,6 +4281,15 @@
             }
           },
           {
+            "name": "If-Match",
+            "required": false,
+            "in": "header",
+            "description": "Write only while the meter is unchanged: send the `ETag` a read or write of it returned, or `*` for any existing meter. When it doesn't match, the call answers `412` (`precondition_failed`, `details.etag` the current ETag) and writes nothing. A weak tag (`W/…`) never matches. A dry run evaluates it the same way.",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
             "name": "dry_run",
             "required": false,
             "in": "query",
@@ -4205,6 +4312,14 @@
         "responses": {
           "200": {
             "description": "Meter updated (`write_result.result` `updated`), or already as requested (`unchanged`)",
+            "headers": {
+              "ETag": {
+                "description": "Strong, opaque ETag of the resource as this response returns it. Send it back in `If-Match` to write only while the resource is unchanged. A change of any nested item (a price version, a usage price, a feature) changes it; a write that answers `unchanged` keeps it. Not sent on a dry run. Compare it as an opaque string.",
+                "schema": {
+                  "type": "string"
+                }
+              }
+            },
             "content": {
               "application/json": {
                 "schema": {
@@ -4224,6 +4339,16 @@
           },
           "409": {
             "description": "The name or the `external_id` is already taken (code `external_id_taken` for the key), or the definition can no longer be edited",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/UsageMeteringErrorApiResponseDto"
+                }
+              }
+            }
+          },
+          "412": {
+            "description": "Precondition failed (code `precondition_failed`): the `If-Match` sent doesn't match the meter's current ETag, which `details.etag` carries. Nothing is written.",
             "content": {
               "application/json": {
                 "schema": {
@@ -4378,11 +4503,28 @@
             "schema": {
               "type": "string"
             }
+          },
+          {
+            "name": "If-Match",
+            "required": false,
+            "in": "header",
+            "description": "Write only while the meter is unchanged: send the `ETag` a read or write of it returned, or `*` for any existing meter. When it doesn't match, the call answers `412` (`precondition_failed`, `details.etag` the current ETag) and writes nothing. A weak tag (`W/…`) never matches. A dry run evaluates it the same way.",
+            "schema": {
+              "type": "string"
+            }
           }
         ],
         "responses": {
           "200": {
             "description": "Meter archived",
+            "headers": {
+              "ETag": {
+                "description": "Strong, opaque ETag of the resource as this response returns it. Send it back in `If-Match` to write only while the resource is unchanged. A change of any nested item (a price version, a usage price, a feature) changes it; a write that answers `unchanged` keeps it. Not sent on a dry run. Compare it as an opaque string.",
+                "schema": {
+                  "type": "string"
+                }
+              }
+            },
             "content": {
               "application/json": {
                 "schema": {
@@ -4402,6 +4544,16 @@
           },
           "409": {
             "description": "The meter is priced on a product you are still selling — remove the usage charge (or archive the product) first",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/UsageMeteringErrorApiResponseDto"
+                }
+              }
+            }
+          },
+          "412": {
+            "description": "Precondition failed (code `precondition_failed`): the `If-Match` sent doesn't match the meter's current ETag, which `details.etag` carries. Nothing is written.",
             "content": {
               "application/json": {
                 "schema": {
@@ -4434,11 +4586,28 @@
             "schema": {
               "type": "string"
             }
+          },
+          {
+            "name": "If-Match",
+            "required": false,
+            "in": "header",
+            "description": "Write only while the meter is unchanged: send the `ETag` a read or write of it returned, or `*` for any existing meter. When it doesn't match, the call answers `412` (`precondition_failed`, `details.etag` the current ETag) and writes nothing. A weak tag (`W/…`) never matches. A dry run evaluates it the same way.",
+            "schema": {
+              "type": "string"
+            }
           }
         ],
         "responses": {
           "200": {
             "description": "Meter unarchived (or already active)",
+            "headers": {
+              "ETag": {
+                "description": "Strong, opaque ETag of the resource as this response returns it. Send it back in `If-Match` to write only while the resource is unchanged. A change of any nested item (a price version, a usage price, a feature) changes it; a write that answers `unchanged` keeps it. Not sent on a dry run. Compare it as an opaque string.",
+                "schema": {
+                  "type": "string"
+                }
+              }
+            },
             "content": {
               "application/json": {
                 "schema": {
@@ -4455,6 +4624,16 @@
           },
           "404": {
             "description": "Not Found - Resource does not exist"
+          },
+          "412": {
+            "description": "Precondition failed (code `precondition_failed`): the `If-Match` sent doesn't match the meter's current ETag, which `details.etag` carries. Nothing is written.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/UsageMeteringErrorApiResponseDto"
+                }
+              }
+            }
           }
         },
         "tags": ["Meters"],
@@ -5780,12 +5959,48 @@
         ]
       }
     },
+    "/v1/catalog/revision": {
+      "get": {
+        "operationId": "getCatalogRevision",
+        "x-speakeasy-name-override": "getRevision",
+        "summary": "Get the revision of the store's catalog",
+        "description": "An opaque value that changes after any create, update or delete of a product (its price versions, usage prices and features included), a meter, a discount or a product group of the store, and stays the same while none happens, also after a write that answers `unchanged`. Compare it with the value you read last to know whether to read the catalog again.",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "The store's catalog revision",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CatalogRevisionResponseDto"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Bad Request - Invalid input parameters"
+          },
+          "401": {
+            "description": "Unauthorized - Invalid or missing API key"
+          },
+          "404": {
+            "description": "Not Found - Resource does not exist"
+          }
+        },
+        "tags": ["Catalog"],
+        "security": [
+          {
+            "ApiKey": []
+          }
+        ]
+      }
+    },
     "/v1/catalog/validate": {
       "post": {
         "operationId": "validateCatalog",
         "x-speakeasy-name-override": "validate",
         "summary": "Validate a batch of catalog writes together, without writing anything.",
-        "description": "Runs every item as its own write would run with `?dry_run=true`, but all of them in one database transaction that is always rolled back, so the batch is checked as a whole: an item may name a resource another item of the batch creates (a product's usage price naming a new meter by `meter_external_id`), and every check, uniqueness rule and guard runs against what the earlier items would have written. Items run in dependency order (meters, products, product groups, discounts) and are answered in the order of the request. Without `id` an item runs as the keyed upsert of its kind (`POST /v1/products`, `POST /v1/meters`) with the same body; with `id` it runs as that resource's `PATCH` with `PATCH`'s rules, which is meant for a migrator adopting an existing resource (giving it an `external_id`). Requires `products:write` and the write scope of every kind in the batch (`meters:write` for meters). Nothing is written and nothing is triggered. A batch that passes can still fail when it is applied, if the catalog changes in between; validate it again right before applying it.",
+        "description": "Runs every item as its own write would run with `?dry_run=true`, but all of them in one database transaction that is always rolled back, so the batch is checked as a whole: an item may name a resource another item of the batch creates (a product's usage price naming a new meter by `meter_external_id`), and every check, uniqueness rule and guard runs against what the earlier items would have written. Items run in dependency order (meters, products, product groups, discounts) and are answered in the order of the request. Without `id` an item runs as the keyed upsert of its kind (`POST /v1/products`, `POST /v1/meters`, `POST /v1/product-groups`, `POST /v1/discounts`) with the same body; with `id` it runs as that resource's `PATCH` with `PATCH`'s rules, which is meant for a migrator adopting an existing resource (giving it an `external_id`). Requires `products:write` and the write scope of every kind in the batch (`meters:write` for meters, `discounts:write` for discounts). Nothing is written and nothing is triggered. A batch that passes can still fail when it is applied, if the catalog changes in between; validate it again right before applying it.",
         "parameters": [],
         "requestBody": {
           "required": true,
@@ -5809,7 +6024,7 @@
             }
           },
           "400": {
-            "description": "Bad request, and nothing was checked. Besides validation errors of the request itself: `validate_batch_too_large`: the batch holds more than 100 items (`details.max_items`, `details.items`); split it, for example one dependency layer per call. `dry_run_not_supported`: an item's `kind` can't be validated yet (`details.kind`: `product_group` or `discount`), or the request sent `dry_run` (validate never writes). `validate_batch_timeout`: the batch couldn't be checked within 15 seconds (`details.timeout_ms`), because its items are large or one waited on a resource another request was writing; nothing was written. Split it into smaller batches; sending the same batch again takes as long. An item's own validation error is not a `400` of the call: it is that item's answer in a `422`."
+            "description": "Bad request, and nothing was checked. Besides validation errors of the request itself: `validate_batch_too_large`: the batch holds more than 100 items (`details.max_items`, `details.items`); split it, for example one dependency layer per call. `dry_run_not_supported`: the request sent `dry_run` (validate never writes). `validate_batch_timeout`: the batch couldn't be checked within 15 seconds (`details.timeout_ms`), because its items are large or one waited on a resource another request was writing; nothing was written. Split it into smaller batches; sending the same batch again takes as long. An item's own validation error is not a `400` of the call: it is that item's answer in a `422`."
           },
           "401": {
             "description": "Unauthorized - Invalid or missing API key"
@@ -5843,8 +6058,8 @@
       "post": {
         "operationId": "promoteCatalog",
         "x-speakeasy-name-override": "promote",
-        "summary": "Promote the test catalog to live (meters and products).",
-        "description": "Copies the store’s test catalog into live by `external_id`: each selected test item is matched to the live item with the same key and written as that kind’s keyed upsert (`POST /v1/meters`, `POST /v1/products`); a keyed test item without a live match is created with its key. Test is the source for every field it sets; promote never clears a `metadata` key only live has (`conflict`), and live items without a test counterpart are not listed and never touched. A test item without a key is `needs_key`, with ranked `candidates` and a `proposed_external_id`: give both sides the same key, then promote again. Archived test items are included only when live has an item with the same key, and a paired meter’s archive state follows test’s.\n\nEvery item reports one `result`; the real run writes only `created`, `updated` and `unchanged` items. Before its first write the real run checks every write together in one rolled-back transaction (one dependency layer at a time above the batch limit) and writes nothing when one fails, unless `force` is `true`. The check runs within the time budget too: until it is done a page has no items and a `next_cursor`, and `validation.checked_batches` says how far it got. Then the run writes only what it checked: an item changed after the check is `not_written` (`changed_since_check`). Items run meters first, then products, then the meters test archived (a meter's archive is part of its own write, after the products that may stop pricing it), and pages end after a time budget: follow `next_cursor` with the same `select` and `dry_run` until it is null. Every run and item is recorded under `run_id`, dry runs included.\n\nRequires `products:write` and `meters:write` when meters are promoted. Answers `503` `test_environment_unavailable` when the test environment can’t be reached; try again later.",
+        "summary": "Promote the test catalog to live (meters, products, product groups and discounts).",
+        "description": "Copies the store’s test catalog into live by `external_id`: each selected test item is matched to the live item with the same key and written as that kind’s keyed upsert (`POST /v1/meters`, `POST /v1/products`); a keyed test item without a live match is created with its key. A product group live doesn’t have is created by the keyed upsert (`POST /v1/product-groups`); one live has is updated by its id (`PATCH /v1/product-groups/{id}`). A product group names its members by their products’ keys, in test’s order; a member live doesn’t have and this promote doesn’t create makes the group `blocked`. Discounts are matched by `code`, ignoring case: one live has is updated by its id (`PATCH /v1/discounts/{id}`), with test’s `external_id`; one live lacks is created (`POST /v1/discounts`); an expired test discount is included only when live has its code. Test is the source for every field it sets; promote never clears a `metadata` key or a discount’s `external_id` only live has (`conflict`), and live items without a test counterpart are not listed and never touched. A test item without a key is `needs_key`, with ranked `candidates` and a `proposed_external_id`: give both sides the same key, then promote again. Archived test items are included only when live has an item with the same key, and a paired meter’s archive state follows test’s.\n\nEvery item reports one `result`; the real run writes only `created`, `updated` and `unchanged` items. Before its first write the real run checks every write together in one rolled-back transaction (one dependency layer at a time above the batch limit) and writes nothing when one fails, unless `force` is `true`. The check runs within the time budget too: until it is done a page has no items and a `next_cursor`, and `validation.checked_batches` says how far it got. Then the run writes only what it checked: an item changed after the check is `not_written` (`changed_since_check`). Items run meters first, then products, then the meters test archived (a meter's archive is part of its own write, after the products that may stop pricing it), then product groups, then discounts, and pages end after a time budget: follow `next_cursor` with the same `select` and `dry_run` until it is null. Every run and item is recorded under `run_id`, dry runs included.\n\nOne page of a store's real runs runs at a time: a promote sent while a page of another run of the store runs answers `409` `promote_in_progress`; send it again after `Retry-After` (up to 5 minutes after a page that failed). A page sent again with the same cursor (its answer was lost, for example to a `504`) answers the items recorded after that cursor as they were answered, never writing them twice, then goes on with the items left.\n\nRequires `products:write`, `meters:write` when meters are promoted, and `discounts:write` when discounts are (an omitted `select` promotes every kind). Answers `503` `test_environment_unavailable` when the test environment can’t be reached, or when the catalogs couldn’t be read within one page many pages in a row; try again later with the same cursor.",
         "parameters": [
           {
             "name": "dry_run",
@@ -5884,13 +6099,16 @@
             "description": "Unauthorized - Invalid or missing API key"
           },
           "403": {
-            "description": "Forbidden: the API key or access token lacks `products:write`, or `meters:write` for a selection with meters. Nothing was read or written."
+            "description": "Forbidden, and nothing was read or written: the API key or access token lacks `products:write`, `meters:write` for a selection with meters, or `discounts:write` for one with discounts; or `catalog_promote_disabled`: promote is not enabled for this store yet."
           },
           "404": {
             "description": "Not Found - Resource does not exist"
           },
+          "409": {
+            "description": "Conflict (`promote_in_progress`): a page of another promote run of this store is running right now. Nothing ran; send the request again after `Retry-After` (seconds, the time a page takes), or go on with that run’s `next_cursor`. A page that failed without giving the store back (a crash) keeps it busy up to 5 minutes, so a request sent again after `Retry-After` can get this answer again until then."
+          },
           "503": {
-            "description": "Service unavailable (`test_environment_unavailable`): the test environment can’t be reached. Nothing was written; try again later."
+            "description": "Service unavailable (`test_environment_unavailable`): the test environment can’t be reached, or the test and live catalogs couldn’t be read within one page’s time budget many pages in a row (`details.pages_out_of_time`). Nothing was written; try again later, with the same cursor."
           }
         },
         "tags": ["Catalog"],
@@ -7067,8 +7285,7 @@
           },
           "abandoned_cart_recovery_enabled": {
             "type": "boolean",
-            "description": "Enable abandoned cart recovery for this product",
-            "default": false
+            "description": "Enable abandoned cart recovery for this product. Defaults to `false` when creating; when an `external_id` names an existing product, an omitted value leaves the setting unchanged."
           },
           "usage_prices": {
             "description": "Metered charges billed on top of the base price, one per meter. Recurring products only. When an `external_id` names an existing product, the array is the complete set: a usage price matches a stored one by `id`, else by its meter (`meter_id` or `meter_external_id`); when `id` and the meter disagree, `id` wins and the usage price moves to the other meter, which is refused while subscriptions use it. A stored usage price the array leaves out is removed.",
@@ -8639,6 +8856,11 @@
             "type": "string",
             "description": "The customer’s country, as an ISO 3166-1 alpha-2 code. Case-insensitive; stored upper-case. The customer portal uses it as the country of the payment form when the customer adds or updates a card. Set only when the customer has no country yet: an existing customer’s country is kept (change it with `PATCH /v1/customers`). The next checkout that carries a billing country replaces it; a checkout without one keeps it.",
             "example": "US"
+          },
+          "suppress_test_mode_emails": {
+            "type": "boolean",
+            "description": "Mark a customer you migrated from another platform, or one you made up for testing. While marked, Creem sends this customer no buyer email in test mode: no receipts, subscription notices, portal sign-in links, abandoned cart emails or the affiliate invite after a purchase. Other emails to the same address, such as affiliate, split or store invites, are still sent. It has no effect in live mode. The mark is not returned in the customer response. Omit to leave an existing customer as it is; a new customer starts unmarked.",
+            "example": true
           }
         },
         "required": ["email"]
@@ -8679,6 +8901,11 @@
             "type": "string",
             "description": "The customer’s country, as an ISO 3166-1 alpha-2 code. Case-insensitive; stored upper-case. The customer portal uses it as the country of the payment form when the customer adds or updates a card. Omit to leave unchanged. This endpoint changes it but never clears it, so `null` is refused. The next checkout that carries a billing country replaces it; a checkout without one keeps it.",
             "example": "US"
+          },
+          "suppress_test_mode_emails": {
+            "type": "boolean",
+            "description": "Mark a customer you migrated from another platform, or one you made up for testing. While marked, Creem sends this customer no buyer email in test mode: no receipts, subscription notices, portal sign-in links, abandoned cart emails or the affiliate invite after a purchase. Other emails to the same address, such as affiliate, split or store invites, are still sent. It has no effect in live mode. The mark is not returned in the customer response. Omit to leave unchanged; `false` removes the mark.",
+            "example": true
           }
         },
         "required": ["customer_id"]
@@ -10298,6 +10525,11 @@
       "StatsSummaryEntity": {
         "type": "object",
         "properties": {
+          "store_id": {
+            "type": "string",
+            "description": "ID of the authenticated store. Stays the same when the merchant creates, rotates or deletes keys.",
+            "example": "sto_1234567890"
+          },
           "totals": {
             "description": "Aggregated totals for the queried date range",
             "allOf": [
@@ -10356,7 +10588,7 @@
             }
           }
         },
-        "required": ["totals"]
+        "required": ["store_id", "totals"]
       },
       "ScreenPromptRequest": {
         "type": "object",
@@ -12677,13 +12909,24 @@
           "created_at"
         ]
       },
+      "CatalogRevisionResponseDto": {
+        "type": "object",
+        "properties": {
+          "revision": {
+            "type": "string",
+            "description": "Opaque revision of the store's catalog: products with their price versions, usage prices and features, meters, discounts and product groups. It changes after any create, update or delete of one of them, and stays the same after a write that answers `unchanged`. Compare it as an opaque string; it is computed on every read, not stored.",
+            "example": "3f2a9c0d1b4e5f60718293a4b5c6d7e8"
+          }
+        },
+        "required": ["revision"]
+      },
       "CatalogValidateItemRequestDto": {
         "type": "object",
         "properties": {
           "kind": {
             "type": "string",
             "enum": ["meter", "product", "product_group", "discount"],
-            "description": "The kind of resource the item writes. `meter` and `product` can be validated; `product_group` and `discount` answer `400` `dry_run_not_supported` until their writes support a dry run."
+            "description": "The kind of resource the item writes: `meter`, `product`, `product_group` or `discount`."
           },
           "id": {
             "type": "string",
@@ -12800,6 +13043,38 @@
               }
             ],
             "description": "`\"all\"` for every test product, or a list of test product ids. Leave it out to promote no products."
+          },
+          "product_groups": {
+            "oneOf": [
+              {
+                "type": "string",
+                "enum": ["all"]
+              },
+              {
+                "type": "array",
+                "items": {
+                  "type": "string"
+                },
+                "maxItems": 1000
+              }
+            ],
+            "description": "`\"all\"` for every test product group, or a list of test product group ids. Leave it out to promote no product groups. A group is matched by `external_id`; its members are named by their products’ keys."
+          },
+          "discounts": {
+            "oneOf": [
+              {
+                "type": "string",
+                "enum": ["all"]
+              },
+              {
+                "type": "array",
+                "items": {
+                  "type": "string"
+                },
+                "maxItems": 1000
+              }
+            ],
+            "description": "`\"all\"` for every test discount, or a list of test discount ids. Leave it out to promote no discounts. A discount is matched by its `code`, ignoring case; its `external_id` is copied."
           }
         }
       },
@@ -12807,7 +13082,7 @@
         "type": "object",
         "properties": {
           "select": {
-            "description": "What to promote, per kind (`meters`, `products`; product groups and discounts come later): `\"all\"` or a list of **test** ids. Omit `select` to promote everything; a kind left out of a sent `select` is not promoted. A test id the test store doesn’t have answers `400` `reference_not_found` (`details.field`, `details.key`) before anything runs.",
+            "description": "What to promote, per kind (`meters`, `products`, `product_groups`, `discounts`): `\"all\"` or a list of **test** ids. Omit `select` to promote everything; a kind left out of a sent `select` is not promoted. A test id the test store doesn’t have answers `400` `reference_not_found` (`details.field`, `details.key`) before anything runs.",
             "allOf": [
               {
                 "$ref": "#/components/schemas/CatalogPromoteSelectRequestDto"
@@ -12938,6 +13213,11 @@
           "description": {
             "type": "string"
           },
+          "external_id": {
+            "type": "string",
+            "nullable": true,
+            "description": "The test feature’s own `external_id`; null when it has none."
+          },
           "proposed_external_id": {
             "type": "string",
             "description": "The key to write on both features: the test feature’s own `external_id` when it has one, else the picked live feature’s `external_id` when it has one, else the test feature’s id."
@@ -12950,7 +13230,14 @@
             }
           }
         },
-        "required": ["test_feature_id", "type", "description", "proposed_external_id", "candidates"]
+        "required": [
+          "test_feature_id",
+          "type",
+          "description",
+          "external_id",
+          "proposed_external_id",
+          "candidates"
+        ]
       },
       "CatalogPromoteErrorResponseDto": {
         "type": "object",
@@ -12962,7 +13249,7 @@
           "code": {
             "type": "string",
             "nullable": true,
-            "description": "The stable error code, for example `usage_price_in_use`, `license_keys_issued`, `meter_in_use`, `live_metadata_not_in_test`, `reference_not_found`, `file_location_invalid`. More codes may be added."
+            "description": "The stable error code, for example `usage_price_in_use`, `license_keys_issued`, `meter_in_use`, `live_metadata_not_in_test`, `reference_not_found`, `file_location_invalid`, `file_missing`, `file_copy_failed`. More codes may be added."
           },
           "message": {
             "type": "string"
@@ -13004,12 +13291,12 @@
           },
           "result": {
             "type": "string",
-            "description": "One of `created`, `updated`, `unchanged`, `needs_key`, `conflict`, `failed`, `blocked`, `not_written`. More values may be added. The real run writes only `created`, `updated` and `unchanged` items. `not_written` is an item this run could write but didn't, with the reason in `error.code`: `archived_not_in_live` (archived in test, and live has no item with its key), `promote_check_failed` (the check failed for another item and `force` wasn't sent), `changed_since_check` (its write isn't the one the run checked; promote again)."
+            "description": "One of `created`, `updated`, `unchanged`, `needs_key`, `conflict`, `failed`, `blocked`, `not_written`. More values may be added. The real run writes only `created`, `updated` and `unchanged` items. `not_written` is an item this run could write but didn't, with the reason in `error.code`: `archived_not_in_live` (archived in test, and live has no item with its key), `promote_check_failed` (the check failed for another item and `force` wasn't sent), `changed_since_check` (its write isn't the one the run checked, or the live item changed after this promote read it, so its `If-Match` (a product group: the key it was read with) answered `412`; nothing of it was written; promote again)."
           },
           "write_result": {
             "type": "object",
             "additionalProperties": true,
-            "description": "On `created`, `updated` and `unchanged`: the `write_result` of the item’s upsert (`POST /v1/products`, `POST /v1/meters`), with promote’s warnings: `reference_planned` for a usage price naming a meter the same promote creates, `possible_rename` for a keyed item without a live match that has same-name live items (see `candidates`), `feature_type_not_promoted` for product features promote doesn’t copy yet (`file`)."
+            "description": "On `created`, `updated` and `unchanged`: the `write_result` of the item’s write (`POST /v1/meters`, `POST /v1/products`, `POST /v1/product-groups` or `PATCH /v1/product-groups/{id}`, and `POST /v1/discounts` or `PATCH /v1/discounts/{id}`), with promote’s warnings: `reference_planned` for a usage price naming a meter, or a group member or discount product naming a product, that the same promote creates; `possible_rename` for a keyed item without a live match that has same-name live items (see `candidates`); `expiry_not_promoted` for a discount whose test expiry is in the past, which isn’t sent (live keeps its expiry, `details.live_expiry_date`, `null` when it has none)."
           },
           "candidates": {
             "description": "On `needs_key`, and on a keyed item without a live match (`possible_rename`): live items of the same kind with the same name (ignoring case and spacing) that no test item is paired with, ranked: same billing type first, then active before archived, then closest price. Never preselected.",

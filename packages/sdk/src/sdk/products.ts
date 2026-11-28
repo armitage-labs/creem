@@ -43,7 +43,7 @@ export class Products extends ClientSDK {
   async create(
     request: operations.CreateProductRequest,
     options?: RequestOptions,
-  ): Promise<components.ProductWriteResponseEntity> {
+  ): Promise<operations.CreateProductResponse> {
     return unwrapAsync(productsCreate(
       this,
       request,
@@ -60,7 +60,7 @@ export class Products extends ClientSDK {
   async get(
     request: operations.GetProductRequest,
     options?: RequestOptions,
-  ): Promise<components.ProductEntity> {
+  ): Promise<operations.GetProductResponse> {
     return unwrapAsync(productsGet(
       this,
       request,
@@ -77,7 +77,7 @@ export class Products extends ClientSDK {
   async update(
     request: operations.UpdateProductRequest,
     options?: RequestOptions,
-  ): Promise<components.ProductWriteResponseEntity> {
+  ): Promise<operations.UpdateProductResponse> {
     return unwrapAsync(productsUpdate(
       this,
       request,
@@ -94,7 +94,7 @@ export class Products extends ClientSDK {
   async archive(
     request: operations.ArchiveProductRequest,
     options?: RequestOptions,
-  ): Promise<components.ProductEntity> {
+  ): Promise<operations.ArchiveProductResponse> {
     return unwrapAsync(productsArchive(
       this,
       request,

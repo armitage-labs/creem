@@ -12,10 +12,19 @@ import { SDKValidationError } from "../errors/sdkvalidationerror.js";
 export type UpdateMeterRequest = {
   id: string;
   /**
+   * Write only while the meter is unchanged: send the `ETag` a read or write of it returned, or `*` for any existing meter. When it doesn't match, the call answers `412` (`precondition_failed`, `details.etag` the current ETag) and writes nothing. A weak tag (`W/…`) never matches. A dry run evaluates it the same way.
+   */
+  ifMatch?: string | undefined;
+  /**
    * Send `true` to preview the write: the request runs as it would and is rolled back, so nothing is written and `Idempotency-Key` is neither read nor stored. The answer is the one the real call would give: the same status (`201` for a create) and errors, and the meter with `write_result.dry_run` `true`. The id of a meter a dry run would create is never stored: a `GET` of it answers `404`. `false` or no parameter is a real call; any other value answers `400`.
    */
   dryRun?: boolean | undefined;
   updateMeterApiRequestDto: components.UpdateMeterApiRequestDto;
+};
+
+export type UpdateMeterResponse = {
+  headers: { [k: string]: Array<string> };
+  result: components.MeterWriteApiResponseDto;
 };
 
 /** @internal */
@@ -25,10 +34,12 @@ export const UpdateMeterRequest$inboundSchema: z.ZodType<
   unknown
 > = z.object({
   id: z.string(),
+  "If-Match": z.string().optional(),
   dry_run: z.boolean().optional(),
   UpdateMeterApiRequestDto: components.UpdateMeterApiRequestDto$inboundSchema,
 }).transform((v) => {
   return remap$(v, {
+    "If-Match": "ifMatch",
     "dry_run": "dryRun",
     "UpdateMeterApiRequestDto": "updateMeterApiRequestDto",
   });
@@ -36,6 +47,7 @@ export const UpdateMeterRequest$inboundSchema: z.ZodType<
 /** @internal */
 export type UpdateMeterRequest$Outbound = {
   id: string;
+  "If-Match"?: string | undefined;
   dry_run?: boolean | undefined;
   UpdateMeterApiRequestDto: components.UpdateMeterApiRequestDto$Outbound;
 };
@@ -47,10 +59,12 @@ export const UpdateMeterRequest$outboundSchema: z.ZodType<
   UpdateMeterRequest
 > = z.object({
   id: z.string(),
+  ifMatch: z.string().optional(),
   dryRun: z.boolean().optional(),
   updateMeterApiRequestDto: components.UpdateMeterApiRequestDto$outboundSchema,
 }).transform((v) => {
   return remap$(v, {
+    ifMatch: "If-Match",
     dryRun: "dry_run",
     updateMeterApiRequestDto: "UpdateMeterApiRequestDto",
   });
@@ -70,5 +84,57 @@ export function updateMeterRequestFromJSON(
     jsonString,
     (x) => UpdateMeterRequest$inboundSchema.parse(JSON.parse(x)),
     `Failed to parse 'UpdateMeterRequest' from JSON`,
+  );
+}
+
+/** @internal */
+export const UpdateMeterResponse$inboundSchema: z.ZodType<
+  UpdateMeterResponse,
+  z.ZodTypeDef,
+  unknown
+> = z.object({
+  Headers: z.record(z.array(z.string())).default({}),
+  Result: components.MeterWriteApiResponseDto$inboundSchema,
+}).transform((v) => {
+  return remap$(v, {
+    "Headers": "headers",
+    "Result": "result",
+  });
+});
+/** @internal */
+export type UpdateMeterResponse$Outbound = {
+  Headers: { [k: string]: Array<string> };
+  Result: components.MeterWriteApiResponseDto$Outbound;
+};
+
+/** @internal */
+export const UpdateMeterResponse$outboundSchema: z.ZodType<
+  UpdateMeterResponse$Outbound,
+  z.ZodTypeDef,
+  UpdateMeterResponse
+> = z.object({
+  headers: z.record(z.array(z.string())),
+  result: components.MeterWriteApiResponseDto$outboundSchema,
+}).transform((v) => {
+  return remap$(v, {
+    headers: "Headers",
+    result: "Result",
+  });
+});
+
+export function updateMeterResponseToJSON(
+  updateMeterResponse: UpdateMeterResponse,
+): string {
+  return JSON.stringify(
+    UpdateMeterResponse$outboundSchema.parse(updateMeterResponse),
+  );
+}
+export function updateMeterResponseFromJSON(
+  jsonString: string,
+): SafeParseResult<UpdateMeterResponse, SDKValidationError> {
+  return safeParse(
+    jsonString,
+    (x) => UpdateMeterResponse$inboundSchema.parse(JSON.parse(x)),
+    `Failed to parse 'UpdateMeterResponse' from JSON`,
   );
 }

@@ -30,7 +30,7 @@ Rename a meter and/or revise its definition. A rename is always allowed — the 
       };
     }
 
-    const value = result.value;
+    const value = result.value.result;
 
     return formatResult(value, apiCall);
   },

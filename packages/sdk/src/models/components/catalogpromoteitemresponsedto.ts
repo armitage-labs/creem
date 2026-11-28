@@ -43,11 +43,11 @@ export type CatalogPromoteItemResponseDto = {
    */
   liveId: string | null;
   /**
-   * One of `created`, `updated`, `unchanged`, `needs_key`, `conflict`, `failed`, `blocked`, `not_written`. More values may be added. The real run writes only `created`, `updated` and `unchanged` items. `not_written` is an item this run could write but didn't, with the reason in `error.code`: `archived_not_in_live` (archived in test, and live has no item with its key), `promote_check_failed` (the check failed for another item and `force` wasn't sent), `changed_since_check` (its write isn't the one the run checked; promote again).
+   * One of `created`, `updated`, `unchanged`, `needs_key`, `conflict`, `failed`, `blocked`, `not_written`. More values may be added. The real run writes only `created`, `updated` and `unchanged` items. `not_written` is an item this run could write but didn't, with the reason in `error.code`: `archived_not_in_live` (archived in test, and live has no item with its key), `promote_check_failed` (the check failed for another item and `force` wasn't sent), `changed_since_check` (its write isn't the one the run checked, or the live item changed after this promote read it, so its `If-Match` (a product group: the key it was read with) answered `412`; nothing of it was written; promote again).
    */
   result: string;
   /**
-   * On `created`, `updated` and `unchanged`: the `write_result` of the item’s upsert (`POST /v1/products`, `POST /v1/meters`), with promote’s warnings: `reference_planned` for a usage price naming a meter the same promote creates, `possible_rename` for a keyed item without a live match that has same-name live items (see `candidates`), `feature_type_not_promoted` for product features promote doesn’t copy yet (`file`).
+   * On `created`, `updated` and `unchanged`: the `write_result` of the item’s write (`POST /v1/meters`, `POST /v1/products`, `POST /v1/product-groups` or `PATCH /v1/product-groups/{id}`, and `POST /v1/discounts` or `PATCH /v1/discounts/{id}`), with promote’s warnings: `reference_planned` for a usage price naming a meter, or a group member or discount product naming a product, that the same promote creates; `possible_rename` for a keyed item without a live match that has same-name live items (see `candidates`); `expiry_not_promoted` for a discount whose test expiry is in the past, which isn’t sent (live keeps its expiry, `details.live_expiry_date`, `null` when it has none).
    */
   writeResult?: { [k: string]: any } | undefined;
   /**
