@@ -290,6 +290,24 @@ Export `subscriptions.cancelScheduledUpdate` in your connected API to give users
   updates](https://creem.featurebase.app/p/scheduled-subscription-updates).
 </Note>
 
+## Single-choice layout
+
+`<Subscription.Root layout="choice" />` shows the plans as one single choice
+instead of a grid of cards: a radio list, each option with its title,
+description and price, the recommended plan chosen at first, and one
+"Continue to checkout" button for the plan chosen. Use it where a person only
+buys, for example a dialog that upgrades an organization. It leaves out free,
+trial and enterprise plans, shows the subscribed plan as current without
+choosing it, and offers no plan switch or cancellation.
+
+The options are Ark UI's radio group, so they carry `data-scope="radio-group"`,
+`data-part` and `data-state="checked"`. With `unstyled`, only your classes
+apply; `PlanChoice` is also exported for a layout of your own, with
+`className`, `itemClassName` and `actionClassName` in React and `class`,
+`itemClass` and `actionClass` in Svelte. The labels are
+`subscription.continueToCheckout` and `subscription.choosePlan` (the radio
+group's accessible name).
+
 ## Custom card composition
 
 When your design needs its own markup, keep the root and compose the pieces with `unstyled`. The root still owns checkout, switching, cancel, units, and active state:

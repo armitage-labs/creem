@@ -285,6 +285,20 @@ export const checkoutCreateArgs = {
   theme: v.optional(v.union(v.literal("light"), v.literal("dark"))),
 };
 
+/**
+ * The billing entity a widget names, for the generated `uiModel` and
+ * `checkouts.create`. Passed to the resolver as its request (`ApiResolveRequest`)
+ * and kept out of {@link checkoutCreateArgs}, so a custom wrapper that spreads
+ * its args into `creem.checkouts.create` never takes the entity from the
+ * browser.
+ */
+export const entityRequestArgs = {
+  entityId: v.optional(v.string()),
+};
+
+/** Convex arg validator for the generated `uiModel` query. */
+export const uiModelArgs = entityRequestArgs;
+
 /** Creem proration behaviors for paid-to-paid switches and unit changes. */
 export const paidSubscriptionUpdateBehaviorValidator = v.union(
   v.literal("proration-charge-immediately"),

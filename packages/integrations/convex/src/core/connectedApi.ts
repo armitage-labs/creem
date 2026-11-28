@@ -27,14 +27,14 @@ import type {
 export type UiModelFunction = FunctionReference<
   "query",
   "public",
-  Record<string, never>,
+  { entityId?: string },
   ConnectedBillingModel
 >;
 
 export type CheckoutCreateFunction = FunctionReference<
   "action",
   "public",
-  CheckoutCreateArgs,
+  CheckoutCreateArgs & { entityId?: string },
   { url: string }
 >;
 

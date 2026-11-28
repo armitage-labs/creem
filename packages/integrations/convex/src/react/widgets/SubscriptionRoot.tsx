@@ -11,6 +11,7 @@ import { Dialog } from "@ark-ui/react/dialog";
 import { Portal } from "@ark-ui/react/portal";
 
 import { PricingSection } from "../primitives/PricingSection.js";
+import { PlanChoice } from "../primitives/PlanChoice.js";
 import { SegmentGroup } from "../primitives/SegmentGroup.js";
 import { IntervalSelector } from "../primitives/IntervalSelector.js";
 import { ScheduledChangeBanner } from "../primitives/ScheduledChangeBanner.js";
@@ -108,6 +109,7 @@ export const SubscriptionRoot = ({
   permissions,
   className,
   class: classProp,
+  entityId,
   successUrl,
   units,
   showUnitPicker = false,
@@ -115,6 +117,7 @@ export const SubscriptionRoot = ({
   updateBehavior,
   appPlanUpdateBehavior,
   unstyled = false,
+  layout = "cards",
   onBeforeCheckout,
   onBeforePlanChange,
   onBeforePlanActivation,
@@ -137,6 +140,15 @@ export const SubscriptionRoot = ({
   permissions?: BillingPermissions;
   class?: string;
   className?: string;
+  /**
+   * Bill this entity instead of the caller's default one, for example an
+   * organization the user administers without having switched to it. The
+   * generated `uiModel` and `checkouts.create` pass it to your resolver, which
+   * must authorize it (`ApiResolveRequest`). Only new checkouts are offered:
+   * plan changes, cancellation and unit updates act on the caller's default
+   * entity, so they are switched off while this is set.
+   */
+  entityId?: string;
   successUrl?: string;
   units?: number;
   showUnitPicker?: boolean;
@@ -146,6 +158,13 @@ export const SubscriptionRoot = ({
   /** Cancellation behavior for paid-to-app-owned plan switches. */
   appPlanUpdateBehavior?: AppPlanUpdateBehaviorSetting;
   unstyled?: boolean;
+  /**
+   * Default layout without children: `"cards"`, a card and a button per plan,
+   * or `"choice"`, the plans as one single choice with one checkout button
+   * (`PlanChoice`), for a checkout that only buys. `"choice"` offers no plan
+   * switch or cancellation.
+   */
+  layout?: "cards" | "choice";
   onBeforeCheckout?: (intent: CheckoutIntent) => Promise<boolean> | boolean;
   onBeforePlanChange?: (intent: PlanChangeIntent) => Promise<boolean> | boolean;
   onBeforePlanActivation?: (intent: {
@@ -180,9 +199,15 @@ export const SubscriptionRoot = ({
 
   const resolvedClassName = className ?? classProp ?? "";
 
-  const canChange = resolvedPermissions?.canChangeSubscription !== false;
-  const canCancel = resolvedPermissions?.canCancelSubscription !== false;
-  const canResume = resolvedPermissions?.canResumeSubscription !== false;
+  // A named entity gets checkouts only: the subscription mutations resolve
+  // the caller's default entity and take no entity of their own.
+  const namesEntity = entityId !== undefined;
+  const canChange =
+    !namesEntity && resolvedPermissions?.canChangeSubscription !== false;
+  const canCancel =
+    !namesEntity && resolvedPermissions?.canCancelSubscription !== false;
+  const canResume =
+    !namesEntity && resolvedPermissions?.canResumeSubscription !== false;
 
   const client = useConvex();
 
@@ -195,7 +220,10 @@ export const SubscriptionRoot = ({
     resolvedApi.subscriptions?.cancelScheduledUpdate;
   const activateAppPlanRef = resolvedApi.plans?.activate;
 
-  const modelRaw = useQuery(billingUiModelRef, {});
+  const modelRaw = useQuery(
+    billingUiModelRef,
+    entityId !== undefined ? { entityId } : {},
+  );
   const model = (modelRaw ?? null) as ConnectedBillingModel | null;
 
   // Merge server → provider → local, most specific last. The server publishes
@@ -562,6 +590,7 @@ export const SubscriptionRoot = ({
       try {
         const { url } = await client.action(checkoutLinkRef, {
           productId,
+          ...(entityId !== undefined ? { entityId } : {}),
           ...(successUrl ? { successUrl } : {}),
           fallbackSuccessUrl: getFallbackSuccessUrl(),
           theme: getPreferredTheme(),
@@ -594,6 +623,7 @@ export const SubscriptionRoot = ({
     [
       client,
       checkoutLinkRef,
+      entityId,
       successUrl,
       resolvedOnBeforeCheckout,
       resolvedI18n.labels.subscription.checkoutFailed,
@@ -1290,6 +1320,30 @@ export const SubscriptionRoot = ({
 
             {children ? (
               children
+            ) : layout === "choice" ? (
+              <>
+                {intervalSelector === "auto" && availableCycles.length > 1 && (
+                  <IntervalSelector
+                    cycles={availableCycles}
+                    value={effectiveCycle}
+                    cycleBadges={cycleBadges}
+                    onValueChange={handleCycleChange}
+                    unstyled={unstyled}
+                    labels={resolvedI18n.labels}
+                  />
+                )}
+                <PlanChoice
+                  plans={visiblePlans}
+                  selectedCycle={effectiveCycle}
+                  products={allProducts}
+                  subscriptionProductId={localSubscriptionProductId}
+                  disableCheckout={!canCheckout}
+                  onCheckout={canCheckout ? handlePricingCheckout : undefined}
+                  unstyled={unstyled}
+                  labels={resolvedI18n.labels}
+                  formatCurrency={resolvedI18n.formatCurrency}
+                />
+              </>
             ) : (
               <PricingSection
                 plans={visiblePlans}

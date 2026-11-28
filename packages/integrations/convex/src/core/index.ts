@@ -4,6 +4,7 @@ export * from "./validators.js";
 export * from "./connectedApi.js";
 export * from "./catalog.js";
 export * from "./planTarget.js";
+export * from "./planChoice.js";
 export * from "./resolver.js";
 export * from "./selectors.js";
 export * from "./subscriptionStatus.js";

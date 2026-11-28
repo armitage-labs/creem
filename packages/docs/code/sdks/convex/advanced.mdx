@@ -173,6 +173,34 @@ assignment rather than letting the component own it:
 Omit both and the component reads the active plan from its own app-plan
 assignment rows.
 
+### Billing a named entity
+
+A widget can bill an entity other than the caller's default one, for example
+an organization the user administers without having switched to it:
+`<Subscription.Root entityId={organizationId} />`. The generated `uiModel` and
+`checkouts.create` take that `entityId` and pass it to your resolver as its
+second argument:
+
+```ts
+const resolve: ApiResolver = async (ctx, request) => {
+  const identity = await ctx.auth.getUserIdentity();
+  if (!identity) return null;
+  const entityId = request?.entityId ?? (await activeOrganizationOf(ctx));
+  // The requested id comes from the browser: check it like the default one.
+  await requireBillingAdmin(ctx, identity.subject, entityId);
+  return { userId: identity.subject, email: identity.email!, entityId };
+};
+```
+
+A call that names an entity is served for that entity or not at all: when the
+resolver returns another `entityId` (one written before this option, which
+ignores `request`), the call fails instead of reading or billing the default
+entity. With `entityId` set, `Subscription.Root` offers only new checkouts:
+plan changes, cancellation and unit updates act on the caller's default
+entity, so they are switched off. `checkoutCreateArgs` stays without
+`entityId`, so a custom wrapper that spreads its arguments into
+`creem.checkouts.create` never takes the entity from the browser.
+
 ## Webhook event middleware
 
 `registerRoutes` accepts an `events` map for app-specific logic. Your handlers run after the component's built-in processing, which upserts customers, subscriptions, and orders.

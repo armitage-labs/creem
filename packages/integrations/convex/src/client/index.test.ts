@@ -2369,6 +2369,79 @@ describe("api() convenience exports", () => {
     });
   });
 
+  describe("a widget that names a billing entity", () => {
+    const identity = { userId: "user_1", email: "a@b.com" };
+
+    it("asks the resolver for that entity and serves its model", async () => {
+      resolve.mockResolvedValue({ ...identity, entityId: "org_2" });
+      const ctx = createMockCtx({
+        [REFS.listProducts]: [PRODUCT_1],
+        [REFS.getCurrentSubscription]: null,
+        [REFS.listAllUserSubscriptions]: [],
+        [REFS.listUserSubscriptions]: [],
+        [REFS.getCustomerByEntityId]: null,
+        [REFS.listUserOrders]: [],
+      });
+      const handler = extractHandler(apiExports.uiModel as never);
+      await handler(ctx, { entityId: "org_2" });
+      expect(resolve).toHaveBeenCalledWith(ctx, { entityId: "org_2" });
+    });
+
+    it("asks with an empty request when no entity is named", async () => {
+      resolve.mockResolvedValue(null);
+      const ctx = createMockCtx({ [REFS.listProducts]: [PRODUCT_1] });
+      const handler = extractHandler(apiExports.uiModel as never);
+      await handler(ctx, {});
+      expect(resolve).toHaveBeenCalledWith(ctx, {});
+    });
+
+    it("refuses the model when the resolver answers with another entity", async () => {
+      resolve.mockResolvedValue({ ...identity, entityId: "org_1" });
+      const consoleError = vi
+        .spyOn(console, "error")
+        .mockImplementation(() => {});
+      const ctx = createMockCtx({ [REFS.listProducts]: [PRODUCT_1] });
+      const handler = extractHandler(apiExports.uiModel as never);
+      await expect(handler(ctx, { entityId: "org_2" })).rejects.toThrow(
+        "requested billing entity",
+      );
+      consoleError.mockRestore();
+    });
+
+    it("checks out for the named entity, never for one the browser sends otherwise", async () => {
+      resolve.mockResolvedValue({ ...identity, entityId: "org_2" });
+      const create = vi.fn().mockResolvedValue({ url: "https://creem.io/x" });
+      vi.spyOn(creem, "checkouts", "get").mockReturnValue({
+        create,
+      } as never);
+      const handler = extractHandler(apiExports.checkouts.create as never);
+      const ctx = createMockCtx({});
+      await expect(
+        handler(ctx, { productId: "prod_1", entityId: "org_2" }),
+      ).resolves.toEqual({ url: "https://creem.io/x" });
+      expect(resolve).toHaveBeenCalledWith(ctx, { entityId: "org_2" });
+      expect(create).toHaveBeenCalledWith(ctx, {
+        productId: "prod_1",
+        entityId: "org_2",
+        userId: "user_1",
+        email: "a@b.com",
+      });
+    });
+
+    it("refuses a checkout when the resolver answers with another entity", async () => {
+      resolve.mockResolvedValue({ ...identity, entityId: "org_1" });
+      const create = vi.fn();
+      vi.spyOn(creem, "checkouts", "get").mockReturnValue({
+        create,
+      } as never);
+      const handler = extractHandler(apiExports.checkouts.create as never);
+      await expect(
+        handler(createMockCtx({}), { productId: "prod_1", entityId: "org_2" }),
+      ).rejects.toThrow("requested billing entity");
+      expect(create).not.toHaveBeenCalled();
+    });
+  });
+
   describe("transactions.search", () => {
     it("returns the first SDK page result without the pagination iterator", async () => {
       resolve.mockResolvedValue({
