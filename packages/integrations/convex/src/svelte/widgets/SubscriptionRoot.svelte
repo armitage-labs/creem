@@ -5,6 +5,7 @@
   import { Portal } from "@ark-ui/svelte/portal";
 
   import PricingSection from "../primitives/PricingSection.svelte";
+  import PlanChoice from "../primitives/PlanChoice.svelte";
   import SegmentGroup from "../primitives/SegmentGroup.svelte";
   import IntervalSelector from "../primitives/IntervalSelector.svelte";
   import ScheduledChangeBanner from "../primitives/ScheduledChangeBanner.svelte";
@@ -110,6 +111,15 @@
     permissions?: BillingPermissions;
     /** Wrapper CSS class. */
     class?: string;
+    /**
+     * Bill this entity instead of the caller's default one, for example an
+     * organization the user administers without having switched to it. The
+     * generated `uiModel` and `checkouts.create` pass it to your resolver, which
+     * must authorize it (`ApiResolveRequest`). Only new checkouts are offered:
+     * plan changes, cancellation and unit updates act on the caller's default
+     * entity, so they are switched off while this is set.
+     */
+    entityId?: string;
     /** Checkout success URL override. Defaults to Creem product success URL, then the current page. */
     successUrl?: string;
     /** App-derived quantity for unit-based plans. */
@@ -124,6 +134,13 @@
     appPlanUpdateBehavior?: AppPlanUpdateBehaviorSetting;
     /** Remove built-in classes from compound subscription pieces. */
     unstyled?: boolean;
+    /**
+     * Default layout without children: `"cards"`, a card and a button per plan,
+     * or `"choice"`, the plans as one single choice with one checkout button
+     * (`PlanChoice`), for a checkout that only buys. `"choice"` offers no plan
+     * switch or cancellation.
+     */
+    layout?: "cards" | "choice";
     /** Optional checkout guard for this root. Overrides provider guard. */
     onBeforeCheckout?: (intent: CheckoutIntent) => Promise<boolean> | boolean;
     /** Optional paid-plan-change guard for this root. Overrides provider guard. */
@@ -153,6 +170,7 @@
     cycleBadges = undefined,
     permissions = undefined,
     class: className = "",
+    entityId = undefined,
     successUrl = undefined,
     units = undefined,
     showUnitPicker = false,
@@ -160,6 +178,7 @@
     updateBehavior = undefined,
     appPlanUpdateBehavior = undefined,
     unstyled = false,
+    layout = "cards",
     onBeforeCheckout = undefined,
     onBeforePlanChange = undefined,
     onBeforePlanActivation = undefined,
@@ -204,9 +223,18 @@
     };
   });
 
-  const canChange = $derived(resolvedPermissions?.canChangeSubscription !== false);
-  const canCancel = $derived(resolvedPermissions?.canCancelSubscription !== false);
-  const canResume = $derived(resolvedPermissions?.canResumeSubscription !== false);
+  // A named entity gets checkouts only: the subscription mutations resolve
+  // the caller's default entity and take no entity of their own.
+  const namesEntity = $derived(entityId !== undefined);
+  const canChange = $derived(
+    !namesEntity && resolvedPermissions?.canChangeSubscription !== false,
+  );
+  const canCancel = $derived(
+    !namesEntity && resolvedPermissions?.canCancelSubscription !== false,
+  );
+  const canResume = $derived(
+    !namesEntity && resolvedPermissions?.canResumeSubscription !== false,
+  );
 
   const client = useConvexClient();
 
@@ -219,7 +247,9 @@
     resolvedApi.subscriptions?.cancelScheduledUpdate;
   const activateAppPlanRef = resolvedApi.plans?.activate;
 
-  const billingModelQuery = useQuery(billingUiModelRef, {});
+  const billingModelQuery = useQuery(billingUiModelRef, () =>
+    entityId !== undefined ? { entityId } : {},
+  );
   const model = $derived(
     (billingModelQuery.data ?? null) as ConnectedBillingModel | null,
   );
@@ -604,6 +634,7 @@
     try {
       const { url } = await client.action(checkoutLinkRef, {
         productId,
+        ...(entityId !== undefined ? { entityId } : {}),
         ...(successUrl ? { successUrl } : {}),
         fallbackSuccessUrl: getFallbackSuccessUrl(),
         theme: getPreferredTheme(),
@@ -1096,6 +1127,28 @@
 
     {#if children}
       {@render children()}
+    {:else if layout === "choice"}
+      {#if intervalSelector === "auto" && availableCycles.length > 1}
+        <IntervalSelector
+          cycles={availableCycles}
+          value={effectiveCycle}
+          {cycleBadges}
+          onValueChange={(cycle) => contextValue.setCycle(cycle)}
+          {unstyled}
+          labels={resolvedI18n.labels}
+        />
+      {/if}
+      <PlanChoice
+        plans={visiblePlans}
+        selectedCycle={effectiveCycle}
+        products={allProducts}
+        subscriptionProductId={localSubscriptionProductId}
+        disableCheckout={!canCheckout}
+        onCheckout={canCheckout ? handlePricingCheckout : undefined}
+        {unstyled}
+        labels={resolvedI18n.labels}
+        formatCurrency={resolvedI18n.formatCurrency}
+      />
     {:else}
       <PricingSection
         plans={visiblePlans}

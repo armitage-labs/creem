@@ -140,6 +140,8 @@ import {
   billingEmailActionResultValidator,
   billingSnapshotValidator,
   checkoutCreateArgs,
+  entityRequestArgs,
+  uiModelArgs,
   connectedBillingModelValidator,
   connectedTransactionListValidator,
   creditBalanceValidator,
@@ -282,7 +284,25 @@ export type ResolvedBillingIdentity = {
  */
 export type ApiResolver = (
   ctx: RunQueryCtx,
+  request?: ApiResolveRequest,
 ) => Promise<ResolvedBillingIdentity | null>;
+
+/**
+ * What a widget asked the resolver for. `entityId` is set when a widget bills a
+ * named entity instead of the caller's default one (`<Subscription.Root
+ * entityId>`), for example an organization the user administers but has not
+ * switched to.
+ *
+ * The value comes from the browser: a resolver that honours it must check the
+ * caller's membership and billing role in that entity, exactly as it does for
+ * its default one. A resolver that ignores it keeps working for every widget
+ * that names no entity; a call that names one fails rather than reading or
+ * billing another entity, because the generated functions require the resolved
+ * `entityId` to equal the requested one.
+ */
+export type ApiResolveRequest = {
+  entityId?: string;
+};
 
 /**
  * Throw from an {@link ApiResolver} to signal "no authenticated caller".
@@ -338,9 +358,12 @@ const isNotAuthenticatedError = (error: unknown): boolean =>
 const resolveOptionalIdentity = async (
   resolve: ApiResolver,
   ctx: RunQueryCtx,
+  requestedEntityId?: string,
 ): Promise<ResolvedBillingIdentity | null> => {
   try {
-    return await resolve(ctx);
+    const resolved = await resolve(ctx, requestRecord(requestedEntityId));
+    if (resolved) assertRequestedEntity(resolved, requestedEntityId);
+    return resolved;
   } catch (error) {
     if (isNotAuthenticatedError(error)) {
       return null;
@@ -360,12 +383,37 @@ const resolveOptionalIdentity = async (
 const requireIdentity = async (
   resolve: ApiResolver,
   ctx: RunQueryCtx,
+  requestedEntityId?: string,
 ): Promise<ResolvedBillingIdentity> => {
-  const resolved = await resolve(ctx);
+  const resolved = await resolve(ctx, requestRecord(requestedEntityId));
   if (!resolved) {
     throw new ConvexError("Not authenticated");
   }
+  assertRequestedEntity(resolved, requestedEntityId);
   return resolved;
+};
+
+/** The resolver's second argument: empty unless a widget named an entity. */
+const requestRecord = (requestedEntityId?: string): ApiResolveRequest =>
+  requestedEntityId === undefined ? {} : { entityId: requestedEntityId };
+
+/**
+ * A call that names an entity is served for that entity or not at all: a
+ * resolver that ignores {@link ApiResolveRequest} would otherwise answer with
+ * the caller's default entity, and a checkout would bill it.
+ */
+const assertRequestedEntity = (
+  resolved: ResolvedBillingIdentity,
+  requestedEntityId?: string,
+): void => {
+  if (
+    requestedEntityId !== undefined &&
+    resolved.entityId !== requestedEntityId
+  ) {
+    throw new ConvexError(
+      "The resolver did not resolve the requested billing entity",
+    );
+  }
 };
 
 /**
@@ -2309,10 +2357,14 @@ export class Creem {
   api({ resolve }: { resolve: ApiResolver }) {
     return {
       uiModel: queryGeneric({
-        args: {},
+        args: uiModelArgs,
         returns: connectedBillingModelValidator,
-        handler: async (ctx): Promise<ConnectedBillingModel> => {
-          const resolved = await resolveOptionalIdentity(resolve, ctx);
+        handler: async (ctx, args): Promise<ConnectedBillingModel> => {
+          const resolved = await resolveOptionalIdentity(
+            resolve,
+            ctx,
+            args.entityId,
+          );
           return await this.getBillingModel(ctx, {
             entityId: resolved?.entityId ?? null,
             user: resolved
@@ -2336,18 +2388,20 @@ export class Creem {
       }),
       checkouts: {
         create: actionGeneric({
-          args: checkoutCreateArgs,
+          args: { ...checkoutCreateArgs, ...entityRequestArgs },
           returns: v.object({ url: v.string() }),
           handler: async (ctx, args): Promise<{ url: string }> => {
+            const { entityId: requestedEntityId, ...checkout } = args;
             const { entityId, userId, email } = await requireIdentity(
               resolve,
               ctx,
+              requestedEntityId,
             );
             return await this.checkouts.create(ctx, {
+              ...checkout,
               entityId,
               userId,
               email,
-              ...args,
             });
           },
         }),

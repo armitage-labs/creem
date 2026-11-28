@@ -12,6 +12,8 @@ export { CheckoutButton } from "./primitives/CheckoutButton.js";
 export { CustomerPortalButton } from "./primitives/CustomerPortalButton.js";
 export { PricingCard } from "./primitives/PricingCard.js";
 export { PricingSection } from "./primitives/PricingSection.js";
+export { PlanChoice } from "./primitives/PlanChoice.js";
+export type { PlanChoiceProps } from "./primitives/PlanChoice.js";
 export { BillingGate } from "./primitives/BillingGate.js";
 export { ScheduledChangeBanner } from "./primitives/ScheduledChangeBanner.js";
 export { PaymentWarningBanner } from "./primitives/PaymentWarningBanner.js";

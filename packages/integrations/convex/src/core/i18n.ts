@@ -109,6 +109,10 @@ export type BillingLabels = {
     buyNow: string;
     subscribe: string;
     getStarted: string;
+    /** The one action of the plan choice (`layout="choice"`). */
+    continueToCheckout: string;
+    /** Accessible name of the plan choice's radio group. */
+    choosePlan: string;
     units: string;
     unitCount: (units: number) => string;
     unitPriceCalculation: (input: {
@@ -334,6 +338,8 @@ export const defaultBillingLabels: BillingLabels = {
     buyNow: "Buy now",
     subscribe: "Subscribe",
     getStarted: "Get started",
+    continueToCheckout: "Continue to checkout",
+    choosePlan: "Choose a plan",
     units: "Units:",
     unitCount: (units) => `${units} unit${units === 1 ? "" : "s"}`,
     unitPriceCalculation: ({ unitPrice, units }) =>
